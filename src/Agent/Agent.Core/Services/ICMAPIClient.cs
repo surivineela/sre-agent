@@ -21,29 +21,53 @@ namespace Agent.Core.Services
     {
         //bool IsEnabled();
         Task<Incident> GetIncidentAsync(string incidentId);
-        Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null,IEnumerable<string>? statuses = null);
+
+        Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null, IEnumerable<string>? statuses = null);
+
         Task<List<CustomField>> GetCustomFieldsAsync(string incidentId);
+
         Task<List<SearchItem>> SearchIncidentsAsync(string searchString);
+
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId);
+
         Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantId, string teamId);
+
         Task<string> ChangeSeverityAsync(string incidentId, int severity, string discussionEntry, bool htmlRendering = true);
+
         Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "", string mitigateContactAlias = "antagent-1p");
+
         Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string resolveContactAlias = "antagent-1p");
+
         Task<string> PostDiscussionEntryAsync(string incidentId, string discussionEntry, bool htmlRendering = true);
+
         Task<string> SetIncidentTags(string incidentId, List<string> tags);
+
         Task<string> AddTagToIncident(string incidentId, string tag);
+
         Task<string> AddKeywordToIncident(string incidentId, string keyword);
+
         Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "antagent-1p");
+
         Task<List<string>> GetLinkedRelatedIncidentInfoAsync(long incidentId);
+
         Task<string> AddRelatedIncidentLinkAsync(long incidentId, long relatedIncidentId);
+
         Task<string> RemoveRelatedIncidentLinkAsync(long incidentId, long relatedIncidentId);
+
         Task<string> GetParentIncidentInfoAsync(long incidentId);
+
         Task<string> AddParentIncidentLinkAsync(long incidentId, long parentIncidentId);
+
         Task<string> RemoveParentIncidentLinkAsync(long incidentId);
+
         Task<List<string>> GetChildIncidentsInfoAsync(long incidentId);
+
         Task<List<IncidentRepairItem>> GetIncidentRepairItemsAsync(long incidentId);
+
         Task<string> AddIncidentAttachment(string incidentId, string fileName, string base64Content);
+
         Task<List<Attachment>> ListIncidentAttachments(string incidentId);
+
         Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId);
     }
 
@@ -88,12 +112,13 @@ namespace Agent.Core.Services
             }
 
             _authType = AuthType.None;
-             if (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateSubjectName) ||
-                     (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateKeyVaultUri) && !string.IsNullOrWhiteSpace(_icmApiSettings.CertificateKeyVaultSecretName)))
+            if (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateSubjectName) ||
+                    (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateKeyVaultUri) && !string.IsNullOrWhiteSpace(_icmApiSettings.CertificateKeyVaultSecretName)))
             {
                 _authType = AuthType.Certificate;
                 IcmAPIPathPrefix = "/api/cert";
-            } else if (!string.IsNullOrEmpty(_identity))
+            }
+            else if (!string.IsNullOrEmpty(_identity))
             {
                 _authType = AuthType.ManagedIdentity;
                 IcmAPIPathPrefix = API2PathPrefix;
@@ -316,7 +341,7 @@ namespace Agent.Core.Services
             }
         }
 
-        public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null,IEnumerable<string>? statuses = null)
+        public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null, IEnumerable<string>? statuses = null)
         {
             var modifiedDate = lastModifiedDate.HasValue ? lastModifiedDate.Value : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if no date is provided
 
@@ -357,13 +382,12 @@ namespace Agent.Core.Services
 
             if (_authType == AuthType.Certificate)
             {
-
                 // Order by is not supported in cert API, so we remove it
                 queryParams = new Dictionary<string, string?>()
                 {
                     ["$top"] = limit.ToString(),
                     ["$skip"] = offset.ToString(),
-                    ["$filter"] = $"{serviceIdFilter}{titleFilter}{teamIdFilter}{incidentTypeFilter}{createdByFilter}{monitorIdFilter}{stateFilter}"
+                    ["$filter"] = $"ModifiedDate gt datetime'{modifiedDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'")}'{serviceIdFilter}{titleFilter}{teamIdFilter}{incidentTypeFilter}{createdByFilter}{monitorIdFilter}{stateFilter}"
                 };
             }
 
@@ -485,8 +509,8 @@ namespace Agent.Core.Services
                 // Use the direct API2 incidentapi path as specified
                 var url = $"{_icmApiSettings.APIEndpoint}/api2/incidentapi/incidents({incidentId})";
                 var response = await _httpClient.PatchAsync(url, new StringContent(
-                    JsonConvert.SerializeObject(content), 
-                    Encoding.UTF8, 
+                    JsonConvert.SerializeObject(content),
+                    Encoding.UTF8,
                     "application/json"));
 
                 if (response.IsSuccessStatusCode)
@@ -775,6 +799,7 @@ namespace Agent.Core.Services
         }
 
         #region RelatedIncident CRD
+
         public async Task<List<string>> GetLinkedRelatedIncidentInfoAsync(long incidentId)
         {
             var response = await SendICMGetRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/RelatedIncidents");
@@ -859,9 +884,11 @@ namespace Agent.Core.Services
                 throw new Exception($"Failed to remove related incident. Status code: {response.StatusCode} : {await response.Content.ReadAsStringAsync()}");
             }
         }
-        #endregion
+
+        #endregion RelatedIncident CRD
 
         #region ParentIncident CRD
+
         public async Task<string> GetParentIncidentInfoAsync(long incidentId)
         {
             var apiPathPrefix = IcmAPIPathPrefix.StartsWith(API2PathPrefix) ? IcmAPIPathPrefix.Replace(API2PathPrefix, APIPathPrefix) : IcmAPIPathPrefix;
@@ -938,7 +965,8 @@ namespace Agent.Core.Services
                 throw new Exception($"Failed to remove parent from incident. Status code: {response.StatusCode} : {responseContent}");
             }
         }
-        #endregion
+
+        #endregion ParentIncident CRD
 
         public async Task<List<string>> GetChildIncidentsInfoAsync(long incidentId)
         {
@@ -1045,7 +1073,7 @@ namespace Agent.Core.Services
                 // First get attachment metadata to check file extension and size
                 var attachments = await ListIncidentAttachments(incidentId);
                 var attachment = attachments.FirstOrDefault(a => a.Id.ToString() == attachmentId);
-                
+
                 if (attachment == null)
                 {
                     return $"Attachment with ID {attachmentId} not found for incident {incidentId}.";
@@ -1059,7 +1087,7 @@ namespace Agent.Core.Services
                 // Download the file directly using GET request
                 var url = $"{_icmApiSettings.APIEndpoint}/api2/attachmentapi/attachments({attachmentId})";
                 var response = await _httpClient.GetAsync(url);
-                
+
                 if (!response.IsSuccessStatusCode)
                 {
                     return $"Failed to download attachment. Status code: {response.StatusCode}";
@@ -1079,7 +1107,7 @@ namespace Agent.Core.Services
                         // Save large text files locally and return error message
                         var fileName = $"attachment_{attachmentId}_{attachment.FileName}";
                         var filePath = Path.Combine(Path.GetTempPath(), fileName);
-                        
+
                         try
                         {
                             var fileBytes = await response.Content.ReadAsByteArrayAsync();
@@ -1097,7 +1125,7 @@ namespace Agent.Core.Services
                     // Save non-text files locally
                     var fileName = $"attachment_{attachmentId}_{attachment.FileName}";
                     var filePath = Path.Combine(Path.GetTempPath(), fileName);
-                    
+
                     try
                     {
                         var fileBytes = await response.Content.ReadAsByteArrayAsync();
@@ -1174,7 +1202,7 @@ namespace Agent.Core.Services
             throw new NotImplementedException();
         }
 
-        public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null,IEnumerable<string>? statuses = null)
+        public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null, IEnumerable<string>? statuses = null)
         {
             throw new NotImplementedException();
         }
