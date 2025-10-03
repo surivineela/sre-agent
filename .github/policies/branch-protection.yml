@@ -23,6 +23,7 @@ configuration:
       - build-dotnet
       - build-npm
       - Run Evaluation Tests
+      - E2E Container Tests
     - branchNamePattern: "release/*"
       requiredApprovingReviewsCount: 2
       restrictsPushes: true
@@ -40,6 +41,7 @@ configuration:
       - build-dotnet
       - build-npm
       - Run Evaluation Tests
+      - E2E Container Tests
     - branchNamePattern: "rcaagent-port-new-framework"
       requiredApprovingReviewsCount: 2
       restrictsPushes: true
