@@ -373,7 +373,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
 
             bool isTest = request.IsTest;
             (var thread, var agentContext) = await _inboundCommunicationService.CreateAgentThread(
-                title: $"Incident Report - {request.Title}",
+                title: $"{(!string.IsNullOrEmpty(request.IncidentId) ? $"#{request.IncidentId}: " : "")}{request.Title}",
                 message: incidentMessage,
                 agentTypeEnum: AgentTypeEnum.Meta,
                 source: ThreadSource.Incident,
@@ -652,7 +652,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 // Emit agent action telemetry for thread creation with incident source
                 try
                 {
-                    var param = JsonSerializer.Serialize(new { IncidentSource = GetIncidentSource(), HandlerId = incidentHandler.Id  });
+                    var param = JsonSerializer.Serialize(new { IncidentSource = GetIncidentSource(), HandlerId = incidentHandler.Id });
                     _logger.LogAgentAction(
                         action: AgentActionEvents.CreateThread,
                         parameter: param,

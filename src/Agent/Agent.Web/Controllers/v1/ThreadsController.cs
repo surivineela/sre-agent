@@ -483,7 +483,7 @@ namespace Agent.Web.Controllers.v1
             //);
 
             (var thread, var agentContext) = await agentInboundCommunicationService.CreateAgentThread(
-                title: $"Incident Report - {request.Title}",
+                title: $"{(!string.IsNullOrEmpty(request.IncidentId) ? $"#{request.IncidentId}: " : "")}{request.Title}",
                 message: incidentMessage,
                 agentTypeEnum: AgentTypeEnum.Meta,
                 source: ThreadSource.Incident,

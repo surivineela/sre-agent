@@ -22,7 +22,7 @@ public class TitleGenerationService : ITitleGenerationService
 
     public virtual string GetTitleGenerationSystemPrompt()
     {
-        return "This is a thread for Azure SRE Agent. Generate a concise, descriptive title (maximum 6 words) for this conversation. Return only the title text without quotes or extra formatting.";
+        return "This is a thread for Azure SRE Agent. Generate a concise, descriptive title (maximum 6 words) for this conversation. Return only the title text without quotes or extra formatting. **If the message mentions an IcM incident ID, format the title as: ICM# <incidentID>: <brief description based on the incident details in the message>**";
     }
 
     /// <summary>
