@@ -1344,24 +1344,14 @@ public class ReasoningLoop : IDisposable
             _currentGenerationSpan?.End();
             _currentGenerationSpan = null;
             _currentGenerationStopwatch = null;
-            // Build token usage JSON including cached token count if available
-            long cachedTokenCount = 0;
 
+            // Build token usage JSON including cached token count if available
+            var cachedTokenCount = 0L;
             try
             {
                 if (response?.Usage?.AdditionalCounts is not null)
                 {
-                    if (response.Usage.AdditionalCounts.TryGetValue("InputTokenDetails.CachedTokenCount", out var cachedObj))
-                    {
-                        try
-                        {
-                            cachedTokenCount = Convert.ToInt64(cachedObj);
-                        }
-                        catch
-                        {
-                            long.TryParse(cachedObj.ToString(), out cachedTokenCount);
-                        }
-                    }
+                    response.Usage.AdditionalCounts.TryGetValue("InputTokenDetails.CachedTokenCount", out cachedTokenCount);
                 }
             }
             catch (Exception ex)
@@ -1369,11 +1359,26 @@ public class ReasoningLoop : IDisposable
                 _logger.LogInternalWarning(ex, "Failed to parse cached token count from AdditionalCounts");
             }
 
+            // Build token usage JSON including cached token count if available
+            var reasoningTokenCount = 0L;
+            try
+            {
+                if (response?.Usage?.AdditionalCounts is not null)
+                {
+                    response.Usage.AdditionalCounts.TryGetValue("OutputTokenDetails.ReasoningTokenCount", out reasoningTokenCount);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to parse output reasoning token count from AdditionalCounts");
+            }
+
             var tokenUsageObj = new
             {
                 InputTokenCount = response?.Usage?.InputTokenCount ?? 0,
                 OutputTokenCount = response?.Usage?.OutputTokenCount ?? 0,
-                CachedTokenCount = cachedTokenCount
+                CachedTokenCount = cachedTokenCount,
+                ReasoningTokenCount = reasoningTokenCount,
             };
 
             _logger.LogAgentAction(

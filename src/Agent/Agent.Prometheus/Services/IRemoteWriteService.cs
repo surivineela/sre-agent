@@ -4,8 +4,6 @@
 
 namespace Agent.Prometheus.Services;
 
-using global::Prometheus;
-
 // push metric to azure monitor workspace(Azure managed prometheus) using https://prometheus.io/docs/specs/prw/remote_write_spec/
 public interface IRemoteWriteService
 {
