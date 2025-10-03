@@ -218,6 +218,10 @@ export const useIncidentManagementStyles = makeStyles({
         height: '100%',
         width: '100%',
     },
+    inputField: {
+        minWidth: '75px',
+        maxWidth: '265px',
+    },
 });
 
 export const generateHandlerStyles = mergeStyleSets({

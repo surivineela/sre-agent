@@ -4,6 +4,7 @@ import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { AgentMode, IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import { IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
+import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { getPriorityOrSeverityStrings } from '../../Utilities';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
@@ -11,6 +12,7 @@ import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormVal
 
 export const FilterStep: FC = () => {
     const intl = useIntl();
+    const styles = useIncidentManagementStyles();
 
     const { filterMode, exitToHome, setCurrentStep, incidentTypeOptions, impactedServiceOptions, priorityOptions, incidentPlatformType } =
         useContext(IncidentHandlerConsolidatedCreateContext);
@@ -108,6 +110,7 @@ export const FilterStep: FC = () => {
                             onChange={(_, data) => setFieldValue('filterName', data.value)}
                             placeholder={intl.formatMessage(IncidentManagementResources.incidentHandlerNamePlaceholder)}
                             disabled={filterMode === 'edit'}
+                            className={styles.inputField}
                         />
                     </Field>
                 </div>
@@ -126,6 +129,7 @@ export const FilterStep: FC = () => {
                                     value={values.owningTeamId}
                                     onChange={(_, data) => setFieldValue('owningTeamId', data.value)}
                                     placeholder={intl.formatMessage(IncidentManagementResources.owningTeamIdPlaceholder)}
+                                    className={styles.inputField}
                                 />
                             </Field>
 
@@ -135,6 +139,7 @@ export const FilterStep: FC = () => {
                                     value={values.monitorId}
                                     onChange={(_, data) => setFieldValue('monitorId', data.value)}
                                     placeholder={intl.formatMessage(IncidentManagementResources.monitorIdPlaceholder)}
+                                    className={styles.inputField}
                                 />
                             </Field>
 
@@ -144,6 +149,7 @@ export const FilterStep: FC = () => {
                                     value={values.createdBy}
                                     onChange={(_, data) => setFieldValue('createdBy', data.value)}
                                     placeholder={intl.formatMessage(IncidentManagementResources.createdByPlaceholder)}
+                                    className={styles.inputField}
                                 />
                             </Field>
                         </div>
@@ -159,6 +165,7 @@ export const FilterStep: FC = () => {
                                     onOptionSelect={(_, data) => setFieldValue('incidentType', data.optionValue)}
                                     onBlur={() => setFieldTouched('incidentType', true)}
                                     placeholder={intl.formatMessage(IncidentManagementResources.chooseIncidentType)}
+                                    className={styles.inputField}
                                 >
                                     {incidentTypeOptionsExtended.map(option => (
                                         <Option value={option.key} key={option.key}>
@@ -178,6 +185,7 @@ export const FilterStep: FC = () => {
                                     onBlur={() => {
                                         setFieldTouched('impactedService', true);
                                     }}
+                                    className={styles.inputField}
                                 >
                                     {impactedServiceOptionsExtended.map(option => (
                                         <Option value={option.key} key={option.key}>
@@ -197,6 +205,7 @@ export const FilterStep: FC = () => {
                             onBlur={() => setFieldTouched('priority', true)}
                             selectedOptions={values.priority ? [values.priority] : []}
                             onOptionSelect={(_, data) => setFieldValue('priority', data.optionValue)}
+                            className={styles.inputField}
                         >
                             {priorityOptionsExtended.map(option => (
                                 <Option value={option.key} key={option.key}>
@@ -212,6 +221,7 @@ export const FilterStep: FC = () => {
                             value={values.titleContains}
                             onChange={(_, data) => setFieldValue('titleContains', data.value)}
                             placeholder={intl.formatMessage(IncidentManagementResources.titlePlaceholder)}
+                            className={styles.inputField}
                         />
                     </Field>
                 </div>
