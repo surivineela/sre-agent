@@ -47,6 +47,7 @@ import { ActivitiesThreadHeaderResources, IncidentManagementResources, SreAgentR
 import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
 import { SreAgentContext } from '../../Contracts/Context';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
+import { PlatformConnectionMessageBar } from '../Common/PlatformConnectionMessageBar';
 import IncidentChat from '../IncidentChat';
 import { getPriorityOrSeverityStrings } from '../Utilities';
 import { SortColumn, useIncidentThreadList } from './useIncidentThreadList';
@@ -717,6 +718,7 @@ const IncidentsOverview: FC = () => {
                 <div className={styles.navPanelContent}>
                     <div className={styles.navPanelPadding}>
                         <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <PlatformConnectionMessageBar />
                             <div className={styles.incidentFiltersContainer}>
                                 <SearchBox
                                     className={styles.searchBox}

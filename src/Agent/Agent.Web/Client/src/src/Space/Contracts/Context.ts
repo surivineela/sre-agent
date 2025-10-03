@@ -7,6 +7,8 @@ import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
 import { AgentContextProps, ChatMessage } from './Activities';
 
+export type IncidentManagementConnectionState = 'connected' | 'notConnected' | 'waiting';
+
 type SreAgentContextProps = {
     activities: {
         lastVisitedThreadId: string | undefined;
@@ -26,6 +28,7 @@ type SreAgentContextProps = {
         incidentPlatformTypeLoaded: boolean | undefined;
         incidentPlatformTypeLoadFailure: string | undefined;
         refreshIncidentPlatformType: () => void;
+        incidentManagementConnectionState: IncidentManagementConnectionState | undefined;
         isIncidentManagementConnected: boolean;
         setIsIncidentManagementConnected: React.Dispatch<React.SetStateAction<boolean>>;
         hasFilters: boolean;
@@ -46,6 +49,7 @@ type SreAgentContextProps = {
     agentPatching: boolean;
     agentPatched: boolean;
     agentPatchFailure: string;
+    agentLastUpdatedTime: number | undefined;
     patchAgent: (agentPayload: Partial<ArmObj<Partial<Agent>>>) => Promise<HttpResponseObject<ArmObj<Agent>>>;
     refresh: () => void;
 };
@@ -111,6 +115,7 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
         incidentPlatformTypeLoaded: false,
         incidentPlatformTypeLoadFailure: '',
         refreshIncidentPlatformType: () => {},
+        incidentManagementConnectionState: undefined,
         isIncidentManagementConnected: false,
         setIsIncidentManagementConnected: () => {},
         hasFilters: false,
@@ -131,6 +136,7 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
     agentPatching: false,
     agentPatched: false,
     agentPatchFailure: '',
+    agentLastUpdatedTime: undefined,
     patchAgent: () => Promise.resolve({} as HttpResponseObject<ArmObj<Agent>>),
     refresh: () => {},
 });

@@ -346,8 +346,18 @@ const SREAgentSpace: FC = () => {
     const azPortalProxy = useContext(AzPortalContext);
     const { isCrossTenantPortalMode, resourceId } = useContext(EnvironmentContext);
 
-    const { agent, agentLoading, agentLoaded, agentLoadFailure, agentPatching, agentPatched, agentPatchFailure, patchAgent, refresh } =
-        useSreAgent(resourceId);
+    const {
+        agent,
+        agentLoading,
+        agentLoaded,
+        agentLoadFailure,
+        agentPatching,
+        agentPatched,
+        agentPatchFailure,
+        agentLastUpdatedTime,
+        patchAgent,
+        refresh,
+    } = useSreAgent(resourceId);
 
     const incidentPlatformTypeHook = useIncidentPlatformType();
 
@@ -405,12 +415,13 @@ const SREAgentSpace: FC = () => {
 
     const {
         refresh: refreshConnectivity,
+        incidentManagementConnectionState,
         isIncidentManagementConnected,
         setIsIncidentManagementConnected,
         hasFilters,
         setHasFilters,
         isLoading: checkingConnectivity,
-    } = useIncidentManagementConnectivity(shouldPoll);
+    } = useIncidentManagementConnectivity(shouldPoll, agentLastUpdatedTime, incidentPlatformType);
 
     useEffect(() => {
         const logSiteVersion = () => {
@@ -457,6 +468,7 @@ const SREAgentSpace: FC = () => {
                     incidentPlatformTypeLoaded,
                     incidentPlatformTypeLoadFailure,
                     refreshIncidentPlatformType,
+                    incidentManagementConnectionState,
                     isIncidentManagementConnected,
                     setIsIncidentManagementConnected,
                     hasFilters,
@@ -477,6 +489,7 @@ const SREAgentSpace: FC = () => {
                 agentPatching,
                 agentPatched,
                 agentPatchFailure,
+                agentLastUpdatedTime,
                 patchAgent,
                 refresh,
             }}

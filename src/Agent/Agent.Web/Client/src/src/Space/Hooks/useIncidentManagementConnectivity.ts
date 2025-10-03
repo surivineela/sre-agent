@@ -2,13 +2,27 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentHandlerClient } from '../../Common/Clients/IncidentHandlerClient';
+import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
+import { IncidentManagementConnectionState } from '../Contracts/Context';
 
-export const useIncidentManagementConnectivity = (shouldPoll: boolean) => {
+const POLLING_INTERVAL_LONG = 30000; // 30 seconds
+const POLLING_INTERVAL_SHORT = 5000; // 5 seconds
+const POLLING_TIMEOUT = 120000; // 2 minutes
+
+const getPollingInterval = (isConnected: boolean) => (isConnected ? POLLING_INTERVAL_LONG : POLLING_INTERVAL_SHORT);
+
+export const useIncidentManagementConnectivity = (
+    shouldPoll: boolean,
+    agentLastUpdatedTime: number | undefined,
+    incidentPlatformType: IncidentManagementType | undefined
+) => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const azPortalContext = useContext(AzPortalContext);
 
     const [isLoading, setIsLoading] = useState(true);
     const [isIncidentManagementConnected, setIsIncidentManagementConnected] = useState(false);
+    const [incidentManagementConnectedCounter, setIncidentManagementConnectedCounter] = useState(0);
+    const isIncidentManagementConnectedRef = useRef(isIncidentManagementConnected);
     const [hasFilters, setHasFilters] = useState(false);
     const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -19,7 +33,7 @@ export const useIncidentManagementConnectivity = (shouldPoll: boolean) => {
 
     const checkConnectivity = useCallback(async () => {
         const result = await incidentHandlerClient.checkConnectivity();
-        return result?.content ?? false;
+        return result?.content;
     }, [incidentHandlerClient]);
 
     const checkHandlers = useCallback(async () => {
@@ -30,18 +44,21 @@ export const useIncidentManagementConnectivity = (shouldPoll: boolean) => {
     const checkIncidentManagementConnectivity = useCallback(async () => {
         setIsLoading(true);
         const result = await checkConnectivity();
-        if (result) {
-            const hasIncidentFilters = await checkHandlers();
-            setHasFilters(hasIncidentFilters);
+        if (result !== undefined) {
+            if (result) {
+                const hasIncidentFilters = await checkHandlers();
+                setHasFilters(hasIncidentFilters);
+            }
+            setIsIncidentManagementConnected(result);
+            setIncidentManagementConnectedCounter(c => c + 1);
         }
-        setIsIncidentManagementConnected(result);
         setIsLoading(false);
         return result;
     }, [checkConnectivity, checkHandlers, setHasFilters, setIsIncidentManagementConnected]);
 
     const stopPolling = useCallback(() => {
         if (pollingTimerRef.current) {
-            clearInterval(pollingTimerRef.current);
+            clearTimeout(pollingTimerRef.current);
             pollingTimerRef.current = null;
         }
     }, []);
@@ -49,24 +66,36 @@ export const useIncidentManagementConnectivity = (shouldPoll: boolean) => {
     const startPolling = useCallback(() => {
         if (pollingTimerRef.current || !shouldPoll) return;
 
-        pollingTimerRef.current = setInterval(async () => {
+        const poll = async () => {
             const result = await checkConnectivity();
-            if (result) {
-                const hasIncidentFilters = await checkHandlers();
-                setHasFilters(hasIncidentFilters);
-            }
-            setIsIncidentManagementConnected(result);
+            let interval = POLLING_INTERVAL_LONG;
 
-            if (result) {
-                stopPolling();
+            if (result !== undefined) {
+                if (result) {
+                    const hasIncidentFilters = await checkHandlers();
+                    setHasFilters(hasIncidentFilters);
+                }
+                setIsIncidentManagementConnected(result);
+                setIncidentManagementConnectedCounter(c => c + 1);
+                interval = getPollingInterval(result);
+            } else {
+                interval = getPollingInterval(isIncidentManagementConnectedRef.current);
             }
-        }, 2000);
+
+            pollingTimerRef.current = setTimeout(poll, interval);
+        };
+
+        poll();
     }, [checkConnectivity, checkHandlers, setHasFilters, setIsIncidentManagementConnected, shouldPoll, stopPolling]);
 
     useEffect(() => {
+        isIncidentManagementConnectedRef.current = isIncidentManagementConnected;
+    }, [isIncidentManagementConnected]);
+
+    useEffect(() => {
         const runInitialCheck = async () => {
-            const result = await checkIncidentManagementConnectivity();
-            if (!result && shouldPoll) {
+            await checkIncidentManagementConnectivity();
+            if (shouldPoll) {
                 startPolling();
             }
         };
@@ -79,8 +108,30 @@ export const useIncidentManagementConnectivity = (shouldPoll: boolean) => {
         checkIncidentManagementConnectivity();
     }, [checkIncidentManagementConnectivity]);
 
+    const incidentManagementConnectionState: IncidentManagementConnectionState = useMemo(() => {
+        if (isIncidentManagementConnected) {
+            return 'connected';
+        }
+        if (!!agentLastUpdatedTime && Date.now() - agentLastUpdatedTime < POLLING_TIMEOUT) {
+            return 'waiting';
+        }
+        return 'notConnected';
+    }, [incidentManagementConnectedCounter, isIncidentManagementConnected, agentLastUpdatedTime]);
+
+    useEffect(() => {
+        if (incidentManagementConnectionState === 'notConnected') {
+            azPortalContext.log({
+                action: 'poll-incidentManagement-connectivity-postSetup',
+                actionModifier: 'failed',
+                logLevel: 'error',
+                data: { incidentPlatformType },
+            });
+        }
+    }, [incidentPlatformType, incidentManagementConnectionState, azPortalContext]);
+
     return {
         refresh,
+        incidentManagementConnectionState,
         isIncidentManagementConnected,
         setIsIncidentManagementConnected,
         hasFilters,

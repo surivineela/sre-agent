@@ -1,153 +1,22 @@
-import { Shimmer } from '@fluentui/react';
-import { MessageBar, MessageBarBody, MessageBarGroup } from '@fluentui/react-components';
-import { CheckmarkCircle16Filled, Warning16Filled } from '@fluentui/react-icons';
-import { tokens } from '@fluentui/react-theme';
-import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { FC, useCallback, useContext, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { IncidentFilter } from '../../Common/Contracts/Azure/IncidentHandler';
-import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
-import {
-    AzMonitorResources,
-    IcMResources,
-    IncidentManagementResources,
-    PagerDutyResources,
-    ServiceNowResources,
-} from '../../Strings/SREAgentResources';
+import { IncidentManagementResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { useIncidentFilterFields } from '../Hooks/useIncidentFilterFields';
 import { useIncidentFilters } from '../Hooks/useIncidentFilters';
 import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
+import { PlatformConnectionIndicator } from './Common/PlatformConnectionIndicator';
+import { PlatformConnectionMessageBar } from './Common/PlatformConnectionMessageBar';
 import { CreateOrUpdateIncidentFilterDialog, IncidentFilterFormProps } from './CreateIncidentFilterDialog';
 import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
 import CreateIncidentHandlerConsolidated from './CreateIncidentHandler/CreateIncidentHandlerConsolidated';
 import IncidentFiltersToolbar from './IncidentFiltersToolbar';
 import IncidentsFiltersGrid from './IncidentsFiltersGrid';
-
-interface ConnectionIndicatorProps {
-    connected: boolean;
-    platform?: IncidentManagementType;
-    style?: React.CSSProperties | undefined;
-    loading?: boolean;
-}
-
-const ConnectionIndicator: FC<ConnectionIndicatorProps> = ({ platform, connected, style, loading }) => {
-    const intl = useIntl();
-    let notConnectedMessage;
-    let connectedMessage;
-    switch (platform) {
-        case IncidentManagementType.PagerDuty:
-            notConnectedMessage = PagerDutyResources.notConnectedMessage;
-            connectedMessage = PagerDutyResources.connectedMessage;
-            break;
-        case IncidentManagementType.Icm:
-            notConnectedMessage = IcMResources.notConnectedMessage;
-            connectedMessage = IcMResources.connectedMessage;
-            break;
-        case IncidentManagementType.ServiceNow:
-            notConnectedMessage = ServiceNowResources.notConnectedMessage;
-            connectedMessage = ServiceNowResources.connectedMessage;
-            break;
-        case IncidentManagementType.AzMonitor:
-            notConnectedMessage = AzMonitorResources.notConnectedMessage;
-            connectedMessage = AzMonitorResources.connectedMessage;
-            break;
-        default:
-            break;
-    }
-
-    if (!platform || !notConnectedMessage || !connectedMessage) {
-        return null;
-    }
-
-    return (
-        <div
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                ...style,
-            }}
-        >
-            {loading ? (
-                <Shimmer width={160} />
-            ) : connected ? (
-                <>
-                    <CheckmarkCircle16Filled
-                        style={{ height: '16px', width: '16px', color: tokens.colorPaletteGreenForeground1 }}
-                        aria-label={intl.formatMessage(IncidentManagementResources.connected)}
-                    />
-                    <div>{intl.formatMessage(connectedMessage)}</div>
-                </>
-            ) : (
-                <>
-                    <Warning16Filled
-                        style={{ height: '16px', width: '16px', color: tokens.colorPaletteYellowForeground1 }}
-                        aria-label={intl.formatMessage(IncidentManagementResources.notConnected)}
-                    />
-                    <div>{intl.formatMessage(notConnectedMessage)}</div>
-                </>
-            )}
-        </div>
-    );
-};
-
-interface ConnectionMessageBarProps {
-    platform?: IncidentManagementType;
-}
-
-const ConnectionFailureMessageBar: FC<ConnectionMessageBarProps> = ({ platform }) => {
-    const intl = useIntl();
-    const connectionFailureMessage = useMemo(() => {
-        switch (platform) {
-            case IncidentManagementType.PagerDuty:
-                return intl.formatMessage(PagerDutyResources.connectionFailureMessage);
-            case IncidentManagementType.Icm:
-                return intl.formatMessage(IcMResources.connectionFailureMessage);
-            case IncidentManagementType.ServiceNow:
-                return intl.formatMessage(ServiceNowResources.connectionFailureMessage);
-            default:
-                return undefined;
-        }
-    }, [platform, intl]);
-
-    return (
-        !!platform &&
-        !!connectionFailureMessage && (
-            <MessageBarGroup
-                animate={'exit-only'}
-                style={{
-                    width: '100%',
-                    maxWidth: '100%',
-                    marginBottom: '16px',
-                }}
-            >
-                <MessageBar
-                    style={{
-                        padding: '10px',
-                        whiteSpace: 'normal',
-                        wordBreak: 'break-word',
-                        overflow: 'hidden',
-                        overflowWrap: 'break-word',
-                    }}
-                    intent={'error'}
-                >
-                    <MessageBarBody
-                        style={{
-                            wordBreak: 'break-word',
-                            overflowWrap: 'break-word',
-                        }}
-                    >
-                        {connectionFailureMessage}
-                    </MessageBarBody>
-                </MessageBar>
-            </MessageBarGroup>
-        )
-    );
-};
 
 interface HandlersOverviewProps {
     setNavigationHidden: (hidden: boolean) => void;
@@ -157,7 +26,7 @@ interface HandlersOverviewProps {
 const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useConsolidatedCreate }) => {
     const { logAmplitudeControlEvent } = useAzPortalContext();
     const {
-        incidentManagement: { incidentPlatformType, isIncidentManagementConnected, checkingConnectivity, refreshConnectivity },
+        incidentManagement: { isIncidentManagementConnected, checkingConnectivity, refreshConnectivity },
     } = useContext(SreAgentContext);
 
     const { canWriteIncidentManagement, canDeleteIncidentManagement } = useUserPermissions();
@@ -225,9 +94,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useC
         <div className={styles.navPanelWrapper}>
             <div className={styles.navPanelContent}>
                 <div className={styles.navPanelPadding}>
-                    {!checkingConnectivity && !isIncidentManagementConnected && (
-                        <ConnectionFailureMessageBar platform={incidentPlatformType} />
-                    )}
+                    <PlatformConnectionMessageBar />
                     <div className={styles.description}>
                         {intl.formatMessage(IncidentManagementResources.incidentManagementTabDescription)}
                     </div>
@@ -273,12 +140,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useC
                             canWriteIncidentManagement={canWriteIncidentManagement}
                             canDeleteIncidentManagement={canDeleteIncidentManagement}
                         />
-                        <ConnectionIndicator
-                            platform={incidentPlatformType}
-                            connected={isIncidentManagementConnected}
-                            style={{ marginLeft: 'auto', marginRight: '16px' }}
-                            loading={checkingConnectivity}
-                        />
+                        <PlatformConnectionIndicator style={{ marginLeft: 'auto', marginRight: '16px' }} />
                     </div>
                     <IncidentsFiltersGrid
                         handlerOperationStatus={handlerOperationStatus}

@@ -14,6 +14,7 @@ export interface SreAgentHook {
     agentPatching: boolean;
     agentPatched: boolean;
     agentPatchFailure: string;
+    agentLastUpdatedTime: number | undefined;
     patchAgent: (agentPayload: Partial<ArmObj<Partial<Agent>>>) => Promise<HttpResponseObject<ArmObj<Agent>>>;
     refresh: () => void;
 }
@@ -27,6 +28,7 @@ export function useSreAgent(resourceId: string): SreAgentHook {
     const [agentPatching, setAgentPatching] = useState(false);
     const [agentPatched, setAgentPatched] = useState(false);
     const [agentPatchFailure, setAgentPatchFailure] = useState('');
+    const [agentLastUpdatedTime, setAgentLastUpdatedTime] = useState<number>();
     const azPortalContext = useContext(AzPortalContext);
 
     const getAgent = useCallback(() => {
@@ -87,6 +89,7 @@ export function useSreAgent(resourceId: string): SreAgentHook {
                         logLevel: 'info',
                         resourceId,
                     });
+                    setAgentLastUpdatedTime(Date.now());
                     setAgent(response.data);
                     setAgentPatched(true);
                 } else {
@@ -120,6 +123,7 @@ export function useSreAgent(resourceId: string): SreAgentHook {
         agentPatching,
         agentPatched,
         agentPatchFailure,
+        agentLastUpdatedTime,
         patchAgent,
         refresh: getAgent,
     };

@@ -23,7 +23,6 @@ import {
     Tooltip,
     tokens,
 } from '@fluentui/react-components';
-import { CheckmarkCircle16Filled } from '@fluentui/react-icons';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
@@ -45,10 +44,11 @@ import {
     SreAgentResources,
     SreAgentTabResources,
 } from '../../Strings/SREAgentResources';
-import { SreAgentContext } from '../Contracts/Context';
 import { IncidentManagementFormProps } from '../Contracts/IncidentManagement';
+import { PlatformConnectionIndicator } from '../IncidentManagement/Common/PlatformConnectionIndicator';
+import { PlatformConnectionMessageBar } from '../IncidentManagement/Common/PlatformConnectionMessageBar';
 import { DirtyStateConfirmationWrapper } from '../IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
-import { useDialogStyles, usePagerDutyStyles, useSettingsStyles } from './Styles/Settings.styles';
+import { useDialogStyles, useSettingsStyles } from './Styles/Settings.styles';
 
 const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
     formikProps,
@@ -64,7 +64,6 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
 }: IncidentManagementFormProps) => {
     const intl = useIntl();
     const styles = useSettingsStyles();
-    const pagerDutyStyles = usePagerDutyStyles();
     const { dangerButton } = useDialogStyles();
     const { setFieldValue, setFieldTouched, submitForm, resetForm, values, isValid, isValidating, isSubmitting, dirty, initialValues } =
         formikProps;
@@ -73,9 +72,6 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
     const isApiKeyEditable = useMemo(() => isSetupScenario || editingApiKey, [isSetupScenario, editingApiKey]);
 
     const azPortalContext = useContext(AzPortalContext);
-    const {
-        incidentManagement: { isIncidentManagementConnected, hasFilters },
-    } = useContext(SreAgentContext);
     const { canWriteAgent } = useUserPermissions();
 
     const incidentPlatformDropdownOptions = useMemo(() => {
@@ -180,6 +176,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
 
     return (
         <>
+            <PlatformConnectionMessageBar />
             <div style={styles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.incidentPlatform)}</div>
             <div>
                 {loading ? (
@@ -252,7 +249,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                         style={styles.dropdownStyles}
                                         value={selectedPlatformDisplayName}
                                         placeholder={intl.formatMessage(IncidentManagementPlatformResources.disconnected)}
-                                        onOptionSelect={() => {}}
+                                        onOptionSelect={() => { }}
                                         disabled={true}
                                     >
                                         {incidentPlatformDropdownOptions.map(option => (
@@ -274,19 +271,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                     {intl.formatMessage(PagerDutyResources.description)}
                                 </div>
                                 {!isSetupScenario && (
-                                    <div className={pagerDutyStyles.iconContainer}>
-                                        <CheckmarkCircle16Filled
-                                            className={pagerDutyStyles.greenCheckIcon}
-                                            aria-label={intl.formatMessage(IncidentManagementResources.setUpComplete)}
-                                        />
-                                        <div>
-                                            {!isIncidentManagementConnected
-                                                ? intl.formatMessage(PagerDutyResources.addedMessage)
-                                                : hasFilters
-                                                  ? intl.formatMessage(PagerDutyResources.connectedMessage)
-                                                  : intl.formatMessage(PagerDutyResources.connectedMessageWithoutHandlers)}
-                                        </div>
-                                    </div>
+                                    <PlatformConnectionIndicator includeHandlersMessage={true} style={{ marginBottom: 20 }} />
                                 )}
                                 {(isSetupScenario || editingApiKey) && (
                                     <Field
@@ -330,19 +315,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                     {intl.formatMessage(AzMonitorResources.description)}
                                 </div>
                                 {!isSetupScenario && (
-                                    <div className={pagerDutyStyles.iconContainer}>
-                                        <CheckmarkCircle16Filled
-                                            className={pagerDutyStyles.greenCheckIcon}
-                                            aria-label={intl.formatMessage(IncidentManagementResources.setUpComplete)}
-                                        />
-                                        <div>
-                                            {!isIncidentManagementConnected
-                                                ? intl.formatMessage(AzMonitorResources.addedMessage)
-                                                : hasFilters
-                                                  ? intl.formatMessage(AzMonitorResources.connectedMessage)
-                                                  : intl.formatMessage(AzMonitorResources.connectedMessageWithoutHandlers)}
-                                        </div>
-                                    </div>
+                                    <PlatformConnectionIndicator includeHandlersMessage={true} style={{ marginBottom: 20 }} />
                                 )}
                             </>
                         )}
@@ -373,19 +346,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                     </Text>
                                 </div>
                                 {!isSetupScenario && (
-                                    <div className={pagerDutyStyles.iconContainer}>
-                                        <CheckmarkCircle16Filled
-                                            className={pagerDutyStyles.greenCheckIcon}
-                                            aria-label={intl.formatMessage(IncidentManagementResources.setUpComplete)}
-                                        />
-                                        <div>
-                                            {!isIncidentManagementConnected
-                                                ? intl.formatMessage(IcMResources.addedMessage)
-                                                : hasFilters
-                                                  ? intl.formatMessage(IcMResources.connectedMessage)
-                                                  : intl.formatMessage(IcMResources.connectedMessageWithoutHandlers)}
-                                        </div>
-                                    </div>
+                                    <PlatformConnectionIndicator includeHandlersMessage={true} style={{ marginBottom: 20 }} />
                                 )}
                             </>
                         )}
@@ -399,19 +360,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                     {intl.formatMessage(ServiceNowResources.description)}
                                 </div>
                                 {!isSetupScenario && (
-                                    <div className={pagerDutyStyles.iconContainer}>
-                                        <CheckmarkCircle16Filled
-                                            className={pagerDutyStyles.greenCheckIcon}
-                                            aria-label={intl.formatMessage(IncidentManagementResources.setUpComplete)}
-                                        />
-                                        <div>
-                                            {!isIncidentManagementConnected
-                                                ? intl.formatMessage(ServiceNowResources.addedMessage)
-                                                : hasFilters
-                                                  ? intl.formatMessage(ServiceNowResources.connectedMessage)
-                                                  : intl.formatMessage(ServiceNowResources.connectedMessageWithoutHandlers)}
-                                        </div>
-                                    </div>
+                                    <PlatformConnectionIndicator includeHandlersMessage={true} style={{ marginBottom: 20 }} />
                                 )}
 
                                 <Field
@@ -518,10 +467,10 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                             values.platform === IncidentManagementType.PagerDuty
                                                 ? intl.formatMessage(PagerDutyResources.quickstartHandlerDescription)
                                                 : values.platform === IncidentManagementType.ServiceNow
-                                                  ? intl.formatMessage(ServiceNowResources.quickstartHandlerDescription)
-                                                  : values.platform === IncidentManagementType.AzMonitor
-                                                    ? intl.formatMessage(AzMonitorResources.quickstartHandlerDescription)
-                                                    : intl.formatMessage(IcMResources.quickstartHandlerDescription)
+                                                    ? intl.formatMessage(ServiceNowResources.quickstartHandlerDescription)
+                                                    : values.platform === IncidentManagementType.AzMonitor
+                                                        ? intl.formatMessage(AzMonitorResources.quickstartHandlerDescription)
+                                                        : intl.formatMessage(IcMResources.quickstartHandlerDescription)
                                         }
                                         labelPosition="after"
                                     />

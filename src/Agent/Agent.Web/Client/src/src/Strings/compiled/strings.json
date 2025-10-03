@@ -43,12 +43,6 @@
       "value": "IcM is not connected."
     }
   ],
-  "+Ajs8c": [
-    {
-      "type": 0,
-      "value": "Successfully deleted incident response plan"
-    }
-  ],
   "+BcF2d": [
     {
       "type": 0,
@@ -767,6 +761,12 @@
       "value": "API Management Service Reader Role"
     }
   ],
+  "4ZoIgV": [
+    {
+      "type": 0,
+      "value": "Deleted incident response plan"
+    }
+  ],
   "4d5TjZ": [
     {
       "type": 0,
@@ -1323,12 +1323,6 @@
       "value": "Last 24 hours"
     }
   ],
-  "8OGvxd": [
-    {
-      "type": 0,
-      "value": "Successfully created incident response plan"
-    }
-  ],
   "8QX1EO": [
     {
       "type": 0,
@@ -1383,6 +1377,16 @@
       "value": "results"
     }
   ],
+  "8v0Pyn": [
+    {
+      "type": 0,
+      "value": "Failed to connect to "
+    },
+    {
+      "type": 1,
+      "value": "platformName"
+    }
+  ],
   "8yyU6n": [
     {
       "type": 0,
@@ -1405,6 +1409,12 @@
     {
       "type": 0,
       "value": "Failed to parse investigation data"
+    }
+  ],
+  "91775r": [
+    {
+      "type": 0,
+      "value": "Updated incident response plan"
     }
   ],
   "94Fg25": [
@@ -1547,6 +1557,12 @@
     {
       "type": 0,
       "value": "Monitoring Reader Role"
+    }
+  ],
+  "AmnkPD": [
+    {
+      "type": 0,
+      "value": "Created default incident response plan"
     }
   ],
   "Amv/KL": [
@@ -1759,12 +1775,6 @@
       "value": "Add an incident platform so that the agent can help respond to incidents in real time. To change to a different platform, you'll need to delete the connection to the current one."
     }
   ],
-  "D2I5kb": [
-    {
-      "type": 0,
-      "value": "ServiceNow connection added successfully"
-    }
-  ],
   "D3idYv": [
     {
       "type": 0,
@@ -1797,12 +1807,6 @@
     {
       "type": 0,
       "value": "Mitigated by agent"
-    }
-  ],
-  "DChIJ8": [
-    {
-      "type": 0,
-      "value": "Azure Monitor connection added successfully"
     }
   ],
   "DMd1Ql": [
@@ -2263,6 +2267,12 @@
       "value": "Monitor ID"
     }
   ],
+  "HvIalp": [
+    {
+      "type": 0,
+      "value": "Connecting to ServiceNow ..."
+    }
+  ],
   "I03XmI": [
     {
       "type": 0,
@@ -2435,12 +2445,6 @@
       "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Data Connectors instead."
     }
   ],
-  "JIBt4U": [
-    {
-      "type": 0,
-      "value": "Connection to IcM failed. Please check your configuration and try again."
-    }
-  ],
   "JJNc3c": [
     {
       "type": 0,
@@ -2475,6 +2479,12 @@
     {
       "type": 0,
       "value": "Client"
+    }
+  ],
+  "JXtKxS": [
+    {
+      "type": 0,
+      "value": "Connection to IcM failed. Please confirm that the managed identity of your agent is allowlisted on your IcM service team and try again."
     }
   ],
   "JYbAwr": [
@@ -2673,6 +2683,12 @@
     {
       "type": 0,
       "value": "Scheduled task created successfully"
+    }
+  ],
+  "LLt8Ve": [
+    {
+      "type": 0,
+      "value": "Created incident response plan"
     }
   ],
   "LPprqA": [
@@ -2951,12 +2967,6 @@
       "value": "Connect to ServiceNow with your instance endpoint and credentials. This allows the agent to manage incidents and tickets in your ServiceNow environment."
     }
   ],
-  "NrGEOo": [
-    {
-      "type": 0,
-      "value": "Successfully saved incident management configuration"
-    }
-  ],
   "Nrc9ba": [
     {
       "type": 0,
@@ -3061,18 +3071,6 @@
       "value": "Moderate"
     }
   ],
-  "Om6IJi": [
-    {
-      "type": 0,
-      "value": "Successfully updated incident response plan"
-    }
-  ],
-  "Oo1fwl": [
-    {
-      "type": 0,
-      "value": "Successfully enabled incident response plan"
-    }
-  ],
   "Oom2N7": [
     {
       "type": 0,
@@ -3107,12 +3105,6 @@
     {
       "type": 0,
       "value": "PostgreSQL Command"
-    }
-  ],
-  "P3Xgmf": [
-    {
-      "type": 0,
-      "value": "IcM connection added successfully"
     }
   ],
   "P3qxV2": [
@@ -3185,12 +3177,6 @@
     {
       "type": 0,
       "value": "Virtual Machine Contributor"
-    }
-  ],
-  "PaK6av": [
-    {
-      "type": 0,
-      "value": "Successfully created default incident response plan"
     }
   ],
   "Pc+tM3": [
@@ -3469,6 +3455,12 @@
     {
       "type": 0,
       "value": "TODO"
+    }
+  ],
+  "RXSky0": [
+    {
+      "type": 0,
+      "value": "Waiting for connectivity"
     }
   ],
   "RYbE1p": [
@@ -3899,12 +3891,6 @@
       "value": "View decision tree of potential root causes."
     }
   ],
-  "UqXSvH": [
-    {
-      "type": 0,
-      "value": "Successfully disabled incident response plan"
-    }
-  ],
   "UrGI9K": [
     {
       "type": 0,
@@ -4153,12 +4139,6 @@
       "value": "Primary resource type equals"
     }
   ],
-  "Wr7RY0": [
-    {
-      "type": 0,
-      "value": "PagerDuty connection added successfully"
-    }
-  ],
   "Wtf3vL": [
     {
       "type": 0,
@@ -4187,6 +4167,16 @@
     {
       "type": 0,
       "value": "Revision of"
+    }
+  ],
+  "X4oOy4": [
+    {
+      "type": 0,
+      "value": "Connected to "
+    },
+    {
+      "type": 1,
+      "value": "platformName"
     }
   ],
   "X5UCWb": [
@@ -4343,6 +4333,12 @@
     {
       "type": 0,
       "value": "Report unhealthy node"
+    }
+  ],
+  "YJ+mk9": [
+    {
+      "type": 0,
+      "value": "Disabled incident response plan"
     }
   ],
   "YJG5oU": [
@@ -4739,6 +4735,20 @@
       "value": "Output logs"
     }
   ],
+  "b2PyOl": [
+    {
+      "type": 0,
+      "value": "Connecting to "
+    },
+    {
+      "type": 1,
+      "value": "platformName"
+    },
+    {
+      "type": 0,
+      "value": " ..."
+    }
+  ],
   "b2kjHU": [
     {
       "type": 0,
@@ -4831,6 +4841,12 @@
     {
       "type": 0,
       "value": "Turn off incident response plan"
+    }
+  ],
+  "bxcc6L": [
+    {
+      "type": 0,
+      "value": "Enabled incident response plan"
     }
   ],
   "bxnWhY": [
@@ -5193,6 +5209,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "ey7R11": [
+    {
+      "type": 0,
+      "value": "Connecting to PagerDuty ..."
     }
   ],
   "f+cHle": [
@@ -6045,6 +6067,12 @@
       "value": "Region"
     }
   ],
+  "lqgE72": [
+    {
+      "type": 0,
+      "value": "Connecting to Azure Monitor ..."
+    }
+  ],
   "lvNWLS": [
     {
       "type": 0,
@@ -6819,6 +6847,12 @@
       "value": "Last hour"
     }
   ],
+  "s9ZhRf": [
+    {
+      "type": 0,
+      "value": "Connecting to IcM ..."
+    }
+  ],
   "sH0O5v": [
     {
       "type": 0,
@@ -7285,12 +7319,6 @@
       "value": "This will permanently delete the connection to Azure Monitor. The agent will no longer be integrated with Azure Monitor notifications. Are you sure you want to delete this connection?"
     }
   ],
-  "w9b/qS": [
-    {
-      "type": 0,
-      "value": "Failed to connect to the incident management platform"
-    }
-  ],
   "w9tk1A": [
     {
       "type": 0,
@@ -7641,6 +7669,12 @@
     {
       "type": 0,
       "value": "Core application group type"
+    }
+  ],
+  "yxXhfZ": [
+    {
+      "type": 0,
+      "value": "Saved incident management configuration"
     }
   ],
   "yzfsFI": [
