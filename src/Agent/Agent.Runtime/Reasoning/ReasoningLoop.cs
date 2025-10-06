@@ -1162,6 +1162,29 @@ public class ReasoningLoop : IDisposable
                 tools.Add(tool);
             }
 
+            // Inject SearchMemory tool dynamically for meta_agent and rca_meta_agent
+            const string SearchMemoryToolName = "SearchMemory";
+            if (_featureConfig.AgentMemoryEnabled &&
+                _featureConfig.TrajectoryRetrievalEnabled &&
+                (string.Equals(agent.Name, "meta_agent", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(agent.Name, "rca_meta_agent", StringComparison.OrdinalIgnoreCase)))
+            {
+                // Check if SearchMemory is not already in the tools list
+                if (!tools.Any(t => string.Equals(t.Name, SearchMemoryToolName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    try
+                    {
+                        var searchMemoryTool = _toolFactory.GetTool(SearchMemoryToolName, _context.ThreadId);
+                        tools.Add(searchMemoryTool);
+                        _logger.LogInternalInformation("Injected SearchMemory tool for agent {AgentName} (per-turn injection)", agent.Name);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalWarning(ex, "Failed to inject SearchMemory tool for agent {AgentName}", agent.Name);
+                    }
+                }
+            }
+
             return Task.FromResult(tools);
         };
 
@@ -1304,6 +1327,36 @@ public class ReasoningLoop : IDisposable
             {
                 _logger.LogInternalWarning(ex, "Failed to start generation stopwatch");
                 _currentGenerationStopwatch = null;
+            }
+
+            // Inject incident memory prompt dynamically for meta_agent and rca_meta_agent
+            // Note: Messages list is rebuilt fresh on every turn,
+            // so we must inject on every turn to ensure the prompt is always present
+            if (_featureConfig.AgentMemoryEnabled &&
+                _featureConfig.TrajectoryRetrievalEnabled &&
+                (string.Equals(agent.Name, "meta_agent", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(agent.Name, "rca_meta_agent", StringComparison.OrdinalIgnoreCase)))
+            {
+                const string IncidentMemoryPrompt = "Only if the message is about incidents, then search memory using the SearchMemory tool.";
+
+                if (messages is List<ChatMessage> messageList)
+                {
+                    // Insert after the first system message to maintain prompt structure
+                    var firstSystemIndex = messageList.FindIndex(m => m.Role == ChatRole.System);
+                    if (firstSystemIndex >= 0)
+                    {
+                        messageList.Insert(firstSystemIndex + 1, new ChatMessage(ChatRole.System, IncidentMemoryPrompt));
+                        _logger.LogInternalDebug("Injected incident memory prompt for agent {AgentName} (per-turn injection)", agent.Name);
+                    }
+                    else
+                    {
+                        _logger.LogInternalWarning("No system message found to inject incident memory prompt for agent {AgentName}", agent.Name);
+                    }
+                }
+                else
+                {
+                    _logger.LogInternalWarning("Unable to inject incident memory prompt - messages collection is not a List for agent {AgentName}", agent.Name);
+                }
             }
 
             _currentGenerationSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
