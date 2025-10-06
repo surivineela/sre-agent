@@ -244,6 +244,16 @@ export function useIncidentManagementSettings(close: (() => void) | undefined) {
                             return latestValidationResult.current;
                         });
                 }
+            } else if (formValues.platform === IncidentManagementType.Icm) {
+                const errors: FormikErrors<IncidentManagementFormValues> = {};
+
+                if (formValues.createDefaultHandler && !formValues.owningTeamId) {
+                    errors.owningTeamId = intl.formatMessage(IncidentManagementValidationResources.icmOwningTeamIdRequired);
+                }
+
+                validationGuid.current = undefined;
+                latestValidationResult.current = errors;
+                return Promise.resolve(latestValidationResult.current);
             } else {
                 validationGuid.current = undefined;
                 latestValidationResult.current = {};
@@ -450,6 +460,7 @@ export function useIncidentManagementSettings(close: (() => void) | undefined) {
                                 if (formValues.platform === IncidentManagementType.Icm) {
                                     defaultIncidentFilter.incidentType = 'LiveSite';
                                     defaultIncidentFilter.priority = '3';
+                                    defaultIncidentFilter.owningTeamId = formValues.owningTeamId;
                                 }
 
                                 if (formValues.platform === IncidentManagementType.ServiceNow) {

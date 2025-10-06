@@ -10,6 +10,9 @@ export interface IncidentManagementFormValues {
     username?: string;
     password?: string;
     instanceName?: string;
+    // IcM specific fields
+    owningTeamId?: string;
+    incidentType?: string;
 }
 
 export interface IncidentManagementSettingsProps {

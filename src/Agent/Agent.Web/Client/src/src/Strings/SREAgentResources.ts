@@ -1487,6 +1487,7 @@ export const IncidentManagementValidationResources = defineMessages({
         id: 'GUx4Ld',
     },
     serviceNowFailedToValidate: { defaultMessage: 'Failed to validate ServiceNow settings. Please try again.', id: 'J3Y8Sm' },
+    icmOwningTeamIdRequired: { defaultMessage: 'Owning team ID is required when adding a default response plan.', id: 'mGh+K0' },
 });
 
 export const PagerDutyResources = defineMessages({

@@ -946,6 +946,7 @@
   "m6Ctmt": "Add a default incident response plan for the agent to use for P1 base incidents.",
   "mAyw3x": "Edit QnA Maker knowledge bases.",
   "mChei1": "Detailed multi-line instructions. Provide: goal, context/resources, constraints, success criteria.",
+  "mGh+K0": "Owning team ID is required when adding a default response plan.",
   "mN2MCk": "Failed to delete task",
   "mOFG3K": "Start",
   "mV7WX3": "Incident response plans",

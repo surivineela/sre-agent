@@ -220,6 +220,11 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                                 setFieldValue('username', undefined, false);
                                                 setFieldValue('password', undefined, false);
                                             }
+                                            // Clear IcM fields when switching away from IcM
+                                            if (data?.optionValue !== IncidentManagementType.Icm) {
+                                                setFieldValue('owningTeamId', undefined, false);
+                                                setFieldTouched('owningTeamId', false, false);
+                                            }
                                         }
 
                                         azPortalContext.logAmplitudeControlEvent({
@@ -249,7 +254,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                         style={styles.dropdownStyles}
                                         value={selectedPlatformDisplayName}
                                         placeholder={intl.formatMessage(IncidentManagementPlatformResources.disconnected)}
-                                        onOptionSelect={() => { }}
+                                        onOptionSelect={() => {}}
                                         disabled={true}
                                     >
                                         {incidentPlatformDropdownOptions.map(option => (
@@ -467,14 +472,39 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                             values.platform === IncidentManagementType.PagerDuty
                                                 ? intl.formatMessage(PagerDutyResources.quickstartHandlerDescription)
                                                 : values.platform === IncidentManagementType.ServiceNow
-                                                    ? intl.formatMessage(ServiceNowResources.quickstartHandlerDescription)
-                                                    : values.platform === IncidentManagementType.AzMonitor
-                                                        ? intl.formatMessage(AzMonitorResources.quickstartHandlerDescription)
-                                                        : intl.formatMessage(IcMResources.quickstartHandlerDescription)
+                                                  ? intl.formatMessage(ServiceNowResources.quickstartHandlerDescription)
+                                                  : values.platform === IncidentManagementType.AzMonitor
+                                                    ? intl.formatMessage(AzMonitorResources.quickstartHandlerDescription)
+                                                    : intl.formatMessage(IcMResources.quickstartHandlerDescription)
                                         }
                                         labelPosition="after"
                                     />
                                 </Field>
+                                {formikProps.values.createDefaultHandler && values.platform === IncidentManagementType.Icm && (
+                                    <Field
+                                        id="owningTeamIdField"
+                                        label={intl.formatMessage(IncidentManagementResources.owningTeamId)}
+                                        orientation="horizontal"
+                                        required={true}
+                                        validationMessage={
+                                            formikProps.touched.owningTeamId && !isValidating ? formikProps.errors.owningTeamId : undefined
+                                        }
+                                        style={{ maxWidth: '80%', marginTop: 16 }}
+                                    >
+                                        <Input
+                                            style={styles.plainTextFieldStyles}
+                                            id="owningTeamId"
+                                            value={values.owningTeamId}
+                                            placeholder={isApiKeyEditable ? undefined : ''}
+                                            onChange={(_event, newValue) => {
+                                                setFieldTouched('owningTeamId', true, false);
+                                                setFieldValue('owningTeamId', newValue.value);
+                                            }}
+                                            disabled={saving}
+                                            contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
+                                        />
+                                    </Field>
+                                )}
                                 {!formikProps.values.createDefaultHandler && (
                                     <MessageBar style={{ maxWidth: '80%', marginTop: 16, marginBottom: 16 }}>
                                         {intl.formatMessage(IncidentManagementResources.quickstartHandlerInfoMessage)}
