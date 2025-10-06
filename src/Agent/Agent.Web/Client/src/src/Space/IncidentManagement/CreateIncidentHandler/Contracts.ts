@@ -49,3 +49,14 @@ export enum IncidentManagementMenuKeys {
     Analysis = 'analysis',
     IncidentPlatform = 'setup',
 }
+
+export enum IncidentsListColumnKey {
+    incidentId = 'incidentId',
+    title = 'title',
+    priority = 'priority',
+    incidentStatus = 'incidentStatus',
+    agentStatus = 'agentStatus',
+    createdTimestamp = 'createdTimestamp',
+    impactedService = 'impactedService',
+    handler = 'handler',
+}

@@ -13,7 +13,7 @@ import { SreAgentContext } from '../Contracts/Context';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { IncidentFilterFormProps } from './CreateIncidentFilterDialog';
 import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
-import { getPriorityOrSeverityStrings } from './Utilities';
+import { getPlatformSpecificStrings } from './Utilities';
 
 export type ISortedDetailsListColumn = IColumn & {
     sort?: (items: any[], isSortedDescending: boolean) => any[];
@@ -82,7 +82,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
     const {
         incidentManagement: { incidentPlatformType },
     } = useContext(SreAgentContext);
-    const priorityOrSeverityStrings = useMemo(() => getPriorityOrSeverityStrings(incidentPlatformType), [incidentPlatformType]);
+    const platformSpecificStrings = useMemo(() => getPlatformSpecificStrings(incidentPlatformType), [incidentPlatformType]);
 
     const filteredGridItems = useMemo(() => {
         let filteredGridItems = incidentFilters;
@@ -144,21 +144,21 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         }));
 
         setIncidentPriorities([
-            { value: all, label: intl.formatMessage(priorityOrSeverityStrings.allOptionLabel) },
+            { value: all, label: intl.formatMessage(platformSpecificStrings.severityOrPriorityAllOptionLabel) },
             ...incidentTypeOptions,
         ]);
-    }, [isIncidentFilterEmpty, incidentFilters, intl, priorityOrSeverityStrings]);
+    }, [isIncidentFilterEmpty, incidentFilters, intl, platformSpecificStrings]);
 
     const getPriorityOptionLabel = useCallback(
         (option: string): string => {
             switch (option) {
                 case all:
-                    return intl.formatMessage(priorityOrSeverityStrings.allOptionLabel);
+                    return intl.formatMessage(platformSpecificStrings.severityOrPriorityAllOptionLabel);
                 default:
                     return option;
             }
         },
-        [intl, priorityOrSeverityStrings]
+        [intl, platformSpecificStrings]
     );
 
     useEffect(() => {
@@ -411,7 +411,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
 
     const columns = useMemo<ISortedDetailsListColumn[]>(() => {
         const columnWidth = '14';
-        const { fieldLabel: priorityOrSeverityLabel } = getPriorityOrSeverityStrings(incidentPlatformType);
+        const { severityOrPriorityLabel } = getPlatformSpecificStrings(incidentPlatformType);
 
         const columns: ISortedDetailsListColumn[] = [
             {
@@ -460,7 +460,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
             },
             {
                 key: IncidentsListColumnKey.priority,
-                name: intl.formatMessage(priorityOrSeverityLabel),
+                name: intl.formatMessage(severityOrPriorityLabel),
                 fieldName: IncidentsListColumnKey.priority,
                 isResizable: true,
                 isMultiline: true,

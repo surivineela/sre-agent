@@ -9,7 +9,7 @@ import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentReso
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
 import { SelectedItemsList } from '../../../Components/SelectedItemsList';
 import { generateHandlerStyles } from '../../../Styles/IncidentManagement.styles';
-import { getPriorityOrSeverityStrings } from '../../Utilities';
+import { getPlatformSpecificStrings } from '../../Utilities';
 import { IncidentTableFieldNames, TimeDuration, TimeDurationKey } from '../Contracts';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
@@ -95,12 +95,12 @@ export const IncidentsAndGuidanceStep = () => {
     }, [selectedTimespan, timespanDropdownOptions]);
 
     const incidentTableColumns: IColumn[] = useMemo(() => {
-        const { fieldLabel: priorityOrSeverityLabel } = getPriorityOrSeverityStrings(incidentPlatformType);
+        const { severityOrPriorityLabel } = getPlatformSpecificStrings(incidentPlatformType);
         return [
             {
                 key: IncidentTableFieldNames.Priority,
                 fieldName: IncidentTableFieldNames.Priority,
-                name: intl.formatMessage(priorityOrSeverityLabel),
+                name: intl.formatMessage(severityOrPriorityLabel),
                 minWidth: 50,
                 maxWidth: 100,
                 isResizable: true,

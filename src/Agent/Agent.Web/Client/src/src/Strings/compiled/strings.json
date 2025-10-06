@@ -43,6 +43,12 @@
       "value": "IcM is not connected."
     }
   ],
+  "+Aon83": [
+    {
+      "type": 0,
+      "value": "P3"
+    }
+  ],
   "+BcF2d": [
     {
       "type": 0,
@@ -353,12 +359,6 @@
       "value": "Task"
     }
   ],
-  "12rpNY": [
-    {
-      "type": 0,
-      "value": "In-progress"
-    }
-  ],
   "1389z+": [
     {
       "type": 0,
@@ -455,6 +455,12 @@
     {
       "type": 0,
       "value": "Connect repository"
+    }
+  ],
+  "1hu8Uv": [
+    {
+      "type": 0,
+      "value": "Alert status"
     }
   ],
   "1rAiXS": [
@@ -743,6 +749,12 @@
       "value": "Denied by"
     }
   ],
+  "4HV6SH": [
+    {
+      "type": 0,
+      "value": "Alert created"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -917,6 +929,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "5XRsWa": [
+    {
+      "type": 0,
+      "value": "Agent status"
     }
   ],
   "5cRddy": [
@@ -1423,6 +1441,12 @@
       "value": "Select all"
     }
   ],
+  "94zF5I": [
+    {
+      "type": 0,
+      "value": "P5"
+    }
+  ],
   "95stPq": [
     {
       "type": 0,
@@ -1433,6 +1457,12 @@
     {
       "type": 0,
       "value": "No matches"
+    }
+  ],
+  "99OdS3": [
+    {
+      "type": 0,
+      "value": "Planning"
     }
   ],
   "9MPGF8": [
@@ -1685,12 +1715,6 @@
     {
       "type": 0,
       "value": "Write access to Language service resources."
-    }
-  ],
-  "CU0qUc": [
-    {
-      "type": 0,
-      "value": "Processed time"
     }
   ],
   "CVAKJE": [
@@ -1965,6 +1989,12 @@
     {
       "type": 0,
       "value": "Enter filter name"
+    }
+  ],
+  "EWrExf": [
+    {
+      "type": 0,
+      "value": "Sev4"
     }
   ],
   "EWw/tK": [
@@ -4133,6 +4163,12 @@
       "value": "Agent details"
     }
   ],
+  "Wkup5T": [
+    {
+      "type": 0,
+      "value": "Pending user input"
+    }
+  ],
   "Wn+PVy": [
     {
       "type": 0,
@@ -4201,6 +4237,12 @@
     {
       "type": 0,
       "value": "The action was canceled."
+    }
+  ],
+  "XEanEV": [
+    {
+      "type": 0,
+      "value": "Sev2.5"
     }
   ],
   "XEso9C": [
@@ -4463,12 +4505,6 @@
     {
       "type": 0,
       "value": "Manage Logic Apps."
-    }
-  ],
-  "ZNPvsJ": [
-    {
-      "type": 0,
-      "value": "Attention needed"
     }
   ],
   "ZUXvHE": [
@@ -5183,6 +5219,12 @@
       "value": "ServiceNow connected. Your next step is to set up incident response plans."
     }
   ],
+  "emW/QQ": [
+    {
+      "type": 0,
+      "value": "Sev0"
+    }
+  ],
   "eqYdSS": [
     {
       "type": 0,
@@ -5233,6 +5275,12 @@
     {
       "type": 0,
       "value": "Logic App name"
+    }
+  ],
+  "f2e1WS": [
+    {
+      "type": 0,
+      "value": "Sev1"
     }
   ],
   "f7Zx3L": [
@@ -5645,12 +5693,6 @@
       "value": "Perform data science tasks in Azure Machine Learning."
     }
   ],
-  "i7oO8e": [
-    {
-      "type": 0,
-      "value": "Investigation in progress"
-    }
-  ],
   "iDSWYk": [
     {
       "type": 0,
@@ -5667,6 +5709,12 @@
     {
       "type": 0,
       "value": "Select a filter"
+    }
+  ],
+  "iZDRGO": [
+    {
+      "type": 0,
+      "value": "Assigned"
     }
   ],
   "iZuO+L": [
@@ -5865,12 +5913,6 @@
     {
       "type": 0,
       "value": "Next execution"
-    }
-  ],
-  "juQ8mz": [
-    {
-      "type": 0,
-      "value": "Investigations"
     }
   ],
   "jvo0vs": [
@@ -6465,6 +6507,12 @@
       "value": "HDInsight on AKS Cluster Pool Admin"
     }
   ],
+  "pAdN7z": [
+    {
+      "type": 0,
+      "value": "P4"
+    }
+  ],
   "pCPZnU": [
     {
       "type": 0,
@@ -6561,6 +6609,12 @@
     {
       "type": 0,
       "value": "Manage Application Insights components."
+    }
+  ],
+  "pr9fPP": [
+    {
+      "type": 0,
+      "value": "Alert title"
     }
   ],
   "psUT6S": [
@@ -7037,12 +7091,6 @@
       "value": "Here is your deep investigation:"
     }
   ],
-  "tNseQe": [
-    {
-      "type": 0,
-      "value": "Investigation"
-    }
-  ],
   "tOxzip": [
     {
       "type": 0,
@@ -7187,6 +7235,12 @@
       "value": "Time"
     }
   ],
+  "uld/2m": [
+    {
+      "type": 0,
+      "value": "Incident status"
+    }
+  ],
   "uln7eT": [
     {
       "type": 0,
@@ -7197,6 +7251,12 @@
     {
       "type": 0,
       "value": "Tools selected for incident response"
+    }
+  ],
+  "uyO1AJ": [
+    {
+      "type": 0,
+      "value": "Sev2"
     }
   ],
   "v0CXYP": [
@@ -7221,6 +7281,12 @@
     {
       "type": 0,
       "value": "Start chat"
+    }
+  ],
+  "v9OQKq": [
+    {
+      "type": 0,
+      "value": "Sev3"
     }
   ],
   "vAWzLN": [

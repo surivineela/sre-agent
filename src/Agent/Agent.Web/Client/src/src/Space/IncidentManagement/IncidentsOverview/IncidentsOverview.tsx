@@ -9,21 +9,13 @@ import {
     SearchBox,
     SearchBoxChangeEvent,
     Spinner,
-    Text,
     tokens,
     Toolbar,
     ToolbarButton,
     ToolbarGroup,
     useRestoreFocusSource,
 } from '@fluentui/react-components';
-import {
-    ArrowClockwise16Regular,
-    CheckmarkCircle16Filled,
-    Dismiss24Regular,
-    FullScreenMaximize16Regular,
-    SpinnerIos16Filled,
-    Warning16Filled,
-} from '@fluentui/react-icons';
+import { ArrowClockwise16Regular, Dismiss24Regular, FullScreenMaximize16Regular } from '@fluentui/react-icons';
 import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { debounce } from 'lodash';
@@ -41,43 +33,29 @@ import {
 import { LabelKeyPair } from '../../../Common/Components/PillFilter/ListWithSearch';
 import { PillFilterSet } from '../../../Common/Components/PillFilter/PillFilterSet';
 import { IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
-import { Thread } from '../../../Common/Contracts/DataPlane/Thread';
-import Url from '../../../Common/Helpers/Url';
+import { InvestigationStatus, Thread } from '../../../Common/Contracts/DataPlane/Thread';
 import { ActivitiesThreadHeaderResources, IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
 import { SreAgentContext } from '../../Contracts/Context';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import { PlatformConnectionMessageBar } from '../Common/PlatformConnectionMessageBar';
+import { IncidentsListColumnKey } from '../CreateIncidentHandler/Contracts';
 import IncidentChat from '../IncidentChat';
-import { getPriorityOrSeverityStrings } from '../Utilities';
-import { SortColumn, useIncidentThreadList } from './useIncidentThreadList';
+import {
+    getColumnInfo,
+    getIncidentStatusIntlString,
+    getInvestigationStatusIntlString,
+    getPlatformSpecificStrings,
+    getPriorities,
+} from '../Utilities';
+import { IncidentsSummary } from './IncidentsSummary';
+import { StatusLabel } from './StatusLabel';
+import { useIncidentThreadList } from './useIncidentThreadList';
 
 type ISortedDetailsListColumn<T> = IColumn & {
     sort?: (items: T[], isSortedDescending: boolean) => T[];
     disableColumnClick?: boolean;
 };
-
-enum IncidentsListColumnKey {
-    incidentId = 'incidentId',
-    title = 'title',
-    createdTimestamp = 'createdTimestamp',
-    priority = 'priority',
-    status = 'incidentStatus',
-    investigation = 'investigation',
-    handler = 'handler',
-}
-
-enum Priorities {
-    P1 = 'P1',
-    P2 = 'P2',
-}
-
-enum InvestigationStatus {
-    AttentionNeeded = 'AttentionNeeded',
-    MitigatedByAgent = 'MitigatedByAgent',
-    ResolvedByAgent = 'ResolvedByAgent',
-    InProgress = 'InvestigationInProgress',
-}
 
 interface SelectedThreadInfo {
     thread: Thread;
@@ -85,12 +63,10 @@ interface SelectedThreadInfo {
 }
 
 const IncidentsOverview: FC = () => {
-    const showMockedComponents = useMemo(() => Url.getFeatureValue('showIncidentOverviewMocked') === 'true', []);
-
     const {
         incidentManagement: { incidentPlatformType },
     } = useContext(SreAgentContext);
-    const priorityOrSeverityStrings = useMemo(() => getPriorityOrSeverityStrings(incidentPlatformType), [incidentPlatformType]);
+    const platformSpecificStrings = useMemo(() => getPlatformSpecificStrings(incidentPlatformType), [incidentPlatformType]);
 
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -98,7 +74,7 @@ const IncidentsOverview: FC = () => {
     const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRangeValue>();
     const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-    const [selectedActions, setSelectedActions] = useState<string[]>([]);
+    const [selectedInvestigationStatuses, setSelectedInvestigationStatuses] = useState<string[]>([]);
     const [sortColumnKey, setSortColumnKey] = useState<IncidentsListColumnKey | undefined>();
     const [isSortedDescending, setIsSortedDescending] = useState<boolean>(true);
     const [refreshCounter, setRefreshCounter] = useState<number>(0);
@@ -120,8 +96,9 @@ const IncidentsOverview: FC = () => {
     }, []);
 
     const {
+        threadCounts,
         threads: incidentThreads,
-        isLoadingInitialThreads: incidentThreadsLoading,
+        isLoadingInitialThreadsAndCounts: incidentThreadsLoading,
         moreThreadsToLoad,
         threadListDivRef,
         intersectionObserverRef,
@@ -131,8 +108,9 @@ const IncidentsOverview: FC = () => {
         undefined,
         searchText,
         selectedStatuses,
+        selectedInvestigationStatuses,
         selectedTimeRange,
-        sortColumnKey as SortColumn | undefined,
+        sortColumnKey as IncidentsListColumnKey | undefined,
         isSortedDescending,
         !selectedThreadInfo?.fullScreen,
         refreshCounter
@@ -235,307 +213,173 @@ const IncidentsOverview: FC = () => {
     // End: Time Range
 
     // Priority
-    const priorityOptions: LabelKeyPair[] = useMemo(
-        () => [
-            {
-                key: Priorities.P1,
-                label: intl.formatMessage(IncidentManagementResources.p1),
-            },
-            {
-                key: Priorities.P2,
-                label: intl.formatMessage(IncidentManagementResources.p2),
-            },
-        ],
-        [intl]
-    );
+    const priorityOptions: LabelKeyPair[] = useMemo(() => {
+        const priorities = getPriorities(incidentPlatformType);
+        return priorities
+            ? priorities.map(priority => ({
+                  key: priority.key,
+                  label: intl.formatMessage(priority.intlString),
+              }))
+            : [];
+    }, [incidentPlatformType, intl]);
     // End: Priority
 
     // Status
-    const statusOptions: LabelKeyPair[] = useMemo(
-        () => [
-            {
-                key: IncidentStatus.triggered,
-                label: intl.formatMessage(SreAgentResources.triggered),
-            },
-            {
-                key: IncidentStatus.new,
-                label: intl.formatMessage(SreAgentResources.new),
-            },
-            {
-                key: IncidentStatus.active,
-                label: intl.formatMessage(SreAgentResources.active),
-            },
-            {
-                key: IncidentStatus.acknowledged,
-                label: intl.formatMessage(SreAgentResources.acknowledged),
-            },
-            {
-                key: IncidentStatus.mitigated,
-                label: intl.formatMessage(SreAgentResources.mitigated),
-            },
-            {
-                key: IncidentStatus.closed,
-                label: intl.formatMessage(SreAgentResources.closed),
-            },
-            {
-                key: IncidentStatus.resolved,
-                label: intl.formatMessage(SreAgentResources.resolved),
-            },
-        ],
-        [intl]
-    );
-
-    const getStatusText = useCallback(
-        (status?: string): string => {
-            if (status) {
-                switch (status.toLowerCase()) {
-                    case IncidentStatus.acknowledged:
-                        return intl.formatMessage(SreAgentResources.acknowledged);
-                    case IncidentStatus.triggered:
-                        return intl.formatMessage(SreAgentResources.triggered);
-                    case IncidentStatus.mitigated:
-                        return intl.formatMessage(SreAgentResources.mitigated);
-                    case IncidentStatus.closed:
-                        return intl.formatMessage(SreAgentResources.closed);
-                    case IncidentStatus.resolved:
-                        return intl.formatMessage(SreAgentResources.resolved);
-                    case IncidentStatus.active:
-                        return intl.formatMessage(SreAgentResources.active);
-                    case IncidentStatus.new:
-                        return intl.formatMessage(SreAgentResources.new);
-                }
-            }
-            return intl.formatMessage(
-                incidentPlatformType === IncidentManagementType.AzMonitor
-                    ? SreAgentResources.new
-                    : incidentPlatformType === IncidentManagementType.PagerDuty
-                      ? SreAgentResources.triggered
-                      : SreAgentResources.active
-            );
-        },
-        [incidentPlatformType, intl]
-    );
+    const statusOptions: LabelKeyPair[] = useMemo(() => {
+        return Object.values(IncidentStatus).map(status => {
+            const intlString = getIncidentStatusIntlString(status);
+            return {
+                key: status,
+                label: intlString ? intl.formatMessage(intlString) : '-',
+            };
+        });
+    }, [intl]);
     // End: Status
 
-    // Actions
-    const getInvestigationProps = useCallback(
-        (investigationStatus?: InvestigationStatus) => {
-            switch (investigationStatus) {
-                case InvestigationStatus.AttentionNeeded:
-                    return {
-                        icon: <Warning16Filled className={styles.warningIcon} aria-label={''} />,
-                        text: intl.formatMessage(IncidentManagementResources.attentionNeeded),
-                    };
-                case InvestigationStatus.MitigatedByAgent:
-                    return {
-                        icon: <CheckmarkCircle16Filled className={styles.greenCheckIcon} aria-label={''} />,
-                        text: intl.formatMessage(IncidentManagementResources.mitigatedByAgent),
-                    };
-                case InvestigationStatus.ResolvedByAgent:
-                    return {
-                        icon: <CheckmarkCircle16Filled className={styles.greenCheckIcon} aria-label={''} />,
-                        text: intl.formatMessage(IncidentManagementResources.resolvedByAgent),
-                    };
-                case InvestigationStatus.InProgress:
-                    return {
-                        icon: <SpinnerIos16Filled className={styles.spinnerIcon} aria-label={''} />,
-                        text: intl.formatMessage(IncidentManagementResources.investigationInProgress),
-                    };
-            }
-            return {};
-        },
-        [styles, intl]
-    );
-
-    const actionOptions: LabelKeyPair[] = useMemo(
+    // InvestigationStatuses
+    const investigationStatusOptions: LabelKeyPair[] = useMemo(
         () =>
-            Object.values(InvestigationStatus).map(action => ({
-                key: action ?? '',
-                label: getInvestigationProps(action as InvestigationStatus).text ?? '',
-            })),
-        [getInvestigationProps]
+            Object.values(InvestigationStatus).map(investigationStatus => {
+                const intlString = getInvestigationStatusIntlString(investigationStatus);
+                return {
+                    key: investigationStatus ?? '',
+                    label: intlString ? intl.formatMessage(intlString) : '-',
+                };
+            }),
+        [intl]
     );
-    // End: Actions Filter
+    // End: InvestigationStatuses Filter
 
     const onRenderTitle = useCallback(
         (item: Thread) => {
             return (
                 <Link style={{ fontSize: '13px' }} onClick={() => openThreadDrawer(item)} disabled={disableAllControls}>
-                    {item.title}
+                    {getColumnInfo(IncidentsListColumnKey.title).getColumnValue(item)}
                 </Link>
             );
         },
         [openThreadDrawer, disableAllControls]
     );
 
-    const onRenderPriority = useCallback((_item: Thread) => {
-        // Use a random priority for demonstration purposes
-        const priority = Math.random() > 0.5 ? Priorities.P1 : Priorities.P2;
-        return (
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'stretch',
-                    gap: '8px',
-                    position: 'relative',
-                }}
-            >
-                <div
-                    style={{
-                        border: `2px solid ${getPriorityColor(priority)}`,
-                        borderRadius: '4px',
-                        top: 0,
-                        bottom: 0,
-                    }}
-                />
-                <div>{priority}</div>
-            </div>
-        );
-    }, []);
-
-    const onRenderInvestigation = useCallback(
-        (_item: Thread) => {
-            // Use a random state for demonstration purposes
-            const randomNum = Math.random();
-            const state =
-                randomNum < 0.25
-                    ? InvestigationStatus.AttentionNeeded
-                    : randomNum < 0.5
-                      ? InvestigationStatus.MitigatedByAgent
-                      : randomNum < 0.75
-                        ? InvestigationStatus.ResolvedByAgent
-                        : InvestigationStatus.InProgress;
-
-            const { icon, text } = getInvestigationProps(state);
-
-            return icon && text ? (
-                <div className={styles.setUp}>
-                    {icon}
-                    <Link style={{ fontSize: '13px' }} onClick={() => {}} disabled={disableAllControls}>
-                        {text}
-                    </Link>
-                </div>
-            ) : null;
-        },
-        [disableAllControls, getInvestigationProps, styles.setUp]
-    );
-
     const columns = useMemo<ISortedDetailsListColumn<Thread>[]>(() => {
         const columns: ISortedDetailsListColumn<Thread>[] = [
             {
                 key: IncidentsListColumnKey.incidentId,
-                name: intl.formatMessage(IncidentManagementResources.incidentId),
+                name: intl.formatMessage(platformSpecificStrings.incidentOrAlertIdLabel),
                 fieldName: IncidentsListColumnKey.incidentId,
                 isResizable: true,
                 minWidth: 100,
                 maxWidth: 150,
                 isMultiline: true,
-                onRender: (item: Thread) => item.status?.incidentStatus?.incidentId,
+                onRender: item => getColumnInfo(IncidentsListColumnKey.incidentId).getColumnValue(item),
                 isSorted: sortColumnKey === IncidentsListColumnKey.incidentId,
                 isSortedDescending: isSortedDescending,
                 onColumnClick: (_, col) => handleColumnClick(col),
             },
             {
                 key: IncidentsListColumnKey.title,
-                name: intl.formatMessage(IncidentManagementResources.title),
+                name: intl.formatMessage(platformSpecificStrings.incidentOrAlertTitleLabel),
                 fieldName: IncidentsListColumnKey.title,
                 isResizable: true,
                 minWidth: 150,
                 maxWidth: 800,
                 isMultiline: true,
-                onRender: onRenderTitle,
+                onRender: item => onRenderTitle(item),
                 isSorted: sortColumnKey === IncidentsListColumnKey.title,
-                isSortedDescending: isSortedDescending,
-                onColumnClick: (_, col) => handleColumnClick(col),
-            },
-            {
-                key: IncidentsListColumnKey.createdTimestamp,
-                name: intl.formatMessage(IncidentManagementResources.processedTime),
-                fieldName: IncidentsListColumnKey.createdTimestamp,
-                isResizable: true,
-                minWidth: 100,
-                maxWidth: 250,
-                isMultiline: true,
-                onRender: (item: Thread) => item.createdTimestamp,
-                isSorted: sortColumnKey === IncidentsListColumnKey.createdTimestamp,
                 isSortedDescending: isSortedDescending,
                 onColumnClick: (_, col) => handleColumnClick(col),
             },
         ];
 
-        if (showMockedComponents) {
-            columns.push({
+        columns.push(
+            {
                 key: IncidentsListColumnKey.priority,
-                name: intl.formatMessage(priorityOrSeverityStrings.fieldLabel),
+                name: intl.formatMessage(platformSpecificStrings.severityOrPriorityLabel),
                 fieldName: IncidentsListColumnKey.priority,
                 isResizable: true,
                 isMultiline: true,
                 minWidth: 75,
                 maxWidth: 75,
-                onRender: onRenderPriority,
+                onRender: item => getColumnInfo(IncidentsListColumnKey.priority).getColumnValue(item),
                 isSorted: sortColumnKey === IncidentsListColumnKey.priority,
+                isSortedDescending: isSortedDescending,
+                onColumnClick: (_, col) => handleColumnClick(col),
+            },
+            {
+                key: IncidentsListColumnKey.incidentStatus,
+                name: intl.formatMessage(platformSpecificStrings.incidentOrAlertStatusLabel),
+                fieldName: IncidentsListColumnKey.incidentStatus,
+                isResizable: true,
+                minWidth: 100,
+                maxWidth: 250,
+                onRender: item => <StatusLabel type="incidentStatus" status={item.status?.incidentStatus?.status} />,
+                isSorted: sortColumnKey === IncidentsListColumnKey.incidentStatus,
+                isSortedDescending: isSortedDescending,
+                onColumnClick: (_, col) => handleColumnClick(col),
+            },
+            {
+                key: IncidentsListColumnKey.agentStatus,
+                name: intl.formatMessage(IncidentManagementResources.agentStatus),
+                fieldName: IncidentsListColumnKey.agentStatus,
+                isResizable: true,
+                isMultiline: true,
+                minWidth: 150,
+                maxWidth: 250,
+                onRender: item =>
+                    item.incidentDetails?.investigationStatus ? (
+                        <StatusLabel type="investigationStatus" status={item.incidentDetails?.investigationStatus} />
+                    ) : (
+                        '-'
+                    ),
+                isSorted: sortColumnKey === IncidentsListColumnKey.agentStatus,
+                isSortedDescending: isSortedDescending,
+                onColumnClick: (_, col) => handleColumnClick(col),
+            },
+            {
+                key: IncidentsListColumnKey.createdTimestamp,
+                name: intl.formatMessage(IncidentManagementResources.incidentCreated),
+                fieldName: IncidentsListColumnKey.createdTimestamp,
+                isResizable: true,
+                minWidth: 100,
+                maxWidth: 250,
+                isMultiline: true,
+                onRender: item => getColumnInfo(IncidentsListColumnKey.createdTimestamp).getColumnValue(item),
+                isSorted: sortColumnKey === IncidentsListColumnKey.createdTimestamp,
+                isSortedDescending: isSortedDescending,
+                onColumnClick: (_, col) => handleColumnClick(col),
+            }
+        );
+
+        if (incidentPlatformType !== IncidentManagementType.AzMonitor) {
+            columns.push({
+                key: IncidentsListColumnKey.impactedService,
+                name: intl.formatMessage(IncidentManagementResources.impactedService),
+                fieldName: IncidentsListColumnKey.impactedService,
+                isResizable: true,
+                minWidth: 150,
+                maxWidth: 250,
+                onRender: item => getColumnInfo(IncidentsListColumnKey.impactedService).getColumnValue(item),
+                isSorted: sortColumnKey === IncidentsListColumnKey.impactedService,
                 isSortedDescending: isSortedDescending,
                 onColumnClick: (_, col) => handleColumnClick(col),
             });
         }
 
         columns.push({
-            key: IncidentsListColumnKey.status,
-            name: intl.formatMessage(IncidentManagementResources.status),
-            fieldName: IncidentsListColumnKey.status,
+            key: IncidentsListColumnKey.handler,
+            name: intl.formatMessage(IncidentManagementResources.responsePlanName),
+            fieldName: IncidentsListColumnKey.handler,
             isResizable: true,
-            minWidth: 100,
+            minWidth: 150,
             maxWidth: 250,
-            onRender: item => getStatusText(item.status?.incidentStatus?.status),
-            isSorted: sortColumnKey === IncidentsListColumnKey.status,
+            onRender: item => getColumnInfo(IncidentsListColumnKey.handler).getColumnValue(item),
+            isSorted: sortColumnKey === IncidentsListColumnKey.handler,
             isSortedDescending: isSortedDescending,
             onColumnClick: (_, col) => handleColumnClick(col),
         });
 
-        if (showMockedComponents) {
-            columns.push(
-                {
-                    key: IncidentsListColumnKey.investigation,
-                    name: intl.formatMessage(IncidentManagementResources.investigation),
-                    fieldName: IncidentsListColumnKey.investigation,
-                    isResizable: true,
-                    isMultiline: true,
-                    minWidth: 150,
-                    maxWidth: 250,
-                    onRender: onRenderInvestigation,
-                    isSorted: sortColumnKey === IncidentsListColumnKey.investigation,
-                    isSortedDescending: isSortedDescending,
-                    onColumnClick: (_, col) => handleColumnClick(col),
-                },
-                {
-                    key: IncidentsListColumnKey.handler,
-                    name: intl.formatMessage(IncidentManagementResources.handler),
-                    fieldName: IncidentsListColumnKey.handler,
-                    isResizable: true,
-                    minWidth: 150,
-                    maxWidth: 250,
-                    onRender: () => '<Handler name>',
-                    isSorted: sortColumnKey === IncidentsListColumnKey.investigation,
-                    isSortedDescending: isSortedDescending,
-                    onColumnClick: (_, col) => handleColumnClick(col),
-                }
-            );
-        }
-
         return columns;
-    }, [
-        intl,
-        sortColumnKey,
-        isSortedDescending,
-        onRenderTitle,
-        showMockedComponents,
-        handleColumnClick,
-        priorityOrSeverityStrings.fieldLabel,
-        onRenderPriority,
-        getStatusText,
-        onRenderInvestigation,
-    ]);
+    }, [intl, sortColumnKey, isSortedDescending, onRenderTitle, handleColumnClick, platformSpecificStrings, incidentPlatformType]);
 
     const restoreFocusSourceAttributes = useRestoreFocusSource();
 
@@ -590,21 +434,21 @@ const IncidentsOverview: FC = () => {
         [disableAllControls, intl, selectedPriorities, selectedThreadInfo, priorityOptions]
     );
 
-    const actionFilterProps: RemovableFilterProps = useMemo(
+    const investigationStatusFilterProps: RemovableFilterProps = useMemo(
         () => ({
-            label: intl.formatMessage(IncidentManagementResources.investigation),
+            label: intl.formatMessage(IncidentManagementResources.agentStatus),
             disabled: disableAllControls || !!selectedThreadInfo,
-            onRemove: () => setSelectedActions([]),
+            onRemove: () => setSelectedInvestigationStatuses([]),
             labelDelimiter: intl.formatMessage(SreAgentResources.equals),
             filterType: 'combobox' as const,
             showValueAs: 'list',
-            options: actionOptions,
-            onApply: setSelectedActions,
-            selectedKeys: selectedActions,
+            options: investigationStatusOptions,
+            onApply: setSelectedInvestigationStatuses,
+            selectedKeys: selectedInvestigationStatuses,
             multiSelect: true,
             addAllOption: true,
         }),
-        [disableAllControls, intl, selectedActions, selectedThreadInfo, actionOptions]
+        [disableAllControls, intl, selectedInvestigationStatuses, selectedThreadInfo, investigationStatusOptions]
     );
 
     const dynamicFilters: FilterPropsWithKey[] = useMemo(() => {
@@ -614,26 +458,21 @@ const IncidentsOverview: FC = () => {
                 props: timeFilterProps,
             },
             {
-                key: IncidentsListColumnKey.status,
+                key: IncidentsListColumnKey.incidentStatus,
                 props: statusFilterProps,
+            },
+            {
+                key: IncidentsListColumnKey.priority,
+                props: priorityFilterProps,
+            },
+            {
+                key: IncidentsListColumnKey.agentStatus,
+                props: investigationStatusFilterProps,
             },
         ];
 
-        if (showMockedComponents) {
-            filters.push(
-                {
-                    key: IncidentsListColumnKey.priority,
-                    props: priorityFilterProps,
-                },
-                {
-                    key: IncidentsListColumnKey.investigation,
-                    props: actionFilterProps,
-                }
-            );
-        }
-
         return filters;
-    }, [timeFilterProps, statusFilterProps, showMockedComponents, priorityFilterProps, actionFilterProps]);
+    }, [timeFilterProps, statusFilterProps, priorityFilterProps, investigationStatusFilterProps]);
 
     return selectedThreadInfo?.fullScreen ? (
         <IncidentChat
@@ -739,45 +578,7 @@ const IncidentsOverview: FC = () => {
                                     {intl.formatMessage(IncidentManagementResources.refresh)}
                                 </Button>
                             </div>
-                            {showMockedComponents && (
-                                <div style={{ display: 'flex', flexDirection: 'row', gap: '20px', margin: '20px 0px 20px -3px' }}>
-                                    <SummaryBox
-                                        title={intl.formatMessage(priorityOrSeverityStrings.fieldLabelPlural)}
-                                        fields={[
-                                            {
-                                                color: getPriorityColor(Priorities.P1),
-                                                label: intl.formatMessage(IncidentManagementResources.p1),
-                                                value: 0,
-                                            },
-                                            {
-                                                color: getPriorityColor(Priorities.P2),
-                                                label: intl.formatMessage(IncidentManagementResources.p2),
-                                                value: 0,
-                                            },
-                                        ]}
-                                    />
-                                    <SummaryBox
-                                        title={intl.formatMessage(IncidentManagementResources.investigations)}
-                                        fields={[
-                                            {
-                                                color: '',
-                                                label: intl.formatMessage(IncidentManagementResources.attentionNeeded),
-                                                value: 0,
-                                            },
-                                            {
-                                                color: '',
-                                                label: intl.formatMessage(IncidentManagementResources.inProgress),
-                                                value: 0,
-                                            },
-                                            {
-                                                color: '',
-                                                label: intl.formatMessage(IncidentManagementResources.acknowledged),
-                                                value: 0,
-                                            },
-                                        ]}
-                                    />
-                                </div>
-                            )}
+                            <IncidentsSummary threadCounts={threadCounts} loading={incidentThreadsLoading} />
                             <div
                                 data-is-scrollable="true"
                                 user-select="text"
@@ -845,48 +646,3 @@ const IncidentsOverview: FC = () => {
 };
 
 export default IncidentsOverview;
-
-const getPriorityColor = (priority: Priorities) => {
-    return priority === Priorities.P1 ? tokens.colorStatusDangerBackground3 : tokens.colorStatusWarningBackground3;
-};
-
-const SummaryBox: FC<{ title: string; fields: { color: string; label: string; value: number }[] }> = ({ title, fields }) => {
-    return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px',
-                padding: '8px 12px',
-                marginLeft: '4px',
-                boxShadow: '0px 1.6px 3.6px 0px #00000021, 0px 0.3px 0.9px 0px #0000001A',
-                borderRadius: tokens.borderRadiusXLarge,
-            }}
-        >
-            <Text weight="semibold">{title}</Text>
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: '16px',
-                }}
-            >
-                {fields.map(field => (
-                    <div
-                        key={field.label}
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            borderLeft: `4px solid ${field.color}`,
-                            paddingLeft: '8px',
-                            paddingRight: '8px',
-                        }}
-                    >
-                        <Text>{field.label}</Text>
-                        <Text weight="bold">{field.value}</Text>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};

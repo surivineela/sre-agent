@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Thread, ThreadSource } from '../Contracts/DataPlane/Thread';
+import { IncidentThreadCounts, Thread, ThreadSource } from '../Contracts/DataPlane/Thread';
 import { TodoPlan } from '../Contracts/DataPlane/TodoPlan';
 import { getAgentHeaders } from '../Helpers/headers';
 import { DataPlaneClient, Response } from './DataPlaneClient.ts';
@@ -180,6 +180,32 @@ export class ThreadClient extends DataPlaneClient {
             return {
                 isSuccessful: true,
                 content: data.value ?? [],
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
+
+    public getIncidentThreadCounts = async (filter?: string): Promise<Response<IncidentThreadCounts>> => {
+        try {
+            let path = '/api/v1/threads/threadsCountByStatus';
+
+            if (filter) {
+                path += `?filter=${filter}`;
+            }
+
+            const url = this.getRequestUrl(path);
+
+            const { data } = await axios.get(url, {
+                headers: getAgentHeaders(),
+            });
+
+            return {
+                isSuccessful: true,
+                content: data ?? {},
             };
         } catch (e) {
             return {

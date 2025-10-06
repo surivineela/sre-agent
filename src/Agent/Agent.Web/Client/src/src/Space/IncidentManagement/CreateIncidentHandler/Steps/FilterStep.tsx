@@ -5,7 +5,7 @@ import { useIntl } from 'react-intl';
 import { AgentMode, IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import { IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
-import { getPriorityOrSeverityStrings } from '../../Utilities';
+import { getPlatformSpecificStrings } from '../../Utilities';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormValues';
@@ -18,7 +18,7 @@ export const FilterStep: FC = () => {
         useContext(IncidentHandlerConsolidatedCreateContext);
     const { values, setFieldValue, setFieldTouched, dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
 
-    const priorityOrSeverityStrings = useMemo(() => getPriorityOrSeverityStrings(incidentPlatformType), [incidentPlatformType]);
+    const platformSpecificStrings = useMemo(() => getPlatformSpecificStrings(incidentPlatformType), [incidentPlatformType]);
 
     const incidentTypeOptionsExtended = useMemo(() => {
         const options = [];
@@ -48,10 +48,10 @@ export const FilterStep: FC = () => {
     }, [impactedServiceOptionsExtended, values.impactedService, filterMode]);
 
     const priorityOptionsExtended = useMemo(() => {
-        const options = [{ key: 'ALL', display: intl.formatMessage(priorityOrSeverityStrings.allOptionLabel) }];
+        const options = [{ key: 'ALL', display: intl.formatMessage(platformSpecificStrings.severityOrPriorityAllOptionLabel) }];
         priorityOptions.forEach(option => options.push({ key: option, display: option }));
         return options;
-    }, [priorityOptions, intl, priorityOrSeverityStrings]);
+    }, [priorityOptions, intl, platformSpecificStrings]);
 
     const selectedPriorityDisplay = useMemo(() => {
         const key = values.priority || (filterMode === 'edit' ? 'ALL' : '');
@@ -197,9 +197,9 @@ export const FilterStep: FC = () => {
                         </div>
                     )}
 
-                    <Field label={intl.formatMessage(priorityOrSeverityStrings.fieldLabel)} required>
+                    <Field label={intl.formatMessage(platformSpecificStrings.severityOrPriorityLabel)} required>
                         <Dropdown
-                            placeholder={intl.formatMessage(priorityOrSeverityStrings.placeholder)}
+                            placeholder={intl.formatMessage(platformSpecificStrings.severityOrPriorityPlaceholder)}
                             name={'priority'}
                             value={selectedPriorityDisplay}
                             onBlur={() => setFieldTouched('priority', true)}

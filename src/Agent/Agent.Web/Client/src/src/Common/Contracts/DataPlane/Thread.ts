@@ -15,6 +15,7 @@ export interface Thread {
     agentMode?: string;
     agentTasks?: AgentTaskMetaData[];
     favorite?: boolean;
+    incidentDetails?: IncidentDetails;
 }
 
 export interface AgentStatus {
@@ -36,4 +37,30 @@ export enum ThreadSource {
     portal = 'Portal', // legacy
     dailyReport = 'DailyReport',
     bestPractices = 'BestPractices',
+}
+
+export enum InvestigationStatus {
+    inProgress = 'InProgress',
+    pendingUserInput = 'PendingUserInput',
+    complete = 'Complete',
+}
+
+export interface IncidentDetails {
+    incidentTitle?: string;
+    incidentCreatedTime?: string;
+    incidentPriority?: string;
+    impactedService?: string;
+    filterId?: string;
+    handlerId?: string;
+    investigationStatus?: InvestigationStatus;
+}
+
+export interface StatusCount {
+    status: string;
+    count: number;
+}
+
+export interface IncidentThreadCounts {
+    incidentStatusCounts: StatusCount[];
+    investigationStatusCounts: StatusCount[];
 }

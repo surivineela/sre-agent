@@ -450,6 +450,7 @@ export const SreAgentResources = defineMessages({
         defaultMessage: 'No todo plan available',
         id: 'bri0SI',
     },
+    assigned: { defaultMessage: 'Assigned', id: 'iZDRGO' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -1187,6 +1188,9 @@ export const IncidentManagementResources = defineMessages({
     incidentType: { defaultMessage: 'Incident type', id: 'Udeffr' },
     impactedService: { defaultMessage: 'Impacted service', id: 'fdCjVS' },
     alertId: { defaultMessage: 'Alert ID', id: 'k8ZNgH' },
+    alertTitle: { defaultMessage: 'Alert title', id: 'pr9fPP' },
+    alertStatus: { defaultMessage: 'Alert status', id: '1hu8Uv' },
+    alertCreated: { defaultMessage: 'Alert created', id: '4HV6SH' },
     titleContains: { defaultMessage: 'Title contains', id: 'brxlTt' },
     setUp: { defaultMessage: 'Set up', id: 'rrGMSx' },
     getAllIncidents: { defaultMessage: 'Get all incidents', id: 'JgQ1gX' },
@@ -1267,14 +1271,13 @@ export const IncidentManagementResources = defineMessages({
         defaultMessage: 'Failed to load incident management configuration. Error: {errorMessage}',
         id: '0TkVxX',
     },
-    investigation: { defaultMessage: 'Investigation', id: 'tNseQe' },
-    investigations: { defaultMessage: 'Investigations', id: 'juQ8mz' },
     handler: { defaultMessage: 'Response plan', id: '1rAiXS' },
+    agentStatus: { defaultMessage: 'Agent status', id: '5XRsWa' },
     priorities: { defaultMessage: 'Priorities', id: '/Br0/Z' },
     severities: { defaultMessage: 'Severities', id: '7vl63m' },
-    attentionNeeded: { defaultMessage: 'Attention needed', id: 'ZNPvsJ' },
-    inProgress: { defaultMessage: 'In-progress', id: '12rpNY' },
-    acknowledged: { defaultMessage: 'Acknowledged', id: 'FnKIAW' },
+    pendingUserInput: { defaultMessage: 'Pending user input', id: 'Wkup5T' },
+    inProgress: { defaultMessage: 'In progress', id: 'q1WWIr' },
+    completed: { defaultMessage: 'Completed', id: '95stPq' },
     mitigatedByAgent: {
         defaultMessage: 'Mitigated by agent',
         id: 'D4T2Px',
@@ -1283,12 +1286,6 @@ export const IncidentManagementResources = defineMessages({
         defaultMessage: 'Resolved by agent',
         id: 'R7DP3y',
     },
-    investigationInProgress: {
-        defaultMessage: 'Investigation in progress',
-        id: 'i7oO8e',
-    },
-    p1: { defaultMessage: 'P1', id: 'QBeCBS' },
-    p2: { defaultMessage: 'P2', id: 'PwqiFa' },
     allStatuses: { defaultMessage: 'All statuses', id: 'fvK8Qi' },
     allActions: { defaultMessage: 'All actions', id: 'jK9a9x' },
     noPermissionNewIncidentHandler: { defaultMessage: 'You do not have permission to create response plans.', id: 'Tq2F2Y' },
@@ -1313,7 +1310,6 @@ export const IncidentManagementResources = defineMessages({
         defaultMessage: 'Find incident threads and incident response plans together on the Incident Management tab.',
         id: 'z8ZYoc',
     },
-    processedTime: { defaultMessage: 'Processed time', id: 'CU0qUc' },
     selectedOutOfTotal: { defaultMessage: '{selectedCount} of {totalCount}', id: '01sZoP' },
     analysis: { defaultMessage: 'Analysis', id: 'VMIM8/' },
     responsePlans: { defaultMessage: 'Response plans', id: 'DeP+ZM' },
@@ -1341,6 +1337,7 @@ export const IncidentManagementResources = defineMessages({
     allSeverityLevels: { defaultMessage: 'All severity levels', id: 'ffTMIX' },
     allMitigatedBy: { defaultMessage: 'All mitigated by', id: '5w4pim' },
     incidentTitle: { defaultMessage: 'Incident title', id: '2Oxmp9' },
+    incidentStatus: { defaultMessage: 'Incident status', id: 'uld/2m' },
     severityLevel: { defaultMessage: 'Severity level', id: 'LwwzP6' },
     incidentCreated: { defaultMessage: 'Incident created', id: 'SFUZOQ' },
     mitigatedBy: { defaultMessage: 'Mitigated by', id: 'YgyuGj' },
@@ -1527,6 +1524,11 @@ export const PagerDutyResources = defineMessages({
         defaultMessage: 'Connection to PagerDuty failed. Please check your access key and try again.',
         id: '0R+Pet',
     },
+    p1: { defaultMessage: 'P1', id: 'QBeCBS' },
+    p2: { defaultMessage: 'P2', id: 'PwqiFa' },
+    p3: { defaultMessage: 'P3', id: '+Aon83' },
+    p4: { defaultMessage: 'P4', id: 'pAdN7z' },
+    p5: { defaultMessage: 'P5', id: '94zF5I' },
 });
 
 export const AzMonitorResources = defineMessages({
@@ -1562,6 +1564,11 @@ export const AzMonitorResources = defineMessages({
         defaultMessage: 'Connection to Azure Monitor failed. Please check your configuration and try again.',
         id: 'Dmb0ZD',
     },
+    sev0: { defaultMessage: 'Sev0', id: 'emW/QQ' },
+    sev1: { defaultMessage: 'Sev1', id: 'f2e1WS' },
+    sev2: { defaultMessage: 'Sev2', id: 'uyO1AJ' },
+    sev3: { defaultMessage: 'Sev3', id: 'v9OQKq' },
+    sev4: { defaultMessage: 'Sev4', id: 'EWrExf' },
 });
 
 export const IcMResources = defineMessages({
@@ -1605,6 +1612,10 @@ export const IcMResources = defineMessages({
             'Connection to IcM failed. Please confirm that the managed identity of your agent is allowlisted on your IcM service team and try again.',
         id: 'JXtKxS',
     },
+    sev2: { defaultMessage: 'Sev2', id: 'uyO1AJ' },
+    sev2_5: { defaultMessage: 'Sev2.5', id: 'XEanEV' },
+    sev3: { defaultMessage: 'Sev3', id: 'v9OQKq' },
+    sev4: { defaultMessage: 'Sev4', id: 'EWrExf' },
 });
 
 export const SettingsTabResources = defineMessages({
@@ -2006,6 +2017,11 @@ export const ServiceNowResources = defineMessages({
         defaultMessage: 'Connection to ServiceNow failed. Please check your configuration and try again.',
         id: 'Cwgo05',
     },
+    priorityCritical: { defaultMessage: 'Critical', id: '2pzTGC' },
+    priorityHigh: { defaultMessage: 'High', id: 'AxMhQr' },
+    priorityModerate: { defaultMessage: 'Moderate', id: 'OlIql8' },
+    priorityLow: { defaultMessage: 'Low', id: '477I0g' },
+    priorityPlanning: { defaultMessage: 'Planning', id: '99OdS3' },
 });
 
 export const DataConnectorsResources = defineMessages({

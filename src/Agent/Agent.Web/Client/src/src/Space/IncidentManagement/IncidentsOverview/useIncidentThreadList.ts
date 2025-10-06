@@ -4,47 +4,19 @@ import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/Star
 import { ThreadClient } from '../../../Common/Clients/ThreadClient';
 import { TimeRangeValue, TimespanKeys } from '../../../Common/Components/PillFilter/Contracts';
 import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
-import { Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
-import { getSafeDateTime, getTimespanInMilliseconds } from '../../../Common/Helpers/Date';
+import { IncidentThreadCounts, Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
+import { getTimespanInMilliseconds } from '../../../Common/Helpers/Date';
 import { KnowledgeGraphBuildStatusContext } from '../../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { getIntervalBetweenLoading, getUpdatedUnreadThreadIds } from '../../Activities/Utility';
 import { ThreadLoadingCounts } from '../../Contracts/Activities';
-
-export type SortColumn = 'incidentId' | 'title' | 'incidentStatus' | 'createdTimestamp';
-
-const getColumnDetails = (column: SortColumn | 'modifiedTimestamp') => {
-    switch (column) {
-        case 'incidentId':
-            return { isDistinct: true, type: 'string' };
-        case 'title':
-            return { isDistinct: false, type: 'string' };
-        case 'incidentStatus':
-            return { isDistinct: false, type: 'string' };
-        case 'modifiedTimestamp':
-            return { isDistinct: true, type: 'date' };
-        case 'createdTimestamp':
-            return { isDistinct: true, type: 'date' };
-        default:
-            return { isDistinct: undefined, type: undefined };
-    }
-};
-
-const getColumnValue = (thread: Thread, column: SortColumn | 'modifiedTimestamp'): string | undefined => {
-    switch (column) {
-        case 'incidentId':
-            return thread.status?.incidentStatus?.incidentId;
-        case 'incidentStatus':
-            return thread.status?.incidentStatus?.status;
-        default:
-            return thread[column];
-    }
-};
+import { IncidentsListColumnKey } from '../CreateIncidentHandler/Contracts';
+import { getColumnInfo } from '../Utilities';
 
 const processThreads = (
     prevThreads: Thread[],
     threads: Thread[],
     areThreadsNew: boolean,
-    sortColumn?: SortColumn | 'modifiedTimestamp',
+    sortColumn?: IncidentsListColumnKey | 'modifiedTimestamp',
     sortDescending?: boolean
 ) => {
     if (threads.length === 0) {
@@ -76,27 +48,31 @@ const processThreads = (
     const threadsToAdd: Thread[] = Array.from(threadsMap.values());
     const sortColumnName = sortColumn || 'modifiedTimestamp';
     threadsToAdd.sort((a, b) => {
-        const columnDetails = getColumnDetails(sortColumnName);
-        const aValue = getColumnValue(a, sortColumnName);
-        const bValue = getColumnValue(b, sortColumnName);
+        const { columnType, getColumnValue } = getColumnInfo(sortColumnName);
+        const aValue = getColumnValue(a);
+        const bValue = getColumnValue(b);
 
         if (aValue === undefined || bValue === undefined) {
             return 0;
         }
 
-        if (columnDetails.type === 'string') {
+        if (columnType === 'string' || columnType === 'date') {
             const comparison = String(aValue).localeCompare(String(bValue));
             return sortDescending ? -comparison : comparison;
-        } else if (columnDetails.type === 'number') {
+        } else if (columnType === 'number') {
+            let comparison: number;
+
             const aValueNum = Number(aValue);
             const bValueNum = Number(bValue);
-            if (isNaN(aValueNum) || isNaN(bValueNum)) {
-                return 0;
+            if (isNaN(aValueNum) && isNaN(bValueNum)) {
+                comparison = 0;
+            } else if (isNaN(aValueNum)) {
+                comparison = -1;
+            } else if (isNaN(bValueNum)) {
+                comparison = 1;
+            } else {
+                comparison = aValueNum - bValueNum;
             }
-            const comparison = aValueNum - bValueNum;
-            return sortDescending ? -comparison : comparison;
-        } else if (columnDetails.type === 'date') {
-            const comparison = getSafeDateTime(aValue as string).getTime() - getSafeDateTime(bValue as string).getTime();
             return sortDescending ? -comparison : comparison;
         }
         return 0;
@@ -126,23 +102,24 @@ export const useIncidentThreadList = (
     initialThreads?: Thread[],
     searchText?: string,
     statusFilters?: string[],
+    investigationStatusFilters?: string[],
     createdTimeFilter?: TimeRangeValue,
-    sortColumn?: SortColumn,
+    sortColumn?: IncidentsListColumnKey,
     sortDescending?: boolean,
     visible?: boolean,
     refresh?: number
 ) => {
+    const [threadCounts, setThreadCounts] = useState<IncidentThreadCounts>();
     const [threads, setThreads] = useState<Thread[]>(initialThreads || []);
     const [moreThreadsToLoad, setMoreThreadsToLoad] = useState<boolean>(true);
     const [unreadThreadIds, setUnreadThreadIds] = useState<Set<string>>(new Set<string>());
     const [isIntersecting, setIsIntersecting] = useState<boolean>(false);
-    const [isLoadingInitialThreads, setIsLoadingInitialThreads] = useState<boolean>(true);
+    const [isLoadingInitialThreadsAndCounts, setIsLoadingInitialThreadsAndCounts] = useState<boolean>(true);
 
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const threadClient = useMemo(() => ThreadClient.getInstance(sreAgentEndpoint), [sreAgentEndpoint]);
 
-    const oldestThread = useRef<Thread>();
     const threadCount = useRef<number>(0);
     const loadThreadsCallTimestamp = useRef<string>(new Date().toISOString());
     const isLoadingThreads = useRef<boolean>(false);
@@ -171,84 +148,51 @@ export const useIncidentThreadList = (
         async (
             searchText: string | undefined,
             status: string[] | undefined,
+            investigationStatus: string[] | undefined,
             createdTimeRange: TimeRangeValue | undefined,
             threadCount: number | undefined,
-            trailingThread: Thread | undefined,
-            sortColumn: SortColumn | undefined,
+            sortColumn: IncidentsListColumnKey | undefined,
             sortDescending: boolean | undefined = true
         ) => {
-            let skip: number | undefined;
-            let paginationFilter: string | undefined;
+            const { columnPath: sortColumnPath } = getColumnInfo(sortColumn || 'modifiedTimestamp');
 
-            const sortColumnName = sortColumn || 'modifiedTimestamp';
-            const sortColumnDetails = getColumnDetails(sortColumnName);
-
-            if (sortColumnDetails.isDistinct) {
-                // When sorting by a distinct column, we use a pagination filter to fetch threads that come after the last thread's sort column value.
-                skip = 0;
-                if (trailingThread) {
-                    const sortColumnValue = getColumnValue(trailingThread, sortColumnName);
-                    const sortColumnValueWrapped = sortColumnDetails.type === 'string' ? `'${sortColumnValue}'` : sortColumnValue;
-                    paginationFilter = `${sortColumnName} ${sortDescending ? 'lt' : 'gt'} ${sortColumnValueWrapped}`;
-                }
-            } else {
-                // When sorting by a non-distinct column, we use skip to paginate.
-                skip = threadCount;
-            }
-
-            const statusFilter = status?.some(s => s === 'all') ? [] : status;
-
-            const filterStrings: string[] = [`source eq '${ThreadSource.incident}'`];
-
-            if (paginationFilter) {
-                filterStrings.push(paginationFilter);
-            }
-
-            if (loadThreadsCallTimestamp.current && sortDescending) {
-                filterStrings.push(`createdTimestamp le ${loadThreadsCallTimestamp.current}`);
-            }
-
-            if (searchText) {
-                const searchTextToLower = searchText.toLowerCase();
-                filterStrings.push(
-                    `(contains(tolower(title),'${searchTextToLower}') or contains(tolower(incidentId),'${searchTextToLower}'))`
-                );
-            }
-
-            if (statusFilter?.length) {
-                const statusFilterStrings = statusFilter.map(s => {
-                    const statusToLower = s.toLowerCase();
-                    const mayBeEmptyString = ([IncidentStatus.active, IncidentStatus.triggered, IncidentStatus.new] as string[]).includes(
-                        statusToLower
-                    );
-                    return mayBeEmptyString
-                        ? `(tolower(incidentStatus) eq '${statusToLower}' or incidentStatus eq '')`
-                        : `tolower(incidentStatus) eq '${statusToLower}'`;
-                });
-                let statusFilterString = statusFilterStrings.join(' or ');
-                if (statusFilterStrings.length > 1) {
-                    statusFilterString = `(${statusFilterString})`;
-                }
-                filterStrings.push(statusFilterString);
-            }
-
-            if (createdTimeRange) {
-                if (createdTimeRange.key === TimespanKeys.Custom) {
-                    const { start, end } = createdTimeRange;
-                    filterStrings.push(`createdTimestamp ge ${start?.toISOString()} and createdTimestamp le ${end?.toISOString()}`);
-                } else {
-                    const spanInMilliseconds = getTimespanInMilliseconds(createdTimeRange.key);
-                    const start = new Date(Date.now() - spanInMilliseconds);
-                    filterStrings.push(`createdTimestamp ge ${start.toISOString()}`);
-                }
-            }
+            const filterStrings = getOdataFilterParts(
+                searchText,
+                status,
+                investigationStatus,
+                createdTimeRange,
+                loadThreadsCallTimestamp.current,
+                sortDescending
+            );
 
             return await threadClient.getIncidentThreads({
-                skip: skip ?? 0,
+                skip: threadCount ?? 0,
                 top: ThreadLoadingCounts.default,
-                orderBy: `${sortColumnName}${sortDescending ? '+desc' : ''}`,
+                orderBy: `${sortColumnPath}${sortDescending ? '+desc' : ''}`,
                 filter: filterStrings.join(' and '),
             });
+        },
+        [threadClient]
+    );
+
+    const getThreadCounts = useCallback(
+        async (
+            searchText: string | undefined,
+            status: string[] | undefined,
+            investigationStatus: string[] | undefined,
+            createdTimeRange: TimeRangeValue | undefined,
+            sortDescending: boolean | undefined = true
+        ) => {
+            const filterStrings = getOdataFilterParts(
+                searchText,
+                status,
+                investigationStatus,
+                createdTimeRange,
+                loadThreadsCallTimestamp.current,
+                sortDescending
+            );
+
+            return await threadClient.getIncidentThreadCounts(filterStrings.join(' and '));
         },
         [threadClient]
     );
@@ -257,26 +201,27 @@ export const useIncidentThreadList = (
         async (
             searchText: string | undefined,
             status: string[] | undefined,
+            investigationStatus: string[] | undefined,
             createdTimeRange: TimeRangeValue | undefined,
-            sortColumn: SortColumn | undefined,
+            sortColumn: IncidentsListColumnKey | undefined,
             sortDescending: boolean | undefined
         ) => {
-            return await getThreads(searchText, status, createdTimeRange, 0, undefined, sortColumn, sortDescending);
+            return await getThreads(searchText, status, investigationStatus, createdTimeRange, 0, sortColumn, sortDescending);
         },
         [getThreads]
     );
 
     const loadThreads = useCallback(async (): Promise<boolean | undefined> => {
-        if (!isLoadingThreads.current && !isLoadingInitialThreads) {
+        if (!isLoadingThreads.current && !isLoadingInitialThreadsAndCounts) {
             const callId = loadThreadsCallTimestamp.current;
             isLoadingThreads.current = true;
 
             const oldThreadsResponse = await getThreads(
                 searchText,
                 statusFilters,
+                investigationStatusFilters,
                 createdTimeFilter,
                 threadCount.current,
-                oldestThread.current,
                 sortColumn,
                 sortDescending
             );
@@ -305,7 +250,16 @@ export const useIncidentThreadList = (
                 return undefined;
             }
         }
-    }, [getThreads, searchText, statusFilters, createdTimeFilter, sortColumn, sortDescending, isLoadingInitialThreads]);
+    }, [
+        getThreads,
+        searchText,
+        statusFilters,
+        investigationStatusFilters,
+        createdTimeFilter,
+        sortColumn,
+        sortDescending,
+        isLoadingInitialThreadsAndCounts,
+    ]);
 
     const handleScroll = debounce(() => {
         loadThreads();
@@ -327,7 +281,7 @@ export const useIncidentThreadList = (
             const entry = entries[0];
             setIsIntersecting(entry.isIntersecting);
         });
-        if (visible && observer && intersectionObserverRef.current && !isLoadingInitialThreads) {
+        if (visible && observer && intersectionObserverRef.current && !isLoadingInitialThreadsAndCounts) {
             observer.observe(intersectionObserverRef.current);
         }
 
@@ -335,7 +289,7 @@ export const useIncidentThreadList = (
             observer?.disconnect();
             setIsIntersecting(false);
         };
-    }, [isLoadingInitialThreads, visible]);
+    }, [isLoadingInitialThreadsAndCounts, visible]);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -364,7 +318,6 @@ export const useIncidentThreadList = (
     }, [isIntersecting, loadThreads, moreThreadsToLoad]);
 
     useEffect(() => {
-        oldestThread.current = threads[threads.length - 1];
         threadCount.current = threads.length;
     }, [threads]);
 
@@ -374,27 +327,36 @@ export const useIncidentThreadList = (
 
         if (!hasChatPermissions) {
             setThreads([]);
-            setIsLoadingInitialThreads(false);
+            setIsLoadingInitialThreadsAndCounts(false);
         } else {
-            setIsLoadingInitialThreads(true);
+            setIsLoadingInitialThreadsAndCounts(true);
             setMoreThreadsToLoad(true);
 
             const setInitialThreads = async () => {
-                // For a better user experience, we show the existing threads in the memory based on the filter options, before making a request to get the filtered threads from service side.
-                setThreads(prev => getFilteredThreads(prev, searchText));
-
                 // Send a request to load initial threads based on the filter options to overflow the threads list div if possible
                 isLoadingThreads.current = true;
 
-                const initialThreadsResponse = await getInitialThreads(
+                const initialThreadsPromise = getInitialThreads(
                     searchText,
                     statusFilters,
+                    investigationStatusFilters,
                     createdTimeFilter,
                     sortColumn,
                     sortDescending
                 );
 
+                const threadCountsPromise = getThreadCounts(
+                    searchText,
+                    statusFilters,
+                    investigationStatusFilters,
+                    createdTimeFilter,
+                    sortDescending
+                );
+
+                const [initialThreadsResponse, threadCountsResponse] = await Promise.all([initialThreadsPromise, threadCountsPromise]);
+
                 const initialThreads = initialThreadsResponse.content ?? [];
+                const threadCounts = threadCountsResponse.content;
 
                 if (isSubscribed) {
                     // Do not set moreThreadsToLoad to false if the initial threads response is not successful.
@@ -405,7 +367,8 @@ export const useIncidentThreadList = (
                     const { threads: totalThreads, addedThreads } = processThreads([], initialThreads, false, sortColumn, sortDescending);
                     setThreads(totalThreads);
                     setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
-                    setIsLoadingInitialThreads(false);
+                    setThreadCounts(threadCounts);
+                    setIsLoadingInitialThreadsAndCounts(false);
                 }
 
                 isLoadingThreads.current = false;
@@ -417,15 +380,28 @@ export const useIncidentThreadList = (
         return () => {
             isSubscribed = false;
         };
-    }, [searchText, statusFilters, createdTimeFilter, sortColumn, sortDescending, hasChatPermissions, getInitialThreads, refresh]);
+    }, [
+        searchText,
+        statusFilters,
+        investigationStatusFilters,
+        createdTimeFilter,
+        sortColumn,
+        sortDescending,
+        hasChatPermissions,
+        getInitialThreads,
+        getThreadCounts,
+        refresh,
+    ]);
 
     return {
+        threadCounts,
+
         threads,
         setThreads,
         setUnreadThreadIds,
         unreadThreadIds,
         moreThreadsToLoad,
-        isLoadingInitialThreads,
+        isLoadingInitialThreadsAndCounts,
 
         threadListDivRef,
         intersectionObserverRef,
@@ -435,14 +411,82 @@ export const useIncidentThreadList = (
     };
 };
 
-const getFilteredThreads = (threads: Thread[], searchText?: string): Thread[] => {
-    return threads.filter(thread => {
-        let match = true;
+const getOdataFilterParts = (
+    searchText: string | undefined,
+    status: string[] | undefined,
+    investigationStatus: string[] | undefined,
+    createdTimeRange: TimeRangeValue | undefined,
+    loadThreadsCallTimestamp?: string,
+    sortDescending?: boolean
+) => {
+    const statusFilter = status?.some(s => s === 'all') ? [] : status;
+    const investigationStatusFilter = investigationStatus?.some(s => s === 'all') ? [] : investigationStatus;
 
-        if (searchText) {
-            match = thread.title.toLocaleLowerCase().includes(searchText.toLocaleLowerCase());
+    const filterStrings: string[] = [`source eq '${ThreadSource.incident}'`];
+
+    if (loadThreadsCallTimestamp && sortDescending) {
+        filterStrings.push(`createdTimestamp le ${loadThreadsCallTimestamp}`);
+    }
+
+    if (searchText) {
+        const searchTextToLower = searchText.toLowerCase();
+        const textFilterParts = [
+            `(incidentDetails ne null and contains(tolower(incidentDetails/incidentTitle),'${searchTextToLower}'))`,
+            `(incidentDetails eq null and contains(tolower(title),'${searchTextToLower}'))`,
+            `contains(tolower(incidentId),'${searchTextToLower}')`,
+            `contains(tolower(incidentDetails/filterId),'${searchTextToLower}')`,
+        ];
+        const textFilterString = `(${textFilterParts.join(' or ')})`;
+        filterStrings.push(textFilterString);
+    }
+
+    if (statusFilter?.length) {
+        const statusFilterStrings = statusFilter.map(s => {
+            const statusToLower = s.toLowerCase();
+            const mayBeEmptyString = ([IncidentStatus.active, IncidentStatus.triggered, IncidentStatus.new] as string[]).includes(
+                statusToLower
+            );
+            return mayBeEmptyString
+                ? `(tolower(incidentStatus) eq '${statusToLower}' or incidentStatus eq '')`
+                : `tolower(incidentStatus) eq '${statusToLower}'`;
+        });
+        let statusFilterString = statusFilterStrings.join(' or ');
+        if (statusFilterStrings.length > 1) {
+            statusFilterString = `(${statusFilterString})`;
         }
+        filterStrings.push(statusFilterString);
+    }
 
-        return match;
-    });
+    if (investigationStatusFilter?.length) {
+        const investigationStatusFilterStrings = investigationStatusFilter.map(s => {
+            return `incidentDetails/investigationStatus eq '${s}'`;
+        });
+        const investigationStatusFilterString = `(incidentDetails ne null and (${investigationStatusFilterStrings.join(' or ')}))`;
+        filterStrings.push(investigationStatusFilterString);
+    }
+
+    if (createdTimeRange) {
+        if (createdTimeRange.key === TimespanKeys.Custom) {
+            const { start, end } = createdTimeRange;
+            const [startString, endString] = [start?.toISOString(), end?.toISOString()];
+            const timeFilterParts = [
+                `(incidentDetails ne null and incidentDetails/incidentCreatedTime ge ${startString} and incidentDetails/incidentCreatedTime le ${endString})`,
+                `(incidentDetails eq null and createdTimestamp ge ${startString} and createdTimestamp le ${endString})`,
+            ];
+            const timeFilterString = `(${timeFilterParts.join(' or ')})`;
+            filterStrings.push(timeFilterString);
+        } else {
+            const spanInMilliseconds = getTimespanInMilliseconds(createdTimeRange.key);
+            const start = new Date(Date.now() - spanInMilliseconds);
+            const startString = start?.toISOString();
+            const timeFilterParts = [
+                `(incidentDetails ne null and incidentDetails/incidentCreatedTime ge ${startString})`,
+                `(incidentDetails eq null and createdTimestamp ge ${startString})`,
+            ];
+            const timeFilterString = `(${timeFilterParts.join(' or ')})`;
+            filterStrings.push(timeFilterString);
+        }
+    }
+
+    return filterStrings;
 };
