@@ -66,7 +66,7 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
                 {
                     new KeyValuePair<string, string>("1", "1"),
                     new KeyValuePair<string, string>("2", "2"),
-                    new KeyValuePair<string, string>("25", "2.5"),
+                    new KeyValuePair<string, string>("25", "25"),
                     new KeyValuePair<string, string>("3", "3"),
                     new KeyValuePair<string, string>("4", "4")
                 };
