@@ -25,7 +25,7 @@ import {
     isDefaultStreamingMessageType,
     isFinalStreamingMessage,
     isImageStreamingMessageType,
-    isPendingState,
+    isInitialState,
     isUpdatedSpecialStreamingMessage,
     isUserStreamingMessage,
     processApprovalStreamingMessageStatus,
@@ -342,6 +342,7 @@ export const useChatBox = (
             messageContent?.text && !approval && !azCliExecution && !kubectlExecution && !memorySearchResult && !psqlExecution && !todoInfo
                 ? messageContent.text
                 : '';
+
         const agentTaskInfo = getSpecialMessageContentFromStreamingMessage<AgentTaskMetaData>(streamingMessage, 'taskupdate');
         const isImage = isImageStreamingMessageType(streamingMessage);
 
@@ -371,7 +372,7 @@ export const useChatBox = (
             chatMessageContent.kubectlExecution ||
             chatMessageContent.psqlExecution;
         const specialMessageId = specialMessage?.id;
-        const isSpecialMessageInInitialState = isPendingState(specialMessage?.status);
+        const isSpecialMessageInInitialState = isInitialState(specialMessage?.status);
         const hasMemorySearchResult = !!chatMessageContent.memorySearchResult;
 
         if (!specialMessage || isSpecialMessageInInitialState || hasMemorySearchResult) {

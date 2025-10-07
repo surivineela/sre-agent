@@ -599,11 +599,12 @@ export const isUserStreamingMessage = (streamingMessage: StreamingMessage): bool
     return equals(streamingMessage.role || '', 'user', AntUxStringComparison.IgnoreCase);
 };
 
-export const isPendingState = (status: string | null | undefined): boolean => {
+export const isInitialState = (status: string | null | undefined): boolean => {
     return (
         !!status &&
         (equals(status, 'Pending', AntUxStringComparison.IgnoreCase) ||
-            equals(status, 'PendingAuthorization', AntUxStringComparison.IgnoreCase))
+            equals(status, 'PendingAuthorization', AntUxStringComparison.IgnoreCase) ||
+            equals(status, 'Running', AntUxStringComparison.IgnoreCase))
     );
 };
 
@@ -615,7 +616,7 @@ export const isUpdatedSpecialStreamingMessage = (streamingMessage: StreamingMess
     const memorySearchResult = getSpecialMessageContentFromStreamingMessage<MemorySearchResult>(streamingMessage, 'memorysearch');
     const status = approval?.status || azCliExecution?.status || kubectlExecution?.status || psqlExecution?.status;
 
-    return (!!approval || !!azCliExecution || !!kubectlExecution || !!memorySearchResult) && !isPendingState(status);
+    return (!!approval || !!azCliExecution || !!psqlExecution || !!kubectlExecution || !!memorySearchResult) && !isInitialState(status);
 };
 
 export const processApprovalStreamingMessageStatus = (status: ApprovalDecision | number): ApprovalDecision => {
