@@ -223,7 +223,6 @@ namespace Agent.Core.Services
 
             var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
             _logger.LogInternalInformation($"Making GET request to ICM API: {requestUri}");
-
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
             if (_authType == AuthType.ManagedIdentity)
             {
@@ -380,8 +379,16 @@ namespace Agent.Core.Services
                 ["$filter"] = $"LastModifiedDate gt {modifiedDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'")}{serviceIdFilter}{titleFilter}{teamIdFilter}{incidentTypeFilter}{createdByFilter}{monitorIdFilter}{stateFilter}"
             };
 
+            // TODO Create a ICMAPIClient for cert and user since they have different model properties
             if (_authType == AuthType.Certificate)
             {
+                teamIdFilter = !string.IsNullOrWhiteSpace(owningTeamId) ? $" and OwningTeamId eq '{owningTeamId}'" : string.Empty;
+                incidentTypeFilter = !string.IsNullOrWhiteSpace(incidentType) ? $" and IncidentType eq '{incidentType}'" : string.Empty;
+                if (statuses != null && statuses.Count() > 0)
+                {
+                    var stateConditions = statuses.Select(s => $"Status eq '{s}'");
+                    stateFilter = " and (" + string.Join(" or ", stateConditions) + ")";
+                }
                 // Order by is not supported in cert API, so we remove it
                 queryParams = new Dictionary<string, string?>()
                 {
