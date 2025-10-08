@@ -1,5 +1,6 @@
-import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
-import { mergeClasses } from '@fluentui/react-components';
+import { CopilotChat, CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
+import { mergeClasses, webDarkTheme, webLightTheme } from '@fluentui/react-components';
+import { useTheme } from '@fluentui/react/lib/Theme';
 import { memo, useMemo } from 'react';
 import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
@@ -60,6 +61,8 @@ export const ChatBox = ({
         onClickDeepInvestigationButton,
     } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource);
 
+    const theme = useTheme();
+
     const { isAgentTaskCollapsed, setIsAgentTaskCollapsed, openAgentTask, hasExistingTasks, ...rest } = useAgentTask(
         threadId,
         userDefinedThreadIdRef.current,
@@ -91,7 +94,12 @@ export const ChatBox = ({
             <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
                 <div className={chatBoxStyles.chatBoxAndAgentTask}>
                     <div className={chatBoxStyles.chatBox}>
-                        <CopilotProvider mode="canvas" className={chatBoxStyles.chatBoxInner}>
+                        <CopilotProvider
+                            {...CopilotTheme}
+                            mode={'canvas'}
+                            theme={theme.isInverted ? webDarkTheme : webLightTheme}
+                            className={chatBoxStyles.chatBoxInner}
+                        >
                             <div className={mergeClasses(scrollable, chatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={onScroll}>
                                 <CopilotChat className={chatBoxStyles.chat}>
                                     <div ref={intersectionObserverRef} />

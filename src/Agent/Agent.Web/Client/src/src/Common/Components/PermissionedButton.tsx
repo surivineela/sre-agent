@@ -12,7 +12,7 @@ export interface PermissionedButtonProps extends Omit<ButtonProps, 'disabled'> {
     disabledReason?: boolean;
     /** If true, hides the button entirely when permission is missing instead of showing disabled state */
     hideIfNoPermission?: boolean;
-    children: ReactNode;
+    children?: ReactNode;
 }
 
 /**

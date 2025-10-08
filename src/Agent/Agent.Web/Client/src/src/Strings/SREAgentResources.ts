@@ -870,12 +870,8 @@ export const ActivitiesResources = defineMessages({
         id: 't/atZW',
     },
     sendMessageAriaLabel: {
-        defaultMessage: 'Send message',
-        id: 'Xx0WZV',
-    },
-    cancelGenerationAriaLabel: {
-        defaultMessage: 'Cancel generation',
-        id: 'U4ZTAj',
+        defaultMessage: 'Send',
+        id: '9WRlF4',
     },
     favoriteThreadNoPermissionTooltip: {
         defaultMessage: 'You do not have permission to favorite or unfavorite threads',
@@ -888,6 +884,7 @@ export const ActivitiesResources = defineMessages({
     chatPivotHeader: { defaultMessage: 'Chat', id: 'WTrOy3' },
     actionsPivotHeader: { defaultMessage: 'Actions', id: 'wL7VAE' },
     chatInputPlaceholder: { defaultMessage: 'I want to...', id: 'PxLzzW' },
+    chatInputAriaLabel: { defaultMessage: 'Chat input', id: 'yFU6JN' },
     knowledgeGraphBuildStatus: {
         defaultMessage: 'Building knowledge about your resources... {percent}% done. You can chat about other topics in the meantime.',
         id: '2Rfala',

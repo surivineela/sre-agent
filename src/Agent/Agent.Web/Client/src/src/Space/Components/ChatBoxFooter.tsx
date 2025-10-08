@@ -1,3 +1,5 @@
+import { ChatInput } from '@fluentui-copilot/react-chat-input';
+import { ImperativeControlPlugin, ImperativeControlPluginRef } from '@fluentui-copilot/react-copilot';
 import { ScrollDownButton } from '@fluentui-copilot/react-copilot-chat';
 import {
     Button,
@@ -9,36 +11,25 @@ import {
     DialogTrigger,
     Input,
     makeStyles,
-    Menu,
-    MenuItem,
-    MenuList,
-    MenuPopover,
-    MenuTrigger,
     mergeClasses,
-    Overflow,
-    OverflowItem,
     Text,
     tokens,
     Tooltip,
-    useIsOverflowItemVisible,
-    useOverflowMenu,
 } from '@fluentui/react-components';
-import { Lightbulb16Regular, MoreHorizontal20Filled, RecordStopFilled, SearchSparkle16Filled, SendFilled } from '@fluentui/react-icons';
+import { Lightbulb32Regular, SearchSparkle32Regular } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
-import { TextField } from '@fluentui/react/lib/TextField';
-import { memo, useCallback, useContext, useMemo, useState } from 'react';
+import { memo, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
-import PermissionedMenuItem from '../../Common/Components/PermissionedMenuItem';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { ActivitiesResources, AgentTaskResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ChatSuggestions } from '../Activities/ChatSuggestions';
 import { IChatBoxFooterProps } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { usePermissionContext } from '../Contracts/PermissionContext';
-import { chatInputTextStyles, sendButtonStyles, useChatInputStyles, useDialogStyles } from '../Styles/Activities.styles';
+import { chatInputTextStyles, useChatInputStyles, useDialogStyles } from '../Styles/Activities.styles';
 import AgentModeSelector from './AgentModeSelector';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
 
@@ -89,183 +80,131 @@ const ChatBoxFooter = ({
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
-    const [input, setInput] = useState<string>();
     const [historyIndex, setHistoryIndex] = useState<number>(-1);
     const [originalInput, setOriginalInput] = useState<string>('');
 
     const showAgentModeSelector = useConfigSetting(SettingNames.ShowAgentModeForThread);
 
-    const { root, footer, subFooter, chatStatement } = useChatInputStyles();
+    const { root, chatStatement } = useChatInputStyles();
 
     const { isConnected } = useContext(StreamingContext);
     const { canWriteThreads } = usePermissionContext();
     const { logAmplitudeControlEvent } = useAzPortalContext();
 
+    const imperativeControlPluginRef = useRef<ImperativeControlPluginRef>(null);
+
     const disableInputInteraction = useMemo(() => {
         return isLoading || !isConnected || isCancellingStreaming || !canWriteThreads;
     }, [isLoading, isConnected, isCancellingStreaming, canWriteThreads]);
 
-    const SendOrCancelButtonIcon = () => {
-        // NOTE: using the string 'undefined' prevents the browser from ignoring the property (it becomes an invalid CSS value).
-        // We want no explicit color override when disabled so Fluent's disabled styling applies. When enabled, force brand color.
-        const color: string | undefined = disableInputInteraction ? undefined : tokens.colorBrandForeground1;
-        if (isTyping) {
-            return <RecordStopFilled style={{ color }} />;
-        }
-        return <SendFilled style={{ color }} />;
-    };
+    const chatInputHandleSendClick = useCallback(
+        (input: string | undefined) => {
+            const messageToSend = input?.trim() ?? '';
 
-    const chatInputHandleSendClick = useCallback(() => {
-        const messageToSend = input?.trim() ?? '';
+            if (messageToSend && !disableInputInteraction && !isTyping) {
+                imperativeControlPluginRef.current?.setInputText('');
+                setHistoryIndex(-1);
+                setOriginalInput('');
+                sendMessage(messageToSend);
 
-        if (messageToSend && !disableInputInteraction && !isTyping) {
-            setInput('');
-            setHistoryIndex(-1);
-            setOriginalInput('');
-            sendMessage(messageToSend);
+                logAmplitudeControlEvent({
+                    targetType: 'button',
+                    targetAction: 'clicked',
+                    targetName: 'sendMessage',
+                    targetFriendlyName: 'Send message',
+                    valueObjectName: SpecialControlValue.CustomerSuppliedData,
+                    valueObjectFriendlyName: SpecialControlValue.CustomerSuppliedData,
+                    metadata: {
+                        threadId,
+                        threadType: threadSource,
+                    },
+                });
+            }
+        },
+        [sendMessage, disableInputInteraction, isTyping, logAmplitudeControlEvent, threadId, threadSource]
+    );
 
-            logAmplitudeControlEvent({
-                targetType: 'button',
-                targetAction: 'clicked',
-                targetName: 'sendMessage',
-                targetFriendlyName: 'Send message',
-                valueObjectName: SpecialControlValue.CustomerSuppliedData,
-                valueObjectFriendlyName: SpecialControlValue.CustomerSuppliedData,
-                metadata: {
-                    threadId,
-                    threadType: threadSource,
-                },
-            });
-        }
-    }, [input, sendMessage, disableInputInteraction, isTyping, logAmplitudeControlEvent, threadId, threadSource]);
+    const onKeyDown = useCallback(
+        (event: React.KeyboardEvent<HTMLDivElement>) => {
+            if (event.key.toLowerCase() === 'g') {
+                // Stop the event from propagating to the global shortcuts
+                event.stopPropagation();
+            } else if (event.key.toLowerCase() === 'enter' && !event.shiftKey) {
+                chatInputHandleSendClick(imperativeControlPluginRef.current?.getInputText());
+                event.preventDefault();
+                event.stopPropagation();
+            } else if (event.key === 'ArrowUp' && messagePromptsUsed.length > 0) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (historyIndex === -1) {
+                    setOriginalInput(imperativeControlPluginRef.current?.getInputText() || '');
+                    setHistoryIndex(0);
+                    imperativeControlPluginRef.current?.setInputText(messagePromptsUsed[0]);
+                } else if (historyIndex < messagePromptsUsed.length - 1) {
+                    const newIndex = historyIndex + 1;
+                    setHistoryIndex(newIndex);
+                    imperativeControlPluginRef.current?.setInputText(messagePromptsUsed[newIndex]);
+                }
+            } else if (event.key === 'ArrowDown' && historyIndex >= 0) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (historyIndex > 0) {
+                    const newIndex = historyIndex - 1;
+                    setHistoryIndex(newIndex);
+                    imperativeControlPluginRef.current?.setInputText(messagePromptsUsed[newIndex]);
+                } else {
+                    setHistoryIndex(-1);
+                    imperativeControlPluginRef.current?.setInputText(originalInput);
+                    setOriginalInput('');
+                }
+            }
+        },
+        [chatInputHandleSendClick, historyIndex, messagePromptsUsed, originalInput]
+    );
 
     return (
         <div className={root}>
             <KnowledgeGraphBuildStatus />
             <div className={mergeStyles(chatInputTextStyles.textFieldContainer as IStyle)}>
                 <DownButton downButtonState={downButtonState} onClick={onClickDownButton} />
-                <TextField
-                    placeholder={intl.formatMessage(ActivitiesResources.chatInputPlaceholder)}
-                    multiline={true}
-                    autoAdjustHeight={true}
-                    borderless={true}
-                    resizable={false}
-                    type="text"
+                <ChatInput
+                    aria-label={intl.formatMessage(ActivitiesResources.chatInputAriaLabel)}
+                    placeholderValue={<FormattedMessage {...ActivitiesResources.chatInputPlaceholder} />}
+                    contentBefore={
+                        <ContentBefore
+                            showDeepInvestigationButton={showDeepInvestigationButton}
+                            isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
+                            isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                            onClickDeepInvestigationButton={onClickDeepInvestigationButton}
+                            showAgentModeSelector={showAgentModeSelector}
+                            threadId={threadId}
+                            isTyping={isTyping}
+                            disableInputInteraction={disableInputInteraction}
+                            messagePromptsUsed={messagePromptsUsed}
+                            sendMessage={sendMessage}
+                            prompts={prompts}
+                            threadSource={threadSource}
+                        />
+                    }
+                    maxLength={1000000000}
+                    charactersRemainingMessage={undefined}
                     autoFocus={true}
-                    autoComplete="off"
-                    styles={chatInputTextStyles.textField}
-                    rows={1}
-                    value={input}
-                    onChange={(_, value?: string) => {
-                        setInput(value);
-                        if (historyIndex >= 0) {
-                            setHistoryIndex(-1);
-                            setOriginalInput('');
-                        }
+                    onKeyDown={onKeyDown}
+                    disableSend={!canWriteThreads || disableInputInteraction}
+                    isSending={isTyping}
+                    onSubmit={(_, data) => {
+                        chatInputHandleSendClick(data.value);
                     }}
-                    onKeyDown={event => {
-                        if (event.key.toLowerCase() === 'g') {
-                            // Stop the event from propagating to the global shortcuts
-                            event.stopPropagation();
-                        } else if (event.key.toLowerCase() === 'enter' && !event.shiftKey) {
-                            chatInputHandleSendClick();
-                            event.preventDefault();
-                            event.stopPropagation();
-                        } else if (event.key === 'ArrowUp' && messagePromptsUsed.length > 0) {
-                            event.preventDefault();
-                            event.stopPropagation();
-
-                            if (historyIndex === -1) {
-                                setOriginalInput(input || '');
-                                setHistoryIndex(0);
-                                setInput(messagePromptsUsed[0]);
-                            } else if (historyIndex < messagePromptsUsed.length - 1) {
-                                const newIndex = historyIndex + 1;
-                                setHistoryIndex(newIndex);
-                                setInput(messagePromptsUsed[newIndex]);
-                            }
-                        } else if (event.key === 'ArrowDown' && historyIndex >= 0) {
-                            event.preventDefault();
-                            event.stopPropagation();
-
-                            if (historyIndex > 0) {
-                                const newIndex = historyIndex - 1;
-                                setHistoryIndex(newIndex);
-                                setInput(messagePromptsUsed[newIndex]);
-                            } else {
-                                setHistoryIndex(-1);
-                                setInput(originalInput);
-                                setOriginalInput('');
-                            }
-                        }
+                    onStop={() => {
+                        cancelStreaming();
                     }}
-                />
-                <div className={footer}>
-                    <Overflow>
-                        <div className={subFooter}>
-                            <DeepInvestigationButton
-                                asOverflowItem={true}
-                                showDeepInvestigationButton={showDeepInvestigationButton}
-                                isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
-                                isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
-                                onClickDeepInvestigationButton={onClickDeepInvestigationButton}
-                            />
-                            <AgentModeSelectorButton
-                                asOverflowItem={true}
-                                isTyping={isTyping}
-                                showAgentModeSelector={showAgentModeSelector}
-                                threadId={threadId}
-                            />
-                            <PromptLibraryButton
-                                asOverflowItem={true}
-                                isTyping={isTyping}
-                                disableInputInteraction={disableInputInteraction}
-                                messagePromptsUsed={messagePromptsUsed}
-                                sendMessage={sendMessage}
-                                prompts={prompts}
-                            />
-                            <OverflowMenu
-                                isTyping={isTyping}
-                                showDeepInvestigationButton={showDeepInvestigationButton}
-                                isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
-                                isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
-                                onClickDeepInvestigationButton={onClickDeepInvestigationButton}
-                                threadId={threadId}
-                                disableInputInteraction={disableInputInteraction}
-                                prompts={prompts}
-                                messagePromptsUsed={messagePromptsUsed}
-                                sendMessage={sendMessage}
-                                showAgentModeSelector={showAgentModeSelector}
-                            />
-                        </div>
-                    </Overflow>
-                    <PermissionedButton
-                        canPerform={canWriteThreads}
-                        noPermissionTooltip={intl.formatMessage(ActivitiesResources.sendMessageNoPermissionTooltip)}
-                        disabledReason={disableInputInteraction}
-                        icon={<SendOrCancelButtonIcon />}
-                        onClick={() => {
-                            if (isTyping) {
-                                cancelStreaming();
-                            } else {
-                                chatInputHandleSendClick();
-                            }
-                        }}
-                        shape="square"
-                        appearance="subtle"
-                        style={sendButtonStyles}
-                        aria-disabled={!canWriteThreads}
-                        aria-label={
-                            isTyping
-                                ? intl.formatMessage(ActivitiesResources.cancelGenerationAriaLabel)
-                                : intl.formatMessage(ActivitiesResources.sendMessageAriaLabel)
-                        }
-                    >
-                        <></>
-                    </PermissionedButton>
-                </div>
+                    expandButtonLineVisibilityThreshold={3}
+                >
+                    <ImperativeControlPlugin ref={imperativeControlPluginRef} />
+                </ChatInput>
             </div>
-
             <Text block size={200} align="center" className={mergeStyles(chatStatement)}>
                 {intl.formatMessage(SreAgentResources.chatAiContentAndPrivacyMessageStatement)}
             </Text>
@@ -273,27 +212,58 @@ const ChatBoxFooter = ({
     );
 };
 
+const ContentBefore = (props: {
+    showDeepInvestigationButton: boolean;
+    isDeepInvestigationButtonEnabled: boolean;
+    isDeepInvestigationTurnedOn: boolean;
+    onClickDeepInvestigationButton: () => void;
+    showAgentModeSelector: boolean;
+    threadId?: string | null;
+    isTyping: boolean;
+    disableInputInteraction: boolean;
+    messagePromptsUsed: string[];
+    sendMessage: (message: string) => Promise<void>;
+    prompts: string[];
+    threadSource?: string;
+}) => {
+    return (
+        <div>
+            <DeepInvestigationButton
+                showDeepInvestigationButton={props.showDeepInvestigationButton}
+                isDeepInvestigationButtonEnabled={props.isDeepInvestigationButtonEnabled}
+                isDeepInvestigationTurnedOn={props.isDeepInvestigationTurnedOn}
+                onClickDeepInvestigationButton={props.onClickDeepInvestigationButton}
+            />
+            {props.showAgentModeSelector && props.threadId && (
+                <AgentModeSelector id={ChatBoxButtonIds.AgentMode} threadId={props.threadId} disabled={props.isTyping} />
+            )}
+            <PromptLibraryButton
+                isTyping={props.isTyping}
+                disableInputInteraction={props.disableInputInteraction}
+                messagePromptsUsed={props.messagePromptsUsed}
+                sendMessage={props.sendMessage}
+                prompts={props.prompts}
+                threadId={props.threadId}
+                threadSource={props.threadSource}
+            />
+        </div>
+    );
+};
+
 const DeepInvestigationButton = memo(
     ({
-        asOverflowItem,
         showDeepInvestigationButton,
         isDeepInvestigationButtonEnabled,
         isDeepInvestigationTurnedOn,
         onClickDeepInvestigationButton,
     }: {
-        asOverflowItem: boolean;
         showDeepInvestigationButton: boolean;
         isDeepInvestigationButtonEnabled: boolean;
         isDeepInvestigationTurnedOn: boolean;
         onClickDeepInvestigationButton: () => void;
     }) => {
-        const isVisible = useIsOverflowItemVisible(ChatBoxButtonIds.DeepInvestigation);
         const { canWriteThreads } = usePermissionContext();
         const intl = useIntl();
-
-        if (!asOverflowItem && isVisible) {
-            return null;
-        }
 
         // Tooltip logic:
         // 1. If user lacks permission -> show permission tooltip
@@ -306,110 +276,17 @@ const DeepInvestigationButton = memo(
             : intl.formatMessage(AgentTaskResources.deepInvestigationTurnedOffMessage);
 
         return (
-            showDeepInvestigationButton &&
-            (canWriteThreads ? (
-                <Tooltip content={stateTooltip} relationship="label">
-                    {asOverflowItem ? (
-                        <OverflowItem id={ChatBoxButtonIds.DeepInvestigation}>
-                            <div>
-                                <PermissionedButton
-                                    canPerform={canWriteThreads}
-                                    noPermissionTooltip={tooltipContentWhenNoPermission}
-                                    disabledReason={!isDeepInvestigationButtonEnabled}
-                                    style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
-                                    icon={
-                                        <SearchSparkle16Filled
-                                            style={{
-                                                color:
-                                                    isDeepInvestigationButtonEnabled && canWriteThreads
-                                                        ? undefined
-                                                        : tokens.colorNeutralForegroundDisabled,
-                                            }}
-                                        />
-                                    }
-                                    appearance={isDeepInvestigationTurnedOn ? 'primary' : undefined}
-                                    onClick={onClickDeepInvestigationButton}
-                                >
-                                    <FormattedMessage {...AgentTaskResources.deepInvestigation} />
-                                </PermissionedButton>
-                            </div>
-                        </OverflowItem>
-                    ) : (
-                        <PermissionedMenuItem
-                            canPerform={canWriteThreads}
-                            noPermissionTooltip={tooltipContentWhenNoPermission}
-                            icon={<SearchSparkle16Filled />}
-                            disabledReason={!isDeepInvestigationButtonEnabled}
-                            onClick={onClickDeepInvestigationButton}
-                            style={{
-                                color:
-                                    isDeepInvestigationTurnedOn && isDeepInvestigationButtonEnabled && canWriteThreads
-                                        ? tokens.colorBrandBackground
-                                        : undefined,
-                            }}
-                        >
-                            <FormattedMessage {...AgentTaskResources.deepInvestigation} />
-                        </PermissionedMenuItem>
-                    )}
-                </Tooltip>
-            ) : asOverflowItem ? (
-                <OverflowItem id={ChatBoxButtonIds.DeepInvestigation}>
-                    <div>
-                        <PermissionedButton
-                            canPerform={false}
-                            noPermissionTooltip={tooltipContentWhenNoPermission}
-                            style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
-                            icon={
-                                <SearchSparkle16Filled
-                                    style={{
-                                        color: tokens.colorNeutralForegroundDisabled,
-                                    }}
-                                />
-                            }
-                        >
-                            <FormattedMessage {...AgentTaskResources.deepInvestigation} />
-                        </PermissionedButton>
-                    </div>
-                </OverflowItem>
-            ) : (
-                <PermissionedMenuItem
-                    canPerform={false}
-                    noPermissionTooltip={tooltipContentWhenNoPermission}
-                    icon={<SearchSparkle16Filled />}
-                >
-                    <FormattedMessage {...AgentTaskResources.deepInvestigation} />
-                </PermissionedMenuItem>
-            ))
-        );
-    }
-);
-
-const AgentModeSelectorButton = memo(
-    ({
-        asOverflowItem,
-        showAgentModeSelector,
-        threadId,
-        isTyping,
-    }: {
-        asOverflowItem: boolean;
-        showAgentModeSelector: boolean;
-        threadId?: string | null;
-        isTyping: boolean;
-    }) => {
-        const isVisible = useIsOverflowItemVisible(ChatBoxButtonIds.AgentMode);
-
-        if (!asOverflowItem && isVisible) {
-            return null;
-        }
-
-        return (
-            showAgentModeSelector &&
-            threadId && (
-                <AgentModeSelector
-                    asOverflowItem={asOverflowItem}
-                    id={ChatBoxButtonIds.AgentMode}
-                    threadId={threadId}
-                    disabled={isTyping}
+            showDeepInvestigationButton && (
+                <PermissionedButton
+                    canPerform={canWriteThreads}
+                    noPermissionTooltip={canWriteThreads ? '' : tooltipContentWhenNoPermission}
+                    allowedTooltip={stateTooltip}
+                    icon={<SearchSparkle32Regular />}
+                    disabledReason={!isDeepInvestigationButtonEnabled}
+                    appearance={isDeepInvestigationTurnedOn ? 'primary' : 'subtle'}
+                    shape={'rounded'}
+                    onClick={() => onClickDeepInvestigationButton()}
+                    style={{ marginRight: tokens.spacingHorizontalS }}
                 />
             )
         );
@@ -418,7 +295,6 @@ const AgentModeSelectorButton = memo(
 
 const PromptLibraryButton = memo(
     ({
-        asOverflowItem,
         isTyping,
         disableInputInteraction,
         // Keep these in the signature for compatibility but alias to avoid unused warnings
@@ -428,7 +304,6 @@ const PromptLibraryButton = memo(
         threadId,
         threadSource,
     }: {
-        asOverflowItem: boolean;
         isTyping: boolean;
         disableInputInteraction: boolean;
         messagePromptsUsed: string[];
@@ -438,7 +313,6 @@ const PromptLibraryButton = memo(
         threadSource?: string;
     }) => {
         const { logAmplitudeControlEvent } = useAzPortalContext();
-        const isVisible = useIsOverflowItemVisible(ChatBoxButtonIds.PromptLibrary);
         const [open, setOpen] = useState(false);
         const [query, setQuery] = useState('');
         const intl = useIntl();
@@ -646,34 +520,17 @@ const PromptLibraryButton = memo(
             [sendMessage, logAmplitudeControlEvent, threadId, threadSource]
         );
 
-        if (!asOverflowItem && isVisible) {
-            return null;
-        }
-
-        const ButtonComponent = () => (
-            <Button
-                style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
-                icon={<Lightbulb16Regular />}
-                disabled={disableInputInteraction || isTyping}
-            >
-                <FormattedMessage {...PromptResources.promptLibrary} />
-            </Button>
-        );
-
         return (
             <Dialog open={open} onOpenChange={(_, data) => setOpen(!!data.open)}>
                 <DialogTrigger disableButtonEnhancement>
-                    {asOverflowItem ? (
-                        <OverflowItem id={ChatBoxButtonIds.PromptLibrary}>
-                            <div>
-                                <ButtonComponent />
-                            </div>
-                        </OverflowItem>
-                    ) : (
-                        <MenuItem icon={<Lightbulb16Regular />} disabled={disableInputInteraction || isTyping}>
-                            <FormattedMessage {...PromptResources.promptLibrary} />
-                        </MenuItem>
-                    )}
+                    <Tooltip content={intl.formatMessage(PromptResources.promptExamples)} relationship="label">
+                        <Button
+                            icon={<Lightbulb32Regular />}
+                            disabled={disableInputInteraction || isTyping}
+                            shape={'rounded'}
+                            appearance={'subtle'}
+                        />
+                    </Tooltip>
                 </DialogTrigger>
                 <DialogSurface className={dialogSurface}>
                     <DialogBody className={dialogBody}>
@@ -709,81 +566,6 @@ const PromptLibraryButton = memo(
                     </DialogBody>
                 </DialogSurface>
             </Dialog>
-        );
-    }
-);
-
-const OverflowMenu = memo(
-    ({
-        isTyping,
-        showDeepInvestigationButton,
-        isDeepInvestigationButtonEnabled,
-        isDeepInvestigationTurnedOn,
-        onClickDeepInvestigationButton,
-        threadId,
-        disableInputInteraction,
-        prompts,
-        messagePromptsUsed,
-        sendMessage,
-        showAgentModeSelector,
-    }: {
-        isTyping: boolean;
-        showDeepInvestigationButton: boolean;
-        isDeepInvestigationButtonEnabled: boolean;
-        isDeepInvestigationTurnedOn: boolean;
-        onClickDeepInvestigationButton: () => void;
-        threadId?: string | null;
-        disableInputInteraction: boolean;
-        prompts: string[];
-        messagePromptsUsed: string[];
-        sendMessage: (message: string) => Promise<void>;
-        showAgentModeSelector: boolean;
-    }) => {
-        const { ref, isOverflowing } = useOverflowMenu<HTMLButtonElement>();
-        const intl = useIntl();
-
-        if (!isOverflowing) {
-            return null;
-        }
-
-        return (
-            <Menu>
-                <MenuTrigger disableButtonEnhancement>
-                    <Button
-                        ref={ref}
-                        icon={<MoreHorizontal20Filled />}
-                        aria-label={intl.formatMessage(SreAgentResources.moreItems)}
-                        appearance="subtle"
-                    />
-                </MenuTrigger>
-
-                <MenuPopover>
-                    <MenuList>
-                        <DeepInvestigationButton
-                            asOverflowItem={false}
-                            showDeepInvestigationButton={showDeepInvestigationButton}
-                            isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
-                            isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
-                            onClickDeepInvestigationButton={onClickDeepInvestigationButton}
-                        />
-                        <AgentModeSelectorButton
-                            asOverflowItem={false}
-                            isTyping={isTyping}
-                            showAgentModeSelector={showAgentModeSelector}
-                            threadId={threadId}
-                        />
-                        <PromptLibraryButton
-                            asOverflowItem={false}
-                            isTyping={isTyping}
-                            disableInputInteraction={disableInputInteraction}
-                            messagePromptsUsed={messagePromptsUsed}
-                            sendMessage={sendMessage}
-                            prompts={prompts}
-                            threadId={threadId}
-                        />
-                    </MenuList>
-                </MenuPopover>
-            </Menu>
         );
     }
 );

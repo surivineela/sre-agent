@@ -1,8 +1,4 @@
-import {
-    CopilotMessageV2 as CopilotMessage,
-    CopilotMessageV2Props as CopilotMessageProps,
-    UserMessageV2 as UserMessage,
-} from '@fluentui-copilot/react-copilot-chat';
+import { CopilotMessage, CopilotMessageProps, UserMessage } from '@fluentui-copilot/react-copilot-chat';
 import { mergeStyleSets } from '@fluentui/react';
 import { Image, mergeClasses, Text, tokens } from '@fluentui/react-components';
 import mermaid from 'mermaid';

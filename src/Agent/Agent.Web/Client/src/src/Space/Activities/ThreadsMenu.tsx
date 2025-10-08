@@ -211,7 +211,6 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                                         </div>
                                     )}
                                 </ThreadListAccordion>
-
                                 <ThreadListAccordion
                                     isFavorite={false}
                                     threads={threadListsState.regularThreadListState.threads}

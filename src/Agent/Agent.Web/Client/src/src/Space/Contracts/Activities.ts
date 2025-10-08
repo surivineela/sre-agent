@@ -186,7 +186,6 @@ export interface IAgentModeInfo {
 export interface IAgentModeSelectorProps {
     id: string;
     threadId: string;
-    asOverflowItem: boolean;
     disabled?: boolean;
 }
 

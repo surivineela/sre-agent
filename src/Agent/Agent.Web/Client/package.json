@@ -23,7 +23,7 @@
     },
     "dependencies": {
         "@dagrejs/dagre": "^1.1.4",
-        "@fluentui-copilot/react-copilot": "^0.24.3",
+        "@fluentui-copilot/react-copilot": "0.28.8",
         "@fluentui/azure-themes": "^8.6.128",
         "@fluentui/react": "^8.123.4",
         "@fluentui/react-calendar-compat": "^0.3.9",

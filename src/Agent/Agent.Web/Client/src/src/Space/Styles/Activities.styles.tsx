@@ -84,6 +84,7 @@ export const useChatBoxStyles = makeStyles({
     },
     userBubbleMessage: {
         padding: '0px 16px 0px 0px',
+        backgroundColor: 'inherit',
     },
     modePill: {
         backgroundColor: tokens.colorNeutralBackground3,
@@ -206,7 +207,7 @@ export const getChatBoxV2Styles = (agentTaskVisible?: boolean, overrides?: ChatB
             alignItems: 'stretch',
             height: '100%',
             fontSize: '16px',
-            backgroundColor: tokens.colorNeutralForegroundInverted,
+            backgroundColor: `${tokens.colorNeutralForegroundInverted} !important`,
             borderTopLeftRadius: tokens.borderRadiusXLarge,
             borderBottomLeftRadius: tokens.borderRadiusXLarge,
             borderTopRightRadius: agentTaskVisible ? 0 : tokens.borderRadiusXLarge,
@@ -276,18 +277,6 @@ export const useChatInputStyles = makeStyles({
         marginBottom: '20px',
         padding: '0px 20px',
     },
-    footer: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    subFooter: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: tokens.spacingHorizontalM,
-        overflow: 'hidden',
-        flex: '1 1 auto',
-    },
     chatStatement: {
         color: tokens.colorNeutralForeground3,
         maxWidth: textFieldMaxWidth,
@@ -319,33 +308,11 @@ export const useChatInputStyles = makeStyles({
 
 export const chatInputTextStyles = {
     textFieldContainer: {
-        borderColor: tokens.colorNeutralStroke1,
-        borderStyle: 'solid',
-        borderRadius: 6,
-        borderWidth: '1px',
         maxWidth: textFieldMaxWidth,
         margin: 'auto',
         marginBottom: '8px',
         padding: '12px 8px 6px 8px',
         position: 'relative',
-    },
-    textField: {
-        fieldGroup: {
-            minHeight: 'auto',
-        },
-        field: {
-            maxHeight: '60px',
-            overflowX: 'hidden',
-            overflowY: 'auto',
-            padding: 0,
-            marginBottom: '8px',
-            fontSize: '14px',
-            '::placeholder, :-ms-input-placeholder, ::-ms-input-placeholder': {
-                color: `${tokens.colorNeutralForeground4} !important`,
-                opacity: '1 !important', // Firefox adds a lower opacity to the placeholder, so we use opacity: 1 to fix this.,
-                fontStyle: 'normal !important',
-            },
-        },
     },
 };
 

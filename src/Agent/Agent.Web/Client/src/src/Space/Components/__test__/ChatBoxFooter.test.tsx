@@ -5,7 +5,7 @@ import React from 'react';
 import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
-import { ActivitiesResources } from '../../../Strings/SREAgentResources';
+import { ActivitiesResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { StreamingContext } from '../../Contracts/Context';
 import { PermissionContext } from '../../Contracts/PermissionContext';
 import ChatBoxFooter from '../ChatBoxFooter';
@@ -89,7 +89,7 @@ describe('ChatBoxFooter send/cancel aria-label', () => {
             </Wrapper>
         );
 
-        const cancelButton = screen.getByRole('button', { name: ActivitiesResources.cancelGenerationAriaLabel.defaultMessage });
+        const cancelButton = screen.getByRole('button', { name: SreAgentResources.stop.defaultMessage });
         expect(cancelButton).toBeInTheDocument();
     });
 
@@ -109,7 +109,7 @@ describe('ChatBoxFooter send/cancel aria-label', () => {
             </Wrapper>
         );
 
-        const cancelButton = screen.getByRole('button', { name: ActivitiesResources.cancelGenerationAriaLabel.defaultMessage });
+        const cancelButton = screen.getByRole('button', { name: SreAgentResources.stop.defaultMessage });
         expect(cancelButton).toBeInTheDocument();
     });
 });

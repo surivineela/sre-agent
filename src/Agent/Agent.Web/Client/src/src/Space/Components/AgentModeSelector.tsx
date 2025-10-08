@@ -1,10 +1,10 @@
-import { makeStyles, OverflowItem, tokens } from '@fluentui/react-components';
-import { Settings16Regular } from '@fluentui/react-icons';
+import { makeStyles, tokens } from '@fluentui/react-components';
+import { Settings32Regular } from '@fluentui/react-icons';
 import { Menu, MenuItemCheckbox, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-menu';
 import { Spinner } from '@fluentui/react-spinner';
 import { Text } from '@fluentui/react-text';
 import { memo, useMemo } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
@@ -64,31 +64,21 @@ const AgentModeSelector = (props: IAgentModeSelectorProps) => {
         [threadAgentMode]
     );
 
-    const ButtonComponent = () => (
-        <PermissionedButton
-            canPerform={canWriteThreads}
-            noPermissionTooltip={noPermissionTooltip}
-            allowedTooltip={buttonTooltipText}
-            disabledReason={isButtonDisabled}
-            style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
-            icon={showButtonLoadingSpinner ? <Spinner size="tiny" /> : <Settings16Regular />}
-        >
-            <FormattedMessage {...AgentModeResources.agentMode} />
-        </PermissionedButton>
-    );
-
     return (
         <Menu positioning="after-top">
             <MenuTrigger>
-                {props.asOverflowItem ? (
-                    <OverflowItem id={props.id}>
-                        <div>
-                            <ButtonComponent />
-                        </div>
-                    </OverflowItem>
-                ) : (
-                    <ButtonComponent />
-                )}
+                <span>
+                    <PermissionedButton
+                        canPerform={canWriteThreads}
+                        noPermissionTooltip={noPermissionTooltip}
+                        allowedTooltip={buttonTooltipText}
+                        disabledReason={isButtonDisabled}
+                        icon={showButtonLoadingSpinner ? <Spinner size="tiny" /> : <Settings32Regular />}
+                        shape={'rounded'}
+                        appearance={'subtle'}
+                        style={{ marginRight: tokens.spacingHorizontalS }}
+                    />
+                </span>
             </MenuTrigger>
             <MenuPopover className={canWriteThreads ? menuSurface : undefined}>
                 {canWriteThreads && (

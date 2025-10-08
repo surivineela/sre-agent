@@ -1477,6 +1477,12 @@
       "value": "Add a description about this resource to help the agent with groupings and insights."
     }
   ],
+  "9WRlF4": [
+    {
+      "type": 0,
+      "value": "Send"
+    }
+  ],
   "9ZIBMx": [
     {
       "type": 0,
@@ -3833,12 +3839,6 @@
       "value": "Saving incident management configuration"
     }
   ],
-  "U4ZTAj": [
-    {
-      "type": 0,
-      "value": "Cancel generation"
-    }
-  ],
   "U73T9e": [
     {
       "type": 0,
@@ -4339,12 +4339,6 @@
     {
       "type": 0,
       "value": "Monitoring metrics publisher"
-    }
-  ],
-  "Xx0WZV": [
-    {
-      "type": 0,
-      "value": "Send message"
     }
   ],
   "Y2QRpS": [
@@ -7657,6 +7651,12 @@
     {
       "type": 0,
       "value": "These previous incidents match the selected incident type. The agent can learn from a maximum of 5 incidents."
+    }
+  ],
+  "yFU6JN": [
+    {
+      "type": 0,
+      "value": "Chat input"
     }
   ],
   "yJSwfQ": [
