@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using Agent.Cli.Helpers;
 using Agent.Cli.Models;
 using Agent.Cli.Validations;
+using Agent.Core.Validation;
 using Agent.Framework;
 using Azure.Core;
 using Azure.Identity;
@@ -337,44 +338,20 @@ public class ApiService : IDisposable
             // Validate agent descriptor structure before proceeding
             try
             {
-                // Parse the YAML to validate the agent descriptor structure
-                var yamlDeserializer = new DeserializerBuilder()
-                    .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                    .Build();
+                var validationService = new AgentValidationService();
+                var validationResult = await validationService.ValidateYamlAsync(agentYamlContent, false);
 
-                var agentDocument = yamlDeserializer.Deserialize<Dictionary<string, object>>(agentYamlContent);
-
-                // Extract spec section which contains the actual agent descriptor
-                if (!agentDocument.TryGetValue("spec", out var specObj) || specObj is not Dictionary<string, object> spec)
+                if (!validationResult.IsValid)
                 {
-                    return (false, "❌ Agent validation failed:\n  - Invalid YAML structure: 'spec' section is required");
-                }
+                    ConsoleUI.WriteStatus(false, "Agent validation failed");
+                    foreach (var error in validationResult.Errors)
+                        ConsoleUI.WriteBullet(error, ConsoleColor.Red);
 
-                // Validate YAML structure - check for common indentation mistakes
-                var structureValidationErrors = ValidateYamlStructure(agentDocument, spec);
-                if (structureValidationErrors.Count > 0)
-                {
-                    var errorMessage = string.Join("\n", structureValidationErrors.Select(e => $"  - {e}"));
-                    DebugLogger.Debug("Validation", $"YAML structure validation failed: {errorMessage}");
-                    return (false, $"❌ YAML structure validation failed:\n{errorMessage}");
-                }
+                    foreach (var warning in validationResult.Warnings)
+                        ConsoleUI.WriteBullet($"Warning: {warning}", ConsoleColor.Yellow);
 
-                // Deserialize the spec section as YamlAgentDescriptor for validation
-                var specYaml = new SerializerBuilder()
-                    .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                    .Build()
-                    .Serialize(spec);
-
-                var agentDescriptor = yamlDeserializer.Deserialize<YamlAgentDescriptor>(specYaml);
-
-                var validationErrors = new List<string>();
-                AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out validationErrors);
-
-                if (validationErrors.Count > 0)
-                {
-                    var errorMessage = string.Join("\n", validationErrors.Select(e => $"  - {e}"));
-                    DebugLogger.Debug("Validation", $"Agent validation failed: {errorMessage}");
-                    return (false, $"❌ Agent validation failed:\n{errorMessage}");
+                    Environment.Exit(1);
+                    return (false, $"❌ Failed to Apply Yaml. Agent yaml validation failed");
                 }
 
                 DebugLogger.Debug("Validation", "Agent descriptor validation passed");
@@ -2268,7 +2245,7 @@ public class ApiService : IDisposable
             DebugLogger.LogHttpRequest("GET", url);
 
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            
+
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
             DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
@@ -2305,13 +2282,13 @@ public class ApiService : IDisposable
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
-            
+
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
             DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
 
-            return response.IsSuccessStatusCode 
-                ? (true, "Scheduled task created successfully") 
+            return response.IsSuccessStatusCode
+                ? (true, "Scheduled task created successfully")
                 : (false, responseContent);
         }
         catch (Exception ex)
@@ -2338,7 +2315,7 @@ public class ApiService : IDisposable
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
-            
+
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
             DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
@@ -2366,7 +2343,7 @@ public class ApiService : IDisposable
             DebugLogger.LogHttpRequest("DELETE", url);
 
             var request = new HttpRequestMessage(HttpMethod.Delete, url);
-            
+
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
             DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
@@ -2394,7 +2371,7 @@ public class ApiService : IDisposable
             DebugLogger.LogHttpRequest("POST", url);
 
             var request = new HttpRequestMessage(HttpMethod.Post, url);
-            
+
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
             DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
@@ -2422,7 +2399,7 @@ public class ApiService : IDisposable
             DebugLogger.LogHttpRequest("POST", url);
 
             var request = new HttpRequestMessage(HttpMethod.Post, url);
-            
+
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
             DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
@@ -3327,132 +3304,68 @@ public class ApiService : IDisposable
             var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/handlers/{handlerId}";
             var request = new HttpRequestMessage(HttpMethod.Delete, url);
 
-            
+
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[ERROR] Failed to delete incident handler: {ex.Message}");
-            return false;
+                        return false;
         }
     }
+    }
 
-    /// <summary>
-    /// Validates YAML structure to catch common indentation mistakes
-    /// </summary>
-    private static List<string> ValidateYamlStructure(Dictionary<string, object> rootDocument, Dictionary<string, object> specSection)
+    // Simple wrapper models for YAML structure
+    public class AgentConfigurationWrapper
     {
-        var errors = new List<string>();
-
-        // Define agent properties that should be under 'spec', not at root level
-        var agentProperties = new HashSet<string>
-        {
-            "name", "system_prompt", "tools", "handoffs", "mcp_tools",
-            "temperature", "max_reflection_count", "handoff_description", "common_prompts",
-            "common_tools", "allow_parallel_tool_calls", "agents_as_tools", "custom_reflection_note",
-            "critic_prompt_path", "critic_on_handoff", "disable_document_retrieval",
-            "instructions_override", "enable_handoff_prompt_override", "handoff_prompt_override",
-            "user_prompt_override", "llm_model_name", "disable_common_prompts", "agent_type",
-            "parameter_extraction_agent", "orchestration_start_agents", "result_summarization_prompt",
-            "next_agent_mappings", "output_type"
-        };
-
-        // Check for agent properties at root level (common indentation mistake)
-        foreach (var property in agentProperties)
-        {
-            if (rootDocument.ContainsKey(property))
-            {
-                errors.Add($"Property '{property}' should be under 'spec' section, not at root level. Check indentation.");
-            }
-        }
-
-        // Check if spec section is missing required properties
-        if (!specSection.ContainsKey("name"))
-        {
-            errors.Add("Required property 'name' is missing from 'spec' section");
-        }
-
-        // Check for required system_prompt property
-        if (!specSection.ContainsKey("system_prompt"))
-        {
-            // Check if it's at root level due to indentation error
-            if (rootDocument.ContainsKey("system_prompt"))
-            {
-                errors.Add("Property 'system_prompt' found at root level - should be under 'spec' section. Check indentation.");
-            }
-            else
-            {
-                errors.Add("Required property 'system_prompt' is missing from 'spec' section");
-            }
-        }
-
-        // Check for invalid 'instructions' property usage
-        if (specSection.ContainsKey("instructions"))
-        {
-            errors.Add("Use 'system_prompt' instead of 'instructions' in the 'spec' section");
-        }
-
-        // Validate that spec has some content
-        if (specSection.Count == 0)
-        {
-            errors.Add("'spec' section is empty - agent properties should be defined here");
-        }
-
-        return errors;
+        public string ApiVersion { get; set; } = "azuresre.ai/v1";
+        public string Kind { get; set; } = "AgentConfiguration";
+        public YamlMetadata Metadata { get; set; } = new YamlMetadata();
+        public AgentSpec Spec { get; set; } = new AgentSpec();
     }
-}
 
-// Simple wrapper models for YAML structure
-public class AgentConfigurationWrapper
-{
-    public string ApiVersion { get; set; } = "azuresre.ai/v1";
-    public string Kind { get; set; } = "AgentConfiguration";
-    public YamlMetadata Metadata { get; set; } = new YamlMetadata();
-    public AgentSpec Spec { get; set; } = new AgentSpec();
-}
+    public class ToolListWrapper
+    {
+        public string ApiVersion { get; set; } = "azuresre.ai/v1";
+        public string Kind { get; set; } = "ToolList";
+        public YamlMetadata Metadata { get; set; } = new YamlMetadata();
+        public ToolSpec Spec { get; set; } = new ToolSpec();
+    }
 
-public class ToolListWrapper
-{
-    public string ApiVersion { get; set; } = "azuresre.ai/v1";
-    public string Kind { get; set; } = "ToolList";
-    public YamlMetadata Metadata { get; set; } = new YamlMetadata();
-    public ToolSpec Spec { get; set; } = new ToolSpec();
-}
+    public class YamlMetadata
+    {
+        public string Owner { get; set; } = string.Empty;
+        public string Version { get; set; } = string.Empty;
+        public List<string> Tags { get; set; } = new List<string>();
+        public string UpdatedAt { get; set; } = string.Empty;
+        public string CreatedAt { get; set; } = string.Empty;
+    }
 
-public class YamlMetadata
-{
-    public string Owner { get; set; } = string.Empty;
-    public string Version { get; set; } = string.Empty;
-    public List<string> Tags { get; set; } = new List<string>();
-    public string UpdatedAt { get; set; } = string.Empty;
-    public string CreatedAt { get; set; } = string.Empty;
-}
+    public class AgentSpec
+    {
+        public object Agent { get; set; } = new object();
+    }
 
-public class AgentSpec
-{
-    public object Agent { get; set; } = new object();
-}
+    public class ToolSpec
+    {
+        public List<object> Tools { get; set; } = new List<object>();
+    }
 
-public class ToolSpec
-{
-    public List<object> Tools { get; set; } = new List<object>();
-}
+    // New wrapper for combined agent and tools
+    public class CombinedAgentWrapper
+    {
+        public string ApiVersion { get; set; } = "azuresre.ai/v1";
+        public string Kind { get; set; } = "AgentConfiguration";
+        public YamlMetadata Metadata { get; set; } = new YamlMetadata();
+        public CombinedAgentSpec Spec { get; set; } = new CombinedAgentSpec();
+    }
 
-// New wrapper for combined agent and tools
-public class CombinedAgentWrapper
-{
-    public string ApiVersion { get; set; } = "azuresre.ai/v1";
-    public string Kind { get; set; } = "AgentConfiguration";
-    public YamlMetadata Metadata { get; set; } = new YamlMetadata();
-    public CombinedAgentSpec Spec { get; set; } = new CombinedAgentSpec();
-}
+    public class CombinedAgentSpec
+    {
+        public object Agent { get; set; } = new object();
+        public List<object> Tools { get; set; } = new List<object>();
+    }
 
-public class CombinedAgentSpec
-{
-    public object Agent { get; set; } = new object();
-    public List<object> Tools { get; set; } = new List<object>();
-}
-
-public record ThreadMessage(string Id, string Text, DateTime Timestamp, string AuthorRole, string AuthorUserId, string AuthorDisplayName);
-public record ThreadInfo(string Id, string Title, DateTime CreatedAt, DateTime LastMessageAt);
+    public record ThreadMessage(string Id, string Text, DateTime Timestamp, string AuthorRole, string AuthorUserId, string AuthorDisplayName);
+    public record ThreadInfo(string Id, string Title, DateTime CreatedAt, DateTime LastMessageAt);
