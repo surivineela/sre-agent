@@ -222,6 +222,7 @@ public class DataConnectorResolverService : IConnectorResolver
             {
                 Name = settings.Name,
                 ConnectorType = settings.DataConnectorType,
+                DataSource = settings.DataSource,
                 Identity = settings.Identity
             }).ToList();
         }

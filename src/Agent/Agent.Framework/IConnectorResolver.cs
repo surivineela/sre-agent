@@ -29,6 +29,11 @@ public class DataConnectorBasicInfo
     public string ConnectorType { get; set; } = string.Empty;
 
     /// <summary>
+    /// Data source connection string or URI
+    /// </summary>
+    public string DataSource { get; set; } = string.Empty;
+
+    /// <summary>
     /// Managed identity resource ID for authentication
     /// </summary>
     public string Identity { get; set; } = string.Empty;

@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Diagnostics;
 using System.Net;
 using System.Text;
@@ -8,8 +12,6 @@ using Agent.Cli.Models;
 using Agent.Cli.Validations;
 using Agent.Core.Validation;
 using Agent.Framework;
-using Azure.Core;
-using Azure.Identity;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -2590,10 +2592,10 @@ public class ApiService : IDisposable
                     var plainTool = ConvertJsonElementToPlainObject(payload);
 
                     // Prune empty nodes for cleaner tool YAML; do not use agent-only visitors
-                    var pruned = Agent.Cli.Helpers.YamlHelper.PruneEmptyNodes(plainTool) ?? plainTool;
-                    var serializer = new YamlDotNet.Serialization.SerializerBuilder()
-                        .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
-                        .ConfigureDefaultValuesHandling(YamlDotNet.Serialization.DefaultValuesHandling.OmitNull)
+                    var pruned = YamlHelper.PruneEmptyNodes(plainTool) ?? plainTool;
+                    var serializer = new SerializerBuilder()
+                        .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                        .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull)
                         .DisableAliases()
                         .Build();
                     var yaml = serializer.Serialize(pruned);
@@ -2620,15 +2622,6 @@ public class ApiService : IDisposable
     public HttpClient GetHttpClient()
     {
         return _httpClient;
-    }
-
-    private static bool LooksLikeHtml(string content)
-    {
-        if (string.IsNullOrWhiteSpace(content)) return false;
-        var trimmed = content.TrimStart();
-        return trimmed.StartsWith("<html", StringComparison.OrdinalIgnoreCase)
-            || trimmed.StartsWith("<!doctype html", StringComparison.OrdinalIgnoreCase)
-            || trimmed.StartsWith("<!DOCTYPE html", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool LooksLikeJson(string content)
@@ -2672,34 +2665,6 @@ public class ApiService : IDisposable
             default:
                 return element.ToString();
         }
-    }
-
-    private static string ConvertAgentJsonToYaml(string json)
-    {
-        var node = JsonNode.Parse(json);
-        var wrapper = new AgentConfigurationWrapper
-        {
-            Spec = new AgentSpec { Agent = node! }
-        };
-
-        var serializer = new SerializerBuilder()
-            .WithNamingConvention(UnderscoredNamingConvention.Instance)
-            .Build();
-        return serializer.Serialize(wrapper);
-    }
-
-    private static string ConvertToolJsonToYaml(string json)
-    {
-        var node = JsonNode.Parse(json);
-        var wrapper = new ToolListWrapper
-        {
-            Spec = new ToolSpec { Tools = new List<object> { node! } }
-        };
-
-        var serializer = new SerializerBuilder()
-            .WithNamingConvention(UnderscoredNamingConvention.Instance)
-            .Build();
-        return serializer.Serialize(wrapper);
     }
 
     /// <summary>
