@@ -21,10 +21,19 @@ public class ICMAPITokenService : ManagedIdentityTokenServiceBase
     protected override TokenCredential? TokenCredential { get; set; }
     protected override TokenRequestContext TokenRequestContext { get; set; }
 
-    public void Initialize(IAuthenticationService authService, ActionSettings actionSettings, ICMAPISettings icmApiSettings, ILogger<ICMAPITokenService> logger, string? agentSpaceProxyEndpoint)
+    public void Initialize(IAuthenticationService authService, ActionSettings actionSettings, ICMAPISettings icmApiSettings, ILogger<ICMAPITokenService> logger, string? agentSpaceProxyEndpoint, IncidentManagementSettings incidentManagementSettings)
     {
         ManagedIdentityEnabled = !string.IsNullOrEmpty(actionSettings.Identity);
-        Resource = icmApiSettings.IcmMSIResource;
+        if (incidentManagementSettings.Type == IncidentManagementType.Icm && !string.IsNullOrWhiteSpace(incidentManagementSettings.ConnectionUrl))
+        {
+            // allow overriding Resource with ConnectionName for E2E testing with PPE ICM endpoint
+            Resource = incidentManagementSettings.ConnectionName!;
+            agentSpaceProxyEndpoint = null; // disable Agent Space Proxy for ICM testing endpoint
+        }
+        else
+        {
+            Resource = icmApiSettings.IcmMSIResource;
+        }
         ResourceId = actionSettings.Identity;
         TokenServiceName = "ICMAPITokenService";
         authenticationService = authService;

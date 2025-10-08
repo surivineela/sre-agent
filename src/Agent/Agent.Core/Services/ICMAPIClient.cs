@@ -75,6 +75,7 @@ namespace Agent.Core.Services
     {
         private readonly bool IsDevelopment;
         private readonly ICMAPISettings _icmApiSettings;
+        private readonly string _apiEndpoint;
         private IncidentManagementSettings _current;
         private readonly HttpClient _httpClient;
         private readonly int TimeoutInSeconds = 60;
@@ -88,7 +89,7 @@ namespace Agent.Core.Services
         private readonly string API2PathPrefix = "/api2/user/incidentapi";
         private readonly string APIPathPrefix = "/api/user";
 
-        public ICMAPIClient(IHostEnvironment environment, IOptionsMonitor<IncidentManagementSettings> monitor, ILogger<ICMAPIClient> logger, ActionSettings actionSettings, LoggingHttpMessageHandler loggingHandler, IAuthenticationService authService)
+        public ICMAPIClient(IHostEnvironment environment, IOptionsMonitor<IncidentManagementSettings> monitor, ILogger<ICMAPIClient> logger, ActionSettings actionSettings, LoggingHttpMessageHandler loggingHandler, IAuthenticationService authService, IncidentManagementSettings incidentManagementSettings)
         {
             _logger = logger;
             _loggingHandler = loggingHandler;
@@ -100,13 +101,24 @@ namespace Agent.Core.Services
                 // Optionally log or re-initialize internal caches
             });
             _icmApiSettings = _current.ICMAPI;
+            if (incidentManagementSettings.Type == IncidentManagementType.Icm && !string.IsNullOrEmpty(incidentManagementSettings.ConnectionUrl))
+            {
+                // allow endpoint overriding for E2E testing with PPE ICM endpoint
+                _apiEndpoint = incidentManagementSettings.ConnectionUrl;
+            }
+            else
+            {
+                _apiEndpoint = _icmApiSettings.APIEndpoint;
+            }
+
+
             IsDevelopment = environment.IsDevelopment();
             _identity = actionSettings.Identity ?? string.Empty;
             //if (!_icmApiSettings.Enabled)
             //{
             //    return;
             //}
-            if (string.IsNullOrWhiteSpace(_icmApiSettings.APIEndpoint))
+            if (string.IsNullOrWhiteSpace(_apiEndpoint))
             {
                 throw new Exception("The environment variable 'ICMAPI:APIEndpoint' is not set.");
             }
@@ -221,7 +233,7 @@ namespace Agent.Core.Services
                 throw new ArgumentException("apiPath must be provided.", nameof(apiPath));
             }
 
-            var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
+            var requestUri = $"{_apiEndpoint}{apiPath}";
             _logger.LogInternalInformation($"Making GET request to ICM API: {requestUri}");
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
             if (_authType == AuthType.ManagedIdentity)
@@ -248,7 +260,7 @@ namespace Agent.Core.Services
             {
                 throw new ArgumentException("content must be provided.", nameof(content));
             }
-            var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
+            var requestUri = $"{_apiEndpoint}{apiPath}";
             var serializedContent = JsonConvert.SerializeObject(content);
             _logger.LogInternalInformation($"Making POST request to ICM API: {requestUri} with payload: {serializedContent}");
 
@@ -279,7 +291,7 @@ namespace Agent.Core.Services
                 throw new ArgumentException("content must be provided.", nameof(content));
             }
 
-            var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
+            var requestUri = $"{_apiEndpoint}{apiPath}";
             var serializedContent = JsonConvert.SerializeObject(content);
             _logger.LogInternalInformation($"Making PATCH request to ICM API: {requestUri} with payload: {serializedContent}");
 
@@ -305,7 +317,7 @@ namespace Agent.Core.Services
             {
                 throw new ArgumentException("apiPath must be provided.", nameof(apiPath));
             }
-            var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
+            var requestUri = $"{_apiEndpoint}{apiPath}";
             _logger.LogInternalInformation($"Making DELETE request to ICM API: {requestUri}");
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Delete, requestUri);
@@ -862,7 +874,7 @@ namespace Agent.Core.Services
             }
             var content = new
             {
-                url = $"{_icmApiSettings.APIEndpoint}{IcmAPIPathPrefix}/incidents({relatedIncidentId}L)" // Note the "L" character in request body. This suffix is mandatory and is not a typo.
+                url = $"{_apiEndpoint}{IcmAPIPathPrefix}/incidents({relatedIncidentId}L)" // Note the "L" character in request body. This suffix is mandatory and is not a typo.
             };
             var response = await SendICMPostRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/\\$links/RelatedIncidents", content);
             if (response.IsSuccessStatusCode)
@@ -932,7 +944,7 @@ namespace Agent.Core.Services
             var apiPathPrefix = IcmAPIPathPrefix.StartsWith(API2PathPrefix) ? IcmAPIPathPrefix.Replace(API2PathPrefix, APIPathPrefix) : IcmAPIPathPrefix;
             var content = new
             {
-                url = $"{_icmApiSettings.APIEndpoint}{apiPathPrefix}/incidents({parentIncidentId}L)" // Note the "L" character in request body. This suffix is mandatory and is not a typo.
+                url = $"{_apiEndpoint}{apiPathPrefix}/incidents({parentIncidentId}L)" // Note the "L" character in request body. This suffix is mandatory and is not a typo.
             };
 
             var response = await SendICMPostRequestAsync($"{apiPathPrefix}/incidents({incidentId})/\\$links/ParentIncident", content);
