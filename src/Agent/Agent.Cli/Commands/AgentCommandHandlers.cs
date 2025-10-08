@@ -961,8 +961,8 @@ public static class AgentCommandHandlers
 
         Console.WriteLine();
         ConsoleUI.WriteInfo("Legend:", ConsoleColor.Gray);
-        ConsoleUI.WriteBullet("Local only (will be removed)", ConsoleColor.Red);
-        ConsoleUI.WriteBullet("Remote only (will be added)", ConsoleColor.Green);
+        ConsoleUI.WriteBullet("Local only (will be applied to server)", ConsoleColor.Green);
+        ConsoleUI.WriteBullet("Remote only (will be replaced by local)", ConsoleColor.Red);
         ConsoleUI.WriteBullet("Different values", ConsoleColor.Yellow);
         Console.WriteLine();
 
@@ -980,13 +980,13 @@ public static class AgentCommandHandlers
             }
             else if (localLine != null && remoteLine == null)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"- {localLine}");
                 Console.ResetColor();
             }
             else if (localLine == null && remoteLine != null)
             {
-                Console.ForegroundColor = ConsoleColor.Green;
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"+ {remoteLine}");
                 Console.ResetColor();
             }
@@ -1077,15 +1077,15 @@ public static class AgentCommandHandlers
             var startInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "git",
-                Arguments = $"diff --no-index {colorArg} \"{localFile}\" \"{remoteFile}\"",
+                Arguments = $"diff --no-index {colorArg} \"{remoteFile}\" \"{localFile}\"",
                 UseShellExecute = false,
                 RedirectStandardOutput = false,
                 RedirectStandardError = false
             };
 
             // Add labels to make it clearer
-            Console.WriteLine($"--- a/{agentName} (local)");
-            Console.WriteLine($"+++ b/{agentName} (remote)");
+            Console.WriteLine($"--- a/{agentName} (remote)");
+            Console.WriteLine($"+++ b/{agentName} (local)");
             Console.WriteLine();
 
             return System.Diagnostics.Process.Start(startInfo);
@@ -1107,7 +1107,7 @@ public static class AgentCommandHandlers
             var isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
 
             var vimCommand = isWindows ? "vimdiff" : "vimdiff";
-            var arguments = $"\"{localFile}\" \"{remoteFile}\"";
+            var arguments = $"\"{remoteFile}\" \"{localFile}\"";
 
             // If on Windows and vimdiff not found, try vim with -d flag
             if (isWindows)
@@ -1131,7 +1131,7 @@ public static class AgentCommandHandlers
                 {
                     // vimdiff not found, fall back to vim with -d
                     vimCommand = "vim";
-                    arguments = $"-d \"{localFile}\" \"{remoteFile}\"";
+                    arguments = $"-d \"{remoteFile}\" \"{localFile}\"";
                 }
             }
 
@@ -1159,7 +1159,7 @@ public static class AgentCommandHandlers
             var startInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "code",
-                Arguments = $"--diff \"{localFile}\" \"{remoteFile}\"",
+                Arguments = $"--diff \"{remoteFile}\" \"{localFile}\"",
                 UseShellExecute = false
             };
 
