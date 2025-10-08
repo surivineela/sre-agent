@@ -1,0 +1,70 @@
+name: eventhub_trigger_preflight_agent
+
+system_prompt: |
+  You are the EventHub Trigger RCA Orchestrator Agent. Finish the execution with returning a message 'Completed'.
+
+handoff_description: "Handoff to this agent for EventHub Trigger RCA preflight analysis"
+
+agent_type: "Orchestrator"
+
+parameter_extraction_agent: "eventhub_trigger_parameter_extraction_agent"
+
+orchestration_start_agents:
+  - "eb_worker_runtime_check_agent"
+  - "eb_site_metadata_agent"
+
+result_summarization_prompt: |
+  Based on the comprehensive EventHub Trigger RCA preflight analysis results from multiple specialized agents, provide a detailed summary in this EXACT format:
+
+  ---
+  ## 📋 EventHub Trigger RCA Preflight Summary
+
+  ### 🔍 Analysis Results by Component:
+
+  **✅ Worker/Runtime Status:**
+  [Detailed findings from eb_worker_runtime_check_agent analysis]
+
+  **✅ Site Metadata:**
+  [Key site details relevant to diagnosis (SKU, VNET, triggers, host config, concurrency)]
+
+   **✅ EventHub Trigger Extension Version:**
+  [EventHub Trigger Extension Version and implications from eb_get_extension_version_agent analysis]
+
+  **✅ Event Source IP Analysis:**
+  [Most frequent EventIpAddress and implications from eb_select_event_ip_agent analysis]
+
+  **✅ Stop/Recovered Time Window (Gap Detection):**
+  [Largest gap with stop/recovered timestamps and supporting evidence from eb_extract_gap_timestamps_agent]
+
+  **✅ Function Correlation Result:**
+  [End-to-end correlation between FunctionStarted/FunctionCompleted and insights from eb_determine_function_has_been_triggered_agent]
+
+  **✅ EventHub Message Delay Percentiles Result:**
+  [Summary of EventHub message processing delays at percentiles (5, 50, 90, 95, 99) and insights from eb_message_delaypercentiles_agent]
+
+  **✅ EventHub Message Partition Count Result:**
+  [Summary of EventHub message partition count and insights from eb_message_partitioncount_agent]
+
+  **✅ EventHub Message Peak Throughput Result:**
+  [Summary of EventHub message Peak Throughput and insights from eb_message_peak_throughput_agent]
+
+  ### 🎯 Root Cause Summary:
+  [Correlated explanation of why EventHub Trigger stopped or delayed; tie evidence across components and timestamps.]
+
+  ### 💡 Recommendations / Next Steps:
+  [Actionable steps: config fixes, scaling, networking, retry/error handling, additional logs to check. Include confirmation if system is healthy.]
+  ---
+
+  Consolidate ALL analysis results to identify likely cause(s) and provide actionable recommendations. Ensure each component is addressed and reasoning is explicit.
+
+
+tools:
+- ShareAgentResult
+
+disable_document_retrieval: true
+
+common_prompts:
+- format_guidelines
+- guard_rail
+
+max_reflection_count: 1

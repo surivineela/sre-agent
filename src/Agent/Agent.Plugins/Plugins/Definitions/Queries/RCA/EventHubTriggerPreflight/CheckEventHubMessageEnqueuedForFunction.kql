@@ -1,0 +1,15 @@
+let _startTime = datetime("##startTime##");
+let _endTime = datetime("##endTime##");
+let _siteName = "##siteName##";
+let _eventPrimaryStampName = "##eventPrimaryStampName##";
+let _functionName = "##functionName##";
+FunctionsLogs
+| where PreciseTimeStamp between (_startTime .. _endTime)
+| where AppName =~ _siteName
+| where EventStampName == _eventPrimaryStampName
+| where FunctionName == _functionName
+| where Summary startswith 'Trigger Details: Parti'
+| project PreciseTimeStamp, EventName, Summary, Level
+| parse Summary with 'Trigger Details: Parti' *': ' PartitionId:string ', Offset: ' Offset:string ', EnqueueTimeUtc: ' EnqueueTimeRange:string', SequenceNumber:' SequenceNumber:string ', Count: ' MessageCount:int
+| extend EnqueueTimeStart = todatetime(substring(EnqueueTimeRange, 0, 28)), EnqueueTimeEnd = todatetime(substring(EnqueueTimeRange, 29))
+| take 3

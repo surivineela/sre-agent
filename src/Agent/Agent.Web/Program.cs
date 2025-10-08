@@ -447,6 +447,7 @@ public class Program
             .AddTransient<ScaleControllerRCAPreflightPluginDefinition>()
             .AddTransient<BlobTriggerRCAPreflightPluginDefinition>()
             .AddTransient<ServiceBusTriggerRCAPreflightPluginDefinition>()
+            .AddTransient<EventHubTriggerRCAPreflightPluginDefinition>()
             .AddTransient<RCAPreflightICMPluginDefinition>()
             .AddTransient<ColdStartPluginDefinition>()
             .AddTransient<LogsPluginDefinition>()

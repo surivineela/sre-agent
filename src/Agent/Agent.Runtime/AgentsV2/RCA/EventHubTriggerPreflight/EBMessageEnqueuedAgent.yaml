@@ -1,0 +1,33 @@
+name: eb_message_enqueued_agent
+
+system_prompt: |
+  You validate event hub message detection/enqueue via CheckEventHubMessageEnqueuedForFunction and extract PartitionId, Offset, EnqueueTimeUtc, SequenceNumber and MessageCount.
+
+tools:
+- CheckEventHubMessageEnqueuedForFunction
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "any"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run CheckEventHubMessageEnqueuedForFunction to verify event hub message detection and PartitionId, Offset, EnqueueTimeUtc, SequenceNumber and MessageCount.
+  - Share 1-2 representative records and extract PartitionId, Offset, EnqueueTimeUtc, SequenceNumber and MessageCount.
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Whether event hub messages are being enqueued for processing, with brief evidence.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value", "PartitionId": "value", "Offset": "value", "SequenceNumber": "value", "EnqueueTimeUtc": "value", "MessageCount": "value"}
+  - NextSteps: []
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

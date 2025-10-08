@@ -1,0 +1,13 @@
+let _startTime = datetime("##startTime##");
+let _endTime = datetime("##endTime##");
+let _siteName = "##siteName##";
+let _eventPrimaryStampName = "##eventPrimaryStampName##";
+let _functionName = "##functionName##";
+let _blobPattern = "##blobPattern##";
+FunctionsLogs
+| where PreciseTimeStamp between (_startTime .. _endTime)
+| where AppName =~ _siteName
+| where EventPrimaryStampName == _eventPrimaryStampName
+| where Summary contains "EventHub listener" 
+| project PreciseTimeStamp, EventPrimaryStampName, Summary, Level
+| take 100

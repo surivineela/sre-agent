@@ -1,0 +1,33 @@
+name: eb_message_delaypercentiles_agent
+
+system_prompt: |
+  You validate event hub message delay (in seconds) via CheckEventHubMessageDelayPercentiles to Summarizes EventHub message processing delays at multiple percentiles (5, 50, 90, 95, 99) to analyze latency distribution.
+
+tools:
+- CheckEventHubMessageDelayPercentiles
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "any"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run CheckEventHubMessageDelayPercentiles to Summarizes EventHub message processing delays (in seconds) at multiple percentiles (5, 50, 90, 95, 99) to analyze latency distribution.
+  - Share representative records and extract EventHub message processing delays at multiple percentiles (5, 50, 90, 95, 99).
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Whether event hub messages are being delayed for processing, with brief evidence.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value",  "percentile_Delay_5": "value",	"percentile_Delay_50": "value", "percentile_Delay_90": "value", "percentile_Delay_95": "value", "percentile_Delay_99": "value"}
+  - NextSteps: []
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

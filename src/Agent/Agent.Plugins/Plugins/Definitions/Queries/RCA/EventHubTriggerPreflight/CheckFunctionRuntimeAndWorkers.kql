@@ -1,0 +1,11 @@
+let _startTime = datetime("##startTime##");
+let _endTime = datetime("##endTime##");
+let _siteName = "##siteName##";
+let _eventPrimaryStampName = "##eventPrimaryStampName##";
+FunctionsLogs
+| where PreciseTimeStamp between (_startTime .. _endTime)
+| where AppName =~ _siteName
+| where EventName == "FunctionCompleted"
+| where Details == ""
+| summarize Count = count() by bin(PreciseTimeStamp, 1h), EventPrimaryStampName
+| order by PreciseTimeStamp asc

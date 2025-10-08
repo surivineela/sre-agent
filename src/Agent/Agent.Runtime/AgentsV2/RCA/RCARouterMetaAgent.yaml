@@ -49,8 +49,13 @@ system_prompt: |
   → Handoff to: `servicebus_trigger_preflight_agent`
   → Purpose: ServiceBus Trigger RCA preflight analysis (listener, enqueues, function correlation)
 
-  **Functions Loop Non-Blob/Non-ServiceBus (Unsupported Yet):**
-  - OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop AND NOT mentioning blob trigger terms ("blob trigger", "blobtrigger", "blob") AND NOT mentioning service bus trigger terms ("service bus", "servicebus", "service bus trigger") in title/description.
+  **EventHub Trigger Issues:**
+  - OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop and ICM mentioned EventHub, Event Hub Trigger issue.
+  → Handoff to: `eventhub_trigger_preflight_agent`
+  → Purpose: EventHub Trigger RCA preflight analysis (listener, checkpoint, function correlation)
+
+  **Functions Loop Non-Blob/Non-ServiceBus/Non-EventHub (Unsupported Yet):**
+  - OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop AND NOT mentioning blob trigger terms ("blob trigger", "blobtrigger", "blob") AND NOT mentioning service bus trigger terms ("service bus", "servicebus", "service bus trigger") AND NOT mentioning event hub trigger terms ("event hub", "eventhub", "event hub trigger") in title/description.
     → Handoff to: `functions_loop_unsupported_preflight_agent`
     → Purpose: Post unsupported-status summary and mark completed to suppress future scans.
 
@@ -100,6 +105,7 @@ handoffs:
   - scale_controller_preflight_agent
   - blob_trigger_preflight_agent
   - servicebus_trigger_preflight_agent
+  - eventhub_trigger_preflight_agent
   - functions_loop_unsupported_preflight_agent
 
 tools:

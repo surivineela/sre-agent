@@ -1,0 +1,35 @@
+name: eb_select_event_ip_agent
+
+system_prompt: |
+  You select the most frequent EventIpAddress using GetMostFrequentEventIpAddress.
+
+tools:
+- GetMostFrequentEventIpAddress
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "records_found"
+    next_agents: ["eb_extract_gap_timestamps_agent","eb_message_peak_throughput_agent"]
+  - condition: "no_records"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run GetMostFrequentEventIpAddress to identify the most frequent EventIpAddress for the function within the window.
+  - Provide one representative log line as evidence.
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Rationale for the selected EventIpAddress with brief evidence.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value", "EventIpAddress": "value"}
+  - NextSteps: ["eb_extract_gap_timestamps_agent","eb_message_peak_throughput_agent"] if a value is found; otherwise []
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

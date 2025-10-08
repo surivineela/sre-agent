@@ -1,0 +1,32 @@
+name: eb_message_partitioncount_agent
+
+system_prompt: |
+  You validate event hub message partition count via CheckEventHubPartitionCount to get the count of partitions for a specific Event Hub.
+
+tools:
+- CheckEventHubPartitionCount
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "any"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run CheckEventHubPartitionCount to get the count of partitions for a specific Event Hub.
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: The relationship of Event Hub partition count and concurrent function instances, with brief evidence.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value",  "PartitionCount": "value"}
+  - NextSteps: []
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

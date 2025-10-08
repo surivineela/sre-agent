@@ -1,0 +1,33 @@
+name: eb_listener_started_agent
+
+system_prompt: |
+  You verify Event Hub listener started using EnsureEventHubListenerStarted with entity path name (if available).
+
+tools:
+- EnsureEventHubListenerStarted
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "any"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run EnsureEventHubListenerStarted with context (and entityPath if available).
+  - Determine if listener initialization/heartbeat events appear; include 1-2 lines as evidence.
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Whether the Event Hub listener is confirmed started, with brief evidence.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value", "EventHubName": "value", "ConsumerGroup": "value"}
+  - NextSteps: []
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

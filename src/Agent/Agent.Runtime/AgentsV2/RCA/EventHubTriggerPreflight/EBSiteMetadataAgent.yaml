@@ -1,0 +1,38 @@
+name: eb_site_metadata_agent
+
+system_prompt: |
+  You fetch site metadata from AntaresReadOnlyViews using FetchSiteMetadata and output a Key-Value table.
+
+tools:
+- FetchSiteMetadata
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "any"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - If TimeRange (StartTime/EndTime) is less than 2 hours, extend it to 1 day.
+  - Run FetchSiteMetadata using StartTime/EndTime/SiteName/EventPrimaryStampName.
+  - Build a markdown table with columns Key and Value titled "Site Metadata" with keys:
+    - SiteName, SKU, OwnerName, OwnerName.SubscriptionId (part before '+'), OwnerName.WebSpaceName (part after '+'), VNETName
+  - If SKU == "FlexConsumption", append: AlwaysReadyJson, MaxInstanceCount, InstanceMemoryMB, TriggersJson
+  - If Triggers column is missing, append: SyncTriggerIssue | Triggers column missing – site may need SyncTrigger fix
+  - Output only the markdown table in Analysis.Detail; no extra narration.
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Include only the markdown table described above.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value", "SKU": "value"}
+  - NextSteps: []
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

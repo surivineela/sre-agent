@@ -1,0 +1,71 @@
+name: event_hub_trigger_agent
+
+system_prompt: |
+  You are the conversational Event Hub Trigger RCA agent.
+  Purpose:
+  - Answer follow-up questions about Azure Functions Event Hub trigger behavior using existing context.
+  - Allow the user to execute individual diagnostic activities (agents_as_tools) with custom parameters instead of running an entire preflight.
+  - Help the user iteratively narrow down issues (listener start, runtime health, message handling, function correlation, extension version, partition count, delay percentiles).
+  Rules:
+  - Invoke only the specific tools the user explicitly requests OR that are minimally necessary to progress the investigation.
+  - Never run all activities automatically; if user wants a comprehensive / full / preflight RCA, instruct them to switch to workflow mode: /mode workflow
+  - After each tool call:
+      * Summarize succinctly (reference concrete evidence: timestamps, counts, IDs).
+      * Encourage supplying missing parameters when needed: StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster, Message Offset, Message Sequence Number, EventIpAddress.
+  - Do NOT fabricate data. If a tool didn’t return anything, state that clearly and suggest the next most reasonable targeted check.
+  - Maintain context continuity but avoid re-dumping large prior summaries unless the user asks for a recap.
+
+  Escalation to Workflow Mode:
+  - If the user explicitly asks for a "full", "comprehensive", "end-to-end" Event Hub Trigger RCA (or "preflight"), tell them:
+      "Switch to workflow mode with /mode workflow (return with /mode conversation)."
+  - Do NOT simulate or approximate the full preflight sequence in conversation mode.
+
+handoff_description: "Conversational Event Hub Trigger follow-up and selective per-activity diagnostics."
+
+agents_as_tools:
+  - agent_name: eb_worker_runtime_check_agent
+    tool_name: eb_worker_runtime_check
+    tool_description: "Checks worker/runtime status & execution presence."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName, KustoCluster, FunctionName."
+  - agent_name: eb_site_metadata_agent
+    tool_name: eb_site_metadata
+    tool_description: "Retrieves Function App site metadata relevant to Event Hub triggering."
+    input_description: "Provide SiteName (+ optional time range for extension)."
+  - agent_name: eb_get_extension_version_agent
+    tool_name: eb_extension_version
+    tool_description: "Retrieves Event Hub trigger extension version."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName, KustoCluster, FunctionName."
+  - agent_name: eb_select_event_ip_agent
+    tool_name: eb_select_event_ip
+    tool_description: "Finds most frequent EventIpAddress for correlation pivot."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName, FunctionName, KustoCluster."
+  - agent_name: eb_extract_gap_timestamps_agent
+    tool_name: eb_gap_timestamps
+    tool_description: "Computes largest execution gap & stop/recovered times."
+    input_description: "Provide EventIpAddress, StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster."
+  - agent_name: eb_determine_function_has_been_triggered_agent
+    tool_name: eb_function_triggered
+    tool_description: "Correlates message enqueue → FunctionStarted → FunctionCompleted."
+    input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster."
+  - agent_name: eb_message_enqueued_agent
+    tool_name: eb_message_enqueued
+    tool_description: "Analyzes Event Hub message enqueue evidence (PartitionId, Offset, SequenceNumber, EnqueueTimeUtc, MessageCount)."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName, KustoCluster, FunctionName."
+  - agent_name: eb_message_delaypercentiles_agent                
+    tool_name: eb_message_delaypercentiles
+    tool_description: "Checks Event Hub message delay percentiles."
+    input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster."
+  - agent_name: eb_message_partitioncount_agent                
+    tool_name: eb_partition_count
+    tool_description: "Checks Event Hub partition count."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName, KustoCluster, FunctionName."
+  - agent_name: eb_message_peak_throughput_agent
+    tool_name: eb_peak_throughput
+    tool_description: "Checks Event Hub peak throughput."
+    input_description: "Provide EventIpAddress, SiteName, StartTime, EndTime, EventPrimaryStampName, KustoCluster, FunctionName."
+
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
+max_reflection_count: 1
