@@ -1,4 +1,7 @@
-using System.Text;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Cli.Helpers;
 
 namespace Agent.Cli.Services;
@@ -16,11 +19,11 @@ public static class WelcomeService
         Console.WriteLine();
         ConsoleUI.DrawPanel("SRE Agent CLI (srectl)", "Your intelligent assistant for SRE automation", ConsoleColor.Cyan);
         Console.WriteLine();
-        
+
         ConsoleUI.WriteInfo($"cwd: {Directory.GetCurrentDirectory()}");
         ConsoleUI.WriteInfo("srectl --help for help, srectl interactive for guided setup");
         Console.WriteLine();
-        
+
         ConsoleUI.WriteSection("Core Commands");
         ConsoleUI.WriteCommand("Initialize workspace", "srectl init");
         ConsoleUI.WriteCommand("Interactive guided mode", "srectl interactive");

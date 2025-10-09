@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using Agent.Cli.Services;
 using Agent.Cli.Commands;
@@ -209,8 +213,8 @@ public static class SmartErrorHandler
                     "Consider reporting this issue if it persists"
                 }
             )
-            };
-        }
+        };
+    }
 
     // Auto-recovery methods
     private static async Task<bool> TestConnection()

@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 
 namespace Agent.Cli.Services;
@@ -131,7 +135,7 @@ public class ThreadManagerService
         {
             var threads = await GetThreadsAsync();
             var removed = threads.RemoveAll(t => t.Id == threadId) > 0;
-            
+
             if (removed)
             {
                 var storage = new ThreadStorage { Threads = threads };

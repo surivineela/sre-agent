@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.CommandLine;
 using System.Text;
 using Agent.Cli.Helpers;
@@ -931,7 +935,7 @@ public static class InteractiveCommandHandlers
         Console.WriteLine();
         ConsoleUI.WriteSection("Agent Selection (Optional)");
         ConsoleUI.WriteInfo("You can connect this task to a specific deployed agent:");
-        
+
         var selectedAgent = await SelectDeployedAgent();
 
         try
@@ -978,7 +982,7 @@ public static class InteractiveCommandHandlers
         ConsoleUI.WriteBullet("0 0 1 * * - First day of every month");
         Console.WriteLine();
         ConsoleUI.WriteInline("Cron expression: ");
-        
+
         var cronExpression = Console.ReadLine()?.Trim();
         if (string.IsNullOrEmpty(cronExpression))
         {
@@ -995,7 +999,7 @@ public static class InteractiveCommandHandlers
         {
             using var apiService = new ApiService();
             var (success, response) = await apiService.ListAgentsAsync();
-            
+
             if (!success || string.IsNullOrEmpty(response))
             {
                 ConsoleUI.WriteInfo("No deployed agents found. Task will run without a specific agent.");
@@ -1035,7 +1039,7 @@ public static class InteractiveCommandHandlers
             }
 
             ConsoleUI.WriteKeyValue("0", "No specific agent (default)", 3);
-            
+
             for (int i = 0; i < Math.Min(agentNames.Count, 9); i++)
             {
                 ConsoleUI.WriteKeyValue($"{i + 1}", agentNames[i], 3);

@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using System.Text;
 
@@ -67,12 +71,12 @@ public static class DebugLogger
     {
         var lines = content.Split('\n');
         var indent = new string(' ', indentSize);
-        
+
         for (int i = 0; i < lines.Length; i++)
         {
             var line = lines[i].TrimEnd('\r');
             var linePrefix = i == 0 ? prefix : indent;
-            
+
             if (_supportsColor)
             {
                 var old = Console.ForegroundColor;
@@ -91,7 +95,7 @@ public static class DebugLogger
     {
         if (string.IsNullOrEmpty(content))
             return "";
-            
+
         // Try to format JSON
         if (IsJson(content))
         {
@@ -108,7 +112,7 @@ public static class DebugLogger
                 return content;
             }
         }
-        
+
         return content;
     }
 
@@ -116,7 +120,7 @@ public static class DebugLogger
     {
         if (string.IsNullOrEmpty(content))
             return "";
-            
+
         // Try to format JSON
         if (IsJson(content))
         {
@@ -133,14 +137,14 @@ public static class DebugLogger
                 return content;
             }
         }
-        
+
         return content;
     }
 
     private static bool IsJson(string content)
     {
         var trimmed = content.Trim();
-        return (trimmed.StartsWith("{") && trimmed.EndsWith("}")) || 
+        return (trimmed.StartsWith("{") && trimmed.EndsWith("}")) ||
                (trimmed.StartsWith("[") && trimmed.EndsWith("]"));
     }
 
@@ -190,12 +194,12 @@ public static class DebugLogger
 
         var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
         WriteWithColor(ConsoleColor.DarkGray, $"[{timestamp}] {_chars.ArrowRight} HTTP REQUEST: {method} {url}");
-        
+
         if (!string.IsNullOrEmpty(contentType))
         {
             WriteWithColor(ConsoleColor.DarkGray, $"   Content-Type: {contentType}");
         }
-        
+
         if (!string.IsNullOrEmpty(content))
         {
             var displayContent = FormatRequestBody(content);
@@ -216,10 +220,10 @@ public static class DebugLogger
     public static void LogHttpRequest(string method, string url, IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers, string? contentType, string? content)
     {
         if (!_debugEnabled) return;
-        
+
         var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
         WriteWithColor(ConsoleColor.DarkGray, $"[{timestamp}] {_chars.ArrowRight} HTTP REQUEST: {method} {url}");
-        
+
         foreach (var header in headers)
         {
             var name = header.Key;
@@ -230,12 +234,12 @@ public static class DebugLogger
             }
             WriteWithColor(ConsoleColor.DarkGray, $"   {name}: {value}");
         }
-        
+
         if (!string.IsNullOrEmpty(contentType))
         {
             WriteWithColor(ConsoleColor.DarkGray, $"   Content-Type: {contentType}");
         }
-        
+
         if (!string.IsNullOrEmpty(content))
         {
             var displayContent = FormatRequestBody(content);
@@ -263,7 +267,7 @@ public static class DebugLogger
 
         var color = statusCode >= 200 && statusCode < 300 ? ConsoleColor.DarkGray : ConsoleColor.DarkGray;
         WriteWithColor(color, $"[{timestamp}] < HTTP RESPONSE{responseTimeText}: {statusIcon} {statusCode} {statusName}");
-        
+
         if (!string.IsNullOrEmpty(content))
         {
             var displayContent = FormatResponseBody(content);
@@ -291,12 +295,12 @@ public static class DebugLogger
 
         var color = statusCode >= 200 && statusCode < 300 ? ConsoleColor.DarkGray : ConsoleColor.DarkGray;
         WriteWithColor(color, $"[{timestamp}] < HTTP RESPONSE{responseTimeText}: {statusIcon} {statusCode} {statusName}");
-        
+
         foreach (var header in headers)
         {
             WriteWithColor(ConsoleColor.DarkGray, $"   {header.Key}: {string.Join(", ", header.Value)}");
         }
-        
+
         if (!string.IsNullOrEmpty(content))
         {
             var displayContent = FormatResponseBody(content);

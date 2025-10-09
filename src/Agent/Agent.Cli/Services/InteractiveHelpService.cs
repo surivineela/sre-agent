@@ -1,4 +1,7 @@
-using System.Text;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Cli.Commands;
 using Agent.Cli.Helpers;
 
@@ -21,7 +24,7 @@ public static class InteractiveHelpService
         }
 
         StandardHelpFormatter.ShowSrectlHeader();
-        
+
         ConsoleUI.DrawPanel("Interactive Help System", "Examples, troubleshooting, and command guidance", ConsoleColor.Cyan);
         Console.WriteLine();
 
@@ -43,18 +46,18 @@ public static class InteractiveHelpService
             ("interactive", "Start interactive guided mode for step-by-step assistance"),
             ("version", "Show version information and build details")
         });
-        
+
         ConsoleUI.WriteCommandGroup("Setup & Management", new[] {
             ("init", "Initialize SREAgent CLI configuration and workspace"),
             ("list", "List various resources from the remote server"),
             ("apply-yaml", "Apply any YAML configuration file to the server")
         });
-        
+
         ConsoleUI.WriteCommandGroup("Interaction & Workflows", new[] {
             ("chat", "Start an interactive chat session with the SRE Agent"),
             ("thread", "Thread management commands")
         });
-        
+
         ConsoleUI.WriteCommandGroup("Resource Management", new[] {
             ("agent", "Agent commands"),
             ("tool", "Tool commands"),

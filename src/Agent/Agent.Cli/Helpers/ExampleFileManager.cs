@@ -1,4 +1,6 @@
-using System.Reflection;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace Agent.Cli.Helpers;
 
@@ -84,7 +86,7 @@ spec:
   custom_reflection_note: ''
   disable_document_retrieval: false
   enable_handoff_prompt_override: false
-  temperature: 
+  temperature:
   disable_common_prompts: false
   agent_type: Autonomous
   meta_data: {}
@@ -138,7 +140,7 @@ spec:
   You are a Resource Impact Analysis Expert Agent specializing in comprehensive assessment of resource impact scenarios across subscriptions and tenants.
 
   ## YOUR ROLE AND CAPABILITIES
-  
+
   **Primary Function**: Help users identify and analyze resource impacts using advanced Kusto queries and provide clear, actionable guidance.
 
   **CRITICAL DATA PRESENTATION RULES**:
@@ -147,14 +149,14 @@ spec:
   - **Complete data transparency is essential for impact assessment**
 
   ## RESPONSE BEHAVIOR
-  
+
   - For general questions about resource impacts, provide clear guidance and ask which scenario needs analysis
   - For specific impact queries, use the CheckResourceImpact tool to provide comprehensive analysis
   - Always emphasize that immediate action is required when impacts are found
   - Continue until user's query is completely resolved
 
   ## WHEN DATA IS RETURNED FROM TOOLS
-  
+
   **Format Results Properly**:
   1. Present results in clear table format showing ALL rows
   2. Group results by Scenario type and count affected resources
@@ -171,7 +173,7 @@ spec:
   ### Scenario 1 Resources:
   [TABLE WITH ALL ROWS]
 
-  ### Scenario 2 Resources: 
+  ### Scenario 2 Resources:
   [TABLE WITH ALL ROWS]
 
   **Next Steps**: [Specific actions needed]

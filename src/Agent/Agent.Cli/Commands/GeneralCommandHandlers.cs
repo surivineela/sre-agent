@@ -1,8 +1,9 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.CommandLine;
-using System.CommandLine.NamingConventionBinder;
-using System.CommandLine.Parsing;
 using System.Reflection;
-using System.Text.Json;
 using Agent.Cli.Helpers;
 using Agent.Cli.Models;
 using Agent.Cli.Services;
@@ -371,8 +372,8 @@ public static class GeneralCommandHandlers
             Environment.Exit(success ? 0 : 1);
         }
     }    /// <summary>
-    /// Handles the list tools command.
-    /// </summary>
+         /// Handles the list tools command.
+         /// </summary>
     public static async Task HandleListToolsCommand(ParseResult parseResult)
     {
         // Ensure debug/quiet flags are honored for this handler

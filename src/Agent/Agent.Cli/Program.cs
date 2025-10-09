@@ -2,11 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
-using System.Linq;
 using System.CommandLine;
 using System.CommandLine.Parsing;
-using System.Threading.Tasks;
 using Agent.Cli.Commands;
 using Agent.Cli.Services;
 using Agent.Cli.Helpers;
@@ -304,7 +301,7 @@ public static class Program
             Console.WriteLine();
         }
 
-    if (cmd.Options.Any())
+        if (cmd.Options.Any())
         {
             ConsoleUI.WriteSection("Options");
             foreach (var opt in cmd.Options)

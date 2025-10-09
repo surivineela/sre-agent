@@ -1,5 +1,8 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.CommandLine;
-using System.Text.RegularExpressions;
 
 namespace Agent.Cli.Helpers;
 
@@ -29,7 +32,8 @@ public static class StandardHelpFormatter
         var totalWidth = Math.Max(maxContentWidth + 4, 80); // At least 80 chars wide
         var horizontalLine = new string(ConsoleUI.Chars.H[0], totalWidth - 2);
 
-        ConsoleUI.WithColor(ConsoleColor.Cyan, () => {
+        ConsoleUI.WithColor(ConsoleColor.Cyan, () =>
+        {
             Console.WriteLine($"{ConsoleUI.Chars.TL}{horizontalLine}{ConsoleUI.Chars.TR}");
             foreach (var line in bannerLines)
             {
@@ -184,7 +188,8 @@ public static class StandardHelpFormatter
         var totalWidth = Math.Max(maxContentWidth + 4, 40); // At least 40 chars wide
         var horizontalLine = new string(ConsoleUI.Chars.H[0], totalWidth - 2);
 
-        ConsoleUI.WithColor(bannerColor, () => {
+        ConsoleUI.WithColor(bannerColor, () =>
+        {
             Console.WriteLine($"{ConsoleUI.Chars.TL}{horizontalLine}{ConsoleUI.Chars.TR}");
             foreach (var line in bannerLines)
             {

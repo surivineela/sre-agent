@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 
 namespace Agent.Cli.Services;
@@ -23,7 +27,7 @@ public static class ToolResponseParser
         try
         {
             var jsonDoc = JsonDocument.Parse(jsonResponse);
-            
+
             // Check the type of the root element first
             if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
             {
@@ -36,7 +40,7 @@ public static class ToolResponseParser
                 if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement))
                 {
                     // Pattern 1: { "data": { "tools": [...] } } - Full nested structure
-                    if (dataElement.ValueKind == JsonValueKind.Object && 
+                    if (dataElement.ValueKind == JsonValueKind.Object &&
                         dataElement.TryGetProperty("tools", out var toolsElement) &&
                         toolsElement.ValueKind == JsonValueKind.Array)
                     {
@@ -49,7 +53,7 @@ public static class ToolResponseParser
                     }
                 }
                 // Pattern 3: { "tools": [...] } - Direct tools property
-                else if (jsonDoc.RootElement.TryGetProperty("tools", out var directToolsElement) && 
+                else if (jsonDoc.RootElement.TryGetProperty("tools", out var directToolsElement) &&
                          directToolsElement.ValueKind == JsonValueKind.Array)
                 {
                     return directToolsElement.EnumerateArray().ToArray();
@@ -72,7 +76,7 @@ public static class ToolResponseParser
     public static HashSet<string> ExtractToolNames(JsonElement[] toolElements)
     {
         var toolNames = new HashSet<string>();
-        
+
         foreach (var tool in toolElements)
         {
             if (tool.TryGetProperty("name", out var nameElement))
@@ -108,19 +112,19 @@ public static class ToolResponseParser
     public static List<string> ExtractToolDisplayInfo(JsonElement[] toolElements)
     {
         var toolInfo = new List<string>();
-        
+
         foreach (var tool in toolElements)
         {
             var name = tool.TryGetProperty("name", out var nameElement) ? nameElement.GetString() ?? "Unknown" : "Unknown";
             var category = tool.TryGetProperty("category", out var categoryElement) ? categoryElement.GetString() ?? "" : "";
             var description = tool.TryGetProperty("description", out var descElement) ? descElement.GetString() ?? "" : "";
             var pluginName = tool.TryGetProperty("pluginName", out var pluginElement) ? pluginElement.GetString() ?? "" : "";
-            
+
             var output = Helpers.ConsoleUI.CaptureOutput(() =>
             {
                 Console.WriteLine();
                 Helpers.ConsoleUI.WriteBullet(name, ConsoleColor.White, 0);
-                
+
                 if (!string.IsNullOrEmpty(category))
                 {
                     Helpers.ConsoleUI.WriteKeyValue("  Category", category, 13, ConsoleColor.Gray, ConsoleColor.White);
@@ -133,7 +137,7 @@ public static class ToolResponseParser
                 {
                     Helpers.ConsoleUI.WriteKeyValue("  Plugin", pluginName, 13, ConsoleColor.Gray, ConsoleColor.White);
                 }
-                
+
                 // Get parameters
                 if (tool.TryGetProperty("parameters", out var paramsElement) && paramsElement.ValueKind == JsonValueKind.Array)
                 {
@@ -163,7 +167,7 @@ public static class ToolResponseParser
     public static List<string> ExtractExtendedToolDisplayInfo(JsonElement[] toolElements)
     {
         var toolInfo = new List<string>();
-        
+
         foreach (var tool in toolElements)
         {
             var name = tool.TryGetProperty("name", out var nameElement) ? nameElement.GetString() ?? "Unknown" : "Unknown";
@@ -171,12 +175,12 @@ public static class ToolResponseParser
             var type = tool.TryGetProperty("type", out var typeElement) ? typeElement.GetString() ?? "" : "";
             var createdAt = tool.TryGetProperty("created_at", out var createdElement) ? createdElement.GetString() ?? "" : "";
             var updatedAt = tool.TryGetProperty("updated_at", out var updatedElement) ? updatedElement.GetString() ?? "" : "";
-            
+
             var output = Helpers.ConsoleUI.CaptureOutput(() =>
             {
                 Console.WriteLine();
                 Helpers.ConsoleUI.WriteBullet(name, ConsoleColor.White, 0);
-                
+
                 if (!string.IsNullOrEmpty(description))
                 {
                     Helpers.ConsoleUI.WriteKeyValue("  Description", description, 13, ConsoleColor.Gray, ConsoleColor.White);
@@ -193,7 +197,7 @@ public static class ToolResponseParser
                 {
                     Helpers.ConsoleUI.WriteKeyValue("  Updated", updatedAt, 13, ConsoleColor.Gray, ConsoleColor.White);
                 }
-                
+
                 // Get parameters if available
                 if (tool.TryGetProperty("parameters", out var paramsElement))
                 {
@@ -239,7 +243,7 @@ public static class ToolResponseParser
                         }
                     }
                 }
-                
+
                 // Get connector info if available
                 if (tool.TryGetProperty("connector", out var connectorElement))
                 {

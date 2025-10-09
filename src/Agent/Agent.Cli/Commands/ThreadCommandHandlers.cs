@@ -3,8 +3,6 @@
 // ------------------------------------------------------------
 
 using System.CommandLine;
-using System.CommandLine.NamingConventionBinder;
-using System.CommandLine.Parsing;
 using Agent.Cli.Helpers;
 using Agent.Cli.Services;
 

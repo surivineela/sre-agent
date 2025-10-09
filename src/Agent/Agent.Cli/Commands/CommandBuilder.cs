@@ -1,11 +1,8 @@
-// CommandBuilder.cs
-using System.Collections.Generic;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.CommandLine;
-using System.CommandLine.Help;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Linq;
 using Agent.Cli.Helpers;
 using Agent.Cli.Services;
 
@@ -74,8 +71,8 @@ public static class CommandBuilder
         // Add default action for list command to show formatted help
         listCommand.SetAction((ParseResult pr) => ShowFormattedListHelp(listCommand));
         var applyYamlCommand = CreateApplyYamlCommand();
-    var threadCommand = CreateThreadCommand();
-    var scheduledTask = BuildScheduledTaskCommand();
+        var threadCommand = CreateThreadCommand();
+        var scheduledTask = BuildScheduledTaskCommand();
 
         // Add default action for thread command to show formatted help
         threadCommand.SetAction((ParseResult pr) => ShowFormattedThreadHelp(threadCommand));
@@ -1118,7 +1115,7 @@ public static class CommandBuilder
 
     private static Command BuildScheduledTaskCommand()
     {
-    var scheduledTaskCommand = new Command("scheduledtask", "Manage scheduled tasks for automated agent operations");
+        var scheduledTaskCommand = new Command("scheduledtask", "Manage scheduled tasks for automated agent operations");
 
         var createCommand = new Command("create", "Create a new scheduled task")
         {

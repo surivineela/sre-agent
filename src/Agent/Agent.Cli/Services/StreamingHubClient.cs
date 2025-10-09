@@ -1,9 +1,8 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.AspNetCore.SignalR.Client;
-using Agent.Cli.Services;
-using Agent.Cli.Models;
 using System.Text.Json.Serialization;
 
 namespace Agent.Cli.Services;

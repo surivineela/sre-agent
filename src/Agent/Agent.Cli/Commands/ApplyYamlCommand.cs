@@ -1,6 +1,8 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.CommandLine;
-using System.CommandLine.Parsing;
-using Agent.Cli.Services;
 
 namespace Agent.Cli.Commands;
 

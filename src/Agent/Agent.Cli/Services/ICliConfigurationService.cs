@@ -1,6 +1,11 @@
-﻿using Agent.Cli.Models;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Cli.Models;
 
 namespace Agent.Cli.Services;
+
 public interface ICliConfigurationService
 {
     static abstract bool IsLocalhost(string url);

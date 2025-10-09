@@ -1,4 +1,6 @@
-using System.Text;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace Agent.Cli.Commands;
 
@@ -83,7 +85,7 @@ Examples:
   # Test with custom user details
   srectl agent test --name MyAgent --message ""Help me"" --user-id john.doe --display-name ""John Doe""";
 
-  public const string DiffDescription = @"Compare local and remote agent configurations
+        public const string DiffDescription = @"Compare local and remote agent configurations
 
 Examples:
   # Compare default using git-diff (default)
@@ -168,7 +170,7 @@ Examples:
   # Show specific type with verbose details
   srectl tool show-types --type AzureTool --verbose";
 
-  public const string ShowConnectorsDescription = @"Display configured data connectors (names to use in YAML) and available connector types
+        public const string ShowConnectorsDescription = @"Display configured data connectors (names to use in YAML) and available connector types
 
 Examples:
   # List all available connectors
@@ -177,7 +179,7 @@ Examples:
   # Show detailed connector information
   srectl tool show-connectors --verbose";
 
-  public const string DiffDescription = @"Compare local and remote tool configurations
+        public const string DiffDescription = @"Compare local and remote tool configurations
 
 Examples:
   # Compare default using git

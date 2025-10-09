@@ -1,6 +1,8 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json.Serialization;
-using System;
-using System.Collections.Generic;
 
 namespace Agent.Cli.Models
 {

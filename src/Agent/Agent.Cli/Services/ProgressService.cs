@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text;
 using Agent.Cli.Helpers;
 
@@ -63,15 +67,15 @@ public static class ProgressService
             ConsoleUI.WriteStatus(false, error);
             Console.WriteLine();
         }
-        
+
         private static void ShowCompletionSummary()
         {
             Console.WriteLine();
             ConsoleUI.WriteSection("Process Complete", ConsoleColor.Green);
-            
+
             foreach (var (step, duration, success) in _completedSteps)
             {
-                var timeStr = duration.TotalSeconds < 1 
+                var timeStr = duration.TotalSeconds < 1
                     ? $"{duration.TotalMilliseconds:F0}ms"
                     : $"{duration.TotalSeconds:F1}s";
                 var status = success ? "✓" : "✗";
@@ -85,7 +89,7 @@ public static class ProgressService
             var message = customMessage ?? _steps[_currentStep];
             ConsoleUI.WriteKeyValue($"Step {_currentStep + 1}/{_steps.Length}", message, 15, ConsoleColor.Cyan, ConsoleColor.White);
             Console.WriteLine();
-            
+
             // Show upcoming steps
             for (int i = 0; i < _steps.Length; i++)
             {
@@ -251,7 +255,7 @@ public static class ProgressService
         {
             message += $" (Warning: {warning})";
         }
-        
+
         return ConsoleUI.Confirm(message, defaultYes);
     }
 

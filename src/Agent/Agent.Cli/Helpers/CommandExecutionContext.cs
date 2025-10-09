@@ -1,7 +1,8 @@
-using System;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.CommandLine;
-using System.CommandLine.Parsing;
-using System.Linq;
 using Agent.Cli.Commands;
 
 namespace Agent.Cli.Helpers;

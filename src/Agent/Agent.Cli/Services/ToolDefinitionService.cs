@@ -4,7 +4,6 @@
 
 using System.Reflection;
 using System.Text;
-using Agent.Data.Tools;
 using Agent.Framework;
 using Agent.Framework.Reasoning.Models;
 using Agent.Plugins.Kusto.Tools;

@@ -1,7 +1,8 @@
-using System.Text.Json;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Net.Http.Headers;
-using Agent.Cli.Services;
-using Agent.Cli.Models;
 using Agent.Cli.Helpers;
 
 namespace Agent.Cli.Services;
@@ -26,7 +27,7 @@ public class ToolAvailabilityService
     {
         var localTools = GetLocalTools();
         var (remoteTools, remoteErrors) = await GetRemoteToolsAsync();
-        
+
         return (localTools, remoteTools, remoteErrors);
     }
 
@@ -37,17 +38,17 @@ public class ToolAvailabilityService
     public HashSet<string> GetLocalTools()
     {
         var localTools = new HashSet<string>();
-        
+
         DebugLogger.Debug("ToolAvailability", "Scanning local tools directory");
-        
+
         if (Directory.Exists("tools"))
         {
             DebugLogger.LogFile("SCAN", "tools", "Directory exists, scanning for tools");
-            
+
             // Check for tools in flat structure: tools/toolname.yaml
             var flatFiles = Directory.GetFiles("tools", "*.yaml", SearchOption.TopDirectoryOnly);
             DebugLogger.Debug("ToolAvailability", $"Found {flatFiles.Length} flat YAML files in tools/");
-            
+
             foreach (var file in flatFiles)
             {
                 var toolName = Path.GetFileNameWithoutExtension(file);
@@ -58,7 +59,7 @@ public class ToolAvailabilityService
             // Check for tools in subdirectory structure: tools/toolname/toolname.yaml
             var subDirs = Directory.GetDirectories("tools");
             DebugLogger.Debug("ToolAvailability", $"Found {subDirs.Length} subdirectories in tools/");
-            
+
             foreach (var subDir in subDirs)
             {
                 var toolName = Path.GetFileName(subDir);
@@ -73,7 +74,7 @@ public class ToolAvailabilityService
                     DebugLogger.LogFile("MISSING", toolFile, $"Expected tool file not found for {toolName}");
                 }
             }
-            
+
             DebugLogger.Debug("ToolAvailability", $"Total local tools discovered: {localTools.Count} - {string.Join(", ", localTools.Take(10))}{(localTools.Count > 10 ? "..." : "")}");
         }
         else
@@ -97,7 +98,7 @@ public class ToolAvailabilityService
         DebugLogger.Debug("ToolAvailability", "Fetching regular tools from server API");
         var (toolsSuccess, toolsResponse) = await GetRawToolsJsonAsync();
         DebugLogger.Debug("ToolAvailability", $"Regular tools API - Success: {toolsSuccess}, Response length: {toolsResponse?.Length ?? 0}");
-        
+
         if (toolsSuccess && !string.IsNullOrEmpty(toolsResponse))
         {
             var toolNames = ToolResponseParser.ParseToolNames(toolsResponse);
@@ -118,7 +119,7 @@ public class ToolAvailabilityService
         DebugLogger.Debug("ToolAvailability", "Fetching extended tools from server API");
         var (extendedSuccess, extendedResponse) = await GetRawExtendedToolsJsonAsync();
         DebugLogger.Debug("ToolAvailability", $"Extended tools API - Success: {extendedSuccess}, Response length: {extendedResponse?.Length ?? 0}");
-        
+
         if (extendedSuccess && !string.IsNullOrEmpty(extendedResponse))
         {
             var extendedToolNames = ToolResponseParser.ParseToolNames(extendedResponse);
@@ -144,7 +145,7 @@ public class ToolAvailabilityService
     private async Task<(bool Success, string Response)> GetRawToolsJsonAsync()
     {
         var requestId = DebugLogger.LogRequestStart("RegularToolsAPI", "GET /api/v1/incidentplayground/listTools");
-        
+
         try
         {
             var config = await _apiService.GetConfigurationAsync();
@@ -156,13 +157,13 @@ public class ToolAvailabilityService
 
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/listTools";
             DebugLogger.LogConfig("RegularToolsURL", requestUrl);
-            
+
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
             // Add auth header if not localhost
             var isLocalhost = CliConfigurationService.IsLocalhost(config.ResourceUrl);
             DebugLogger.LogAuth($"Request target: {(isLocalhost ? "localhost (no auth required)" : "remote (auth required)")}");
-            
+
             if (!isLocalhost)
             {
                 var token = await _apiService.GetAccessTokenForInternalUseAsync();
@@ -177,7 +178,7 @@ public class ToolAvailabilityService
             }
 
             DebugLogger.LogHttpRequest("GET", requestUrl);
-            
+
             var httpClient = _apiService.GetHttpClient();
             var response = await httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
@@ -216,7 +217,7 @@ public class ToolAvailabilityService
                 message = "The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.";
                 DebugLogger.LogNetwork("Request timeout - server may be overloaded");
             }
-            
+
             DebugLogger.LogRequestEnd(requestId, "RegularToolsAPI", false, $"Exception: {ex.GetType().Name}");
             return (false, $"❌ Failed to get raw tools: {message}");
         }
@@ -228,7 +229,7 @@ public class ToolAvailabilityService
     private async Task<(bool Success, string Response)> GetRawExtendedToolsJsonAsync()
     {
         var requestId = DebugLogger.LogRequestStart("ExtendedToolsAPI", "GET /api/v1/extendedAgent/tools");
-        
+
         try
         {
             var config = await _apiService.GetConfigurationAsync();
@@ -240,13 +241,13 @@ public class ToolAvailabilityService
 
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/tools";
             DebugLogger.LogConfig("ExtendedToolsURL", requestUrl);
-            
+
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
             // Add auth header if not localhost
             var isLocalhost = CliConfigurationService.IsLocalhost(config.ResourceUrl);
             DebugLogger.LogAuth($"Request target: {(isLocalhost ? "localhost (no auth required)" : "remote (auth required)")}");
-            
+
             if (!isLocalhost)
             {
                 var token = await _apiService.GetAccessTokenForInternalUseAsync();
@@ -300,7 +301,7 @@ public class ToolAvailabilityService
                 message = "The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.";
                 DebugLogger.LogNetwork("Request timeout - server may be overloaded");
             }
-            
+
             DebugLogger.LogRequestEnd(requestId, "ExtendedToolsAPI", false, $"Exception: {ex.GetType().Name}");
             return (false, $"❌ Failed to get raw extended tools: {message}");
         }

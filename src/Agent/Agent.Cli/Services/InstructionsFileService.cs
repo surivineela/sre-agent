@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Diagnostics;
 using System.Text;
 using Agent.Cli.Helpers;
@@ -18,12 +22,12 @@ public static class InstructionsFileService
         try
         {
             ConsoleUI.WriteBullet("Creating instructions.md file...", ConsoleColor.Cyan);
-            
+
             // Create .github directory if it doesn't exist
             Directory.CreateDirectory(".github");
 
             var instructionsContent = await GenerateInstructionsContentAsync();
-            
+
             var filePath = Path.Combine(".github", "instructions.md");
 
             await File.WriteAllTextAsync(filePath, instructionsContent);
@@ -108,7 +112,7 @@ public static class InstructionsFileService
 
             // Execute command and get help output
             var helpOutput = await ExecuteCommandAsync(cmd.Command);
-            
+
             sb.AppendLine("```");
             sb.AppendLine($"$ {cmd.Command}");
             sb.AppendLine();
@@ -218,7 +222,7 @@ public static class InstructionsFileService
 
             var output = await process.StandardOutput.ReadToEndAsync();
             var error = await process.StandardError.ReadToEndAsync();
-            
+
             await process.WaitForExitAsync();
 
             // Return output or error message if command failed

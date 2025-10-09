@@ -9,9 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Agent.Cli.Helpers;
 using Agent.Cli.Models;
-using Agent.Cli.Validations;
 using Agent.Core.Validation;
-using Agent.Framework;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -3276,61 +3274,61 @@ public class ApiService : IDisposable
         catch (Exception ex)
         {
             Console.WriteLine($"[ERROR] Failed to delete incident handler: {ex.Message}");
-                        return false;
+            return false;
         }
     }
-    }
+}
 
-    // Simple wrapper models for YAML structure
-    public class AgentConfigurationWrapper
-    {
-        public string ApiVersion { get; set; } = "azuresre.ai/v1";
-        public string Kind { get; set; } = "AgentConfiguration";
-        public YamlMetadata Metadata { get; set; } = new YamlMetadata();
-        public AgentSpec Spec { get; set; } = new AgentSpec();
-    }
+// Simple wrapper models for YAML structure
+public class AgentConfigurationWrapper
+{
+    public string ApiVersion { get; set; } = "azuresre.ai/v1";
+    public string Kind { get; set; } = "AgentConfiguration";
+    public YamlMetadata Metadata { get; set; } = new YamlMetadata();
+    public AgentSpec Spec { get; set; } = new AgentSpec();
+}
 
-    public class ToolListWrapper
-    {
-        public string ApiVersion { get; set; } = "azuresre.ai/v1";
-        public string Kind { get; set; } = "ToolList";
-        public YamlMetadata Metadata { get; set; } = new YamlMetadata();
-        public ToolSpec Spec { get; set; } = new ToolSpec();
-    }
+public class ToolListWrapper
+{
+    public string ApiVersion { get; set; } = "azuresre.ai/v1";
+    public string Kind { get; set; } = "ToolList";
+    public YamlMetadata Metadata { get; set; } = new YamlMetadata();
+    public ToolSpec Spec { get; set; } = new ToolSpec();
+}
 
-    public class YamlMetadata
-    {
-        public string Owner { get; set; } = string.Empty;
-        public string Version { get; set; } = string.Empty;
-        public List<string> Tags { get; set; } = new List<string>();
-        public string UpdatedAt { get; set; } = string.Empty;
-        public string CreatedAt { get; set; } = string.Empty;
-    }
+public class YamlMetadata
+{
+    public string Owner { get; set; } = string.Empty;
+    public string Version { get; set; } = string.Empty;
+    public List<string> Tags { get; set; } = new List<string>();
+    public string UpdatedAt { get; set; } = string.Empty;
+    public string CreatedAt { get; set; } = string.Empty;
+}
 
-    public class AgentSpec
-    {
-        public object Agent { get; set; } = new object();
-    }
+public class AgentSpec
+{
+    public object Agent { get; set; } = new object();
+}
 
-    public class ToolSpec
-    {
-        public List<object> Tools { get; set; } = new List<object>();
-    }
+public class ToolSpec
+{
+    public List<object> Tools { get; set; } = new List<object>();
+}
 
-    // New wrapper for combined agent and tools
-    public class CombinedAgentWrapper
-    {
-        public string ApiVersion { get; set; } = "azuresre.ai/v1";
-        public string Kind { get; set; } = "AgentConfiguration";
-        public YamlMetadata Metadata { get; set; } = new YamlMetadata();
-        public CombinedAgentSpec Spec { get; set; } = new CombinedAgentSpec();
-    }
+// New wrapper for combined agent and tools
+public class CombinedAgentWrapper
+{
+    public string ApiVersion { get; set; } = "azuresre.ai/v1";
+    public string Kind { get; set; } = "AgentConfiguration";
+    public YamlMetadata Metadata { get; set; } = new YamlMetadata();
+    public CombinedAgentSpec Spec { get; set; } = new CombinedAgentSpec();
+}
 
-    public class CombinedAgentSpec
-    {
-        public object Agent { get; set; } = new object();
-        public List<object> Tools { get; set; } = new List<object>();
-    }
+public class CombinedAgentSpec
+{
+    public object Agent { get; set; } = new object();
+    public List<object> Tools { get; set; } = new List<object>();
+}
 
-    public record ThreadMessage(string Id, string Text, DateTime Timestamp, string AuthorRole, string AuthorUserId, string AuthorDisplayName);
-    public record ThreadInfo(string Id, string Title, DateTime CreatedAt, DateTime LastMessageAt);
+public record ThreadMessage(string Id, string Text, DateTime Timestamp, string AuthorRole, string AuthorUserId, string AuthorDisplayName);
+public record ThreadInfo(string Id, string Title, DateTime CreatedAt, DateTime LastMessageAt);
