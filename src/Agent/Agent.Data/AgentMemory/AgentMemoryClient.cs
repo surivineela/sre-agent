@@ -359,8 +359,8 @@ public class AgentMemoryClient : IAgentMemoryClient
             searchOptions.SemanticSearch = new SemanticSearchOptions
             {
                 SemanticConfigurationName = Constants.SemanticSearchConfig,
-                // QueryCaption = new QueryCaption(QueryCaptionType.Extractive),
-                // QueryAnswer = new QueryAnswer(QueryAnswerType.Extractive)
+                QueryCaption = new QueryCaption(QueryCaptionType.Extractive),
+                QueryAnswer = new QueryAnswer(QueryAnswerType.Extractive)
             };
 
             var response = await _searchClient.SearchAsync<SearchDocumentResult>(

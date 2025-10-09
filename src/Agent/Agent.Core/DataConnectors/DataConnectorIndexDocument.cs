@@ -32,13 +32,22 @@ public class DataConnectorIndexDocument
     public required string SourceDocumentUrl { get; init; }
 
     [SearchableField]
-    [SemanticSearch(SemanticSearchFieldType.ContentField)]
+    [SemanticSearch(SemanticSearchFieldType.TitleField)]
     public required string Title { get; init; }
 
     [SearchableField]
     [SemanticSearch(SemanticSearchFieldType.ContentField)]
-    public required string Chunk{ get; init; }
+    public required string Chunk { get; init; }
 
     [VectorSearchField(VectorSearchDimensions = 1536, VectorSearchProfileName = "dataConnectorVectorProfile", IsHidden = true)]
     public List<float>? Vector { get; init; }
+
+    // Semantic search scores (populated when semantic search is enabled)
+    [FieldBuilderIgnore]
+    [JsonPropertyName("@search.score")]
+    public double? SearchScore { get; set; }
+
+    [FieldBuilderIgnore]
+    [JsonPropertyName("@search.rerankerScore")]
+    public double? RerankerScore { get; set; }
 }

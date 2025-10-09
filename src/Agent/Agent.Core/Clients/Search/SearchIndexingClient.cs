@@ -73,6 +73,9 @@ public class SearchIndexingClient : ISearchIndexingClient
             connectionString,
             new SearchIndexerDataContainer(containerName) { Query = rootPath });
 
+        // Enable native blob soft delete detection for deletion tracking
+        dataSourceDefinition.DataDeletionDetectionPolicy = new NativeBlobSoftDeleteDeletionDetectionPolicy();
+
         dataSourceDefinition.IndexerPermissionOptions = []; // this can't be null, otherwise we get a 400 response.
         dataSourceDefinition.Identity = new SearchIndexerDataUserAssignedIdentity(managedIdentityResourceId);
 
@@ -83,7 +86,7 @@ public class SearchIndexingClient : ISearchIndexingClient
     {
         _logger.LogInternalInformation("Performing search on index {IndexName} with query '{SearchText}'", indexName, searchText);
         SearchClient searchClient = _searchIndexClient.GetSearchClient(indexName);
-        
+
         Response<SearchResults<TResult>> results = await searchClient.SearchAsync<TResult>(searchText, searchOptions, cancellationToken);
 
         return results.Value;

@@ -54,7 +54,8 @@ public class DataConnectorIndex
         _fields = (List<SearchField>)builder.Build(typeof(DataConnectorIndexDocument));
         List<SearchField> contentFields = new List<SearchField>();
 
-        foreach (PropertyInfo property in typeof(DataConnectorIndex).GetProperties())
+        // Inspect DataConnectorIndexDocument properties for semantic search attributes
+        foreach (PropertyInfo property in typeof(DataConnectorIndexDocument).GetProperties())
         {
             object? semanticAttribute = property.GetCustomAttributes(typeof(SemanticSearchAttribute), false).FirstOrDefault();
             if (semanticAttribute != null)
@@ -292,36 +293,40 @@ public class DataConnectorIndex
         await _searchIndexingClient.RunIndexerAsync(_searchSettings.IndexerName, cancellationToken);
     }
 
-    public async IAsyncEnumerable<DataConnectorSearchResult<T>> SearchAsync<T>(string query, string filter, int max) where T : DataConnectorSourceDocument
+    public async IAsyncEnumerable<DataConnectorSearchResult<T>> SearchAsync<T>(string query, string filter, int max, float? vectorSimilarityThreshold = null) where T : DataConnectorSourceDocument
     {
+        var vectorQuery = new VectorizableTextQuery(query)
+        {
+            Fields = { nameof(DataConnectorIndexDocument.Vector) },
+            KNearestNeighborsCount = max,
+        };
+
+        // Apply vector similarity threshold if provided (must be between -1 and 1 for Cosine similarity)
+        if (vectorSimilarityThreshold.HasValue && vectorSimilarityThreshold.Value >= -1 && vectorSimilarityThreshold.Value <= 1)
+        {
+            vectorQuery.Threshold = new VectorSimilarityThreshold(vectorSimilarityThreshold.Value);
+        }
+
         SearchOptions searchOptions = new SearchOptions()
         {
-            QueryType = SearchQueryType.Simple,
+            QueryType = SemanticSearchTitleField != null ? SearchQueryType.Semantic : SearchQueryType.Simple,
             Size = max,
             Filter = $"Type eq '{typeof(T).Name}' " + (string.IsNullOrEmpty(filter) ? string.Empty : $"and Filter eq '{filter}'"),
             VectorSearch = new VectorSearchOptions()
             {
-                Queries =
-                    {
-                        new VectorizableTextQuery(query)
-                        {
-                            Fields = { nameof(DataConnectorIndexDocument.Vector) },
-                            KNearestNeighborsCount = max,
-                        }
-                    }
+                Queries = { vectorQuery }
             }
         };
 
+        // Enable semantic search if configured
         if (SemanticSearchTitleField != null)
         {
-            SemanticSearchOptions semanticSearchOptions = new SemanticSearchOptions();
-
-            foreach (SearchField field in SemanticSearchContentFields)
+            searchOptions.SemanticSearch = new SemanticSearchOptions
             {
-                semanticSearchOptions.SemanticFields.Add(field.Name);
-            }
-
-            searchOptions.SemanticSearch = semanticSearchOptions;
+                SemanticConfigurationName = $"{_searchSettings.IndexName}-semantic-config",
+                QueryCaption = new QueryCaption(QueryCaptionType.Extractive),
+                QueryAnswer = new QueryAnswer(QueryAnswerType.Extractive)
+            };
         }
 
         SearchResults<DataConnectorIndexDocument> searchResults = await _searchIndexingClient.SearchAsync<DataConnectorIndexDocument>(

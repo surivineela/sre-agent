@@ -10,6 +10,7 @@ using Agent.Core.DataConnectors;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Plugins.DataConnectors.Documentation;
+using Agent.Plugins.DataConnectors.TSG;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -53,7 +54,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         // Push the memory search results to the agent chat interface
         var displayMessage = new ChatMessage(ChatRole.Tool, result);
         await PushMemoryResultToChat(displayMessage, documents, userMemories, trajectories, resourceId, symptoms);
-        
+
         return result;
     }
 
@@ -166,9 +167,66 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
             return [];
         }
 
-        var documents = dataConnectorindex.SearchAsync<UserDocument>(symptoms, string.Empty, 10);
+        var threadId = ToolStatic.AsyncLocalThreadId.Value;
+        var allDocuments = new List<string>();
 
-        return await documents.Select(d => d.SearchResult.Document.Chunk).ToListAsync();
+        // Apply vector similarity threshold directly in the search query for efficiency
+        var userDocuments = dataConnectorindex.SearchAsync<UserDocument>(
+            query: symptoms,
+            filter: string.Empty,
+            max: 10,
+            vectorSimilarityThreshold: agentMemorySettings.DocumentVectorSimilarityThreshold);
+
+        // Search TSG Documents with the same parameters
+        var tsgDocuments = dataConnectorindex.SearchAsync<TsgDocumentMetadata>(
+            query: symptoms,
+            filter: string.Empty,
+            max: 10,
+            vectorSimilarityThreshold: agentMemorySettings.DocumentVectorSimilarityThreshold);
+
+        // Collect all UserDocument results first for filtering
+        var allUserDocuments = await userDocuments.ToListAsync();
+
+        // Apply additional filtering based on reranker score
+        var filteredUserDocuments = allUserDocuments
+            .Where(d => d.SearchResult.Document.RerankerScore.HasValue && d.SearchResult.Document.RerankerScore >= agentMemorySettings.MinimumRerankerScoreThreshold)
+            .Select(d => d.SearchResult.Document.Chunk)
+            .ToList();
+
+        var userDocFilteredCount = allUserDocuments.Count - filteredUserDocuments.Count;
+        if (userDocFilteredCount > 0)
+        {
+            logger.LogInternalInformation(
+                "[Thread {ThreadId}] Filtered out {FilteredCount} UserDocuments due to low scores (RerankerScore < {RerankerThreshold})",
+                threadId, userDocFilteredCount, agentMemorySettings.MinimumRerankerScoreThreshold);
+        }
+
+        allDocuments.AddRange(filteredUserDocuments);
+
+        // Collect all TsgDocumentMetadata results for filtering
+        var allTsgDocuments = await tsgDocuments.ToListAsync();
+
+        // Apply additional filtering based on reranker score
+        var filteredTsgDocuments = allTsgDocuments
+            .Where(d => d.SearchResult.Document.RerankerScore.HasValue && d.SearchResult.Document.RerankerScore >= agentMemorySettings.MinimumRerankerScoreThreshold)
+            .Select(d => d.SearchResult.Document.Chunk)
+            .ToList();
+
+        var tsgDocFilteredCount = allTsgDocuments.Count - filteredTsgDocuments.Count;
+        if (tsgDocFilteredCount > 0)
+        {
+            logger.LogInternalInformation(
+                "[Thread {ThreadId}] Filtered out {FilteredCount} TsgDocuments due to low scores (RerankerScore < {RerankerThreshold})",
+                threadId, tsgDocFilteredCount, agentMemorySettings.MinimumRerankerScoreThreshold);
+        }
+
+        allDocuments.AddRange(filteredTsgDocuments);
+
+        logger.LogInternalInformation(
+            "[Thread {ThreadId}] Retrieved {Count} total documents ({UserDocCount} UserDocuments + {TsgDocCount} TsgDocuments) after all filtering (VectorSimilarity >= {VectorThreshold}, RerankerScore >= {RerankerThreshold})",
+            threadId, allDocuments.Count, filteredUserDocuments.Count, filteredTsgDocuments.Count, agentMemorySettings.DocumentVectorSimilarityThreshold, agentMemorySettings.MinimumRerankerScoreThreshold);
+
+        return allDocuments;
     }
 
     private async Task<List<string>> SearchUserMemoryAsync(string symptoms)
@@ -180,7 +238,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         }
 
         var memories = await agentMemoryClient.SearchUserMemoriesAsync(new SearchParams(
-            Query: symptoms, K: 5, EnableHybridSearch: true, ExhaustiveKnn: true, VectorSimilarityThreshold: 0.1f));
+            Query: symptoms, K: 5, EnableHybridSearch: true, EnableSemanticSearch: true, ExhaustiveKnn: true, VectorSimilarityThreshold: agentMemorySettings.UserMemoryVectorSimilarityThreshold));
         if (memories.Count == 0)
         {
             return [];
@@ -214,23 +272,39 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
             return new TrajectorySearchResult([], []);
         }
 
-        // todo: put a threshold on the score to keep result relevant
-        var similarSymptoms = agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(Query: symptoms, K: 5, EnableHybridSearch: true));
+        // Search with vector similarity thresholds to filter out irrelevant results
+        var similarSymptoms = agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(
+            Query: symptoms,
+            K: 5,
+            EnableHybridSearch: true,
+            EnableSemanticSearch: true,
+            VectorSimilarityThreshold: agentMemorySettings.TrajectoryVectorSimilarityThreshold));
         var pastIncidents = agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(
             Query: resourceId,
             K: 5,
             EnableHybridSearch: true,
-            Filter: "resource_ids/any(id: id eq '" + resourceId + "')" // todo: use case insensitive comparison if possible
+            EnableSemanticSearch: true,
+            Filter: "resource_ids/any(id: id eq '" + resourceId + "')", // todo: use case insensitive comparison if possible
+            VectorSimilarityThreshold: agentMemorySettings.TrajectoryVectorSimilarityThresholdForSameResource
         ));
 
         var retrieved = await Task.WhenAll(similarSymptoms, pastIncidents);
+        var threadId = ToolStatic.AsyncLocalThreadId.Value;
+
+        // Log initial retrieval counts
+        logger.LogInternalInformation(
+            "[Thread {ThreadId}] Retrieved {SimilarCount} similar symptom trajectories and {SameResourceCount} same resource trajectories before threshold filtering",
+            threadId, retrieved[0].Count, retrieved[1].Count);
+
         // todo: rerank the results, e.g. using Reciprocal Rank Fusion
         if (retrieved[0].Count == 0 && retrieved[1].Count == 0)
         {
             return new TrajectorySearchResult([], []);
         }
 
+        // Additional filtering based on reranker scores
         var sameResourceTrajectories = retrieved[1]
+            .Where(x => x.RerankerScore >= agentMemorySettings.MinimumRerankerScoreThreshold)
             .Select(x => new Trajectory(
                 Id: x.Id,
                 Title: x.Title,
@@ -241,8 +315,18 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
                 Pitfalls: x.Pitfalls))
             .ToList();
 
+        // Log filtering results for same resource trajectories
+        var sameResourceFiltered = retrieved[1].Count - sameResourceTrajectories.Count;
+        if (sameResourceFiltered > 0)
+        {
+            logger.LogInternalInformation(
+                "[Thread {ThreadId}] Filtered out {FilteredCount} same resource trajectories due to low scores (RerankerScore < {RerankerThreshold})",
+                threadId, sameResourceFiltered, agentMemorySettings.MinimumRerankerScoreThreshold);
+        }
+
         var similarSymptomsTrajectories = retrieved[0]
             .Where(x => !sameResourceTrajectories.Any(t => t.Id == x.Id)) // avoid duplicates
+            .Where(x => x.RerankerScore >= agentMemorySettings.MinimumRerankerScoreThreshold)
             .Select(x => new Trajectory(
                 Id: x.Id,
                 Title: x.Title,
@@ -252,6 +336,16 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
                 RootCause: x.RootCause,
                 Pitfalls: x.Pitfalls))
             .ToList();
+
+        // Log filtering results for similar symptoms trajectories
+        var duplicatesRemoved = retrieved[0].Count(x => sameResourceTrajectories.Any(t => t.Id == x.Id));
+        var scoreFiltered = retrieved[0].Count - duplicatesRemoved - similarSymptomsTrajectories.Count;
+        if (duplicatesRemoved > 0 || scoreFiltered > 0)
+        {
+            logger.LogInternalInformation(
+                "[Thread {ThreadId}] Filtered out {DuplicateCount} duplicate trajectories and {ScoreFilteredCount} low-score trajectories from similar symptoms",
+                threadId, duplicatesRemoved, scoreFiltered);
+        }
 
         return new TrajectorySearchResult(
             SameResourceTrajectories: sameResourceTrajectories,
