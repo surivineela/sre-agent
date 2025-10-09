@@ -106,6 +106,18 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         public string ThreadLink { get; set; } = "fakelink";
     }
 
+    public class IncidentAnalysisResult
+    {
+        [JsonProperty("impact")]
+        public string Impact { get; set; } = string.Empty;
+
+        [JsonProperty("resolution")]
+        public string Resolution { get; set; } = string.Empty;
+
+        [JsonProperty("investigationDetails")]
+        public string InvestigationDetails { get; set; } = string.Empty;
+    }
+
     public class SecurityOverview
     {
         public int Critical { get; set; }

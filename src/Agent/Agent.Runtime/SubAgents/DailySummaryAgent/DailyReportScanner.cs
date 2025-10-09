@@ -15,6 +15,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Services.Interfaces;
 using Microsoft.Extensions.AI;
@@ -770,91 +771,95 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             List<AppGroupResourceSummary> appHealthSummary,
             IncidentSummary incidentsSummary)
         {
-            var messages = new List<ChatMessage>();
-
-            // Convert all objects to JSON strings
-            var context = new
-            {
-                DashboardSummary = dashboardSummary,
-                CVESummary = cveSummary,
-                AppHealthSummary = appHealthSummary,
-                IncidentsSummary = incidentsSummary
-            };
-
-            var jsonContext = JsonSerializer.Serialize(context, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            });
-
-            // Concise refinement instructions with context
-            messages.Add(new ChatMessage(ChatRole.System,
-                "You are Azure SRE Agent, an expert in analyzing Azure infrastructure and generating actionable insights. " +
-                "I will provide you with monitoring data in JSON format that may include some or all of these sections:\n" +
-                "- DashboardSummary: Overall system dashboard metrics and trends\n" +
-                "- CVESummary: Security vulnerabilities and their details\n" +
-                "- AppHealthSummary: Health status of applications across subscriptions\n" +
-                "- IncidentsSummary: Active and recent incidents from PagerDuty and Azure Monitor\n\n" +
-                "For any sections that are null, empty, or missing, simply ignore them and focus on the available data.\n\n" +
-                "Here is the current monitoring data:\n\n" + jsonContext + "\n\n" +
-                "Based on the available data, generate a structured response with prioritized actions and key observations. " +
-                "Your response must be in this JSON format:\n" +
-                "{\n" +
-                "  \"actions\": [\n" +
-                "    {\n" +
-                "      \"priority\": \"High/Medium/Low\",\n" +
-                "      \"description\": \"Clear, specific action to take\",\n" +
-                "      \"eta\": \"Immediate/Today/Tomorrow/This week\"\n" +
-                "    }\n" +
-                "  ],\n" +
-                "  \"observations\": [\n" +
-                "    \"Clear, data-driven insights with specific metrics\"\n" +
-                "  ]\n" +
-                "}\n\n" +
-                "Guidelines:\n" +
-                "1. Only reference data that is actually present in the monitoring data\n" +
-                "2. Prioritize by severity: Critical CVEs > High CVEs > Unhealthy Apps > Performance Issues\n" +
-                "3. For each action, ensure the assignee and ETA are appropriate for the task\n" +
-                "4. Include specific metrics and trends in observations when available\n" +
-                "5. Suggest automated remediation for common issues\n" +
-                "6. If no critical issues are found, focus on optimization and preventive measures"
-            ));
-
-            messages.Add(new ChatMessage(ChatRole.System, $"Analysis performed at: {DateTime.Now:yyyy-MM-dd HH:mm:ss} local time."));
-            if (!string.IsNullOrEmpty(dashboardUrl))
-            {
-                messages.Add(new ChatMessage(ChatRole.System, $"Reference dashboard URL: {dashboardUrl}"));
-            }
-
-            messages.Add(new ChatMessage(ChatRole.User,
-                "Generate a JSON response with prioritized actions and key observations based on the available monitoring data."));
-
-            var options = new ChatOptions
-            {
-                Temperature = (float)0.2,
-                AdditionalProperties = new AdditionalPropertiesDictionary
-                {
-                    ["response_format"] = "json"
-                }
-            };
-
-            var response = await _chatClient.GetResponseAsync(messages, options);
-            var jsonResponse = response.Messages[0].Text;
-            string jsonResponseCleaned = jsonResponse.Replace("```json", "").Replace("```", "").Trim();
             try
             {
-                var result = JsonSerializer.Deserialize<RecommendedActionsAndObservations>(
-                    jsonResponseCleaned,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (result == null)
+                var messages = new List<ChatMessage>();
+
+                // Convert all objects to JSON strings
+                var context = new
                 {
-                    throw new Exception("Deserialized result is null");
+                    DashboardSummary = dashboardSummary,
+                    CVESummary = cveSummary,
+                    AppHealthSummary = appHealthSummary,
+                    IncidentsSummary = incidentsSummary
+                };
+
+                var jsonContext = JsonSerializer.Serialize(context, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+
+                // Concise refinement instructions with context
+                messages.Add(new ChatMessage(ChatRole.System,
+                    "You are Azure SRE Agent, an expert in analyzing Azure infrastructure and generating actionable insights. " +
+                    "I will provide you with monitoring data in JSON format that may include some or all of these sections:\n" +
+                    "- DashboardSummary: Overall system dashboard metrics and trends\n" +
+                    "- CVESummary: Security vulnerabilities and their details\n" +
+                    "- AppHealthSummary: Health status of applications across subscriptions. Healthy Apps will not have historical data. Unhealthy Apps will have detailed historical data for reference.\n" +
+                    "- IncidentsSummary: Active and recent incidents from PagerDuty and Azure Monitor\n\n" +
+                    "For any sections that are null, empty, or missing, simply ignore them and focus on the available data.\n\n" +
+                    "Here is the current monitoring data:\n\n" + jsonContext + "\n\n" +
+                    "Based on the available data, generate a structured response with prioritized actions and key observations. " +
+                    "Your response must be in this JSON format:\n" +
+                    "{\n" +
+                    "  \"actions\": [\n" +
+                    "    {\n" +
+                    "      \"priority\": \"High/Medium/Low\",\n" +
+                    "      \"description\": \"Clear, specific action to take\",\n" +
+                    "      \"eta\": \"Immediate/Today/Tomorrow/This week\"\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"observations\": [\n" +
+                    "    \"Clear, data-driven insights with specific metrics\"\n" +
+                    "  ]\n" +
+                    "}\n\n" +
+                    "Guidelines:\n" +
+                    "1. Only reference data that is actually present in the monitoring data\n" +
+                    "2. Prioritize by severity: Critical CVEs > High CVEs > Unhealthy Apps > Performance Issues\n" +
+                    "3. For each action, ensure the assignee and ETA are appropriate for the task\n" +
+                    "4. Include specific metrics and trends in observations when available\n" +
+                    "5. Suggest automated remediation for common issues\n" +
+                    "6. If no critical issues are found, focus on optimization and preventive measures"
+                ));
+
+                messages.Add(new ChatMessage(ChatRole.System, $"Analysis performed at: {DateTime.Now:yyyy-MM-dd HH:mm:ss} local time."));
+                if (!string.IsNullOrEmpty(dashboardUrl))
+                {
+                    messages.Add(new ChatMessage(ChatRole.System, $"Reference dashboard URL: {dashboardUrl}"));
                 }
-                return result;
+
+                messages.Add(new ChatMessage(ChatRole.User,
+                    "Generate a JSON response with prioritized actions and key observations based on the available monitoring data."));
+
+                var options = new ChatOptions
+                {
+                    Temperature = (float)0.2,
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        ["response_format"] = "json"
+                    }
+                };
+
+                var response = await _chatClient.GetResponseAsync(messages, typeof(RecommendedActionsAndObservations), options);
+                try
+                {
+                    var result = (RecommendedActionsAndObservations?)response.result;
+                    if (result == null)
+                    {
+                        throw new Exception("Deserialized result is null");
+                    }
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to parse LLM response as JSON: {Response}", response.response.Messages[0].Text);
+                    return new RecommendedActionsAndObservations();
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, "Failed to parse LLM response as JSON: {Response}", jsonResponse);
+                _logger.LogInternalError(ex, "Daily Report error occurred while generating suggested actions: {Message}", ex.Message);
                 return new RecommendedActionsAndObservations();
             }
         }
@@ -1241,6 +1246,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     SubscriptionName = sub["name"]?.ToString() ?? string.Empty,
                     AppGroups = summary
                 });
+
+                _logger.LogInternalInformation("Daily Report Processed {AppGroupCount} app groups for subscription {SubscriptionId}", summary.Count, (string?)sub["id"]?.ToString());
             }
 
             return result;
@@ -1267,12 +1274,15 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             // Get the timestamp from the most recent data point
             var latestTimestamp = healthInfos.Max(h => h.Timestamp);
 
+            // Determine overall health based on worst state in past 24 hours
+            var aggregateHealth = DetermineAggregateHealth(healthInfos.Select(h => h.HealthState));
+
             return new AppHealthInfo
             {
                 LastDataCaptureTimeStampInUTC = latestTimestamp,
 
                 // Determine overall health based on worst state in past 24 hours
-                Health = DetermineAggregateHealth(healthInfos.Select(h => h.HealthState)),
+                Health = aggregateHealth,
                 // Average metrics for last 24 hours
                 Availability = healthInfos.Average(h => h.Availability),
                 AvgCpuUsage = healthInfos.Average(h => h.CpuUsage),
@@ -1282,7 +1292,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 Transactions = healthInfos.Sum(h => h.Transactions ?? 0),
 
                 // Include the 24-hour historical data
-                HistoricalData = healthInfos
+                // Only include historical data for unhealthy/degraded apps to reduce payload size
+                HistoricalData = aggregateHealth == ScorecardHealthState.Healthy
+                    ? new List<HistoricalDataPoint>() // Empty list for healthy apps
+                    : healthInfos
                     .OrderBy(h => h.Timestamp)
                     .Select(h => new HistoricalDataPoint
                     {
@@ -1321,24 +1334,13 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             pagerDutyIncidents = pagerDutyIncidents.Where(i => i.CreatedAt >= last24Hours).ToList();
             azMonIncidents = azMonIncidents.Where(i => i.CreatedAt >= last24Hours).ToList();
 
+            _logger.LogInternalInformation("Daily Report Scanner found {pagerDutyIncidentCount} pagerDutyIncidents and {azMonIncidentCount} azMonIncidents in the last 24 hours. Summarizing incidents.", pagerDutyIncidents.Count, azMonIncidents.Count);
+
             // PagerDuty Incidents
             var pagerDutyIncidentsSummary = new List<IncidentInfo>();
             foreach (var incident in pagerDutyIncidents)
             {
-                // generate an impact summary
-                var impactSummary = await GenerateIncidentImpactSummaryAsync(incident.ToString());
-
-                // generate a resolution or investigation status summary
-                var resolutionSummary = string.Empty;
-                var investigationSummary = string.Empty;
-                if (incident.Status != "closed")
-                {
-                    investigationSummary = await GenerateIncidentInvestigationSummaryAsync(incident.ToString());
-                }
-                else
-                {
-                    resolutionSummary = await GenerateIncidentResolutionAsync(incident.ToString());
-                }
+                var analysisResult = await GenerateIncidentAnalysisAsync(incident.ToString(), incident.Status);
 
                 // get incident thread (ie: thread in Cosmos where IncidentId = incident.Id)
                 string threadId = "";
@@ -1360,9 +1362,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                        CreateTime = incident.CreatedAt,
                        Duration = DateTime.UtcNow - incident.CreatedAt,
                        Status = incident.Status,
-                       Impact = impactSummary,
-                       Resolution = resolutionSummary,
-                       InvestigationDetails = investigationSummary,
+                       Impact = analysisResult.Impact,
+                       Resolution = analysisResult.Resolution,
+                       InvestigationDetails = analysisResult.InvestigationDetails,
                        ThreadLink = GenerateThreadLink(threadId)
                    });
             }
@@ -1373,20 +1375,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var azMonIncidentsSummary = new List<IncidentInfo>();
             foreach (var incident in azMonIncidents)
             {
-                // generate an impact summary
-                var impactSummary = await GenerateIncidentImpactSummaryAsync(incident.ToString());
-
-                // generate a resolution or investigation status summary
-                var resolutionSummary = string.Empty;
-                var investigationSummary = string.Empty;
-                if (incident.Status != "closed")
-                {
-                    investigationSummary = await GenerateIncidentInvestigationSummaryAsync(incident.ToString());
-                }
-                else
-                {
-                    resolutionSummary = await GenerateIncidentResolutionAsync(incident.ToString());
-                }
+                var analysisResult = await GenerateIncidentAnalysisAsync(incident.ToString(), incident.Status);
 
                 // get incident thread (ie: thread in Cosmos where IncidentId = incident.Id)
                 string threadId = "";
@@ -1407,9 +1396,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     CreateTime = incident.CreatedAt,
                     Duration = DateTime.UtcNow - incident.CreatedAt,
                     Status = incident.Status,
-                    Impact = impactSummary,
-                    Resolution = resolutionSummary,
-                    InvestigationDetails = investigationSummary,
+                    Impact = analysisResult.Impact,
+                    Resolution = analysisResult.Resolution,
+                    InvestigationDetails = analysisResult.InvestigationDetails,
                     ThreadLink = GenerateThreadLink(threadId)
                 };
 
@@ -1421,101 +1410,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             return result;
         }
 
-        private async Task<string> GenerateIncidentInvestigationSummaryAsync(string incidentInfo)
-        {
-            try
-            {
-                var messages = new List<ChatMessage>();
-
-                messages.Add(new ChatMessage(ChatRole.System,
-                    "You are an Azure SRE Agent analyzing incident information. " +
-                    "Generate a brief, one sentenced, focused summary of the ongoing investigation status. " +
-                    "Keep the response concise and highlight only the key investigation points."));
-
-                messages.Add(new ChatMessage(ChatRole.User, incidentInfo));
-
-                var options = new ChatOptions
-                {
-                    Temperature = (float)0.2,
-                    AdditionalProperties = new AdditionalPropertiesDictionary
-                    {
-                        ["response_format"] = "text"
-                    }
-                };
-
-                var response = await _chatClient.GetResponseAsync(messages, options);
-                return response.Messages.Count > 0 ? response.Messages[0].Text : "Unable to generate investigation summary.";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "Error generating incident investigation summary: {Message}", ex.Message);
-                return "Error generating investigation summary.";
-            }
-        }
-
-        private async Task<string> GenerateIncidentResolutionAsync(string incidentInfo)
-        {
-            try
-            {
-                var messages = new List<ChatMessage>();
-
-                messages.Add(new ChatMessage(ChatRole.System,
-                    "You are an Azure SRE Agent analyzing incident information. " +
-                    "Generate a brief, one sentence, focused summary of the incident resolution. " +
-                    "Keep the response concise and highlight only the key resolution points."));
-
-                messages.Add(new ChatMessage(ChatRole.User, incidentInfo));
-
-                var options = new ChatOptions
-                {
-                    Temperature = (float)0.2,
-                    AdditionalProperties = new AdditionalPropertiesDictionary
-                    {
-                        ["response_format"] = "text"
-                    }
-                };
-
-                var response = await _chatClient.GetResponseAsync(messages, options);
-                return response.Messages.Count > 0 ? response.Messages[0].Text : "Unable to generate resolution summary.";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "Error generating incident resolution summary: {Message}", ex.Message);
-                return "Error generating resolution summary.";
-            }
-        }
-
-        private async Task<string> GenerateIncidentImpactSummaryAsync(string incidentInfo)
-        {
-            try
-            {
-                var messages = new List<ChatMessage>();
-
-                messages.Add(new ChatMessage(ChatRole.System,
-                    "You are an Azure SRE Agent analyzing incident information. " +
-                    "Generate a brief, one sentence, focused summary of the incident impact. " +
-                    "Keep the response concise and highlight only the key impact points."));
-
-                messages.Add(new ChatMessage(ChatRole.User, incidentInfo));
-
-                var options = new ChatOptions
-                {
-                    Temperature = 0.2f,
-                    AdditionalProperties = new AdditionalPropertiesDictionary
-                    {
-                        ["response_format"] = "text"
-                    }
-                };
-
-                var response = await _chatClient.GetResponseAsync(messages, options);
-                return response.Messages.Count > 0 ? response.Messages[0].Text : "Unable to generate impact summary.";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "Error generating incident impact summary: {Message}", ex.Message);
-                return "Error generating impact summary.";
-            }
-        }
         private async Task<string> GenerateThreadSummaryAsync()
         {
             var now = DateTime.UtcNow;
@@ -1696,6 +1590,112 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
             return overview;
         }
+
+        /// <summary>
+        /// Generates consolidated incident analysis (impact, resolution, investigation) in a single LLM call
+        /// </summary>
+        private async Task<IncidentAnalysisResult> GenerateIncidentAnalysisAsync(string incidentInfo, string incidentStatus)
+        {
+            var isClosedIncident = string.Equals(incidentStatus, "closed", StringComparison.OrdinalIgnoreCase) ||
+                                   string.Equals(incidentStatus, "resolved", StringComparison.OrdinalIgnoreCase);
+
+            const int maxAttempts = 2; // Initial attempt + 1 retry
+
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
+            {
+                try
+                {
+                    var messages = new List<ChatMessage>();
+
+                    messages.Add(new ChatMessage(ChatRole.System,
+                        "You are an Azure SRE Agent analyzing incident information. " +
+                        "Generate a consolidated analysis of the incident including impact, resolution details (if closed), and investigation status. " +
+                        "Your response must be in this JSON format:\n" +
+                        "{\n" +
+                        "  \"impact\": \"Brief, one sentence summary of the incident impact and key impact points\",\n" +
+                        "  \"resolution\": \"Brief, one sentence summary of how the incident was resolved (only if status is closed/resolved, otherwise empty string)\",\n" +
+                        "  \"investigationDetails\": \"Brief, one sentence summary of investigation steps taken\"\n" +
+                        "}\n\n" +
+                        "Guidelines:\n" +
+                        "- Keep each response concise and focused (one sentence each)\n" +
+                        "- For closed incidents: provide impact, resolution, and investigationDetails\n" +
+                        "- For open incidents: provide impact and investigationDetails, leave resolution empty\n" +
+                        "- Focus on actionable information and key insights\n" +
+                        $"- The incident status is: {incidentStatus}"));
+
+                    messages.Add(new ChatMessage(ChatRole.User,
+                        $"Analyze this incident information and provide the consolidated analysis:\n\n{incidentInfo}"));
+
+                    var options = new ChatOptions
+                    {
+                        Temperature = 0.2f,
+                        AdditionalProperties = new AdditionalPropertiesDictionary
+                        {
+                            ["response_format"] = "json"
+                        }
+                    };
+
+                    var response = await _chatClient.GetResponseAsync(messages, typeof(IncidentAnalysisResult), options);
+                    try
+                    {
+                        var result = (IncidentAnalysisResult?)response.result;
+                        if (result == null)
+                        {
+                            _logger.LogInternalWarning("Deserialized result is null for incident analysis, attempt {Attempt}/{MaxAttempts}",
+                                attempt + 1, maxAttempts);
+
+                            // If this is the last attempt, break out of the loop
+                            if (attempt == maxAttempts - 1)
+                            {
+                                break;
+                            }
+
+                            // Wait 1 second before retry
+                            await Task.Delay(TimeSpan.FromSeconds(1));
+                            continue;
+                        }
+
+                        return result;
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogInternalWarning(ex, "JSON deserialization failed for incident analysis, attempt {Attempt}/{MaxAttempts}: {Message}",
+                            attempt + 1, maxAttempts, ex.Message);
+
+                        // If this is the last attempt, break out of the loop
+                        if (attempt == maxAttempts - 1)
+                        {
+                            break;
+                        }
+
+                        // Wait 1 second before retry
+                        await Task.Delay(TimeSpan.FromSeconds(1));
+                        continue;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Error generating consolidated incident analysis on attempt {Attempt}/{MaxAttempts}: {Message}",
+                        attempt + 1, maxAttempts, ex.Message);
+
+                    // If this is the last attempt, break out of the loop
+                    if (attempt == maxAttempts - 1)
+                    {
+                        break;
+                    }
+
+                    // Wait 1 second before retry
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                }
+            }
+
+            // Return fallback result if all attempts failed
+            return new IncidentAnalysisResult
+            {
+                Impact = "Error generating impact analysis.",
+                Resolution = isClosedIncident ? "Error generating resolution summary." : string.Empty,
+                InvestigationDetails = !isClosedIncident ? "Error generating investigation summary." : string.Empty
+            };
+        }
     }
 }
-
