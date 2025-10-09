@@ -26,6 +26,12 @@ configuration:
     role: Write
   - member: yashnisar
     role: Write
+  - member: zhaoziqi
+    role: Write
+  - member: zhenqxu
+    role: Write
+  - member: yefuwang
+    role: Write
   - member: liuqi
     role: Write
   - team: k4appscore
