@@ -7626,6 +7626,9 @@
       <Item ItemId=";gwSeXa" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Note: There {count, plural, one {is # highlighted point} other {are # highlighted points}} in this chart that may require attention.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[注意: 此圖表中 {count, plural, one {有 # 個醒目提示點} other {有 # 個醒目提示點}} 可能需要注意。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
