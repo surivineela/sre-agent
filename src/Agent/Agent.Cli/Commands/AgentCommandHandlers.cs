@@ -253,14 +253,27 @@ public static class AgentCommandHandlers
         DebugLogger.Debug("Command", "Starting agent validate command");
 
         var validateAll = parseResult.GetValue(AgentCommandOptions.AllOption);
+        var agentName = parseResult.GetValue(AgentCommandOptions.NameOptionValidate);
         var filePath = parseResult.GetValue(AgentCommandOptions.FileOptionValidate);
         var checkTools = parseResult.GetValue(AgentCommandOptions.CheckToolsOption);
 
-        DebugLogger.Debug("Parameters", $"ValidateAll: {validateAll}, FilePath: {filePath ?? "none"}, CheckTools: {checkTools}");
+        DebugLogger.Debug("Parameters", $"ValidateAll: {validateAll}, Name: {agentName ?? "none"}, FilePath: {filePath ?? "none"}, CheckTools: {checkTools}");
 
         if (validateAll)
         {
             await ValidateAllAgentsAsync(checkTools);
+        }
+        else if (!string.IsNullOrWhiteSpace(agentName))
+        {
+            var resolvedPath = FindAgentFile(agentName);
+            if (resolvedPath == null)
+            {
+                ConsoleUI.WriteStatus(false, $"Agent file not found for '{agentName}'");
+                ConsoleUI.WriteBullet($"Expected: agents/{agentName}/{agentName}.yaml", ConsoleColor.Yellow);
+                Environment.Exit(1);
+                return;
+            }
+            await ValidateSingleAgentAsync(resolvedPath, checkTools);
         }
         else if (!string.IsNullOrWhiteSpace(filePath))
         {
@@ -268,7 +281,7 @@ public static class AgentCommandHandlers
         }
         else
         {
-            ConsoleUI.WriteStatus(false, "Please provide either --file <path> or --all to validate agents.");
+            ConsoleUI.WriteStatus(false, "Please provide --name, --file, or --all to validate agents.");
             Environment.Exit(1);
         }
     }
@@ -863,7 +876,7 @@ public static class AgentCommandHandlers
     }
 
     /// <summary>
-    /// Finds an agent YAML file by name.
+    /// Finds an agent YAML file by name, checking both subdirectory and flat structures.
     /// </summary>
     private static string? FindAgentFile(string agentName)
     {
@@ -871,8 +884,17 @@ public static class AgentCommandHandlers
         if (!Directory.Exists(agentsDir))
             return null;
 
-        var expectedPath = Path.Combine(agentsDir, agentName, $"{agentName}.yaml");
-        return File.Exists(expectedPath) ? expectedPath : null;
+        // Check subdirectory structure first: agents/{agentName}/{agentName}.yaml
+        var subdirPath = Path.Combine(agentsDir, agentName, $"{agentName}.yaml");
+        if (File.Exists(subdirPath))
+            return subdirPath;
+
+        // Also check flat structure: agents/{agentName}.yaml (matches ApiService behavior)
+        var flatPath = Path.Combine(agentsDir, $"{agentName}.yaml");
+        if (File.Exists(flatPath))
+            return flatPath;
+
+        return null;
     }
 
     /// <summary>

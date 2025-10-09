@@ -35,7 +35,10 @@ Examples:
         public const string ValidateDescription = @"Validate agent YAML configuration files
 
 Examples:
-  # Validate a specific agent file
+  # Validate by agent name (searches in agents/ folder)
+  srectl agent validate --name MyAgent
+
+  # Validate a specific agent file path
   srectl agent validate --file agents/MyAgent/MyAgent.yaml
 
   # Validate all agent files
@@ -44,8 +47,8 @@ Examples:
   # Validate with tool availability checking
   srectl agent validate --all --check-tools
 
-  # Validate specific agent and check tools exist remotely
-  srectl agent validate --file agents/KustoAgent/KustoAgent.yaml --check-tools";
+  # Validate specific agent by name and check tools
+  srectl agent validate --name KustoAgent --check-tools";
 
         public const string ApplyDescription = @"Apply an agent configuration to the remote server
 

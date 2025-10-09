@@ -27,6 +27,7 @@ dotnet tool install --global --add-source ./nupkg SREAgent.CLI --version 1.0.0
 ```bash
 # Now you can use srectl from anywhere
 srectl agent create --name my_agent --instructions "My agent instructions" --tools Tool1 Tool2
+srectl agent validate --name my_agent
 srectl agent validate --all
 srectl tools create --name MyTool --type KustoQuery
 ```
@@ -157,6 +158,7 @@ srectl agent create --name incident_manager \
   --handoffs meta_agent
 
 # Validate agents
+srectl agent validate --name MyAgent
 srectl agent validate --all
 srectl agent validate --file agents/my_agent/my_agent.yaml
 

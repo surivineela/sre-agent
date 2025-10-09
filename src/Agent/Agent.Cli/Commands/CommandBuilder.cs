@@ -175,6 +175,7 @@ public static class CommandBuilder
     {
         var cmd = new Command("validate", CommandExamples.Agent.ValidateDescription)
         {
+            AgentCommandOptions.NameOptionValidate,
             AgentCommandOptions.FileOptionValidate,
             AgentCommandOptions.AllOption,
             AgentCommandOptions.CheckToolsOption
@@ -185,6 +186,7 @@ public static class CommandBuilder
             if (IsHelpRequested(pr))
                 return ShowFormattedSubcommandHelp("Agent Validate", "Validate agent YAML configuration files", cmd,
                     new[] {
+                        "srectl agent validate --name MyAgent",
                         "srectl agent validate --file agents/MyAgent/MyAgent.yaml",
                         "srectl agent validate --all",
                         "srectl agent validate --all --check-tools"

@@ -221,10 +221,16 @@ The AI will incorporate your custom instructions into the generation process, cr
 
 #### Validate an Agent
 
-Validate a single agent YAML file:
+Validate a single agent YAML file by path:
 
 ```bash
 srectl agent validate --file <path/to/agent.yaml>
+```
+
+Validate an agent by name (uses the default `agents/<name>/<name>.yaml` location):
+
+```bash
+srectl agent validate --name <AgentName>
 ```
 
 Validate all agent YAML files in the `agents/` directory:
@@ -1161,11 +1167,16 @@ See [`example_devops.yaml`](./example_devops.yaml) for a complete pipeline examp
 2. **Build/publish SRECTL** (or use a prebuilt binary).
 3. **Run the validation command:**  
    ```bash
+   # Validate a single agent by name
+   srectl agent validate --name MyAgent
+
+   # Or validate every agent file
    srectl agent validate --all
    ```
 
    or (if not in PATH):
    ```bash
+   ./srectl agent validate --name MyAgent
    ./srectl agent validate --all
    ```
 
@@ -1219,7 +1230,7 @@ You can also use SRECTL in pre-commit hooks or as part of local developer workfl
 **A:** No, it currently prints "Not implemented yet."
 
 **Q:** Can I validate a specific agent file?  
-**A:** Yes, use `srectl agent validate --file path/to/agent.yaml`.
+**A:** Yes, use `srectl agent validate --file path/to/agent.yaml` or `srectl agent validate --name AgentName`.
 
 ---
 
@@ -1315,6 +1326,11 @@ srectl agent create --name custom_agent --instructions "Custom agent with extra 
 **Test:** Validate a correctly formatted agent file
 ```bash
 srectl agent validate --file agents/test_agent/test_agent.yaml
+```
+
+Or validate by agent name (uses the default `agents/<name>/<name>.yaml` location):
+```bash
+srectl agent validate --name test_agent
 ```
 **Expected:** Shows "Agent validation passed" message
 

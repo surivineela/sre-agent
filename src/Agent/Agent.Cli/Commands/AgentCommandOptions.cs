@@ -51,6 +51,7 @@ public static class AgentCommandOptions
     };
 
     // Agent options for validate (not required)
+    public static readonly Option<string> NameOptionValidate = new("--name") { Description = "Agent name to validate" };
     public static readonly Option<string> FileOptionValidate = new("--file");
     public static readonly Option<bool> AllOption = new("--all");
     public static readonly Option<bool> CheckToolsOption = new("--check-tools")
