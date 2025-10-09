@@ -43,16 +43,16 @@
       "value": "IcM is not connected."
     }
   ],
+  "+Aon83": [
+    {
+      "type": 0,
+      "value": "P3"
+    }
+  ],
   "+BcF2d": [
     {
       "type": 0,
       "value": "Azure Kubernetes Services"
-    }
-  ],
-  "+Cb5Vh": [
-    {
-      "type": 0,
-      "value": "Add a default incident handler for the agent to use for Sev3 alerts."
     }
   ],
   "+DBMRK": [
@@ -65,6 +65,12 @@
     {
       "type": 0,
       "value": "Visszajelzés küldése a Microsoftnak"
+    }
+  ],
+  "+S4WAz": [
+    {
+      "type": 0,
+      "value": "Custom response plan"
     }
   ],
   "+TlNdm": [
@@ -113,6 +119,12 @@
     {
       "type": 0,
       "value": "Can read workbooks."
+    }
+  ],
+  "+nt4l9": [
+    {
+      "type": 0,
+      "value": "Add a default incident response plan for the agent to use for Sev3 LiveSite incidents."
     }
   ],
   "+uAdUZ": [
@@ -216,7 +228,7 @@
   "01lT1B": [
     {
       "type": 0,
-      "value": "Lets you read, enable and disable logic app."
+      "value": "Lehetővé teszi logikai alkalmazások olvasását, engedélyezését és letiltását."
     }
   ],
   "01sZoP": [
@@ -231,18 +243,6 @@
     {
       "type": 1,
       "value": "totalCount"
-    }
-  ],
-  "066KEg": [
-    {
-      "type": 0,
-      "value": "Disabling incident handler"
-    }
-  ],
-  "0AwXvo": [
-    {
-      "type": 0,
-      "value": "Incident handler"
     }
   ],
   "0D+7fr": [
@@ -267,16 +267,6 @@
     {
       "type": 0,
       "value": "I analyzed your application's resources across multiple resource groups, regions, and subscriptions. I then generated a resource map of the connections I identified based on the primary resource. Based on what I learned, I also put together some suggested prompts that focus on your resources."
-    }
-  ],
-  "0Pt22l": [
-    {
-      "type": 0,
-      "value": "Failed to add the custom incident handler. Error: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
     }
   ],
   "0R+Pet": [
@@ -365,16 +355,16 @@
       "value": "Feladat"
     }
   ],
-  "12rpNY": [
-    {
-      "type": 0,
-      "value": "In-progress"
-    }
-  ],
   "1389z+": [
     {
       "type": 0,
       "value": "Uses (Trigger)"
+    }
+  ],
+  "15GWkT": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the incident response plan, which might affect how incidents are processed and also any custom response plans. Are you sure you want to delete?"
     }
   ],
   "1DDIYv": [
@@ -415,16 +405,16 @@
       "value": "Click and drag to move • Scroll or use buttons to zoom • Press ESC to close"
     }
   ],
-  "1TlUPy": [
-    {
-      "type": 0,
-      "value": "New incident handler"
-    }
-  ],
   "1VB9/h": [
     {
       "type": 0,
       "value": "Highlight Point"
+    }
+  ],
+  "1VSsQF": [
+    {
+      "type": 0,
+      "value": "Failed to create default incident response plan"
     }
   ],
   "1YF+AW": [
@@ -461,6 +451,18 @@
     {
       "type": 0,
       "value": "Connect repository"
+    }
+  ],
+  "1hu8Uv": [
+    {
+      "type": 0,
+      "value": "Alert status"
+    }
+  ],
+  "1rAiXS": [
+    {
+      "type": 0,
+      "value": "Response plan"
     }
   ],
   "1xZjpU": [
@@ -611,12 +613,6 @@
       "value": "No incidents found"
     }
   ],
-  "3651Wt": [
-    {
-      "type": 0,
-      "value": "Handler"
-    }
-  ],
   "3BubSI": [
     {
       "type": 0,
@@ -707,6 +703,12 @@
       "value": "Manage websites, but not web plans. Does not allow you to assign roles."
     }
   ],
+  "4+Jgpb": [
+    {
+      "type": 0,
+      "value": "The custom incident response plan was successfully updated"
+    }
+  ],
   "40YXE1": [
     {
       "type": 0,
@@ -743,6 +745,12 @@
       "value": "Elutasította:"
     }
   ],
+  "4HV6SH": [
+    {
+      "type": 0,
+      "value": "Alert created"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -758,19 +766,31 @@
   "4TnjxL": [
     {
       "type": 0,
-      "value": "API Management Service Reader Role"
+      "value": "Az API Management szolgáltatás olvasói szerepköre"
+    }
+  ],
+  "4ZoIgV": [
+    {
+      "type": 0,
+      "value": "Deleted incident response plan"
+    }
+  ],
+  "4d5TjZ": [
+    {
+      "type": 0,
+      "value": "Go to response plan"
     }
   ],
   "4ii5zj": [
     {
       "type": 0,
-      "value": "Allows for read access to Azure Storage blob containers and data."
+      "value": "Azure Storage-blobtárolók és -adatok olvasási hozzáférésének engedélyezése."
     }
   ],
   "4kCXiz": [
     {
       "type": 0,
-      "value": "List cluster admin credential action."
+      "value": "Fürtfelügyelői hitelesítő művelet listázása."
     }
   ],
   "4l/H3O": [
@@ -785,6 +805,12 @@
       "value": "Copy"
     }
   ],
+  "4lEOsR": [
+    {
+      "type": 0,
+      "value": "An incident response plan defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents."
+    }
+  ],
   "4upwsn": [
     {
       "type": 0,
@@ -795,12 +821,6 @@
     {
       "type": 0,
       "value": "Jóváhagyta:"
-    }
-  ],
-  "5/4URn": [
-    {
-      "type": 0,
-      "value": "Incident handlers"
     }
   ],
   "52hqVX": [
@@ -843,12 +863,6 @@
       "value": "Jelentés küldése..."
     }
   ],
-  "5K0php": [
-    {
-      "type": 0,
-      "value": "Optimize how the agent investigates and responds to incidents by adding incident handlers and custom handlers to support a broad range of scenarios."
-    }
-  ],
   "5QYdPU": [
     {
       "type": 0,
@@ -864,7 +878,7 @@
   "5Sc5rT": [
     {
       "type": 0,
-      "value": "IoT Hub Twin Contributor"
+      "value": "IoT Hub ikerpéldány-közreműködő"
     }
   ],
   "5T/jmb": [
@@ -876,13 +890,13 @@
   "5UfRjw": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Contributor"
+      "value": "Device Provisioning Service – adat közreműködője"
     }
   ],
   "5V+Txp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster User Role"
+      "value": "Azure Kubernetes Service – fürtfelhasználó szerepkör"
     }
   ],
   "5WK7jL": [
@@ -897,6 +911,12 @@
       "value": "Error loading investigation"
     }
   ],
+  "5Wtjeo": [
+    {
+      "type": 0,
+      "value": "Updating incident response plan"
+    }
+  ],
   "5X0whH": [
     {
       "type": 0,
@@ -905,6 +925,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "5XRsWa": [
+    {
+      "type": 0,
+      "value": "Agent status"
     }
   ],
   "5cRddy": [
@@ -983,12 +1009,6 @@
       "value": "results"
     }
   ],
-  "5q8lCX": [
-    {
-      "type": 0,
-      "value": "Incident handler name"
-    }
-  ],
   "5sg7KC": [
     {
       "type": 0,
@@ -1025,12 +1045,6 @@
       "value": "A felügyelt erőforráscsoport hozzáadása sikerült"
     }
   ],
-  "6/PJpA": [
-    {
-      "type": 0,
-      "value": "This will permanently delete the incident handler, which might affect how incidents are processed and also any custom handlers. Are you sure you want to delete?"
-    }
-  ],
   "61e5yQ": [
     {
       "type": 0,
@@ -1046,7 +1060,7 @@
   "64zSh3": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Writer"
+      "value": "Cognitive Services LUIS-író"
     }
   ],
   "69FfbB": [
@@ -1067,6 +1081,12 @@
       "value": "Nem sikerült létrehozni a felügyelt kapcsolatot"
     }
   ],
+  "6HiPiX": [
+    {
+      "type": 0,
+      "value": "A new To-do Plan has been created:"
+    }
+  ],
   "6IIC+D": [
     {
       "type": 0,
@@ -1077,12 +1097,6 @@
     {
       "type": 0,
       "value": "These incidents match your filter criteria. If an incident is missing, go back to the previous step and modify the filter parameters."
-    }
-  ],
-  "6LnpNj": [
-    {
-      "type": 0,
-      "value": "Deleting custom incident handler"
     }
   ],
   "6OBtew": [
@@ -1131,12 +1145,6 @@
     {
       "type": 0,
       "value": "Edit scheduled task"
-    }
-  ],
-  "6aWd+W": [
-    {
-      "type": 0,
-      "value": "Delete incident handler"
     }
   ],
   "6bkNTl": [
@@ -1194,13 +1202,7 @@
   "7+b0J0": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Contributor"
-    }
-  ],
-  "71/osV": [
-    {
-      "type": 0,
-      "value": "Custom handler"
+      "value": "Cognitive Services – Custom Vision-közreműködő"
     }
   ],
   "74vgSJ": [
@@ -1225,12 +1227,6 @@
     {
       "type": 0,
       "value": "Data source"
-    }
-  ],
-  "7Cy5xk": [
-    {
-      "type": 0,
-      "value": "Go to Incident management"
     }
   ],
   "7Eq7I8": [
@@ -1275,12 +1271,6 @@
       "value": "Projektadatok"
     }
   ],
-  "7p54Vc": [
-    {
-      "type": 0,
-      "value": "Quickstart handler"
-    }
-  ],
   "7qOQpv": [
     {
       "type": 0,
@@ -1317,16 +1307,16 @@
       "value": "Go to Identity"
     }
   ],
-  "84MFOR": [
-    {
-      "type": 0,
-      "value": "PagerDuty connected. Your next step is to set up incident handlers."
-    }
-  ],
   "87v+WY": [
     {
       "type": 0,
       "value": "Full access to Azure Digital Twins data."
+    }
+  ],
+  "8F5cJQ": [
+    {
+      "type": 0,
+      "value": "The custom incident response plan was successfully added"
     }
   ],
   "8Hjku9": [
@@ -1338,7 +1328,7 @@
   "8NHZQV": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Reader"
+      "value": "Cognitive Services-nyelvolvasó"
     }
   ],
   "8O9cAb": [
@@ -1383,12 +1373,6 @@
       "value": "Execution Time"
     }
   ],
-  "8hR178": [
-    {
-      "type": 0,
-      "value": "Successfully created default incident handler"
-    }
-  ],
   "8lCjAM": [
     {
       "type": 0,
@@ -1401,16 +1385,20 @@
       "value": "Redis Cache Contributor"
     }
   ],
-  "8oXUdb": [
-    {
-      "type": 0,
-      "value": "Add a default incident handler for the agent to use for Sev3 LiveSite incidents."
-    }
-  ],
   "8quEg9": [
     {
       "type": 0,
       "value": "eredmények"
+    }
+  ],
+  "8v0Pyn": [
+    {
+      "type": 0,
+      "value": "Failed to connect to "
+    },
+    {
+      "type": 1,
+      "value": "platformName"
     }
   ],
   "8yyU6n": [
@@ -1437,10 +1425,22 @@
       "value": "Failed to parse investigation data"
     }
   ],
+  "91775r": [
+    {
+      "type": 0,
+      "value": "Updated incident response plan"
+    }
+  ],
   "94Fg25": [
     {
       "type": 0,
       "value": "Az összes kijelölése"
+    }
+  ],
+  "94zF5I": [
+    {
+      "type": 0,
+      "value": "P5"
     }
   ],
   "95stPq": [
@@ -1453,6 +1453,12 @@
     {
       "type": 0,
       "value": "No matches"
+    }
+  ],
+  "99OdS3": [
+    {
+      "type": 0,
+      "value": "Planning"
     }
   ],
   "9MPGF8": [
@@ -1495,6 +1501,12 @@
     {
       "type": 0,
       "value": "Define success / failure signals and required output format if specific."
+    }
+  ],
+  "A0rbH+": [
+    {
+      "type": 0,
+      "value": "IcM connected. Your next step is to set up incident response plans."
     }
   ],
   "A2BJnD": [
@@ -1573,10 +1585,10 @@
       "value": "Figyelési olvasó szerepkör"
     }
   ],
-  "Aio6ud": [
+  "AmnkPD": [
     {
       "type": 0,
-      "value": "Turn off incident handler"
+      "value": "Created default incident response plan"
     }
   ],
   "Amv/KL": [
@@ -1601,12 +1613,6 @@
     {
       "type": 0,
       "value": "High"
-    }
-  ],
-  "B9k+PB": [
-    {
-      "type": 0,
-      "value": "Edit custom handler"
     }
   ],
   "BEck3n": [
@@ -1658,7 +1664,7 @@
   "Bcx/Gz": [
     {
       "type": 0,
-      "value": "List cluster user credential action."
+      "value": "Fürtfelhasználói hitelesítő művelet listázása."
     }
   ],
   "C2PrxB": [
@@ -1677,12 +1683,6 @@
     {
       "type": 0,
       "value": "Logic App Contributor"
-    }
-  ],
-  "C3qF2+": [
-    {
-      "type": 0,
-      "value": "Create incident handler"
     }
   ],
   "CFJ1OD": [
@@ -1707,12 +1707,6 @@
     {
       "type": 0,
       "value": "Write access to Language service resources."
-    }
-  ],
-  "CU0qUc": [
-    {
-      "type": 0,
-      "value": "Processed time"
     }
   ],
   "CVAKJE": [
@@ -1797,12 +1791,6 @@
       "value": "Add an incident platform so that the agent can help respond to incidents in real time. To change to a different platform, you'll need to delete the connection to the current one."
     }
   ],
-  "D2I5kb": [
-    {
-      "type": 0,
-      "value": "ServiceNow connection added successfully"
-    }
-  ],
   "D3idYv": [
     {
       "type": 0,
@@ -1837,18 +1825,6 @@
       "value": "Mitigated by agent"
     }
   ],
-  "DChIJ8": [
-    {
-      "type": 0,
-      "value": "Azure Monitor connection added successfully"
-    }
-  ],
-  "DHc2gc": [
-    {
-      "type": 0,
-      "value": "New custom handler"
-    }
-  ],
   "DMd1Ql": [
     {
       "type": 0,
@@ -1865,12 +1841,6 @@
     {
       "type": 0,
       "value": "Regenerate will overwrite any edits made within the generated section of code."
-    }
-  ],
-  "DWon+H": [
-    {
-      "type": 0,
-      "value": "Add custom incident handler"
     }
   ],
   "DX7w9O": [
@@ -1895,6 +1865,12 @@
     {
       "type": 0,
       "value": "Cognitive Services Contributor"
+    }
+  ],
+  "Dh9oJp": [
+    {
+      "type": 0,
+      "value": "Updating custom incident response plan"
     }
   ],
   "DlSXUR": [
@@ -1943,12 +1919,6 @@
     {
       "type": 0,
       "value": "End date picker"
-    }
-  ],
-  "Dz+Iv9": [
-    {
-      "type": 0,
-      "value": "IcM connected. Your next step is to set up incident handlers."
     }
   ],
   "E396gv": [
@@ -2007,16 +1977,16 @@
       "value": "Grants permission for read operations for App Configuration resources."
     }
   ],
-  "ERQMQ9": [
-    {
-      "type": 0,
-      "value": "Updating custom incident handler"
-    }
-  ],
   "ESChST": [
     {
       "type": 0,
       "value": "Enter filter name"
+    }
+  ],
+  "EWrExf": [
+    {
+      "type": 0,
+      "value": "Sev4"
     }
   ],
   "EWw/tK": [
@@ -2049,12 +2019,6 @@
       "value": "API Management Workspace Contributor"
     }
   ],
-  "EiiZbj": [
-    {
-      "type": 0,
-      "value": "Successfully disabled incident handler"
-    }
-  ],
   "ElI1gd": [
     {
       "type": 0,
@@ -2076,7 +2040,7 @@
   "Erci0g": [
     {
       "type": 0,
-      "value": "Azure SRE Agent"
+      "value": "Azure SRE-ügynök"
     }
   ],
   "EwRIOm": [
@@ -2207,12 +2171,6 @@
       "value": "Unable to connect to ServiceNow endpoint. Please verify the endpoint URL."
     }
   ],
-  "GgiTLF": [
-    {
-      "type": 0,
-      "value": "Successfully enabled incident handler"
-    }
-  ],
   "Gl8fnJ": [
     {
       "type": 0,
@@ -2231,12 +2189,6 @@
       "value": "repository alerts found"
     }
   ],
-  "GuBSUa": [
-    {
-      "type": 0,
-      "value": "Go to handler"
-    }
-  ],
   "Gvxoji": [
     {
       "type": 0,
@@ -2246,7 +2198,13 @@
   "H3ooTI": [
     {
       "type": 0,
-      "value": "Azure Service Bus Data Owner"
+      "value": "Azure Service Bus-adattulajdonos"
+    }
+  ],
+  "H5vHIu": [
+    {
+      "type": 0,
+      "value": "Creating incident response plan"
     }
   ],
   "HAlOn1": [
@@ -2291,6 +2249,16 @@
       "value": "Függőben lévő jóváhagyások"
     }
   ],
+  "Hh0q8u": [
+    {
+      "type": 0,
+      "value": "Failed to delete the custom incident response plan. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "HjTHxo": [
     {
       "type": 0,
@@ -2321,10 +2289,22 @@
       "value": "Monitor ID"
     }
   ],
+  "HvIalp": [
+    {
+      "type": 0,
+      "value": "Connecting to ServiceNow ..."
+    }
+  ],
   "I03XmI": [
     {
       "type": 0,
       "value": "- kész"
+    }
+  ],
+  "I7aBF4": [
+    {
+      "type": 0,
+      "value": "Failed to enable incident response plan"
     }
   ],
   "I80vfn": [
@@ -2360,7 +2340,7 @@
   "IQaKwH": [
     {
       "type": 0,
-      "value": "Lets you read Cognitive Services data."
+      "value": "Cognitive Services-kulcsok olvasását teszi lehetővé."
     }
   ],
   "ITYqY7": [
@@ -2431,16 +2411,10 @@
       "value": "More options"
     }
   ],
-  "J//t5k": [
-    {
-      "type": 0,
-      "value": "Creating default incident handler"
-    }
-  ],
   "J/uqp9": [
     {
       "type": 0,
-      "value": "Click to show value"
+      "value": "Az érték megjelenítéshez kattintson ide"
     }
   ],
   "J3Y8Sm": [
@@ -2501,16 +2475,16 @@
       "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Data Connectors instead."
     }
   ],
-  "JIBt4U": [
-    {
-      "type": 0,
-      "value": "Connection to IcM failed. Please check your configuration and try again."
-    }
-  ],
   "JJNc3c": [
     {
       "type": 0,
       "value": "Previous"
+    }
+  ],
+  "JRLN0D": [
+    {
+      "type": 0,
+      "value": "With incident response plans, the agent chooses the tools it needs to manage common types of incidents. Custom response plans replace this capability by giving the agent specific instructions that you provide."
     }
   ],
   "JT7be1": [
@@ -2535,6 +2509,12 @@
     {
       "type": 0,
       "value": "Ügyfél"
+    }
+  ],
+  "JXtKxS": [
+    {
+      "type": 0,
+      "value": "Connection to IcM failed. Please confirm that the managed identity of your agent is allowlisted on your IcM service team and try again."
     }
   ],
   "JYbAwr": [
@@ -2565,6 +2545,20 @@
     {
       "type": 0,
       "value": "Incident research"
+    }
+  ],
+  "JkbJ/T": [
+    {
+      "type": 0,
+      "value": "A response plan can use a maximum of "
+    },
+    {
+      "type": 1,
+      "value": "maxTools"
+    },
+    {
+      "type": 0,
+      "value": " tools."
     }
   ],
   "JlJ8dZ": [
@@ -2639,16 +2633,6 @@
       "value": "Execution count"
     }
   ],
-  "KVPNxV": [
-    {
-      "type": 0,
-      "value": "Failed to update the custom incident handler. Error: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "KXyWfi": [
     {
       "type": 0,
@@ -2659,6 +2643,12 @@
     {
       "type": 0,
       "value": "If you click 'Authorize', this operation will be executed on your behalf using your credentials."
+    }
+  ],
+  "Kkc3/u": [
+    {
+      "type": 0,
+      "value": "Edit incident response plan"
     }
   ],
   "KoJ1C+": [
@@ -2696,7 +2686,7 @@
   "KzMCPo": [
     {
       "type": 0,
-      "value": "Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries."
+      "value": "Teljes hozzáférést biztosít az összes erőforrás kezeléséhez, de nem teszi lehetővé szerepkörök hozzárendelését az Azure RBAC-ben, a hozzárendelések kezelését az Azure Blueprintsben, illetve képtárak megosztását."
     }
   ],
   "L0KVkI": [
@@ -2725,6 +2715,12 @@
       "value": "Scheduled task created successfully"
     }
   ],
+  "LLt8Ve": [
+    {
+      "type": 0,
+      "value": "Created incident response plan"
+    }
+  ],
   "LPprqA": [
     {
       "type": 0,
@@ -2750,7 +2746,7 @@
   "LSaaxU": [
     {
       "type": 0,
-      "value": "View all resources, but does not allow you to make any changes."
+      "value": "Megtekintheti az összes erőforrást, de nem végezhet módosításokat."
     }
   ],
   "LUSiug": [
@@ -2763,10 +2759,22 @@
       "value": "name"
     }
   ],
+  "LZyV4T": [
+    {
+      "type": 0,
+      "value": "Filters define which incidents the incident response plan applies to. These apply to the list of incidents previewed in the next step."
+    }
+  ],
   "LnglaU": [
     {
       "type": 0,
       "value": "Run History"
+    }
+  ],
+  "Lq4eva": [
+    {
+      "type": 0,
+      "value": "Custom response plan name"
     }
   ],
   "Lv0zJu": [
@@ -2785,6 +2793,12 @@
     {
       "type": 0,
       "value": "Standard input"
+    }
+  ],
+  "LyuutK": [
+    {
+      "type": 0,
+      "value": "Edit custom response plan"
     }
   ],
   "M/3/kG": [
@@ -2823,12 +2837,6 @@
       "value": "Incident ID"
     }
   ],
-  "MCSjdU": [
-    {
-      "type": 0,
-      "value": "Deleting incident handler"
-    }
-  ],
   "MI5gZ+": [
     {
       "type": 0,
@@ -2839,6 +2847,12 @@
     {
       "type": 0,
       "value": "Incidents not handled by response plan criteria"
+    }
+  ],
+  "MOsoTa": [
+    {
+      "type": 0,
+      "value": "Enter a response plan name"
     }
   ],
   "MPzBut": [
@@ -2932,13 +2946,13 @@
   "ND2EUR": [
     {
       "type": 0,
-      "value": "Storage Blob Data Contributor"
+      "value": "Storage-blobadatok közreműködője"
     }
   ],
-  "NMJ8PI": [
+  "NMSoXQ": [
     {
       "type": 0,
-      "value": "Failed to update incident handler"
+      "value": "Disabling incident response plan"
     }
   ],
   "NOMbLF": [
@@ -2971,22 +2985,16 @@
       "value": "HDInsight on AKS Cluster Admin"
     }
   ],
+  "Nf85D+": [
+    {
+      "type": 0,
+      "value": "Update custom incident response plan"
+    }
+  ],
   "Nfo3YG": [
     {
       "type": 0,
       "value": "Connect to ServiceNow with your instance endpoint and credentials. This allows the agent to manage incidents and tickets in your ServiceNow environment."
-    }
-  ],
-  "NkirQc": [
-    {
-      "type": 0,
-      "value": "Delete custom incident handler"
-    }
-  ],
-  "NrGEOo": [
-    {
-      "type": 0,
-      "value": "Az incidenskezelési konfiguráció mentése sikerült"
     }
   ],
   "Nrc9ba": [
@@ -3081,22 +3089,10 @@
       "value": "Roles and permissions"
     }
   ],
-  "OVRWH9": [
-    {
-      "type": 0,
-      "value": "Update custom incident handler"
-    }
-  ],
   "OWBgF9": [
     {
       "type": 0,
       "value": "Szál menü elrejtése"
-    }
-  ],
-  "OYG48f": [
-    {
-      "type": 0,
-      "value": "Failed to enable incident handler"
     }
   ],
   "OlIql8": [
@@ -3117,12 +3113,6 @@
       "value": "No changes found for this correlation ID"
     }
   ],
-  "OuEM6V": [
-    {
-      "type": 0,
-      "value": "Choose how to set up this incident handler"
-    }
-  ],
   "OvzONl": [
     {
       "type": 0,
@@ -3141,22 +3131,10 @@
       "value": "Permission"
     }
   ],
-  "P/1qUI": [
-    {
-      "type": 0,
-      "value": "The custom incident handler was successfully updated"
-    }
-  ],
   "P04Zui": [
     {
       "type": 0,
       "value": "PostgreSQL Command"
-    }
-  ],
-  "P3Xgmf": [
-    {
-      "type": 0,
-      "value": "IcM connection added successfully"
     }
   ],
   "P3qxV2": [
@@ -3181,12 +3159,6 @@
     {
       "type": 0,
       "value": "My recent prompts"
-    }
-  ],
-  "PEHogk": [
-    {
-      "type": 0,
-      "value": "Successfully updated incident handler"
     }
   ],
   "PFtMy9": [
@@ -3284,7 +3256,7 @@
   "PrFU82": [
     {
       "type": 0,
-      "value": "Can read all monitoring data and update monitoring settings."
+      "value": "Olvashatja az összes figyelési adatot, és frissítheti a figyelési beállításokat."
     }
   ],
   "PuU15u": [
@@ -3296,7 +3268,7 @@
   "Pwen/L": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Reader"
+      "value": "Cognitive Services LUIS olvasó"
     }
   ],
   "PwqiFa": [
@@ -3326,7 +3298,7 @@
   "Q3p3sz": [
     {
       "type": 0,
-      "value": "Storage Blob Data Reader"
+      "value": "Storage-blobadatok olvasója"
     }
   ],
   "Q8Qw5B": [
@@ -3368,7 +3340,7 @@
   "QIY3dQ": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Owner"
+      "value": "Azure Digital Twins – adattulajdonos"
     }
   ],
   "QQX4Pv": [
@@ -3381,6 +3353,12 @@
     {
       "type": 0,
       "value": "Uses (Trigger, Action)"
+    }
+  ],
+  "QdDYGR": [
+    {
+      "type": 0,
+      "value": "Response plan configuration"
     }
   ],
   "QfEnqG": [
@@ -3411,12 +3389,6 @@
     {
       "type": 0,
       "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
-    }
-  ],
-  "QtNVS/": [
-    {
-      "type": 0,
-      "value": "Custom handler name"
     }
   ],
   "QwnGVY": [
@@ -3488,7 +3460,7 @@
   "RH8rNM": [
     {
       "type": 0,
-      "value": "Only alphanumeric characters and dashes are allowed, and the value must be 3-44 characters long."
+      "value": "Csak az alfanumerikus és a kötőjelek használata engedélyezett, az érték pedig 3–44 karakter hosszúságú lehet."
     }
   ],
   "RSDnlS": [
@@ -3513,6 +3485,12 @@
     {
       "type": 0,
       "value": "TODO"
+    }
+  ],
+  "RXSky0": [
+    {
+      "type": 0,
+      "value": "Waiting for connectivity"
     }
   ],
   "RYbE1p": [
@@ -3659,6 +3637,12 @@
       "value": "). Only .md and .txt files are allowed."
     }
   ],
+  "SXJ1c9": [
+    {
+      "type": 0,
+      "value": "Add a default incident response plan for the agent to use for High priority incidents."
+    }
+  ],
   "Sdc+Dp": [
     {
       "type": 0,
@@ -3698,7 +3682,7 @@
   "SuVToZ": [
     {
       "type": 0,
-      "value": "SQL Managed Instance Contributor"
+      "value": "SQL Managed Instance-közreműködő"
     }
   ],
   "SyPo+k": [
@@ -3725,10 +3709,10 @@
       "value": "Incidensek kezelése"
     }
   ],
-  "T8mrCM": [
+  "T8DCV7": [
     {
       "type": 0,
-      "value": "Filters define which incidents the incident handler applies to. These apply to the list of incidents previewed in the next step."
+      "value": "Adding custom incident response plan"
     }
   ],
   "TAm7bB": [
@@ -3816,19 +3800,13 @@
   "TdTXXf": [
     {
       "type": 0,
-      "value": "Learn more"
+      "value": "További információ"
     }
   ],
   "TdeXH0": [
     {
       "type": 0,
       "value": "Erőforrás-leképezés"
-    }
-  ],
-  "TgpM0x": [
-    {
-      "type": 0,
-      "value": "Failed to create default incident handler"
     }
   ],
   "ThSX0k": [
@@ -3841,12 +3819,6 @@
     {
       "type": 0,
       "value": "Új csevegési beszélgetés"
-    }
-  ],
-  "Tp+Kgu": [
-    {
-      "type": 0,
-      "value": "You can now view incidents, and create additional incident handlers and custom handlers."
     }
   ],
   "Tq2F2Y": [
@@ -3865,12 +3837,6 @@
     {
       "type": 0,
       "value": "Cancel generation"
-    }
-  ],
-  "U4e+Yf": [
-    {
-      "type": 0,
-      "value": "The agent uses these available tools to generate incident handler instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use."
     }
   ],
   "U73T9e": [
@@ -3916,7 +3882,7 @@
   "UZMdQH": [
     {
       "type": 0,
-      "value": "Managed Identity"
+      "value": "Felügyelt identitás"
     }
   ],
   "UZS12+": [
@@ -3953,12 +3919,6 @@
     {
       "type": 0,
       "value": "View decision tree of potential root causes."
-    }
-  ],
-  "UqCC2s": [
-    {
-      "type": 0,
-      "value": "Successfully created incident handler"
     }
   ],
   "UrGI9K": [
@@ -4054,7 +4014,7 @@
   "VlBNux": [
     {
       "type": 0,
-      "value": "Application Insights Component Contributor"
+      "value": "Application Insights-összetevők közreműködője"
     }
   ],
   "VpsD7s": [
@@ -4075,6 +4035,12 @@
     {
       "type": 0,
       "value": "Agent mode"
+    }
+  ],
+  "Vtdg82": [
+    {
+      "type": 0,
+      "value": "PagerDuty connected. Your next step is to set up incident response plans."
     }
   ],
   "VwHnVH": [
@@ -4117,6 +4083,12 @@
     {
       "type": 0,
       "value": "Megoldva"
+    }
+  ],
+  "W99XAG": [
+    {
+      "type": 0,
+      "value": "Incident response plan name"
     }
   ],
   "WCaf5C": [
@@ -4191,22 +4163,16 @@
       "value": "Ügynök adatai"
     }
   ],
+  "Wkup5T": [
+    {
+      "type": 0,
+      "value": "Pending user input"
+    }
+  ],
   "Wn+PVy": [
     {
       "type": 0,
       "value": "Primary resource type equals"
-    }
-  ],
-  "WnIWxR": [
-    {
-      "type": 0,
-      "value": "Failed to create incident handler"
-    }
-  ],
-  "Wr7RY0": [
-    {
-      "type": 0,
-      "value": "PagerDuty connection added successfully"
     }
   ],
   "Wtf3vL": [
@@ -4239,6 +4205,16 @@
       "value": "A következő változata:"
     }
   ],
+  "X4oOy4": [
+    {
+      "type": 0,
+      "value": "Connected to "
+    },
+    {
+      "type": 1,
+      "value": "platformName"
+    }
+  ],
   "X5UCWb": [
     {
       "type": 0,
@@ -4263,6 +4239,12 @@
       "value": "The action was canceled."
     }
   ],
+  "XEanEV": [
+    {
+      "type": 0,
+      "value": "Sev2.5"
+    }
+  ],
   "XEso9C": [
     {
       "type": 0,
@@ -4272,7 +4254,7 @@
   "XJ+Lww": [
     {
       "type": 0,
-      "value": "Lets you read and modify HDInsight cluster configurations."
+      "value": "Lehetővé teszi a HDInsight-fürtök konfigurációjának olvasását és módosítását."
     }
   ],
   "XJuPK6": [
@@ -4335,12 +4317,6 @@
       "value": "Deleting incident"
     }
   ],
-  "XdHOL0": [
-    {
-      "type": 0,
-      "value": "Updating incident handler"
-    }
-  ],
   "XeBq0b": [
     {
       "type": 0,
@@ -4401,6 +4377,12 @@
       "value": "Nem kifogástalan állapotú csomópont jelentése"
     }
   ],
+  "YJ+mk9": [
+    {
+      "type": 0,
+      "value": "Disabled incident response plan"
+    }
+  ],
   "YJG5oU": [
     {
       "type": 0,
@@ -4416,7 +4398,7 @@
   "YZIFAO": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service RBAC Cluster Admin"
+      "value": "Azure Kubernetes Service – RBAC-fürtrendszergazda"
     }
   ],
   "YdXbbC": [
@@ -4446,7 +4428,7 @@
   "Yk6Co7": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Reader"
+      "value": "Cognitive Services – QnA Maker-olvasó"
     }
   ],
   "YlGniM": [
@@ -4503,6 +4485,12 @@
       "value": "Agent ID"
     }
   ],
+  "Z9pRs5": [
+    {
+      "type": 0,
+      "value": "Create incident response plan"
+    }
+  ],
   "ZCA/Ga": [
     {
       "type": 0,
@@ -4517,12 +4505,6 @@
     {
       "type": 0,
       "value": "Manage Logic Apps."
-    }
-  ],
-  "ZNPvsJ": [
-    {
-      "type": 0,
-      "value": "Attention needed"
     }
   ],
   "ZUXvHE": [
@@ -4656,7 +4638,7 @@
   "aGL+Qo": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under LUIS."
+      "value": "Eléréssel rendelkezik a LUIS olvasási és tesztelési funkcióihoz."
     }
   ],
   "aH4De2": [
@@ -4764,7 +4746,7 @@
   "aqNZbD": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Writer"
+      "value": "Cognitive Services-nyelvíró"
     }
   ],
   "aqnJe8": [
@@ -4789,10 +4771,36 @@
       "value": "Output logs"
     }
   ],
+  "b2PyOl": [
+    {
+      "type": 0,
+      "value": "Connecting to "
+    },
+    {
+      "type": 1,
+      "value": "platformName"
+    },
+    {
+      "type": 0,
+      "value": " ..."
+    }
+  ],
+  "b2kjHU": [
+    {
+      "type": 0,
+      "value": "Delete custom incident response plan"
+    }
+  ],
   "b7D4Lh": [
     {
       "type": 0,
       "value": "Manage the identities associated with your agent which may be used to communicate with other services"
+    }
+  ],
+  "b8MiMo": [
+    {
+      "type": 0,
+      "value": "Azure Monitor connected. Your next step is to set up incident response plans."
     }
   ],
   "bKgVBL": [
@@ -4804,7 +4812,7 @@
   "bN0x+w": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Reader"
+      "value": "Device Provisioning Service – adatolvasó"
     }
   ],
   "bW7B87": [
@@ -4843,6 +4851,12 @@
       "value": "Last day"
     }
   ],
+  "bri0SI": [
+    {
+      "type": 0,
+      "value": "No todo plan available"
+    }
+  ],
   "brxlTt": [
     {
       "type": 0,
@@ -4857,6 +4871,18 @@
     {
       "type": 1,
       "value": "type"
+    }
+  ],
+  "bvvGgu": [
+    {
+      "type": 0,
+      "value": "Turn off incident response plan"
+    }
+  ],
+  "bxcc6L": [
+    {
+      "type": 0,
+      "value": "Enabled incident response plan"
     }
   ],
   "bxnWhY": [
@@ -4881,6 +4907,12 @@
     {
       "type": 0,
       "value": "Cognitive Services Usages Reader"
+    }
+  ],
+  "c25ipa": [
+    {
+      "type": 0,
+      "value": "The agent uses these available tools to generate incident response plan instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use."
     }
   ],
   "c35gM5": [
@@ -4979,10 +5011,22 @@
       "value": "Incidents mitigated by agent"
     }
   ],
+  "d1Cewp": [
+    {
+      "type": 0,
+      "value": "Apply only to incidents triggered after the response plan is created"
+    }
+  ],
   "d2GmfJ": [
     {
       "type": 0,
       "value": "Manage API Management workspaces."
+    }
+  ],
+  "d3MtwZ": [
+    {
+      "type": 0,
+      "value": "Turning off this incident response plan might affect how incidents are processed and also any custom response plans. Are you sure you want to turn it off?"
     }
   ],
   "d6hQf3": [
@@ -4994,7 +5038,7 @@
   "d8dECB": [
     {
       "type": 0,
-      "value": "IoT Hub Data Reader"
+      "value": "IoT Hub adatolvasó"
     }
   ],
   "dCrF9n": [
@@ -5034,7 +5078,7 @@
   "dQ5/dh": [
     {
       "type": 0,
-      "value": "Allows for full read access to Device Provisioning Service data-plane properties."
+      "value": "Teljes olvasási hozzáférést biztosít a Device Provisioning Service adatsík-tulajdonságaihoz."
     }
   ],
   "dQKATf": [
@@ -5145,6 +5189,12 @@
       "value": "Read-only mode"
     }
   ],
+  "eUEjcm": [
+    {
+      "type": 0,
+      "value": "Add a default incident response plan for the agent to use for Sev3 alerts."
+    }
+  ],
   "eZMksq": [
     {
       "type": 0,
@@ -5161,6 +5211,18 @@
     {
       "type": 0,
       "value": "Manage Azure Search services."
+    }
+  ],
+  "ehbsXg": [
+    {
+      "type": 0,
+      "value": "ServiceNow connected. Your next step is to set up incident response plans."
+    }
+  ],
+  "emW/QQ": [
+    {
+      "type": 0,
+      "value": "Sev0"
     }
   ],
   "eqYdSS": [
@@ -5191,10 +5253,10 @@
       "value": "errorMessage"
     }
   ],
-  "ezP+aQ": [
+  "ey7R11": [
     {
       "type": 0,
-      "value": "With incident handlers, the agent chooses the tools it needs to manage common types of incidents. Custom handlers replace this capability by giving the agent specific instructions that you provide."
+      "value": "Connecting to PagerDuty ..."
     }
   ],
   "f+cHle": [
@@ -5215,10 +5277,10 @@
       "value": "Logikai alkalmazás neve"
     }
   ],
-  "f53mvl": [
+  "f2e1WS": [
     {
       "type": 0,
-      "value": "Generate custom handler"
+      "value": "Sev1"
     }
   ],
   "f7Zx3L": [
@@ -5242,7 +5304,7 @@
   "fFyuVF": [
     {
       "type": 0,
-      "value": "Cognitive Services Speech Contributor"
+      "value": "Cognitive Services beszédfelismerési közreműködője"
     }
   ],
   "fLkL3F": [
@@ -5254,7 +5316,7 @@
   "fUgypu": [
     {
       "type": 0,
-      "value": "Go to Access control"
+      "value": "Ugrás a Hozzáférés-vezérlésre"
     }
   ],
   "fblXmJ": [
@@ -5285,12 +5347,6 @@
     {
       "type": 0,
       "value": "Correlation ranges from -1 (inverse) to 1 (direct)"
-    }
-  ],
-  "foUmLR": [
-    {
-      "type": 0,
-      "value": "Creating incident handler"
     }
   ],
   "ftDEuE": [
@@ -5350,17 +5406,7 @@
   "gC4xMY": [
     {
       "type": 0,
-      "value": "Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces."
-    }
-  ],
-  "gE3lH/": [
-    {
-      "type": 0,
-      "value": "Failed to delete the custom incident handler. Error: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
+      "value": "Csak olvasási hozzáférést biztosít az adott névtér legtöbb objektumához. Ez a szerepkör nem teszi lehetővé a szerepkörök vagy szerepkörkötések megtekintését vagy módosítását, sem a titkos kódok megtekintését, mivel a titkos kódok megtekintési engedélye hozzáférést biztosít a névtér szolgáltatásfiókjaihoz tartozó hitelesítő adatokhoz is, ezáltal API-hozzáférést engedélyezne a névtér bármely szolgáltatásfiókjához (a jogosultságemelés egy formájaként). Ha a fürt hatókörében alkalmazza a szerepkört, azzal minden névtér esetében hozzáférést biztosít."
     }
   ],
   "gHCL4X": [
@@ -5369,10 +5415,10 @@
       "value": "Add More Files"
     }
   ],
-  "gIVE1F": [
+  "gKi3tP": [
     {
       "type": 0,
-      "value": "Set up incident handlers and custom handlers so that the agent can start receiving incidents."
+      "value": "Choose how to set up this incident response plan"
     }
   ],
   "gNhYpU": [
@@ -5489,28 +5535,22 @@
       "value": "PostgreSQL Contributor"
     }
   ],
+  "h+7264": [
+    {
+      "type": 0,
+      "value": "Delete incident response plan"
+    }
+  ],
   "h+YOYh": [
     {
       "type": 0,
       "value": "To change the incident platform, you need to disconnect from ServiceNow. The agent will no longer manage tickets. Are you sure you want to disconnect?"
     }
   ],
-  "h07fER": [
-    {
-      "type": 0,
-      "value": "Adding custom incident handler"
-    }
-  ],
   "h6183G": [
     {
       "type": 0,
       "value": "Tool"
-    }
-  ],
-  "h6EziO": [
-    {
-      "type": 0,
-      "value": "Failed to disable incident handler"
     }
   ],
   "hEXUFk": [
@@ -5581,12 +5621,6 @@
       "value": "Az incidenskezelési konfiguráció mentése nem sikerült"
     }
   ],
-  "hXdAxd": [
-    {
-      "type": 0,
-      "value": "Successfully deleted incident handler"
-    }
-  ],
   "hZY54D": [
     {
       "type": 0,
@@ -5626,13 +5660,7 @@
   "hrdmcd": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Reader"
-    }
-  ],
-  "htXZ8o": [
-    {
-      "type": 0,
-      "value": "ServiceNow connected. Your next step is to set up incident handlers."
+      "value": "Azure Digital Twins – adatolvasó"
     }
   ],
   "htvX+Z": [
@@ -5653,28 +5681,22 @@
       "value": "Container Apps Contributor"
     }
   ],
+  "i6RxOt": [
+    {
+      "type": 0,
+      "value": "Changes to this incident response plan might affect how incidents are processed and also any custom response plans."
+    }
+  ],
   "i6cLLM": [
     {
       "type": 0,
       "value": "Perform data science tasks in Azure Machine Learning."
     }
   ],
-  "i7oO8e": [
-    {
-      "type": 0,
-      "value": "Investigation in progress"
-    }
-  ],
   "iDSWYk": [
     {
       "type": 0,
       "value": "Connect to Azure Monitor so that the agent can automatically monitor notifications from the resource groups it manages, without additional provisioning."
-    }
-  ],
-  "iFDVT4": [
-    {
-      "type": 0,
-      "value": "Deploy incident handler"
     }
   ],
   "iIoj97": [
@@ -5689,22 +5711,16 @@
       "value": "Select a filter"
     }
   ],
-  "iTTSax": [
+  "iZDRGO": [
     {
       "type": 0,
-      "value": "Changes to this incident handler might affect how incidents are processed and also any custom handlers."
+      "value": "Assigned"
     }
   ],
   "iZuO+L": [
     {
       "type": 0,
       "value": "Legend"
-    }
-  ],
-  "ia2Cai": [
-    {
-      "type": 0,
-      "value": "Turning off this incident handler might affect how incidents are processed and also any custom handlers. Are you sure you want to turn it off?"
     }
   ],
   "ibf4+R": [
@@ -5719,12 +5735,6 @@
       "value": "Or"
     }
   ],
-  "icWG3R": [
-    {
-      "type": 0,
-      "value": "Are you sure you want to delete the custom handler?"
-    }
-  ],
   "ielB5f": [
     {
       "type": 0,
@@ -5737,10 +5747,22 @@
       "value": "Copy command"
     }
   ],
+  "iqdd9H": [
+    {
+      "type": 0,
+      "value": "New custom response plan"
+    }
+  ],
   "irFBKn": [
     {
       "type": 0,
       "value": "Last 7 days"
+    }
+  ],
+  "it8L1Q": [
+    {
+      "type": 0,
+      "value": "Deleting incident response plan"
     }
   ],
   "itC9lG": [
@@ -5765,12 +5787,6 @@
     {
       "type": 0,
       "value": "Administer HDInsight clusters on AKS."
-    }
-  ],
-  "iyG66Y": [
-    {
-      "type": 0,
-      "value": "Azure Monitor connected. Your next step is to set up incident handlers."
     }
   ],
   "iyOYgd": [
@@ -5814,19 +5830,13 @@
   "j5Yfyr": [
     {
       "type": 0,
-      "value": "Search Index Data Reader"
+      "value": "Keresési index adatolvasója"
     }
   ],
   "jA2jt7": [
     {
       "type": 0,
       "value": "Choose priority"
-    }
-  ],
-  "jET8aI": [
-    {
-      "type": 0,
-      "value": "Failed to delete incident handler"
     }
   ],
   "jHJmjf": [
@@ -5838,7 +5848,7 @@
   "jJE3xY": [
     {
       "type": 0,
-      "value": "Lets you manage the web plans for websites, but not access to them."
+      "value": "Lehetővé teszi a webes tarifacsomagok kezelését, az azokhoz való hozzáférés nélkül."
     }
   ],
   "jK9a9x": [
@@ -5903,12 +5913,6 @@
     {
       "type": 0,
       "value": "Next execution"
-    }
-  ],
-  "juQ8mz": [
-    {
-      "type": 0,
-      "value": "Investigations"
     }
   ],
   "jvo0vs": [
@@ -6061,6 +6065,12 @@
       "value": "Affected resources"
     }
   ],
+  "lawXja": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the custom response plan?"
+    }
+  ],
   "lcOT8X": [
     {
       "type": 0,
@@ -6099,22 +6109,34 @@
       "value": "Régió"
     }
   ],
+  "lqgE72": [
+    {
+      "type": 0,
+      "value": "Connecting to Azure Monitor ..."
+    }
+  ],
   "lvNWLS": [
     {
       "type": 0,
-      "value": "IoT Hub Registry Contributor"
+      "value": "IoT Hub beállításjegyzék-közreműködő"
     }
   ],
-  "lyc2l+": [
+  "m0kcbz": [
     {
       "type": 0,
-      "value": "Apply only to incidents triggered after the handler is created"
+      "value": "Generate custom response plan"
     }
   ],
   "m57OnF": [
     {
       "type": 0,
       "value": "Choose incident type"
+    }
+  ],
+  "m6Ctmt": [
+    {
+      "type": 0,
+      "value": "Add a default incident response plan for the agent to use for P1 base incidents."
     }
   ],
   "mAyw3x": [
@@ -6129,6 +6151,12 @@
       "value": "Detailed multi-line instructions. Provide: goal, context/resources, constraints, success criteria."
     }
   ],
+  "mGh+K0": [
+    {
+      "type": 0,
+      "value": "Owning team ID is required when adding a default response plan."
+    }
+  ],
   "mN2MCk": [
     {
       "type": 0,
@@ -6139,6 +6167,12 @@
     {
       "type": 0,
       "value": "Start"
+    }
+  ],
+  "mV7WX3": [
+    {
+      "type": 0,
+      "value": "Incident response plans"
     }
   ],
   "mZ0R9v": [
@@ -6177,24 +6211,6 @@
       "value": "Helyi hitelesítés"
     }
   ],
-  "msMJVt": [
-    {
-      "type": 0,
-      "value": "After the platform is connected, create incident handlers and custom handlers so that the agent can respond to incidents."
-    }
-  ],
-  "mtC1dz": [
-    {
-      "type": 0,
-      "value": "An incident handler defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents."
-    }
-  ],
-  "mtUOcI": [
-    {
-      "type": 0,
-      "value": "Edit incident handler"
-    }
-  ],
   "mtr3R4": [
     {
       "type": 0,
@@ -6228,7 +6244,7 @@
   "nBPow3": [
     {
       "type": 0,
-      "value": "Lets you manage all resources in the cluster."
+      "value": "Lehetővé tesz a fürt összes erőforrásának kezelését."
     }
   ],
   "nCbZ6p": [
@@ -6251,6 +6267,16 @@
     {
       "type": 0,
       "value": "Review + edit"
+    }
+  ],
+  "nNwFuy": [
+    {
+      "type": 0,
+      "value": "Failed to add the custom incident response plan. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "nOrKIK": [
@@ -6451,6 +6477,12 @@
       "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
     }
   ],
+  "p21QSW": [
+    {
+      "type": 0,
+      "value": "Deploy incident response plan"
+    }
+  ],
   "p4mBmL": [
     {
       "type": 0,
@@ -6479,6 +6511,12 @@
     {
       "type": 0,
       "value": "HDInsight on AKS Cluster Pool Admin"
+    }
+  ],
+  "pAdN7z": [
+    {
+      "type": 0,
+      "value": "P4"
     }
   ],
   "pCPZnU": [
@@ -6520,7 +6558,7 @@
   "pSfQh6": [
     {
       "type": 0,
-      "value": "Grants read access to Azure Cognitive Search index data."
+      "value": "Olvasási hozzáférést biztosít az Azure Cognitive Search-indexadatokhoz."
     }
   ],
   "pT3qMe": [
@@ -6577,6 +6615,12 @@
     {
       "type": 0,
       "value": "Manage Application Insights components."
+    }
+  ],
+  "pr9fPP": [
+    {
+      "type": 0,
+      "value": "Alert title"
     }
   ],
   "psUT6S": [
@@ -6663,16 +6707,16 @@
       "value": "Show less"
     }
   ],
+  "qyTQAA": [
+    {
+      "type": 0,
+      "value": "The custom incident response plan was successfully deleted"
+    }
+  ],
   "r2x5ZI": [
     {
       "type": 0,
       "value": "This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
-    }
-  ],
-  "r6+QFy": [
-    {
-      "type": 0,
-      "value": "Add a default incident handler for the agent to use for P1 base incidents."
     }
   ],
   "rBPlLc": [
@@ -6754,7 +6798,7 @@
   "rZaqtB": [
     {
       "type": 0,
-      "value": "API Management Service Contributor"
+      "value": "API Management szolgáltatás közreműködője"
     }
   ],
   "rbrahO": [
@@ -6797,6 +6841,12 @@
     {
       "type": 0,
       "value": "Monitorozza:"
+    }
+  ],
+  "rkqVE1": [
+    {
+      "type": 0,
+      "value": "Optimize how the agent investigates and responds to incidents by adding incident response plans and custom response plans to support a broad range of scenarios."
     }
   ],
   "rpG/Bn": [
@@ -6857,6 +6907,12 @@
       "value": "Last hour"
     }
   ],
+  "s9ZhRf": [
+    {
+      "type": 0,
+      "value": "Connecting to IcM ..."
+    }
+  ],
   "sH0O5v": [
     {
       "type": 0,
@@ -6893,12 +6949,6 @@
       "value": "Files deleted successfully"
     }
   ],
-  "sVbKA0": [
-    {
-      "type": 0,
-      "value": "The custom incident handler was successfully added"
-    }
-  ],
   "sd1Vy+": [
     {
       "type": 0,
@@ -6913,6 +6963,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "smNgqR": [
+    {
+      "type": 0,
+      "value": "Failed to update incident response plan"
     }
   ],
   "snEUKZ": [
@@ -6937,6 +6993,12 @@
     {
       "type": 0,
       "value": "Gazdagépek"
+    }
+  ],
+  "swVMrk": [
+    {
+      "type": 0,
+      "value": "After the platform is connected, create incident response plans and custom response plans so that the agent can respond to incidents."
     }
   ],
   "sy7vzf": [
@@ -6979,6 +7041,12 @@
       "value": "Device Update Reader"
     }
   ],
+  "t3wAiN": [
+    {
+      "type": 0,
+      "value": "Creating default incident response plan"
+    }
+  ],
   "t9I1dY": [
     {
       "type": 0,
@@ -7011,6 +7079,12 @@
       "value": "\" has been created successfully"
     }
   ],
+  "tHCvDB": [
+    {
+      "type": 0,
+      "value": "Failed to disable incident response plan"
+    }
+  ],
   "tLYOnZ": [
     {
       "type": 0,
@@ -7021,12 +7095,6 @@
     {
       "type": 0,
       "value": "Here is your deep investigation:"
-    }
-  ],
-  "tNseQe": [
-    {
-      "type": 0,
-      "value": "Investigation"
     }
   ],
   "tOxzip": [
@@ -7057,6 +7125,16 @@
     {
       "type": 0,
       "value": "All custom plans"
+    }
+  ],
+  "tbTzZV": [
+    {
+      "type": 0,
+      "value": "Failed to update the custom incident response plan. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "tfuXMw": [
@@ -7133,6 +7211,12 @@
       "value": "All priorities"
     }
   ],
+  "uEYYty": [
+    {
+      "type": 0,
+      "value": "New incident response plan"
+    }
+  ],
   "uI0Lmu": [
     {
       "type": 0,
@@ -7151,16 +7235,16 @@
       "value": "Execution Request"
     }
   ],
-  "ubMRDT": [
-    {
-      "type": 0,
-      "value": "The custom incident handler was successfully deleted"
-    }
-  ],
   "ug01Mk": [
     {
       "type": 0,
       "value": "Idő"
+    }
+  ],
+  "uld/2m": [
+    {
+      "type": 0,
+      "value": "Incident status"
     }
   ],
   "uln7eT": [
@@ -7173,6 +7257,12 @@
     {
       "type": 0,
       "value": "Tools selected for incident response"
+    }
+  ],
+  "uyO1AJ": [
+    {
+      "type": 0,
+      "value": "Sev2"
     }
   ],
   "v0CXYP": [
@@ -7197,6 +7287,12 @@
     {
       "type": 0,
       "value": "Start chat"
+    }
+  ],
+  "v9OQKq": [
+    {
+      "type": 0,
+      "value": "Sev3"
     }
   ],
   "vAWzLN": [
@@ -7233,12 +7329,6 @@
     {
       "type": 0,
       "value": "Document Name"
-    }
-  ],
-  "vTlFW1": [
-    {
-      "type": 0,
-      "value": "Enabling incident handler"
     }
   ],
   "vXCeIi": [
@@ -7283,6 +7373,12 @@
       "value": "AI-generated"
     }
   ],
+  "vs8s5B": [
+    {
+      "type": 0,
+      "value": "Enabling incident response plan"
+    }
+  ],
   "w+XRP2": [
     {
       "type": 0,
@@ -7293,12 +7389,6 @@
     {
       "type": 0,
       "value": "Ez a művelet véglegesen bontja a kapcsolatot az Azure Monitorral. Az ügynök többé nem lesz integrálva az Azure Monitor értesítésekkel. Biztosan törli ezt a kapcsolatot?"
-    }
-  ],
-  "w9b/qS": [
-    {
-      "type": 0,
-      "value": "Failed to connect to the incident management platform"
     }
   ],
   "w9tk1A": [
@@ -7365,6 +7455,12 @@
       "value": "Info"
     }
   ],
+  "wezZny": [
+    {
+      "type": 0,
+      "value": "Add custom incident response plan"
+    }
+  ],
   "wkLkeE": [
     {
       "type": 0,
@@ -7395,30 +7491,10 @@
       "value": "Manage Cognitive Services accounts."
     }
   ],
-  "x++GsY": [
-    {
-      "type": 0,
-      "value": "A handler can use a maximum of "
-    },
-    {
-      "type": 1,
-      "value": "maxTools"
-    },
-    {
-      "type": 0,
-      "value": " tools."
-    }
-  ],
   "x3aQrV": [
     {
       "type": 0,
       "value": "An on-behalf-of token will be used with the following scope"
-    }
-  ],
-  "x65I0c": [
-    {
-      "type": 0,
-      "value": "Add a default incident handler for the agent to use for High priority incidents."
     }
   ],
   "x7C8JZ": [
@@ -7443,6 +7519,12 @@
     {
       "type": 0,
       "value": "Insights"
+    }
+  ],
+  "xSsto+": [
+    {
+      "type": 0,
+      "value": "Quickstart response plan"
     }
   ],
   "xUgb9H": [
@@ -7547,6 +7629,12 @@
       "value": "Sikerült"
     }
   ],
+  "xrnaaX": [
+    {
+      "type": 0,
+      "value": "Failed to create incident response plan"
+    }
+  ],
   "xtkizV": [
     {
       "type": 0,
@@ -7557,6 +7645,12 @@
     {
       "type": 0,
       "value": "Agent prompt is required"
+    }
+  ],
+  "y+SPRf": [
+    {
+      "type": 0,
+      "value": "Deleting custom incident response plan"
     }
   ],
   "yDh8i7": [
@@ -7583,22 +7677,10 @@
       "value": "This operation is being executed using the agent identity credentials."
     }
   ],
-  "yXTw0C": [
-    {
-      "type": 0,
-      "value": "Handler configuration"
-    }
-  ],
   "yYK6LR": [
     {
       "type": 0,
       "value": "Beszélgetések száma"
-    }
-  ],
-  "yalJ8o": [
-    {
-      "type": 0,
-      "value": "Enter a handler name"
     }
   ],
   "ybIDiK": [
@@ -7661,6 +7743,12 @@
       "value": "Core application group type"
     }
   ],
+  "yxXhfZ": [
+    {
+      "type": 0,
+      "value": "Saved incident management configuration"
+    }
+  ],
   "yzfsFI": [
     {
       "type": 0,
@@ -7683,6 +7771,12 @@
     {
       "type": 0,
       "value": "You do not have permission to delete this incident"
+    }
+  ],
+  "zEg90u": [
+    {
+      "type": 0,
+      "value": "Failed to delete incident response plan"
     }
   ],
   "zGhyFV": [

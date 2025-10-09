@@ -5,6 +5,7 @@ import { getAgentHeaders } from '../Helpers/headers';
 interface FeatureFlags {
     scheduledTasks: boolean;
     agentMemory: boolean;
+    extendedAgentsGraph: boolean;
 }
 
 interface FeatureStatusResponse {
@@ -15,6 +16,7 @@ export const useFeatureFlags = () => {
     const [features, setFeatures] = useState<FeatureFlags>({
         scheduledTasks: false,
         agentMemory: false,
+        extendedAgentsGraph: false,
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
@@ -43,6 +45,7 @@ export const useFeatureFlags = () => {
                 setFeatures({
                     scheduledTasks: false,
                     agentMemory: false,
+                    extendedAgentsGraph: false,
                 });
             } finally {
                 setLoading(false);

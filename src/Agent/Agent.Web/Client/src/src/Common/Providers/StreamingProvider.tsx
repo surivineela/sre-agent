@@ -12,10 +12,12 @@ export interface MessageCreateRequest {
     userId: string;
     displayName: string;
     conversationModifier?: 'DeepInvestigation';
+    agent?: string;
 }
 
 export interface ThreadCreateRequest {
     startMessage: MessageCreateRequest;
+    startingAgent?: string;
 }
 
 const useLatestStreamingMessages = () => {

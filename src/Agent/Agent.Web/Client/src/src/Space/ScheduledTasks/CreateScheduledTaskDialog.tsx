@@ -27,6 +27,7 @@ export interface CreateScheduledTaskDialogProps {
     onDismiss: () => void;
     onTaskCreated: () => void;
     createTask: (task: CreateScheduledTaskRequest) => Promise<any>;
+    agentName?: string; // Optional agent name to associate with the scheduled task
 }
 
 // ---------------------------
@@ -189,6 +190,8 @@ const formReducer = (state: FormState, action: Action): FormState => {
                 description: '',
                 cronExpression: PRESETS.daily.cron,
                 agentPrompt: '',
+                agent: undefined,
+                createdBy: 'Agent Builder',
                 startTime: new Date().toISOString(),
                 endTime: undefined,
                 threadId: undefined,
@@ -286,10 +289,12 @@ const PreviewCard: FC<{ cron: string }> = ({ cron }) => {
 // Component
 // ---------------------------
 
-const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen, onDismiss, onTaskCreated, createTask }) => {
+const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen, onDismiss, onTaskCreated, createTask, agentName }) => {
     const intl = useIntl();
 
-    const [formData, dispatch] = useReducer(formReducer, undefined as any, () => formReducer({} as any, { type: 'reset' }));
+    const [formData, dispatch] = useReducer(formReducer, undefined as any, () =>
+        formReducer({} as any, { type: 'reset', payload: { agent: agentName } })
+    );
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [presetKey, setPresetKey] = useState<PresetKey>('daily');
@@ -347,10 +352,17 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
         setSubmitError(null);
 
         try {
-            const result = await createTask({ ...formData, cronExpression: normalizeCron(formData.cronExpression) });
+            const taskRequest: CreateScheduledTaskRequest = {
+                ...formData,
+                cronExpression: normalizeCron(formData.cronExpression),
+                agent: formData.agent || agentName,
+                createdBy: formData.createdBy || 'Agent Builder',
+            };
+
+            const result = await createTask(taskRequest);
             if (result) {
                 onTaskCreated();
-                dispatch({ type: 'reset' });
+                dispatch({ type: 'reset', payload: { agent: agentName } });
             } else {
                 setSubmitError(intl.formatMessage(GenericErrorResources.failedToCreateScheduledTask));
             }

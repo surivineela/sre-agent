@@ -27,5 +27,4 @@ namespace Agent.Web.Models.ExtendedAgents
             public List<ExtendedAgentToolApiModel> Tools { get; set; } = new();
         }
     }
-
 }

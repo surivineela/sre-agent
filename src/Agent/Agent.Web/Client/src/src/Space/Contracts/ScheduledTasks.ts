@@ -32,6 +32,8 @@ export interface CreateScheduledTaskRequest {
     description: string;
     cronExpression: string;
     agentPrompt: string;
+    agent?: string; // The agent name to associate with this scheduled task
+    createdBy: string; // Required field for tracking who created the task
     startTime?: string;
     endTime?: string;
     threadId?: string;

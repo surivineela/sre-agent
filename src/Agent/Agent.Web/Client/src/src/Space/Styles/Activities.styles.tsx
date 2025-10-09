@@ -282,6 +282,13 @@ export const useChatInputStyles = makeStyles({
         maxWidth: textFieldMaxWidth,
         margin: 'auto',
     },
+    selectedCommandRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalXS,
+        margin: `${tokens.spacingVerticalXS} auto`,
+        maxWidth: textFieldMaxWidth,
+    },
     promptMenuPopover: {
         width: '280px',
         padding: '10px',

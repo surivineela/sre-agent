@@ -276,7 +276,7 @@ public class ExtendedAgentService : IExtendedAgentService
         }
     }
 
-   
+
 
     public async Task LoadExtendedAgentsAsync(CancellationToken cancellationToken = default)
     {
@@ -297,7 +297,7 @@ public class ExtendedAgentService : IExtendedAgentService
                     _logger.LogInternalError(ex, "Failed to load extended agent from Cosmos: {AgentName}", extendedAgent.Name);
                 }
             }
-            
+
             // load tools stored in Cosmos
         }
         catch (Exception ex)

@@ -11,6 +11,7 @@ using Agent.Framework.Reasoning.Models;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents;
+using Agent.Web.Models.ExtendedAgents.Request;
 using Agent.Web.Models.ExtendedAgents.Response;
 using Agent.Web.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,12 @@ using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
+using Agent.Plugins.Kusto;
+using Agent.Plugins.Tools;
+using Agent.Core.Interfaces;
+using Agent.Core.Extensions;
+using Microsoft.Extensions.AI;
+using Agent.Runtime.Services;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -29,18 +36,27 @@ public class ExtendedAgentController : ControllerBase
     private readonly IExtendedAgentService _extendedAgentService;
     private readonly ILogger<ExtendedAgentController> _logger;
     private readonly IConnectorResolver _connectorResolver;
+    private readonly IAuthenticationService _authenticationService;
+    private readonly IChatClient _chatClient;
+    private readonly IInstructionGenerationService _instructionGenerationService;
 
     public ExtendedAgentController(
          IExtendedAgentService extendedAgentService,
         ILogger<ExtendedAgentController> logger,
         IResourceDeploymentService agentService,
-        IConnectorResolver connectorResolver
+        IConnectorResolver connectorResolver,
+        IAuthenticationService authenticationService,
+        IChatClient chatClient,
+        IInstructionGenerationService instructionGenerationService
        )
     {
         _resourceDeploymentService = agentService;
         _logger = logger;
         _extendedAgentService = extendedAgentService;
         _connectorResolver = connectorResolver;
+        _authenticationService = authenticationService;
+        _chatClient = chatClient; // default chat client injected via DI
+        _instructionGenerationService = instructionGenerationService;
     }
 
     /// <summary>
@@ -438,4 +454,262 @@ public class ExtendedAgentController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Test a Kusto query with provided parameters and query definition
+    /// </summary>
+    /// <param name="request">Test request with query, connector, and parameters</param>
+    /// <returns>Query results limited to 50 rows</returns>
+    [HttpPost("tools/{toolName}/test")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
+    [ProducesResponseType(typeof(KustoQueryTestResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<KustoQueryTestResponse>> TestKustoQuery(
+        [FromRoute] string toolName,
+        [FromBody] KustoQueryTestRequest request)
+    {
+        try
+        {
+            // Validate tool name - only Kusto is supported for now
+            if (!toolName.Equals("kusto", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "UNSUPPORTED_TOOL_TYPE",
+                    Message = $"Tool type '{toolName}' is not supported for testing. Only 'kusto' is currently supported."
+                });
+            }
+
+            // Validate request
+            if (string.IsNullOrWhiteSpace(request.Query))
+            {
+                return BadRequest(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "INVALID_REQUEST",
+                    Message = "Query is required"
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Connector))
+            {
+                return BadRequest(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "INVALID_REQUEST",
+                    Message = "Connector is required"
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Database))
+            {
+                return BadRequest(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "INVALID_REQUEST",
+                    Message = "Database is required"
+                });
+            }
+
+            // Get the connector
+            var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(
+                request.Connector,
+                "kusto",
+                request.Database);
+
+            // Substitute parameters in the query
+            var processedQuery = request.Query;
+            foreach (var param in request.Parameters)
+            {
+                var placeholder = $"##{param.Key}##";
+                processedQuery = processedQuery.Replace(placeholder, param.Value, StringComparison.OrdinalIgnoreCase);
+            }
+
+            // Enforce limit by appending "| take 50" if not already present
+            var trimmedQuery = processedQuery.Trim();
+            if (!trimmedQuery.Contains("| take", StringComparison.OrdinalIgnoreCase))
+            {
+                processedQuery = $"{processedQuery}\n| take 50";
+            }
+
+            // Create KustoClient and execute the query
+            var kustoLogger = HttpContext.RequestServices.GetRequiredService<ILogger<KustoClient>>();
+            var kustoClient = new KustoClient(kustoLogger, connector, _authenticationService);
+
+            var startTime = DateTime.UtcNow;
+            var queryResult = await kustoClient.ExecuteClusterKustoQuery(
+                connector.ClusterUrl,
+                request.Database,
+                processedQuery,
+                HttpContext.RequestAborted);
+            var executionTime = (long)(DateTime.UtcNow - startTime).TotalMilliseconds;
+
+            // Parse the result string to extract columns and rows
+            var columns = new List<string>();
+            var rows = new List<Dictionary<string, object>>();
+
+            if (!string.IsNullOrWhiteSpace(queryResult.Result))
+            {
+                var lines = queryResult.Result.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                if (lines.Length > 0)
+                {
+                    // First line contains column names
+                    columns = lines[0].Split('\t').ToList();
+
+                    // Remaining lines are data rows
+                    for (int i = 1; i < Math.Min(lines.Length, 51); i++) // Take at most 50 rows (+ 1 for header)
+                    {
+                        var values = lines[i].Split('\t');
+                        var rowDict = new Dictionary<string, object>();
+                        for (int j = 0; j < Math.Min(columns.Count, values.Length); j++)
+                        {
+                            rowDict[columns[j]] = values[j];
+                        }
+                        rows.Add(rowDict);
+                    }
+                }
+            }
+
+            var response = new KustoQueryTestResponse
+            {
+                Success = queryResult.Success,
+                RowCount = queryResult.RowCount,
+                Columns = columns,
+                Rows = rows,
+                ExecutionTimeMs = executionTime,
+                QueryExecuted = processedQuery,
+                ErrorMessage = queryResult.Success ? null : queryResult.Result
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in TestKustoQuery");
+
+            // Return error as a failed query result
+            return Ok(new KustoQueryTestResponse
+            {
+                Success = false,
+                RowCount = 0,
+                Columns = new List<string>(),
+                Rows = new List<Dictionary<string, object>>(),
+                ExecutionTimeMs = 0,
+                QueryExecuted = request.Query,
+                ErrorMessage = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
+    /// Improves a system prompt for an extended agent and provides validation warnings
+    /// </summary>
+    [HttpPost("prompt-improvement")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
+    public async Task<ActionResult<PromptImprovementResponse>> ImprovePrompt([FromBody] PromptImprovementRequest request)
+    {
+        try
+        {
+            // Build a single composite prompt (system + instructions + user content) and request JSON output.
+            var systemPrompt = """
+You are a world class prompt and context engineering expert specializing in Azure SRE Operations agents.
+
+Your task is to improve system prompts for extended agents that help Site Reliability Engineers extend Azure SRE Agent to their own systems to diagnose and resolve incidents, and perform operational tasks.
+
+Required Element:
+- Goal: Every prompt MUST have a clear, specific goal. If missing, add a critical warning.
+
+Optional Elements (suggest ONLY if they add genuine value):
+- Role definition
+- Specific tasks/capabilities
+- Output format expectations
+- Edge case handling
+- Tone/style guidelines
+- Constraints/limitations
+
+Important: Keep simple prompts simple. Do not bloat straightforward prompts.
+
+Return ONLY valid JSON with this shape:
+{
+    "improvedPrompt": "Improved version here",
+    "warnings": ["List any critical issues (e.g. missing goal)"],
+    "suggestions": ["Concise, situational improvements"]
+}
+
+User Prompt To Improve (between <<< and >>>):
+<<<
+""";
+
+            var prompt = systemPrompt + request.Prompt + "\n>>>";
+
+            var chatOptions = new ChatOptions { Temperature = 1.0f };
+            var chatResponse = await _chatClient.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
+            var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
+
+            // Log the raw content for debugging
+            _logger.LogInternalInformation("Raw LLM response content: {Content}", content);
+
+            // Parse JSON response with case-insensitive options
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            var jsonResponse = JsonSerializer.Deserialize<PromptImprovementResponse>(content, jsonOptions);
+            if (jsonResponse == null)
+            {
+                return BadRequest("Failed to parse response");
+            }
+
+            // Log the parsed response for debugging
+            _logger.LogInternalInformation("Parsed response - ImprovedPrompt length: {ImprovedPromptLength}, Warnings: {WarningsCount}, Suggestions: {SuggestionsCount}",
+                jsonResponse.ImprovedPrompt?.Length ?? 0,
+                jsonResponse.Warnings?.Count ?? 0,
+                jsonResponse.Suggestions?.Count ?? 0);
+
+            return Ok(jsonResponse);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in ImprovePrompt");
+            return StatusCode(500, new PromptImprovementResponse
+            {
+                ImprovedPrompt = request.Prompt,
+                Warnings = new List<string> { "Failed to improve prompt due to an error" },
+                Suggestions = new List<string> { ex.Message }
+            });
+        }
+    }
+
+    /// <summary>
+    /// List all available system tools
+    /// </summary>
+    /// <param name="search">Search tools by name or description</param>
+    /// <returns>List of system tools</returns>
+    [HttpGet("systemtools")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
+    [ProducesResponseType(typeof(List<Agent.Framework.ToolInfo>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<List<Agent.Framework.ToolInfo>>> ListSystemTools([FromQuery] string? search = null)
+    {
+        try
+        {
+            _logger.LogInternalInformation("ListSystemTools: Invoked with search: {Search}", search);
+
+            var systemTools = await _instructionGenerationService.FilterTools(search);
+
+            _logger.LogInternalInformation("ListSystemTools: Retrieved {Count} system tools", systemTools.Count);
+
+            return Ok(systemTools);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in ListSystemTools");
+            return StatusCode(500, new ExtendedAgentErrorResponse(
+                Status: "error",
+                ErrorCode: "SYSTEM_TOOLS_ERROR",
+                Message: "Failed to list system tools",
+                Timestamp: DateTime.UtcNow,
+                Details: null
+            ));
+        }
+    }
 }

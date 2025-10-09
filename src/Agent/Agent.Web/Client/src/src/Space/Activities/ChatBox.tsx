@@ -43,6 +43,7 @@ export const ChatBox = ({
         isWaitingForStreamingMessages,
         isLoading,
         sendMessage,
+        postSystemMessage,
         isNewAndCleanThread,
         messagesDivRef,
         intersectionObserverRef,
@@ -198,6 +199,7 @@ export const ChatBox = ({
                                 isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
                                 isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
                                 onClickDeepInvestigationButton={onClickDeepInvestigationButton}
+                                postSystemMessage={postSystemMessage}
                             />
                         </CopilotProvider>
                     </div>

@@ -1,4 +1,14 @@
 {
+  "++2B26": [
+    {
+      "type": 0,
+      "value": "Provide values for: "
+    },
+    {
+      "type": 1,
+      "value": "parameters"
+    }
+  ],
   "+/nU/s": [
     {
       "type": 0,
@@ -73,6 +83,12 @@
       "value": "Custom response plan"
     }
   ],
+  "+TFnQ/": [
+    {
+      "type": 0,
+      "value": "Extended Tools (Optional)"
+    }
+  ],
   "+TlNdm": [
     {
       "type": 0,
@@ -83,6 +99,12 @@
     {
       "type": 0,
       "value": "Type"
+    }
+  ],
+  "+UcRHd": [
+    {
+      "type": 0,
+      "value": "Starter agent"
     }
   ],
   "+bJIWo": [
@@ -115,6 +137,12 @@
       "value": "Contributor"
     }
   ],
+  "+kmL8g": [
+    {
+      "type": 0,
+      "value": "Provide instructions for what this scheduled task should do."
+    }
+  ],
   "+l+XEu": [
     {
       "type": 0,
@@ -131,6 +159,12 @@
     {
       "type": 0,
       "value": "Resource group"
+    }
+  ],
+  "//Zb9l": [
+    {
+      "type": 0,
+      "value": "Link this agent to existing handoffs and tools or create new ones without leaving the graph."
     }
   ],
   "//ter/": [
@@ -163,6 +197,22 @@
       "value": "Priorities"
     }
   ],
+  "/F7sHX": [
+    {
+      "type": 0,
+      "value": "Failed to delete tool "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "/RdF9w": [
+    {
+      "type": 0,
+      "value": "Handoffs"
+    }
+  ],
   "/VnDMl": [
     {
       "type": 0,
@@ -191,6 +241,18 @@
     {
       "type": 0,
       "value": "Manage Custom Vision projects."
+    }
+  ],
+  "/rNkXe": [
+    {
+      "type": 0,
+      "value": "Kusto"
+    }
+  ],
+  "/tauMV": [
+    {
+      "type": 0,
+      "value": "e.g., ProductionKusto"
     }
   ],
   "/wdD42": [
@@ -245,6 +307,26 @@
       "value": "totalCount"
     }
   ],
+  "05Rzkx": [
+    {
+      "type": 0,
+      "value": "Test Agent"
+    }
+  ],
+  "08bD52": [
+    {
+      "type": 0,
+      "value": "Tool created, but attaching to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " failed. Retry link."
+    }
+  ],
   "0D+7fr": [
     {
       "type": 0,
@@ -273,6 +355,12 @@
     {
       "type": 0,
       "value": "Connection to PagerDuty failed. Please check your access key and try again."
+    }
+  ],
+  "0TOEqZ": [
+    {
+      "type": 0,
+      "value": "Enter a valid cron expression."
     }
   ],
   "0TkVxX": [
@@ -311,16 +399,66 @@
       "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more during preview, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
     }
   ],
+  "0cEOKu": [
+    {
+      "type": 0,
+      "value": "Advanced options"
+    }
+  ],
   "0fhwgp": [
     {
       "type": 0,
       "value": "Select task"
     }
   ],
+  "0ltHAS": [
+    {
+      "type": 0,
+      "value": "e.g., Every weekday at 9am"
+    }
+  ],
   "0mx8D9": [
     {
       "type": 0,
       "value": "The tool list is generated from the custom response guidance. If you modify the guidance, select Regenerate to update the tool list. Once regenerated, the previous list cannot be restored. To add or remove tools, select Manage tools."
+    }
+  ],
+  "0nrwMu": [
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Create scheduled tasks to run agents automatically."
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "1 scheduled task ready to run agents automatically."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " scheduled tasks ready to run agents automatically."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "0oLj/t": [
@@ -347,6 +485,12 @@
       "value": "Manage Azure Data Factory instances."
     }
   ],
+  "0w+w97": [
+    {
+      "type": 0,
+      "value": "Edit YAML"
+    }
+  ],
   "0w0iFy": [
     {
       "type": 0,
@@ -371,10 +515,42 @@
       "value": "This will permanently delete the incident response plan, which might affect how incidents are processed and also any custom response plans. Are you sure you want to delete?"
     }
   ],
+  "15nhHh": [
+    {
+      "type": 0,
+      "value": "A unique identifier for your agent"
+    }
+  ],
+  "18C/Jh": [
+    {
+      "type": 0,
+      "value": "Override default meta agent"
+    }
+  ],
   "1DDIYv": [
     {
       "type": 0,
       "value": "Are you sure you want to resume this scheduled task?"
+    }
+  ],
+  "1EnaNQ": [
+    {
+      "type": 0,
+      "value": "Next run: "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
+  "1FMpZj": [
+    {
+      "type": 0,
+      "value": "Error loading graph: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "1HLt0U": [
@@ -455,6 +631,12 @@
     {
       "type": 0,
       "value": "Connect repository"
+    }
+  ],
+  "1hiiU/": [
+    {
+      "type": 0,
+      "value": "Review AI suggestions and warnings"
     }
   ],
   "1hu8Uv": [
@@ -575,10 +757,28 @@
       "value": "Deep investigation"
     }
   ],
+  "2e3GZQ": [
+    {
+      "type": 0,
+      "value": "Create a handoff agent"
+    }
+  ],
   "2hB9SP": [
     {
       "type": 0,
       "value": "Azure Monitor Workspace resource name"
+    }
+  ],
+  "2kRPCZ": [
+    {
+      "type": 0,
+      "value": "System tools"
+    }
+  ],
+  "2mMJRv": [
+    {
+      "type": 0,
+      "value": "Connectors"
     }
   ],
   "2os8R1": [
@@ -605,6 +805,12 @@
       "value": "Grafana dashboard"
     }
   ],
+  "3/wF0G": [
+    {
+      "type": 0,
+      "value": "Slash commands"
+    }
+  ],
   "30Ap/Y": [
     {
       "type": 0,
@@ -615,6 +821,24 @@
     {
       "type": 0,
       "value": "No incidents found"
+    }
+  ],
+  "33HEdR": [
+    {
+      "type": 0,
+      "value": "Tools this agent can call"
+    }
+  ],
+  "35Pxrz": [
+    {
+      "type": 0,
+      "value": "Enter a name and instructions before creating this agent."
+    }
+  ],
+  "387FD2": [
+    {
+      "type": 0,
+      "value": "Extended agents"
     }
   ],
   "3BubSI": [
@@ -629,6 +853,12 @@
       "value": "Enter resource name"
     }
   ],
+  "3H77Ic": [
+    {
+      "type": 0,
+      "value": "No agents available yet"
+    }
+  ],
   "3JVa6k": [
     {
       "type": 0,
@@ -641,10 +871,22 @@
       "value": "Deleting selected managed resource groups in progress"
     }
   ],
+  "3Pq+hf": [
+    {
+      "type": 0,
+      "value": "Create and connect"
+    }
+  ],
   "3PxUNi": [
     {
       "type": 0,
       "value": "Review + test"
+    }
+  ],
+  "3R3pgd": [
+    {
+      "type": 0,
+      "value": "No suggestions available"
     }
   ],
   "3Rh7XU": [
@@ -657,6 +899,12 @@
     {
       "type": 0,
       "value": "Suggested prompts for your resources"
+    }
+  ],
+  "3VI9mt": [
+    {
+      "type": 0,
+      "value": "Save Changes"
     }
   ],
   "3a5wL8": [
@@ -713,6 +961,12 @@
       "value": "The custom incident response plan was successfully updated"
     }
   ],
+  "4/nSt8": [
+    {
+      "type": 0,
+      "value": "Select an existing trigger"
+    }
+  ],
   "40YXE1": [
     {
       "type": 0,
@@ -731,6 +985,24 @@
       "value": "Discard changes?"
     }
   ],
+  "44QmgP": [
+    {
+      "type": 0,
+      "value": "connector"
+    }
+  ],
+  "44Y8wQ": [
+    {
+      "type": 0,
+      "value": "No common tools configured."
+    }
+  ],
+  "451B6Z": [
+    {
+      "type": 0,
+      "value": "No agents found"
+    }
+  ],
   "477I0g": [
     {
       "type": 0,
@@ -741,6 +1013,38 @@
     {
       "type": 0,
       "value": "Cancel"
+    }
+  ],
+  "47Qksb": [
+    {
+      "type": 0,
+      "value": "This agent"
+    }
+  ],
+  "498yM3": [
+    {
+      "type": 0,
+      "value": "Runs "
+    },
+    {
+      "type": 1,
+      "value": "description"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "4BVpFN": [
+    {
+      "type": 0,
+      "value": "YAML must include a spec object."
+    }
+  ],
+  "4C44ie": [
+    {
+      "type": 0,
+      "value": "Trigger details"
     }
   ],
   "4Ez7HI": [
@@ -767,10 +1071,22 @@
       "value": "Can you audit best practices for my resource?"
     }
   ],
+  "4QLM52": [
+    {
+      "type": 0,
+      "value": "New agents can take a few seconds to appear in the graph. If you do not see it right away, refresh the list after a brief moment."
+    }
+  ],
   "4TnjxL": [
     {
       "type": 0,
       "value": "API Management Service Reader Role"
+    }
+  ],
+  "4XOvey": [
+    {
+      "type": 0,
+      "value": "AI Agents"
     }
   ],
   "4ZoIgV": [
@@ -783,6 +1099,12 @@
     {
       "type": 0,
       "value": "Go to response plan"
+    }
+  ],
+  "4fPELu": [
+    {
+      "type": 0,
+      "value": "Function"
     }
   ],
   "4ii5zj": [
@@ -815,10 +1137,22 @@
       "value": "An incident response plan defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents."
     }
   ],
+  "4uiKBK": [
+    {
+      "type": 0,
+      "value": "Select a Kusto connector"
+    }
+  ],
   "4upwsn": [
     {
       "type": 0,
       "value": "Selected Files"
+    }
+  ],
+  "4z+NaY": [
+    {
+      "type": 0,
+      "value": "The type of data source"
     }
   ],
   "5+bQr/": [
@@ -865,6 +1199,26 @@
     {
       "type": 0,
       "value": "Sending a report..."
+    }
+  ],
+  "5MSxYS": [
+    {
+      "type": 0,
+      "value": "Will add as handoff to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "5POweM": [
+    {
+      "type": 0,
+      "value": "Create New Entity"
     }
   ],
   "5QYdPU": [
@@ -1013,6 +1367,12 @@
       "value": "results"
     }
   ],
+  "5q8BxP": [
+    {
+      "type": 0,
+      "value": "What would you like to create?"
+    }
+  ],
   "5sg7KC": [
     {
       "type": 0,
@@ -1035,6 +1395,16 @@
     {
       "type": 0,
       "value": "This will permanently delete this incident and the related incident thread from Azure SRE Agent. Are you sure you want to delete this incident?"
+    }
+  ],
+  "5walLE": [
+    {
+      "type": 0,
+      "value": "Tools · "
+    },
+    {
+      "type": 1,
+      "value": "count"
     }
   ],
   "5y2qWO": [
@@ -1067,6 +1437,12 @@
       "value": "Cognitive Services LUIS Writer"
     }
   ],
+  "67UmDz": [
+    {
+      "type": 0,
+      "value": "Parameter syntax:"
+    }
+  ],
   "69FfbB": [
     {
       "type": 0,
@@ -1097,6 +1473,12 @@
       "value": "Create Grafana dashboard in the same resource group"
     }
   ],
+  "6KOA0x": [
+    {
+      "type": 0,
+      "value": "Cleared the composer. Type a new question to begin a fresh chat."
+    }
+  ],
   "6LZ2qn": [
     {
       "type": 0,
@@ -1121,10 +1503,22 @@
       "value": "User-assigned Managed Identity"
     }
   ],
+  "6TO45V": [
+    {
+      "type": 0,
+      "value": "No parameters defined."
+    }
+  ],
   "6UyZlH": [
     {
       "type": 0,
       "value": "PagerDuty"
+    }
+  ],
+  "6Vngei": [
+    {
+      "type": 0,
+      "value": "Trigger type"
     }
   ],
   "6XFO/C": [
@@ -1233,10 +1627,22 @@
       "value": "Data source"
     }
   ],
+  "7Cy5xk": [
+    {
+      "type": 0,
+      "value": "Go to Incident management"
+    }
+  ],
   "7Eq7I8": [
     {
       "type": 0,
       "value": "Review mode"
+    }
+  ],
+  "7Hg58U": [
+    {
+      "type": 0,
+      "value": "e.g., QueryKusto"
     }
   ],
   "7M8VZy": [
@@ -1257,6 +1663,24 @@
       "value": "Azure Monitor"
     }
   ],
+  "7TVRcx": [
+    {
+      "type": 0,
+      "value": "Retry link"
+    }
+  ],
+  "7Uk/61": [
+    {
+      "type": 0,
+      "value": "Agent configuration"
+    }
+  ],
+  "7Vep/o": [
+    {
+      "type": 0,
+      "value": "A unique identifier for your connector"
+    }
+  ],
   "7cS956": [
     {
       "type": 0,
@@ -1275,6 +1699,50 @@
       "value": "Project details"
     }
   ],
+  "7nUCu9": [
+    {
+      "type": 0,
+      "value": "Timezone"
+    }
+  ],
+  "7oBAcZ": [
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+            {
+              "type": 0,
+              "value": "No incident response plans yet"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "1 incident response plan ready"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " incident response plans ready"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "7qOQpv": [
     {
       "type": 0,
@@ -1285,6 +1753,26 @@
     {
       "type": 0,
       "value": "Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data. Azure Managed Grafana will incur costs in your subscription."
+    }
+  ],
+  "7smbCB": [
+    {
+      "type": 0,
+      "value": "Define autonomous agents with custom instructions and capabilities"
+    }
+  ],
+  "7tqXmc": [
+    {
+      "type": 0,
+      "value": "Describe how "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " should handle new incidents."
     }
   ],
   "7vl63m": [
@@ -1311,6 +1799,22 @@
       "value": "Go to Identity"
     }
   ],
+  "83YwiU": [
+    {
+      "type": 0,
+      "value": "Tool details · "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "86kOeb": [
+    {
+      "type": 0,
+      "value": "No matches for the current filters."
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -1329,6 +1833,12 @@
       "value": "Creating data connector"
     }
   ],
+  "8LMIGa": [
+    {
+      "type": 0,
+      "value": "These will be replaced with actual values at runtime."
+    }
+  ],
   "8NHZQV": [
     {
       "type": 0,
@@ -1341,10 +1851,22 @@
       "value": "Last 24 hours"
     }
   ],
+  "8Q504V": [
+    {
+      "type": 0,
+      "value": "Metadata"
+    }
+  ],
   "8QX1EO": [
     {
       "type": 0,
       "value": "I'm currently gathering information about your app and analyzing your resources, which might take a few minutes."
+    }
+  ],
+  "8RcpTO": [
+    {
+      "type": 0,
+      "value": "Describe this connector..."
     }
   ],
   "8RdOD0": [
@@ -1393,6 +1915,12 @@
     {
       "type": 0,
       "value": "results"
+    }
+  ],
+  "8rNTuV": [
+    {
+      "type": 0,
+      "value": "Select an agent to hand off to"
     }
   ],
   "8v0Pyn": [
@@ -1465,10 +1993,32 @@
       "value": "Planning"
     }
   ],
+  "9Dp2VU": [
+    {
+      "type": 0,
+      "value": "Save failed: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
+  "9GSKOR": [
+    {
+      "type": 0,
+      "value": "This overrides the default meta agent to remove general Azure knowledge and provide a more focused experience."
+    }
+  ],
   "9MPGF8": [
     {
       "type": 0,
       "value": "Agent Instructions"
+    }
+  ],
+  "9MwJ6v": [
+    {
+      "type": 0,
+      "value": "e.g., IncidentAnalyzer"
     }
   ],
   "9VUlhV": [
@@ -1493,6 +2043,16 @@
     {
       "type": 0,
       "value": "Title"
+    }
+  ],
+  "9bH3e2": [
+    {
+      "type": 0,
+      "value": "Nodes: "
+    },
+    {
+      "type": 1,
+      "value": "count"
     }
   ],
   "9uOFF3": [
@@ -1565,6 +2125,12 @@
       "value": "No data connectors configured"
     }
   ],
+  "ATXGa+": [
+    {
+      "type": 0,
+      "value": "Agent Name"
+    }
+  ],
   "ATYp8z": [
     {
       "type": 0,
@@ -1583,6 +2149,16 @@
       "value": "Enter instructions"
     }
   ],
+  "AdRf7Y": [
+    {
+      "type": 0,
+      "value": "Detected cron: "
+    },
+    {
+      "type": 1,
+      "value": "cron"
+    }
+  ],
   "AeWmvh": [
     {
       "type": 0,
@@ -1595,6 +2171,12 @@
       "value": "Monitoring Reader Role"
     }
   ],
+  "Ai/0lk": [
+    {
+      "type": 0,
+      "value": "A function or capability for agents to use"
+    }
+  ],
   "AmnkPD": [
     {
       "type": 0,
@@ -1605,6 +2187,12 @@
     {
       "type": 0,
       "value": "You do not have permission to favorite or unfavorite threads"
+    }
+  ],
+  "AqVLXi": [
+    {
+      "type": 0,
+      "value": "Create reusable functions and actions for your agents"
     }
   ],
   "ArsZkp": [
@@ -1625,6 +2213,32 @@
       "value": "High"
     }
   ],
+  "AzTehW": [
+    {
+      "type": 0,
+      "value": "Review and edit the full "
+    },
+    {
+      "type": 1,
+      "value": "entityLabel"
+    },
+    {
+      "type": 0,
+      "value": " YAML."
+    }
+  ],
+  "B3Q5mz": [
+    {
+      "type": 0,
+      "value": "Trigger"
+    }
+  ],
+  "B5kyn8": [
+    {
+      "type": 0,
+      "value": "connectors"
+    }
+  ],
   "BEck3n": [
     {
       "type": 0,
@@ -1641,6 +2255,18 @@
     {
       "type": 0,
       "value": "Azure Center for SAP solutions reader"
+    }
+  ],
+  "BP3wUO": [
+    {
+      "type": 0,
+      "value": "The type of tool functionality"
+    }
+  ],
+  "BSQQkf": [
+    {
+      "type": 0,
+      "value": "Query returned no results"
     }
   ],
   "BT9p8f": [
@@ -1661,6 +2287,12 @@
       "value": "Update"
     }
   ],
+  "BWt4Jj": [
+    {
+      "type": 0,
+      "value": "Binding"
+    }
+  ],
   "Bcgdb7": [
     {
       "type": 0,
@@ -1679,6 +2311,24 @@
     {
       "type": 0,
       "value": "List cluster user credential action."
+    }
+  ],
+  "BgdyiU": [
+    {
+      "type": 0,
+      "value": "Incident response"
+    }
+  ],
+  "BkOSF2": [
+    {
+      "type": 0,
+      "value": "Parameters"
+    }
+  ],
+  "Bluuk+": [
+    {
+      "type": 0,
+      "value": "Data type and requirement for validation"
     }
   ],
   "C2PrxB": [
@@ -1723,16 +2373,40 @@
       "value": "Write access to Language service resources."
     }
   ],
+  "CNd+KS": [
+    {
+      "type": 0,
+      "value": "Connect related agents and tools"
+    }
+  ],
+  "CTRqZs": [
+    {
+      "type": 0,
+      "value": "Test query"
+    }
+  ],
   "CVAKJE": [
     {
       "type": 0,
       "value": "You do not have permission to delete this thread"
     }
   ],
+  "CX0VFc": [
+    {
+      "type": 0,
+      "value": "Loading trigger status…"
+    }
+  ],
   "CZ6s9k": [
     {
       "type": 0,
       "value": "Degraded core application groups"
+    }
+  ],
+  "CaZAZZ": [
+    {
+      "type": 0,
+      "value": "Open scheduled tasks"
     }
   ],
   "CbKRyU": [
@@ -1839,6 +2513,12 @@
       "value": "Mitigated by agent"
     }
   ],
+  "DMEE1o": [
+    {
+      "type": 0,
+      "value": "Select a tool to connect"
+    }
+  ],
   "DMd1Ql": [
     {
       "type": 0,
@@ -1849,6 +2529,12 @@
     {
       "type": 0,
       "value": "Average latency"
+    }
+  ],
+  "DQfSk8": [
+    {
+      "type": 0,
+      "value": "Output type"
     }
   ],
   "DVVbGP": [
@@ -1887,6 +2573,12 @@
       "value": "Updating custom incident response plan"
     }
   ],
+  "DhBWKr": [
+    {
+      "type": 0,
+      "value": "No instructions provided yet."
+    }
+  ],
   "DlSXUR": [
     {
       "type": 0,
@@ -1923,6 +2615,12 @@
       "value": "Memory Search Results"
     }
   ],
+  "Dw2xIY": [
+    {
+      "type": 0,
+      "value": "Create a new tool"
+    }
+  ],
   "Dx3Xj3": [
     {
       "type": 0,
@@ -1953,10 +2651,36 @@
       "value": "Download PNG"
     }
   ],
+  "EBpelF": [
+    {
+      "type": 0,
+      "value": "No warnings found"
+    }
+  ],
   "ED/jWk": [
     {
       "type": 0,
       "value": "Transactions for last 30 minutes"
+    }
+  ],
+  "EHyU+4": [
+    {
+      "type": 0,
+      "value": "Use "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "##ParamName##"
+        }
+      ],
+      "type": 8,
+      "value": "code"
+    },
+    {
+      "type": 0,
+      "value": " in your query to define parameter placeholders."
     }
   ],
   "EI/cfO": [
@@ -1997,6 +2721,12 @@
       "value": "Enter filter name"
     }
   ],
+  "EStH0G": [
+    {
+      "type": 0,
+      "value": "Agent Builder"
+    }
+  ],
   "EWrExf": [
     {
       "type": 0,
@@ -2033,6 +2763,12 @@
       "value": "API Management Workspace Contributor"
     }
   ],
+  "EicA1w": [
+    {
+      "type": 0,
+      "value": "Test the query to continue."
+    }
+  ],
   "ElI1gd": [
     {
       "type": 0,
@@ -2063,6 +2799,38 @@
       "value": "User"
     }
   ],
+  "F5b1Mw": [
+    {
+      "type": 0,
+      "value": "Currently showing "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "F6qYbg": [
+    {
+      "type": 0,
+      "value": "Select tools this agent can use"
+    }
+  ],
+  "F8R5Bb": [
+    {
+      "type": 0,
+      "value": "Connections: "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    }
+  ],
+  "F8UOXS": [
+    {
+      "type": 0,
+      "value": "Relationship preview"
+    }
+  ],
   "F9LrJA": [
     {
       "type": 0,
@@ -2073,6 +2841,26 @@
     {
       "type": 0,
       "value": "Grafana dashboard linked successfully"
+    }
+  ],
+  "FE2ukR": [
+    {
+      "type": 0,
+      "value": "Remove handoff "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "FFFf74": [
+    {
+      "type": 0,
+      "value": "Last run: "
+    },
+    {
+      "type": 1,
+      "value": "value"
     }
   ],
   "FGAk9M": [
@@ -2087,16 +2875,34 @@
       "value": "Repository connection"
     }
   ],
+  "FO/nez": [
+    {
+      "type": 0,
+      "value": "Describe what this tool does..."
+    }
+  ],
   "FSYccN": [
     {
       "type": 0,
       "value": "When should this task run?"
     }
   ],
+  "FTWkpv": [
+    {
+      "type": 0,
+      "value": "Create new entity"
+    }
+  ],
   "FUQvS0": [
     {
       "type": 0,
       "value": "Subscription ID"
+    }
+  ],
+  "FVOAIQ": [
+    {
+      "type": 0,
+      "value": "Handoff Agents (Optional)"
     }
   ],
   "FZwBv0": [
@@ -2109,6 +2915,12 @@
     {
       "type": 0,
       "value": "ServiceNow endpoint is required."
+    }
+  ],
+  "FkvYGq": [
+    {
+      "type": 0,
+      "value": "System prompt that defines the agent's behavior"
     }
   ],
   "FnKIAW": [
@@ -2127,6 +2939,24 @@
     {
       "type": 0,
       "value": "Closed"
+    }
+  ],
+  "FvhvDO": [
+    {
+      "type": 0,
+      "value": "YAML"
+    }
+  ],
+  "FyrC09": [
+    {
+      "type": 0,
+      "value": "Create trigger"
+    }
+  ],
+  "FzjwEg": [
+    {
+      "type": 0,
+      "value": "Critic on handoff"
     }
   ],
   "G+JlQs": [
@@ -2179,6 +3009,12 @@
       "value": "- in progress"
     }
   ],
+  "GCmxza": [
+    {
+      "type": 0,
+      "value": "Back to commands"
+    }
+  ],
   "GUx4Ld": [
     {
       "type": 0,
@@ -2197,6 +3033,20 @@
       "value": "Minimal permission to view Cognitive Services usages."
     }
   ],
+  "GpZr9J": [
+    {
+      "type": 0,
+      "value": "Automatically run "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " on a schedule to keep key systems healthy."
+    }
+  ],
   "GroBmn": [
     {
       "type": 0,
@@ -2207,6 +3057,22 @@
     {
       "type": 0,
       "value": "Name is required"
+    }
+  ],
+  "GzKpRn": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " params detected"
+    }
+  ],
+  "H1OQZj": [
+    {
+      "type": 0,
+      "value": "YAML must include kind: {expectedKind}."
     }
   ],
   "H3ooTI": [
@@ -2231,6 +3097,12 @@
     {
       "type": 0,
       "value": "Investigation Results"
+    }
+  ],
+  "HNECLT": [
+    {
+      "type": 0,
+      "value": "Build Your Agent Ecosystem"
     }
   ],
   "HOJNsf": [
@@ -2273,6 +3145,12 @@
       "value": "errorMessage"
     }
   ],
+  "HiBsED": [
+    {
+      "type": 0,
+      "value": "No handoffs added yet."
+    }
+  ],
   "HjTHxo": [
     {
       "type": 0,
@@ -2297,6 +3175,12 @@
       "value": "End date"
     }
   ],
+  "Hv0XJn": [
+    {
+      "type": 0,
+      "value": "Suggestions"
+    }
+  ],
   "Hv7pA2": [
     {
       "type": 0,
@@ -2313,6 +3197,12 @@
     {
       "type": 0,
       "value": "- completed"
+    }
+  ],
+  "I5k4g/": [
+    {
+      "type": 0,
+      "value": "Use existing"
     }
   ],
   "I7aBF4": [
@@ -2345,16 +3235,64 @@
       "value": "App Configuration Contributor"
     }
   ],
+  "IEIivr": [
+    {
+      "type": 0,
+      "value": "Connected tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    },
+    {
+      "type": 0,
+      "value": " to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "IF3r+X": [
     {
       "type": 0,
       "value": "Azure Managed Grafana"
     }
   ],
+  "IJX2gV": [
+    {
+      "type": 0,
+      "value": "Connect handoffs and tools"
+    }
+  ],
+  "INiSE2": [
+    {
+      "type": 0,
+      "value": "Tool Name"
+    }
+  ],
   "IQaKwH": [
     {
       "type": 0,
       "value": "Lets you read Cognitive Services data."
+    }
+  ],
+  "ISsGbC": [
+    {
+      "type": 1,
+      "value": "sourceAgentName"
+    },
+    {
+      "type": 0,
+      "value": " —handoff→ "
+    },
+    {
+      "type": 1,
+      "value": "targetAgentName"
     }
   ],
   "ITYqY7": [
@@ -2387,6 +3325,12 @@
       "value": "You do not have permission to add or edit annotations."
     }
   ],
+  "IcB2fr": [
+    {
+      "type": 0,
+      "value": "Tool method argument that receives this value"
+    }
+  ],
   "IiNwpr": [
     {
       "type": 0,
@@ -2401,16 +3345,38 @@
       "value": "."
     }
   ],
+  "InWqys": [
+    {
+      "type": 0,
+      "value": "Optional"
+    }
+  ],
   "IoApza": [
     {
       "type": 0,
       "value": "Collapse navigation"
     }
   ],
+  "IrCHQG": [
+    {
+      "type": 0,
+      "value": "Select an agent to view its configuration."
+    }
+  ],
   "IuFETn": [
     {
       "type": 0,
       "value": "Duration"
+    }
+  ],
+  "IvKdxU": [
+    {
+      "type": 0,
+      "value": "System tools · "
+    },
+    {
+      "type": 1,
+      "value": "count"
     }
   ],
   "IvjoDS": [
@@ -2445,6 +3411,12 @@
     {
       "type": 1,
       "value": "name"
+    }
+  ],
+  "J7FnS1": [
+    {
+      "type": 0,
+      "value": "Connect existing items"
     }
   ],
   "JAtEuU": [
@@ -2487,6 +3459,12 @@
       "value": "Previous"
     }
   ],
+  "JMdyE9": [
+    {
+      "type": 0,
+      "value": "Use AI to enhance and validate your agent instructions"
+    }
+  ],
   "JRLN0D": [
     {
       "type": 0,
@@ -2515,6 +3493,44 @@
     {
       "type": 0,
       "value": "Client"
+    }
+  ],
+  "JXHRt5": [
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+            {
+              "type": 0,
+              "value": "No scheduled tasks yet"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "1 scheduled task ready"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " scheduled tasks ready"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "JXtKxS": [
@@ -2591,10 +3607,28 @@
       "value": "Resource Metrics"
     }
   ],
+  "Jz5GjX": [
+    {
+      "type": 0,
+      "value": "Review Your trigger"
+    }
+  ],
+  "K1h5xo": [
+    {
+      "type": 0,
+      "value": "Scheduled tasks require an upgrade. Contact your administrator to enable them."
+    }
+  ],
   "K3r6DQ": [
     {
       "type": 0,
       "value": "Delete"
+    }
+  ],
+  "K6WTYI": [
+    {
+      "type": 0,
+      "value": "A data source connection for tools"
     }
   ],
   "KAYpG9": [
@@ -2633,6 +3667,12 @@
       "value": "Zoom In"
     }
   ],
+  "KR79he": [
+    {
+      "type": 0,
+      "value": "New agent"
+    }
+  ],
   "KS5JHs": [
     {
       "type": 0,
@@ -2651,10 +3691,22 @@
       "value": "If you click 'Authorize', this operation will be executed on your behalf using your credentials."
     }
   ],
+  "KgcF6B": [
+    {
+      "type": 0,
+      "value": "Yes/No"
+    }
+  ],
   "Kkc3/u": [
     {
       "type": 0,
       "value": "Edit incident response plan"
+    }
+  ],
+  "Km+WSh": [
+    {
+      "type": 0,
+      "value": "Map to argument"
     }
   ],
   "KoJ1C+": [
@@ -2671,6 +3723,12 @@
       "value": ")"
     }
   ],
+  "KryvVM": [
+    {
+      "type": 0,
+      "value": "Parameter values (for testing)"
+    }
+  ],
   "KsuM4D": [
     {
       "type": 0,
@@ -2683,6 +3741,12 @@
       "value": "Take Screenshot"
     }
   ],
+  "Kxd0Vr": [
+    {
+      "type": 0,
+      "value": "Allow parallel tool calls"
+    }
+  ],
   "KyDsjH": [
     {
       "type": 0,
@@ -2693,6 +3757,18 @@
     {
       "type": 0,
       "value": "Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries."
+    }
+  ],
+  "L+ewYY": [
+    {
+      "type": 0,
+      "value": "AI suggestions discarded"
+    }
+  ],
+  "L/i6dy": [
+    {
+      "type": 0,
+      "value": "We’ll mark this agent as Autonomous automatically so it can run on its own."
     }
   ],
   "L0KVkI": [
@@ -2733,6 +3809,12 @@
       "value": "Review resource groups"
     }
   ],
+  "LPz7Qc": [
+    {
+      "type": 0,
+      "value": "Tool Type"
+    }
+  ],
   "LRJHcs": [
     {
       "type": 0,
@@ -2755,6 +3837,12 @@
       "value": "View all resources, but does not allow you to make any changes."
     }
   ],
+  "LTDPn/": [
+    {
+      "type": 0,
+      "value": "You have unsaved changes."
+    }
+  ],
   "LUSiug": [
     {
       "type": 0,
@@ -2771,6 +3859,12 @@
       "value": "Filters define which incidents the incident response plan applies to. These apply to the list of incidents previewed in the next step."
     }
   ],
+  "LkUvu/": [
+    {
+      "type": 0,
+      "value": "Describe the schedule"
+    }
+  ],
   "LnglaU": [
     {
       "type": 0,
@@ -2781,6 +3875,12 @@
     {
       "type": 0,
       "value": "Custom response plan name"
+    }
+  ],
+  "LsGLc0": [
+    {
+      "type": 0,
+      "value": "Direct argument"
     }
   ],
   "Lv0zJu": [
@@ -2819,6 +3919,12 @@
       "value": "Add filter"
     }
   ],
+  "M3159R": [
+    {
+      "type": 0,
+      "value": "Quick create"
+    }
+  ],
   "M4emJP": [
     {
       "type": 0,
@@ -2855,10 +3961,28 @@
       "value": "Incidents not handled by response plan criteria"
     }
   ],
+  "MJUuF5": [
+    {
+      "type": 0,
+      "value": "Failed to improve instructions. Please try again."
+    }
+  ],
+  "MLVVhB": [
+    {
+      "type": 0,
+      "value": "Dictionary key (map_to)"
+    }
+  ],
   "MOsoTa": [
     {
       "type": 0,
       "value": "Enter a response plan name"
+    }
+  ],
+  "MOttDA": [
+    {
+      "type": 0,
+      "value": "Yes, override with custom meta agent"
     }
   ],
   "MPzBut": [
@@ -2879,16 +4003,38 @@
       "value": "Starting September 25th, 2025, users without one of the required Azure role-based access control (RBAC) roles will lose access to Azure SRE Agent."
     }
   ],
+  "MaaxCM": [
+    {
+      "type": 0,
+      "value": "Kusto Configuration"
+    }
+  ],
   "MhTfXm": [
     {
       "type": 0,
       "value": "Select an incident and run the test to see the results here."
     }
   ],
+  "MjxZUD": [
+    {
+      "type": 0,
+      "value": "Use natural language—we’ll translate it into a cron schedule."
+    }
+  ],
   "MlX0aZ": [
     {
       "type": 0,
       "value": "All impacted services"
+    }
+  ],
+  "MnlPLt": [
+    {
+      "type": 0,
+      "value": "Handoffs · "
+    },
+    {
+      "type": 1,
+      "value": "count"
     }
   ],
   "Mnvpbx": [
@@ -2925,10 +4071,44 @@
       "value": "Data Points"
     }
   ],
+  "N+XwM+": [
+    {
+      "type": 0,
+      "value": "Create Your First Entity"
+    }
+  ],
   "N+sJfO": [
     {
       "type": 0,
       "value": "Grid view"
+    }
+  ],
+  "N0wOFf": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    },
+    {
+      "type": 0,
+      "value": " and connected it to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "N7lPfx": [
+    {
+      "type": 0,
+      "value": "Relationships"
     }
   ],
   "NAAdaF": [
@@ -2953,6 +4133,12 @@
     {
       "type": 0,
       "value": "Storage Blob Data Contributor"
+    }
+  ],
+  "NDy5dO": [
+    {
+      "type": 0,
+      "value": "Agent Type"
     }
   ],
   "NMSoXQ": [
@@ -3003,6 +4189,12 @@
       "value": "Connect to ServiceNow with your instance endpoint and credentials. This allows the agent to manage incidents and tickets in your ServiceNow environment."
     }
   ],
+  "NlBiTm": [
+    {
+      "type": 0,
+      "value": "Filtered agent"
+    }
+  ],
   "Nrc9ba": [
     {
       "type": 0,
@@ -3013,6 +4205,12 @@
     {
       "type": 0,
       "value": "Create data connector"
+    }
+  ],
+  "O3Ak71": [
+    {
+      "type": 0,
+      "value": "You do not have permission to use this feature."
     }
   ],
   "O79Wpv": [
@@ -3039,6 +4237,12 @@
       "value": "Learn more about prompts"
     }
   ],
+  "OLSbA3": [
+    {
+      "type": 0,
+      "value": "Create a plan that starts this agent when a new incident is detected."
+    }
+  ],
   "OMp9VI": [
     {
       "type": 0,
@@ -3057,6 +4261,20 @@
     {
       "type": 0,
       "value": "Assigned to"
+    }
+  ],
+  "OO5Y94": [
+    {
+      "type": 0,
+      "value": "We couldn't find tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    },
+    {
+      "type": 0,
+      "value": ". Refresh and try again."
     }
   ],
   "ORGv1Q": [
@@ -3101,6 +4319,26 @@
       "value": "Hide thread menu"
     }
   ],
+  "OXek0m": [
+    {
+      "type": 0,
+      "value": "Use standard cron syntax (UTC) to control when the agent runs."
+    }
+  ],
+  "OeU7Xk": [
+    {
+      "type": 0,
+      "value": "Explain what this scheduled trigger does for "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "OlIql8": [
     {
       "type": 0,
@@ -3117,6 +4355,12 @@
     {
       "type": 0,
       "value": "No changes found for this correlation ID"
+    }
+  ],
+  "Oshix6": [
+    {
+      "type": 0,
+      "value": "Select an existing agent below to add as a handoff."
     }
   ],
   "OvzONl": [
@@ -3149,10 +4393,22 @@
       "value": "Search Service Contributor"
     }
   ],
+  "P5X8Kw": [
+    {
+      "type": 0,
+      "value": "Review your trigger configuration before creating"
+    }
+  ],
   "P7MNl8": [
     {
       "type": 0,
       "value": "Provide agent feedback"
+    }
+  ],
+  "P7PLVj": [
+    {
+      "type": 0,
+      "value": "Date"
     }
   ],
   "P9odAr": [
@@ -3165,6 +4421,12 @@
     {
       "type": 0,
       "value": "My recent prompts"
+    }
+  ],
+  "PFUTWt": [
+    {
+      "type": 0,
+      "value": "AI improvements applied to instructions"
     }
   ],
   "PFtMy9": [
@@ -3189,6 +4451,24 @@
     {
       "type": 0,
       "value": "Filter incidents"
+    }
+  ],
+  "PPrKNq": [
+    {
+      "type": 0,
+      "value": "Defines how the agent operates"
+    }
+  ],
+  "PS7hBo": [
+    {
+      "type": 0,
+      "value": "Choose the Kusto connector this tool will query"
+    }
+  ],
+  "PU1wDo": [
+    {
+      "type": 0,
+      "value": "Common tools"
     }
   ],
   "PW+sL4": [
@@ -3289,6 +4569,12 @@
       "value": "I want to..."
     }
   ],
+  "PysW/n": [
+    {
+      "type": 0,
+      "value": "Reset changes"
+    }
+  ],
   "PzGaVI": [
     {
       "type": 0,
@@ -3305,6 +4591,12 @@
     {
       "type": 0,
       "value": "Storage Blob Data Reader"
+    }
+  ],
+  "Q7/1w4": [
+    {
+      "type": 0,
+      "value": "Required for testing"
     }
   ],
   "Q8Qw5B": [
@@ -3361,6 +4653,22 @@
       "value": "Uses (Trigger, Action)"
     }
   ],
+  "Qc3Kdl": [
+    {
+      "type": 0,
+      "value": "Example: "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "where SubscriptionId == \"##SubscriptionId##\""
+        }
+      ],
+      "type": 8,
+      "value": "code"
+    }
+  ],
   "QdDYGR": [
     {
       "type": 0,
@@ -3395,6 +4703,12 @@
     {
       "type": 0,
       "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+    }
+  ],
+  "QomX1y": [
+    {
+      "type": 0,
+      "value": "e.g., 0 9 * * 1-5"
     }
   ],
   "QwnGVY": [
@@ -3469,6 +4783,24 @@
       "value": "Only alphanumeric characters and dashes are allowed, and the value must be 3-44 characters long."
     }
   ],
+  "RI59Ed": [
+    {
+      "type": 0,
+      "value": "Add existing tool"
+    }
+  ],
+  "RK2Ddg": [
+    {
+      "type": 0,
+      "value": "Orchestrator"
+    }
+  ],
+  "RR+13c": [
+    {
+      "type": 0,
+      "value": "Replace the default meta agent with a specialized version tailored for this extended agent"
+    }
+  ],
   "RSDnlS": [
     {
       "type": 0,
@@ -3511,6 +4843,12 @@
       "value": "Last 30 days"
     }
   ],
+  "Rk/SSB": [
+    {
+      "type": 0,
+      "value": "Server error occurred. Please try again in a few moments."
+    }
+  ],
   "RpKuX5": [
     {
       "type": 0,
@@ -3527,6 +4865,56 @@
     {
       "type": 0,
       "value": "Azure Kubernetes Service RBAC Reader"
+    }
+  ],
+  "RsY+gv": [
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Set up incident response plans to trigger agents automatically."
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "1 incident response plan ready to trigger your agents."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " incident response plans ready to trigger your agents."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "Rsq6sZ": [
+    {
+      "type": 0,
+      "value": "New handoff agents start as Autonomous. You can connect tools and other details later."
+    }
+  ],
+  "S0GneP": [
+    {
+      "type": 0,
+      "value": "Review Your agent"
     }
   ],
   "S1VBUm": [
@@ -3649,10 +5037,22 @@
       "value": "Add a default incident response plan for the agent to use for High priority incidents."
     }
   ],
+  "SXcBLr": [
+    {
+      "type": 0,
+      "value": "No common prompts added."
+    }
+  ],
   "Sdc+Dp": [
     {
       "type": 0,
       "value": "Autonomy level"
+    }
+  ],
+  "Seanpx": [
+    {
+      "type": 0,
+      "value": "Required"
     }
   ],
   "SezWLK": [
@@ -3697,6 +5097,28 @@
       "value": "Incidents assisted by agent"
     }
   ],
+  "T/G3bv": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "handoffName"
+    },
+    {
+      "type": 0,
+      "value": " and added it as a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "T0/eoE": [
     {
       "type": 0,
@@ -3713,6 +5135,12 @@
     {
       "type": 0,
       "value": "Incident management"
+    }
+  ],
+  "T7fzjx": [
+    {
+      "type": 0,
+      "value": "Save YAML"
     }
   ],
   "T8DCV7": [
@@ -3763,6 +5191,12 @@
       "value": "Leave empty for unlimited executions"
     }
   ],
+  "THFIRB": [
+    {
+      "type": 0,
+      "value": "Incident trigger"
+    }
+  ],
   "TIDNOO": [
     {
       "type": 0,
@@ -3797,6 +5231,12 @@
       "value": "Failed to update task"
     }
   ],
+  "TRceX/": [
+    {
+      "type": 0,
+      "value": "No agents-as-tools configured."
+    }
+  ],
   "TZWmvi": [
     {
       "type": 0,
@@ -3827,10 +5267,28 @@
       "value": "New chat thread"
     }
   ],
+  "Tkn9dK": [
+    {
+      "type": 0,
+      "value": "Select an agent to manage its relationships."
+    }
+  ],
+  "TmQqXl": [
+    {
+      "type": 0,
+      "value": "Optional: choose when this schedule should begin running."
+    }
+  ],
   "Tq2F2Y": [
     {
       "type": 0,
       "value": "You do not have permission to create response plans."
+    }
+  ],
+  "TwMqIK": [
+    {
+      "type": 0,
+      "value": "Review Your connector"
     }
   ],
   "TyvDrC": [
@@ -3843,6 +5301,12 @@
     {
       "type": 0,
       "value": "Autonomous mode"
+    }
+  ],
+  "U914O/": [
+    {
+      "type": 0,
+      "value": "No params needed"
     }
   ],
   "UCYFxr": [
@@ -3909,6 +5373,24 @@
       "value": "Base incident"
     }
   ],
+  "UjNXaV": [
+    {
+      "type": 1,
+      "value": "handoffName"
+    },
+    {
+      "type": 0,
+      "value": " is already a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "UmEsZF": [
     {
       "type": 0,
@@ -3931,6 +5413,18 @@
     {
       "type": 0,
       "value": "Repository"
+    }
+  ],
+  "V52jNn": [
+    {
+      "type": 0,
+      "value": "Enabled"
+    }
+  ],
+  "V5AOl5": [
+    {
+      "type": 0,
+      "value": "Remove starter agent"
     }
   ],
   "V9A1Xh": [
@@ -3981,6 +5475,34 @@
       "value": "Degraded"
     }
   ],
+  "VQlvNn": [
+    {
+      "type": 0,
+      "value": "Overriding the meta agent is recommended because this extended agent doesn't need the default agent's world knowledge of Azure resources, providing a more focused experience."
+    }
+  ],
+  "VQn8u+": [
+    {
+      "type": 0,
+      "value": "Select system tools this agent can use"
+    }
+  ],
+  "VSWkne": [
+    {
+      "type": 0,
+      "value": "Warnings"
+    }
+  ],
+  "VTkRGg": [
+    {
+      "type": 0,
+      "value": "Connect relationships for "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "VUHkVQ": [
     {
       "type": 0,
@@ -4017,6 +5539,12 @@
       "value": "Application Insights Component Contributor"
     }
   ],
+  "VnySGb": [
+    {
+      "type": 0,
+      "value": "A meta agent override already exists in your system."
+    }
+  ],
   "VpsD7s": [
     {
       "type": 0,
@@ -4043,10 +5571,22 @@
       "value": "PagerDuty connected. Your next step is to set up incident response plans."
     }
   ],
+  "VvrxSY": [
+    {
+      "type": 0,
+      "value": "Common prompts"
+    }
+  ],
   "VwHnVH": [
     {
       "type": 0,
       "value": "This will permanently delete the connection to IcM. The agent will no longer be able to manage incidents. Are you sure you want to delete this connection?"
+    }
+  ],
+  "VzeCzD": [
+    {
+      "type": 0,
+      "value": "Type for dictionary values"
     }
   ],
   "VzzYJk": [
@@ -4121,6 +5661,12 @@
       "value": "Chat"
     }
   ],
+  "WUV28A": [
+    {
+      "type": 0,
+      "value": "Saving…"
+    }
+  ],
   "WVTzuw": [
     {
       "type": 0,
@@ -4155,6 +5701,12 @@
     {
       "type": 0,
       "value": "AzureML Compute Operator"
+    }
+  ],
+  "WcnRC1": [
+    {
+      "type": 0,
+      "value": "Pick an agent to visualize its tools, connectors, and handoffs."
     }
   ],
   "Wf6bDe": [
@@ -4193,10 +5745,34 @@
       "value": "Administer HDInsight cluster pools."
     }
   ],
+  "WzNnqa": [
+    {
+      "type": 0,
+      "value": "Ready to start a new chat with extended agent “"
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "”. Your next message will launch it."
+    }
+  ],
   "X192re": [
     {
       "type": 0,
       "value": "Monitored Resource"
+    }
+  ],
+  "X3fjbS": [
+    {
+      "type": 0,
+      "value": "Context: "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "X4Y2nv": [
@@ -4227,6 +5803,12 @@
       "value": "PostgreSQL"
     }
   ],
+  "X7mXLW": [
+    {
+      "type": 0,
+      "value": "YAML error"
+    }
+  ],
   "X8SzJ6": [
     {
       "type": 0,
@@ -4237,6 +5819,20 @@
     {
       "type": 0,
       "value": "The action was canceled."
+    }
+  ],
+  "XEB3Fn": [
+    {
+      "type": 0,
+      "value": "Will attach to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " as a tool."
     }
   ],
   "XEanEV": [
@@ -4251,6 +5847,12 @@
       "value": "Linking Grafana dashboard"
     }
   ],
+  "XHc00z": [
+    {
+      "type": 0,
+      "value": "Connector Type"
+    }
+  ],
   "XJ+Lww": [
     {
       "type": 0,
@@ -4261,6 +5863,12 @@
     {
       "type": 0,
       "value": "Include any resource identifiers (e.g. subscription / resource group) needed each run."
+    }
+  ],
+  "XKWCS3": [
+    {
+      "type": 0,
+      "value": "Removed the starter agent. Next messages will stay in this thread."
     }
   ],
   "XKhlZF": [
@@ -4279,6 +5887,12 @@
     {
       "type": 0,
       "value": "No access"
+    }
+  ],
+  "XM+FCY": [
+    {
+      "type": 0,
+      "value": "Connected tools"
     }
   ],
   "XRdOZL": [
@@ -4309,6 +5923,12 @@
     {
       "type": 0,
       "value": "Uploading Files"
+    }
+  ],
+  "Xb85sq": [
+    {
+      "type": 0,
+      "value": "Grid view is coming soon."
     }
   ],
   "XbNTkN": [
@@ -4365,6 +5985,12 @@
       "value": "Start date picker"
     }
   ],
+  "YCnSYw": [
+    {
+      "type": 0,
+      "value": "No description provided."
+    }
+  ],
   "YE+vjH": [
     {
       "type": 0,
@@ -4389,6 +6015,12 @@
       "value": "Failed to create sub-agent"
     }
   ],
+  "YT6JU9": [
+    {
+      "type": 0,
+      "value": "Enter a name before creating this item."
+    }
+  ],
   "YZIFAO": [
     {
       "type": 0,
@@ -4399,6 +6031,12 @@
     {
       "type": 0,
       "value": "Unhealthy"
+    }
+  ],
+  "YeKWbP": [
+    {
+      "type": 0,
+      "value": "Authentication"
     }
   ],
   "YgyuGj": [
@@ -4443,6 +6081,12 @@
       "value": "Azure Center for SAP solutions administrator"
     }
   ],
+  "YrlQBL": [
+    {
+      "type": 0,
+      "value": "tool"
+    }
+  ],
   "Ys9AIu": [
     {
       "type": 0,
@@ -4479,10 +6123,30 @@
       "value": "Agent ID"
     }
   ],
+  "Z9TajN": [
+    {
+      "type": 0,
+      "value": "Parsing…"
+    }
+  ],
   "Z9pRs5": [
     {
       "type": 0,
       "value": "Create incident response plan"
+    }
+  ],
+  "ZBKZDe": [
+    {
+      "type": 0,
+      "value": "Each "
+    },
+    {
+      "type": 1,
+      "value": "entityLabel"
+    },
+    {
+      "type": 0,
+      "value": " must include a name."
     }
   ],
   "ZCA/Ga": [
@@ -4499,6 +6163,12 @@
     {
       "type": 0,
       "value": "Manage Logic Apps."
+    }
+  ],
+  "ZOdb7N": [
+    {
+      "type": 0,
+      "value": "Visual View"
     }
   ],
   "ZUXvHE": [
@@ -4537,6 +6207,28 @@
       "value": "Critical actions present"
     }
   ],
+  "ZmlNQ3": [
+    {
+      "type": 0,
+      "value": "Activity"
+    }
+  ],
+  "Zo9lK6": [
+    {
+      "type": 0,
+      "value": "Select an existing tool below to connect."
+    }
+  ],
+  "ZqVUb5": [
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " scheduled task"
+    }
+  ],
   "Zqa4dQ": [
     {
       "type": 0,
@@ -4547,6 +6239,18 @@
     {
       "type": 0,
       "value": "Manage Azure OpenAI resources."
+    }
+  ],
+  "Zt/L20": [
+    {
+      "type": 0,
+      "value": "No metadata provided."
+    }
+  ],
+  "Zu+xDc": [
+    {
+      "type": 0,
+      "value": "Fetching suggestions..."
     }
   ],
   "ZukeYV": [
@@ -4561,6 +6265,12 @@
     {
       "type": 0,
       "value": " managed resource groups to your SRE Agent"
+    }
+  ],
+  "Zve9uZ": [
+    {
+      "type": 0,
+      "value": "Test your Kusto query before saving"
     }
   ],
   "ZwYyES": [
@@ -4605,6 +6315,12 @@
       "value": "Deleting data connector"
     }
   ],
+  "aA8bDw": [
+    {
+      "type": 0,
+      "value": "Text"
+    }
+  ],
   "aAADUG": [
     {
       "type": 0,
@@ -4639,6 +6355,12 @@
     {
       "type": 0,
       "value": "Source"
+    }
+  ],
+  "aKNsTc": [
+    {
+      "type": 0,
+      "value": "Controls how this value is passed to the tool method"
     }
   ],
   "aORQjS": [
@@ -4737,6 +6459,18 @@
       "value": "Failed to load resource groups."
     }
   ],
+  "aprHig": [
+    {
+      "type": 0,
+      "value": "Max reflections"
+    }
+  ],
+  "aqGaRm": [
+    {
+      "type": 0,
+      "value": "Provide a short report about the latest signals and note any follow-up actions."
+    }
+  ],
   "aqNZbD": [
     {
       "type": 0,
@@ -4797,6 +6531,24 @@
       "value": "Azure Monitor connected. Your next step is to set up incident response plans."
     }
   ],
+  "b8PngH": [
+    {
+      "type": 0,
+      "value": "Loading agents…"
+    }
+  ],
+  "bCzUPd": [
+    {
+      "type": 0,
+      "value": "Cluster URI"
+    }
+  ],
+  "bK0VQe": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this Extended Tool? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
+    }
+  ],
   "bKgVBL": [
     {
       "type": 0,
@@ -4815,6 +6567,12 @@
       "value": "New"
     }
   ],
+  "bdFY56": [
+    {
+      "type": 0,
+      "value": "Connector (Optional)"
+    }
+  ],
   "bect+9": [
     {
       "type": 0,
@@ -4825,6 +6583,18 @@
     {
       "type": 0,
       "value": "Disconnect Azure Monitor?"
+    }
+  ],
+  "blYlGH": [
+    {
+      "type": 0,
+      "value": "Invalid request. Please check your instructions and try again."
+    }
+  ],
+  "bn84V+": [
+    {
+      "type": 0,
+      "value": "Delete tool"
     }
   ],
   "boVrya": [
@@ -4897,6 +6667,12 @@
       "value": "Resources"
     }
   ],
+  "c/bty0": [
+    {
+      "type": 0,
+      "value": "No system tools configured."
+    }
+  ],
   "c1EiBR": [
     {
       "type": 0,
@@ -4927,6 +6703,18 @@
       "value": "Failed to create scheduled task. Please try again."
     }
   ],
+  "cG0Q8M": [
+    {
+      "type": 0,
+      "value": "Temperature"
+    }
+  ],
+  "cLC2fM": [
+    {
+      "type": 0,
+      "value": "AI chat service is currently unavailable. Please try again later."
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -4955,6 +6743,18 @@
     {
       "type": 0,
       "value": "Suggested prompts"
+    }
+  ],
+  "coy1iv": [
+    {
+      "type": 0,
+      "value": "Edit YAML configuration"
+    }
+  ],
+  "cqx+Rd": [
+    {
+      "type": 0,
+      "value": "Manage connectors"
     }
   ],
   "crWYMh": [
@@ -5123,10 +6923,36 @@
       "value": "Read-only"
     }
   ],
+  "djuhEG": [
+    {
+      "type": 0,
+      "value": "Enter "
+    },
+    {
+      "type": 1,
+      "value": "type"
+    },
+    {
+      "type": 0,
+      "value": " value"
+    }
+  ],
+  "dk4jPW": [
+    {
+      "type": 0,
+      "value": "Critic prompt"
+    }
+  ],
   "dnXgff": [
     {
       "type": 0,
       "value": "Mitigated"
+    }
+  ],
+  "dtQgfG": [
+    {
+      "type": 0,
+      "value": "Query Tester"
     }
   ],
   "du1laW": [
@@ -5189,6 +7015,12 @@
       "value": "Add a default incident response plan for the agent to use for Sev3 alerts."
     }
   ],
+  "eYEnNu": [
+    {
+      "type": 0,
+      "value": "Run this agent on a repeating schedule."
+    }
+  ],
   "eZMksq": [
     {
       "type": 0,
@@ -5211,6 +7043,12 @@
     {
       "type": 0,
       "value": "ServiceNow connected. Your next step is to set up incident response plans."
+    }
+  ],
+  "ehhpyJ": [
+    {
+      "type": 0,
+      "value": "Add All"
     }
   ],
   "emW/QQ": [
@@ -5237,6 +7075,12 @@
       "value": "Agent instructions are required."
     }
   ],
+  "euKVCa": [
+    {
+      "type": 0,
+      "value": "System tools are built-in tools provided by the platform"
+    }
+  ],
   "exofc7": [
     {
       "type": 0,
@@ -5257,6 +7101,12 @@
     {
       "type": 0,
       "value": "Enter connection string or endpoint"
+    }
+  ],
+  "f0LQra": [
+    {
+      "type": 0,
+      "value": "Improve with AI"
     }
   ],
   "f0Luxo": [
@@ -5307,6 +7157,12 @@
       "value": "Deleting thread"
     }
   ],
+  "fT73QI": [
+    {
+      "type": 0,
+      "value": "New tool"
+    }
+  ],
   "fUgypu": [
     {
       "type": 0,
@@ -5317,6 +7173,12 @@
     {
       "type": 0,
       "value": "Instance name"
+    }
+  ],
+  "fbr20l": [
+    {
+      "type": 0,
+      "value": "Create & Link"
     }
   ],
   "fdCjVS": [
@@ -5385,6 +7247,12 @@
       "value": "Copy error details"
     }
   ],
+  "g3ngVx": [
+    {
+      "type": 0,
+      "value": "Create AI agents with custom tools and data connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
+    }
+  ],
   "g7HOVb": [
     {
       "type": 0,
@@ -5425,6 +7293,12 @@
     {
       "type": 0,
       "value": "Connects to"
+    }
+  ],
+  "gP/k0J": [
+    {
+      "type": 0,
+      "value": "Optional description of what this connector accesses"
     }
   ],
   "gUQeKV": [
@@ -5473,6 +7347,12 @@
     {
       "type": 0,
       "value": "You need permissions to set up a Grafana dashboard."
+    }
+  ],
+  "gvlNuI": [
+    {
+      "type": 0,
+      "value": "Start fresh or reuse an existing trigger configuration."
     }
   ],
   "gwSeXa": [
@@ -5541,6 +7421,16 @@
       "value": "To change the incident platform, you need to disconnect from ServiceNow. The agent will no longer manage tickets. Are you sure you want to disconnect?"
     }
   ],
+  "h4BqRo": [
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " incident response plan"
+    }
+  ],
   "h6183G": [
     {
       "type": 0,
@@ -5565,6 +7455,12 @@
     {
       "type": 0,
       "value": "Administer Device Update accounts."
+    }
+  ],
+  "hGMSK3": [
+    {
+      "type": 0,
+      "value": "Apply Suggestions"
     }
   ],
   "hGQqkW": [
@@ -5603,6 +7499,12 @@
       "value": "Workbook Reader"
     }
   ],
+  "hWVnHh": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this Extended Agent? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
+    }
+  ],
   "hX5PAb": [
     {
       "type": 0,
@@ -5637,6 +7539,12 @@
     {
       "type": 0,
       "value": "Choose the channel for receiving agent updates"
+    }
+  ],
+  "hijOHm": [
+    {
+      "type": 0,
+      "value": "Preview AI recommendations without changing your instructions"
     }
   ],
   "hlmkcL": [
@@ -5699,10 +7607,22 @@
       "value": "Resource ID"
     }
   ],
+  "iMBgdL": [
+    {
+      "type": 0,
+      "value": "Kusto Tool"
+    }
+  ],
   "iNgloh": [
     {
       "type": 0,
       "value": "Select a filter"
+    }
+  ],
+  "iV7LUx": [
+    {
+      "type": 0,
+      "value": "Create a new trigger with custom settings"
     }
   ],
   "iZDRGO": [
@@ -5739,6 +7659,26 @@
     {
       "type": 0,
       "value": "Copy command"
+    }
+  ],
+  "ijOojL": [
+    {
+      "type": 0,
+      "value": "Agent created, but linking to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " failed. Retry link."
+    }
+  ],
+  "ipsqxO": [
+    {
+      "type": 0,
+      "value": "Select an agent"
     }
   ],
   "iqdd9H": [
@@ -5795,6 +7735,26 @@
       "value": "Action summary"
     }
   ],
+  "iydbuT": [
+    {
+      "type": 0,
+      "value": "e.g., P1 incident response"
+    }
+  ],
+  "izQgEq": [
+    {
+      "type": 0,
+      "value": "Creates a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "j2vvrh": [
     {
       "type": 0,
@@ -5813,6 +7773,12 @@
     {
       "type": 0,
       "value": "Drag and drop files here or"
+    }
+  ],
+  "j59lXr": [
+    {
+      "type": 0,
+      "value": "No matching items yet. Complete the quick create form to add one."
     }
   ],
   "j5QthH": [
@@ -5849,6 +7815,12 @@
     {
       "type": 0,
       "value": "All actions"
+    }
+  ],
+  "jM/rXB": [
+    {
+      "type": 0,
+      "value": "Create and connect new items"
     }
   ],
   "jOkfJV": [
@@ -5903,16 +7875,56 @@
       "value": "name"
     }
   ],
+  "jjTzIr": [
+    {
+      "type": 0,
+      "value": "Database"
+    }
+  ],
   "jlOO/9": [
     {
       "type": 0,
       "value": "Next execution"
     }
   ],
+  "ju7bLp": [
+    {
+      "type": 0,
+      "value": "No connectors available"
+    }
+  ],
+  "jv8SuZ": [
+    {
+      "type": 0,
+      "value": "Start time (optional)"
+    }
+  ],
   "jvo0vs": [
     {
       "type": 0,
       "value": "Save"
+    }
+  ],
+  "jxYyO2": [
+    {
+      "type": 0,
+      "value": "YAML must include {collectionName} with at least one entry."
+    }
+  ],
+  "k0VNHX": [
+    {
+      "type": 1,
+      "value": "milliseconds"
+    },
+    {
+      "type": 0,
+      "value": "ms"
+    }
+  ],
+  "k5T5VE": [
+    {
+      "type": 0,
+      "value": "Select a starting agent"
     }
   ],
   "k8ZNgH": [
@@ -5927,10 +7939,28 @@
       "value": "Subscription equals"
     }
   ],
+  "kQSvkP": [
+    {
+      "type": 0,
+      "value": "Connector type"
+    }
+  ],
+  "kWBrry": [
+    {
+      "type": 0,
+      "value": "Starting agent"
+    }
+  ],
   "kWs94j": [
     {
       "type": 0,
       "value": "Provisioning of your Grafana dashboard is in progress."
+    }
+  ],
+  "kX8T8H": [
+    {
+      "type": 0,
+      "value": "Name of the dictionary this parameter contributes to"
     }
   ],
   "kbDtEK": [
@@ -5941,6 +7971,12 @@
     {
       "type": 1,
       "value": "failedFiles"
+    }
+  ],
+  "khOzXi": [
+    {
+      "type": 0,
+      "value": "Custom schedule"
     }
   ],
   "kn+J82": [
@@ -5959,6 +7995,20 @@
     {
       "type": 0,
       "value": "Add custom response guidance (optional)"
+    }
+  ],
+  "kq7D3O": [
+    {
+      "type": 1,
+      "value": "sourceAgentName"
+    },
+    {
+      "type": 0,
+      "value": " —uses→ "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
     }
   ],
   "kqurtu": [
@@ -5995,6 +8045,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "ks97gc": [
+    {
+      "type": 0,
+      "value": "Use an existing trigger configuration"
     }
   ],
   "ku+mDU": [
@@ -6109,10 +8165,22 @@
       "value": "Connecting to Azure Monitor ..."
     }
   ],
+  "ltBXTD": [
+    {
+      "type": 0,
+      "value": "Search agents, tools, or connectors"
+    }
+  ],
   "lvNWLS": [
     {
       "type": 0,
       "value": "IoT Hub Registry Contributor"
+    }
+  ],
+  "m+cdhC": [
+    {
+      "type": 0,
+      "value": "Recently used"
     }
   ],
   "m0kcbz": [
@@ -6151,6 +8219,12 @@
       "value": "Owning team ID is required when adding a default response plan."
     }
   ],
+  "mJXXeS": [
+    {
+      "type": 0,
+      "value": "No tools connected yet."
+    }
+  ],
   "mN2MCk": [
     {
       "type": 0,
@@ -6163,10 +8237,78 @@
       "value": "Start"
     }
   ],
+  "mRJIzw": [
+    {
+      "type": 0,
+      "value": "Results ("
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "row"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "rows"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ")"
+    }
+  ],
+  "mRL9Vh": [
+    {
+      "type": 0,
+      "value": "Creating..."
+    }
+  ],
+  "mSoczp": [
+    {
+      "type": 0,
+      "value": "YAML spec must include a name for the "
+    },
+    {
+      "type": 1,
+      "value": "entityLabel"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "mV7WX3": [
     {
       "type": 0,
       "value": "Incident response plans"
+    }
+  ],
+  "mVkTZZ": [
+    {
+      "type": 0,
+      "value": "Plugin"
     }
   ],
   "mZ0R9v": [
@@ -6175,16 +8317,34 @@
       "value": "Run test"
     }
   ],
+  "mZ3wu9": [
+    {
+      "type": 0,
+      "value": "Tool type"
+    }
+  ],
   "makWrV": [
     {
       "type": 0,
       "value": "Incidents mitigated by user"
     }
   ],
+  "mbtoHb": [
+    {
+      "type": 0,
+      "value": "How should this trigger be set up?"
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
       "value": "Last 90 days"
+    }
+  ],
+  "mgZVf8": [
+    {
+      "type": 0,
+      "value": "No tools configured."
     }
   ],
   "mkhNnB": [
@@ -6203,6 +8363,12 @@
     {
       "type": 0,
       "value": "Local auth"
+    }
+  ],
+  "mrOnjM": [
+    {
+      "type": 0,
+      "value": "Mode"
     }
   ],
   "mtr3R4": [
@@ -6229,10 +8395,22 @@
       "value": "This will permanently delete the connection to ServiceNow. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
     }
   ],
+  "n2h/5e": [
+    {
+      "type": 0,
+      "value": "Dictionary value type"
+    }
+  ],
   "n5QvJy": [
     {
       "type": 0,
       "value": "Start date"
+    }
+  ],
+  "n7yYXG": [
+    {
+      "type": 0,
+      "value": "Service"
     }
   ],
   "nBPow3": [
@@ -6249,6 +8427,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "nCowEs": [
+    {
+      "type": 0,
+      "value": "All agents"
     }
   ],
   "nDyaq/": [
@@ -6291,6 +8475,36 @@
       "value": "Cron expression is required"
     }
   ],
+  "nUT0Lv": [
+    {
+      "type": 0,
+      "value": "Tools"
+    }
+  ],
+  "nWJtZd": [
+    {
+      "type": 0,
+      "value": "Connector details · "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "nh3LaL": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Finish the setup in Incident management."
+    }
+  ],
   "nmpevl": [
     {
       "type": 0,
@@ -6327,10 +8541,34 @@
       "value": "Scope"
     }
   ],
+  "nxmZHP": [
+    {
+      "type": 0,
+      "value": "Configuration saved successfully."
+    }
+  ],
   "nxvTtg": [
     {
       "type": 0,
       "value": "Failed to link repository"
+    }
+  ],
+  "nySNrf": [
+    {
+      "type": 0,
+      "value": "A unique identifier for your tool"
+    }
+  ],
+  "o0pkiK": [
+    {
+      "type": 0,
+      "value": "Describe what this agent does and how it should behave..."
+    }
+  ],
+  "o1g3JC": [
+    {
+      "type": 0,
+      "value": "No tools linked yet. Add tools so this agent can take action."
     }
   ],
   "o7TUwc": [
@@ -6365,6 +8603,12 @@
       "value": " more"
     }
   ],
+  "oDVFQr": [
+    {
+      "type": 0,
+      "value": "Ignore (use static value)"
+    }
+  ],
   "oDb8Xv": [
     {
       "type": 0,
@@ -6375,6 +8619,18 @@
     {
       "type": 0,
       "value": "To help monitor and respond to activities and incidents in your Azure resources, the agent needs access to the specific subscriptions, resources groups, and services that you allow."
+    }
+  ],
+  "oKJ0fm": [
+    {
+      "type": 0,
+      "value": "Nothing to preview yet."
+    }
+  ],
+  "oM0lfe": [
+    {
+      "type": 0,
+      "value": "Select a node to see its details."
     }
   ],
   "oQ/TUW": [
@@ -6549,6 +8805,20 @@
       "value": "Agent permissions will be used to complete this action."
     }
   ],
+  "pSeneB": [
+    {
+      "type": 0,
+      "value": "Each "
+    },
+    {
+      "type": 1,
+      "value": "entityLabel"
+    },
+    {
+      "type": 0,
+      "value": " must include a type."
+    }
+  ],
   "pSfQh6": [
     {
       "type": 0,
@@ -6567,10 +8837,30 @@
       "value": "0 0 * * *"
     }
   ],
+  "pbpjik": [
+    {
+      "type": 0,
+      "value": "When you finish creating this agent, we'll automatically add it as a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "pe7UAe": [
     {
       "type": 0,
       "value": "Dismiss notification"
+    }
+  ],
+  "peOEU7": [
+    {
+      "type": 0,
+      "value": "No connectors linked."
     }
   ],
   "pf5nil": [
@@ -6603,6 +8893,12 @@
     {
       "type": 0,
       "value": "Updating upgrade channel"
+    }
+  ],
+  "ppzeDo": [
+    {
+      "type": 0,
+      "value": "Link Tool"
     }
   ],
   "pqgzm0": [
@@ -6677,10 +8973,22 @@
       "value": "Click here to learn more about SRE Agent RBAC"
     }
   ],
+  "qiY3L8": [
+    {
+      "type": 0,
+      "value": "Connector Name"
+    }
+  ],
   "qj1uhz": [
     {
       "type": 0,
       "value": "Disconnect"
+    }
+  ],
+  "qj71j1": [
+    {
+      "type": 0,
+      "value": "Query"
     }
   ],
   "qlcuNQ": [
@@ -6693,6 +9001,12 @@
     {
       "type": 0,
       "value": "Backend Endpoint"
+    }
+  ],
+  "qvviEg": [
+    {
+      "type": 0,
+      "value": "Add handoff to existing agent"
     }
   ],
   "qyJtWy": [
@@ -6713,6 +9027,12 @@
       "value": "This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
     }
   ],
+  "r8XsCU": [
+    {
+      "type": 0,
+      "value": "Connector"
+    }
+  ],
   "rBPlLc": [
     {
       "type": 0,
@@ -6731,10 +9051,38 @@
       "value": "Active threads"
     }
   ],
+  "rG1sas": [
+    {
+      "type": 0,
+      "value": "Attaches to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "rI2aPZ": [
     {
       "type": 0,
       "value": "Similar Symptom Incidents"
+    }
+  ],
+  "rKdPkY": [
+    {
+      "type": 0,
+      "value": "Select a "
+    },
+    {
+      "type": 1,
+      "value": "entityLabel"
+    },
+    {
+      "type": 0,
+      "value": " to edit its configuration YAML."
     }
   ],
   "rKq4sw": [
@@ -6783,6 +9131,16 @@
       "value": "Deleting report"
     }
   ],
+  "rXQSJp": [
+    {
+      "type": 0,
+      "value": "Query test failed: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "rXYf9o": [
     {
       "type": 0,
@@ -6805,6 +9163,12 @@
     {
       "type": 0,
       "value": "Agent can propose actions but requires approval before execution"
+    }
+  ],
+  "rhSI1/": [
+    {
+      "type": 0,
+      "value": "Model"
     }
   ],
   "riEsC7": [
@@ -6861,6 +9225,12 @@
       "value": "Set up"
     }
   ],
+  "rrN9ke": [
+    {
+      "type": 0,
+      "value": "tools"
+    }
+  ],
   "rvirM2": [
     {
       "type": 0,
@@ -6887,6 +9257,12 @@
     {
       "type": 1,
       "value": "rootCause"
+    }
+  ],
+  "s6iZgz": [
+    {
+      "type": 0,
+      "value": "Description (Optional)"
     }
   ],
   "s7DlV0": [
@@ -6919,6 +9295,18 @@
       "value": "Log Analytics Reader"
     }
   ],
+  "sIMS7i": [
+    {
+      "type": 0,
+      "value": "Progress"
+    }
+  ],
+  "sNofwe": [
+    {
+      "type": 0,
+      "value": "No, keep default meta agent"
+    }
+  ],
   "sNutPl": [
     {
       "type": 0,
@@ -6937,16 +9325,76 @@
       "value": "Manage cost analysis and budgets."
     }
   ],
+  "sTodCB": [
+    {
+      "type": 0,
+      "value": "Link this agent to its handoffs and tools so the relationships are ready when it goes live."
+    }
+  ],
+  "sUfX4j": [
+    {
+      "type": 0,
+      "value": "It may take a few seconds for new agents or tools to appear in the graph after they are created."
+    }
+  ],
+  "sV2v5L": [
+    {
+      "type": 0,
+      "value": "Instructions"
+    }
+  ],
   "sVDrdr": [
     {
       "type": 0,
       "value": "Files deleted successfully"
     }
   ],
+  "sVJ+oz": [
+    {
+      "type": 0,
+      "value": "Added handoff to "
+    },
+    {
+      "type": 1,
+      "value": "handoffName"
+    },
+    {
+      "type": 0,
+      "value": " for "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "sd1Vy+": [
     {
       "type": 0,
       "value": "Reconnecting to the agent..."
+    }
+  ],
+  "sdNNv5": [
+    {
+      "type": 0,
+      "value": "When an incident opens, have "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " investigate and summarize the latest state."
+    }
+  ],
+  "sdussP": [
+    {
+      "type": 0,
+      "value": "System Tools (Optional)"
     }
   ],
   "slxYbm": [
@@ -6969,6 +9417,12 @@
     {
       "type": 0,
       "value": "Monitor Service"
+    }
+  ],
+  "snui0/": [
+    {
+      "type": 0,
+      "value": "agent"
     }
   ],
   "srG8e2": [
@@ -7035,10 +9489,22 @@
       "value": "Device Update Reader"
     }
   ],
+  "t3n6rd": [
+    {
+      "type": 0,
+      "value": "AI Suggestions"
+    }
+  ],
   "t3wAiN": [
     {
       "type": 0,
       "value": "Creating default incident response plan"
+    }
+  ],
+  "t6/9PU": [
+    {
+      "type": 0,
+      "value": "Relationships (optional)"
     }
   ],
   "t9I1dY": [
@@ -7057,6 +9523,12 @@
     {
       "type": 0,
       "value": "Pause"
+    }
+  ],
+  "tGHG7q": [
+    {
+      "type": 0,
+      "value": "Back to Edit"
     }
   ],
   "tH6Myj": [
@@ -7097,6 +9569,12 @@
       "value": "Modified"
     }
   ],
+  "tRaGqN": [
+    {
+      "type": 0,
+      "value": "Testing query…"
+    }
+  ],
   "tSKi9q": [
     {
       "type": 0,
@@ -7109,10 +9587,42 @@
       "value": "Identity"
     }
   ],
+  "tU3A8E": [
+    {
+      "type": 0,
+      "value": "Your new "
+    },
+    {
+      "type": 1,
+      "value": "entityType"
+    },
+    {
+      "type": 0,
+      "value": " will be ready in a few seconds. Feel free to keep editing while we connect it."
+    }
+  ],
   "tWX1j9": [
     {
       "type": 0,
       "value": "Add to favorites"
+    }
+  ],
+  "tb6uBb": [
+    {
+      "type": 1,
+      "value": "toolName"
+    },
+    {
+      "type": 0,
+      "value": " is already connected to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "tbPq1d": [
@@ -7145,6 +9655,12 @@
       "value": "\" has been created successfully"
     }
   ],
+  "tjE5Cb": [
+    {
+      "type": 0,
+      "value": "No handoffs configured."
+    }
+  ],
   "trPabo": [
     {
       "type": 0,
@@ -7155,6 +9671,28 @@
     {
       "type": 0,
       "value": "Select region"
+    }
+  ],
+  "tthToS": [
+    {
+      "type": 0,
+      "value": "Disabled"
+    }
+  ],
+  "tujypD": [
+    {
+      "type": 0,
+      "value": "Agents-as-tools · "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    }
+  ],
+  "tvw8DP": [
+    {
+      "type": 0,
+      "value": "Select existing tools or create new ones later"
     }
   ],
   "tyJNW5": [
@@ -7211,10 +9749,22 @@
       "value": "New incident response plan"
     }
   ],
+  "uFaAgq": [
+    {
+      "type": 0,
+      "value": "Connect relationships"
+    }
+  ],
   "uI0Lmu": [
     {
       "type": 0,
       "value": "All autonomy levels"
+    }
+  ],
+  "uMNRNl": [
+    {
+      "type": 0,
+      "value": "Agents as tools"
     }
   ],
   "uRMqBi": [
@@ -7227,6 +9777,18 @@
     {
       "type": 0,
       "value": "Execution Request"
+    }
+  ],
+  "ubULuu": [
+    {
+      "type": 0,
+      "value": "Clear description for agents to understand when to use this tool"
+    }
+  ],
+  "udi5I/": [
+    {
+      "type": 0,
+      "value": "Create incident response plans or scheduled tasks to trigger agents automatically."
     }
   ],
   "ug01Mk": [
@@ -7257,6 +9819,12 @@
     {
       "type": 0,
       "value": "Sev2"
+    }
+  ],
+  "v/3x6O": [
+    {
+      "type": 0,
+      "value": "Improving instructions..."
     }
   ],
   "v0CXYP": [
@@ -7301,6 +9869,12 @@
       "value": "Severity"
     }
   ],
+  "vCsh17": [
+    {
+      "type": 0,
+      "value": "Connect to data sources like Kusto for rich agent capabilities"
+    }
+  ],
   "vDbj1h": [
     {
       "type": 0,
@@ -7323,6 +9897,12 @@
     {
       "type": 0,
       "value": "Document Name"
+    }
+  ],
+  "vVpzJQ": [
+    {
+      "type": 0,
+      "value": "Suggested instructions"
     }
   ],
   "vXCeIi": [
@@ -7367,6 +9947,12 @@
       "value": "AI-generated"
     }
   ],
+  "vlv+Ch": [
+    {
+      "type": 0,
+      "value": "Scheduled trigger"
+    }
+  ],
   "vs8s5B": [
     {
       "type": 0,
@@ -7383,6 +9969,34 @@
     {
       "type": 0,
       "value": "This will permanently delete the connection to Azure Monitor. The agent will no longer be integrated with Azure Monitor notifications. Are you sure you want to delete this connection?"
+    }
+  ],
+  "w2QcbZ": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " and linked it as a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgentName"
+    },
+    {
+      "type": 0,
+      "value": ". Finish the setup in Incident management."
+    }
+  ],
+  "w6nz4p": [
+    {
+      "type": 0,
+      "value": "Open incident triggers"
     }
   ],
   "w9tk1A": [
@@ -7419,6 +10033,26 @@
       "value": "format"
     }
   ],
+  "wOHH3J": [
+    {
+      "type": 0,
+      "value": "Describe what "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " should do each time it runs."
+    }
+  ],
+  "wQdhYo": [
+    {
+      "type": 0,
+      "value": "Create a new handoff agent"
+    }
+  ],
   "wSZR47": [
     {
       "type": 0,
@@ -7435,6 +10069,12 @@
     {
       "type": 0,
       "value": "The action is in progress with agent permissions."
+    }
+  ],
+  "wb/AUH": [
+    {
+      "type": 0,
+      "value": "Next run times"
     }
   ],
   "wbigtI": [
@@ -7485,10 +10125,22 @@
       "value": "Manage Cognitive Services accounts."
     }
   ],
+  "x/7RC2": [
+    {
+      "type": 0,
+      "value": "Checking trigger setup…"
+    }
+  ],
   "x3aQrV": [
     {
       "type": 0,
       "value": "An on-behalf-of token will be used with the following scope"
+    }
+  ],
+  "x3qvaC": [
+    {
+      "type": 0,
+      "value": "No runs yet"
     }
   ],
   "x7C8JZ": [
@@ -7513,6 +10165,12 @@
     {
       "type": 0,
       "value": "Insights"
+    }
+  ],
+  "xNC5hG": [
+    {
+      "type": 0,
+      "value": "Dictionary (group into args)"
     }
   ],
   "xSsto+": [
@@ -7641,10 +10299,26 @@
       "value": "Agent prompt is required"
     }
   ],
+  "xy47sz": [
+    {
+      "type": 0,
+      "value": "Unable to parse YAML: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "y+SPRf": [
     {
       "type": 0,
       "value": "Deleting custom incident response plan"
+    }
+  ],
+  "y5oInX": [
+    {
+      "type": 0,
+      "value": "Incident priority"
     }
   ],
   "yDh8i7": [
@@ -7663,6 +10337,12 @@
     {
       "type": 0,
       "value": "Create Sub-Agent"
+    }
+  ],
+  "yLRKP5": [
+    {
+      "type": 0,
+      "value": "Handoff description"
     }
   ],
   "yNCGjc": [
@@ -7719,6 +10399,12 @@
       "value": "Tasks"
     }
   ],
+  "yhqGka": [
+    {
+      "type": 0,
+      "value": "Choose how this trigger should behave and which agent it starts."
+    }
+  ],
   "yiAEBc": [
     {
       "type": 0,
@@ -7761,6 +10447,12 @@
       "value": "Description must be a single line summary."
     }
   ],
+  "z6olIH": [
+    {
+      "type": 0,
+      "value": "An AI agent with instructions and tools"
+    }
+  ],
   "z8ZYoc": [
     {
       "type": 0,
@@ -7773,6 +10465,18 @@
       "value": "You do not have permission to delete this incident"
     }
   ],
+  "zCp11f": [
+    {
+      "type": 0,
+      "value": "Query test succeeded."
+    }
+  ],
+  "zDcGyS": [
+    {
+      "type": 0,
+      "value": "Trigger name"
+    }
+  ],
   "zEg90u": [
     {
       "type": 0,
@@ -7783,6 +10487,12 @@
     {
       "type": 0,
       "value": "All severity"
+    }
+  ],
+  "zL39WD": [
+    {
+      "type": 0,
+      "value": "Grid View"
     }
   ],
   "zN87hN": [
@@ -7843,6 +10553,22 @@
     {
       "type": 0,
       "value": "Incidents summary"
+    }
+  ],
+  "zr8jA6": [
+    {
+      "type": 0,
+      "value": "Remove tool "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "zuQF37": [
+    {
+      "type": 0,
+      "value": "Review Your tool"
     }
   ],
   "zvKOAu": [

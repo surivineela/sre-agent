@@ -17,6 +17,7 @@ import {
     composeUserMessage,
     constructUserMessageFromStreamingMessage,
     getDefaultDeepInvestigationStatusChatMessage,
+    getDefaultSREAgentAuthor,
     getSpecialMessageContentFromStreamingMessage,
     getStreamingMessageText,
     getToolCallText,
@@ -31,7 +32,13 @@ import {
     processApprovalStreamingMessageStatus,
     shouldGroupWithPreviousMessage,
 } from '../Activities/Utility';
-import { ChatMessage, ChatMessageContent, MessageTypingCharactersPer10Ms, MessageTypingSpeedInMilliseconds } from '../Contracts/Activities';
+import {
+    ChatMessage,
+    ChatMessageContent,
+    MessageTypingCharactersPer10Ms,
+    MessageTypingSpeedInMilliseconds,
+    SendMessageOptions,
+} from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 import { useChatHistory } from './useChatHistory';
@@ -222,8 +229,27 @@ export const useChatBox = (
         }
     };
 
+    const postSystemMessage = useCallback(
+        (text: string) => {
+            if (!text) {
+                return;
+            }
+
+            const systemMessage: ChatMessage = {
+                id: Guid.newGuid(),
+                timeStamp: new Date().toISOString(),
+                author: getDefaultSREAgentAuthor(),
+                contents: [{ text }],
+            };
+
+            setNewMessages(prev => [...prev, systemMessage]);
+            requestAnimationFrame(() => scrollToBottom(false));
+        },
+        [scrollToBottom]
+    );
+
     const sendMessageHandler = useCallback(
-        async (message: string) => {
+        async (message: string, options?: SendMessageOptions) => {
             pushCurrentStreamingMessageToNewMessages();
 
             setTemporaryUserMessage(composeUserMessage(userId, displayName, message));
@@ -233,21 +259,34 @@ export const useChatBox = (
             setToolCallText(null);
 
             try {
+                const starterAgentName = options?.starterAgentName?.trim() || undefined;
+                const forceNewThread = options?.forceNewThread ?? false;
+
                 const messageRequest: MessageCreateRequest = {
                     text: message,
                     userId,
                     displayName,
                     conversationModifier: isDeepInvestigationTurnedOnRef.current ? 'DeepInvestigation' : undefined,
+                    agent: starterAgentName,
                 };
 
+                const shouldCreateNewThread = forceNewThread || !currentThreadId;
+
+                if (shouldCreateNewThread) {
+                    setCurrentThreadId(null);
+                    currentThreadIdRef.current = '';
+                    isNewThreadAdded.current = false;
+                }
+
                 //ToDo: Handle errors of sendMessage, createThread and pollResponses
-                if (currentThreadId) {
+                if (!shouldCreateNewThread && currentThreadId) {
                     // Issue a request to create a new message in the current thread
                     startMessageStreamingOnExistingThread(currentThreadId, messageRequest);
                 } else {
                     // Issue a request to create a new thread
                     startMessageStreamingOnNewThread(userDefinedThreadIdRef.current, {
                         startMessage: messageRequest,
+                        startingAgent: starterAgentName,
                     });
                 }
             } catch (e) {
@@ -259,7 +298,7 @@ export const useChatBox = (
                 });
             }
         },
-        [userId, displayName, currentThreadId, proxy.log]
+        [userId, displayName, currentThreadId, proxy.log, startMessageStreamingOnExistingThread, startMessageStreamingOnNewThread]
     );
 
     useEffect(() => {
@@ -455,6 +494,8 @@ export const useChatBox = (
             handleCompletedMessageChunk(currentMessageChunk);
             return;
         }
+
+        console.log('######### $$$$$$$$$$ Current Message Chunk: ' + JSON.stringify(messageChunkQueue.current, null, 2));
 
         if (isUserStreamingMessage(currentMessageChunk)) {
             if (!currentThreadIdRef.current && threadIdFromStream) {
@@ -711,6 +752,7 @@ export const useChatBox = (
         toolCallText,
         isCancellingStreaming,
         sendMessage: sendMessageHandler,
+        postSystemMessage,
         isNewAndCleanThread,
         messagesDivRef,
         intersectionObserverRef,

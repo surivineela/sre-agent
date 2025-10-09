@@ -19,6 +19,7 @@ namespace Agent.Web.Controllers.v1
     public class FeatureController(
         IOptions<ScheduledTaskSettings> scheduledTaskSettings,
         IOptions<AgentMemorySettings> agentMemorySettings,
+        IOptions<ExtendedAgentsGraphSettings> extendedAgentsGraphSettings,
         ILogger<FeatureController> logger) : ControllerBase
     {
         [HttpGet("status")]
@@ -30,7 +31,8 @@ namespace Agent.Web.Controllers.v1
                 var features = new Dictionary<string, bool>
                 {
                     ["scheduledTasks"] = scheduledTaskSettings.Value.Enabled,
-                    ["agentMemory"] = agentMemorySettings.Value.Enabled
+                    ["agentMemory"] = agentMemorySettings.Value.Enabled,
+                    ["extendedAgentsGraph"] = extendedAgentsGraphSettings.Value.Enabled
                 };
 
                 var response = new FeatureStatusResponse(Features: features);
@@ -54,6 +56,7 @@ namespace Agent.Web.Controllers.v1
                 {
                     "scheduledtasks" => scheduledTaskSettings.Value.Enabled,
                     "agentmemory" => agentMemorySettings.Value.Enabled,
+                    "extendedagentsgraph" => extendedAgentsGraphSettings.Value.Enabled,
                     _ => null
                 };
 

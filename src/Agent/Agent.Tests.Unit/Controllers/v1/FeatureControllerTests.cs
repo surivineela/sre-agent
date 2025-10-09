@@ -16,6 +16,7 @@ namespace Agent.Tests.Unit.Controllers.v1
     {
         private readonly Mock<IOptions<ScheduledTaskSettings>> _mockScheduledTaskSettings;
         private readonly Mock<IOptions<AgentMemorySettings>> _mockAgentMemorySettings;
+        private readonly Mock<IOptions<ExtendedAgentsGraphSettings>> _mockExtendedAgentsGraphSettings;
         private readonly Mock<ILogger<FeatureController>> _mockLogger;
         private readonly FeatureController _controller;
 
@@ -23,11 +24,13 @@ namespace Agent.Tests.Unit.Controllers.v1
         {
             _mockScheduledTaskSettings = new Mock<IOptions<ScheduledTaskSettings>>();
             _mockAgentMemorySettings = new Mock<IOptions<AgentMemorySettings>>();
+            _mockExtendedAgentsGraphSettings = new Mock<IOptions<ExtendedAgentsGraphSettings>>();
             _mockLogger = new Mock<ILogger<FeatureController>>();
 
             _controller = new FeatureController(
                 _mockScheduledTaskSettings.Object,
                 _mockAgentMemorySettings.Object,
+                _mockExtendedAgentsGraphSettings.Object,
                 _mockLogger.Object);
         }
 
@@ -39,9 +42,11 @@ namespace Agent.Tests.Unit.Controllers.v1
             // Arrange
             var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = true };
             var agentMemorySettings = new AgentMemorySettings { Enabled = true };
+            var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = true };
 
             _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
             _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
 
             // Act
             var result = _controller.GetFeatureStatus();
@@ -52,7 +57,8 @@ namespace Agent.Tests.Unit.Controllers.v1
 
             Assert.True(response.Features["scheduledTasks"]);
             Assert.True(response.Features["agentMemory"]);
-            Assert.Equal(2, response.Features.Count);
+            Assert.True(response.Features["extendedAgentsGraph"]);
+            Assert.Equal(3, response.Features.Count);
         }
 
         [Fact]
@@ -61,9 +67,11 @@ namespace Agent.Tests.Unit.Controllers.v1
             // Arrange
             var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = false };
             var agentMemorySettings = new AgentMemorySettings { Enabled = false };
+            var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = false };
 
             _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
             _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
 
             // Act
             var result = _controller.GetFeatureStatus();
@@ -74,7 +82,8 @@ namespace Agent.Tests.Unit.Controllers.v1
 
             Assert.False(response.Features["scheduledTasks"]);
             Assert.False(response.Features["agentMemory"]);
-            Assert.Equal(2, response.Features.Count);
+            Assert.False(response.Features["extendedAgentsGraph"]);
+            Assert.Equal(3, response.Features.Count);
         }
 
         [Fact]
@@ -83,9 +92,11 @@ namespace Agent.Tests.Unit.Controllers.v1
             // Arrange
             var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = true };
             var agentMemorySettings = new AgentMemorySettings { Enabled = false };
+            var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = true };
 
             _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
             _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
 
             // Act
             var result = _controller.GetFeatureStatus();
@@ -96,7 +107,8 @@ namespace Agent.Tests.Unit.Controllers.v1
 
             Assert.True(response.Features["scheduledTasks"]);
             Assert.False(response.Features["agentMemory"]);
-            Assert.Equal(2, response.Features.Count);
+            Assert.True(response.Features["extendedAgentsGraph"]);
+            Assert.Equal(3, response.Features.Count);
         }
 
         [Fact]
@@ -127,9 +139,11 @@ namespace Agent.Tests.Unit.Controllers.v1
             // Arrange
             var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = enabled };
             var agentMemorySettings = new AgentMemorySettings { Enabled = false };
+            var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = false };
 
             _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
             _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
 
             // Act
             var result = _controller.GetFeatureStatus(featureName);
@@ -157,9 +171,43 @@ namespace Agent.Tests.Unit.Controllers.v1
             // Arrange
             var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = false };
             var agentMemorySettings = new AgentMemorySettings { Enabled = enabled };
+            var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = false };
 
             _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
             _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
+
+            // Act
+            var result = _controller.GetFeatureStatus(featureName);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
+            var response = okResult.Value;
+
+            var featureProperty = response.GetType().GetProperty("feature");
+            var enabledProperty = response.GetType().GetProperty("enabled");
+
+            Assert.NotNull(featureProperty);
+            Assert.NotNull(enabledProperty);
+            Assert.Equal(featureName, featureProperty.GetValue(response));
+            Assert.Equal(enabled, enabledProperty.GetValue(response));
+        }
+
+        [Theory]
+        [InlineData("extendedagentsgraph", true)]
+        [InlineData("extendedAgentsGraph", true)]
+        [InlineData("EXTENDEDAGENTSGRAPH", true)]
+        public void GetFeatureStatusByName_ExtendedAgentsGraphEnabled_ReturnsOkWithEnabled(string featureName, bool enabled)
+        {
+            // Arrange
+            var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = false };
+            var agentMemorySettings = new AgentMemorySettings { Enabled = false };
+            var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = enabled };
+
+            _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
+            _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
 
             // Act
             var result = _controller.GetFeatureStatus(featureName);
@@ -184,9 +232,11 @@ namespace Agent.Tests.Unit.Controllers.v1
             // Arrange
             var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = true };
             var agentMemorySettings = new AgentMemorySettings { Enabled = true };
+            var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = true };
 
             _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
             _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
 
             // Act
             var result = _controller.GetFeatureStatus("unknownfeature");
@@ -201,6 +251,7 @@ namespace Agent.Tests.Unit.Controllers.v1
         {
             // Arrange
             _mockScheduledTaskSettings.Setup(x => x.Value).Throws(new Exception("Configuration error"));
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(new ExtendedAgentsGraphSettings { Enabled = true });
 
             // Act
             var result = _controller.GetFeatureStatus("scheduledtasks");

@@ -101,10 +101,11 @@ public class Program
         }
 
         // Add CORS support for Azure Portal domains
-        app.UseCors(x => x.WithOrigins(GetAzurePortalDomains(app.Configuration))
-                          .AllowAnyHeader()
-                          .AllowCredentials()
-                          .SetIsOriginAllowedToAllowWildcardSubdomains());
+    app.UseCors(x => x.WithOrigins(GetAzurePortalDomains(app.Configuration))
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .SetIsOriginAllowedToAllowWildcardSubdomains());
 
         app.UseHttpsRedirection();
         // Serve static files from wwwroot
@@ -215,6 +216,10 @@ public class Program
         // Configure Scheduled Task settings
         builder.Services.Configure<ScheduledTaskSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:ScheduledTasks"));
+
+        // Configure Extended Agents Graph settings
+        builder.Services.Configure<ExtendedAgentsGraphSettings>(
+            builder.Configuration.GetSection("AppSettings:Core:Azure:ExtendedAgentsGraph"));
 
         // Configure MCP settings
         builder.Services.Configure<MCPSettings>(

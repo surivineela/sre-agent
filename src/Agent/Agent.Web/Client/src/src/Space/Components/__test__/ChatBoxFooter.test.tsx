@@ -29,6 +29,7 @@ const baseProps = {
     isDeepInvestigationButtonEnabled: true,
     isDeepInvestigationTurnedOn: false,
     onClickDeepInvestigationButton: vi.fn(),
+    postSystemMessage: vi.fn(),
 };
 
 const Wrapper: React.FC<{ children: React.ReactNode; permission?: boolean }> = ({ children, permission = true }) => (

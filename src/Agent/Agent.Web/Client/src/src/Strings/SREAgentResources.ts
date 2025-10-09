@@ -25,6 +25,12 @@ export const SreAgentResources = defineMessages({
     resources: { defaultMessage: 'Resources', id: 'c/KktL' },
     notApplicable: { defaultMessage: 'Not applicable', id: '61zy45' },
     NA: { defaultMessage: 'N/A', id: 'PW+sL4' },
+    progress: { defaultMessage: 'Progress', id: 'sIMS7i' },
+    extendedAgents: { defaultMessage: 'Extended agents', id: '387FD2' },
+    slashCommands: { defaultMessage: 'Slash commands', id: '3/wF0G' },
+    backToCommands: { defaultMessage: 'Back to commands', id: 'GCmxza' },
+    loadingAgents: { defaultMessage: 'Loading agents…', id: 'b8PngH' },
+    noAgentsFound: { defaultMessage: 'No agents found', id: '451B6Z' },
     feedbackDialogTitle: {
         id: 'Nrc9ba',
         defaultMessage: 'Thank you for your feedback!',
@@ -49,6 +55,59 @@ export const SreAgentResources = defineMessages({
         id: 'Zidpq7',
         defaultMessage: 'Copy link to thread',
     },
+    kustoQueryTesterTitle: {
+        id: 'dtQgfG',
+        defaultMessage: 'Query Tester',
+    },
+    kustoQueryTesterSubtitle: {
+        id: 'Zve9uZ',
+        defaultMessage: 'Test your Kusto query before saving',
+    },
+    kustoQueryTesterParameterLabel: {
+        id: '67UmDz',
+        defaultMessage: 'Parameter syntax:',
+    },
+    kustoQueryTesterParameterUsage: {
+        id: 'EHyU+4',
+        defaultMessage: 'Use <code>##ParamName##</code> in your query to define parameter placeholders.',
+    },
+    kustoQueryTesterParameterExample: {
+        id: 'Qc3Kdl',
+        defaultMessage: 'Example: <code>where SubscriptionId == "##SubscriptionId##"</code>',
+    },
+    kustoQueryTesterParameterNote: {
+        id: '8LMIGa',
+        defaultMessage: 'These will be replaced with actual values at runtime.',
+    },
+    kustoQueryTesterParameterValuesLabel: {
+        id: 'KryvVM',
+        defaultMessage: 'Parameter values (for testing)',
+    },
+    kustoQueryTesterParameterPlaceholder: {
+        id: 'djuhEG',
+        defaultMessage: 'Enter {type} value',
+    },
+    kustoQueryTesterResultsLabel: {
+        id: 'mRJIzw',
+        defaultMessage: 'Results ({count} {count, plural, one {row} other {rows}})',
+    },
+    kustoQueryTesterExecutionTime: {
+        id: 'k0VNHX',
+        defaultMessage: '{milliseconds}ms',
+    },
+    kustoQueryTesterNoResults: {
+        id: 'BSQQkf',
+        defaultMessage: 'Query returned no results',
+    },
+    deleteToolTitle: {
+        id: 'bn84V+',
+        defaultMessage: 'Delete tool',
+    },
+    deleteToolNotificationError: {
+        id: '/F7sHX',
+        defaultMessage: 'Failed to delete tool {name}',
+    },
+
     custom: {
         id: 'Sjo1P4',
         defaultMessage: 'Custom',
@@ -884,6 +943,26 @@ export const ActivitiesResources = defineMessages({
     chatPivotHeader: { defaultMessage: 'Chat', id: 'WTrOy3' },
     actionsPivotHeader: { defaultMessage: 'Actions', id: 'wL7VAE' },
     chatInputPlaceholder: { defaultMessage: 'I want to...', id: 'PxLzzW' },
+    slashCommandExtendedAgentFeedback: {
+        defaultMessage: 'Ready to start a new chat with extended agent “{agentName}”. Your next message will launch it.',
+        id: 'WzNnqa',
+    },
+    slashCommandExtendedAgentTagLabel: {
+        defaultMessage: 'Starter agent',
+        id: '+UcRHd',
+    },
+    slashCommandExtendedAgentRemoveButtonLabel: {
+        defaultMessage: 'Remove starter agent',
+        id: 'V5AOl5',
+    },
+    slashCommandClearedFeedback: {
+        defaultMessage: 'Cleared the composer. Type a new question to begin a fresh chat.',
+        id: '6KOA0x',
+    },
+    slashCommandExtendedAgentCleared: {
+        defaultMessage: 'Removed the starter agent. Next messages will stay in this thread.',
+        id: 'XKWCS3',
+    },
     chatInputAriaLabel: { defaultMessage: 'Chat input', id: 'yFU6JN' },
     knowledgeGraphBuildStatus: {
         defaultMessage: 'Building knowledge about your resources... {percent}% done. You can chat about other topics in the meantime.',
@@ -2361,4 +2440,655 @@ export const MemorySearchCardResources = defineMessages({
     symptoms: { defaultMessage: 'Symptoms: {symptoms}', id: 't2u8dC' },
     rootCause: { defaultMessage: 'Root Cause: {rootCause}', id: 's5cLGN' },
     steps: { defaultMessage: 'Steps: {steps}', id: 'LRTerU' },
+});
+
+export const ExtendedAgentsGraphResources = defineMessages({
+    // Tab and Navigation
+    extendedAgentsTab: { defaultMessage: 'Agent Builder', id: 'EStH0G' },
+    visualView: { defaultMessage: 'Visual View', id: 'ZOdb7N' },
+    gridView: { defaultMessage: 'Grid View', id: 'zL39WD' },
+
+    // Creation Dialog
+    createNewEntity: { defaultMessage: 'Create New Entity', id: '5POweM' },
+    createYourFirstEntity: { defaultMessage: 'Create Your First Entity', id: 'N+XwM+' },
+    whatToCreate: { defaultMessage: 'What would you like to create?', id: '5q8BxP' },
+    quickCreateAgentTitle: { defaultMessage: 'Create a handoff agent', id: '2e3GZQ' },
+    quickCreateAgentDescription: {
+        defaultMessage: 'New handoff agents start as Autonomous. You can connect tools and other details later.',
+        id: 'Rsq6sZ',
+    },
+    quickCreateAgentAutonomousHint: {
+        defaultMessage: 'We’ll mark this agent as Autonomous automatically so it can run on its own.',
+        id: 'L/i6dy',
+    },
+
+    // Entity Types
+    agent: { defaultMessage: 'Agent', id: 'QGVI63' },
+    tool: { defaultMessage: 'Tool', id: 'h6183G' },
+    connector: { defaultMessage: 'Connector', id: 'r8XsCU' },
+
+    // Type Descriptions
+    agentDescription: { defaultMessage: 'An AI agent with instructions and tools', id: 'z6olIH' },
+    toolDescription: { defaultMessage: 'A function or capability for agents to use', id: 'Ai/0lk' },
+    connectorDescription: { defaultMessage: 'A data source connection for tools', id: 'K6WTYI' },
+    trigger: { defaultMessage: 'Trigger', id: 'B3Q5mz' },
+    triggerDescriptionLoading: { defaultMessage: 'Checking trigger setup…', id: 'x/7RC2' },
+    triggerDescriptionIncident: {
+        defaultMessage:
+            '{count, plural, =0 {Set up incident response plans to trigger agents automatically.} one {1 incident response plan ready to trigger your agents.} other {{count} incident response plans ready to trigger your agents.}}',
+        id: 'RsY+gv',
+    },
+    triggerDescriptionScheduled: {
+        defaultMessage:
+            '{count, plural, =0 {Create scheduled tasks to run agents automatically.} one {1 scheduled task ready to run agents automatically.} other {{count} scheduled tasks ready to run agents automatically.}}',
+        id: '0nrwMu',
+    },
+    triggerDescriptionFallback: {
+        defaultMessage: 'Create incident response plans or scheduled tasks to trigger agents automatically.',
+        id: 'udi5I/',
+    },
+    triggerStatusLoading: { defaultMessage: 'Loading trigger status…', id: 'CX0VFc' },
+    triggerIncidentStat: {
+        defaultMessage:
+            '{count, plural, =0 {No incident response plans yet} one {1 incident response plan ready} other {{count} incident response plans ready}}',
+        id: '7oBAcZ',
+    },
+    triggerScheduledStat: {
+        defaultMessage: '{count, plural, =0 {No scheduled tasks yet} one {1 scheduled task ready} other {{count} scheduled tasks ready}}',
+        id: 'JXHRt5',
+    },
+    triggerIncidentButton: { defaultMessage: 'Open incident triggers', id: 'w6nz4p' },
+    triggerScheduledButton: { defaultMessage: 'Open scheduled tasks', id: 'CaZAZZ' },
+    triggerBadgeIncident: { defaultMessage: 'Incident trigger', id: 'THFIRB' },
+    triggerBadgeScheduled: { defaultMessage: 'Scheduled trigger', id: 'vlv+Ch' },
+    connectorNavigateCta: { defaultMessage: 'Manage connectors', id: 'cqx+Rd' },
+
+    // Trigger Creation Defaults
+    triggerAgentFallbackName: { defaultMessage: 'New agent', id: 'KR79he' },
+    triggerAgentRecentLabel: { defaultMessage: 'Recently used', id: 'm+cdhC' },
+    triggerAgentAllLabel: { defaultMessage: 'All agents', id: 'nCowEs' },
+    triggerAgentWarning: {
+        defaultMessage: 'No tools linked yet. Add tools so this agent can take action.',
+        id: 'o1g3JC',
+    },
+    triggerIncidentDefaultName: { defaultMessage: '{agentName} incident response plan', id: 'h4BqRo' },
+    triggerIncidentDefaultInstructions: {
+        defaultMessage: 'When an incident opens, have {agentName} investigate and summarize the latest state.',
+        id: 'sdNNv5',
+    },
+    triggerScheduledDefaultName: { defaultMessage: '{agentName} scheduled task', id: 'ZqVUb5' },
+    triggerScheduledDefaultDescription: {
+        defaultMessage: 'Automatically run {agentName} on a schedule to keep key systems healthy.',
+        id: 'GpZr9J',
+    },
+    triggerScheduledDefaultPrompt: {
+        defaultMessage: 'Provide a short report about the latest signals and note any follow-up actions.',
+        id: 'aqGaRm',
+    },
+
+    // Trigger Creation Dialog
+    triggerCreateAction: { defaultMessage: 'Create trigger', id: 'FyrC09' },
+    triggerDetailsHeading: { defaultMessage: 'Trigger details', id: '4C44ie' },
+    triggerDetailsSubheading: {
+        defaultMessage: 'Choose how this trigger should behave and which agent it starts.',
+        id: 'yhqGka',
+    },
+    triggerModeIncidentTitle: { defaultMessage: 'Incident response', id: 'BgdyiU' },
+    triggerModeIncidentDescription: {
+        defaultMessage: 'Create a plan that starts this agent when a new incident is detected.',
+        id: 'OLSbA3',
+    },
+    triggerModeScheduledTitle: { defaultMessage: 'Scheduled task', id: 'dG8VrM' },
+    triggerModeScheduledDescription: {
+        defaultMessage: 'Run this agent on a repeating schedule.',
+        id: 'eYEnNu',
+    },
+    triggerModeScheduledDisabled: {
+        defaultMessage: 'Scheduled tasks require an upgrade. Contact your administrator to enable them.',
+        id: 'K1h5xo',
+    },
+    triggerAgentLabel: { defaultMessage: 'Starting agent', id: 'kWBrry' },
+    triggerAgentPlaceholder: { defaultMessage: 'Select a starting agent', id: 'k5T5VE' },
+    triggerStrategyLabel: { defaultMessage: 'How should this trigger be set up?', id: 'mbtoHb' },
+    triggerStrategyQuick: { defaultMessage: 'Quick create', id: 'M3159R' },
+    triggerStrategyQuickDescription: { defaultMessage: 'Create a new trigger with custom settings', id: 'iV7LUx' },
+    triggerStrategyExisting: { defaultMessage: 'Use existing', id: 'I5k4g/' },
+    triggerStrategyExistingDescription: { defaultMessage: 'Use an existing trigger configuration', id: 'ks97gc' },
+    triggerModeLabel: { defaultMessage: 'Trigger type', id: '6Vngei' },
+    triggerNameLabel: { defaultMessage: 'Trigger name', id: 'zDcGyS' },
+    triggerNamePlaceholder: { defaultMessage: 'e.g., P1 incident response', id: 'iydbuT' },
+    triggerIncidentPriorityLabel: { defaultMessage: 'Incident priority', id: 'y5oInX' },
+    triggerIncidentTypeLabel: { defaultMessage: 'Incident type', id: 'Udeffr' },
+    triggerInstructionsLabel: { defaultMessage: 'Instructions', id: 'sV2v5L' },
+    triggerInstructionsIncidentPlaceholder: {
+        defaultMessage: 'Describe how {agentName} should handle new incidents.',
+        id: '7tqXmc',
+    },
+    triggerDescriptionLabel: { defaultMessage: 'Description', id: 'Q8Qw5B' },
+    triggerDescriptionPlaceholder: {
+        defaultMessage: 'Explain what this scheduled trigger does for {agentName}.',
+        id: 'OeU7Xk',
+    },
+    triggerSchedulePresetLabel: { defaultMessage: 'Schedule', id: 'hGQqkW' },
+    triggerScheduleCustomLabel: { defaultMessage: 'Custom schedule', id: 'khOzXi' },
+    triggerScheduleCustomExpressionLabel: { defaultMessage: 'Cron expression', id: 'YmslQP' },
+    triggerScheduleCustomPlaceholder: { defaultMessage: 'e.g., 0 9 * * 1-5', id: 'QomX1y' },
+    triggerScheduleCustomDescription: {
+        defaultMessage: 'Use standard cron syntax (UTC) to control when the agent runs.',
+        id: 'OXek0m',
+    },
+    triggerScheduleStartTimeLabel: { defaultMessage: 'Start time (optional)', id: 'jv8SuZ' },
+    triggerScheduleStartHelp: {
+        defaultMessage: 'Optional: choose when this schedule should begin running.',
+        id: 'TmQqXl',
+    },
+    triggerInstructionsScheduledPlaceholder: {
+        defaultMessage: 'Describe what {agentName} should do each time it runs.',
+        id: 'wOHH3J',
+    },
+    triggerInstructionsScheduledRequired: {
+        defaultMessage: 'Provide instructions for what this scheduled task should do.',
+        id: '+kmL8g',
+    },
+    triggerScheduleSummary: { defaultMessage: 'Runs {description}.', id: '498yM3' },
+    triggerScheduleNextRunsLabel: { defaultMessage: 'Next run times', id: 'wb/AUH' },
+    triggerScheduleNaturalLabel: { defaultMessage: 'Describe the schedule', id: 'LkUvu/' },
+    triggerScheduleNaturalPlaceholder: { defaultMessage: 'e.g., Every weekday at 9am', id: '0ltHAS' },
+    triggerScheduleNaturalHelp: {
+        defaultMessage: 'Use natural language—we’ll translate it into a cron schedule.',
+        id: 'MjxZUD',
+    },
+    triggerScheduleNaturalResolved: { defaultMessage: 'Detected cron: {cron}', id: 'AdRf7Y' },
+    triggerScheduleAwaitingParse: { defaultMessage: 'Parsing…', id: 'Z9TajN' },
+    triggerScheduleAdvancedLabel: { defaultMessage: 'Advanced options', id: '0cEOKu' },
+    triggerScheduleCronInvalid: { defaultMessage: 'Enter a valid cron expression.', id: '0TOEqZ' },
+    triggerScheduleTimezoneLabel: { defaultMessage: 'Timezone', id: '7nUCu9' },
+    triggerExistingIncidentLabel: { defaultMessage: 'Incident response plan', id: 'mky0K0' },
+    triggerExistingScheduledLabel: { defaultMessage: 'Scheduled task', id: 'dG8VrM' },
+    triggerExistingPlaceholder: { defaultMessage: 'Select an existing trigger', id: '4/nSt8' },
+    triggerExistingNone: {
+        defaultMessage: 'No matching items yet. Complete the quick create form to add one.',
+        id: 'j59lXr',
+    },
+    triggerExistingLastRun: { defaultMessage: 'Last run: {value}', id: 'FFFf74' },
+    triggerExistingNoRun: { defaultMessage: 'No runs yet', id: 'x3qvaC' },
+    triggerExistingNextRun: { defaultMessage: 'Next run: {value}', id: '1EnaNQ' },
+    triggerStrategyHelp: {
+        defaultMessage: 'Start fresh or reuse an existing trigger configuration.',
+        id: 'gvlNuI',
+    },
+    triggerScheduledEnableCta: { defaultMessage: 'Open scheduled tasks', id: 'CaZAZZ' },
+
+    // Wizard Steps
+    stepType: { defaultMessage: 'Type', id: '+U6ozc' },
+    stepDetails: { defaultMessage: 'Details', id: 'Lv0zJu' },
+    stepReview: { defaultMessage: 'Review', id: 'R+J5ox' },
+
+    // Buttons
+    back: { defaultMessage: 'Back', id: 'cyR7Kh' },
+    cancel: { defaultMessage: 'Cancel', id: '47FYwb' },
+    next: { defaultMessage: 'Next', id: '9+Ddtu' },
+    create: { defaultMessage: 'Create', id: 'VzzYJk' },
+    creating: { defaultMessage: 'Creating...', id: 'mRL9Vh' },
+
+    // Agent Form Fields
+    agentName: { defaultMessage: 'Agent Name', id: 'ATXGa+' },
+    agentNamePlaceholder: { defaultMessage: 'e.g., IncidentAnalyzer', id: '9MwJ6v' },
+    agentNameHelp: { defaultMessage: 'A unique identifier for your agent', id: '15nhHh' },
+    agentType: { defaultMessage: 'Agent Type', id: 'NDy5dO' },
+    agentTypeHelp: { defaultMessage: 'Defines how the agent operates', id: 'PPrKNq' },
+    autonomous: { defaultMessage: 'Autonomous', id: 'Sr5R7d' },
+    orchestrator: { defaultMessage: 'Orchestrator', id: 'RK2Ddg' },
+    activity: { defaultMessage: 'Activity', id: 'ZmlNQ3' },
+    instructions: { defaultMessage: 'Instructions', id: 'sV2v5L' },
+    instructionsPlaceholder: { defaultMessage: 'Describe what this agent does and how it should behave...', id: 'o0pkiK' },
+    instructionsHelp: { defaultMessage: "System prompt that defines the agent's behavior", id: 'FkvYGq' },
+    tools: { defaultMessage: 'Tools', id: 'nUT0Lv' },
+    toolsOptional: { defaultMessage: 'Extended Tools (Optional)', id: '+TFnQ/' },
+    toolsPlaceholder: { defaultMessage: 'Select tools this agent can use', id: 'F6qYbg' },
+    toolsHelp: { defaultMessage: 'Select existing tools or create new ones later', id: 'tvw8DP' },
+
+    // System Tools
+    systemToolsOptional: { defaultMessage: 'System Tools (Optional)', id: 'sdussP' },
+    systemToolsPlaceholder: { defaultMessage: 'Select system tools this agent can use', id: 'VQn8u+' },
+    systemToolsHelp: { defaultMessage: 'System tools are built-in tools provided by the platform', id: 'euKVCa' },
+
+    // Tool Form Fields
+    toolName: { defaultMessage: 'Tool Name', id: 'INiSE2' },
+    toolNamePlaceholder: { defaultMessage: 'e.g., QueryKusto', id: '7Hg58U' },
+    toolNameHelp: { defaultMessage: 'A unique identifier for your tool', id: 'nySNrf' },
+    toolType: { defaultMessage: 'Tool Type', id: 'LPz7Qc' },
+    toolTypeHelp: { defaultMessage: 'The type of tool functionality', id: 'BP3wUO' },
+    kustoTool: { defaultMessage: 'Kusto Tool', id: 'iMBgdL' },
+    linkTool: { defaultMessage: 'Link Tool', id: 'ppzeDo' },
+    description: { defaultMessage: 'Description', id: 'Q8Qw5B' },
+    descriptionPlaceholder: { defaultMessage: 'Describe what this tool does...', id: 'FO/nez' },
+    descriptionHelp: { defaultMessage: 'Clear description for agents to understand when to use this tool', id: 'ubULuu' },
+    connectorOptional: { defaultMessage: 'Connector (Optional)', id: 'bdFY56' },
+    connectorPlaceholder: { defaultMessage: 'Select a Kusto connector', id: '4uiKBK' },
+    connectorHelp: { defaultMessage: 'Choose the Kusto connector this tool will query', id: 'PS7hBo' },
+    parameterBindingLabel: { defaultMessage: 'Binding', id: 'BWt4Jj' },
+    parameterBindingHelp: {
+        defaultMessage: 'Controls how this value is passed to the tool method',
+        id: 'aKNsTc',
+    },
+    parameterBindingDictionary: { defaultMessage: 'Dictionary (group into args)', id: 'xNC5hG' },
+    parameterBindingDirect: { defaultMessage: 'Direct argument', id: 'LsGLc0' },
+    parameterBindingIgnored: { defaultMessage: 'Ignore (use static value)', id: 'oDVFQr' },
+    parameterMapToDictionaryLabel: { defaultMessage: 'Dictionary key (map_to)', id: 'MLVVhB' },
+    parameterMapToDirectLabel: { defaultMessage: 'Map to argument', id: 'Km+WSh' },
+    parameterMapToDictionaryHelp: {
+        defaultMessage: 'Name of the dictionary this parameter contributes to',
+        id: 'kX8T8H',
+    },
+    parameterMapToDirectHelp: {
+        defaultMessage: 'Tool method argument that receives this value',
+        id: 'IcB2fr',
+    },
+    parameterDictionaryValueTypeLabel: { defaultMessage: 'Dictionary value type', id: 'n2h/5e' },
+    parameterDictionaryValueTypeHelp: {
+        defaultMessage: 'Type for dictionary values',
+        id: 'VzeCzD',
+    },
+    parameterDataTypeHelp: {
+        defaultMessage: 'Data type and requirement for validation',
+        id: 'Bluuk+',
+    },
+
+    // Connector Form Fields
+    connectorName: { defaultMessage: 'Connector Name', id: 'qiY3L8' },
+    connectorNamePlaceholder: { defaultMessage: 'e.g., ProductionKusto', id: '/tauMV' },
+    connectorNameHelp: { defaultMessage: 'A unique identifier for your connector', id: '7Vep/o' },
+    connectorType: { defaultMessage: 'Connector Type', id: 'XHc00z' },
+    connectorTypeHelp: { defaultMessage: 'The type of data source', id: '4z+NaY' },
+    kusto: { defaultMessage: 'Kusto', id: '/rNkXe' },
+    descriptionOptional: { defaultMessage: 'Description (Optional)', id: 's6iZgz' },
+    descriptionConnectorPlaceholder: { defaultMessage: 'Describe this connector...', id: '8RcpTO' },
+    descriptionConnectorHelp: { defaultMessage: 'Optional description of what this connector accesses', id: 'gP/k0J' },
+
+    // Review Step
+    reviewYourAgent: { defaultMessage: 'Review Your agent', id: 'S0GneP' },
+    reviewYourTool: { defaultMessage: 'Review Your tool', id: 'zuQF37' },
+    reviewYourConnector: { defaultMessage: 'Review Your connector', id: 'TwMqIK' },
+    reviewYourTrigger: { defaultMessage: 'Review Your trigger', id: 'Jz5GjX' },
+    reviewYamlPreviewUnavailable: { defaultMessage: 'Nothing to preview yet.', id: 'oKJ0fm' },
+    triggerReviewLead: { defaultMessage: 'Review your trigger configuration before creating', id: 'P5X8Kw' },
+    triggerReviewBackToEdit: { defaultMessage: 'Back to Edit', id: 'tGHG7q' },
+
+    // Empty State
+    buildYourAgentEcosystem: { defaultMessage: 'Build Your Agent Ecosystem', id: 'HNECLT' },
+    emptyStateDescription: {
+        defaultMessage:
+            'Create AI agents with custom tools and data connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector.',
+        id: 'g3ngVx',
+    },
+    aiAgents: { defaultMessage: 'AI Agents', id: '4XOvey' },
+    aiAgentsFeature: { defaultMessage: 'Define autonomous agents with custom instructions and capabilities', id: '7smbCB' },
+    toolsFeature: { defaultMessage: 'Create reusable functions and actions for your agents', id: 'AqVLXi' },
+    connectorsFeature: { defaultMessage: 'Connect to data sources like Kusto for rich agent capabilities', id: 'vCsh17' },
+
+    // FAB Tooltip
+    createNewEntityTooltip: { defaultMessage: 'Create new entity', id: 'FTWkpv' },
+
+    // Errors and Messages
+    errorLoadingGraph: { defaultMessage: 'Error loading graph: {error}', id: '1FMpZj' },
+    required: { defaultMessage: 'Required', id: 'Seanpx' },
+    optional: { defaultMessage: 'Optional', id: 'InWqys' },
+    agentSelectorLabel: { defaultMessage: 'Agent', id: 'QGVI63' },
+    agentSelectorPlaceholder: { defaultMessage: 'Select an agent', id: 'ipsqxO' },
+    noAgentsFound: { defaultMessage: 'No agents available yet', id: '3H77Ic' },
+    searchLabel: { defaultMessage: 'Search', id: 'xmcVZ0' },
+    searchPlaceholder: { defaultMessage: 'Search agents, tools, or connectors', id: 'ltBXTD' },
+    refreshGraphButton: { defaultMessage: 'Refresh', id: 'rELDbB' },
+    graphNodeCount: { defaultMessage: 'Nodes: {count}', id: '9bH3e2' },
+    graphEdgeCount: { defaultMessage: 'Connections: {count}', id: 'F8R5Bb' },
+    toolsCountBadge: { defaultMessage: 'Tools · {count}', id: '5walLE' },
+    systemToolsCountBadge: { defaultMessage: 'System tools · {count}', id: 'IvKdxU' },
+    handoffCountBadge: { defaultMessage: 'Handoffs · {count}', id: 'MnlPLt' },
+    agentAsToolCountBadge: { defaultMessage: 'Agents-as-tools · {count}', id: 'tujypD' },
+    selectAgentPrompt: {
+        defaultMessage: 'Pick an agent to visualize its tools, connectors, and handoffs.',
+        id: 'WcnRC1',
+    },
+    noResultsForFilters: {
+        defaultMessage: 'No matches for the current filters.',
+        id: '86kOeb',
+    },
+    gridViewPlaceholder: {
+        defaultMessage: 'Grid view is coming soon.',
+        id: 'Xb85sq',
+    },
+    outputTypeLabel: { defaultMessage: 'Output type', id: 'DQfSk8' },
+    temperatureLabel: { defaultMessage: 'Temperature', id: 'cG0Q8M' },
+    llmModelLabel: { defaultMessage: 'Model', id: 'rhSI1/' },
+    maxReflectionLabel: { defaultMessage: 'Max reflections', id: 'aprHig' },
+    criticPromptLabel: { defaultMessage: 'Critic prompt', id: 'dk4jPW' },
+    criticOnHandOffLabel: { defaultMessage: 'Critic on handoff', id: 'FzjwEg' },
+    instructionsTitle: { defaultMessage: 'Instructions', id: 'sV2v5L' },
+    noInstructions: { defaultMessage: 'No instructions provided yet.', id: 'DhBWKr' },
+    handoffDescriptionTitle: { defaultMessage: 'Handoff description', id: 'yLRKP5' },
+    toolsSectionTitle: { defaultMessage: 'Tools', id: 'nUT0Lv' },
+    noTools: { defaultMessage: 'No tools configured.', id: 'mgZVf8' },
+    systemToolsSectionTitle: { defaultMessage: 'System tools', id: '2kRPCZ' },
+    noSystemTools: { defaultMessage: 'No system tools configured.', id: 'c/bty0' },
+    systemToolPluginLabel: { defaultMessage: 'Plugin', id: 'mVkTZZ' },
+    connectorsSectionTitle: { defaultMessage: 'Connectors', id: '2mMJRv' },
+    noConnectors: { defaultMessage: 'No connectors linked.', id: 'peOEU7' },
+    handoffsSectionTitle: { defaultMessage: 'Handoffs', id: '/RdF9w' },
+    noHandoffs: { defaultMessage: 'No handoffs configured.', id: 'tjE5Cb' },
+    agentsAsToolsSectionTitle: { defaultMessage: 'Agents as tools', id: 'uMNRNl' },
+    noAgentsAsTools: { defaultMessage: 'No agents-as-tools configured.', id: 'TRceX/' },
+    commonToolsSectionTitle: { defaultMessage: 'Common tools', id: 'PU1wDo' },
+    noCommonTools: { defaultMessage: 'No common tools configured.', id: '44Y8wQ' },
+    commonPromptsSectionTitle: { defaultMessage: 'Common prompts', id: 'VvrxSY' },
+    noCommonPrompts: { defaultMessage: 'No common prompts added.', id: 'SXcBLr' },
+    agentConfigurationTitle: { defaultMessage: 'Agent configuration', id: '7Uk/61' },
+    allowParallelLabel: { defaultMessage: 'Allow parallel tool calls', id: 'Kxd0Vr' },
+    metadataSectionTitle: { defaultMessage: 'Metadata', id: '8Q504V' },
+    toolDetailsTitle: { defaultMessage: 'Tool details · {name}', id: '83YwiU' },
+    toolTypeLabel: { defaultMessage: 'Tool type', id: 'mZ3wu9' },
+    toolDescriptionLabel: { defaultMessage: 'Description', id: 'Q8Qw5B' },
+    noDescription: { defaultMessage: 'No description provided.', id: 'YCnSYw' },
+    connectorLabel: { defaultMessage: 'Connector', id: 'r8XsCU' },
+    parametersSectionTitle: { defaultMessage: 'Parameters', id: 'BkOSF2' },
+    noParameters: { defaultMessage: 'No parameters defined.', id: '6TO45V' },
+    toolNoConnectorsAvailable: { defaultMessage: 'No connectors available', id: 'ju7bLp' },
+    toolAddAllButton: { defaultMessage: 'Add All', id: 'ehhpyJ' },
+    toolNoParamsNeeded: { defaultMessage: 'No params needed', id: 'U914O/' },
+    toolParamTypeText: { defaultMessage: 'Text', id: 'aA8bDw' },
+    toolParamTypeYesNo: { defaultMessage: 'Yes/No', id: 'KgcF6B' },
+    toolParamTypeDate: { defaultMessage: 'Date', id: 'P7PLVj' },
+    toolQueryDetectedParamsLabel: { defaultMessage: '{count} params detected', id: 'GzKpRn' },
+    connectorDetailsTitle: { defaultMessage: 'Connector details · {name}', id: 'nWJtZd' },
+    connectorTypeLabel: { defaultMessage: 'Connector type', id: 'kQSvkP' },
+    connectorStatusLabel: { defaultMessage: 'Status', id: 'tzMNF3' },
+    connectorStatusEnabled: { defaultMessage: 'Enabled', id: 'V52jNn' },
+    connectorStatusDisabled: { defaultMessage: 'Disabled', id: 'tthToS' },
+    connectorDescriptionLabel: { defaultMessage: 'Description', id: 'Q8Qw5B' },
+    connectorAuthLabel: { defaultMessage: 'Authentication', id: 'YeKWbP' },
+    kustoConfigurationTitle: { defaultMessage: 'Kusto Configuration', id: 'MaaxCM' },
+    kustoModeLabel: { defaultMessage: 'Mode', id: 'mrOnjM' },
+    kustoDatabaseLabel: { defaultMessage: 'Database', id: 'jjTzIr' },
+    kustoQueryLabel: { defaultMessage: 'Query', id: 'qj71j1' },
+    kustoFunctionLabel: { defaultMessage: 'Function', id: '4fPELu' },
+    kustoClusterUriLabel: { defaultMessage: 'Cluster URI', id: 'bCzUPd' },
+    triggerSeverityLabel: { defaultMessage: 'Severity', id: 'vCAhII' },
+    triggerServiceLabel: { defaultMessage: 'Service', id: 'n7yYXG' },
+    noMetadata: { defaultMessage: 'No metadata provided.', id: 'Zt/L20' },
+    noNodeSelected: { defaultMessage: 'Select a node to see its details.', id: 'oM0lfe' },
+    agentSummaryTitle: { defaultMessage: 'Filtered agent', id: 'NlBiTm' },
+    filteredAgentLabel: { defaultMessage: 'Currently showing {name}', id: 'F5b1Mw' },
+    noAgentSelected: { defaultMessage: 'Select an agent to view its configuration.', id: 'IrCHQG' },
+    overviewTabLabel: { defaultMessage: 'Overview', id: '9uOFF3' },
+    yamlTabLabel: { defaultMessage: 'YAML', id: 'FvhvDO' },
+    yamlEditorDescription: {
+        defaultMessage: 'Review and edit the full {entityLabel} YAML.',
+        id: 'AzTehW',
+    },
+    yamlValidationInvalid: { defaultMessage: 'Unable to parse YAML: {message}', id: 'xy47sz' },
+    yamlValidationKindMissing: {
+        defaultMessage: "YAML must include kind: '{expectedKind}'.",
+        id: 'H1OQZj',
+    },
+    yamlValidationSpecMissing: { defaultMessage: 'YAML must include a spec object.', id: '4BVpFN' },
+    yamlValidationNameMissing: {
+        defaultMessage: 'YAML spec must include a name for the {entityLabel}.',
+        id: 'mSoczp',
+    },
+    yamlValidationCollectionMissing: {
+        defaultMessage: "YAML must include '{collectionName}' with at least one entry.",
+        id: 'jxYyO2',
+    },
+    yamlValidationCollectionNameMissing: {
+        defaultMessage: 'Each {entityLabel} must include a name.',
+        id: 'ZBKZDe',
+    },
+    yamlValidationCollectionTypeMissing: {
+        defaultMessage: 'Each {entityLabel} must include a type.',
+        id: 'pSeneB',
+    },
+    toolsCollectionName: { defaultMessage: 'tools', id: 'rrN9ke' },
+    connectorsCollectionName: { defaultMessage: 'connectors', id: 'B5kyn8' },
+    yamlSaveSuccess: { defaultMessage: 'Configuration saved successfully.', id: 'nxmZHP' },
+    yamlSaveError: { defaultMessage: 'Save failed: {message}', id: '9Dp2VU' },
+    yamlSaveButton: { defaultMessage: 'Save YAML', id: 'T7fzjx' },
+    yamlResetButton: { defaultMessage: 'Reset changes', id: 'PysW/n' },
+    yamlEmptyState: {
+        defaultMessage: 'Select a {entityLabel} to edit its configuration YAML.',
+        id: 'rKdPkY',
+    },
+    yamlSavingLabel: { defaultMessage: 'Saving…', id: 'WUV28A' },
+    yamlOpenButton: { defaultMessage: 'Edit YAML', id: '0w+w97' },
+    yamlDialogTitle: { defaultMessage: 'Edit YAML configuration', id: 'coy1iv' },
+    yamlInlineEditorTitle: { defaultMessage: 'Edit YAML', id: '0w+w97' },
+    yamlInlineSaveChanges: { defaultMessage: 'Save Changes', id: '3VI9mt' },
+    yamlErrorTitle: { defaultMessage: 'YAML error', id: 'X7mXLW' },
+    yamlUnsavedChanges: { defaultMessage: 'You have unsaved changes.', id: 'LTDPn/' },
+    yamlCloseButton: { defaultMessage: 'Close', id: 'rbrahO' },
+    deleteExtendedAgentWarning: {
+        defaultMessage:
+            'Are you sure you want to delete this Extended Agent? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone.',
+        id: 'hWVnHh',
+    },
+    deleteExtendedToolWarning: {
+        defaultMessage:
+            'Are you sure you want to delete this Extended Tool? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone.',
+        id: 'bK0VQe',
+    },
+    extendedAgentDeletionReminder: {
+        defaultMessage:
+            'New agents can take a few seconds to appear in the graph. If you do not see it right away, refresh the list after a brief moment.',
+        id: '4QLM52',
+    },
+
+    // Relationship Builder
+    relationshipNameRequired: { defaultMessage: 'Enter a name before creating this item.', id: 'YT6JU9' },
+    relationshipCreationNotice: {
+        defaultMessage: 'Your new {entityType} will be ready in a few seconds. Feel free to keep editing while we connect it.',
+        id: 'tU3A8E',
+    },
+    toolLowercase: { defaultMessage: 'tool', id: 'YrlQBL' },
+    agentLowercase: { defaultMessage: 'agent', id: 'snui0/' },
+    connectorLowercase: { defaultMessage: 'connector', id: '44QmgP' },
+    relationshipAgentFieldsRequired: {
+        defaultMessage: 'Enter a name and instructions before creating this agent.',
+        id: '35Pxrz',
+    },
+    relationshipBuilderTitle: { defaultMessage: 'Connect related agents and tools', id: 'CNd+KS' },
+    relationshipBuilderOptionalTitle: { defaultMessage: 'Relationships (optional)', id: 't6/9PU' },
+    relationshipBuilderDescription: {
+        defaultMessage: 'Link this agent to its handoffs and tools so the relationships are ready when it goes live.',
+        id: 'sTodCB',
+    },
+    thisAgentPlaceholder: { defaultMessage: 'This agent', id: '47Qksb' },
+    relationshipToolLabel: { defaultMessage: 'Tools this agent can call', id: '33HEdR' },
+    relationshipAddHandoffLabel: { defaultMessage: 'Add handoff to existing agent', id: 'qvviEg' },
+    relationshipSelectAgent: { defaultMessage: 'Select an agent to hand off to', id: '8rNTuV' },
+    relationshipAddButton: { defaultMessage: 'Add', id: '2/2yg+' },
+    relationshipAddToolLabel: { defaultMessage: 'Add existing tool', id: 'RI59Ed' },
+    relationshipSelectTool: { defaultMessage: 'Select a tool to connect', id: 'DMEE1o' },
+    relationshipCreateToolTitle: { defaultMessage: 'Create a new tool', id: 'Dw2xIY' },
+    relationshipCollapse: { defaultMessage: 'Collapse', id: 'W/V6+Y' },
+    relationshipExpand: { defaultMessage: 'Expand', id: '0oLj/t' },
+    relationshipCreateAndConnect: { defaultMessage: 'Create and connect', id: '3Pq+hf' },
+    relationshipCreateAgentTitle: { defaultMessage: 'Create a new handoff agent', id: 'wQdhYo' },
+    relationshipCurrentHandoffs: { defaultMessage: 'Handoff Agents (Optional)', id: 'FVOAIQ' },
+    relationshipNoHandoffs: { defaultMessage: 'No handoffs added yet.', id: 'HiBsED' },
+    relationshipRemoveHandoff: {
+        defaultMessage: 'Remove handoff {name}',
+        id: 'FE2ukR',
+    },
+    relationshipCurrentTools: { defaultMessage: 'Connected tools', id: 'XM+FCY' },
+    relationshipNoTools: { defaultMessage: 'No tools connected yet.', id: 'mJXXeS' },
+    relationshipRemoveTool: {
+        defaultMessage: 'Remove tool {name}',
+        id: 'zr8jA6',
+    },
+    relationshipDismiss: { defaultMessage: 'Dismiss', id: 'TDaF6J' },
+    relationshipQuickActionTooltip: { defaultMessage: 'Connect handoffs and tools', id: 'IJX2gV' },
+    relationshipQuickDialogTitle: { defaultMessage: 'Connect relationships for {name}', id: 'VTkRGg' },
+    relationshipQuickDialogTitleFallback: { defaultMessage: 'Connect relationships', id: 'uFaAgq' },
+    relationshipQuickDialogDescription: {
+        defaultMessage: 'Link this agent to existing handoffs and tools or create new ones without leaving the graph.',
+        id: '//Zb9l',
+    },
+    relationshipQuickDelayNotice: {
+        defaultMessage: 'It may take a few seconds for new agents or tools to appear in the graph after they are created.',
+        id: 'sUfX4j',
+    },
+    relationshipQuickNoAgentSelected: {
+        defaultMessage: 'Select an agent to manage its relationships.',
+        id: 'Tkn9dK',
+    },
+    relationshipQuickExistingTitle: { defaultMessage: 'Connect existing items', id: 'J7FnS1' },
+    relationshipQuickCreateTitle: { defaultMessage: 'Create and connect new items', id: 'jM/rXB' },
+    relationshipQuickCreateToolHeader: { defaultMessage: 'Create a new tool', id: 'Dw2xIY' },
+    relationshipQuickCreateAgentHeader: { defaultMessage: 'Create a new handoff agent', id: 'wQdhYo' },
+    relationshipContextBannerHeading: { defaultMessage: 'Context: {agentName}', id: 'X3fjbS' },
+    relationshipContextAgentSubtext: {
+        defaultMessage: 'Creates a handoff for {agentName}.',
+        id: 'izQgEq',
+    },
+    relationshipContextToolSubtext: {
+        defaultMessage: 'Attaches to {agentName}.',
+        id: 'rG1sas',
+    },
+    relationshipSummaryTitle: { defaultMessage: 'Relationship preview', id: 'F8UOXS' },
+    relationshipSummaryAgent: {
+        defaultMessage: '{sourceAgentName} —handoff→ {targetAgentName}',
+        id: 'ISsGbC',
+    },
+    relationshipSummaryTool: {
+        defaultMessage: '{sourceAgentName} —uses→ {toolName}',
+        id: 'kq7D3O',
+    },
+    relationshipPendingAgentName: { defaultMessage: 'New agent', id: 'KR79he' },
+    relationshipPendingToolName: { defaultMessage: 'New tool', id: 'fT73QI' },
+    relationshipQuickAlreadyHandoff: {
+        defaultMessage: '{handoffName} is already a handoff for {agentName}.',
+        id: 'UjNXaV',
+    },
+    relationshipQuickAddHandoffSuccess: {
+        defaultMessage: 'Added handoff to {handoffName} for {agentName}.',
+        id: 'sVJ+oz',
+    },
+    relationshipQuickAlreadyTool: {
+        defaultMessage: '{toolName} is already connected to {agentName}.',
+        id: 'tb6uBb',
+    },
+    relationshipQuickToolMissing: {
+        defaultMessage: "We couldn't find tool {toolName}. Refresh and try again.",
+        id: 'OO5Y94',
+    },
+    relationshipQuickAddToolSuccess: {
+        defaultMessage: 'Connected tool {toolName} to {agentName}.',
+        id: 'IEIivr',
+    },
+    relationshipQuickCreateToolSuccess: {
+        defaultMessage: 'Created {toolName} and connected it to {agentName}.',
+        id: 'N0wOFf',
+    },
+    relationshipQuickCreateAgentSuccess: {
+        defaultMessage: 'Created {handoffName} and added it as a handoff for {agentName}.',
+        id: 'T/G3bv',
+    },
+    relationshipQuickActionAddHandoffInfo: {
+        defaultMessage: 'Select an existing agent below to add as a handoff.',
+        id: 'Oshix6',
+    },
+    relationshipQuickActionAddToolInfo: {
+        defaultMessage: 'Select an existing tool below to connect.',
+        id: 'Zo9lK6',
+    },
+    relationshipQuickCreateAgentReminder: {
+        defaultMessage: "When you finish creating this agent, we'll automatically add it as a handoff for {agentName}.",
+        id: 'pbpjik',
+    },
+    reviewRelationshipsHeading: { defaultMessage: 'Relationships', id: 'N7lPfx' },
+    reviewRelationshipAgent: {
+        defaultMessage: 'Will add as handoff to {agentName}.',
+        id: '5MSxYS',
+    },
+    reviewRelationshipTool: {
+        defaultMessage: 'Will attach to {agentName} as a tool.',
+        id: 'XEB3Fn',
+    },
+    createAndLink: { defaultMessage: 'Create & Link', id: 'fbr20l' },
+    relationshipLinkFailedAgent: {
+        defaultMessage: 'Agent created, but linking to {agentName} failed. Retry link.',
+        id: 'ijOojL',
+    },
+    relationshipLinkFailedTool: {
+        defaultMessage: 'Tool created, but attaching to {agentName} failed. Retry link.',
+        id: '08bD52',
+    },
+    retryLink: { defaultMessage: 'Retry link', id: '7TVRcx' },
+    quickCreateAgentSuccess: {
+        defaultMessage: 'Created {agentName} and linked it as a handoff for {sourceAgentName}. Finish the setup in Incident management.',
+        id: 'w2QcbZ',
+    },
+    quickCreateAgentSuccessNoSource: {
+        defaultMessage: 'Created {agentName}. Finish the setup in Incident management.',
+        id: 'nh3LaL',
+    },
+    quickCreateAgentSuccessLink: { defaultMessage: 'Go to Incident management', id: '7Cy5xk' },
+    testAgentButton: { defaultMessage: 'Test Agent', id: '05Rzkx' },
+
+    // Prompt Improvement
+    improveInstructionsButton: { defaultMessage: 'Improve with AI', id: 'f0LQra' },
+    improveInstructionsTooltip: { defaultMessage: 'Use AI to enhance and validate your agent instructions', id: 'JMdyE9' },
+    reviewInstructionsButton: { defaultMessage: 'Review', id: 'R+J5ox' },
+    reviewInstructionsTooltip: { defaultMessage: 'Review AI suggestions and warnings', id: '1hiiU/' },
+    improvingInstructions: { defaultMessage: 'Improving instructions...', id: 'v/3x6O' },
+    improveInstructionsError: { defaultMessage: 'Failed to improve instructions. Please try again.', id: 'MJUuF5' },
+    improvementApplied: { defaultMessage: 'AI improvements applied to instructions', id: 'PFUTWt' },
+    improvementDiscarded: { defaultMessage: 'AI suggestions discarded', id: 'L+ewYY' },
+    improvementSuggestions: { defaultMessage: 'AI Suggestions', id: 't3n6rd' },
+    improvementWarnings: { defaultMessage: 'Warnings', id: 'VSWkne' },
+    improvementApply: { defaultMessage: 'Apply Suggestions', id: 'hGMSK3' },
+    improvementDiscard: { defaultMessage: 'Discard', id: 'nmpevl' },
+    noImprovementSuggestions: { defaultMessage: 'No suggestions available', id: '3R3pgd' },
+    noImprovementWarnings: { defaultMessage: 'No warnings found', id: 'EBpelF' },
+    suggestionsButton: { defaultMessage: 'Suggestions', id: 'Hv0XJn' },
+    suggestionsTooltip: { defaultMessage: 'Preview AI recommendations without changing your instructions', id: 'hijOHm' },
+    loadingSuggestions: { defaultMessage: 'Fetching suggestions...', id: 'Zu+xDc' },
+    improvedInstructionsLabel: { defaultMessage: 'Suggested instructions', id: 'vVpzJQ' },
+    improveInstructionsChatUnavailable: {
+        defaultMessage: 'AI chat service is currently unavailable. Please try again later.',
+        id: 'cLC2fM',
+    },
+    improveInstructionsInvalidRequest: {
+        defaultMessage: 'Invalid request. Please check your instructions and try again.',
+        id: 'blYlGH',
+    },
+    improveInstructionsServerError: {
+        defaultMessage: 'Server error occurred. Please try again in a few moments.',
+        id: 'Rk/SSB',
+    },
+    improveInstructionsForbidden: {
+        defaultMessage: 'You do not have permission to use this feature.',
+        id: 'O3Ak71',
+    },
+
+    // Meta Agent Override
+    metaAgentOverrideLabel: { defaultMessage: 'Override default meta agent', id: '18C/Jh' },
+    metaAgentOverrideHelp: {
+        defaultMessage: 'Replace the default meta agent with a specialized version tailored for this extended agent',
+        id: 'RR+13c',
+    },
+    metaAgentOverrideDescription: {
+        defaultMessage: 'This overrides the default meta agent to remove general Azure knowledge and provide a more focused experience.',
+        id: '9GSKOR',
+    },
+    metaAgentOverrideYesLabel: { defaultMessage: 'Yes, override with custom meta agent', id: 'MOttDA' },
+    metaAgentOverrideNoLabel: { defaultMessage: 'No, keep default meta agent', id: 'sNofwe' },
+    metaAgentOverrideReasonTooltip: {
+        defaultMessage:
+            "Overriding the meta agent is recommended because this extended agent doesn't need the default agent's world knowledge of Azure resources, providing a more focused experience.",
+        id: 'VQlvNn',
+    },
+    metaAgentAlreadyExistsMessage: {
+        defaultMessage: 'A meta agent override already exists in your system.',
+        id: 'VnySGb',
+    },
 });

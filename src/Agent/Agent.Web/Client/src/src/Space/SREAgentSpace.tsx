@@ -25,12 +25,18 @@ import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Az
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
 import { useFeatureFlags } from '../Common/Hooks/useFeatureFlags';
 import { LocalStorageFlags, useLocalStorage } from '../Common/Hooks/useLocalStorage';
-import { IncidentManagementResources, SreAgentResources, SreAgentTabResources } from '../Strings/SREAgentResources';
+import {
+    ExtendedAgentsGraphResources,
+    IncidentManagementResources,
+    SreAgentResources,
+    SreAgentTabResources,
+} from '../Strings/SREAgentResources';
 import Activities from './Activities/Activities.ReactView';
 import { FeedbackDialog } from './Components/FeedbackDialog';
 import { SreAgentContext } from './Contracts/Context';
 import { PermissionProvider } from './Contracts/PermissionContext';
 import DailyReports from './DailyReports/DailyReports';
+import ExtendedAgentGraph from './Graph/ExtendedAgentGraph';
 import Graph from './Graph/Graph';
 import { useIncidentManagementConnectivity } from './Hooks/useIncidentManagementConnectivity';
 import { useIncidentPlatformType } from './Hooks/useIncidentPlatformType';
@@ -61,6 +67,7 @@ enum TabValues {
     IncidentManagement = 'incidentmanagement',
     DailyReports = 'dailyreports',
     ScheduledTasks = 'scheduledtasks',
+    ExtendedAgentsGraph = 'extendedagentsgraph',
 }
 
 const inStandaloneMode = AzPortalProxy.inStandaloneMode;
@@ -160,6 +167,9 @@ const TabsListWrapper: FC = () => {
     // Show scheduled tasks tab based on backend feature flag only
     const showScheduledTasksTab = features.scheduledTasks;
 
+    // Show extended agents graph tab based on backend feature flag only
+    const showExtendedAgentsGraphTab = features.extendedAgentsGraph;
+
     const { controlPlaneTabsVisible, incidentManagementTabVisible, incidentManagementTabDisabled, logsTabDisabled, onLogsClick } =
         useControlPlaneDependentTabs({
             inStandaloneMode,
@@ -184,6 +194,9 @@ const TabsListWrapper: FC = () => {
         }
         if (location.pathname?.startsWith('/views/scheduledtasks')) {
             return TabValues.ScheduledTasks;
+        }
+        if (location.pathname?.startsWith('/views/extendedagentsgraph')) {
+            return TabValues.ExtendedAgentsGraph;
         }
         return TabValues.Activities;
     }, [location.pathname]);
@@ -216,6 +229,8 @@ const TabsListWrapper: FC = () => {
                 navigate({ ...location, pathname: '/views/dailyreports' });
             } else if (data.value === TabValues.ScheduledTasks) {
                 navigate({ ...location, pathname: '/views/scheduledtasks' });
+            } else if (data.value === TabValues.ExtendedAgentsGraph) {
+                navigate({ ...location, pathname: '/views/extendedagentsgraph' });
             } else if (data.value === TabValues.Logs) {
                 onLogsClick();
             }
@@ -291,6 +306,11 @@ const TabsListWrapper: FC = () => {
                             {'Scheduled Tasks'}
                         </Tab>
                     )}
+                    {showExtendedAgentsGraphTab && (
+                        <Tab id="ExtendedAgentsGraph" value={TabValues.ExtendedAgentsGraph}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.extendedAgentsTab)}
+                        </Tab>
+                    )}
                     {controlPlaneTabsVisible && (
                         <>
                             <Tab id="Settings" value={TabValues.Settings}>
@@ -337,6 +357,7 @@ const router = createHashRouter([
             { path: 'views/activities', element: <Activities /> },
             { path: 'views/dailyreports', element: <DailyReports /> },
             { path: 'views/scheduledtasks', element: <ScheduledTasksOverview /> },
+            { path: 'views/extendedagentsgraph', element: <ExtendedAgentGraph /> },
             { path: '*', element: <Activities /> },
         ],
     },

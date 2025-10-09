@@ -17,7 +17,7 @@ public record AgentDocumentModel(
     string CriticPromptPath,
     bool CriticOnHandOff,
     string CustomReflectionNote,
-    List<string> CommonPrompts, 
+    List<string> CommonPrompts,
     bool DisableDocumentRetrieval,
     bool EnableHandoffPromptOverride,
     string? UserPromptOverride,

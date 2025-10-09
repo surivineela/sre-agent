@@ -142,7 +142,7 @@ export interface IActionsProps {
 }
 
 export interface IChatBoxFooterProps {
-    sendMessage: (message: string) => Promise<void>;
+    sendMessage: (message: string, options?: SendMessageOptions) => Promise<void>;
     isLoading: boolean;
     downButtonState: { visible: boolean; flash: boolean };
     onClickDownButton: () => void;
@@ -157,6 +157,13 @@ export interface IChatBoxFooterProps {
     isDeepInvestigationButtonEnabled: boolean;
     isDeepInvestigationTurnedOn: boolean;
     onClickDeepInvestigationButton: () => void;
+    postSystemMessage: (text: string) => void;
+}
+
+export interface SendMessageOptions {
+    starterAgentName?: string;
+    forceNewThread?: boolean;
+    commandId?: string;
 }
 
 export class ThreadLoadingCounts {

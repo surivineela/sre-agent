@@ -17,12 +17,13 @@ export interface UseScheduledTasksResult {
     getTasksByThread: (threadId: string) => ScheduledTask[];
 }
 
-export const useScheduledTasks = (): UseScheduledTasksResult => {
+export const useScheduledTasks = (options?: { enabled?: boolean }): UseScheduledTasksResult => {
     const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const enabled = options?.enabled ?? true;
 
     const handleApiCall = async <T,>(apiCall: () => Promise<Response>): Promise<T | null> => {
         try {
@@ -41,6 +42,13 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
     };
 
     const refreshTasks = useCallback(async () => {
+        if (!enabled) {
+            setScheduledTasks([]);
+            setLoading(false);
+            setError(null);
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
@@ -55,10 +63,14 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             setScheduledTasks(data);
         }
         setLoading(false);
-    }, []);
+    }, [enabled, sreAgentEndpoint]);
 
     const createTask = useCallback(
         async (task: CreateScheduledTaskRequest): Promise<ScheduledTask | null> => {
+            if (!enabled) {
+                return null;
+            }
+
             setError(null);
 
             const response = await handleApiCall<{ taskId: string }>(() =>
@@ -85,11 +97,15 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             }
             return null;
         },
-        [refreshTasks]
+        [enabled, refreshTasks, sreAgentEndpoint]
     );
 
     const updateTask = useCallback(
         async (id: string, updates: UpdateScheduledTaskRequest): Promise<boolean> => {
+            if (!enabled) {
+                return false;
+            }
+
             setError(null);
 
             const response = await handleApiCall<any>(() =>
@@ -106,11 +122,15 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             }
             return false;
         },
-        [refreshTasks]
+        [enabled, refreshTasks, sreAgentEndpoint]
     );
 
     const deleteTask = useCallback(
         async (id: string): Promise<boolean> => {
+            if (!enabled) {
+                return false;
+            }
+
             setError(null);
 
             const response = await handleApiCall<any>(() =>
@@ -126,11 +146,15 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             }
             return false;
         },
-        [refreshTasks]
+        [enabled, refreshTasks, sreAgentEndpoint]
     );
 
     const pauseTask = useCallback(
         async (id: string): Promise<boolean> => {
+            if (!enabled) {
+                return false;
+            }
+
             setError(null);
 
             const response = await handleApiCall<any>(() =>
@@ -146,11 +170,15 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             }
             return false;
         },
-        [refreshTasks]
+        [enabled, refreshTasks, sreAgentEndpoint]
     );
 
     const resumeTask = useCallback(
         async (id: string): Promise<boolean> => {
+            if (!enabled) {
+                return false;
+            }
+
             setError(null);
 
             const response = await handleApiCall<any>(() =>
@@ -166,21 +194,29 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             }
             return false;
         },
-        [refreshTasks]
+        [enabled, refreshTasks, sreAgentEndpoint]
     );
 
     const getTaskById = useCallback(
         (id: string): ScheduledTask | null => {
+            if (!enabled) {
+                return null;
+            }
+
             return scheduledTasks.find(task => task.id === id) || null;
         },
-        [scheduledTasks]
+        [enabled, scheduledTasks]
     );
 
     const getTasksByThread = useCallback(
         (threadId: string): ScheduledTask[] => {
+            if (!enabled) {
+                return [];
+            }
+
             return scheduledTasks.filter(task => task.threadId === threadId);
         },
-        [scheduledTasks]
+        [enabled, scheduledTasks]
     );
 
     // Load tasks on mount
