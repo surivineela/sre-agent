@@ -17,8 +17,8 @@ namespace Agent.Cli.Services;
 public static class ToolDefinitionService
 {
     private static readonly Lazy<List<Assembly>> _relevantAssemblies = new(DiscoverRelevantAssemblies);
-    private static readonly Lazy<List<ToolTypeInfo>> _cachedToolTypes = new(() => DiscoverToolTypes());
-    private static readonly Lazy<List<ConnectorTypeInfo>> _cachedConnectorTypes = new(() => DiscoverConnectorTypes());
+    private static readonly Lazy<List<ToolTypeInfo>> _cachedToolTypes = new(DiscoverToolTypes);
+    private static readonly Lazy<List<ConnectorTypeInfo>> _cachedConnectorTypes = new(DiscoverConnectorTypes);
 
     /// <summary>
     /// Gets all available tool types by scanning for ToolTypeAttribute in assemblies.
@@ -77,11 +77,11 @@ public static class ToolDefinitionService
         catch (Exception)
         {
             // Fallback to known assemblies if dynamic discovery fails
-            return new List<Assembly>
-            {
+            return
+            [
                 typeof(KustoToolType).Assembly, // Agent.Plugins
                 typeof(YamlToolDefinitionBase).Assembly,  // Agent.Framework
-            };
+            ];
         }
 
         return assemblies;
@@ -224,7 +224,7 @@ public static class ToolDefinitionService
     private static string GetConnectorName(Type type)
     {
         // Try to get name from DataConnectorAttribute if it exists
-        var dataConnectorAttr = type.GetCustomAttribute<Agent.Core.DataConnectors.DataConnectorAttribute>();
+        var dataConnectorAttr = type.GetCustomAttribute<Core.DataConnectors.DataConnectorAttribute>();
         if (dataConnectorAttr != null && !string.IsNullOrEmpty(dataConnectorAttr.Type))
         {
             return dataConnectorAttr.Type;
@@ -373,6 +373,7 @@ public static class ToolDefinitionService
 type: KustoTool
 connector: analytics-cluster
 mode: query
+database: kustodb
 description: |
   !!!!!!!!IMPORTANT!!!!! THIS IS A PLACEHOLDER TEMPLATE: <PLACE YOUR TOOL DESCRIPTION HERE AND CHANGE THE VALUES ABOVE>
   Purpose:
@@ -442,11 +443,10 @@ parameters:
     /// </summary>
     private static PropertyInfo[] GetYamlProperties(Type type)
     {
-        return type.GetProperties()
+        return [.. type.GetProperties()
             .Where(p => p.GetCustomAttribute<YamlMemberAttribute>() != null ||
-                       p.GetCustomAttribute<YamlDotNet.Serialization.YamlMemberAttribute>() != null ||
-                       ShouldIncludeProperty(p))
-            .ToArray();
+                       p.GetCustomAttribute<YamlMemberAttribute>() != null ||
+                       ShouldIncludeProperty(p))];
     }
 
     /// <summary>
@@ -471,7 +471,7 @@ parameters:
             return yamlAttr.Alias;
         }
 
-        var yamlDotNetAttr = prop.GetCustomAttribute<YamlDotNet.Serialization.YamlMemberAttribute>();
+        var yamlDotNetAttr = prop.GetCustomAttribute<YamlMemberAttribute>();
         if (yamlDotNetAttr != null && !string.IsNullOrEmpty(yamlDotNetAttr.Alias))
         {
             return yamlDotNetAttr.Alias;
@@ -601,7 +601,7 @@ parameters:
 
         // Include properties with YAML attributes
         if (prop.GetCustomAttribute<YamlMemberAttribute>() != null ||
-            prop.GetCustomAttribute<YamlDotNet.Serialization.YamlMemberAttribute>() != null)
+            prop.GetCustomAttribute<YamlMemberAttribute>() != null)
             return true;
 
         // Include properties that are settable and commonly used
@@ -697,8 +697,8 @@ parameters:
         var typeName = type.Name;
         return typeName switch
         {
-            "KustoToolDefinition" => new List<string>
-            {
+            "KustoToolDefinition" =>
+            [
                 "name (string) (required)",
                 "type (string) (required)",
                 "connector (string) (required)",
@@ -708,15 +708,15 @@ parameters:
                 "cluster_hint (string) (optional)",
                 "query (string) (optional)",
                 "parameters (List<YamlParameter>) (optional)"
-            },
-            _ => new List<string>
-            {
+            ],
+            _ =>
+            [
                 "name (string) (required)",
                 "type (string) (required)",
                 "connector (string) (optional)",
                 "description (string) (optional)",
                 "parameters (List<YamlParameter>) (optional)"
-            }
+            ]
         };
     }
 }
@@ -739,7 +739,7 @@ public class ToolTypeInfo
 public class ToolTypeDetails : ToolTypeInfo
 {
     public string SampleYaml { get; set; } = string.Empty;
-    public List<string> SupportedProperties { get; set; } = new();
+    public List<string> SupportedProperties { get; set; } = [];
 }
 
 /// <summary>

@@ -331,7 +331,7 @@ public class ApiService : IDisposable
 
             // Parse agent data and extract tools using shared helper
             var agentData = deserializer.Deserialize<object>(agentYamlContent);
-            var toolNames = Agent.Core.Helpers.ExtendedAgents.AgentYamlParser.ExtractToolNames(agentYamlContent);
+            var toolNames = Core.Helpers.ExtendedAgents.AgentYamlParser.ExtractToolNames(agentYamlContent);
 
             DebugLogger.Debug("Tools", $"Agent references {toolNames.Count} tools: {string.Join(", ", toolNames)}");
 
@@ -559,26 +559,26 @@ public class ApiService : IDisposable
                     var handoffDescription = agent.TryGetProperty("handoffDescription", out var handoffElement) ? handoffElement.GetString() : "";
                     var createdAt = agent.TryGetProperty("created_at", out var createdElement) ? createdElement.GetString() : "";
 
-                    var agentOutput = Helpers.ConsoleUI.CaptureOutput(() =>
+                    var agentOutput = ConsoleUI.CaptureOutput(() =>
                     {
                         Console.WriteLine();
-                        Helpers.ConsoleUI.WriteBullet(name, ConsoleColor.White, 0);
+                        ConsoleUI.WriteBullet(name, ConsoleColor.White, 0);
 
                         if (!string.IsNullOrEmpty(handoffDescription))
                         {
-                            Helpers.ConsoleUI.WriteKeyValue("  Description", handoffDescription, 13, ConsoleColor.Gray, ConsoleColor.White);
+                            ConsoleUI.WriteKeyValue("  Description", handoffDescription, 13, ConsoleColor.Gray, ConsoleColor.White);
                         }
 
                         if (!string.IsNullOrEmpty(systemPrompt))
                         {
                             // Truncate system prompt if it's too long for display
                             var displayPrompt = systemPrompt.Length > 100 ? systemPrompt.Substring(0, 100) + "..." : systemPrompt;
-                            Helpers.ConsoleUI.WriteKeyValue("  System Prompt", displayPrompt, 13, ConsoleColor.Gray, ConsoleColor.White);
+                            ConsoleUI.WriteKeyValue("  System Prompt", displayPrompt, 13, ConsoleColor.Gray, ConsoleColor.White);
                         }
 
                         if (!string.IsNullOrEmpty(createdAt))
                         {
-                            Helpers.ConsoleUI.WriteKeyValue("  Created", createdAt, 13, ConsoleColor.Gray, ConsoleColor.White);
+                            ConsoleUI.WriteKeyValue("  Created", createdAt, 13, ConsoleColor.Gray, ConsoleColor.White);
                         }
 
                         // Get tools
@@ -587,7 +587,7 @@ public class ApiService : IDisposable
                             var tools = toolsElement.EnumerateArray().Select(t => t.GetString()).Where(t => !string.IsNullOrEmpty(t)).ToList();
                             if (tools.Any())
                             {
-                                Helpers.ConsoleUI.WriteKeyValue("  Tools", string.Join(", ", tools), 13, ConsoleColor.Gray, ConsoleColor.White);
+                                ConsoleUI.WriteKeyValue("  Tools", string.Join(", ", tools), 13, ConsoleColor.Gray, ConsoleColor.White);
                             }
                         }
 
@@ -597,7 +597,7 @@ public class ApiService : IDisposable
                             var handoffs = handoffsElement.EnumerateArray().Select(h => h.GetString()).Where(h => !string.IsNullOrEmpty(h)).ToList();
                             if (handoffs.Any())
                             {
-                                Helpers.ConsoleUI.WriteKeyValue("  Handoffs", string.Join(", ", handoffs), 13, ConsoleColor.Gray, ConsoleColor.White);
+                                ConsoleUI.WriteKeyValue("  Handoffs", string.Join(", ", handoffs), 13, ConsoleColor.Gray, ConsoleColor.White);
                             }
                         }
                     });
@@ -2494,7 +2494,7 @@ public class ApiService : IDisposable
                         Spec = new AgentSpec { Agent = plainAgent! }
                     };
                     var serializer = new YamlDotNet.Serialization.SerializerBuilder()
-                        .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+                        .WithNamingConvention(UnderscoredNamingConvention.Instance)
                         .DisableAliases()
                         .Build();
                     var yaml = serializer.Serialize(wrapper);
@@ -2712,16 +2712,16 @@ public class ApiService : IDisposable
                             var dataSource = connector.TryGetProperty("dataSource", out var dataSourceElement) ? dataSourceElement.GetString() ?? "Not specified" : "Not specified";
                             var identity = connector.TryGetProperty("identity", out var identityElement) ? identityElement.GetString() ?? "Not specified" : "Not specified";
 
-                            var connectorOutput = Helpers.ConsoleUI.CaptureOutput(() =>
+                            var connectorOutput = ConsoleUI.CaptureOutput(() =>
                             {
                                 Console.WriteLine();
-                                Helpers.ConsoleUI.WriteBullet(name, ConsoleColor.White, 0);
+                                ConsoleUI.WriteBullet(name, ConsoleColor.White, 0);
 
-                                Helpers.ConsoleUI.WriteKeyValue("  Type", connectorType, 13, ConsoleColor.Gray, ConsoleColor.White);
-                                Helpers.ConsoleUI.WriteKeyValue("  Data Source", dataSource, 13, ConsoleColor.Gray, ConsoleColor.White);
+                                ConsoleUI.WriteKeyValue("  Type", connectorType, 13, ConsoleColor.Gray, ConsoleColor.White);
+                                ConsoleUI.WriteKeyValue("  Data Source", dataSource, 13, ConsoleColor.Gray, ConsoleColor.White);
                                 if (!string.IsNullOrEmpty(identity) && identity != "Not specified")
                                 {
-                                    Helpers.ConsoleUI.WriteKeyValue("  Identity", identity, 13, ConsoleColor.Gray, ConsoleColor.White);
+                                    ConsoleUI.WriteKeyValue("  Identity", identity, 13, ConsoleColor.Gray, ConsoleColor.White);
                                 }
                             });
                             connectorList.Add(connectorOutput);
@@ -2809,7 +2809,7 @@ public class ApiService : IDisposable
                     try
                     {
                         // Try to parse the JSON response for detailed feedback
-                        var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
+                        var jsonDoc = JsonDocument.Parse(content);
                         if (jsonDoc.RootElement.TryGetProperty("message", out var messageElement))
                         {
                             var message = messageElement.GetString() ?? "Upload completed successfully";
@@ -2831,7 +2831,7 @@ public class ApiService : IDisposable
                     var errorMessage = "Upload failed";
                     try
                     {
-                        var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
+                        var jsonDoc = JsonDocument.Parse(content);
                         if (jsonDoc.RootElement.TryGetProperty("error", out var errorElement))
                         {
                             errorMessage = errorElement.GetString() ?? errorMessage;
@@ -2908,11 +2908,11 @@ public class ApiService : IDisposable
             {
                 try
                 {
-                    var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
+                    var jsonDoc = JsonDocument.Parse(content);
                     var searchResults = new List<string>();
 
                     if (jsonDoc.RootElement.TryGetProperty("results", out var resultsElement) &&
-                        resultsElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                        resultsElement.ValueKind == JsonValueKind.Array)
                     {
                         var results = resultsElement.EnumerateArray().ToArray();
 
@@ -2939,20 +2939,20 @@ public class ApiService : IDisposable
                                 var source = result.TryGetProperty("source", out var sourceElement) ?
                                     sourceElement.GetString() ?? "Unknown" : "Unknown";
 
-                                var resultOutput = Helpers.ConsoleUI.CaptureOutput(() =>
+                                var resultOutput = ConsoleUI.CaptureOutput(() =>
                                 {
                                     Console.WriteLine();
-                                    Helpers.ConsoleUI.WriteBullet($"Result {i + 1}: {title}", ConsoleColor.White, 0);
+                                    ConsoleUI.WriteBullet($"Result {i + 1}: {title}", ConsoleColor.White, 0);
 
-                                    Helpers.ConsoleUI.WriteKeyValue("  Source", source, 15, ConsoleColor.Gray, ConsoleColor.White);
-                                    Helpers.ConsoleUI.WriteKeyValue("  Relevance", $"{score:F2}", 15, ConsoleColor.Gray, ConsoleColor.White);
+                                    ConsoleUI.WriteKeyValue("  Source", source, 15, ConsoleColor.Gray, ConsoleColor.White);
+                                    ConsoleUI.WriteKeyValue("  Relevance", $"{score:F2}", 15, ConsoleColor.Gray, ConsoleColor.White);
 
                                     if (!string.IsNullOrEmpty(content_snippet))
                                     {
                                         // Truncate content snippet if too long
                                         var snippet = content_snippet.Length > 200 ?
                                             content_snippet.Substring(0, 200) + "..." : content_snippet;
-                                        Helpers.ConsoleUI.WriteKeyValue("  Content", snippet, 15, ConsoleColor.Gray, ConsoleColor.White);
+                                        ConsoleUI.WriteKeyValue("  Content", snippet, 15, ConsoleColor.Gray, ConsoleColor.White);
                                     }
                                 });
                                 searchResults.Add(resultOutput);
@@ -2985,7 +2985,7 @@ public class ApiService : IDisposable
                 var errorMessage = "Search failed";
                 try
                 {
-                    var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
+                    var jsonDoc = JsonDocument.Parse(content);
                     if (jsonDoc.RootElement.TryGetProperty("error", out var errorElement))
                     {
                         errorMessage = errorElement.GetString() ?? errorMessage;
@@ -3036,7 +3036,7 @@ public class ApiService : IDisposable
             {
                 try
                 {
-                    var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
+                    var jsonDoc = JsonDocument.Parse(content);
                     if (jsonDoc.RootElement.TryGetProperty("message", out var messageElement))
                     {
                         var message = messageElement.GetString() ?? "Reindexing triggered successfully";
@@ -3056,7 +3056,7 @@ public class ApiService : IDisposable
                 var errorMessage = "Reindexing failed";
                 try
                 {
-                    var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
+                    var jsonDoc = JsonDocument.Parse(content);
                     if (jsonDoc.RootElement.TryGetProperty("error", out var errorElement))
                     {
                         errorMessage = errorElement.GetString() ?? errorMessage;
@@ -3175,7 +3175,7 @@ public class ApiService : IDisposable
             var request = new HttpRequestMessage(HttpMethod.Put, url);
 
             var json = JsonSerializer.Serialize(filter);
-            request.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
             if (response.IsSuccessStatusCode)
@@ -3208,7 +3208,7 @@ public class ApiService : IDisposable
             var request = new HttpRequestMessage(HttpMethod.Post, url);
 
             var json = JsonSerializer.Serialize(filter);
-            request.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
             return response.IsSuccessStatusCode;

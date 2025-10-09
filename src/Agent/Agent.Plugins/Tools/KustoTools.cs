@@ -32,10 +32,10 @@ namespace Agent.Plugins.Kusto.Tools
             _definition = (KustoToolDefinition)definition;
         }
 
-        
+
         public async Task<string> Run(string kustoCluster, Dictionary<string, string> args)
         {
-         
+
 
             if (_definition == null)
             {
@@ -49,14 +49,14 @@ namespace Agent.Plugins.Kusto.Tools
 
             // Substitute parameters in connector name similar to FormatQuery, e.g. capps-##region## => capps-westeurope
             var parameterizedConnectorName = FormatConnectorName(_definition.Connector, args);
-            
+
             var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(parameterizedConnectorName, parameterizedConnectorName, kustoCluster);
-            
+
             var kustoChat = _kustoFactory.Create(connector);
 
             // Determine if we should print the query based on tool definition and LLM-supplied args
             var printQuery = _definition.PrintQuery && args.GetValueOrDefault("printQuery", "true").ToLower() == "true";
-            
+
             switch (_definition.Mode)
             {
                 case KustoExecutionMode.Function:
