@@ -84,6 +84,7 @@ namespace Agent.Tests.Unit.Plugins.AzCLI
         [InlineData("az monitor log-analytics query --analytics-query \"Heartbeat | take 10\" && echo 'test'", false)] // Dangerous character outside whitelisted flag
         [InlineData("az monitor scheduled-query create -g rgname -n alertname --scopes resourceId --condition \"count 'ErrorPods' > 0 at least 1 violations out of 5 aggregated points\" --condition-query 'ErrorPods=\"KubePodInventory\" | where Namespace == \"default\"'", true)] // Dangerous character outside whitelisted flag
         [InlineData("az monitor metrics alert create -n name --condition \"avg requests/duration > 2000\"", true)] // Dangerous character outside whitelisted flag
+        [InlineData("az vmss run-command invoke -g rg -n name --subscription sg --instance-id 1 --command-id RunPowerShellScript --scripts \"echo HelloWorld | Out-File -FilePath hello.txt\"", true)] // Dangerous character outside whitelisted flag
 
         public void ValidateCommand_ShouldReturnExpectedResult(string command, bool shouldBeValid)
         {

@@ -4554,7 +4554,8 @@ public class ArmHelper
             "--analytics-query",
             "--query",
             "--condition-query", // az monitor scheduled-query create -g rgname -n alertname --scopes resourceId --condition "count 'ErrorPods' > 0 at least 1 violations out of 5 aggregated points" --condition-query 'ErrorPods="KubePodInventory" | where Namespace == "default"'
-            "--condition" // az monitor metrics alert create -n name --condition "avg requests/duration > 2000"
+            "--condition", // az monitor metrics alert create -n name --condition "avg requests/duration > 2000"
+            "--scripts" // az vmss run-command invoke -g rg -n name --subscription sg --instance-id 1 --command-id RunPowerShellScript --scripts "echo HelloWorld | Out-File -FilePath c:\test\hello.txt"
         };
 
         // Check for dangerous characters that could indicate command injection
