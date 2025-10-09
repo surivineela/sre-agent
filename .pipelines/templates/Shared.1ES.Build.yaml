@@ -185,6 +185,7 @@ extends:
         #
         - task: Npm@1
           displayName: Formatjs - Compile extracted/translated strings
+          continueOnError: true
           inputs:
             command: "custom"
             workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
