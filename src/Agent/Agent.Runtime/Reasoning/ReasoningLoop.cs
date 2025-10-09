@@ -20,6 +20,7 @@ using Agent.Core.Services;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Logging;
+using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.ConversationModifiers;
 using Agent.Runtime.Helpers;
@@ -1526,6 +1527,13 @@ public class ReasoningLoop : IDisposable
         return message;
     }
 
+    public sealed record ExecutionResult(
+        bool RequiresApproval,
+        string AgentMode,
+        ToolMode ToolMode,
+        bool IsWriteAction,
+        string? Failure);
+
     // Unified helper to log tool executions
     private void LogToolExecution(AIFunction aiTool, object? result)
     {
@@ -1555,23 +1563,22 @@ public class ReasoningLoop : IDisposable
             _logger.LogInternalWarning(ex, "Failed to inspect WriteAction attribute for tool {ToolName}", aiTool.Name);
         }
 
-        var executionObj = new
-        {
-            RequireApproval = requireApproval,
-            AgentMode = _agentRuntimeModifier.GetThreadAgentMode(_context),
-            ToolMode = aiTool.GetToolMode().ToString(),
-            WriteAction = isWriteAction
-        };
-
         // Determine status using similar logic as CalculateToolCallMetrics
-        var status = DetermineToolExecutionStatus(aiTool.Name, result);
+        var executionStatus = DetermineToolExecutionStatus(aiTool.Name, result);
+
+        var executionObj = new ExecutionResult(
+            RequiresApproval: requireApproval,
+            AgentMode: _agentRuntimeModifier.GetThreadAgentMode(_context),
+            ToolMode: aiTool.GetToolMode(),
+            IsWriteAction: isWriteAction,
+            Failure: executionStatus.Failure);
 
         try
         {
             _logger.LogAgentAction(
                 action: AgentActionEvents.ToolExecution,
                 parameter: aiTool.Name,
-                status: status,
+                status: executionStatus.ActionResult,
                 duration: 0,
                 threadId: _context.ThreadId.ToString(),
                 subAgentName: _currentAgent?.Name ?? string.Empty,
@@ -1587,46 +1594,42 @@ public class ReasoningLoop : IDisposable
         }
     }
 
+    private static readonly IReadOnlyList<string> ExternalProcessTools =
+    [
+        nameof(ArmPluginDefinition.RunAzCliReadCommandsAsync),
+        nameof(ArmPluginDefinition.RunAzCliWriteCommandsAsync),
+        nameof(KubePluginDefinition.RunKubectlReadCommandAsync),
+        nameof(KubePluginDefinition.RunKubectlWriteCommandAsync),
+    ];
+
     // Helper method to determine tool execution status using similar logic as CalculateToolCallMetrics
-    private static string DetermineToolExecutionStatus(string toolName, object? result)
+    private static (string ActionResult, string? Failure) DetermineToolExecutionStatus(string toolName, object? result)
     {
         // Convert result to string for analysis
         string output = result?.ToString() ?? string.Empty;
 
-        // Check for basic "Error: Function" pattern first (original logic)
+        // Check for basic "Error: Function" pattern
         if (output.StartsWith("Error: Function", StringComparison.OrdinalIgnoreCase))
         {
-            return AgentActionStatus.Fail;
+            return (AgentActionStatus.Fail, output);
         }
 
-        // Use similar logic as CalculateToolCallMetrics for specific tool types
         var normalizedToolName = EvaluationHelper.GetToolCallName(toolName);
-
-        // Check AzCli tools (using string literals instead of nameof to avoid dependency issues)
-        if (normalizedToolName == "RunAzCliReadCommands" ||
-            normalizedToolName == "RunAzCliWriteCommands")
+        // Check AzCli & Kubectl tools
+        if (ExternalProcessTools.Contains(normalizedToolName)
+            && output.Contains(ExternalProcessCommand.ProcessFailureMessage, StringComparison.OrdinalIgnoreCase))
         {
-            return output.Contains(ExternalProcessCommand.ProcessFailureMessage)
-                ? AgentActionStatus.Fail
-                : AgentActionStatus.Success;
-        }
-
-        // Check Kubectl tools (using string literals instead of nameof to avoid dependency issues)
-        if (normalizedToolName == "RunKubectlReadCommand" ||
-            normalizedToolName == "RunKubectlWriteCommand")
-        {
-            return output.Contains(ExternalProcessCommand.ProcessFailureMessage)
-                ? AgentActionStatus.Fail
-                : AgentActionStatus.Success;
+            return (AgentActionStatus.Fail, output);
         }
 
         // For other tools, check for generic error patterns
-        if (output.ToLower().Contains("error") || output.ToLower().Contains("failed"))
+        if (output.Contains("error", StringComparison.OrdinalIgnoreCase)
+            || output.Contains("failed", StringComparison.OrdinalIgnoreCase))
         {
-            return AgentActionStatus.Fail;
+            return (AgentActionStatus.Fail, output);
         }
 
-        return AgentActionStatus.Success;
+        return (AgentActionStatus.Success, null);
     }
 
     private async Task ExecuteToolAsync(
