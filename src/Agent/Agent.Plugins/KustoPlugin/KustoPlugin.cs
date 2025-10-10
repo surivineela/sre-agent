@@ -420,41 +420,10 @@ namespace Agent.Plugins.Kusto
         private static string FormatQuery(Dictionary<string, string> args, string fileName)
         {
             var formatted = File.ReadAllText(fileName);
-            if (args == null)
-            {
-                return formatted;
-            }
-            foreach (var arg in args)
-            {
-                formatted = formatted.Replace($"##{arg.Key}##", arg.Value);
-            }
-
-            if (formatted.Contains("##"))
-            {
-                throw new Exception($"Not all placeholders were replaced in the query, {formatted}");
-            }
-
-            return formatted;
+            return FormatTemplate(formatted, args);
         }
 
-        public static string FormatQuery(string query, Dictionary<string, string> args)
-        {
-            if (args == null)
-            {
-                return query;
-            }
-            foreach (var arg in args)
-            {
-                query = query.Replace($"##{arg.Key}##", arg.Value);
-            }
-
-            if (query.Contains("##"))
-            {
-                throw new Exception($"Not all placeholders were replaced in the query, {query}");
-            }
-
-            return query;
-        }
+ 
 
         public async Task<KustoQueryResult> ExecuteClusterKustoQueryInternal(
             string cluster,
@@ -493,6 +462,32 @@ namespace Agent.Plugins.Kusto
             }
         }
 
+        /// <summary>
+        /// Formats a string by substituting both ##parameter## and $parameterName patterns
+        /// with corresponding values from the args dictionary.
+        /// </summary>
+        /// <param name="template">The input string template containing placeholders.</param>
+        /// <param name="args">Dictionary of parameter names and their values.</param>
+        /// <returns>The formatted string with parameters substituted.</returns>
+        public static string FormatTemplate(string template, Dictionary<string, string> args)
+        {
+            if (string.IsNullOrEmpty(template) || args == null || args.Count == 0)
+            {
+                return template;
+            }
+
+            var formatted = template;
+
+            // Replace longer keys first to avoid overlap issues
+            foreach (var arg in args.OrderByDescending(kvp => kvp.Key.Length))
+            {
+                formatted = formatted
+                    .Replace($"##{arg.Key}##", arg.Value)
+                    .Replace($"${arg.Key}", arg.Value);
+            }
+
+            return formatted;
+        }
         // Single method: optional displayOptions keeps existing behavior when null
         public async Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args, KustoDisplayOptions? displayOptions = null)
         {

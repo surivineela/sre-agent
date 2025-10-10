@@ -48,8 +48,8 @@ namespace Agent.Plugins.Kusto.Tools
             }
 
             // Substitute parameters in connector name similar to FormatQuery, e.g. capps-##region## => capps-westeurope
-            var parameterizedConnectorName = FormatConnectorName(_definition.Connector, args);
-
+            var parameterizedConnectorName = KustoPlugin.FormatTemplate(_definition.Connector, args);
+            
             var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(parameterizedConnectorName, parameterizedConnectorName, kustoCluster);
 
             var kustoChat = _kustoFactory.Create(connector);
@@ -64,7 +64,7 @@ namespace Agent.Plugins.Kusto.Tools
 
                 case KustoExecutionMode.Query:
                     // Region parameter is not used in Query mode, as the cluster is defined in the connector
-                    var formatedQuery = KustoPlugin.FormatQuery(_definition.Query!, args);
+                    var formatedQuery = KustoPlugin.FormatTemplate(_definition.Query!, args);
                     return await kustoChat.ExecuteClusterKustoQuery(connector.ClusterUrl, connector.Database, formatedQuery, printQuery, _definition.Name);
 
                 default:
@@ -72,28 +72,7 @@ namespace Agent.Plugins.Kusto.Tools
             }
         }
 
-        /// <summary>
-        /// Formats the connector name by substituting ##parameter## patterns with values from args dictionary,
-        /// similar to how KustoPlugin.FormatQuery works.
-        /// </summary>
-        /// <param name="connectorName">The connector name template with ##parameter## patterns</param>
-        /// <param name="args">Dictionary of parameter values</param>
-        /// <returns>The connector name with parameters substituted</returns>
-        private static string FormatConnectorName(string connectorName, Dictionary<string, string> args)
-        {
-            if (args == null || !args.Any())
-            {
-                return connectorName;
-            }
-
-            var formattedName = connectorName;
-            foreach (var arg in args)
-            {
-                formattedName = formattedName.Replace($"##{arg.Key}##", arg.Value);
-            }
-
-            return formattedName;
-        }
+        
 
         [ToolTypeAttribute("KustoQuery")]
         public class KustoQuery
