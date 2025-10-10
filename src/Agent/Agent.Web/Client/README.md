@@ -23,13 +23,14 @@
 
 1. Register this feature on your subscription to see internal locations (AUE, etc): `az feature register -n SREAgentInternal --namespace Microsoft.App`
 1. Links:
-    - [Local Paas SRE Agent Home/Browse](https://portal.azure.com/?Microsoft_Azure_PaasServerless_clientoptimizations=false&feature.customportal=false&feature.canmodifyextensions=true#view/Microsoft_Azure_PaasServerless/SreAgentHome.ReactView?testExtensions=%7B%22Microsoft_Azure_PaasServerless%22:%22https://localhost:1338/paasserverless%22%7D)
-    - Beta Paas:
-        - Prod agent site: https://aka.ms/sreagent-portal
-        - Local agent site: https://aka.ms/sreagent-local // `sre_local=true`
-        - Local agent site UX + Prod agent backend: TODO // `sre_ux_local=true` (must not also have `sre_local=true`)
-    - Misc:
-        - AKA link used for "copy link to thread" to persist FFs: https://aka.ms/sreagent-prefixonly
+    - Canary Paas extension: https://aka.ms/sreagent-portal
+    - Local agent dev:
+        - https://aka.ms/sreagent-vite - `npm run watch` (port 5173) - local UX + backend
+        - https://aka.ms/sreagent-vite-prod - ^ but prod backend
+        - https://aka.ms/sreagent-vs - standard VS build / `npm run dev` (port 7023) - local UX + backend
+        - https://aka.ms/sreagent-vs-prod - ^ but prod backend
+        - FFs: `sre_local` and `sre_ux_local`
+        - NOTE: ^ These don't include any extension version flag, so they're using prod Paas
 
 ## Feature flags
 

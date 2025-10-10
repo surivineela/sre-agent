@@ -1,20 +1,30 @@
 {
+  "++2B26": [
+    {
+      "type": 0,
+      "value": "Provide values for: "
+    },
+    {
+      "type": 1,
+      "value": "parameters"
+    }
+  ],
   "+/nU/s": [
     {
       "type": 0,
-      "value": "Gives you read access to management and content operations, but does not allow making changes."
+      "value": "授予你对管理和内容操作的读取访问权限，但不允许进行更改。"
     }
   ],
   "+2NFJn": [
     {
       "type": 0,
-      "value": "Enter connector name"
+      "value": "输入连接器名称"
     }
   ],
   "+4NN8Z": [
     {
       "type": 0,
-      "value": "Updating data connector \""
+      "value": "正在更新数据连接器 \""
     },
     {
       "type": 1,
@@ -34,13 +44,13 @@
   "+7PjfV": [
     {
       "type": 0,
-      "value": "1 day"
+      "value": "1 天"
     }
   ],
   "+7dYeU": [
     {
       "type": 0,
-      "value": "IcM is not connected."
+      "value": "IcM 未连接。"
     }
   ],
   "+Aon83": [
@@ -52,13 +62,13 @@
   "+BcF2d": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Services"
+      "value": "Azure Kubernetes 服务"
     }
   ],
   "+DBMRK": [
     {
       "type": 0,
-      "value": "CPU usage"
+      "value": "CPU 使用率"
     }
   ],
   "+FoBRs": [
@@ -70,13 +80,19 @@
   "+S4WAz": [
     {
       "type": 0,
-      "value": "Custom response plan"
+      "value": "自定义响应计划"
+    }
+  ],
+  "+TFnQ/": [
+    {
+      "type": 0,
+      "value": "Extended Tools (Optional)"
     }
   ],
   "+TlNdm": [
     {
       "type": 0,
-      "value": "Container Apps"
+      "value": "容器应用"
     }
   ],
   "+U6ozc": [
@@ -85,52 +101,70 @@
       "value": "类型"
     }
   ],
+  "+UcRHd": [
+    {
+      "type": 0,
+      "value": "Starter agent"
+    }
+  ],
   "+bJIWo": [
     {
       "type": 0,
-      "value": "Agent permissions level"
+      "value": "智能体权限级别"
     }
   ],
   "+fXByQ": [
     {
       "type": 0,
-      "value": "Delete incident?"
+      "value": "删除事件?"
     }
   ],
   "+hJd45": [
     {
       "type": 0,
-      "value": "Edit data connector"
+      "value": "编辑数据连接器"
     }
   ],
   "+iCTRd": [
     {
       "type": 0,
-      "value": "User Memories"
+      "value": "用户记忆"
     }
   ],
   "+k5t/y": [
     {
       "type": 0,
-      "value": "Contributor"
+      "value": "参与者"
+    }
+  ],
+  "+kmL8g": [
+    {
+      "type": 0,
+      "value": "Provide instructions for what this scheduled task should do."
     }
   ],
   "+l+XEu": [
     {
       "type": 0,
-      "value": "Can read workbooks."
+      "value": "可以读取工作簿。"
     }
   ],
   "+nt4l9": [
     {
       "type": 0,
-      "value": "Add a default incident response plan for the agent to use for Sev3 LiveSite incidents."
+      "value": "为智能体添加用于 Sev3 LiveSite 事件的默认事件响应计划。"
     }
   ],
   "+uAdUZ": [
     {
       "type": 0,
       "value": "资源组"
+    }
+  ],
+  "//Zb9l": [
+    {
+      "type": 0,
+      "value": "Link this agent to existing handoffs and tools or create new ones without leaving the graph."
     }
   ],
   "//ter/": [
@@ -148,31 +182,47 @@
   "/4tOwT": [
     {
       "type": 0,
-      "value": "Skip"
+      "value": "跳过"
     }
   ],
   "/8MshI": [
     {
       "type": 0,
-      "value": "Manage SQL Managed Instances."
+      "value": "管理 SQL 托管实例。"
     }
   ],
   "/Br0/Z": [
     {
       "type": 0,
-      "value": "Priorities"
+      "value": "优先级"
+    }
+  ],
+  "/F7sHX": [
+    {
+      "type": 0,
+      "value": "Failed to delete tool "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "/RdF9w": [
+    {
+      "type": 0,
+      "value": "Handoffs"
     }
   ],
   "/VnDMl": [
     {
       "type": 0,
-      "value": "Other"
+      "value": "其他"
     }
   ],
   "/Vy71a": [
     {
       "type": 0,
-      "value": "Past Incidents on Same Resource"
+      "value": "同一资源上的历史事件"
     }
   ],
   "/WrP/v": [
@@ -184,25 +234,37 @@
   "/dxZCE": [
     {
       "type": 0,
-      "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
+      "value": "你的智能体处于自治模式。智能体需要以下权限才能生成有关资源的知识。智能体将使用其中一些权限根据请求自主执行写入操作。"
     }
   ],
   "/gCtdO": [
     {
       "type": 0,
-      "value": "Manage Custom Vision projects."
+      "value": "管理自定义视觉项目。"
+    }
+  ],
+  "/rNkXe": [
+    {
+      "type": 0,
+      "value": "Kusto"
+    }
+  ],
+  "/tauMV": [
+    {
+      "type": 0,
+      "value": "e.g., ProductionKusto"
     }
   ],
   "/wdD42": [
     {
       "type": 0,
-      "value": "Connection Error."
+      "value": "连接错误。"
     }
   ],
   "/ytgXm": [
     {
       "type": 0,
-      "value": "Remove "
+      "value": "移除 "
     },
     {
       "type": 1,
@@ -210,25 +272,25 @@
     },
     {
       "type": 0,
-      "value": " filter"
+      "value": " 筛选器"
     }
   ],
   "/zFP1/": [
     {
       "type": 0,
-      "value": "Start time"
+      "value": "开始时间"
     }
   ],
   "/zQv2D": [
     {
       "type": 0,
-      "value": "Resource groups"
+      "value": "资源组"
     }
   ],
   "01lT1B": [
     {
       "type": 0,
-      "value": "Lets you read, enable and disable logic app."
+      "value": "允许读取、启用和禁用逻辑应用。"
     }
   ],
   "01sZoP": [
@@ -238,11 +300,31 @@
     },
     {
       "type": 0,
-      "value": " of "
+      "value": "/"
     },
     {
       "type": 1,
       "value": "totalCount"
+    }
+  ],
+  "05Rzkx": [
+    {
+      "type": 0,
+      "value": "Test Agent"
+    }
+  ],
+  "08bD52": [
+    {
+      "type": 0,
+      "value": "Tool created, but attaching to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " failed. Retry link."
     }
   ],
   "0D+7fr": [
@@ -254,31 +336,37 @@
   "0Dhe75": [
     {
       "type": 0,
-      "value": "Manage SQL servers and their security policies."
+      "value": "管理 SQL 服务器及其安全策略。"
     }
   ],
   "0G14fL": [
     {
       "type": 0,
-      "value": "This map shows how your application's resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into a core application group based on the primary resource."
+      "value": "此映射显示了你的应用程序资源如何跨多个资源组、区域和订阅进行连接。智能体会分析这些资源，并根据主要资源将它们整理到核心应用组中。"
     }
   ],
   "0KB3lG": [
     {
       "type": 0,
-      "value": "I analyzed your application's resources across multiple resource groups, regions, and subscriptions. I then generated a resource map of the connections I identified based on the primary resource. Based on what I learned, I also put together some suggested prompts that focus on your resources."
+      "value": "我跨多个资源组、区域和订阅分析了应用程序的资源。然后，我生成了基于主要资源确定的连接的资源映射。根据我了解到的内容，我还汇集了一些聚焦于资源的建议提示。"
     }
   ],
   "0R+Pet": [
     {
       "type": 0,
-      "value": "Connection to PagerDuty failed. Please check your access key and try again."
+      "value": "与 PagerDuty 的连接失败。请检查访问密钥，然后重试。"
+    }
+  ],
+  "0TOEqZ": [
+    {
+      "type": 0,
+      "value": "Enter a valid cron expression."
     }
   ],
   "0TkVxX": [
     {
       "type": 0,
-      "value": "Failed to load incident management configuration. Error: "
+      "value": "未能加载事件管理配置。错误: "
     },
     {
       "type": 1,
@@ -302,37 +390,79 @@
   "0VuGey": [
     {
       "type": 0,
-      "value": "This will overwrite your tool selections. Are you sure you want to continue?"
+      "value": "这将覆盖你的工具选择。是否确实要继续操作?"
     }
   ],
   "0aN6iW": [
     {
       "type": 0,
-      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more during preview, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+      "value": "要在预览期间实现智能体在诊断、指标、知识等方面的最佳智能体性能，请使用包含其中一个或多个以下 Azure 计算服务的资源组: Azure Kubernetes 服务、Functions、容器应用或 Web 应用。"
+    }
+  ],
+  "0cEOKu": [
+    {
+      "type": 0,
+      "value": "Advanced options"
     }
   ],
   "0fhwgp": [
     {
       "type": 0,
-      "value": "Select task"
+      "value": "选择任务"
+    }
+  ],
+  "0ltHAS": [
+    {
+      "type": 0,
+      "value": "e.g., Every weekday at 9am"
     }
   ],
   "0mx8D9": [
     {
       "type": 0,
-      "value": "The tool list is generated from the custom response guidance. If you modify the guidance, select Regenerate to update the tool list. Once regenerated, the previous list cannot be restored. To add or remove tools, select Manage tools."
+      "value": "工具列表是根据自定义响应指导生成的。如果修改指导，请选择“再生成”来更新工具列表。再生成后，无法还原上一个列表。要添加或移除工具，请选择“管理工具”。"
+    }
+  ],
+  "0nrwMu": [
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Create scheduled tasks to run agents automatically."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " scheduled tasks ready to run agents automatically."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "0oLj/t": [
     {
       "type": 0,
-      "value": "Expand"
+      "value": "展开"
     }
   ],
   "0q6E9l": [
     {
       "type": 0,
-      "value": "Change credentials"
+      "value": "更改凭据"
     }
   ],
   "0sIUhe": [
@@ -344,13 +474,19 @@
   "0te2Ra": [
     {
       "type": 0,
-      "value": "Manage Azure Data Factory instances."
+      "value": "管理 Azure 数据工厂实例。"
+    }
+  ],
+  "0w+w97": [
+    {
+      "type": 0,
+      "value": "Edit YAML"
     }
   ],
   "0w0iFy": [
     {
       "type": 0,
-      "value": "Apply to all current and future active incidents"
+      "value": "适用于所有当前和将来的活动事件"
     }
   ],
   "0wJ7N+": [
@@ -362,25 +498,57 @@
   "1389z+": [
     {
       "type": 0,
-      "value": "Uses (Trigger)"
+      "value": "使用(触发器)"
     }
   ],
   "15GWkT": [
     {
       "type": 0,
-      "value": "This will permanently delete the incident response plan, which might affect how incidents are processed and also any custom response plans. Are you sure you want to delete?"
+      "value": "这将永久删除事件响应计划，从而可能影响事件的处理方式以及任何自定义响应计划。是否确实要删除?"
+    }
+  ],
+  "15nhHh": [
+    {
+      "type": 0,
+      "value": "A unique identifier for your agent"
+    }
+  ],
+  "18C/Jh": [
+    {
+      "type": 0,
+      "value": "Override default meta agent"
     }
   ],
   "1DDIYv": [
     {
       "type": 0,
-      "value": "Are you sure you want to resume this scheduled task?"
+      "value": "确定要恢复此计划任务吗?"
+    }
+  ],
+  "1EnaNQ": [
+    {
+      "type": 0,
+      "value": "Next run: "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
+  "1FMpZj": [
+    {
+      "type": 0,
+      "value": "Error loading graph: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "1HLt0U": [
     {
       "type": 0,
-      "value": "No documents uploaded yet"
+      "value": "尚未上传任何文档"
     }
   ],
   "1O47t6": [
@@ -406,37 +574,37 @@
   "1Pgd3P": [
     {
       "type": 0,
-      "value": "Click and drag to move • Scroll or use buttons to zoom • Press ESC to close"
+      "value": "单击并拖动以移动 • 滚动或使用按钮缩放 • 按 ESC 关闭"
     }
   ],
   "1VB9/h": [
     {
       "type": 0,
-      "value": "Highlight Point"
+      "value": "突出显示点"
     }
   ],
   "1VSsQF": [
     {
       "type": 0,
-      "value": "Failed to create default incident response plan"
+      "value": "未能创建默认事件响应计划"
     }
   ],
   "1YF+AW": [
     {
       "type": 0,
-      "value": "Root cause analysis"
+      "value": "根本原因分析"
     }
   ],
   "1YN49J": [
     {
       "type": 0,
-      "value": "Invalid username or password. Please check your credentials."
+      "value": "用户名或密码无效。请检查凭据。"
     }
   ],
   "1YPTmM": [
     {
       "type": 0,
-      "value": "Web Plan Contributor"
+      "value": "Web 计划参与者"
     }
   ],
   "1ZgrhW": [
@@ -454,7 +622,13 @@
   "1fNFGt": [
     {
       "type": 0,
-      "value": "Connect repository"
+      "value": "连接存储库"
+    }
+  ],
+  "1hiiU/": [
+    {
+      "type": 0,
+      "value": "Review AI suggestions and warnings"
     }
   ],
   "1hu8Uv": [
@@ -466,13 +640,13 @@
   "1rAiXS": [
     {
       "type": 0,
-      "value": "Response plan"
+      "value": "响应计划"
     }
   ],
   "1xZjpU": [
     {
       "type": 0,
-      "value": "Are you sure you want to pause this scheduled task?"
+      "value": "确定要暂停此计划任务吗?"
     }
   ],
   "2/2yg+": [
@@ -484,19 +658,19 @@
   "235+J4": [
     {
       "type": 0,
-      "value": "More items"
+      "value": "更多项"
     }
   ],
   "23nct0": [
     {
       "type": 0,
-      "value": "PagerDuty is connected."
+      "value": "PagerDuty 已连接。"
     }
   ],
   "28HRcH": [
     {
       "type": 0,
-      "value": "The action is in progress using temporary permissions granted by "
+      "value": "正在使用 "
     },
     {
       "type": 1,
@@ -504,31 +678,31 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 授予的临时权限执行此操作。"
     }
   ],
   "29xePt": [
     {
       "type": 0,
-      "value": "Change agent mode for this thread"
+      "value": "更改此线程的智能体模式"
     }
   ],
   "2FLZrG": [
     {
       "type": 0,
-      "value": "Total incidents"
+      "value": "事件总数"
     }
   ],
   "2HM8tn": [
     {
       "type": 0,
-      "value": "Create and manage scheduled tasks to automatically run agent actions at regular intervals."
+      "value": "创建和管理计划任务，以定期自动运行智能体操作。"
     }
   ],
   "2LQx4N": [
     {
       "type": 0,
-      "value": "Manage App Configuration stores."
+      "value": "管理应用程序配置存储"
     }
   ],
   "2OQ6yB": [
@@ -540,19 +714,19 @@
   "2Oxmp9": [
     {
       "type": 0,
-      "value": "Incident title"
+      "value": "事件标题"
     }
   ],
   "2PnnDB": [
     {
       "type": 0,
-      "value": "Manage IoT Hub device registry."
+      "value": "管理 IoT 中心设备注册表。"
     }
   ],
   "2Rfala": [
     {
       "type": 0,
-      "value": "Building knowledge about your resources... "
+      "value": "正在生成有关资源的知识...已完成 "
     },
     {
       "type": 1,
@@ -560,37 +734,55 @@
     },
     {
       "type": 0,
-      "value": "% done. You can chat about other topics in the meantime."
+      "value": "%。在此期间，你可以讨论其他主题。"
     }
   ],
   "2Smahe": [
     {
       "type": 0,
-      "value": "Incident summary"
+      "value": "事件摘要"
     }
   ],
   "2a+ttj": [
     {
       "type": 0,
-      "value": "Deep investigation"
+      "value": "深入调查"
+    }
+  ],
+  "2e3GZQ": [
+    {
+      "type": 0,
+      "value": "Create a handoff agent"
     }
   ],
   "2hB9SP": [
     {
       "type": 0,
-      "value": "Azure Monitor Workspace resource name"
+      "value": "Azure Monitor 工作区资源名称"
+    }
+  ],
+  "2kRPCZ": [
+    {
+      "type": 0,
+      "value": "System tools"
+    }
+  ],
+  "2mMJRv": [
+    {
+      "type": 0,
+      "value": "Connectors"
     }
   ],
   "2os8R1": [
     {
       "type": 0,
-      "value": "Copy output"
+      "value": "复制输出"
     }
   ],
   "2pzTGC": [
     {
       "type": 0,
-      "value": "Critical"
+      "value": "严重"
     }
   ],
   "2tOWr2": [
@@ -602,7 +794,13 @@
   "2zi2Yj": [
     {
       "type": 0,
-      "value": "Grafana dashboard"
+      "value": "Grafana 仪表板"
+    }
+  ],
+  "3/wF0G": [
+    {
+      "type": 0,
+      "value": "Slash commands"
     }
   ],
   "30Ap/Y": [
@@ -614,7 +812,25 @@
   "312q4w": [
     {
       "type": 0,
-      "value": "No incidents found"
+      "value": "未找到事件"
+    }
+  ],
+  "33HEdR": [
+    {
+      "type": 0,
+      "value": "Tools this agent can call"
+    }
+  ],
+  "35Pxrz": [
+    {
+      "type": 0,
+      "value": "Enter a name and instructions before creating this agent."
+    }
+  ],
+  "387FD2": [
+    {
+      "type": 0,
+      "value": "Extended agents"
     }
   ],
   "3BubSI": [
@@ -626,13 +842,19 @@
   "3DzXFS": [
     {
       "type": 0,
-      "value": "Enter resource name"
+      "value": "输入资源名称"
+    }
+  ],
+  "3H77Ic": [
+    {
+      "type": 0,
+      "value": "No agents available yet"
     }
   ],
   "3JVa6k": [
     {
       "type": 0,
-      "value": "End"
+      "value": "结束"
     }
   ],
   "3PgCIp": [
@@ -641,10 +863,22 @@
       "value": "正在删除选定的受管理资源组"
     }
   ],
+  "3Pq+hf": [
+    {
+      "type": 0,
+      "value": "Create and connect"
+    }
+  ],
   "3PxUNi": [
     {
       "type": 0,
-      "value": "Review + test"
+      "value": "审阅 + 测试"
+    }
+  ],
+  "3R3pgd": [
+    {
+      "type": 0,
+      "value": "No suggestions available"
     }
   ],
   "3Rh7XU": [
@@ -656,7 +890,13 @@
   "3RvKcp": [
     {
       "type": 0,
-      "value": "Suggested prompts for your resources"
+      "value": "针对你的资源的建议提示"
+    }
+  ],
+  "3VI9mt": [
+    {
+      "type": 0,
+      "value": "Save Changes"
     }
   ],
   "3a5wL8": [
@@ -668,7 +908,7 @@
   "3jPMQI": [
     {
       "type": 0,
-      "value": "Add More"
+      "value": "添加更多"
     }
   ],
   "3nhWFW": [
@@ -680,37 +920,43 @@
   "3sjbqq": [
     {
       "type": 0,
-      "value": "Creating Scheduled Task..."
+      "value": "正在创建计划任务..."
     }
   ],
   "3t/IhV": [
     {
       "type": 0,
-      "value": "Can view cost data and configuration (e.g. budgets, exports)."
+      "value": "可以查看成本数据和配置(例如，预算、导出)。"
     }
   ],
   "3wVEAO": [
     {
       "type": 0,
-      "value": "Expand navigation"
+      "value": "展开导航"
     }
   ],
   "3y9DGg": [
     {
       "type": 0,
-      "value": "Resume"
+      "value": "继续"
     }
   ],
   "3zLsNR": [
     {
       "type": 0,
-      "value": "Manage websites, but not web plans. Does not allow you to assign roles."
+      "value": "管理网站，但不管理 Web 计划。不允许你分配角色。"
     }
   ],
   "4+Jgpb": [
     {
       "type": 0,
-      "value": "The custom incident response plan was successfully updated"
+      "value": "已成功更新自定义事件响应计划"
+    }
+  ],
+  "4/nSt8": [
+    {
+      "type": 0,
+      "value": "Select an existing trigger"
     }
   ],
   "40YXE1": [
@@ -722,25 +968,75 @@
   "40gxTJ": [
     {
       "type": 0,
-      "value": "Agent Prompt"
+      "value": "智能体提示"
     }
   ],
   "41zpq3": [
     {
       "type": 0,
-      "value": "Discard changes?"
+      "value": "放弃更改?"
+    }
+  ],
+  "44QmgP": [
+    {
+      "type": 0,
+      "value": "connector"
+    }
+  ],
+  "44Y8wQ": [
+    {
+      "type": 0,
+      "value": "No common tools configured."
+    }
+  ],
+  "451B6Z": [
+    {
+      "type": 0,
+      "value": "No agents found"
     }
   ],
   "477I0g": [
     {
       "type": 0,
-      "value": "Low"
+      "value": "低"
     }
   ],
   "47FYwb": [
     {
       "type": 0,
       "value": "取消"
+    }
+  ],
+  "47Qksb": [
+    {
+      "type": 0,
+      "value": "This agent"
+    }
+  ],
+  "498yM3": [
+    {
+      "type": 0,
+      "value": "Runs "
+    },
+    {
+      "type": 1,
+      "value": "description"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "4BVpFN": [
+    {
+      "type": 0,
+      "value": "YAML must include a spec object."
+    }
+  ],
+  "4C44ie": [
+    {
+      "type": 0,
+      "value": "Trigger details"
     }
   ],
   "4Ez7HI": [
@@ -758,67 +1054,97 @@
   "4MeTpL": [
     {
       "type": 0,
-      "value": "Workbook Contributor"
+      "value": "工作簿参与者"
     }
   ],
   "4OUjTL": [
     {
       "type": 0,
-      "value": "Can you audit best practices for my resource?"
+      "value": "是否可以审核资源的最佳做法?"
+    }
+  ],
+  "4QLM52": [
+    {
+      "type": 0,
+      "value": "New agents can take a few seconds to appear in the graph. If you do not see it right away, refresh the list after a brief moment."
     }
   ],
   "4TnjxL": [
     {
       "type": 0,
-      "value": "API Management Service Reader Role"
+      "value": "API 管理服务读取器角色"
+    }
+  ],
+  "4XOvey": [
+    {
+      "type": 0,
+      "value": "AI Agents"
     }
   ],
   "4ZoIgV": [
     {
       "type": 0,
-      "value": "Deleted incident response plan"
+      "value": "已删除事件响应计划"
     }
   ],
   "4d5TjZ": [
     {
       "type": 0,
-      "value": "Go to response plan"
+      "value": "转到响应计划"
+    }
+  ],
+  "4fPELu": [
+    {
+      "type": 0,
+      "value": "Function"
     }
   ],
   "4ii5zj": [
     {
       "type": 0,
-      "value": "Allows for read access to Azure Storage blob containers and data."
+      "value": "允许对 Azure 存储 blob 容器和数据的读取权限。"
     }
   ],
   "4kCXiz": [
     {
       "type": 0,
-      "value": "List cluster admin credential action."
+      "value": "列出群集管理员凭据操作。"
     }
   ],
   "4l/H3O": [
     {
       "type": 0,
-      "value": "Create your first scheduled task to automatically run agent actions at regular intervals."
+      "value": "创建第一个计划任务，以定期自动运行智能体操作。"
     }
   ],
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "复制"
     }
   ],
   "4lEOsR": [
     {
       "type": 0,
-      "value": "An incident response plan defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents."
+      "value": "事件响应计划通过应用筛选条件来定义智能体应处理哪些事件，确保对所需事件集作出响应。"
+    }
+  ],
+  "4uiKBK": [
+    {
+      "type": 0,
+      "value": "Select a Kusto connector"
     }
   ],
   "4upwsn": [
     {
       "type": 0,
-      "value": "Selected Files"
+      "value": "选定的文件"
+    }
+  ],
+  "4z+NaY": [
+    {
+      "type": 0,
+      "value": "The type of data source"
     }
   ],
   "5+bQr/": [
@@ -830,25 +1156,25 @@
   "52hqVX": [
     {
       "type": 0,
-      "value": "Azure Monitor is not connected."
+      "value": "Azure Monitor 未连接。"
     }
   ],
   "53O1/Z": [
     {
       "type": 0,
-      "value": "Incident coverage"
+      "value": "事件覆盖率"
     }
   ],
   "543Ygw": [
     {
       "type": 0,
-      "value": "Execution details and request"
+      "value": "执行详细信息和请求"
     }
   ],
   "59z+Aj": [
     {
       "type": 0,
-      "value": "Bulk delete failed: "
+      "value": "批量删除失败: "
     },
     {
       "type": 1,
@@ -858,13 +1184,33 @@
   "5CX32Z": [
     {
       "type": 0,
-      "value": "You do not have permission to authorize repository access."
+      "value": "你没有授予存储库访问权限的权限。"
     }
   ],
   "5GUtRJ": [
     {
       "type": 0,
       "value": "正在发送报表..."
+    }
+  ],
+  "5MSxYS": [
+    {
+      "type": 0,
+      "value": "Will add as handoff to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "5POweM": [
+    {
+      "type": 0,
+      "value": "Create New Entity"
     }
   ],
   "5QYdPU": [
@@ -876,55 +1222,55 @@
   "5S1JBf": [
     {
       "type": 0,
-      "value": "Enter owning team ID"
+      "value": "输入负责团队 ID"
     }
   ],
   "5Sc5rT": [
     {
       "type": 0,
-      "value": "IoT Hub Twin Contributor"
+      "value": "IoT 中心孪生体参与者"
     }
   ],
   "5T/jmb": [
     {
       "type": 0,
-      "value": "You do not have permission to delete this report"
+      "value": "你没有删除此报告的权限"
     }
   ],
   "5UfRjw": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Contributor"
+      "value": "设备预配服务数据参与者"
     }
   ],
   "5V+Txp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster User Role"
+      "value": "Azure Kubernetes 服务群集用户角色"
     }
   ],
   "5WK7jL": [
     {
       "type": 0,
-      "value": "Create new"
+      "value": "新建"
     }
   ],
   "5WWljt": [
     {
       "type": 0,
-      "value": "Error loading investigation"
+      "value": "加载调查时出错"
     }
   ],
   "5Wtjeo": [
     {
       "type": 0,
-      "value": "Updating incident response plan"
+      "value": "正在更新事件响应计划"
     }
   ],
   "5X0whH": [
     {
       "type": 0,
-      "value": "Failed to run the test. Error: "
+      "value": "未能运行测试。错误: "
     },
     {
       "type": 1,
@@ -940,13 +1286,13 @@
   "5cRddy": [
     {
       "type": 0,
-      "value": "Mitigated by user"
+      "value": "由用户缓解"
     }
   ],
   "5dcGlG": [
     {
       "type": 0,
-      "value": "Failed to delete data connector with error: "
+      "value": "未能删除数据连接器，出现错误: "
     },
     {
       "type": 1,
@@ -956,13 +1302,13 @@
   "5gEh2M": [
     {
       "type": 0,
-      "value": "Incidents that require attention"
+      "value": "需要关注的事件"
     }
   ],
   "5j5HnL": [
     {
       "type": 0,
-      "value": "Editor to filter the results by column value. "
+      "value": "按列值筛选结果的编辑器。"
     },
     {
       "type": 1,
@@ -984,7 +1330,7 @@
   "5jeq8P": [
     {
       "type": 0,
-      "value": "Unknown"
+      "value": "未知"
     }
   ],
   "5kp1Ie": [
@@ -996,7 +1342,7 @@
   "5l3nDr": [
     {
       "type": 0,
-      "value": "Last 15 days"
+      "value": "过去 15 天"
     }
   ],
   "5pQrWI": [
@@ -1013,28 +1359,44 @@
       "value": "results"
     }
   ],
+  "5q8BxP": [
+    {
+      "type": 0,
+      "value": "What would you like to create?"
+    }
+  ],
   "5sg7KC": [
     {
       "type": 0,
-      "value": "Password"
+      "value": "密码"
     }
   ],
   "5w4pim": [
     {
       "type": 0,
-      "value": "All mitigated by"
+      "value": "全部问题的缓解者"
     }
   ],
   "5wGcN7": [
     {
       "type": 0,
-      "value": "Cost Management Reader"
+      "value": "成本管理读者"
     }
   ],
   "5wPI+O": [
     {
       "type": 0,
-      "value": "This will permanently delete this incident and the related incident thread from Azure SRE Agent. Are you sure you want to delete this incident?"
+      "value": "这将从 Azure SRE 智能体中永久删除此事件及相关事件线程。确定要删除此事件吗?"
+    }
+  ],
+  "5walLE": [
+    {
+      "type": 0,
+      "value": "Tools · "
+    },
+    {
+      "type": 1,
+      "value": "count"
     }
   ],
   "5y2qWO": [
@@ -1052,31 +1414,37 @@
   "61e5yQ": [
     {
       "type": 0,
-      "value": "What didn't you like about the agent's response? Your feedback helps us make the agent even better."
+      "value": "你不喜欢智能体响应的哪些方面?你的反馈可帮助我们进一步优化智能体。"
     }
   ],
   "61zy45": [
     {
       "type": 0,
-      "value": "Not applicable"
+      "value": "暂缺"
     }
   ],
   "64zSh3": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Writer"
+      "value": "认知服务 LUIS 编写器"
+    }
+  ],
+  "67UmDz": [
+    {
+      "type": 0,
+      "value": "Parameter syntax:"
     }
   ],
   "69FfbB": [
     {
       "type": 0,
-      "value": "Preview incidents"
+      "value": "预览事件"
     }
   ],
   "69sjgc": [
     {
       "type": 0,
-      "value": "Enter Key Vault URI"
+      "value": "输入密钥保管库 URI"
     }
   ],
   "6ENgmY": [
@@ -1088,7 +1456,7 @@
   "6HiPiX": [
     {
       "type": 0,
-      "value": "A new To-do Plan has been created:"
+      "value": "已创建新的待办事项计划:"
     }
   ],
   "6IIC+D": [
@@ -1097,10 +1465,16 @@
       "value": "在同一资源组中创建 Grafana 仪表板"
     }
   ],
+  "6KOA0x": [
+    {
+      "type": 0,
+      "value": "Cleared the composer. Type a new question to begin a fresh chat."
+    }
+  ],
   "6LZ2qn": [
     {
       "type": 0,
-      "value": "These incidents match your filter criteria. If an incident is missing, go back to the previous step and modify the filter parameters."
+      "value": "这些事件与筛选条件匹配。如果缺少事件，请返回到上一步并修改筛选器参数。"
     }
   ],
   "6OBtew": [
@@ -1112,19 +1486,31 @@
   "6PgVSe": [
     {
       "type": 0,
-      "value": "Regenerate"
+      "value": "再生成"
     }
   ],
   "6S2zmX": [
     {
       "type": 0,
-      "value": "User-assigned Managed Identity"
+      "value": "用户分配的托管标识"
+    }
+  ],
+  "6TO45V": [
+    {
+      "type": 0,
+      "value": "No parameters defined."
     }
   ],
   "6UyZlH": [
     {
       "type": 0,
       "value": "PagerDuty"
+    }
+  ],
+  "6Vngei": [
+    {
+      "type": 0,
+      "value": "Trigger type"
     }
   ],
   "6XFO/C": [
@@ -1136,25 +1522,25 @@
   "6YHhH+": [
     {
       "type": 0,
-      "value": "e.g. */5 * * * *"
+      "value": "例如 */5 * * * *"
     }
   ],
   "6YXj/s": [
     {
       "type": 0,
-      "value": "Contribute to Speech service resources."
+      "value": "参与语音服务资源。"
     }
   ],
   "6ZDt71": [
     {
       "type": 0,
-      "value": "Edit scheduled task"
+      "value": "编辑计划任务"
     }
   ],
   "6bkNTl": [
     {
       "type": 0,
-      "value": "Correlation ID:"
+      "value": "相关 ID:"
     }
   ],
   "6dWeUs": [
@@ -1166,7 +1552,7 @@
   "6feu1e": [
     {
       "type": 0,
-      "value": "Resource Report"
+      "value": "资源报表"
     }
   ],
   "6m5Ba0": [
@@ -1190,7 +1576,7 @@
   "6v8Uj+": [
     {
       "type": 0,
-      "value": "Failed to create sub-agent with error: "
+      "value": "未能创建子智能体，错误: "
     },
     {
       "type": 1,
@@ -1200,61 +1586,91 @@
   "6zUWZ/": [
     {
       "type": 0,
-      "value": "Read all monitoring data and edit monitoring settings."
+      "value": "读取所有监视数据并编辑监视设置。"
     }
   ],
   "7+b0J0": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Contributor"
+      "value": "认知服务自定义视觉参与者"
     }
   ],
   "74vgSJ": [
     {
       "type": 0,
-      "value": "Time range"
+      "value": "时间范围"
     }
   ],
   "75lAeu": [
     {
       "type": 0,
-      "value": "Select end date for scheduled task"
+      "value": "选择计划任务的结束日期"
     }
   ],
   "77t9cY": [
     {
       "type": 0,
-      "value": "Invalid thread data received from streaming message"
+      "value": "从流式传输消息接收的线程数据无效"
     }
   ],
   "7C0xai": [
     {
       "type": 0,
-      "value": "Data source"
+      "value": "数据源"
+    }
+  ],
+  "7Cy5xk": [
+    {
+      "type": 0,
+      "value": "Go to Incident management"
     }
   ],
   "7Eq7I8": [
     {
       "type": 0,
-      "value": "Review mode"
+      "value": "审阅模式"
+    }
+  ],
+  "7Hg58U": [
+    {
+      "type": 0,
+      "value": "e.g., QueryKusto"
     }
   ],
   "7M8VZy": [
     {
       "type": 0,
-      "value": "Reset View"
+      "value": "重置视图"
     }
   ],
   "7N87nD": [
     {
       "type": 0,
-      "value": "Manage Device Provisioning Service data."
+      "value": "管理设备预配服务数据。"
     }
   ],
   "7Nz2Ev": [
     {
       "type": 0,
       "value": "Azure Monitor"
+    }
+  ],
+  "7TVRcx": [
+    {
+      "type": 0,
+      "value": "Retry link"
+    }
+  ],
+  "7Uk/61": [
+    {
+      "type": 0,
+      "value": "Agent configuration"
+    }
+  ],
+  "7Vep/o": [
+    {
+      "type": 0,
+      "value": "A unique identifier for your connector"
     }
   ],
   "7cS956": [
@@ -1266,7 +1682,7 @@
   "7fDYaV": [
     {
       "type": 0,
-      "value": "Go to incident thread"
+      "value": "转到事件线程"
     }
   ],
   "7gMEKc": [
@@ -1275,22 +1691,78 @@
       "value": "项目详细信息"
     }
   ],
+  "7nUCu9": [
+    {
+      "type": 0,
+      "value": "Timezone"
+    }
+  ],
+  "7oBAcZ": [
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+            {
+              "type": 0,
+              "value": "No incident response plans yet"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " incident response plans ready"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "7qOQpv": [
     {
       "type": 0,
-      "value": "Select a date"
+      "value": "选择日期"
     }
   ],
   "7qt3qA": [
     {
       "type": 0,
-      "value": "Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data. Azure Managed Grafana will incur costs in your subscription."
+      "value": "Azure 托管 Grafana 是一项完全托管的分析和监视服务。要添加该服务和 Grafana 仪表板，需要创建 Azure 托管 Grafana 资源。系统将自动分配必要的权限，以便仪表板可以显示监视数据。Azure 托管 Grafana 将产生订阅成本。"
+    }
+  ],
+  "7smbCB": [
+    {
+      "type": 0,
+      "value": "Define autonomous agents with custom instructions and capabilities"
+    }
+  ],
+  "7tqXmc": [
+    {
+      "type": 0,
+      "value": "Describe how "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " should handle new incidents."
     }
   ],
   "7vl63m": [
     {
       "type": 0,
-      "value": "Severities"
+      "value": "严重性"
     }
   ],
   "7w4v59": [
@@ -1302,61 +1774,95 @@
   "7wHL/l": [
     {
       "type": 0,
-      "value": "Backed by"
+      "value": "支持者"
     }
   ],
   "8/TArm": [
     {
       "type": 0,
-      "value": "Go to Identity"
+      "value": "转到标识"
+    }
+  ],
+  "83YwiU": [
+    {
+      "type": 0,
+      "value": "Tool details · "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "86kOeb": [
+    {
+      "type": 0,
+      "value": "No matches for the current filters."
     }
   ],
   "87v+WY": [
     {
       "type": 0,
-      "value": "Full access to Azure Digital Twins data."
+      "value": "对 Azure 数字孪生数据的完全访问权限。"
     }
   ],
   "8F5cJQ": [
     {
       "type": 0,
-      "value": "The custom incident response plan was successfully added"
+      "value": "已成功添加自定义事件响应计划"
     }
   ],
   "8Hjku9": [
     {
       "type": 0,
-      "value": "Creating data connector"
+      "value": "正在创建数据连接器"
+    }
+  ],
+  "8LMIGa": [
+    {
+      "type": 0,
+      "value": "These will be replaced with actual values at runtime."
     }
   ],
   "8NHZQV": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Reader"
+      "value": "认知服务语言读者"
     }
   ],
   "8O9cAb": [
     {
       "type": 0,
-      "value": "Last 24 hours"
+      "value": "过去 24 小时"
+    }
+  ],
+  "8Q504V": [
+    {
+      "type": 0,
+      "value": "Metadata"
     }
   ],
   "8QX1EO": [
     {
       "type": 0,
-      "value": "I'm currently gathering information about your app and analyzing your resources, which might take a few minutes."
+      "value": "我当前正在收集有关你的应用的信息并分析你的资源，这可能需要几分钟时间。"
+    }
+  ],
+  "8RcpTO": [
+    {
+      "type": 0,
+      "value": "Describe this connector..."
     }
   ],
   "8RdOD0": [
     {
       "type": 0,
-      "value": "Select identity"
+      "value": "选择标识"
     }
   ],
   "8UznIt": [
     {
       "type": 0,
-      "value": "Failed to resume task"
+      "value": "未能恢复任务"
     }
   ],
   "8Wiwkg": [
@@ -1368,25 +1874,25 @@
   "8aHHLj": [
     {
       "type": 0,
-      "value": "Read-only access to service and APIs."
+      "value": "对服务和 API 的只读访问权限。"
     }
   ],
   "8fYK1J": [
     {
       "type": 0,
-      "value": "Execution Time"
+      "value": "执行时间"
     }
   ],
   "8lCjAM": [
     {
       "type": 0,
-      "value": "Priority"
+      "value": "优先级"
     }
   ],
   "8nBFW4": [
     {
       "type": 0,
-      "value": "Redis Cache Contributor"
+      "value": "Redis 缓存参与者"
     }
   ],
   "8quEg9": [
@@ -1395,10 +1901,16 @@
       "value": "结果"
     }
   ],
+  "8rNTuV": [
+    {
+      "type": 0,
+      "value": "Select an agent to hand off to"
+    }
+  ],
   "8v0Pyn": [
     {
       "type": 0,
-      "value": "Failed to connect to "
+      "value": "未能连接到 "
     },
     {
       "type": 1,
@@ -1420,19 +1932,19 @@
   "9/ucRx": [
     {
       "type": 0,
-      "value": "Agent can only view and analyze information without taking any actions"
+      "value": "智能体只能查看和分析信息，但无法执行任何操作"
     }
   ],
   "90THKF": [
     {
       "type": 0,
-      "value": "Failed to parse investigation data"
+      "value": "未能解析调查数据"
     }
   ],
   "91775r": [
     {
       "type": 0,
-      "value": "Updated incident response plan"
+      "value": "已更新事件响应计划"
     }
   ],
   "94Fg25": [
@@ -1456,7 +1968,7 @@
   "96GJ5w": [
     {
       "type": 0,
-      "value": "No matches"
+      "value": "无匹配项"
     }
   ],
   "99OdS3": [
@@ -1465,16 +1977,44 @@
       "value": "Planning"
     }
   ],
+  "9Dp2VU": [
+    {
+      "type": 0,
+      "value": "Save failed: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
+  "9GSKOR": [
+    {
+      "type": 0,
+      "value": "This overrides the default meta agent to remove general Azure knowledge and provide a more focused experience."
+    }
+  ],
   "9MPGF8": [
     {
       "type": 0,
-      "value": "Agent Instructions"
+      "value": "智能体指令"
+    }
+  ],
+  "9MwJ6v": [
+    {
+      "type": 0,
+      "value": "e.g., IncidentAnalyzer"
     }
   ],
   "9VUlhV": [
     {
       "type": 0,
-      "value": "Add a description about this resource to help the agent with groupings and insights."
+      "value": "添加有关此资源的说明，以帮助智能体进行分组和获取见解。"
+    }
+  ],
+  "9WRlF4": [
+    {
+      "type": 0,
+      "value": "Send"
     }
   ],
   "9ZIBMx": [
@@ -1486,7 +2026,17 @@
   "9a9+ww": [
     {
       "type": 0,
-      "value": "Title"
+      "value": "标题"
+    }
+  ],
+  "9bH3e2": [
+    {
+      "type": 0,
+      "value": "Nodes: "
+    },
+    {
+      "type": 1,
+      "value": "count"
     }
   ],
   "9uOFF3": [
@@ -1504,13 +2054,13 @@
   "A0mVzo": [
     {
       "type": 0,
-      "value": "Define success / failure signals and required output format if specific."
+      "value": "请定义成功/失败信号及要求的输出格式(如有具体要求)。"
     }
   ],
   "A0rbH+": [
     {
       "type": 0,
-      "value": "IcM connected. Your next step is to set up incident response plans."
+      "value": "已连接 IcM。下一步是设置事件响应计划。"
     }
   ],
   "A2BJnD": [
@@ -1528,19 +2078,19 @@
   "ABAQyo": [
     {
       "type": 0,
-      "value": "Chats"
+      "value": "聊天"
     }
   ],
   "ABo5XY": [
     {
       "type": 0,
-      "value": "DocumentDB Account Contributor"
+      "value": "DocumentDB 帐户参与者"
     }
   ],
   "AC5nsM": [
     {
       "type": 0,
-      "value": "Agent autonomy level"
+      "value": "智能体自治级别"
     }
   ],
   "ACfSSZ": [
@@ -1556,31 +2106,47 @@
   "ALkPTF": [
     {
       "type": 0,
-      "value": "No data connectors configured"
+      "value": "未配置任何数据连接器"
+    }
+  ],
+  "ATXGa+": [
+    {
+      "type": 0,
+      "value": "Agent Name"
     }
   ],
   "ATYp8z": [
     {
       "type": 0,
-      "value": "Show only recommended resource groups"
+      "value": "仅显示建议的资源组"
     }
   ],
   "AbXVP4": [
     {
       "type": 0,
-      "value": "Created at"
+      "value": "创建时间"
     }
   ],
   "AbpmRv": [
     {
       "type": 0,
-      "value": "Enter instructions"
+      "value": "输入指令"
+    }
+  ],
+  "AdRf7Y": [
+    {
+      "type": 0,
+      "value": "Detected cron: "
+    },
+    {
+      "type": 1,
+      "value": "cron"
     }
   ],
   "AeWmvh": [
     {
       "type": 0,
-      "value": "Lets you manage virtual machines, but not access to them, and not the virtual network or storage account they are connected to."
+      "value": "允许你管理虚拟机，但不允许访问它们，也不允许访问它们连接到的虚拟网络或存储帐户。"
     }
   ],
   "AfbqHj": [
@@ -1589,22 +2155,34 @@
       "value": "监视读取者角色"
     }
   ],
+  "Ai/0lk": [
+    {
+      "type": 0,
+      "value": "A function or capability for agents to use"
+    }
+  ],
   "AmnkPD": [
     {
       "type": 0,
-      "value": "Created default incident response plan"
+      "value": "已创建默认事件响应计划"
     }
   ],
   "Amv/KL": [
     {
       "type": 0,
-      "value": "You do not have permission to favorite or unfavorite threads"
+      "value": "你没有收藏或取消收藏线程的权限"
+    }
+  ],
+  "AqVLXi": [
+    {
+      "type": 0,
+      "value": "Create reusable functions and actions for your agents"
     }
   ],
   "ArsZkp": [
     {
       "type": 0,
-      "value": "Updating data connector"
+      "value": "正在更新数据连接器"
     }
   ],
   "AuFOi8": [
@@ -1616,13 +2194,39 @@
   "AxMhQr": [
     {
       "type": 0,
-      "value": "High"
+      "value": "高"
+    }
+  ],
+  "AzTehW": [
+    {
+      "type": 0,
+      "value": "Review and edit the full "
+    },
+    {
+      "type": 1,
+      "value": "entityLabel"
+    },
+    {
+      "type": 0,
+      "value": " YAML."
+    }
+  ],
+  "B3Q5mz": [
+    {
+      "type": 0,
+      "value": "Trigger"
+    }
+  ],
+  "B5kyn8": [
+    {
+      "type": 0,
+      "value": "connectors"
     }
   ],
   "BEck3n": [
     {
       "type": 0,
-      "value": "Please wait while your files are being deleted..."
+      "value": "正在删除文件，请稍候..."
     }
   ],
   "BKMqtr": [
@@ -1634,25 +2238,43 @@
   "BKSv0l": [
     {
       "type": 0,
-      "value": "Azure Center for SAP solutions reader"
+      "value": "Azure SAP 解决方案中心读者"
+    }
+  ],
+  "BP3wUO": [
+    {
+      "type": 0,
+      "value": "The type of tool functionality"
+    }
+  ],
+  "BSQQkf": [
+    {
+      "type": 0,
+      "value": "Query returned no results"
     }
   ],
   "BT9p8f": [
     {
       "type": 0,
-      "value": "Response plan name"
+      "value": "响应计划名称"
     }
   ],
   "BV3Mir": [
     {
       "type": 0,
-      "value": "Link repository to resource"
+      "value": "将存储库链接到资源"
     }
   ],
   "BWpuKl": [
     {
       "type": 0,
-      "value": "Update"
+      "value": "更新"
+    }
+  ],
+  "BWt4Jj": [
+    {
+      "type": 0,
+      "value": "Binding"
     }
   ],
   "Bcgdb7": [
@@ -1672,67 +2294,109 @@
   "Bcx/Gz": [
     {
       "type": 0,
-      "value": "List cluster user credential action."
+      "value": "列出群集用户凭据操作。"
+    }
+  ],
+  "BgdyiU": [
+    {
+      "type": 0,
+      "value": "Incident response"
+    }
+  ],
+  "BkOSF2": [
+    {
+      "type": 0,
+      "value": "Parameters"
+    }
+  ],
+  "Bluuk+": [
+    {
+      "type": 0,
+      "value": "Data type and requirement for validation"
     }
   ],
   "C2PrxB": [
     {
       "type": 0,
-      "value": "Click here to assign yourself the SRE Agent Admin role."
+      "value": "单击此处为自己分配 SRE 智能体管理员角色。"
     }
   ],
   "C2iTEH": [
     {
       "type": 0,
-      "value": "Paused"
+      "value": "已暂停"
     }
   ],
   "C3PGqj": [
     {
       "type": 0,
-      "value": "Logic App Contributor"
+      "value": "逻辑应用参与者"
     }
   ],
   "CFJ1OD": [
     {
       "type": 0,
-      "value": "Read-only role for Digital Twins data-plane properties."
+      "value": "数字孪生数据平面属性的只读角色。"
     }
   ],
   "CJEYfo": [
     {
       "type": 0,
-      "value": "Failed to fetch agent mode"
+      "value": "未能提取智能体模式"
     }
   ],
   "CL+NTm": [
     {
       "type": 0,
-      "value": "1 wk"
+      "value": "1 周"
     }
   ],
   "CMaDRa": [
     {
       "type": 0,
-      "value": "Write access to Language service resources."
+      "value": "对语言服务资源的写入访问权限。"
+    }
+  ],
+  "CNd+KS": [
+    {
+      "type": 0,
+      "value": "Connect related agents and tools"
+    }
+  ],
+  "CTRqZs": [
+    {
+      "type": 0,
+      "value": "Test query"
     }
   ],
   "CVAKJE": [
     {
       "type": 0,
-      "value": "You do not have permission to delete this thread"
+      "value": "你没有删除此线程的权限"
+    }
+  ],
+  "CX0VFc": [
+    {
+      "type": 0,
+      "value": "Loading trigger status…"
     }
   ],
   "CZ6s9k": [
     {
       "type": 0,
-      "value": "Degraded core application groups"
+      "value": "降级的核心应用程序组"
+    }
+  ],
+  "CaZAZZ": [
+    {
+      "type": 0,
+      "value": "Open scheduled tasks"
     }
   ],
   "CbKRyU": [
     {
       "type": 0,
-      "value": "Data connector \""
+      "value": "已成功删除数据连接器 \""
     },
     {
       "type": 1,
@@ -1740,7 +2404,7 @@
     },
     {
       "type": 0,
-      "value": "\" has been deleted successfully"
+      "value": "\""
     }
   ],
   "CfGC/2": [
@@ -1752,37 +2416,37 @@
   "CimbUb": [
     {
       "type": 0,
-      "value": "Make sure you have Contributor or Owner access to the resource group where the agent is hosted. If you still have access issues, assign the role directly to your account instead of relying on group-based role assignments."
+      "value": "确保你对托管智能体的资源组具有参与者或所有者访问权限。如果仍然遇到访问权限问题，请将角色直接分配给帐户，而不是依赖于基于组的角色分配。"
     }
   ],
   "Ck8Kax": [
     {
       "type": 0,
-      "value": "Output available"
+      "value": "有输出"
     }
   ],
   "CnouOe": [
     {
       "type": 0,
-      "value": "To change the incident platform, you need to disconnect from PagerDuty. The agent will no longer manage tickets. Are you sure you want to disconnect?"
+      "value": "要更改事件平台，需要断开与 PagerDuty 的连接。智能体将不再管理票证。是否确实要断开连接?"
     }
   ],
   "CvWvf+": [
     {
       "type": 0,
-      "value": "actions"
+      "value": "操作"
     }
   ],
   "Cwgo05": [
     {
       "type": 0,
-      "value": "Connection to ServiceNow failed. Please check your configuration and try again."
+      "value": "连接到 ServiceNow 失败。请检查配置，然后重试。"
     }
   ],
   "CzglId": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the scheduled task \""
+      "value": "确定要删除计划任务“"
     },
     {
       "type": 1,
@@ -1790,13 +2454,13 @@
     },
     {
       "type": 0,
-      "value": "\"? This action cannot be undone."
+      "value": "”吗?此操作无法撤消。"
     }
   ],
   "D/TfIH": [
     {
       "type": 0,
-      "value": "Add an incident platform so that the agent can help respond to incidents in real time. To change to a different platform, you'll need to delete the connection to the current one."
+      "value": "添加事件平台，以便智能体可帮助实时响应事件。要更改为其他平台，需要删除与当前平台的连接。"
     }
   ],
   "D3idYv": [
@@ -1808,7 +2472,7 @@
   "D473QI": [
     {
       "type": 0,
-      "value": "Choose a maximum of "
+      "value": "最多选择你对其具有权限的 "
     },
     {
       "type": 1,
@@ -1816,7 +2480,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups you have permissions on. "
+      "value": " 个资源组。已选择 "
     },
     {
       "type": 1,
@@ -1824,13 +2488,19 @@
     },
     {
       "type": 0,
-      "value": " resource groups selected."
+      "value": " 个资源组。"
     }
   ],
   "D4T2Px": [
     {
       "type": 0,
-      "value": "Mitigated by agent"
+      "value": "已由智能体缓解"
+    }
+  ],
+  "DMEE1o": [
+    {
+      "type": 0,
+      "value": "Select a tool to connect"
     }
   ],
   "DMd1Ql": [
@@ -1845,64 +2515,76 @@
       "value": "平均延迟"
     }
   ],
+  "DQfSk8": [
+    {
+      "type": 0,
+      "value": "Output type"
+    }
+  ],
   "DVVbGP": [
     {
       "type": 0,
-      "value": "Regenerate will overwrite any edits made within the generated section of code."
+      "value": "再生成将覆盖在所生成代码部分中所做的任何编辑。"
     }
   ],
   "DX7w9O": [
     {
       "type": 0,
-      "value": "Selected incidents"
+      "value": "所选事件"
     }
   ],
   "DasCIQ": [
     {
       "type": 0,
-      "value": "This resource group is recommended for optimal agent performance. It includes one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, Virtual machines, or Storage accounts."
+      "value": "建议使用此资源组以实现最佳智能体性能。它包括以下一项或多项 Azure 计算服务: Azure Kubernetes 服务、Functions、容器应用、Web 应用、Redis、Postgres SQL、CosmosDB、虚拟机或存储帐户。"
     }
   ],
   "DeP+ZM": [
     {
       "type": 0,
-      "value": "Response plans"
+      "value": "响应计划"
     }
   ],
   "Dff3ms": [
     {
       "type": 0,
-      "value": "Cognitive Services Contributor"
+      "value": "认知服务参与者"
     }
   ],
   "Dh9oJp": [
     {
       "type": 0,
-      "value": "Updating custom incident response plan"
+      "value": "正在更新自定义事件响应计划"
+    }
+  ],
+  "DhBWKr": [
+    {
+      "type": 0,
+      "value": "No instructions provided yet."
     }
   ],
   "DlSXUR": [
     {
       "type": 0,
-      "value": "Why isn't my application working?"
+      "value": "为什么我的应用程序无法正常工作?"
     }
   ],
   "Dmb0ZD": [
     {
       "type": 0,
-      "value": "Connection to Azure Monitor failed. Please check your configuration and try again."
+      "value": "未能连接到 Azure Monitor。请检查配置，然后重试。"
     }
   ],
   "DmtYK4": [
     {
       "type": 0,
-      "value": "Choose impacted service"
+      "value": "选择受影响的服务"
     }
   ],
   "DnkQsX": [
     {
       "type": 0,
-      "value": "You do not have access"
+      "value": "你无权访问"
     }
   ],
   "DpMYPV": [
@@ -1914,19 +2596,25 @@
   "DuejfP": [
     {
       "type": 0,
-      "value": "Memory Search Results"
+      "value": "记忆搜索结果"
+    }
+  ],
+  "Dw2xIY": [
+    {
+      "type": 0,
+      "value": "Create a new tool"
     }
   ],
   "Dx3Xj3": [
     {
       "type": 0,
-      "value": "Let's you read and test a KB only."
+      "value": "仅允许你读取和测试知识库。"
     }
   ],
   "Dy3cy0": [
     {
       "type": 0,
-      "value": "End date picker"
+      "value": "结束日期选取器"
     }
   ],
   "E396gv": [
@@ -1944,7 +2632,13 @@
   "EAO/K+": [
     {
       "type": 0,
-      "value": "Download PNG"
+      "value": "下载 PNG"
+    }
+  ],
+  "EBpelF": [
+    {
+      "type": 0,
+      "value": "No warnings found"
     }
   ],
   "ED/jWk": [
@@ -1953,10 +2647,30 @@
       "value": "过去 30 分钟内的事务"
     }
   ],
+  "EHyU+4": [
+    {
+      "type": 0,
+      "value": "Use "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "##ParamName##"
+        }
+      ],
+      "type": 8,
+      "value": "code"
+    },
+    {
+      "type": 0,
+      "value": " in your query to define parameter placeholders."
+    }
+  ],
   "EI/cfO": [
     {
       "type": 0,
-      "value": "Deleting report '"
+      "value": "正在删除报告“"
     },
     {
       "type": 1,
@@ -1964,13 +2678,13 @@
     },
     {
       "type": 0,
-      "value": "'"
+      "value": "”"
     }
   ],
   "EI4WZI": [
     {
       "type": 0,
-      "value": "Can you analyze my resource's availability over the last 24 hours?"
+      "value": "是否可以分析过去 24 小时内我的资源的可用性?"
     }
   ],
   "EKfWmx": [
@@ -1982,13 +2696,19 @@
   "ENnkRe": [
     {
       "type": 0,
-      "value": "Grants permission for read operations for App Configuration resources."
+      "value": "授予权限以对应用配置资源执行读取操作。"
     }
   ],
   "ESChST": [
     {
       "type": 0,
-      "value": "Enter filter name"
+      "value": "输入筛选器名称"
+    }
+  ],
+  "EStH0G": [
+    {
+      "type": 0,
+      "value": "Agent Builder"
     }
   ],
   "EWrExf": [
@@ -2006,7 +2726,7 @@
   "EYRPA4": [
     {
       "type": 0,
-      "value": "Failed to update data connector"
+      "value": "未能更新数据连接器"
     }
   ],
   "EZBG/A": [
@@ -2018,13 +2738,19 @@
   "EZbXbs": [
     {
       "type": 0,
-      "value": "You do not have permission to add or delete data connectors."
+      "value": "你没有添加或删除数据连接器的权限。"
     }
   ],
   "EdEthU": [
     {
       "type": 0,
-      "value": "API Management Workspace Contributor"
+      "value": "API Management 工作区参与者"
+    }
+  ],
+  "EicA1w": [
+    {
+      "type": 0,
+      "value": "Test the query to continue."
     }
   ],
   "ElI1gd": [
@@ -2036,13 +2762,13 @@
   "Ep74wA": [
     {
       "type": 0,
-      "value": "ServiceNow is connected."
+      "value": "ServiceNow 已连接。"
     }
   ],
   "EqwyQ/": [
     {
       "type": 0,
-      "value": "https://github.com/owner/repo-name or https://dev.azure.com/organization/project/_git/repo or https://organization.visualstudio.com/project/_git/repository-name"
+      "value": "https://github.com/owner/repo-name or https://dev.azure.com/organization/project/_git/repo 或 https://organization.visualstudio.com/project/_git/repository-name"
     }
   ],
   "Erci0g": [
@@ -2057,6 +2783,38 @@
       "value": "用户"
     }
   ],
+  "F5b1Mw": [
+    {
+      "type": 0,
+      "value": "Currently showing "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "F6qYbg": [
+    {
+      "type": 0,
+      "value": "Select tools this agent can use"
+    }
+  ],
+  "F8R5Bb": [
+    {
+      "type": 0,
+      "value": "Connections: "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    }
+  ],
+  "F8UOXS": [
+    {
+      "type": 0,
+      "value": "Relationship preview"
+    }
+  ],
   "F9LrJA": [
     {
       "type": 0,
@@ -2069,6 +2827,26 @@
       "value": "已成功链接 Grafana 仪表板"
     }
   ],
+  "FE2ukR": [
+    {
+      "type": 0,
+      "value": "Remove handoff "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "FFFf74": [
+    {
+      "type": 0,
+      "value": "Last run: "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "FGAk9M": [
     {
       "type": 0,
@@ -2078,13 +2856,25 @@
   "FLm/x4": [
     {
       "type": 0,
-      "value": "Repository connection"
+      "value": "存储库连接"
+    }
+  ],
+  "FO/nez": [
+    {
+      "type": 0,
+      "value": "Describe what this tool does..."
     }
   ],
   "FSYccN": [
     {
       "type": 0,
-      "value": "When should this task run?"
+      "value": "此任务应何时运行?"
+    }
+  ],
+  "FTWkpv": [
+    {
+      "type": 0,
+      "value": "Create new entity"
     }
   ],
   "FUQvS0": [
@@ -2093,16 +2883,28 @@
       "value": "订阅 ID"
     }
   ],
+  "FVOAIQ": [
+    {
+      "type": 0,
+      "value": "Handoff Agents (Optional)"
+    }
+  ],
   "FZwBv0": [
     {
       "type": 0,
-      "value": "Execution Details"
+      "value": "执行详细信息"
     }
   ],
   "FitglU": [
     {
       "type": 0,
-      "value": "ServiceNow endpoint is required."
+      "value": "ServiceNow 终结点是必需的。"
+    }
+  ],
+  "FkvYGq": [
+    {
+      "type": 0,
+      "value": "System prompt that defines the agent's behavior"
     }
   ],
   "FnKIAW": [
@@ -2114,7 +2916,7 @@
   "Fr5LyM": [
     {
       "type": 0,
-      "value": "Safe"
+      "value": "安全"
     }
   ],
   "Fv1ZSz": [
@@ -2123,22 +2925,40 @@
       "value": "已关闭"
     }
   ],
+  "FvhvDO": [
+    {
+      "type": 0,
+      "value": "YAML"
+    }
+  ],
+  "FyrC09": [
+    {
+      "type": 0,
+      "value": "Create trigger"
+    }
+  ],
+  "FzjwEg": [
+    {
+      "type": 0,
+      "value": "Critic on handoff"
+    }
+  ],
   "G+JlQs": [
     {
       "type": 0,
-      "value": "Primary resource name equals"
+      "value": "主资源名称等于"
     }
   ],
   "G/yZLu": [
     {
       "type": 0,
-      "value": "Remove"
+      "value": "移除"
     }
   ],
   "G2GBW0": [
     {
       "type": 0,
-      "value": "Creating data connector \""
+      "value": "正在创建数据连接器 \""
     },
     {
       "type": 1,
@@ -2158,7 +2978,7 @@
   "G8H3+s": [
     {
       "type": 0,
-      "value": "All incident types"
+      "value": "所有事件类型"
     }
   ],
   "GBnvl1": [
@@ -2173,46 +2993,82 @@
       "value": "- 正在进行"
     }
   ],
+  "GCmxza": [
+    {
+      "type": 0,
+      "value": "Back to commands"
+    }
+  ],
   "GUx4Ld": [
     {
       "type": 0,
-      "value": "Unable to connect to ServiceNow endpoint. Please verify the endpoint URL."
+      "value": "无法连接到 ServiceNow 终结点。请验证终结点 URL。"
     }
   ],
   "Gl8fnJ": [
     {
       "type": 0,
-      "value": "Resize drawer"
+      "value": "调整抽屉大小"
     }
   ],
   "GoSIa4": [
     {
       "type": 0,
-      "value": "Minimal permission to view Cognitive Services usages."
+      "value": "查看认知服务使用情况的最小权限。"
+    }
+  ],
+  "GpZr9J": [
+    {
+      "type": 0,
+      "value": "Automatically run "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " on a schedule to keep key systems healthy."
     }
   ],
   "GroBmn": [
     {
       "type": 0,
-      "value": "repository alerts found"
+      "value": "找到存储库警报"
     }
   ],
   "Gvxoji": [
     {
       "type": 0,
-      "value": "Name is required"
+      "value": "名称是必需的"
+    }
+  ],
+  "GzKpRn": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " params detected"
+    }
+  ],
+  "H1OQZj": [
+    {
+      "type": 0,
+      "value": "YAML must include kind: {expectedKind}."
     }
   ],
   "H3ooTI": [
     {
       "type": 0,
-      "value": "Azure Service Bus Data Owner"
+      "value": "Azure 服务总线数据所有者"
     }
   ],
   "H5vHIu": [
     {
       "type": 0,
-      "value": "Creating incident response plan"
+      "value": "正在创建事件响应计划"
     }
   ],
   "HAlOn1": [
@@ -2224,25 +3080,31 @@
   "HEgmnC": [
     {
       "type": 0,
-      "value": "Investigation Results"
+      "value": "调查结果"
+    }
+  ],
+  "HNECLT": [
+    {
+      "type": 0,
+      "value": "Build Your Agent Ecosystem"
     }
   ],
   "HOJNsf": [
     {
       "type": 0,
-      "value": "Select when the task should stop running"
+      "value": "选择任务应停止运行的时间"
     }
   ],
   "HQhDfV": [
     {
       "type": 0,
-      "value": "Cognitive Services OpenAI Contributor"
+      "value": "认知服务 OpenAI 参与者"
     }
   ],
   "HSZaZc": [
     {
       "type": 0,
-      "value": "You do not have permission to turn Deep Investigations off."
+      "value": "你没有关闭深入调查的权限。"
     }
   ],
   "HWMrXF": [
@@ -2260,47 +3122,59 @@
   "Hh0q8u": [
     {
       "type": 0,
-      "value": "Failed to delete the custom incident response plan. Error: "
+      "value": "未能删除自定义事件响应计划。错误: "
     },
     {
       "type": 1,
       "value": "errorMessage"
     }
   ],
+  "HiBsED": [
+    {
+      "type": 0,
+      "value": "No handoffs added yet."
+    }
+  ],
   "HjTHxo": [
     {
       "type": 0,
-      "value": "Add instructions"
+      "value": "添加指令"
     }
   ],
   "HljkEY": [
     {
       "type": 0,
-      "value": "Time frame"
+      "value": "时间范围"
     }
   ],
   "HtpD+z": [
     {
       "type": 0,
-      "value": "Change Diff"
+      "value": "更改差异"
     }
   ],
   "Humfno": [
     {
       "type": 0,
-      "value": "End date"
+      "value": "结束日期"
+    }
+  ],
+  "Hv0XJn": [
+    {
+      "type": 0,
+      "value": "Suggestions"
     }
   ],
   "Hv7pA2": [
     {
       "type": 0,
-      "value": "Monitor ID"
+      "value": "监视器 ID"
     }
   ],
   "HvIalp": [
     {
       "type": 0,
-      "value": "Connecting to ServiceNow ..."
+      "value": "正在连接到 ServiceNow..."
     }
   ],
   "I03XmI": [
@@ -2309,22 +3183,28 @@
       "value": "- 已完成"
     }
   ],
+  "I5k4g/": [
+    {
+      "type": 0,
+      "value": "Use existing"
+    }
+  ],
   "I7aBF4": [
     {
       "type": 0,
-      "value": "Failed to enable incident response plan"
+      "value": "未能启用事件响应计划"
     }
   ],
   "I80vfn": [
     {
       "type": 0,
-      "value": "Approve action"
+      "value": "批准操作"
     }
   ],
   "I8iKnF": [
     {
       "type": 0,
-      "value": "Core application groups"
+      "value": "核心应用程序组"
     }
   ],
   "IAwPyV": [
@@ -2336,7 +3216,29 @@
   "IEFW3Y": [
     {
       "type": 0,
-      "value": "App Configuration Contributor"
+      "value": "应用程序配置: 参与者"
+    }
+  ],
+  "IEIivr": [
+    {
+      "type": 0,
+      "value": "Connected tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    },
+    {
+      "type": 0,
+      "value": " to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "IF3r+X": [
@@ -2345,10 +3247,36 @@
       "value": "Azure 托管 Grafana"
     }
   ],
+  "IJX2gV": [
+    {
+      "type": 0,
+      "value": "Connect handoffs and tools"
+    }
+  ],
+  "INiSE2": [
+    {
+      "type": 0,
+      "value": "Tool Name"
+    }
+  ],
   "IQaKwH": [
     {
       "type": 0,
-      "value": "Lets you read Cognitive Services data."
+      "value": "允许读取认知服务数据。"
+    }
+  ],
+  "ISsGbC": [
+    {
+      "type": 1,
+      "value": "sourceAgentName"
+    },
+    {
+      "type": 0,
+      "value": " —handoff→ "
+    },
+    {
+      "type": 1,
+      "value": "targetAgentName"
     }
   ],
   "ITYqY7": [
@@ -2360,75 +3288,99 @@
   "IYK6q+": [
     {
       "type": 0,
-      "value": "Creating Sub-Agent"
+      "value": "正在创建子智能体"
     }
   ],
   "IYLPrk": [
     {
       "type": 0,
-      "value": "Delete scheduled task"
+      "value": "删除计划任务"
     }
   ],
   "IZYDgM": [
     {
       "type": 0,
-      "value": "Task Description"
+      "value": "任务描述"
     }
   ],
   "IbIk/K": [
     {
       "type": 0,
-      "value": "You do not have permission to add or edit annotations."
+      "value": "你没有添加或编辑批注的权限。"
+    }
+  ],
+  "IcB2fr": [
+    {
+      "type": 0,
+      "value": "Tool method argument that receives this value"
     }
   ],
   "IiNwpr": [
-    {
-      "type": 0,
-      "value": "The action was canceled by "
-    },
     {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 已取消操作。"
+    }
+  ],
+  "InWqys": [
+    {
+      "type": 0,
+      "value": "Optional"
     }
   ],
   "IoApza": [
     {
       "type": 0,
-      "value": "Collapse navigation"
+      "value": "折叠导航"
+    }
+  ],
+  "IrCHQG": [
+    {
+      "type": 0,
+      "value": "Select an agent to view its configuration."
     }
   ],
   "IuFETn": [
     {
       "type": 0,
-      "value": "Duration"
+      "value": "持续时间"
+    }
+  ],
+  "IvKdxU": [
+    {
+      "type": 0,
+      "value": "System tools · "
+    },
+    {
+      "type": 1,
+      "value": "count"
     }
   ],
   "IvjoDS": [
     {
       "type": 0,
-      "value": "Connected"
+      "value": "已连接"
     }
   ],
   "IzCVhG": [
     {
       "type": 0,
-      "value": "More options"
+      "value": "更多选项"
     }
   ],
   "J/uqp9": [
     {
       "type": 0,
-      "value": "Click to show value"
+      "value": "单击以显示值"
     }
   ],
   "J3Y8Sm": [
     {
       "type": 0,
-      "value": "Failed to validate ServiceNow settings. Please try again."
+      "value": "未能验证 ServiceNow 设置。请重试。"
     }
   ],
   "J6XCfl": [
@@ -2445,16 +3397,22 @@
       "value": "”的注释"
     }
   ],
+  "J7FnS1": [
+    {
+      "type": 0,
+      "value": "Connect existing items"
+    }
+  ],
   "JAtEuU": [
     {
       "type": 0,
-      "value": "Azure Managed Grafana resource name"
+      "value": "Azure 托管 Grafana 资源名称"
     }
   ],
   "JCIgkj": [
     {
       "type": 0,
-      "value": "Username"
+      "value": "用户名"
     }
   ],
   "JCjxSH": [
@@ -2474,31 +3432,37 @@
   "JEsxDw": [
     {
       "type": 0,
-      "value": "Uploading..."
+      "value": "正在上传..."
     }
   ],
   "JHqOn0": [
     {
       "type": 0,
-      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Data Connectors instead."
+      "value": "上传一次性架构文档、故障排除指南及其他文档，以增强智能体知识库。如需实现持续的文档管理和自动更新，请考虑使用数据连接器。"
     }
   ],
   "JJNc3c": [
     {
       "type": 0,
-      "value": "Previous"
+      "value": "上一步"
+    }
+  ],
+  "JMdyE9": [
+    {
+      "type": 0,
+      "value": "Use AI to enhance and validate your agent instructions"
     }
   ],
   "JRLN0D": [
     {
       "type": 0,
-      "value": "With incident response plans, the agent chooses the tools it needs to manage common types of incidents. Custom response plans replace this capability by giving the agent specific instructions that you provide."
+      "value": "使用事件响应计划，智能体可选择管理常见类型的事件所需的工具。自定义响应计划通过为智能体提供你给出的特定指令来代替此功能。"
     }
   ],
   "JT7be1": [
     {
       "type": 0,
-      "value": "Tip:"
+      "value": "提示:"
     }
   ],
   "JVZyFs": [
@@ -2519,28 +3483,58 @@
       "value": "客户端"
     }
   ],
+  "JXHRt5": [
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+            {
+              "type": 0,
+              "value": "No scheduled tasks yet"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " scheduled tasks ready"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "JXtKxS": [
     {
       "type": 0,
-      "value": "Connection to IcM failed. Please confirm that the managed identity of your agent is allowlisted on your IcM service team and try again."
+      "value": "与 IcM 的连接失败。请确认已在 IcM 服务团队中将你的智能体的托管标识加入允许列表，然后重试。"
     }
   ],
   "JYbAwr": [
     {
       "type": 0,
-      "value": "The agent's analysis of the causes that triggered the incident."
+      "value": "智能体对触发事件原因的分析。"
     }
   ],
   "JezZlU": [
     {
       "type": 0,
-      "value": "Final Summary:"
+      "value": "最终摘要:"
     }
   ],
   "JgQ1gX": [
     {
       "type": 0,
-      "value": "Get all incidents"
+      "value": "获取所有事件"
     }
   ],
   "JjKcCj": [
@@ -2552,13 +3546,13 @@
   "JjNi2L": [
     {
       "type": 0,
-      "value": "Incident research"
+      "value": "事件研究"
     }
   ],
   "JkbJ/T": [
     {
       "type": 0,
-      "value": "A response plan can use a maximum of "
+      "value": "响应计划最多可以使用 "
     },
     {
       "type": 1,
@@ -2566,31 +3560,43 @@
     },
     {
       "type": 0,
-      "value": " tools."
+      "value": " 个工具。"
     }
   ],
   "JlJ8dZ": [
     {
       "type": 0,
-      "value": "Search for files..."
+      "value": "搜索文件..."
     }
   ],
   "Jm+zxF": [
     {
       "type": 0,
-      "value": "Disconnect ServiceNow?"
+      "value": "断开 ServiceNow 连接?"
     }
   ],
   "JwHSD6": [
     {
       "type": 0,
-      "value": "Choose filter parameters"
+      "value": "选择筛选器参数"
     }
   ],
   "JxjlUE": [
     {
       "type": 0,
-      "value": "Resource Metrics"
+      "value": "资源指标"
+    }
+  ],
+  "Jz5GjX": [
+    {
+      "type": 0,
+      "value": "Review Your trigger"
+    }
+  ],
+  "K1h5xo": [
+    {
+      "type": 0,
+      "value": "Scheduled tasks require an upgrade. Contact your administrator to enable them."
     }
   ],
   "K3r6DQ": [
@@ -2599,70 +3605,94 @@
       "value": "删除"
     }
   ],
+  "K6WTYI": [
+    {
+      "type": 0,
+      "value": "A data source connection for tools"
+    }
+  ],
   "KAYpG9": [
     {
       "type": 0,
-      "value": "Allows for full read access to IoT Hub data-plane properties."
+      "value": "允许对 IoT 中心数据平面属性进行完全读取访问。"
     }
   ],
   "KI/Heo": [
     {
       "type": 0,
-      "value": "Key findings"
+      "value": "主要发现"
     }
   ],
   "KJuQJ3": [
     {
       "type": 0,
-      "value": "Incidents reviewed"
+      "value": "已审阅事件"
     }
   ],
   "KLYuRX": [
     {
       "type": 0,
-      "value": "Last 60 days"
+      "value": "过去 60 天"
     }
   ],
   "KN7zKn": [
     {
       "type": 0,
-      "value": "Error"
+      "value": "错误"
     }
   ],
   "KQ9L9d": [
     {
       "type": 0,
-      "value": "Zoom In"
+      "value": "放大"
+    }
+  ],
+  "KR79he": [
+    {
+      "type": 0,
+      "value": "New agent"
     }
   ],
   "KS5JHs": [
     {
       "type": 0,
-      "value": "Execution count"
+      "value": "执行计数"
     }
   ],
   "KXyWfi": [
     {
       "type": 0,
-      "value": "Urgency"
+      "value": "紧急"
     }
   ],
   "KbCGsK": [
     {
       "type": 0,
-      "value": "If you click 'Authorize', this operation will be executed on your behalf using your credentials."
+      "value": "如果单击“授权”，则将使用你的凭据代表你执行此操作。"
+    }
+  ],
+  "KgcF6B": [
+    {
+      "type": 0,
+      "value": "Yes/No"
     }
   ],
   "Kkc3/u": [
     {
       "type": 0,
-      "value": "Edit incident response plan"
+      "value": "编辑事件响应计划"
+    }
+  ],
+  "Km+WSh": [
+    {
+      "type": 0,
+      "value": "Map to argument"
     }
   ],
   "KoJ1C+": [
     {
       "type": 0,
-      "value": "Delete Selected ("
+      "value": "删除所选项("
     },
     {
       "type": 1,
@@ -2673,28 +3703,52 @@
       "value": ")"
     }
   ],
+  "KryvVM": [
+    {
+      "type": 0,
+      "value": "Parameter values (for testing)"
+    }
+  ],
   "KsuM4D": [
     {
       "type": 0,
-      "value": "Agent prompt"
+      "value": "智能体提示"
     }
   ],
   "KvZ6B9": [
     {
       "type": 0,
-      "value": "Take Screenshot"
+      "value": "生成屏幕快照"
+    }
+  ],
+  "Kxd0Vr": [
+    {
+      "type": 0,
+      "value": "Allow parallel tool calls"
     }
   ],
   "KyDsjH": [
     {
       "type": 0,
-      "value": "Date modified"
+      "value": "修改日期"
     }
   ],
   "KzMCPo": [
     {
       "type": 0,
-      "value": "Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries."
+      "value": "授予完全访问权限来管理所有资源，但不允许在 Azure RBAC 中分配角色、在 Azure 蓝图中管理分配或共享映像库。"
+    }
+  ],
+  "L+ewYY": [
+    {
+      "type": 0,
+      "value": "AI suggestions discarded"
+    }
+  ],
+  "L/i6dy": [
+    {
+      "type": 0,
+      "value": "We’ll mark this agent as Autonomous automatically so it can run on its own."
     }
   ],
   "L0KVkI": [
@@ -2714,19 +3768,19 @@
   "L5ZL+u": [
     {
       "type": 0,
-      "value": "Data connectors"
+      "value": "数据连接器"
     }
   ],
   "LFn7Ak": [
     {
       "type": 0,
-      "value": "Scheduled task created successfully"
+      "value": "已成功创建计划任务"
     }
   ],
   "LLt8Ve": [
     {
       "type": 0,
-      "value": "Created incident response plan"
+      "value": "已创建事件响应计划"
     }
   ],
   "LPprqA": [
@@ -2735,16 +3789,22 @@
       "value": "查看资源组"
     }
   ],
+  "LPz7Qc": [
+    {
+      "type": 0,
+      "value": "Tool Type"
+    }
+  ],
   "LRJHcs": [
     {
       "type": 0,
-      "value": "Prompt examples"
+      "value": "提示示例"
     }
   ],
   "LRTerU": [
     {
       "type": 0,
-      "value": "Steps: "
+      "value": "步骤: "
     },
     {
       "type": 1,
@@ -2754,13 +3814,19 @@
   "LSaaxU": [
     {
       "type": 0,
-      "value": "View all resources, but does not allow you to make any changes."
+      "value": "查看所有资源，但不允许进行任何更改。"
+    }
+  ],
+  "LTDPn/": [
+    {
+      "type": 0,
+      "value": "You have unsaved changes."
     }
   ],
   "LUSiug": [
     {
       "type": 0,
-      "value": "Failed to add SRE Agent Administrator role to your agent "
+      "value": "未能将 SRE 智能体管理员角色添加到智能体 "
     },
     {
       "type": 1,
@@ -2770,67 +3836,85 @@
   "LZyV4T": [
     {
       "type": 0,
-      "value": "Filters define which incidents the incident response plan applies to. These apply to the list of incidents previewed in the next step."
+      "value": "筛选器将定义事件响应计划所适用的事件。这些适用于下一步中预览的事件列表。"
+    }
+  ],
+  "LkUvu/": [
+    {
+      "type": 0,
+      "value": "Describe the schedule"
     }
   ],
   "LnglaU": [
     {
       "type": 0,
-      "value": "Run History"
+      "value": "运行历史记录"
     }
   ],
   "Lq4eva": [
     {
       "type": 0,
-      "value": "Custom response plan name"
+      "value": "自定义响应计划名称"
+    }
+  ],
+  "LsGLc0": [
+    {
+      "type": 0,
+      "value": "Direct argument"
     }
   ],
   "Lv0zJu": [
     {
       "type": 0,
-      "value": "Details"
+      "value": "详细信息"
     }
   ],
   "LwwzP6": [
     {
       "type": 0,
-      "value": "Severity level"
+      "value": "严重性级别"
     }
   ],
   "LyHqqV": [
     {
       "type": 0,
-      "value": "Standard input"
+      "value": "标准输入"
     }
   ],
   "LyuutK": [
     {
       "type": 0,
-      "value": "Edit custom response plan"
+      "value": "编辑自定义响应计划"
     }
   ],
   "M/3/kG": [
     {
       "type": 0,
-      "value": "Max executions must be a positive number."
+      "value": "最大执行次数必须为正数。"
     }
   ],
   "M/zZVx": [
     {
       "type": 0,
-      "value": "Add filter"
+      "value": "添加筛选器"
+    }
+  ],
+  "M3159R": [
+    {
+      "type": 0,
+      "value": "Quick create"
     }
   ],
   "M4emJP": [
     {
       "type": 0,
-      "value": "End Date (Optional)"
+      "value": "结束日期(可选)"
     }
   ],
   "M88YzU": [
     {
       "type": 0,
-      "value": "Browse Files"
+      "value": "浏览文件"
     }
   ],
   "MACADd": [
@@ -2842,73 +3926,113 @@
   "MB9ceM": [
     {
       "type": 0,
-      "value": "Incident ID"
+      "value": "事件 ID"
     }
   ],
   "MI5gZ+": [
     {
       "type": 0,
-      "value": "Download SVG"
+      "value": "下载 SVG"
     }
   ],
   "MIxpkh": [
     {
       "type": 0,
-      "value": "Incidents not handled by response plan criteria"
+      "value": "事件未被响应计划条件处理"
+    }
+  ],
+  "MJUuF5": [
+    {
+      "type": 0,
+      "value": "Failed to improve instructions. Please try again."
+    }
+  ],
+  "MLVVhB": [
+    {
+      "type": 0,
+      "value": "Dictionary key (map_to)"
     }
   ],
   "MOsoTa": [
     {
       "type": 0,
-      "value": "Enter a response plan name"
+      "value": "输入响应计划名称"
+    }
+  ],
+  "MOttDA": [
+    {
+      "type": 0,
+      "value": "Yes, override with custom meta agent"
     }
   ],
   "MPzBut": [
     {
       "type": 0,
-      "value": "Execution history"
+      "value": "执行历史记录"
     }
   ],
   "MSWnaq": [
     {
       "type": 0,
-      "value": "Create a new scheduled task to monitor or perform actions at regular intervals using cron expressions."
+      "value": "创建新的计划任务，使用 Cron 表达式定期监视或执行操作。"
     }
   ],
   "MWaWoR": [
     {
       "type": 0,
-      "value": "Starting September 25th, 2025, users without one of the required Azure role-based access control (RBAC) roles will lose access to Azure SRE Agent."
+      "value": "自 2025 年 9 月 25 日起，未拥有所需 Azure 基于角色访问控制(RBAC)角色的用户将无法访问 Azure SRE 智能体。"
+    }
+  ],
+  "MaaxCM": [
+    {
+      "type": 0,
+      "value": "Kusto Configuration"
     }
   ],
   "MhTfXm": [
     {
       "type": 0,
-      "value": "Select an incident and run the test to see the results here."
+      "value": "选择事件并运行测试以在此处查看结果。"
+    }
+  ],
+  "MjxZUD": [
+    {
+      "type": 0,
+      "value": "Use natural language—we’ll translate it into a cron schedule."
     }
   ],
   "MlX0aZ": [
     {
       "type": 0,
-      "value": "All impacted services"
+      "value": "所有受影响的服务"
+    }
+  ],
+  "MnlPLt": [
+    {
+      "type": 0,
+      "value": "Handoffs · "
+    },
+    {
+      "type": 1,
+      "value": "count"
     }
   ],
   "Mnvpbx": [
     {
       "type": 0,
-      "value": "Full management of Container Apps, including creation, deletion, and updates."
+      "value": "容器应用的完全管理，包括创建、删除和更新。"
     }
   ],
   "Mof2Rv": [
     {
       "type": 0,
-      "value": "No historical data available"
+      "value": "没有可用的历史数据"
     }
   ],
   "Mvqep7": [
     {
       "type": 0,
-      "value": "Delete failed: "
+      "value": "删除失败: "
     },
     {
       "type": 1,
@@ -2918,55 +4042,95 @@
   "MxYLKu": [
     {
       "type": 0,
-      "value": "Add SRE Agent Administrator role"
+      "value": "添加 SRE 智能体管理员角色"
     }
   ],
   "MydQzO": [
     {
       "type": 0,
-      "value": "Data Points"
+      "value": "数据点"
+    }
+  ],
+  "N+XwM+": [
+    {
+      "type": 0,
+      "value": "Create Your First Entity"
     }
   ],
   "N+sJfO": [
     {
       "type": 0,
-      "value": "Grid view"
+      "value": "网格视图"
+    }
+  ],
+  "N0wOFf": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    },
+    {
+      "type": 0,
+      "value": " and connected it to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "N7lPfx": [
+    {
+      "type": 0,
+      "value": "Relationships"
     }
   ],
   "NAAdaF": [
     {
       "type": 0,
-      "value": "This role provides read access to all capabilities of Azure Center for SAP solutions."
+      "value": "此角色提供对 Azure SAP 解决方案中心所有功能的读取访问权限。"
     }
   ],
   "NAepnj": [
     {
       "type": 0,
-      "value": "Authorized"
+      "value": "已授权"
     }
   ],
   "NBxjGE": [
     {
       "type": 0,
-      "value": "Copy the error details and send them to your administrator(s) to get access to this page."
+      "value": "复制错误详细信息并将其发送给管理员以访问此页面。"
     }
   ],
   "ND2EUR": [
     {
       "type": 0,
-      "value": "Storage Blob Data Contributor"
+      "value": "存储 Blob 数据参与者"
+    }
+  ],
+  "NDy5dO": [
+    {
+      "type": 0,
+      "value": "Agent Type"
     }
   ],
   "NMSoXQ": [
     {
       "type": 0,
-      "value": "Disabling incident response plan"
+      "value": "正在禁用事件响应计划"
     }
   ],
   "NOMbLF": [
     {
       "type": 0,
-      "value": "Get started with incident management"
+      "value": "事件管理入门"
     }
   ],
   "NV14yw": [
@@ -2978,31 +4142,37 @@
   "NW3Qi+": [
     {
       "type": 0,
-      "value": "Custom plan"
+      "value": "自定义计划"
     }
   ],
   "NYTGIb": [
     {
       "type": 0,
-      "value": "Got it"
+      "value": "明白了"
     }
   ],
   "NcxGiD": [
     {
       "type": 0,
-      "value": "HDInsight on AKS Cluster Admin"
+      "value": "AKS 群集上的 HDInsight 管理员"
     }
   ],
   "Nf85D+": [
     {
       "type": 0,
-      "value": "Update custom incident response plan"
+      "value": "更新自定义事件响应计划"
     }
   ],
   "Nfo3YG": [
     {
       "type": 0,
-      "value": "Connect to ServiceNow with your instance endpoint and credentials. This allows the agent to manage incidents and tickets in your ServiceNow environment."
+      "value": "使用实例终结点和凭据连接到 ServiceNow。这会允许智能体管理 ServiceNow 环境中的事件和票证。"
+    }
+  ],
+  "NlBiTm": [
+    {
+      "type": 0,
+      "value": "Filtered agent"
     }
   ],
   "Nrc9ba": [
@@ -3014,7 +4184,13 @@
   "Nup8Xl": [
     {
       "type": 0,
-      "value": "Create data connector"
+      "value": "创建数据连接器"
+    }
+  ],
+  "O3Ak71": [
+    {
+      "type": 0,
+      "value": "You do not have permission to use this feature."
     }
   ],
   "O79Wpv": [
@@ -3038,13 +4214,19 @@
   "OLJJDc": [
     {
       "type": 0,
-      "value": "Learn more about prompts"
+      "value": "了解有关提示的详细信息"
+    }
+  ],
+  "OLSbA3": [
+    {
+      "type": 0,
+      "value": "Create a plan that starts this agent when a new incident is detected."
     }
   ],
   "OMp9VI": [
     {
       "type": 0,
-      "value": "Deleting thread '"
+      "value": "正在删除线程 \""
     },
     {
       "type": 1,
@@ -3052,7 +4234,7 @@
     },
     {
       "type": 0,
-      "value": "'"
+      "value": "\""
     }
   ],
   "ONVN5F": [
@@ -3061,22 +4243,36 @@
       "value": "分配对象"
     }
   ],
+  "OO5Y94": [
+    {
+      "type": 0,
+      "value": "We couldn't find tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    },
+    {
+      "type": 0,
+      "value": ". Refresh and try again."
+    }
+  ],
   "ORGv1Q": [
     {
       "type": 0,
-      "value": "Created"
+      "value": "已创建"
     }
   ],
   "OSMnsR": [
     {
       "type": 0,
-      "value": "Any unsaved changes will be lost."
+      "value": "任何未保存的更改都将丢失。"
     }
   ],
   "OTGHHm": [
     {
       "type": 0,
-      "value": "The resources you picked have permissions for these roles."
+      "value": "你选取的资源具有这些角色所对应的权限。"
     }
   ],
   "OV0MpG": [
@@ -3088,13 +4284,13 @@
   "OV6svF": [
     {
       "type": 0,
-      "value": "Research steps"
+      "value": "研究步骤"
     }
   ],
   "OVAsQ8": [
     {
       "type": 0,
-      "value": "Roles and permissions"
+      "value": "角色和权限"
     }
   ],
   "OWBgF9": [
@@ -3103,94 +4299,156 @@
       "value": "隐藏线程菜单"
     }
   ],
+  "OXek0m": [
+    {
+      "type": 0,
+      "value": "Use standard cron syntax (UTC) to control when the agent runs."
+    }
+  ],
+  "OeU7Xk": [
+    {
+      "type": 0,
+      "value": "Explain what this scheduled trigger does for "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "OlIql8": [
     {
       "type": 0,
-      "value": "Moderate"
+      "value": "适中"
     }
   ],
   "Oom2N7": [
     {
       "type": 0,
-      "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
+      "value": "查看和搜索所有监视数据并查看监视设置，其中包括查看所有 Azure 资源上的 Azure 诊断的配置。"
     }
   ],
   "OsIQyM": [
     {
       "type": 0,
-      "value": "No changes found for this correlation ID"
+      "value": "找不到此相关 ID 的更改"
+    }
+  ],
+  "Oshix6": [
+    {
+      "type": 0,
+      "value": "Select an existing agent below to add as a handoff."
     }
   ],
   "OvzONl": [
     {
       "type": 0,
-      "value": "Off"
+      "value": "关"
     }
   ],
   "OxtrmO": [
     {
       "type": 0,
-      "value": "ServiceNow endpoint"
+      "value": "ServiceNow 终结点"
     }
   ],
   "Oz5LRn": [
     {
       "type": 0,
-      "value": "Permission"
+      "value": "权限"
     }
   ],
   "P04Zui": [
     {
       "type": 0,
-      "value": "PostgreSQL Command"
+      "value": "PostgreSQL 命令"
     }
   ],
   "P3qxV2": [
     {
       "type": 0,
-      "value": "Search Service Contributor"
+      "value": "搜索服务参与者"
+    }
+  ],
+  "P5X8Kw": [
+    {
+      "type": 0,
+      "value": "Review your trigger configuration before creating"
     }
   ],
   "P7MNl8": [
     {
       "type": 0,
-      "value": "Provide agent feedback"
+      "value": "提供智能体反馈"
+    }
+  ],
+  "P7PLVj": [
+    {
+      "type": 0,
+      "value": "Date"
     }
   ],
   "P9odAr": [
     {
       "type": 0,
-      "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
+      "value": "你的智能体处于只读模式。智能体需要以下权限才能生成有关资源的知识。特定服务的参与者角色将不用于执行任何写入操作。"
     }
   ],
   "PCrXDG": [
     {
       "type": 0,
-      "value": "My recent prompts"
+      "value": "我最近的提示"
+    }
+  ],
+  "PFUTWt": [
+    {
+      "type": 0,
+      "value": "AI improvements applied to instructions"
     }
   ],
   "PFtMy9": [
     {
       "type": 0,
-      "value": "Canceled"
+      "value": "已取消"
     }
   ],
   "PGJzE0": [
     {
       "type": 0,
-      "value": "You do not have permission to connect/disconnect incident management"
+      "value": "你没有连接/断开事件管理的权限"
     }
   ],
   "PI1EY1": [
     {
       "type": 0,
-      "value": "Highlighted points indicate significant events or anomalies in the data that warrant attention."
+      "value": "突出显示的点表示数据中需要关注的重要事件或异常。"
     }
   ],
   "PJ2FQv": [
     {
       "type": 0,
-      "value": "Filter incidents"
+      "value": "筛选事件"
+    }
+  ],
+  "PPrKNq": [
+    {
+      "type": 0,
+      "value": "Defines how the agent operates"
+    }
+  ],
+  "PS7hBo": [
+    {
+      "type": 0,
+      "value": "Choose the Kusto connector this tool will query"
+    }
+  ],
+  "PU1wDo": [
+    {
+      "type": 0,
+      "value": "Common tools"
     }
   ],
   "PW+sL4": [
@@ -3202,43 +4460,43 @@
   "PWmGlA": [
     {
       "type": 0,
-      "value": "Resource analysis"
+      "value": "资源分析"
     }
   ],
   "PXYq8b": [
     {
       "type": 0,
-      "value": "Enter a valid 5-part cron expression (m h dom mon dow)."
+      "value": "请输入有效的 5 部分 Cron 表达式(分 时 日 月 星期几)。"
     }
   ],
   "PXg8+x": [
     {
       "type": 0,
-      "value": "Virtual Machine Contributor"
+      "value": "虚拟机参与者"
     }
   ],
   "Pc+tM3": [
     {
       "type": 0,
-      "value": "Generate"
+      "value": "生成"
     }
   ],
   "Pcf4MK": [
     {
       "type": 0,
-      "value": "Full page"
+      "value": "整页"
     }
   ],
   "Phji5P": [
     {
       "type": 0,
-      "value": "Edit Healthcare APIs agent configurations."
+      "value": "编辑医疗保健 API 智能体配置。"
     }
   ],
   "PiNeyx": [
     {
       "type": 0,
-      "value": "Creating sub-agent \""
+      "value": "正在创建子智能体“"
     },
     {
       "type": 1,
@@ -3246,7 +4504,7 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": "”"
     }
   ],
   "PipPB3": [
@@ -3258,25 +4516,25 @@
   "Pm5Z9t": [
     {
       "type": 0,
-      "value": "Azure Monitor is connected"
+      "value": "Azure Monitor 已连接"
     }
   ],
   "PrFU82": [
     {
       "type": 0,
-      "value": "Can read all monitoring data and update monitoring settings."
+      "value": "允许读取所有监视数据并更新监视设置。"
     }
   ],
   "PuU15u": [
     {
       "type": 0,
-      "value": "Not connected"
+      "value": "未连接"
     }
   ],
   "Pwen/L": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Reader"
+      "value": "认知服务 LUIS 读者"
     }
   ],
   "PwqiFa": [
@@ -3289,6 +4547,12 @@
     {
       "type": 0,
       "value": "我想要..."
+    }
+  ],
+  "PysW/n": [
+    {
+      "type": 0,
+      "value": "Reset changes"
     }
   ],
   "PzGaVI": [
@@ -3306,7 +4570,13 @@
   "Q3p3sz": [
     {
       "type": 0,
-      "value": "Storage Blob Data Reader"
+      "value": "存储 Blob 数据读取器"
+    }
+  ],
+  "Q7/1w4": [
+    {
+      "type": 0,
+      "value": "Required for testing"
     }
   ],
   "Q8Qw5B": [
@@ -3318,13 +4588,13 @@
   "Q9Zp/n": [
     {
       "type": 0,
-      "value": "Correlation:"
+      "value": "相关性:"
     }
   ],
   "QAVYIG": [
     {
       "type": 0,
-      "value": "Enter a description"
+      "value": "输入说明"
     }
   ],
   "QBeCBS": [
@@ -3348,43 +4618,59 @@
   "QIY3dQ": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Owner"
+      "value": "Azure 数字孪生数据所有者"
     }
   ],
   "QQX4Pv": [
     {
       "type": 0,
-      "value": "No incidents selected"
+      "value": "未选择任何事件"
     }
   ],
   "QR4/mV": [
     {
       "type": 0,
-      "value": "Uses (Trigger, Action)"
+      "value": "使用(触发器, 操作)"
+    }
+  ],
+  "Qc3Kdl": [
+    {
+      "type": 0,
+      "value": "Example: "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "where SubscriptionId == \"##SubscriptionId##\""
+        }
+      ],
+      "type": 8,
+      "value": "code"
     }
   ],
   "QdDYGR": [
     {
       "type": 0,
-      "value": "Response plan configuration"
+      "value": "响应计划配置"
     }
   ],
   "QfEnqG": [
     {
       "type": 0,
-      "value": "Deep investigation is turned off"
+      "value": "深入调查已关闭"
     }
   ],
   "Qfec1M": [
     {
       "type": 0,
-      "value": "Edit annotation"
+      "value": "编辑注释"
     }
   ],
   "QgFHei": [
     {
       "type": 0,
-      "value": "Web Apps"
+      "value": "Web 应用"
     }
   ],
   "QlsDcr": [
@@ -3396,19 +4682,25 @@
   "Qly58H": [
     {
       "type": 0,
-      "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+      "value": "要查看智能体将具有的角色和权限，请选择智能体要管理的资源组。"
+    }
+  ],
+  "QomX1y": [
+    {
+      "type": 0,
+      "value": "e.g., 0 9 * * 1-5"
     }
   ],
   "QwnGVY": [
     {
       "type": 0,
-      "value": "Authorize"
+      "value": "授权"
     }
   ],
   "R+J5ox": [
     {
       "type": 0,
-      "value": "Review"
+      "value": "审阅"
     }
   ],
   "R/6nsx": [
@@ -3420,13 +4712,13 @@
   "R1RX2a": [
     {
       "type": 0,
-      "value": "Full access to IoT Hub data."
+      "value": "对 IoT 中心数据的完全访问权限。"
     }
   ],
   "R1i9Gl": [
     {
       "type": 0,
-      "value": "Upload failed: "
+      "value": "上传失败: "
     },
     {
       "type": 1,
@@ -3436,7 +4728,7 @@
   "R5Y4rC": [
     {
       "type": 0,
-      "value": "Data connector \""
+      "value": "已成功更新数据连接器 \""
     },
     {
       "type": 1,
@@ -3444,31 +4736,49 @@
     },
     {
       "type": 0,
-      "value": "\" has been updated successfully"
+      "value": "\""
     }
   ],
   "R7DP3y": [
     {
       "type": 0,
-      "value": "Resolved by agent"
+      "value": "已由智能体解决"
     }
   ],
   "R7g7UT": [
     {
       "type": 0,
-      "value": "Incident threads have moved"
+      "value": "事件线程已移动"
     }
   ],
   "RAjqKb": [
     {
       "type": 0,
-      "value": "Close panel"
+      "value": "关闭面板"
     }
   ],
   "RH8rNM": [
     {
       "type": 0,
-      "value": "Only alphanumeric characters and dashes are allowed, and the value must be 3-44 characters long."
+      "value": "只允许使用字母数字字符和短划线，且值的长度必须为 3-44 个字符。"
+    }
+  ],
+  "RI59Ed": [
+    {
+      "type": 0,
+      "value": "Add existing tool"
+    }
+  ],
+  "RK2Ddg": [
+    {
+      "type": 0,
+      "value": "Orchestrator"
+    }
+  ],
+  "RR+13c": [
+    {
+      "type": 0,
+      "value": "Replace the default meta agent with a specialized version tailored for this extended agent"
     }
   ],
   "RSDnlS": [
@@ -3480,13 +4790,13 @@
   "RStTJp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster Admin"
+      "value": "Azure Kubernetes 服务群集管理员"
     }
   ],
   "RU9VOd": [
     {
       "type": 0,
-      "value": "You do not have permission to create new chat threads."
+      "value": "你没有创建新聊天线程的权限。"
     }
   ],
   "RVf7gC": [
@@ -3498,25 +4808,31 @@
   "RXSky0": [
     {
       "type": 0,
-      "value": "Waiting for connectivity"
+      "value": "正在等待连接"
     }
   ],
   "RYbE1p": [
     {
       "type": 0,
-      "value": "Databases"
+      "value": "数据库"
     }
   ],
   "Rfvi9/": [
     {
       "type": 0,
-      "value": "Last 30 days"
+      "value": "过去 30 天"
+    }
+  ],
+  "Rk/SSB": [
+    {
+      "type": 0,
+      "value": "Server error occurred. Please try again in a few moments."
     }
   ],
   "RpKuX5": [
     {
       "type": 0,
-      "value": "Delete report?"
+      "value": "删除报告?"
     }
   ],
   "RrCui3": [
@@ -3531,6 +4847,48 @@
       "value": "Azure Kubernetes 服务 RBAC 读取者"
     }
   ],
+  "RsY+gv": [
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Set up incident response plans to trigger agents automatically."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " incident response plans ready to trigger your agents."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "Rsq6sZ": [
+    {
+      "type": 0,
+      "value": "New handoff agents start as Autonomous. You can connect tools and other details later."
+    }
+  ],
+  "S0GneP": [
+    {
+      "type": 0,
+      "value": "Review Your agent"
+    }
+  ],
   "S1VBUm": [
     {
       "type": 0,
@@ -3540,19 +4898,19 @@
   "S1gYH9": [
     {
       "type": 0,
-      "value": "Last 12 hours"
+      "value": "过去 12 小时"
     }
   ],
   "S57QRB": [
     {
       "type": 0,
-      "value": "Filter by"
+      "value": "筛选依据"
     }
   ],
   "S6FECK": [
     {
       "type": 0,
-      "value": "Deleting data connector \""
+      "value": "正在删除数据连接器 \""
     },
     {
       "type": 1,
@@ -3572,13 +4930,13 @@
   "SCjiXP": [
     {
       "type": 0,
-      "value": "Cognitive Services Data Reader"
+      "value": "认知服务数据读者"
     }
   ],
   "SFUZOQ": [
     {
       "type": 0,
-      "value": "Incident created"
+      "value": "已创建事件"
     }
   ],
   "SL+c5a": [
@@ -3600,7 +4958,7 @@
   "SMrXWc": [
     {
       "type": 0,
-      "value": "Favorites"
+      "value": "收藏夹"
     }
   ],
   "SNuQo7": [
@@ -3612,7 +4970,7 @@
   "SPdP4q": [
     {
       "type": 0,
-      "value": "Core application group health + performance"
+      "value": "核心应用程序组运行状况 + 性能"
     }
   ],
   "SRf69j": [
@@ -3624,7 +4982,7 @@
   "SVwJTM": [
     {
       "type": 0,
-      "value": "Export"
+      "value": "导出"
     }
   ],
   "SXEeds": [
@@ -3634,7 +4992,7 @@
     },
     {
       "type": 0,
-      "value": " document(s) rejected ("
+      "value": " 个文档被拒绝("
     },
     {
       "type": 1,
@@ -3642,37 +5000,49 @@
     },
     {
       "type": 0,
-      "value": "). Only .md and .txt files are allowed."
+      "value": ")。仅允许 .md 和 .txt 文件。"
     }
   ],
   "SXJ1c9": [
     {
       "type": 0,
-      "value": "Add a default incident response plan for the agent to use for High priority incidents."
+      "value": "为用于高优先级事件的智能体添加默认事件响应计划。"
+    }
+  ],
+  "SXcBLr": [
+    {
+      "type": 0,
+      "value": "No common prompts added."
     }
   ],
   "Sdc+Dp": [
     {
       "type": 0,
-      "value": "Autonomy level"
+      "value": "自治级别"
+    }
+  ],
+  "Seanpx": [
+    {
+      "type": 0,
+      "value": "Required"
     }
   ],
   "SezWLK": [
     {
       "type": 0,
-      "value": "Owning team ID"
+      "value": "负责团队 ID"
     }
   ],
   "Sjo1P4": [
     {
       "type": 0,
-      "value": "Custom"
+      "value": "自定义"
     }
   ],
   "Slnpm8": [
     {
       "type": 0,
-      "value": "Click to open fullscreen"
+      "value": "单击以打开全屏"
     }
   ],
   "Sr4IbA": [
@@ -3684,31 +5054,53 @@
   "Sr5R7d": [
     {
       "type": 0,
-      "value": "Autonomous"
+      "value": "自主"
     }
   ],
   "SuVToZ": [
     {
       "type": 0,
-      "value": "SQL Managed Instance Contributor"
+      "value": "SQL 托管实例参与者"
     }
   ],
   "SyPo+k": [
     {
       "type": 0,
-      "value": "Incidents assisted by agent"
+      "value": "事件已由智能体协助"
+    }
+  ],
+  "T/G3bv": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "handoffName"
+    },
+    {
+      "type": 0,
+      "value": " and added it as a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "T0/eoE": [
     {
       "type": 0,
-      "value": "Scheduled Task Execution"
+      "value": "计划任务执行"
     }
   ],
   "T5+AEf": [
     {
       "type": 0,
-      "value": "Logic App Operator"
+      "value": "逻辑应用操作员"
     }
   ],
   "T7WpWs": [
@@ -3717,16 +5109,22 @@
       "value": "事件管理"
     }
   ],
+  "T7fzjx": [
+    {
+      "type": 0,
+      "value": "Save YAML"
+    }
+  ],
   "T8DCV7": [
     {
       "type": 0,
-      "value": "Adding custom incident response plan"
+      "value": "正在添加自定义事件响应计划"
     }
   ],
   "TAm7bB": [
     {
       "type": 0,
-      "value": "Monitoring Contributor"
+      "value": "监视参与者"
     }
   ],
   "TB6bkn": [
@@ -3738,31 +5136,37 @@
   "TDUfVk": [
     {
       "type": 0,
-      "value": "Started"
+      "value": "已启动"
     }
   ],
   "TDaF6J": [
     {
       "type": 0,
-      "value": "Dismiss"
+      "value": "关闭"
     }
   ],
   "TDoBlx": [
     {
       "type": 0,
-      "value": "Privileged"
+      "value": "特权"
     }
   ],
   "TFQBcG": [
     {
       "type": 0,
-      "value": "Agent permissions were used, but the action failed to run."
+      "value": "已使用智能体权限，但操作无法运行。"
     }
   ],
   "TFsGSl": [
     {
       "type": 0,
-      "value": "Leave empty for unlimited executions"
+      "value": "留空表示无限执行次数"
+    }
+  ],
+  "THFIRB": [
+    {
+      "type": 0,
+      "value": "Incident trigger"
     }
   ],
   "TIDNOO": [
@@ -3780,11 +5184,15 @@
   "TKp3Ld": [
     {
       "type": 0,
-      "value": "Across all incidents in "
+      "value": "在 "
     },
     {
       "type": 1,
       "value": "platform"
+    },
+    {
+      "type": 0,
+      "value": " 中的所有事件中"
     }
   ],
   "TMZ2Rq": [
@@ -3796,19 +5204,25 @@
   "TN/U9d": [
     {
       "type": 0,
-      "value": "Failed to update task"
+      "value": "未能更新任务"
+    }
+  ],
+  "TRceX/": [
+    {
+      "type": 0,
+      "value": "No agents-as-tools configured."
     }
   ],
   "TZWmvi": [
     {
       "type": 0,
-      "value": "Invalid cron expression. Please use format: minute hour day month day-of-week"
+      "value": "Cron 表达式无效。请使用以下格式: 分钟 小时 日 月 星期几"
     }
   ],
   "TdTXXf": [
     {
       "type": 0,
-      "value": "Learn more"
+      "value": "了解详细信息"
     }
   ],
   "TdeXH0": [
@@ -3829,10 +5243,28 @@
       "value": "新建聊天会话"
     }
   ],
+  "Tkn9dK": [
+    {
+      "type": 0,
+      "value": "Select an agent to manage its relationships."
+    }
+  ],
+  "TmQqXl": [
+    {
+      "type": 0,
+      "value": "Optional: choose when this schedule should begin running."
+    }
+  ],
   "Tq2F2Y": [
     {
       "type": 0,
-      "value": "You do not have permission to create response plans."
+      "value": "你没有创建响应计划的权限。"
+    }
+  ],
+  "TwMqIK": [
+    {
+      "type": 0,
+      "value": "Review Your connector"
     }
   ],
   "TyvDrC": [
@@ -3841,44 +5273,48 @@
       "value": "正在保存事件管理配置"
     }
   ],
-  "U4ZTAj": [
-    {
-      "type": 0,
-      "value": "Cancel generation"
-    }
-  ],
   "U73T9e": [
     {
       "type": 0,
-      "value": "Autonomous mode"
+      "value": "自治模式"
+    }
+  ],
+  "U914O/": [
+    {
+      "type": 0,
+      "value": "No params needed"
     }
   ],
   "UCYFxr": [
     {
       "type": 0,
-      "value": "Configuration Changes"
+      "value": "配置更改"
     }
   ],
   "UKMPBH": [
     {
       "type": 0,
-      "value": "You do not have permission to change the thread mode from "
+      "value": "你没有更改线程模式 "
     },
     {
       "type": 1,
       "value": "mode"
+    },
+    {
+      "type": 0,
+      "value": " 的权限"
     }
   ],
   "UKUKGA": [
     {
       "type": 0,
-      "value": "Failed to delete data connector"
+      "value": "未能删除数据连接器"
     }
   ],
   "UPybTw": [
     {
       "type": 0,
-      "value": "Go to map"
+      "value": "转到映射"
     }
   ],
   "UV4Dx5": [
@@ -3896,25 +5332,43 @@
   "UZS12+": [
     {
       "type": 0,
-      "value": "Has read-only access to entities in the workspace. This role should be assigned on the workspace scope."
+      "value": "对工作区中的实体具有只读访问权限。应在工作区作用域上分配此角色。"
     }
   ],
   "Ua0Vpv": [
     {
       "type": 0,
-      "value": "Visual view"
+      "value": "视觉对象视图"
     }
   ],
   "Udeffr": [
     {
       "type": 0,
-      "value": "Incident type"
+      "value": "事件类型"
     }
   ],
   "UjETJe": [
     {
       "type": 0,
-      "value": "Base incident"
+      "value": "基本事件"
+    }
+  ],
+  "UjNXaV": [
+    {
+      "type": 1,
+      "value": "handoffName"
+    },
+    {
+      "type": 0,
+      "value": " is already a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "UmEsZF": [
@@ -3926,7 +5380,7 @@
   "UpTFVv": [
     {
       "type": 0,
-      "value": "View decision tree of potential root causes."
+      "value": "查看潜在根本原因的决策树。"
     }
   ],
   "UrGI9K": [
@@ -3938,49 +5392,61 @@
   "UxeJFE": [
     {
       "type": 0,
-      "value": "Repository"
+      "value": "存储库"
+    }
+  ],
+  "V52jNn": [
+    {
+      "type": 0,
+      "value": "Enabled"
+    }
+  ],
+  "V5AOl5": [
+    {
+      "type": 0,
+      "value": "Remove starter agent"
     }
   ],
   "V9A1Xh": [
     {
       "type": 0,
-      "value": "You do not have permission to delete this agent."
+      "value": "你没有删除此智能体的权限。"
     }
   ],
   "VB+AjJ": [
     {
       "type": 0,
-      "value": "Custom Cron Expression"
+      "value": "自定义 Cron 表达式"
     }
   ],
   "VB97cf": [
     {
       "type": 0,
-      "value": "User assigned"
+      "value": "用户分配"
     }
   ],
   "VIgoaE": [
     {
       "type": 0,
-      "value": "No sub-agents configured"
+      "value": "未配置子智能体"
     }
   ],
   "VIn2J0": [
     {
       "type": 0,
-      "value": "Sub-agents"
+      "value": "子智能体"
     }
   ],
   "VKbBsK": [
     {
       "type": 0,
-      "value": "Connected APIs"
+      "value": "已连接的 API"
     }
   ],
   "VMIM8/": [
     {
       "type": 0,
-      "value": "Analysis"
+      "value": "分析"
     }
   ],
   "VQDmmK": [
@@ -3989,72 +5455,114 @@
       "value": "已降级"
     }
   ],
+  "VQlvNn": [
+    {
+      "type": 0,
+      "value": "Overriding the meta agent is recommended because this extended agent doesn't need the default agent's world knowledge of Azure resources, providing a more focused experience."
+    }
+  ],
+  "VQn8u+": [
+    {
+      "type": 0,
+      "value": "Select system tools this agent can use"
+    }
+  ],
+  "VSWkne": [
+    {
+      "type": 0,
+      "value": "Warnings"
+    }
+  ],
+  "VTkRGg": [
+    {
+      "type": 0,
+      "value": "Connect relationships for "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "VUHkVQ": [
     {
       "type": 0,
-      "value": "No property changes detected"
+      "value": "未检测到属性更改"
     }
   ],
   "VUVCb1": [
     {
       "type": 0,
-      "value": "Uses (Action)"
+      "value": "使用(操作)"
     }
   ],
   "VYjDXQ": [
     {
       "type": 0,
-      "value": "Enter monitor ID"
+      "value": "输入监视器 ID"
     }
   ],
   "Vb+qQ4": [
     {
       "type": 0,
-      "value": "Uses"
+      "value": "使用"
     }
   ],
   "Ve40iX": [
     {
       "type": 0,
-      "value": "Review (Default)"
+      "value": "审阅(默认)"
     }
   ],
   "VlBNux": [
     {
       "type": 0,
-      "value": "Application Insights Component Contributor"
+      "value": "Application Insights 组件参与者"
+    }
+  ],
+  "VnySGb": [
+    {
+      "type": 0,
+      "value": "A meta agent override already exists in your system."
     }
   ],
   "VpsD7s": [
     {
       "type": 0,
-      "value": "Upgrade channel updated to "
+      "value": "已成功将升级通道更新为 "
     },
     {
       "type": 1,
       "value": "channel"
-    },
-    {
-      "type": 0,
-      "value": " successfully"
     }
   ],
   "VtBCjG": [
     {
       "type": 0,
-      "value": "Agent mode"
+      "value": "智能体模式"
     }
   ],
   "Vtdg82": [
     {
       "type": 0,
-      "value": "PagerDuty connected. Your next step is to set up incident response plans."
+      "value": "已连接 PagerDuty。下一步是设置事件响应计划。"
+    }
+  ],
+  "VvrxSY": [
+    {
+      "type": 0,
+      "value": "Common prompts"
     }
   ],
   "VwHnVH": [
     {
       "type": 0,
-      "value": "This will permanently delete the connection to IcM. The agent will no longer be able to manage incidents. Are you sure you want to delete this connection?"
+      "value": "此操作将永久删除与 IcM 的连接。该智能体将无法再管理事件。是否确实要删除此连接?"
+    }
+  ],
+  "VzeCzD": [
+    {
+      "type": 0,
+      "value": "Type for dictionary values"
     }
   ],
   "VzzYJk": [
@@ -4066,25 +5574,25 @@
   "W/V6+Y": [
     {
       "type": 0,
-      "value": "Collapse"
+      "value": "折叠"
     }
   ],
   "W/siYq": [
     {
       "type": 0,
-      "value": "No response plans found"
+      "value": "找不到响应计划"
     }
   ],
   "W2JBdp": [
     {
       "type": 0,
-      "value": "Impact"
+      "value": "影响"
     }
   ],
   "W6NO8g": [
     {
       "type": 0,
-      "value": "Preview Upgrade Channel"
+      "value": "预览升级通道"
     }
   ],
   "W6nSYE": [
@@ -4096,7 +5604,7 @@
   "W99XAG": [
     {
       "type": 0,
-      "value": "Incident response plan name"
+      "value": "事件响应计划名称"
     }
   ],
   "WCaf5C": [
@@ -4108,7 +5616,7 @@
   "WHleoJ": [
     {
       "type": 0,
-      "value": "Resource type"
+      "value": "资源类型"
     }
   ],
   "WIm1Zh": [
@@ -4120,7 +5628,7 @@
   "WLw9E7": [
     {
       "type": 0,
-      "value": "PostgreSQL Flexible Server Long Term Retention Backup Role"
+      "value": "PostgreSQL 灵活服务器长期保留备份角色"
     }
   ],
   "WTrOy3": [
@@ -4129,10 +5637,16 @@
       "value": "聊天"
     }
   ],
+  "WUV28A": [
+    {
+      "type": 0,
+      "value": "Saving…"
+    }
+  ],
   "WVTzuw": [
     {
       "type": 0,
-      "value": "The action was completed using temporary permissions granted by "
+      "value": "已使用 "
     },
     {
       "type": 1,
@@ -4140,7 +5654,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 授予的临时权限完成该操作。"
     }
   ],
   "WY8nWe": [
@@ -4152,7 +5666,7 @@
   "WbV0j4": [
     {
       "type": 0,
-      "value": "Editing: "
+      "value": "正在编辑: "
     },
     {
       "type": 1,
@@ -4162,7 +5676,13 @@
   "Wc5b/J": [
     {
       "type": 0,
-      "value": "AzureML Compute Operator"
+      "value": "AzureML 计算操作员"
+    }
+  ],
+  "WcnRC1": [
+    {
+      "type": 0,
+      "value": "Pick an agent to visualize its tools, connectors, and handoffs."
     }
   ],
   "Wf6bDe": [
@@ -4180,31 +5700,55 @@
   "Wn+PVy": [
     {
       "type": 0,
-      "value": "Primary resource type equals"
+      "value": "主要资源类型等于"
     }
   ],
   "Wtf3vL": [
     {
       "type": 0,
-      "value": "Data Factory Contributor"
+      "value": "数据工厂参与者"
     }
   ],
   "WuZcUT": [
     {
       "type": 0,
-      "value": "The name must begin with a letter, end with a letter or number, and contain only letters, numbers, and hyphens. It must be 2 to 23 characters long."
+      "value": "名称必须以字母开头，以字母或数字结尾，并且只能包含字母、数字或连字符。长度必须为 2 到 23 个字符。"
     }
   ],
   "WygVDv": [
     {
       "type": 0,
-      "value": "Administer HDInsight cluster pools."
+      "value": "管理 HDInsight 群集池。"
+    }
+  ],
+  "WzNnqa": [
+    {
+      "type": 0,
+      "value": "Ready to start a new chat with extended agent “"
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "”. Your next message will launch it."
     }
   ],
   "X192re": [
     {
       "type": 0,
       "value": "受监控的资源"
+    }
+  ],
+  "X3fjbS": [
+    {
+      "type": 0,
+      "value": "Context: "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "X4Y2nv": [
@@ -4216,7 +5760,7 @@
   "X4oOy4": [
     {
       "type": 0,
-      "value": "Connected to "
+      "value": "已连接到 "
     },
     {
       "type": 1,
@@ -4226,7 +5770,7 @@
   "X5UCWb": [
     {
       "type": 0,
-      "value": "Scheduled task deleted successfully"
+      "value": "计划任务已成功删除"
     }
   ],
   "X5yqtT": [
@@ -4235,16 +5779,36 @@
       "value": "PostgreSQL"
     }
   ],
+  "X7mXLW": [
+    {
+      "type": 0,
+      "value": "YAML error"
+    }
+  ],
   "X8SzJ6": [
     {
       "type": 0,
-      "value": "To change the incident platform, you need to disconnect from IcM. The agent will no longer manage incidents. Are you sure you want to disconnect?"
+      "value": "要更改事件平台，需要断开与 IcM 的连接。智能体将不再管理事件。是否确实要断开连接?"
     }
   ],
   "X8lXsV": [
     {
       "type": 0,
-      "value": "The action was canceled."
+      "value": "该操作已取消。"
+    }
+  ],
+  "XEB3Fn": [
+    {
+      "type": 0,
+      "value": "Will attach to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " as a tool."
     }
   ],
   "XEanEV": [
@@ -4259,52 +5823,70 @@
       "value": "链接 Grafana 仪表板"
     }
   ],
+  "XHc00z": [
+    {
+      "type": 0,
+      "value": "Connector Type"
+    }
+  ],
   "XJ+Lww": [
     {
       "type": 0,
-      "value": "Lets you read and modify HDInsight cluster configurations."
+      "value": "允许你读取和修改 HDInsight 群集配置。"
     }
   ],
   "XJuPK6": [
     {
       "type": 0,
-      "value": "Include any resource identifiers (e.g. subscription / resource group) needed each run."
+      "value": "包含每次运行所需的任何资源标识符(例如订阅/资源组)。"
+    }
+  ],
+  "XKWCS3": [
+    {
+      "type": 0,
+      "value": "Removed the starter agent. Next messages will stay in this thread."
     }
   ],
   "XKhlZF": [
     {
       "type": 0,
-      "value": "The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications."
+      "value": "完全自治模式。借助所需的权限，智能体可分析事件，并独立执行缓解操作或资源修改。"
     }
   ],
   "XKvrQy": [
     {
       "type": 0,
-      "value": "Task Details"
+      "value": "任务详细信息"
     }
   ],
   "XLRt15": [
     {
       "type": 0,
-      "value": "No access"
+      "value": "无访问权限"
+    }
+  ],
+  "XM+FCY": [
+    {
+      "type": 0,
+      "value": "Connected tools"
     }
   ],
   "XRdOZL": [
     {
       "type": 0,
-      "value": "Select or search for an incident"
+      "value": "选择或搜索事件"
     }
   ],
   "XYSJsS": [
     {
       "type": 0,
-      "value": "API Management Workspace Reader"
+      "value": "API 管理工作区读者"
     }
   ],
   "XZ+Fx6": [
     {
       "type": 0,
-      "value": "Turn off"
+      "value": "禁用"
     }
   ],
   "Xa3AHo": [
@@ -4316,31 +5898,37 @@
   "XaSHE5": [
     {
       "type": 0,
-      "value": "Uploading Files"
+      "value": "正在上传文件"
+    }
+  ],
+  "Xb85sq": [
+    {
+      "type": 0,
+      "value": "Grid view is coming soon."
     }
   ],
   "XbNTkN": [
     {
       "type": 0,
-      "value": "Deleting incident"
+      "value": "正在删除事件"
     }
   ],
   "XeBq0b": [
     {
       "type": 0,
-      "value": "Highlighted Point"
+      "value": "突出显示的点"
     }
   ],
   "Xkdnen": [
     {
       "type": 0,
-      "value": "An unexpected error occurred."
+      "value": "出现意外错误。"
     }
   ],
   "XtnlO8": [
     {
       "type": 0,
-      "value": "Manage long-term retention backups for PostgreSQL Flexible Server."
+      "value": "管理 PostgreSQL 灵活服务器的长期保留备份。"
     }
   ],
   "XvrDTb": [
@@ -4349,16 +5937,10 @@
       "value": "监视指标发布者"
     }
   ],
-  "Xx0WZV": [
-    {
-      "type": 0,
-      "value": "Send message"
-    }
-  ],
   "Y2QRpS": [
     {
       "type": 0,
-      "value": "equals"
+      "value": "等于"
     }
   ],
   "Y7Lbpf": [
@@ -4370,13 +5952,19 @@
   "YBXVNU": [
     {
       "type": 0,
-      "value": "Report was deleted successfully"
+      "value": "报告已成功删除"
     }
   ],
   "YBiTCc": [
     {
       "type": 0,
-      "value": "Start date picker"
+      "value": "开始日期选择器"
+    }
+  ],
+  "YCnSYw": [
+    {
+      "type": 0,
+      "value": "No description provided."
     }
   ],
   "YE+vjH": [
@@ -4388,25 +5976,31 @@
   "YJ+mk9": [
     {
       "type": 0,
-      "value": "Disabled incident response plan"
+      "value": "已禁用事件响应计划"
     }
   ],
   "YJG5oU": [
     {
       "type": 0,
-      "value": "Keep working"
+      "value": "继续处理"
     }
   ],
   "YP06jq": [
     {
       "type": 0,
-      "value": "Failed to create sub-agent"
+      "value": "未能创建子智能体"
+    }
+  ],
+  "YT6JU9": [
+    {
+      "type": 0,
+      "value": "Enter a name before creating this item."
     }
   ],
   "YZIFAO": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service RBAC Cluster Admin"
+      "value": "Azure Kubernetes 服务 RBAC 群集管理员"
     }
   ],
   "YdXbbC": [
@@ -4415,46 +6009,58 @@
       "value": "运行不正常"
     }
   ],
+  "YeKWbP": [
+    {
+      "type": 0,
+      "value": "Authentication"
+    }
+  ],
   "YgyuGj": [
     {
       "type": 0,
-      "value": "Mitigated by"
+      "value": "缓解者"
     }
   ],
   "YigUHc": [
     {
       "type": 0,
-      "value": "You do not have permission to approve this action."
+      "value": "你没有批准此操作的权限。"
     }
   ],
   "Yjk5Ow": [
     {
       "type": 0,
-      "value": "Date created"
+      "value": "创建日期"
     }
   ],
   "Yk6Co7": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Reader"
+      "value": "认知服务 QnA Maker 读取者"
     }
   ],
   "YlGniM": [
     {
       "type": 0,
-      "value": "Validation steps"
+      "value": "验证步骤"
     }
   ],
   "YmslQP": [
     {
       "type": 0,
-      "value": "Cron expression"
+      "value": "Cron 表达式"
     }
   ],
   "Yp7NCi": [
     {
       "type": 0,
-      "value": "Azure Center for SAP solutions administrator"
+      "value": "Azure SAP 解决方案中心管理员"
+    }
+  ],
+  "YrlQBL": [
+    {
+      "type": 0,
+      "value": "tool"
     }
   ],
   "Ys9AIu": [
@@ -4466,7 +6072,7 @@
   "Ysew65": [
     {
       "type": 0,
-      "value": "You do not have permission to turn Deep Investigations on."
+      "value": "你没有启用深入调查的权限。"
     }
   ],
   "Z1VHv1": [
@@ -4478,31 +6084,51 @@
   "Z6rVz/": [
     {
       "type": 0,
-      "value": "Daily reports"
+      "value": "每日报告"
     }
   ],
   "Z7Aj91": [
     {
       "type": 0,
-      "value": "Manage Azure Monitor workbooks."
+      "value": "管理 Azure Monitor 工作簿。"
     }
   ],
   "Z7pfsl": [
     {
       "type": 0,
-      "value": "Agent ID"
+      "value": "智能体 ID"
+    }
+  ],
+  "Z9TajN": [
+    {
+      "type": 0,
+      "value": "Parsing…"
     }
   ],
   "Z9pRs5": [
     {
       "type": 0,
-      "value": "Create incident response plan"
+      "value": "创建事件响应计划"
+    }
+  ],
+  "ZBKZDe": [
+    {
+      "type": 0,
+      "value": "Each "
+    },
+    {
+      "type": 1,
+      "value": "entityLabel"
+    },
+    {
+      "type": 0,
+      "value": " must include a name."
     }
   ],
   "ZCA/Ga": [
     {
       "type": 0,
-      "value": "Updating upgrade channel to "
+      "value": "正在将升级通道更新为 "
     },
     {
       "type": 1,
@@ -4512,7 +6138,13 @@
   "ZNMCbm": [
     {
       "type": 0,
-      "value": "Manage Logic Apps."
+      "value": "管理逻辑应用。"
+    }
+  ],
+  "ZOdb7N": [
+    {
+      "type": 0,
+      "value": "Visual View"
     }
   ],
   "ZUXvHE": [
@@ -4524,7 +6156,7 @@
   "ZVyc4+": [
     {
       "type": 0,
-      "value": "Last 6 hours"
+      "value": "过去 6 小时"
     }
   ],
   "ZbUTXC": [
@@ -4536,19 +6168,41 @@
   "Zh+5A6": [
     {
       "type": 0,
-      "value": "On"
+      "value": "开"
     }
   ],
   "Zidpq7": [
     {
       "type": 0,
-      "value": "Copy link to thread"
+      "value": "复制指向此线程的链接"
     }
   ],
   "Zkjd9I": [
     {
       "type": 0,
-      "value": "Critical actions present"
+      "value": "存在关键操作"
+    }
+  ],
+  "ZmlNQ3": [
+    {
+      "type": 0,
+      "value": "Activity"
+    }
+  ],
+  "Zo9lK6": [
+    {
+      "type": 0,
+      "value": "Select an existing tool below to connect."
+    }
+  ],
+  "ZqVUb5": [
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " scheduled task"
     }
   ],
   "Zqa4dQ": [
@@ -4560,7 +6214,19 @@
   "ZsLOg3": [
     {
       "type": 0,
-      "value": "Manage Azure OpenAI resources."
+      "value": "管理 Azure OpenAI 资源。"
+    }
+  ],
+  "Zt/L20": [
+    {
+      "type": 0,
+      "value": "No metadata provided."
+    }
+  ],
+  "Zu+xDc": [
+    {
+      "type": 0,
+      "value": "Fetching suggestions..."
     }
   ],
   "ZukeYV": [
@@ -4577,10 +6243,16 @@
       "value": " 个受管理资源组添加到 SRE 代理"
     }
   ],
+  "Zve9uZ": [
+    {
+      "type": 0,
+      "value": "Test your Kusto query before saving"
+    }
+  ],
   "ZwYyES": [
     {
       "type": 0,
-      "value": "Medium risk"
+      "value": "中等风险"
     }
   ],
   "a5msuh": [
@@ -4592,85 +6264,97 @@
   "a6ZyBy": [
     {
       "type": 0,
-      "value": "Your permissions will be used temporarily to complete this action."
+      "value": "你的权限将暂时用于完成此操作。"
     }
   ],
   "a7QT/5": [
     {
       "type": 0,
-      "value": "Advanced: Use cron format (minute hour day month day-of-week)"
+      "value": "高级: 使用 Cron 格式(分钟 小时 日 月 星期几)"
     }
   ],
   "a8l/yJ": [
     {
       "type": 0,
-      "value": "The action was completed using agent permissions."
+      "value": "已使用智能体权限完成该操作。"
     }
   ],
   "a8vxDw": [
     {
       "type": 0,
-      "value": "Starting investigation and forming hypothesis"
+      "value": "正在启动调查并形成假设"
     }
   ],
   "aA1SYF": [
     {
       "type": 0,
-      "value": "Deleting data connector"
+      "value": "正在删除数据连接器"
+    }
+  ],
+  "aA8bDw": [
+    {
+      "type": 0,
+      "value": "Text"
     }
   ],
   "aAADUG": [
     {
       "type": 0,
-      "value": "Username is required."
+      "value": "用户名为必填项。"
     }
   ],
   "aB1tjk": [
     {
       "type": 0,
-      "value": "Resource map"
+      "value": "资源映射"
     }
   ],
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "复制到剪贴板"
     }
   ],
   "aF4iw+": [
     {
       "type": 0,
-      "value": "Using this response plan"
+      "value": "使用此响应计划"
     }
   ],
   "aGL+Qo": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under LUIS."
+      "value": "有权访问 LUIS 下的读取和测试功能。"
     }
   ],
   "aH4De2": [
     {
       "type": 0,
-      "value": "Source"
+      "value": "源"
+    }
+  ],
+  "aKNsTc": [
+    {
+      "type": 0,
+      "value": "Controls how this value is passed to the tool method"
     }
   ],
   "aORQjS": [
     {
       "type": 0,
-      "value": "Add annotation"
+      "value": "添加注释"
     }
   ],
   "aOVqnW": [
     {
       "type": 0,
-      "value": "Remove All"
+      "value": "全部移除"
     }
   ],
   "aPWGNa": [
     {
       "type": 0,
-      "value": "Incident research in progress..."
+      "value": "事件研究正在进行..."
     }
   ],
   "aQPexO": [
@@ -4682,67 +6366,67 @@
   "aRUGFu": [
     {
       "type": 0,
-      "value": "Failed to update upgrade channel"
+      "value": "未能更新升级通道"
     }
   ],
   "aTyEZH": [
     {
       "type": 0,
-      "value": "Search response plans"
+      "value": "搜索响应计划"
     }
   ],
   "aWpBzj": [
     {
       "type": 0,
-      "value": "Show more"
+      "value": "显示更多"
     }
   ],
   "aXGUvh": [
     {
       "type": 0,
-      "value": "I'm your Azure SRE Agent and here to help you monitor your resources, investigate incidents, automate responses, and ensure your systems follow best practices for reliability, performance, and security."
+      "value": "我是你的 Azure SRE 智能体，可帮助你监视资源、调查事件、自动响应，并确保系统最佳做法来实现可靠性、性能和安全性。"
     }
   ],
   "aaAabe": [
     {
       "type": 0,
-      "value": "(new)"
+      "value": "(新)"
     }
   ],
   "abzUj6": [
     {
       "type": 0,
-      "value": "Filter name"
+      "value": "筛选器名称"
     }
   ],
   "acrOoz": [
     {
       "type": 0,
-      "value": "Continue"
+      "value": "继续"
     }
   ],
   "ag1Rum": [
     {
       "type": 0,
-      "value": "Files uploaded successfully"
+      "value": "已成功上传文件"
     }
   ],
   "aj2txf": [
     {
       "type": 0,
-      "value": "Choose incidents"
+      "value": "选择事件"
     }
   ],
   "ajASB/": [
     {
       "type": 0,
-      "value": "Keep description short; put detailed run logic here."
+      "value": "描述保持简短；将详细的运行逻辑写在这里。"
     }
   ],
   "ak4FqD": [
     {
       "type": 0,
-      "value": "Scheduled task resumed successfully"
+      "value": "已成功恢复计划任务"
     }
   ],
   "anSi7M": [
@@ -4751,16 +6435,28 @@
       "value": "未能加载资源组。"
     }
   ],
+  "aprHig": [
+    {
+      "type": 0,
+      "value": "Max reflections"
+    }
+  ],
+  "aqGaRm": [
+    {
+      "type": 0,
+      "value": "Provide a short report about the latest signals and note any follow-up actions."
+    }
+  ],
   "aqNZbD": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Writer"
+      "value": "认知服务语言编写器"
     }
   ],
   "aqnJe8": [
     {
       "type": 0,
-      "value": "Failed to update data connector with error: "
+      "value": "未能更新数据连接器，出现错误: "
     },
     {
       "type": 1,
@@ -4770,19 +6466,19 @@
   "auFFJa": [
     {
       "type": 0,
-      "value": "Key Vault URI"
+      "value": "密钥保管库 URI"
     }
   ],
   "ayDbML": [
     {
       "type": 0,
-      "value": "Output logs"
+      "value": "输出日志"
     }
   ],
   "b2PyOl": [
     {
       "type": 0,
-      "value": "Connecting to "
+      "value": "正在连接到 "
     },
     {
       "type": 1,
@@ -4790,37 +6486,55 @@
     },
     {
       "type": 0,
-      "value": " ..."
+      "value": "..."
     }
   ],
   "b2kjHU": [
     {
       "type": 0,
-      "value": "Delete custom incident response plan"
+      "value": "删除自定义事件响应计划"
     }
   ],
   "b7D4Lh": [
     {
       "type": 0,
-      "value": "Manage the identities associated with your agent which may be used to communicate with other services"
+      "value": "管理与智能体关联的标识，它们可用于与其他服务通信"
     }
   ],
   "b8MiMo": [
     {
       "type": 0,
-      "value": "Azure Monitor connected. Your next step is to set up incident response plans."
+      "value": "已连接 Azure Monitor。下一步是设置事件响应计划。"
+    }
+  ],
+  "b8PngH": [
+    {
+      "type": 0,
+      "value": "Loading agents…"
+    }
+  ],
+  "bCzUPd": [
+    {
+      "type": 0,
+      "value": "Cluster URI"
+    }
+  ],
+  "bK0VQe": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this Extended Tool? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
     }
   ],
   "bKgVBL": [
     {
       "type": 0,
-      "value": "If you click 'Continue', this operation will be executed using agent identity credentials."
+      "value": "如果单击“继续”，则将使用智能体标识凭据执行此操作。"
     }
   ],
   "bN0x+w": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Reader"
+      "value": "设备预配服务数据读者"
     }
   ],
   "bW7B87": [
@@ -4829,10 +6543,16 @@
       "value": "新"
     }
   ],
+  "bdFY56": [
+    {
+      "type": 0,
+      "value": "Connector (Optional)"
+    }
+  ],
   "bect+9": [
     {
       "type": 0,
-      "value": "Stable - Receives updates once a month"
+      "value": "稳定 - 每月接收一次更新"
     }
   ],
   "blSyDZ": [
@@ -4841,10 +6561,22 @@
       "value": "断开 Azure Monitor 连接?"
     }
   ],
+  "blYlGH": [
+    {
+      "type": 0,
+      "value": "Invalid request. Please check your instructions and try again."
+    }
+  ],
+  "bn84V+": [
+    {
+      "type": 0,
+      "value": "Delete tool"
+    }
+  ],
   "boVrya": [
     {
       "type": 0,
-      "value": "Canceled by"
+      "value": "取消者"
     }
   ],
   "boWXYt": [
@@ -4856,25 +6588,25 @@
   "boa1qH": [
     {
       "type": 0,
-      "value": "Last day"
+      "value": "过去一天"
     }
   ],
   "bri0SI": [
     {
       "type": 0,
-      "value": "No todo plan available"
+      "value": "没有可用的待办事项计划"
     }
   ],
   "brxlTt": [
     {
       "type": 0,
-      "value": "Title contains"
+      "value": "标题包含"
     }
   ],
   "bswtOq": [
     {
       "type": 0,
-      "value": "Unsupported chart type: "
+      "value": "不支持的图表类型: "
     },
     {
       "type": 1,
@@ -4884,13 +6616,13 @@
   "bvvGgu": [
     {
       "type": 0,
-      "value": "Turn off incident response plan"
+      "value": "关闭事件响应计划"
     }
   ],
   "bxcc6L": [
     {
       "type": 0,
-      "value": "Enabled incident response plan"
+      "value": "已启用事件响应计划"
     }
   ],
   "bxnWhY": [
@@ -4902,49 +6634,67 @@
   "bxv59V": [
     {
       "type": 0,
-      "value": "Just now"
+      "value": "刚才"
     }
   ],
   "c/KktL": [
     {
       "type": 0,
-      "value": "Resources"
+      "value": "资源"
+    }
+  ],
+  "c/bty0": [
+    {
+      "type": 0,
+      "value": "No system tools configured."
     }
   ],
   "c1EiBR": [
     {
       "type": 0,
-      "value": "Cognitive Services Usages Reader"
+      "value": "认知服务使用情况读者"
     }
   ],
   "c25ipa": [
     {
       "type": 0,
-      "value": "The agent uses these available tools to generate incident response plan instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use."
+      "value": "根据从过去事件中学习到的模式，智能体可使用这些可用工具来生成事件响应计划指令。你可以移除不希望智能体使用的任何工具。"
     }
   ],
   "c35gM5": [
     {
       "type": 0,
-      "value": "Roles"
+      "value": "角色"
     }
   ],
   "cDjhgm": [
     {
       "type": 0,
-      "value": "Deep investigation is turned on"
+      "value": "深入调查已启用"
     }
   ],
   "cEBkPF": [
     {
       "type": 0,
-      "value": "Failed to create scheduled task. Please try again."
+      "value": "未能创建计划任务。请重试。"
+    }
+  ],
+  "cG0Q8M": [
+    {
+      "type": 0,
+      "value": "Temperature"
+    }
+  ],
+  "cLC2fM": [
+    {
+      "type": 0,
+      "value": "AI chat service is currently unavailable. Please try again later."
     }
   ],
   "cRTR/A": [
     {
       "type": 0,
-      "value": "Write access to LUIS applications."
+      "value": "对 LUIS 应用程序的写入访问权限。"
     }
   ],
   "cTY8WU": [
@@ -4956,25 +6706,37 @@
   "cTzjJg": [
     {
       "type": 0,
-      "value": "Storage Account Contributor"
+      "value": "存储帐户参与者"
     }
   ],
   "ciB+oy": [
     {
       "type": 0,
-      "value": "Operate Azure Machine Learning compute resources."
+      "value": "操作 Azure 机器学习计算资源。"
     }
   ],
   "cn2YEB": [
     {
       "type": 0,
-      "value": "Suggested prompts"
+      "value": "建议的提示"
+    }
+  ],
+  "coy1iv": [
+    {
+      "type": 0,
+      "value": "Edit YAML configuration"
+    }
+  ],
+  "cqx+Rd": [
+    {
+      "type": 0,
+      "value": "Manage connectors"
     }
   ],
   "crWYMh": [
     {
       "type": 0,
-      "value": "Please wait while your files are being uploaded..."
+      "value": "正在上传文件，请稍候..."
     }
   ],
   "csu0rb": [
@@ -4986,7 +6748,7 @@
   "csu95N": [
     {
       "type": 0,
-      "value": "Successfully added SRE Agent Administrator role to your agent "
+      "value": "已成功将 SRE 智能体管理员角色添加到智能体 "
     },
     {
       "type": 1,
@@ -4996,7 +6758,7 @@
   "cubQfQ": [
     {
       "type": 0,
-      "value": "Temporary permissions were granted by "
+      "value": "临时权限由 "
     },
     {
       "type": 1,
@@ -5004,7 +6766,7 @@
     },
     {
       "type": 0,
-      "value": ", but the action failed to run."
+      "value": " 授予，但操作未能运行。"
     }
   ],
   "cyR7Kh": [
@@ -5016,43 +6778,43 @@
   "d+XOMl": [
     {
       "type": 0,
-      "value": "Incidents mitigated by agent"
+      "value": "事件已由智能体缓解"
     }
   ],
   "d1Cewp": [
     {
       "type": 0,
-      "value": "Apply only to incidents triggered after the response plan is created"
+      "value": "仅适用于在创建响应计划后触发的事件"
     }
   ],
   "d2GmfJ": [
     {
       "type": 0,
-      "value": "Manage API Management workspaces."
+      "value": "管理 API Management 工作区。"
     }
   ],
   "d3MtwZ": [
     {
       "type": 0,
-      "value": "Turning off this incident response plan might affect how incidents are processed and also any custom response plans. Are you sure you want to turn it off?"
+      "value": "关闭此事件响应计划可能会影响事件的处理方式以及任何自定义响应计划。是否确实要将其关闭?"
     }
   ],
   "d6hQf3": [
     {
       "type": 0,
-      "value": "Regenerate tools list"
+      "value": "“再生成工具”列表"
     }
   ],
   "d8dECB": [
     {
       "type": 0,
-      "value": "IoT Hub Data Reader"
+      "value": "IoT 中心数据读者"
     }
   ],
   "dCrF9n": [
     {
       "type": 0,
-      "value": "Copy cron"
+      "value": "复制 Cron"
     }
   ],
   "dDk23i": [
@@ -5062,37 +6824,37 @@
     },
     {
       "type": 0,
-      "value": " options"
+      "value": " 选项"
     }
   ],
   "dG8VrM": [
     {
       "type": 0,
-      "value": "Scheduled task"
+      "value": "计划任务"
     }
   ],
   "dI9gP+": [
     {
       "type": 0,
-      "value": "Agent instructions"
+      "value": "智能体指令"
     }
   ],
   "dJqE3e": [
     {
       "type": 0,
-      "value": "Create scheduled task"
+      "value": "创建计划任务"
     }
   ],
   "dQ5/dh": [
     {
       "type": 0,
-      "value": "Allows for full read access to Device Provisioning Service data-plane properties."
+      "value": "允许对设备预配服务数据平面属性进行完全读取访问。"
     }
   ],
   "dQKATf": [
     {
       "type": 0,
-      "value": "Please enter a name (min 3 characters)."
+      "value": "请输入名称(至少 3 个字符)。"
     }
   ],
   "dQtJBl": [
@@ -5104,37 +6866,57 @@
   "dR8VUW": [
     {
       "type": 0,
-      "value": "Manage API Management services."
+      "value": "管理 API 管理服务。"
     }
   ],
   "dVx3yz": [
     {
       "type": 0,
-      "value": "Memory"
+      "value": "内存"
     }
   ],
   "dYwe9B": [
     {
       "type": 0,
-      "value": "Repository URL must be like the following for GitHub: https://github.com/owner/repo-name or for Azure DevOps: https://dev.azure.com/organization/project/_git/repository-name or https://organization.visualstudio.com/project/_git/repository-name"
+      "value": "对于 GitHub，存储库 URL 必须如下所示: https://github.com/owner/repo-name，对于 Azure DevOps，则应为: https://dev.azure.com/organization/project/_git/repository-name 或 https://organization.visualstudio.com/project/_git/repository-name"
     }
   ],
   "dd6gV2": [
     {
       "type": 0,
-      "value": "Schedule Preview"
+      "value": "计划预览"
     }
   ],
   "dhqlRa": [
     {
       "type": 0,
-      "value": "The semiautonomous mode. The agent diagnoses incidents, then mitigates or modifies resources only after its proposed actions are reviewed and approved."
+      "value": "半自治模式。智能体可诊断事件，然后仅其建议的操作经过审核及批准后才对资源进行缓解或修改。"
     }
   ],
   "djNL6D": [
     {
       "type": 0,
-      "value": "Read-only"
+      "value": "只读"
+    }
+  ],
+  "djuhEG": [
+    {
+      "type": 0,
+      "value": "Enter "
+    },
+    {
+      "type": 1,
+      "value": "type"
+    },
+    {
+      "type": 0,
+      "value": " value"
+    }
+  ],
+  "dk4jPW": [
+    {
+      "type": 0,
+      "value": "Critic prompt"
     }
   ],
   "dnXgff": [
@@ -5143,34 +6925,40 @@
       "value": "已缓解"
     }
   ],
+  "dtQgfG": [
+    {
+      "type": 0,
+      "value": "Query Tester"
+    }
+  ],
   "du1laW": [
     {
       "type": 0,
-      "value": "Never"
+      "value": "从不"
     }
   ],
   "e0a3XV": [
     {
       "type": 0,
-      "value": "Log Analytics Contributor"
+      "value": "Log Analytics 参与者"
     }
   ],
   "e3itcX": [
     {
       "type": 0,
-      "value": "Device Update Administrator"
+      "value": "设备更新管理员"
     }
   ],
   "eBvTo6": [
     {
       "type": 0,
-      "value": "Read-only actions in the project. Readers can't create or update the project."
+      "value": "项目中的只读操作。读者无法创建或更新项目。"
     }
   ],
   "eEu4cm": [
     {
       "type": 0,
-      "value": "Instruction generation guidance"
+      "value": "指令生成指导"
     }
   ],
   "eFKqV0": [
@@ -5182,7 +6970,7 @@
   "eG1C0k": [
     {
       "type": 0,
-      "value": "Remove from favorites"
+      "value": "从收藏夹中移除"
     }
   ],
   "eKEL/g": [
@@ -5194,37 +6982,49 @@
   "eLvBmG": [
     {
       "type": 0,
-      "value": "Read-only mode"
+      "value": "只读模式"
     }
   ],
   "eUEjcm": [
     {
       "type": 0,
-      "value": "Add a default incident response plan for the agent to use for Sev3 alerts."
+      "value": "为智能体添加用于 Sev3 警报的默认事件响应计划。"
+    }
+  ],
+  "eYEnNu": [
+    {
+      "type": 0,
+      "value": "Run this agent on a repeating schedule."
     }
   ],
   "eZMksq": [
     {
       "type": 0,
-      "value": "Add guidance"
+      "value": "添加指导"
     }
   ],
   "eackGq": [
     {
       "type": 0,
-      "value": "This is the prompt the agent will use. It includes your custom response guidance. Review and edit if needed."
+      "value": "这是智能体将使用的提示。它包括自定义响应指导。查看并编辑(如果需要)。"
     }
   ],
   "ecG+OD": [
     {
       "type": 0,
-      "value": "Manage Azure Search services."
+      "value": "管理 Azure 搜索服务。"
     }
   ],
   "ehbsXg": [
     {
       "type": 0,
-      "value": "ServiceNow connected. Your next step is to set up incident response plans."
+      "value": "已连接 ServiceNow。下一步是设置事件响应计划。"
+    }
+  ],
+  "ehhpyJ": [
+    {
+      "type": 0,
+      "value": "Add All"
     }
   ],
   "emW/QQ": [
@@ -5236,25 +7036,31 @@
   "eqYdSS": [
     {
       "type": 0,
-      "value": "Resource name"
+      "value": "资源名称"
     }
   ],
   "et+X02": [
     {
       "type": 0,
-      "value": "Custom response guidance"
+      "value": "自定义响应指导"
     }
   ],
   "euBSDU": [
     {
       "type": 0,
-      "value": "Agent instructions are required."
+      "value": "需要智能体说明。"
+    }
+  ],
+  "euKVCa": [
+    {
+      "type": 0,
+      "value": "System tools are built-in tools provided by the platform"
     }
   ],
   "exofc7": [
     {
       "type": 0,
-      "value": "Failed to delete report with error: "
+      "value": "未能删除报告，出现错误: "
     },
     {
       "type": 1,
@@ -5264,19 +7070,25 @@
   "ey7R11": [
     {
       "type": 0,
-      "value": "Connecting to PagerDuty ..."
+      "value": "正在连接到 PagerDuty..."
     }
   ],
   "f+cHle": [
     {
       "type": 0,
-      "value": "Enter connection string or endpoint"
+      "value": "输入连接字符串或终结点"
+    }
+  ],
+  "f0LQra": [
+    {
+      "type": 0,
+      "value": "Improve with AI"
     }
   ],
   "f0Luxo": [
     {
       "type": 0,
-      "value": "ServiceNow is not connected."
+      "value": "ServiceNow 未连接。"
     }
   ],
   "f0Y4Zr": [
@@ -5294,73 +7106,85 @@
   "f7Zx3L": [
     {
       "type": 0,
-      "value": "Prompt Tips"
+      "value": "提示技巧"
     }
   ],
   "fEYQWU": [
     {
       "type": 0,
-      "value": "You do not have permission to delete response plans."
+      "value": "你没有删除响应计划的权限。"
     }
   ],
   "fF376U": [
     {
       "type": 0,
-      "value": "Current"
+      "value": "当前"
     }
   ],
   "fFyuVF": [
     {
       "type": 0,
-      "value": "Cognitive Services Speech Contributor"
+      "value": "认知服务语音参与者"
     }
   ],
   "fLkL3F": [
     {
       "type": 0,
-      "value": "Deleting thread"
+      "value": "正在删除线程"
+    }
+  ],
+  "fT73QI": [
+    {
+      "type": 0,
+      "value": "New tool"
     }
   ],
   "fUgypu": [
     {
       "type": 0,
-      "value": "Go to Access control"
+      "value": "转到访问控制"
     }
   ],
   "fblXmJ": [
     {
       "type": 0,
-      "value": "Instance name"
+      "value": "实例名称"
+    }
+  ],
+  "fbr20l": [
+    {
+      "type": 0,
+      "value": "Create & Link"
     }
   ],
   "fdCjVS": [
     {
       "type": 0,
-      "value": "Impacted service"
+      "value": "受影响的服务"
     }
   ],
   "ffTMIX": [
     {
       "type": 0,
-      "value": "All severity levels"
+      "value": "所有严重性级别"
     }
   ],
   "ffkuNo": [
     {
       "type": 0,
-      "value": "A sub-agent with this name already exists"
+      "value": "具有此名称的子智能体已经存在"
     }
   ],
   "fk/+VC": [
     {
       "type": 0,
-      "value": "Correlation ranges from -1 (inverse) to 1 (direct)"
+      "value": "关联范围从 -1 (负相关)到 1 (正相关)"
     }
   ],
   "ftDEuE": [
     {
       "type": 0,
-      "value": "Select connector type"
+      "value": "选择连接器类型"
     }
   ],
   "ftfFhS": [
@@ -5372,7 +7196,7 @@
   "ftvKVy": [
     {
       "type": 0,
-      "value": "Investigation steps"
+      "value": "调查步骤"
     }
   ],
   "ftzwIR": [
@@ -5390,49 +7214,55 @@
   "g+9csc": [
     {
       "type": 0,
-      "value": "You do not have permission to add or delete managed resources"
+      "value": "你没有添加或删除受管理资源的权限"
     }
   ],
   "g/hfuE": [
     {
       "type": 0,
-      "value": "Copy error details"
+      "value": "复制错误详细信息"
+    }
+  ],
+  "g3ngVx": [
+    {
+      "type": 0,
+      "value": "Create AI agents with custom tools and data connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
     }
   ],
   "g7HOVb": [
     {
       "type": 0,
-      "value": "This will permanently delete this report and its information. Are you sure you want to delete this report?"
+      "value": "这将永久删除此报告及其信息。确定要删除此报表吗?"
     }
   ],
   "g8ctzH": [
     {
       "type": 0,
-      "value": "Executing..."
+      "value": "正在执行..."
     }
   ],
   "gC4xMY": [
     {
       "type": 0,
-      "value": "Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces."
+      "value": "允许以只读方式访问命名空间中的大多数对象。它不允许查看角色或角色绑定。此角色不允许查看机密，因为读取机密内容会允许访问命名空间中的 ServiceAccount 凭据，进而允许以命名空间中的任何 ServiceAccount 身份(特权提升形式)进行 API 访问。在群集范围应用此角色将跨所有命名空间授予访问权限。"
     }
   ],
   "gHCL4X": [
     {
       "type": 0,
-      "value": "Add More Files"
+      "value": "添加更多文件"
     }
   ],
   "gKi3tP": [
     {
       "type": 0,
-      "value": "Choose how to set up this incident response plan"
+      "value": "选择如何设置此事件响应计划"
     }
   ],
   "gNhYpU": [
     {
       "type": 0,
-      "value": "Failed to process investigation message"
+      "value": "未能处理调查消息"
     }
   ],
   "gO/IxZ": [
@@ -5441,28 +7271,34 @@
       "value": "连接到"
     }
   ],
+  "gP/k0J": [
+    {
+      "type": 0,
+      "value": "Optional description of what this connector accesses"
+    }
+  ],
   "gUQeKV": [
     {
       "type": 0,
-      "value": "Last 3 days"
+      "value": "过去 3 天"
     }
   ],
   "gZ5fZs": [
     {
       "type": 0,
-      "value": "Manage IoT Hub device twins."
+      "value": "管理 IoT 中心设备孪生。"
     }
   ],
   "gdUWAX": [
     {
       "type": 0,
-      "value": "Description should be 140 characters or fewer."
+      "value": "说明不得超过 140 个字符。"
     }
   ],
   "ggVnjB": [
     {
       "type": 0,
-      "value": "Thread ID"
+      "value": "线程 ID"
     }
   ],
   "gj6Qc6": [
@@ -5480,19 +7316,25 @@
   "gn/nvJ": [
     {
       "type": 0,
-      "value": "Read, logstream and exec into Container Apps."
+      "value": "在容器应用中读取、logstream 和 exec。"
     }
   ],
   "gnC7c5": [
     {
       "type": 0,
-      "value": "You need permissions to set up a Grafana dashboard."
+      "value": "需要权限才能设置 Grafana 仪表板。"
+    }
+  ],
+  "gvlNuI": [
+    {
+      "type": 0,
+      "value": "Start fresh or reuse an existing trigger configuration."
     }
   ],
   "gwSeXa": [
     {
       "type": 0,
-      "value": "Note: There "
+      "value": "注意: 此图表中有 "
     },
     {
       "offset": 0,
@@ -5500,30 +7342,22 @@
         "one": {
           "value": [
             {
-              "type": 0,
-              "value": "is "
-            },
-            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " highlighted point"
+              "value": " 个突出显示的点"
             }
           ]
         },
         "other": {
           "value": [
             {
-              "type": 0,
-              "value": "are "
-            },
-            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " highlighted points"
+              "value": " 个突出显示的点"
             }
           ]
         }
@@ -5534,37 +7368,47 @@
     },
     {
       "type": 0,
-      "value": " in this chart that may require attention."
+      "value": "需要关注。"
     }
   ],
   "gzx/k1": [
     {
       "type": 0,
-      "value": "PostgreSQL Contributor"
+      "value": "PostgreSQL 参与者"
     }
   ],
   "h+7264": [
     {
       "type": 0,
-      "value": "Delete incident response plan"
+      "value": "删除事件响应计划"
     }
   ],
   "h+YOYh": [
     {
       "type": 0,
-      "value": "To change the incident platform, you need to disconnect from ServiceNow. The agent will no longer manage tickets. Are you sure you want to disconnect?"
+      "value": "要更改事件平台，需要断开与 ServiceNow 的连接。智能体将不再管理票证。是否确实要断开连接?"
+    }
+  ],
+  "h4BqRo": [
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " incident response plan"
     }
   ],
   "h6183G": [
     {
       "type": 0,
-      "value": "Tool"
+      "value": "工具"
     }
   ],
   "hEXUFk": [
     {
       "type": 0,
-      "value": "Incident with ID \""
+      "value": "找不到 ID 为 “"
     },
     {
       "type": 1,
@@ -5572,25 +7416,31 @@
     },
     {
       "type": 0,
-      "value": "\" was not found"
+      "value": "” 的事件"
     }
   ],
   "hF5T80": [
     {
       "type": 0,
-      "value": "Administer Device Update accounts."
+      "value": "管理设备更新帐户。"
+    }
+  ],
+  "hGMSK3": [
+    {
+      "type": 0,
+      "value": "Apply Suggestions"
     }
   ],
   "hGQqkW": [
     {
       "type": 0,
-      "value": "Schedule"
+      "value": "计划"
     }
   ],
   "hHz/bk": [
     {
       "type": 0,
-      "value": "PagerDuty is not connected."
+      "value": "PagerDuty 未连接。"
     }
   ],
   "hK4HcH": [
@@ -5602,7 +7452,7 @@
   "hO1Iog": [
     {
       "type": 0,
-      "value": "Manage without access."
+      "value": "无需访问即可进行管理。"
     }
   ],
   "hOxIeP": [
@@ -5614,7 +7464,13 @@
   "hPj49L": [
     {
       "type": 0,
-      "value": "Workbook Reader"
+      "value": "工作簿读者"
+    }
+  ],
+  "hWVnHh": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this Extended Agent? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
     }
   ],
   "hX5PAb": [
@@ -5632,25 +7488,31 @@
   "hZY54D": [
     {
       "type": 0,
-      "value": "Top categories"
+      "value": "热门类别"
     }
   ],
   "hfACn+": [
     {
       "type": 0,
-      "value": "Unhealthy core application groups"
+      "value": "运行不正常的核心应用程序组"
     }
   ],
   "hfIdUs": [
     {
       "type": 0,
-      "value": "SQL DB Contributor"
+      "value": "SQL 数据库参与者"
     }
   ],
   "hfqoIO": [
     {
       "type": 0,
-      "value": "Choose the channel for receiving agent updates"
+      "value": "选择接收智能体更新的通道"
+    }
+  ],
+  "hijOHm": [
+    {
+      "type": 0,
+      "value": "Preview AI recommendations without changing your instructions"
     }
   ],
   "hlmkcL": [
@@ -5668,7 +7530,7 @@
   "hrdmcd": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Reader"
+      "value": "Azure 数字孪生数据读取者"
     }
   ],
   "htvX+Z": [
@@ -5686,37 +7548,49 @@
   "i5OUQE": [
     {
       "type": 0,
-      "value": "Container Apps Contributor"
+      "value": "容器应用参与者"
     }
   ],
   "i6RxOt": [
     {
       "type": 0,
-      "value": "Changes to this incident response plan might affect how incidents are processed and also any custom response plans."
+      "value": "更改此事件响应计划可能会影响事件的处理方式以及任何自定义响应计划。"
     }
   ],
   "i6cLLM": [
     {
       "type": 0,
-      "value": "Perform data science tasks in Azure Machine Learning."
+      "value": "在 Azure 机器学习中执行数据科学任务。"
     }
   ],
   "iDSWYk": [
     {
       "type": 0,
-      "value": "Connect to Azure Monitor so that the agent can automatically monitor notifications from the resource groups it manages, without additional provisioning."
+      "value": "连接到 Azure Monitor，以便智能体可以自动监视其管理的资源组中的通知，而无需进行额外预配。"
     }
   ],
   "iIoj97": [
     {
       "type": 0,
-      "value": "Resource ID"
+      "value": "资源 ID"
+    }
+  ],
+  "iMBgdL": [
+    {
+      "type": 0,
+      "value": "Kusto Tool"
     }
   ],
   "iNgloh": [
     {
       "type": 0,
-      "value": "Select a filter"
+      "value": "选择筛选器"
+    }
+  ],
+  "iV7LUx": [
+    {
+      "type": 0,
+      "value": "Create a new trigger with custom settings"
     }
   ],
   "iZDRGO": [
@@ -5728,19 +7602,19 @@
   "iZuO+L": [
     {
       "type": 0,
-      "value": "Legend"
+      "value": "图例"
     }
   ],
   "ibf4+R": [
     {
       "type": 0,
-      "value": "Core application group resource name"
+      "value": "核心应用程序组资源名称"
     }
   ],
   "ic8SAj": [
     {
       "type": 0,
-      "value": "Or"
+      "value": "或"
     }
   ],
   "ielB5f": [
@@ -5752,25 +7626,45 @@
   "ifcOhH": [
     {
       "type": 0,
-      "value": "Copy command"
+      "value": "复制命令"
+    }
+  ],
+  "ijOojL": [
+    {
+      "type": 0,
+      "value": "Agent created, but linking to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " failed. Retry link."
+    }
+  ],
+  "ipsqxO": [
+    {
+      "type": 0,
+      "value": "Select an agent"
     }
   ],
   "iqdd9H": [
     {
       "type": 0,
-      "value": "New custom response plan"
+      "value": "新的自定义响应计划"
     }
   ],
   "irFBKn": [
     {
       "type": 0,
-      "value": "Last 7 days"
+      "value": "过去 7 天"
     }
   ],
   "it8L1Q": [
     {
       "type": 0,
-      "value": "Deleting incident response plan"
+      "value": "正在删除事件响应计划"
     }
   ],
   "itC9lG": [
@@ -5782,7 +7676,7 @@
   "iukUKz": [
     {
       "type": 0,
-      "value": "Available tools"
+      "value": "可用工具"
     }
   ],
   "iv1ryQ": [
@@ -5794,25 +7688,45 @@
   "ixb1SP": [
     {
       "type": 0,
-      "value": "Administer HDInsight clusters on AKS."
+      "value": "管理 AKS 上的 HDInsight 群集。"
     }
   ],
   "iyOYgd": [
     {
       "type": 0,
-      "value": "Loading scheduled tasks..."
+      "value": "正在加载计划任务..."
     }
   ],
   "iyTlSa": [
     {
       "type": 0,
-      "value": "Action summary"
+      "value": "操作摘要"
+    }
+  ],
+  "iydbuT": [
+    {
+      "type": 0,
+      "value": "e.g., P1 incident response"
+    }
+  ],
+  "izQgEq": [
+    {
+      "type": 0,
+      "value": "Creates a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "j2vvrh": [
     {
       "type": 0,
-      "value": "Found "
+      "value": "已找到 "
     },
     {
       "type": 1,
@@ -5820,31 +7734,37 @@
     },
     {
       "type": 0,
-      "value": " relevant memories from past experiences"
+      "value": " 条相关的历史体验记忆"
     }
   ],
   "j3bwJQ": [
     {
       "type": 0,
-      "value": "Drag and drop files here or"
+      "value": "拖放文件到此处或"
+    }
+  ],
+  "j59lXr": [
+    {
+      "type": 0,
+      "value": "No matching items yet. Complete the quick create form to add one."
     }
   ],
   "j5QthH": [
     {
       "type": 0,
-      "value": "Healthy core application groups"
+      "value": "正常核心应用程序组"
     }
   ],
   "j5Yfyr": [
     {
       "type": 0,
-      "value": "Search Index Data Reader"
+      "value": "搜索索引数据读者"
     }
   ],
   "jA2jt7": [
     {
       "type": 0,
-      "value": "Choose priority"
+      "value": "选择优先级"
     }
   ],
   "jHJmjf": [
@@ -5856,25 +7776,31 @@
   "jJE3xY": [
     {
       "type": 0,
-      "value": "Lets you manage the web plans for websites, but not access to them."
+      "value": "允许你管理网站的 Web 计划，但不允许你访问这些计划。"
     }
   ],
   "jK9a9x": [
     {
       "type": 0,
-      "value": "All actions"
+      "value": "所有操作"
+    }
+  ],
+  "jM/rXB": [
+    {
+      "type": 0,
+      "value": "Create and connect new items"
     }
   ],
   "jOkfJV": [
     {
       "type": 0,
-      "value": "Setup complete"
+      "value": "安装完成"
     }
   ],
   "jRtus7": [
     {
       "type": 0,
-      "value": "No root cause analysis categories found"
+      "value": "找不到根本原因分析类别"
     }
   ],
   "jTQZpk": [
@@ -5886,47 +7812,87 @@
   "jVHoU8": [
     {
       "type": 0,
-      "value": "Enter sub-agent name"
+      "value": "输入子智能体名称"
     }
   ],
   "jXIYLG": [
     {
       "type": 0,
-      "value": "You do not have permission to edit response plans."
+      "value": "你没有编辑响应计划的权限。"
     }
   ],
   "jabB4C": [
     {
       "type": 0,
-      "value": "Unread"
+      "value": "未读"
     }
   ],
   "jd2Xsp": [
     {
       "type": 0,
-      "value": "Low risk"
+      "value": "低风险"
     }
   ],
   "jfgCRQ": [
     {
       "type": 0,
-      "value": "Adding SRE Agent Administrator role to your agent "
+      "value": "正在将 SRE 智能体管理员角色添加到智能体 "
     },
     {
       "type": 1,
       "value": "name"
     }
   ],
+  "jjTzIr": [
+    {
+      "type": 0,
+      "value": "Database"
+    }
+  ],
   "jlOO/9": [
     {
       "type": 0,
-      "value": "Next execution"
+      "value": "下次执行时间"
+    }
+  ],
+  "ju7bLp": [
+    {
+      "type": 0,
+      "value": "No connectors available"
+    }
+  ],
+  "jv8SuZ": [
+    {
+      "type": 0,
+      "value": "Start time (optional)"
     }
   ],
   "jvo0vs": [
     {
       "type": 0,
       "value": "保存"
+    }
+  ],
+  "jxYyO2": [
+    {
+      "type": 0,
+      "value": "YAML must include {collectionName} with at least one entry."
+    }
+  ],
+  "k0VNHX": [
+    {
+      "type": 1,
+      "value": "milliseconds"
+    },
+    {
+      "type": 0,
+      "value": "ms"
+    }
+  ],
+  "k5T5VE": [
+    {
+      "type": 0,
+      "value": "Select a starting agent"
     }
   ],
   "k8ZNgH": [
@@ -5938,7 +7904,19 @@
   "kHIJzq": [
     {
       "type": 0,
-      "value": "Subscription equals"
+      "value": "订阅等于"
+    }
+  ],
+  "kQSvkP": [
+    {
+      "type": 0,
+      "value": "Connector type"
+    }
+  ],
+  "kWBrry": [
+    {
+      "type": 0,
+      "value": "Starting agent"
     }
   ],
   "kWs94j": [
@@ -5947,56 +7925,82 @@
       "value": "正在预配 Grafana 仪表板。"
     }
   ],
+  "kX8T8H": [
+    {
+      "type": 0,
+      "value": "Name of the dictionary this parameter contributes to"
+    }
+  ],
   "kbDtEK": [
     {
       "type": 0,
-      "value": "Some documents failed to delete: "
+      "value": "部分文档未能删除: "
     },
     {
       "type": 1,
       "value": "failedFiles"
     }
   ],
+  "khOzXi": [
+    {
+      "type": 0,
+      "value": "Custom schedule"
+    }
+  ],
   "kn+J82": [
     {
       "type": 0,
-      "value": "Correlation Analysis"
+      "value": "关联分析"
     }
   ],
   "ko0rr4": [
     {
       "type": 0,
-      "value": "Update the data connector configuration."
+      "value": "更新数据连接器配置。"
     }
   ],
   "koWZK8": [
     {
       "type": 0,
-      "value": "Add custom response guidance (optional)"
+      "value": "添加自定义响应指导(可选)"
+    }
+  ],
+  "kq7D3O": [
+    {
+      "type": 1,
+      "value": "sourceAgentName"
+    },
+    {
+      "type": 0,
+      "value": " —uses→ "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
     }
   ],
   "kqurtu": [
+    {
+      "type": 0,
+      "value": "已选择 "
+    },
     {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " document"
+      "value": " 个文档"
     },
     {
       "type": 1,
       "value": "plural"
-    },
-    {
-      "type": 0,
-      "value": " selected"
     }
   ],
   "krH81A": [
     {
       "type": 0,
-      "value": "Failed to add SRE Agent Administrator role to your agent "
+      "value": "未能将 SRE 智能体管理员角色添加到智能体 "
     },
     {
       "type": 1,
@@ -6004,23 +8008,29 @@
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": "。错误: "
     },
     {
       "type": 1,
       "value": "error"
     }
   ],
+  "ks97gc": [
+    {
+      "type": 0,
+      "value": "Use an existing trigger configuration"
+    }
+  ],
   "ku+mDU": [
     {
       "type": 0,
-      "value": "State"
+      "value": "状态"
     }
   ],
   "l0TtPi": [
     {
       "type": 0,
-      "value": "Choose a maximum of "
+      "value": "最多选择你对其具有权限的 "
     },
     {
       "type": 1,
@@ -6028,7 +8038,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups you have permissions on. "
+      "value": " 个资源组。已选择 "
     },
     {
       "type": 1,
@@ -6036,19 +8046,19 @@
     },
     {
       "type": 0,
-      "value": " resource group selected."
+      "value": " 个资源组。"
     }
   ],
   "l5sNim": [
     {
       "type": 0,
-      "value": "AzureML Data Scientist"
+      "value": "AzureML 数据科学家"
     }
   ],
   "lDMkTI": [
     {
       "type": 0,
-      "value": "Failed to delete incident with error: "
+      "value": "未能删除事件，出现错误: "
     },
     {
       "type": 1,
@@ -6058,37 +8068,37 @@
   "lKv8ex": [
     {
       "type": 0,
-      "value": "Default"
+      "value": "默认"
     }
   ],
   "lM2HXD": [
     {
       "type": 0,
-      "value": "No prompt provided."
+      "value": "未提供提示。"
     }
   ],
   "lP5P2a": [
     {
       "type": 0,
-      "value": "Affected resources"
+      "value": "受影响的资源"
     }
   ],
   "lawXja": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the custom response plan?"
+      "value": "是否确实要删除自定义响应计划?"
     }
   ],
   "lcOT8X": [
     {
       "type": 0,
-      "value": "Next runs (local time):"
+      "value": "下次运行时间(本地时间):"
     }
   ],
   "ldy3CI": [
     {
       "type": 0,
-      "value": "You are missing the required permission \""
+      "value": "你缺少此智能体所需的权限“"
     },
     {
       "type": 1,
@@ -6096,7 +8106,7 @@
     },
     {
       "type": 0,
-      "value": "\" for this agent."
+      "value": "”。"
     }
   ],
   "levHvg": [
@@ -6120,43 +8130,55 @@
   "lqgE72": [
     {
       "type": 0,
-      "value": "Connecting to Azure Monitor ..."
+      "value": "正在连接到 Azure Monitor..."
+    }
+  ],
+  "ltBXTD": [
+    {
+      "type": 0,
+      "value": "Search agents, tools, or connectors"
     }
   ],
   "lvNWLS": [
     {
       "type": 0,
-      "value": "IoT Hub Registry Contributor"
+      "value": "IoT 中心注册表参与者"
+    }
+  ],
+  "m+cdhC": [
+    {
+      "type": 0,
+      "value": "Recently used"
     }
   ],
   "m0kcbz": [
     {
       "type": 0,
-      "value": "Generate custom response plan"
+      "value": "生成自定义响应计划"
     }
   ],
   "m57OnF": [
     {
       "type": 0,
-      "value": "Choose incident type"
+      "value": "选择事件类型"
     }
   ],
   "m6Ctmt": [
     {
       "type": 0,
-      "value": "Add a default incident response plan for the agent to use for P1 base incidents."
+      "value": "为智能体添加用于 P1 基础事件的默认事件响应计划。"
     }
   ],
   "mAyw3x": [
     {
       "type": 0,
-      "value": "Edit QnA Maker knowledge bases."
+      "value": "编辑 QnA Maker 知识库。"
     }
   ],
   "mChei1": [
     {
       "type": 0,
-      "value": "Detailed multi-line instructions. Provide: goal, context/resources, constraints, success criteria."
+      "value": "多行详细指令。请提供: 目标、上下文/资源、约束、成功标准。"
     }
   ],
   "mGh+K0": [
@@ -6165,58 +8187,156 @@
       "value": "Owning team ID is required when adding a default response plan."
     }
   ],
+  "mJXXeS": [
+    {
+      "type": 0,
+      "value": "No tools connected yet."
+    }
+  ],
   "mN2MCk": [
     {
       "type": 0,
-      "value": "Failed to delete task"
+      "value": "未能删除任务"
     }
   ],
   "mOFG3K": [
     {
       "type": 0,
-      "value": "Start"
+      "value": "启动"
+    }
+  ],
+  "mRJIzw": [
+    {
+      "type": 0,
+      "value": "Results ("
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "row"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "rows"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ")"
+    }
+  ],
+  "mRL9Vh": [
+    {
+      "type": 0,
+      "value": "Creating..."
+    }
+  ],
+  "mSoczp": [
+    {
+      "type": 0,
+      "value": "YAML spec must include a name for the "
+    },
+    {
+      "type": 1,
+      "value": "entityLabel"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "mV7WX3": [
     {
       "type": 0,
-      "value": "Incident response plans"
+      "value": "事件响应计划"
+    }
+  ],
+  "mVkTZZ": [
+    {
+      "type": 0,
+      "value": "Plugin"
     }
   ],
   "mZ0R9v": [
     {
       "type": 0,
-      "value": "Run test"
+      "value": "运行测试"
+    }
+  ],
+  "mZ3wu9": [
+    {
+      "type": 0,
+      "value": "Tool type"
     }
   ],
   "makWrV": [
     {
       "type": 0,
-      "value": "Incidents mitigated by user"
+      "value": "事件已由用户缓解"
+    }
+  ],
+  "mbtoHb": [
+    {
+      "type": 0,
+      "value": "How should this trigger be set up?"
     }
   ],
   "mgYBYo": [
     {
       "type": 0,
-      "value": "Last 90 days"
+      "value": "过去 90 天"
+    }
+  ],
+  "mgZVf8": [
+    {
+      "type": 0,
+      "value": "No tools configured."
     }
   ],
   "mkhNnB": [
     {
       "type": 0,
-      "value": "Read and write Azure Monitor monitoring settings and data."
+      "value": "读取和写入 Azure Monitor 监视设置和数据。"
     }
   ],
   "mky0K0": [
     {
       "type": 0,
-      "value": "Incident response plan"
+      "value": "事件响应计划"
     }
   ],
   "mq/sud": [
     {
       "type": 0,
       "value": "本地身份验证"
+    }
+  ],
+  "mrOnjM": [
+    {
+      "type": 0,
+      "value": "Mode"
     }
   ],
   "mtr3R4": [
@@ -6228,7 +8348,7 @@
   "muUj+F": [
     {
       "type": 0,
-      "value": "Incident description"
+      "value": "事件说明"
     }
   ],
   "mzRg+7": [
@@ -6240,47 +8360,65 @@
   "n0JssX": [
     {
       "type": 0,
-      "value": "This will permanently delete the connection to ServiceNow. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
+      "value": "此操作将永久删除与 ServiceNow 的连接。该智能体将无法再管理票证。是否确实要断开连接?"
+    }
+  ],
+  "n2h/5e": [
+    {
+      "type": 0,
+      "value": "Dictionary value type"
     }
   ],
   "n5QvJy": [
     {
       "type": 0,
-      "value": "Start date"
+      "value": "开始日期"
+    }
+  ],
+  "n7yYXG": [
+    {
+      "type": 0,
+      "value": "Service"
     }
   ],
   "nBPow3": [
     {
       "type": 0,
-      "value": "Lets you manage all resources in the cluster."
+      "value": "允许你管理群集中的所有资源。"
     }
   ],
   "nCbZ6p": [
     {
       "type": 0,
-      "value": "Failed to assign roles to managed resource groups with error: "
+      "value": "未能将角色分配给托管资源组，出现错误: "
     },
     {
       "type": 1,
       "value": "error"
     }
   ],
+  "nCowEs": [
+    {
+      "type": 0,
+      "value": "All agents"
+    }
+  ],
   "nDyaq/": [
     {
       "type": 0,
-      "value": "Running"
+      "value": "正在运行"
     }
   ],
   "nFOo9o": [
     {
       "type": 0,
-      "value": "Review + edit"
+      "value": "审阅 + 编辑"
     }
   ],
   "nNwFuy": [
     {
       "type": 0,
-      "value": "Failed to add the custom incident response plan. Error: "
+      "value": "未能添加自定义事件响应计划。错误: "
     },
     {
       "type": 1,
@@ -6290,19 +8428,49 @@
   "nOrKIK": [
     {
       "type": 0,
-      "value": "Preview - Receives updates twice a week"
+      "value": "预览 - 每周接收两次更新"
     }
   ],
   "nQpONp": [
     {
       "type": 0,
-      "value": "Primary resource type"
+      "value": "主要资源类型"
     }
   ],
   "nRkusX": [
     {
       "type": 0,
-      "value": "Cron expression is required"
+      "value": "需要 Cron 表达式"
+    }
+  ],
+  "nUT0Lv": [
+    {
+      "type": 0,
+      "value": "Tools"
+    }
+  ],
+  "nWJtZd": [
+    {
+      "type": 0,
+      "value": "Connector details · "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "nh3LaL": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Finish the setup in Incident management."
     }
   ],
   "nmpevl": [
@@ -6314,25 +8482,25 @@
   "noZdV2": [
     {
       "type": 0,
-      "value": "Deleting..."
+      "value": "正在删除..."
     }
   ],
   "npvxpr": [
     {
       "type": 0,
-      "value": "Turn on"
+      "value": "启用"
     }
   ],
   "nrAnZy": [
     {
       "type": 0,
-      "value": "Full access to Azure Service Bus data."
+      "value": "对 Azure 服务总线数据的完全访问权限。"
     }
   ],
   "ns7TyW": [
     {
       "type": 0,
-      "value": "Thread was deleted successfully"
+      "value": "已成功删除线程"
     }
   ],
   "nso3Mj": [
@@ -6341,34 +8509,58 @@
       "value": "范围"
     }
   ],
+  "nxmZHP": [
+    {
+      "type": 0,
+      "value": "Configuration saved successfully."
+    }
+  ],
   "nxvTtg": [
     {
       "type": 0,
-      "value": "Failed to link repository"
+      "value": "未能链接存储库"
+    }
+  ],
+  "nySNrf": [
+    {
+      "type": 0,
+      "value": "A unique identifier for your tool"
+    }
+  ],
+  "o0pkiK": [
+    {
+      "type": 0,
+      "value": "Describe what this agent does and how it should behave..."
+    }
+  ],
+  "o1g3JC": [
+    {
+      "type": 0,
+      "value": "No tools linked yet. Add tools so this agent can take action."
     }
   ],
   "o7TUwc": [
     {
       "type": 0,
-      "value": "Connect to ICM so that the Agent can automatically listen and respond to your Incidents."
+      "value": "连接到 ICM，以便智能体可以自动侦听和响应事件。"
     }
   ],
   "o9bCTX": [
     {
       "type": 0,
-      "value": "Last execution"
+      "value": "上次执行时间"
     }
   ],
   "oBv1Sy": [
     {
       "type": 0,
-      "value": "Relevant Documents"
+      "value": "相关文档"
     }
   ],
   "oDI/Rp": [
     {
       "type": 0,
-      "value": "and "
+      "value": "还有 "
     },
     {
       "type": 1,
@@ -6376,37 +8568,55 @@
     },
     {
       "type": 0,
-      "value": " more"
+      "value": " 个"
+    }
+  ],
+  "oDVFQr": [
+    {
+      "type": 0,
+      "value": "Ignore (use static value)"
     }
   ],
   "oDb8Xv": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete this scheduled task? This action cannot be undone."
+      "value": "确定要删除此计划任务吗?此操作无法撤消。"
     }
   ],
   "oH9YKC": [
     {
       "type": 0,
-      "value": "To help monitor and respond to activities and incidents in your Azure resources, the agent needs access to the specific subscriptions, resources groups, and services that you allow."
+      "value": "为了帮助监视和响应 Azure 资源中的活动和事件，智能体需要访问你允许的特定订阅、资源组和服务。"
+    }
+  ],
+  "oKJ0fm": [
+    {
+      "type": 0,
+      "value": "Nothing to preview yet."
+    }
+  ],
+  "oM0lfe": [
+    {
+      "type": 0,
+      "value": "Select a node to see its details."
     }
   ],
   "oQ/TUW": [
     {
       "type": 0,
-      "value": "Cost Management Contributor"
+      "value": "成本管理参与者"
     }
   ],
   "oTNrPz": [
     {
       "type": 0,
-      "value": "Allowlist below Managed Identity on your ICM Service Team."
+      "value": "ICM 服务团队中托管标识下方的允许列表。"
     }
   ],
   "oTzitk": [
     {
       "type": 0,
-      "value": "Failed to pause task"
+      "value": "未能暂停任务"
     }
   ],
   "oUWADl": [
@@ -6424,13 +8634,13 @@
   "oXd3cw": [
     {
       "type": 0,
-      "value": "Max executions"
+      "value": "最大执行次数"
     }
   ],
   "oY4j0R": [
     {
       "type": 0,
-      "value": "Repository insights"
+      "value": "存储库见解"
     }
   ],
   "ob9EPi": [
@@ -6442,13 +8652,13 @@
   "obRqDQ": [
     {
       "type": 0,
-      "value": "To change the incident platform, you need to disconnect from Azure Monitor. The agent will no longer receive Azure Monitor notifications. Are you sure you want to disconnect?"
+      "value": "要更改事件平台，需要与 Azure Monitor 断开连接。智能体将不再接收 Azure Monitor 通知。是否确实要断开连接?"
     }
   ],
   "ocQXDt": [
     {
       "type": 0,
-      "value": "Failed to delete thread with error: "
+      "value": "未能删除线程，出现错误: "
     },
     {
       "type": 1,
@@ -6458,67 +8668,67 @@
   "omHElC": [
     {
       "type": 0,
-      "value": "Provide response feedback"
+      "value": "提供响应反馈"
     }
   ],
   "ongAz6": [
     {
       "type": 0,
-      "value": "Search incidents"
+      "value": "搜索事件"
     }
   ],
   "ovJ26C": [
     {
       "type": 0,
-      "value": "Medium"
+      "value": "中等"
     }
   ],
   "ox7DwN": [
     {
       "type": 0,
-      "value": "High risk"
+      "value": "高风险"
     }
   ],
   "p/xAmY": [
     {
       "type": 0,
-      "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
+      "value": "你的智能体处于审阅模式。智能体需要以下权限才能生成有关资源的知识。根据你的请求，智能体将在经过你的批准后使用其中一些权限执行写入操作。"
     }
   ],
   "p21QSW": [
     {
       "type": 0,
-      "value": "Deploy incident response plan"
+      "value": "部署事件响应计划"
     }
   ],
   "p4mBmL": [
     {
       "type": 0,
-      "value": "Created by"
+      "value": "创建者"
     }
   ],
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "已复制"
     }
   ],
   "p5LNtB": [
     {
       "type": 0,
-      "value": "Not set"
+      "value": "未设置"
     }
   ],
   "p5T+zv": [
     {
       "type": 0,
-      "value": "Manage without access. Can't manage security policies or parent SQL servers."
+      "value": "无需访问即可进行管理。无法管理安全策略或父 SQL 服务器。"
     }
   ],
   "pAFuFx": [
     {
       "type": 0,
-      "value": "HDInsight on AKS Cluster Pool Admin"
+      "value": "AKS 群集池上的 HDInsight 管理员"
     }
   ],
   "pAdN7z": [
@@ -6536,37 +8746,51 @@
   "pDUFq5": [
     {
       "type": 0,
-      "value": "App Configuration Reader"
+      "value": "应用配置读者"
     }
   ],
   "pFm27r": [
     {
       "type": 0,
-      "value": "Current status"
+      "value": "当前状态"
     }
   ],
   "pG9xP9": [
     {
       "type": 0,
-      "value": "A data connector with this name already exists"
+      "value": "具有此名称的自定义连接器已存在"
     }
   ],
   "pRvgsc": [
     {
       "type": 0,
-      "value": "Password is required."
+      "value": "密码是必需的。"
     }
   ],
   "pSGxDG": [
     {
       "type": 0,
-      "value": "Agent permissions will be used to complete this action."
+      "value": "智能体权限将用于完成此操作。"
+    }
+  ],
+  "pSeneB": [
+    {
+      "type": 0,
+      "value": "Each "
+    },
+    {
+      "type": 1,
+      "value": "entityLabel"
+    },
+    {
+      "type": 0,
+      "value": " must include a type."
     }
   ],
   "pSfQh6": [
     {
       "type": 0,
-      "value": "Grants read access to Azure Cognitive Search index data."
+      "value": "授予对 Azure 认知搜索索引数据的读取访问权限。"
     }
   ],
   "pT3qMe": [
@@ -6581,16 +8805,36 @@
       "value": "0 0 * * *"
     }
   ],
+  "pbpjik": [
+    {
+      "type": 0,
+      "value": "When you finish creating this agent, we'll automatically add it as a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "pe7UAe": [
     {
       "type": 0,
-      "value": "Dismiss notification"
+      "value": "关闭通知"
+    }
+  ],
+  "peOEU7": [
+    {
+      "type": 0,
+      "value": "No connectors linked."
     }
   ],
   "pf5nil": [
     {
       "type": 0,
-      "value": "Core application group"
+      "value": "核心应用程序组"
     }
   ],
   "piCpTn": [
@@ -6602,7 +8846,7 @@
   "pnlHOZ": [
     {
       "type": 0,
-      "value": "Deleting incident '"
+      "value": "正在删除事件“"
     },
     {
       "type": 1,
@@ -6610,19 +8854,25 @@
     },
     {
       "type": 0,
-      "value": "'"
+      "value": "”"
     }
   ],
   "ppARxn": [
     {
       "type": 0,
-      "value": "Updating upgrade channel"
+      "value": "正在更新升级通道"
+    }
+  ],
+  "ppzeDo": [
+    {
+      "type": 0,
+      "value": "Link Tool"
     }
   ],
   "pqgzm0": [
     {
       "type": 0,
-      "value": "Manage Application Insights components."
+      "value": "管理 Application Insights 组件。"
     }
   ],
   "pr9fPP": [
@@ -6634,13 +8884,13 @@
   "psUT6S": [
     {
       "type": 0,
-      "value": "Maximum number of times this task should run"
+      "value": "此任务应运行的最大次数"
     }
   ],
   "pyXjlj": [
     {
       "type": 0,
-      "value": "Not scheduled"
+      "value": "未安排"
     }
   ],
   "q/uwLT": [
@@ -6658,25 +8908,25 @@
   "q4EmsW": [
     {
       "type": 0,
-      "value": "Total:"
+      "value": "总计:"
     }
   ],
   "qczspd": [
     {
       "type": 0,
-      "value": "View plan"
+      "value": "查看计划"
     }
   ],
   "qdAlfY": [
     {
       "type": 0,
-      "value": "Copy request"
+      "value": "复制请求"
     }
   ],
   "qddSy6": [
     {
       "type": 0,
-      "value": "Error details"
+      "value": "错误详细信息"
     }
   ],
   "qeUtXk": [
@@ -6688,13 +8938,25 @@
   "qhApmK": [
     {
       "type": 0,
-      "value": "Click here to learn more about SRE Agent RBAC"
+      "value": "单击此处详细了解 SRE 智能体 RBAC"
+    }
+  ],
+  "qiY3L8": [
+    {
+      "type": 0,
+      "value": "Connector Name"
     }
   ],
   "qj1uhz": [
     {
       "type": 0,
       "value": "断开连接"
+    }
+  ],
+  "qj71j1": [
+    {
+      "type": 0,
+      "value": "Query"
     }
   ],
   "qlcuNQ": [
@@ -6706,31 +8968,43 @@
   "qqolQu": [
     {
       "type": 0,
-      "value": "Backend Endpoint"
+      "value": "后端终结点"
+    }
+  ],
+  "qvviEg": [
+    {
+      "type": 0,
+      "value": "Add handoff to existing agent"
     }
   ],
   "qyJtWy": [
     {
       "type": 0,
-      "value": "Show less"
+      "value": "显示更少"
     }
   ],
   "qyTQAA": [
     {
       "type": 0,
-      "value": "The custom incident response plan was successfully deleted"
+      "value": "已成功删除自定义事件响应计划"
     }
   ],
   "r2x5ZI": [
     {
       "type": 0,
-      "value": "This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
+      "value": "此操作将永久删除与 PagerDuty 的连接。该智能体将无法再管理票证。是否确实要断开连接?"
+    }
+  ],
+  "r8XsCU": [
+    {
+      "type": 0,
+      "value": "Connector"
     }
   ],
   "rBPlLc": [
     {
       "type": 0,
-      "value": "resources available in this period"
+      "value": "在此期间可用的资源"
     }
   ],
   "rELDbB": [
@@ -6745,34 +9019,62 @@
       "value": "活动会话"
     }
   ],
+  "rG1sas": [
+    {
+      "type": 0,
+      "value": "Attaches to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "rI2aPZ": [
     {
       "type": 0,
-      "value": "Similar Symptom Incidents"
+      "value": "类似症状事件"
+    }
+  ],
+  "rKdPkY": [
+    {
+      "type": 0,
+      "value": "Select a "
+    },
+    {
+      "type": 1,
+      "value": "entityLabel"
+    },
+    {
+      "type": 0,
+      "value": " to edit its configuration YAML."
     }
   ],
   "rKq4sw": [
     {
       "type": 0,
-      "value": "Choose severity"
+      "value": "选择严重级别"
     }
   ],
   "rM7Pbj": [
     {
       "type": 0,
-      "value": "Pending user action"
+      "value": "挂起的用户操作"
     }
   ],
   "rNvlCF": [
     {
       "type": 0,
-      "value": "Date range:"
+      "value": "日期范围:"
     }
   ],
   "rQAyD6": [
     {
       "type": 0,
-      "value": "This chart shows the relationship between "
+      "value": "此图表显示了 "
     },
     {
       "type": 1,
@@ -6780,7 +9082,7 @@
     },
     {
       "type": 0,
-      "value": " and "
+      "value": " 与 "
     },
     {
       "type": 1,
@@ -6788,61 +9090,77 @@
     },
     {
       "type": 0,
-      "value": " over time. The correlation values indicate how strongly these two metrics influence each other."
+      "value": " 随时间的关系。关联值表示这两个指标相互影响的强度。"
     }
   ],
   "rVtn/e": [
     {
       "type": 0,
-      "value": "Deleting report"
+      "value": "正在删除报告"
+    }
+  ],
+  "rXQSJp": [
+    {
+      "type": 0,
+      "value": "Query test failed: "
+    },
+    {
+      "type": 1,
+      "value": "message"
     }
   ],
   "rXYf9o": [
     {
       "type": 0,
-      "value": "Deleting Files"
+      "value": "正在删除文件"
     }
   ],
   "rZaqtB": [
     {
       "type": 0,
-      "value": "API Management Service Contributor"
+      "value": "API 管理服务参与者"
     }
   ],
   "rbrahO": [
     {
       "type": 0,
-      "value": "Close"
+      "value": "关闭"
     }
   ],
   "rd6YZk": [
     {
       "type": 0,
-      "value": "Agent can propose actions but requires approval before execution"
+      "value": "智能体可以提出操作建议，但需要获得批准后才能执行"
+    }
+  ],
+  "rhSI1/": [
+    {
+      "type": 0,
+      "value": "Model"
     }
   ],
   "riEsC7": [
     {
       "type": 0,
-      "value": "Azure Monitor Workspace resource must be unique within the resource group."
+      "value": "Azure Monitor 工作区资源在资源组中必须是唯一的。"
     }
   ],
   "rjDAQw": [
     {
       "type": 0,
-      "value": "Agent can execute actions automatically without approval"
+      "value": "智能体可自动执行操作，无需批准"
     }
   ],
   "rja0QH": [
     {
       "type": 0,
-      "value": "Add incident filter"
+      "value": "添加事件筛选器"
     }
   ],
   "rjgOC5": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Editor"
+      "value": "认知服务 QnA Maker 编辑者"
     }
   ],
   "rk4tYE": [
@@ -6854,7 +9172,7 @@
   "rkqVE1": [
     {
       "type": 0,
-      "value": "Optimize how the agent investigates and responds to incidents by adding incident response plans and custom response plans to support a broad range of scenarios."
+      "value": "通过添加事件响应计划和自定义响应计划来优化智能体调查和响应事件的方式，以支持广泛的场景。"
     }
   ],
   "rpG/Bn": [
@@ -6872,7 +9190,13 @@
   "rrGMSx": [
     {
       "type": 0,
-      "value": "Set up"
+      "value": "设置"
+    }
+  ],
+  "rrN9ke": [
+    {
+      "type": 0,
+      "value": "tools"
     }
   ],
   "rvirM2": [
@@ -6884,47 +9208,53 @@
   "rwwXv0": [
     {
       "type": 0,
-      "value": "Test incident response"
+      "value": "测试事件响应"
     }
   ],
   "ryPHA8": [
     {
       "type": 0,
-      "value": "Assisted by agent"
+      "value": "由智能体协助"
     }
   ],
   "s5cLGN": [
     {
       "type": 0,
-      "value": "Root Cause: "
+      "value": "根本原因: "
     },
     {
       "type": 1,
       "value": "rootCause"
     }
   ],
+  "s6iZgz": [
+    {
+      "type": 0,
+      "value": "Description (Optional)"
+    }
+  ],
   "s7DlV0": [
     {
       "type": 0,
-      "value": "Agent endpoint"
+      "value": "智能体终结点"
     }
   ],
   "s8HBot": [
     {
       "type": 0,
-      "value": "Last hour"
+      "value": "过去 1 小时"
     }
   ],
   "s9ZhRf": [
     {
       "type": 0,
-      "value": "Connecting to IcM ..."
+      "value": "正在连接到 IcM..."
     }
   ],
   "sH0O5v": [
     {
       "type": 0,
-      "value": "Enter title keywords"
+      "value": "输入标题关键字"
     }
   ],
   "sI+CCC": [
@@ -6933,34 +9263,106 @@
       "value": "日志分析读取者"
     }
   ],
+  "sIMS7i": [
+    {
+      "type": 0,
+      "value": "Progress"
+    }
+  ],
+  "sNofwe": [
+    {
+      "type": 0,
+      "value": "No, keep default meta agent"
+    }
+  ],
   "sNutPl": [
     {
       "type": 0,
-      "value": "Timestamps"
+      "value": "时间戳"
     }
   ],
   "sQkhYk": [
     {
       "type": 0,
-      "value": "Accepted file types: .md, .txt"
+      "value": "接受的文件类型: .md、.txt"
     }
   ],
   "sRb5P9": [
     {
       "type": 0,
-      "value": "Manage cost analysis and budgets."
+      "value": "管理成本分析和预算。"
+    }
+  ],
+  "sTodCB": [
+    {
+      "type": 0,
+      "value": "Link this agent to its handoffs and tools so the relationships are ready when it goes live."
+    }
+  ],
+  "sUfX4j": [
+    {
+      "type": 0,
+      "value": "It may take a few seconds for new agents or tools to appear in the graph after they are created."
+    }
+  ],
+  "sV2v5L": [
+    {
+      "type": 0,
+      "value": "Instructions"
     }
   ],
   "sVDrdr": [
     {
       "type": 0,
-      "value": "Files deleted successfully"
+      "value": "已成功删除文件"
+    }
+  ],
+  "sVJ+oz": [
+    {
+      "type": 0,
+      "value": "Added handoff to "
+    },
+    {
+      "type": 1,
+      "value": "handoffName"
+    },
+    {
+      "type": 0,
+      "value": " for "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "sd1Vy+": [
     {
       "type": 0,
-      "value": "Reconnecting to the agent..."
+      "value": "正在重新连接到智能体..."
+    }
+  ],
+  "sdNNv5": [
+    {
+      "type": 0,
+      "value": "When an incident opens, have "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " investigate and summarize the latest state."
+    }
+  ],
+  "sdussP": [
+    {
+      "type": 0,
+      "value": "System Tools (Optional)"
     }
   ],
   "slxYbm": [
@@ -6976,7 +9378,7 @@
   "smNgqR": [
     {
       "type": 0,
-      "value": "Failed to update incident response plan"
+      "value": "未能更新事件响应计划"
     }
   ],
   "snEUKZ": [
@@ -6985,16 +9387,22 @@
       "value": "监控服务"
     }
   ],
+  "snui0/": [
+    {
+      "type": 0,
+      "value": "agent"
+    }
+  ],
   "srG8e2": [
     {
       "type": 0,
-      "value": "Thread info"
+      "value": "线程信息"
     }
   ],
   "ss/NWY": [
     {
       "type": 0,
-      "value": "SQL Server Contributor"
+      "value": "SQL Server 参与者"
     }
   ],
   "swRudj": [
@@ -7006,31 +9414,31 @@
   "swVMrk": [
     {
       "type": 0,
-      "value": "After the platform is connected, create incident response plans and custom response plans so that the agent can respond to incidents."
+      "value": "连接平台后，请创建事件响应计划和自定义响应计划，以便智能体可以响应事件。"
     }
   ],
   "sy7vzf": [
     {
       "type": 0,
-      "value": "Scheduled tasks"
+      "value": "计划任务"
     }
   ],
   "t/atZW": [
     {
       "type": 0,
-      "value": "You do not have permission to send a message to this agent."
+      "value": "你没有向此智能体发送消息的权限。"
     }
   ],
   "t071V3": [
     {
       "type": 0,
-      "value": "Info:"
+      "value": "信息:"
     }
   ],
   "t2u8dC": [
     {
       "type": 0,
-      "value": "Symptoms: "
+      "value": "症状: "
     },
     {
       "type": 1,
@@ -7040,43 +9448,61 @@
   "t323u5": [
     {
       "type": 0,
-      "value": "Expand all"
+      "value": "全部展开"
     }
   ],
   "t3D4PH": [
     {
       "type": 0,
-      "value": "Device Update Reader"
+      "value": "设备更新读者"
+    }
+  ],
+  "t3n6rd": [
+    {
+      "type": 0,
+      "value": "AI Suggestions"
     }
   ],
   "t3wAiN": [
     {
       "type": 0,
-      "value": "Creating default incident response plan"
+      "value": "正在创建默认事件响应计划"
+    }
+  ],
+  "t6/9PU": [
+    {
+      "type": 0,
+      "value": "Relationships (optional)"
     }
   ],
   "t9I1dY": [
     {
       "type": 0,
-      "value": "Healthcare Agent Editor"
+      "value": "医疗保健智能体编辑器"
     }
   ],
   "tCrMHt": [
     {
       "type": 0,
-      "value": "Failed to parse daily report:"
+      "value": "未能解析每日报告:"
     }
   ],
   "tFFMkF": [
     {
       "type": 0,
-      "value": "Pause"
+      "value": "暂停"
+    }
+  ],
+  "tGHG7q": [
+    {
+      "type": 0,
+      "value": "Back to Edit"
     }
   ],
   "tH6Myj": [
     {
       "type": 0,
-      "value": "Data connector \""
+      "value": "已成功创建数据连接器“"
     },
     {
       "type": 1,
@@ -7084,31 +9510,37 @@
     },
     {
       "type": 0,
-      "value": "\" has been created successfully"
+      "value": "”"
     }
   ],
   "tHCvDB": [
     {
       "type": 0,
-      "value": "Failed to disable incident response plan"
+      "value": "未能禁用事件响应计划"
     }
   ],
   "tLYOnZ": [
     {
       "type": 0,
-      "value": "Knowledge base"
+      "value": "知识库"
     }
   ],
   "tLaLqo": [
     {
       "type": 0,
-      "value": "Here is your deep investigation:"
+      "value": "以下是你的深入调查:"
     }
   ],
   "tOxzip": [
     {
       "type": 0,
-      "value": "Modified"
+      "value": "已修改"
+    }
+  ],
+  "tRaGqN": [
+    {
+      "type": 0,
+      "value": "Testing query…"
     }
   ],
   "tSKi9q": [
@@ -7120,25 +9552,57 @@
   "tShbyC": [
     {
       "type": 0,
-      "value": "Identity"
+      "value": "标识"
+    }
+  ],
+  "tU3A8E": [
+    {
+      "type": 0,
+      "value": "Your new "
+    },
+    {
+      "type": 1,
+      "value": "entityType"
+    },
+    {
+      "type": 0,
+      "value": " will be ready in a few seconds. Feel free to keep editing while we connect it."
     }
   ],
   "tWX1j9": [
     {
       "type": 0,
-      "value": "Add to favorites"
+      "value": "添加到收藏夹"
+    }
+  ],
+  "tb6uBb": [
+    {
+      "type": 1,
+      "value": "toolName"
+    },
+    {
+      "type": 0,
+      "value": " is already connected to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "tbPq1d": [
     {
       "type": 0,
-      "value": "All custom plans"
+      "value": "所有自定义计划"
     }
   ],
   "tbTzZV": [
     {
       "type": 0,
-      "value": "Failed to update the custom incident response plan. Error: "
+      "value": "未能更新自定义事件响应计划。错误: "
     },
     {
       "type": 1,
@@ -7148,7 +9612,7 @@
   "tfuXMw": [
     {
       "type": 0,
-      "value": "Sub-Agent \""
+      "value": "已成功创建子智能体“"
     },
     {
       "type": 1,
@@ -7156,13 +9620,19 @@
     },
     {
       "type": 0,
-      "value": "\" has been created successfully"
+      "value": "”"
+    }
+  ],
+  "tjE5Cb": [
+    {
+      "type": 0,
+      "value": "No handoffs configured."
     }
   ],
   "trPabo": [
     {
       "type": 0,
-      "value": "No scheduled tasks found"
+      "value": "找不到计划任务"
     }
   ],
   "tshYzs": [
@@ -7171,10 +9641,32 @@
       "value": "选择区域"
     }
   ],
+  "tthToS": [
+    {
+      "type": 0,
+      "value": "Disabled"
+    }
+  ],
+  "tujypD": [
+    {
+      "type": 0,
+      "value": "Agents-as-tools · "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    }
+  ],
+  "tvw8DP": [
+    {
+      "type": 0,
+      "value": "Select existing tools or create new ones later"
+    }
+  ],
   "tyJNW5": [
     {
       "type": 0,
-      "value": "IcM is connected."
+      "value": "IcM 已连接。"
     }
   ],
   "tzMNF3": [
@@ -7186,13 +9678,13 @@
   "u0xiAh": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Reader"
+      "value": "认知服务自定义视觉读取者"
     }
   ],
   "u4WKBH": [
     {
       "type": 0,
-      "value": "Grant permissions"
+      "value": "授予权限"
     }
   ],
   "u4hSyh": [
@@ -7204,7 +9696,7 @@
   "u5uL6R": [
     {
       "type": 0,
-      "value": "This will permanently delete the chat and all actions in this thread. Are you sure you want to delete?"
+      "value": "此操作将永久删除此会话中的聊天和所有操作。确定要删除吗?"
     }
   ],
   "u64mw7": [
@@ -7216,31 +9708,55 @@
   "uCkn4+": [
     {
       "type": 0,
-      "value": "All priorities"
+      "value": "所有优先级"
     }
   ],
   "uEYYty": [
     {
       "type": 0,
-      "value": "New incident response plan"
+      "value": "新的事件响应计划"
+    }
+  ],
+  "uFaAgq": [
+    {
+      "type": 0,
+      "value": "Connect relationships"
     }
   ],
   "uI0Lmu": [
     {
       "type": 0,
-      "value": "All autonomy levels"
+      "value": "所有自治级别"
+    }
+  ],
+  "uMNRNl": [
+    {
+      "type": 0,
+      "value": "Agents as tools"
     }
   ],
   "uRMqBi": [
     {
       "type": 0,
-      "value": "Read, write, and delete Azure Storage containers and blobs."
+      "value": "读取、写入和删除 Azure 存储容器和 Blob。"
     }
   ],
   "uRYFcI": [
     {
       "type": 0,
-      "value": "Execution Request"
+      "value": "执行请求"
+    }
+  ],
+  "ubULuu": [
+    {
+      "type": 0,
+      "value": "Clear description for agents to understand when to use this tool"
+    }
+  ],
+  "udi5I/": [
+    {
+      "type": 0,
+      "value": "Create incident response plans or scheduled tasks to trigger agents automatically."
     }
   ],
   "ug01Mk": [
@@ -7258,13 +9774,13 @@
   "uln7eT": [
     {
       "type": 0,
-      "value": "Zoom Out"
+      "value": "缩小"
     }
   ],
   "unxs9C": [
     {
       "type": 0,
-      "value": "Tools selected for incident response"
+      "value": "为事件响应选择的工具"
     }
   ],
   "uyO1AJ": [
@@ -7273,28 +9789,34 @@
       "value": "Sev2"
     }
   ],
+  "v/3x6O": [
+    {
+      "type": 0,
+      "value": "Improving instructions..."
+    }
+  ],
   "v0CXYP": [
     {
       "type": 0,
-      "value": "Enter a descriptive name for your task"
+      "value": "输入任务的描述性名称"
     }
   ],
   "v0fBOU": [
     {
       "type": 0,
-      "value": "Collapse all"
+      "value": "全部折叠"
     }
   ],
   "v8cTK0": [
     {
       "type": 0,
-      "value": "Scheduled task updated successfully"
+      "value": "已成功更新计划任务"
     }
   ],
   "v8lolG": [
     {
       "type": 0,
-      "value": "Start chat"
+      "value": "开始聊天"
     }
   ],
   "v9OQKq": [
@@ -7306,37 +9828,49 @@
   "vAWzLN": [
     {
       "type": 0,
-      "value": "Disconnect IcM?"
+      "value": "断开与 IcM 的连接?"
     }
   ],
   "vCAhII": [
     {
       "type": 0,
-      "value": "Severity"
+      "value": "严重性"
+    }
+  ],
+  "vCsh17": [
+    {
+      "type": 0,
+      "value": "Connect to data sources like Kusto for rich agent capabilities"
     }
   ],
   "vDbj1h": [
     {
       "type": 0,
-      "value": "Authorized by"
+      "value": "授权者"
     }
   ],
   "vEHhXK": [
     {
       "type": 0,
-      "value": "Scheduled task paused successfully"
+      "value": "已成功暂停计划任务"
     }
   ],
   "vPX3R3": [
     {
       "type": 0,
-      "value": "You do not have permission to turn response plans off."
+      "value": "你没有关闭响应计划的权限。"
     }
   ],
   "vR27zt": [
     {
       "type": 0,
-      "value": "Document Name"
+      "value": "文档名称"
+    }
+  ],
+  "vVpzJQ": [
+    {
+      "type": 0,
+      "value": "Suggested instructions"
     }
   ],
   "vXCeIi": [
@@ -7348,43 +9882,49 @@
   "vYmpTr": [
     {
       "type": 0,
-      "value": "Warning actions present"
+      "value": "存在警告操作"
     }
   ],
   "vao/Lv": [
     {
       "type": 0,
-      "value": "This guidance helps generate the tools list and the final prompt the agent uses during incident handling."
+      "value": "本指南有助于生成工具列表以及智能体在事件处理期间使用的最终提示。"
     }
   ],
   "vbdOl/": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under Language portal."
+      "value": "有权访问语言门户下的读取和测试函数。"
     }
   ],
   "vdazhF": [
     {
       "type": 0,
-      "value": "Error available"
+      "value": "有错误"
     }
   ],
   "vfndow": [
     {
       "type": 0,
-      "value": "Can read Azure Cosmos DB account data."
+      "value": "可读取 Azure Cosmos DB 帐户数据。"
     }
   ],
   "vfrUDN": [
     {
       "type": 0,
-      "value": "AI-generated"
+      "value": "AI 生成的"
+    }
+  ],
+  "vlv+Ch": [
+    {
+      "type": 0,
+      "value": "Scheduled trigger"
     }
   ],
   "vs8s5B": [
     {
       "type": 0,
-      "value": "Enabling incident response plan"
+      "value": "正在启用事件响应计划"
     }
   ],
   "w+XRP2": [
@@ -7399,16 +9939,44 @@
       "value": "这将永久删除与 Azure Monitor 的连接。该代理将不再与 Azure Monitor 通知集成。是否确定要删除此连接?"
     }
   ],
+  "w2QcbZ": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " and linked it as a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgentName"
+    },
+    {
+      "type": 0,
+      "value": ". Finish the setup in Incident management."
+    }
+  ],
+  "w6nz4p": [
+    {
+      "type": 0,
+      "value": "Open incident triggers"
+    }
+  ],
   "w9tk1A": [
     {
       "type": 0,
-      "value": "Unknown agent mode"
+      "value": "未知智能体模式"
     }
   ],
   "wEQDC6": [
     {
       "type": 0,
-      "value": "Edit"
+      "value": "编辑"
     }
   ],
   "wElgyk": [
@@ -7426,11 +9994,31 @@
   "wNIiXX": [
     {
       "type": 0,
-      "value": "The data source must be in the format: "
+      "value": "数据源格式必须为: "
     },
     {
       "type": 1,
       "value": "format"
+    }
+  ],
+  "wOHH3J": [
+    {
+      "type": 0,
+      "value": "Describe what "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " should do each time it runs."
+    }
+  ],
+  "wQdhYo": [
+    {
+      "type": 0,
+      "value": "Create a new handoff agent"
     }
   ],
   "wSZR47": [
@@ -7442,97 +10030,121 @@
   "wVpXzO": [
     {
       "type": 0,
-      "value": "Failed to update the agent mode."
+      "value": "未能更新智能体模式。"
     }
   ],
   "wXKSRT": [
     {
       "type": 0,
-      "value": "The action is in progress with agent permissions."
+      "value": "正在使用智能体权限执行此操作。"
+    }
+  ],
+  "wb/AUH": [
+    {
+      "type": 0,
+      "value": "Next run times"
     }
   ],
   "wbigtI": [
     {
       "type": 0,
-      "value": "Administer SAP workloads on Azure."
+      "value": "在 Azure 上管理 SAP 工作负载。"
     }
   ],
   "we4Lby": [
     {
       "type": 0,
-      "value": "Info"
+      "value": "信息"
     }
   ],
   "wezZny": [
     {
       "type": 0,
-      "value": "Add custom incident response plan"
+      "value": "添加自定义事件响应计划"
     }
   ],
   "wkLkeE": [
     {
       "type": 0,
-      "value": "Total resources"
+      "value": "资源总数"
     }
   ],
   "wru3Di": [
     {
       "type": 0,
-      "value": "Authorize repository access"
+      "value": "授权存储库访问"
     }
   ],
   "wuk3yS": [
     {
       "type": 0,
-      "value": "Output and error available"
+      "value": "有输出和错误"
     }
   ],
   "wwNLHo": [
     {
       "type": 0,
-      "value": "Upload Files"
+      "value": "上传文件"
     }
   ],
   "wxlJSs": [
     {
       "type": 0,
-      "value": "Manage Cognitive Services accounts."
+      "value": "管理认知服务帐户。"
+    }
+  ],
+  "x/7RC2": [
+    {
+      "type": 0,
+      "value": "Checking trigger setup…"
     }
   ],
   "x3aQrV": [
     {
       "type": 0,
-      "value": "An on-behalf-of token will be used with the following scope"
+      "value": "代理令牌将用于以下范围"
+    }
+  ],
+  "x3qvaC": [
+    {
+      "type": 0,
+      "value": "No runs yet"
     }
   ],
   "x7C8JZ": [
     {
       "type": 0,
-      "value": "No relevant memories found for this query"
+      "value": "找不到此查询相关的记忆"
     }
   ],
   "xDYr9m": [
     {
       "type": 0,
-      "value": "incidents reported"
+      "value": "已报告的事件"
     }
   ],
   "xGPsyJ": [
     {
       "type": 0,
-      "value": "HDInsight Cluster Operator"
+      "value": "HDInsight 群集操作员"
     }
   ],
   "xK7rmd": [
     {
       "type": 0,
-      "value": "Insights"
+      "value": "见解"
+    }
+  ],
+  "xNC5hG": [
+    {
+      "type": 0,
+      "value": "Dictionary (group into args)"
     }
   ],
   "xSsto+": [
     {
       "type": 0,
-      "value": "Quickstart response plan"
+      "value": "快速入门响应计划"
     }
   ],
   "xUgb9H": [
@@ -7552,7 +10164,7 @@
   "xUuESs": [
     {
       "type": 0,
-      "value": "Add identity"
+      "value": "添加标识"
     }
   ],
   "xVPoso": [
@@ -7564,13 +10176,13 @@
   "xVnsKO": [
     {
       "type": 0,
-      "value": "You do not have permission to turn response plans on."
+      "value": "你没有启用响应计划的权限。"
     }
   ],
   "xXhn+h": [
     {
       "type": 0,
-      "value": "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data."
+      "value": "允许你管理存储帐户，包括访问存储帐户密钥(它们提供对存储帐户数据的完全访问权限)。"
     }
   ],
   "xbKhzp": [
@@ -7598,19 +10210,19 @@
   "xdMkcg": [
     {
       "type": 0,
-      "value": "Can read all monitoring data."
+      "value": "允许读取所有监视数据。"
     }
   ],
   "xePyxp": [
     {
       "type": 0,
-      "value": "Insufficient data points for chart"
+      "value": "图表数据点不足"
     }
   ],
   "xgNcC+": [
     {
       "type": 0,
-      "value": "Failed to create data connector with error: "
+      "value": "未能创建数据连接器，出现错误: "
     },
     {
       "type": 1,
@@ -7626,13 +10238,13 @@
   "xmsrBu": [
     {
       "type": 0,
-      "value": "Operate API Management services."
+      "value": "操作 Azure API 管理服务。"
     }
   ],
   "xqwf/7": [
     {
       "type": 0,
-      "value": "IoT Hub Data Contributor"
+      "value": "IoT 中心数据参与者"
     }
   ],
   "xrKHS6": [
@@ -7644,49 +10256,77 @@
   "xrnaaX": [
     {
       "type": 0,
-      "value": "Failed to create incident response plan"
+      "value": "未能创建事件响应计划"
     }
   ],
   "xtkizV": [
     {
       "type": 0,
-      "value": "Website Contributor"
+      "value": "网站参与者"
     }
   ],
   "xxoHVE": [
     {
       "type": 0,
-      "value": "Agent prompt is required"
+      "value": "需要智能体提示"
+    }
+  ],
+  "xy47sz": [
+    {
+      "type": 0,
+      "value": "Unable to parse YAML: "
+    },
+    {
+      "type": 1,
+      "value": "message"
     }
   ],
   "y+SPRf": [
     {
       "type": 0,
-      "value": "Deleting custom incident response plan"
+      "value": "正在删除自定义事件响应计划"
+    }
+  ],
+  "y5oInX": [
+    {
+      "type": 0,
+      "value": "Incident priority"
     }
   ],
   "yDh8i7": [
     {
       "type": 0,
-      "value": "These previous incidents match the selected incident type. The agent can learn from a maximum of 5 incidents."
+      "value": "这些历史事件与所选事件类型匹配。智能体最多可从 5 个事件中学习。"
+    }
+  ],
+  "yFU6JN": [
+    {
+      "type": 0,
+      "value": "Chat input"
     }
   ],
   "yJSwfQ": [
     {
       "type": 0,
-      "value": "Create Sub-Agent"
+      "value": "创建子智能体"
+    }
+  ],
+  "yLRKP5": [
+    {
+      "type": 0,
+      "value": "Handoff description"
     }
   ],
   "yNCGjc": [
     {
       "type": 0,
-      "value": "Incident was deleted successfully"
+      "value": "事件已成功删除"
     }
   ],
   "yVc78v": [
     {
       "type": 0,
-      "value": "This operation is being executed using the agent identity credentials."
+      "value": "正在使用智能体标识凭据执行此操作。"
     }
   ],
   "yYK6LR": [
@@ -7698,31 +10338,31 @@
   "ybIDiK": [
     {
       "type": 0,
-      "value": "Manage tools"
+      "value": "管理工具"
     }
   ],
   "yc/tuy": [
     {
       "type": 0,
-      "value": "End time"
+      "value": "结束时间"
     }
   ],
   "yd187T": [
     {
       "type": 0,
-      "value": "Failed to create data connector"
+      "value": "未能创建数据连接器"
     }
   ],
   "yeJPGA": [
     {
       "type": 0,
-      "value": "Failed to check agent memory status, falling back to disabled:"
+      "value": "未能检查智能体记忆状态，正在回退为禁用状态:"
     }
   ],
   "yh4G7g": [
     {
       "type": 0,
-      "value": "System assigned"
+      "value": "系统分配"
     }
   ],
   "yhU1et": [
@@ -7731,10 +10371,16 @@
       "value": "任务"
     }
   ],
+  "yhqGka": [
+    {
+      "type": 0,
+      "value": "Choose how this trigger should behave and which agent it starts."
+    }
+  ],
   "yiAEBc": [
     {
       "type": 0,
-      "value": "Guidance might include resolution steps, specific instructions, or other relevant context."
+      "value": "指南可能包括解决步骤、具体说明或其他相关上下文。"
     }
   ],
   "yilQrD": [
@@ -7746,55 +10392,79 @@
   "yo67XU": [
     {
       "type": 0,
-      "value": "API Management Service Operator Role"
+      "value": "API 管理服务操作者角色"
     }
   ],
   "yoK+he": [
     {
       "type": 0,
-      "value": "Core application group type"
+      "value": "核心应用程序组类型"
     }
   ],
   "yxXhfZ": [
     {
       "type": 0,
-      "value": "Saved incident management configuration"
+      "value": "已保存事件管理配置"
     }
   ],
   "yzfsFI": [
     {
       "type": 0,
-      "value": "Short one-line summary (<=140 chars)"
+      "value": "单行简短摘要(<=140 字符)"
     }
   ],
   "z5cF/O": [
     {
       "type": 0,
-      "value": "Description must be a single line summary."
+      "value": "说明必须为单行摘要。"
+    }
+  ],
+  "z6olIH": [
+    {
+      "type": 0,
+      "value": "An AI agent with instructions and tools"
     }
   ],
   "z8ZYoc": [
     {
       "type": 0,
-      "value": "Find incident threads and incident response plans together on the Incident Management tab."
+      "value": "在“事件管理”选项卡上同时查看事件线程和事件响应计划。"
     }
   ],
   "zCA8jl": [
     {
       "type": 0,
-      "value": "You do not have permission to delete this incident"
+      "value": "你没有删除此事件的权限"
+    }
+  ],
+  "zCp11f": [
+    {
+      "type": 0,
+      "value": "Query test succeeded."
+    }
+  ],
+  "zDcGyS": [
+    {
+      "type": 0,
+      "value": "Trigger name"
     }
   ],
   "zEg90u": [
     {
       "type": 0,
-      "value": "Failed to delete incident response plan"
+      "value": "未能删除事件响应计划"
     }
   ],
   "zGhyFV": [
     {
       "type": 0,
-      "value": "All severity"
+      "value": "所有严重性"
+    }
+  ],
+  "zL39WD": [
+    {
+      "type": 0,
+      "value": "Grid View"
     }
   ],
   "zN87hN": [
@@ -7806,25 +10476,25 @@
   "zORAuY": [
     {
       "type": 0,
-      "value": "Optimize how the agent responds to incidents"
+      "value": "优化智能体对事件的响应方式"
     }
   ],
   "zQvVDJ": [
     {
       "type": 0,
-      "value": "All"
+      "value": "全部"
     }
   ],
   "zZsxcQ": [
     {
       "type": 0,
-      "value": "State frequency-sensitive expectations (e.g. \"summarize only last 15m of metrics\")."
+      "value": "说明频率敏感的预期(例如“仅汇总过去 15 分钟内的指标”)。"
     }
   ],
   "zaYxwd": [
     {
       "type": 0,
-      "value": "Incident"
+      "value": "事件"
     }
   ],
   "zcyAwy": [
@@ -7836,13 +10506,13 @@
   "zfM/75": [
     {
       "type": 0,
-      "value": "1 mo"
+      "value": "1 个月"
     }
   ],
   "zfMgIf": [
     {
       "type": 0,
-      "value": "Azure Resource Id"
+      "value": "Azure 资源 ID"
     }
   ],
   "zg0rpo": [
@@ -7854,19 +10524,35 @@
   "zpkKsD": [
     {
       "type": 0,
-      "value": "Incidents summary"
+      "value": "事件摘要"
+    }
+  ],
+  "zr8jA6": [
+    {
+      "type": 0,
+      "value": "Remove tool "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "zuQF37": [
+    {
+      "type": 0,
+      "value": "Review Your tool"
     }
   ],
   "zvKOAu": [
     {
       "type": 0,
-      "value": "Fullscreen"
+      "value": "全屏"
     }
   ],
   "zvLfRe": [
     {
       "type": 0,
-      "value": "Prompt library"
+      "value": "提示库"
     }
   ]
 }

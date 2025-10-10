@@ -1101,7 +1101,7 @@
   "gn/nvJ": "Odczytuj, strumieniuj dzienniki i wykonuj polecenia w usłudze Container Apps.",
   "gnC7c5": "Potrzebujesz uprawnień do skonfigurowania pulpitu nawigacyjnego narzędzia Grafana.",
   "gvlNuI": "Start fresh or reuse an existing trigger configuration.",
-  "gwSeXa": "Uwaga: na tym wykresie znajduje się {count, plural, one {# wyróżniony punkt} few {# wyróżnione punkty} many {# wyróżnionych punktów}}, które mogą wymagać uwagi.",
+  "gwSeXa": "Uwaga: na tym wykresie znajduje się {count, plural, one {# wyróżniony punkt} other {# wyróżnionych punktów}}, które mogą wymagać uwagi.",
   "gzx/k1": "Współautor bazy danych PostgreSQL",
   "h+7264": "Usuwanie planu reagowania na zdarzenia",
   "h+YOYh": "Aby zmienić platformę zdarzeń, musisz odłączyć się od usługi ServiceNow. Agent przestanie zarządzać zgłoszeniami. Czy na pewno chcesz odłączyć?",

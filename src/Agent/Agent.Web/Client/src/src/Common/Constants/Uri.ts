@@ -3,4 +3,4 @@ export const standaloneAgentEndpoint = 'https://localhost:7023';
 export const standaloneReactPort = '5173';
 export const standaloneReactEndpoint = `https://localhost:${standaloneReactPort}/static/`;
 
-export const sreAgentPortalAkaLink = 'https://aka.ms/sreagent-prefixonly';
+export const sreAgentPortalAkaLink = 'https://portal.azure.com';
