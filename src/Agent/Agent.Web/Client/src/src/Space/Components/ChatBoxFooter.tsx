@@ -31,7 +31,7 @@ import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSetting
 import { ActivitiesResources, AgentTaskResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
 import { IChatBoxFooterProps } from '../Contracts/Activities';
-import { StreamingContext } from '../Contracts/Context';
+import { AgentContext, StreamingContext } from '../Contracts/Context';
 import { ExtendedAgent } from '../Contracts/ExtendedAgentGraph';
 import { usePermissionContext } from '../Contracts/PermissionContext';
 import { chatInputTextStyles, useChatInputStyles, useDialogStyles } from '../Styles/Activities.styles';
@@ -128,6 +128,7 @@ const ChatBoxFooter = ({
     const { root, chatStatement } = useChatInputStyles();
     const { selectedRow } = useSlashRowStyles();
 
+    const { selectThread } = useContext(AgentContext);
     const { isConnected } = useContext(StreamingContext);
     const { canWriteThreads } = usePermissionContext();
     const { logAmplitudeControlEvent } = useAzPortalContext();
@@ -247,7 +248,7 @@ const ChatBoxFooter = ({
             // For now we can encode selected agent choice inline if needed
             const finalMessage = selectedAgentName ? `@${selectedAgentName}: ${messageToSend}` : messageToSend;
 
-            void sendMessage(finalMessage);
+            void sendMessage(finalMessage, selectedAgentName ? { starterAgentName: selectedAgentName } : undefined);
 
             logAmplitudeControlEvent({
                 targetType: 'button',
@@ -376,6 +377,14 @@ const ChatBoxFooter = ({
                 return;
             }
 
+            if (commandId === SlashCommandIds.ClearThread) {
+                selectThread(null);
+            }
+
+            if (commandId === SlashCommandIds.CompactThread) {
+                chatInputHandleSendClick('/compact');
+            }
+
             // clear/compact are immediate actions
             setSelectedAgentName(null);
             setInputText('');
@@ -384,7 +393,7 @@ const ChatBoxFooter = ({
             setShowSlashMenu(false);
             setActiveCommandId(null);
         },
-        [setInputText]
+        [setInputText, selectThread, chatInputHandleSendClick]
     );
 
     const handleSelectAgent = useCallback(

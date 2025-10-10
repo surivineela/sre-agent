@@ -22,6 +22,7 @@ export interface IActivitiesProps {
 export interface AgentContextProps {
     threadContentAndActionKey: string;
     activeThreadId: string;
+    selectThread: (thread: Thread | null) => void;
 }
 
 export interface IThreadsMenuProps {

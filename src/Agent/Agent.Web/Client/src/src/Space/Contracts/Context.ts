@@ -144,6 +144,7 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
 export const AgentContext = createContext<AgentContextProps>({
     threadContentAndActionKey: '',
     activeThreadId: '',
+    selectThread: () => {},
 });
 
 export const StreamingContext = createContext<StreamingContextProps>({

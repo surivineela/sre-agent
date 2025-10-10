@@ -54,7 +54,7 @@ const Activities: FC = () => {
     );
 
     return (
-        <AgentContext.Provider value={{ threadContentAndActionKey, activeThreadId }}>
+        <AgentContext.Provider value={{ threadContentAndActionKey, activeThreadId, selectThread }}>
             <div style={activitiesStylesRoot}>
                 {canReadThreads ? (
                     <>
