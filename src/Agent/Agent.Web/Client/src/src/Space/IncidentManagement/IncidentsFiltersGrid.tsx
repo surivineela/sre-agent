@@ -11,7 +11,6 @@ import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
-import { IncidentFilterFormProps } from './CreateIncidentFilterDialog';
 import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
 import { getPlatformSpecificStrings } from './Utilities';
 
@@ -40,14 +39,10 @@ export type IncidentFilterType = { incidentType: string; impactedService: string
 export type IncidentsFiltersGridProps = {
     incidentFilters: IncidentFilter[];
     incidentFiltersLoading: boolean;
-    setIsCreateIncidentFilterDialogOpen: Dispatch<React.SetStateAction<boolean>>;
     filterIdToHandlerMap: Record<string, IncidentHandler>;
     setSelectedFilter: Dispatch<React.SetStateAction<IncidentFilter | undefined>>;
-    setIsEditFilterMode: Dispatch<React.SetStateAction<boolean>>;
-    setInitialValues: Dispatch<React.SetStateAction<IncidentFilterFormProps | undefined>>;
     openHandlerCreate: (handlerCreateOrEditInfo: HandlerCreateOrEditInfo) => void;
     handlerOperationStatus: OperationStatus | undefined;
-    useConsolidatedCreate: boolean;
     disabled: boolean;
     canWriteIncidentManagement?: boolean;
 };
@@ -58,12 +53,8 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         incidentFiltersLoading,
         openHandlerCreate,
         handlerOperationStatus,
-        useConsolidatedCreate,
-        setIsCreateIncidentFilterDialogOpen,
         filterIdToHandlerMap,
         setSelectedFilter,
-        setIsEditFilterMode,
-        setInitialValues,
         disabled,
         canWriteIncidentManagement = true,
     } = props;
@@ -223,30 +214,10 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
 
     const onIdClick = useCallback(
         (item: IncidentFilter) => {
-            if (useConsolidatedCreate) {
-                const handler = filterIdToHandlerMap[item.id ?? ''];
-                openHandlerCreate({ filter: item, handlerId: handler?.id });
-            } else {
-                setIsEditFilterMode(true);
-                setInitialValues({
-                    id: item.id ?? '',
-                    incidentType: item.incidentType ?? '',
-                    impactedService: item.impactedService ?? '',
-                    priority: item.priority ?? '',
-                    titleContains: item.titleContains ?? '',
-                    agentMode: item.agentMode,
-                });
-                setIsCreateIncidentFilterDialogOpen(true);
-            }
+            const handler = filterIdToHandlerMap[item.id ?? ''];
+            openHandlerCreate({ filter: item, handlerId: handler?.id });
         },
-        [
-            setInitialValues,
-            setIsCreateIncidentFilterDialogOpen,
-            setIsEditFilterMode,
-            filterIdToHandlerMap,
-            openHandlerCreate,
-            useConsolidatedCreate,
-        ]
+        [filterIdToHandlerMap, openHandlerCreate]
     );
 
     const disableEditActions = disableAllControls || !canWriteIncidentManagement;
@@ -325,29 +296,6 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                             aria-label={intl.formatMessage(IncidentManagementResources.setUpComplete)}
                         />
                         <div>{intl.formatMessage(IncidentManagementResources.created)}</div>
-                        {!useConsolidatedCreate &&
-                            (() => {
-                                const tooltipMsg =
-                                    disableEditActions && !canWriteIncidentManagement
-                                        ? intl.formatMessage(IncidentManagementResources.noPermissionEditIncidentHandler)
-                                        : null;
-                                const link = (
-                                    <Link
-                                        style={{ fontSize: '13px' }}
-                                        onClick={() => {
-                                            openHandlerCreate({ filter: item, handlerId: handler.id, quickEdit: true });
-                                        }}
-                                        disabled={disableEditActions}
-                                    >{`(${intl.formatMessage(IncidentManagementResources.goToHandler)})`}</Link>
-                                );
-                                return tooltipMsg ? (
-                                    <Tooltip relationship="label" content={tooltipMsg}>
-                                        {link}
-                                    </Tooltip>
-                                ) : (
-                                    link
-                                );
-                            })()}
                     </div>
                 );
             }
@@ -376,16 +324,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 );
             })();
         },
-        [
-            filterIdToHandlerMap,
-            intl,
-            openHandlerCreate,
-            styles.greenCheckIcon,
-            styles.setUp,
-            useConsolidatedCreate,
-            disableEditActions,
-            canWriteIncidentManagement,
-        ]
+        [filterIdToHandlerMap, intl, openHandlerCreate, styles.greenCheckIcon, styles.setUp, disableEditActions, canWriteIncidentManagement]
     );
 
     const onIncidentTypeChange = useCallback(
@@ -633,13 +572,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                                 <Button
                                     appearance="primary"
                                     onClick={() => {
-                                        if (useConsolidatedCreate) {
-                                            openHandlerCreate({});
-                                        } else {
-                                            setIsEditFilterMode(false);
-                                            setInitialValues(undefined);
-                                            setIsCreateIncidentFilterDialogOpen(true);
-                                        }
+                                        openHandlerCreate({});
                                     }}
                                     className={styles.newIncidentFilterButton}
                                     disabled={disableEditActions}

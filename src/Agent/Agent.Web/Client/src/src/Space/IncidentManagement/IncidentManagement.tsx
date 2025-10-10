@@ -251,7 +251,7 @@ const IncidentManagement: FC = () => {
                         </NavDrawer>
                         {selectedKey === IncidentManagementMenuKeys.IncidentOverview && <IncidentsOverview />}
                         {selectedKey === IncidentManagementMenuKeys.HandlerConfiguration && (
-                            <HandlersOverview setNavigationHidden={setNavigationHidden} useConsolidatedCreate={true} />
+                            <HandlersOverview setNavigationHidden={setNavigationHidden} />
                         )}
                         {showWatchtower && agentAppInsightsAppId && selectedKey === IncidentManagementMenuKeys.Analysis && (
                             <Analysis agentAppInsightsAppId={agentAppInsightsAppId} />

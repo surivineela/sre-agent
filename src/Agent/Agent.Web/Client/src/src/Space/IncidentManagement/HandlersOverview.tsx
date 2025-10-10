@@ -6,13 +6,11 @@ import { IncidentFilter } from '../../Common/Contracts/Azure/IncidentHandler';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { IncidentManagementResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
-import { useIncidentFilterFields } from '../Hooks/useIncidentFilterFields';
 import { useIncidentFilters } from '../Hooks/useIncidentFilters';
 import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { PlatformConnectionIndicator } from './Common/PlatformConnectionIndicator';
 import { PlatformConnectionMessageBar } from './Common/PlatformConnectionMessageBar';
-import { CreateOrUpdateIncidentFilterDialog, IncidentFilterFormProps } from './CreateIncidentFilterDialog';
 import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
 import CreateIncidentHandlerConsolidated from './CreateIncidentHandler/CreateIncidentHandlerConsolidated';
 import IncidentFiltersToolbar from './IncidentFiltersToolbar';
@@ -20,37 +18,28 @@ import IncidentsFiltersGrid from './IncidentsFiltersGrid';
 
 interface HandlersOverviewProps {
     setNavigationHidden: (hidden: boolean) => void;
-    useConsolidatedCreate: boolean;
 }
 
-const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useConsolidatedCreate }) => {
+const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden }) => {
     const { logAmplitudeControlEvent } = useAzPortalContext();
     const {
         incidentManagement: { isIncidentManagementConnected, checkingConnectivity, refreshConnectivity },
     } = useContext(SreAgentContext);
 
     const { canWriteIncidentManagement, canDeleteIncidentManagement } = useUserPermissions();
-
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
-
-    const [isCreateIncidentFilterDialogOpen, setIsCreateIncidentFilterDialogOpen] = useState<boolean>(false);
     const [selectedIncidentFilter, setSelectedIncidentFilter] = useState<IncidentFilter | undefined>();
-    const [isEditFilterMode, setIsEditFilterMode] = useState<boolean>(false);
-    const [initialValues, setInitialValues] = useState<IncidentFilterFormProps | undefined>(undefined);
 
     const {
         refresh: refreshIncidentFilters,
         incidentFilters,
         incidentFiltersLoading,
         deleteIncidentFilter,
-        createIncidentFilter,
-        updateIncidentFilter,
         enableIncidentFilter,
         disableIncidentFilter,
     } = useIncidentFilters();
     const { filterIdToHandlerMap, refresh: refreshIncidentHandlers } = useIncidentHandlers();
-    const { incidentTypeOptions, impactedServiceOptions, priorityOptions } = useIncidentFilterFields();
 
     const [isRefreshNeeded, setIsRefreshNeeded] = useState<boolean>(false);
 
@@ -107,14 +96,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useC
                                 deleteIncidentFilter(selectedIncidentFilter?.id ?? '');
                             }}
                             onNewIncidentFilterClick={() => {
-                                setIsEditFilterMode(false);
-                                setInitialValues(undefined);
-                                if (useConsolidatedCreate) {
-                                    setVisibleHandler({});
-                                } else {
-                                    setIsCreateIncidentFilterDialogOpen(true);
-                                }
-
+                                setVisibleHandler({});
                                 logAmplitudeControlEvent({
                                     targetAction: 'clicked',
                                     targetType: 'button',
@@ -122,7 +104,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useC
                                     targetFriendlyName: 'New incident handler',
                                     valueObjectName: SpecialControlValue.DoAction,
                                     valueObjectFriendlyName: SpecialControlValue.DoAction,
-                                    metadata: { useConsolidatedCreate, incidentHandlersCount: incidentFilters?.length ?? 0 },
+                                    metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
                                 });
                             }}
                             onTurnOffIncidentFilterClick={() => {
@@ -148,24 +130,9 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useC
                         incidentFilters={incidentFilters ?? []}
                         incidentFiltersLoading={incidentFiltersLoading || checkingConnectivity}
                         setSelectedFilter={setSelectedIncidentFilter}
-                        setIsCreateIncidentFilterDialogOpen={setIsCreateIncidentFilterDialogOpen}
                         filterIdToHandlerMap={filterIdToHandlerMap}
-                        setIsEditFilterMode={setIsEditFilterMode}
-                        setInitialValues={setInitialValues}
-                        useConsolidatedCreate={useConsolidatedCreate}
                         disabled={!checkingConnectivity && !isIncidentManagementConnected}
                         canWriteIncidentManagement={canWriteIncidentManagement}
-                    />
-                    <CreateOrUpdateIncidentFilterDialog
-                        isDialogOpen={isCreateIncidentFilterDialogOpen}
-                        setIsDialogOpen={setIsCreateIncidentFilterDialogOpen}
-                        createIncidentFilter={createIncidentFilter}
-                        updateIncidentFilter={updateIncidentFilter}
-                        priorityOptions={priorityOptions}
-                        incidentTypeOptions={incidentTypeOptions}
-                        impactedServiceOptions={impactedServiceOptions}
-                        isEditMode={isEditFilterMode}
-                        initialValues={initialValues}
                     />
                 </div>
             </div>
