@@ -4,6 +4,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Framework.Reasoning.Models;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents;
@@ -67,6 +68,26 @@ public class ResourceDeploymentService : IResourceDeploymentService
     public async Task<IActionResult> ApplyAsync(AgentDeploymentModel spec)
     {
         var operationId = Guid.NewGuid().ToString();
+        var currentTime = DateTime.UtcNow;
+        var currentTimeIso = currentTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+
+        // Check if the agent already exists to determine CreatedAt value
+        var existingAgent = await _repository.GetAgentByNameAsync(spec.Spec.Name);
+
+        // Update metadata with timestamps
+        var metadata = spec.Metadata ?? new YamlMetadata();
+        metadata.UpdatedAt = currentTime;
+
+        // Only set CreatedAt if this is a new agent
+        if (existingAgent == null)
+        {
+            metadata.CreatedAt = currentTime;
+        }
+        else
+        {
+            // Preserve existing CreatedAt timestamp
+            metadata.CreatedAt = existingAgent.Metadata?.CreatedAt ?? currentTime;
+        }
 
         // Map agent
         var agentDoc = new AgentDocumentModel(
@@ -98,7 +119,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
             ResultSummarizationPrompt: spec.Spec.ResultSummarizationPrompt,
             NextAgentMappings: spec.Spec.NextAgentMappings,
             OutputType: spec.Spec.OutputType,
-            Metadata: spec.Metadata,
+            Metadata: metadata,
             OperationId: operationId
         );
 

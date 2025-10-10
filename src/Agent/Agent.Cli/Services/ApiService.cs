@@ -7,9 +7,11 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using Agent.Cli.Helpers;
 using Agent.Cli.Models;
 using Agent.Core.Validation;
+using Agent.Framework;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -23,6 +25,12 @@ public class ApiService : IDisposable
     private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
     {
         PropertyNameCaseInsensitive = true
+    };
+    private static readonly JsonSerializerOptions _camelCaseJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter() }
     };
 
     public ApiService()
@@ -426,9 +434,58 @@ public class ApiService : IDisposable
 
             DebugLogger.Debug("YAML", "Using agent YAML content directly (structured format)");
 
-            // The agent file is already in the correct structured format (api_version, kind, metadata, spec)
-            // Send it directly without additional wrapping
+            // Clean up empty datetime strings in metadata before sending
             var wrappedYamlContent = agentYamlContent;
+
+            // Parse YAML to check and fix metadata datetime fields
+            try
+            {
+                var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(agentYamlContent);
+
+                if (yamlDict != null && yamlDict.TryGetValue("metadata", out var metadataObj))
+                {
+                    var metadataDict = metadataObj as Dictionary<object, object>;
+                    if (metadataDict != null)
+                    {
+                        bool needsReserialization = false;
+
+                        // Check and remove empty updated_at
+                        if (metadataDict.TryGetValue("updated_at", out var updatedAt) &&
+                            updatedAt is string updatedAtStr &&
+                            string.IsNullOrWhiteSpace(updatedAtStr))
+                        {
+                            metadataDict.Remove("updated_at");
+                            needsReserialization = true;
+                            DebugLogger.Debug("YAML", "Removed empty updated_at from metadata");
+                        }
+
+                        // Check and remove empty created_at
+                        if (metadataDict.TryGetValue("created_at", out var createdAt) &&
+                            createdAt is string createdAtStr &&
+                            string.IsNullOrWhiteSpace(createdAtStr))
+                        {
+                            metadataDict.Remove("created_at");
+                            needsReserialization = true;
+                            DebugLogger.Debug("YAML", "Removed empty created_at from metadata");
+                        }
+
+                        // Re-serialize if we made changes
+                        if (needsReserialization)
+                        {
+                            var serializer = new SerializerBuilder()
+                                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                                .Build();
+                            wrappedYamlContent = serializer.Serialize(yamlDict);
+                            DebugLogger.Debug("YAML", "Re-serialized YAML after cleaning metadata datetime fields");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugLogger.Debug("YAML", $"Warning: Failed to clean metadata datetime fields: {ex.Message}. Using original content.");
+                wrappedYamlContent = agentYamlContent;
+            }
 
             DebugLogger.Debug("YAML", $"Generated YAML content size: {wrappedYamlContent.Length} characters");
 
@@ -1072,7 +1129,7 @@ public class ApiService : IDisposable
             var toolData = deserializer.Deserialize<object>(yamlContent);
 
             // Create the wrapper with proper structure
-            var toolWrapper = new ToolListWrapper
+            var toolWrapper = new StructuredToolListYaml
             {
                 ApiVersion = config.ApiVersion ?? "azuresre.ai/v1",
                 Metadata = new YamlMetadata
@@ -1083,7 +1140,7 @@ public class ApiService : IDisposable
                     CreatedAt = config.CreatedAt != default(DateTime) ? config.CreatedAt.ToString("yyyy-MM-dd") : DateTime.UtcNow.ToString("yyyy-MM-dd"),
                     UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd")
                 },
-                Spec = new ToolSpec { Tools = new List<object> { toolData } }
+                Spec = new ToolListSpec { Tools = new List<object> { toolData } }
             };
 
             // Serialize to YAML
@@ -2421,7 +2478,7 @@ public class ApiService : IDisposable
     /// <summary>
     /// Gets the configuration for internal service use.
     /// </summary>
-    public async Task<Agent.Cli.Models.CliConfiguration?> GetConfigurationAsync()
+    public async Task<CliConfiguration?> GetConfigurationAsync()
     {
         return await _configService.LoadConfigurationAsync();
     }
@@ -2487,13 +2544,30 @@ public class ApiService : IDisposable
                     var name = nameEl.GetString();
                     if (!string.Equals(name, agentName, StringComparison.OrdinalIgnoreCase)) continue;
 
-                    // Convert the agent JsonElement into plain objects (no cycles), then YAML
-                    var plainAgent = ConvertJsonElementToPlainObject(agent);
-                    var wrapper = new AgentConfigurationWrapper
+                    // Deserialize the JSON element into YamlAgentDescriptor to get proper snake_case properties
+                    var jsonString = agent.GetRawText();
+                    var agentDescriptor = JsonSerializer.Deserialize<YamlAgentDescriptor>(jsonString, _camelCaseJsonOptions);
+
+                    if (agentDescriptor == null)
                     {
-                        Spec = new AgentSpec { Agent = plainAgent! }
+                        return (false, "", $"Failed to deserialize agent '{agentName}'");
+                    }
+
+                    // Create structured wrapper with flattened spec (matches validator expectations)
+                    var wrapper = new StructuredAgentYaml
+                    {
+                        Spec = agentDescriptor,
+                        Metadata = new YamlMetadata
+                        {
+                            Owner = agentDescriptor.Metadata?.Owner ?? string.Empty,
+                            Version = agentDescriptor.Metadata?.Version ?? string.Empty,
+                            Tags = agentDescriptor.Metadata?.Tags ?? new List<string>(),
+                            CreatedAt = agentDescriptor.Metadata?.CreatedAt?.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") ?? string.Empty,
+                            UpdatedAt = agentDescriptor.Metadata?.UpdatedAt?.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") ?? string.Empty
+                        }
                     };
-                    var serializer = new YamlDotNet.Serialization.SerializerBuilder()
+
+                    var serializer = new SerializerBuilder()
                         .WithNamingConvention(UnderscoredNamingConvention.Instance)
                         .DisableAliases()
                         .Build();
@@ -2973,7 +3047,7 @@ public class ApiService : IDisposable
 
                     return (true, string.Join("\n", searchResults));
                 }
-                catch (System.Text.Json.JsonException)
+                catch (JsonException)
                 {
                     // If JSON parsing fails, return the raw content
                     return (true, $"Search completed successfully.\n\nResponse:\n{content}");
@@ -3279,23 +3353,9 @@ public class ApiService : IDisposable
     }
 }
 
-// Simple wrapper models for YAML structure
-public class AgentConfigurationWrapper
-{
-    public string ApiVersion { get; set; } = "azuresre.ai/v1";
-    public string Kind { get; set; } = "AgentConfiguration";
-    public YamlMetadata Metadata { get; set; } = new YamlMetadata();
-    public AgentSpec Spec { get; set; } = new AgentSpec();
-}
-
-public class ToolListWrapper
-{
-    public string ApiVersion { get; set; } = "azuresre.ai/v1";
-    public string Kind { get; set; } = "ToolList";
-    public YamlMetadata Metadata { get; set; } = new YamlMetadata();
-    public ToolSpec Spec { get; set; } = new ToolSpec();
-}
-
+/// Note:
+/// - there is metadata in YamlAgentDescriptor but located under spec so at the wrong level
+/// - once moved, remove this local definition and reference the YamlAgentDescriptor.Metadata instead
 public class YamlMetadata
 {
     public string Owner { get; set; } = string.Empty;
@@ -3305,30 +3365,66 @@ public class YamlMetadata
     public string CreatedAt { get; set; } = string.Empty;
 }
 
-public class AgentSpec
+/// <summary>
+/// Generic structured YAML wrapper that supports any spec type (T)
+/// where T could be YamlAgentDescriptor, ToolListSpec, etc.
+/// </summary>
+/// example YAML structure:
+/// ```yaml
+/// api_version: azuresre.ai/v1
+/// kind: AgentConfiguration
+/// metadata:
+///   <metadata fields>
+/// spec:
+///   <spec fields>
+/// <typeparam name="T">The type of the spec content</typeparam>
+public class StructuredAgentYamlWrapper<T>
 {
-    public object Agent { get; set; } = new object();
-}
-
-public class ToolSpec
-{
-    public List<object> Tools { get; set; } = new List<object>();
-}
-
-// New wrapper for combined agent and tools
-public class CombinedAgentWrapper
-{
+    [YamlMember(Alias = "api_version")]
     public string ApiVersion { get; set; } = "azuresre.ai/v1";
-    public string Kind { get; set; } = "AgentConfiguration";
-    public YamlMetadata Metadata { get; set; } = new YamlMetadata();
-    public CombinedAgentSpec Spec { get; set; } = new CombinedAgentSpec();
+
+    [YamlMember(Alias = "kind")]
+    public string Kind { get; set; } = "";
+
+    [YamlMember(Alias = "metadata")]
+    public YamlMetadata? Metadata { get; set; } = new YamlMetadata();
+
+    [YamlMember(Alias = "spec")]
+    public T Spec { get; set; } = default(T)!;
 }
 
-public class CombinedAgentSpec
+// Type-specific wrappers
+/// <summary>
+/// Structured YAML for agent configurations using flat spec format
+/// </summary>
+public class StructuredAgentYaml : StructuredAgentYamlWrapper<YamlAgentDescriptor>
 {
-    public object Agent { get; set; } = new object();
+    public StructuredAgentYaml()
+    {
+        Kind = "AgentConfiguration";
+    }
+}
+
+/// <summary>
+/// Spec class for tool lists
+/// </summary>
+public class ToolListSpec
+{
+    [YamlMember(Alias = "tools")]
     public List<object> Tools { get; set; } = new List<object>();
+}
+
+/// <summary>
+/// Structured YAML for tool lists
+/// </summary>
+public class StructuredToolListYaml : StructuredAgentYamlWrapper<ToolListSpec>
+{
+    public StructuredToolListYaml()
+    {
+        Kind = "ToolList";
+    }
 }
 
 public record ThreadMessage(string Id, string Text, DateTime Timestamp, string AuthorRole, string AuthorUserId, string AuthorDisplayName);
 public record ThreadInfo(string Id, string Title, DateTime CreatedAt, DateTime LastMessageAt);
+

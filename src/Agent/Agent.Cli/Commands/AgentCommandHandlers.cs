@@ -53,11 +53,11 @@ public static class AgentCommandHandlers
                 "Creating agent configuration",
                 "Validating configuration"
               }
-            : new[] {
+            : [
                 "Creating agent configuration",
                 "Validating configuration",
                 "Writing agent files"
-              };
+              ];
 
         ProgressService.MultiStepProgress.Initialize(steps);
 
@@ -76,12 +76,12 @@ public static class AgentCommandHandlers
             if (!success)
             {
                 ProgressService.MultiStepProgress.Fail($"Smart generation failed: {errorMessage}");
-                ProgressService.ShowError("Smart generation failed", new[]
-                {
+                ProgressService.ShowError("Smart generation failed",
+                [
                     "Try running without --smart flag",
                     "Check your server connection with --debug",
                     "Verify your server supports AI completion"
-                });
+                ]);
                 Environment.Exit(1);
                 return;
             }
@@ -100,8 +100,8 @@ public static class AgentCommandHandlers
         else
         {
             finalInstructions = instructions ?? $"This is the {name} agent. Please provide specific instructions for what this agent should do.";
-            finalTools = tools?.ToList() ?? new List<string>();
-            finalMcpTools = new List<string>();
+            finalTools = tools?.ToList() ?? [];
+            finalMcpTools = [];
         }
 
         // Create YamlAgentDescriptor instance with final values
@@ -112,13 +112,13 @@ public static class AgentCommandHandlers
             Tools = finalTools,
             McpTools = finalMcpTools,
             HandoffDescription = handoffDescription,
-            Handoffs = handoffs?.ToList() ?? new List<string>(),
+            Handoffs = handoffs?.ToList() ?? [],
             AllowParallelToolCalls = allowParallelToolCalls,
             MaxReflectionCount = maxReflectionCount,
             CriticPromptPath = criticPromptPath ?? string.Empty,
             CriticOnHandOff = criticOnHandoff,
             CustomReflectionNote = customReflectionNote ?? string.Empty,
-            CommonPrompts = commonPrompts?.ToList() ?? new List<string>(),
+            CommonPrompts = commonPrompts?.ToList() ?? [],
             Temperature = temperature,
             OutputType = outputType
         };

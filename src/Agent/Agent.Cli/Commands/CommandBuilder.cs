@@ -159,7 +159,7 @@ public static class CommandBuilder
             if (IsHelpRequested(pr))
                 return ShowFormattedSubcommandHelp("Agent Create", "Create a new agent YAML configuration file", cmd,
                     new[] {
-                        "srectl agent create --name DevOpsAgent --instructions \"Help with DevOps tasks\"",
+                        "srectl agent create --name DevOpsAgent --instructions \"Help with DevOps tasks such as monitoring and incident response\"",
                         "srectl agent create --name KustoAgent --tools QueryKusto AnalyzeMetrics",
                         "srectl agent create --name StorageAgent --smart --instructions \"Help troubleshoot Azure Storage issues\""
                     });

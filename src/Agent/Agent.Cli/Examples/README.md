@@ -16,7 +16,7 @@ srectl <category> <action> [options]
 
 **Categories:**
 - `agent` - Agent lifecycle management
-- `tool` - Tool configuration management  
+- `tool` - Tool configuration management
 - `doc` - Document management
 - `thread` - Conversation management
 - `profile` - Environment profiles
@@ -63,7 +63,7 @@ Every command includes:
 srectl init --resource-url https://localhost:7023
 
 # Create your first agent using AI assistance
-srectl agent create --name DevOpsAgent --smart --instructions "Help with DevOps tasks"
+srectl agent create --name DevOpsAgent --smart --instructions "Help with DevOps tasks such as monitoring and incident response"
 
 # Apply the agent to the server
 srectl agent apply --name DevOpsAgent
@@ -157,7 +157,7 @@ srectl agent test --name SREIncidentAgent \
 ```bash
 # Create profiles for different environments
 srectl profile create --name local --resource-url https://localhost:7023
-srectl profile create --name staging --resource-url https://staging-sreagent.company.com  
+srectl profile create --name staging --resource-url https://staging-sreagent.company.com
 srectl profile create --name production --resource-url https://prod-sreagent.company.com
 
 # Develop locally
@@ -238,7 +238,7 @@ srectl agent apply --name MyAgent --debug
 Enable debug logging for any command by adding `--debug`:
 ```bash
 srectl agent create --name TestAgent --debug
-srectl tool apply --name TestTool --debug  
+srectl tool apply --name TestTool --debug
 srectl chat --debug
 ```
 

@@ -18,7 +18,7 @@ public static class CommandExamples
 
 Examples:
   # Create a basic agent
-  srectl agent create --name DevOpsAgent --instructions ""Help with DevOps tasks""
+  srectl agent create --name DevOpsAgent --instructions ""Help with DevOps tasks such as monitoring and incident response""
 
   # Create an agent with tools
   srectl agent create --name KustoAgent --tools QueryKusto AnalyzeMetrics

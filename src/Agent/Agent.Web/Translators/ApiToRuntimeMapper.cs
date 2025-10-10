@@ -189,8 +189,9 @@ public static class ApiToRuntimeMapper
         _ => throw new NotSupportedException($"Unknown connector type for document model: {connector.Type}")
     };
 
-    public static AgentDocumentModel ToDocumentAgent(ExtendedAgentApiModel api, string operationId) => new
-       AgentDocumentModel(
+    public static AgentDocumentModel ToDocumentAgent(ExtendedAgentApiModel api, string operationId)
+    {
+        return new AgentDocumentModel(
             Id: $"agent_{api.Name}",
             Name: api.Name,
             Instructions: api.Instructions,
@@ -222,6 +223,7 @@ public static class ApiToRuntimeMapper
             OutputType: api.OutputType,
             Metadata: api.Metadata,
             OperationId: operationId);
+    }
 
     public static PlugInConfigDocumentModel ToDocumentConfig(PluginConfigDeploymentModel config, string operationId) => new
       PlugInConfigDocumentModel(

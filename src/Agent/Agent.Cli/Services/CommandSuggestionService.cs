@@ -376,7 +376,7 @@ public static class CommandSuggestionService
             {
                 new("--name", "Agent name (required)", "MyAgent"),
                 new("--smart", "Use AI assistance", ""),
-                new("--instructions", "Agent instructions", "\"Help with DevOps tasks\""),
+                new("--instructions", "Agent instructions", "\"Help with DevOps tasks such as monitoring and incident response\""),
                 new("--tools", "Tools to include", "Tool1 Tool2"),
                 new("--debug", "Enable debug logging", "")
             },
