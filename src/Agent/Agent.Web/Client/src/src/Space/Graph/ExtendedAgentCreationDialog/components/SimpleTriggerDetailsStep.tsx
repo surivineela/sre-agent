@@ -17,11 +17,13 @@ import { Alert24Regular, Clock24Regular } from '@fluentui/react-icons';
 import { ChangeEventHandler, FC, useEffect, useMemo, useRef } from 'react';
 import { IntlShape } from 'react-intl';
 import { IncidentHandler } from '../../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgent } from '../../../Contracts/ExtendedAgentGraph';
 import { ScheduledTask } from '../../../Contracts/ScheduledTasks';
 import { useCreationDialogStyles } from '../styles';
 import { TriggerMode, TriggerStateController, TriggerStrategy, TriggerValidationState } from '../types';
+import { getBadgeColorForPriority, getIncidentTypesForPlatform, getPrioritiesForPlatform } from '../utils/incidentPlatforms';
 import {
     DEFAULT_SCHEDULE_PRESET,
     SCHEDULE_PRESETS,
@@ -31,9 +33,6 @@ import {
     normalizeCronExpression,
     tryParseNaturalLanguageToCron,
 } from '../utils/schedule';
-
-const INCIDENT_PRIORITIES = ['Sev0', 'Sev1', 'Sev2', 'Sev3', 'Sev4'] as const;
-const INCIDENT_TYPES = ['LiveSite', 'Maintenance', 'Security', 'Other'] as const;
 
 const INSTRUCTION_TEMPLATES_INCIDENT = [
     'Investigate and diagnose the issue',
@@ -68,6 +67,7 @@ interface SimpleTriggerDetailsStepProps {
     hasScheduledTasksFeature: boolean;
     hasIncidentHandlersFeature?: boolean;
     onNavigateToScheduledTasks?: () => void;
+    incidentPlatformType?: IncidentManagementType;
 }
 
 export const SimpleTriggerDetailsStep: FC<SimpleTriggerDetailsStepProps> = ({
@@ -79,9 +79,14 @@ export const SimpleTriggerDetailsStep: FC<SimpleTriggerDetailsStepProps> = ({
     hasScheduledTasksFeature,
     hasIncidentHandlersFeature = true,
     onNavigateToScheduledTasks,
+    incidentPlatformType,
 }) => {
     const styles = useCreationDialogStyles();
     const { trigger, validation, updateFromUser, setValidation, applyAgentDefaults } = controller;
+
+    // Get platform-specific priorities and incident types
+    const incidentPriorities = useMemo(() => getPrioritiesForPlatform(incidentPlatformType), [incidentPlatformType]);
+    const incidentTypes = useMemo(() => getIncidentTypesForPlatform(incidentPlatformType), [incidentPlatformType]);
 
     const agentFieldRef = useRef<HTMLInputElement | null>(null);
     const nameRef = useRef<HTMLInputElement | null>(null);
@@ -266,15 +271,15 @@ export const SimpleTriggerDetailsStep: FC<SimpleTriggerDetailsStepProps> = ({
 
     const renderSeverityPills = () => (
         <div className={styles.pillsRow}>
-            {INCIDENT_PRIORITIES.map(priority => (
+            {incidentPriorities.map(priorityOption => (
                 <Badge
-                    key={priority}
-                    appearance={trigger.incidentPriority === priority ? 'filled' : 'outline'}
-                    color={priority === 'Sev0' || priority === 'Sev1' ? 'danger' : priority === 'Sev2' ? 'warning' : 'informative'}
-                    onClick={() => updateFromUser({ incidentPriority: priority })}
+                    key={priorityOption.key}
+                    appearance={trigger.incidentPriority === priorityOption.key ? 'filled' : 'outline'}
+                    color={getBadgeColorForPriority(priorityOption.key, incidentPlatformType)}
+                    onClick={() => updateFromUser({ incidentPriority: priorityOption.key })}
                     style={{ cursor: 'pointer' }}
                 >
-                    {priority}
+                    {intl.formatMessage(priorityOption.intlString)}
                 </Badge>
             ))}
         </div>
@@ -282,15 +287,15 @@ export const SimpleTriggerDetailsStep: FC<SimpleTriggerDetailsStepProps> = ({
 
     const renderIncidentTypePills = () => (
         <div className={styles.pillsRow}>
-            {INCIDENT_TYPES.map(type => (
+            {incidentTypes.map(typeOption => (
                 <Badge
-                    key={type}
-                    appearance={trigger.incidentType === type ? 'filled' : 'outline'}
+                    key={typeOption.key}
+                    appearance={trigger.incidentType === typeOption.key ? 'filled' : 'outline'}
                     color="brand"
-                    onClick={() => updateFromUser({ incidentType: type })}
+                    onClick={() => updateFromUser({ incidentType: typeOption.key })}
                     style={{ cursor: 'pointer' }}
                 >
-                    {type}
+                    {typeOption.label}
                 </Badge>
             ))}
         </div>

@@ -17,6 +17,7 @@ import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { Stepper, StepperStep } from '../../Common/Components/Stepper/Stepper';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
+import { SreAgentContext } from '../Contracts/Context';
 import { ExtendedTool } from '../Contracts/ExtendedAgentGraph';
 import { createTriggerFromState } from './ExtendedAgentCreationDialog/api/triggerCreation';
 import { AgentDetailsStep } from './ExtendedAgentCreationDialog/components/AgentDetailsStep';
@@ -52,6 +53,8 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
     const styles = useCreationDialogStyles();
     const intl = useIntl();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const sreAgentContext = useContext(SreAgentContext);
+    const incidentPlatformType = sreAgentContext.incidentManagement.incidentPlatformType;
     const isQuickAgentFlow = initialEntityType === 'agent' && !linkContext;
     const showWizard = !isQuickAgentFlow;
 
@@ -90,10 +93,14 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
     const [triggerReviewMode, setTriggerReviewMode] = useState(false);
 
     // Initialize trigger state controller
-    const triggerController = useTriggerState(intl, {
-        mode: 'incident',
-        agentName: initialEntityType === 'trigger' ? existingAgents[0]?.name : undefined,
-    });
+    const triggerController = useTriggerState(
+        intl,
+        {
+            mode: 'incident',
+            agentName: initialEntityType === 'trigger' ? existingAgents[0]?.name : undefined,
+        },
+        incidentPlatformType
+    );
 
     // Tool tester logic
     const currentToolFingerprint = useMemo(() => getKustoTestFingerprint(state.tool), [state.tool]);
@@ -521,6 +528,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                                             onNavigateToScheduledTasks={
                                                 onTriggerNavigate ? () => onTriggerNavigate('scheduledTasks') : undefined
                                             }
+                                            incidentPlatformType={incidentPlatformType}
                                         />
                                     )}
 

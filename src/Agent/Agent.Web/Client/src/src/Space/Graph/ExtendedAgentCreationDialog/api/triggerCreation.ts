@@ -13,7 +13,7 @@ export interface CreateIncidentHandlerRequest {
     name: string;
     description: string;
     incidentFilterId: string;
-    incidentProcessingGuide: string;
+    incidentProcessingGuide: string[];
     tools: string[];
     incidents: string[];
     customInstructions: string;
@@ -124,7 +124,7 @@ const createIncidentHandlerTrigger = async (trigger: TriggerState, sreAgentEndpo
         name: trigger.name,
         description: trigger.description || '',
         incidentFilterId,
-        incidentProcessingGuide: trigger.instructions,
+        incidentProcessingGuide: [trigger.instructions],
         tools: [], // TODO: Extract tools from agent if needed
         incidents: [],
         customInstructions: trigger.instructions,
@@ -168,8 +168,8 @@ const createIncidentFilter = async (trigger: TriggerState, sreAgentEndpoint: str
             createdBy: 'api',
         };
 
-        const response = await fetch(`${sreAgentEndpoint}/api/v1/incidentPlayground/filters`, {
-            method: 'POST',
+        const response = await fetch(`${sreAgentEndpoint}/api/v1/incidentPlayground/filters/${filterId}`, {
+            method: 'PUT',
             headers: getAgentHeaders(),
             body: JSON.stringify(filter),
         });

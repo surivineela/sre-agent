@@ -9,8 +9,9 @@ export type TriggerMode = 'incident' | 'scheduled';
 export type TriggerStrategy = 'quick' | 'existing';
 export type SchedulePresetKey = 'hourly' | 'every15m' | 'daily' | 'weekly' | 'monthly' | 'workdays' | 'custom';
 
-export type IncidentPriority = 'Sev0' | 'Sev1' | 'Sev2' | 'Sev3' | 'Sev4';
-export type IncidentType = 'LiveSite' | 'Maintenance' | 'Security' | 'Other';
+// Changed to string to support all incident platforms (AzMonitor, PagerDuty, ICM, ServiceNow)
+export type IncidentPriority = string;
+export type IncidentType = string;
 
 export interface TriggerScheduleState {
     preset: SchedulePresetKey;

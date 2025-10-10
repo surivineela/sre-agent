@@ -20,7 +20,11 @@ const defaultDirtyState: Record<TriggerDirtyField, boolean> = {
 
 const cloneSchedule = (schedule: TriggerScheduleState): TriggerScheduleState => ({ ...schedule });
 
-export const useTriggerState = (intl: IntlShape, initial?: Partial<TriggerState>): TriggerStateController => {
+export const useTriggerState = (
+    intl: IntlShape,
+    initial?: Partial<TriggerState>,
+    incidentPlatformType?: string
+): TriggerStateController => {
     const incidentDefaults = useMemo(() => getIncidentDefaults(intl, initial?.agentDisplayName ?? initial?.agentName), [intl, initial]);
     const scheduledDefaults = useMemo(
         () => refreshScheduledDefaults(intl, initial?.agentDisplayName ?? initial?.agentName),
@@ -38,7 +42,7 @@ export const useTriggerState = (intl: IntlShape, initial?: Partial<TriggerState>
     );
 
     const [trigger, setTriggerState] = useState<TriggerState>(() => {
-        const meta = getIncidentDefaultsMeta();
+        const meta = getIncidentDefaultsMeta(incidentPlatformType);
         return {
             mode: initial?.mode ?? 'incident',
             strategy: initial?.strategy ?? 'quick',
@@ -148,7 +152,7 @@ export const useTriggerState = (intl: IntlShape, initial?: Partial<TriggerState>
 
     const reset = useCallback(
         (overrides?: Partial<TriggerState>) => {
-            const defaults = buildTriggerDefaults(intl, overrides?.agentDisplayName ?? overrides?.agentName);
+            const defaults = buildTriggerDefaults(intl, overrides?.agentDisplayName ?? overrides?.agentName, incidentPlatformType);
             const incidentAuto = getIncidentDefaults(intl, overrides?.agentDisplayName ?? overrides?.agentName);
             const scheduledAuto = refreshScheduledDefaults(intl, overrides?.agentDisplayName ?? overrides?.agentName);
 
@@ -170,7 +174,7 @@ export const useTriggerState = (intl: IntlShape, initial?: Partial<TriggerState>
             setValidationState({});
             updateDirtyFlags(undefined, true);
         },
-        [intl, updateDirtyFlags]
+        [intl, updateDirtyFlags, incidentPlatformType]
     );
 
     return {

@@ -1,10 +1,8 @@
 import { IntlShape } from 'react-intl';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
 import { IncidentPriority, IncidentType, TriggerDefaults } from '../types';
+import { getDefaultIncidentTypeForPlatform, getDefaultPriorityForPlatform } from './incidentPlatforms';
 import { DEFAULT_SCHEDULE_PRESET, SCHEDULE_PRESETS } from './schedule';
-
-const INCIDENT_DEFAULT_PRIORITY = 'Sev3' as const;
-const INCIDENT_DEFAULT_TYPE = 'LiveSite' as const;
 
 const getFallbackAgentDisplayName = (intl: IntlShape) => intl.formatMessage(ExtendedAgentsGraphResources.triggerAgentFallbackName);
 
@@ -23,7 +21,7 @@ const getScheduledDefaultDescription = (intl: IntlShape, agentDisplayName: strin
 const getScheduledDefaultPrompt = (intl: IntlShape, agentDisplayName: string) =>
     intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduledDefaultPrompt, { agentName: agentDisplayName });
 
-export const buildTriggerDefaults = (intl: IntlShape, agentDisplayName?: string): TriggerDefaults => {
+export const buildTriggerDefaults = (intl: IntlShape, agentDisplayName?: string, incidentPlatformType?: string): TriggerDefaults => {
     const fallbackName = agentDisplayName?.trim() || getFallbackAgentDisplayName(intl);
 
     return {
@@ -32,8 +30,8 @@ export const buildTriggerDefaults = (intl: IntlShape, agentDisplayName?: string)
         name: getIncidentDefaultName(intl, fallbackName),
         description: getScheduledDefaultDescription(intl, fallbackName),
         instructions: getIncidentDefaultInstructions(intl, fallbackName),
-        incidentPriority: INCIDENT_DEFAULT_PRIORITY,
-        incidentType: INCIDENT_DEFAULT_TYPE,
+        incidentPriority: getDefaultPriorityForPlatform(incidentPlatformType),
+        incidentType: getDefaultIncidentTypeForPlatform(incidentPlatformType),
         schedule: {
             preset: DEFAULT_SCHEDULE_PRESET,
             cronExpression: SCHEDULE_PRESETS[DEFAULT_SCHEDULE_PRESET].cron,
@@ -54,7 +52,7 @@ export const getIncidentDefaults = (intl: IntlShape, agentDisplayName?: string) 
     instructions: getIncidentDefaultInstructions(intl, agentDisplayName || getFallbackAgentDisplayName(intl)),
 });
 
-export const getIncidentDefaultsMeta = (): { priority: IncidentPriority; type: IncidentType } => ({
-    priority: INCIDENT_DEFAULT_PRIORITY,
-    type: INCIDENT_DEFAULT_TYPE,
+export const getIncidentDefaultsMeta = (incidentPlatformType?: string): { priority: IncidentPriority; type: IncidentType } => ({
+    priority: getDefaultPriorityForPlatform(incidentPlatformType),
+    type: getDefaultIncidentTypeForPlatform(incidentPlatformType),
 });
