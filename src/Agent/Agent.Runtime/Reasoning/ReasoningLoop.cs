@@ -22,6 +22,7 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Runtime.AgentTasks.Handlers;
 using Agent.Runtime.ConversationModifiers;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.SubAgents.Core;
@@ -44,6 +45,7 @@ public class ReasoningLoop : IDisposable
     private readonly IAgentFactory<AgentContext> _agentFactory;
     private readonly ActionSettings _actionSettings;
     private readonly Tracer _tracer;
+    private readonly CustomerLogger _customerLogger;
     private readonly bool _enableReasoningDebugOutput;
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchHelper _searchHelper;
@@ -119,6 +121,7 @@ public class ReasoningLoop : IDisposable
         IToolFactory<AgentContext> toolFactory,
         ActionSettings actionSettings,
         Tracer tracer,
+        CustomerLogger customerLogger,
         IAgentFactory<AgentContext> agentFactory,
         bool enableReasoningDebugOutput,
         ISearchEndpointService searchEndpointService,
@@ -146,6 +149,7 @@ public class ReasoningLoop : IDisposable
         _currentAgent = startingAgent;
         _actionSettings = actionSettings;
         _tracer = tracer;
+        _customerLogger = customerLogger;
         _agentFactory = agentFactory;
         _enableReasoningDebugOutput = enableReasoningDebugOutput;
         _searchEndpointService = searchEndpointService;
@@ -1502,6 +1506,26 @@ public class ReasoningLoop : IDisposable
                 featureConfig: WebJsonSerializer.Serialize(_featureConfig));
             return Task.CompletedTask;
         };
+
+        // Add CustomerLogger hooks for telemetry (first-party check)
+        if (FirstPartyHelper.IsFirstPartyTenant())
+        {
+            var customerLoggerHelper = new CustomerLoggerHelper(
+                _customerLogger,
+                _context.ThreadId.ToString(),
+                "ReasoningLoop"
+            );
+            var customerLoggerHooks = customerLoggerHelper.GetCustomerLoggerHooks();
+
+            // Subscribe CustomerLogger hooks to main hooks
+            hooks.ToolStart += customerLoggerHooks.OnToolStart;
+            hooks.ToolEnd += customerLoggerHooks.OnToolEnd;
+            hooks.AgentStart += customerLoggerHooks.OnAgentStart;
+            hooks.AgentEnd += customerLoggerHooks.OnAgentEnd;
+            hooks.Handoff += customerLoggerHooks.OnHandoff;
+            hooks.ModelGenerationStart += customerLoggerHooks.OnModelGenerationStart;
+            hooks.ModelGenerationEnd += customerLoggerHooks.OnModelGenerationEnd;
+        }
 
         return hooks;
     }

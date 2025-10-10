@@ -39,6 +39,7 @@ public sealed class IncidentInvestigationTaskHandler(
     AgentTaskLocalStore rcaAgentsStore,
     SearchHelper searchHelper,
     Tracer tracer,
+    CustomerLogger customerLogger,
     OpenAISettings openAISettings,
     AgentTaskToolResultHelper agentTaskToolResultHelper,
     IAgentFactory<AgentContext> agentFactory
@@ -53,7 +54,7 @@ public sealed class IncidentInvestigationTaskHandler(
     private readonly ConcurrentBag<HypothesisTreeItem> _finalValidatedHypotheses = new();
     private readonly ConcurrentBag<string> _allHypothesesTitles = new();
     private List<string>? toolSubset = null;
-    private readonly bool _is1PAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
+    private readonly bool _is1PAgent = FirstPartyHelper.IsFirstPartyTenant();
     private Guid? _deepInvestigationNotificationMessageId;
     private readonly string _llmDeploymentName = openAISettings.LLMDeploymentName;
 
@@ -127,6 +128,50 @@ public sealed class IncidentInvestigationTaskHandler(
 
             using var tracingHelper = new TracingHelper(tracer, context.ThreadId.ToString(), nameof(AgentTaskType.IncidentInvestigation));
             var runHooks = tracingHelper.GetAgentTaskTracingHooks();
+
+            // Add customer logger hooks for first-party agents (following TracingHelper convention)
+            // COMMENTED OUT FOR TESTING - Enable logging for all agents
+            // if (_is1PAgent)
+            // {
+            var customerLoggerHelper = new CustomerLoggerHelper(customerLogger, context.ThreadId.ToString(), nameof(AgentTaskType.IncidentInvestigation));
+            var customerLoggerHooks = customerLoggerHelper.GetCustomerLoggerHooks();
+
+            // Subscribe customer logger event handlers to the main runHooks
+            runHooks.ToolStart += async (context, agent, tool, input) =>
+            {
+                await customerLoggerHooks.OnToolStart(context, agent, tool, input);
+            };
+            runHooks.ToolEnd += async (context, agent, tool, output) =>
+            {
+                await customerLoggerHooks.OnToolEnd(context, agent, tool, output);
+            };
+            runHooks.AgentStart += async (context, agent) =>
+            {
+                await customerLoggerHooks.OnAgentStart(context, agent);
+            };
+            runHooks.AgentEnd += async (context, agent, result) =>
+            {
+                await customerLoggerHooks.OnAgentEnd(context, agent, result);
+            };
+            runHooks.Handoff += async (context, fromAgent, toAgent, handoffReasoning) =>
+            {
+                await customerLoggerHooks.OnHandoff(context, fromAgent, toAgent, handoffReasoning);
+            };
+            runHooks.ModelGenerationStart += async (context, agent, chatMessages, chatOptions) =>
+            {
+                await customerLoggerHooks.OnModelGenerationStart(context, agent, chatMessages, chatOptions);
+            };
+            runHooks.ModelGenerationEnd += async (context, agent, response) =>
+            {
+                await customerLoggerHooks.OnModelGenerationEnd(context, agent, response);
+            };
+
+            logger.LogInternalInformation("CustomerLogger hooks enabled for testing - first-party check commented out");
+            // }
+            // else
+            // {
+            //     logger.LogInternalInformation("CustomerLogger hooks disabled - not a first-party agent");
+            // }
 
             // Register the step completion hook once at the beginning
             runHooks.ToolStart += HandleReportStepCompletionToolCallAsync;
@@ -499,7 +544,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     {
                         logger.LogInternalError(ex, "Error in hypothesis processing task");
                     }
-                } 
+                }
             }
         }
 

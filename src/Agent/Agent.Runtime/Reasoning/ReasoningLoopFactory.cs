@@ -9,6 +9,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -37,6 +38,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly CoreSettings _coreSettings;
     private readonly IncidentManagementSettings _incidentManagementSettings;
     private readonly IHostEnvironment _hostEnvironment;
+    private readonly CustomerLogger _customerLogger;
 
     private readonly Tracer _tracer;
 
@@ -65,6 +67,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         ActionSettings actionSettings,
         CoreSettings coreSettings,
         Tracer tracer,
+        CustomerLogger customerLogger,
         IHostEnvironment hostEnvironment,
         ISearchEndpointService searchEndpointService,
         SearchHelper searchHelper,
@@ -86,6 +89,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _coreSettings = coreSettings;
         _hostEnvironment = hostEnvironment;
         _tracer = tracer;
+        _customerLogger = customerLogger;
         _enableReasoningDebugOutput = coreSettings.EnableReasoningOutput
             && hostEnvironment.IsDevelopment(); // only enable debug output in dev environment
         _searchEndpointService = searchEndpointService;
@@ -198,6 +202,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     toolFactory: _toolFactory,
                     actionSettings: _actionSettings,
                     tracer: _tracer,
+                    customerLogger: _customerLogger,
                     agentFactory: _agentFactory,
                     enableReasoningDebugOutput: _enableReasoningDebugOutput,
                     searchEndpointService: _searchEndpointService,
@@ -230,6 +235,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             toolFactory: _toolFactory,
             actionSettings: _actionSettings,
             tracer: _tracer,
+            customerLogger: _customerLogger,
             agentFactory: _agentFactory,
             enableReasoningDebugOutput: _enableReasoningDebugOutput,
             searchEndpointService: _searchEndpointService,
