@@ -68,11 +68,7 @@ public static class IncidentServiceCollectionExtensions
                 var logger = serviceProvider.GetRequiredService<ILogger<ICMAPITokenService>>();
                 var actionSettings = serviceProvider.GetRequiredService<ActionSettings>();
                 var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
-                // Check if Agent Space Proxy endpoint is configured
-                var azureSettings = serviceProvider.GetRequiredService<AzureSettings>();
-                var agentSpaceProxyEndpoint = azureSettings.AgentSpaceProxy?.Endpoint;
-                
-                ICMAPITokenService.Instance.Initialize(authService, actionSettings, incidentManagementSettings.ICMAPI, logger, agentSpaceProxyEndpoint, incidentManagementSettings);
+                ICMAPITokenService.Instance.Initialize(authService, actionSettings, incidentManagementSettings, logger);
 
                 services.AddSingleton<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>, IcmIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentManagementService>();

@@ -125,8 +125,6 @@ public interface IAuthenticationService
 
     public TokenCredential GetIcmApiCredential();
 
-    public Task<AccessToken> GetTokenFromAgentSpaceProxy(string scope, string resourceId);
-
     public TokenCredential GetDataConnectorCredential(ConnectorAuthSettings connectorAuthSettings);
 
     public TokenCredential GetAzureSearchCredential();
