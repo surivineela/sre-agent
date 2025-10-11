@@ -131,25 +131,25 @@ public class DataConnectorResolverService : IConnectorResolver
                             }
                         }
                     }
-                        if (settings == null)
+                    if (settings == null)
+                    {
+                        if (_env.IsDevelopment())
                         {
-                            if (_env.IsDevelopment())
+                            var originalSettings = candidates.First();
+                            settings = new DataConnectorInstanceSettings
                             {
-                                var originalSettings = candidates.First();
-                                settings = new DataConnectorInstanceSettings
-                                {
-                                    Name = originalSettings.Name,
-                                    DataConnectorType = originalSettings.DataConnectorType,
-                                    DataSource = $"https://{dataSource}.kusto.windows.net/capps", // Override with runtime data source
-                                    Identity = originalSettings.Identity
-                                };
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException(
-                                    $"Connector of type '{connectorType}' with DataSource '{dataSource}' not found.");
-                            }
+                                Name = originalSettings.Name,
+                                DataConnectorType = originalSettings.DataConnectorType,
+                                DataSource = $"https://{dataSource}.kusto.windows.net/capps", // Override with runtime data source
+                                Identity = originalSettings.Identity
+                            };
                         }
+                        else
+                        {
+                            throw new InvalidOperationException(
+                                $"Connector of type '{connectorType}' with DataSource '{dataSource}' not found.");
+                        }
+                    }
                 }
                 else
                 {
@@ -223,7 +223,8 @@ public class DataConnectorResolverService : IConnectorResolver
                 Name = settings.Name,
                 ConnectorType = settings.DataConnectorType,
                 DataSource = settings.DataSource,
-                Identity = settings.Identity
+                Identity = settings.Identity,
+                Source = settings.Source.ToString()
             }).ToList();
         }
         catch (Exception ex)

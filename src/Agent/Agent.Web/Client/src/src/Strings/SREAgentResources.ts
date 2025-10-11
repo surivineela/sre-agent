@@ -2107,6 +2107,7 @@ export const DataConnectorsResources = defineMessages({
     dataSource: { defaultMessage: 'Data source', id: '7C0xai' },
     keyVaultUri: { defaultMessage: 'Key Vault URI', id: 'auFFJa' },
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
+    source: { defaultMessage: 'Source', id: 'aH4De2' },
     noDataConnectors: { defaultMessage: 'No data connectors configured', id: 'ALkPTF' },
     createDataConnector: { defaultMessage: 'Create data connector', id: 'Nup8Xl' },
     editDataConnector: { defaultMessage: 'Edit data connector', id: '+hJd45' },

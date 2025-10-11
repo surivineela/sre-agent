@@ -37,4 +37,9 @@ public class DataConnectorBasicInfo
     /// Managed identity resource ID for authentication
     /// </summary>
     public string Identity { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Source of the data connector (Agent or AgentSpace)
+    /// </summary>
+    public string Source { get; set; } = string.Empty;
 }

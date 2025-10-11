@@ -22,6 +22,7 @@ enum DataConnectorColumnKey {
     dataSource = 'dataSource',
     keyVaultUri = 'keyVaultUri',
     identity = 'identity',
+    source = 'source',
 }
 
 const DataConnectors: FC = () => {
@@ -272,6 +273,14 @@ const DataConnectors: FC = () => {
                     }
                     return JSON.stringify(item.identity);
                 },
+            },
+            {
+                key: DataConnectorColumnKey.source,
+                name: intl.formatMessage(DataConnectorsResources.source),
+                minWidth: 100,
+                maxWidth: 150,
+                isResizable: true,
+                onRender: (item: DataConnector) => item.source ?? '-',
             },
         ];
     }, [intl, openManagedIdentity, handleEditDataConnection, isOperationInProgress]);

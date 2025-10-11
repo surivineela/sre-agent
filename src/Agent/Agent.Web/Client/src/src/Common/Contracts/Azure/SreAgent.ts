@@ -5,6 +5,7 @@ export interface DataConnector {
     dataSource?: string;
     keyVaultUri?: string;
     identity: string;
+    source?: string;
 }
 
 export interface Agent {
