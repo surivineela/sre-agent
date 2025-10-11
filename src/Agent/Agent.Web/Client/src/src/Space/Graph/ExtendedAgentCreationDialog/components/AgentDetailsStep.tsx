@@ -1,12 +1,36 @@
-import { Button, Dropdown, Field, Input, Option, Spinner, Switch, Text, Textarea, Tooltip } from '@fluentui/react-components';
-import { Info16Regular, Lightbulb24Regular, Wand24Regular, Warning16Regular } from '@fluentui/react-icons';
-import { FC, useContext, useMemo, useState } from 'react';
+import {
+    Button,
+    Combobox,
+    Dropdown,
+    Field,
+    Input,
+    InputProps,
+    Option,
+    OptionGroup,
+    Spinner,
+    Switch,
+    Text,
+    Textarea,
+    TextareaProps,
+    Tooltip,
+} from '@fluentui/react-components';
+import {
+    ChevronDown12Regular,
+    ChevronRight12Regular,
+    Info16Regular,
+    Lightbulb24Regular,
+    Wand24Regular,
+    Warning16Regular,
+} from '@fluentui/react-icons';
+import { ChangeEventHandler, FC, KeyboardEvent, MouseEvent, useContext, useMemo, useState } from 'react';
 import { IntlShape } from 'react-intl';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgent, ExtendedTool, SystemTool } from '../../../Contracts/ExtendedAgentGraph';
 import { improvePrompt, PromptImprovementResponse } from '../services/promptImprovementService';
 import { useCreationDialogStyles } from '../styles';
+
+const MAX_TOOL_DESCRIPTION_LENGTH = 220;
 
 interface AgentDetailsStepProps {
     agent: Partial<ExtendedAgent>;
@@ -24,11 +48,150 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
     const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
     const [isApplyingImprovement, setIsApplyingImprovement] = useState(false);
     const [promptImprovement, setPromptImprovement] = useState<PromptImprovementResponse | null>(null);
+    const [promptImprovementMode, setPromptImprovementMode] = useState<'suggestions' | 'improvement' | null>(null);
     const [promptImprovementError, setPromptImprovementError] = useState<string | null>(null);
+    const [systemToolSearch, setSystemToolSearch] = useState('');
+    const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
+
+    const handleAgentNameChange: NonNullable<InputProps['onChange']> = (_event, data) => {
+        onChange({ ...agent, name: data.value });
+    };
+
+    const handleAgentInstructionsChange: NonNullable<TextareaProps['onChange']> = (_event, data) => {
+        onChange({ ...agent, instructions: data.value });
+    };
+
+    const handleSystemToolSearchChange: ChangeEventHandler<HTMLInputElement> = event => {
+        setSystemToolSearch(event.target.value);
+    };
 
     const currentTools = useMemo(() => agent.tools ?? [], [agent.tools]);
     const currentSystemTools = useMemo(() => agent.systemTools ?? [], [agent.systemTools]);
     const currentHandoffs = useMemo(() => agent.handoffs ?? [], [agent.handoffs]);
+    const hasActiveSystemToolSearch = systemToolSearch.trim().length > 0;
+
+    const toggleCategoryCollapse = (category: string) => {
+        setCollapsedCategories(previous => ({
+            ...previous,
+            [category]: previous[category] === false ? true : false,
+        }));
+    };
+
+    const handleCategoryClick = (event: MouseEvent<HTMLSpanElement>, category: string) => {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleCategoryCollapse(category);
+    };
+
+    const handleCategoryKeyDown = (event: KeyboardEvent<HTMLSpanElement>, category: string) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            event.stopPropagation();
+            toggleCategoryCollapse(category);
+        }
+    };
+
+    const resolveExtendedToolCategory = (tool: ExtendedTool): string => {
+        const metadataCategory = typeof tool.metadata?.category === 'string' ? tool.metadata.category.trim() : '';
+        if (metadataCategory) {
+            return metadataCategory;
+        }
+
+        const attributeCategory = tool.attributes?.find(attribute => attribute?.toLowerCase().startsWith('category:'));
+        if (attributeCategory) {
+            const value = attributeCategory.split(':')[1];
+            if (value) {
+                const trimmed = value.trim();
+                if (trimmed) {
+                    return trimmed;
+                }
+            }
+        }
+
+        return tool.type?.trim() || systemToolCategoryFallback;
+    };
+
+    const normalizedSelectedSystemTools = useMemo(() => {
+        return new Set(currentSystemTools.map(tool => tool.trim().toLowerCase()).filter(Boolean));
+    }, [currentSystemTools]);
+
+    const systemToolCategoryFallback = useMemo(
+        () => intl.formatMessage(ExtendedAgentsGraphResources.relationshipToolCategoryFallback),
+        [intl]
+    );
+
+    const systemToolLookup = useMemo(() => {
+        const lookup = new Map<string, SystemTool>();
+        systemTools.forEach(tool => {
+            const trimmedName = tool.name?.trim();
+            if (!trimmedName) {
+                return;
+            }
+            lookup.set(trimmedName, tool);
+        });
+        return lookup;
+    }, [systemTools]);
+
+    const filteredSystemToolGroups = useMemo(() => {
+        if (systemTools.length === 0) {
+            return [] as Array<{ category: string; tools: SystemTool[] }>;
+        }
+
+        const query = systemToolSearch.trim().toLowerCase();
+        const groups = new Map<string, SystemTool[]>();
+
+        systemTools.forEach(tool => {
+            const name = tool.name?.trim();
+            if (!name) {
+                return;
+            }
+
+            const category = tool.category?.trim() || systemToolCategoryFallback;
+            const searchableText =
+                `${name} ${category} ${tool.pluginName ?? ''} ${tool.resourceType ?? ''} ${tool.description ?? ''}`.toLowerCase();
+            const isSelected = normalizedSelectedSystemTools.has(name.toLowerCase());
+
+            if (query && !searchableText.includes(query) && !isSelected) {
+                return;
+            }
+
+            const existing = groups.get(category);
+            if (existing) {
+                existing.push(tool);
+            } else {
+                groups.set(category, [tool]);
+            }
+        });
+
+        return Array.from(groups.entries())
+            .filter(([, toolsInGroup]) => toolsInGroup.length > 0)
+            .sort((a, b) => a[0].localeCompare(b[0], undefined, { sensitivity: 'base' }))
+            .map(([category, toolsInGroup]) => ({
+                category,
+                tools: toolsInGroup.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
+            }));
+    }, [systemToolSearch, systemTools, systemToolCategoryFallback, normalizedSelectedSystemTools]);
+
+    const selectedSystemToolDetails = useMemo(() => {
+        if (currentSystemTools.length === 0) {
+            return [] as Array<{ name: string; category: string }>;
+        }
+
+        return currentSystemTools
+            .map(name => name?.trim())
+            .filter((name): name is string => !!name)
+            .map(name => {
+                const tool = systemToolLookup.get(name);
+                if (!tool) {
+                    return { name, category: systemToolCategoryFallback };
+                }
+
+                return {
+                    name,
+                    category: tool.category?.trim() || systemToolCategoryFallback,
+                };
+            });
+    }, [currentSystemTools, systemToolLookup, systemToolCategoryFallback]);
 
     const availableHandoffs = useMemo(() => {
         const names = new Set(existingAgents.map(a => a.name).filter(name => !!name && name !== agent.name) as string[]);
@@ -71,10 +234,8 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
 
         try {
             const result = await improvePrompt(sreAgentEndpoint, agent.instructions);
-            console.log('AI Improvement API Response:', result);
-            console.log('Suggestions length:', result.suggestions?.length);
-            console.log('Warnings length:', result.warnings?.length);
             setPromptImprovement(result);
+            setPromptImprovementMode('suggestions');
         } catch (error) {
             console.error('Failed to fetch AI suggestions:', error);
             setPromptImprovementError(getPromptErrorMessage(error));
@@ -94,10 +255,21 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
         try {
             const result = await improvePrompt(sreAgentEndpoint, agent.instructions);
             setPromptImprovement(result);
+            setPromptImprovementMode('improvement');
 
-            if (result.improvedPrompt?.trim()) {
-                onChange({ ...agent, instructions: result.improvedPrompt });
+            const updatedAgent: Partial<ExtendedAgent> = { ...agent };
+
+            const improvedPrompt = result.improvedPrompt?.trim();
+            if (improvedPrompt) {
+                updatedAgent.instructions = improvedPrompt;
             }
+
+            const improvedHandoff = result.handoffDescription?.trim();
+            if (improvedHandoff) {
+                updatedAgent.handoffDescription = improvedHandoff;
+            }
+
+            onChange(updatedAgent);
         } catch (error) {
             console.error('Failed to apply AI improvements:', error);
             setPromptImprovementError(getPromptErrorMessage(error));
@@ -110,11 +282,14 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
         <div className={styles.formSection}>
             <Field
                 label={
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                        <span>
-                            {intl.formatMessage(ExtendedAgentsGraphResources.agentName)} <span style={{ color: '#c53030' }}>*</span>
+                    <div className={styles.fieldLabelRow}>
+                        <span className={styles.fieldLabelText}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.agentName)}
+                            <span className={styles.fieldRequiredStar} aria-hidden="true">
+                                *
+                            </span>
                         </span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className={styles.fieldLabelMeta}>
                             <Text size={200}>{intl.formatMessage(ExtendedAgentsGraphResources.metaAgentOverrideLabel)}</Text>
                             <Switch
                                 checked={(agent as any).metaAgentOverride === true}
@@ -132,8 +307,9 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
             >
                 <Input
                     value={agent.name || ''}
-                    onChange={(_, data) => onChange({ ...agent, name: data.value })}
+                    onChange={handleAgentNameChange}
                     placeholder={intl.formatMessage(ExtendedAgentsGraphResources.agentNamePlaceholder)}
+                    input={{ className: styles.textInput }}
                 />
                 <div className={styles.helpText}>
                     {intl.formatMessage(ExtendedAgentsGraphResources.agentNameHelp)}
@@ -151,12 +327,14 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
 
             <Field
                 label={
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                        <span>
+                    <div className={styles.fieldLabelRow}>
+                        <span className={styles.fieldLabelText}>
                             {intl.formatMessage(ExtendedAgentsGraphResources.instructions)}
-                            <span style={{ color: 'red', marginLeft: '4px' }}>*</span>
+                            <span className={styles.fieldRequiredStar} aria-hidden="true">
+                                *
+                            </span>
                         </span>
-                        <div className={styles.promptImprovementActions}>
+                        <div className={styles.fieldActionGroup}>
                             <Tooltip
                                 content={intl.formatMessage(ExtendedAgentsGraphResources.suggestionsTooltip)}
                                 relationship="description"
@@ -188,7 +366,7 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
                                 <Button
                                     appearance="primary"
                                     size="small"
-                                    disabled={!agent.instructions?.trim() || isApplyingImprovement}
+                                    disabled={!agent.instructions?.trim() || isApplyingImprovement || isFetchingSuggestions}
                                     onClick={handleImproveWithAI}
                                     className={styles.promptImprovementButton}
                                 >
@@ -213,7 +391,7 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
                 <div className={styles.promptImprovementContainer}>
                     {promptImprovementError && <Text className={styles.inlineError}>{promptImprovementError}</Text>}
 
-                    {promptImprovement && (
+                    {promptImprovement && promptImprovementMode === 'suggestions' && (
                         <div className={styles.promptImprovementInline}>
                             {promptImprovement.improvedPrompt?.trim() && (
                                 <div className={styles.promptImprovementInlineGroup}>
@@ -264,73 +442,247 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
                                     )}
                                 </div>
                             </div>
+
+                            {promptImprovementMode === 'suggestions' && promptImprovement.handoffDescription?.trim() && (
+                                <div className={styles.promptImprovementInlineGroup}>
+                                    <Text className={styles.promptImprovementSectionTitle}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.handoffDescriptionSuggestionHeading)}
+                                    </Text>
+                                    <div className={styles.promptPreview}>{promptImprovement.handoffDescription}</div>
+                                </div>
+                            )}
                         </div>
                     )}
 
                     <Textarea
+                        aria-required={true}
                         value={agent.instructions || ''}
-                        onChange={(_, data) => onChange({ ...agent, instructions: data.value })}
+                        onChange={handleAgentInstructionsChange}
                         placeholder={intl.formatMessage(ExtendedAgentsGraphResources.instructionsPlaceholder)}
                         rows={8}
-                        style={{
-                            minHeight: '140px',
-                            fontSize: '14px',
-                            lineHeight: '1.5',
-                        }}
+                        textarea={{ className: styles.instructionsTextarea }}
                     />
                 </div>
                 <div className={styles.helpText}>{intl.formatMessage(ExtendedAgentsGraphResources.instructionsHelp)}</div>
             </Field>
 
-            <Field label={intl.formatMessage(ExtendedAgentsGraphResources.toolsOptional)}>
-                <Dropdown
-                    multiselect
-                    disabled={existingTools.length === 0}
-                    placeholder={
-                        existingTools.length === 0
-                            ? 'No extended tools available'
-                            : intl.formatMessage(ExtendedAgentsGraphResources.toolsPlaceholder)
-                    }
-                    selectedOptions={currentTools}
-                    onOptionSelect={(_, data) => {
-                        const selected = data.selectedOptions;
-                        onChange({ ...agent, tools: selected });
-                    }}
-                >
-                    {existingTools.map(tool => (
-                        <Option key={tool.name} value={tool.name}>
-                            {tool.name}
-                        </Option>
-                    ))}
-                </Dropdown>
-                <div className={styles.helpText}>{intl.formatMessage(ExtendedAgentsGraphResources.toolsHelp)}</div>
+            <Field
+                label={
+                    <div className={styles.fieldLabelRow}>
+                        <span className={styles.fieldLabelText}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.handoffDescriptionLabel)}
+                            <span className={styles.fieldRequiredStar} aria-hidden="true">
+                                *
+                            </span>
+                        </span>
+                    </div>
+                }
+            >
+                <Textarea
+                    value={agent.handoffDescription || ''}
+                    onChange={(_, data) => onChange({ ...agent, handoffDescription: data.value })}
+                    placeholder={intl.formatMessage(ExtendedAgentsGraphResources.handoffDescriptionPlaceholder)}
+                    rows={2}
+                    textarea={{ className: styles.handoffTextarea }}
+                />
+                <div className={styles.helpText}>{intl.formatMessage(ExtendedAgentsGraphResources.handoffDescriptionHelp)}</div>
             </Field>
 
-            <Field label={intl.formatMessage(ExtendedAgentsGraphResources.systemToolsOptional)}>
-                <Dropdown
-                    multiselect
-                    disabled={systemTools.length === 0}
-                    placeholder={
-                        systemTools.length === 0
-                            ? 'No system tools available'
-                            : intl.formatMessage(ExtendedAgentsGraphResources.systemToolsPlaceholder)
-                    }
-                    selectedOptions={currentSystemTools}
-                    onOptionSelect={(_, data) => {
-                        const selected = data.selectedOptions;
-                        onChange({ ...agent, systemTools: selected });
-                    }}
-                >
-                    {systemTools.map(tool => (
-                        <Option key={tool.name} value={tool.name} text={`${tool.name} (${tool.category})`}>
-                            {tool.name} ({tool.category})
-                        </Option>
-                    ))}
-                </Dropdown>
-                <div className={styles.helpText}>{intl.formatMessage(ExtendedAgentsGraphResources.systemToolsHelp)}</div>
+            <Field
+                label={
+                    <div className={styles.fieldLabelRow}>
+                        <span className={styles.fieldLabelText}>{intl.formatMessage(ExtendedAgentsGraphResources.toolsOptional)}</span>
+                    </div>
+                }
+            >
+                <div className={styles.systemToolPicker}>
+                    <Dropdown
+                        multiselect
+                        disabled={existingTools.length === 0}
+                        placeholder={
+                            existingTools.length === 0
+                                ? intl.formatMessage(ExtendedAgentsGraphResources.extendedToolsUnavailable)
+                                : intl.formatMessage(ExtendedAgentsGraphResources.toolsPlaceholder)
+                        }
+                        selectedOptions={currentTools}
+                        onOptionSelect={(_, data) => {
+                            const selected = data.selectedOptions;
+                            onChange({ ...agent, tools: selected });
+                        }}
+                    >
+                        {existingTools.map(tool => {
+                            const category = resolveExtendedToolCategory(tool);
+                            const rawDescription = tool.description?.trim();
+                            const truncatedDescription = rawDescription
+                                ? rawDescription.length > MAX_TOOL_DESCRIPTION_LENGTH
+                                    ? `${rawDescription.slice(0, MAX_TOOL_DESCRIPTION_LENGTH)}…`
+                                    : rawDescription
+                                : undefined;
+                            const metadataParts = [tool.connector?.trim(), tool.type?.trim()].filter(
+                                value => !!value && value !== category
+                            ) as string[];
+
+                            return (
+                                <Option key={tool.name} value={tool.name} text={`${tool.name} (${category})`}>
+                                    <div className={styles.systemToolOption}>
+                                        <div className={styles.systemToolOptionHeader}>
+                                            <span className={styles.systemToolOptionTitle}>{tool.name}</span>
+                                            <span className={styles.systemToolCategoryPill}>{category}</span>
+                                        </div>
+                                        {truncatedDescription && (
+                                            <span className={styles.systemToolOptionDescription} title={rawDescription}>
+                                                {truncatedDescription}
+                                            </span>
+                                        )}
+                                        {metadataParts.length > 0 && (
+                                            <span className={styles.systemToolOptionMeta}>{metadataParts.join(' • ')}</span>
+                                        )}
+                                    </div>
+                                </Option>
+                            );
+                        })}
+                    </Dropdown>
+                    {currentTools.length > 0 && (
+                        <Text className={styles.indicatorBadge} role="status">
+                            {intl.formatMessage(ExtendedAgentsGraphResources.toolsCountBadge, {
+                                count: currentTools.length,
+                            })}
+                        </Text>
+                    )}
+                    <div className={styles.helpText}>{intl.formatMessage(ExtendedAgentsGraphResources.toolsHelp)}</div>
+                </div>
             </Field>
 
-            <Field label={intl.formatMessage(ExtendedAgentsGraphResources.relationshipCurrentHandoffs)}>
+            <Field
+                label={
+                    <div className={styles.fieldLabelRow}>
+                        <span className={styles.fieldLabelText}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.systemToolsOptional)}
+                        </span>
+                    </div>
+                }
+            >
+                <div className={styles.systemToolPicker}>
+                    <Combobox
+                        multiselect
+                        freeform
+                        disabled={systemTools.length === 0}
+                        placeholder={
+                            systemTools.length === 0
+                                ? intl.formatMessage(ExtendedAgentsGraphResources.systemToolsUnavailable)
+                                : intl.formatMessage(ExtendedAgentsGraphResources.systemToolsPlaceholder)
+                        }
+                        selectedOptions={currentSystemTools}
+                        value={systemToolSearch}
+                        onChange={handleSystemToolSearchChange}
+                        onOptionSelect={(_, data) => {
+                            const selected = data.selectedOptions;
+                            onChange({ ...agent, systemTools: selected });
+                        }}
+                    >
+                        {filteredSystemToolGroups.map(group => {
+                            const userCollapsed = collapsedCategories[group.category];
+                            const isCollapsed = hasActiveSystemToolSearch ? false : userCollapsed !== false;
+                            const groupTools = isCollapsed ? [] : group.tools;
+
+                            return (
+                                <OptionGroup
+                                    key={group.category}
+                                    label={
+                                        <span
+                                            className={styles.systemToolGroupHeader}
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-expanded={!isCollapsed}
+                                            onClick={event => handleCategoryClick(event, group.category)}
+                                            onKeyDown={event => handleCategoryKeyDown(event, group.category)}
+                                        >
+                                            <span className={styles.systemToolGroupLabel}>
+                                                {isCollapsed ? <ChevronRight12Regular /> : <ChevronDown12Regular />}
+                                                <span>{group.category}</span>
+                                            </span>
+                                            <span className={styles.systemToolGroupCount}>{group.tools.length}</span>
+                                        </span>
+                                    }
+                                >
+                                    {groupTools.map(tool => {
+                                        const category = tool.category?.trim() || systemToolCategoryFallback;
+                                        const metadataParts = [tool.pluginName, tool.resourceType].filter(Boolean) as string[];
+                                        const rawDescription = tool.description?.trim();
+                                        const truncatedDescription = rawDescription
+                                            ? rawDescription.length > MAX_TOOL_DESCRIPTION_LENGTH
+                                                ? `${rawDescription.slice(0, MAX_TOOL_DESCRIPTION_LENGTH)}…`
+                                                : rawDescription
+                                            : undefined;
+
+                                        return (
+                                            <Option key={tool.name} value={tool.name} text={`${tool.name} (${category})`}>
+                                                <div className={styles.systemToolOption}>
+                                                    <div className={styles.systemToolOptionHeader}>
+                                                        <span className={styles.systemToolOptionTitle}>{tool.name}</span>
+                                                        <span className={styles.systemToolCategoryPill}>{category}</span>
+                                                    </div>
+                                                    {truncatedDescription && (
+                                                        <span className={styles.systemToolOptionDescription} title={rawDescription}>
+                                                            {truncatedDescription}
+                                                        </span>
+                                                    )}
+                                                    {metadataParts.length > 0 && (
+                                                        <span className={styles.systemToolOptionMeta}>{metadataParts.join(' • ')}</span>
+                                                    )}
+                                                </div>
+                                            </Option>
+                                        );
+                                    })}
+                                </OptionGroup>
+                            );
+                        })}
+                    </Combobox>
+
+                    {currentSystemTools.length > 0 && (
+                        <Text className={styles.indicatorBadge} role="status">
+                            {intl.formatMessage(ExtendedAgentsGraphResources.systemToolsCountBadge, {
+                                count: currentSystemTools.length,
+                            })}
+                        </Text>
+                    )}
+
+                    {systemTools.length === 0 && (
+                        <Text className={styles.systemToolEmpty}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.systemToolsUnavailable)}
+                        </Text>
+                    )}
+
+                    {systemTools.length > 0 && filteredSystemToolGroups.length === 0 && (
+                        <Text className={styles.systemToolEmpty}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.systemToolsSearchNoResults)}
+                        </Text>
+                    )}
+
+                    {selectedSystemToolDetails.length > 0 && (
+                        <div className={styles.chipsRow}>
+                            {selectedSystemToolDetails.map(tool => (
+                                <div key={tool.name} className={styles.pill}>
+                                    <strong>{tool.name}</strong>
+                                    <span>• {tool.category}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className={styles.helpText}>{intl.formatMessage(ExtendedAgentsGraphResources.systemToolsHelp)}</div>
+                </div>
+            </Field>
+
+            <Field
+                label={
+                    <div className={styles.fieldLabelRow}>
+                        <span className={styles.fieldLabelText}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.relationshipCurrentHandoffs)}
+                        </span>
+                    </div>
+                }
+            >
                 <Dropdown
                     multiselect
                     disabled={availableHandoffs.length === 0}

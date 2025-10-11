@@ -16,7 +16,19 @@ import ScheduledTasksToolbar from './ScheduledTasksToolbar';
 const ScheduledTasksOverview: FC = () => {
     const intl = useIntl();
     const styles = useScheduledTasksStyles();
-    const { scheduledTasks, loading, error, refreshTasks, createTask, updateTask, deleteTask, pauseTask, resumeTask } = useScheduledTasks();
+    const {
+        scheduledTasks,
+        loading,
+        error,
+        refreshTasks,
+        createTask,
+        updateTask,
+        deleteTask,
+        pauseTask,
+        resumeTask,
+        generateCronExpression,
+        improveScheduledTaskPrompt,
+    } = useScheduledTasks();
 
     const [selectedTask, setSelectedTask] = useState<ScheduledTask | null>(null);
     const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -151,6 +163,8 @@ const ScheduledTasksOverview: FC = () => {
                             onDismiss={() => setShowCreateDialog(false)}
                             onTaskCreated={handleTaskCreated}
                             createTask={createTask}
+                            generateCronExpression={generateCronExpression}
+                            improvePrompt={improveScheduledTaskPrompt}
                         />
                     )}
 

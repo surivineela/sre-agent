@@ -1,7 +1,6 @@
 import {
     Badge,
     Button,
-    Combobox,
     Dropdown,
     Field,
     Input,
@@ -9,18 +8,23 @@ import {
     MessageBarBody,
     Option,
     OptionGroup,
+    Spinner,
     Text,
     Textarea,
+    Tooltip,
     mergeClasses,
 } from '@fluentui/react-components';
-import { Alert24Regular, Clock24Regular } from '@fluentui/react-icons';
-import { ChangeEventHandler, FC, useEffect, useMemo, useRef } from 'react';
+import { Alert24Regular, Clock24Regular, Lightbulb24Regular, Wand24Regular } from '@fluentui/react-icons';
+import { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { IntlShape } from 'react-intl';
+import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentHandler } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgent } from '../../../Contracts/ExtendedAgentGraph';
-import { ScheduledTask } from '../../../Contracts/ScheduledTasks';
+import { CronExpressionGenerationRequest, ScheduledTask, ScheduledTaskPromptImprovementResponse } from '../../../Contracts/ScheduledTasks';
+import { generateCronExpression } from '../services/scheduleService';
+import { improveScheduledTaskPrompt } from '../services/scheduledPromptImprovementService';
 import { useCreationDialogStyles } from '../styles';
 import { TriggerMode, TriggerStateController, TriggerStrategy, TriggerValidationState } from '../types';
 import { getBadgeColorForPriority, getIncidentTypesForPlatform, getPrioritiesForPlatform } from '../utils/incidentPlatforms';
@@ -28,10 +32,10 @@ import {
     DEFAULT_SCHEDULE_PRESET,
     SCHEDULE_PRESETS,
     getNextRunPreview,
+    getPresetFromCron,
     getScheduleDescription,
     isCronExpressionLikelyValid,
     normalizeCronExpression,
-    tryParseNaturalLanguageToCron,
 } from '../utils/schedule';
 
 const INSTRUCTION_TEMPLATES_INCIDENT = [
@@ -42,10 +46,10 @@ const INSTRUCTION_TEMPLATES_INCIDENT = [
 ];
 
 const INSTRUCTION_TEMPLATES_SCHEDULED = [
-    'Daily status digest',
-    'Top failing queries',
-    'Security anomalies check',
-    'Performance metrics summary',
+    'Summarize key metrics for the past 24 hours',
+    'Validate resource health and alert status',
+    'Generate weekly operational status update',
+    'Highlight anomalies or regressions that need attention',
 ];
 
 interface AgentOption {
@@ -83,15 +87,30 @@ export const SimpleTriggerDetailsStep: FC<SimpleTriggerDetailsStepProps> = ({
 }) => {
     const styles = useCreationDialogStyles();
     const { trigger, validation, updateFromUser, setValidation, applyAgentDefaults } = controller;
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     // Get platform-specific priorities and incident types
     const incidentPriorities = useMemo(() => getPrioritiesForPlatform(incidentPlatformType), [incidentPlatformType]);
     const incidentTypes = useMemo(() => getIncidentTypesForPlatform(incidentPlatformType), [incidentPlatformType]);
 
-    const agentFieldRef = useRef<HTMLInputElement | null>(null);
+    const agentFieldRef = useRef<HTMLButtonElement | null>(null);
     const nameRef = useRef<HTMLInputElement | null>(null);
     const instructionsRef = useRef<HTMLTextAreaElement | null>(null);
     const cronRef = useRef<HTMLInputElement | null>(null);
+    const naturalTextRef = useRef(trigger.schedule.naturalText ?? '');
+
+    const [isGeneratingCron, setIsGeneratingCron] = useState(false);
+    const [naturalGenerationError, setNaturalGenerationError] = useState<string | undefined>();
+    const [promptImprovement, setPromptImprovement] = useState<ScheduledTaskPromptImprovementResponse | null>(null);
+    const [promptImprovementMode, setPromptImprovementMode] = useState<'suggestions' | 'improvement' | null>(null);
+    const [promptImprovementError, setPromptImprovementError] = useState<string | null>(null);
+    const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
+    const [isApplyingImprovement, setIsApplyingImprovement] = useState(false);
+
+    const resetNaturalLanguageState = useCallback(() => {
+        setIsGeneratingCron(false);
+        setNaturalGenerationError(undefined);
+    }, []);
 
     useEffect(() => {
         const fieldOrder: Array<[keyof TriggerValidationState, React.RefObject<HTMLElement>]> = [
@@ -112,6 +131,20 @@ export const SimpleTriggerDetailsStep: FC<SimpleTriggerDetailsStepProps> = ({
             }
         }
     }, [validation]);
+
+    useEffect(() => {
+        naturalTextRef.current = trigger.schedule.naturalText ?? '';
+    }, [trigger.schedule.naturalText]);
+
+    useEffect(() => {
+        if (trigger.mode !== 'scheduled') {
+            setPromptImprovement(null);
+            setPromptImprovementMode(null);
+            setPromptImprovementError(null);
+            setIsFetchingSuggestions(false);
+            setIsApplyingImprovement(false);
+        }
+    }, [trigger.mode]);
 
     useEffect(() => {
         if (trigger.mode !== 'scheduled' || trigger.strategy !== 'quick') {
@@ -223,51 +256,169 @@ export const SimpleTriggerDetailsStep: FC<SimpleTriggerDetailsStepProps> = ({
         setValidation(prev => ({ ...prev, agent: undefined }));
     };
 
-    const handleAgentComboboxChange: ChangeEventHandler<HTMLInputElement> = event => {
-        handleAgentSelect(event.target.value);
-    };
-
     const handleTemplateClick = (template: string) => {
         const current = trigger.instructions ?? '';
         const newValue = current ? `${current}\n- ${template}` : `- ${template}`;
         updateFromUser({ instructions: newValue }, ['instructions']);
     };
 
-    const handleNaturalLanguageChange = (value: string) => {
-        const parsed = tryParseNaturalLanguageToCron(value);
-        const schedulePatch: Parameters<typeof updateFromUser>[0]['schedule'] = {
-            naturalText: value,
+    const handleNaturalLanguageChange = useCallback(
+        (value: string) => {
+            resetNaturalLanguageState();
+            updateFromUser(
+                {
+                    schedule: {
+                        naturalText: value,
+                        inputMode: value.trim().length > 0 ? 'natural' : 'preset',
+                    },
+                },
+                ['schedule']
+            );
+        },
+        [resetNaturalLanguageState, updateFromUser]
+    );
+
+    const handleGenerateSchedule = useCallback(async () => {
+        const description = trigger.schedule.naturalText?.trim() ?? '';
+        if (!description) {
+            setNaturalGenerationError(intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleNaturalErrorRequired));
+            return;
+        }
+
+        if (!sreAgentEndpoint) {
+            setNaturalGenerationError(intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleNaturalGenerateFailed));
+            return;
+        }
+
+        setIsGeneratingCron(true);
+        setNaturalGenerationError(undefined);
+
+        const request: CronExpressionGenerationRequest = {
+            description,
+            timezone: trigger.schedule.timezone,
+            startTime: trigger.schedule.startTime,
         };
-        if (parsed?.cron) {
-            schedulePatch.cronExpression = normalizeCronExpression(parsed.cron);
-            schedulePatch.preset = parsed.preset ?? 'custom';
+
+        try {
+            const result = await generateCronExpression(sreAgentEndpoint, request);
+            if (result?.cronExpression) {
+                if (naturalTextRef.current.trim() !== description) {
+                    return;
+                }
+                const normalizedCron = normalizeCronExpression(result.cronExpression);
+                const inferredPreset = getPresetFromCron(normalizedCron);
+                updateFromUser(
+                    {
+                        schedule: {
+                            cronExpression: normalizedCron,
+                            preset: inferredPreset ?? 'custom',
+                            naturalText: description,
+                            inputMode: 'natural',
+                            timezone: result.timezone ?? trigger.schedule.timezone,
+                        },
+                    },
+                    ['schedule']
+                );
+
+                setValidation(prev => ({ ...prev, cron: undefined }));
+            } else if (naturalTextRef.current.trim() === description) {
+                setNaturalGenerationError(intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleNaturalGenerateFailed));
+            }
+        } catch (error) {
+            console.error('Failed to generate cron expression from natural language:', error);
+            if (naturalTextRef.current.trim() === description) {
+                setNaturalGenerationError(intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleNaturalGenerateFailed));
+            }
+        } finally {
+            setIsGeneratingCron(false);
         }
-        updateFromUser({ schedule: schedulePatch }, ['schedule']);
-        if (parsed?.cron) {
-            setValidation(prev => ({ ...prev, cron: undefined }));
-        }
-    };
+    }, [
+        intl,
+        sreAgentEndpoint,
+        trigger.schedule.naturalText,
+        trigger.schedule.startTime,
+        trigger.schedule.timezone,
+        updateFromUser,
+        setValidation,
+    ]);
 
     const handleCronChange = (value: string) => {
+        resetNaturalLanguageState();
         updateFromUser({ schedule: { cronExpression: value, preset: 'custom' } }, ['schedule']);
         if (isCronExpressionLikelyValid(value)) {
             setValidation(prev => ({ ...prev, cron: undefined }));
         }
     };
 
-    const handlePresetClick = (key: keyof typeof SCHEDULE_PRESETS) => {
-        updateFromUser(
-            {
-                schedule: {
-                    preset: key,
-                    cronExpression: SCHEDULE_PRESETS[key].cron,
-                    naturalText: '',
-                },
-            },
-            ['schedule']
-        );
-        setValidation(prev => ({ ...prev, cron: undefined }));
-    };
+    const getPromptErrorMessage = useCallback(
+        (error: unknown): string => {
+            const errorMessage = typeof error === 'string' ? error : ((error as any)?.message?.toString?.() ?? '');
+
+            if (errorMessage.includes('400')) {
+                if (errorMessage.includes('Chat client is not available')) {
+                    return intl.formatMessage(ExtendedAgentsGraphResources.improveInstructionsChatUnavailable);
+                }
+                return intl.formatMessage(ExtendedAgentsGraphResources.improveInstructionsInvalidRequest);
+            }
+
+            if (errorMessage.includes('500')) {
+                return intl.formatMessage(ExtendedAgentsGraphResources.improveInstructionsServerError);
+            }
+
+            if (errorMessage.includes('403')) {
+                return intl.formatMessage(ExtendedAgentsGraphResources.improveInstructionsForbidden);
+            }
+
+            return intl.formatMessage(ExtendedAgentsGraphResources.improveInstructionsError);
+        },
+        [intl]
+    );
+
+    const handlePromptSuggestions = useCallback(async () => {
+        if (!trigger.instructions?.trim() || !sreAgentEndpoint) {
+            return;
+        }
+
+        setIsFetchingSuggestions(true);
+        setPromptImprovementError(null);
+
+        try {
+            const response = await improveScheduledTaskPrompt(sreAgentEndpoint, trigger.instructions);
+            setPromptImprovement(response);
+            setPromptImprovementMode('suggestions');
+        } catch (error) {
+            console.error('Failed to fetch scheduled task prompt suggestions:', error);
+            setPromptImprovementError(getPromptErrorMessage(error));
+        } finally {
+            setIsFetchingSuggestions(false);
+        }
+    }, [getPromptErrorMessage, sreAgentEndpoint, trigger.instructions]);
+
+    const handlePromptImprove = useCallback(async () => {
+        if (!trigger.instructions?.trim() || !sreAgentEndpoint) {
+            return;
+        }
+
+        setIsApplyingImprovement(true);
+        setPromptImprovementError(null);
+
+        try {
+            const response = await improveScheduledTaskPrompt(sreAgentEndpoint, trigger.instructions);
+            if (response?.improvedPrompt?.trim()) {
+                updateFromUser({ instructions: response.improvedPrompt }, ['instructions']);
+                setPromptImprovement(null);
+                setPromptImprovementMode(null);
+            } else {
+                setPromptImprovement(response);
+                setPromptImprovementMode('suggestions');
+            }
+        } catch (error) {
+            console.error('Failed to improve scheduled task prompt:', error);
+            setPromptImprovementError(getPromptErrorMessage(error));
+        } finally {
+            setIsApplyingImprovement(false);
+        }
+    }, [getPromptErrorMessage, sreAgentEndpoint, trigger.instructions, updateFromUser]);
 
     const renderSeverityPills = () => (
         <div className={styles.pillsRow}>
@@ -347,6 +498,55 @@ export const SimpleTriggerDetailsStep: FC<SimpleTriggerDetailsStepProps> = ({
     const leadAgentName =
         trigger.agentDisplayName || trigger.agentName || intl.formatMessage(ExtendedAgentsGraphResources.triggerAgentFallbackName);
 
+    const canUsePromptActions = Boolean(trigger.instructions?.trim() && sreAgentEndpoint);
+
+    const instructionsLabel =
+        currentMode === 'scheduled' ? (
+            <div className={styles.fieldLabelRow}>
+                <span className={styles.fieldLabelText}>
+                    {intl.formatMessage(ExtendedAgentsGraphResources.triggerInstructionsLabel)}
+                    <span className={styles.fieldRequiredStar} aria-hidden="true">
+                        *
+                    </span>
+                </span>
+                <div className={styles.fieldActionGroup}>
+                    <Tooltip content={intl.formatMessage(ExtendedAgentsGraphResources.suggestionsTooltip)} relationship="description">
+                        <Button
+                            appearance="secondary"
+                            size="small"
+                            className={styles.promptImprovementButton}
+                            icon={isFetchingSuggestions ? <Spinner size="tiny" /> : <Lightbulb24Regular aria-hidden />}
+                            disabled={!canUsePromptActions || isFetchingSuggestions || isApplyingImprovement}
+                            onClick={handlePromptSuggestions}
+                        >
+                            {isFetchingSuggestions
+                                ? intl.formatMessage(ExtendedAgentsGraphResources.loadingSuggestions)
+                                : intl.formatMessage(ExtendedAgentsGraphResources.suggestionsButton)}
+                        </Button>
+                    </Tooltip>
+                    <Tooltip
+                        content={intl.formatMessage(ExtendedAgentsGraphResources.improveInstructionsTooltip)}
+                        relationship="description"
+                    >
+                        <Button
+                            appearance="secondary"
+                            size="small"
+                            className={styles.promptImprovementButton}
+                            icon={isApplyingImprovement ? <Spinner size="tiny" /> : <Wand24Regular aria-hidden />}
+                            disabled={!canUsePromptActions || isApplyingImprovement || isFetchingSuggestions}
+                            onClick={handlePromptImprove}
+                        >
+                            {isApplyingImprovement
+                                ? intl.formatMessage(ExtendedAgentsGraphResources.improvingInstructions)
+                                : intl.formatMessage(ExtendedAgentsGraphResources.improveInstructionsButton)}
+                        </Button>
+                    </Tooltip>
+                </div>
+            </div>
+        ) : (
+            intl.formatMessage(ExtendedAgentsGraphResources.triggerInstructionsLabel)
+        );
+
     return (
         <div className={styles.formSection}>
             <Text className={styles.triggerInfoLead}>
@@ -395,24 +595,23 @@ export const SimpleTriggerDetailsStep: FC<SimpleTriggerDetailsStepProps> = ({
                 validationState={validation.agent ? 'error' : 'none'}
                 validationMessage={validation.agent}
             >
-                <Combobox
+                <Dropdown
                     ref={agentFieldRef}
-                    value={trigger.agentDisplayName ?? trigger.agentName ?? ''}
                     placeholder={intl.formatMessage(ExtendedAgentsGraphResources.triggerAgentPlaceholder)}
                     selectedOptions={trigger.agentName ? [trigger.agentName] : []}
+                    value={trigger.agentName ?? ''}
                     onOptionSelect={(_, data) => handleAgentSelect((data.optionValue ?? data.optionText ?? '').toString())}
-                    onChange={handleAgentComboboxChange}
                 >
-                    {groupedAgentOptions.map(group => (
+                    {groupedAgentOptions.map((group: AgentOptionGroup) => (
                         <OptionGroup key={group.label} label={group.label}>
-                            {group.options.map(option => (
+                            {group.options.map((option: AgentOption) => (
                                 <Option key={option.key} value={option.key} text={option.label}>
                                     {option.label}
                                 </Option>
                             ))}
                         </OptionGroup>
                     ))}
-                </Combobox>
+                </Dropdown>
             </Field>
 
             {/* Strategy Selection */}
@@ -490,79 +689,67 @@ export const SimpleTriggerDetailsStep: FC<SimpleTriggerDetailsStepProps> = ({
 
                                 <Field
                                     className={styles.compactField}
-                                    label={intl.formatMessage(ExtendedAgentsGraphResources.triggerSchedulePresetLabel)}
-                                    required
+                                    label={
+                                        <div className={styles.fieldLabelRow}>
+                                            <span className={styles.fieldLabelText}>
+                                                Schedule
+                                                <span className={styles.fieldRequiredStar} aria-hidden="true">
+                                                    *
+                                                </span>
+                                            </span>
+                                        </div>
+                                    }
                                 >
-                                    <Dropdown
-                                        value={schedulePreset}
-                                        selectedOptions={[schedulePreset]}
-                                        onOptionSelect={(_, data) => {
-                                            const key = data.optionValue as string;
-                                            if (key === 'custom') {
-                                                updateFromUser({ schedule: { preset: 'custom' as const } }, ['schedule']);
-                                            } else {
-                                                handlePresetClick(key as keyof typeof SCHEDULE_PRESETS);
-                                            }
-                                        }}
-                                        placeholder="Select schedule..."
-                                    >
-                                        {(
-                                            Object.entries(SCHEDULE_PRESETS) as Array<
-                                                [keyof typeof SCHEDULE_PRESETS, { label: string; cron: string }]
-                                            >
-                                        ).map(([key, preset]) => (
-                                            <Option key={key} value={key} text={key}>
-                                                {preset.label}
-                                            </Option>
-                                        ))}
-                                        <Option value="custom" text="custom">
-                                            {intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleCustomLabel)}
-                                        </Option>
-                                    </Dropdown>
+                                    <div className={styles.naturalLanguageRow}>
+                                        <Input
+                                            className={styles.naturalLanguageInput}
+                                            value={trigger.schedule.naturalText ?? ''}
+                                            onChange={(_, data) => handleNaturalLanguageChange(data.value ?? '')}
+                                            placeholder="Every thursday at 2pm, 0 14 * * 4, or choose preset..."
+                                        />
+                                        <Button
+                                            type="button"
+                                            appearance="primary"
+                                            size="small"
+                                            onClick={handleGenerateSchedule}
+                                            disabled={isGeneratingCron || !trigger.schedule.naturalText?.trim()}
+                                        >
+                                            {isGeneratingCron
+                                                ? intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleNaturalGenerating)
+                                                : intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleNaturalGenerate)}
+                                        </Button>
+                                    </div>
+                                    {naturalGenerationError && <div className={styles.inlineError}>{naturalGenerationError}</div>}
+                                    {trigger.schedule.cronExpression && (
+                                        <div className={styles.helpText}>
+                                            <Text size={200}>
+                                                <strong>Detected:</strong> {trigger.schedule.cronExpression} → {scheduleDescription}
+                                            </Text>
+                                        </div>
+                                    )}
                                 </Field>
 
                                 <Field
                                     className={styles.compactField}
-                                    label={intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleNaturalLabel)}
+                                    label={intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleCustomExpressionLabel)}
+                                    validationState={
+                                        validation.cron ? 'error' : !isCronExpressionLikelyValid(cronExpression) ? 'error' : 'none'
+                                    }
+                                    validationMessage={
+                                        validation.cron ||
+                                        (!isCronExpressionLikelyValid(cronExpression)
+                                            ? intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleCronInvalid)
+                                            : undefined)
+                                    }
                                 >
                                     <Input
-                                        value={trigger.schedule.naturalText ?? ''}
-                                        onChange={(_, data) => handleNaturalLanguageChange(data.value ?? '')}
-                                        placeholder={intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleNaturalPlaceholder)}
+                                        ref={cronRef}
+                                        value={cronExpression}
+                                        onChange={(_, data) => handleCronChange(data.value ?? '')}
+                                        placeholder="0 9 * * 1-5"
+                                        disabled={!trigger.schedule.cronExpression}
                                     />
-                                    <div className={styles.helpText}>
-                                        {trigger.schedule.naturalText
-                                            ? intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleNaturalResolved, {
-                                                  cron:
-                                                      trigger.schedule.cronExpression ||
-                                                      intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleAwaitingParse),
-                                              })
-                                            : intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleNaturalHelp)}
-                                    </div>
                                 </Field>
-
-                                {schedulePreset === 'custom' && (
-                                    <Field
-                                        className={mergeClasses(styles.compactField, styles.scheduleGridFull)}
-                                        label={intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleCustomExpressionLabel)}
-                                        validationState={
-                                            validation.cron ? 'error' : !isCronExpressionLikelyValid(cronExpression) ? 'error' : 'none'
-                                        }
-                                        validationMessage={
-                                            validation.cron ||
-                                            (!isCronExpressionLikelyValid(cronExpression)
-                                                ? intl.formatMessage(ExtendedAgentsGraphResources.triggerScheduleCronInvalid)
-                                                : undefined)
-                                        }
-                                    >
-                                        <Input
-                                            ref={cronRef}
-                                            value={cronExpression}
-                                            onChange={(_, data) => handleCronChange(data.value ?? '')}
-                                            placeholder="0 9 * * 1-5"
-                                        />
-                                    </Field>
-                                )}
                             </div>
 
                             {nextRuns.length > 0 && (
@@ -590,11 +777,64 @@ export const SimpleTriggerDetailsStep: FC<SimpleTriggerDetailsStepProps> = ({
                     ) : null}
 
                     <Field
-                        label={intl.formatMessage(ExtendedAgentsGraphResources.triggerInstructionsLabel)}
-                        required
+                        className={styles.compactField}
+                        label={instructionsLabel}
                         validationState={validation.instructions ? 'error' : 'none'}
                         validationMessage={validation.instructions}
                     >
+                        {currentMode === 'scheduled' && promptImprovementError && (
+                            <Text className={styles.inlineError}>{promptImprovementError}</Text>
+                        )}
+                        {currentMode === 'scheduled' && promptImprovementMode === 'suggestions' && promptImprovement && (
+                            <div className={styles.promptImprovementInline}>
+                                <div className={styles.promptImprovementInlineGroup}>
+                                    <Text className={styles.promptImprovementSectionTitle}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.improvementSuggestions)}
+                                    </Text>
+                                    <div className={styles.promptImprovementList}>
+                                        {promptImprovement.suggestions?.length ? (
+                                            promptImprovement.suggestions.map((suggestion, index) => (
+                                                <Text key={`scheduled-suggestion-${index}`} className={styles.promptImprovementItem}>
+                                                    • {suggestion}
+                                                </Text>
+                                            ))
+                                        ) : (
+                                            <Text className={styles.promptImprovementEmpty}>
+                                                {intl.formatMessage(ExtendedAgentsGraphResources.noImprovementSuggestions)}
+                                            </Text>
+                                        )}
+                                    </div>
+                                </div>
+                                {promptImprovement.warnings?.length ? (
+                                    <div className={styles.promptImprovementInlineGroup}>
+                                        <Text className={styles.promptImprovementSectionTitle}>
+                                            {intl.formatMessage(ExtendedAgentsGraphResources.improvementWarnings)}
+                                        </Text>
+                                        <div className={styles.promptImprovementList}>
+                                            {promptImprovement.warnings.map((warning, index) => (
+                                                <Text key={`scheduled-warning-${index}`} className={styles.promptImprovementItem}>
+                                                    • {warning}
+                                                </Text>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : null}
+                                {promptImprovement.followUpQuestions?.length ? (
+                                    <div className={styles.promptImprovementInlineGroup}>
+                                        <Text className={styles.promptImprovementSectionTitle}>
+                                            {intl.formatMessage(ExtendedAgentsGraphResources.improvementFollowUps)}
+                                        </Text>
+                                        <div className={styles.promptImprovementList}>
+                                            {promptImprovement.followUpQuestions.map((question, index) => (
+                                                <Text key={`scheduled-question-${index}`} className={styles.promptImprovementItem}>
+                                                    • {question}
+                                                </Text>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : null}
+                            </div>
+                        )}
                         <div className={styles.templateChips}>
                             {(currentMode === 'incident' ? INSTRUCTION_TEMPLATES_INCIDENT : INSTRUCTION_TEMPLATES_SCHEDULED).map(
                                 template => (

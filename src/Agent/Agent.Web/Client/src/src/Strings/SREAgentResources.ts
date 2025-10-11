@@ -2414,6 +2414,39 @@ export const ScheduledTasksResources = defineMessages({
     },
     notAvailable: { defaultMessage: 'N/A', id: 'PW+sL4' },
     dashPlaceholder: { defaultMessage: '—', id: 'SL+c5a' },
+    cronAiHelperTitle: { defaultMessage: 'Describe the cadence—get the cron', id: '2CSEeq' },
+    cronAiHelperDescription: {
+        defaultMessage: 'Tell us how often your agent should run and we’ll draft the cron expression for you.',
+        id: 'qavd9Y',
+    },
+    cronAiDescriptionLabel: { defaultMessage: 'How often should it run?', id: 'b5OEXm' },
+    cronAiDescriptionPlaceholder: { defaultMessage: 'Weekdays at 9am Pacific', id: 'FNQNS1' },
+    cronAiGenerate: { defaultMessage: 'Draft the cron for me', id: 'XCfiZ2' },
+    cronAiGenerating: { defaultMessage: 'Drafting…', id: 'NBiLYK' },
+    cronAiDescriptionRequired: { defaultMessage: 'Describe the cadence before we can help.', id: 'x1YTqM' },
+    cronAiFailed: { defaultMessage: 'Couldn’t draft the cron yet. Refine the description and try again.', id: 'fIQSsD' },
+    cronAiResultHeader: { defaultMessage: 'Cron draft', id: '6dEJ43' },
+    cronAiHumanReadable: { defaultMessage: 'What it means', id: 'dw6Z3b' },
+    cronAiCronLabel: { defaultMessage: 'Cron', id: '3Wq8aM' },
+    cronAiTimezone: { defaultMessage: 'Time zone', id: 'IcUakl' },
+    cronAiAssumptions: { defaultMessage: 'Assumptions we made', id: 'JzOvG/' },
+    cronAiWarnings: { defaultMessage: 'Heads-up', id: 'sf6hMj' },
+    cronAiExamples: { defaultMessage: 'Other cron ideas', id: 'kG0ZtT' },
+    cronAiClear: { defaultMessage: 'Reset draft', id: '+Pmftr' },
+    promptAiImproveButton: { defaultMessage: 'Polish the instructions', id: 'AaJ/LU' },
+    promptAiImproving: { defaultMessage: 'Polishing…', id: 'wgyFIG' },
+    promptAiRequiresContent: { defaultMessage: 'Add your draft instructions before asking for polish.', id: 'bjOnWH' },
+    promptAiFailed: { defaultMessage: 'We couldn’t polish the instructions. Try again shortly.', id: '54UIcW' },
+    promptAiResultHeader: { defaultMessage: 'Let AI polish the instructions', id: '8ojA9A' },
+    promptAiHelperDescription: {
+        defaultMessage: 'Share your draft instructions and we’ll tailor them for a scheduled agent run.',
+        id: '493R/T',
+    },
+    promptAiResultLabel: { defaultMessage: 'Polished version', id: 'yf9+0C' },
+    promptAiApply: { defaultMessage: 'Use this version', id: 'IbMKy+' },
+    promptAiWarnings: { defaultMessage: 'Key alerts', id: 'TKsgZu' },
+    promptAiSuggestions: { defaultMessage: 'Optional tweaks', id: 'BynA9c' },
+    promptAiFollowUps: { defaultMessage: 'Missing context', id: 'RA3fki' },
 });
 
 export const SubAgentsResources = defineMessages({
@@ -2570,6 +2603,12 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'Explain what this scheduled trigger does for {agentName}.',
         id: 'OeU7Xk',
     },
+    triggerScheduleInputModeLabel: {
+        defaultMessage: 'How would you like to define the schedule?',
+        id: 'CPsPh7',
+    },
+    triggerScheduleInputModePreset: { defaultMessage: 'Pick from presets', id: 'uYb82D' },
+    triggerScheduleInputModeNatural: { defaultMessage: 'Describe it in natural language', id: '+/9vVV' },
     triggerSchedulePresetLabel: { defaultMessage: 'Schedule', id: 'hGQqkW' },
     triggerScheduleCustomLabel: { defaultMessage: 'Custom schedule', id: 'khOzXi' },
     triggerScheduleCustomExpressionLabel: { defaultMessage: 'Cron expression', id: 'YmslQP' },
@@ -2600,6 +2639,20 @@ export const ExtendedAgentsGraphResources = defineMessages({
         id: 'MjxZUD',
     },
     triggerScheduleNaturalResolved: { defaultMessage: 'Detected cron: {cron}', id: 'AdRf7Y' },
+    triggerScheduleNaturalGenerate: { defaultMessage: 'Generate schedule', id: 'StVmtb' },
+    triggerScheduleNaturalGenerating: { defaultMessage: 'Generating…', id: 'tB02Wz' },
+    triggerScheduleNaturalGenerateFailed: {
+        defaultMessage: "We couldn't understand that description. Try a different phrasing.",
+        id: '/WgnYE',
+    },
+    triggerScheduleNaturalClear: { defaultMessage: 'Clear description', id: 'w0xxAb' },
+    triggerScheduleNaturalErrorRequired: {
+        defaultMessage: 'Describe the schedule before generating a cron expression.',
+        id: '12GY0h',
+    },
+    triggerScheduleNaturalAssumptions: { defaultMessage: 'Assumptions', id: 'X3hl5x' },
+    triggerScheduleNaturalWarningsHeading: { defaultMessage: 'Warnings', id: 'VSWkne' },
+    triggerScheduleNaturalExamplesHeading: { defaultMessage: 'Examples', id: '3GLH+d' },
     triggerScheduleAwaitingParse: { defaultMessage: 'Parsing…', id: 'Z9TajN' },
     triggerScheduleAdvancedLabel: { defaultMessage: 'Advanced options', id: '0cEOKu' },
     triggerScheduleCronInvalid: { defaultMessage: 'Enter a valid cron expression.', id: '0TOEqZ' },
@@ -2644,6 +2697,22 @@ export const ExtendedAgentsGraphResources = defineMessages({
     instructions: { defaultMessage: 'Instructions', id: 'sV2v5L' },
     instructionsPlaceholder: { defaultMessage: 'Describe what this agent does and how it should behave...', id: 'o0pkiK' },
     instructionsHelp: { defaultMessage: "System prompt that defines the agent's behavior", id: 'FkvYGq' },
+
+    handoffDescriptionLabel: { defaultMessage: 'Handoff Description', id: 'QY3CEK' },
+    handoffDescriptionPlaceholder: {
+        defaultMessage: 'Describe when and why other agents should hand off to this agent...',
+        id: '98TwgV',
+    },
+    handoffDescriptionHelp: {
+        defaultMessage:
+            'A clear, concise description that helps other agents understand when to delegate work to this specialist agent. This appears in agent handoff decisions and collaboration workflows.',
+        id: '6umiRw',
+    },
+    handoffDescriptionSuggestionHeading: {
+        defaultMessage: '✨ AI Suggested Handoff Description',
+        id: 'tJuu1A',
+    },
+
     tools: { defaultMessage: 'Tools', id: 'nUT0Lv' },
     toolsOptional: { defaultMessage: 'Extended Tools (Optional)', id: '+TFnQ/' },
     toolsPlaceholder: { defaultMessage: 'Select tools this agent can use', id: 'F6qYbg' },
@@ -2667,6 +2736,33 @@ export const ExtendedAgentsGraphResources = defineMessages({
     descriptionHelp: { defaultMessage: 'Clear description for agents to understand when to use this tool', id: 'ubULuu' },
     connectorOptional: { defaultMessage: 'Connector (Optional)', id: 'bdFY56' },
     connectorPlaceholder: { defaultMessage: 'Select a Kusto connector', id: '4uiKBK' },
+
+    toolsSearchPlaceholder: {
+        defaultMessage: 'Search tools by name, category, or description',
+        id: 'P0yf0W',
+    },
+    toolsSearchNoResults: { defaultMessage: 'No tools match your search.', id: 'bxSp6r' },
+    toolsCategoryLabel: { defaultMessage: 'Category: {category}', id: 'cfbpDd' },
+
+    extendedToolsUnavailable: {
+        defaultMessage: 'No extended tools available.',
+        id: 'j1FyDL',
+    },
+
+    systemToolsSearchPlaceholder: {
+        defaultMessage: 'Search system tools by name, category, or description',
+        id: 'lni1id',
+    },
+
+    systemToolsSearchNoResults: {
+        defaultMessage: 'No system tools match your search.',
+        id: 'PvMAYc',
+    },
+
+    systemToolsUnavailable: {
+        defaultMessage: 'No system tools available.',
+        id: 'jqpolM',
+    },
     connectorHelp: { defaultMessage: 'Choose the Kusto connector this tool will query', id: 'PS7hBo' },
     parameterBindingLabel: { defaultMessage: 'Binding', id: 'BWt4Jj' },
     parameterBindingHelp: {
@@ -2907,6 +3003,13 @@ export const ExtendedAgentsGraphResources = defineMessages({
     relationshipSelectAgent: { defaultMessage: 'Select an agent to hand off to', id: '8rNTuV' },
     relationshipAddButton: { defaultMessage: 'Add', id: '2/2yg+' },
     relationshipAddToolLabel: { defaultMessage: 'Add existing tool', id: 'RI59Ed' },
+    relationshipToolSearchPlaceholder: { defaultMessage: 'Search tools…', id: 'xvTDgy' },
+    relationshipToolSearchEmpty: {
+        defaultMessage: 'No tools available. Try creating one or clearing your filters.',
+        id: 'm3Npit',
+    },
+    relationshipToolCategoryLabel: { defaultMessage: 'Category: {category}', id: 'cfbpDd' },
+    relationshipToolCategoryFallback: { defaultMessage: 'General', id: '1iEPTM' },
     relationshipSelectTool: { defaultMessage: 'Select a tool to connect', id: 'DMEE1o' },
     relationshipCreateToolTitle: { defaultMessage: 'Create a new tool', id: 'Dw2xIY' },
     relationshipCollapse: { defaultMessage: 'Collapse', id: 'W/V6+Y' },
@@ -3050,6 +3153,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     improvementDiscard: { defaultMessage: 'Discard', id: 'nmpevl' },
     noImprovementSuggestions: { defaultMessage: 'No suggestions available', id: '3R3pgd' },
     noImprovementWarnings: { defaultMessage: 'No warnings found', id: 'EBpelF' },
+    improvementFollowUps: { defaultMessage: 'Follow-up questions', id: '94QRkK' },
     suggestionsButton: { defaultMessage: 'Suggestions', id: 'Hv0XJn' },
     suggestionsTooltip: { defaultMessage: 'Preview AI recommendations without changing your instructions', id: 'hijOHm' },
     loadingSuggestions: { defaultMessage: 'Fetching suggestions...', id: 'Zu+xDc' },

@@ -11,6 +11,14 @@ export const SCHEDULE_PRESETS: Record<Exclude<SchedulePresetKey, 'custom'>, { la
 
 export const DEFAULT_SCHEDULE_PRESET: Exclude<SchedulePresetKey, 'custom'> = 'daily';
 
+export const getPresetFromCron = (cron: string): Exclude<SchedulePresetKey, 'custom'> | undefined => {
+    const normalized = normalizeCronExpression(cron);
+    const match = (Object.entries(SCHEDULE_PRESETS) as Array<[Exclude<SchedulePresetKey, 'custom'>, { label: string; cron: string }]>).find(
+        ([, presetValue]) => presetValue.cron === normalized
+    );
+    return match?.[0];
+};
+
 export const normalizeCronExpression = (value: string): string => value.trim().replace(/\s+/g, ' ');
 
 export const isCronExpressionLikelyValid = (value: string): boolean => {

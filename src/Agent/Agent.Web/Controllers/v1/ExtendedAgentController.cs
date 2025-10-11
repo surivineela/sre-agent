@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 using System.Text.Json;
 using Agent.Core.Helpers.ExtendedAgents;
 using Agent.Core.Validation;
@@ -615,6 +616,7 @@ Your task is to improve system prompts for extended agents that help Site Reliab
 
 Required Element:
 - Goal: Every prompt MUST have a clear, specific goal. If missing, add a critical warning.
+- Handoff guidance: Provide a concise handoff description summarizing when other agents should delegate to this agent.
 
 Optional Elements (suggest ONLY if they add genuine value):
 - Role definition
@@ -630,7 +632,8 @@ Return ONLY valid JSON with this shape:
 {
     "improvedPrompt": "Improved version here",
     "warnings": ["List any critical issues (e.g. missing goal)"],
-    "suggestions": ["Concise, situational improvements"]
+    "suggestions": ["Concise, situational improvements"],
+    "handoffDescription": "Clear guidance on when to hand off to this agent, should be under 1024 chars"
 }
 
 User Prompt To Improve (between <<< and >>>):

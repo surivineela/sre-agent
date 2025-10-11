@@ -76,6 +76,39 @@ export const useCreationDialogStyles = makeStyles({
         flexDirection: 'column',
         gap: '12px',
     },
+    fieldLabelRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        gap: tokens.spacingHorizontalM,
+    },
+    fieldLabelText: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalXXS,
+        fontSize: tokens.fontSizeBase300,
+        fontWeight: tokens.fontWeightRegular,
+        color: tokens.colorNeutralForeground1,
+    },
+    fieldRequiredStar: {
+        color: tokens.colorPaletteRedForeground1,
+        fontWeight: tokens.fontWeightRegular,
+        lineHeight: 1,
+    },
+
+    fieldLabelMeta: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalXS,
+        color: tokens.colorNeutralForeground2,
+        fontSize: tokens.fontSizeBase200,
+    },
+    fieldActionGroup: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
+    },
     formRow: {
         display: 'flex',
         gap: '12px',
@@ -138,10 +171,53 @@ export const useCreationDialogStyles = makeStyles({
         maxHeight: '120px',
         resize: 'vertical',
     },
+    textInput: {
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: '1.5',
+    },
+    instructionsTextarea: {
+        minHeight: '140px',
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: '1.5',
+    },
+    handoffTextarea: {
+        minHeight: '60px',
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: '1.5',
+    },
     helpText: {
         fontSize: tokens.fontSizeBase200,
         color: tokens.colorNeutralForeground3,
         marginTop: '4px',
+    },
+    naturalLanguageRow: {
+        display: 'flex',
+        alignItems: 'stretch',
+        gap: tokens.spacingHorizontalS,
+        '@media (max-width: 768px)': {
+            flexDirection: 'column',
+            alignItems: 'stretch',
+            gap: tokens.spacingVerticalXS,
+        },
+    },
+    naturalLanguageInput: {
+        flex: 1,
+    },
+    naturalLanguageMeta: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalXXS,
+        marginTop: tokens.spacingVerticalXXS,
+    },
+    naturalLanguageList: {
+        margin: 0,
+        paddingLeft: tokens.spacingHorizontalXL,
+        listStyleType: 'disc',
+    },
+    naturalLanguageListItem: {
+        marginTop: tokens.spacingVerticalXXS,
+        color: tokens.colorNeutralForeground2,
+        fontSize: tokens.fontSizeBase200,
     },
     metaAgentInfo: {
         marginTop: '4px',
@@ -683,6 +759,83 @@ export const useCreationDialogStyles = makeStyles({
         color: tokens.colorBrandForeground1,
     },
 
+    systemToolPicker: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalXS,
+    },
+    systemToolGroupHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '4px 8px',
+        gap: tokens.spacingHorizontalS,
+        cursor: 'pointer',
+        borderRadius: tokens.borderRadiusSmall,
+        color: tokens.colorNeutralForeground2,
+        transition: 'background-color 0.2s ease',
+        ':hover': {
+            backgroundColor: tokens.colorNeutralBackground4,
+        },
+        ':focus-visible': {
+            outline: `2px solid ${tokens.colorBrandStroke1}`,
+            outlineOffset: '2px',
+        },
+    },
+    systemToolGroupLabel: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalXS,
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground1,
+    },
+    systemToolGroupCount: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground3,
+    },
+    systemToolOption: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalXXS,
+        padding: '6px 0',
+        maxWidth: '680px',
+        width: '100%',
+    },
+    systemToolOptionHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalXS,
+    },
+    systemToolOptionTitle: {
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground1,
+    },
+    systemToolCategoryPill: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '2px 8px',
+        borderRadius: tokens.borderRadiusSmall,
+        backgroundColor: tokens.colorNeutralBackground3,
+        color: tokens.colorNeutralForeground2,
+        fontSize: tokens.fontSizeBase100,
+    },
+    systemToolOptionDescription: {
+        color: tokens.colorNeutralForeground3,
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: 1.4,
+        maxWidth: '660px',
+        overflowWrap: 'anywhere',
+    },
+    systemToolOptionMeta: {
+        color: tokens.colorNeutralForeground3,
+        fontSize: tokens.fontSizeBase200,
+    },
+    systemToolEmpty: {
+        color: tokens.colorNeutralForeground3,
+        fontStyle: 'italic',
+        paddingTop: tokens.spacingVerticalXXS,
+    },
+
     // Tester Panel Styles
     testerPanel: {
         display: 'flex',
@@ -1031,7 +1184,7 @@ export const useCreationDialogStyles = makeStyles({
         },
         '& .fui-Field__label': {
             fontSize: tokens.fontSizeBase400,
-            fontWeight: tokens.fontWeightSemibold,
+            fontWeight: tokens.fontWeightRegular,
             marginBottom: tokens.spacingVerticalS,
         },
     },

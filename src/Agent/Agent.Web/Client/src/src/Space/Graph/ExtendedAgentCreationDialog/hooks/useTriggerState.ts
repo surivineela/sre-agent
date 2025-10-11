@@ -37,6 +37,7 @@ export const useTriggerState = (
             naturalText: '',
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
             startTime: undefined,
+            inputMode: 'preset',
         }),
         []
     );
@@ -123,6 +124,7 @@ export const useTriggerState = (
                 naturalText: '',
                 timezone: trigger.schedule.timezone,
                 startTime: trigger.schedule.startTime,
+                inputMode: 'preset',
             };
 
             setTriggerState(prev => {

@@ -8,6 +8,7 @@ export interface PromptImprovementResponse {
     improvedPrompt: string;
     warnings: string[];
     suggestions: string[];
+    handoffDescription?: string;
 }
 
 export const improvePrompt = async (sreAgentEndpoint: string, prompt: string): Promise<PromptImprovementResponse> => {

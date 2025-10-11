@@ -14,7 +14,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Microsoft.Extensions.DependencyInjection;
 using Agent.Framework;
 using Agent.Framework.Interfaces;
 using Agent.Framework.Reasoning.Models;

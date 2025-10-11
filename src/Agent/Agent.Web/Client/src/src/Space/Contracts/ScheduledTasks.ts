@@ -54,3 +54,30 @@ export interface UpdateScheduledTaskRequest {
     maxExecutions?: number;
     notificationChannel?: string;
 }
+
+export interface CronExpressionGenerationRequest {
+    description: string;
+    timezone?: string;
+    startTime?: string;
+    format?: string;
+}
+
+export interface CronExpressionGenerationResponse {
+    cronExpression: string;
+    humanReadableDescription: string;
+    timezone?: string;
+    assumptions: string[];
+    warnings: string[];
+    examples: string[];
+}
+
+export interface ScheduledTaskPromptImprovementRequest {
+    prompt: string;
+}
+
+export interface ScheduledTaskPromptImprovementResponse {
+    improvedPrompt: string;
+    warnings: string[];
+    suggestions: string[];
+    followUpQuestions: string[];
+}

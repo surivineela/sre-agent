@@ -37,6 +37,7 @@ export const buildTriggerDefaults = (intl: IntlShape, agentDisplayName?: string,
             cronExpression: SCHEDULE_PRESETS[DEFAULT_SCHEDULE_PRESET].cron,
             naturalText: '',
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
+            inputMode: 'preset',
         },
     };
 };

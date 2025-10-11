@@ -758,8 +758,9 @@ const ExtendedAgentGraphContent = memo(() => {
             }
 
             const toolDefinition = tools.find(tool => tool.name.trim() === normalizedToolName);
+            const systemToolDefinition = systemTools.find(tool => tool.name.trim() === normalizedToolName);
 
-            if (!toolDefinition) {
+            if (!toolDefinition && !systemToolDefinition) {
                 return {
                     success: false,
                     message: intl.formatMessage(ExtendedAgentsGraphResources.relationshipQuickToolMissing, {
@@ -769,8 +770,9 @@ const ExtendedAgentGraphContent = memo(() => {
             }
 
             const existingTools = normalizeList(currentAgent.tools);
+            const existingSystemTools = normalizeList(currentAgent.systemTools);
 
-            if (existingTools.includes(normalizedToolName)) {
+            if (existingTools.includes(normalizedToolName) || existingSystemTools.includes(normalizedToolName)) {
                 return {
                     success: false,
                     message: intl.formatMessage(ExtendedAgentsGraphResources.relationshipQuickAlreadyTool, {
@@ -780,18 +782,33 @@ const ExtendedAgentGraphContent = memo(() => {
                 };
             }
 
-            const sanitizedConnectors = normalizeList(currentAgent.connectors);
-            const connectorToAdd = toolDefinition.connector?.trim();
-            const updatedConnectors =
-                connectorToAdd && !sanitizedConnectors.includes(connectorToAdd)
-                    ? [...sanitizedConnectors, connectorToAdd]
-                    : sanitizedConnectors;
+            let updatedAgent: ExtendedAgent;
 
-            const updatedAgent: ExtendedAgent = {
-                ...currentAgent,
-                tools: [...existingTools, normalizedToolName],
-                connectors: updatedConnectors,
-            };
+            if (toolDefinition) {
+                const sanitizedConnectors = normalizeList(currentAgent.connectors);
+                const connectorToAdd = toolDefinition.connector?.trim();
+                const updatedConnectors =
+                    connectorToAdd && !sanitizedConnectors.includes(connectorToAdd)
+                        ? [...sanitizedConnectors, connectorToAdd]
+                        : sanitizedConnectors;
+
+                updatedAgent = {
+                    ...currentAgent,
+                    tools: [...existingTools, normalizedToolName],
+                    connectors: updatedConnectors,
+                };
+            } else {
+                const updatedSystemTools = [...existingSystemTools, normalizedToolName];
+
+                // Avoid mutating regular tools list; ensure the system tool isn't duplicated there.
+                const filteredTools = existingTools.filter(tool => tool !== normalizedToolName);
+
+                updatedAgent = {
+                    ...currentAgent,
+                    tools: filteredTools,
+                    systemTools: updatedSystemTools,
+                };
+            }
 
             try {
                 await applyEntity(updatedAgent, 'agent', {
@@ -812,7 +829,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 return { success: false, message };
             }
         },
-        [agents, applyEntity, intl, tools]
+        [agents, applyEntity, intl, systemTools, tools]
     );
 
     const handleAddExistingTool = useCallback(
@@ -1291,6 +1308,7 @@ const ExtendedAgentGraphContent = memo(() => {
                     agent={relationshipAgent}
                     existingAgents={agents}
                     existingTools={tools}
+                    systemTools={systemTools}
                     onAddHandoff={handleAddExistingHandoff}
                     onAddTool={handleAddExistingTool}
                     onLaunchCreateEntity={handleLaunchLinkedCreation}

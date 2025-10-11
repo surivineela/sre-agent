@@ -2,11 +2,20 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text;
+using System.Text.Json;
+using Agent.Core.Extensions;
 using Agent.Data.DataModels;
 using Agent.ScheduledTasks.Services;
 using Agent.Web.Authorization;
+using Agent.Web.Models.ExtendedAgents.Response;
+using Agent.Web.Models.ScheduledTasks.Request;
+using Agent.Web.Models.ScheduledTasks.Response;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.AI;
+using OpenAI.Chat;
 using static Agent.Core.Constants;
 
 namespace Agent.Web.Controllers.v1
@@ -42,7 +51,8 @@ namespace Agent.Web.Controllers.v1
     [Route("api/v1/[controller]")]
     public class ScheduledTasksController(
         IScheduledTaskManagementService scheduledTaskService,
-        ILogger<ScheduledTasksController> logger) : ControllerBase
+        ILogger<ScheduledTasksController> logger,
+        IChatClient chatClient) : ControllerBase
     {
         [HttpGet]
         [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskReadActionId)]
@@ -204,6 +214,174 @@ namespace Agent.Web.Controllers.v1
             {
                 logger.LogInternalError(ex, "Error updating scheduled task: {TaskId}", id);
                 return StatusCode(500, new { error = "Failed to update scheduled task" });
+            }
+        }
+
+        /// <summary>
+        /// Generates a cron expression from natural-language schedule descriptions using the platform's AI client.
+        /// </summary>
+        [HttpPost("cron/generate")]
+        [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskWriteActionId)]
+        public async Task<ActionResult<CronExpressionGenerationResponse>> GenerateCronExpression(
+            [FromBody] CronExpressionGenerationRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Description))
+            {
+                return BadRequest(new { error = "Description is required to generate a cron expression." });
+            }
+
+            try
+            {
+                var promptBuilder = new StringBuilder();
+                promptBuilder.AppendLine("You are an expert scheduler who translates natural language into precise cron expressions.");
+                promptBuilder.AppendLine("Always return valid cron expressions that align with the user's intent.");
+                promptBuilder.AppendLine("If the request is ambiguous, make reasonable assumptions but list them explicitly.");
+                promptBuilder.AppendLine();
+                promptBuilder.AppendLine("Return ONLY JSON with this shape:");
+                promptBuilder.AppendLine("{");
+                promptBuilder.AppendLine("  \"cronExpression\": \"cron string in standard format\",");
+                promptBuilder.AppendLine("  \"humanReadableDescription\": \"succinct plain-language summary\",");
+                promptBuilder.AppendLine("  \"timezone\": \"IANA timezone or null if unspecified\",");
+                promptBuilder.AppendLine("  \"assumptions\": [\"List any assumptions you made\"],");
+                promptBuilder.AppendLine("  \"warnings\": [\"List any validation warnings\"],");
+                promptBuilder.AppendLine("  \"examples\": [\"Optional related cron examples\"]");
+                promptBuilder.AppendLine("}");
+                promptBuilder.AppendLine();
+                promptBuilder.AppendLine("User request between <<< and >>>");
+                promptBuilder.AppendLine("<<<");
+                promptBuilder.AppendLine(request.Description.Trim());
+                promptBuilder.AppendLine(">>>");
+
+                if (!string.IsNullOrWhiteSpace(request.Timezone))
+                {
+                    promptBuilder.AppendLine($"Timezone hint: {request.Timezone}");
+                }
+
+                if (request.StartTime.HasValue)
+                {
+                    promptBuilder.AppendLine($"Preferred start time: {request.StartTime:O}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.Format))
+                {
+                    promptBuilder.AppendLine($"Cron format preference: {request.Format}");
+                }
+
+                var chatOptions = new ChatOptions { Temperature = 1.0f };
+                var chatResponse = await chatClient.GetResponseAsync(promptBuilder.ToString(), chatOptions, HttpContext.RequestAborted);
+                var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
+
+                logger.LogInternalInformation("Cron generation raw response: {Content}", content);
+
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+
+                CronExpressionGenerationResponse? result = null;
+                if (!string.IsNullOrWhiteSpace(content))
+                {
+                    try
+                    {
+                        result = JsonSerializer.Deserialize<CronExpressionGenerationResponse>(content, jsonOptions);
+                    }
+                    catch (JsonException jsonEx)
+                    {
+                        logger.LogInternalWarning(jsonEx, "Failed to parse cron generation response JSON.");
+                    }
+                }
+
+                if (result != null)
+                {
+                    result.Timezone ??= request.Timezone;
+                    result.Assumptions ??= new List<string>();
+                    result.Warnings ??= new List<string>();
+                    result.Examples ??= new List<string>();
+                    return Ok(result);
+                }
+                else
+                {
+                    return StatusCode(500, new { error = "Failed to generate cron expression" });
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error generating cron expression from natural language.");
+                return StatusCode(500, new { error = "Failed to generate cron expression" });
+            }
+        }
+
+        /// <summary>
+        /// Improves the agent instructions used by a scheduled task.
+        /// </summary>
+        [HttpPost("prompt/improve")]
+        [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskWriteActionId)]
+        public async Task<ActionResult<ScheduledTaskPromptImprovementResponse>> ImproveScheduledTaskPrompt(
+            [FromBody] ScheduledTaskPromptImprovementRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Prompt))
+            {
+                return BadRequest(new { error = "Prompt is required." });
+            }
+
+            try
+            {
+                var systemPrompt = """
+You are an elite Azure SRE automation engineer who writes concise, production-ready scheduled task instructions.
+
+Improve the user's draft so an Azure SRE Agent can execute recurring operational workflows safely and consistently.
+
+Return ONLY valid JSON with this shape:
+{
+    "improvedPrompt": "replacement prompt text",
+    "warnings": ["List any critical issues that still need human review"],
+    "suggestions": ["Optional enhancements the user may apply"],
+    "followUpQuestions": ["Questions to clarify missing context, if any"]
+}
+
+Keep improvements grounded, specific, and task-focused. Avoid changing intent but tighten clarity, dependencies, and success criteria. Highlight gaps (credentials, resource IDs, time windows, validation steps).
+
+Prompt to improve (between <<< and >>>):
+<<<
+""";
+
+                var prompt = systemPrompt + request.Prompt.Trim() + "\n>>>";
+
+                var chatOptions = new ChatOptions { Temperature = 1.0f };
+                var chatResponse = await chatClient.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
+                var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
+
+                logger.LogInternalInformation("Scheduled task prompt improvement raw response: {Content}", content);
+
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+
+                var result = JsonSerializer.Deserialize<ScheduledTaskPromptImprovementResponse>(content, jsonOptions);
+                if (result == null || string.IsNullOrWhiteSpace(result.ImprovedPrompt))
+                {
+                    return BadRequest("Failed to parse response");
+                }
+
+                result.Warnings ??= new List<string>();
+                result.Suggestions ??= new List<string>();
+                result.FollowUpQuestions ??= new List<string>();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error improving scheduled task prompt.");
+                return StatusCode(500, new ScheduledTaskPromptImprovementResponse
+                {
+                    ImprovedPrompt = request.Prompt,
+                    Warnings = new List<string> { "Failed to improve prompt due to an unexpected error." },
+                    Suggestions = new List<string> { ex.Message },
+                    FollowUpQuestions = new List<string>()
+                });
             }
         }
 

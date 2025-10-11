@@ -7459,6 +7459,28 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " wyróżnione punkty"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " wyróżnionych punktów"
+            }
+          ]
+        },
         "one": {
           "value": [
             {

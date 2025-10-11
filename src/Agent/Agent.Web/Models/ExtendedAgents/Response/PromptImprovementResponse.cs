@@ -16,4 +16,8 @@ public class PromptImprovementResponse
 
     [JsonPropertyName("suggestions")]
     public List<string> Suggestions { get; set; } = new();
+
+    [JsonPropertyName("handoffDescription")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? HandoffDescription { get; set; }
 }

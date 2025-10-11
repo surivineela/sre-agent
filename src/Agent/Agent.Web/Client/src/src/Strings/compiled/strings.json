@@ -9,6 +9,12 @@
       "value": "parameters"
     }
   ],
+  "+/9vVV": [
+    {
+      "type": 0,
+      "value": "Describe it in natural language"
+    }
+  ],
   "+/nU/s": [
     {
       "type": 0,
@@ -75,6 +81,12 @@
     {
       "type": 0,
       "value": "Submit feedback to Microsoft"
+    }
+  ],
+  "+Pmftr": [
+    {
+      "type": 0,
+      "value": "Reset draft"
     }
   ],
   "+S4WAz": [
@@ -223,6 +235,12 @@
     {
       "type": 0,
       "value": "Past Incidents on Same Resource"
+    }
+  ],
+  "/WgnYE": [
+    {
+      "type": 0,
+      "value": "We couldn't understand that description. Try a different phrasing."
     }
   ],
   "/WrP/v": [
@@ -503,6 +521,12 @@
       "value": "Task"
     }
   ],
+  "12GY0h": [
+    {
+      "type": 0,
+      "value": "Describe the schedule before generating a cron expression."
+    }
+  ],
   "1389z+": [
     {
       "type": 0,
@@ -645,6 +669,12 @@
       "value": "Alert status"
     }
   ],
+  "1iEPTM": [
+    {
+      "type": 0,
+      "value": "General"
+    }
+  ],
   "1rAiXS": [
     {
       "type": 0,
@@ -693,6 +723,12 @@
     {
       "type": 0,
       "value": "Change agent mode for this thread"
+    }
+  ],
+  "2CSEeq": [
+    {
+      "type": 0,
+      "value": "Describe the cadence—get the cron"
     }
   ],
   "2FLZrG": [
@@ -853,6 +889,12 @@
       "value": "Enter resource name"
     }
   ],
+  "3GLH+d": [
+    {
+      "type": 0,
+      "value": "Examples"
+    }
+  ],
   "3H77Ic": [
     {
       "type": 0,
@@ -905,6 +947,12 @@
     {
       "type": 0,
       "value": "Save Changes"
+    }
+  ],
+  "3Wq8aM": [
+    {
+      "type": 0,
+      "value": "Cron"
     }
   ],
   "3a5wL8": [
@@ -1019,6 +1067,12 @@
     {
       "type": 0,
       "value": "This agent"
+    }
+  ],
+  "493R/T": [
+    {
+      "type": 0,
+      "value": "Share your draft instructions and we’ll tailor them for a scheduled agent run."
     }
   ],
   "498yM3": [
@@ -1177,6 +1231,12 @@
     {
       "type": 0,
       "value": "Execution details and request"
+    }
+  ],
+  "54UIcW": [
+    {
+      "type": 0,
+      "value": "We couldn’t polish the instructions. Try again shortly."
     }
   ],
   "59z+Aj": [
@@ -1551,6 +1611,12 @@
       "value": "Correlation ID:"
     }
   ],
+  "6dEJ43": [
+    {
+      "type": 0,
+      "value": "Cron draft"
+    }
+  ],
   "6dWeUs": [
     {
       "type": 0,
@@ -1579,6 +1645,12 @@
     {
       "type": 0,
       "value": "New Azure Monitor Alert Detected"
+    }
+  ],
+  "6umiRw": [
+    {
+      "type": 0,
+      "value": "A clear, concise description that helps other agents understand when to delegate work to this specialist agent. This appears in agent handoff decisions and collaboration workflows."
     }
   ],
   "6v8Uj+": [
@@ -1911,6 +1983,12 @@
       "value": "Redis Cache Contributor"
     }
   ],
+  "8ojA9A": [
+    {
+      "type": 0,
+      "value": "Let AI polish the instructions"
+    }
+  ],
   "8quEg9": [
     {
       "type": 0,
@@ -1969,6 +2047,12 @@
       "value": "Select all"
     }
   ],
+  "94QRkK": [
+    {
+      "type": 0,
+      "value": "Follow-up questions"
+    }
+  ],
   "94zF5I": [
     {
       "type": 0,
@@ -1985,6 +2069,12 @@
     {
       "type": 0,
       "value": "No matches"
+    }
+  ],
+  "98TwgV": [
+    {
+      "type": 0,
+      "value": "Describe when and why other agents should hand off to this agent..."
     }
   ],
   "99OdS3": [
@@ -2135,6 +2225,12 @@
     {
       "type": 0,
       "value": "Show only recommended resource groups"
+    }
+  ],
+  "AaJ/LU": [
+    {
+      "type": 0,
+      "value": "Polish the instructions"
     }
   ],
   "AbXVP4": [
@@ -2331,6 +2427,12 @@
       "value": "Data type and requirement for validation"
     }
   ],
+  "BynA9c": [
+    {
+      "type": 0,
+      "value": "Optional tweaks"
+    }
+  ],
   "C2PrxB": [
     {
       "type": 0,
@@ -2377,6 +2479,12 @@
     {
       "type": 0,
       "value": "Connect related agents and tools"
+    }
+  ],
+  "CPsPh7": [
+    {
+      "type": 0,
+      "value": "How would you like to define the schedule?"
     }
   ],
   "CTRqZs": [
@@ -2875,6 +2983,12 @@
       "value": "Repository connection"
     }
   ],
+  "FNQNS1": [
+    {
+      "type": 0,
+      "value": "Weekdays at 9am Pacific"
+    }
+  ],
   "FO/nez": [
     {
       "type": 0,
@@ -3325,10 +3439,22 @@
       "value": "You do not have permission to add or edit annotations."
     }
   ],
+  "IbMKy+": [
+    {
+      "type": 0,
+      "value": "Use this version"
+    }
+  ],
   "IcB2fr": [
     {
       "type": 0,
       "value": "Tool method argument that receives this value"
+    }
+  ],
+  "IcUakl": [
+    {
+      "type": 0,
+      "value": "Time zone"
     }
   ],
   "IiNwpr": [
@@ -3611,6 +3737,12 @@
     {
       "type": 0,
       "value": "Review Your trigger"
+    }
+  ],
+  "JzOvG/": [
+    {
+      "type": 0,
+      "value": "Assumptions we made"
     }
   ],
   "K1h5xo": [
@@ -4123,6 +4255,12 @@
       "value": "Authorized"
     }
   ],
+  "NBiLYK": [
+    {
+      "type": 0,
+      "value": "Drafting…"
+    }
+  ],
   "NBxjGE": [
     {
       "type": 0,
@@ -4387,6 +4525,12 @@
       "value": "PostgreSQL Command"
     }
   ],
+  "P0yf0W": [
+    {
+      "type": 0,
+      "value": "Search tools by name, category, or description"
+    }
+  ],
   "P3qxV2": [
     {
       "type": 0,
@@ -4551,6 +4695,12 @@
       "value": "Not connected"
     }
   ],
+  "PvMAYc": [
+    {
+      "type": 0,
+      "value": "No system tools match your search."
+    }
+  ],
   "Pwen/L": [
     {
       "type": 0,
@@ -4651,6 +4801,12 @@
     {
       "type": 0,
       "value": "Uses (Trigger, Action)"
+    }
+  ],
+  "QY3CEK": [
+    {
+      "type": 0,
+      "value": "Handoff Description"
     }
   ],
   "Qc3Kdl": [
@@ -4769,6 +4925,12 @@
     {
       "type": 0,
       "value": "Incident threads have moved"
+    }
+  ],
+  "RA3fki": [
+    {
+      "type": 0,
+      "value": "Missing context"
     }
   ],
   "RAjqKb": [
@@ -5085,6 +5247,12 @@
       "value": "Autonomous"
     }
   ],
+  "StVmtb": [
+    {
+      "type": 0,
+      "value": "Generate schedule"
+    }
+  ],
   "SuVToZ": [
     {
       "type": 0,
@@ -5217,6 +5385,12 @@
     {
       "type": 1,
       "value": "platform"
+    }
+  ],
+  "TKsgZu": [
+    {
+      "type": 0,
+      "value": "Key alerts"
     }
   ],
   "TMZ2Rq": [
@@ -5775,6 +5949,12 @@
       "value": "agentName"
     }
   ],
+  "X3hl5x": [
+    {
+      "type": 0,
+      "value": "Assumptions"
+    }
+  ],
   "X4Y2nv": [
     {
       "type": 0,
@@ -5819,6 +5999,12 @@
     {
       "type": 0,
       "value": "The action was canceled."
+    }
+  ],
+  "XCfiZ2": [
+    {
+      "type": 0,
+      "value": "Draft the cron for me"
     }
   ],
   "XEB3Fn": [
@@ -6519,6 +6705,12 @@
       "value": "Delete custom incident response plan"
     }
   ],
+  "b5OEXm": [
+    {
+      "type": 0,
+      "value": "How often should it run?"
+    }
+  ],
   "b7D4Lh": [
     {
       "type": 0,
@@ -6577,6 +6769,12 @@
     {
       "type": 0,
       "value": "Stable - Receives updates once a month"
+    }
+  ],
+  "bjOnWH": [
+    {
+      "type": 0,
+      "value": "Add your draft instructions before asking for polish."
     }
   ],
   "blSyDZ": [
@@ -6641,6 +6839,12 @@
     {
       "type": 0,
       "value": "Turn off incident response plan"
+    }
+  ],
+  "bxSp6r": [
+    {
+      "type": 0,
+      "value": "No tools match your search."
     }
   ],
   "bxcc6L": [
@@ -6731,6 +6935,16 @@
     {
       "type": 0,
       "value": "Storage Account Contributor"
+    }
+  ],
+  "cfbpDd": [
+    {
+      "type": 0,
+      "value": "Category: "
+    },
+    {
+      "type": 1,
+      "value": "category"
     }
   ],
   "ciB+oy": [
@@ -6961,6 +7175,12 @@
       "value": "Never"
     }
   ],
+  "dw6Z3b": [
+    {
+      "type": 0,
+      "value": "What it means"
+    }
+  ],
   "e0a3XV": [
     {
       "type": 0,
@@ -7149,6 +7369,12 @@
     {
       "type": 0,
       "value": "Cognitive Services Speech Contributor"
+    }
+  ],
+  "fIQSsD": [
+    {
+      "type": 0,
+      "value": "Couldn’t draft the cron yet. Refine the description and try again."
     }
   ],
   "fLkL3F": [
@@ -7755,6 +7981,12 @@
       "value": "."
     }
   ],
+  "j1FyDL": [
+    {
+      "type": 0,
+      "value": "No extended tools available."
+    }
+  ],
   "j2vvrh": [
     {
       "type": 0,
@@ -7887,6 +8119,12 @@
       "value": "Next execution"
     }
   ],
+  "jqpolM": [
+    {
+      "type": 0,
+      "value": "No system tools available."
+    }
+  ],
   "ju7bLp": [
     {
       "type": 0,
@@ -7931,6 +8169,12 @@
     {
       "type": 0,
       "value": "Alert ID"
+    }
+  ],
+  "kG0ZtT": [
+    {
+      "type": 0,
+      "value": "Other cron ideas"
     }
   ],
   "kHIJzq": [
@@ -8159,6 +8403,12 @@
       "value": "Region"
     }
   ],
+  "lni1id": [
+    {
+      "type": 0,
+      "value": "Search system tools by name, category, or description"
+    }
+  ],
   "lqgE72": [
     {
       "type": 0,
@@ -8187,6 +8437,12 @@
     {
       "type": 0,
       "value": "Generate custom response plan"
+    }
+  ],
+  "m3Npit": [
+    {
+      "type": 0,
+      "value": "No tools available. Try creating one or clearing your filters."
     }
   ],
   "m57OnF": [
@@ -8943,6 +9199,12 @@
       "value": "Total:"
     }
   ],
+  "qavd9Y": [
+    {
+      "type": 0,
+      "value": "Tell us how often your agent should run and we’ll draft the cron expression for you."
+    }
+  ],
   "qczspd": [
     {
       "type": 0,
@@ -9397,6 +9659,12 @@
       "value": "System Tools (Optional)"
     }
   ],
+  "sf6hMj": [
+    {
+      "type": 0,
+      "value": "Heads-up"
+    }
+  ],
   "slxYbm": [
     {
       "type": 0,
@@ -9513,6 +9781,12 @@
       "value": "Healthcare Agent Editor"
     }
   ],
+  "tB02Wz": [
+    {
+      "type": 0,
+      "value": "Generating…"
+    }
+  ],
   "tCrMHt": [
     {
       "type": 0,
@@ -9549,6 +9823,12 @@
     {
       "type": 0,
       "value": "Failed to disable incident response plan"
+    }
+  ],
+  "tJuu1A": [
+    {
+      "type": 0,
+      "value": "✨ AI Suggested Handoff Description"
     }
   ],
   "tLYOnZ": [
@@ -9779,6 +10059,12 @@
       "value": "Execution Request"
     }
   ],
+  "uYb82D": [
+    {
+      "type": 0,
+      "value": "Pick from presets"
+    }
+  ],
   "ubULuu": [
     {
       "type": 0,
@@ -9971,6 +10257,12 @@
       "value": "This will permanently delete the connection to Azure Monitor. The agent will no longer be integrated with Azure Monitor notifications. Are you sure you want to delete this connection?"
     }
   ],
+  "w0xxAb": [
+    {
+      "type": 0,
+      "value": "Clear description"
+    }
+  ],
   "w2QcbZ": [
     {
       "type": 0,
@@ -10095,6 +10387,12 @@
       "value": "Add custom incident response plan"
     }
   ],
+  "wgyFIG": [
+    {
+      "type": 0,
+      "value": "Polishing…"
+    }
+  ],
   "wkLkeE": [
     {
       "type": 0,
@@ -10129,6 +10427,12 @@
     {
       "type": 0,
       "value": "Checking trigger setup…"
+    }
+  ],
+  "x1YTqM": [
+    {
+      "type": 0,
+      "value": "Describe the cadence before we can help."
     }
   ],
   "x3aQrV": [
@@ -10260,7 +10564,7 @@
   "xmcVZ0": [
     {
       "type": 0,
-      "value": "Source"
+      "value": "Search"
     }
   ],
   "xmsrBu": [
@@ -10291,6 +10595,12 @@
     {
       "type": 0,
       "value": "Website Contributor"
+    }
+  ],
+  "xvTDgy": [
+    {
+      "type": 0,
+      "value": "Search tools…"
     }
   ],
   "xxoHVE": [
@@ -10385,6 +10695,12 @@
     {
       "type": 0,
       "value": "Failed to check agent memory status, falling back to disabled:"
+    }
+  ],
+  "yf9+0C": [
+    {
+      "type": 0,
+      "value": "Polished version"
     }
   ],
   "yh4G7g": [

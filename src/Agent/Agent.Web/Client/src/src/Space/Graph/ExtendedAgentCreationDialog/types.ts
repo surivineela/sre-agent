@@ -8,6 +8,7 @@ export type Step = 1 | 2 | 3;
 export type TriggerMode = 'incident' | 'scheduled';
 export type TriggerStrategy = 'quick' | 'existing';
 export type SchedulePresetKey = 'hourly' | 'every15m' | 'daily' | 'weekly' | 'monthly' | 'workdays' | 'custom';
+export type ScheduleInputMode = 'preset' | 'natural';
 
 // Changed to string to support all incident platforms (AzMonitor, PagerDuty, ICM, ServiceNow)
 export type IncidentPriority = string;
@@ -19,6 +20,7 @@ export interface TriggerScheduleState {
     naturalText: string;
     timezone: string;
     startTime?: string;
+    inputMode: ScheduleInputMode;
 }
 
 export interface TriggerState {
@@ -68,6 +70,7 @@ export interface TriggerSubmitRequest {
         natural?: string;
         timezone: string;
         start?: string;
+        inputMode?: ScheduleInputMode;
     };
 }
 

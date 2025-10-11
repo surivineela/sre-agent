@@ -1,7 +1,14 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { CreateScheduledTaskRequest, ScheduledTask, UpdateScheduledTaskRequest } from '../Contracts/ScheduledTasks';
+import {
+    CreateScheduledTaskRequest,
+    CronExpressionGenerationRequest,
+    CronExpressionGenerationResponse,
+    ScheduledTask,
+    ScheduledTaskPromptImprovementResponse,
+    UpdateScheduledTaskRequest,
+} from '../Contracts/ScheduledTasks';
 
 export interface UseScheduledTasksResult {
     scheduledTasks: ScheduledTask[];
@@ -15,6 +22,8 @@ export interface UseScheduledTasksResult {
     resumeTask: (id: string) => Promise<boolean>;
     getTaskById: (id: string) => ScheduledTask | null;
     getTasksByThread: (threadId: string) => ScheduledTask[];
+    generateCronExpression: (request: CronExpressionGenerationRequest) => Promise<CronExpressionGenerationResponse | null>;
+    improveScheduledTaskPrompt: (prompt: string) => Promise<ScheduledTaskPromptImprovementResponse | null>;
 }
 
 export const useScheduledTasks = (options?: { enabled?: boolean }): UseScheduledTasksResult => {
@@ -219,6 +228,44 @@ export const useScheduledTasks = (options?: { enabled?: boolean }): UseScheduled
         [enabled, scheduledTasks]
     );
 
+    const generateCronExpression = useCallback(
+        async (request: CronExpressionGenerationRequest): Promise<CronExpressionGenerationResponse | null> => {
+            if (!enabled) {
+                return null;
+            }
+
+            setError(null);
+
+            return await handleApiCall<CronExpressionGenerationResponse>(() =>
+                fetch(`${sreAgentEndpoint}/api/v1/scheduledtasks/cron/generate`, {
+                    method: 'POST',
+                    headers: getAgentHeaders(),
+                    body: JSON.stringify(request),
+                })
+            );
+        },
+        [enabled, sreAgentEndpoint]
+    );
+
+    const improveScheduledTaskPrompt = useCallback(
+        async (prompt: string): Promise<ScheduledTaskPromptImprovementResponse | null> => {
+            if (!enabled) {
+                return null;
+            }
+
+            setError(null);
+
+            return await handleApiCall<ScheduledTaskPromptImprovementResponse>(() =>
+                fetch(`${sreAgentEndpoint}/api/v1/scheduledtasks/prompt/improve`, {
+                    method: 'POST',
+                    headers: getAgentHeaders(),
+                    body: JSON.stringify({ prompt }),
+                })
+            );
+        },
+        [enabled, sreAgentEndpoint]
+    );
+
     // Load tasks on mount
     useEffect(() => {
         refreshTasks();
@@ -236,5 +283,7 @@ export const useScheduledTasks = (options?: { enabled?: boolean }): UseScheduled
         resumeTask,
         getTaskById,
         getTasksByThread,
+        generateCronExpression,
+        improveScheduledTaskPrompt,
     };
 };

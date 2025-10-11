@@ -16,17 +16,24 @@ import {
     TextField,
 } from '@fluentui/react';
 import { tokens } from '@fluentui/react-components';
-import { Add16Regular, Bot16Regular, DocumentEdit16Regular, Info16Regular, Timer16Regular } from '@fluentui/react-icons';
-import React, { FC, useCallback, useMemo, useReducer, useState } from 'react';
+import { Add16Regular, Bot16Regular, DocumentEdit16Regular, Info16Regular, Sparkle16Regular, Timer16Regular } from '@fluentui/react-icons';
+import React, { FC, useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { GenericErrorResources, ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
-import { CreateScheduledTaskRequest } from '../Contracts/ScheduledTasks';
+import {
+    CreateScheduledTaskRequest,
+    CronExpressionGenerationRequest,
+    CronExpressionGenerationResponse,
+    ScheduledTaskPromptImprovementResponse,
+} from '../Contracts/ScheduledTasks';
 
 export interface CreateScheduledTaskDialogProps {
     isOpen: boolean;
     onDismiss: () => void;
     onTaskCreated: () => void;
     createTask: (task: CreateScheduledTaskRequest) => Promise<any>;
+    generateCronExpression: (request: CronExpressionGenerationRequest) => Promise<CronExpressionGenerationResponse | null>;
+    improvePrompt: (prompt: string) => Promise<ScheduledTaskPromptImprovementResponse | null>;
     agentName?: string; // Optional agent name to associate with the scheduled task
 }
 
@@ -289,7 +296,15 @@ const PreviewCard: FC<{ cron: string }> = ({ cron }) => {
 // Component
 // ---------------------------
 
-const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen, onDismiss, onTaskCreated, createTask, agentName }) => {
+const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({
+    isOpen,
+    onDismiss,
+    onTaskCreated,
+    createTask,
+    generateCronExpression,
+    improvePrompt,
+    agentName,
+}) => {
     const intl = useIntl();
 
     const [formData, dispatch] = useReducer(formReducer, undefined as any, () =>
@@ -299,8 +314,23 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [presetKey, setPresetKey] = useState<PresetKey>('daily');
     const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [cronAssistDescription, setCronAssistDescription] = useState('');
+    const [cronAssistResult, setCronAssistResult] = useState<CronExpressionGenerationResponse | null>(null);
+    const [cronAssistLoading, setCronAssistLoading] = useState(false);
+    const [cronAssistError, setCronAssistError] = useState<string | null>(null);
+    const [promptAssistLoading, setPromptAssistLoading] = useState(false);
+    const [promptAssistError, setPromptAssistError] = useState<string | null>(null);
+    const [promptAssistResult, setPromptAssistResult] = useState<ScheduledTaskPromptImprovementResponse | null>(null);
 
     const currentPreset = presetKey;
+    const timezoneHint = useMemo(() => {
+        try {
+            return Intl.DateTimeFormat().resolvedOptions().timeZone;
+        } catch (err) {
+            console.warn('Failed to resolve timezone', err);
+            return undefined;
+        }
+    }, []);
 
     const validation = useMemo(() => validate(formData), [formData]);
     const disableSubmit = submitting || hasErrors(validation);
@@ -341,6 +371,42 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
         [onFieldChange]
     );
 
+    const handleCronAssist = useCallback(async () => {
+        const description = cronAssistDescription.trim();
+        if (!description) {
+            setCronAssistError(intl.formatMessage(ScheduledTasksResources.cronAiDescriptionRequired));
+            return;
+        }
+
+        setCronAssistLoading(true);
+        setCronAssistError(null);
+        setCronAssistResult(null);
+
+        const request: CronExpressionGenerationRequest = {
+            description,
+            timezone: timezoneHint,
+            startTime: formData.startTime,
+        };
+
+        const result = await generateCronExpression(request);
+
+        if (result) {
+            setCronAssistResult(result);
+            setPresetKey('custom');
+            onFieldChange('cronExpression', result.cronExpression || '');
+            setTouched(t => ({ ...t, cronExpression: true }));
+        } else {
+            setCronAssistError(intl.formatMessage(ScheduledTasksResources.cronAiFailed));
+        }
+
+        setCronAssistLoading(false);
+    }, [cronAssistDescription, generateCronExpression, timezoneHint, formData.startTime, onFieldChange, intl, setTouched]);
+
+    const clearCronAssistState = useCallback(() => {
+        setCronAssistResult(null);
+        setCronAssistError(null);
+    }, []);
+
     const handleSubmit = useCallback(async () => {
         // Touch all fields so errors render
         setTouched({ name: true, cronExpression: true, agentPrompt: true, maxExecutions: true });
@@ -372,6 +438,48 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
             setSubmitting(false);
         }
     }, [formData, createTask, onTaskCreated, intl]);
+
+    const handlePromptImprovement = useCallback(async () => {
+        if (!formData.agentPrompt || formData.agentPrompt.trim().length === 0) {
+            setPromptAssistError(intl.formatMessage(ScheduledTasksResources.promptAiRequiresContent));
+            return;
+        }
+
+        setPromptAssistLoading(true);
+        setPromptAssistError(null);
+        setPromptAssistResult(null);
+
+        const result = await improvePrompt(formData.agentPrompt);
+
+        if (result) {
+            setPromptAssistResult(result);
+        } else {
+            setPromptAssistError(intl.formatMessage(ScheduledTasksResources.promptAiFailed));
+        }
+
+        setPromptAssistLoading(false);
+    }, [formData.agentPrompt, improvePrompt, intl]);
+
+    const applyImprovedPrompt = useCallback(() => {
+        if (promptAssistResult?.improvedPrompt) {
+            onFieldChange('agentPrompt', promptAssistResult.improvedPrompt);
+            setTouched(t => ({ ...t, agentPrompt: true }));
+        }
+    }, [promptAssistResult, onFieldChange]);
+
+    const resetPromptAssist = useCallback(() => {
+        setPromptAssistResult(null);
+        setPromptAssistError(null);
+    }, []);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setCronAssistDescription('');
+            clearCronAssistState();
+            setPromptAssistLoading(false);
+            resetPromptAssist();
+        }
+    }, [isOpen, clearCronAssistState, resetPromptAssist]);
 
     const dialogContentProps = {
         type: DialogType.close,
@@ -474,6 +582,149 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                                 />
                             )}
 
+                            <Stack
+                                styles={{
+                                    root: {
+                                        background: tokens.colorNeutralBackground3,
+                                        borderRadius: 4,
+                                        padding: 12,
+                                        border: `1px solid ${tokens.colorNeutralStroke1}`,
+                                        boxShadow: tokens.shadow2,
+                                    },
+                                }}
+                                tokens={{ childrenGap: 8 }}
+                            >
+                                <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 8 }}>
+                                    <Sparkle16Regular style={{ color: tokens.colorBrandForeground1, fontSize: 16 }} />
+                                    <Text variant="small" styles={{ root: { fontWeight: 600, color: tokens.colorNeutralForeground1 } }}>
+                                        {intl.formatMessage(ScheduledTasksResources.cronAiHelperTitle)}
+                                    </Text>
+                                </Stack>
+                                <Text variant="xSmall" styles={{ root: { color: tokens.colorNeutralForeground2 } }}>
+                                    {intl.formatMessage(ScheduledTasksResources.cronAiHelperDescription)}
+                                </Text>
+                                <TextField
+                                    label={intl.formatMessage(ScheduledTasksResources.cronAiDescriptionLabel)}
+                                    value={cronAssistDescription}
+                                    onChange={(_, v) => {
+                                        setCronAssistDescription(v || '');
+                                        if (cronAssistError) {
+                                            setCronAssistError(null);
+                                        }
+                                    }}
+                                    placeholder={intl.formatMessage(ScheduledTasksResources.cronAiDescriptionPlaceholder)}
+                                    multiline
+                                    rows={3}
+                                />
+                                <Stack horizontal wrap tokens={{ childrenGap: 8 }}>
+                                    <PrimaryButton
+                                        onClick={handleCronAssist}
+                                        disabled={cronAssistLoading}
+                                        text={
+                                            cronAssistLoading
+                                                ? intl.formatMessage(ScheduledTasksResources.cronAiGenerating)
+                                                : intl.formatMessage(ScheduledTasksResources.cronAiGenerate)
+                                        }
+                                    />
+                                    {cronAssistResult && (
+                                        <DefaultButton
+                                            onClick={() => {
+                                                clearCronAssistState();
+                                                setCronAssistDescription('');
+                                            }}
+                                            disabled={cronAssistLoading}
+                                            text={intl.formatMessage(ScheduledTasksResources.cronAiClear)}
+                                        />
+                                    )}
+                                </Stack>
+                                {cronAssistError && (
+                                    <Text variant="xSmall" styles={{ root: { color: tokens.colorPaletteRedForeground1 } }}>
+                                        {cronAssistError}
+                                    </Text>
+                                )}
+                                {cronAssistResult && (
+                                    <Stack
+                                        tokens={{ childrenGap: 6 }}
+                                        styles={{
+                                            root: {
+                                                background: tokens.colorNeutralBackground4,
+                                                borderRadius: 4,
+                                                padding: 12,
+                                                border: `1px solid ${tokens.colorNeutralStroke2}`,
+                                            },
+                                        }}
+                                    >
+                                        <Text variant="small" styles={{ root: { fontWeight: 600, color: tokens.colorNeutralForeground1 } }}>
+                                            {intl.formatMessage(ScheduledTasksResources.cronAiResultHeader)}
+                                        </Text>
+                                        <Text variant="xSmall" styles={{ root: { color: tokens.colorNeutralForeground2 } }}>
+                                            {intl.formatMessage(ScheduledTasksResources.cronAiHumanReadable)}:{' '}
+                                            {cronAssistResult.humanReadableDescription || '—'}
+                                        </Text>
+                                        <Text variant="xSmall" styles={{ root: { color: tokens.colorNeutralForeground2 } }}>
+                                            {intl.formatMessage(ScheduledTasksResources.cronAiCronLabel)}:{' '}
+                                            {normalizeCron(cronAssistResult.cronExpression)}
+                                        </Text>
+                                        {cronAssistResult.timezone && (
+                                            <Text variant="xSmall" styles={{ root: { color: tokens.colorNeutralForeground2 } }}>
+                                                {intl.formatMessage(ScheduledTasksResources.cronAiTimezone)}: {cronAssistResult.timezone}
+                                            </Text>
+                                        )}
+                                        {cronAssistResult.assumptions?.length > 0 && (
+                                            <Stack tokens={{ childrenGap: 2 }}>
+                                                <Text variant="xSmall" styles={{ root: { fontWeight: 600 } }}>
+                                                    {intl.formatMessage(ScheduledTasksResources.cronAiAssumptions)}
+                                                </Text>
+                                                {cronAssistResult.assumptions.map((item, idx) => (
+                                                    <Text
+                                                        key={idx}
+                                                        variant="xSmall"
+                                                        styles={{ root: { color: tokens.colorNeutralForeground2 } }}
+                                                    >
+                                                        • {item}
+                                                    </Text>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                        {cronAssistResult.warnings?.length > 0 && (
+                                            <Stack tokens={{ childrenGap: 2 }}>
+                                                <Text
+                                                    variant="xSmall"
+                                                    styles={{ root: { fontWeight: 600, color: tokens.colorPaletteDarkOrangeForeground1 } }}
+                                                >
+                                                    {intl.formatMessage(ScheduledTasksResources.cronAiWarnings)}
+                                                </Text>
+                                                {cronAssistResult.warnings.map((item, idx) => (
+                                                    <Text
+                                                        key={idx}
+                                                        variant="xSmall"
+                                                        styles={{ root: { color: tokens.colorPaletteDarkOrangeForeground1 } }}
+                                                    >
+                                                        • {item}
+                                                    </Text>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                        {cronAssistResult.examples?.length > 0 && (
+                                            <Stack tokens={{ childrenGap: 2 }}>
+                                                <Text variant="xSmall" styles={{ root: { fontWeight: 600 } }}>
+                                                    {intl.formatMessage(ScheduledTasksResources.cronAiExamples)}
+                                                </Text>
+                                                {cronAssistResult.examples.map((item, idx) => (
+                                                    <Text
+                                                        key={idx}
+                                                        variant="xSmall"
+                                                        styles={{ root: { color: tokens.colorNeutralForeground2 } }}
+                                                    >
+                                                        • {item}
+                                                    </Text>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                    </Stack>
+                                )}
+                            </Stack>
+
                             <DatePicker
                                 label={intl.formatMessage(ScheduledTasksResources.endDateOptional)}
                                 value={formData.endTime ? new Date(formData.endTime) : undefined}
@@ -513,6 +764,114 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                         errorMessage={touched.agentPrompt ? validation.agentPrompt : undefined}
                         styles={{ fieldGroup: { minHeight: 220 }, root: { width: '100%' } }}
                     />
+
+                    <Stack
+                        styles={{
+                            root: {
+                                background: tokens.colorNeutralBackground3,
+                                border: `1px solid ${tokens.colorNeutralStroke1}`,
+                                boxShadow: tokens.shadow2,
+                                padding: 12,
+                                borderRadius: 4,
+                                maxWidth: 860,
+                            },
+                        }}
+                        tokens={{ childrenGap: 10 }}
+                    >
+                        <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 8 }}>
+                            <Bot16Regular style={{ color: tokens.colorBrandForeground1, fontSize: 16 }} />
+                            <Text variant="small" styles={{ root: { fontWeight: 600, color: tokens.colorNeutralForeground1 } }}>
+                                {intl.formatMessage(ScheduledTasksResources.promptAiResultHeader)}
+                            </Text>
+                        </Stack>
+                        <Text variant="xSmall" styles={{ root: { color: tokens.colorNeutralForeground2 } }}>
+                            {intl.formatMessage(ScheduledTasksResources.promptAiHelperDescription)}
+                        </Text>
+                        <Stack horizontal wrap tokens={{ childrenGap: 8 }}>
+                            <PrimaryButton
+                                onClick={handlePromptImprovement}
+                                disabled={promptAssistLoading}
+                                text={
+                                    promptAssistLoading
+                                        ? intl.formatMessage(ScheduledTasksResources.promptAiImproving)
+                                        : intl.formatMessage(ScheduledTasksResources.promptAiImproveButton)
+                                }
+                            />
+                            {promptAssistResult && (
+                                <DefaultButton
+                                    onClick={applyImprovedPrompt}
+                                    disabled={promptAssistLoading}
+                                    text={intl.formatMessage(ScheduledTasksResources.promptAiApply)}
+                                />
+                            )}
+                            {promptAssistResult && (
+                                <DefaultButton
+                                    onClick={resetPromptAssist}
+                                    disabled={promptAssistLoading}
+                                    text={intl.formatMessage(SreAgentResources.cancel)}
+                                />
+                            )}
+                        </Stack>
+                        {promptAssistError && (
+                            <Text variant="xSmall" styles={{ root: { color: tokens.colorPaletteRedForeground1 } }}>
+                                {promptAssistError}
+                            </Text>
+                        )}
+                        {promptAssistResult && (
+                            <Stack tokens={{ childrenGap: 8 }}>
+                                <TextField
+                                    value={promptAssistResult.improvedPrompt}
+                                    readOnly
+                                    multiline
+                                    rows={6}
+                                    label={intl.formatMessage(ScheduledTasksResources.promptAiResultLabel)}
+                                />
+                                {promptAssistResult.warnings?.length > 0 && (
+                                    <Stack tokens={{ childrenGap: 2 }}>
+                                        <Text
+                                            variant="xSmall"
+                                            styles={{ root: { fontWeight: 600, color: tokens.colorPaletteDarkOrangeForeground1 } }}
+                                        >
+                                            {intl.formatMessage(ScheduledTasksResources.promptAiWarnings)}
+                                        </Text>
+                                        {promptAssistResult.warnings.map((warning, idx) => (
+                                            <Text
+                                                key={idx}
+                                                variant="xSmall"
+                                                styles={{ root: { color: tokens.colorPaletteDarkOrangeForeground1 } }}
+                                            >
+                                                • {warning}
+                                            </Text>
+                                        ))}
+                                    </Stack>
+                                )}
+                                {promptAssistResult.suggestions?.length > 0 && (
+                                    <Stack tokens={{ childrenGap: 2 }}>
+                                        <Text variant="xSmall" styles={{ root: { fontWeight: 600 } }}>
+                                            {intl.formatMessage(ScheduledTasksResources.promptAiSuggestions)}
+                                        </Text>
+                                        {promptAssistResult.suggestions.map((suggestion, idx) => (
+                                            <Text key={idx} variant="xSmall" styles={{ root: { color: tokens.colorNeutralForeground2 } }}>
+                                                • {suggestion}
+                                            </Text>
+                                        ))}
+                                    </Stack>
+                                )}
+                                {promptAssistResult.followUpQuestions?.length > 0 && (
+                                    <Stack tokens={{ childrenGap: 2 }}>
+                                        <Text variant="xSmall" styles={{ root: { fontWeight: 600 } }}>
+                                            {intl.formatMessage(ScheduledTasksResources.promptAiFollowUps)}
+                                        </Text>
+                                        {promptAssistResult.followUpQuestions.map((question, idx) => (
+                                            <Text key={idx} variant="xSmall" styles={{ root: { color: tokens.colorNeutralForeground2 } }}>
+                                                • {question}
+                                            </Text>
+                                        ))}
+                                    </Stack>
+                                )}
+                            </Stack>
+                        )}
+                    </Stack>
 
                     <Stack
                         styles={{

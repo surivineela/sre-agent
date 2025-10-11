@@ -264,7 +264,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
             const trimmedInstructions = triggerController.trigger.instructions?.trim() ?? '';
             switch (state.entityType) {
                 case 'agent':
-                    return !!(state.agent?.name && state.agent?.instructions);
+                    return !!(state.agent?.name?.trim() && state.agent?.instructions?.trim() && state.agent?.handoffDescription?.trim());
                 case 'tool': {
                     const toolType = state.tool?.type?.trim() ?? 'KustoTool';
                     const isKustoTool = toolType === 'KustoTool';
@@ -341,9 +341,10 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                         const metaAgentOverride = (state.agent as any)?.metaAgentOverride === true;
 
                         payload = {
-                            name: state.agent?.name,
+                            name: state.agent?.name?.trim(),
                             description: (state.agent as any)?.description,
-                            instructions: state.agent?.instructions,
+                            instructions: state.agent?.instructions?.trim(),
+                            handoffDescription: state.agent?.handoffDescription?.trim(),
                             handoffs: state.agent?.handoffs || [],
                             tools: state.agent?.tools || [],
                             systemTools: state.agent?.systemTools || [],
