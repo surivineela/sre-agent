@@ -249,7 +249,12 @@ const IncidentManagement: FC = () => {
                                 ))}
                             </NavDrawerBody>
                         </NavDrawer>
-                        {selectedKey === IncidentManagementMenuKeys.IncidentOverview && <IncidentsOverview />}
+                        {selectedKey === IncidentManagementMenuKeys.IncidentOverview && (
+                            <IncidentsOverview
+                                agentAppInsightsAppId={agentAppInsightsAppId}
+                                showControlPlaneDependentFeatures={showControlPlaneDependentFeatures}
+                            />
+                        )}
                         {selectedKey === IncidentManagementMenuKeys.HandlerConfiguration && (
                             <HandlersOverview setNavigationHidden={setNavigationHidden} />
                         )}

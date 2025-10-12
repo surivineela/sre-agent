@@ -15,14 +15,16 @@ import {
     ToolbarGroup,
     useRestoreFocusSource,
 } from '@fluentui/react-components';
-import { ArrowClockwise16Regular, Dismiss24Regular, FullScreenMaximize16Regular } from '@fluentui/react-icons';
+import { ArrowClockwise16Regular, Branch16Regular, Dismiss24Regular, FullScreenMaximize16Regular } from '@fluentui/react-icons';
 import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { debounce } from 'lodash';
-import { FC, useCallback, useContext, useMemo, useState } from 'react';
+import { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClient';
+import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import {
     FilterPropsWithKey,
     RemovableFilterProps,
@@ -32,11 +34,14 @@ import {
 } from '../../../Common/Components/PillFilter/Contracts';
 import { LabelKeyPair } from '../../../Common/Components/PillFilter/ListWithSearch';
 import { PillFilterSet } from '../../../Common/Components/PillFilter/PillFilterSet';
+import { IncidentDocument } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { InvestigationStatus, Thread } from '../../../Common/Contracts/DataPlane/Thread';
+import Url from '../../../Common/Helpers/Url';
 import { ActivitiesThreadHeaderResources, IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
 import { SreAgentContext } from '../../Contracts/Context';
+import { TracePanel } from '../../Foundry/app/components/shell/playground/tracing/TracePanel';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import { PlatformConnectionMessageBar } from '../Common/PlatformConnectionMessageBar';
 import { IncidentsListColumnKey } from '../CreateIncidentHandler/Contracts';
@@ -57,16 +62,32 @@ type ISortedDetailsListColumn<T> = IColumn & {
     disableColumnClick?: boolean;
 };
 
+const showThreadTraceUI = Url.getFeatureValue('showThreadTraceUI') === 'true';
+
 interface SelectedThreadInfo {
     thread: Thread;
     fullScreen: boolean;
+    showTrace: boolean;
 }
 
-const IncidentsOverview: FC = () => {
+interface IncidentsOverviewProps {
+    agentAppInsightsAppId?: string;
+    showControlPlaneDependentFeatures?: boolean;
+}
+
+const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, showControlPlaneDependentFeatures }) => {
     const {
         incidentManagement: { incidentPlatformType },
     } = useContext(SreAgentContext);
     const platformSpecificStrings = useMemo(() => getPlatformSpecificStrings(incidentPlatformType), [incidentPlatformType]);
+
+    const azPortalContext = useContext(AzPortalContext);
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const incidentHandlerClient = useMemo(
+        () => IncidentHandlerClient.getInstance(sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)),
+        [azPortalContext, sreAgentEndpoint]
+    );
+    const [selectedIncidentDetails, setSelectedIncidentDetails] = useState<IncidentDocument>();
 
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -81,8 +102,10 @@ const IncidentsOverview: FC = () => {
 
     const [selectedThreadInfo, setSelectedThreadInfo] = useState<SelectedThreadInfo | null>(null);
 
+    const traceFocusRestorationRef = useRef<HTMLButtonElement>(null);
+
     const openThreadDrawer = useCallback((thread: Thread) => {
-        setSelectedThreadInfo({ thread, fullScreen: false });
+        setSelectedThreadInfo({ thread, fullScreen: false, showTrace: false });
     }, []);
 
     const openThreadFullScreen = useCallback(() => {
@@ -91,9 +114,38 @@ const IncidentsOverview: FC = () => {
         }
     }, [selectedThreadInfo]);
 
+    const openThreadTrace = useCallback(() => {
+        if (selectedThreadInfo) {
+            setSelectedThreadInfo({ ...selectedThreadInfo, showTrace: true });
+        }
+    }, [selectedThreadInfo]);
+
+    const closeThreadTrace = useCallback(() => {
+        if (selectedThreadInfo) {
+            setSelectedThreadInfo({ ...selectedThreadInfo, showTrace: false });
+        }
+    }, [selectedThreadInfo]);
+
     const closeThread = useCallback(() => {
         setSelectedThreadInfo(null);
     }, []);
+
+    useEffect(() => {
+        let isSubscribed = true;
+        setSelectedIncidentDetails(undefined);
+
+        if (selectedThreadInfo && selectedThreadInfo.thread.status?.incidentStatus?.incidentId) {
+            incidentHandlerClient.getIncident(selectedThreadInfo.thread.status?.incidentStatus?.incidentId).then(response => {
+                if (isSubscribed && response.isSuccessful && response.content) {
+                    setSelectedIncidentDetails(response.content);
+                }
+            });
+        }
+
+        return () => {
+            isSubscribed = false;
+        };
+    }, [selectedThreadInfo, incidentHandlerClient]);
 
     const {
         threadCounts,
@@ -474,173 +526,225 @@ const IncidentsOverview: FC = () => {
         return filters;
     }, [timeFilterProps, statusFilterProps, priorityFilterProps, investigationStatusFilterProps]);
 
-    return selectedThreadInfo?.fullScreen ? (
-        <IncidentChat
-            selectedThread={selectedThreadInfo.thread}
-            exitToHome={closeThread}
-            isExpandedView={true}
-            handleThreadDelete={handleThreadDelete}
-        />
-    ) : (
+    return (
         <>
-            <Drawer
-                {...restoreFocusSourceAttributes}
-                type="overlay"
-                separator
-                open={!!selectedThreadInfo && !selectedThreadInfo.fullScreen}
-                modalType="non-modal"
-                position="end"
-                size="large"
-                style={{ marginTop: '50px', marginBottom: '8px', borderRadius: tokens.borderRadiusXLarge }}
-            >
-                <DrawerHeader style={{ padding: '16px 16px 7px 16px' }}>
-                    <DrawerHeaderTitle
-                        heading={{
-                            style: {
-                                display: 'flex',
-                                flexDirection: 'row',
-                                gap: 8,
-                                alignItems: 'center',
-                                justifyContent: 'start',
-                                overflow: 'hidden',
-                            },
-                        }}
-                        action={
-                            <Toolbar>
-                                <ToolbarGroup style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
-                                    <Button
-                                        icon={<FullScreenMaximize16Regular />}
-                                        style={{
-                                            fontWeight: 'normal',
-                                            fontSize: '12px',
-                                            lineHeight: '16px',
-                                            padding: '2px 8px 2px 4px',
-                                            margin: 'auto',
-                                        }}
-                                        onClick={openThreadFullScreen}
-                                    >
-                                        {intl.formatMessage(IncidentManagementResources.fullPage)}
-                                    </Button>
-                                    <ToolbarButton
-                                        aria-label={intl.formatMessage(IncidentManagementResources.closePanel)}
-                                        appearance="transparent"
-                                        icon={<Dismiss24Regular />}
-                                        onClick={closeThread}
-                                    />
-                                </ToolbarGroup>
-                            </Toolbar>
-                        }
-                    >
-                        <div style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                            {selectedThreadInfo?.thread.title}
-                        </div>
-                        {selectedThreadInfo?.thread && (
-                            <ThreadActionsMenu
-                                thread={selectedThreadInfo.thread}
-                                handleThreadDelete={handleThreadDelete}
-                                hideCopyDeeplink={true}
-                            />
-                        )}
-                    </DrawerHeaderTitle>
-                </DrawerHeader>
-                <DrawerBody style={{ padding: '0px 16px 0px 0px' }}>
-                    {selectedThreadInfo?.thread && (
-                        <IncidentChat
-                            selectedThread={selectedThreadInfo.thread}
-                            exitToHome={closeThread}
-                            handleThreadDelete={handleThreadDelete}
-                        />
-                    )}
-                </DrawerBody>
-            </Drawer>
-            <div className={styles.navPanelWrapper}>
-                <div className={styles.navPanelContent}>
-                    <div className={styles.navPanelPadding}>
-                        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                            <PlatformConnectionMessageBar />
-                            <div className={styles.incidentFiltersContainer}>
-                                <SearchBox
-                                    className={styles.searchBox}
-                                    placeholder={intl.formatMessage(SreAgentResources.search)}
-                                    value={searchText}
-                                    onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) =>
-                                        setSearchText(data.value ?? '')
-                                    )}
-                                    disabled={!!selectedThreadInfo}
-                                />
-                                <PillFilterSet dynamicFilters={dynamicFilters} disabled={disableAllControls || !!selectedThreadInfo} />
-                                <Button
-                                    icon={<ArrowClockwise16Regular />}
-                                    appearance="transparent"
-                                    className={styles.button}
-                                    onClick={() => setRefreshCounter(prev => prev + 1)}
-                                >
-                                    {intl.formatMessage(IncidentManagementResources.refresh)}
-                                </Button>
-                            </div>
-                            <IncidentsSummary threadCounts={threadCounts} loading={incidentThreadsLoading} />
-                            <div
-                                data-is-scrollable="true"
-                                user-select="text"
+            {selectedThreadInfo?.fullScreen ? (
+                <IncidentChat
+                    selectedThread={selectedThreadInfo.thread}
+                    exitToHome={closeThread}
+                    isExpandedView={true}
+                    handleThreadDelete={handleThreadDelete}
+                    titleActions={
+                        showThreadTraceUI && showControlPlaneDependentFeatures ? (
+                            <Button
+                                ref={traceFocusRestorationRef}
+                                icon={<Branch16Regular />}
                                 style={{
-                                    overflowY: 'auto',
-                                    overflowX: 'auto',
-                                    minHeight: incidentThreads.length < 4 ? 'fit-content' : '200px',
+                                    fontWeight: 'normal',
+                                    fontSize: '12px',
+                                    lineHeight: '16px',
+                                    padding: '2px 8px 2px 4px',
+                                    margin: 'auto',
                                 }}
-                                ref={threadListDivRef}
-                                onScroll={onScroll}
+                                onClick={openThreadTrace}
+                                disabled={!agentAppInsightsAppId}
                             >
-                                <ShimmeredDetailsList
-                                    columns={columns}
-                                    constrainMode={ConstrainMode.horizontalConstrained}
-                                    items={incidentThreads ?? []}
-                                    layoutMode={DetailsListLayoutMode.justified}
-                                    compact={true}
-                                    enableShimmer={incidentThreadsLoading}
-                                    checkboxVisibility={CheckboxVisibility.always}
-                                    useReducedRowRenderer={true}
-                                    styles={{
-                                        root: {
-                                            width: '100%',
-                                            userSelect: 'text',
-                                        },
-                                    }}
-                                    detailsListStyles={{
-                                        root: { overflowX: 'visible', overflowY: 'visible' },
-                                        headerWrapper: {
-                                            '& > div': {
-                                                paddingTop: '0px !important',
-                                            },
-                                        },
-                                    }}
-                                    selectionMode={SelectionMode.none}
-                                    setKey="incidentFilterList"
-                                    getKey={(item, index) => (item && item.id ? item.id : `shimmer-${index}`)}
+                                {intl.formatMessage(IncidentManagementResources.viewTrace)}
+                            </Button>
+                        ) : undefined
+                    }
+                />
+            ) : (
+                <>
+                    <Drawer
+                        {...restoreFocusSourceAttributes}
+                        type="overlay"
+                        separator
+                        open={!!selectedThreadInfo && !selectedThreadInfo.fullScreen}
+                        modalType="non-modal"
+                        position="end"
+                        size="large"
+                        style={{ marginTop: '50px', marginBottom: '8px', borderRadius: tokens.borderRadiusXLarge }}
+                    >
+                        <DrawerHeader style={{ padding: '16px 16px 7px 16px' }}>
+                            <DrawerHeaderTitle
+                                heading={{
+                                    style: {
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        gap: 8,
+                                        alignItems: 'center',
+                                        justifyContent: 'start',
+                                        overflow: 'hidden',
+                                    },
+                                }}
+                                action={
+                                    <Toolbar>
+                                        <ToolbarGroup style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
+                                            <Button
+                                                icon={<FullScreenMaximize16Regular />}
+                                                style={{
+                                                    fontWeight: 'normal',
+                                                    fontSize: '12px',
+                                                    lineHeight: '16px',
+                                                    padding: '2px 8px 2px 4px',
+                                                    margin: 'auto',
+                                                }}
+                                                onClick={openThreadFullScreen}
+                                            >
+                                                {intl.formatMessage(IncidentManagementResources.fullPage)}
+                                            </Button>
+                                            {showThreadTraceUI && (
+                                                <Button
+                                                    ref={traceFocusRestorationRef}
+                                                    icon={<Branch16Regular />}
+                                                    style={{
+                                                        fontWeight: 'normal',
+                                                        fontSize: '12px',
+                                                        lineHeight: '16px',
+                                                        padding: '2px 8px 2px 4px',
+                                                        margin: 'auto',
+                                                    }}
+                                                    onClick={openThreadTrace}
+                                                >
+                                                    {intl.formatMessage(IncidentManagementResources.viewTrace)}
+                                                </Button>
+                                            )}
+                                            <ToolbarButton
+                                                aria-label={intl.formatMessage(IncidentManagementResources.closePanel)}
+                                                appearance="transparent"
+                                                icon={<Dismiss24Regular />}
+                                                onClick={closeThread}
+                                            />
+                                        </ToolbarGroup>
+                                    </Toolbar>
+                                }
+                            >
+                                <div style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                                    {selectedThreadInfo?.thread.title}
+                                </div>
+                                {selectedThreadInfo?.thread && (
+                                    <ThreadActionsMenu
+                                        thread={selectedThreadInfo.thread}
+                                        handleThreadDelete={handleThreadDelete}
+                                        hideCopyDeeplink={true}
+                                    />
+                                )}
+                            </DrawerHeaderTitle>
+                        </DrawerHeader>
+                        <DrawerBody style={{ padding: '0px 16px 0px 0px' }}>
+                            {selectedThreadInfo?.thread && (
+                                <IncidentChat
+                                    selectedThread={selectedThreadInfo.thread}
+                                    exitToHome={closeThread}
+                                    handleThreadDelete={handleThreadDelete}
                                 />
-                                {moreThreadsToLoad && !incidentThreadsLoading ? (
-                                    // TODO (andimarc): use shimmer row instead
+                            )}
+                        </DrawerBody>
+                    </Drawer>
+                    <div className={styles.navPanelWrapper}>
+                        <div className={styles.navPanelContent}>
+                            <div className={styles.navPanelPadding}>
+                                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                    <PlatformConnectionMessageBar />
+                                    <div className={styles.incidentFiltersContainer}>
+                                        <SearchBox
+                                            className={styles.searchBox}
+                                            placeholder={intl.formatMessage(SreAgentResources.search)}
+                                            value={searchText}
+                                            onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) =>
+                                                setSearchText(data.value ?? '')
+                                            )}
+                                            disabled={!!selectedThreadInfo}
+                                        />
+                                        <PillFilterSet
+                                            dynamicFilters={dynamicFilters}
+                                            disabled={disableAllControls || !!selectedThreadInfo}
+                                        />
+                                        <Button
+                                            icon={<ArrowClockwise16Regular />}
+                                            appearance="transparent"
+                                            className={styles.button}
+                                            onClick={() => setRefreshCounter(prev => prev + 1)}
+                                        >
+                                            {intl.formatMessage(IncidentManagementResources.refresh)}
+                                        </Button>
+                                    </div>
+                                    <IncidentsSummary threadCounts={threadCounts} loading={incidentThreadsLoading} />
                                     <div
-                                        ref={intersectionObserverRef}
+                                        data-is-scrollable="true"
+                                        user-select="text"
                                         style={{
-                                            height: '20px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            padding: '10px',
+                                            overflowY: 'auto',
+                                            overflowX: 'auto',
+                                            minHeight: incidentThreads.length < 4 ? 'fit-content' : '200px',
                                         }}
+                                        ref={threadListDivRef}
+                                        onScroll={onScroll}
                                     >
-                                        <Spinner size="tiny" />
+                                        <ShimmeredDetailsList
+                                            columns={columns}
+                                            constrainMode={ConstrainMode.horizontalConstrained}
+                                            items={incidentThreads ?? []}
+                                            layoutMode={DetailsListLayoutMode.justified}
+                                            compact={true}
+                                            enableShimmer={incidentThreadsLoading}
+                                            checkboxVisibility={CheckboxVisibility.always}
+                                            useReducedRowRenderer={true}
+                                            styles={{
+                                                root: {
+                                                    width: '100%',
+                                                    userSelect: 'text',
+                                                },
+                                            }}
+                                            detailsListStyles={{
+                                                root: { overflowX: 'visible', overflowY: 'visible' },
+                                                headerWrapper: {
+                                                    '& > div': {
+                                                        paddingTop: '0px !important',
+                                                    },
+                                                },
+                                            }}
+                                            selectionMode={SelectionMode.none}
+                                            setKey="incidentFilterList"
+                                            getKey={(item, index) => (item && item.id ? item.id : `shimmer-${index}`)}
+                                        />
+                                        {moreThreadsToLoad && !incidentThreadsLoading ? (
+                                            // TODO (andimarc): use shimmer row instead
+                                            <div
+                                                ref={intersectionObserverRef}
+                                                style={{
+                                                    height: '20px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    padding: '10px',
+                                                }}
+                                            >
+                                                <Spinner size="tiny" />
+                                            </div>
+                                        ) : incidentThreads.length === 0 && !incidentThreadsLoading ? (
+                                            <div style={{ textAlign: 'center' }}>
+                                                {intl.formatMessage(IncidentManagementResources.noIncidentsFound)}
+                                            </div>
+                                        ) : null}
                                     </div>
-                                ) : incidentThreads.length === 0 && !incidentThreadsLoading ? (
-                                    <div style={{ textAlign: 'center' }}>
-                                        {intl.formatMessage(IncidentManagementResources.noIncidentsFound)}
-                                    </div>
-                                ) : null}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </>
+            )}
+            {!!selectedThreadInfo?.showTrace && agentAppInsightsAppId && (
+                <TracePanel
+                    appInsightsAppId={agentAppInsightsAppId}
+                    thread={selectedThreadInfo.thread}
+                    incident={selectedIncidentDetails}
+                    isOpen={!!selectedThreadInfo?.showTrace}
+                    onClose={closeThreadTrace}
+                    focusRestorationRef={traceFocusRestorationRef}
+                />
+            )}
         </>
     );
 };

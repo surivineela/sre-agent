@@ -10,9 +10,10 @@ export interface IncidentChatProps {
     exitToHome: () => void;
     isExpandedView?: boolean;
     handleThreadDelete: () => void;
+    titleActions?: React.ReactNode;
 }
 
-const IncidentChat: FC<IncidentChatProps> = ({ selectedThread, exitToHome, isExpandedView, handleThreadDelete }) => {
+const IncidentChat: FC<IncidentChatProps> = ({ selectedThread, exitToHome, isExpandedView, handleThreadDelete, titleActions }) => {
     const styles = useIncidentManagementStyles();
 
     return isExpandedView ? (
@@ -20,6 +21,7 @@ const IncidentChat: FC<IncidentChatProps> = ({ selectedThread, exitToHome, isExp
             title={selectedThread.title}
             onBackClick={exitToHome}
             titleChildren={<ThreadActionsMenu thread={selectedThread} handleThreadDelete={handleThreadDelete} hideCopyDeeplink={true} />}
+            titleActions={titleActions}
         >
             <div className={styles.navPanelContent}>
                 <div className={styles.incidentChatWrapper}>

@@ -8,12 +8,20 @@ import { DirtyStateNavigationConfirmDialog } from '../CreateIncidentHandler/Navi
 interface TitleBarNavigationProps {
     title: string;
     titleChildren?: React.ReactNode;
+    titleActions?: React.ReactNode;
     onBackClick: () => void;
     children: React.ReactNode;
     isDirty?: boolean;
 }
 
-const TitleBarNavigation: FC<TitleBarNavigationProps> = ({ title, titleChildren, onBackClick, children, isDirty = false }) => {
+const TitleBarNavigation: FC<TitleBarNavigationProps> = ({
+    title,
+    titleChildren,
+    titleActions,
+    onBackClick,
+    children,
+    isDirty = false,
+}) => {
     const styles = useIncidentManagementStyles();
 
     return (
@@ -44,6 +52,7 @@ const TitleBarNavigation: FC<TitleBarNavigationProps> = ({ title, titleChildren,
                     {title}
                 </h2>
                 {titleChildren}
+                {titleActions && <div style={{ marginLeft: 'auto' }}>{titleActions}</div>}
             </div>
             <div className={styles.navPanelContent}>
                 <DirtyStateNavigationConfirmDialog isDirty={isDirty} />

@@ -249,6 +249,12 @@
       "value": "Container Apps Operator"
     }
   ],
+  "/Z1fHN": [
+    {
+      "type": 0,
+      "value": "Tool and subagent activity sent to user"
+    }
+  ],
   "/dxZCE": [
     {
       "type": 0,
@@ -427,6 +433,12 @@
     {
       "type": 0,
       "value": "Select task"
+    }
+  ],
+  "0i3Qrd": [
+    {
+      "type": 0,
+      "value": "Agent Response"
     }
   ],
   "0ltHAS": [
@@ -685,6 +697,12 @@
     {
       "type": 0,
       "value": "Are you sure you want to pause this scheduled task?"
+    }
+  ],
+  "2+atxY": [
+    {
+      "type": 0,
+      "value": "Handoff"
     }
   ],
   "2/2yg+": [
@@ -1009,6 +1027,12 @@
       "value": "The custom incident response plan was successfully updated"
     }
   ],
+  "4/aFfy": [
+    {
+      "type": 0,
+      "value": "Tree"
+    }
+  ],
   "4/nSt8": [
     {
       "type": 0,
@@ -1117,6 +1141,12 @@
     {
       "type": 0,
       "value": "Workbook Contributor"
+    }
+  ],
+  "4OCLSf": [
+    {
+      "type": 0,
+      "value": "Response to user"
     }
   ],
   "4OUjTL": [
@@ -2389,6 +2419,16 @@
       "value": "Binding"
     }
   ],
+  "BcEbxp": [
+    {
+      "type": 1,
+      "value": "seconds"
+    },
+    {
+      "type": 0,
+      "value": "s"
+    }
+  ],
   "Bcgdb7": [
     {
       "type": 0,
@@ -2741,6 +2781,12 @@
       "value": "End date picker"
     }
   ],
+  "E+jVAN": [
+    {
+      "type": 0,
+      "value": "No trace data found for this thread."
+    }
+  ],
   "E396gv": [
     {
       "type": 0,
@@ -2865,6 +2911,12 @@
       "value": "You do not have permission to add or delete data connectors."
     }
   ],
+  "Ec1M0J": [
+    {
+      "type": 0,
+      "value": "Action plan"
+    }
+  ],
   "EdEthU": [
     {
       "type": 0,
@@ -2881,6 +2933,12 @@
     {
       "type": 0,
       "value": "Search for resource groups"
+    }
+  ],
+  "ElqLuA": [
+    {
+      "type": 0,
+      "value": "Trace data parsed with warnings."
     }
   ],
   "Ep74wA": [
@@ -3135,6 +3193,12 @@
       "value": "Unable to connect to ServiceNow endpoint. Please verify the endpoint URL."
     }
   ],
+  "GaA28c": [
+    {
+      "type": 0,
+      "value": "Incident details"
+    }
+  ],
   "Gl8fnJ": [
     {
       "type": 0,
@@ -3247,6 +3311,12 @@
     {
       "type": 0,
       "value": "Pending approvals"
+    }
+  ],
+  "Hgs+WM": [
+    {
+      "type": 0,
+      "value": "View trace"
     }
   ],
   "Hh0q8u": [
@@ -3763,6 +3833,12 @@
       "value": "A data source connection for tools"
     }
   ],
+  "K7AkdL": [
+    {
+      "type": 0,
+      "value": "Show"
+    }
+  ],
   "KAYpG9": [
     {
       "type": 0,
@@ -4081,6 +4157,16 @@
       "value": "Incident ID"
     }
   ],
+  "MHkWzD": [
+    {
+      "type": 1,
+      "value": "id"
+    },
+    {
+      "type": 0,
+      "value": " completed"
+    }
+  ],
   "MI5gZ+": [
     {
       "type": 0,
@@ -4139,6 +4225,12 @@
     {
       "type": 0,
       "value": "Kusto Configuration"
+    }
+  ],
+  "MgdnPi": [
+    {
+      "type": 0,
+      "value": "Response"
     }
   ],
   "MhTfXm": [
@@ -4415,6 +4507,12 @@
       "value": ". Refresh and try again."
     }
   ],
+  "OPBqEN": [
+    {
+      "type": 0,
+      "value": "Trace data parsed with errors."
+    }
+  ],
   "ORGv1Q": [
     {
       "type": 0,
@@ -4431,6 +4529,12 @@
     {
       "type": 0,
       "value": "The resources you picked have permissions for these roles."
+    }
+  ],
+  "OUJuir": [
+    {
+      "type": 0,
+      "value": "Model details"
     }
   ],
   "OV0MpG": [
@@ -4639,6 +4743,16 @@
       "value": "Virtual Machine Contributor"
     }
   ],
+  "PZc06m": [
+    {
+      "type": 1,
+      "value": "tokens"
+    },
+    {
+      "type": 0,
+      "value": "t"
+    }
+  ],
   "Pc+tM3": [
     {
       "type": 0,
@@ -4729,6 +4843,12 @@
     {
       "type": 0,
       "value": "Provisioning Grafana dashboard"
+    }
+  ],
+  "Q++yMM": [
+    {
+      "type": 0,
+      "value": "Subagent"
     }
   ],
   "Q/agzh": [
@@ -4859,6 +4979,12 @@
     {
       "type": 0,
       "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+    }
+  ],
+  "Qn8Bok": [
+    {
+      "type": 0,
+      "value": "Handback"
     }
   ],
   "QomX1y": [
@@ -5505,6 +5631,12 @@
       "value": "Failed to delete data connector"
     }
   ],
+  "UNXega": [
+    {
+      "type": 0,
+      "value": "From agent"
+    }
+  ],
   "UPybTw": [
     {
       "type": 0,
@@ -5605,6 +5737,12 @@
     {
       "type": 0,
       "value": "You do not have permission to delete this agent."
+    }
+  ],
+  "VA/Z1S": [
+    {
+      "type": 0,
+      "value": "Hide"
     }
   ],
   "VB+AjJ": [
@@ -6813,6 +6951,16 @@
       "value": "Last day"
     }
   ],
+  "bquSks": [
+    {
+      "type": 0,
+      "value": "Collapse span with id: "
+    },
+    {
+      "type": 1,
+      "value": "id"
+    }
+  ],
   "bri0SI": [
     {
       "type": 0,
@@ -6991,6 +7139,12 @@
     {
       "type": 1,
       "value": "name"
+    }
+  ],
+  "ctcA0c": [
+    {
+      "type": 0,
+      "value": "Agent name"
     }
   ],
   "cubQfQ": [
@@ -7235,6 +7389,12 @@
       "value": "Add a default incident response plan for the agent to use for Sev3 alerts."
     }
   ],
+  "eVjPEQ": [
+    {
+      "type": 0,
+      "value": "Model Generation"
+    }
+  ],
   "eYEnNu": [
     {
       "type": 0,
@@ -7425,6 +7585,22 @@
       "value": "A sub-agent with this name already exists"
     }
   ],
+  "fio5op": [
+    {
+      "type": 0,
+      "value": "Output"
+    }
+  ],
+  "fjgqNG": [
+    {
+      "type": 0,
+      "value": "Failed to load trace data: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "fk/+VC": [
     {
       "type": 0,
@@ -7537,6 +7713,12 @@
     {
       "type": 0,
       "value": "Manage IoT Hub device twins."
+    }
+  ],
+  "gct+2s": [
+    {
+      "type": 0,
+      "value": "Incident response plan:"
     }
   ],
   "gdUWAX": [
@@ -7723,6 +7905,12 @@
     {
       "type": 0,
       "value": "Workbook Reader"
+    }
+  ],
+  "hS+M7h": [
+    {
+      "type": 0,
+      "value": "Steps to resolution"
     }
   ],
   "hWVnHh": [
@@ -7917,6 +8105,12 @@
     {
       "type": 0,
       "value": "Last 7 days"
+    }
+  ],
+  "it6Lig": [
+    {
+      "type": 0,
+      "value": "Input"
     }
   ],
   "it8L1Q": [
@@ -8331,6 +8525,12 @@
       "value": "AzureML Data Scientist"
     }
   ],
+  "lCsNuL": [
+    {
+      "type": 0,
+      "value": "Trace data found, but could not parse into spans."
+    }
+  ],
   "lDMkTI": [
     {
       "type": 0,
@@ -8585,6 +8785,12 @@
       "value": "Incidents mitigated by user"
     }
   ],
+  "mbb8vl": [
+    {
+      "type": 0,
+      "value": "User prompt"
+    }
+  ],
   "mbtoHb": [
     {
       "type": 0,
@@ -8745,6 +8951,12 @@
     {
       "type": 1,
       "value": "name"
+    }
+  ],
+  "ncB14A": [
+    {
+      "type": 0,
+      "value": "Agent invoked"
     }
   ],
   "nh3LaL": [
@@ -8969,6 +9181,16 @@
     {
       "type": 0,
       "value": "Medium"
+    }
+  ],
+  "owa0nd": [
+    {
+      "type": 0,
+      "value": "Expand span with id: "
+    },
+    {
+      "type": 1,
+      "value": "id"
     }
   ],
   "ox7DwN": [
@@ -9665,6 +9887,12 @@
       "value": "Heads-up"
     }
   ],
+  "sjlioi": [
+    {
+      "type": 0,
+      "value": "Subagent invoked"
+    }
+  ],
   "slxYbm": [
     {
       "type": 0,
@@ -9993,6 +10221,12 @@
       "value": "Cognitive Services Custom Vision Reader"
     }
   ],
+  "u3AxgJ": [
+    {
+      "type": 0,
+      "value": "Incident status:"
+    }
+  ],
   "u4WKBH": [
     {
       "type": 0,
@@ -10057,6 +10291,16 @@
     {
       "type": 0,
       "value": "Execution Request"
+    }
+  ],
+  "uWmprZ": [
+    {
+      "type": 1,
+      "value": "id"
+    },
+    {
+      "type": 0,
+      "value": " failed"
     }
   ],
   "uYb82D": [
@@ -10435,6 +10679,12 @@
       "value": "Describe the cadence before we can help."
     }
   ],
+  "x25AjF": [
+    {
+      "type": 0,
+      "value": "Tool usage ID"
+    }
+  ],
   "x3aQrV": [
     {
       "type": 0,
@@ -10667,6 +10917,12 @@
       "value": "This operation is being executed using the agent identity credentials."
     }
   ],
+  "yX3QcY": [
+    {
+      "type": 0,
+      "value": "Tool details"
+    }
+  ],
   "yYK6LR": [
     {
       "type": 0,
@@ -10713,6 +10969,12 @@
     {
       "type": 0,
       "value": "Tasks"
+    }
+  ],
+  "yhZZjG": [
+    {
+      "type": 0,
+      "value": "To agent"
     }
   ],
   "yhqGka": [

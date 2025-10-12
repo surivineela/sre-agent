@@ -424,6 +424,8 @@ appPackage.zip
 src/Agent/Agent.Web/wwwroot/react/
 /src/Agent/FirstPartyAgent.Core/aca-appsettings.development.json
 /src/Agent/Agent.Web/appsettings-aca.development.json
+!/src/Agent/Agent.Web/Client/src/src/Space/Foundry/packages/core/
+!/src/Agent/Agent.Web/Client/src/src/Space/Foundry/packages/components/
 
 # claude
 .claude/
