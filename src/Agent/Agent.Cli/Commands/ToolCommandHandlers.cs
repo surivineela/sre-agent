@@ -7,6 +7,8 @@ using System.Text;
 using Agent.Cli.Helpers;
 using Agent.Cli.Services;
 using Agent.Cli.Validations;
+using Agent.Data.Tools;
+using Agent.Framework;
 using YamlDotNet.Core;
 using YamlDotNet.RepresentationModel;
 
@@ -826,6 +828,8 @@ public static class ToolCommandHandlers
                 return;
             }
 
+
+
             // Read local configuration
             var localYaml = await File.ReadAllTextAsync(localPath);
 
@@ -837,9 +841,88 @@ public static class ToolCommandHandlers
                 return;
             }
 
-            // Always use YAML format for comparison
-            var localContent = NormalizeYaml(localYaml);
-            var remoteContent = NormalizeYaml(remoteYaml);
+            // Parse the remote YAML content to get tool type first, then deserialize using specific tool type class
+            string localContent, remoteContent;
+            try
+            {
+                // Parse YAML to get tool type using underscored convention for local compatibility
+                var typeDeserializer = new YamlDotNet.Serialization.DeserializerBuilder()
+                    .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+                    .IgnoreUnmatchedProperties()
+                    .Build();
+
+                var yamlDict = typeDeserializer.Deserialize<Dictionary<string, object>>(remoteYaml);
+                var toolType = yamlDict.TryGetValue("type", out var typeObj) ? typeObj?.ToString() : null;
+
+                // Use camelCase deserializer for remote YAML (server returns camelCase)
+                var remoteDeserializer = new YamlDotNet.Serialization.DeserializerBuilder()
+                    .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.CamelCaseNamingConvention.Instance)
+                    .IgnoreUnmatchedProperties()
+                    .Build();
+
+                // Use underscored deserializer for local YAML (local files use snake_case)
+                var localDeserializer = new YamlDotNet.Serialization.DeserializerBuilder()
+                    .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+                    .IgnoreUnmatchedProperties()
+                    .Build();
+
+                // Deserialize YAML to the correct derived type to preserve all fields (like query)
+                YamlToolDefinitionBase remoteTool = toolType switch
+                {
+                    "KustoTool" => remoteDeserializer.Deserialize<KustoToolDefinition>(remoteYaml),
+                    // "LinkTool" => remoteDeserializer.Deserialize<LinkToolDefinition>(remoteYaml),
+                    _ => throw new NotSupportedException($"Unknown tool type: {toolType}")
+                };
+
+                // Also deserialize local YAML using the underscored tool type
+                YamlToolDefinitionBase localTool = toolType switch
+                {
+                    "KustoTool" => localDeserializer.Deserialize<KustoToolDefinition>(localYaml),
+                    // "LinkTool" => localDeserializer.Deserialize<LinkToolDefinition>(localYaml),
+                    _ => throw new NotSupportedException($"Unknown tool type: {toolType}")
+                };
+
+
+
+                // Normalize parameter values: convert empty strings to null for consistent comparison
+                if (remoteTool is KustoToolDefinition remoteKusto && localTool is KustoToolDefinition localKusto)
+                {
+                    if (remoteKusto.Parameters != null)
+                    {
+                        foreach (var param in remoteKusto.Parameters)
+                        {
+                            if (string.IsNullOrEmpty(param.Value as string)) param.Value = null;
+                        }
+                    }
+
+                    if (localKusto.Parameters != null)
+                    {
+                        foreach (var param in localKusto.Parameters)
+                        {
+                            if (string.IsNullOrEmpty(param.Value as string)) param.Value = null;
+                        }
+                    }
+                }
+
+                // Serialize back to YAML for normalized comparison using the same serializer settings
+                var serializer = new YamlDotNet.Serialization.SerializerBuilder()
+                    .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+                    .Build();
+
+                localContent = serializer.Serialize(localTool);
+                remoteContent = serializer.Serialize(remoteTool);
+
+
+            }
+            catch (Exception parseEx)
+            {
+                ConsoleUI.WriteBullet($"Failed to parse tool YAML with specific type: {parseEx.Message}", ConsoleColor.Yellow);
+                ConsoleUI.WriteBullet("Falling back to generic YAML comparison...", ConsoleColor.Yellow);
+
+                // Fallback to generic YAML normalization
+                localContent = NormalizeYaml(localYaml);
+                remoteContent = NormalizeYaml(remoteYaml);
+            }
 
             if (showRaw)
             {
