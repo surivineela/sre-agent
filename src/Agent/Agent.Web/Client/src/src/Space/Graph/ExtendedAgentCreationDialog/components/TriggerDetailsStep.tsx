@@ -20,13 +20,22 @@ import {
     mergeClasses,
 } from '@fluentui/react-components';
 import { Alert24Regular, Clock24Regular } from '@fluentui/react-icons';
-import { ChangeEventHandler, FC, useEffect, useMemo, useRef, useState } from 'react';
+import { ChangeEventHandler, FC, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { IntlShape } from 'react-intl';
+import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentHandler } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgent } from '../../../Contracts/ExtendedAgentGraph';
 import { ScheduledTask } from '../../../Contracts/ScheduledTasks';
+import {
+    fieldNameToCamelCase,
+    getAdditionalDropdownFilterFields,
+    getIncidentTypeOptionsFromFilterFields,
+    getPriorityOptionsFromFilterFields,
+    getTextFilterFields,
+    useIncidentFilterFields,
+} from '../hooks/useIncidentFilterFields';
 import { useCreationDialogStyles } from '../styles';
 import { TriggerMode, TriggerStateController, TriggerStrategy, TriggerValidationState } from '../types';
 import { getBadgeColorForPriority, getIncidentTypesForPlatform, getPrioritiesForPlatform } from '../utils/incidentPlatforms';
@@ -93,10 +102,40 @@ export const TriggerDetailsStep: FC<TriggerDetailsStepProps> = ({
 }) => {
     const styles = useCreationDialogStyles();
     const { trigger, validation, updateFromUser, setValidation, applyAgentDefaults } = controller;
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+
+    // Fetch dynamic filter fields from backend
+    const { filterFields } = useIncidentFilterFields(sreAgentEndpoint);
 
     // Get platform-specific priorities and incident types
-    const incidentPriorities = useMemo(() => getPrioritiesForPlatform(incidentPlatformType), [incidentPlatformType]);
-    const incidentTypes = useMemo(() => getIncidentTypesForPlatform(incidentPlatformType), [incidentPlatformType]);
+    // Use dynamic filter fields if available, otherwise fall back to static platform-specific values
+    const incidentPriorities = useMemo(() => {
+        if (filterFields.length > 0) {
+            const dynamicPriorities = getPriorityOptionsFromFilterFields(filterFields);
+            if (dynamicPriorities.length > 0) {
+                return dynamicPriorities.map(p => ({
+                    key: p.key,
+                    label: p.value,
+                    intlString: { id: p.key, defaultMessage: p.value },
+                }));
+            }
+        }
+        return getPrioritiesForPlatform(incidentPlatformType);
+    }, [filterFields, incidentPlatformType]);
+
+    const incidentTypes = useMemo(() => {
+        if (filterFields.length > 0) {
+            const dynamicTypes = getIncidentTypeOptionsFromFilterFields(filterFields);
+            if (dynamicTypes.length > 0) {
+                return dynamicTypes.map(t => ({ key: t.key, label: t.value }));
+            }
+        }
+        return getIncidentTypesForPlatform(incidentPlatformType);
+    }, [filterFields, incidentPlatformType]);
+
+    // Get additional filter fields (dropdowns and text fields)
+    const additionalDropdownFields = useMemo(() => getAdditionalDropdownFilterFields(filterFields), [filterFields]);
+    const textFields = useMemo(() => getTextFilterFields(filterFields), [filterFields]);
 
     // ===== Default Mode & Strategy Harmonization =====
     // Make Scheduled the default. If disabled, fall back to Incident.
@@ -295,6 +334,17 @@ export const TriggerDetailsStep: FC<TriggerDetailsStepProps> = ({
         updateFromUser({ schedule: { timezone: value || trigger.schedule.timezone } }, ['schedule']);
     };
 
+    const handleAdditionalFilterFieldChange = (fieldName: string, value: string) => {
+        const camelCaseFieldName = fieldNameToCamelCase(fieldName);
+        const currentFields = trigger.additionalFilterFields || {};
+        updateFromUser({
+            additionalFilterFields: {
+                ...currentFields,
+                [camelCaseFieldName]: value,
+            },
+        });
+    };
+
     const renderSeverityPills = () => (
         <div className={styles.pillsRow}>
             {incidentPriorities.map(priorityOption => (
@@ -477,6 +527,42 @@ export const TriggerDetailsStep: FC<TriggerDetailsStepProps> = ({
                             <Field label={intl.formatMessage(ExtendedAgentsGraphResources.triggerIncidentTypeLabel)} required>
                                 {renderIncidentTypePills()}
                             </Field>
+
+                            {/* Render additional dropdown filter fields */}
+                            {additionalDropdownFields.map(field => (
+                                <Field key={field.fieldName} label={field.displayName} required={field.isRequired}>
+                                    <Dropdown
+                                        placeholder={`Select ${field.displayName.toLowerCase()}...`}
+                                        value={trigger.additionalFilterFields?.[fieldNameToCamelCase(field.fieldName)] ?? ''}
+                                        selectedOptions={
+                                            trigger.additionalFilterFields?.[fieldNameToCamelCase(field.fieldName)]
+                                                ? [trigger.additionalFilterFields[fieldNameToCamelCase(field.fieldName)]]
+                                                : []
+                                        }
+                                        onOptionSelect={(_, data) =>
+                                            handleAdditionalFilterFieldChange(field.fieldName, data.optionValue?.toString() ?? '')
+                                        }
+                                    >
+                                        {field.options.map(option => (
+                                            <Option key={option.key} value={option.key} text={option.value}>
+                                                {option.value}
+                                            </Option>
+                                        ))}
+                                    </Dropdown>
+                                </Field>
+                            ))}
+
+                            {/* Render text filter fields */}
+                            {textFields.map(field => (
+                                <Field key={field.fieldName} label={field.displayName} required={field.isRequired}>
+                                    <Input
+                                        placeholder={`Enter ${field.displayName.toLowerCase()}...`}
+                                        value={trigger.additionalFilterFields?.[fieldNameToCamelCase(field.fieldName)] ?? ''}
+                                        onChange={(_, data) => handleAdditionalFilterFieldChange(field.fieldName, data.value ?? '')}
+                                    />
+                                </Field>
+                            ))}
+
                             <Field
                                 label={intl.formatMessage(ExtendedAgentsGraphResources.triggerInstructionsLabel)}
                                 required

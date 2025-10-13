@@ -153,6 +153,27 @@ export const TriggerReviewStep: FC<TriggerReviewStepProps> = ({ controller, intl
                                                     </Badge>
                                                 </div>
                                             )}
+                                            {trigger.additionalFilterFields && Object.keys(trigger.additionalFilterFields).length > 0 && (
+                                                <>
+                                                    {Object.entries(trigger.additionalFilterFields).map(([key, value]) => {
+                                                        if (value) {
+                                                            // Convert camelCase to Title Case for display
+                                                            const displayName = key
+                                                                .replace(/([A-Z])/g, ' $1')
+                                                                .replace(/^./, str => str.toUpperCase());
+                                                            return (
+                                                                <div key={key} className={styles.reviewDetailRow}>
+                                                                    <Text size={200} className={styles.reviewDetailLabel}>
+                                                                        {displayName}:
+                                                                    </Text>
+                                                                    <Text size={200}>{value}</Text>
+                                                                </div>
+                                                            );
+                                                        }
+                                                        return null;
+                                                    })}
+                                                </>
+                                            )}
                                         </>
                                     )}
 

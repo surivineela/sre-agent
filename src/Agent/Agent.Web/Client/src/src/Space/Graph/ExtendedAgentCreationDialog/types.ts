@@ -36,6 +36,8 @@ export interface TriggerState {
     schedule: TriggerScheduleState;
     existingId?: string;
     existingName?: string;
+    // Dynamic filter fields from backend
+    additionalFilterFields?: Record<string, string>;
 }
 
 export interface TriggerValidationState {

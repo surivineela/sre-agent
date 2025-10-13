@@ -8,6 +8,14 @@ export interface TriggerCreationResult {
     error?: string;
 }
 
+export interface FilterFieldOption {
+    fieldName: string;
+    displayName: string;
+    options: { key: string; value: string }[];
+    fieldInputType: 'Dropdown' | 'TextField';
+    isRequired: boolean;
+}
+
 export interface CreateIncidentHandlerRequest {
     id: string;
     name: string;
@@ -154,19 +162,25 @@ const createIncidentFilter = async (trigger: TriggerState, sreAgentEndpoint: str
     try {
         const filterId = generateFilterId(trigger.name);
 
-        const filter = {
+        // Build the filter object directly from trigger state
+        const filter: any = {
             id: filterId,
             name: `${trigger.name} Filter`,
-            impactedService: '',
             priority: trigger.incidentPriority || '',
             incidentType: trigger.incidentType || '',
-            alertId: '',
-            titleContains: '',
-            agentMode: 'autonomous',
             handlingAgent: trigger.agentName || '',
-            owningTeamId: '',
+            agentMode: 'autonomous',
             createdBy: 'api',
         };
+
+        // Include additional filter fields from the trigger state
+        if (trigger.additionalFilterFields) {
+            for (const [key, value] of Object.entries(trigger.additionalFilterFields)) {
+                // A workaround of field name mismatch between additional filter fields and filter creation payload fields.
+                const payloadFieldName = key === 'owningTeam' ? 'owningTeamId' : key;
+                filter[payloadFieldName] = value;
+            }
+        }
 
         const response = await fetch(`${sreAgentEndpoint}/api/v1/incidentPlayground/filters/${filterId}`, {
             method: 'PUT',
