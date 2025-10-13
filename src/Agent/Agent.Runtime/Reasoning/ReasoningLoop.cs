@@ -731,7 +731,6 @@ public class ReasoningLoop : IDisposable
             // handle manual tool calls
             while (runResult.ManualToolCalls != null && runResult.ManualToolCalls.Count > 0)
             {
-                cancellationToken.ThrowIfCancellationRequested();
                 List<ManualToolCallResult> toolResults = [];
 
                 var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
@@ -1714,8 +1713,6 @@ public class ReasoningLoop : IDisposable
 
     private async Task<bool> HandleUnprocessedToolCallsAsync(AgentChatHistory agentChatHistory, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         var lastMessage = _chatHistory?.LastOrDefault();
         // Check if lastMessage exists and has contents before accessing First()
         var lastContent = lastMessage?.Contents?.FirstOrDefault();
@@ -2529,7 +2526,6 @@ public class ReasoningLoop : IDisposable
                 // Handle manual tool calls from the modifier agent
                 while (runResult.ManualToolCalls != null && runResult.ManualToolCalls.Count > 0)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
                     List<ManualToolCallResult> toolResults = [];
 
                     var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
