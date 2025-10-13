@@ -19,7 +19,7 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { GenericErrorResources, ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
-export const githubRepoRegex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+(?:\.git)?$/;
+export const githubRepoRegex = /^https:\/\/(?:github\.com|github\.[\w.-]+\.[\w.-]+)\/[\w.-]+\/[\w.-]+(?:\.git)?$/;
 export const azdoRepoRegex =
     /^https:\/\/(?:[\w.-]+@)?(?:dev\.azure\.com\/[\w-]+\/(?:[\w.-]|%[0-9A-Fa-f]{2})+\/_git\/(?:[\w.-]|%[0-9A-Fa-f]{2})+|[\w-]+\.visualstudio\.com\/(?:[\w.-]|%[0-9A-Fa-f]{2})+\/_git\/(?:[\w.-]|%[0-9A-Fa-f]{2})+)$/;
 

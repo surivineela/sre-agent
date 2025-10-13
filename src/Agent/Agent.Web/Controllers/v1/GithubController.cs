@@ -119,7 +119,7 @@ public class GithubController(
         public required string ResourceId { get; set; }
 
         // This regex pattern should be same as the one used in the GitHubHelper.ParseGitHubUrl
-        [RegularExpression(GraphService.GithubRepoRegexPattern, ErrorMessage = "Repository URL must be of the form https://github.com/owner/repo-name")]
+        [RegularExpression(GraphService.GithubRepoRegexPattern, ErrorMessage = "Repository URL must be of the form https://github.com/owner/repo-name or https://github.enterprise.domain.com/owner/repo-name")]
         public required string RepoUrl { get; set; }
 
         public string? Namespace { get; set; } // Optional, can be null

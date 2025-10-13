@@ -29,7 +29,7 @@ public class SourceCodeRepoCrawler : IResourceCrawler
     private readonly IGitHubService _gitHubService;
 
     // Repository type detection patterns
-    public const string GithubRepoRegexPattern = @"^https:\/\/github\.com\/[\w.-]+\/[\w.-]+(?:\.git)?$";
+    public const string GithubRepoRegexPattern = @"^https:\/\/(?:github\.com|github\.[\w.-]+\.[\w.-]+)\/[\w.-]+\/[\w.-]+(?:\.git)?$";
     public const string AzDoRepoRegexPattern = @"^https:\/\/(?:(?<org1>dev\.azure\.com)\/(?<organization>[\w-]+)\/(?<project>[\w-]+)|(?<organization>[\w-]+)\.visualstudio\.com\/(?<project>[\w-]+))\/_git\/(?<repo>[\w.-]+)$";
 
     private readonly string[] _appConfigCodePatterns = new[]
