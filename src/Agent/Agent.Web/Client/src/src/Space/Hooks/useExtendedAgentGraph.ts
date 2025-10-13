@@ -71,8 +71,10 @@ export const useExtendedAgentGraph = () => {
                 throw new Error(`Failed to fetch tools: ${response.status}`);
             }
 
-            const data: PaginatedResponse<ExtendedTool> = await response.json();
-            setTools(data.data);
+            const result = await response.json();
+            // Handle the nested response structure: { data: { tools: { data: [...] } } }
+            const tools: ExtendedTool[] = result.data?.tools?.data || [];
+            setTools(tools);
         } catch (err) {
             console.error('Error fetching tools:', err);
             setError('Failed to load tools');

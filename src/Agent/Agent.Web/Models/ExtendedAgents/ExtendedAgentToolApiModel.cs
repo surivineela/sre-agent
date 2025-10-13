@@ -2,10 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json.Serialization;
 using Agent.Framework.Reasoning.Models;
 
 namespace Agent.Web.Models.ExtendedAgents;
 
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(KustoToolApiModel), "KustoTool")]
+[JsonDerivedType(typeof(LinkToolApiModel), "LinkTool")]
 public abstract class ExtendedAgentToolApiModel
 {
     public string Name { get; set; } = string.Empty;

@@ -4,9 +4,13 @@
 
 using System.CommandLine;
 using System.Reflection;
+using System.Text.Json;
 using Agent.Cli.Helpers;
 using Agent.Cli.Models;
 using Agent.Cli.Services;
+using Agent.Data.Tools;
+using Agent.Framework;
+using Agent.Framework.Reasoning.Models;
 
 namespace Agent.Cli.Commands;
 
@@ -104,63 +108,38 @@ public static class GeneralCommandHandlers
                             continue;
                         }
 
-                        // Allow flat or folder layout; we standardize to folder layout for parity with agents
-                        var dir = Path.Combine("tools", name);
-                        Directory.CreateDirectory(dir);
-                        var path = Path.Combine(dir, $"{name}.yaml");
-
-                        // Normalize: if the server returned a ToolList wrapper, unwrap to a single plain tool YAML
-                        var normalizedYaml = yaml;
+                        // Parse the YAML content into the correct tool type and use WriteToolYamlFile
                         try
                         {
-                            if (!string.IsNullOrWhiteSpace(yaml) && yaml.Contains("kind:", StringComparison.OrdinalIgnoreCase))
-                            {
-                                // Quick parse to detect ToolList and extract the first tool
-                                var des = new YamlDotNet.Serialization.DeserializerBuilder()
-                                    .IgnoreUnmatchedProperties()
-                                    .Build();
-                                var root = des.Deserialize<Dictionary<string, object>>(yaml);
-                                if (root != null &&
-                                    root.TryGetValue("kind", out var kindObj) &&
-                                    string.Equals(kindObj?.ToString(), "ToolList", StringComparison.OrdinalIgnoreCase) &&
-                                    root.TryGetValue("spec", out var specObj) && specObj is Dictionary<string, object> specDict &&
-                                    specDict.TryGetValue("tools", out var toolsObj) && toolsObj is IEnumerable<object> toolsEnum)
-                                {
-                                    var firstTool = toolsEnum.Cast<object?>().FirstOrDefault();
-                                    if (firstTool != null)
-                                    {
-                                        var ser = new YamlDotNet.Serialization.SerializerBuilder()
-                                            .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
-                                            .DisableAliases()
-                                            .Build();
-                                        normalizedYaml = ser.Serialize(firstTool);
-                                    }
-                                }
-                            }
-                        }
-                        catch { /* best-effort normalization */ }
+                            // Parse YAML to get tool type
+                            var deserializer = new YamlDotNet.Serialization.DeserializerBuilder()
+                                .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+                                .IgnoreUnmatchedProperties()
+                                .Build();
 
-                        // Optionally prune excessive properties using YamlHelper
-                        try
+                            var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(yaml);
+                            var toolType = yamlDict.TryGetValue("type", out var typeObj) ? typeObj?.ToString() : null;
+
+                            // Deserialize YAML to the correct derived type to preserve all fields (like query)
+                            YamlToolDefinitionBase tool = toolType switch
+                            {
+                                "KustoTool" => deserializer.Deserialize<KustoToolDefinition>(yaml),
+                                // "LinkTool" => deserializer.Deserialize<LinkToolDefinition>(yaml),
+                                _ => throw new NotSupportedException($"Unknown tool type: {toolType}")
+                            };
+
+                            // Extract metadata from tool level for document level (proper architecture)
+                            var toolMetadata = tool.Metadata;
+
+                            // Use WriteToolYamlFile to create structured YAML with wrapper, passing extracted metadata
+                            YamlHelper.WriteToolYamlFile("tools", name, tool, toolMetadata);
+                            ConsoleUI.WriteBullet($"Wrote tools/{name}/{name}.yaml", ConsoleColor.Green);
+                        }
+                        catch (Exception parseEx)
                         {
-                            var des = YamlHelper.CreateCamelCaseDeserializer();
-                            var obj = des.Deserialize<object>(normalizedYaml);
-                            var pruned = YamlHelper.PruneEmptyNodes(obj);
-                            if (pruned != null)
-                            {
-                                // For tools: do not use agent-specific KeepImportantPropertiesVisitor
-                                var ser = new YamlDotNet.Serialization.SerializerBuilder()
-                                    .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
-                                    .ConfigureDefaultValuesHandling(YamlDotNet.Serialization.DefaultValuesHandling.OmitNull)
-                                    .DisableAliases()
-                                    .Build();
-                                normalizedYaml = ser.Serialize(pruned);
-                            }
+                            ConsoleUI.WriteBullet($"Failed to parse tool {name}: {parseEx.Message}", ConsoleColor.Yellow);
+                            continue;
                         }
-                        catch { /* best-effort pruning */ }
-
-                        await File.WriteAllTextAsync(path, normalizedYaml, System.Text.Encoding.UTF8);
-                        ConsoleUI.WriteBullet($"Wrote {path}", ConsoleColor.Green);
                         syncedTools++;
                     }
                     catch (Exception ex)

@@ -255,9 +255,10 @@ public static class CommandSuggestionService
         Console.WriteLine();
         Console.WriteLine("📋 Available tool types:");
         Console.WriteLine("   • KustoTool     - Query Kusto/Log Analytics");
-        Console.WriteLine("   • AzureTool     - Azure resource operations");
-        Console.WriteLine("   • HttpTool      - HTTP API calls");
-        Console.WriteLine("   • ScriptTool    - Custom scripts");
+        // TODO: Enable these when they're fully supported
+        // Console.WriteLine("   • AzureTool     - Azure resource operations");
+        // Console.WriteLine("   • HttpTool      - HTTP API calls");
+        // Console.WriteLine("   • ScriptTool    - Custom scripts");
         Console.WriteLine();
         Console.Write("🎯 Tool type: ");
         var toolType = Console.ReadLine()?.Trim();

@@ -107,11 +107,11 @@ Examples:
         public const string CreateDescription = @"Create a new tool YAML configuration file
 
 Examples:
-  # Create a basic Kusto tool
+  # Create a basic Kusto tool (currently only KustoTool is supported)
   srectl tool create --name QueryMetrics --type KustoTool
 
   # Create a tool with custom path organization
-  srectl tool create --name StorageOps --type AzureTool --path ""Storage/Operations""
+  srectl tool create --name StorageOps --type KustoTool --path ""Storage/Operations""
 
   # Create a tool with extra parameters
   srectl tool create --name CustomTool --type KustoTool --extra database:LogsDB cluster:prod-cluster

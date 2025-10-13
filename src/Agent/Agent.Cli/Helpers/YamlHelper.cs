@@ -5,7 +5,9 @@
 using System.Collections;
 using System.Text;
 using Agent.Cli.Models;
+using Agent.Cli.Services;
 using Agent.Framework;
+using Agent.Framework.Reasoning.Models;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -33,12 +35,49 @@ public static class YamlHelper
 
         var serializer = new SerializerBuilder()
             .WithNamingConvention(UnderscoredNamingConvention.Instance)
-            // Use Preserve so our visitor decides what to drop/keep
             .ConfigureDefaultValuesHandling(DefaultValuesHandling.Preserve)
             .WithEmissionPhaseObjectGraphVisitor(args => new KeepImportantPropertiesVisitor(args.InnerVisitor))
             .Build();
 
         var yaml = serializer.Serialize(deploymentModel);
+        File.WriteAllText(Path.Combine(folder, $"{name}.yaml"), yaml, new UTF8Encoding(false));
+    }
+
+    public static void WriteToolYamlFile(string folder, string name, YamlToolDefinitionBase tool, Agent.Framework.Reasoning.Models.YamlMetadata? documentMetadata = null)
+    {
+        Directory.CreateDirectory(folder);
+
+        // Create the deployment wrapper using the generic structure
+        var deploymentModel = new StructuredToolListYaml
+        {
+            // Note: tool list is actually a single tool, but to keep it how the api expects right now, rename later
+            Kind = "ToolList",
+            Metadata = documentMetadata != null ? 
+                new Agent.Cli.Services.YamlMetadata 
+                { 
+                    Owner = documentMetadata.Owner ?? string.Empty,
+                    Version = documentMetadata.Version ?? string.Empty,
+                    Tags = documentMetadata.Tags?.ToList() ?? new List<string>(),
+                    UpdatedAt = documentMetadata.UpdatedAt?.ToString() ?? string.Empty,
+                    CreatedAt = documentMetadata.CreatedAt?.ToString() ?? string.Empty
+                } : 
+                new Agent.Cli.Services.YamlMetadata(),
+            Spec = new ToolListSpec { Tools = new List<object> { tool } }
+        };
+
+        DebugLogger.Debug("WriteToolYamlFile", $"Created deployment model - Kind: {deploymentModel.Kind}, ApiVersion: {deploymentModel.ApiVersion}");
+
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
+            .ConfigureDefaultValuesHandling(DefaultValuesHandling.Preserve)
+            .WithEmissionPhaseObjectGraphVisitor(args => new ToolMetadataFilterVisitor(args.InnerVisitor))
+            .Build();
+
+        var yaml = serializer.Serialize(deploymentModel);
+        
+        DebugLogger.Debug("WriteToolYamlFile", $"Generated YAML length: {yaml.Length}");
+        DebugLogger.Debug("WriteToolYamlFile", $"YAML preview (first 200 chars): {yaml.Substring(0, Math.Min(200, yaml.Length))}");
+        
         File.WriteAllText(Path.Combine(folder, $"{name}.yaml"), yaml, new UTF8Encoding(false));
     }
 
@@ -111,10 +150,64 @@ public static class YamlHelper
 /// <summary>
 /// Keeps specific keys even when they’re default/null; drops null/empty for others.
 /// </summary>
+
+/// <summary>
+/// Visitor that filters out metadata from tool specifications while preserving structural metadata.
+/// Extends KeepImportantPropertiesVisitor with tool-specific filtering.
+/// </summary>
+public class ToolMetadataFilterVisitor : ChainedObjectGraphVisitor
+{
+    private readonly KeepImportantPropertiesVisitor _baseVisitor;
+    private bool _inToolsArray = false;
+
+    public ToolMetadataFilterVisitor(IObjectGraphVisitor<IEmitter> next) : base(next) 
+    {
+        _baseVisitor = new KeepImportantPropertiesVisitor(next);
+    }
+
+    public override bool EnterMapping(IPropertyDescriptor key, IObjectDescriptor value, IEmitter context, ObjectSerializer serializer)
+    {
+        // Track when we're in the tools array
+        if (key.Name.Equals("tools", StringComparison.OrdinalIgnoreCase))
+        {
+            _inToolsArray = true;
+        }
+        // Reset when we encounter top-level fields (exiting tools context)
+        else if (!_inToolsArray || (key.Name.Equals("api_version", StringComparison.OrdinalIgnoreCase) || 
+                                   key.Name.Equals("kind", StringComparison.OrdinalIgnoreCase) ||
+                                   key.Name.Equals("spec", StringComparison.OrdinalIgnoreCase)))
+        {
+            _inToolsArray = false;
+        }
+
+        // Filter out metadata within tools (but allow top-level metadata)
+        if (_inToolsArray && key.Name.Equals("metadata", StringComparison.OrdinalIgnoreCase))
+        {
+            return false; // Skip tool-level metadata
+        }
+
+        // Delegate to base visitor for all other logic
+        return _baseVisitor.EnterMapping(key, value, context, serializer);
+    }
+
+    // Note: ChainedObjectGraphVisitor doesn't have ExitMapping to override
+    // We'll track the depth and state manually in EnterMapping
+}
+
 public class KeepImportantPropertiesVisitor : ChainedObjectGraphVisitor
 {
-    private static readonly HashSet<string> Important = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> StructuralFields = new(StringComparer.OrdinalIgnoreCase)
     {
+        // Document structure - always keep at top level
+        "api_version",
+        "kind", 
+        "metadata",
+        "spec"
+    };
+
+    private static readonly HashSet<string> AlwaysPreserve = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Important content fields - keep even if empty/default
         "custom_reflection_note",
         "temperature",
         "handoff_description",
@@ -133,15 +226,21 @@ public class KeepImportantPropertiesVisitor : ChainedObjectGraphVisitor
         IEmitter context,
         ObjectSerializer serializer)
     {
-        // Keep important keys regardless of value
-        if (Important.Contains(key.Name))
+        // Always preserve structural fields at document root level
+        if (StructuralFields.Contains(key.Name))
+            return base.EnterMapping(key, value, context, serializer);
+            
+        // Always preserve important content fields
+        if (AlwaysPreserve.Contains(key.Name))
             return base.EnterMapping(key, value, context, serializer);
 
-        // Otherwise, drop null/empty values
+        // Drop null/empty values for other fields
         if (value.Value == null) return false;
         if (value.Value is string s && string.IsNullOrEmpty(s)) return false;
         if (value.Value is ICollection col && col.Count == 0) return false;
 
         return base.EnterMapping(key, value, context, serializer);
     }
+
+
 }

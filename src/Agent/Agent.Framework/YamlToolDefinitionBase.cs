@@ -32,6 +32,11 @@ public abstract class YamlToolDefinitionBase
     [YamlMember(Alias = "attributes")]
     public List<string> Attributes { get; set; } = new();
 
+    /// <summary>
+    /// ARCHITECTURAL ISSUE: This metadata property causes duplicate metadata sections in structured YAML.
+    /// The CLI post-processes YAML to remove this duplicate (see RemoveDuplicateToolMetadata).
+    /// FUTURE FIX: Remove this property and handle metadata only at document wrapper level.
+    /// </summary>
     [YamlMember(Alias = "metadata")]
     public YamlMetadata Metadata { get; set; } = new();
 

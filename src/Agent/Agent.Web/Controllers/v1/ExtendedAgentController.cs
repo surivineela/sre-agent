@@ -309,7 +309,7 @@ public class ExtendedAgentController : ControllerBase
         try
         {
             var result = await _extendedAgentService.GetToolsAsync(page, limit, search);
-            var response = PaginatedResponse<YamlToolDefinitionBase>.FromPaginatedList(result);
+            var response = ExtendedAgentToolsResponse.FromRuntime(result);
             return Ok(response);
         }
         catch (Exception ex)

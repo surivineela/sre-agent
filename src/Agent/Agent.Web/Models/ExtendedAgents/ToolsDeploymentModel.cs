@@ -13,7 +13,7 @@ namespace Agent.Web.Models.ExtendedAgents
         public string ApiVersion { get; set; } = "agent.platform.ai/v1";
 
         [YamlMember(Alias = "kind")]
-        public string Kind { get; set; } = "ToolDeployment";
+        public string Kind { get; set; } = "ToolList";
 
         [YamlMember(Alias = "metadata")]
         public YamlMetadata Metadata { get; set; } = new();

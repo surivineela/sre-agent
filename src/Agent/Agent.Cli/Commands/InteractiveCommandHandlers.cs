@@ -1158,9 +1158,10 @@ public static class InteractiveCommandHandlers
 
         ConsoleUI.WriteSection("Available tool types");
         ConsoleUI.WriteBullet("KustoTool     - Query Kusto/Azure Data Explorer/Log Analytics");
-        ConsoleUI.WriteBullet("AzureTool     - Interact with Azure resources");
-        ConsoleUI.WriteBullet("HttpTool      - Make HTTP API calls");
-        ConsoleUI.WriteBullet("ScriptTool    - Run custom scripts or commands");
+        // TODO: Enable these when they're fully supported
+        // ConsoleUI.WriteBullet("AzureTool     - Interact with Azure resources");
+        // ConsoleUI.WriteBullet("HttpTool      - Make HTTP API calls");
+        // ConsoleUI.WriteBullet("ScriptTool    - Run custom scripts or commands");
         Console.WriteLine();
 
         ConsoleUI.WriteInline("What would you like to name your tool? ");
@@ -1188,25 +1189,25 @@ public static class InteractiveCommandHandlers
         Console.WriteLine();
         ConsoleUI.WriteSection("Choose tool type");
         ConsoleUI.WriteKeyValue("1", "KustoTool - Query Azure Data Explorer/Log Analytics", 3);
-        ConsoleUI.WriteKeyValue("2", "AzureTool - Interact with Azure resources", 3);
-        ConsoleUI.WriteKeyValue("3", "HttpTool - Make HTTP API calls", 3);
-        ConsoleUI.WriteKeyValue("4", "ScriptTool - Run custom scripts", 3);
-        Console.WriteLine();
-        ConsoleUI.WriteInline("Select a tool type (1-4): ");
+        // ConsoleUI.WriteKeyValue("2", "AzureTool - Interact with Azure resources", 3);
+        // ConsoleUI.WriteKeyValue("3", "HttpTool - Make HTTP API calls", 3);
+        // ConsoleUI.WriteKeyValue("4", "ScriptTool - Run custom scripts", 3);
+        // Console.WriteLine();
+        ConsoleUI.WriteInline("Select tool type (1): ");
 
         var typeChoice = Console.ReadLine()?.Trim();
         var toolType = typeChoice switch
         {
             "1" => "KustoTool",
-            "2" => "AzureTool",
-            "3" => "HttpTool",
-            "4" => "ScriptTool",
+            //"2" => "AzureTool",
+            //"3" => "HttpTool",
+            //"4" => "ScriptTool",
             _ => null
         };
 
         if (toolType == null)
         {
-            ConsoleUI.WriteStatus(false, "Please select a valid option (1-4).");
+            ConsoleUI.WriteStatus(false, "Please select option 1 for KustoTool.");
             await GuideToolCreation();
             return;
         }

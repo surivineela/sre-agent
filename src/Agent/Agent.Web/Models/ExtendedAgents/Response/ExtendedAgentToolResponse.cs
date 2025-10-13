@@ -22,18 +22,16 @@ public record ExtendedAgentToolsResponse(
 }
 
 public record ExtendedAgentToolsData(
-    [property: JsonPropertyName("tools")] PaginatedList<ExtendedAgentToolApiModel> Tools
+    [property: JsonPropertyName("tools")] PaginatedResponse<ExtendedAgentToolApiModel> Tools
 )
 {
     public static ExtendedAgentToolsData FromRuntime(PaginatedList<YamlToolDefinitionBase> runtimeModel)
     {
+        var convertedTools = runtimeModel.Select(ApiToRuntimeMapper.ToApiTool).ToList();
+        var paginatedTools = new PaginatedList<ExtendedAgentToolApiModel>(convertedTools, runtimeModel.TotalCount, runtimeModel.PageIndex, runtimeModel.PageSize);
+        
         return new ExtendedAgentToolsData(
-            Tools: new PaginatedList<ExtendedAgentToolApiModel>(runtimeModel.Select(ApiToRuntimeMapper.ToApiTool),
-                runtimeModel.Count,
-        0,
-                runtimeModel.Count
-
-            )
+            Tools: PaginatedResponse<ExtendedAgentToolApiModel>.FromPaginatedList(paginatedTools)
         );
     }
 }

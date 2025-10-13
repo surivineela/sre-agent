@@ -275,7 +275,7 @@ public static class ApiToRuntimeMapper
             Parameters = k.Parameters,
             Attributes = k.Attributes,
             Metadata = k.Metadata,
-            //Mode = (KustoExecutionMode)k.Mode,
+            Mode = k.Mode,
             Function = k.Function,
             Query = k.Query,
             File = k.File,

@@ -911,10 +911,29 @@ public class ApiService : IDisposable
                 return (false, new List<string>(), $"Failed to list tools: {response.StatusCode} - {content}");
             }
 
-            // Prefer typed deserialization matching controller's PaginatedResponse<T>
+            // Prefer typed deserialization matching controller's response format
             try
             {
-                // Case 1: PaginatedResponse<ToolListItem>
+                // Case 1: New ExtendedAgentToolsResponse format: { data: { tools: { data: [...] } } }
+                var jsonDoc = JsonDocument.Parse(content);
+                if (jsonDoc.RootElement.TryGetProperty("data", out var outerDataElement) &&
+                    outerDataElement.TryGetProperty("tools", out var toolsWrapperElement) &&
+                    toolsWrapperElement.TryGetProperty("data", out var toolsDataElement))
+                {
+                    var tools = JsonSerializer.Deserialize<List<ToolListItem>>(toolsDataElement.GetRawText(), _jsonOptions);
+                    if (tools != null && tools.Count > 0)
+                    {
+                        var namesNew = tools
+                            .Select(t => t.Name)
+                            .Where(n => !string.IsNullOrWhiteSpace(n))
+                            .Select(n => n!)
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .ToList();
+                        return (true, namesNew, "");
+                    }
+                }
+
+                // Case 2: Legacy PaginatedResponse<ToolListItem>
                 var paged = JsonSerializer.Deserialize<PaginatedResponse<ToolListItem>>(content, _jsonOptions);
                 if (paged?.Data != null && paged.Data.Count > 0)
                 {
@@ -927,7 +946,7 @@ public class ApiService : IDisposable
                     return (true, namesTyped, "");
                 }
 
-                // Case 2: bare array [ { name: ... } ]
+                // Case 3: bare array [ { name: ... } ]
                 var bare = JsonSerializer.Deserialize<List<ToolListItem>>(content, _jsonOptions);
                 if (bare != null && bare.Count > 0)
                 {
@@ -951,10 +970,20 @@ public class ApiService : IDisposable
                 var names = new List<string>();
                 var jsonDoc = JsonDocument.Parse(content);
                 JsonElement dataEl;
-                if (jsonDoc.RootElement.TryGetProperty("data", out var de))
+                
+                // Check for new nested structure: { data: { tools: { data: [...] } } }
+                if (jsonDoc.RootElement.TryGetProperty("data", out var outerDataElement) &&
+                    outerDataElement.TryGetProperty("tools", out var toolsWrapperElement) &&
+                    toolsWrapperElement.TryGetProperty("data", out var toolsArrayElement))
+                {
+                    dataEl = toolsArrayElement;
+                }
+                // Check for legacy structure: { data: [...] }
+                else if (jsonDoc.RootElement.TryGetProperty("data", out var de))
                 {
                     dataEl = de;
                 }
+                // Check for bare array: [...]
                 else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
                 {
                     dataEl = jsonDoc.RootElement;
@@ -2621,15 +2650,25 @@ public class ApiService : IDisposable
                 return (false, "", "Unexpected response format for tools list");
             }
 
-            // Parse possible shapes: { data: [...] } or bare array
+            // Parse possible shapes: new nested format, legacy format, or bare array
             try
             {
                 var jsonDoc = JsonDocument.Parse(content);
                 JsonElement toolsArray;
-                if (jsonDoc.RootElement.TryGetProperty("data", out var dataEl))
+                
+                // Check for new nested structure: { data: { tools: { data: [...] } } }
+                if (jsonDoc.RootElement.TryGetProperty("data", out var outerDataElement) &&
+                    outerDataElement.TryGetProperty("tools", out var toolsWrapperElement) &&
+                    toolsWrapperElement.TryGetProperty("data", out var toolsArrayElement))
+                {
+                    toolsArray = toolsArrayElement;
+                }
+                // Check for legacy structure: { data: [...] }
+                else if (jsonDoc.RootElement.TryGetProperty("data", out var dataEl))
                 {
                     toolsArray = dataEl;
                 }
+                // Check for bare array: [...]
                 else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
                 {
                     toolsArray = jsonDoc.RootElement;
