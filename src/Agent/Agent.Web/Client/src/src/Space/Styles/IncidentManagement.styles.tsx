@@ -12,6 +12,7 @@ export const useNavStyles = () => {
         drawerBody: sharedStyles.drawerBody,
         headerButton: sharedStyles.headerButton,
         item: sharedStyles.item,
+        itemCollapsed: sharedStyles.itemCollapsed,
         itemIcon: sharedStyles.itemIcon,
         itemText: sharedStyles.itemText,
     };

@@ -207,8 +207,8 @@ const IncidentManagement: FC = () => {
                 ) : (
                     <>
                         <NavDrawer
-                            defaultSelectedValue={selectedKey || IncidentManagementMenuKeys.IncidentOverview}
-                            defaultSelectedCategoryValue=""
+                            selectedValue={selectedKey || IncidentManagementMenuKeys.IncidentOverview}
+                            selectedCategoryValue=""
                             open={!navigationHidden}
                             type="inline"
                             className={navigationCollapsed ? navigationStyles.drawerCollapsed : navigationStyles.drawer}
@@ -241,7 +241,7 @@ const IncidentManagement: FC = () => {
                                         value={navItem.key}
                                         href=""
                                         onClick={() => onNavigationClick(navItem.key)}
-                                        className={navigationStyles.item}
+                                        className={navigationCollapsed ? navigationStyles.itemCollapsed : navigationStyles.item}
                                         disabled={navItem.disabled}
                                     >
                                         {!navigationCollapsed && <span className={navigationStyles.itemText}>{navItem.label}</span>}

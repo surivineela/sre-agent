@@ -98,6 +98,19 @@ export const useSharedNavDrawerStyles = makeStyles({
     item: {
         ...sharedNavItemStyles,
     },
+    itemCollapsed: {
+        ...sharedNavItemStyles,
+        paddingLeft: '8px', // Reduced padding for collapsed state
+        justifyContent: 'center',
+        '&[aria-current="page"]': {
+            backgroundColor: `${tokens.colorNeutralBackground1} !important`,
+            border: `1px solid ${tokens.colorNeutralStroke2}`,
+            outline: 'none',
+        },
+        '::after': {
+            display: 'none !important', // Remove the selection indicator line
+        },
+    },
     itemIcon: {
         height: '16px',
         width: '16px',
