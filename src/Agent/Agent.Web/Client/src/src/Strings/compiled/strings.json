@@ -711,6 +711,12 @@
       "value": "Are you sure you want to pause this scheduled task?"
     }
   ],
+  "2+TYMx": [
+    {
+      "type": 0,
+      "value": "Add a trigger"
+    }
+  ],
   "2+atxY": [
     {
       "type": 0,
@@ -6956,6 +6962,20 @@
       "value": "Connector (Optional)"
     }
   ],
+  "bdhTWR": [
+    {
+      "type": 0,
+      "value": "Name can only contain letters, numbers, or hyphens and must be "
+    },
+    {
+      "type": 1,
+      "value": "maxLength"
+    },
+    {
+      "type": 0,
+      "value": " characters or fewer."
+    }
+  ],
   "bect+9": [
     {
       "type": 0,
@@ -8886,6 +8906,28 @@
       "value": "Incident response plan"
     }
   ],
+  "mopY52": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " and linked it as a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgentName"
+    },
+    {
+      "type": 0,
+      "value": ". Choose what you’d like to do next."
+    }
+  ],
   "mq/sud": [
     {
       "type": 0,
@@ -9022,20 +9064,6 @@
     {
       "type": 0,
       "value": "Agent invoked"
-    }
-  ],
-  "nh3LaL": [
-    {
-      "type": 0,
-      "value": "Created "
-    },
-    {
-      "type": 1,
-      "value": "agentName"
-    },
-    {
-      "type": 0,
-      "value": ". Finish the setup in Incident management."
     }
   ],
   "nmpevl": [
@@ -9844,6 +9872,20 @@
       "value": "Enter title keywords"
     }
   ],
+  "sHc8w5": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Pick a next step below to keep building."
+    }
+  ],
   "sI+CCC": [
     {
       "type": 0,
@@ -10584,28 +10626,6 @@
       "value": "Clear description"
     }
   ],
-  "w2QcbZ": [
-    {
-      "type": 0,
-      "value": "Created "
-    },
-    {
-      "type": 1,
-      "value": "agentName"
-    },
-    {
-      "type": 0,
-      "value": " and linked it as a handoff for "
-    },
-    {
-      "type": 1,
-      "value": "sourceAgentName"
-    },
-    {
-      "type": 0,
-      "value": ". Finish the setup in Incident management."
-    }
-  ],
   "w6nz4p": [
     {
       "type": 0,
@@ -10922,6 +10942,12 @@
     {
       "type": 0,
       "value": "Failed to create incident response plan"
+    }
+  ],
+  "xsbZ+Q": [
+    {
+      "type": 0,
+      "value": "Add a tool"
     }
   ],
   "xtkizV": [

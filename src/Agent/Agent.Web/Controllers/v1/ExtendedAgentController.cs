@@ -630,7 +630,7 @@ Optional Elements (suggest ONLY if they add genuine value):
 - Tone/style guidelines
 - Constraints/limitations
 
-Important: Keep simple prompts simple. Do not bloat straightforward prompts.
+Important: Keep simple prompts simple. Do not bloat straightforward prompts, if already good return same prompt back. **You must** add a statement and <seld-reflect> note in the generated prompt about ending the turn when asking user a question, and not repeating the same question.
 
 Return ONLY valid JSON with this shape:
 {

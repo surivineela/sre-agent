@@ -114,6 +114,7 @@ export interface ExtendedAgentCreationDialogProps {
     existingIncidentHandlers?: IncidentHandler[];
     existingScheduledTasks?: ScheduledTask[];
     initialEntityType?: EntityType;
+    initialTriggerAgentName?: string;
     contextNotice?: { intent?: 'info' | 'success' | 'warning' | 'error'; message: string };
     linkContext?: LinkContext;
     triggerConfig?: TriggerCardConfig;

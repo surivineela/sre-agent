@@ -31,6 +31,7 @@ import { useScheduledTasks } from '../Hooks/useScheduledTasks';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { ConnectorCard } from './ConnectorCard';
 import { ExtendedAgentCard } from './ExtendedAgentCard';
+import { EntityType } from './ExtendedAgentCreationDialog/types';
 import { ExtendedAgentCreationDialog } from './ExtendedAgentCreationDialogNew';
 import { ExtendedAgentEdge } from './ExtendedAgentEdge';
 import { ExtendedAgentEmptyState } from './ExtendedAgentEmptyState';
@@ -149,6 +150,9 @@ const ExtendedAgentGraphContent = memo(() => {
     const [creationSuccess, setCreationSuccess] = useState<
         { entityType: 'agent' | 'tool' | 'connector'; entityName: string; sourceAgentName?: string } | undefined
     >(undefined);
+    const [creationDialogInitialTypeOverride, setCreationDialogInitialTypeOverride] = useState<EntityType | undefined>(undefined);
+    const [creationDialogTriggerAgentName, setCreationDialogTriggerAgentName] = useState<string | undefined>(undefined);
+    const [pendingAgentSelection, setPendingAgentSelection] = useState<string | undefined>(undefined);
     const [linkRetryContext, setLinkRetryContext] = useState<LinkRetryContext | undefined>(undefined);
     const [isRetryingLink, setIsRetryingLink] = useState(false);
     const [isInfoPanelFloating, setIsInfoPanelFloating] = useState(false);
@@ -400,10 +404,38 @@ const ExtendedAgentGraphContent = memo(() => {
             return;
         }
 
-        if (filters.agentName && !agents.some(agent => agent.name === filters.agentName)) {
-            setFilters(prev => ({ ...prev, agentName: agents[0]?.name }));
+        if (!filters.agentName) {
+            return;
         }
-    }, [agents, filters.agentName, loading, setFilters]);
+
+        const hasAgent = agents.some(agent => agent.name === filters.agentName);
+
+        if (hasAgent) {
+            return;
+        }
+
+        if (pendingAgentSelection && pendingAgentSelection === filters.agentName) {
+            return;
+        }
+
+        if (agents.length === 0) {
+            setFilters(prev => ({ ...prev, agentName: undefined }));
+            return;
+        }
+
+        setFilters(prev => ({ ...prev, agentName: agents[0]?.name }));
+    }, [agents, filters.agentName, loading, pendingAgentSelection, setFilters]);
+
+    useEffect(() => {
+        if (!pendingAgentSelection) {
+            return;
+        }
+
+        if (agents.some(agent => agent.name === pendingAgentSelection)) {
+            setFilters(prev => ({ ...prev, agentName: pendingAgentSelection }));
+            setPendingAgentSelection(undefined);
+        }
+    }, [agents, pendingAgentSelection, setFilters, setPendingAgentSelection]);
 
     useEffect(() => {
         const activeAgentName = filters.agentName;
@@ -470,7 +502,8 @@ const ExtendedAgentGraphContent = memo(() => {
         [agents, relationshipAgentName]
     );
 
-    const creationDialogInitialType = creationDialogContext?.kind === 'linkFromAgent' ? creationDialogContext.targetType : undefined;
+    const creationDialogInitialType =
+        creationDialogContext?.kind === 'linkFromAgent' ? creationDialogContext.targetType : creationDialogInitialTypeOverride;
 
     const creationDialogNotice = useMemo(() => {
         if (!creationDialogContext || creationDialogContext.kind !== 'linkFromAgent') {
@@ -667,9 +700,54 @@ const ExtendedAgentGraphContent = memo(() => {
             if (type === 'trigger') {
                 return;
             }
-            await applyEntity(data, type, { refreshMode: 'reload' });
+
+            const previousAgentName = filters.agentName;
+
+            await applyEntity(data, type, { refreshMode: 'refetch', refetchDelayMs: 2000 });
+
+            if (type === 'agent') {
+                const agentName = (data as Partial<ExtendedAgent>).name?.trim();
+
+                if (agentName) {
+                    setFilters(prev => ({ ...prev, agentName }));
+
+                    if (!agents.some(agent => agent.name === agentName)) {
+                        setPendingAgentSelection(agentName);
+                    } else {
+                        setPendingAgentSelection(undefined);
+                    }
+
+                    setCreationSuccess({ entityType: 'agent', entityName: agentName });
+                }
+                return;
+            }
+
+            if (type === 'tool') {
+                const toolName = (data as Partial<ExtendedTool>).name?.trim();
+
+                if (previousAgentName) {
+                    setFilters(prev => ({ ...prev, agentName: previousAgentName }));
+                }
+
+                if (toolName && previousAgentName) {
+                    setCreationSuccess({
+                        entityType: 'tool',
+                        entityName: toolName,
+                        sourceAgentName: previousAgentName,
+                    });
+                }
+                return;
+            }
+
+            if (type === 'connector') {
+                const connectorName = (data as Partial<ExtendedConnector>).name?.trim();
+
+                if (connectorName) {
+                    setCreationSuccess({ entityType: 'connector', entityName: connectorName });
+                }
+            }
         },
-        [applyEntity]
+        [agents, applyEntity, filters.agentName, setCreationSuccess, setFilters, setPendingAgentSelection]
     );
 
     const addHandoffToAgent = useCallback(
@@ -882,6 +960,16 @@ const ExtendedAgentGraphContent = memo(() => {
                     refetchDelayMs: 2000,
                 });
 
+                if (agentDraft.name) {
+                    setFilters(prev => ({ ...prev, agentName: agentDraft.name! }));
+
+                    if (!agents.some(agent => agent.name === agentDraft.name)) {
+                        setPendingAgentSelection(agentDraft.name);
+                    } else {
+                        setPendingAgentSelection(undefined);
+                    }
+                }
+
                 const connectResult = await addHandoffToAgent(sourceAgentName, agentDraft.name);
 
                 if (!connectResult.success) {
@@ -911,6 +999,8 @@ const ExtendedAgentGraphContent = memo(() => {
                     const message = intl.formatMessage(ExtendedAgentsGraphResources.relationshipNameRequired);
                     throw new Error(message);
                 }
+
+                setFilters(prev => ({ ...prev, agentName: sourceAgentName }));
 
                 await applyEntity(toolDraft, 'tool', {
                     refreshMode: 'refetch',
@@ -942,7 +1032,17 @@ const ExtendedAgentGraphContent = memo(() => {
 
             await handleCreateEntity(data, type);
         },
-        [addHandoffToAgent, addToolToAgent, applyEntity, creationDialogContext, handleCreateEntity, intl]
+        [
+            addHandoffToAgent,
+            addToolToAgent,
+            agents,
+            applyEntity,
+            creationDialogContext,
+            handleCreateEntity,
+            intl,
+            setFilters,
+            setPendingAgentSelection,
+        ]
     );
 
     const handleAgentQuickAction = useCallback((agentName: string, action: AgentQuickAction) => {
@@ -986,13 +1086,18 @@ const ExtendedAgentGraphContent = memo(() => {
         }
     }, []);
 
-    const handleCreationDialogOpenChange = useCallback((open: boolean) => {
-        setIsCreationDialogOpen(open);
+    const handleCreationDialogOpenChange = useCallback(
+        (open: boolean) => {
+            setIsCreationDialogOpen(open);
 
-        if (!open) {
-            setCreationDialogContext(undefined);
-        }
-    }, []);
+            if (!open) {
+                setCreationDialogContext(undefined);
+                setCreationDialogInitialTypeOverride(undefined);
+                setCreationDialogTriggerAgentName(undefined);
+            }
+        },
+        [setIsCreationDialogOpen, setCreationDialogContext, setCreationDialogInitialTypeOverride, setCreationDialogTriggerAgentName]
+    );
 
     const handleDismissCreationSuccess = useCallback(() => {
         setCreationSuccess(undefined);
@@ -1065,6 +1170,58 @@ const ExtendedAgentGraphContent = memo(() => {
             navigate(`/views/activities?testAgent=${encodeURIComponent(creationSuccess.entityName)}`);
         }
     }, [navigate, creationSuccess]);
+
+    const handleAddTriggerForAgent = useCallback(() => {
+        if (!creationSuccess || creationSuccess.entityType !== 'agent') {
+            return;
+        }
+
+        const agentName = creationSuccess.entityName?.trim();
+        if (!agentName) {
+            return;
+        }
+
+        setCreationDialogContext(undefined);
+        setCreationDialogInitialTypeOverride('trigger');
+        setCreationDialogTriggerAgentName(agentName);
+        setCreationSuccess(undefined);
+        setIsCreationDialogOpen(true);
+    }, [
+        creationSuccess,
+        setCreationDialogContext,
+        setCreationDialogInitialTypeOverride,
+        setCreationDialogTriggerAgentName,
+        setCreationSuccess,
+        setIsCreationDialogOpen,
+    ]);
+
+    const handleAddToolForAgent = useCallback(() => {
+        if (!creationSuccess || creationSuccess.entityType !== 'agent') {
+            return;
+        }
+
+        const agentName = creationSuccess.entityName?.trim();
+        if (!agentName) {
+            return;
+        }
+
+        setCreationDialogInitialTypeOverride(undefined);
+        setCreationDialogTriggerAgentName(undefined);
+        setCreationDialogContext({
+            kind: 'linkFromAgent',
+            sourceAgentName: agentName,
+            targetType: 'tool',
+        });
+        setCreationSuccess(undefined);
+        setIsCreationDialogOpen(true);
+    }, [
+        creationSuccess,
+        setCreationDialogContext,
+        setCreationDialogInitialTypeOverride,
+        setCreationDialogTriggerAgentName,
+        setCreationSuccess,
+        setIsCreationDialogOpen,
+    ]);
 
     const isLoading = loading || isLayouting;
     const hasAgents = agents.length > 0;
@@ -1196,13 +1353,18 @@ const ExtendedAgentGraphContent = memo(() => {
                             <MessageBarBody>{creationSuccessMessage}</MessageBarBody>
                             <MessageBarActions>
                                 {creationSuccess?.entityType === 'agent' && (
-                                    <Button appearance="primary" onClick={handleTestAgentClick}>
-                                        {intl.formatMessage(ExtendedAgentsGraphResources.testAgentButton)}
-                                    </Button>
+                                    <>
+                                        <Button appearance="primary" onClick={handleTestAgentClick}>
+                                            {intl.formatMessage(ExtendedAgentsGraphResources.testAgentButton)}
+                                        </Button>
+                                        <Button appearance="secondary" onClick={handleAddTriggerForAgent}>
+                                            {intl.formatMessage(ExtendedAgentsGraphResources.creationSuccessAddTrigger)}
+                                        </Button>
+                                        <Button appearance="secondary" onClick={handleAddToolForAgent}>
+                                            {intl.formatMessage(ExtendedAgentsGraphResources.creationSuccessAddTool)}
+                                        </Button>
+                                    </>
                                 )}
-                                <Button appearance="secondary" onClick={handleIncidentManagementClick}>
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.quickCreateAgentSuccessLink)}
-                                </Button>
                                 <Button appearance="transparent" onClick={handleDismissCreationSuccess}>
                                     {intl.formatMessage(ExtendedAgentsGraphResources.relationshipDismiss)}
                                 </Button>
@@ -1327,6 +1489,7 @@ const ExtendedAgentGraphContent = memo(() => {
                     onOpenChange={handleCreationDialogOpenChange}
                     onSubmit={creationDialogContext?.kind === 'linkFromAgent' ? handleCreateAndLinkEntity : handleCreateEntity}
                     initialEntityType={creationDialogInitialType}
+                    initialTriggerAgentName={creationDialogTriggerAgentName}
                     contextNotice={creationDialogNotice ? { intent: 'info', message: creationDialogNotice } : undefined}
                     linkContext={creationDialogLinkContext}
                     existingAgents={agents}

@@ -2502,6 +2502,12 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'We’ll mark this agent as Autonomous automatically so it can run on its own.',
         id: 'L/i6dy',
     },
+    creationSuccessAddTrigger: { defaultMessage: 'Add a trigger', id: '2+TYMx' },
+    creationSuccessAddTool: { defaultMessage: 'Add a tool', id: 'xsbZ+Q' },
+    entityNameValidationMessage: {
+        defaultMessage: 'Name can only contain letters, numbers, or hyphens and must be {maxLength} characters or fewer.',
+        id: 'bdhTWR',
+    },
 
     // Entity Types
     agent: { defaultMessage: 'Sub-Agent', id: 'hNKm4/' },
@@ -3153,12 +3159,12 @@ export const ExtendedAgentsGraphResources = defineMessages({
     },
     retryLink: { defaultMessage: 'Retry link', id: '7TVRcx' },
     quickCreateAgentSuccess: {
-        defaultMessage: 'Created {agentName} and linked it as a handoff for {sourceAgentName}. Finish the setup in Incident management.',
-        id: 'w2QcbZ',
+        defaultMessage: 'Created {agentName} and linked it as a handoff for {sourceAgentName}. Choose what you’d like to do next.',
+        id: 'mopY52',
     },
     quickCreateAgentSuccessNoSource: {
-        defaultMessage: 'Created {agentName}. Finish the setup in Incident management.',
-        id: 'nh3LaL',
+        defaultMessage: 'Created {agentName}. Pick a next step below to keep building.',
+        id: 'sHc8w5',
     },
     quickCreateAgentSuccessLink: { defaultMessage: 'Go to Incident management', id: '7Cy5xk' },
     testAgentButton: { defaultMessage: 'Test Agent', id: '05Rzkx' },

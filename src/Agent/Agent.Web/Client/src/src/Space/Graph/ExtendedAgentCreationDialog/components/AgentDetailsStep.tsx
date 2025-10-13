@@ -29,6 +29,7 @@ import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResour
 import { ExtendedAgent, ExtendedTool, SystemTool } from '../../../Contracts/ExtendedAgentGraph';
 import { improvePrompt, PromptImprovementResponse } from '../services/promptImprovementService';
 import { useCreationDialogStyles } from '../styles';
+import { ENTITY_NAME_MAX_LENGTH, isEntityNameValid, sanitizeEntityName } from '../utils/nameValidation';
 
 const MAX_TOOL_DESCRIPTION_LENGTH = 220;
 
@@ -54,8 +55,18 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
     const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
 
     const handleAgentNameChange: NonNullable<InputProps['onChange']> = (_event, data) => {
-        onChange({ ...agent, name: data.value });
+        const sanitized = sanitizeEntityName(data.value ?? '');
+        onChange({ ...agent, name: sanitized });
     };
+
+    const agentNameValue = agent.name ?? '';
+    const agentNameValidationState = agentNameValue.length === 0 || isEntityNameValid(agentNameValue) ? 'none' : 'error';
+    const agentNameValidationMessage =
+        agentNameValidationState === 'error'
+            ? intl.formatMessage(ExtendedAgentsGraphResources.entityNameValidationMessage, {
+                  maxLength: ENTITY_NAME_MAX_LENGTH,
+              })
+            : undefined;
 
     const handleAgentInstructionsChange: NonNullable<TextareaProps['onChange']> = (_event, data) => {
         onChange({ ...agent, instructions: data.value });
@@ -304,6 +315,8 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
                         </div>
                     </div>
                 }
+                validationState={agentNameValidationState}
+                validationMessage={agentNameValidationMessage}
             >
                 <Input
                     value={agent.name || ''}
@@ -312,7 +325,9 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
                     input={{ className: styles.textInput }}
                 />
                 <div className={styles.helpText}>
-                    {intl.formatMessage(ExtendedAgentsGraphResources.agentNameHelp)}
+                    {intl.formatMessage(ExtendedAgentsGraphResources.agentNameHelp, {
+                        maxLength: ENTITY_NAME_MAX_LENGTH,
+                    })}
                     {(agent as any).metaAgentOverride && (
                         <div className={styles.metaAgentInfo}>
                             <Info16Regular aria-hidden className={styles.metaAgentInfoIcon} />

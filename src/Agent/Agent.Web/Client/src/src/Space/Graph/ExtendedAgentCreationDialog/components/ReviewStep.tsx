@@ -55,9 +55,17 @@ interface ReviewStepProps {
     relationshipSummary?: string;
     relationshipSummaryHeading?: string;
     onEditYaml?: (yaml: string) => void;
+    onYamlEditingChange?: (isEditing: boolean) => void;
 }
 
-export const ReviewStep: FC<ReviewStepProps> = ({ state, intl, relationshipSummary, relationshipSummaryHeading, onEditYaml }) => {
+export const ReviewStep: FC<ReviewStepProps> = ({
+    state,
+    intl,
+    relationshipSummary,
+    relationshipSummaryHeading,
+    onEditYaml,
+    onYamlEditingChange,
+}) => {
     const styles = useCreationDialogStyles();
     const { theme } = useContext(EnvironmentContext);
     const isDarkTheme = theme?.mode === ThemeMode.Dark || theme?.name === 'dark';
@@ -213,6 +221,18 @@ export const ReviewStep: FC<ReviewStepProps> = ({ state, intl, relationshipSumma
         const timeout = setTimeout(() => setCopySuccess(false), 2000);
         return () => clearTimeout(timeout);
     }, [copySuccess]);
+
+    useEffect(() => {
+        if (!onYamlEditingChange) {
+            return;
+        }
+
+        onYamlEditingChange(isEditing);
+
+        return () => {
+            onYamlEditingChange(false);
+        };
+    }, [isEditing, onYamlEditingChange]);
 
     const handleCopy = useCallback(async () => {
         if (!canCopy) {

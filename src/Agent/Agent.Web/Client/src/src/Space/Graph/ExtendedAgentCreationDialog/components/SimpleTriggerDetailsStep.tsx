@@ -36,6 +36,7 @@ import { improveScheduledTaskPrompt } from '../services/scheduledPromptImproveme
 import { useCreationDialogStyles } from '../styles';
 import { TriggerMode, TriggerStateController, TriggerStrategy, TriggerValidationState } from '../types';
 import { getBadgeColorForPriority, getIncidentTypesForPlatform, getPrioritiesForPlatform } from '../utils/incidentPlatforms';
+import { ENTITY_NAME_MAX_LENGTH, isEntityNameValid, sanitizeEntityName } from '../utils/nameValidation';
 import {
     DEFAULT_SCHEDULE_PRESET,
     SCHEDULE_PRESETS,
@@ -697,15 +698,40 @@ export const SimpleTriggerDetailsStep: FC<SimpleTriggerDetailsStepProps> = ({
                     <Field
                         label={intl.formatMessage(ExtendedAgentsGraphResources.triggerNameLabel)}
                         required
-                        validationState={validation.name ? 'error' : 'none'}
-                        validationMessage={validation.name}
+                        validationState={(() => {
+                            if (validation.name) {
+                                return 'error';
+                            }
+                            const name = trigger.name ?? '';
+                            if (name.length === 0) {
+                                return 'none';
+                            }
+                            return isEntityNameValid(name) ? 'none' : 'error';
+                        })()}
+                        validationMessage={(() => {
+                            if (validation.name) {
+                                return validation.name;
+                            }
+                            const name = trigger.name ?? '';
+                            if (name.length === 0 || isEntityNameValid(name)) {
+                                return undefined;
+                            }
+                            return intl.formatMessage(ExtendedAgentsGraphResources.entityNameValidationMessage, {
+                                maxLength: ENTITY_NAME_MAX_LENGTH,
+                            });
+                        })()}
                     >
                         <Input
                             ref={nameRef}
                             value={trigger.name ?? ''}
-                            onChange={(_, data) => updateFromUser({ name: data.value ?? '' }, ['name'])}
+                            onChange={(_, data) => updateFromUser({ name: sanitizeEntityName(data.value ?? '') }, ['name'])}
                             placeholder={intl.formatMessage(ExtendedAgentsGraphResources.triggerNamePlaceholder)}
                         />
+                        <Text size={200} className={styles.helpText}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.entityNameValidationMessage, {
+                                maxLength: ENTITY_NAME_MAX_LENGTH,
+                            })}
+                        </Text>
                     </Field>
 
                     {currentMode === 'incident' ? (

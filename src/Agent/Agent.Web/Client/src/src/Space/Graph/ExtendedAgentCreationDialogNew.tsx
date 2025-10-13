@@ -19,7 +19,7 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import { Stepper, StepperStep } from '../../Common/Components/Stepper/Stepper';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
-import { ExtendedTool } from '../Contracts/ExtendedAgentGraph';
+import { ExtendedAgent, ExtendedConnector, ExtendedTool } from '../Contracts/ExtendedAgentGraph';
 import { createTriggerFromState } from './ExtendedAgentCreationDialog/api/triggerCreation';
 import { AgentDetailsStep } from './ExtendedAgentCreationDialog/components/AgentDetailsStep';
 import { ConnectorDetailsStep } from './ExtendedAgentCreationDialog/components/ConnectorDetailsStep';
@@ -34,6 +34,263 @@ import { useCreationDialogStyles } from './ExtendedAgentCreationDialog/styles';
 import { CreationState, EntityType, ExtendedAgentCreationDialogProps, Step, ToolTestStatus } from './ExtendedAgentCreationDialog/types';
 import { getKustoTestFingerprint } from './ExtendedAgentCreationDialog/utils/toolUtils';
 
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const toOptionalString = (value: unknown): string | undefined => {
+    if (value === null || value === undefined) {
+        return undefined;
+    }
+
+    return typeof value === 'string' ? value : String(value);
+};
+
+const toOptionalNumber = (value: unknown): number | undefined => {
+    if (value === null || value === undefined) {
+        return undefined;
+    }
+
+    if (typeof value === 'number') {
+        return Number.isNaN(value) ? undefined : value;
+    }
+
+    if (typeof value === 'string') {
+        const parsed = Number(value);
+        return Number.isNaN(parsed) ? undefined : parsed;
+    }
+
+    return undefined;
+};
+
+const toOptionalBoolean = (value: unknown): boolean | undefined => {
+    if (value === null || value === undefined) {
+        return undefined;
+    }
+
+    if (typeof value === 'boolean') {
+        return value;
+    }
+
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        if (normalized === 'true') {
+            return true;
+        }
+        if (normalized === 'false') {
+            return false;
+        }
+    }
+
+    return undefined;
+};
+
+const toStringArray = (value: unknown): string[] | undefined => {
+    if (!Array.isArray(value)) {
+        return undefined;
+    }
+
+    const converted = value.map(item => toOptionalString(item)).filter((entry): entry is string => entry !== undefined);
+
+    return converted.length > 0 ? converted : [];
+};
+
+const toAgentsAsTools = (value: unknown): ExtendedAgent['agentsAsTools'] | undefined => {
+    if (!Array.isArray(value)) {
+        return undefined;
+    }
+
+    return value.filter(item => isRecord(item)) as ExtendedAgent['agentsAsTools'];
+};
+
+const toMetadataRecord = (value: unknown): Record<string, unknown> | undefined => {
+    if (!isRecord(value)) {
+        return undefined;
+    }
+
+    return value;
+};
+
+const mapAgentSpecToState = (
+    spec: Record<string, unknown>,
+    previous: Partial<ExtendedAgent> | undefined,
+    documents: unknown[]
+): Partial<ExtendedAgent> => {
+    const next: Partial<ExtendedAgent> = { ...(previous ?? {}) };
+
+    const setIfDefined = <K extends keyof ExtendedAgent>(key: K, value: ExtendedAgent[K] | undefined) => {
+        if (value !== undefined) {
+            next[key] = value;
+        }
+    };
+
+    const createStringHandler = (target: keyof ExtendedAgent) => (value: unknown) => {
+        setIfDefined(target, toOptionalString(value) as any);
+    };
+
+    const createNumberHandler = (target: keyof ExtendedAgent) => (value: unknown) => {
+        setIfDefined(target, toOptionalNumber(value) as any);
+    };
+
+    const createBooleanHandler = (target: keyof ExtendedAgent) => (value: unknown) => {
+        setIfDefined(target, toOptionalBoolean(value) as any);
+    };
+
+    const createStringArrayHandler = (setter: (values: string[] | undefined) => void) => (value: unknown) => {
+        setter(toStringArray(value));
+    };
+
+    const fieldHandlers: Record<string, (value: unknown) => void> = {
+        name: createStringHandler('name'),
+        system_prompt: createStringHandler('instructions'),
+        handoff_description: createStringHandler('handoffDescription'),
+        agent_type: createStringHandler('agentType'),
+        output_type: createStringHandler('outputType'),
+        llm_model_name: createStringHandler('llmModelName'),
+        critic_prompt_path: createStringHandler('criticPromptPath'),
+        temperature: createNumberHandler('temperature'),
+        max_reflection_count: createNumberHandler('maxReflectionCount'),
+        critic_on_hand_off: createBooleanHandler('criticOnHandOff'),
+        allow_parallel_tool_calls: createBooleanHandler('allowParallelToolCalls'),
+        handoffs: createStringArrayHandler(values => {
+            next.handoffs = values;
+        }),
+        tools: createStringArrayHandler(values => {
+            next.tools = values;
+            next.systemTools = undefined;
+        }),
+        system_tools: createStringArrayHandler(values => {
+            next.systemTools = values;
+        }),
+        common_prompts: createStringArrayHandler(values => {
+            next.commonPrompts = values;
+        }),
+        common_tools: createStringArrayHandler(values => {
+            next.commonTools = values;
+        }),
+        mcp_tools: createStringArrayHandler(values => {
+            next.mcpTools = values;
+        }),
+        agents_as_tools: value => {
+            next.agentsAsTools = toAgentsAsTools(value);
+        },
+        metadata: value => {
+            setIfDefined('metadata', toMetadataRecord(value));
+        },
+    };
+
+    Object.entries(spec).forEach(([specKey, value]) => {
+        fieldHandlers[specKey]?.(value);
+    });
+
+    const hasMetaAgentDocument = documents.some(doc => {
+        if (!isRecord(doc)) {
+            return false;
+        }
+
+        const metadata = (doc as Record<string, unknown>).metadata;
+        return isRecord(metadata) && typeof metadata.name === 'string' && metadata.name === 'meta_agent';
+    });
+
+    const overrideFromSpec =
+        'meta_agent_override' in spec ? toOptionalBoolean((spec as Record<string, unknown>).meta_agent_override) : undefined;
+
+    if (hasMetaAgentDocument) {
+        next.metaAgentOverride = true;
+    } else if (overrideFromSpec !== undefined) {
+        next.metaAgentOverride = overrideFromSpec;
+    } else if (previous?.metaAgentOverride) {
+        next.metaAgentOverride = false;
+    }
+
+    return next;
+};
+
+const extractToolSpec = (spec: Record<string, unknown>): Record<string, unknown> | undefined => {
+    if ('tools' in spec && Array.isArray(spec.tools) && spec.tools.length > 0) {
+        const first = spec.tools[0];
+        if (isRecord(first)) {
+            return first;
+        }
+    }
+
+    return spec;
+};
+
+const extractConnectorSpec = (spec: Record<string, unknown>): Record<string, unknown> | undefined => {
+    if ('connectors' in spec && Array.isArray(spec.connectors) && spec.connectors.length > 0) {
+        const first = spec.connectors[0];
+        if (isRecord(first)) {
+            return first;
+        }
+    }
+
+    return spec;
+};
+
+const parseYamlDocuments = (yamlContent: string): unknown[] => {
+    const documents: unknown[] = [];
+
+    yaml.loadAll(yamlContent, (doc: unknown) => {
+        if (doc !== undefined && doc !== null) {
+            documents.push(doc);
+        }
+    });
+
+    return documents;
+};
+
+const applyYamlDocumentsToState = (prevState: CreationState, documents: unknown[]): CreationState => {
+    if (documents.length === 0) {
+        return prevState;
+    }
+
+    const specDocument = documents.find(doc => isRecord(doc) && 'spec' in doc && isRecord((doc as Record<string, unknown>).spec));
+
+    if (!specDocument) {
+        return prevState;
+    }
+
+    const spec = (specDocument as Record<string, unknown>).spec as Record<string, unknown>;
+    const nextState: CreationState = { ...prevState };
+
+    switch (prevState.entityType) {
+        case 'agent':
+            nextState.agent = mapAgentSpecToState(spec, prevState.agent, documents);
+            break;
+        case 'tool': {
+            const toolSpec = extractToolSpec(spec);
+            if (toolSpec) {
+                nextState.tool = {
+                    ...(prevState.tool ?? {}),
+                    ...toolSpec,
+                } as Partial<ExtendedTool>;
+            }
+            break;
+        }
+        case 'connector': {
+            const connectorSpec = extractConnectorSpec(spec);
+            if (connectorSpec) {
+                nextState.connector = {
+                    ...(prevState.connector ?? {}),
+                    ...connectorSpec,
+                } as Partial<ExtendedConnector>;
+            }
+            break;
+        }
+        case 'trigger':
+            if (isRecord(spec)) {
+                nextState.trigger = {
+                    ...(prevState.trigger ?? {}),
+                    ...(spec as Record<string, unknown>),
+                } as any;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return nextState;
+};
+
 export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> = ({
     open,
     onOpenChange,
@@ -45,6 +302,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
     existingIncidentHandlers = [],
     existingScheduledTasks = [],
     initialEntityType,
+    initialTriggerAgentName,
     contextNotice,
     linkContext,
     triggerConfig,
@@ -58,6 +316,15 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
     const incidentPlatformType = sreAgentContext.incidentManagement.incidentPlatformType;
     const isQuickAgentFlow = initialEntityType === 'agent' && !linkContext;
     const showWizard = !isQuickAgentFlow;
+
+    const defaultTriggerAgentName = useMemo(() => {
+        const trimmed = initialTriggerAgentName?.trim();
+        if (trimmed) {
+            return trimmed;
+        }
+
+        return existingAgents[0]?.name;
+    }, [initialTriggerAgentName, existingAgents]);
 
     const wizardSteps = useMemo<StepperStep[]>(
         () => [
@@ -92,14 +359,18 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
     const [showYamlEditor, setShowYamlEditor] = useState(false);
     const [yamlEditorContent, setYamlEditorContent] = useState('');
     const [triggerReviewMode, setTriggerReviewMode] = useState(false);
+    const [isYamlEditing, setIsYamlEditing] = useState(false);
 
     // Initialize trigger state controller
     const triggerController = useTriggerState(
         intl,
-        {
-            mode: 'incident',
-            agentName: initialEntityType === 'trigger' ? existingAgents[0]?.name : undefined,
-        },
+        initialEntityType === 'trigger'
+            ? {
+                  mode: 'incident',
+                  agentName: defaultTriggerAgentName,
+                  agentDisplayName: defaultTriggerAgentName,
+              }
+            : undefined,
         incidentPlatformType
     );
 
@@ -108,18 +379,28 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
     const isKustoToolSelected = state.entityType === 'tool' && (state.tool?.type?.trim() ?? 'KustoTool') === 'KustoTool';
     const shouldShowTester = state.step === 2 && isKustoToolSelected;
 
+    const resetTrigger = triggerController.reset;
+
     useEffect(() => {
         if (open) {
             setState(buildInitialState());
             setTriggerReviewMode(false);
+            setIsYamlEditing(false);
             if (initialEntityType === 'trigger') {
-                triggerController.reset({
+                resetTrigger({
                     mode: 'incident',
-                    agentName: existingAgents[0]?.name,
+                    agentName: defaultTriggerAgentName,
+                    agentDisplayName: defaultTriggerAgentName,
                 });
             }
         }
-    }, [open, buildInitialState, initialEntityType]);
+    }, [open, buildInitialState, initialEntityType, resetTrigger, defaultTriggerAgentName]);
+
+    useEffect(() => {
+        if (state.step !== 3) {
+            setIsYamlEditing(false);
+        }
+    }, [state.step]);
 
     // Sync trigger state to main state for ReviewStep
     useEffect(() => {
@@ -131,36 +412,39 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
         }
     }, [state.entityType, triggerController.trigger]);
 
-    const handleTypeSelect = useCallback((type: EntityType) => {
-        setState((prev: CreationState) => {
-            const newState: CreationState = {
-                ...prev,
-                entityType: type,
-                step: 2,
-            };
+    const handleTypeSelect = useCallback(
+        (type: EntityType) => {
+            setState((prev: CreationState) => {
+                const newState: CreationState = {
+                    ...prev,
+                    entityType: type,
+                    step: 2,
+                };
 
-            // Clear previous entity data
-            delete newState.agent;
-            delete newState.tool;
-            delete newState.connector;
-            delete newState.trigger;
-            delete newState.toolTest;
+                // Clear previous entity data
+                delete newState.agent;
+                delete newState.tool;
+                delete newState.connector;
+                delete newState.trigger;
+                delete newState.toolTest;
 
-            // Set data for selected type
-            if (type === 'agent') {
-                newState.agent = { name: '', instructions: '', tools: [], agentType: 'Autonomous' };
-            } else if (type === 'tool') {
-                newState.tool = { name: '', type: 'KustoTool', description: '', mode: 'query' };
-                newState.toolTest = { status: 'idle' };
-            } else if (type === 'connector') {
-                newState.connector = { name: '', type: 'Kusto', enabled: true };
-            } else if (type === 'trigger') {
-                newState.trigger = triggerController.trigger;
-            }
+                // Set data for selected type
+                if (type === 'agent') {
+                    newState.agent = { name: '', instructions: '', tools: [], agentType: 'Autonomous' };
+                } else if (type === 'tool') {
+                    newState.tool = { name: '', type: 'KustoTool', description: '', mode: 'query' };
+                    newState.toolTest = { status: 'idle' };
+                } else if (type === 'connector') {
+                    newState.connector = { name: '', type: 'Kusto', enabled: true };
+                } else if (type === 'trigger') {
+                    newState.trigger = triggerController.trigger;
+                }
 
-            return newState;
-        });
-    }, []);
+                return newState;
+            });
+        },
+        [triggerController.trigger]
+    );
 
     const handleNext = useCallback(() => {
         setState(prev => ({
@@ -302,7 +586,17 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
         }
 
         return true;
-    }, [state, isToolTestSatisfied]);
+    }, [
+        state,
+        isToolTestSatisfied,
+        triggerController.trigger.agentName,
+        triggerController.trigger.name,
+        triggerController.trigger.instructions,
+        triggerController.validation.agent,
+        triggerController.validation.name,
+        triggerController.validation.instructions,
+        triggerController.validation.cron,
+    ]);
 
     const submitButtonLabel = useMemo(() => {
         switch (state.entityType) {
@@ -320,55 +614,9 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
     }, [state.entityType]);
 
     const handleEditYaml = useCallback((yamlContent: string) => {
-        // This is called when ReviewStep saves edited YAML content
-        // Parse and apply the changes directly to the state
         try {
-            const parsedYaml = yaml.load(yamlContent) as any;
-
-            if (parsedYaml && parsedYaml.spec) {
-                setState(prevState => {
-                    const newState = { ...prevState };
-
-                    switch (prevState.entityType) {
-                        case 'agent':
-                            newState.agent = {
-                                ...prevState.agent,
-                                ...parsedYaml.spec,
-                            };
-                            break;
-                        case 'tool':
-                            // For tools, we need to handle the nested structure correctly
-                            if (parsedYaml.spec.tools && parsedYaml.spec.tools.length > 0) {
-                                console.log('Updating tool from YAML spec.tools[0]:', parsedYaml.spec.tools[0]);
-                                newState.tool = {
-                                    ...prevState.tool,
-                                    ...parsedYaml.spec.tools[0],
-                                };
-                            } else {
-                                console.log('Updating tool from YAML spec directly:', parsedYaml.spec);
-                                newState.tool = {
-                                    ...prevState.tool,
-                                    ...parsedYaml.spec,
-                                };
-                            }
-                            break;
-                        case 'connector':
-                            newState.connector = {
-                                ...prevState.connector,
-                                ...parsedYaml.spec,
-                            };
-                            break;
-                        case 'trigger':
-                            newState.trigger = {
-                                ...prevState.trigger,
-                                ...parsedYaml.spec,
-                            };
-                            break;
-                    }
-
-                    return newState;
-                });
-            }
+            const documents = parseYamlDocuments(yamlContent);
+            setState(prevState => applyYamlDocumentsToState(prevState, documents));
         } catch (error) {
             console.error('Failed to parse YAML from ReviewStep:', error);
         }
@@ -381,48 +629,14 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
 
     const handleYamlSave = useCallback(() => {
         try {
-            // Parse the YAML content
-            const parsedYaml = yaml.load(yamlEditorContent) as any;
+            const documents = parseYamlDocuments(yamlEditorContent);
 
-            if (!parsedYaml || !parsedYaml.spec) {
-                console.error('Invalid YAML structure - missing spec');
+            if (documents.length === 0) {
+                console.error('Invalid YAML structure - no documents parsed');
                 return;
             }
 
-            // Update the state based on the entity type
-            setState(prevState => {
-                const newState = { ...prevState };
-
-                switch (prevState.entityType) {
-                    case 'agent':
-                        newState.agent = {
-                            ...prevState.agent,
-                            ...parsedYaml.spec,
-                        };
-                        break;
-                    case 'tool':
-                        newState.tool = {
-                            ...prevState.tool,
-                            ...parsedYaml.spec,
-                        };
-                        break;
-                    case 'connector':
-                        newState.connector = {
-                            ...prevState.connector,
-                            ...parsedYaml.spec,
-                        };
-                        break;
-                    case 'trigger':
-                        newState.trigger = {
-                            ...prevState.trigger,
-                            ...parsedYaml.spec,
-                        };
-                        break;
-                }
-
-                return newState;
-            });
-
+            setState(prevState => applyYamlDocumentsToState(prevState, documents));
             setShowYamlEditor(false);
             setYamlEditorContent('');
         } catch (error) {
@@ -432,7 +646,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
     }, [yamlEditorContent]);
 
     const handleSubmit = useCallback(async () => {
-        if (!canProceed || isSubmitting || !state.entityType) return;
+        if (!canProceed || isSubmitting || !state.entityType || isYamlEditing) return;
 
         setIsSubmitting(true);
         try {
@@ -508,7 +722,9 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
         } finally {
             setIsSubmitting(false);
         }
-    }, [canProceed, isSubmitting, state, onSubmit, onOpenChange]);
+    }, [canProceed, isSubmitting, isYamlEditing, state, onSubmit, onOpenChange, triggerController.trigger, sreAgentEndpoint]);
+
+    const isFinalActionDisabled = isSubmitting || !canProceed || (state.step === 3 && (isYamlEditing || showYamlEditor));
 
     return (
         <>
@@ -653,6 +869,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                                             intl={intl}
                                             relationshipSummaryHeading={linkContext ? `Link to ${linkContext.sourceAgentName}` : undefined}
                                             onEditYaml={handleEditYaml}
+                                            onYamlEditingChange={setIsYamlEditing}
                                         />
                                     )}
                                 </>
@@ -712,7 +929,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                                         appearance="primary"
                                         icon={<Checkmark24Regular />}
                                         onClick={handleSubmit}
-                                        disabled={isSubmitting || !canProceed}
+                                        disabled={isFinalActionDisabled}
                                     >
                                         {isSubmitting ? intl.formatMessage(ExtendedAgentsGraphResources.creating) : submitButtonLabel}
                                     </Button>
@@ -722,7 +939,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                                     appearance="primary"
                                     icon={<Checkmark24Regular />}
                                     onClick={handleSubmit}
-                                    disabled={isSubmitting || !canProceed}
+                                    disabled={isFinalActionDisabled}
                                 >
                                     {isSubmitting ? intl.formatMessage(ExtendedAgentsGraphResources.creating) : submitButtonLabel}
                                 </Button>

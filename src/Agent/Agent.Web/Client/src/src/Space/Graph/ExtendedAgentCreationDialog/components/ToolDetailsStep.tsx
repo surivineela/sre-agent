@@ -12,6 +12,7 @@ import { IntlShape, useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedConnector, ExtendedTool, ToolParameter } from '../../../Contracts/ExtendedAgentGraph';
 import { useCreationDialogStyles } from '../styles';
+import { ENTITY_NAME_MAX_LENGTH, isEntityNameValid, sanitizeEntityName } from '../utils/nameValidation';
 
 interface ToolDetailsStepProps {
     tool: Partial<ExtendedTool>;
@@ -172,16 +173,35 @@ export const ToolDetailsStep: FC<ToolDetailsStepProps> = ({ tool, existingConnec
         [onChange, tool]
     );
 
+    const toolName = tool.name ?? '';
+    const toolNameValidationState = toolName.length === 0 || isEntityNameValid(toolName) ? 'none' : 'error';
+    const toolNameValidationMessage =
+        toolNameValidationState === 'error'
+            ? intl.formatMessage(ExtendedAgentsGraphResources.entityNameValidationMessage, {
+                  maxLength: ENTITY_NAME_MAX_LENGTH,
+              })
+            : undefined;
+
     return (
         <div className={styles.formSection}>
             {/* WORLD-CLASS: Two-column layout for basic info */}
             <div className={styles.formGrid}>
-                <Field label={intl.formatMessage(ExtendedAgentsGraphResources.toolName)} required>
+                <Field
+                    label={intl.formatMessage(ExtendedAgentsGraphResources.toolName)}
+                    required
+                    validationState={toolNameValidationState}
+                    validationMessage={toolNameValidationMessage}
+                >
                     <Input
                         value={tool.name || ''}
-                        onChange={(_, data) => onChange({ ...tool, name: data.value })}
+                        onChange={(_, data) => onChange({ ...tool, name: sanitizeEntityName(data.value ?? '') })}
                         placeholder="e.g., QueryVMs"
                     />
+                    <Text size={200} className={styles.helpText}>
+                        {intl.formatMessage(ExtendedAgentsGraphResources.entityNameValidationMessage, {
+                            maxLength: ENTITY_NAME_MAX_LENGTH,
+                        })}
+                    </Text>
                 </Field>
 
                 <Field label={intl.formatMessage(ExtendedAgentsGraphResources.toolType)} required>
