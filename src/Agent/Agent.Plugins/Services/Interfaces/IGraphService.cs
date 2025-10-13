@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
@@ -88,4 +89,20 @@ public interface IGraphService
     /// <param name="property">Properties to update.</param>
     /// <returns></returns>
     Task<ResultSet<dynamic>> UpdateGraphResourceProperties(string resourceId, IDictionary<string, string> properties);
+
+    /// <summary>
+    /// Search for resources in the graph database by name and/or type with pagination
+    /// </summary>
+    /// <param name="name">Optional name filter (case-insensitive partial match)</param>
+    /// <param name="type">Optional resource type filter (exact match, case-insensitive)</param>
+    /// <param name="subscriptionId">Optional subscription ID filter</param>
+    /// <param name="pageIndex">Zero-based page index</param>
+    /// <param name="pageSize">Number of items per page</param>
+    /// <returns>Paginated list of resources</returns>
+    Task<(List<ResourceSearchResult> Resources, int TotalCount)> SearchResourcesAsync(
+        string? name = null,
+        string? type = null,
+        string? subscriptionId = null,
+        int pageIndex = 0,
+        int pageSize = 20);
 }

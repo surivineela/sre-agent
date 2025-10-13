@@ -41,7 +41,7 @@ public class GraphService : IGraphService
         };
 
     // Define the allowed Kubernetes resource types
-    private readonly string[] allowedTypes = { "namespaces", "deployments", "statefulsets" };
+    private readonly string[] allowedTypes = ["namespaces", "deployments", "statefulsets"];
 
     public const string GithubRepoRegexPattern = @"^https:\/\/github\.com\/[\w.-]+\/[\w.-]+(?:\.git)?$";
     public const string AzDoRepoRegexPattern = @"^https:\/\/(?:[\w.-]+@)?(?:(?:dev\.azure\.com\/(?<organization>(?:[A-Za-z0-9._\-~]|%[0-9A-Fa-f]{2})+)\/(?<project>(?:[A-Za-z0-9._\-~]|%[0-9A-Fa-f]{2})+))|(?<organization>(?:[A-Za-z0-9._\-~]|%[0-9A-Fa-f]{2})+)\.visualstudio\.com\/(?<project>(?:[A-Za-z0-9._\-~]|%[0-9A-Fa-f]{2})+))\/_git\/(?<repo>(?:[A-Za-z0-9._\-~]|%[0-9A-Fa-f]{2})+)$";
@@ -363,7 +363,7 @@ public class GraphService : IGraphService
     {
         if (remainingLevels <= 0 || processedNodes.Contains(resourceId))
         {
-            return new List<AppGroupItem>();
+            return [];
         }
 
         processedNodes.Add(resourceId);
@@ -372,7 +372,7 @@ public class GraphService : IGraphService
 
         if (resultSet == null || !resultSet.Any())
         {
-            return new List<AppGroupItem>();
+            return [];
         }
 
         var appGroupItems = new List<AppGroupItem>();
@@ -760,14 +760,145 @@ public class GraphService : IGraphService
 
     private string getValue(object val)
     {
-        switch (val)
+        return val switch
         {
-            case int i:
-                return i.ToString();
-            case long l:
-                return l.ToString();
-            default:
-                return $"'{val}'";
+            int i => i.ToString(),
+            long l => l.ToString(),
+            _ => $"'{val}'",
+        };
+    }
+
+    /// <summary>
+    /// Escapes special characters in strings to prevent Gremlin query injection.
+    /// Escapes backslashes and single quotes which are the primary injection vectors.
+    /// </summary>
+    /// <param name="input">The string to escape</param>
+    /// <returns>Escaped string safe for use in Gremlin queries</returns>
+    private static string EscapeGremlinString(string? input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return input ?? string.Empty;
         }
+
+        // Escape backslashes first, then single quotes
+        // Order matters: backslash must be escaped before quotes
+        return input.Replace("\\", "\\\\").Replace("'", "\\'");
+    }
+
+    public async Task<(List<Core.Models.Api.v1.ResourceSearchResult> Resources, int TotalCount)> SearchResourcesAsync(
+        string? name = null,
+        string? type = null,
+        string? subscriptionId = null,
+        int pageIndex = 0,
+        int pageSize = 20)
+    {
+        _logger.LogInternalInformation("Searching resources with filters - name: {name}, type: {type}, subscriptionId: {subscriptionId}, pageIndex: {pageIndex}, pageSize: {pageSize}",
+            name, type, subscriptionId, pageIndex, pageSize);
+
+        var queryParts = new List<string>
+        {
+            "g.V()",
+            ".has('isDeleted', false)"
+        };
+
+        if (!string.IsNullOrWhiteSpace(subscriptionId))
+        {
+            var escapedSubscriptionId = EscapeGremlinString(subscriptionId.ToLower());
+            queryParts.Add($".has('subscriptionId', '{escapedSubscriptionId}')");
+        }
+
+        if (!string.IsNullOrWhiteSpace(type))
+        {
+            var escapedType = EscapeGremlinString(type.ToLower());
+            queryParts.Add($".has('resourceType', '{escapedType}')");
+        }
+
+        // Add name filter if provided (case-insensitive partial match)
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            // Gremlin doesn't have case-insensitive contains, so we'll filter in memory after fetching
+            queryParts.Add(".has('resourceName')");
+        }
+
+        string countQuery = string.Join("", queryParts) + ".count()";
+
+        queryParts.Add(@"
+            .project('resourceId', 'name', 'type', 'kind', 'subscriptionId', 'resourceGroup', 'location', 'properties')
+            .by(coalesce(values('resourceId'), constant('')))
+            .by(coalesce(values('resourceName'), constant('')))
+            .by(coalesce(values('resourceType'), constant('')))
+            .by(coalesce(values('resourceKind'), constant('')))
+            .by(coalesce(values('subscriptionId'), constant('')))
+            .by(coalesce(values('resourceGroupName'), constant('')))
+            .by(coalesce(values('location'), constant('')))
+            .by(valueMap())");
+
+        string mainQuery = string.Join("", queryParts);
+
+        _logger.LogInternalInformation("Executing count query: {query}", countQuery);
+        var countResult = await _graphDatabaseClient.Query<long>(countQuery);
+        long totalCountBeforeNameFilter = countResult.FirstOrDefault();
+
+        _logger.LogInternalInformation("Executing main query: {query}", mainQuery);
+        var results = await _graphDatabaseClient.Query<Dictionary<string, object>>(mainQuery);
+
+        // Apply name filtering in memory if name filter is provided
+        IEnumerable<Dictionary<string, object>> filteredResults = results;
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var nameLower = name.ToLower();
+            filteredResults = results.Where(r =>
+            {
+                var resourceName = r.TryGetValue("name", out var nameObj) ? nameObj?.ToString() ?? "" : "";
+                return resourceName.Contains(nameLower, StringComparison.CurrentCultureIgnoreCase);
+            });
+        }
+
+        int totalCount = filteredResults.Count();
+
+        var pagedResults = filteredResults
+            .Skip(pageIndex * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        _logger.LogInternalInformation("Found {totalCount} resources matching filters, returning page {pageIndex} with {count} items",
+            totalCount, pageIndex, pagedResults.Count);
+
+        var searchResults = pagedResults.Select(item =>
+        {
+            var result = new Agent.Core.Models.Api.v1.ResourceSearchResult
+            {
+                ResourceId = item.TryGetValue("resourceId", out var rid) ? rid?.ToString() ?? "" : "",
+                Name = item.TryGetValue("name", out var n) ? n?.ToString() ?? "" : "",
+                Type = item.TryGetValue("type", out var t) ? t?.ToString() ?? "" : "",
+                Kind = item.TryGetValue("kind", out var k) ? k?.ToString() : null,
+                SubscriptionId = item.TryGetValue("subscriptionId", out var sid) ? sid?.ToString() : null,
+                ResourceGroup = item.TryGetValue("resourceGroup", out var rg) ? rg?.ToString() : null,
+                Location = item.TryGetValue("location", out var loc) ? loc?.ToString() : null
+            };
+
+            if (item.TryGetValue("properties", out var propsObj) && propsObj is IDictionary<string, object> props)
+            {
+                result.Properties = [];
+                foreach (var kvp in props)
+                {
+                    var value = kvp.Value;
+                    if (value is System.Collections.IEnumerable enumerable && value is not string)
+                    {
+                        var enumerator = enumerable.GetEnumerator();
+                        if (enumerator.MoveNext())
+                        {
+                            value = enumerator.Current;
+                        }
+                    }
+                    result.Properties[kvp.Key] = value ?? "";
+                }
+            }
+
+            return result;
+        }).ToList();
+
+        return (searchResults, totalCount);
     }
 }

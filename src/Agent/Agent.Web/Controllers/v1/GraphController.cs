@@ -1,11 +1,14 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
+
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Services.Interfaces;
+using Agent.Web.Authorization;
+using Agent.Web.Models.ExtendedAgents.Response;
 using Gremlin.Net.Driver;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
@@ -109,6 +112,88 @@ namespace Agent.Web.Controllers.v1
         {
             var result = await _graphService.GetGraphProgressAsync();
             return Ok(result);
+        }
+
+        /// <summary>
+        /// Search for resources by name and/or type with pagination
+        /// </summary>
+        /// <param name="name">Optional resource name filter (case-insensitive partial match)</param>
+        /// <param name="type">Optional resource type filter (e.g., Microsoft.Web/sites, Microsoft.App/containerApps)</param>
+        /// <param name="subscriptionId">Optional subscription ID filter</param>
+        /// <param name="pageIndex">Zero-based page index (default: 0)</param>
+        /// <param name="pageSize">Number of items per page (default: 20, max: 100)</param>
+        /// <returns>Paginated list of matching resources</returns>
+        [HttpGet("resources/search")]
+        [AuthorizeArmOperation(ArmOperations.AgentGraphReadActionId)]
+        public async Task<ActionResult<PaginatedResponse<ResourceSearchResult>>> SearchResources(
+            [FromQuery] string? name = null,
+            [FromQuery] string? type = null,
+            [FromQuery] string? subscriptionId = null,
+            [FromQuery] int pageIndex = 0,
+            [FromQuery] int pageSize = 20)
+        {
+            // Validate pagination parameters
+            if (pageIndex < 0)
+            {
+                return BadRequest("pageIndex must be greater than or equal to 0");
+            }
+
+            if (pageSize <= 0 || pageSize > 100)
+            {
+                return BadRequest("pageSize must be between 1 and 100");
+            }
+
+            // Validate input length to prevent DoS attacks
+            if (name != null && name.Length > 256)
+            {
+                return BadRequest("name parameter must be 256 characters or less");
+            }
+
+            if (type != null && type.Length > 256)
+            {
+                return BadRequest("type parameter must be 256 characters or less");
+            }
+
+            if (subscriptionId != null && subscriptionId.Length > 256)
+            {
+                return BadRequest("subscriptionId parameter must be 256 characters or less");
+            }
+
+            // Validate subscriptionId format if provided (basic GUID validation)
+            if (!string.IsNullOrWhiteSpace(subscriptionId) &&
+                !System.Text.RegularExpressions.Regex.IsMatch(subscriptionId, @"^[a-fA-F0-9\-]{36}$"))
+            {
+                return BadRequest("subscriptionId must be a valid GUID format");
+            }
+
+            // Validate type format if provided (alphanumeric, dots, slashes, hyphens)
+            if (!string.IsNullOrWhiteSpace(type) &&
+                !System.Text.RegularExpressions.Regex.IsMatch(type, @"^[a-zA-Z0-9\.\/\-]+$"))
+            {
+                return BadRequest("type parameter contains invalid characters. Only alphanumeric, dots, slashes, and hyphens are allowed");
+            }
+
+            var (resources, totalCount) = await _graphService.SearchResourcesAsync(
+                name,
+                type,
+                subscriptionId,
+                pageIndex,
+                pageSize);
+
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var response = new PaginatedResponse<ResourceSearchResult>
+            {
+                Data = resources,
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                HasPreviousPage = pageIndex > 0,
+                HasNextPage = pageIndex < totalPages - 1
+            };
+
+            return Ok(response);
         }
 
         #region Resource remarks CRUD APIs
