@@ -7,6 +7,8 @@ import { CSSProperties } from 'react';
 export const ThreadItemHeightInPx = 40;
 export const ThreadItemPaddingTopBottomInPx = 10;
 
+// Note: Shared navigation styles (list item hover/selection) are now in Navigation.styles.tsx
+
 export const activitiesStylesRoot: CSSProperties = {
     display: 'flex',
     justifyContent: 'flex-start',
@@ -372,6 +374,7 @@ export const useThreadMenuStyle = () => {
 
     const threadItem: IStyle = {
         padding: `${ThreadItemPaddingTopBottomInPx}px`,
+        paddingLeft: `${ThreadItemPaddingTopBottomInPx + 10}px`, // Additional 10px left padding for text
         cursor: 'pointer',
         height: `${ThreadItemHeightInPx}px`,
         willChange: 'transform',
@@ -384,8 +387,9 @@ export const useThreadMenuStyle = () => {
     };
 
     const activeThreadItem: IStyle = {
-        backgroundColor: tokens.colorNeutralBackground1Selected,
-        borderRadius: tokens.borderRadiusXLarge,
+        backgroundColor: tokens.colorNeutralBackground1, // Lightest - selected state
+        borderRadius: '16px', // Match hover style rounded corners
+        border: `1px solid ${tokens.colorNeutralStroke2}`, // Match hover border color
     };
 
     const newItemButtonAndSearchBox: IStyle = {
@@ -396,8 +400,9 @@ export const useThreadMenuStyle = () => {
     };
 
     const hoveredThreadItem: IStyle = {
-        backgroundColor: tokens.colorNeutralBackground1Selected,
-        borderRadius: tokens.borderRadiusXLarge,
+        backgroundColor: tokens.colorNeutralBackground2, // Lighter than base background
+        borderRadius: '16px', // Very round corners to match accordion headers
+        border: `1px solid ${tokens.colorNeutralStroke2}`, // Subtle border for depth
     };
 
     const borderIndicator = {

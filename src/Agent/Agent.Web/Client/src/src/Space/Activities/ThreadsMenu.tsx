@@ -5,6 +5,7 @@ import {
     AccordionItem,
     AccordionPanel,
     AccordionToggleEventHandler,
+    makeStyles,
     mergeClasses,
     Skeleton,
     SkeletonItem,
@@ -33,6 +34,32 @@ import { useThreadsMenu } from '../Hooks/useThreadsMenu';
 import { getExpandCollapseButtonStyles, skeletonStyle, useThreadMenuStyle } from '../Styles/Activities.styles';
 
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('left');
+
+const useAccordionHeaderStyles = makeStyles({
+    accordionHeader: {
+        position: 'sticky',
+        top: '0',
+        zIndex: '10',
+        backgroundColor: tokens.colorNeutralBackground3,
+        borderRadius: '16px !important',
+        overflow: 'hidden',
+        paddingLeft: '10px', // Additional left padding for text
+        // Target all internal elements including buttons
+        '& > *': {
+            borderRadius: '16px !important',
+        },
+        ':hover': {
+            backgroundColor: `${tokens.colorNeutralBackground2} !important`, // Lighter than base background
+            borderRadius: '16px !important',
+            border: `1px solid ${tokens.colorNeutralStroke2} !important`, // Subtle border for depth
+            // Ensure all child elements get the hover background and radius
+            '& > *': {
+                backgroundColor: `${tokens.colorNeutralBackground2} !important`, // Lighter than base background
+                borderRadius: '16px !important',
+            },
+        },
+    },
+});
 
 enum ThreadSection {
     Favorite,
@@ -262,16 +289,10 @@ const ThreadListAccordion = ({
     assignThreadItemDivRef: (threadId: string, el: HTMLDivElement) => void;
     updateThreadFavoriteProperty: (threadId: string, favorite: boolean) => Promise<void>;
 }) => {
+    const accordionHeaderStyles = useAccordionHeaderStyles();
     return (
         <AccordionItem value={isFavorite ? ThreadSection.Favorite : ThreadSection.Chats} style={{ marginTop: '10px' }}>
-            <AccordionHeader
-                style={{
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 10,
-                    backgroundColor: tokens.colorNeutralBackground3,
-                }}
-            >
+            <AccordionHeader expandIconPosition="end" className={accordionHeaderStyles.accordionHeader}>
                 {isFavorite ? (
                     <FormattedMessage {...ActivitiesResources.favoriteThreadListTitle} />
                 ) : (

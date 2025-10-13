@@ -1,4 +1,5 @@
-import { INavLink, INavLinkGroup, initializeIcons, Nav } from '@fluentui/react';
+import { initializeIcons } from '@fluentui/react';
+import { NavDrawer, NavDrawerBody, NavItem } from '@fluentui/react-components';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -7,13 +8,14 @@ import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSetting
 import { useKnowledgeBaseConfig } from '../../Common/Hooks/UseKnowledgeBaseConfig';
 import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
 import { SettingsTabResources } from '../../Strings/SREAgentResources';
+import { useSharedNavDrawerStyles } from '../Styles/Navigation.styles';
 import AccessControl from './AccessControl.ReactView';
 import Basics from './Basics.ReactView';
 import DataConnectors from './DataConnectors.ReactView';
 import Identity from './Identity.ReactView';
 import KnowledgeBase from './KnowledgeBase.ReactView';
 import ManagedResources from './ManagedResources.ReactView';
-import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
+import { useSettingsStyles } from './Styles/Settings.styles';
 import SubAgents from './SubAgents.ReactView';
 
 export enum SettingsKeys {
@@ -27,8 +29,12 @@ export enum SettingsKeys {
     SubAgents = 'subAgents',
 }
 
+// Settings uses shared navigation styles with specific maxWidth
+const useSettingsNavStyles = () => useSharedNavDrawerStyles();
+
 const Settings: FC = () => {
     const styles = useSettingsStyles();
+    const navigationStyles = useSettingsNavStyles();
     const intl = useIntl();
     const { menuItem } = useParams();
     const location = useLocation();
@@ -47,79 +53,68 @@ const Settings: FC = () => {
         );
     }, [menuItem]);
 
-    const navLinkGroups = useMemo<INavLinkGroup[]>(
-        () => [
+    const navItems = useMemo(() => {
+        const items = [
             {
-                links: [
-                    {
-                        name: intl.formatMessage(SettingsTabResources.basics),
-                        url: '',
-                        key: SettingsKeys.Basics,
-                    },
-                    {
-                        name: intl.formatMessage(SettingsTabResources.managedResources),
-                        url: '',
-                        key: SettingsKeys.managedResources,
-                    },
-                    {
-                        name: intl.formatMessage(SettingsTabResources.grafanaDashboard),
-                        url: '',
-                        key: SettingsKeys.GrafanaDashboard,
-                    },
-                    ...(showDataConnectors
-                        ? [
-                              {
-                                  name: intl.formatMessage(SettingsTabResources.dataConnectors),
-                                  url: '',
-                                  key: SettingsKeys.DataConnectors,
-                              },
-                          ]
-                        : []),
-                    ...(showKnowledgeBase
-                        ? [
-                              {
-                                  name: intl.formatMessage(SettingsTabResources.knowledgeBase),
-                                  url: '',
-                                  key: SettingsKeys.KnowledgeBase,
-                              },
-                          ]
-                        : []),
-                    {
-                        name: intl.formatMessage(SettingsTabResources.accessControl),
-                        url: '',
-                        key: SettingsKeys.AccessControl,
-                    },
-                    {
-                        name: intl.formatMessage(SettingsTabResources.identity),
-                        url: '',
-                        key: SettingsKeys.Identity,
-                    },
-                    ...(showSubAgents
-                        ? [
-                              {
-                                  name: intl.formatMessage(SettingsTabResources.subAgents),
-                                  url: '',
-                                  key: SettingsKeys.SubAgents,
-                              },
-                          ]
-                        : []),
-                ],
+                name: intl.formatMessage(SettingsTabResources.basics),
+                key: SettingsKeys.Basics,
             },
-        ],
-        [intl, showDataConnectors, showKnowledgeBase]
-    );
+            {
+                name: intl.formatMessage(SettingsTabResources.managedResources),
+                key: SettingsKeys.managedResources,
+            },
+            {
+                name: intl.formatMessage(SettingsTabResources.grafanaDashboard),
+                key: SettingsKeys.GrafanaDashboard,
+            },
+        ];
 
-    const onNavLinkClick = useCallback(
-        (item?: INavLink) => {
-            if (item?.key && Object.values(SettingsKeys).includes(item.key as SettingsKeys) && item.key !== selectedKey) {
+        if (showDataConnectors) {
+            items.push({
+                name: intl.formatMessage(SettingsTabResources.dataConnectors),
+                key: SettingsKeys.DataConnectors,
+            });
+        }
+
+        if (showKnowledgeBase) {
+            items.push({
+                name: intl.formatMessage(SettingsTabResources.knowledgeBase),
+                key: SettingsKeys.KnowledgeBase,
+            });
+        }
+
+        items.push(
+            {
+                name: intl.formatMessage(SettingsTabResources.accessControl),
+                key: SettingsKeys.AccessControl,
+            },
+            {
+                name: intl.formatMessage(SettingsTabResources.identity),
+                key: SettingsKeys.Identity,
+            }
+        );
+
+        if (showSubAgents) {
+            items.push({
+                name: intl.formatMessage(SettingsTabResources.subAgents),
+                key: SettingsKeys.SubAgents,
+            });
+        }
+
+        return items;
+    }, [intl, showDataConnectors, showKnowledgeBase, showSubAgents]);
+
+    const onNavigationClick = useCallback(
+        (navKey: string) => {
+            if (navKey && Object.values(SettingsKeys).includes(navKey as SettingsKeys) && navKey !== selectedKey) {
                 logAmplitudeNavigationEvent({
                     targetType: 'tab',
                     targetAction: 'tabItem',
-                    targetName: item.key,
-                    targetFriendlyName: item.key,
+                    targetName: navKey,
+                    targetFriendlyName: navKey,
                 });
 
-                navigate({ ...location, pathname: `/views/settings/${item.key}` });
+                navigate({ ...location, pathname: `/views/settings/${navKey}` });
             }
         },
         [selectedKey, location, navigate, logAmplitudeNavigationEvent]
@@ -133,7 +128,27 @@ const Settings: FC = () => {
     return (
         iconsInitialized && (
             <div style={styles.navContainerStyles}>
-                <Nav groups={navLinkGroups} styles={navStyles} selectedKey={selectedKey} onLinkClick={(_, item) => onNavLinkClick(item)} />
+                <NavDrawer
+                    defaultSelectedValue={selectedKey || SettingsKeys.Basics}
+                    defaultSelectedCategoryValue=""
+                    open={true}
+                    type="inline"
+                    className={navigationStyles.drawer}
+                >
+                    <NavDrawerBody className={navigationStyles.drawerBody}>
+                        {navItems.map(navItem => (
+                            <NavItem
+                                key={navItem.key}
+                                value={navItem.key}
+                                href=""
+                                onClick={() => onNavigationClick(navItem.key)}
+                                className={navigationStyles.item}
+                            >
+                                <span className={navigationStyles.itemText}>{navItem.name}</span>
+                            </NavItem>
+                        ))}
+                    </NavDrawerBody>
+                </NavDrawer>
                 <div style={styles.navPivotContainer}>
                     {selectedKey === SettingsKeys.Basics && <Basics />}
                     {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
