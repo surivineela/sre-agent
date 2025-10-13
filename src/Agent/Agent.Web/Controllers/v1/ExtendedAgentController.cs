@@ -5,27 +5,28 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Extensions;
 using Agent.Core.Helpers.ExtendedAgents;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Validation;
 using Agent.Framework;
 using Agent.Framework.Reasoning.Models;
+using Agent.Plugins.Kusto;
+using Agent.Plugins.Tools;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
+using Agent.Runtime.Services;
+using Agent.Web.Authorization;
 using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Request;
 using Agent.Web.Models.ExtendedAgents.Response;
 using Agent.Web.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.AI;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
-using Agent.Plugins.Kusto;
-using Agent.Plugins.Tools;
-using Agent.Core.Interfaces;
-using Agent.Core.Extensions;
-using Microsoft.Extensions.AI;
-using Agent.Runtime.Services;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -40,6 +41,7 @@ public class ExtendedAgentController : ControllerBase
     private readonly IAuthenticationService _authenticationService;
     private readonly IChatClient _chatClient;
     private readonly IInstructionGenerationService _instructionGenerationService;
+    private readonly IToolFactory<AgentContext> _toolFactory;
 
     public ExtendedAgentController(
          IExtendedAgentService extendedAgentService,
@@ -48,7 +50,8 @@ public class ExtendedAgentController : ControllerBase
         IConnectorResolver connectorResolver,
         IAuthenticationService authenticationService,
         IChatClient chatClient,
-        IInstructionGenerationService instructionGenerationService
+        IInstructionGenerationService instructionGenerationService,
+        IToolFactory<AgentContext> toolFactory
        )
     {
         _resourceDeploymentService = agentService;
@@ -58,6 +61,7 @@ public class ExtendedAgentController : ControllerBase
         _authenticationService = authenticationService;
         _chatClient = chatClient; // default chat client injected via DI
         _instructionGenerationService = instructionGenerationService;
+        _toolFactory = toolFactory;
     }
 
     /// <summary>
@@ -290,7 +294,7 @@ public class ExtendedAgentController : ControllerBase
     }
 
     /// <summary>
-    /// List all tools
+    /// List all extendedagent tools
     /// </summary>
     /// <param name="page">Page number (1-based, default: 1)</param>
     /// <param name="limit">Number of tools to return per page (1-200, default: 50)</param>
@@ -697,15 +701,86 @@ User Prompt To Improve (between <<< and >>>):
         {
             _logger.LogInternalInformation("ListSystemTools: Invoked with search: {Search}", search);
 
-            var systemTools = await _instructionGenerationService.FilterTools(search);
+           // Get all tools (system + extended)
+            var allTools = await Task.Run(() => _toolFactory.FetchAvailableToolInfo());
 
-            _logger.LogInternalInformation("ListSystemTools: Retrieved {Count} system tools", systemTools.Count);
+            // Get extended tools from database to filter them out
+            var extendedToolsData = await _extendedAgentService.GetToolsAsync(1, 1000, null);
+            var extendedToolNames = new HashSet<string>(
+                extendedToolsData.Select(t => t.Name), 
+                StringComparer.OrdinalIgnoreCase);
+
+            // Filter to only system tools (exclude extended tools)
+            var systemTools = allTools
+                .Where(tool => !extendedToolNames.Contains(tool.Name))
+                .ToList();
+
+            // Apply search filter if provided
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.ToLowerInvariant();
+                systemTools = systemTools
+                    .Where(tool => 
+                        tool.Name.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ||
+                        (tool.Description?.Contains(searchLower, StringComparison.OrdinalIgnoreCase) == true) ||
+                        (tool.PluginName?.Contains(searchLower, StringComparison.OrdinalIgnoreCase) == true))
+                    .ToList();
+            }
+
+            _logger.LogInternalInformation("ListSystemTools: Retrieved {Count} system tools (filtered {ExtendedCount} extended tools)", 
+                systemTools.Count, extendedToolNames.Count);
+
 
             return Ok(systemTools);
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error in ListSystemTools");
+            return StatusCode(500, new ExtendedAgentErrorResponse(
+                Status: "error",
+                ErrorCode: "SYSTEM_TOOLS_ERROR",
+                Message: "Failed to list system tools",
+                Timestamp: DateTime.UtcNow,
+                Details: null
+            ));
+        }
+    }
+
+    /// <summary>
+    /// List all tools
+    /// Note: in the future organize to just use one endpoints that get toos. filter query parameter
+    /// </summary>
+    /// <param name="search">Search tools by name or description</param>
+    /// <returns>List of system tools</returns>
+    [HttpGet("alltools")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
+    [ProducesResponseType(typeof(List<Agent.Framework.ToolInfo>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<List<Agent.Framework.ToolInfo>>> ListAllTools([FromQuery] string? search = null)
+    {
+        try
+        {
+            _logger.LogInternalInformation("ListSystemTools: Invoked with search: {Search}", search);
+
+            // Get all tools (system + extended)
+            var allTools = await Task.Run(() => _toolFactory.FetchAvailableToolInfo());
+
+            // Apply search filter if provided
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.ToLowerInvariant();
+                allTools = allTools
+                    .Where(tool =>
+                        tool.Name.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ||
+                        (tool.Description?.Contains(searchLower, StringComparison.OrdinalIgnoreCase) == true) ||
+                        (tool.PluginName?.Contains(searchLower, StringComparison.OrdinalIgnoreCase) == true))
+                    .ToList();
+            }
+            return Ok(allTools);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in ListAllTools");
             return StatusCode(500, new ExtendedAgentErrorResponse(
                 Status: "error",
                 ErrorCode: "SYSTEM_TOOLS_ERROR",

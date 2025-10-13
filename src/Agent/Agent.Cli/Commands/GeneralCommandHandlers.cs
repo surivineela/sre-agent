@@ -361,7 +361,7 @@ public static class GeneralCommandHandlers
         DebugLogger.Debug("Command", "Starting tool list command");
 
         using var apiService = new ApiService();
-        var (success, response) = await apiService.ListToolsAsync();
+        var (success, response) = await apiService.ListAllToolsAsync();
 
         if (success)
         {

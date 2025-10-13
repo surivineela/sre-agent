@@ -124,7 +124,7 @@ public static class AgentCommandHandlers
         };
 
         // Validate tool existence before creating the agent
-        if (finalTools.Any())
+        if (finalTools.Count != 0)
         {
             ProgressService.MultiStepProgress.NextStep("Validating tool availability");
 
@@ -142,7 +142,7 @@ public static class AgentCommandHandlers
 
                     var missingTools = finalTools.Where(tool => !allAvailableTools.Contains(tool)).ToList();
 
-                    if (missingTools.Any())
+                    if (missingTools.Count != 0)
                     {
                         ProgressService.MultiStepProgress.Fail("Tool validation failed");
                         ConsoleUI.WriteStatus(false, "Agent creation failed: Required tools not found");
@@ -155,7 +155,7 @@ public static class AgentCommandHandlers
                         Console.WriteLine();
                         ConsoleUI.WriteSection("Available tools:");
                         var availableToolsList = allAvailableTools.OrderBy(t => t).ToList();
-                        if (availableToolsList.Any())
+                        if (availableToolsList.Count != 0)
                         {
                             foreach (var tool in availableToolsList.Take(10))
                             {
@@ -739,7 +739,7 @@ public static class AgentCommandHandlers
                             }
                         }
 
-                        if (missingTools.Any())
+                        if (missingTools.Count != 0)
                         {
                             ConsoleUI.WriteInfo($"Missing local tool files: {string.Join(", ", missingTools)}", ConsoleColor.Yellow);
                         }

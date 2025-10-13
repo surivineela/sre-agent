@@ -890,6 +890,82 @@ public class ApiService : IDisposable
     }
 
     /// <summary>
+    /// Lists all tools using the ExtendedAgent alltools endpoint which includes both system and extended tools.
+    /// </summary>
+    public async Task<(bool Success, string Response)> ListAllToolsAsync()
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/alltools";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Parse the JSON response for the alltools endpoint
+                using var jsonDoc = JsonDocument.Parse(content);
+                var toolsList = new List<string>();
+
+                if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    var tools = jsonDoc.RootElement.EnumerateArray().ToArray();
+
+                    if (tools.Length == 0)
+                    {
+                        toolsList.Add("\nNo tools found on the server.");
+                    }
+                    else
+                    {
+                        foreach (var tool in tools)
+                        {
+                            var name = tool.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "Unknown";
+                            var description = tool.TryGetProperty("description", out var descElement) ? descElement.GetString() : "";
+                            var pluginName = tool.TryGetProperty("pluginName", out var pluginElement) ? pluginElement.GetString() : "";
+
+                            var displayName = name ?? "Unknown";
+                            if (!string.IsNullOrEmpty(pluginName))
+                            {
+                                displayName = $"{pluginName}.{displayName}";
+                            }
+
+                            if (!string.IsNullOrEmpty(description))
+                            {
+                                toolsList.Add($"  {displayName}: {description}");
+                            }
+                            else
+                            {
+                                toolsList.Add($"  {displayName}");
+                            }
+                        }
+                        toolsList.Add($"\nTotal: {tools.Length} tool(s)");
+                    }
+                }
+                else
+                {
+                    toolsList.Add("\nUnexpected response format from server.");
+                }
+
+                return (true, string.Join("\n", toolsList));
+            }
+            else
+            {
+                return (false, $"❌ Failed to list all tools: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, $"❌ Failed to list all tools: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Returns a simple list of tool names from the server (prefers extended tools endpoint for rich tools).
     /// </summary>
     public async Task<(bool Success, List<string> Names, string Error)> GetToolNamesAsync()
@@ -1227,7 +1303,7 @@ public class ApiService : IDisposable
             };
 
             var jsonContent = JsonSerializer.Serialize(requestPayload);
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/generateInstructions";
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/generateInstructions?includeAllTools=true";
             var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
             request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 

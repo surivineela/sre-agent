@@ -280,7 +280,7 @@ public class IncidentPlaygroundController : ControllerBase
             }
         }
 
-        var filterDocJNode = JsonSerializer.SerializeToNode(filterDoc, new JsonSerializerOptions{  PropertyNameCaseInsensitive = true });
+        var filterDocJNode = JsonSerializer.SerializeToNode(filterDoc, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         MergeJsonNode(payload, filterDocJNode, new List<string>() { "AgentMode" });
 
 
@@ -438,12 +438,12 @@ public class IncidentPlaygroundController : ControllerBase
 
     [HttpGet("listTools")]
     [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
-    public async Task<IActionResult> ListTools(string? searchString)
+    public async Task<IActionResult> ListTools(string? searchString, [FromQuery] bool includeAllTools = false)
     {
-        _logger.LogInternalInformation("ListTools: Invoked with SearchString: {SearchString}", searchString);
+        _logger.LogInternalInformation("ListTools: Invoked with SearchString: {SearchString}, IncludeAllTools: {IncludeAllTools}", searchString, includeAllTools);
         try
         {
-            var tools = await _instructionGenerationService.FilterTools(searchString);
+            var tools = await _instructionGenerationService.FilterTools(searchString, includeAllTools);
             _logger.LogInternalInformation("ListTools: Retrieved {Count} tools", tools?.Count ?? 0);
             return Ok(tools);
         }
@@ -459,12 +459,16 @@ public class IncidentPlaygroundController : ControllerBase
     /// </summary>
     [HttpPost("generateInstructions")]
     [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
-    public async Task<IActionResult> GenerateInstructions([FromBody] InstructionGenerationRequest instructionGenerationRequest)
+    public async Task<IActionResult> GenerateInstructions([FromBody] InstructionGenerationRequest instructionGenerationRequest, [FromQuery] bool includeAllTools = false)
     {
-        _logger.LogInternalInformation("GenerateInstructions: Invoked for AgentName: {AgentName}", instructionGenerationRequest.AgentName);
+        _logger.LogInternalInformation("GenerateInstructions: Invoked for AgentName: {AgentName}, IncludeAllTools: {IncludeAllTools}", instructionGenerationRequest.AgentName, includeAllTools);
         try
         {
-            var response = await _instructionGenerationService.GenerateInstructionsFromIncidents(instructionGenerationRequest);
+            var response = includeAllTools
+                ? await _instructionGenerationService.GenerateInstructionsFromIncidents(
+                    instructionGenerationRequest,
+                    toolFilter: (tools) => Task.FromResult(tools)) // Return all tools without incident handler filtering
+                : await _instructionGenerationService.GenerateInstructionsFromIncidents(instructionGenerationRequest);
             _logger.LogInternalInformation("GenerateInstructions: Successfully generated instructions for AgentName: {AgentName}", instructionGenerationRequest.AgentName);
             return Ok(response);
         }
@@ -576,9 +580,10 @@ public class IncidentPlaygroundController : ControllerBase
             {
                 continue;
             }
-            if(property.Value is not null) {
+            if (property.Value is not null)
+            {
                 target[property.Key] = property.Value.DeepClone();
-            } 
+            }
         }
     }
 }
