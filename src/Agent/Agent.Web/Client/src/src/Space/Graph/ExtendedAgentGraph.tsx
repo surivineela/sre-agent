@@ -41,6 +41,7 @@ import {
     TOOL_CARD_TYPE,
     TRIGGER_CARD_TYPE,
 } from './ExtendedAgentGraphUtility';
+import { ExtendedAgentListView } from './ExtendedAgentGridView';
 import { ExtendedAgentInfoPanel } from './ExtendedAgentInfoPanel';
 import { ExtendedAgentRelationshipDialog } from './ExtendedAgentRelationshipDialog';
 import { ExtendedAgentSelector } from './ExtendedAgentSelector';
@@ -1136,11 +1137,17 @@ const ExtendedAgentGraphContent = memo(() => {
         }
 
         return (
-            <div style={{ padding: '20px' }}>
-                <MessageBar intent="info">
-                    <MessageBarBody>{intl.formatMessage(ExtendedAgentsGraphResources.gridViewPlaceholder)}</MessageBarBody>
-                </MessageBar>
-            </div>
+            <ExtendedAgentListView
+                agents={agents}
+                tools={tools}
+                connectors={connectors}
+                isLoading={loading}
+                onRefresh={handleRefresh}
+                onCreateClick={() => {
+                    setCreationDialogContext(undefined);
+                    setIsCreationDialogOpen(true);
+                }}
+            />
         );
     };
 

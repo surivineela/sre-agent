@@ -261,6 +261,12 @@
       "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
     }
   ],
+  "/eILSY": [
+    {
+      "type": 0,
+      "value": "This list shows your extended agents, tools, and data connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure data connectors to access external resources."
+    }
+  ],
   "/gCtdO": [
     {
       "type": 0,
@@ -349,6 +355,12 @@
     {
       "type": 0,
       "value": " failed. Retry link."
+    }
+  ],
+  "0BUTMv": [
+    {
+      "type": 0,
+      "value": "Search..."
     }
   ],
   "0D+7fr": [
@@ -809,12 +821,6 @@
     {
       "type": 0,
       "value": "Deep investigation"
-    }
-  ],
-  "2e3GZQ": [
-    {
-      "type": 0,
-      "value": "Create a handoff sub-agent"
     }
   ],
   "2hB9SP": [
@@ -1995,6 +2001,12 @@
       "value": "Read-only access to service and APIs."
     }
   ],
+  "8dASTJ": [
+    {
+      "type": 0,
+      "value": "Create a handoff sub-agent"
+    }
+  ],
   "8fYK1J": [
     {
       "type": 0,
@@ -2727,6 +2739,12 @@
       "value": "No instructions provided yet."
     }
   ],
+  "Dhy8jb": [
+    {
+      "type": 0,
+      "value": "A data source connection for tools (e.g., Kusto cluster for running queries)"
+    }
+  ],
   "DlSXUR": [
     {
       "type": 0,
@@ -2873,12 +2891,6 @@
     {
       "type": 0,
       "value": "Enter filter name"
-    }
-  ],
-  "EStH0G": [
-    {
-      "type": 0,
-      "value": "Sub-Agent Builder"
     }
   ],
   "EWrExf": [
@@ -3827,12 +3839,6 @@
       "value": "Delete"
     }
   ],
-  "K6WTYI": [
-    {
-      "type": 0,
-      "value": "A data source connection for tools (e.g., Kusto cluster for running queries)"
-    }
-  ],
   "K7AkdL": [
     {
       "type": 0,
@@ -4083,6 +4089,12 @@
     {
       "type": 0,
       "value": "Custom response plan name"
+    }
+  ],
+  "Ls/pL4": [
+    {
+      "type": 0,
+      "value": "Data Connector"
     }
   ],
   "LsGLc0": [
@@ -5193,12 +5205,6 @@
       "value": "count"
     }
   ],
-  "Rsq6sZ": [
-    {
-      "type": 0,
-      "value": "New handoff sub-agents start as Autonomous. You can connect tools and other details later."
-    }
-  ],
   "S0GneP": [
     {
       "type": 0,
@@ -5757,6 +5763,12 @@
       "value": "User assigned"
     }
   ],
+  "VIcJZp": [
+    {
+      "type": 0,
+      "value": "List View"
+    }
+  ],
   "VIgoaE": [
     {
       "type": 0,
@@ -6019,6 +6031,47 @@
     {
       "type": 0,
       "value": "Pick an agent to visualize its tools, connectors, and handoffs."
+    }
+  ],
+  "Wekzzh": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "this item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "these "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "? This action cannot be undone."
     }
   ],
   "Wf6bDe": [
@@ -7237,6 +7290,12 @@
       "value": "Create scheduled task"
     }
   ],
+  "dLWTUk": [
+    {
+      "type": 0,
+      "value": "An AI sub-agent with instructions and tools"
+    }
+  ],
   "dQ5/dh": [
     {
       "type": 0,
@@ -7447,6 +7506,12 @@
     {
       "type": 0,
       "value": "Custom response guidance"
+    }
+  ],
+  "et3seW": [
+    {
+      "type": 0,
+      "value": "New handoff sub-agents start as Autonomous. You can connect tools and other details later."
     }
   ],
   "euBSDU": [
@@ -7887,6 +7952,12 @@
     {
       "type": 0,
       "value": "Failed to delete the selected managed resource groups"
+    }
+  ],
+  "hNKm4/": [
+    {
+      "type": 0,
+      "value": "Sub-Agent"
     }
   ],
   "hO1Iog": [
@@ -8613,12 +8684,6 @@
     {
       "type": 0,
       "value": "Connecting to Azure Monitor ..."
-    }
-  ],
-  "ltBXTD": [
-    {
-      "type": 0,
-      "value": "Search agents, tools, or connectors"
     }
   ],
   "lvNWLS": [
@@ -9517,6 +9582,12 @@
       "value": "Connector"
     }
   ],
+  "rAbWbb": [
+    {
+      "type": 0,
+      "value": "No description available"
+    }
+  ],
   "rBPlLc": [
     {
       "type": 0,
@@ -9919,6 +9990,12 @@
     {
       "type": 0,
       "value": "agent"
+    }
+  ],
+  "sqGM6w": [
+    {
+      "type": 0,
+      "value": "Delete Items"
     }
   ],
   "srG8e2": [
@@ -10697,6 +10774,12 @@
       "value": "No runs yet"
     }
   ],
+  "x4OHX9": [
+    {
+      "type": 0,
+      "value": "Sub-Agent Builder"
+    }
+  ],
   "x7C8JZ": [
     {
       "type": 0,
@@ -11025,12 +11108,6 @@
       "value": "Description must be a single line summary."
     }
   ],
-  "z6olIH": [
-    {
-      "type": 0,
-      "value": "An AI sub-agent with instructions and tools"
-    }
-  ],
   "z8ZYoc": [
     {
       "type": 0,
@@ -11065,12 +11142,6 @@
     {
       "type": 0,
       "value": "All severity"
-    }
-  ],
-  "zL39WD": [
-    {
-      "type": 0,
-      "value": "Grid View"
     }
   ],
   "zN87hN": [

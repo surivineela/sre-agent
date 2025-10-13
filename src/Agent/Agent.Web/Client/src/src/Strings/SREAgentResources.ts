@@ -2481,7 +2481,13 @@ export const ExtendedAgentsGraphResources = defineMessages({
     // Tab and Navigation
     extendedAgentsTab: { defaultMessage: 'Sub-Agent Builder', id: 'x4OHX9' },
     visualView: { defaultMessage: 'Visual View', id: 'ZOdb7N' },
-    gridView: { defaultMessage: 'Grid View', id: 'zL39WD' },
+    gridView: { defaultMessage: 'List View', id: 'VIcJZp' },
+    listViewSelectAll: { defaultMessage: 'Select all', id: '94Fg25' },
+    listViewNameColumn: { defaultMessage: 'Name', id: 'HAlOn1' },
+    listViewTypeColumn: { defaultMessage: 'Type', id: '+U6ozc' },
+    listViewDescriptionColumn: { defaultMessage: 'Description', id: 'Q8Qw5B' },
+    listViewActionsColumn: { defaultMessage: 'Actions', id: 'wL7VAE' },
+    listViewDescriptionFallback: { defaultMessage: 'No description available', id: 'rAbWbb' },
 
     // Creation Dialog
     createNewEntity: { defaultMessage: 'Create New Entity', id: '5POweM' },
@@ -2836,7 +2842,6 @@ export const ExtendedAgentsGraphResources = defineMessages({
     agentSelectorPlaceholder: { defaultMessage: 'Select an agent', id: 'ipsqxO' },
     noAgentsFound: { defaultMessage: 'No agents available yet', id: '3H77Ic' },
     searchLabel: { defaultMessage: 'Search', id: 'xmcVZ0' },
-    searchPlaceholder: { defaultMessage: 'Search agents, tools, or connectors', id: 'ltBXTD' },
     refreshGraphButton: { defaultMessage: 'Refresh', id: 'rELDbB' },
     graphNodeCount: { defaultMessage: 'Nodes: {count}', id: '9bH3e2' },
     graphEdgeCount: { defaultMessage: 'Connections: {count}', id: 'F8R5Bb' },
@@ -2855,6 +2860,25 @@ export const ExtendedAgentsGraphResources = defineMessages({
     gridViewPlaceholder: {
         defaultMessage: 'Grid view is coming soon.',
         id: 'Xb85sq',
+    },
+
+    // Grid View
+    subAgentBuilderTitle: { defaultMessage: 'Sub-Agent Builder', id: 'x4OHX9' },
+    subAgentBuilderDescription: {
+        defaultMessage:
+            'This list shows your extended agents, tools, and data connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure data connectors to access external resources.',
+        id: '/eILSY',
+    },
+    nameColumn: { defaultMessage: 'Name', id: 'HAlOn1' },
+    typeColumn: { defaultMessage: 'Type', id: '+U6ozc' },
+    descriptionColumn: { defaultMessage: 'Description', id: 'Q8Qw5B' },
+    searchPlaceholder: { defaultMessage: 'Search...', id: '0BUTMv' },
+    editYaml: { defaultMessage: 'Edit YAML', id: '0w+w97' },
+    deleteConfirmTitle: { defaultMessage: 'Delete Items', id: 'sqGM6w' },
+    deleteConfirmMessage: {
+        defaultMessage:
+            'Are you sure you want to delete {count, plural, one {this item} other {these # items}}? This action cannot be undone.',
+        id: 'Wekzzh',
     },
     outputTypeLabel: { defaultMessage: 'Output type', id: 'DQfSk8' },
     temperatureLabel: { defaultMessage: 'Temperature', id: 'cG0Q8M' },
