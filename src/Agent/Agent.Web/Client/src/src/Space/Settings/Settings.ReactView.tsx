@@ -134,6 +134,7 @@ const Settings: FC = () => {
                     open={true}
                     type="inline"
                     className={navigationStyles.drawer}
+                    style={{ paddingRight: '16px' }}
                 >
                     <NavDrawerBody className={navigationStyles.drawerBody}>
                         {navItems.map(navItem => (
