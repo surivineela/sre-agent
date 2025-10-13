@@ -10,5 +10,5 @@ public class ExtendedAgentsGraphSettings
     /// Gets or sets a value indicating whether the Extended Agents Graph view is enabled.
     /// When enabled, users can visualize extended agents, tools, and connectors in a graph format.
     /// </summary>
-    public bool Enabled { get; set; } = true;
+    public bool Enabled { get; set; } = false;
 }

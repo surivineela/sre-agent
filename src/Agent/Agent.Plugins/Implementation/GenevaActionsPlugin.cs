@@ -17,6 +17,7 @@ using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Models;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Author = Agent.Core.Models.Api.v1.Author;
@@ -42,6 +43,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
     private readonly AgentSpaceProxySettings _agentSpaceProxySettings;
     private readonly IICMAPIClient _icmAPIClient;
     private readonly IAuthenticationService _authenticationService;
+    private readonly IHostEnvironment _hostEnvironment;
 
     private readonly bool _icmWorkflowReadOnly;
     private const string _genevaActionSecretName = "GenevaActionConfigs";
@@ -62,6 +64,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
     public Guid? ThreadId { get; set; }
 
     public GenevaActionsPlugin(
+        IHostEnvironment hostEnvironment,
         ICMWorkflowClient icmWorkflowClient,
         KustoClient kustoPlugin,
         ILogger<GenevaActionsPlugin> logger,
@@ -78,6 +81,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         IAgentOutboundCommunicationService agentOutboundCommunicationService)
     {
         _logger = logger;
+        _hostEnvironment = hostEnvironment;
         _icmWorkflowClient = icmWorkflowClient;
         _kustoClient = kustoPlugin;
         _cosmosDBService = cosmosDBService;
@@ -92,7 +96,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
         _authenticationService = authenticationService;
         _agentSpaceProxySettings = agentSpaceProxySettings;
-        _agentResourceId = AgentNameHelper.GetAgentResourceId(isProd: true);
+        _agentResourceId = AgentNameHelper.GetAgentResourceId(isProd: _hostEnvironment.IsProduction());
 
         _tokenCredentialHttpClientHandler = new TokenCredentialHttpClientHandler(_authenticationService.GetAgentSpaceProxyCredential(), _agentSpaceProxySettings.Scope);
     }
