@@ -101,10 +101,22 @@ export const useTracePanel = (appInsightsAppId: string, threadId: string, isInci
                     'timeStamp' | 'modelInput' | 'modelOutput' | 'message'
                 > & { modelInput?: string; modelOutput?: string; message?: string };
                 const { modelInput, modelOutput, message, ...rest } = eventObj;
+                let modelInputObj = undefined;
+                let modelOutputObj = undefined;
+                try {
+                    modelInputObj = modelInput ? JSON.parse(modelInput) : undefined;
+                } catch (e) {
+                    modelInputObj = { value: modelInput };
+                }
+                try {
+                    modelOutputObj = modelOutput ? JSON.parse(modelOutput) : undefined;
+                } catch (e) {
+                    modelOutputObj = { value: modelOutput };
+                }
                 return {
                     ...rest,
-                    modelInput: modelInput ? JSON.parse(modelInput) : undefined,
-                    modelOutput: modelOutput ? JSON.parse(modelOutput) : undefined,
+                    modelInput: modelInputObj,
+                    modelOutput: modelOutputObj,
                     message,
                     timeStamp,
                 };

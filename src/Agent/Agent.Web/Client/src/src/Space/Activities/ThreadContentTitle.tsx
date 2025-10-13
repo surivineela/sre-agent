@@ -1,13 +1,13 @@
 import { Button, Tooltip, tokens } from '@fluentui/react-components';
-import { TaskListLtr20Regular } from '@fluentui/react-icons';
+import { Branch16Regular, TaskListLtr20Regular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { memo, useCallback, useContext, useEffect, useState } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { AgentContext, StreamingContext } from '../Contracts/Context';
 import { ThreadContentStyles } from '../Styles/Activities.styles';
 import ThreadActionsMenu from './ThreadActionsMenu';
@@ -17,11 +17,18 @@ const ThreadContentTitle = ({
     thread,
     deleteThread,
     hasExistingPlans,
+    showTraceButton,
+    toggleTraceVisibility,
+    traceFocusRestorationRef,
 }: {
     thread: Thread | null | undefined;
     deleteThread: (thread: Thread) => void;
     hasExistingPlans: boolean;
+    showTraceButton: boolean;
+    toggleTraceVisibility: () => void;
+    traceFocusRestorationRef: React.RefObject<HTMLButtonElement>;
 }) => {
+    const intl = useIntl();
     const [latestThread, setLatestThread] = useState<Thread | null | undefined>(thread);
     const { activeThreadId } = useContext(AgentContext);
     const { subscribeThreadUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
@@ -89,7 +96,24 @@ const ThreadContentTitle = ({
         <div className={ThreadContentStyles.titleContainer}>
             <ThreadTitleText title={latestThread?.title} />
             {latestThread && <ThreadActionsMenu thread={latestThread} handleThreadDelete={handleThreadDelete} />}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
+                {threadId && showTraceButton && (
+                    <Button
+                        ref={traceFocusRestorationRef}
+                        icon={<Branch16Regular />}
+                        style={{
+                            fontWeight: 'normal',
+                            fontSize: '12px',
+                            lineHeight: '16px',
+                            padding: '2px 8px 2px 4px',
+                            margin: 'auto',
+                            marginRight: '8px',
+                        }}
+                        onClick={toggleTraceVisibility}
+                    >
+                        {intl.formatMessage(IncidentManagementResources.viewTrace)}
+                    </Button>
+                )}
                 {threadId && hasExistingPlans && <HeaderTodoToggleButton />}
             </div>
         </div>
