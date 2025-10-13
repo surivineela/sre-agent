@@ -223,7 +223,7 @@ export const buildConnectorListYaml = (connector: Partial<ExtendedConnector>): s
     const connectorRecord: Record<string, unknown> = {
         name: connector.name,
         type: connector.type,
-        enabled: connector.enabled ?? false,
+        enabled: connector.enabled ?? true,
     };
 
     assignIfDefined(connectorRecord, 'description', connector.description);

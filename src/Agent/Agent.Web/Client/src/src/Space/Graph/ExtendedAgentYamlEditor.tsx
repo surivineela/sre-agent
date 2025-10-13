@@ -38,7 +38,7 @@ type ExtendedEntityYamlEditorProps = {
 
 const expectedKindByType: Record<ExtendedEntityType, string> = {
     agent: 'AgentConfiguration',
-    tool: 'Tool',
+    tool: 'ToolList',
     connector: 'ConnectorList',
     trigger: 'TriggerConfiguration',
 };

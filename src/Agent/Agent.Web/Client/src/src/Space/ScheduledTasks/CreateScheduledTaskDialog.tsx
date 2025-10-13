@@ -198,7 +198,7 @@ const formReducer = (state: FormState, action: Action): FormState => {
                 cronExpression: PRESETS.daily.cron,
                 agentPrompt: '',
                 agent: undefined,
-                createdBy: 'Agent Builder',
+                createdBy: 'Sub-Agent Builder',
                 startTime: new Date().toISOString(),
                 endTime: undefined,
                 threadId: undefined,
@@ -422,7 +422,7 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({
                 ...formData,
                 cronExpression: normalizeCron(formData.cronExpression),
                 agent: formData.agent || agentName,
-                createdBy: formData.createdBy || 'Agent Builder',
+                createdBy: formData.createdBy || 'Sub-Agent Builder',
             };
 
             const result = await createTask(taskRequest);

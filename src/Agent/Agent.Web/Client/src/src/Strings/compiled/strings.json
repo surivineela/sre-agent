@@ -814,7 +814,7 @@
   "2e3GZQ": [
     {
       "type": 0,
-      "value": "Create a handoff agent"
+      "value": "Create a handoff sub-agent"
     }
   ],
   "2hB9SP": [
@@ -2878,7 +2878,7 @@
   "EStH0G": [
     {
       "type": 0,
-      "value": "Agent Builder"
+      "value": "Sub-Agent Builder"
     }
   ],
   "EWrExf": [
@@ -3830,7 +3830,7 @@
   "K6WTYI": [
     {
       "type": 0,
-      "value": "A data source connection for tools"
+      "value": "A data source connection for tools (e.g., Kusto cluster for running queries)"
     }
   ],
   "K7AkdL": [
@@ -5196,7 +5196,7 @@
   "Rsq6sZ": [
     {
       "type": 0,
-      "value": "New handoff agents start as Autonomous. You can connect tools and other details later."
+      "value": "New handoff sub-agents start as Autonomous. You can connect tools and other details later."
     }
   ],
   "S0GneP": [
@@ -11028,7 +11028,7 @@
   "z6olIH": [
     {
       "type": 0,
-      "value": "An AI agent with instructions and tools"
+      "value": "An AI sub-agent with instructions and tools"
     }
   ],
   "z8ZYoc": [

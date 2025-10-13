@@ -62,7 +62,7 @@ export const ConnectorCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) =>
     const isSelectedNode = selectedNode?.id === id;
 
     const connector = data?.data as ExtendedConnector | undefined;
-    const isEnabled = connector?.enabled ?? false;
+    const isEnabled = connector?.enabled ?? true;
 
     const cardStyles = mergeClasses(
         connectorCard,

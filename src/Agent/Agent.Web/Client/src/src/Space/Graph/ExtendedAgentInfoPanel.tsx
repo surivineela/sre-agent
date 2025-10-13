@@ -233,11 +233,11 @@ export const ExtendedAgentInfoPanel = memo(
                                             </Text>
                                             <Badge
                                                 size="small"
-                                                appearance={connector.enabled ? 'tint' : 'filled'}
-                                                color={connector.enabled ? 'success' : 'danger'}
+                                                appearance={(connector.enabled ?? true) ? 'tint' : 'filled'}
+                                                color={(connector.enabled ?? true) ? 'success' : 'danger'}
                                                 className={styles.statusBadge}
                                             >
-                                                {connector.enabled
+                                                {(connector.enabled ?? true)
                                                     ? intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusEnabled)
                                                     : intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusDisabled)}
                                             </Badge>
@@ -339,8 +339,8 @@ export const ExtendedAgentInfoPanel = memo(
             (connector: ExtendedConnector) => (
                 <>
                     <div className={styles.badgeRow}>
-                        <Badge appearance={connector.enabled ? 'tint' : 'outline'} size="small">
-                            {connector.enabled
+                        <Badge appearance={(connector.enabled ?? true) ? 'tint' : 'outline'} size="small">
+                            {(connector.enabled ?? true)
                                 ? intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusEnabled)
                                 : intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusDisabled)}
                         </Badge>

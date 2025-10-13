@@ -2479,7 +2479,7 @@ export const MemorySearchCardResources = defineMessages({
 
 export const ExtendedAgentsGraphResources = defineMessages({
     // Tab and Navigation
-    extendedAgentsTab: { defaultMessage: 'Agent Builder', id: 'EStH0G' },
+    extendedAgentsTab: { defaultMessage: 'Sub-Agent Builder', id: 'x4OHX9' },
     visualView: { defaultMessage: 'Visual View', id: 'ZOdb7N' },
     gridView: { defaultMessage: 'Grid View', id: 'zL39WD' },
 
@@ -2487,10 +2487,10 @@ export const ExtendedAgentsGraphResources = defineMessages({
     createNewEntity: { defaultMessage: 'Create New Entity', id: '5POweM' },
     createYourFirstEntity: { defaultMessage: 'Create Your First Entity', id: 'N+XwM+' },
     whatToCreate: { defaultMessage: 'What would you like to create?', id: '5q8BxP' },
-    quickCreateAgentTitle: { defaultMessage: 'Create a handoff agent', id: '2e3GZQ' },
+    quickCreateAgentTitle: { defaultMessage: 'Create a handoff sub-agent', id: '8dASTJ' },
     quickCreateAgentDescription: {
-        defaultMessage: 'New handoff agents start as Autonomous. You can connect tools and other details later.',
-        id: 'Rsq6sZ',
+        defaultMessage: 'New handoff sub-agents start as Autonomous. You can connect tools and other details later.',
+        id: 'et3seW',
     },
     quickCreateAgentAutonomousHint: {
         defaultMessage: 'We’ll mark this agent as Autonomous automatically so it can run on its own.',
@@ -2498,14 +2498,14 @@ export const ExtendedAgentsGraphResources = defineMessages({
     },
 
     // Entity Types
-    agent: { defaultMessage: 'Agent', id: 'QGVI63' },
+    agent: { defaultMessage: 'Sub-Agent', id: 'hNKm4/' },
     tool: { defaultMessage: 'Tool', id: 'h6183G' },
-    connector: { defaultMessage: 'Connector', id: 'r8XsCU' },
+    connector: { defaultMessage: 'Data Connector', id: 'Ls/pL4' },
 
     // Type Descriptions
-    agentDescription: { defaultMessage: 'An AI agent with instructions and tools', id: 'z6olIH' },
+    agentDescription: { defaultMessage: 'An AI sub-agent with instructions and tools', id: 'dLWTUk' },
     toolDescription: { defaultMessage: 'A function or capability for agents to use', id: 'Ai/0lk' },
-    connectorDescription: { defaultMessage: 'A data source connection for tools', id: 'K6WTYI' },
+    connectorDescription: { defaultMessage: 'A data source connection for tools (e.g., Kusto cluster for running queries)', id: 'Dhy8jb' },
     trigger: { defaultMessage: 'Trigger', id: 'B3Q5mz' },
     triggerDescriptionLoading: { defaultMessage: 'Checking trigger setup…', id: 'x/7RC2' },
     triggerDescriptionIncident: {

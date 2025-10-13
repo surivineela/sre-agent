@@ -12,6 +12,7 @@ import {
     Textarea,
 } from '@fluentui/react-components';
 import { ArrowLeft24Regular, Checkmark24Regular } from '@fluentui/react-icons';
+import yaml from 'js-yaml';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
@@ -318,15 +319,117 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
         }
     }, [state.entityType]);
 
-    const handleEditYaml = useCallback((yaml: string) => {
-        setYamlEditorContent(yaml);
-        setShowYamlEditor(true);
+    const handleEditYaml = useCallback((yamlContent: string) => {
+        // This is called when ReviewStep saves edited YAML content
+        // Parse and apply the changes directly to the state
+        try {
+            const parsedYaml = yaml.load(yamlContent) as any;
+
+            if (parsedYaml && parsedYaml.spec) {
+                setState(prevState => {
+                    const newState = { ...prevState };
+
+                    switch (prevState.entityType) {
+                        case 'agent':
+                            newState.agent = {
+                                ...prevState.agent,
+                                ...parsedYaml.spec,
+                            };
+                            break;
+                        case 'tool':
+                            // For tools, we need to handle the nested structure correctly
+                            if (parsedYaml.spec.tools && parsedYaml.spec.tools.length > 0) {
+                                console.log('Updating tool from YAML spec.tools[0]:', parsedYaml.spec.tools[0]);
+                                newState.tool = {
+                                    ...prevState.tool,
+                                    ...parsedYaml.spec.tools[0],
+                                };
+                            } else {
+                                console.log('Updating tool from YAML spec directly:', parsedYaml.spec);
+                                newState.tool = {
+                                    ...prevState.tool,
+                                    ...parsedYaml.spec,
+                                };
+                            }
+                            break;
+                        case 'connector':
+                            newState.connector = {
+                                ...prevState.connector,
+                                ...parsedYaml.spec,
+                            };
+                            break;
+                        case 'trigger':
+                            newState.trigger = {
+                                ...prevState.trigger,
+                                ...parsedYaml.spec,
+                            };
+                            break;
+                    }
+
+                    return newState;
+                });
+            }
+        } catch (error) {
+            console.error('Failed to parse YAML from ReviewStep:', error);
+        }
     }, []);
 
     const handleYamlEditorClose = useCallback(() => {
         setShowYamlEditor(false);
         setYamlEditorContent('');
     }, []);
+
+    const handleYamlSave = useCallback(() => {
+        try {
+            // Parse the YAML content
+            const parsedYaml = yaml.load(yamlEditorContent) as any;
+
+            if (!parsedYaml || !parsedYaml.spec) {
+                console.error('Invalid YAML structure - missing spec');
+                return;
+            }
+
+            // Update the state based on the entity type
+            setState(prevState => {
+                const newState = { ...prevState };
+
+                switch (prevState.entityType) {
+                    case 'agent':
+                        newState.agent = {
+                            ...prevState.agent,
+                            ...parsedYaml.spec,
+                        };
+                        break;
+                    case 'tool':
+                        newState.tool = {
+                            ...prevState.tool,
+                            ...parsedYaml.spec,
+                        };
+                        break;
+                    case 'connector':
+                        newState.connector = {
+                            ...prevState.connector,
+                            ...parsedYaml.spec,
+                        };
+                        break;
+                    case 'trigger':
+                        newState.trigger = {
+                            ...prevState.trigger,
+                            ...parsedYaml.spec,
+                        };
+                        break;
+                }
+
+                return newState;
+            });
+
+            setShowYamlEditor(false);
+            setYamlEditorContent('');
+        } catch (error) {
+            console.error('Failed to parse YAML:', error);
+            // Could show an error message to the user here
+        }
+    }, [yamlEditorContent]);
 
     const handleSubmit = useCallback(async () => {
         if (!canProceed || isSubmitting || !state.entityType) return;
@@ -360,6 +463,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                         connector: state.tool?.connector,
                         database: state.tool?.database,
                         query: state.tool?.query,
+                        mode: state.tool?.mode || 'query',
                         parameters: state.tool?.parameters || [],
                     };
                     break;
@@ -652,7 +756,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                                 <Button appearance="secondary" onClick={handleYamlEditorClose}>
                                     {intl.formatMessage(ExtendedAgentsGraphResources.cancel)}
                                 </Button>
-                                <Button appearance="primary" onClick={handleYamlEditorClose}>
+                                <Button appearance="primary" onClick={handleYamlSave}>
                                     {intl.formatMessage(ExtendedAgentsGraphResources.yamlInlineSaveChanges)}
                                 </Button>
                             </DialogActions>

@@ -59,7 +59,7 @@ const createScheduledTaskTrigger = async (trigger: TriggerState, sreAgentEndpoin
         cronExpression: trigger.schedule.cronExpression,
         agentPrompt: trigger.instructions,
         agent: trigger.agentName,
-        createdBy: 'Agent Builder',
+        createdBy: 'Sub-Agent Builder',
         startTime: trigger.schedule.startTime,
         // Optional fields that may not exist in trigger state but could be extended
         endTime: undefined,
