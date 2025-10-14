@@ -97,6 +97,12 @@ public class DeclarativeArgumentTransformer : IToolArgumentTransformer
 
     private static object? GetDefault(Type type)
     {
+        // Handle Dictionary types specially - return empty dictionary
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+        {
+            return Activator.CreateInstance(type);
+        }
+
         return type.IsValueType ? Activator.CreateInstance(type) : null;
     }
 
@@ -121,7 +127,7 @@ public class DeclarativeArgumentTransformer : IToolArgumentTransformer
         try
         {
             // Handle JsonElement specifically - check for JsonElement type name as well in case of type system issues
-            if (value is System.Text.Json.JsonElement jsonElement || 
+            if (value is System.Text.Json.JsonElement jsonElement ||
                 value?.GetType().Name == "JsonElement")
             {
                 if (value is System.Text.Json.JsonElement je)
@@ -148,13 +154,13 @@ public class DeclarativeArgumentTransformer : IToolArgumentTransformer
             {
                 return Convert.ChangeType(value, targetType);
             }
-            
+
             // For non-IConvertible types, try ToString() conversion if target is string
             if (targetType == typeof(string))
             {
                 return value?.ToString() ?? string.Empty;
             }
-            
+
             // Last resort - return default value
             return GetDefault(targetType);
         }
@@ -178,36 +184,36 @@ public class DeclarativeArgumentTransformer : IToolArgumentTransformer
 
             if (targetType == typeof(string))
             {
-                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.String 
-                    ? jsonElement.GetString() 
+                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.String
+                    ? jsonElement.GetString()
                     : jsonElement.GetRawText();
             }
 
             if (targetType == typeof(int))
             {
-                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.Number 
-                    ? jsonElement.GetInt32() 
+                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.Number
+                    ? jsonElement.GetInt32()
                     : int.TryParse(jsonElement.GetString(), out var intVal) ? intVal : 0;
             }
 
             if (targetType == typeof(long))
             {
-                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.Number 
-                    ? jsonElement.GetInt64() 
+                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.Number
+                    ? jsonElement.GetInt64()
                     : long.TryParse(jsonElement.GetString(), out var longVal) ? longVal : 0L;
             }
 
             if (targetType == typeof(double))
             {
-                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.Number 
-                    ? jsonElement.GetDouble() 
+                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.Number
+                    ? jsonElement.GetDouble()
                     : double.TryParse(jsonElement.GetString(), out var doubleVal) ? doubleVal : 0.0;
             }
 
             if (targetType == typeof(float))
             {
-                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.Number 
-                    ? jsonElement.GetSingle() 
+                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.Number
+                    ? jsonElement.GetSingle()
                     : float.TryParse(jsonElement.GetString(), out var floatVal) ? floatVal : 0.0f;
             }
 
