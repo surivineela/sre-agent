@@ -39,14 +39,23 @@ public static class ToolResponseParser
                 // Try different nested structure patterns
                 if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement))
                 {
-                    // Pattern 1: { "data": { "tools": [...] } } - Full nested structure
+                    // Pattern 1: { "data": { "tools": { "data": [...] } } } - Deep nested structure
                     if (dataElement.ValueKind == JsonValueKind.Object &&
                         dataElement.TryGetProperty("tools", out var toolsElement) &&
-                        toolsElement.ValueKind == JsonValueKind.Array)
+                        toolsElement.ValueKind == JsonValueKind.Object &&
+                        toolsElement.TryGetProperty("data", out var toolsDataElement) &&
+                        toolsDataElement.ValueKind == JsonValueKind.Array)
                     {
-                        return toolsElement.EnumerateArray().ToArray();
+                        return toolsDataElement.EnumerateArray().ToArray();
                     }
-                    // Pattern 2: { "data": [...] } - Data is direct array
+                    // Pattern 2: { "data": { "tools": [...] } } - Full nested structure
+                    else if (dataElement.ValueKind == JsonValueKind.Object &&
+                        dataElement.TryGetProperty("tools", out var directToolsElement) &&
+                        directToolsElement.ValueKind == JsonValueKind.Array)
+                    {
+                        return directToolsElement.EnumerateArray().ToArray();
+                    }
+                    // Pattern 3: { "data": [...] } - Data is direct array
                     else if (dataElement.ValueKind == JsonValueKind.Array)
                     {
                         return dataElement.EnumerateArray().ToArray();
