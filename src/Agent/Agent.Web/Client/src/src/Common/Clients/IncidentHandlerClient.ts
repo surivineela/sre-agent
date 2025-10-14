@@ -511,4 +511,41 @@ export class IncidentHandlerClient extends DataPlaneClient {
             };
         }
     };
+
+    public getAgentSpaceIdentity = async (platform?: string): Promise<Response<string | null>> => {
+        const url = this.getRequestUrl(
+            `${this._apiIncidentPlaygroundPathPrefix}/agentSpaceIdentity${platform ? `?platform=${platform}` : ''}`
+        );
+
+        console.log('[getAgentSpaceIdentity] Sending request:', { url, platform, headers: getAgentHeaders() });
+
+        try {
+            const { data } = await axios.get<string | null>(url, {
+                headers: getAgentHeaders(),
+            });
+
+            console.log('[getAgentSpaceIdentity] Success:', data);
+
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+
+            console.error('[getAgentSpaceIdentity] Error:', errorMessage, error);
+
+            this._log?.({
+                logLevel: 'error',
+                action: 'getAgentSpaceIdentity',
+                actionModifier: 'failed',
+                data: `Failed to get agent space identity: ${errorMessage}`,
+            });
+
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
 }

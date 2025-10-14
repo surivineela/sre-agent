@@ -15,6 +15,7 @@ using Microsoft.Azure.Cosmos;
 using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 using Agent.Runtime.SubAgents.IcmScanner;
+using Agent.Framework;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -29,6 +30,7 @@ public class IncidentPlaygroundController : ControllerBase
     private readonly ILogger<IncidentPlaygroundController> _logger;
     private readonly IncidentManagementSettings _incidentManagementSettings;
     private readonly Container _container;
+    private readonly IConnectorResolver _connectorResolver;
 
     public IncidentPlaygroundController(
         IInstructionGenerationService instructionGenerationService,
@@ -38,7 +40,8 @@ public class IncidentPlaygroundController : ControllerBase
         IncidentManagementSettings incidentManagementSettings,
         ILogger<IncidentPlaygroundController> logger,
         CosmosClient cosmosClient,
-        CosmosDBSettings cosmosDbSettings)
+        CosmosDBSettings cosmosDbSettings,
+        IConnectorResolver connectorResolver)
     {
         _instructionGenerationService = instructionGenerationService;
         _incidentHandlerManagementService = incidentHandlerManagementService;
@@ -47,6 +50,42 @@ public class IncidentPlaygroundController : ControllerBase
         _incidentManagementSettings = incidentManagementSettings;
         _logger = logger;
         _container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
+        _connectorResolver = connectorResolver;
+    }
+
+    /// <summary>
+    /// Get Agent Space managed identity for incident platform
+    /// </summary>
+    /// <param name="platform">Required platform identifier (e.g., "ICM")</param>
+    /// <returns>Agent Space managed identity ID if configured, otherwise null</returns>
+    [HttpGet("agentSpaceIdentity")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
+    public IActionResult GetAgentSpaceIdentity([FromQuery] string platform)
+    {
+        _logger.LogInternalInformation("GetAgentSpaceIdentity: Invoked with platform {Platform}", platform);
+        if (string.IsNullOrWhiteSpace(platform))
+        {
+            _logger.LogInternalWarning("GetAgentSpaceIdentity: Platform parameter is required");
+            return BadRequest("Platform parameter is required");
+        }
+
+        try
+        {
+            var identity = _connectorResolver.GetAgentSpaceDataConnectorIdentity();
+            if (string.IsNullOrEmpty(identity))
+            {
+                _logger.LogInternalInformation("GetAgentSpaceIdentity: No Agent Space identity found for platform {Platform}", platform);
+                return Ok(null);
+            }
+
+            _logger.LogInternalInformation("GetAgentSpaceIdentity: Found Agent Space identity: {Identity}", identity);
+            return Ok(identity);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "GetAgentSpaceIdentity: Error getting Agent Space identity for platform {Platform}", platform);
+            return Ok(null);
+        }
     }
 
     [HttpGet("checkConnectivity")]

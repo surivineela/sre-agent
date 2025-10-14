@@ -136,4 +136,6 @@ public interface IAuthenticationService
     /// </summary>
     /// <returns></returns>
     public TokenCredential GetPostgresSqlCredential();
+
+    public Task<AccessToken> GetTokenFromAgentSpaceProxy(string scope, string resourceId);
 }

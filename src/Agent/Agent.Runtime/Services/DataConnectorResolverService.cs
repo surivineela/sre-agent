@@ -205,6 +205,34 @@ public class DataConnectorResolverService : IConnectorResolver
     }
 
     /// <summary>
+    /// Gets agent space managed identity for specific platform
+    /// </summary>
+    /// <param name="platform">Platform type (e.g., "ICM")</param>
+    /// <returns>Managed identity resource ID if found, otherwise null</returns>
+    public string? GetAgentSpaceDataConnectorIdentity()
+    {
+        try
+        {
+            var connectorSettings = _connectorSettings.CurrentValue;
+            if (connectorSettings == null || !connectorSettings.Any())
+            {
+                return null;
+            }
+
+            // Find AgentSpace connector matching the platform
+            var agentSpaceConnector = connectorSettings.FirstOrDefault(settings =>
+                settings.Source == DataConnectorSource.AgentSpace &&
+                settings.DataConnectorType.Equals("icm", StringComparison.OrdinalIgnoreCase) == true);
+            return agentSpaceConnector?.Identity;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to get AgentSpace identity for platform {Platform}", "icm");
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Gets a list of all configured data connectors with basic information
     /// </summary>
     /// <returns>List of data connector basic information</returns>

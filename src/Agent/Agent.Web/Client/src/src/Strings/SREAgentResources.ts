@@ -1681,6 +1681,11 @@ export const IcMResources = defineMessages({
         defaultMessage: 'Managed Identity',
         id: 'UZMdQH',
     },
+    agentSpaceManagedIdentity: {
+        defaultMessage:
+            'Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatable data connector was found) ',
+        id: 'rMjIe9',
+    },
     quickstartHandlerDescription: {
         defaultMessage: 'Add a default incident response plan for the agent to use for Sev3 LiveSite incidents.',
         id: '+nt4l9',

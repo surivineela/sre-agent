@@ -9680,6 +9680,12 @@
       "value": "Pending user action"
     }
   ],
+  "rMjIe9": [
+    {
+      "type": 0,
+      "value": "Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatable data connector was found)"
+    }
+  ],
   "rNvlCF": [
     {
       "type": 0,

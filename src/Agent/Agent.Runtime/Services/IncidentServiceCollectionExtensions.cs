@@ -5,6 +5,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
+using Agent.Core.DataConnectors;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Core.Services.TokenService;
@@ -68,7 +69,11 @@ public static class IncidentServiceCollectionExtensions
                 var logger = serviceProvider.GetRequiredService<ILogger<ICMAPITokenService>>();
                 var actionSettings = serviceProvider.GetRequiredService<ActionSettings>();
                 var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
-                ICMAPITokenService.Instance.Initialize(authService, actionSettings, incidentManagementSettings, logger);
+                // Check if Agent Space Proxy endpoint is configured
+                var azureSettings = serviceProvider.GetRequiredService<AzureSettings>();
+                var agentSpaceProxyEndpoint = azureSettings.AgentSpaceProxy?.Endpoint;
+                var dataConnectorInstanceSettings = serviceProvider.GetRequiredService<CoreSettings>().DataConnectors;
+                ICMAPITokenService.Instance.Initialize(authService, actionSettings, incidentManagementSettings, logger, agentSpaceProxyEndpoint, dataConnectorInstanceSettings);
 
                 services.AddSingleton<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>, IcmIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentManagementService>();

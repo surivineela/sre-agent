@@ -1431,6 +1431,7 @@
   "rKdPkY": "Select a {entityLabel} to edit its configuration YAML.",
   "rKq4sw": "Choose severity",
   "rM7Pbj": "Pending user action",
+  "rMjIe9": "Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatable data connector was found)",
   "rNvlCF": "Date range:",
   "rQAyD6": "This chart shows the relationship between {y1} and {y2} over time. The correlation values indicate how strongly these two metrics influence each other.",
   "rVtn/e": "Deleting report",

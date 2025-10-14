@@ -70,7 +70,7 @@ namespace Agent.Core.Services.TokenService
                 {
                     if (TokenCredential != null)
                     {
-                        acquireTokenTask = TokenCredential.GetTokenAsync(TokenRequestContext, new System.Threading.CancellationToken());
+                        acquireTokenTask = AcquireToken(TokenRequestContext, new System.Threading.CancellationToken(), logger);
                         AccessToken token = await acquireTokenTask;
                         AuthorizationToken = GetAuthTokenFromValueTask(token);
                         tokenAcquiredAtleastOnce = true;
@@ -95,9 +95,24 @@ namespace Agent.Core.Services.TokenService
         }
 
         /// <summary>
+        /// Virtual method to acquire token. Can be overridden by derived classes to use different token acquisition methods.
+        /// </summary>
+        /// <param name="requestContext">The token request context</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        /// <returns>A ValueTask that represents the asynchronous token acquisition operation</returns>
+        protected virtual ValueTask<AccessToken> AcquireToken(TokenRequestContext requestContext, System.Threading.CancellationToken cancellationToken, ILogger logger)
+        {
+            if (TokenCredential == null)
+            {
+                throw new InvalidOperationException($"[{TokenServiceName}] TokenCredential is not initialized");
+            }
+            return TokenCredential.GetTokenAsync(requestContext, cancellationToken);
+        }
+
+        /// <summary>
         /// Gets AAD issued auth token.
         /// </summary>
-        public virtual async Task<string> GetAuthorizationTokenAsync()
+        public virtual async Task<string> GetAuthorizationTokenAsync(ILogger logger)
         {
             if (!ManagedIdentityEnabled)
             {
@@ -111,7 +126,7 @@ namespace Agent.Core.Services.TokenService
 
             if (!tokenAcquiredAtleastOnce)
             {
-                var authResult = await acquireTokenTask;
+                var authResult = await AcquireToken(TokenRequestContext, new System.Threading.CancellationToken(), logger);
                 return GetAuthTokenFromValueTask(authResult);
             }
 

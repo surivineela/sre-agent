@@ -238,7 +238,7 @@ namespace Agent.Core.Services
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
             if (_authType == AuthType.ManagedIdentity)
             {
-                string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync(_logger);
                 if (!string.IsNullOrEmpty(authToken))
                 {
                     requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
@@ -268,7 +268,7 @@ namespace Agent.Core.Services
             requestMessage.Content = new StringContent(serializedContent, Encoding.UTF8, "application/json");
             if (_authType == AuthType.ManagedIdentity)
             {
-                string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync(_logger);
                 if (!string.IsNullOrEmpty(authToken))
                 {
                     requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
@@ -299,7 +299,7 @@ namespace Agent.Core.Services
             requestMessage.Content = new StringContent(serializedContent, Encoding.UTF8, "application/json");
             if (_authType == AuthType.ManagedIdentity)
             {
-                string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync(_logger);
                 if (!string.IsNullOrEmpty(authToken))
                 {
                     requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
@@ -323,7 +323,7 @@ namespace Agent.Core.Services
             var requestMessage = new HttpRequestMessage(HttpMethod.Delete, requestUri);
             if (_authType == AuthType.ManagedIdentity)
             {
-                string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync(_logger);
                 if (!string.IsNullOrEmpty(authToken))
                 {
                     requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);

@@ -33,6 +33,7 @@ export interface IncidentManagementFormProps {
     integrated?: boolean;
     close?: () => void;
     keepOpen?: boolean;
+    isUsingAgentSpaceIdentity?: boolean;
 }
 
 export interface IncidentHandler {

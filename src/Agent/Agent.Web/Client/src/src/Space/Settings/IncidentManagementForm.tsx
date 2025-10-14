@@ -61,6 +61,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
     integrated,
     close,
     keepOpen,
+    isUsingAgentSpaceIdentity,
 }: IncidentManagementFormProps) => {
     const intl = useIntl();
     const styles = useSettingsStyles();
@@ -346,8 +347,10 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                         </Link>
                                     </Text>
                                     <Text block>
-                                        {intl.formatMessage(IcMResources.managedIdentity)}:{' '}
-                                        <Link onClick={() => openManagedIdentity()}>{managedIdentityResourceName}</Link>
+                                        {isUsingAgentSpaceIdentity
+                                            ? intl.formatMessage(IcMResources.agentSpaceManagedIdentity)
+                                            : intl.formatMessage(IcMResources.managedIdentity)}
+                                        : <Link onClick={() => openManagedIdentity()}>{managedIdentityResourceName}</Link>
                                     </Text>
                                 </div>
                                 {!isSetupScenario && (

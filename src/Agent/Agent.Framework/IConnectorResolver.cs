@@ -11,6 +11,8 @@ public interface IConnectorResolver
     T GetConnectorFromSettings<T>(string connectorName, string connectorType, string dataSource) where T : DataConnectorDefinitionBase, new();
     
     List<DataConnectorBasicInfo> GetAllDataConnectors();
+
+    string? GetAgentSpaceDataConnectorIdentity();
 }
 
 /// <summary>
