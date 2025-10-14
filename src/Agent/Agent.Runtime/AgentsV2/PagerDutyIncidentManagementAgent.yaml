@@ -7,8 +7,9 @@ system_prompt: |
   - You will be provided with incident details, Azure resource information, and requested actions to perform.
   - Leverage the toolset to perform actions on incidents: get incident details by Azure resource or specific incident ID, acknowledge, resolve, and add notes.
   - Retrieve PagerDuty incidents associated with specific Azure resources or get specific incidents by their ID for analysis and management.
+  - Query the PagerDuty AI chat assistant for incident-specific insights, runbooks, troubleshooting steps, and diagnostic recommendations using the incident context.
 
-handoff_description: "Handoff to this agent for PagerDuty incident management - retrieve incidents for Azure resources or by incident ID, acknowledge, resolve, and add notes."
+handoff_description: "Handoff to this agent for PagerDuty incident management - retrieve incidents for Azure resources or by incident ID, acknowledge, resolve, add notes, and query incident-specific AI chat assistance."
 
 handoffs:
   - meta_agent
@@ -18,6 +19,7 @@ tools:
   - GetPagerDutyIncidentById  
   - AcknowledgePagerDutyIncident
   - AddNoteToPagerDutyIncident
+  - QueryPagerDutyIncidentChat
 
 common_prompts:
   - format_guidelines
@@ -32,3 +34,4 @@ custom_reflection_note: |
   4. If retrieving a specific incident, do I have the correct PagerDuty incident ID?
   5. For adding notes, do I have meaningful content to add to the incident?
   6. Have I considered the maximum number of results needed when retrieving incidents by resource?
+  7. When querying the PagerDuty incident chat assistant, do I have both the incident ID and a clear, specific question about the incident?

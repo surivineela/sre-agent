@@ -50,6 +50,17 @@ namespace Agent.Plugins.Definitions
             return $"Successfully acknowledged PagerDutyIncident {incidentId}";
         }
 
+        [AgentTool(ToolMode.Auto)]
+        [Description("Queries the PagerDuty AI chat assistant with incident-specific context to get intelligent insights, troubleshooting steps, runbook generation, or diagnostic recommendations for a specific PagerDuty incident.")]
+        public async Task<string> QueryPagerDutyIncidentChatAsync(
+            [Description("The specific question or request to ask about the incident (e.g., 'Generate a runbook for this incident', 'What are the potential root causes?', 'Provide step-by-step troubleshooting guidance', 'Suggest mitigation steps')")] string userQuery,
+            [Description("The PagerDuty incident ID to query about (e.g., 'Q391Y5VW0YYUEL'). The chat assistant will use this incident's context to provide relevant answers.")] string incidentId)
+        {
+            if (string.IsNullOrEmpty(incidentId))
+                throw new ArgumentException("Incident ID must be provided.");
+            return await incidentPlugin.GetAgentResponseAsync(userQuery, incidentId);
+        }
+
         [Description("Add note to a PagerDuty Incident")]
         public async Task<string> AddNoteToPagerDutyIncident(
             [Description("PagerDuty incident id")] string incidentId,

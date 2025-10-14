@@ -3,6 +3,10 @@
 // ------------------------------------------------------------
 
 using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -13,6 +17,9 @@ using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Octokit;
+using static IdentityModel.OidcConstants;
 
 namespace Agent.Plugins.Implementation;
 
@@ -20,9 +27,10 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
                             IGraphDatabaseClient graphDatabaseClient,
                             CosmosDBSettings cosmosDbSettings,
                             CosmosClient cosmosClient,
-                            IPagerDutyService pagerDutyService) : IPagerDutyIncidentPlugin
+                            IPagerDutyService pagerDutyService,
+                            IOptionsMonitor<IncidentManagementSettings> monitor) : IPagerDutyIncidentPlugin
 {
-
+    private readonly IncidentManagementSettings _settings = monitor.CurrentValue;
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, PagerDutyIncidentDocument.ContainerName);
     private readonly Container azMonitorContainer = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
 
@@ -57,6 +65,59 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
             logger.LogInternalError(ex, $"Error closing AzMonitor alert for thread {alertId}.");
         }
     }
+
+    public async Task<string> GetAgentResponseAsync(string userQuery, string incidentId)
+    {
+        if (string.IsNullOrEmpty(incidentId))
+            throw new ArgumentException("Incident ID not found in the user query. Please include 'incident:INCIDENT_ID' in your query.");
+
+        if (_settings?.Type != IncidentManagementType.PagerDuty)
+        {
+            throw new InvalidOperationException("PagerDuty incident management is not configured.");
+        }
+
+        if (string.IsNullOrEmpty(_settings.ConnectionKey))
+        {
+            throw new InvalidOperationException("PagerDuty API key is not configured.");
+        }
+
+        var apiUrl = "https://api.pagerduty.com/chat_assistant/chat";
+        var clientMetadata = new { client_type = "public_api" };
+
+        string sessionId = Guid.NewGuid().ToString();
+        string timestamp = DateTime.UtcNow.ToString("o");
+
+        var payload = new
+        {
+            session_id = sessionId,
+            timestamp = timestamp,
+            message = userQuery,
+            incident_id = incidentId,
+            client_metadata = clientMetadata
+        };
+
+        string jsonPayload = JsonSerializer.Serialize(payload);
+
+        using (var client = new HttpClient())
+        {
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", $"token={_settings.ConnectionKey}");
+
+            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"PagerDuty API error: {response.StatusCode} - {response.ReasonPhrase}\n{responseContent}");
+            }
+
+            var doc = JsonNode.Parse(responseContent);
+            string agentMessage = doc?["message"]?.ToString() ?? "No message";
+            return agentMessage;
+        }
+    }
+
 
     public async Task<List<PagerDutyIncidentDocument>> GetPagerDutyIncidentsAsync(string resourceId, uint maxResults = 5)
     {

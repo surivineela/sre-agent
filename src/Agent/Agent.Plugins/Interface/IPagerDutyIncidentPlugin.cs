@@ -8,6 +8,8 @@ namespace Agent.Plugins.Interface;
 
 public interface IPagerDutyIncidentPlugin
 {
+    Task<string> GetAgentResponseAsync(string userQuery, string incidentId);
+
     /// <summary>
     /// Get PagerDuty incidents related to a resource
     /// </summary>
