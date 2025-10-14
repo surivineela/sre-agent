@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ScheduledTask } from '../Contracts/ScheduledTasks';
+import { ScheduledTask, ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
 
 export interface ScheduledTaskMessageData {
     isScheduledTaskMessage: boolean;
@@ -25,7 +25,7 @@ export const useScheduledTaskMessage = (messageContent: string): ScheduledTaskMe
                     id: taskData.taskId,
                     name: taskData.taskName,
                     description: taskData.description,
-                    status: taskData.status as 'Active' | 'Paused' | 'Completed' | 'Failed',
+                    status: taskData.status as ScheduledTaskStatus,
                     cronExpression: taskData.cronExpression,
                     agentPrompt: taskData.agentPrompt,
                     createdBy: taskData.createdBy || 'system',
@@ -55,7 +55,7 @@ export const useScheduledTaskMessage = (messageContent: string): ScheduledTaskMe
                     id: taskData.taskId,
                     name: taskData.taskName,
                     description: taskData.description,
-                    status: taskData.status as 'Active' | 'Paused' | 'Completed' | 'Failed',
+                    status: taskData.status as ScheduledTaskStatus,
                     cronExpression: taskData.cronExpression,
                     agentPrompt: taskData.agentPrompt,
                     createdBy: 'system',

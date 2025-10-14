@@ -2,7 +2,7 @@ export interface ScheduledTask {
     id: string;
     name: string;
     description: string;
-    status: 'Active' | 'Paused' | 'Completed' | 'Failed';
+    status: ScheduledTaskStatus;
     cronExpression: string;
     agentPrompt: string;
     threadId?: string;
@@ -49,7 +49,7 @@ export interface UpdateScheduledTaskRequest {
     agentPrompt?: string;
     startTime?: string;
     endTime?: string;
-    status?: 'Active' | 'Paused' | 'Completed' | 'Failed';
+    status?: ScheduledTaskStatus;
     executionContext?: Record<string, any>;
     maxExecutions?: number;
     notificationChannel?: string;
@@ -80,4 +80,11 @@ export interface ScheduledTaskPromptImprovementResponse {
     warnings: string[];
     suggestions: string[];
     followUpQuestions: string[];
+}
+
+export enum ScheduledTaskStatus {
+    Active = 'Active',
+    Paused = 'Paused',
+    Completed = 'Completed',
+    Failed = 'Failed',
 }

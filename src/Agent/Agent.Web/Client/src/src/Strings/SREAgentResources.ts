@@ -253,6 +253,7 @@ export const SreAgentResources = defineMessages({
     resourceGroups: { defaultMessage: 'Resource groups', id: '/zQv2D' },
     resourceGroupName: { defaultMessage: 'Resource group name', id: 'xVPoso' },
     resourceType: { defaultMessage: 'Resource type', id: 'WHleoJ' },
+    restart: { defaultMessage: 'Restart', id: '5kK+j9' },
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
     scope: { defaultMessage: 'Scope', id: 'nso3Mj' },
     selectResourceGroups: { defaultMessage: 'Select resource groups', id: 'ftfFhS' },
@@ -510,6 +511,8 @@ export const SreAgentResources = defineMessages({
         id: 'bri0SI',
     },
     assigned: { defaultMessage: 'Assigned', id: 'iZDRGO' },
+    selectAllRowsAriaLabel: { defaultMessage: 'Select all rows', id: '8BaLs0' },
+    selectRowAriaLabel: { defaultMessage: 'Select row', id: '4pJVaS' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -2289,8 +2292,11 @@ export const ScheduledTasksResources = defineMessages({
     agentPrompt: { defaultMessage: 'Agent prompt', id: 'KsuM4D' },
     agentPromptSection: { defaultMessage: 'Agent Prompt', id: '40gxTJ' },
     lastExecution: { defaultMessage: 'Last execution', id: 'o9bCTX' },
+    lastRun: { defaultMessage: 'Last run', id: 'mHep2R' },
     nextExecution: { defaultMessage: 'Next execution', id: 'jlOO/9' },
+    nextRun: { defaultMessage: 'Next run', id: '3yurtF' },
     executionCount: { defaultMessage: 'Execution count', id: 'KS5JHs' },
+    runs: { defaultMessage: 'Runs', id: 'W1Qs5O' },
     maxExecutions: { defaultMessage: 'Max executions', id: 'oXd3cw' },
     placeholderMaxExecutions: { defaultMessage: 'Leave empty for unlimited executions', id: 'TFsGSl' },
     descriptionMaxExecutions: { defaultMessage: 'Maximum number of times this task should run', id: 'psUT6S' },
@@ -2453,6 +2459,11 @@ export const ScheduledTasksResources = defineMessages({
     promptAiWarnings: { defaultMessage: 'Key alerts', id: 'TKsgZu' },
     promptAiSuggestions: { defaultMessage: 'Optional tweaks', id: 'BynA9c' },
     promptAiFollowUps: { defaultMessage: 'Missing context', id: 'RA3fki' },
+    createTask: { defaultMessage: 'Create task', id: '7X1tNR' },
+    createFromTemplate: { defaultMessage: 'Create from template', id: 'unj6JR' },
+    tasks: { defaultMessage: 'Tasks', id: 'yhU1et' },
+    templates: { defaultMessage: 'Templates', id: 'A3ptul' },
+    runOnceNow: { defaultMessage: 'Run once now', id: 'UU91f0' },
 });
 
 export const SubAgentsResources = defineMessages({

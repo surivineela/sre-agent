@@ -1027,6 +1027,12 @@
       "value": "Resume"
     }
   ],
+  "3yurtF": [
+    {
+      "type": 0,
+      "value": "Next run"
+    }
+  ],
   "3zLsNR": [
     {
       "type": 0,
@@ -1231,6 +1237,12 @@
     {
       "type": 0,
       "value": "An incident response plan defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents."
+    }
+  ],
+  "4pJVaS": [
+    {
+      "type": 0,
+      "value": "Select row"
     }
   ],
   "4uiKBK": [
@@ -1441,6 +1453,12 @@
     {
       "type": 0,
       "value": "Unknown"
+    }
+  ],
+  "5kK+j9": [
+    {
+      "type": 0,
+      "value": "Restart"
     }
   ],
   "5kp1Ie": [
@@ -1795,6 +1813,12 @@
       "value": "A unique identifier for your connector"
     }
   ],
+  "7X1tNR": [
+    {
+      "type": 0,
+      "value": "Create task"
+    }
+  ],
   "7cS956": [
     {
       "type": 0,
@@ -1933,6 +1957,12 @@
     {
       "type": 0,
       "value": "Full access to Azure Digital Twins data."
+    }
+  ],
+  "8BaLs0": [
+    {
+      "type": 0,
+      "value": "Select all rows"
     }
   ],
   "8F5cJQ": [
@@ -2221,6 +2251,12 @@
     {
       "type": 0,
       "value": "Your annotation is updated successfully"
+    }
+  ],
+  "A3ptul": [
+    {
+      "type": 0,
+      "value": "Templates"
     }
   ],
   "AA/tRJ": [
@@ -5655,6 +5691,12 @@
       "value": "Go to map"
     }
   ],
+  "UU91f0": [
+    {
+      "type": 0,
+      "value": "Run once now"
+    }
+  ],
   "UV4Dx5": [
     {
       "type": 0,
@@ -5935,6 +5977,12 @@
     {
       "type": 0,
       "value": "No response plans found"
+    }
+  ],
+  "W1Qs5O": [
+    {
+      "type": 0,
+      "value": "Runs"
     }
   ],
   "W2JBdp": [
@@ -8760,6 +8808,12 @@
       "value": "Owning team ID is required when adding a default response plan."
     }
   ],
+  "mHep2R": [
+    {
+      "type": 0,
+      "value": "Last run"
+    }
+  ],
   "mJXXeS": [
     {
       "type": 0,
@@ -10462,6 +10516,12 @@
     {
       "type": 0,
       "value": "Zoom Out"
+    }
+  ],
+  "unj6JR": [
+    {
+      "type": 0,
+      "value": "Create from template"
     }
   ],
   "unxs9C": [
