@@ -170,7 +170,6 @@ const createIncidentFilter = async (trigger: TriggerState, sreAgentEndpoint: str
             incidentType: trigger.incidentType || '',
             handlingAgent: trigger.agentName || '',
             agentMode: 'autonomous',
-            createdBy: 'api',
         };
 
         // Include additional filter fields from the trigger state

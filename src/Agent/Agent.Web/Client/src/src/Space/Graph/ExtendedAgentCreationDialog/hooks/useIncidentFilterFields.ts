@@ -82,9 +82,7 @@ export const getAdditionalDropdownFilterFields = (filterFields: FilterFieldOptio
  * Get all text field options
  */
 export const getTextFilterFields = (filterFields: FilterFieldOption[]): FilterFieldOption[] => {
-    return filterFields.filter(
-        field => field.fieldInputType === 'TextField' && field.fieldName !== 'CreatedBy' // CreatedBy is set automatically
-    );
+    return filterFields.filter(field => field.fieldInputType === 'TextField');
 };
 
 /**
