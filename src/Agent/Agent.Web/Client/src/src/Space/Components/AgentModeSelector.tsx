@@ -67,7 +67,7 @@ const AgentModeSelector = (props: IAgentModeSelectorProps) => {
     return (
         <Menu positioning="after-top">
             <MenuTrigger>
-                <span>
+                <span style={{ height: '100%' }}>
                     <PermissionedButton
                         canPerform={canWriteThreads}
                         noPermissionTooltip={noPermissionTooltip}
@@ -76,7 +76,7 @@ const AgentModeSelector = (props: IAgentModeSelectorProps) => {
                         icon={showButtonLoadingSpinner ? <Spinner size="tiny" /> : <Settings32Regular />}
                         shape={'rounded'}
                         appearance={'subtle'}
-                        style={{ marginRight: tokens.spacingHorizontalS }}
+                        style={{ marginRight: tokens.spacingHorizontalS, height: '100%' }}
                     />
                 </span>
             </MenuTrigger>

@@ -1,8 +1,25 @@
 import { ChatInput } from '@fluentui-copilot/react-chat-input';
-import { BasicFunctionalityPlugin, BasicFunctionalityPluginRef } from '@fluentui-copilot/react-chat-input-plugins';
-import { ImperativeControlPlugin, ImperativeControlPluginRef } from '@fluentui-copilot/react-copilot';
+import {
+    $createTextNode,
+    $getSelection,
+    $insertNodes,
+    $isElementNode,
+    $isRangeSelection,
+    $isTextNode,
+    $setSelection,
+    Attachment,
+    AttachmentList,
+    AttachmentOverflowMenuButton,
+    COMMAND_PRIORITY_LOW,
+    ElementNode,
+    GroundingMenuItemSkeleton,
+    ImperativeControlPlugin,
+    ImperativeControlPluginRef,
+    LexicalEditor,
+    LexicalEditorRefPlugin,
+    SELECTION_CHANGE_COMMAND,
+} from '@fluentui-copilot/react-copilot';
 import { ScrollDownButton } from '@fluentui-copilot/react-copilot-chat';
-
 import {
     Button,
     Dialog,
@@ -12,45 +29,58 @@ import {
     DialogTitle,
     DialogTrigger,
     Input,
-    Tag,
-    Text,
-    Tooltip,
     makeStyles,
+    MenuItem,
+    MenuList,
     mergeClasses,
+    Popover,
+    PopoverSurface,
+    PositioningImperativeRef,
+    Table,
+    TableBody,
+    TableCell,
+    TableHeader,
+    TableHeaderCell,
+    TableRow,
+    Text,
     tokens,
+    Tooltip,
+    useRestoreFocusTarget,
 } from '@fluentui/react-components';
-import { Dismiss16Regular, Lightbulb32Regular, SearchSparkle32Regular } from '@fluentui/react-icons';
+import { Lightbulb32Regular, SearchSparkle32Regular } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { ExtendedAgentClient } from '../../Common/Clients/ExtendedAgentClient';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
+import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
-import { ActivitiesResources, AgentTaskResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
-
-import { IChatBoxFooterProps } from '../Contracts/Activities';
+import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
+import {
+    ActivitiesResources,
+    AgentTaskResources,
+    IncidentManagementResources,
+    PromptResources,
+    SreAgentResources,
+} from '../../Strings/SREAgentResources';
+import { ChatSuggestions } from '../Activities/ChatSuggestions';
+import { IChatBoxFooterProps, Shortcut } from '../Contracts/Activities';
 import { AgentContext, StreamingContext } from '../Contracts/Context';
 import { ExtendedAgent } from '../Contracts/ExtendedAgentGraph';
 import { usePermissionContext } from '../Contracts/PermissionContext';
+import { useThreadList } from '../Hooks/useThreadList';
 import { chatInputTextStyles, useChatInputStyles, useDialogStyles } from '../Styles/Activities.styles';
-
-import { ChatSuggestions } from '../Activities/ChatSuggestions';
 import AgentModeSelector from './AgentModeSelector';
+import { $createShortcutNode, $getShortcutValuefromShortcutNode, $isShortcutNode, ShortcutNode } from './Chat/ShortcutNode';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
-import { SlashCommandMenu } from './SlashCommandMenu';
 
 enum ChatBoxButtonIds {
     DeepInvestigation = 'deep-investigation',
     AgentMode = 'agent-mode',
     PromptLibrary = 'prompt-library',
-}
-
-enum SlashCommandIds {
-    ExtendedAgents = 'extended-agents',
-    ClearThread = 'clear-thread',
-    CompactThread = 'compact-thread',
 }
 
 const useDownButtonStyles = makeStyles({
@@ -68,27 +98,11 @@ const useDownButtonStyles = makeStyles({
     },
 });
 
-const useSlashRowStyles = makeStyles({
-    selectedRow: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: tokens.spacingHorizontalXS,
-        position: 'absolute',
-        bottom: '100%',
-        left: 0,
-        marginBottom: tokens.spacingVerticalXS,
-        zIndex: 3,
-    },
-});
-
 const DownButton = ({ downButtonState, onClick }: { downButtonState: { visible: boolean; flash: boolean }; onClick: () => void }) => {
     const { root, hidden } = useDownButtonStyles();
     const buttonStyles = mergeClasses(root, downButtonState.visible ? undefined : hidden);
     return <ScrollDownButton onClick={onClick} className={buttonStyles} isGenerating={downButtonState.flash} />;
 };
-
-// List of valid slash commands for validation
-const VALID_COMMANDS = ['/extended-agents', '/clear', '/compact'];
 
 const ChatBoxFooter = ({
     sendMessage,
@@ -112,333 +126,604 @@ const ChatBoxFooter = ({
     const [historyIndex, setHistoryIndex] = useState<number>(-1);
     const [originalInput, setOriginalInput] = useState<string>('');
 
-    // slash commands state
-    const [inputValue, setInputValue] = useState<string>('');
-    const [showSlashMenu, setShowSlashMenu] = useState(false);
-    const [activeCommandId, setActiveCommandId] = useState<string | null>(null);
+    const [showShortcutLists, setShowShortcutLists] = useState<boolean>(false);
+    const [selectedShortcut, setSelectedShortcut] = useState<Shortcut | null>(null);
+    const [focusedShortcut, setFocusedShortcut] = useState<Shortcut | null>(null);
+    const [focusedIncident, setFocusedIncident] = useState<Thread | null>(null);
+    const [focusedExtendedAgent, setFocusedExtendedAgent] = useState<string | null>(null);
+    const [searchText, setSearchText] = useState<string>('');
+    const [matchedShortcutString, setMatchedShortcutString] = useState<string | null>(null);
     const [selectedAgentName, setSelectedAgentName] = useState<string | null>(null);
-
-    // Track if we're in the process of updating input
-    const isUpdatingInputRef = useRef(false);
-
-    // lets the SlashCommandMenu own arrow/enter navigation before we do anything else
-    const slashCommandKeyHandlerRef = useRef<((event: React.KeyboardEvent) => boolean) | null>(null);
+    const [extendedAgents, setExtendedAgents] = useState<ExtendedAgent[]>([]);
 
     const showAgentModeSelector = useConfigSetting(SettingNames.ShowAgentModeForThread);
     const { root, chatStatement } = useChatInputStyles();
-    const { selectedRow } = useSlashRowStyles();
 
     const { selectThread } = useContext(AgentContext);
     const { isConnected } = useContext(StreamingContext);
     const { canWriteThreads } = usePermissionContext();
     const { logAmplitudeControlEvent } = useAzPortalContext();
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+
+    const extendedAgentClient = ExtendedAgentClient.getInstance(sreAgentEndpoint);
 
     const imperativeControlPluginRef = useRef<ImperativeControlPluginRef>(null);
-    const basicFunctionalityPluginRef = useRef<BasicFunctionalityPluginRef>(null);
+    const editorRef = useRef<LexicalEditor | null>(null);
+    const chatInputRef = useRef<HTMLDivElement | null>(null);
+    const shortcutMenuPositionRef = useRef<PositioningImperativeRef>(null);
+    const extendedAgentMenuPositionRef = useRef<PositioningImperativeRef>(null);
+    const incidentPopoverPositionRef = useRef<PositioningImperativeRef>(null);
+    const focusedShortcutRef = useRef<Shortcut | null>(null);
+    const focusedExtendedAgentRef = useRef<string | null>(null);
+    const focusedIncidentRef = useRef<Thread | null>(null);
+
+    focusedShortcutRef.current = focusedShortcut;
+    focusedExtendedAgentRef.current = focusedExtendedAgent;
+    focusedIncidentRef.current = focusedIncident;
+
+    const restoreFocusTargetAttribute = useRestoreFocusTarget();
+    const { scrollable } = useScrollableComponentStyles();
 
     const disableInputInteraction = useMemo(
         () => isLoading || !isConnected || isCancellingStreaming || !canWriteThreads,
         [isLoading, isConnected, isCancellingStreaming, canWriteThreads]
     );
 
-    // keep native shortcuts/undo/etc. intact, but disable plugin-level helpers when interaction is blocked
-    useEffect(() => {
-        basicFunctionalityPluginRef.current?.setIsDisabled?.(disableInputInteraction);
-    }, [disableInputInteraction]);
+    const matchedShortcuts = useMemo(() => {
+        return Object.values(Shortcut).filter(
+            shortcut => !matchedShortcutString || shortcut.toLowerCase().startsWith(matchedShortcutString.toLowerCase())
+        );
+    }, [matchedShortcutString]);
 
-    // Function to check if a string starts with any valid command
-    const startsWithValidCommand = useCallback((text: string): boolean => {
-        const normalized = text.trim().toLowerCase();
-        return VALID_COMMANDS.some(cmd => normalized.startsWith(cmd));
-    }, []);
+    const openShortcutList = (matchedString: string) => {
+        setShowShortcutLists(true);
+        setMatchedShortcutString(matchedString);
+        closeShortcutResourcePopover();
+    };
 
-    // Update slash menu visibility based on input
-    const updateSlashMenuVisibility = useCallback(
-        (value: string) => {
-            const trimmed = value.trim();
+    const openShortcutResourcePopover = (shortcut?: Shortcut | null) => {
+        if (shortcut) {
+            setSelectedShortcut(shortcut);
+        }
+        closeShortcutList();
+    };
 
-            if (!trimmed) {
-                // Empty input - close menu
-                setShowSlashMenu(false);
-                setActiveCommandId(selectedAgentName ? SlashCommandIds.ExtendedAgents : null);
-                return;
-            }
+    const closeShortcutList = () => {
+        setShowShortcutLists(false);
+        setFocusedShortcut(null);
+        setMatchedShortcutString(null);
+    };
 
-            if (trimmed === '/') {
-                // Just slash - show menu
-                setShowSlashMenu(true);
-                setActiveCommandId(SlashCommandIds.ExtendedAgents);
-                return;
-            }
+    const closeShortcutResourcePopover = () => {
+        setSelectedShortcut(null);
+        setFocusedIncident(null);
+        setFocusedExtendedAgent(null);
+        setSearchText('');
+    };
 
-            if (trimmed.startsWith('/')) {
-                // Check if it matches any valid command
-                if (startsWithValidCommand(trimmed)) {
-                    setShowSlashMenu(true);
+    const onSelectIncident = useCallback((incident: Thread) => {
+        setFocusedIncident(null);
+        setSelectedShortcut(null);
 
-                    // Update active command
-                    const normalized = trimmed.toLowerCase();
-                    if (normalized.startsWith('/extended-agents')) {
-                        setActiveCommandId(SlashCommandIds.ExtendedAgents);
-                    } else if (normalized.startsWith('/clear')) {
-                        setActiveCommandId(SlashCommandIds.ClearThread);
-                    } else if (normalized.startsWith('/compact')) {
-                        setActiveCommandId(SlashCommandIds.CompactThread);
-                    }
-                } else {
-                    // Starts with slash but doesn't match any command - close menu
-                    setShowSlashMenu(false);
-                    setActiveCommandId(null);
+        editorRef.current?.update(() => {
+            const selection = $getSelection();
+            if ($isRangeSelection(selection)) {
+                const { anchor } = selection;
+                const node: ElementNode = anchor.getNode();
+                const prev = node.getPreviousSibling();
+                const offset = anchor.offset ?? -1;
+
+                if (!$isTextNode(node) || !$isShortcutNode(prev)) {
+                    return;
                 }
-            } else {
-                // Doesn't start with slash - close menu
-                setShowSlashMenu(false);
-                setActiveCommandId(null);
+
+                prev?.remove();
+
+                const rangeSelection = selection.clone();
+                rangeSelection.setTextNodeRange(node, 0, node, offset);
+                $setSelection(rangeSelection);
+                $insertNodes([$createTextNode(incident.title)]);
             }
-        },
-        [selectedAgentName, startsWithValidCommand]
-    );
-
-    // helpers to read/write the ChatInput value through the imperative plugin
-    const setInputText = useCallback(
-        (value: string) => {
-            isUpdatingInputRef.current = true;
-            imperativeControlPluginRef.current?.setInputText(value);
-            setInputValue(value);
-            updateSlashMenuVisibility(value);
-            // Reset the flag after a microtask to ensure the input has been updated
-            Promise.resolve().then(() => {
-                isUpdatingInputRef.current = false;
-            });
-        },
-        [updateSlashMenuVisibility]
-    );
-
-    const getInputText = useCallback(() => {
-        return imperativeControlPluginRef.current?.getInputText() ?? '';
+        });
     }, []);
 
-    const handleEditorContentChange = useCallback(
-        (value: string) => {
-            if (isUpdatingInputRef.current) {
-                return;
-            }
+    const onSelectExtendedAgent = useCallback((agentName: string) => {
+        setFocusedExtendedAgent(null);
+        setSelectedShortcut(null);
+        setSelectedAgentName(agentName);
 
-            setInputValue(value);
-            updateSlashMenuVisibility(value);
-        },
-        [updateSlashMenuVisibility]
+        editorRef.current?.update(() => {
+            const selection = $getSelection();
+            if ($isRangeSelection(selection)) {
+                const { anchor } = selection;
+                const node: ElementNode = anchor.getNode();
+                const prev = node.getPreviousSibling();
+                const offset = anchor.offset ?? -1;
+
+                if (!$isTextNode(node) || !$isShortcutNode(prev)) {
+                    return;
+                }
+
+                prev?.remove();
+
+                const rangeSelection = selection.clone();
+                rangeSelection.setTextNodeRange(node, 0, node, offset);
+                $setSelection(rangeSelection);
+                $insertNodes([$createTextNode('')]);
+            }
+        });
+    }, []);
+
+    const includedSourcesForQueryingIncidents = useMemo(() => [ThreadSource.incident], []);
+
+    const { threads, moreThreadsToLoad, threadListDivRef, intersectionObserverRef, onScroll } = useThreadList(
+        undefined,
+        [],
+        includedSourcesForQueryingIncidents,
+        undefined,
+        undefined,
+        searchText.trim(),
+        'modifiedTimestamp'
     );
 
-    // SEND
     const chatInputHandleSendClick = useCallback(
-        (valueFromSubmit?: string) => {
-            const raw = valueFromSubmit ?? getInputText();
-            const messageToSend = raw.trim();
+        (input?: string) => {
+            const messageToSend = input?.trim() ?? '';
 
-            if (!messageToSend || disableInputInteraction || isTyping) return;
+            if (messageToSend && !disableInputInteraction && !isTyping) {
+                imperativeControlPluginRef.current?.setInputText('');
+                setHistoryIndex(-1);
+                setOriginalInput('');
 
-            // Reset local input state
-            setInputText('');
-            setHistoryIndex(-1);
-            setOriginalInput('');
-            setShowSlashMenu(false);
-            setActiveCommandId(null);
+                const finalMessage = selectedAgentName ? `@${selectedAgentName}: ${messageToSend}` : messageToSend;
+                void sendMessage(finalMessage, selectedAgentName ? { starterAgentName: selectedAgentName } : undefined);
 
-            // For now we can encode selected agent choice inline if needed
-            const finalMessage = selectedAgentName ? `@${selectedAgentName}: ${messageToSend}` : messageToSend;
+                logAmplitudeControlEvent({
+                    targetType: 'button',
+                    targetAction: 'clicked',
+                    targetName: 'sendMessage',
+                    targetFriendlyName: 'Send message',
+                    valueObjectName: SpecialControlValue.CustomerSuppliedData,
+                    valueObjectFriendlyName: SpecialControlValue.CustomerSuppliedData,
+                    metadata: {
+                        threadId,
+                        threadType: threadSource,
+                    },
+                });
+            }
+        },
+        [disableInputInteraction, isTyping, logAmplitudeControlEvent, selectedAgentName, sendMessage, threadId, threadSource]
+    );
 
-            void sendMessage(finalMessage, selectedAgentName ? { starterAgentName: selectedAgentName } : undefined);
+    const onSelectShortcut = useCallback(
+        (shortcut: Shortcut) => {
+            switch (shortcut) {
+                case Shortcut.Clear:
+                    selectThread(null);
+                    return;
+                case Shortcut.Compact:
+                    closeShortcutList();
+                    chatInputHandleSendClick('/compact');
+                    return;
+                case Shortcut.ExtendedAgents:
+                case Shortcut.Incident:
+                    openShortcutResourcePopover(shortcut);
+                    editorRef.current?.update(() => {
+                        const selection = $getSelection();
+                        if (!$isRangeSelection(selection)) {
+                            return;
+                        }
+                        const { anchor } = selection;
+                        const node: ElementNode = anchor.getNode();
 
-            logAmplitudeControlEvent({
-                targetType: 'button',
-                targetAction: 'clicked',
-                targetName: 'sendMessage',
-                targetFriendlyName: 'Send message',
-                valueObjectName: SpecialControlValue.CustomerSuppliedData,
-                valueObjectFriendlyName: SpecialControlValue.CustomerSuppliedData,
-                metadata: {
-                    threadId,
-                    threadType: threadSource,
-                    selectedAgent: selectedAgentName ?? undefined,
-                    commandId: activeCommandId ?? undefined,
-                },
-            });
+                        if (!$isTextNode(node)) {
+                            return;
+                        }
+
+                        const text = node?.getTextContent() ?? '';
+                        const offset = anchor.offset ?? -1;
+                        const currentText = text.substring(0, offset);
+                        const lastSlashIndex = currentText.lastIndexOf('/');
+                        if (lastSlashIndex !== -1) {
+                            const rangeSelection = selection.clone();
+                            rangeSelection.setTextNodeRange(node, lastSlashIndex, node, offset);
+                            $setSelection(rangeSelection);
+
+                            const shortcutNode = $createShortcutNode(`/${shortcut}`, shortcut);
+                            const whitespaceNode = $createTextNode(' ');
+                            $insertNodes([shortcutNode, whitespaceNode]);
+                            whitespaceNode.select(0, 0);
+                        }
+                    });
+                    return;
+            }
+        },
+        [chatInputHandleSendClick, selectThread]
+    );
+
+    //ToDo: replace this with server side filtering
+    const filteredExtendedAgents = useMemo(() => {
+        if (!searchText) return extendedAgents;
+        return extendedAgents.filter(agent => agent.name.toLowerCase().includes(searchText.toLowerCase()));
+    }, [searchText, extendedAgents]);
+
+    const onKeyDown = useCallback(
+        (event: React.KeyboardEvent<HTMLSpanElement>) => {
+            const focusShortcut = (arrowUp: boolean) => {
+                setFocusedShortcut(prev => {
+                    const currentIndex = matchedShortcuts.findIndex(s => s === prev);
+                    if (currentIndex === -1) {
+                        return arrowUp ? matchedShortcuts[matchedShortcuts.length - 1] : matchedShortcuts[0];
+                    } else {
+                        const newIndex = (currentIndex + (arrowUp ? -1 : 1) + matchedShortcuts.length) % matchedShortcuts.length;
+                        return matchedShortcuts[newIndex];
+                    }
+                });
+            };
+
+            const focusIncident = (arrowUp: boolean) => {
+                setFocusedIncident(prev => {
+                    if (threads.length === 0) {
+                        return null;
+                    }
+
+                    const currentIndex = threads.findIndex(t => t.id === prev?.id);
+                    if (currentIndex === -1) {
+                        return arrowUp ? threads[threads.length - 1] : threads[0];
+                    } else {
+                        const newIndex = (currentIndex + (arrowUp ? -1 : 1) + threads.length) % threads.length;
+                        return threads[newIndex];
+                    }
+                });
+            };
+
+            const focusExtendedAgent = (arrowUp: boolean) => {
+                setFocusedExtendedAgent(prev => {
+                    if (filteredExtendedAgents.length === 0) {
+                        return null;
+                    }
+
+                    const currentIndex = filteredExtendedAgents.findIndex(a => a.name === prev);
+                    if (currentIndex === -1) {
+                        return arrowUp ? filteredExtendedAgents[filteredExtendedAgents.length - 1].name : filteredExtendedAgents[0].name;
+                    } else {
+                        const newIndex =
+                            (currentIndex + (arrowUp ? -1 : 1) + filteredExtendedAgents.length) % filteredExtendedAgents.length;
+                        return filteredExtendedAgents[newIndex].name;
+                    }
+                });
+            };
+
+            if (event.key.toLowerCase() === 'g') {
+                // Stop the event from propagating to the global shortcuts
+                event.stopPropagation();
+            } else if (event.key.toLowerCase() === 'enter' && (!event.shiftKey || showShortcutLists || selectedShortcut)) {
+                if (selectedShortcut) {
+                    if (selectedShortcut === Shortcut.Incident && focusedIncidentRef.current) {
+                        onSelectIncident(focusedIncidentRef.current);
+                    }
+
+                    if (selectedShortcut === Shortcut.ExtendedAgents && focusedExtendedAgentRef.current) {
+                        onSelectExtendedAgent(focusedExtendedAgentRef.current);
+                    }
+                } else if (showShortcutLists && focusedShortcutRef.current) {
+                    onSelectShortcut(focusedShortcutRef.current);
+                } else {
+                    chatInputHandleSendClick(imperativeControlPluginRef.current?.getInputText());
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+            } else if (event.key === 'ArrowUp' && (messagePromptsUsed.length > 0 || showShortcutLists || selectedShortcut)) {
+                if (selectedShortcut === Shortcut.Incident) {
+                    focusIncident(true);
+                } else if (selectedShortcut === Shortcut.ExtendedAgents) {
+                    focusExtendedAgent(true);
+                } else if (showShortcutLists) {
+                    focusShortcut(true);
+                } else {
+                    if (historyIndex === -1) {
+                        setOriginalInput(imperativeControlPluginRef.current?.getInputText() || '');
+                        setHistoryIndex(0);
+                        imperativeControlPluginRef.current?.setInputText(messagePromptsUsed[0]);
+                    } else if (historyIndex < messagePromptsUsed.length - 1) {
+                        const newIndex = historyIndex + 1;
+                        setHistoryIndex(newIndex);
+                        imperativeControlPluginRef.current?.setInputText(messagePromptsUsed[newIndex]);
+                    }
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+            } else if (event.key === 'ArrowDown' && (historyIndex >= 0 || showShortcutLists || selectedShortcut)) {
+                if (selectedShortcut === Shortcut.Incident) {
+                    focusIncident(false);
+                } else if (selectedShortcut === Shortcut.ExtendedAgents) {
+                    focusExtendedAgent(false);
+                } else if (showShortcutLists) {
+                    focusShortcut(false);
+                } else {
+                    if (historyIndex > 0) {
+                        const newIndex = historyIndex - 1;
+                        setHistoryIndex(newIndex);
+                        imperativeControlPluginRef.current?.setInputText(messagePromptsUsed[newIndex]);
+                    } else {
+                        setHistoryIndex(-1);
+                        imperativeControlPluginRef.current?.setInputText(originalInput);
+                        setOriginalInput('');
+                    }
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+            }
         },
         [
-            activeCommandId,
-            disableInputInteraction,
-            getInputText,
-            isTyping,
-            logAmplitudeControlEvent,
-            selectedAgentName,
-            sendMessage,
-            setInputText,
-            threadId,
-            threadSource,
+            chatInputHandleSendClick,
+            historyIndex,
+            messagePromptsUsed,
+            originalInput,
+            showShortcutLists,
+            onSelectShortcut,
+            matchedShortcuts,
+            selectedShortcut,
+            threads,
+            onSelectIncident,
+            filteredExtendedAgents,
+            onSelectExtendedAgent,
         ]
     );
+    const columns = useMemo(() => {
+        return [
+            { columnKey: 'id', label: intl.formatMessage(IncidentManagementResources.alertId) },
+            { columnKey: 'title', label: intl.formatMessage(IncidentManagementResources.alertTitle) },
+        ];
+    }, [intl]);
 
-    // KEY HANDLER (centralized) — run this in capture phase so plugins can't swallow keys first
-    const onKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
-            // 1) Let the slash-menu intercept navigation keys first
-            if (showSlashMenu) {
-                const handledBySlash = slashCommandKeyHandlerRef.current?.(event) ?? false;
-                if (handledBySlash) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    return;
-                }
-
-                // Handle Escape to close menu
-                if (event.key === 'Escape') {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    setShowSlashMenu(false);
-                    setActiveCommandId(null);
-                    return;
-                }
-
-                // Prevent arrow keys from moving cursor when menu is open
-                if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    return;
-                }
-            }
-
-            // 2) Global shortcuts interference guard
-            if (event.key.toLowerCase() === 'g') {
-                event.stopPropagation();
-                return;
-            }
-
-            // 3) Enter to send (without Shift)
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                event.stopPropagation();
-                chatInputHandleSendClick();
-                return;
-            }
-
-            // 4) History navigation (only when slash menu is not active)
-            if (!showSlashMenu && event.key === 'ArrowUp' && messagePromptsUsed.length > 0) {
-                event.preventDefault();
-                event.stopPropagation();
-
-                if (historyIndex === -1) {
-                    setOriginalInput(getInputText());
-                    setHistoryIndex(0);
-                    const v = messagePromptsUsed[0];
-                    setInputText(v);
-                } else if (historyIndex < messagePromptsUsed.length - 1) {
-                    const newIndex = historyIndex + 1;
-                    setHistoryIndex(newIndex);
-                    setInputText(messagePromptsUsed[newIndex]);
-                }
-                return;
-            }
-
-            if (!showSlashMenu && event.key === 'ArrowDown' && historyIndex >= 0) {
-                event.preventDefault();
-                event.stopPropagation();
-
-                if (historyIndex > 0) {
-                    const newIndex = historyIndex - 1;
-                    setHistoryIndex(newIndex);
-                    setInputText(messagePromptsUsed[newIndex]);
-                } else {
-                    setHistoryIndex(-1);
-                    setInputText(originalInput);
-                    setOriginalInput('');
-                }
-                return;
-            }
-        },
-        [chatInputHandleSendClick, getInputText, historyIndex, messagePromptsUsed, originalInput, setInputText, showSlashMenu]
-    );
-
-    // Slash-menu callbacks
-    const handleInsertCommand = useCallback(
-        (commandText: string) => {
-            setInputText(commandText);
-            updateSlashMenuVisibility(commandText);
-        },
-        [setInputText, updateSlashMenuVisibility]
-    );
-
-    const handleSlashCommandInvoked = useCallback(
-        (commandId: string) => {
-            setActiveCommandId(commandId);
-
-            if (commandId === SlashCommandIds.ExtendedAgents) {
-                // keep menu open to select an agent
-                return;
-            }
-
-            if (commandId === SlashCommandIds.ClearThread) {
-                selectThread(null);
-            }
-
-            if (commandId === SlashCommandIds.CompactThread) {
-                chatInputHandleSendClick('/compact');
-            }
-
-            // clear/compact are immediate actions
-            setSelectedAgentName(null);
-            setInputText('');
-            setHistoryIndex(-1);
-            setOriginalInput('');
-            setShowSlashMenu(false);
-            setActiveCommandId(null);
-        },
-        [setInputText, selectThread, chatInputHandleSendClick]
-    );
-
-    const handleSelectAgent = useCallback(
-        (agent: ExtendedAgent) => {
-            setSelectedAgentName(agent.name);
-            setInputText(''); // clear input for user to type message
-            setShowSlashMenu(false);
-            setActiveCommandId(null);
-        },
-        [setInputText]
-    );
+    const getShortcutSubtext = (shortcut: Shortcut) => {
+        switch (shortcut) {
+            case Shortcut.ExtendedAgents:
+                return intl.formatMessage(ActivitiesResources.extendedAgentShortcutDescription);
+            case Shortcut.Clear:
+                return intl.formatMessage(ActivitiesResources.clearShortcutDescription);
+            case Shortcut.Compact:
+                return intl.formatMessage(ActivitiesResources.compactShortcutDescription);
+            default:
+                return intl.formatMessage(ActivitiesResources.incidentsShortcutDescription);
+        }
+    };
 
     const handleClearSelectedAgent = useCallback(() => {
-        if (!selectedAgentName) return;
         setSelectedAgentName(null);
-        setActiveCommandId(null);
-    }, [selectedAgentName]);
+    }, []);
+
+    useEffect(() => {
+        extendedAgentClient.getExtendedAgents().then(response => {
+            if (response.isSuccessful) {
+                setExtendedAgents(response.content?.data ?? []);
+            }
+        });
+    }, [sreAgentEndpoint]);
+
+    useEffect(() => {
+        if (chatInputRef.current) {
+            shortcutMenuPositionRef.current?.setTarget(chatInputRef.current);
+            extendedAgentMenuPositionRef.current?.setTarget(chatInputRef.current);
+            incidentPopoverPositionRef.current?.setTarget(chatInputRef.current);
+        }
+    }, [chatInputRef, shortcutMenuPositionRef, extendedAgentMenuPositionRef, incidentPopoverPositionRef]);
+
+    useEffect(() => {
+        const unregister = editorRef.current?.registerCommand(
+            SELECTION_CHANGE_COMMAND,
+            (_, _editor) => {
+                // editor.update(() => {
+                const selection = $getSelection();
+
+                if (!$isRangeSelection(selection) || !selection.isCollapsed()) {
+                    closeShortcutList();
+                    closeShortcutResourcePopover();
+                    return false;
+                }
+
+                const { anchor } = selection;
+
+                if ($isElementNode(anchor.getNode())) {
+                    // If the anchor is in between two decorate nodes, we need to check the previous node
+                    // on parent level to see if the anchor is right after a shortcut node
+                    const element = anchor.getNode();
+                    const shortcutNode = element.getChildAtIndex(anchor.offset - 1);
+
+                    if ($isShortcutNode(shortcutNode)) {
+                        // If the anchor is right after a shortcut node, we open the resource popover
+                        openShortcutResourcePopover($getShortcutValuefromShortcutNode(shortcutNode));
+                    } else {
+                        // Otherwise close all popovers
+                        closeShortcutList();
+                        closeShortcutResourcePopover();
+                    }
+                    return true;
+                }
+
+                if ($isTextNode(anchor.getNode())) {
+                    //If the anchor is inside of a text node, then check if there is any text right after
+                    // the decorate node that does not start with an empty space
+                    const textNode = anchor.getNode();
+                    const shortcutNode = textNode.getPreviousSibling();
+
+                    const text: string = textNode?.getTextContent() ?? '';
+                    const offset = anchor.offset ?? -1;
+
+                    if (offset === -1) {
+                        closeShortcutList();
+                        closeShortcutResourcePopover();
+                        return true;
+                    }
+
+                    const textBeforeAnchor = text.substring(0, offset);
+                    const isShortcutNode = $isShortcutNode(shortcutNode);
+                    const textBeforeAnchorHasLeadingEmptySpace = textBeforeAnchor.length !== 0 && textBeforeAnchor.startsWith(' ');
+
+                    if (isShortcutNode && !textBeforeAnchorHasLeadingEmptySpace) {
+                        // We take the string starting after the shortcut node to the first white space as the search string for searching
+                        // incidents or external agents
+                        openShortcutResourcePopover($getShortcutValuefromShortcutNode(shortcutNode));
+                        const endingSpaceIndex = text.indexOf(' ', offset);
+                        const searchString = text.substring(0, endingSpaceIndex === -1 ? text.length : endingSpaceIndex);
+                        const cleanedSearchString = searchString.replace(/[\u200b\u200c']/g, '').trim();
+                        setSearchText(cleanedSearchString);
+                        return true;
+                    }
+
+                    const currentText = text.substring(0, offset);
+                    const lastSlashIndex = currentText.lastIndexOf('/');
+                    const followedBySpace = offset >= text.length || text[offset] === ' ';
+                    if (lastSlashIndex !== -1 && followedBySpace) {
+                        const textToExamine = currentText.substring(lastSlashIndex + 1);
+                        if (
+                            textToExamine === '' ||
+                            Object.values(Shortcut).some(shortcut => shortcut.toLowerCase().startsWith(textToExamine.toLowerCase()))
+                        ) {
+                            openShortcutList(textToExamine);
+                            closeShortcutResourcePopover();
+                        } else {
+                            closeShortcutList();
+                            closeShortcutResourcePopover();
+                        }
+                    } else {
+                        closeShortcutList();
+                        closeShortcutResourcePopover();
+                    }
+
+                    return true;
+                }
+
+                return false;
+            },
+            COMMAND_PRIORITY_LOW
+        );
+
+        return () => {
+            unregister?.();
+        };
+    }, []);
 
     return (
         <div className={root}>
             <KnowledgeGraphBuildStatus />
             <div className={mergeStyles(chatInputTextStyles.textFieldContainer as IStyle)} style={{ position: 'relative' }}>
-                {/* Selected agent tag row */}
-                {selectedAgentName && (
-                    <div className={selectedRow}>
-                        <Tag appearance="brand">
-                            <Text weight="semibold">
-                                <FormattedMessage {...ActivitiesResources.slashCommandExtendedAgentTagLabel} />: {selectedAgentName}
-                            </Text>
-                        </Tag>
-                        <Button
-                            appearance="subtle"
-                            size="small"
-                            icon={<Dismiss16Regular />}
-                            onClick={handleClearSelectedAgent}
-                            aria-label={intl.formatMessage(ActivitiesResources.slashCommandExtendedAgentRemoveButtonLabel)}
-                        />
-                    </div>
-                )}
-
                 <DownButton downButtonState={downButtonState} onClick={onClickDownButton} />
-
+                <Popover
+                    unstable_disableAutoFocus={true}
+                    open={showShortcutLists}
+                    positioning={{ positioningRef: shortcutMenuPositionRef, position: 'above', align: 'start', offset: 8 }}
+                >
+                    <PopoverSurface style={{ padding: '5px' }}>
+                        <MenuList>
+                            {matchedShortcuts.map(shortcut => {
+                                return (
+                                    <MenuItem
+                                        key={shortcut}
+                                        onMouseDown={e => {
+                                            e.preventDefault();
+                                            onSelectShortcut(shortcut);
+                                        }}
+                                        aria-selected={shortcut === focusedShortcutRef.current}
+                                        subText={getShortcutSubtext(shortcut)}
+                                        style={
+                                            shortcut === focusedShortcutRef.current
+                                                ? { border: `2px ${tokens.colorNeutralForeground1Selected} solid` }
+                                                : undefined
+                                        }
+                                    >
+                                        <Text weight={'semibold'}>{'/' + shortcut}</Text>
+                                    </MenuItem>
+                                );
+                            })}
+                        </MenuList>
+                    </PopoverSurface>
+                </Popover>
+                <Popover
+                    unstable_disableAutoFocus={true}
+                    open={selectedShortcut === Shortcut.ExtendedAgents}
+                    positioning={{ positioningRef: extendedAgentMenuPositionRef, position: 'above', align: 'start', offset: 8 }}
+                >
+                    {filteredExtendedAgents.length > 0 ? (
+                        <PopoverSurface style={{ padding: '5px' }}>
+                            <MenuList>
+                                {filteredExtendedAgents.map(agent => {
+                                    return (
+                                        <ExtendedAgentMenuItem
+                                            key={agent.name}
+                                            agent={agent}
+                                            onSelectExtendedAgent={onSelectExtendedAgent}
+                                            isFocused={agent.name === focusedExtendedAgent}
+                                        />
+                                    );
+                                })}
+                            </MenuList>
+                        </PopoverSurface>
+                    ) : (
+                        <PopoverSurface style={{ padding: '10px 20px' }}>
+                            <Text weight={'semibold'} italic>
+                                <FormattedMessage {...ActivitiesResources.emptyExtendedAgentMessages} />
+                            </Text>
+                        </PopoverSurface>
+                    )}
+                </Popover>
+                <Popover
+                    inline={true}
+                    unstable_disableAutoFocus={true}
+                    open={selectedShortcut === Shortcut.Incident}
+                    positioning={{ positioningRef: incidentPopoverPositionRef, position: 'above', align: 'start', offset: 8 }}
+                >
+                    <PopoverSurface
+                        style={{
+                            minHeight: '300px',
+                            maxHeight: '500px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: tokens.spacingVerticalL,
+                        }}
+                    >
+                        <div className={mergeClasses(scrollable)} ref={threadListDivRef} onScroll={onScroll}>
+                            <Table style={{ minWidth: '510px' }}>
+                                <TableHeader>
+                                    <TableRow>
+                                        {columns.map(column => (
+                                            <TableHeaderCell key={column.columnKey}>
+                                                <Text weight={'semibold'}>{column.label}</Text>
+                                            </TableHeaderCell>
+                                        ))}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {threads.map(thread => (
+                                        <ThreadRow
+                                            key={thread.id}
+                                            thread={thread}
+                                            onSelectIncident={onSelectIncident}
+                                            isFocused={focusedIncident?.id === thread.id}
+                                        />
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            {moreThreadsToLoad && (
+                                <div ref={intersectionObserverRef}>
+                                    <GroundingMenuItemSkeleton />
+                                    <GroundingMenuItemSkeleton />
+                                    <GroundingMenuItemSkeleton />
+                                </div>
+                            )}
+                        </div>
+                    </PopoverSurface>
+                </Popover>
                 <ChatInput
+                    {...restoreFocusTargetAttribute}
+                    root={{ ref: chatInputRef }}
                     aria-label={intl.formatMessage(ActivitiesResources.chatInputAriaLabel)}
                     placeholderValue={<FormattedMessage {...ActivitiesResources.chatInputPlaceholder} />}
+                    customNodes={[ShortcutNode]}
                     contentBefore={
                         <ContentBefore
                             showDeepInvestigationButton={showDeepInvestigationButton}
@@ -455,39 +740,24 @@ const ChatBoxFooter = ({
                             threadSource={threadSource}
                         />
                     }
+                    attachments={
+                        selectedAgentName ? (
+                            <Attachments selectedAgentName={selectedAgentName} handleClearSelectedAgent={handleClearSelectedAgent} />
+                        ) : undefined
+                    }
                     maxLength={1000000000}
                     charactersRemainingMessage={undefined}
                     autoFocus={true}
-                    onKeyDownCapture={onKeyDown}
-                    listbox={
-                        showSlashMenu ? (
-                            <SlashCommandMenu
-                                isOpen={showSlashMenu}
-                                onClose={() => {
-                                    setShowSlashMenu(false);
-                                    setActiveCommandId(null);
-                                }}
-                                onSelectAgent={handleSelectAgent}
-                                inputValue={inputValue}
-                                onInsertCommand={handleInsertCommand}
-                                onCommandInvoked={handleSlashCommandInvoked}
-                                activeCommandId={activeCommandId}
-                                selectedAgentName={selectedAgentName}
-                                onKeyHandlerChange={handler => {
-                                    slashCommandKeyHandlerRef.current = handler;
-                                }}
-                            />
-                        ) : undefined
-                    }
-                    isInSelectionMode={showSlashMenu}
                     disableSend={!canWriteThreads || disableInputInteraction}
                     isSending={isTyping}
                     onSubmit={(_, data) => chatInputHandleSendClick(data.value)}
                     onStop={cancelStreaming}
                     expandButtonLineVisibilityThreshold={3}
+                    onKeyDown={onKeyDown}
+                    aria-activedescendant={focusedShortcut ?? focusedIncident?.id ?? undefined}
                 >
                     <ImperativeControlPlugin ref={imperativeControlPluginRef} />
-                    <BasicFunctionalityPlugin ref={basicFunctionalityPluginRef} onContentChange={handleEditorContentChange} />
+                    <LexicalEditorRefPlugin editorRef={editorRef} />
                 </ChatInput>
             </div>
 
@@ -497,6 +767,105 @@ const ChatBoxFooter = ({
         </div>
     );
 };
+
+const ExtendedAgentMenuItem = memo(
+    (props: { agent: ExtendedAgent; onSelectExtendedAgent: (agentName: string) => void; isFocused: boolean }) => {
+        const rowRef = useRef<HTMLDivElement>(null);
+
+        useEffect(() => {
+            if (props.isFocused) {
+                rowRef.current?.scrollIntoView({ block: 'nearest' });
+            }
+        }, [props.isFocused]);
+
+        return (
+            <MenuItem
+                key={props.agent.name}
+                onMouseDown={e => {
+                    e.preventDefault();
+                    props.onSelectExtendedAgent(props.agent.name);
+                }}
+                aria-selected={props.isFocused}
+                subText={{
+                    children: <>{props.agent.instructions}</>,
+                    style: {
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                    },
+                }}
+                style={props.isFocused ? { border: `2px ${tokens.colorNeutralForeground1Selected} solid` } : undefined}
+            >
+                <Text weight={'semibold'}>{props.agent.name}</Text>
+            </MenuItem>
+        );
+    }
+);
+
+const ThreadRow = memo((props: { thread: Thread; onSelectIncident: (incident: Thread) => void; isFocused: boolean }) => {
+    const rowRef = useRef<HTMLTableRowElement>(null);
+
+    useEffect(() => {
+        if (props.isFocused) {
+            rowRef.current?.scrollIntoView({ block: 'nearest' });
+        }
+    }, [props.isFocused]);
+
+    return (
+        <TableRow
+            ref={rowRef}
+            key={props.thread.id}
+            onClick={() => props.onSelectIncident(props.thread)}
+            aria-selected={props.isFocused}
+            style={props.isFocused ? { border: `2px ${tokens.colorNeutralForeground1Selected} solid` } : undefined}
+        >
+            <TableCell>{props.thread.id}</TableCell>
+            <TableCell>{props.thread.title}</TableCell>
+        </TableRow>
+    );
+});
+
+const Attachments = memo((props: { selectedAgentName: string; handleClearSelectedAgent: () => void }) => {
+    const intl = useIntl();
+
+    return (
+        <AttachmentList
+            maxVisibleAttachments={3}
+            overflowMenuButton={
+                <AttachmentOverflowMenuButton aria-label={intl.formatMessage(ActivitiesResources.removeAttachmentButtonAriaLabel)} />
+            }
+        >
+            <Attachment
+                key={props.selectedAgentName}
+                dismissButton={{
+                    'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
+                        agentName: props.selectedAgentName,
+                    }),
+                    onClick: () => props.handleClearSelectedAgent(),
+                }}
+            >
+                <Tooltip
+                    content={
+                        <FormattedMessage
+                            {...ActivitiesResources.slashCommandExtendedAgentTagLabel}
+                            values={{ agentName: props.selectedAgentName }}
+                        />
+                    }
+                    relationship="label"
+                >
+                    <Text weight="semibold" wrap={false}>
+                        <FormattedMessage
+                            {...ActivitiesResources.slashCommandExtendedAgentTagLabel}
+                            values={{ agentName: props.selectedAgentName }}
+                        />
+                    </Text>
+                </Tooltip>
+            </Attachment>
+        </AttachmentList>
+    );
+});
 
 const ContentBefore = (props: {
     showDeepInvestigationButton: boolean;
@@ -513,7 +882,7 @@ const ContentBefore = (props: {
     threadSource?: string;
 }) => {
     return (
-        <div>
+        <>
             <DeepInvestigationButton
                 showDeepInvestigationButton={props.showDeepInvestigationButton}
                 isDeepInvestigationButtonEnabled={props.isDeepInvestigationButtonEnabled}
@@ -532,7 +901,7 @@ const ContentBefore = (props: {
                 threadId={props.threadId}
                 threadSource={props.threadSource}
             />
-        </div>
+        </>
     );
 };
 
@@ -569,7 +938,7 @@ const DeepInvestigationButton = memo(
                     appearance={isDeepInvestigationTurnedOn ? 'primary' : 'subtle'}
                     shape={'rounded'}
                     onClick={() => onClickDeepInvestigationButton()}
-                    style={{ marginRight: tokens.spacingHorizontalS }}
+                    style={{ marginRight: tokens.spacingHorizontalS, height: '100%' }}
                 />
             )
         );
@@ -797,6 +1166,7 @@ const PromptLibraryButton = memo(
                             disabled={disableInputInteraction || isTyping}
                             shape="rounded"
                             appearance="subtle"
+                            style={{ height: '100%' }}
                         />
                     </Tooltip>
                 </DialogTrigger>

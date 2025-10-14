@@ -945,14 +945,14 @@ export const ActivitiesResources = defineMessages({
     },
     chatPivotHeader: { defaultMessage: 'Chat', id: 'WTrOy3' },
     actionsPivotHeader: { defaultMessage: 'Actions', id: 'wL7VAE' },
-    chatInputPlaceholder: { defaultMessage: 'I want to...', id: 'PxLzzW' },
+    chatInputPlaceholder: { defaultMessage: 'Ask a question or enter a slash(/) to use a command', id: 'ynVolH' },
     slashCommandExtendedAgentFeedback: {
         defaultMessage: 'Ready to start a new chat with extended agent “{agentName}”. Your next message will launch it.',
         id: 'WzNnqa',
     },
     slashCommandExtendedAgentTagLabel: {
-        defaultMessage: 'Starter agent',
-        id: '+UcRHd',
+        defaultMessage: 'Agent: {agentName}',
+        id: 'EdZ3pj',
     },
     slashCommandExtendedAgentRemoveButtonLabel: {
         defaultMessage: 'Remove starter agent',
@@ -967,6 +967,13 @@ export const ActivitiesResources = defineMessages({
         id: 'XKWCS3',
     },
     chatInputAriaLabel: { defaultMessage: 'Chat input', id: 'yFU6JN' },
+    extendedAgentShortcutDescription: { defaultMessage: 'Select an extended agent to assist you with your tasks', id: 'z5Dz7e' },
+    emptyExtendedAgentMessages: { defaultMessage: 'No extended agents available', id: '0iLXks' },
+    clearShortcutDescription: { defaultMessage: 'Start a new thread', id: 'H4K2fv' },
+    compactShortcutDescription: { defaultMessage: 'Compact your conversation', id: 'iN3FtI' },
+    incidentsShortcutDescription: { defaultMessage: 'Select an incident', id: 'RDflWE' },
+    removeAttachmentButtonAriaLabel: { defaultMessage: 'Remove attachment', id: '6SKklv' },
+    removeExtendedAgentAriaLabel: { defaultMessage: 'Remove extended agent: {agentName}', id: 'uMF+CT' },
     knowledgeGraphBuildStatus: {
         defaultMessage: 'Building knowledge about your resources... {percent}% done. You can chat about other topics in the meantime.',
         id: '2Rfala',

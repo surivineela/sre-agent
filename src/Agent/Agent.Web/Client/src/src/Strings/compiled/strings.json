@@ -113,12 +113,6 @@
       "value": "Type"
     }
   ],
-  "+UcRHd": [
-    {
-      "type": 0,
-      "value": "Starter agent"
-    }
-  ],
   "+bJIWo": [
     {
       "type": 0,
@@ -451,6 +445,12 @@
     {
       "type": 0,
       "value": "Agent Response"
+    }
+  ],
+  "0iLXks": [
+    {
+      "type": 0,
+      "value": "No extended agents available"
     }
   ],
   "0ltHAS": [
@@ -1621,6 +1621,12 @@
     {
       "type": 0,
       "value": "User-assigned Managed Identity"
+    }
+  ],
+  "6SKklv": [
+    {
+      "type": 0,
+      "value": "Remove attachment"
     }
   ],
   "6TO45V": [
@@ -2977,6 +2983,16 @@
       "value": "API Management Workspace Contributor"
     }
   ],
+  "EdZ3pj": [
+    {
+      "type": 0,
+      "value": "Agent: "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "EicA1w": [
     {
       "type": 0,
@@ -3311,6 +3327,12 @@
     {
       "type": 0,
       "value": "Azure Service Bus Data Owner"
+    }
+  ],
+  "H4K2fv": [
+    {
+      "type": 0,
+      "value": "Start a new thread"
     }
   ],
   "H5vHIu": [
@@ -4881,12 +4903,6 @@
       "value": "P2"
     }
   ],
-  "PxLzzW": [
-    {
-      "type": 0,
-      "value": "I want to..."
-    }
-  ],
   "PysW/n": [
     {
       "type": 0,
@@ -5117,6 +5133,12 @@
     {
       "type": 0,
       "value": "Close panel"
+    }
+  ],
+  "RDflWE": [
+    {
+      "type": 0,
+      "value": "Select an incident"
     }
   ],
   "RH8rNM": [
@@ -8166,6 +8188,12 @@
       "value": "Kusto Tool"
     }
   ],
+  "iN3FtI": [
+    {
+      "type": 0,
+      "value": "Compact your conversation"
+    }
+  ],
   "iNgloh": [
     {
       "type": 0,
@@ -10454,6 +10482,16 @@
       "value": "All autonomy levels"
     }
   ],
+  "uMF+CT": [
+    {
+      "type": 0,
+      "value": "Remove extended agent: "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "uMNRNl": [
     {
       "type": 0,
@@ -11170,6 +11208,12 @@
       "value": "Managed resource groups"
     }
   ],
+  "ynVolH": [
+    {
+      "type": 0,
+      "value": "Ask a question or enter a slash(/) to use a command"
+    }
+  ],
   "yo67XU": [
     {
       "type": 0,
@@ -11192,6 +11236,12 @@
     {
       "type": 0,
       "value": "Short one-line summary (<=140 chars)"
+    }
+  ],
+  "z5Dz7e": [
+    {
+      "type": 0,
+      "value": "Select an extended agent to assist you with your tasks"
     }
   ],
   "z5cF/O": [

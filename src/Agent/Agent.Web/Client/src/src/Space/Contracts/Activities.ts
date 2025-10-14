@@ -285,3 +285,10 @@ export class AgentTaskNodeSize {
         height: 180,
     };
 }
+
+export enum Shortcut {
+    ExtendedAgents = 'extended-agents',
+    Clear = 'clear',
+    Compact = 'compact',
+    Incident = 'incident',
+}
