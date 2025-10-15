@@ -33,7 +33,7 @@ using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.Kusto.Tools;
-using Agent.Plugins.Link.Tools;
+// using Agent.Plugins.Link.Tools; // LinkTool is not supported
 using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Plugins.Tools;
@@ -446,7 +446,7 @@ public class Program
             .AddSingleton<IKustoPlugin, KustoPlugin>()
             .AddSingleton<DynamicKqlToolsPlugin>()
             .AddTransient<KustoToolType>()
-            .AddTransient<LinkToolType>()
+            // .AddTransient<LinkToolType>() // LinkTool is not supported
             .AddTransient<IAzureSearchClient, AzureSearchClient>()
             .AddTransient<AzureDocSearchPlugin>()
             .AddTransient<SearchPluginDefinition>()

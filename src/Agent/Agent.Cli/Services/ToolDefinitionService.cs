@@ -264,6 +264,7 @@ public static class ToolDefinitionService
         {
             "KustoTool" => "Execute Kusto queries, functions, or scripts against Azure Data Explorer clusters",
             "KustoQuery" => "Execute raw Kusto queries with direct parameter support",
+            // "LinkTool" => "Link tool description", //  LinkTool is not supported
             _ => $"Tool type '{toolTypeName}' implemented by {type.Name}"
         };
     }

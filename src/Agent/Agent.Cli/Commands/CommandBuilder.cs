@@ -184,9 +184,9 @@ public static class CommandBuilder
                 return ShowFormattedSubcommandHelp("Agent Validate", "Validate agent YAML configuration files", cmd,
                     new[] {
                         "srectl agent validate --name MyAgent",
-                        "srectl agent validate --file agents/MyAgent/MyAgent.yaml",
                         "srectl agent validate --all",
-                        "srectl agent validate --all --check-tools"
+                        "srectl agent validate --all --check-tools",
+                        "srectl agent validate --file agents/MyAgent/MyAgent.yaml"
                     });
             return AgentCommandHandlers.HandleValidateCommand(pr);
         });

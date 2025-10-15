@@ -134,7 +134,7 @@ public static class InstructionsFileService
         sb.AppendLine("srectl agent create --name my_agent --instructions \"Agent instructions\" --tools MyTool");
         sb.AppendLine();
         sb.AppendLine("# Validate the agent");
-        sb.AppendLine("srectl agent validate --file agents/my_agent/my_agent.yaml");
+        sb.AppendLine("srectl agent validate --name my_agent");
         sb.AppendLine();
         sb.AppendLine("# Apply the agent to the server");
         sb.AppendLine("srectl agent apply --name my_agent");

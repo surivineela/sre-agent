@@ -221,12 +221,6 @@ The AI will incorporate your custom instructions into the generation process, cr
 
 #### Validate an Agent
 
-Validate a single agent YAML file by path:
-
-```bash
-srectl agent validate --file <path/to/agent.yaml>
-```
-
 Validate an agent by name (uses the default `agents/<name>/<name>.yaml` location):
 
 ```bash
@@ -237,6 +231,12 @@ Validate all agent YAML files in the `agents/` directory:
 
 ```bash
 srectl agent validate --all
+```
+
+Alternatively, validate a specific agent YAML file by path:
+
+```bash
+srectl agent validate --file <path/to/agent.yaml>
 ```
 
 **Validation includes:**
@@ -1229,8 +1229,8 @@ You can also use SRECTL in pre-commit hooks or as part of local developer workfl
 **Q:** Is the `run` command implemented?  
 **A:** No, it currently prints "Not implemented yet."
 
-**Q:** Can I validate a specific agent file?  
-**A:** Yes, use `srectl agent validate --file path/to/agent.yaml` or `srectl agent validate --name AgentName`.
+**Q:** Can I validate a specific agent file?
+**A:** Yes, use `srectl agent validate --name AgentName` or `srectl agent validate --file path/to/agent.yaml`.
 
 ---
 

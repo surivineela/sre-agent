@@ -160,6 +160,7 @@ srectl agent create --name incident_manager \
 # Validate agents
 srectl agent validate --name MyAgent
 srectl agent validate --all
+# Alternative: validate by file path
 srectl agent validate --file agents/my_agent/my_agent.yaml
 
 # Create tools

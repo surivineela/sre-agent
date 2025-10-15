@@ -231,7 +231,7 @@ public static class AgentCommandHandlers
         // Show next steps
         Console.WriteLine();
         ConsoleUI.WriteSection("Next Steps");
-        ConsoleUI.WriteCommand("Validate the agent", $"srectl agent validate --file agents/{name}/{name}.yaml");
+        ConsoleUI.WriteCommand("Validate the agent", $"srectl agent validate --name {name}");
         ConsoleUI.WriteCommand("Apply to server", $"srectl agent apply --name {name}");
         ConsoleUI.WriteCommand("Test the agent", $"srectl agent test --name {name} --message \"Hello\"");
         Console.WriteLine();
@@ -281,7 +281,7 @@ public static class AgentCommandHandlers
         }
         else
         {
-            ConsoleUI.WriteStatus(false, "Please provide --name, --file, or --all to validate agents.");
+            ConsoleUI.WriteStatus(false, "Please provide --name, --all, or --file to validate agents.");
             Environment.Exit(1);
         }
     }

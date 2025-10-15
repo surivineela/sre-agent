@@ -40,8 +40,8 @@ Examples:
   # Validate by agent name (searches in agents/ folder)
   srectl agent validate --name MyAgent
 
-  # Validate a specific agent file path
-  srectl agent validate --file agents/MyAgent/MyAgent.yaml
+  # Validate specific agent by name and check tools
+  srectl agent validate --name KustoAgent --check-tools
 
   # Validate all agent files
   srectl agent validate --all
@@ -49,8 +49,8 @@ Examples:
   # Validate with tool availability checking
   srectl agent validate --all --check-tools
 
-  # Validate specific agent by name and check tools
-  srectl agent validate --name KustoAgent --check-tools";
+  # Alternative: Validate a specific agent file path
+  srectl agent validate --file agents/MyAgent/MyAgent.yaml";
 
         public const string ApplyDescription = @"Apply an agent configuration to the remote server
 

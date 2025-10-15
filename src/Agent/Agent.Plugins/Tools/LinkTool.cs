@@ -8,7 +8,7 @@ using Agent.Plugins.Tools;
 
 namespace Agent.Plugins.Link.Tools
 {
-    [ToolTypeAttribute("LinkTool")]
+    // [ToolTypeAttribute("LinkTool")] //  LinkTool is not supported
     public class LinkToolType : IYamlToolAware
     {
         private LinkToolDefinition? _definition;

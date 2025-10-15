@@ -101,12 +101,12 @@ Validate agent YAML files for correctness and compliance.
 
 **Syntax:**
 ```bash
-srectl agent validate --file <path> | --name <AgentName> | --all
+srectl agent validate --name <AgentName> | --file <path> | --all
 ```
 
 **Parameters:**
-- `--file`: Path to specific agent YAML file to validate
 - `--name`: Validate the agent matching the provided name (looks in `agents/<name>/<name>.yaml`)
+- `--file`: Path to specific agent YAML file to validate (alternative to --name)
 - `--all`: Validate all agent files in the `agents/` directory
 
 **Validation checks:**
@@ -121,8 +121,8 @@ srectl agent validate --file <path> | --name <AgentName> | --all
 
 **Examples:**
 ```bash
-srectl agent validate --file agents/my_agent/my_agent.yaml
 srectl agent validate --name incident_agent
+srectl agent validate --file agents/my_agent/my_agent.yaml
 srectl agent validate --all
 ```
 
