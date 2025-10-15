@@ -1733,6 +1733,7 @@ export const SettingsTabResources = defineMessages({
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
     subAgents: { defaultMessage: 'Sub-agents', id: 'VIn2J0' },
+    mcpServers: { defaultMessage: 'MCP servers', id: 'K9q4Xw' },
     upgradeChannel: { defaultMessage: 'Preview Upgrade Channel', id: 'W6NO8g' },
     upgradeChannelDescription: { defaultMessage: 'Choose the channel for receiving agent updates', id: 'hfqoIO' },
     upgradeChannelStable: { defaultMessage: 'Stable - Receives updates once a month', id: 'bect+9' },
@@ -2496,6 +2497,32 @@ export const SubAgentsResources = defineMessages({
     subAgentCreated: { defaultMessage: 'Sub-Agent "{name}" has been created successfully', id: 'tfuXMw' },
     createSubAgentFailed: { defaultMessage: 'Failed to create sub-agent', id: 'YP06jq' },
     createSubAgentWithMessageFailed: { defaultMessage: 'Failed to create sub-agent with error: {error}', id: '6v8Uj+' },
+});
+
+export const McpServerResources = defineMessages({
+    title: { defaultMessage: 'Connect an MCP server', id: 'fssuHC' },
+    description: {
+        defaultMessage:
+            'Connect a Model Context Protocol (MCP) server to give the agent additional tools and actions for automating incident handling.',
+        id: 'SZMgCd',
+    },
+    learnMore: { defaultMessage: 'Learn more about MCP servers', id: '98A08r' },
+    connectServer: { defaultMessage: 'Connect MCP server', id: 'Euy+fB' },
+    refresh: { defaultMessage: 'Refresh', id: 'rELDbB' },
+    disconnect: { defaultMessage: 'Disconnect', id: 'qj1uhz' },
+    searchPlaceholder: { defaultMessage: 'Search', id: 'xmcVZ0' },
+    serviceTypeFilter: { defaultMessage: 'Service type: All', id: 'rTBfGn' },
+    allServiceTypes: { defaultMessage: 'All', id: 'zQvVDJ' },
+    mcpServersTableAriaLabel: { defaultMessage: 'MCP servers table', id: 'LbkJp1' },
+    name: { defaultMessage: 'MCP server name', id: 'lUAfdH' },
+    serviceType: { defaultMessage: 'Service type', id: 'EN5iMk' },
+    status: { defaultMessage: 'Status', id: 'tzMNF3' },
+    emptyStateTitle: { defaultMessage: 'Add more tools for incident response', id: 'CvGdox' },
+    emptyStateDescription: {
+        defaultMessage: 'Connect an Azure service MCP server to give the agent more tools to resolve an incident.',
+        id: 'w8UjdT',
+    },
+    emptyStateAlt: { defaultMessage: 'MCP server icon', id: '+p60ph' },
 });
 
 export const MemorySearchCardResources = defineMessages({

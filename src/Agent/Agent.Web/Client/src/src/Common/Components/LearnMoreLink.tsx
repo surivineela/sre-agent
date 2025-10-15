@@ -19,6 +19,7 @@ interface LearnMoreLinkProps {
     url: string;
     dontOpenInNewTab?: true;
     dontShowIcon?: true;
+    className?: string;
 }
 
 /**
@@ -29,7 +30,7 @@ interface LearnMoreLinkProps {
  * - Shows icon (`dontShowIcon`)
  */
 export const LearnMoreLink = (props: LearnMoreLinkProps) => {
-    const { linkText, url, dontOpenInNewTab, dontShowIcon } = props;
+    const { linkText, url, dontOpenInNewTab, dontShowIcon, className } = props;
 
     const intl = useIntl();
     const learnMoreLinkStyles = useLearnMoreLinkStyles();
@@ -46,7 +47,7 @@ export const LearnMoreLink = (props: LearnMoreLinkProps) => {
     return (
         <Link href={url} {...coreLinkProps}>
             <span className={learnMoreLinkStyles.root}>
-                <span>{linkText ?? intl.formatMessage(SreAgentResources.getMoreInfo)}</span>
+                <span className={className}>{linkText ?? intl.formatMessage(SreAgentResources.getMoreInfo)}</span>
                 {dontShowIcon ? null : <OpenFilled fontSize={16} />}
             </span>
         </Link>

@@ -13,6 +13,7 @@ export enum SettingNames {
     /** Only used by unit tests */
     ForUnitTests = 'forUnitTests',
     ShowSubAgentsItemInSettings = 'showSubAgentsItemInSettings',
+    McpServer = 'McpServer',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {

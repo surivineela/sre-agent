@@ -167,6 +167,12 @@
       "value": "Add a default incident response plan for the agent to use for Sev3 LiveSite incidents."
     }
   ],
+  "+p60ph": [
+    {
+      "type": 0,
+      "value": "MCP server icon"
+    }
+  ],
   "+uAdUZ": [
     {
       "type": 0,
@@ -605,6 +611,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "1H7sqx": [
+    {
+      "type": 0,
+      "value": "Search"
     }
   ],
   "1HLt0U": [
@@ -2173,6 +2185,12 @@
       "value": "Describe when and why other agents should hand off to this agent..."
     }
   ],
+  "98A08r": [
+    {
+      "type": 0,
+      "value": "Learn more about MCP servers"
+    }
+  ],
   "99OdS3": [
     {
       "type": 0,
@@ -2667,6 +2685,12 @@
       "value": "To change the incident platform, you need to disconnect from PagerDuty. The agent will no longer manage tickets. Are you sure you want to disconnect?"
     }
   ],
+  "CvGdox": [
+    {
+      "type": 0,
+      "value": "Add more tools for incident response"
+    }
+  ],
   "CvWvf+": [
     {
       "type": 0,
@@ -2941,6 +2965,12 @@
       "value": "Failed to load subscriptions."
     }
   ],
+  "EN5iMk": [
+    {
+      "type": 0,
+      "value": "Service type"
+    }
+  ],
   "ENnkRe": [
     {
       "type": 0,
@@ -3039,6 +3069,12 @@
     {
       "type": 0,
       "value": "Azure SRE Agent"
+    }
+  ],
+  "Euy+fB": [
+    {
+      "type": 0,
+      "value": "Connect MCP server"
     }
   ],
   "EwRIOm": [
@@ -3921,6 +3957,12 @@
       "value": "Show"
     }
   ],
+  "K9q4Xw": [
+    {
+      "type": 0,
+      "value": "MCP servers"
+    }
+  ],
   "KAYpG9": [
     {
       "type": 0,
@@ -4153,6 +4195,12 @@
     {
       "type": 0,
       "value": "Describe the schedule"
+    }
+  ],
+  "LbkJp1": [
+    {
+      "type": 0,
+      "value": "MCP servers table"
     }
   ],
   "LnglaU": [
@@ -5423,6 +5471,12 @@
     {
       "type": 0,
       "value": "No common prompts added."
+    }
+  ],
+  "SZMgCd": [
+    {
+      "type": 0,
+      "value": "Connect a Model Context Protocol (MCP) server to give the agent additional tools and actions for automating incident handling."
     }
   ],
   "Sdc+Dp": [
@@ -7798,6 +7852,12 @@
       "value": "Correlation ranges from -1 (inverse) to 1 (direct)"
     }
   ],
+  "fssuHC": [
+    {
+      "type": 0,
+      "value": "Connect an MCP server"
+    }
+  ],
   "ftDEuE": [
     {
       "type": 0,
@@ -8766,6 +8826,12 @@
     {
       "type": 0,
       "value": "Affected resources"
+    }
+  ],
+  "lUAfdH": [
+    {
+      "type": 0,
+      "value": "MCP server name"
     }
   ],
   "lawXja": [
@@ -9844,6 +9910,12 @@
       "value": " over time. The correlation values indicate how strongly these two metrics influence each other."
     }
   ],
+  "rTBfGn": [
+    {
+      "type": 0,
+      "value": "Service type: All"
+    }
+  ],
   "rVtn/e": [
     {
       "type": 0,
@@ -10782,6 +10854,12 @@
     {
       "type": 0,
       "value": "Open incident triggers"
+    }
+  ],
+  "w8UjdT": [
+    {
+      "type": 0,
+      "value": "Connect an Azure service MCP server to give the agent more tools to resolve an incident."
     }
   ],
   "w9tk1A": [

@@ -15,6 +15,7 @@ import DataConnectors from './DataConnectors.ReactView';
 import Identity from './Identity.ReactView';
 import KnowledgeBase from './KnowledgeBase.ReactView';
 import ManagedResources from './ManagedResources.ReactView';
+import McpServer from './McpServer';
 import { useSettingsStyles } from './Styles/Settings.styles';
 import SubAgents from './SubAgents.ReactView';
 
@@ -27,6 +28,7 @@ export enum SettingsKeys {
     Identity = 'identity',
     KnowledgeBase = 'knowledgeBase',
     SubAgents = 'subAgents',
+    McpServers = 'mcpServers',
 }
 
 // Settings uses shared navigation styles with specific maxWidth
@@ -42,6 +44,7 @@ const Settings: FC = () => {
     const showDataConnectors = useConfigSetting(SettingNames.DataConnectors);
     const showKnowledgeBase = useKnowledgeBaseConfig();
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
+    const showMcpServer = useConfigSetting(SettingNames.McpServer);
 
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
 
@@ -101,8 +104,15 @@ const Settings: FC = () => {
             });
         }
 
+        if (showMcpServer) {
+            items.push({
+                name: intl.formatMessage(SettingsTabResources.mcpServers),
+                key: SettingsKeys.McpServers,
+            });
+        }
+
         return items;
-    }, [intl, showDataConnectors, showKnowledgeBase, showSubAgents]);
+    }, [intl, showDataConnectors, showKnowledgeBase, showMcpServer, showSubAgents]);
 
     const onNavigationClick = useCallback(
         (navKey: string) => {
@@ -159,6 +169,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
                     {selectedKey === SettingsKeys.Identity && <Identity />}
                     {selectedKey === SettingsKeys.SubAgents && showSubAgents && <SubAgents />}
+                    {selectedKey === SettingsKeys.McpServers && <McpServer />}
                 </div>
             </div>
         )

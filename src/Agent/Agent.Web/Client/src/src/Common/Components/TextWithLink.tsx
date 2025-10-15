@@ -1,4 +1,4 @@
-import { Link, Text } from '@fluentui/react-components';
+import { Link, makeStyles, mergeClasses, Text } from '@fluentui/react-components';
 import { memo } from 'react';
 import { useIntl } from 'react-intl';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
@@ -15,15 +15,30 @@ export type ITextWithLinkProps = {
     onClick?: () => void;
     /** Applies only when `linkUrl` is in place */
     dontShowLearnMoreLinkIcon?: true;
+    textClassName?: string;
+    linkClassName?: string;
 };
+
+const useTextWithLinkStyles = makeStyles({
+    container: {
+        display: 'inline-block',
+    },
+    text: {
+        marginRight: '4px',
+    },
+    link: {
+        display: 'inline-block',
+    },
+});
 
 export const TextWithLink = memo((props: ITextWithLinkProps) => {
     const intl = useIntl();
+    const styles = useTextWithLinkStyles();
 
     return (
-        <div style={{ display: 'inline-block' }}>
-            <Text style={{ marginRight: 4 }}>{props.text}</Text>
-            <span style={{ display: 'inline-block' }}>
+        <div className={styles.container}>
+            <Text className={mergeClasses(styles.text, props.textClassName)}>{props.text}</Text>
+            <span className={styles.link}>
                 {props.linkUrl ? (
                     <LearnMoreLink url={props.linkUrl} linkText={props.linkText} dontShowIcon={props.dontShowLearnMoreLinkIcon} />
                 ) : (
