@@ -16,7 +16,7 @@ using PagerDutyIncident = Agent.Graph.Interfaces.PagerDutyIncident;
 
 
 namespace Agent.Runtime.Services;
-public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>
+public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident>
 {
     private readonly Container container;
     public PagerDutyIncidentAnalysisService(
@@ -33,15 +33,14 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
         container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     }
 
-    public override async Task<PagerDutyIncidentDocument> AnalyzeIncident(PagerDutyIncidentDocument incidentDocument, object incident)
+    public override async Task<PagerDutyIncidentDocument> AnalyzeIncident(PagerDutyIncidentDocument incidentDocument, PagerDutyIncident incident)
     {
         var filterId = await FetchFilterFromIncident(incidentDocument);
 
-        var pdIncident = (PagerDutyIncident)incident;
-        var rootCause = await GetRootCauseCategory(filterId, pdIncident);
-        var generalSummary = await GetGeneralSummary(pdIncident);
+        var rootCause = await GetRootCauseCategory(filterId, incident);
+        var generalSummary = await GetGeneralSummary(incident);
 
-        incidentDocument.RootCause = rootCause;
+        incidentDocument.AIRootCause = rootCause;
         incidentDocument.GeneralSummary = generalSummary;
         return incidentDocument;
     }

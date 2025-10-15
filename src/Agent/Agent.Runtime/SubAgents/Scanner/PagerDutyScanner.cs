@@ -19,6 +19,7 @@ using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Logging;
 using System.Text.Json;
+using PagerDutyIncident = Agent.Graph.Interfaces.PagerDutyIncident;
 
 namespace Agent.Runtime.SubAgents.Scanner;
 
@@ -30,7 +31,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                               IGraphDatabaseClient graphDbClient,
                               IncidentManagementSettings incidentManagementSettings,
                               IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload> incidentHandlingService,
-                              IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> incidentAnalysisService,
+                              IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident> incidentAnalysisService,
                               IAgentInboundCommunicationService agentInboundCommunicationService):IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
@@ -421,7 +422,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
 
                     // Once incident is mitigated or resolved, do AI analysis
                     if ((incidentDocument.Status.ToLower() == "resolved" || incidentDocument.Status.ToLower() == "closed") &&
-                        (string.IsNullOrWhiteSpace(incidentDocument.RootCause) || string.IsNullOrWhiteSpace(incidentDocument.GeneralSummary)))
+                        (string.IsNullOrWhiteSpace(incidentDocument.AIRootCause) || string.IsNullOrWhiteSpace(incidentDocument.GeneralSummary)))
                     {
                         try
                         {

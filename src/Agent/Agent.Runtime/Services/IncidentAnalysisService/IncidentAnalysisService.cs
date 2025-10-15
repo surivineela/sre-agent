@@ -14,7 +14,10 @@ using JsonConvert = Newtonsoft.Json.JsonConvert;
 
 namespace Agent.Runtime.Services;
 
-public interface IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload> where TIncidentDocument: IIncidentDocument where TIncidentFilterDocumentPayload: IncidentFilterDocumentPayload
+public interface IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident>
+    where TIncidentDocument: IIncidentDocument
+    where TIncidentFilterDocumentPayload: IncidentFilterDocumentPayload
+    where TIncident : class
 {
     void Ingest(IncidentAIData data);
 
@@ -32,7 +35,7 @@ public interface IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocu
 
     Task<DataTable> GetLatestInformation(string handlerId, string incidentId);
 
-    Task<TIncidentDocument> AnalyzeIncident(TIncidentDocument incidentDocument, object incident);
+    Task<TIncidentDocument> AnalyzeIncident(TIncidentDocument incidentDocument, TIncident incident);
 }
 
 // handler information to be logged
@@ -57,13 +60,14 @@ public class IncidentAIData
     public required string InstructionType { get; set; }
 }
 
-public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFilterDocumentPayload>: IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload>
+public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident>: IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident>
     where TIncidentDocument : IIncidentDocument
     where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
+    where TIncident : class
 {
     protected readonly IChatClient _client;
     protected readonly IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload> _incidentManagementService;
-    private readonly ILogger<IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload>> _logger;
+    private readonly ILogger<IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident>> _logger;
     private readonly CoreSettings _coreSettings;
     private readonly ArmHelper _armHelper;
     private readonly IncidentAnalysisLogger _appInsightsLogger;
@@ -78,7 +82,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
         IAgentInboundCommunicationService inboundCommunicationService,
         CoreSettings coreSettings,
         ArmHelper armHelper,
-        ILogger<IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload>> logger)
+        ILogger<IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident>> logger)
     {
         _client = client;
         _incidentManagementService = incidentManagementService;
@@ -187,7 +191,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
                 Status = incidentDoc.Status.ToString().ToLower(),
                 Priority = incidentDoc.Priority,
                 IsMitigatedByAgent = IsMitigatedByAgent(incidentDoc),
-                RootCause = incidentDoc.RootCause,
+                RootCause = incidentDoc.AIRootCause,
                 Summary = incidentDoc.GeneralSummary,
                 ImpactedService = incidentDoc.ImpactedServiceName,
                 RunMode = results["RunMode"]?.ToString() ?? string.Empty,
@@ -406,7 +410,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
         return null;
     }
 
-    public abstract Task<TIncidentDocument> AnalyzeIncident(TIncidentDocument incidentDocument, object incident);
+    public abstract Task<TIncidentDocument> AnalyzeIncident(TIncidentDocument incidentDocument, TIncident incident);
 
     protected abstract bool IsMitigatedByAgent(TIncidentDocument doc);
 

@@ -53,7 +53,7 @@ tools:
   - AddIncidentAttachmentFromFile
   - AddIncidentAttachmentFromContent
   - ListIncidentAttachments
-  - DownloadIncidentAttachment
+  # - DownloadIncidentAttachment
 
 common_prompts:
   - format_guidelines

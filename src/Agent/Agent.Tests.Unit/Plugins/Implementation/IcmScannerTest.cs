@@ -1,6 +1,5 @@
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.ICM;
 using Agent.Core.Services;
 using Agent.Data.DataModels;
 using Agent.Plugins.Interface;
@@ -8,7 +7,9 @@ using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.Scanner;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
+using Microsoft.SREAgent.Incidents.IcM.Model;
 using Moq;
+using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
 
 namespace Agent.Tests.Unit.Plugins.Implementation;
 public class IcmScannerTest
@@ -21,7 +22,7 @@ public class IcmScannerTest
     private readonly Mock<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>> _mockIncidentFilterManagementService;
     private readonly Mock<IAgentInboundCommunicationService> _mockAgentInboundCommunicationService;
     private readonly Mock<IAgentOutboundCommunicationService> _mockAgentOutboundCommunicationService;
-    private readonly Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>> _mockIncidentAnalysisService;
+    private readonly Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload, Incident>> _mockIncidentAnalysisService;
     private readonly Mock<IICMPlugin> _mockIcmPlugin;
     private readonly Mock<Container> _mockContainer;
     private readonly IncidentManagementSettings _incidentManagementSettings;
@@ -38,7 +39,7 @@ public class IcmScannerTest
         _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>>();
         _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
         _mockAgentOutboundCommunicationService = new Mock<IAgentOutboundCommunicationService>();
-        _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>();
+        _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload, Incident>>();
         _mockIcmPlugin = new Mock<IICMPlugin>();
         _incidentManagementSettings = new IncidentManagementSettings
         {
@@ -83,30 +84,18 @@ public class IcmScannerTest
     {
         return new Incident()
         {
-            IncidentId = id,
-            IncidentType = IncidentType.LiveSite, // Replace with a valid IncidentType value
-            CloudInstance = "AzureCloud",
-            Slice = "",
+            Id = long.Parse(id),
+            Type = IncidentType.LiveSite.ToString(), // Replace with a valid IncidentType value
             HitCount = 1,
-            ParentIncidentId = "",
-            Environment = "",
             CreatedBy = "user@example.com",
-            ImpactStartDate = DateTime.UtcNow,
             CreatedDate = DateTime.UtcNow,
             LastModifiedDate = DateTime.UtcNow,
-            Status = IncidentStatus.Active,
-            OwningService = "",
-            OwningServiceId = "",
-            OwningTeam = "",
+            State = "ACTIVE",
             OwningTeamName = "",
-            Owner = "owner@example.com",
-            Severity = "3",
+            Severity = 3,
             Title = title,
             Keywords = "test,incident",
             Summary = "This is a test incident",
-            DiscussionEntry = "Initial discussion",
-            MonitoringRole = "",
-            MonitoringSlice = "",
             SubscriptionId = "",
             Tags = new[] { "" }
         };
@@ -217,7 +206,7 @@ public class IcmScannerTest
         _mockContainer.Setup(c => c.ReadItemAsync<LastScanTimeDoc>(It.IsAny<string>(), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(lastScanTimeDocResponse.Object);
 
-        _mockContainer.Setup(c => c.ReadItemAsync<IcmIncidentDocument>(incident.IncidentId, new PartitionKey(incident.IncidentId), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
+        _mockContainer.Setup(c => c.ReadItemAsync<IcmIncidentDocument>(incident.Id.ToString(), new PartitionKey(incident.Id.ToString()), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new CosmosException("Not Found", System.Net.HttpStatusCode.NotFound, 0, "", 0));
 
         _mockContainer.Setup(c => c.CreateItemAsync(It.IsAny<IcmIncidentDocument>(), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
@@ -249,7 +238,7 @@ public class IcmScannerTest
         }
 
         // Assert
-        _mockContainer.Verify(c => c.CreateItemAsync(It.Is<IcmIncidentDocument>(d => d.Id == incident.IncidentId), It.IsAny<PartitionKey?>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        _mockContainer.Verify(c => c.CreateItemAsync(It.Is<IcmIncidentDocument>(d => d.Id == incident.Id.ToString()), It.IsAny<PartitionKey?>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -284,7 +273,7 @@ public class IcmScannerTest
         mockUpsertResponse.Setup(r => r.Resource).Returns(newDoc);
 
 
-        _mockContainer.Setup(c => c.ReadItemAsync<IcmIncidentDocument>(oldIncident.IncidentId, new PartitionKey(oldIncident.IncidentId), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
+        _mockContainer.Setup(c => c.ReadItemAsync<IcmIncidentDocument>(oldIncident.Id.ToString(), new PartitionKey(oldIncident.Id.ToString()), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mockReadResponse.Object);
         _mockContainer.Setup(c => c.UpsertItemAsync(It.IsAny<IcmIncidentDocument>(), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockUpsertResponse.Object);
@@ -314,6 +303,6 @@ public class IcmScannerTest
         }
 
         // Assert, check if the incident summary was upserted
-        _mockContainer.Verify(c => c.UpsertItemAsync(It.Is<IcmIncidentDocument>(d => d.Id == newIncident.IncidentId && d.Summary == summary), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        _mockContainer.Verify(c => c.UpsertItemAsync(It.Is<IcmIncidentDocument>(d => d.Id == newIncident.Id.ToString() && d.Summary == summary), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 }

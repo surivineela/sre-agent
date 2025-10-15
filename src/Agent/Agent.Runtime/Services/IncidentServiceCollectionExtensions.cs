@@ -7,19 +7,24 @@ using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.ServiceNow;
 using Agent.Core.Services;
-using Agent.Core.Services.TokenService;
 using Agent.Data.DataModels;
+using Agent.Data.DataModels.IncidentModel;
 using Agent.Data.Interface.IncidentAPI;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents.Scanner;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-namespace Agent.Runtime.Services;
+using Microsoft.SREAgent.Incidents.IcM.Model;
+using Microsoft.SREAgent.Incidents.IcM.Service;
+using IICMAPIClient = Agent.Core.Services.IICMAPIClient;
 
+
+namespace Agent.Runtime.Services;
 public static class IncidentServiceCollectionExtensions
 {
     private static IServiceCollection AddDefaultIncidentApiClientsAndScanner(this IServiceCollection services)
@@ -48,7 +53,7 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentHandlingService<AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentManagementService>();
                 services.AddSingleton<IIncidentFilterManagementService<AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentFilterManagementService>();
-                services.AddSingleton<IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentAnalysisService>();
+                services.AddSingleton<IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem>, AzMonitorIncidentAnalysisService>();
                 break;
 
             case IncidentManagementType.PagerDuty:
@@ -58,27 +63,18 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentManagementService>();
                 services.AddSingleton<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentFilterManagementService>();
-                services.AddSingleton<IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentAnalysisService>();
+                services.AddSingleton<IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident>, PagerDutyIncidentAnalysisService>();
                 break;
 
             case IncidentManagementType.Icm:
-                services.AddSingleton<LoggingHttpMessageHandler>();
-                services.AddSingleton<IICMAPIClient, ICMAPIClient>();
-                services.AddSingleton<IIncidentScanner, IcmScanner>();
+                services.AddICMClientRelatedServices();
 
-                var logger = serviceProvider.GetRequiredService<ILogger<ICMAPITokenService>>();
-                var actionSettings = serviceProvider.GetRequiredService<ActionSettings>();
-                var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
-                // Check if Agent Space Proxy endpoint is configured
-                var azureSettings = serviceProvider.GetRequiredService<AzureSettings>();
-                var agentSpaceProxyEndpoint = azureSettings.AgentSpaceProxy?.Endpoint;
-                var dataConnectorInstanceSettings = serviceProvider.GetRequiredService<CoreSettings>().DataConnectors;
-                ICMAPITokenService.Instance.Initialize(authService, actionSettings, incidentManagementSettings, logger, agentSpaceProxyEndpoint, dataConnectorInstanceSettings);
+                services.AddSingleton<IIncidentScanner, IcmScanner>();
 
                 services.AddSingleton<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>, IcmIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentManagementService>();
                 services.AddSingleton<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentFilterManagementService>();
-                services.AddSingleton<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentAnalysisService>();
+                services.AddSingleton<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload, ICMIncident>, IcmIncidentAnalysisService>();
                 break;
 
             case IncidentManagementType.ServiceNow:
@@ -88,7 +84,7 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentManagementService>();
                 services.AddSingleton<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentFilterManagementService>();
-                services.AddSingleton<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentAnalysisService>();
+                services.AddSingleton<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>, ServiceNowIncidentAnalysisService>();
                 break;
 
             case IncidentManagementType.None:
@@ -107,6 +103,83 @@ public static class IncidentServiceCollectionExtensions
         services.AddSingleton<IIncidentFilterManagementServiceFactory, IncidentFilterManagementServiceFactory>();
         services.AddSingleton<IIncidentManagementServiceFactory, IncidentManagementServiceFactory>();
         services.AddSingleton<IIncidentHandlingServiceFactory, IncidentHandlingServiceFactory>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddICMClientRelatedServices(this IServiceCollection services)
+    {
+
+        var serviceProvider = services.BuildServiceProvider();
+        var incidentManagementSettings = serviceProvider.GetRequiredService<IncidentManagementSettings>();
+        var icmAppsettings = incidentManagementSettings.ICMAPI;
+        var dataConnectorInstanceSettings = serviceProvider.GetRequiredService<CoreSettings>().DataConnectors;
+
+        // Check if there's an AgentSpace ICM data connector configured, get first one since we only support one for now
+        var agentSpaceIcmConnector = dataConnectorInstanceSettings?
+            .FirstOrDefault(dc => dc.Source == DataConnectorSource.AgentSpace &&
+                                 dc.DataConnectorType.Equals("icm", StringComparison.OrdinalIgnoreCase));
+
+
+        string agentSpaceEndpoint = serviceProvider.GetRequiredService<AzureSettings>().AgentSpaceProxy?.Endpoint ?? string.Empty;
+        string agentSpaceResourceId = agentSpaceIcmConnector?.Identity ?? string.Empty;
+
+        string scope = icmAppsettings.IcmMSIResource;
+        string apiEndpoint = icmAppsettings.APIEndpoint;
+
+        //For E2E test, overwrite apiEndpoint with scope and disable Agent Space Proxy
+        if (!string.IsNullOrEmpty(incidentManagementSettings.ConnectionUrl))
+        {
+            apiEndpoint = incidentManagementSettings.ConnectionUrl ?? string.Empty;
+            agentSpaceEndpoint = string.Empty;
+            scope = incidentManagementSettings.ConnectionName ?? string.Empty;
+        }
+        
+        var icmAPISDKApiOptions = new ICMApiOptions()
+        {
+            ApiEndpoint = apiEndpoint
+        };
+
+        var icmAgentSpaceAuthOptions = new ICMAgentSpaceAuthOptions()
+        {
+            AgentSpaceProxyEndpoint = agentSpaceEndpoint,
+            ResourceId = agentSpaceResourceId,
+            Scope = $"{icmAppsettings.IcmMSIResource}/.default",
+        };
+
+        // if UserToken is not null -> local development, use user token from appsettings
+        // else if Agent Space Proxy is configured, use ICMAPIAgentSpaceTokenService
+        // else if cert auth is configured, use ICMAPICertAuthService
+        // else use Managed Identity
+        if (!string.IsNullOrWhiteSpace(icmAppsettings.UserToken))
+        {
+            var authOptions = new ICMLocalAuthOptions()
+            {
+                Token = icmAppsettings.UserToken,
+            };
+            services.AddICMAPIServicesWithTokenAuth(authOptions, icmAPISDKApiOptions);
+        }
+        else if (ICMAPIAgentSpaceTokenAuthService.IsAgentSpaceProxyConfigured(icmAgentSpaceAuthOptions))
+        {
+            services.AddSingleton<ICMAgentSpaceAuthOptions>(icmAgentSpaceAuthOptions);
+            services.AddICMAPIServicesWithTokenAuth<ICMAPIAgentSpaceTokenAuthService>(icmAPISDKApiOptions);
+        }
+        else if (ICMAPICertAuthService.IsCertAuthConfigured(icmAppsettings))
+        {
+            services.AddICMAPIServicesWithCertAuth<ICMAPICertAuthService>(icmAPISDKApiOptions);
+        }
+        else
+        {
+            var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
+            var tokenAuthOptions = new ICMTokenAuthOptions()
+            {
+                TokenCredential = authService.GetIcmApiCredential(),
+                Scope = scope,
+            };
+            services.AddICMAPIServicesWithTokenAuth(tokenAuthOptions, icmAPISDKApiOptions);
+        }
+        services.AddHttpHandlerForICMClient<LoggingHttpMessageHandler>();
+        services.AddSingleton<IICMAPIClient, ICMAPIClient>();
 
         return services;
     }

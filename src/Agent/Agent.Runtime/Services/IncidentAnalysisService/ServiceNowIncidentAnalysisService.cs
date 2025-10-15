@@ -6,7 +6,6 @@ using System.Net;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.ICM;
 using Agent.Core.Models.ServiceNow;
 using Agent.Data;
 using Agent.Data.DataModels;
@@ -18,7 +17,7 @@ using Container = Microsoft.Azure.Cosmos.Container;
 
 namespace Agent.Runtime.Services;
 
-public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>
+public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>
 {
     private readonly Container container;
     public ServiceNowIncidentAnalysisService(
@@ -35,15 +34,14 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
         container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     }
 
-    public override async Task<ServiceNowIncidentDocument> AnalyzeIncident(ServiceNowIncidentDocument incidentDocument, object incident)
+    public override async Task<ServiceNowIncidentDocument> AnalyzeIncident(ServiceNowIncidentDocument incidentDocument, ServiceNowIncident incident)
     {
         var filterId = await FetchFilterFromIncident(incidentDocument);
 
-        var pdIncident = (ServiceNowIncident)incident;
-        var rootCause = await GetRootCauseCategory(filterId, pdIncident);
-        var generalSummary = await GetGeneralSummary(pdIncident);
+        var rootCause = await GetRootCauseCategory(filterId, incident);
+        var generalSummary = await GetGeneralSummary(incident);
 
-        incidentDocument.RootCause = rootCause;
+        incidentDocument.AIRootCause = rootCause;
         incidentDocument.GeneralSummary = generalSummary;
         return incidentDocument;
     }
@@ -72,7 +70,7 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
         // var latestDiscussionEntries = await serviceNowApiClient.GetIncidentDiscussionEntriesAsync(incidentDocument.IncidentSystemId);
 
         ServiceNowIncidentDocument? existingIncidentDocument = await _incidentManagementService.GetIncidentDetails(incident.Number);
-        var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<DiscussionEntry>();
+        var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<ServiceNowDiscussionEntry>();
 
         var newNotes = existingDiscussionEntries.Select(entry => entry.Text).ToList();
         return $@"Title: {incident.Title}\n

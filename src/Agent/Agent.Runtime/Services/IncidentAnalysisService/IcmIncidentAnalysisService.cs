@@ -5,18 +5,18 @@
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.ICM;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Microsoft.Azure.Cosmos;
+using Microsoft.AzureAd.Icm.Types;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Incident = Agent.Core.Models.ICM.Incident;
+using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
 
 namespace Agent.Runtime.Services;
 
-public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>
+public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmIncidentDocument, IcmIncidentFilterDocumentPayload, Incident>
 {
     private readonly ILogger<IcmIncidentAnalysisService> _logger;
     private readonly Container container;
@@ -36,18 +36,16 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
     }
 
 
-    public override async Task<IcmIncidentDocument> AnalyzeIncident(IcmIncidentDocument incidentDocument, object incident)
+    public override async Task<IcmIncidentDocument> AnalyzeIncident(IcmIncidentDocument incidentDocument, Incident incident)
     {
         var filterId = await FetchFilterFromIncident(incidentDocument);
 
-        var icmIncident = (Incident)incident;
-        var rootCause = await GetRootCauseCategory(filterId, icmIncident);
-        var generalSummary = await GetGeneralSummary(icmIncident);
+        var rootCause = await GetRootCauseCategory(filterId, incident);
+        var generalSummary = await GetGeneralSummary(incident);
 
-        incidentDocument.RootCause = rootCause;
+        incidentDocument.AIRootCause = rootCause;
         incidentDocument.GeneralSummary = generalSummary;
         return incidentDocument;
-
     }
 
     protected override bool IsMitigatedByAgent(IcmIncidentDocument icmIncident)
@@ -55,7 +53,7 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
         bool isMitigatedByAgent = false;
         string status;
 
-        status = icmIncident.Status.ToString().ToLower();
+        status = icmIncident.Status;
         isMitigatedByAgent = (status == "mitigated" || status == "resolved") && ((icmIncident.MitigateData?.MitigatedBy.Contains("agent") ?? false) ||
             icmIncident.Tags.Contains("SREAgent_Mitigated"));
 
@@ -132,16 +130,15 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
 
     private async Task<string> IncidentOverview(Incident incident)
     {
-        IcmIncidentDocument? existingIncidentDocument = await _incidentManagementService.GetIncidentDetails(incident.IncidentId);
-        var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<DiscussionEntry>();
+        IcmIncidentDocument? existingIncidentDocument = await _incidentManagementService.GetIncidentDetails(incident.Id.ToString());
+        var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<DescriptionEntry>();
         var notes = existingDiscussionEntries
-                .Select(entry => new IncidentDiscussion(entry.IncidentId, entry.Text, entry.ChangedBy, entry.ChangedBy, entry.Date))
+                .Select(entry => new IncidentDiscussion(entry.DescriptionEntryId.ToString(), entry.Text, entry.ChangedBy, entry.ChangedBy, entry.Date))
                 .ToList();
 
         return $@"Title: {incident.Title}\n
         Mitigation Steps: {incident.MitigateData?.MitigationSteps}\n
         Summary: {incident.Summary}\n
-        DiscussionEntry: {incident.DiscussionEntry}\n
         Notes: {JsonConvert.SerializeObject(notes)}";
     }
 

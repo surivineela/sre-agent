@@ -4,13 +4,16 @@
 
 using System.ComponentModel;
 using System.Text.RegularExpressions;
-using Agent.Core.Models.ICM;
-using Agent.Core.Services;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Interface;
+using Microsoft.AzureAd.Icm.Types;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+
+
+using Microsoft.SREAgent.Incidents.IcM.Model;
+using IICMAPIClient = Agent.Core.Services.IICMAPIClient;
 
 namespace Agent.Plugins.IcmPlugin;
 public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
@@ -76,13 +79,13 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
         };
     }
 
-    public async Task<Incident?> GetIncidentInfo(string incidentId)
+    public async Task<ICMIncident?> GetIncidentInfo(string incidentId)
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        Incident? incident = await _icmApiClient.GetIncidentAsync(incidentId);
-        if (incident != null)
+        ICMIncident? incident = await _icmApiClient.GetIncidentAsync(incidentId);
+        if (incident is not null)
         {
-            incident.DiscussionEntry = RemoveImageTags(incident.DiscussionEntry);
+            incident.Description = RemoveImageTags(incident.Description);
             incident.Summary = RemoveImageTags(incident.Summary);
         }
         stopwatch.Stop();
@@ -90,21 +93,21 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
         return incident;
     }
 
-    public async Task<List<DiscussionEntry>?> GetDiscussionEntries(
+    public async Task<List<DescriptionEntry>?> GetDiscussionEntries(
         string incidentId,
         DateTimeOffset queryFrom)
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        List<DiscussionEntry> allDiscussionEntries = await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId) ?? new List<DiscussionEntry>();
+        List<DescriptionEntry> allDiscussionEntries = await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId) ?? new List<DescriptionEntry>();
 
         // Filter discussion entries based on queryFrom date
-        List<DiscussionEntry> discussionEntries = allDiscussionEntries
+        List<DescriptionEntry> discussionEntries = allDiscussionEntries
             .Where(entry => entry.Date >= queryFrom.DateTime)
             .ToList();
 
         foreach (var discussionEntry in discussionEntries)
         {
-            if (discussionEntry.Text != null && discussionEntry.IsHtml)
+            if (discussionEntry.Text != null && discussionEntry.RenderType == DescriptionTextRenderType.Html)
             {
                 discussionEntry.Text = RemoveImageTags(discussionEntry.Text);
             }

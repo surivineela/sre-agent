@@ -1,7 +1,11 @@
 using System.ComponentModel;
 using Agent.Core.Models;
-using Agent.Core.Models.ICM;
 using Agent.Plugins.Interface;
+using Microsoft.AzureAd.Icm.IcmV3OData.Models;
+using Microsoft.AzureAd.Icm.Types;
+using Microsoft.SREAgent.Incidents.IcM.Model;
+using Attachment = Microsoft.AzureAd.Icm.IcmV3OData.Models.Attachment;
+using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
 
 namespace Agent.Plugins.Definitions;
 
@@ -60,7 +64,7 @@ public class ICMPluginDefinition
 
 
     [Description("Get Azure Alerting discussion entry")]
-    public async Task<DiscussionEntry?> GetAlertingDiscussionEntry(
+    public async Task<DescriptionEntry?> GetAlertingDiscussionEntry(
         [Description("Incident ID")] string incidentId)
     {
         return await _icmPlugin.GetAlertingDiscussionEntry(incidentId);
@@ -68,7 +72,7 @@ public class ICMPluginDefinition
 
 
     [Description("Get ICM discussion entries")]
-    public async Task<List<DiscussionEntry>> GetDiscussionEntries(
+    public async Task<List<DescriptionEntry>> GetDiscussionEntries(
         [Description("Incident ID")] string incidentId)
     {
         return await _icmPlugin.GetDiscussionEntries(incidentId);
@@ -158,7 +162,7 @@ public class ICMPluginDefinition
 
 
     [Description("Get repair items associated with an ICM incident")]
-    public async Task<List<IncidentRepairItem>> GetIncidentRepairItems(
+    public async Task<List<ExternalLink>> GetIncidentRepairItems(
         [Description("Incident ID")] long incidentId)
     {
         return await _icmPlugin.GetIncidentRepairItems(incidentId);
@@ -247,11 +251,11 @@ public class ICMPluginDefinition
         return await _icmPlugin.ListIncidentAttachments(incidentId);
     }
 
-    [Description("Download an attachment from an ICM incident. For text files (.txt, .log, .csv) under 1MB, returns content as string. Larger files or other types are saved locally.")]
-    public async Task<string> DownloadIncidentAttachment(
-        [Description("Incident ID")] string incidentId,
-        [Description("Attachment ID to download")] string attachmentId)
-    {
-        return await _icmPlugin.DownloadIncidentAttachment(incidentId, attachmentId);
-    }
+    //[Description("Download an attachment from an ICM incident. For text files (.txt, .log, .csv) under 1MB, returns content as string. Larger files or other types are saved locally.")]
+    //public async Task<string> DownloadIncidentAttachment(
+    //    [Description("Incident ID")] string incidentId,
+    //    [Description("Attachment ID to download")] string attachmentId)
+    //{
+    //    return await _icmPlugin.DownloadIncidentAttachment(incidentId, attachmentId);
+    //}
 }

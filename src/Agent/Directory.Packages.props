@@ -6,7 +6,7 @@
     <PackageVersion Include="Antares.Azure.ResourceManager.AppContainers" Version="2024.10.2.4" />
     <PackageVersion Include="antares.kubectl" Version="1.20.10" />
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.3.0-beta.1" />
-    <PackageVersion Include="Azure.Core" Version="1.47.1" />
+    <PackageVersion Include="Azure.Core" Version="1.48.0" />
     <PackageVersion Include="Azure.Data.AppConfiguration" Version="1.4.1" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
     <PackageVersion Include="Azure.Identity" Version="1.13.2" />
@@ -81,7 +81,9 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.5" />
     <PackageVersion Include="Microsoft.AspNetCore.OData" Version="9.2.0" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.5" />
-    <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="13.0.1" />
+    <PackageVersion Include="Microsoft.AzureAd.Icm.IcmV3ODataModels" Version="4.0.2966.57" />
+    <PackageVersion Include="Microsoft.AzureAd.Icm.Types" Version="4.0.2966.57" />
+    <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="13.0.2" />
     <PackageVersion Include="Microsoft.Bot.Builder" Version="4.22.7" />
     <PackageVersion Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.22.7" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.1" />
@@ -92,18 +94,18 @@
     <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.8.0" />
     <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="9.8.0-preview.1.25412.6" />
     <PackageVersion Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.8" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="9.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="9.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="9.0.8" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="9.2.0" />
     <PackageVersion Include="Microsoft.FeatureManagement" Version="3.5.0" />
     <PackageVersion Include="Microsoft.Internal.AntiSSRF" Version="1.1.18" />
@@ -113,6 +115,7 @@
     <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="1.64.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.64.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.55.0-preview" />
+    <PackageVersion Include="Microsoft.SREAgent.Incidents.IcM" Version="1.0.13" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
     <PackageVersion Include="ModelContextProtocol" Version="0.3.0-preview.4" />
     <PackageVersion Include="Npgsql" Version="9.0.3" />

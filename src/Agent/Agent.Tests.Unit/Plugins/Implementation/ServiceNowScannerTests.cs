@@ -24,7 +24,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         private readonly Mock<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>> _mockIncidentManagementService;
         private readonly Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>> _mockIncidentFilterManagementService;
         private readonly Mock<IAgentInboundCommunicationService> _mockAgentInboundCommunicationService;
-        private readonly Mock<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>> _mockIncidentAnalysisService;
+        private readonly Mock<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>> _mockIncidentAnalysisService;
         private readonly CosmosDBSettings _cosmosDbSettings;
 
         public ServiceNowScannerTests()
@@ -37,7 +37,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockIncidentManagementService = new Mock<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>();
             _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>>();
             _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
-            _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>();
+            _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>>();
 
 
             _cosmosDbSettings = new CosmosDBSettings

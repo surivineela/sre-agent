@@ -55,7 +55,7 @@ public record AzMonitorAlertDocument : IIncidentDocument
 
     public string ExtractedKnowledge { get; set; } = string.Empty;
 
-    public string RootCause { get; set; } = string.Empty;
+    public string AIRootCause { get; set; } = string.Empty;
 
     public string GeneralSummary { get; set; } = string.Empty;
 
@@ -76,7 +76,6 @@ public record AzMonitorAlertDocument : IIncidentDocument
             Id = alertIdentifier.Name ?? string.Empty, // ['/', '\', '#'] cannot be used in cosmos db document ID, so only using the alert guid
             AlertId = alert.Id, // resource Id for the fired alert
             Title = alertRuleResourceId.Name ?? string.Empty, // only get the Alert Rule Name
-            Severity = essentials?.Severity ?? string.Empty,
             Properties = alert.Properties,
             Priority = essentials?.Severity ?? string.Empty,
             Status = essentials?.AlertState ?? string.Empty,

@@ -6,12 +6,13 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
+using Agent.Data.DataModels.IncidentModel;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
 
-public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>
+public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem>
 {
     public AzMonitorIncidentAnalysisService(
         IChatClient client,
@@ -20,12 +21,12 @@ public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMo
         IAgentInboundCommunicationService inboundCommunicationService,
         CoreSettings coreSettings,
         ArmHelper armHelper,
-        ILogger<IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>> logger)
+        ILogger<IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem>> logger)
         : base(client, incidentManagementService, repository, inboundCommunicationService, coreSettings, armHelper, logger)
     {
     }
 
-    public override async Task<AzMonitorAlertDocument> AnalyzeIncident(AzMonitorAlertDocument incidentDocument, object incident)
+    public override async Task<AzMonitorAlertDocument> AnalyzeIncident(AzMonitorAlertDocument incidentDocument, AlertItem incident)
     {
         // For now, return the incident document as-is
         // This can be enhanced with AI analysis capabilities later

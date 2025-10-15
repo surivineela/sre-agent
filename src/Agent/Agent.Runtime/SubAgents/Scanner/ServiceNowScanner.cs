@@ -6,7 +6,6 @@ using System.Net;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Models.ICM;
 using Agent.Core.Models.ServiceNow;
 using Agent.Data;
 using Agent.Data.DataModels;
@@ -28,7 +27,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
     IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> incidentManagementService,
     IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService,
-    IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> incidentAnalysisService) : IIncidentScanner
+    IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident> incidentAnalysisService) : IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     private const uint PageSize = 20;
@@ -193,7 +192,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 {
                     updatedDoc.Tags = incidentDocument.Tags;
 
-                    if (string.IsNullOrWhiteSpace(incidentDocument.RootCause) || string.IsNullOrWhiteSpace(incidentDocument.GeneralSummary))
+                    if (string.IsNullOrWhiteSpace(incidentDocument.AIRootCause) || string.IsNullOrWhiteSpace(incidentDocument.GeneralSummary))
                     {
                         try
                         {
@@ -418,7 +417,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 }
 
                 var existingIncidentDocument = await incidentManagementService.GetIncidentDetails(incidentDocument.Id);
-                var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<DiscussionEntry>();
+                var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<ServiceNowDiscussionEntry>();
                 // Keep using IncidentId (sys_id) for API calls to get discussion entries
                 var latestDiscussionEntries = await serviceNowApiClient.GetIncidentDiscussionEntriesAsync(incidentDocument.IncidentSystemId);
 

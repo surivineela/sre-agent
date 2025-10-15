@@ -11,10 +11,11 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using Agent.Core.Configuration;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+using PagerDutyIncident = Agent.Graph.Interfaces.PagerDutyIncident;
 
 namespace Agent.Runtime.Services;
 
-public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>
+public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident>
 {
     private readonly IPagerDutyService _pagerDutyService;
     private readonly IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> _pagerDutyincidentManagementService;
@@ -25,7 +26,7 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
         IThreadRepository repository,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> incidentAnalysisService,
+        IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident> incidentAnalysisService,
         ILogger<PagerDutyIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> pagerDutyincidentManagementService,

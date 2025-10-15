@@ -31,7 +31,7 @@ using Thread = Agent.Core.Models.Api.v1.Thread;
 /// <summary>
 /// Extend IncidentHandlingServiceBase is for GetIncidentFilterAndHandlerAsync only
 /// </summary>
-public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>
+public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem>
 {
 
     private readonly IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload> _incidentManagementService;
@@ -56,7 +56,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload> incidentAnalysisService,
+        IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem> incidentAnalysisService,
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings

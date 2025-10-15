@@ -3,12 +3,12 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
-using Agent.Core.Models.ICM;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
+using Microsoft.SREAgent.Incidents.IcM.Model;
 
 namespace Agent.Runtime.Services;
 
@@ -97,7 +97,7 @@ public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmInc
                 filter = request?.Filter;
             }
 
-            List<Incident> incidents = new List<Incident>();
+            List<ICMIncident> incidents = new List<ICMIncident>();
             if (filter is not null)
             {
                 incidents = await _icmApiClient.GetIncidentsAsync(

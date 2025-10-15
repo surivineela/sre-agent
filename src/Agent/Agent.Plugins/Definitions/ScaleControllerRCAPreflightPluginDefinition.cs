@@ -4,12 +4,11 @@
 
 using System.ComponentModel;
 using Agent.Core.Models;
-using Agent.Core.Models.ICM;
-using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
+using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
 
 namespace Agent.Plugins.Definitions
 {

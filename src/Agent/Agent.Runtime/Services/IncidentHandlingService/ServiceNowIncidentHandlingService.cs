@@ -5,6 +5,7 @@
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Models.ServiceNow;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Microsoft.Extensions.Logging;
@@ -16,7 +17,7 @@ namespace Agent.Runtime.Services;
 /// <summary>
 /// Handles ServiceNow-specific incident processing
 /// </summary>
-public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>
+public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>
 {
     private readonly IServiceNowAPIClient _serviceNowAPIClient;
     private readonly IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> _serviceNowIncidentManagementService;
@@ -27,7 +28,7 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         IThreadRepository repository,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> incidentAnalysisService,
+        IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident> incidentAnalysisService,
         ILogger<ServiceNowIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> serviceNowIncidentManagementService,

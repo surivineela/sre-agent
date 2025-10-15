@@ -60,7 +60,7 @@ public class RCAPreflightICMPluginDefinition
         {
             // Pre-check: fetch incident and skip if already completed for owning team
             var incident = await _icmPlugin.GetIncidentInfo(incidentId);
-            var owningTeamId = incident?.OwningTeam ?? string.Empty;
+            var owningTeamId = incident?.OwningTeamId.ToString() ?? string.Empty;
             var teamCompletedTag = !string.IsNullOrWhiteSpace(owningTeamId) ? $"{owningTeamId}:Completed" : null;
             var existingTags = incident?.Tags ?? Array.Empty<string>();
 

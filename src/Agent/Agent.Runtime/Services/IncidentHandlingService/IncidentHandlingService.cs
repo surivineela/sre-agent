@@ -53,10 +53,11 @@ public interface IIncidentHandlingService<TIncidentFilterDocumentPayload> where 
 /// <summary>
 /// Base service that provides common incident handling functionality
 /// </summary>
-public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload> : IIncidentHandlingService<TIncidentFilterDocumentPayload>
+public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident> : IIncidentHandlingService<TIncidentFilterDocumentPayload>
     where TIncidentDocument : IIncidentDocument
     where TIncidentFilterDocument : TIncidentFilterDocumentPayload, IIncidentFilterDocument, new()
     where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
+    where TIncident : class
 {
     protected readonly IThreadRepository _repository;
     protected readonly IAgentInboundCommunicationService _inboundCommunicationService;
@@ -64,7 +65,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     protected readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
     protected readonly IIncidentStatusMetricsService _incidentStatusMetricsService;
     protected readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
-    protected readonly IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload> _incidentAnalysisService;
+    protected readonly IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident> _incidentAnalysisService;
     protected readonly ILogger _logger;
     protected readonly Tracer _tracer;
     protected readonly IAgentFactory<AgentContext> _agentFactory;
@@ -77,7 +78,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload> incidentAnalysisService,
+        IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident> incidentAnalysisService,
         ILogger logger,
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
@@ -241,7 +242,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                         Status = incidentDetails.Status.ToString(),
                         Priority = incidentRequest.Severity,
                         IsMitigatedByAgent = false,
-                        RootCause = incidentDetails.RootCause,
+                        RootCause = incidentDetails.AIRootCause,
                         Summary = incidentDetails.GeneralSummary,
                         ImpactedService = incidentDetails.ImpactedServiceName,
                         RunMode = incidentRequest.IncidentFilter?.AgentMode ?? matchingFilter?.AgentMode ?? string.Empty,
@@ -295,7 +296,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                     Status = incidentDetails.Status.ToString(),
                     Priority = incidentDetails.Priority,
                     IsMitigatedByAgent = false,
-                    RootCause = incidentDetails.RootCause,
+                    RootCause = incidentDetails.AIRootCause,
                     Summary = incidentDetails.GeneralSummary,
                     ImpactedService = incidentDetails.ImpactedServiceName,
                     RunMode = matchingFilter?.AgentMode ?? request.IncidentFilter?.AgentMode ?? string.Empty,

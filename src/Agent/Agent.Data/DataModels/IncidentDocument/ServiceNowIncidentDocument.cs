@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models.ICM;
 using Agent.Core.Models.ServiceNow;
 
 namespace Agent.Data.DataModels
@@ -25,7 +24,7 @@ namespace Agent.Data.DataModels
         public string PartitionKey => Id;
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public List<DiscussionEntry> DiscussionEntries { get; set; } = new();
+        public List<ServiceNowDiscussionEntry> DiscussionEntries { get; set; } = new();
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public string AssignedTo { get; set; } = string.Empty;
         public string Status { get; set; } = Status;
@@ -40,7 +39,7 @@ namespace Agent.Data.DataModels
         public string ResolvedBy { get; set; } = string.Empty;
         public DateTime ClosedAt { get; set; }
         public string ClosedBy { get; set; } = string.Empty;
-        public string RootCause { get; set; } = string.Empty;
+        public string AIRootCause { get; set; } = string.Empty;
         public string GeneralSummary { get; set; } = string.Empty;
         public List<string> Tags { get; set; } = new List<string>();
         public ServiceNowIncidentDocument() : this(

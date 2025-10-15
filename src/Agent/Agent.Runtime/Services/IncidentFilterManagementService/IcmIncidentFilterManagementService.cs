@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
-using Agent.Core.Models.ICM;
+using Microsoft.SREAgent.Incidents.IcM.Model;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
@@ -57,7 +57,7 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
 
         result.Add(new IncidentFilterFieldOption
         {
-            FieldName = nameof(IcmIncidentDocument.IncidentType),
+            FieldName = nameof(IcmIncidentFilterDocument.IncidentType),
             DisplayName = "Incident Type",
             Options = incidentTypeOptions
         });
@@ -72,21 +72,14 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
                 };
         result.Add(new IncidentFilterFieldOption
         {
-            FieldName = nameof(IcmIncidentDocument.Priority),
+            FieldName = nameof(IcmIncidentFilterDocument.Priority),
             DisplayName = "Severity",
             Options = priorityOptions
         });
 
         result.Add(new IncidentFilterFieldOption
         {
-            FieldName = nameof(IcmIncidentDocument.OwningServiceId),
-            DisplayName = "Owning Service Id",
-            FieldInputType = IncidentFilterInputType.TextField
-        });
-
-        result.Add(new IncidentFilterFieldOption
-        {
-            FieldName = nameof(IcmIncidentDocument.OwningTeam),
+            FieldName = nameof(IcmIncidentFilterDocument.OwningTeamId),
             DisplayName = "Owning Team Id",
             FieldInputType = IncidentFilterInputType.TextField,
             IsRequired = true

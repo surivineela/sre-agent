@@ -1,22 +1,20 @@
 using System.ComponentModel;
-using System.Net;
 using System.Text;
-using Agent.Core.Configuration;
 using Agent.Core.Helpers;
-using Agent.Core.Models.ICM;
 using Agent.Core.Services;
-using Agent.Data;
-using Agent.Data.DataModels;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SREAgent.Incidents.IcM.Model;
 using Newtonsoft.Json;
+using Microsoft.AzureAd.Icm.Types;
 using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
 using TextContent = Microsoft.SemanticKernel.TextContent;
+using Microsoft.AzureAd.Icm.IcmV3OData.Models;
+using Attachment = Microsoft.AzureAd.Icm.IcmV3OData.Models.Attachment;
 
 namespace Agent.Plugins.Implementation;
 public class ICMPlugin : IICMPlugin
@@ -108,14 +106,14 @@ public class ICMPlugin : IICMPlugin
         return complexContent ?? string.Empty;
     }
 
-    public async Task<Incident> GetIncidentInfo(string incidentId)
+    public async Task<ICMIncident> GetIncidentInfo(string incidentId)
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetIncidentInfo)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
 
         var incident = await _icmApiClient.GetIncidentAsync(incidentId);
         incident.Summary = await ProcessComplexICMContent(incident.Summary, !ProcessImages);
-        incident.DiscussionEntry = await ProcessComplexICMContent(incident.DiscussionEntry, !ProcessImages);
+        incident.Description = await ProcessComplexICMContent(incident.Description, !ProcessImages);
         //kernel.Data["incidentDetails"] = incident;
         //await SetupIncidentProcessing(incidentId, incident);
         return incident;
@@ -157,7 +155,7 @@ public class ICMPlugin : IICMPlugin
                     var entryText = entry.Text;
 
                     // Process images if content is HTML
-                    if (entry.IsHtml)
+                    if (entry.RenderType == DescriptionTextRenderType.Html)
                     {
                         entryText = await ProcessComplexICMContent(entryText, !ProcessImages);
                     }
@@ -182,13 +180,13 @@ You are an expert at extracting parameters from ICM (Incident Communication Mana
 **Instruction:** {instruction}
 
 **Incident Information:**
-- Incident ID: {incident.IncidentId}
+- Incident ID: {incident.Id}
 - Title: {incident.Title}
 - Create Date: {incident.CreatedDate:yyyy-MM-dd HH:mm:ss} UTC
-- Status: {incident.Status}
+- Status: {incident.State}
 - Severity: {incident.Severity}
-- Owning Team: {incident.OwningTeam}
-- Cloud Instance: {incident.CloudInstance}
+- Owning Team: {incident.OwningTeamName}
+- Cloud Instance: {incident.MonitorLocation.Instance}
 
 **Incident Summary:**
 {summaryMarkdown}
@@ -209,7 +207,7 @@ Return a JSON object with the extracted parameters. Use clear, descriptive prope
 Example structure:
 ```json
 {{
-  ""incidentId"": ""{incident.IncidentId}"",
+  ""incidentId"": ""{incident.Id}"",
   ""title"": ""{incident.Title}"",
   ""startTime"": ""extracted start time if available"",
   ""endTime"": ""extracted end time if available"",
@@ -339,7 +337,7 @@ Example structure:
     }
 
 
-    public async Task<DiscussionEntry?> GetAlertingDiscussionEntry(string incidentId)
+    public async Task<DescriptionEntry?> GetAlertingDiscussionEntry(string incidentId)
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetAlertingDiscussionEntry)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
@@ -349,7 +347,7 @@ Example structure:
         {
             foreach (var entry in discussionEntries)
             {
-                if (entry.IsHtml)
+                if (entry.RenderType == DescriptionTextRenderType.Html)
                 {
                     entry.Text = await ProcessComplexICMContent(entry.Text, skipImages: true);
                 }
@@ -363,7 +361,7 @@ Example structure:
     }
 
 
-    public async Task<List<DiscussionEntry>> GetDiscussionEntries(string incidentId)
+    public async Task<List<DescriptionEntry>> GetDiscussionEntries(string incidentId)
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetDiscussionEntries)}][{DateTime.UtcNow}] Fetching ICM Discussion entries for Incident {incidentId}";
         _logger.LogInternalInformation(logMessage);
@@ -372,13 +370,13 @@ Example structure:
         {
             foreach (var entry in discussionEntries)
             {
-                if (entry.IsHtml)
+                if (entry.RenderType == DescriptionTextRenderType.Html)
                 {
                     entry.Text = await ProcessComplexICMContent(entry.Text, !ProcessImages);
                 }
             }
         }
-        return discussionEntries ?? new List<DiscussionEntry>();
+        return discussionEntries ?? new List<DescriptionEntry>();
     }
 
     public async Task<string> TransferIncident(string incidentId, string discussionEntry, string tenantName, string owningTeam)
@@ -497,7 +495,7 @@ Example structure:
         return result;
     }
 
-    public async Task<List<IncidentRepairItem>> GetIncidentRepairItems(long incidentId)
+    public async Task<List<ExternalLink>> GetIncidentRepairItems(long incidentId)
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetIncidentRepairItems)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
@@ -873,32 +871,32 @@ Example structure:
         }
     }
 
-    public async Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId)
-    {
-        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(DownloadIncidentAttachment)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, attachmentId {attachmentId}";
-        _logger.LogInternalInformation(logMessage);
+    //public async Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId)
+    //{
+    //    var logMessage = $"[{nameof(ICMPlugin)}_{nameof(DownloadIncidentAttachment)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, attachmentId {attachmentId}";
+    //    _logger.LogInternalInformation(logMessage);
 
-        try
-        {
-            if (string.IsNullOrWhiteSpace(incidentId))
-            {
-                throw new ArgumentException("Incident ID cannot be null or empty.", nameof(incidentId));
-            }
+    //    try
+    //    {
+    //        if (string.IsNullOrWhiteSpace(incidentId))
+    //        {
+    //            throw new ArgumentException("Incident ID cannot be null or empty.", nameof(incidentId));
+    //        }
 
-            if (string.IsNullOrWhiteSpace(attachmentId))
-            {
-                throw new ArgumentException("Attachment ID cannot be null or empty.", nameof(attachmentId));
-            }
+    //        if (string.IsNullOrWhiteSpace(attachmentId))
+    //        {
+    //            throw new ArgumentException("Attachment ID cannot be null or empty.", nameof(attachmentId));
+    //        }
 
-            var result = await _icmApiClient.DownloadIncidentAttachment(incidentId, attachmentId);
-            _logger.LogInternalInformation($"Successfully processed download request for attachment {attachmentId} from incident {incidentId}");
-            return result;
-        }
-        catch (Exception ex)
-        {
-            var errorMessage = $"Failed to download attachment {attachmentId} from incident {incidentId}. Error: {ex.Message}";
-            _logger.LogInternalError(ex, errorMessage);
-            return errorMessage; // Return error message instead of throwing for download operations
-        }
-    }
+    //        var result = await _icmApiClient.DownloadIncidentAttachment(incidentId, attachmentId);
+    //        _logger.LogInternalInformation($"Successfully processed download request for attachment {attachmentId} from incident {incidentId}");
+    //        return result;
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        var errorMessage = $"Failed to download attachment {attachmentId} from incident {incidentId}. Error: {ex.Message}";
+    //        _logger.LogInternalError(ex, errorMessage);
+    //        return errorMessage; // Return error message instead of throwing for download operations
+    //    }
+    //}
 }

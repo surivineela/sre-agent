@@ -7,13 +7,14 @@ using System.Text;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.ICM;
 using Agent.Core.Services;
 using Agent.Plugins.Kusto;
+using Microsoft.AzureAd.Icm.Types;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OperationalAgent.Core.Extensions;
 using Newtonsoft.Json;
+using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
 
 namespace Agent.Plugins.IcmPlugin
 {
@@ -375,7 +376,7 @@ namespace Agent.Plugins.IcmPlugin
             }
         }
 
-        public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null)
+        public async Task<List<DescriptionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null)
         {
             var payload = queryFrom.HasValue
                 ? JsonConvert.SerializeObject(new
@@ -389,15 +390,15 @@ namespace Agent.Plugins.IcmPlugin
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var discussionEntries = JsonConvert.DeserializeObject<List<DiscussionEntry>>(content);
+                var discussionEntries = JsonConvert.DeserializeObject<List<DescriptionEntry>>(content);
 
                 // Return empty list if deserialization yields null
-                return discussionEntries ?? new List<DiscussionEntry>();
+                return discussionEntries ?? new List<DescriptionEntry>();
             }
             else
             {
                 Console.WriteLine($"Failed to fetch discussion entries for incidentId: {incidentId}");
-                return new List<DiscussionEntry>();
+                return new List<DescriptionEntry>();
             }
         }
 
@@ -515,8 +516,8 @@ namespace Agent.Plugins.IcmPlugin
 
         public Task<string> SetEnvironmentQuota(string incidentId, string environmentUrl, AzureRegion region, string quotaType, string quotaLimit) =>
             Task.FromResult("ICM Plugin is disabled");
-        public Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null) =>
-            Task.FromResult(new List<DiscussionEntry>());
+        public Task<List<DescriptionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null) =>
+            Task.FromResult(new List<DescriptionEntry>());
 
         public Task<string> AddTagToIncident(string incidentId, string tag) =>
             Task.FromResult("ICM Plugin is disabled");
@@ -546,7 +547,7 @@ namespace Agent.Plugins.IcmPlugin
         Task<string> SetSubscriptionQuota(string subscriptionId, AzureRegion region, string quotaType, string quotaLimit);
         Task<string> GetEnvironmentQuota(string environmentUrl, AzureRegion region, string quotaType);
         Task<string> SetEnvironmentQuota(string incidentId, string environmentUrl, AzureRegion region, string quotaType, string quotaLimit);
-        Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null);
+        Task<List<DescriptionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null);
         Task<string> AddTagToIncident(string incidentId, string tag);
         Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry);
         Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry);

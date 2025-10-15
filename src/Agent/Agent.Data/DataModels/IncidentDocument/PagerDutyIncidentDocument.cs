@@ -36,7 +36,7 @@ public record PagerDutyIncidentDocument(
     public string ExtractedKnowledge { get; set; } = string.Empty;
     public List<PagerDutyIncidentNote> Notes { get; set; } = []; // Notes of the incident sorted by CreatedAt in decending order.
     public DateTime? ResolvedAt { get; set; }
-    public string RootCause { get; set; } = string.Empty;
+    public string AIRootCause { get; set; } = string.Empty;
     public string GeneralSummary { get; set; } = string.Empty;
 
     public List<string> Tags = new List<string>();

@@ -9,12 +9,13 @@ using Agent.Core.Services;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.SREAgent.Incidents.IcM.Model;
 using OpenTelemetry.Trace;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.Services;
 
-public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>
+public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, ICMIncident>
 {
     private readonly IICMAPIClient _icmApiClient;
 
@@ -26,7 +27,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
         IThreadRepository repository,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> incidentAnalysisService,
+        IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload, ICMIncident> incidentAnalysisService,
         ILogger<IcmIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> icmIncidentManagementService,
@@ -51,7 +52,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
             {
                 _logger.LogInternalWarning("[IcmIncidentHandlingService] GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
                 var lastestIncidentData = await _icmApiClient.GetIncidentAsync(incidentId);
-                icmIncidentData = new IcmIncidentDocument(lastestIncidentData);
+                icmIncidentData =  new IcmIncidentDocument(lastestIncidentData);
             }
             _logger.LogInternalInformation("[IcmIncidentHandlingService] GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
             return icmIncidentData;
