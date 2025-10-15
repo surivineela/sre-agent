@@ -1,4 +1,5 @@
 import { DataVizPalette, getColorFromToken, IChartProps } from '@fluentui/react-charting';
+import { MessageBar, MessageBarBody, MessageBarTitle } from '@fluentui/react-components';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -80,6 +81,7 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
     const [incidentCoverageResponse, setIncidentCoverageResponse] = useState<IncidentCoverageItem[]>();
     const [incidentSummaryResponse, setIncidentSummaryResponse] = useState<IncidentSummaryItem[]>();
     const [incidentHandlersResponse, setIncidentHandlersResponse] = useState<IncidentHandlerItem[]>();
+    const [queryErrorMessage, setQueryErrorMessage] = useState<string>();
 
     const timeRangeOptions = useMemo(() => getDefaultTimeRangeOptions(intl), [intl]);
 
@@ -268,6 +270,8 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
             setIncidentCoverageResponse(data);
             setIsIncidentCoverageLoading(false);
         } else {
+            const error = response.error?.response?.data?.error;
+            setQueryErrorMessage(error);
             log({
                 action: 'fetchIncidentCoverageData',
                 actionModifier: 'failed',
@@ -300,6 +304,8 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
             setIncidentSummaryResponse(data);
             setIsIncidentSummaryLoading(false);
         } else {
+            const error = response.error?.response?.data?.error;
+            setQueryErrorMessage(error);
             log({
                 action: 'fetchIncidentSummaryData',
                 actionModifier: 'failed',
@@ -369,6 +375,15 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                                     addCustomOption: true,
                                 }}
                             />
+
+                            {queryErrorMessage && (
+                                <MessageBar intent="error" style={{ maxWidth: 1000 }}>
+                                    <MessageBarBody>
+                                        <MessageBarTitle>{intl.formatMessage(SreAgentResources.requestError)}</MessageBarTitle>
+                                        {queryErrorMessage}
+                                    </MessageBarBody>
+                                </MessageBar>
+                            )}
 
                             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                                 <StatCard

@@ -3,6 +3,7 @@ import {
     Dropdown,
     InputOnChangeData,
     Link,
+    mergeClasses,
     Option,
     SearchBox,
     SearchBoxChangeEvent,
@@ -17,6 +18,7 @@ import { useIntl } from 'react-intl';
 import { ISortedDetailsListColumn } from '../../../../Common/Components/DetailsList/Constants';
 import { formatDateTimeWithShortYear } from '../../../../Common/Helpers/Date';
 import { getLocalizedMitigatedBy } from '../../../../Common/Helpers/IncidentManagement';
+import { useIsDarkMode } from '../../../../Common/Hooks/useIsDarkMode';
 import { IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { IncidentItem } from '../ResponsePlanView';
@@ -44,6 +46,7 @@ interface ResponsePlanIncidentsGridProps {
 export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: ResponsePlanIncidentsGridProps) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
+    const isDarkMode = useIsDarkMode();
 
     // TODO: Incident chat panel
     const [_isIncidentChatPanelOpen, setIsIncidentChatPanelOpen] = useState(false);
@@ -106,6 +109,9 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: Re
     }, []);
 
     const onRenderIncidentTitle = useCallback((item: IncidentItem) => {
+        const tempDisabled = true; // Disabled until context pane implemented
+        if (tempDisabled) return item.incidentTitle;
+
         return (
             <Link
                 onClick={() => {
@@ -269,71 +275,72 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: Re
     }, [filteredGridItems, sortColumnKey, isSortedDescending]);
 
     return (
-        <Card style={{ width: '100%', height: '100%', overflowY: 'auto' }}>
+        <Card style={{ width: '100%', height: '100%' }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
             <Subtitle2>{intl.formatMessage(IncidentManagementResources.incidents)}</Subtitle2>
 
-            <div style={{ width: '100%' }}>
-                <div className={styles.incidentFiltersContainer} style={{ marginBottom: 0 }}>
-                    <SearchBox
-                        className={styles.searchBox}
-                        placeholder={intl.formatMessage(IncidentManagementResources.searchIncidents)}
-                        value={searchText}
-                        onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
-                        disabled={disabled}
-                    />
-                    <Dropdown
-                        onOptionSelect={(_e, data) => setSeverityLevelFilter(data.optionValue ?? all)}
-                        value={severityLevelFilter}
-                        selectedOptions={[severityLevelFilter]}
-                        button={severityLevelFilterLabel}
-                        className={styles.searchBox}
-                        disabled={disabled}
-                    >
-                        {severityLevelFilterOptions.map(option => (
-                            <Option value={option.value} text={option.label}>
-                                {option.label}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                    <Dropdown
-                        onOptionSelect={(_e, data) => setMitigatedByFilter(data.optionValue ?? all)}
-                        value={mitigatedByFilter}
-                        selectedOptions={[mitigatedByFilter]}
-                        button={mitigatedByFilterLabel}
-                        className={styles.searchBox}
-                        disabled={disabled}
-                    >
-                        {mitigatedByFilterOptions.map(option => (
-                            <Option value={option.value} text={option.label}>
-                                {option.label}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                </div>
+            <div className={styles.incidentFiltersContainer} style={{ marginBottom: 0 }}>
+                <SearchBox
+                    className={styles.searchBox}
+                    placeholder={intl.formatMessage(IncidentManagementResources.searchIncidents)}
+                    value={searchText}
+                    onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
+                    disabled={disabled}
+                />
+                <Dropdown
+                    onOptionSelect={(_e, data) => setSeverityLevelFilter(data.optionValue ?? all)}
+                    value={severityLevelFilter}
+                    selectedOptions={[severityLevelFilter]}
+                    button={severityLevelFilterLabel}
+                    aria-label={intl.formatMessage(IncidentManagementResources.filterBySeverityLevel)}
+                    className={styles.searchBox}
+                    disabled={disabled}
+                >
+                    {severityLevelFilterOptions.map(option => (
+                        <Option value={option.value} text={option.label}>
+                            {option.label}
+                        </Option>
+                    ))}
+                </Dropdown>
+                <Dropdown
+                    onOptionSelect={(_e, data) => setMitigatedByFilter(data.optionValue ?? all)}
+                    value={mitigatedByFilter}
+                    selectedOptions={[mitigatedByFilter]}
+                    button={mitigatedByFilterLabel}
+                    aria-label={intl.formatMessage(IncidentManagementResources.filterByMitigatedBy)}
+                    className={styles.searchBox}
+                    disabled={disabled}
+                >
+                    {mitigatedByFilterOptions.map(option => (
+                        <Option value={option.value} text={option.label}>
+                            {option.label}
+                        </Option>
+                    ))}
+                </Dropdown>
+            </div>
 
-                <div data-is-scrollable="true" user-select="text">
-                    <ShimmeredDetailsList
-                        columns={columns}
-                        items={sortedItems}
-                        constrainMode={ConstrainMode.horizontalConstrained}
-                        layoutMode={DetailsListLayoutMode.justified}
-                        selectionMode={SelectionMode.none}
-                        enableShimmer={isLoading}
-                        styles={{
-                            root: {
-                                width: '100%',
-                                userSelect: 'text',
-                            },
-                        }}
-                        compact
-                    />
+            <div data-is-scrollable="true" user-select="text" style={{ overflowY: 'auto' }}>
+                <ShimmeredDetailsList
+                    columns={columns}
+                    items={sortedItems}
+                    constrainMode={ConstrainMode.horizontalConstrained}
+                    layoutMode={DetailsListLayoutMode.justified}
+                    selectionMode={SelectionMode.none}
+                    enableShimmer={isLoading}
+                    className={mergeClasses(styles.detailsListBase, isDarkMode ? styles.detailsListDarkModeBackground : undefined)}
+                    styles={{
+                        root: {
+                            width: '100%',
+                            userSelect: 'text',
+                        },
+                    }}
+                    compact
+                />
 
-                    {incidents.length === 0 && !isLoading && (
-                        <Text align="center" block>
-                            {intl.formatMessage(IncidentManagementResources.noIncidentsFound)}
-                        </Text>
-                    )}
-                </div>
+                {incidents.length === 0 && !isLoading && (
+                    <Text align="center" block>
+                        {intl.formatMessage(IncidentManagementResources.noIncidentsFound)}
+                    </Text>
+                )}
             </div>
         </Card>
     );

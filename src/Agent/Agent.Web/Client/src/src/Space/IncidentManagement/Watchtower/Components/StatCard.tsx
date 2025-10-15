@@ -1,6 +1,7 @@
 import { IChartProps, Sparkline } from '@fluentui/react-charting';
 import { Badge, Body1Strong, Caption1, Card, Skeleton, SkeletonItem, Subtitle2, Title2, tokens } from '@fluentui/react-components';
 import { ArrowDown16Regular, ArrowRight16Regular, ArrowUp16Regular } from '@fluentui/react-icons';
+import { useIsDarkMode } from '../../../../Common/Hooks/useIsDarkMode';
 
 export interface StatCardData {
     percentChange?: number;
@@ -18,8 +19,10 @@ interface StatCardProps {
 }
 
 export const StatCard = ({ title, subtitle, data, isLoading }: StatCardProps) => {
+    const isDarkMode = useIsDarkMode();
+
     return (
-        <Card style={{ flexGrow: 1, minWidth: 225, height: 120 }}>
+        <Card style={{ flexGrow: 1, minWidth: 225, maxWidth: 400, height: 120 }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                 <div>
                     <Body1Strong block>{title}</Body1Strong>

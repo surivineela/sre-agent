@@ -166,6 +166,16 @@ export const useIncidentManagementStyles = makeStyles({
         minWidth: '75px',
         maxWidth: '265px',
     },
+    detailsListBase: {
+        '& .ms-DetailsHeader': {
+            paddingTop: '1px',
+        },
+    },
+    detailsListDarkModeBackground: {
+        '&, & *': {
+            backgroundColor: `${tokens.colorNeutralBackground2} !important`,
+        },
+    },
 });
 
 export const generateHandlerStyles = mergeStyleSets({

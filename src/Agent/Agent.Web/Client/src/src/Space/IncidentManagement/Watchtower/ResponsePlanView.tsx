@@ -1,5 +1,5 @@
 import { DataVizPalette, getColorFromToken, IChartProps } from '@fluentui/react-charting';
-import { Body1, Button, Divider, Subtitle1, tokens } from '@fluentui/react-components';
+import { Body1, Button, Divider, MessageBar, MessageBarBody, MessageBarTitle, Subtitle1, tokens } from '@fluentui/react-components';
 import { ArrowLeft20Regular } from '@fluentui/react-icons';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -59,6 +59,7 @@ export const ResponsePlanView = ({
 
     const [incidentSummaryResponse, setIncidentSummaryResponse] = useState<IncidentSummaryItem[]>();
     const [incidentsResponse, setIncidentsResponse] = useState<IncidentItem[]>();
+    const [queryErrorMessage, setQueryErrorMessage] = useState<string>();
 
     const numIncidentsReviewed = useMemo(
         () => incidentSummaryResponse?.reduce((sum, item) => sum + item.distinctIncidentCount, 0) ?? 0,
@@ -220,6 +221,8 @@ export const ResponsePlanView = ({
             setIncidentSummaryResponse(data);
             setIsIncidentSummaryLoading(false);
         } else {
+            const error = response.error?.response?.data?.error;
+            setQueryErrorMessage(error);
             log({
                 action: 'fetchResponsePlanIncidentSummaryData',
                 actionModifier: 'failed',
@@ -257,6 +260,8 @@ export const ResponsePlanView = ({
             setIncidentsResponse(data);
             setIsIncidentsLoading(false);
         } else {
+            const error = response.error?.response?.data?.error;
+            setQueryErrorMessage(error);
             log({
                 action: 'fetchIncidentsData',
                 actionModifier: 'failed',
@@ -278,7 +283,12 @@ export const ResponsePlanView = ({
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Button appearance="transparent" icon={<ArrowLeft20Regular />} onClick={() => setOpenedResponsePlan(undefined)} />
+                    <Button
+                        appearance="transparent"
+                        icon={<ArrowLeft20Regular />}
+                        onClick={() => setOpenedResponsePlan(undefined)}
+                        aria-label={intl.formatMessage(SreAgentResources.back)}
+                    />
                     <div>
                         <Subtitle1 block>{openedResponsePlan.responsePlanName || intl.formatMessage(SreAgentResources.default)}</Subtitle1>
                         <Body1 block style={{ color: tokens.colorNeutralForeground4 }}>
@@ -288,7 +298,7 @@ export const ResponsePlanView = ({
                     </div>
                 </div>
 
-                <Button onClick={() => setIsViewResponsePlanPanelOpen(true)}>
+                <Button onClick={() => setIsViewResponsePlanPanelOpen(true)} disabled={true}>
                     {intl.formatMessage(IncidentManagementResources.viewPlan)}
                 </Button>
             </div>
@@ -306,6 +316,15 @@ export const ResponsePlanView = ({
                     addCustomOption: true,
                 }}
             />
+
+            {queryErrorMessage && (
+                <MessageBar intent="error" style={{ maxWidth: 1000 }}>
+                    <MessageBarBody>
+                        <MessageBarTitle>{intl.formatMessage(SreAgentResources.requestError)}</MessageBarTitle>
+                        {queryErrorMessage}
+                    </MessageBarBody>
+                </MessageBar>
+            )}
 
             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                 <StatCard

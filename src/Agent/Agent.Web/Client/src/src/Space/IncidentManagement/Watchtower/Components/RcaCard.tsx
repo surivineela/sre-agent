@@ -1,4 +1,4 @@
-import { Card, Link, Subtitle2, Text, tokens } from '@fluentui/react-components';
+import { Card, Link, mergeClasses, Subtitle2, Text, tokens } from '@fluentui/react-components';
 import { ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -9,7 +9,9 @@ import { AppInsightsClient } from '../../../../Common/Clients/AppInsightsClient'
 import { AiGeneratedBadge } from '../../../../Common/Components/AiGeneratedBadge';
 import { ISortedDetailsListColumn } from '../../../../Common/Components/DetailsList/Constants';
 import { TimeRangeValue } from '../../../../Common/Components/PillFilter/Contracts';
+import { useIsDarkMode } from '../../../../Common/Hooks/useIsDarkMode';
 import { IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
+import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { IncidentHandlerItem } from '../../Analysis';
 import { getIncidentRootCauseOverviewQuery } from '../Queries';
 
@@ -34,6 +36,8 @@ interface RcaCardProps {
 
 export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, appInsightsToken }: RcaCardProps) => {
     const intl = useIntl();
+    const styles = useIncidentManagementStyles();
+    const isDarkMode = useIsDarkMode();
     const { resourceId } = useContext(EnvironmentContext);
     const { log } = useAzPortalContext();
 
@@ -87,6 +91,9 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
     const onRenderCategory = useCallback(
         (item: RcaItem) => {
             if (!item.category) return intl.formatMessage(SreAgentResources.other);
+
+            const tempDisabled = true; // Disabled until context pane implemented
+            if (tempDisabled) return item.category;
 
             return (
                 <Link
@@ -173,7 +180,7 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
     }, [fetchResponsePlanRcaData]);
 
     return (
-        <Card style={{ flex: '1 1 650px', minWidth: 650, height: 310 }}>
+        <Card style={{ flex: '1 1 650px', minWidth: 650, height: 310 }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
             <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <Subtitle2>{intl.formatMessage(IncidentManagementResources.rootCauseAnalysis)}</Subtitle2>
@@ -184,7 +191,7 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
                 </Text>
             </div>
 
-            <div data-is-scrollable="true" user-select="text">
+            <div data-is-scrollable="true" user-select="text" style={{ overflowY: 'auto' }}>
                 <ShimmeredDetailsList
                     columns={columns}
                     items={sortedItems}
@@ -192,6 +199,7 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
                     layoutMode={DetailsListLayoutMode.justified}
                     selectionMode={SelectionMode.none}
                     enableShimmer={isRcaOverviewLoading}
+                    className={mergeClasses(styles.detailsListBase, isDarkMode ? styles.detailsListDarkModeBackground : undefined)}
                     styles={{
                         root: {
                             width: '100%',

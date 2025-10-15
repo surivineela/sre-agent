@@ -8,6 +8,7 @@ export const SreAgentResources = defineMessages({
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     agentPermissionsLevel: { defaultMessage: 'Agent permissions level', id: '+bJIWo' },
     agentEndpoint: { defaultMessage: 'Agent endpoint', id: 's7DlV0' },
+    back: { defaultMessage: 'Back', id: 'cyR7Kh' },
     collapse: { defaultMessage: 'Collapse', id: 'W/V6+Y' },
     deleteAgentTitle: { defaultMessage: 'Delete SRE Agent', id: 'ThSX0k' },
     deleteAgentDescription: {
@@ -192,6 +193,7 @@ export const SreAgentResources = defineMessages({
         defaultMessage: 'Decision Time',
         id: 'Q/agzh',
     },
+    requestError: { defaultMessage: 'Request error', id: 'UQUIP7' },
     insights: { defaultMessage: 'Insights', id: 'xK7rmd' },
     incidentDescriptionLabel: { defaultMessage: 'Incident description', id: 'muUj+F' },
     timeFrameLabel: { defaultMessage: 'Time frame', id: 'HljkEY' },
@@ -513,6 +515,8 @@ export const SreAgentResources = defineMessages({
     assigned: { defaultMessage: 'Assigned', id: 'iZDRGO' },
     selectAllRowsAriaLabel: { defaultMessage: 'Select all rows', id: '8BaLs0' },
     selectRowAriaLabel: { defaultMessage: 'Select row', id: '4pJVaS' },
+    lineChart: { defaultMessage: 'Line chart', id: '8oyl6b' },
+    barChart: { defaultMessage: 'Bar chart', id: 'k+3+Dy' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -1434,6 +1438,10 @@ export const IncidentManagementResources = defineMessages({
     noRcaCategoriesFound: { defaultMessage: 'No root cause analysis categories found', id: 'jRtus7' },
     assistedByAgent: { defaultMessage: 'Assisted by agent', id: 'ryPHA8' },
     incidentsAssistedByAgent: { defaultMessage: 'Incidents assisted by agent', id: 'SyPo+k' },
+    filterByAutonomyLevel: { defaultMessage: 'Filter by autonomy level', id: 'OIWzWF' },
+    filterByCustomPlan: { defaultMessage: 'Filter by custom plan', id: 'coPQxN' },
+    filterBySeverityLevel: { defaultMessage: 'Filter by severity level', id: '+Hx789' },
+    filterByMitigatedBy: { defaultMessage: 'Filter by mitigated by', id: 'mm/uFP' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

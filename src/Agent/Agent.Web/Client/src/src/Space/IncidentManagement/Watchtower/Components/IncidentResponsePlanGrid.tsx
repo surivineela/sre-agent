@@ -4,6 +4,7 @@ import {
     Dropdown,
     InputOnChangeData,
     Link,
+    mergeClasses,
     Option,
     SearchBox,
     SearchBoxChangeEvent,
@@ -18,6 +19,7 @@ import { useIntl } from 'react-intl';
 import { ISortedDetailsListColumn } from '../../../../Common/Components/DetailsList/Constants';
 import { AgentMode } from '../../../../Common/Contracts/Azure/SreAgent';
 import { getLocalizedAgentMode } from '../../../../Common/Helpers/AgentMode';
+import { useIsDarkMode } from '../../../../Common/Hooks/useIsDarkMode';
 import { IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { IncidentHandlerItem } from '../../Analysis';
@@ -45,6 +47,7 @@ interface IncidentResponsePlanGridProps {
 export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan, disabled, isLoading }: IncidentResponsePlanGridProps) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
+    const isDarkMode = useIsDarkMode();
 
     const [searchText, setSearchText] = useState<string>('');
     const [autonomyLevelFilter, setAutonomyLevelFilter] = useState<string>(all);
@@ -325,71 +328,72 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
     }, [filteredGridItems, sortColumnKey, isSortedDescending]);
 
     return (
-        <Card style={{ width: '100%', height: '100%', overflowY: 'auto' }}>
+        <Card style={{ width: '100%', height: '100%' }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
             <Subtitle2>{intl.formatMessage(IncidentManagementResources.incidentResponsePlan)}</Subtitle2>
 
-            <div style={{ width: '100%' }}>
-                <div className={styles.incidentFiltersContainer} style={{ marginBottom: 0 }}>
-                    <SearchBox
-                        className={styles.searchBox}
-                        placeholder={intl.formatMessage(IncidentManagementResources.searchResponsePlans)}
-                        value={searchText}
-                        onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
-                        disabled={disabled}
-                    />
-                    <Dropdown
-                        onOptionSelect={(_e, data) => setAutonomyLevelFilter(data.optionValue ?? all)}
-                        value={autonomyLevelFilter}
-                        selectedOptions={[autonomyLevelFilter]}
-                        button={autonomyLevelFilterLabel}
-                        className={styles.searchBox}
-                        disabled={disabled}
-                    >
-                        {autonomyLevelFilterOptions.map(option => (
-                            <Option value={option.value} text={option.label}>
-                                {option.label}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                    <Dropdown
-                        onOptionSelect={(_e, data) => setCustomPlanFilter(data.optionValue ?? all)}
-                        value={customPlanFilter}
-                        selectedOptions={[customPlanFilter]}
-                        button={customPlanFilterLabel}
-                        className={styles.searchBox}
-                        disabled={disabled}
-                    >
-                        {customPlanFilterOptions.map(option => (
-                            <Option value={option.value} text={option.label}>
-                                {option.label}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                </div>
+            <div className={styles.incidentFiltersContainer} style={{ marginBottom: 0 }}>
+                <SearchBox
+                    className={styles.searchBox}
+                    placeholder={intl.formatMessage(IncidentManagementResources.searchResponsePlans)}
+                    value={searchText}
+                    onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
+                    disabled={disabled}
+                />
+                <Dropdown
+                    onOptionSelect={(_e, data) => setAutonomyLevelFilter(data.optionValue ?? all)}
+                    value={autonomyLevelFilter}
+                    selectedOptions={[autonomyLevelFilter]}
+                    button={autonomyLevelFilterLabel}
+                    aria-label={intl.formatMessage(IncidentManagementResources.filterByAutonomyLevel)}
+                    className={styles.searchBox}
+                    disabled={disabled}
+                >
+                    {autonomyLevelFilterOptions.map(option => (
+                        <Option value={option.value} text={option.label}>
+                            {option.label}
+                        </Option>
+                    ))}
+                </Dropdown>
+                <Dropdown
+                    onOptionSelect={(_e, data) => setCustomPlanFilter(data.optionValue ?? all)}
+                    value={customPlanFilter}
+                    selectedOptions={[customPlanFilter]}
+                    button={customPlanFilterLabel}
+                    aria-label={intl.formatMessage(IncidentManagementResources.filterByCustomPlan)}
+                    className={styles.searchBox}
+                    disabled={disabled}
+                >
+                    {customPlanFilterOptions.map(option => (
+                        <Option value={option.value} text={option.label}>
+                            {option.label}
+                        </Option>
+                    ))}
+                </Dropdown>
+            </div>
 
-                <div data-is-scrollable="true" user-select="text">
-                    <ShimmeredDetailsList
-                        columns={columns}
-                        items={sortedItems}
-                        constrainMode={ConstrainMode.horizontalConstrained}
-                        layoutMode={DetailsListLayoutMode.justified}
-                        selectionMode={SelectionMode.none}
-                        enableShimmer={isLoading}
-                        styles={{
-                            root: {
-                                width: '100%',
-                                userSelect: 'text',
-                            },
-                        }}
-                        compact
-                    />
+            <div data-is-scrollable="true" user-select="text" style={{ overflowY: 'auto' }}>
+                <ShimmeredDetailsList
+                    columns={columns}
+                    items={sortedItems}
+                    constrainMode={ConstrainMode.horizontalConstrained}
+                    layoutMode={DetailsListLayoutMode.justified}
+                    selectionMode={SelectionMode.none}
+                    enableShimmer={isLoading}
+                    className={mergeClasses(styles.detailsListBase, isDarkMode ? styles.detailsListDarkModeBackground : undefined)}
+                    styles={{
+                        root: {
+                            width: '100%',
+                            userSelect: 'text',
+                        },
+                    }}
+                    compact
+                />
 
-                    {responsePlans.length === 0 && !isLoading && (
-                        <Text align="center" block>
-                            {intl.formatMessage(IncidentManagementResources.noResponsePlansFound)}
-                        </Text>
-                    )}
-                </div>
+                {responsePlans.length === 0 && !isLoading && (
+                    <Text align="center" block>
+                        {intl.formatMessage(IncidentManagementResources.noResponsePlansFound)}
+                    </Text>
+                )}
             </div>
         </Card>
     );
