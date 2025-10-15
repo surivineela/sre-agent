@@ -2,6 +2,8 @@ import { Checkbox } from '@fluentui/react';
 import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn } from '@fluentui/react/lib/DetailsList';
 import { IShimmeredDetailsListStyles, ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { useCallback, useEffect, useMemo } from 'react';
+import { useIntl } from 'react-intl';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 
 export interface OnUpdateSelectionArgs<T> {
     selectedItems: T[];
@@ -45,6 +47,8 @@ const ShimmeredDetailsListWithSelection = <T,>(props: ShimmeredDetailsListWithSe
         className,
         detailsListStyles,
     } = props;
+
+    const intl = useIntl();
 
     const activeKeys = useMemo(() => selectedKeys ?? [], [selectedKeys]);
 
@@ -90,18 +94,28 @@ const ShimmeredDetailsListWithSelection = <T,>(props: ShimmeredDetailsListWithSe
             isResizable: false,
             onRender: (item: T) => {
                 const key = getKey(item);
-                return <Checkbox checked={activeKeys.includes(key)} onChange={() => toggleItem(key)} />;
+                return (
+                    <Checkbox
+                        checked={activeKeys.includes(key)}
+                        onChange={() => toggleItem(key)}
+                        ariaLabel={intl.formatMessage(SreAgentResources.select)}
+                    />
+                );
             },
             onRenderHeader: () => {
                 if (!multiSelect || hideSelectAll) return <div style={{ height: 32 }} />;
                 return (
                     <div style={{ display: 'flex', alignItems: 'center', marginTop: 12 }}>
-                        <Checkbox checked={allSelected} onChange={(_, c) => toggleAll(!!c)} />
+                        <Checkbox
+                            checked={allSelected}
+                            onChange={(_, c) => toggleAll(!!c)}
+                            ariaLabel={intl.formatMessage(SreAgentResources.selectAll)}
+                        />
                     </div>
                 );
             },
         }),
-        [selectionColumnWidth, getKey, activeKeys, toggleItem, multiSelect, hideSelectAll, allSelected, toggleAll]
+        [intl, selectionColumnWidth, getKey, activeKeys, toggleItem, multiSelect, hideSelectAll, allSelected, toggleAll]
     );
 
     const columnsWithSelection = useMemo(() => [selectionColumn, ...columns], [selectionColumn, columns]);

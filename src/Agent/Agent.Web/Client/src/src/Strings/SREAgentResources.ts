@@ -249,6 +249,8 @@ export const SreAgentResources = defineMessages({
         id: '6dWeUs',
     },
     other: { defaultMessage: 'Other', id: '/VnDMl' },
+    select: { defaultMessage: 'Select', id: 'kQAf2d' },
+    selectAll: { defaultMessage: 'Select all', id: '94Fg25' },
     refresh: { defaultMessage: 'Refresh', id: 'rELDbB' },
     region: { defaultMessage: 'Region', id: 'lnaWo/' },
     regionPlaceHolder: { defaultMessage: 'Select region', id: 'tshYzs' },
@@ -370,8 +372,8 @@ export const SreAgentResources = defineMessages({
         id: 'V9A1Xh',
     },
     noPermissionDataConnectors: {
-        defaultMessage: 'You do not have permission to add or delete data connectors.',
-        id: 'EZbXbs',
+        defaultMessage: 'You do not have permission to add or delete connectors.',
+        id: 'pCRg92',
     },
     low: { defaultMessage: 'Low', id: '477I0g' },
     medium: { defaultMessage: 'Medium', id: 'ovJ26C' },
@@ -1705,8 +1707,8 @@ export const IcMResources = defineMessages({
     },
     agentSpaceManagedIdentity: {
         defaultMessage:
-            'Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatable data connector was found) ',
-        id: 'rMjIe9',
+            'Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatible connector was found) ',
+        id: 'JbmMWM',
     },
     quickstartHandlerDescription: {
         defaultMessage: 'Add a default incident response plan for the agent to use for Sev3 LiveSite incidents.',
@@ -1729,7 +1731,7 @@ export const SettingsTabResources = defineMessages({
     basics: { defaultMessage: 'Basics', id: 'itC9lG' },
     grafanaDashboard: { defaultMessage: 'Grafana dashboard', id: '2zi2Yj' },
     managedResources: { defaultMessage: 'Managed resource groups', id: 'yilQrD' },
-    dataConnectors: { defaultMessage: 'Data connectors', id: 'L5ZL+u' },
+    dataConnectors: { defaultMessage: 'Connectors', id: '2mMJRv' },
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
     subAgents: { defaultMessage: 'Sub-agents', id: 'VIn2J0' },
@@ -2137,39 +2139,39 @@ export const DataConnectorsResources = defineMessages({
     keyVaultUri: { defaultMessage: 'Key Vault URI', id: 'auFFJa' },
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
     source: { defaultMessage: 'Source', id: 'aH4De2' },
-    noDataConnectors: { defaultMessage: 'No data connectors configured', id: 'ALkPTF' },
-    createDataConnector: { defaultMessage: 'Create data connector', id: 'Nup8Xl' },
-    editDataConnector: { defaultMessage: 'Edit data connector', id: '+hJd45' },
-    editDataConnectorDescription: { defaultMessage: 'Update the data connector configuration.', id: 'ko0rr4' },
+    noDataConnectors: { defaultMessage: 'No connectors configured', id: 'WE9lZK' },
+    createDataConnector: { defaultMessage: 'Create connector', id: 'EmN362' },
+    editDataConnector: { defaultMessage: 'Edit connector', id: '7kPmO3' },
+    editDataConnectorDescription: { defaultMessage: 'Update the connector configuration.', id: 'GNJGHu' },
     namePlaceholder: { defaultMessage: 'Enter connector name', id: '+2NFJn' },
     typePlaceholder: { defaultMessage: 'Select connector type', id: 'ftDEuE' },
     dataSourcePlaceholder: { defaultMessage: 'Enter connection string or endpoint', id: 'f+cHle' },
     keyVaultUriPlaceholder: { defaultMessage: 'Enter Key Vault URI', id: '69sjgc' },
     identityPlaceholder: { defaultMessage: 'Select identity', id: '8RdOD0' },
-    duplicateNameError: { defaultMessage: 'A data connector with this name already exists', id: 'pG9xP9' },
+    duplicateNameError: { defaultMessage: 'A connector with this name already exists', id: 'qf1aUJ' },
     dataSourceKustoFormatError: { defaultMessage: 'The data source must be in the format: {format}', id: 'wNIiXX' },
-    deletingDataConnector: { defaultMessage: 'Deleting data connector', id: 'aA1SYF' },
-    deletingDataConnectorDescription: { defaultMessage: 'Deleting data connector "{name}"', id: 'S6FECK' },
-    dataConnectorDeleted: { defaultMessage: 'Data connector "{name}" has been deleted successfully', id: 'CbKRyU' },
-    deleteDataConnectorFailed: { defaultMessage: 'Failed to delete data connector', id: 'UKUKGA' },
-    deleteDataConnectorWithMessageFailed: { defaultMessage: 'Failed to delete data connector with error: {error}', id: '5dcGlG' },
-    creatingDataConnector: { defaultMessage: 'Creating data connector', id: '8Hjku9' },
-    creatingDataConnectorDescription: { defaultMessage: 'Creating data connector "{name}"', id: 'G2GBW0' },
-    dataConnectorCreated: { defaultMessage: 'Data connector "{name}" has been created successfully', id: 'tH6Myj' },
-    createDataConnectorFailed: { defaultMessage: 'Failed to create data connector', id: 'yd187T' },
-    createDataConnectorWithMessageFailed: { defaultMessage: 'Failed to create data connector with error: {error}', id: 'xgNcC+' },
-    updatingDataConnector: { defaultMessage: 'Updating data connector', id: 'ArsZkp' },
-    updatingDataConnectorDescription: { defaultMessage: 'Updating data connector "{name}"', id: '+4NN8Z' },
-    dataConnectorUpdated: { defaultMessage: 'Data connector "{name}" has been updated successfully', id: 'R5Y4rC' },
-    updateDataConnectorFailed: { defaultMessage: 'Failed to update data connector', id: 'EYRPA4' },
-    updateDataConnectorWithMessageFailed: { defaultMessage: 'Failed to update data connector with error: {error}', id: 'aqnJe8' },
+    deletingDataConnector: { defaultMessage: 'Deleting connector', id: 'thOyk5' },
+    deletingDataConnectorDescription: { defaultMessage: 'Deleting connector "{name}"', id: 'QmOU5t' },
+    dataConnectorDeleted: { defaultMessage: 'Connector "{name}" has been deleted successfully', id: 'c8Doeq' },
+    deleteDataConnectorFailed: { defaultMessage: 'Failed to delete connector', id: 'ocTBQX' },
+    deleteDataConnectorWithMessageFailed: { defaultMessage: 'Failed to delete connector with error: {error}', id: '5Imse3' },
+    creatingDataConnector: { defaultMessage: 'Creating connector', id: 'MK8Q9z' },
+    creatingDataConnectorDescription: { defaultMessage: 'Creating connector "{name}"', id: 'rxcQLa' },
+    dataConnectorCreated: { defaultMessage: 'Connector "{name}" has been created successfully', id: 'm8grMF' },
+    createDataConnectorFailed: { defaultMessage: 'Failed to create connector', id: '/mHau5' },
+    createDataConnectorWithMessageFailed: { defaultMessage: 'Failed to create connector with error: {error}', id: 'S2z35W' },
+    updatingDataConnector: { defaultMessage: 'Updating connector', id: 'QlkL14' },
+    updatingDataConnectorDescription: { defaultMessage: 'Updating connector "{name}"', id: 'p/QlSI' },
+    dataConnectorUpdated: { defaultMessage: 'Connector "{name}" has been updated successfully', id: '1aNP56' },
+    updateDataConnectorFailed: { defaultMessage: 'Failed to update connector', id: '2Bb4rY' },
+    updateDataConnectorWithMessageFailed: { defaultMessage: 'Failed to update connector with error: {error}', id: '1OorZL' },
 });
 
 export const KnowledgeBaseResources = defineMessages({
     fileUploadDescription: {
         defaultMessage:
-            "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Data Connectors instead.",
-        id: 'JHqOn0',
+            "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Connectors instead.",
+        id: '1GbY5N',
     },
     // File upload errors and messages
     filesRejected: {
@@ -2574,7 +2576,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     // Entity Types
     agent: { defaultMessage: 'Sub-Agent', id: 'hNKm4/' },
     tool: { defaultMessage: 'Tool', id: 'h6183G' },
-    connector: { defaultMessage: 'Data Connector', id: 'Ls/pL4' },
+    connector: { defaultMessage: 'Connector', id: 'r8XsCU' },
 
     // Type Descriptions
     agentDescription: { defaultMessage: 'An AI sub-agent with instructions and tools', id: 'dLWTUk' },
@@ -2891,8 +2893,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
     buildYourAgentEcosystem: { defaultMessage: 'Build Your Agent Ecosystem', id: 'HNECLT' },
     emptyStateDescription: {
         defaultMessage:
-            'Create AI agents with custom tools and data connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector.',
-        id: 'g3ngVx',
+            'Create AI agents with custom tools and connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector.',
+        id: 'rd+inb',
     },
     aiAgents: { defaultMessage: 'AI Agents', id: '4XOvey' },
     aiAgentsFeature: { defaultMessage: 'Define autonomous agents with custom instructions and capabilities', id: '7smbCB' },
@@ -2934,8 +2936,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
     subAgentBuilderTitle: { defaultMessage: 'Sub-Agent Builder', id: 'x4OHX9' },
     subAgentBuilderDescription: {
         defaultMessage:
-            'This list shows your extended agents, tools, and data connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure data connectors to access external resources.',
-        id: '/eILSY',
+            'This list shows your extended agents, tools, and connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources.',
+        id: 'sQZhm1',
     },
     nameColumn: { defaultMessage: 'Name', id: 'HAlOn1' },
     typeColumn: { defaultMessage: 'Type', id: '+U6ozc' },

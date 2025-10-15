@@ -257,7 +257,14 @@ const CreateOrUpdateDataConnectorForm = ({
             <DialogSurface>
                 <DialogBody>
                     <DialogTitle
-                        action={<Button appearance="transparent" icon={<Dismiss24Regular />} onClick={() => setIsDialogOpen(false)} />}
+                        action={
+                            <Button
+                                appearance="transparent"
+                                icon={<Dismiss24Regular />}
+                                onClick={() => setIsDialogOpen(false)}
+                                aria-label={intl.formatMessage(SreAgentResources.close)}
+                            />
+                        }
                     >
                         {isEditMode
                             ? intl.formatMessage(DataConnectorsResources.editDataConnector)

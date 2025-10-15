@@ -27,20 +27,6 @@
       "value": "Enter connector name"
     }
   ],
-  "+4NN8Z": [
-    {
-      "type": 0,
-      "value": "Updating data connector \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\""
-    }
-  ],
   "+5BJJL": [
     {
       "type": 0,
@@ -129,12 +115,6 @@
     {
       "type": 0,
       "value": "Delete incident?"
-    }
-  ],
-  "+hJd45": [
-    {
-      "type": 0,
-      "value": "Edit data connector"
     }
   ],
   "+iCTRd": [
@@ -267,16 +247,16 @@
       "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
     }
   ],
-  "/eILSY": [
-    {
-      "type": 0,
-      "value": "This list shows your extended agents, tools, and data connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure data connectors to access external resources."
-    }
-  ],
   "/gCtdO": [
     {
       "type": 0,
       "value": "Manage Custom Vision projects."
+    }
+  ],
+  "/mHau5": [
+    {
+      "type": 0,
+      "value": "Failed to create connector"
     }
   ],
   "/rNkXe": [
@@ -613,10 +593,10 @@
       "value": "error"
     }
   ],
-  "1H7sqx": [
+  "1GbY5N": [
     {
       "type": 0,
-      "value": "Search"
+      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Connectors instead."
     }
   ],
   "1HLt0U": [
@@ -637,6 +617,16 @@
     {
       "type": 0,
       "value": " deleted successfully"
+    }
+  ],
+  "1OorZL": [
+    {
+      "type": 0,
+      "value": "Failed to update connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "1PVhxx": [
@@ -685,6 +675,20 @@
     {
       "type": 0,
       "value": "Role"
+    }
+  ],
+  "1aNP56": [
+    {
+      "type": 0,
+      "value": "Connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been updated successfully"
     }
   ],
   "1dOMiz": [
@@ -777,6 +781,12 @@
     {
       "type": 0,
       "value": "Change agent mode for this thread"
+    }
+  ],
+  "2Bb4rY": [
+    {
+      "type": 0,
+      "value": "Failed to update connector"
     }
   ],
   "2CSEeq": [
@@ -1333,6 +1343,16 @@
       "value": "Sending a report..."
     }
   ],
+  "5Imse3": [
+    {
+      "type": 0,
+      "value": "Failed to delete connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "5MSxYS": [
     {
       "type": 0,
@@ -1427,16 +1447,6 @@
     {
       "type": 0,
       "value": "Mitigated by user"
-    }
-  ],
-  "5dcGlG": [
-    {
-      "type": 0,
-      "value": "Failed to delete data connector with error: "
-    },
-    {
-      "type": 1,
-      "value": "error"
     }
   ],
   "5gEh2M": [
@@ -1861,6 +1871,12 @@
       "value": "Project details"
     }
   ],
+  "7kPmO3": [
+    {
+      "type": 0,
+      "value": "Edit connector"
+    }
+  ],
   "7nUCu9": [
     {
       "type": 0,
@@ -1993,12 +2009,6 @@
     {
       "type": 0,
       "value": "The custom incident response plan was successfully added"
-    }
-  ],
-  "8Hjku9": [
-    {
-      "type": 0,
-      "value": "Creating data connector"
     }
   ],
   "8LMIGa": [
@@ -2179,16 +2189,16 @@
       "value": "No matches"
     }
   ],
-  "98TwgV": [
-    {
-      "type": 0,
-      "value": "Describe when and why other agents should hand off to this agent..."
-    }
-  ],
   "98A08r": [
     {
       "type": 0,
       "value": "Learn more about MCP servers"
+    }
+  ],
+  "98TwgV": [
+    {
+      "type": 0,
+      "value": "Describe when and why other agents should hand off to this agent..."
     }
   ],
   "99OdS3": [
@@ -2329,12 +2339,6 @@
       "value": "errorMessage"
     }
   ],
-  "ALkPTF": [
-    {
-      "type": 0,
-      "value": "No data connectors configured"
-    }
-  ],
   "ATXGa+": [
     {
       "type": 0,
@@ -2409,12 +2413,6 @@
     {
       "type": 0,
       "value": "Create reusable functions and actions for your agents"
-    }
-  ],
-  "ArsZkp": [
-    {
-      "type": 0,
-      "value": "Updating data connector"
     }
   ],
   "AuFOi8": [
@@ -2645,20 +2643,6 @@
     {
       "type": 0,
       "value": "Open scheduled tasks"
-    }
-  ],
-  "CbKRyU": [
-    {
-      "type": 0,
-      "value": "Data connector \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" has been deleted successfully"
     }
   ],
   "CfGC/2": [
@@ -2995,22 +2979,10 @@
       "value": "Apply"
     }
   ],
-  "EYRPA4": [
-    {
-      "type": 0,
-      "value": "Failed to update data connector"
-    }
-  ],
   "EZBG/A": [
     {
       "type": 0,
       "value": "Incident platform"
-    }
-  ],
-  "EZbXbs": [
-    {
-      "type": 0,
-      "value": "You do not have permission to add or delete data connectors."
     }
   ],
   "Ec1M0J": [
@@ -3051,6 +3023,12 @@
     {
       "type": 0,
       "value": "Trace data parsed with warnings."
+    }
+  ],
+  "EmN362": [
+    {
+      "type": 0,
+      "value": "Create connector"
     }
   ],
   "Ep74wA": [
@@ -3261,20 +3239,6 @@
       "value": "Remove"
     }
   ],
-  "G2GBW0": [
-    {
-      "type": 0,
-      "value": "Creating data connector \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\""
-    }
-  ],
   "G6vaGg": [
     {
       "type": 0,
@@ -3303,6 +3267,12 @@
     {
       "type": 0,
       "value": "Back to commands"
+    }
+  ],
+  "GNJGHu": [
+    {
+      "type": 0,
+      "value": "Update the connector configuration."
     }
   ],
   "GUx4Ld": [
@@ -3767,12 +3737,6 @@
       "value": "Uploading..."
     }
   ],
-  "JHqOn0": [
-    {
-      "type": 0,
-      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Data Connectors instead."
-    }
-  ],
   "JJNc3c": [
     {
       "type": 0,
@@ -3863,6 +3827,12 @@
     {
       "type": 0,
       "value": "The agent's analysis of the causes that triggered the incident."
+    }
+  ],
+  "JbmMWM": [
+    {
+      "type": 0,
+      "value": "Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatible connector was found)"
     }
   ],
   "JezZlU": [
@@ -4117,12 +4087,6 @@
       "value": " in progress"
     }
   ],
-  "L5ZL+u": [
-    {
-      "type": 0,
-      "value": "Data connectors"
-    }
-  ],
   "LFn7Ak": [
     {
       "type": 0,
@@ -4191,16 +4155,16 @@
       "value": "Filters define which incidents the incident response plan applies to. These apply to the list of incidents previewed in the next step."
     }
   ],
-  "LkUvu/": [
-    {
-      "type": 0,
-      "value": "Describe the schedule"
-    }
-  ],
   "LbkJp1": [
     {
       "type": 0,
       "value": "MCP servers table"
+    }
+  ],
+  "LkUvu/": [
+    {
+      "type": 0,
+      "value": "Describe the schedule"
     }
   ],
   "LnglaU": [
@@ -4213,12 +4177,6 @@
     {
       "type": 0,
       "value": "Custom response plan name"
-    }
-  ],
-  "Ls/pL4": [
-    {
-      "type": 0,
-      "value": "Data Connector"
     }
   ],
   "LsGLc0": [
@@ -4319,6 +4277,12 @@
     {
       "type": 0,
       "value": "Failed to improve instructions. Please try again."
+    }
+  ],
+  "MK8Q9z": [
+    {
+      "type": 0,
+      "value": "Creating connector"
     }
   ],
   "MLVVhB": [
@@ -4565,12 +4529,6 @@
     {
       "type": 0,
       "value": "Thank you for your feedback!"
-    }
-  ],
-  "Nup8Xl": [
-    {
-      "type": 0,
-      "value": "Create data connector"
     }
   ],
   "O3Ak71": [
@@ -5111,6 +5069,12 @@
       "value": "Web Apps"
     }
   ],
+  "QlkL14": [
+    {
+      "type": 0,
+      "value": "Updating connector"
+    }
+  ],
   "QlsDcr": [
     {
       "type": 0,
@@ -5121,6 +5085,20 @@
     {
       "type": 0,
       "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+    }
+  ],
+  "QmOU5t": [
+    {
+      "type": 0,
+      "value": "Deleting connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
     }
   ],
   "Qn8Bok": [
@@ -5167,20 +5145,6 @@
     {
       "type": 1,
       "value": "error"
-    }
-  ],
-  "R5Y4rC": [
-    {
-      "type": 0,
-      "value": "Data connector \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" has been updated successfully"
     }
   ],
   "R7DP3y": [
@@ -5359,24 +5323,20 @@
       "value": "Last 12 hours"
     }
   ],
+  "S2z35W": [
+    {
+      "type": 0,
+      "value": "Failed to create connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "S57QRB": [
     {
       "type": 0,
       "value": "Filter by"
-    }
-  ],
-  "S6FECK": [
-    {
-      "type": 0,
-      "value": "Deleting data connector \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\""
     }
   ],
   "SAINuE": [
@@ -5773,12 +5733,6 @@
       "value": "mode"
     }
   ],
-  "UKUKGA": [
-    {
-      "type": 0,
-      "value": "Failed to delete data connector"
-    }
-  ],
   "UNXega": [
     {
       "type": 0,
@@ -6119,6 +6073,12 @@
     {
       "type": 0,
       "value": "Approve"
+    }
+  ],
+  "WE9lZK": [
+    {
+      "type": 0,
+      "value": "No connectors configured"
     }
   ],
   "WHleoJ": [
@@ -6846,12 +6806,6 @@
       "value": "Starting investigation and forming hypothesis"
     }
   ],
-  "aA1SYF": [
-    {
-      "type": 0,
-      "value": "Deleting data connector"
-    }
-  ],
   "aA8bDw": [
     {
       "type": 0,
@@ -7012,16 +6966,6 @@
     {
       "type": 0,
       "value": "Cognitive Services Language Writer"
-    }
-  ],
-  "aqnJe8": [
-    {
-      "type": 0,
-      "value": "Failed to update data connector with error: "
-    },
-    {
-      "type": 1,
-      "value": "error"
     }
   ],
   "auFFJa": [
@@ -7268,6 +7212,20 @@
     {
       "type": 0,
       "value": "Roles"
+    }
+  ],
+  "c8Doeq": [
+    {
+      "type": 0,
+      "value": "Connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been deleted successfully"
     }
   ],
   "cDjhgm": [
@@ -7898,12 +7856,6 @@
     {
       "type": 0,
       "value": "Copy error details"
-    }
-  ],
-  "g3ngVx": [
-    {
-      "type": 0,
-      "value": "Create AI agents with custom tools and data connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
     }
   ],
   "g7HOVb": [
@@ -8646,6 +8598,12 @@
       "value": "Subscription equals"
     }
   ],
+  "kQAf2d": [
+    {
+      "type": 0,
+      "value": "Select"
+    }
+  ],
   "kQSvkP": [
     {
       "type": 0,
@@ -8690,12 +8648,6 @@
     {
       "type": 0,
       "value": "Correlation Analysis"
-    }
-  ],
-  "ko0rr4": [
-    {
-      "type": 0,
-      "value": "Update the data connector configuration."
     }
   ],
   "koWZK8": [
@@ -8924,6 +8876,20 @@
     {
       "type": 0,
       "value": "Add a default incident response plan for the agent to use for P1 base incidents."
+    }
+  ],
+  "m8grMF": [
+    {
+      "type": 0,
+      "value": "Connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
     }
   ],
   "mAyw3x": [
@@ -9454,6 +9420,12 @@
       "value": "errorMessage"
     }
   ],
+  "ocTBQX": [
+    {
+      "type": 0,
+      "value": "Failed to delete connector"
+    }
+  ],
   "omHElC": [
     {
       "type": 0,
@@ -9486,6 +9458,20 @@
     {
       "type": 0,
       "value": "High risk"
+    }
+  ],
+  "p/QlSI": [
+    {
+      "type": 0,
+      "value": "Updating connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
     }
   ],
   "p/xAmY": [
@@ -9542,6 +9528,12 @@
       "value": "Managed resources"
     }
   ],
+  "pCRg92": [
+    {
+      "type": 0,
+      "value": "You do not have permission to add or delete connectors."
+    }
+  ],
   "pDUFq5": [
     {
       "type": 0,
@@ -9552,12 +9544,6 @@
     {
       "type": 0,
       "value": "Current status"
-    }
-  ],
-  "pG9xP9": [
-    {
-      "type": 0,
-      "value": "A data connector with this name already exists"
     }
   ],
   "pRvgsc": [
@@ -9740,6 +9726,12 @@
       "value": "Costs for last 7 days"
     }
   ],
+  "qf1aUJ": [
+    {
+      "type": 0,
+      "value": "A connector with this name already exists"
+    }
+  ],
   "qhApmK": [
     {
       "type": 0,
@@ -9876,12 +9868,6 @@
       "value": "Pending user action"
     }
   ],
-  "rMjIe9": [
-    {
-      "type": 0,
-      "value": "Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatable data connector was found)"
-    }
-  ],
   "rNvlCF": [
     {
       "type": 0,
@@ -9948,6 +9934,12 @@
     {
       "type": 0,
       "value": "Close"
+    }
+  ],
+  "rd+inb": [
+    {
+      "type": 0,
+      "value": "Create AI agents with custom tools and connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
     }
   ],
   "rd6YZk": [
@@ -10034,6 +10026,20 @@
       "value": "Test incident response"
     }
   ],
+  "rxcQLa": [
+    {
+      "type": 0,
+      "value": "Creating connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "ryPHA8": [
     {
       "type": 0,
@@ -10116,6 +10122,12 @@
     {
       "type": 0,
       "value": "Timestamps"
+    }
+  ],
+  "sQZhm1": [
+    {
+      "type": 0,
+      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
     }
   ],
   "sQkhYk": [
@@ -10360,20 +10372,6 @@
       "value": "Back to Edit"
     }
   ],
-  "tH6Myj": [
-    {
-      "type": 0,
-      "value": "Data connector \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" has been created successfully"
-    }
-  ],
   "tHCvDB": [
     {
       "type": 0,
@@ -10488,6 +10486,12 @@
     {
       "type": 0,
       "value": "\" has been created successfully"
+    }
+  ],
+  "thOyk5": [
+    {
+      "type": 0,
+      "value": "Deleting connector"
     }
   ],
   "tjE5Cb": [
@@ -11134,16 +11138,6 @@
       "value": "Insufficient data points for chart"
     }
   ],
-  "xgNcC+": [
-    {
-      "type": 0,
-      "value": "Failed to create data connector with error: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "xmcVZ0": [
     {
       "type": 0,
@@ -11278,12 +11272,6 @@
     {
       "type": 0,
       "value": "End time"
-    }
-  ],
-  "yd187T": [
-    {
-      "type": 0,
-      "value": "Failed to create data connector"
     }
   ],
   "yeJPGA": [
