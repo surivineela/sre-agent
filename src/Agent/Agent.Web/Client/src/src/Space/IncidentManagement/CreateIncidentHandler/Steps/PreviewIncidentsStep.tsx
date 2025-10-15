@@ -5,7 +5,7 @@ import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentDocument } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
-import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
+import { IncidentHandlerCreateResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
 import { getPlatformSpecificStrings } from '../../Utilities';
 import { IncidentTableFieldNames, TimeDuration, TimeDurationKey } from '../Contracts';
@@ -160,6 +160,7 @@ export const PreviewIncidentsStep: FC = () => {
                         onSelectedTimespanChange(selectedOption?.value || TimeDuration.Last30Days);
                     }}
                     disabled={loadingIncidents || !handlerLoaded}
+                    aria-label={intl.formatMessage(SreAgentResources.timeRange)}
                 >
                     {timespanDropdownOptions.map(option => (
                         <Option value={option.key} checkIcon={null}>

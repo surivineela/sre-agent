@@ -498,6 +498,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                         button={<span>{getIncidentTypeLabel(incidentType)}</span>}
                         className={styles.searchBox}
                         disabled={disableAllControls}
+                        aria-label={intl.formatMessage(IncidentManagementResources.incidentType)}
                     >
                         {incidentTypeOptions.map(option => (
                             <Option value={option.value} text={option.label}>
@@ -512,6 +513,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                         button={<span>{getImpactedServicesLabel(impactedService)}</span>}
                         className={styles.searchBox}
                         disabled={disableAllControls}
+                        aria-label={intl.formatMessage(IncidentManagementResources.impactedService)}
                     >
                         {impactedServiceOptions.map(option => (
                             <Option value={option.value} text={option.label}>
@@ -526,6 +528,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                         button={<span>{getPriorityOptionLabel(priority)}</span>}
                         className={styles.searchBox}
                         disabled={disableAllControls}
+                        aria-label={intl.formatMessage(platformSpecificStrings.severityOrPriorityLabel)}
                     >
                         {priorityOptions.map(option => (
                             <Option value={option.value} text={option.label}>
@@ -556,6 +559,8 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                     selectionMode={SelectionMode.single}
                     setKey="incidentFilterList"
                     getKey={(item, index) => (item && item.id ? item.id : `shimmer-${index}`)}
+                    checkButtonAriaLabel={intl.formatMessage(SreAgentResources.selectRowAriaLabel)}
+                    ariaLabelForSelectAllCheckbox={intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel)}
                 />
                 {incidentFilters.length === 0 && !incidentFiltersLoading && (
                     <div className={styles.emptyState}>

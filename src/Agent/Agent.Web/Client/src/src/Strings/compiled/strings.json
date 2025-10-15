@@ -4807,6 +4807,12 @@
       "value": "Choose the Kusto connector this tool will query"
     }
   ],
+  "PSfARI": [
+    {
+      "type": 0,
+      "value": "Loading more rows..."
+    }
+  ],
   "PU1wDo": [
     {
       "type": 0,

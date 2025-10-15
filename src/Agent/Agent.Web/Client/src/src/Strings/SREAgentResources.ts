@@ -22,6 +22,7 @@ export const SreAgentResources = defineMessages({
     expand: { defaultMessage: 'Expand', id: '0oLj/t' },
     sreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     add: { defaultMessage: 'Add', id: '2/2yg+' },
+    remove: { defaultMessage: 'Remove', id: 'G/yZLu' },
     new: { defaultMessage: 'New', id: 'bW7B87' },
     resources: { defaultMessage: 'Resources', id: 'c/KktL' },
     notApplicable: { defaultMessage: 'Not applicable', id: '61zy45' },
@@ -517,6 +518,7 @@ export const SreAgentResources = defineMessages({
     selectRowAriaLabel: { defaultMessage: 'Select row', id: '4pJVaS' },
     lineChart: { defaultMessage: 'Line chart', id: '8oyl6b' },
     barChart: { defaultMessage: 'Bar chart', id: 'k+3+Dy' },
+    loadingMoreRows: { defaultMessage: 'Loading more rows...', id: 'PSfARI' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -1127,6 +1129,7 @@ export const IncidentHandlerCreateResources = defineMessages({
         id: 'yiAEBc',
     },
     customInstructionPlaceholder: { defaultMessage: 'Enter instructions', id: 'AbpmRv' },
+    customInstructionsAriaLabel: { defaultMessage: 'Custom response guidance', id: 'et+X02' },
     reviewCustomInstructionsTitle: { defaultMessage: 'Custom response guidance', id: 'et+X02' },
     reviewCustomInstructionsDescription: {
         defaultMessage: 'This is the prompt the agent will use. It includes your custom response guidance. Review and edit if needed.',
@@ -1442,6 +1445,7 @@ export const IncidentManagementResources = defineMessages({
     filterByCustomPlan: { defaultMessage: 'Filter by custom plan', id: 'coPQxN' },
     filterBySeverityLevel: { defaultMessage: 'Filter by severity level', id: '+Hx789' },
     filterByMitigatedBy: { defaultMessage: 'Filter by mitigated by', id: 'mm/uFP' },
+    generating: { defaultMessage: 'Generating…', id: 'tB02Wz' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

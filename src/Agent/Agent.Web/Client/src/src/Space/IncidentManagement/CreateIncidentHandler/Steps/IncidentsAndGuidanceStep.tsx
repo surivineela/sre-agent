@@ -5,7 +5,7 @@ import { useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentDocument } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
-import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
+import { IncidentHandlerCreateResources, IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
 import { SelectedItemsList } from '../../../Components/SelectedItemsList';
 import { generateHandlerStyles } from '../../../Styles/IncidentManagement.styles';
@@ -173,7 +173,7 @@ export const IncidentsAndGuidanceStep = () => {
                         zIndex: 1000,
                     }}
                 >
-                    <Spinner size="large" />
+                    <Spinner size="large" aria-label={intl.formatMessage(IncidentManagementResources.generating)} />
                 </div>
             )}
             <div
@@ -201,6 +201,7 @@ export const IncidentsAndGuidanceStep = () => {
                             onSelectedTimespanChange(selectedOption?.value || TimeDuration.Last30Days);
                         }}
                         disabled={loadingIncidents || generatingInstructions || !handlerLoaded}
+                        aria-label={intl.formatMessage(SreAgentResources.timeRange)}
                     >
                         {timespanDropdownOptions.map(option => (
                             <Option value={option.key} checkIcon={null}>

@@ -7,7 +7,7 @@ import { useIntl } from 'react-intl';
 import { ToolInfo } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import { ThreadSource } from '../../../../Common/Contracts/DataPlane/Thread';
-import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
+import { IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
 import ChatBox from '../../../Activities/ChatBox';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
@@ -97,7 +97,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                         zIndex: 1000,
                     }}
                 >
-                    <Spinner size="large" />
+                    <Spinner size="large" aria-label={intl.formatMessage(IncidentManagementResources.generating)} />
                 </div>
             )}
             {(!view || view === 'review') && (
@@ -125,6 +125,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                             disabled={generatingUpdatedTools}
                             root={{ style: { height: 'auto', flex: '1' } }}
                             textarea={{ style: { maxHeight: '100%' } }}
+                            aria-label={intl.formatMessage(IncidentHandlerCreateResources.customInstructionsAriaLabel)}
                         />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '67%', flex: 'none' }}>

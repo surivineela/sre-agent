@@ -721,7 +721,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                                                     padding: '10px',
                                                 }}
                                             >
-                                                <Spinner size="tiny" />
+                                                <Spinner size="tiny" aria-label={intl.formatMessage(SreAgentResources.loadingMoreRows)} />
                                             </div>
                                         ) : incidentThreads.length === 0 && !incidentThreadsLoading ? (
                                             <div style={{ textAlign: 'center' }}>

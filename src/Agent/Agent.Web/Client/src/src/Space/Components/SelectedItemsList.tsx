@@ -1,5 +1,7 @@
 import { Button, makeStyles, Text, tokens } from '@fluentui/react-components';
 import { Dismiss12Regular } from '@fluentui/react-icons';
+import useIntl from 'react-intl/src/components/useIntl';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { Resizable } from '../Activities/Resizable';
 
 const useSelectedIncidentsListStyles = makeStyles({
@@ -85,6 +87,7 @@ export const SelectedItemsList = <T extends object>({
     onRemove,
     disabled,
 }: SelectedItemsListProps<T>) => {
+    const intl = useIntl();
     const styles = useSelectedIncidentsListStyles();
     return (
         <Resizable
@@ -112,6 +115,7 @@ export const SelectedItemsList = <T extends object>({
                             appearance="subtle"
                             onClick={() => onRemove(item)}
                             disabled={disabled}
+                            aria-label={intl.formatMessage(SreAgentResources.remove)}
                         />
                     </div>
                 ))}

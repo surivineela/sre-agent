@@ -256,10 +256,11 @@ export const MultipleSelectionShimmerDetailsList: MultipleSelectionShimmerDetail
                         indicator={{
                             style: { margin: 'auto' },
                         }}
+                        aria-label={intl.formatMessage(SreAgentResources.selectRowAriaLabel)}
                     />
                 );
             },
-            [toggleItemSelection, disabled, selectionLimit, selectedItemCount, getKey]
+            [disabled, selectionLimit, selectedItemCount, intl, toggleItemSelection, getKey]
         );
 
         const onRenderAddButton = useCallback(
@@ -271,6 +272,7 @@ export const MultipleSelectionShimmerDetailsList: MultipleSelectionShimmerDetail
                         disabled={item.selected || disabled || (!!selectionLimit && selectedItemCount >= selectionLimit)}
                         appearance="subtle"
                         className={styles.iconButton}
+                        aria-label={intl.formatMessage(SreAgentResources.add)}
                     />
                 ) : (
                     <div className={styles.iconContainer}>
@@ -278,7 +280,7 @@ export const MultipleSelectionShimmerDetailsList: MultipleSelectionShimmerDetail
                     </div>
                 );
             },
-            [toggleItemSelection, disabled, selectionLimit, selectedItemCount, getKey, styles.iconButton, styles.iconContainer]
+            [disabled, selectionLimit, selectedItemCount, intl, toggleItemSelection, getKey, styles.iconButton, styles.iconContainer]
         );
 
         const allSelectedState = useMemo((): boolean | 'mixed' => {
@@ -327,9 +329,10 @@ export const MultipleSelectionShimmerDetailsList: MultipleSelectionShimmerDetail
                     indicator={{
                         style: { margin: 'auto' },
                     }}
+                    aria-label={intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel)}
                 />
             );
-        }, [allSelectedState, toggleSelectAll, disabled, selectionLimit]);
+        }, [allSelectedState, disabled, selectionLimit, intl, toggleSelectAll]);
 
         const columnsWithCheckbox: IColumn[] = useMemo(() => {
             const checkboxColumn: IColumn = {
@@ -392,7 +395,7 @@ export const MultipleSelectionShimmerDetailsList: MultipleSelectionShimmerDetail
                             )}
                         />
                         {hasMoreItems && (
-                            <Skeleton ref={intersectionObserverRef}>
+                            <Skeleton ref={intersectionObserverRef} aria-label={intl.formatMessage(SreAgentResources.loadingMoreRows)}>
                                 <SkeletonItem />
                             </Skeleton>
                         )}

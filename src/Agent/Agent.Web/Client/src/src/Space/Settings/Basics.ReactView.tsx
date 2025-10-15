@@ -247,7 +247,10 @@ const Basics: FC = () => {
                 </Shimmer>
                 <Label>{intl.formatMessage(SreAgentResources.agentPermissionsLevel)}</Label>
                 <Shimmer isDataLoaded={!agentLoading || !!agentAccessLevelValue}>{agentAccessLevelValue}</Shimmer>
-                <Label style={{ display: 'flex', alignItems: 'center', gap: 6, margin: 0, whiteSpace: 'nowrap' }}>
+                <Label
+                    id="upgrade-channel-switch-label"
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, margin: 0, whiteSpace: 'nowrap' }}
+                >
                     {intl.formatMessage(SettingsTabResources.upgradeChannel)}
                     <Tooltip
                         content={
@@ -280,6 +283,7 @@ const Basics: FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-5px' }}>
                     <Shimmer isDataLoaded={!agentLoading}>
                         <Switch
+                            aria-labelledby="upgrade-channel-switch-label"
                             checked={isPreviewChannel}
                             onChange={onUpgradeChannelToggle}
                             disabled={agentLoading || isUpdatingUpgradeChannel}
