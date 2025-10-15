@@ -84,6 +84,14 @@ namespace Agent.Plugins
             return await _armPlugin.GetArmResourceAsJson(resourceId);
         }
 
+        [Description("Gets current VM instance view states (power/provisioning) from instanceView.")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<string> GetVirtualMachineBootStateAsJson(
+            [Description("Full resource id of an Azure virtual machine resource")] string resourceId)
+        {
+            return await _armPlugin.GetVirtualMachineBootStateAsJson(resourceId);
+        }
+
         [RequiresApproval]
         [WriteAction]
         [Description("Power ON an Azure virtual machine")]

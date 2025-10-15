@@ -2646,17 +2646,17 @@ public class ArmHelper
         _crawlerTriggerService.TriggerArmCrawl(resourceId);
     }
 
-    public async Task<VirtualMachineResource> GetVirtualMachineResourceAsync(string resourceId)
-    {
-        var armClient = await _armClientFactory.GetArmOperationClient();
-        var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
-        if (virtualMachineResource == null)
+        public async Task<VirtualMachineResource> GetVirtualMachineResourceAsync(string resourceId)
         {
-            throw new ArgumentException($"Resource with ID {resourceId} is not a valid Virtual Machine resource.");
+            var armClient = await _armClientFactory.GetArmOperationClient();
+            var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
+            if (virtualMachineResource == null)
+            {
+                throw new ArgumentException($"Resource with ID {resourceId} is not a valid Virtual Machine resource.");
+            }
+            var virtualMachineResourceResponse = await virtualMachineResource.GetAsync();
+            return virtualMachineResourceResponse.Value;
         }
-        var virtualMachineResourceResponse = await virtualMachineResource.GetAsync();
-        return virtualMachineResourceResponse.Value;
-    }
 
     public async Task<string> GetArmResourceAsJsonAsync(string resourceId)
     {
@@ -2716,6 +2716,137 @@ public class ArmHelper
             return $"{{\"error\":{{\"code\":\"InternalError\",\"message\":\"An error occurred while retrieving the resource: {ex.Message}\"}}}}";
 
         }
+    }
+
+    public async Task<string> GetVirtualMachineBootStateAsJsonAsync(string resourceId)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId))
+            throw new ArgumentException("Resource ID is required", nameof(resourceId));
+
+        if (!IsWellFormattedResourceId(resourceId))
+            throw new ArgumentException($"Invalid resource ID format: {resourceId}", nameof(resourceId));
+
+        string requestUrl = $"https://management.azure.com{resourceId}?$expand=instanceView&api-version=2024-07-01";
+
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        using HttpResponseMessage response = await httpClient.SendAsync(request);
+
+        string body = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            if (CheckForUnauthorizedAccess(response))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+            }
+
+            _logger.LogInternalWarning($"Failed to retrieve VM instance view for {resourceId}: {response.StatusCode} {body}");
+            var failedResult = new
+            {
+                resourceId,
+                powerState = (string?)null,
+                provisioningState = (string?)null,
+                displayStatus = (string?)null,
+                time = (string?)null
+            };
+            return JsonSerializer.Serialize(failedResult);
+        }
+
+        try
+        {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var vmResponse = JsonSerializer.Deserialize<VirtualMachineArmResponse>(body, options);
+            var statuses = vmResponse?.Properties?.InstanceView?.Statuses;
+
+            string? powerState = null;
+            string? provisioningState = null;
+            string? displayStatus = null;
+            DateTimeOffset? time = null;
+
+            if (statuses != null)
+            {
+                foreach (var status in statuses)
+                {
+                    var code = status?.Code;
+                    if (string.IsNullOrEmpty(code))
+                        continue;
+
+                    if (code.StartsWith("PowerState/", StringComparison.OrdinalIgnoreCase))
+                    {
+                        powerState = code;
+                        displayStatus ??= status?.DisplayStatus;
+                        if (time == null && status?.Time != null)
+                            time = status.Time;
+                    }
+                    else if (code.StartsWith("ProvisioningState/", StringComparison.OrdinalIgnoreCase))
+                    {
+                        provisioningState = code;
+                        displayStatus ??= status?.DisplayStatus;
+                        if (time == null && status?.Time != null)
+                            time = status.Time;
+                    }
+                }
+            }
+
+            var result = new
+            {
+                resourceId,
+                powerState,
+                provisioningState,
+                displayStatus,
+                time = time?.ToString("o")
+            };
+
+            return JsonSerializer.Serialize(result);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogInternalError(ex, $"JSON parse error for VM instance view {resourceId}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Unexpected error parsing VM boot/instance view for {resourceId}");
+        }
+
+        var parseFailed = new
+        {
+            resourceId,
+            powerState = (string?)null,
+            provisioningState = (string?)null,
+            displayStatus = (string?)null,
+            time = (string?)null
+        };
+        return JsonSerializer.Serialize(parseFailed);
+    }
+
+    // Local DTOs for typed deserialization of only required fields
+    private sealed class VirtualMachineArmResponse
+    {
+        public VmProperties? Properties { get; set; }
+    }
+
+    private sealed class VmProperties
+    {
+        public VmInstanceView? InstanceView { get; set; }
+    }
+
+    private sealed class VmInstanceView
+    {
+        public List<VmStatus>? Statuses { get; set; }
+    }
+
+    private sealed class VmStatus
+    {
+        public string? Code { get; set; }
+        public string? DisplayStatus { get; set; }
+
+        [JsonPropertyName("time")]
+        public DateTimeOffset? Time { get; set; }
     }
 
     public async Task<bool> PowerOnVirtualMachineAsync(string resourceId)

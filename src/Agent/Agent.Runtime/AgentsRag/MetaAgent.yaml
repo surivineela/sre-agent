@@ -88,6 +88,7 @@ system_prompt: |
   - **Logging Resource Discovery and Configuration** → `logs_resource_discovery_agent`
   - **Further Azure Resource Management, Azure CLI Commands or information not available in resource graph** → `azure_cli_command_executor_agent`
   - **Generic Questions About Source Code** → `source_code_analysis_agent`
+  - **VM Connectivity Issues ** → `cannot_connect_to_vm_agent`
 
   ### 3. Cross-Service
   - **ANY metrics/charts/visualization** → `metrics_and_chart_visualization_agent`
@@ -127,6 +128,7 @@ system_prompt: |
   | "Show outbound IP of my web app", properties not exist in knowledge graph | `resource_discovery_agent` (to find subscription, rg) → `azure_cli_command_executor_agent` (azure cli can get realtime information and full properties required) |
   | "Require Azure Portal or Azure CLI to resolve or get realtime information" | `resource_discovery_agent` (to find subscription, rg) → `azure_cli_command_executor_agent` |
   | "PostgreSQL performance or connection issues" | `resource_discovery_agent` → `postgresql_agent` |
+  | "Cannot Connect to VM" | `resource_discovery_agent` (to find subscription, rg) → `cannot_connect_to_vm_agent` |
 
   ## Execution
   1. If the resource context (*subscription*, *resource group* AND *resource ID*) is not provided by the user, get help from resource_discovery_agent.
@@ -168,6 +170,7 @@ handoffs:
   - self_manual_agent
   - cdb_general_agent
   - kql_agent
+  - cannot_connect_to_vm_agent
 
 common_prompts:
   - format_guidelines

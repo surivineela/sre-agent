@@ -27,7 +27,7 @@ public class GeneralAgentEvals
         var targetFile = Environment.GetEnvironmentVariable("TEST_FILE");
 
         // Built-in scenario folders under the default Data directory (used ONLY when TEST_FOLDER not supplied)
-        var builtInDataFolders = new[] { "HandOff", "AzCliCommandAgent", "AKSAgent", "RCAAgent" };
+        var builtInDataFolders = new[] { "HandOff", "AzCliCommandAgent", "AKSAgent", "RCAAgent", "CannotConnectToVmAgent" };
 
         // New semantics (per request):
         // 1. Allow TEST_FOLDER to specify multiple folders separated by commas.

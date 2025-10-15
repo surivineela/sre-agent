@@ -111,6 +111,11 @@ namespace Agent.Plugins.Implementation
             return await _armHelper.GetArmResourceAsJsonAsync(resourceId);
         }
 
+        public async Task<string> GetVirtualMachineBootStateAsJson(string resourceId)
+        {
+            return await _armHelper.GetVirtualMachineBootStateAsJsonAsync(resourceId);
+        }
+
         public async Task<RemediationResult> PowerOnVirtualMachine(string resourceId)
         {
             bool vmPowerOnResult = true;

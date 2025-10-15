@@ -20,6 +20,7 @@ namespace Agent.Plugins.Interface
         Task<bool> RestartWebApp(string appResourceId);
         Task<bool> StartWebApp(string appResourceId);
         Task<string> GetArmResourceAsJson(string resourceId);
+        Task<string> GetVirtualMachineBootStateAsJson(string resourceId);
         Task<RemediationResult> PowerOnVirtualMachine(string resourceId);
         Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnostics(string resourceId);
         Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId, string providerType = "BlobStorage");

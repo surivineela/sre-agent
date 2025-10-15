@@ -89,6 +89,7 @@ system_prompt: |
   - **Logging Resource Discovery and Configuration** → `logs_resource_discovery_agent`
   - **Further Azure Resource Management, Azure CLI Commands or information not available in resource graph** → `azure_cli_command_executor_agent`
   - **Generic Questions About Source Code** → `source_code_analysis_agent`
+  - **Cannot Connect to VM issues** → `cannot_connect_to_vm_agent`
 
   ### 3. Cross-Service
   - **ANY metrics/charts/visualization** → `metrics_and_chart_visualization_agent`
@@ -130,6 +131,7 @@ system_prompt: |
   | "PostgreSQL performance or connection issues" | `resource_discovery_agent` → `postgresql_agent` |
   | "Query my PostgreSQL database" or "Execute SQL commands" | `resource_discovery_agent` → `psql_command_automation_agent` |
   | "My API Management is slow" | `resource_discovery_agent` (to find subscription, rg) → `api_management_agent` |
+  | "Cannot Connect to VM" | `resource_discovery_agent` (to find subscription, rg) → `cannot_connect_to_vm_agent` |
 
   ## Execution
   1. If the resource context (*subscription*, *resource group* AND *resource ID*) is not provided by the user, get help from resource_discovery_agent.
@@ -170,6 +172,7 @@ handoffs:
   - cdb_general_agent
   - kql_agent
   - logic_app_agent
+  - cannot_connect_to_vm_agent
 
 common_prompts:
   - format_guidelines

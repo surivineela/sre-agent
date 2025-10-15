@@ -477,6 +477,8 @@ public class Program
             .AddTransient<IICMPlugin, ICMPlugin>()
             .AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>()
             .AddTransient<IWebAppPlugin, WebAppPlugin>()
+            .AddTransient<ICannotConnectToVmPlugin, CannotConnectToVmPlugin>()
+            .AddTransient<CannotConnectToVmPluginDefinition>()
 
             .AddSingleton<ThreadEvaluator>()
             .AddSingleton<TrajectoryEvaluator>()
@@ -712,7 +714,6 @@ public class Program
         builder.Services.AddCrawlerHttpClient();
         builder.Services.AddSearchEndpointHttpClient();
         builder.Services.AddSessionPoolHttpClient();
-
         builder.Services.AddSingleton<ILogAnalyticsService, LogAnalyticsService>();
         builder.Services.AddSingleton<ILogAnalysisService, LogAnalysisService>();
 

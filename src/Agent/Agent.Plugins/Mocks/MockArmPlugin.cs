@@ -257,5 +257,10 @@ namespace Agent.Plugins.Mocks
         {
             return Task.FromResult("Mock: All Azure Data Factory pipelines are running successfully");
         }
+
+        Task<string> IArmPlugin.GetVirtualMachineBootStateAsJson(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
