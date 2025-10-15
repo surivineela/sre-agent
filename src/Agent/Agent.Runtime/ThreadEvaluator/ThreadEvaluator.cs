@@ -219,8 +219,19 @@ public partial class ThreadEvaluator
             var toolCallMetrics = await CalculateToolCallMetrics(thread.Id, agentContextsList);
 
             // Get chat and reasoning message history for LLM evaluation
-            (var chatHistory, var reasoningHistory) = await GetMessageHistories(thread.Id, agentContextsList);            // Call LLM to evaluate thread quality
-            var llmEvaluation = await EvaluateThreadWithLLM(thread, chatHistory, reasoningHistory, toolCallMetrics, cancellationToken);// Calculate SAT Score as the average of all dimensions, rounded up to an integer
+            (var chatHistory, var reasoningHistory) = await GetMessageHistories(thread.Id, agentContextsList);
+            
+            // Call LLM to evaluate thread quality
+            var llmEvaluation = await EvaluateThreadWithLLM(thread, chatHistory, reasoningHistory, toolCallMetrics, cancellationToken);
+            
+            // If LLM evaluation failed, return null to indicate the thread should not be marked as evaluated
+            if (llmEvaluation == null)
+            {
+                _logger.LogInternalWarning($"Skipping thread {thread.Id} evaluation due to LLM evaluation failure");
+                return null;
+            }
+            
+            // Calculate SAT Score as the average of all dimensions, rounded up to an integer
             var satScore = Math.Ceiling((double)(llmEvaluation.Resolved + llmEvaluation.Satisfied + llmEvaluation.Automatic + llmEvaluation.Smooth + llmEvaluation.Concise + llmEvaluation.Adherence) / 6.0);
 
             await EvaluateHandoffsWithLLM(thread, cancellationToken); // Calculate handoff score
@@ -488,8 +499,9 @@ public partial class ThreadEvaluator
 
     /// <summary>
     /// Use LLM to evaluate thread performance and quality
+    /// Returns null if evaluation fails, indicating that the thread should not be marked as evaluated
     /// </summary>
-    private async Task<LLMEvaluationResult> EvaluateThreadWithLLM(ThreadModel thread, string chatHistory, string reasoningHistory, ToolCallMetrics toolCallMetrics, CancellationToken cancellationToken)
+    private async Task<LLMEvaluationResult?> EvaluateThreadWithLLM(ThreadModel thread, string chatHistory, string reasoningHistory, ToolCallMetrics toolCallMetrics, CancellationToken cancellationToken)
     {
         try
         {
@@ -575,21 +587,8 @@ public partial class ThreadEvaluator
             var jsonResponse = response.GetMessage().Text?.Trim();
             if (string.IsNullOrEmpty(jsonResponse))
             {
-                return new LLMEvaluationResult
-                {
-                    SATScore = 2.5,
-                    Summary = "Unable to evaluate - no LLM response",
-                    DetailedFeedback = "The LLM did not provide a response for evaluation.",
-                    Category = "other",
-                    Resolved = 0,
-                    Satisfied = 0,
-                    Automatic = 0,
-                    Smooth = 0,
-                    Concise = 0,
-                    Adherence = 0,
-                    Priority = "low",
-                    PriorityReason = "Unable to determine priority - no LLM response"
-                };
+                _logger.LogInternalWarning($"LLM evaluation failed for thread {thread.Id} - no response received");
+                return null; // Evaluation failed - caller should not mark thread as evaluated
             }
 
             // Parse LLM response for numeric scores and summary
@@ -619,44 +618,14 @@ public partial class ThreadEvaluator
             }
             catch (JsonException ex)
             {
-                _logger.LogInternalWarning(ex, $"Error parsing LLM evaluation response. Original response: {jsonResponse}");
-                // Still attempt to get category info separately
-                var category = await EvaluateThreadCategory(thread, chatHistory, cancellationToken);
-                return new LLMEvaluationResult
-                {
-                    SATScore = 2.5,
-                    Summary = "Evaluation parsing failed",
-                    DetailedFeedback = $"Failed to parse LLM evaluation response: {ex.Message}",
-                    Category = category ?? "other",
-                    Resolved = 0,
-                    Satisfied = 0,
-                    Automatic = 0,
-                    Smooth = 0,
-                    Concise = 0,
-                    Adherence = 0,
-                    Priority = "low",
-                    PriorityReason = ""
-                };
+                _logger.LogInternalWarning(ex, $"Error parsing LLM evaluation response for thread {thread.Id}. Original response: {jsonResponse}");
+                return null; // Evaluation failed - caller should not mark thread as evaluated
             }
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Error during LLM evaluation for thread {thread.Id}");
-            return new LLMEvaluationResult
-            {
-                SATScore = 2.5,
-                Summary = "Evaluation failed due to error",
-                DetailedFeedback = $"Error during evaluation: {ex.Message}",
-                Category = "other",
-                Resolved = 0,
-                Satisfied = 0,
-                Automatic = 0,
-                Smooth = 0,
-                Concise = 0,
-                Adherence = 0,
-                Priority = "low",
-                PriorityReason = "Unable to determine priority - evaluation failed"
-            };
+            return null; // Evaluation failed - caller should not mark thread as evaluated
         }
     }
     /// <summary>
