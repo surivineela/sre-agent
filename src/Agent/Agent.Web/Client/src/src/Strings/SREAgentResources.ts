@@ -8,6 +8,7 @@ export const SreAgentResources = defineMessages({
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     agentPermissionsLevel: { defaultMessage: 'Agent permissions level', id: '+bJIWo' },
     agentEndpoint: { defaultMessage: 'Agent endpoint', id: 's7DlV0' },
+    agentSpace: { defaultMessage: 'SRE Agent Space', id: 'iv1ryQ' },
     back: { defaultMessage: 'Back', id: 'cyR7Kh' },
     collapse: { defaultMessage: 'Collapse', id: 'W/V6+Y' },
     deleteAgentTitle: { defaultMessage: 'Delete SRE Agent', id: 'ThSX0k' },

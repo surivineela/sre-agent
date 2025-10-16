@@ -123,7 +123,7 @@ const RbacWarningBanner = () => {
         setIsDismissed(true);
     }, []);
 
-    if (isDismissed || alreadyHasAgentRole || isCrossTenantPortalMode || AzPortalProxy.inStandaloneMode) {
+    if (checking || isDismissed || alreadyHasAgentRole || isCrossTenantPortalMode || AzPortalProxy.inStandaloneMode) {
         return null;
     }
 

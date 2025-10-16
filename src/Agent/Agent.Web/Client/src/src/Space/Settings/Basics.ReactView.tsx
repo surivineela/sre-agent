@@ -57,6 +57,13 @@ const Basics: FC = () => {
         return { identityId, identityName };
     }, [agent?.identity?.userAssignedIdentities]);
 
+    const { agentSpaceId, agentSpaceName } = useMemo(() => {
+        const agentSpaceId = agent?.properties?.agentSpaceId;
+        const agentSpaceDescriptor = agentSpaceId ? new ArmResourceDescriptor(agentSpaceId) : undefined;
+        const agentSpaceName = agentSpaceDescriptor?.resourceName || '';
+        return { agentSpaceId, agentSpaceName };
+    }, [agent?.properties?.agentSpaceId]);
+
     const agentAccessLevelValue = useMemo(
         () => getAgentAccessLevelDisplayName(agent?.properties?.actionConfiguration?.accessLevel, intl),
         [agent?.properties?.actionConfiguration?.accessLevel, intl]
@@ -90,6 +97,15 @@ const Basics: FC = () => {
             extension: 'HubsExtension',
         });
     }, [az, identityId]);
+
+    const openAgentSpace = useCallback(() => {
+        if (!agentSpaceId) return;
+        az.openBlade({
+            extension: 'Microsoft_Azure_PaasServerless',
+            detailBlade: 'SreAgentSpaceOverview.ReactView',
+            detailBladeInputs: { id: agentSpaceId },
+        });
+    }, [az, agentSpaceId]);
 
     const onUpgradeChannelToggle = useCallback(async () => {
         if (isUpdatingUpgradeChannel) return;
@@ -240,6 +256,10 @@ const Basics: FC = () => {
                 <Label>{intl.formatMessage(SreAgentResources.agentEndpoint)}</Label>
                 <Shimmer isDataLoaded={!agentLoading || !!agent?.properties?.agentEndpoint}>
                     {agent?.properties?.agentEndpoint ?? '-'}
+                </Shimmer>
+                <Label>{intl.formatMessage(SreAgentResources.agentSpace)}</Label>
+                <Shimmer isDataLoaded={!agentLoading || !!agentSpaceId}>
+                    {agentSpaceName ? <Link onClick={openAgentSpace}>{agentSpaceName}</Link> : '-'}
                 </Shimmer>
                 <Label>{intl.formatMessage(SreAgentResources.managedIdentity)}</Label>
                 <Shimmer isDataLoaded={!agentLoading || (!!identityId && !!identityName)}>
