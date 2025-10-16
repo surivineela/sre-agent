@@ -1,20 +1,25 @@
 import { ChatInput } from '@fluentui-copilot/react-chat-input';
 import {
+    $createGhostTextNode,
     $createTextNode,
     $getSelection,
-    $insertNodes,
     $isElementNode,
+    $isGhostTextNode,
     $isRangeSelection,
     $isTextNode,
+    $nodesOfType,
     $setSelection,
     Attachment,
     AttachmentList,
     AttachmentOverflowMenuButton,
     COMMAND_PRIORITY_LOW,
+    DecoratorNode,
     ElementNode,
+    GhostTextNode,
     GroundingMenuItemSkeleton,
     ImperativeControlPlugin,
     ImperativeControlPluginRef,
+    Klass,
     LexicalEditor,
     LexicalEditorRefPlugin,
     SELECTION_CHANGE_COMMAND,
@@ -47,7 +52,7 @@ import {
     Tooltip,
     useRestoreFocusTarget,
 } from '@fluentui/react-components';
-import { Lightbulb32Regular, SearchSparkle32Regular } from '@fluentui/react-icons';
+import { ChatWarningRegular, Lightbulb32Regular, SearchSparkle32Regular } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -57,6 +62,7 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import { ExtendedAgentClient } from '../../Common/Clients/ExtendedAgentClient';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
+import { Guid } from '../../Common/Helpers/Guid';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import {
@@ -95,6 +101,25 @@ const useDownButtonStyles = makeStyles({
     hidden: {
         opacity: '0',
         pointerEvents: 'none',
+    },
+});
+
+const useNoSearchResultWarningStyles = makeStyles({
+    root: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: tokens.spacingVerticalM,
+    },
+    extendedAgent: {
+        padding: '20px',
+        minWidth: '100px',
+    },
+    incident: {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
     },
 });
 
@@ -201,6 +226,36 @@ const ChatBoxFooter = ({
         setSearchText('');
     };
 
+    const convertShortcutNodeToTextNode = () => {
+        const nodes = $nodesOfType(ShortcutNode);
+        if (nodes) {
+            nodes.forEach(node => {
+                if (node.getParent()) {
+                    node.replace($createTextNode(`/${$getShortcutValuefromShortcutNode(node)} `));
+                }
+            });
+        }
+    };
+
+    const removeDecorateNode = (nodeType: Klass<DecoratorNode<JSX.Element | null>>) => {
+        const nodes = $nodesOfType(nodeType);
+        if (nodes) {
+            nodes.forEach(node => {
+                if (node.getParent()) {
+                    node.remove();
+                }
+            });
+        }
+    };
+
+    const removeShortcutNode = () => {
+        removeDecorateNode(ShortcutNode);
+    };
+
+    const removeGhostTextNode = () => {
+        removeDecorateNode(GhostTextNode);
+    };
+
     const onSelectIncident = useCallback((incident: Thread) => {
         setFocusedIncident(null);
         setSelectedShortcut(null);
@@ -209,20 +264,29 @@ const ChatBoxFooter = ({
             const selection = $getSelection();
             if ($isRangeSelection(selection)) {
                 const { anchor } = selection;
-                const node: ElementNode = anchor.getNode();
-                const prev = node.getPreviousSibling();
                 const offset = anchor.offset ?? -1;
 
-                if (!$isTextNode(node) || !$isShortcutNode(prev)) {
-                    return;
+                if ($isElementNode(anchor.getNode())) {
+                    const shortcutNode = anchor.getNode()?.getChildAtIndex(anchor.offset - 1);
+
+                    if ($isShortcutNode(shortcutNode)) {
+                        removeShortcutNode();
+
+                        const incidentNameNode = $createTextNode(incident.title);
+                        selection.insertNodes([incidentNameNode]);
+                    }
+                } else if ($isTextNode(anchor.getNode()) && offset !== -1) {
+                    const shortcutNode = anchor.getNode()?.getPreviousSibling();
+                    if ($isShortcutNode(shortcutNode)) {
+                        removeShortcutNode();
+
+                        const node = anchor.getNode();
+                        const rangeSelection = selection.clone();
+                        rangeSelection.setTextNodeRange(node, 0, node, offset);
+                        $setSelection(rangeSelection);
+                        rangeSelection.insertNodes([$createTextNode(incident.title)]);
+                    }
                 }
-
-                prev?.remove();
-
-                const rangeSelection = selection.clone();
-                rangeSelection.setTextNodeRange(node, 0, node, offset);
-                $setSelection(rangeSelection);
-                $insertNodes([$createTextNode(incident.title)]);
             }
         });
     }, []);
@@ -236,27 +300,26 @@ const ChatBoxFooter = ({
             const selection = $getSelection();
             if ($isRangeSelection(selection)) {
                 const { anchor } = selection;
-                const node: ElementNode = anchor.getNode();
-                const prev = node.getPreviousSibling();
                 const offset = anchor.offset ?? -1;
+                const node = anchor.getNode();
 
-                if (!$isTextNode(node) || !$isShortcutNode(prev)) {
-                    return;
+                const shortcutNode = $isElementNode(node)
+                    ? node.getChildAtIndex(anchor.offset - 1)
+                    : $isTextNode(node) && offset !== -1
+                      ? node.getPreviousSibling()
+                      : null;
+
+                if ($isShortcutNode(shortcutNode)) {
+                    removeShortcutNode();
+                    selection.insertNodes([$createTextNode('')]);
                 }
-
-                prev?.remove();
-
-                const rangeSelection = selection.clone();
-                rangeSelection.setTextNodeRange(node, 0, node, offset);
-                $setSelection(rangeSelection);
-                $insertNodes([$createTextNode('')]);
             }
         });
     }, []);
 
     const includedSourcesForQueryingIncidents = useMemo(() => [ThreadSource.incident], []);
 
-    const { threads, moreThreadsToLoad, threadListDivRef, intersectionObserverRef, onScroll } = useThreadList(
+    const { threads, moreThreadsToLoad, isLoadingInitialThreads, threadListDivRef, intersectionObserverRef, onScroll } = useThreadList(
         undefined,
         [],
         includedSourcesForQueryingIncidents,
@@ -305,7 +368,7 @@ const ChatBoxFooter = ({
                     closeShortcutList();
                     chatInputHandleSendClick('/compact');
                     return;
-                case Shortcut.ExtendedAgents:
+                case Shortcut.Agent:
                 case Shortcut.Incident:
                     openShortcutResourcePopover(shortcut);
                     editorRef.current?.update(() => {
@@ -329,9 +392,9 @@ const ChatBoxFooter = ({
                             rangeSelection.setTextNodeRange(node, lastSlashIndex, node, offset);
                             $setSelection(rangeSelection);
 
-                            const shortcutNode = $createShortcutNode(`/${shortcut}`, shortcut);
+                            const shortcutNode = $createShortcutNode(shortcut);
                             const whitespaceNode = $createTextNode(' ');
-                            $insertNodes([shortcutNode, whitespaceNode]);
+                            rangeSelection.insertNodes([shortcutNode, whitespaceNode]);
                             whitespaceNode.select(0, 0);
                         }
                     });
@@ -403,7 +466,7 @@ const ChatBoxFooter = ({
                         onSelectIncident(focusedIncidentRef.current);
                     }
 
-                    if (selectedShortcut === Shortcut.ExtendedAgents && focusedExtendedAgentRef.current) {
+                    if (selectedShortcut === Shortcut.Agent && focusedExtendedAgentRef.current) {
                         onSelectExtendedAgent(focusedExtendedAgentRef.current);
                     }
                 } else if (showShortcutLists && focusedShortcutRef.current) {
@@ -417,7 +480,7 @@ const ChatBoxFooter = ({
             } else if (event.key === 'ArrowUp' && (messagePromptsUsed.length > 0 || showShortcutLists || selectedShortcut)) {
                 if (selectedShortcut === Shortcut.Incident) {
                     focusIncident(true);
-                } else if (selectedShortcut === Shortcut.ExtendedAgents) {
+                } else if (selectedShortcut === Shortcut.Agent) {
                     focusExtendedAgent(true);
                 } else if (showShortcutLists) {
                     focusShortcut(true);
@@ -438,7 +501,7 @@ const ChatBoxFooter = ({
             } else if (event.key === 'ArrowDown' && (historyIndex >= 0 || showShortcutLists || selectedShortcut)) {
                 if (selectedShortcut === Shortcut.Incident) {
                     focusIncident(false);
-                } else if (selectedShortcut === Shortcut.ExtendedAgents) {
+                } else if (selectedShortcut === Shortcut.Agent) {
                     focusExtendedAgent(false);
                 } else if (showShortcutLists) {
                     focusShortcut(false);
@@ -482,7 +545,7 @@ const ChatBoxFooter = ({
 
     const getShortcutSubtext = (shortcut: Shortcut) => {
         switch (shortcut) {
-            case Shortcut.ExtendedAgents:
+            case Shortcut.Agent:
                 return intl.formatMessage(ActivitiesResources.extendedAgentShortcutDescription);
             case Shortcut.Clear:
                 return intl.formatMessage(ActivitiesResources.clearShortcutDescription);
@@ -516,87 +579,123 @@ const ChatBoxFooter = ({
     useEffect(() => {
         const unregister = editorRef.current?.registerCommand(
             SELECTION_CHANGE_COMMAND,
-            (_, _editor) => {
-                // editor.update(() => {
-                const selection = $getSelection();
+            (_, editor) => {
+                editor.update(() => {
+                    const selection = $getSelection();
 
-                if (!$isRangeSelection(selection) || !selection.isCollapsed()) {
-                    closeShortcutList();
-                    closeShortcutResourcePopover();
-                    return false;
-                }
-
-                const { anchor } = selection;
-
-                if ($isElementNode(anchor.getNode())) {
-                    // If the anchor is in between two decorate nodes, we need to check the previous node
-                    // on parent level to see if the anchor is right after a shortcut node
-                    const element = anchor.getNode();
-                    const shortcutNode = element.getChildAtIndex(anchor.offset - 1);
-
-                    if ($isShortcutNode(shortcutNode)) {
-                        // If the anchor is right after a shortcut node, we open the resource popover
-                        openShortcutResourcePopover($getShortcutValuefromShortcutNode(shortcutNode));
-                    } else {
-                        // Otherwise close all popovers
+                    if (!$isRangeSelection(selection) || !selection.isCollapsed()) {
                         closeShortcutList();
                         closeShortcutResourcePopover();
-                    }
-                    return true;
-                }
-
-                if ($isTextNode(anchor.getNode())) {
-                    //If the anchor is inside of a text node, then check if there is any text right after
-                    // the decorate node that does not start with an empty space
-                    const textNode = anchor.getNode();
-                    const shortcutNode = textNode.getPreviousSibling();
-
-                    const text: string = textNode?.getTextContent() ?? '';
-                    const offset = anchor.offset ?? -1;
-
-                    if (offset === -1) {
-                        closeShortcutList();
-                        closeShortcutResourcePopover();
-                        return true;
+                        return;
                     }
 
-                    const textBeforeAnchor = text.substring(0, offset);
-                    const isShortcutNode = $isShortcutNode(shortcutNode);
-                    const textBeforeAnchorHasLeadingEmptySpace = textBeforeAnchor.length !== 0 && textBeforeAnchor.startsWith(' ');
+                    const { anchor } = selection;
 
-                    if (isShortcutNode && !textBeforeAnchorHasLeadingEmptySpace) {
-                        // We take the string starting after the shortcut node to the first white space as the search string for searching
-                        // incidents or external agents
-                        openShortcutResourcePopover($getShortcutValuefromShortcutNode(shortcutNode));
-                        const endingSpaceIndex = text.indexOf(' ', offset);
-                        const searchString = text.substring(0, endingSpaceIndex === -1 ? text.length : endingSpaceIndex);
-                        const cleanedSearchString = searchString.replace(/[\u200b\u200c']/g, '').trim();
-                        setSearchText(cleanedSearchString);
-                        return true;
-                    }
+                    if ($isElementNode(anchor.getNode())) {
+                        // If the anchor is in between two decorate nodes, we need to check the previous node
+                        // on parent level to see if the anchor is right after a shortcut node and the next node to see
+                        // if there is a ghost text node right after the anchor
+                        const element = anchor.getNode();
+                        const shortcutNode = element.getChildAtIndex(anchor.offset - 1);
+                        const nextNode = element.getChildAtIndex(anchor.offset + 1);
 
-                    const currentText = text.substring(0, offset);
-                    const lastSlashIndex = currentText.lastIndexOf('/');
-                    const followedBySpace = offset >= text.length || text[offset] === ' ';
-                    if (lastSlashIndex !== -1 && followedBySpace) {
-                        const textToExamine = currentText.substring(lastSlashIndex + 1);
-                        if (
-                            textToExamine === '' ||
-                            Object.values(Shortcut).some(shortcut => shortcut.toLowerCase().startsWith(textToExamine.toLowerCase()))
-                        ) {
-                            openShortcutList(textToExamine);
+                        if ($isShortcutNode(shortcutNode)) {
+                            // If the anchor is right after a shortcut node, we open the resource popover, remove the placeholder at other places and add a placeholder after the cursor if it is not there already
+                            openShortcutResourcePopover($getShortcutValuefromShortcutNode(shortcutNode));
+                            if (!$isGhostTextNode(nextNode)) {
+                                removeGhostTextNode();
+                                // insert an empty space to create a text node and then insert the placeholder after the empty space.
+                                // Reset the focus on the empty space
+                                const emptySpaceTextNode = $createTextNode('');
+                                const shortcut = $getShortcutValuefromShortcutNode(shortcutNode);
+                                const shortcutPlaceholder = shortcut ? getShortcutSubtext(shortcut) : '';
+                                if (shortcutPlaceholder) {
+                                    const ghostTextNode = $createGhostTextNode(Guid.newGuid(), ` ${shortcutPlaceholder}`);
+                                    selection.insertNodes([emptySpaceTextNode, ghostTextNode]);
+                                    emptySpaceTextNode.select(0, 0);
+                                }
+                            }
+                        } else {
+                            // Otherwise close all popovers, convert all short cut nodes to text nodes and remove all placeholder nodes
+                            closeShortcutList();
                             closeShortcutResourcePopover();
+                            convertShortcutNodeToTextNode();
+                            removeGhostTextNode();
+                        }
+                        return;
+                    }
+
+                    if ($isTextNode(anchor.getNode())) {
+                        //If the anchor is inside of a text node, then check if there is any text right after
+                        // the decorate node that does not start with an empty space
+                        const textNode = anchor.getNode();
+                        const shortcutNode = textNode.getPreviousSibling();
+                        const nextNode = textNode.getNextSibling();
+
+                        const text: string = textNode?.getTextContent() ?? '';
+                        const offset = anchor.offset ?? -1;
+
+                        if (offset === -1) {
+                            closeShortcutList();
+                            closeShortcutResourcePopover();
+                            convertShortcutNodeToTextNode();
+                            removeGhostTextNode();
+                            return;
+                        }
+
+                        const textBeforeAnchor = text.substring(0, offset);
+                        const isShortcutNode = $isShortcutNode(shortcutNode);
+                        const textBeforeAnchorHasLeadingEmptySpace = textBeforeAnchor.length !== 0 && textBeforeAnchor.startsWith(' ');
+
+                        if (isShortcutNode && !textBeforeAnchorHasLeadingEmptySpace) {
+                            // We take the string starting after the shortcut node to the first white space as the search string for searching
+                            // incidents or external agents
+                            openShortcutResourcePopover($getShortcutValuefromShortcutNode(shortcutNode));
+                            const endingSpaceIndex = text.indexOf(' ', offset);
+                            const searchString = text.substring(0, endingSpaceIndex === -1 ? text.length : endingSpaceIndex);
+                            const cleanedSearchString = searchString.replace(/[\u200b\u200c']/g, '');
+
+                            if (cleanedSearchString.length === 0) {
+                                // If the search string is empty, then put a placeholder after the shortcut node, remove placeholders from other places if any.
+                                if (!$isGhostTextNode(nextNode)) {
+                                    removeGhostTextNode();
+                                    const emptySpaceTextNode = $createTextNode('');
+                                    const ghostTextNode = $createGhostTextNode(Guid.newGuid(), 'Place holder');
+                                    selection.insertNodes([emptySpaceTextNode, ghostTextNode]);
+                                    emptySpaceTextNode.select(0, 0);
+                                }
+                            } else {
+                                // If the search string after the short cut is not empty, then remove the current placeholder after the cursor if any.
+                                removeGhostTextNode();
+                            }
+                            setSearchText(cleanedSearchString.trim());
+                            return;
+                        }
+
+                        const currentText = text.substring(0, offset);
+                        const lastSlashIndex = currentText.lastIndexOf('/');
+                        const followedBySpace = offset >= text.length || text[offset] === ' ';
+                        if (lastSlashIndex !== -1 && followedBySpace) {
+                            const textToExamine = currentText.substring(lastSlashIndex + 1);
+                            if (
+                                textToExamine === '' ||
+                                Object.values(Shortcut).some(shortcut => shortcut.toLowerCase().startsWith(textToExamine.toLowerCase()))
+                            ) {
+                                openShortcutList(textToExamine);
+                                closeShortcutResourcePopover();
+                            } else {
+                                closeShortcutList();
+                                closeShortcutResourcePopover();
+                            }
                         } else {
                             closeShortcutList();
                             closeShortcutResourcePopover();
                         }
-                    } else {
-                        closeShortcutList();
-                        closeShortcutResourcePopover();
-                    }
 
-                    return true;
-                }
+                        convertShortcutNodeToTextNode();
+                        removeGhostTextNode();
+                    }
+                });
 
                 return false;
             },
@@ -645,11 +744,11 @@ const ChatBoxFooter = ({
                 </Popover>
                 <Popover
                     unstable_disableAutoFocus={true}
-                    open={selectedShortcut === Shortcut.ExtendedAgents}
+                    open={selectedShortcut === Shortcut.Agent}
                     positioning={{ positioningRef: extendedAgentMenuPositionRef, position: 'above', align: 'start', offset: 8 }}
                 >
-                    {filteredExtendedAgents.length > 0 ? (
-                        <PopoverSurface style={{ padding: '5px' }}>
+                    <PopoverSurface style={{ padding: '5px' }}>
+                        {filteredExtendedAgents.length > 0 ? (
                             <MenuList>
                                 {filteredExtendedAgents.map(agent => {
                                     return (
@@ -662,14 +761,10 @@ const ChatBoxFooter = ({
                                     );
                                 })}
                             </MenuList>
-                        </PopoverSurface>
-                    ) : (
-                        <PopoverSurface style={{ padding: '10px 20px' }}>
-                            <Text weight={'semibold'} italic>
-                                <FormattedMessage {...ActivitiesResources.emptyExtendedAgentMessages} />
-                            </Text>
-                        </PopoverSurface>
-                    )}
+                        ) : (
+                            <NoSearchResultWarning searchText={searchText} isIncident={false} />
+                        )}
+                    </PopoverSurface>
                 </Popover>
                 <Popover
                     inline={true}
@@ -687,7 +782,7 @@ const ChatBoxFooter = ({
                         }}
                     >
                         <div className={mergeClasses(scrollable)} ref={threadListDivRef} onScroll={onScroll}>
-                            <Table style={{ minWidth: '510px' }}>
+                            <Table style={{ minWidth: '510px', maxWidth: '950px' }}>
                                 <TableHeader>
                                     <TableRow>
                                         {columns.map(column => (
@@ -715,6 +810,9 @@ const ChatBoxFooter = ({
                                     <GroundingMenuItemSkeleton />
                                 </div>
                             )}
+                            {!isLoadingInitialThreads && !moreThreadsToLoad && threads.length === 0 && (
+                                <NoSearchResultWarning searchText={searchText} isIncident={true} />
+                            )}
                         </div>
                     </PopoverSurface>
                 </Popover>
@@ -723,7 +821,7 @@ const ChatBoxFooter = ({
                     root={{ ref: chatInputRef }}
                     aria-label={intl.formatMessage(ActivitiesResources.chatInputAriaLabel)}
                     placeholderValue={<FormattedMessage {...ActivitiesResources.chatInputPlaceholder} />}
-                    customNodes={[ShortcutNode]}
+                    customNodes={[ShortcutNode, GhostTextNode]}
                     contentBefore={
                         <ContentBefore
                             showDeepInvestigationButton={showDeepInvestigationButton}
@@ -767,6 +865,23 @@ const ChatBoxFooter = ({
         </div>
     );
 };
+
+const NoSearchResultWarning = memo((props: { searchText?: string | null; isIncident: boolean }) => {
+    const { root, extendedAgent, incident } = useNoSearchResultWarningStyles();
+
+    return (
+        <div className={mergeClasses(root, props.isIncident ? incident : extendedAgent)}>
+            <ChatWarningRegular fontSize={'50px'} />
+            <Text weight={'semibold'}>
+                {props.searchText ? (
+                    <FormattedMessage {...ActivitiesResources.noSearchResultWithSearchText} values={{ searchText: props.searchText }} />
+                ) : (
+                    <FormattedMessage {...ActivitiesResources.noSearchResult} />
+                )}
+            </Text>
+        </div>
+    );
+});
 
 const ExtendedAgentMenuItem = memo(
     (props: { agent: ExtendedAgent; onSelectExtendedAgent: (agentName: string) => void; isFocused: boolean }) => {
@@ -838,6 +953,7 @@ const Attachments = memo((props: { selectedAgentName: string; handleClearSelecte
             }
         >
             <Attachment
+                id={props.selectedAgentName}
                 key={props.selectedAgentName}
                 dismissButton={{
                     'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {

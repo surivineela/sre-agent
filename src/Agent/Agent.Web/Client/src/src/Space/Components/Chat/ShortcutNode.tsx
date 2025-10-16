@@ -9,10 +9,10 @@ import {
 import { tokens } from '@fluentui/react-components';
 import { Shortcut } from '../../Contracts/Activities';
 
-export type ResourceAndIncidentShortcut = 'shortcut';
+export type ShortcutNodeType = 'shortcut';
 
 export type SerializedShortcutNode = SerializedLexicalNode & {
-    type: ResourceAndIncidentShortcut;
+    type: ShortcutNodeType;
     version: 1;
     text: string;
     shortcut: Shortcut;
@@ -81,6 +81,20 @@ export class ShortcutNode extends DecoratorNode<JSX.Element> {
         return true;
     }
 
+    isIsolated(): boolean {
+        return true;
+    }
+
+    // When caret moves left into this node, collapse before it
+    collapseAtStart(): boolean {
+        return true;
+    }
+
+    // When caret moves right into this node, collapse after it
+    collapseAtEnd(): boolean {
+        return true;
+    }
+
     // Serialization
     exportJSON(): SerializedShortcutNode {
         return {
@@ -93,7 +107,7 @@ export class ShortcutNode extends DecoratorNode<JSX.Element> {
     }
 
     static importJSON(serializedNode: SerializedShortcutNode): ShortcutNode {
-        const node = $createShortcutNode(serializedNode.text, serializedNode.shortcut);
+        const node = $createShortcutNode(serializedNode.shortcut);
         return node;
     }
 
@@ -110,8 +124,8 @@ export class ShortcutNode extends DecoratorNode<JSX.Element> {
 }
 
 // Factory helper
-export function $createShortcutNode(text: string, shortcut: Shortcut): ShortcutNode {
-    const node = new ShortcutNode(text, shortcut);
+export function $createShortcutNode(shortcut: Shortcut): ShortcutNode {
+    const node = new ShortcutNode(`/${shortcut}`, shortcut);
     return $applyNodeReplacement(node);
 }
 

@@ -287,7 +287,7 @@ export class AgentTaskNodeSize {
 }
 
 export enum Shortcut {
-    ExtendedAgents = 'extended-agents',
+    Agent = 'agent',
     Clear = 'clear',
     Compact = 'compact',
     Incident = 'incident',

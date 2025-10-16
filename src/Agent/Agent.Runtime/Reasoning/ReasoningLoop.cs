@@ -2234,7 +2234,7 @@ public class ReasoningLoop : IDisposable
 
             // Send response to user
             _logger.LogInternalInformation($"[{_context.ThreadId}] Successfully compacted chat history");
-            var responseMessage = new ChatMessage(ChatRole.Assistant, "✅ Chat compacted successfully.");
+            var responseMessage = new ChatMessage(ChatRole.Assistant, "✅ This conversation is now in compact mode.");
             await PersistReasoningMessageAsync(agentChatHistory, responseMessage);
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, responseMessage);
         }

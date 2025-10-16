@@ -23,7 +23,7 @@ const DailyReportThreadDropdown: React.FC<DailyReportThreadDropdownProps> = ({ s
 
     const includedSources = useMemo(() => [ThreadSource.dailyReport], []);
 
-    const { threads, threadListDivRef, onScroll, isLoadingInitialChatMessages, moreThreadsToLoad, intersectionObserverRef, deleteThread } =
+    const { threads, threadListDivRef, onScroll, isLoadingInitialThreads, moreThreadsToLoad, intersectionObserverRef, deleteThread } =
         useThreadList(isDropdownListBoxHidden, undefined, includedSources, undefined, undefined, undefined, 'createdTimestamp');
 
     const proxy = useContext(AzPortalContext);
@@ -118,7 +118,7 @@ const DailyReportThreadDropdown: React.FC<DailyReportThreadDropdownProps> = ({ s
                 orientation="horizontal"
                 style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', margin: '20px 0px' }}
             >
-                {isLoadingInitialChatMessages ? (
+                {isLoadingInitialThreads ? (
                     <Skeleton style={{ width: '500px' }}>
                         <SkeletonItem style={{ height: '25px' }} />
                     </Skeleton>

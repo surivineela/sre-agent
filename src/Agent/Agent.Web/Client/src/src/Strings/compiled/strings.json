@@ -1337,6 +1337,12 @@
       "value": "You do not have permission to authorize repository access."
     }
   ],
+  "5DqOua": [
+    {
+      "type": 0,
+      "value": "Pick an extended agent to assist you with tasks."
+    }
+  ],
   "5GUtRJ": [
     {
       "type": 0,
@@ -3287,6 +3293,12 @@
       "value": "Incident details"
     }
   ],
+  "GkJbiq": [
+    {
+      "type": 0,
+      "value": "Start a new chat thread."
+    }
+  ],
   "Gl8fnJ": [
     {
       "type": 0,
@@ -3345,12 +3357,6 @@
     {
       "type": 0,
       "value": "Azure Service Bus Data Owner"
-    }
-  ],
-  "H4K2fv": [
-    {
-      "type": 0,
-      "value": "Start a new thread"
     }
   ],
   "H5vHIu": [
@@ -4165,6 +4171,12 @@
     {
       "type": 0,
       "value": "Describe the schedule"
+    }
+  ],
+  "Lm9kBB": [
+    {
+      "type": 0,
+      "value": "Select an incident."
     }
   ],
   "LnglaU": [
@@ -5169,12 +5181,6 @@
     {
       "type": 0,
       "value": "Close panel"
-    }
-  ],
-  "RDflWE": [
-    {
-      "type": 0,
-      "value": "Select an incident"
     }
   ],
   "RH8rNM": [
@@ -8236,12 +8242,6 @@
       "value": "Kusto Tool"
     }
   ],
-  "iN3FtI": [
-    {
-      "type": 0,
-      "value": "Compact your conversation"
-    }
-  ],
   "iNgloh": [
     {
       "type": 0,
@@ -8760,6 +8760,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "lDx7s5": [
+    {
+      "type": 0,
+      "value": "Agent responses are more concise in this mode."
     }
   ],
   "lKv8ex": [
@@ -9766,6 +9772,20 @@
     {
       "type": 0,
       "value": "Backend Endpoint"
+    }
+  ],
+  "qvTohT": [
+    {
+      "type": 0,
+      "value": "No results for \""
+    },
+    {
+      "type": 1,
+      "value": "searchText"
+    },
+    {
+      "type": 0,
+      "value": "\""
     }
   ],
   "qvviEg": [
@@ -11350,12 +11370,6 @@
     {
       "type": 0,
       "value": "Short one-line summary (<=140 chars)"
-    }
-  ],
-  "z5Dz7e": [
-    {
-      "type": 0,
-      "value": "Select an extended agent to assist you with your tasks"
     }
   ],
   "z5cF/O": [
