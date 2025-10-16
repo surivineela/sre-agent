@@ -26,6 +26,7 @@ using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Clients;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Implementation.AzureApplicationInsightsPlugin;
 using Agent.Plugins.Implementation.AzureApplicationInsightsPlugin.Services;
@@ -99,11 +100,11 @@ public class Program
         }
 
         // Add CORS support for Azure Portal domains
-    app.UseCors(x => x.WithOrigins(GetAzurePortalDomains(app.Configuration))
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials()
-              .SetIsOriginAllowedToAllowWildcardSubdomains());
+        app.UseCors(x => x.WithOrigins(GetAzurePortalDomains(app.Configuration))
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials()
+                  .SetIsOriginAllowedToAllowWildcardSubdomains());
 
         app.UseHttpsRedirection();
         // Serve static files from wwwroot
@@ -445,7 +446,7 @@ public class Program
             .AddSingleton<IKustoPlugin, KustoPlugin>()
             .AddSingleton<DynamicKqlToolsPlugin>()
             .AddTransient<KustoToolType>()
-            .AddTransient<LinkToolType>() 
+            .AddTransient<LinkToolType>()
             .AddTransient<IAzureSearchClient, AzureSearchClient>()
             .AddTransient<AzureDocSearchPlugin>()
             .AddTransient<SearchPluginDefinition>()
@@ -531,6 +532,7 @@ public class Program
             .AddSingleton<SearchHelper>()
             .AddSingleton<ISearchIndexingClient, SearchIndexingClient>()
             .AddSingleton<OneBranchApprovalService>()
+            .AddSingleton<ICMWorkflowClient>()
             .AddSingleton<ISearchEndpointService, SearchEndpointService>()
             .AddSingleton<IKeyVaultService, KeyVaultService>()
             .AddSingleton<ObserverClientService>()
