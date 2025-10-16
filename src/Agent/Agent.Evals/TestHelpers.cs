@@ -138,8 +138,6 @@ public static class TestHelpers
         builder.Services.AddSingleton(Mock.Of<ITimePlugin>());
 
         builder.Services.AddSingleton<IContainerAppIcMPlugin, ContainerAppIcMPlugin>();
-        // Tests don't need a real ICM API client - provide a mock so plugins depending on it can be constructed
-        builder.Services.AddSingleton(Mock.Of<FirstPartyAgent.Core.Services.IICMAPIClient>());
         // Also provide a mock for the Agent.Core IICMAPIClient used by first-party plugins
         builder.Services.AddSingleton(Mock.Of<Agent.Core.Services.IICMAPIClient>());
         builder.Services.AddSingleton<ICMWorkflowClient>();

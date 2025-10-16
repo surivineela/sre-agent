@@ -54,7 +54,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />
-    <ProjectReference Include="..\FirstPartyAgent.Common\FirstPartyAgent.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

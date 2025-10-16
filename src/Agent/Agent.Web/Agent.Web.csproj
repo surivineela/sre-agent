@@ -35,7 +35,6 @@
     <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
     <ProjectReference Include="..\Agent.Prometheus\Agent.Prometheus.csproj" />
     <ProjectReference Include="..\Agent.ScheduledTasks\Agent.ScheduledTasks.csproj" />
-    <ProjectReference Include="..\FirstPartyAgent.Core\FirstPartyAgent.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />

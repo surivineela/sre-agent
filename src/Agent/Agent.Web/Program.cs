@@ -64,7 +64,6 @@ using Agent.Runtime.TrajectoryEvaluator;
 using Agent.ScheduledTasks.Services;
 using Agent.Web.Authorization;
 using Agent.Web.Services;
-using FirstPartyAgent.Core.FirstPartyAgents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
@@ -646,14 +645,12 @@ public class Program
             builder.Services
                 .AddTransient<RCAContainerAppIcMPluginDefinition>()
                 .AddTransient<RCAContainerAppQuotaPluginDefinition>();
-            builder.RegisterAcaFirstPartyAppSettings();
 
         }
 
         builder.Services.AddSingleton<IAgentsFactory, ThirdPartyAgentsFactory>();
         builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
         builder.Services.AddSingleton<IToolsRepository, ToolsRepository>();
-        builder.ValidateAndRegisterAcaFirstPartyTypes();
         builder.RegisterFunctionsFirstPartyTypes();
         builder.Services.AddTransient<IExtendedAgentService, ExtendedAgentService>();
         builder.Services.AddSingleton<IConnectorResolver, DataConnectorResolverService>();

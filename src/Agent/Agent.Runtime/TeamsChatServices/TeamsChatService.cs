@@ -11,7 +11,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Streaming;
 using Agent.Data.Repositories;
 using Agent.Runtime.MetaAgent.Interfaces;
-using FirstPartyAgent.Common.Configuration;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Builder.Teams;
@@ -22,7 +21,6 @@ using Microsoft.Bot.Schema;
 using Microsoft.Bot.Schema.Teams;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using Activity = Microsoft.Bot.Schema.Activity;
 using Attachment = Microsoft.Bot.Schema.Attachment;
@@ -40,7 +38,6 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     private readonly IThreadRepository _threadRepository;
     private readonly IBotFrameworkHttpAdapter _teamsAdapter;
     private readonly ITitleGenerationService _titleGenerationService;
-    private readonly FirstPartyAgent.Common.Configuration.GeneralSettings _generalSettings;
 
     private readonly CancellationTokenSource _pollingCancellationSource = new();
     private bool _isPollingStarted = false;
@@ -72,8 +69,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         IThreadTeamsMappingRepository threadTeamsMappingRepository,
         TeamsBotSettings teamsBot,
         ITitleGenerationService titleGenerationService,
-        IChatClient chatClient,
-        IOptions<FirstPartyAgent.Common.Configuration.GeneralSettings> generalSettings)
+        IChatClient chatClient)
     {
         _logger = logger;
         _chatClient = chatClient;
@@ -83,7 +79,6 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
         _threadRepository = threadRepository;
         _titleGenerationService = titleGenerationService;
-        _generalSettings = generalSettings.Value ?? new GeneralSettings();
 
         // Initialize credentials from configuration
         _appId = teamsBot.AppId;
@@ -730,7 +725,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         try
         {
             // Build portal link identical to GetAgentWebPortalThreadLink method
-            var templateUrl = _generalSettings.PortalThreadIdLink;
+            var templateUrl = "https://aka.ms/sreagent-prefixonly#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/%2Fsubscriptions%2Fbe8d491e-109c-4ee1-aaee-dc7615af0a42%2FresourceGroups%2FACA1PAgent-rg%2Fproviders%2FMicrosoft.App%2Fagents%2FRCAAgent/sreLink/views%2Factivities%2Fthreads%2F{0}";
 
             if (!string.IsNullOrEmpty(templateUrl))
             {

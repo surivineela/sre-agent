@@ -2,10 +2,8 @@ using System.ComponentModel;
 using System.Globalization;
 using Agent.Core;
 using Agent.Plugins.Interface;
-using FirstPartyAgent.Common.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Agent.Plugins.Definitions
@@ -21,7 +19,6 @@ namespace Agent.Plugins.Definitions
     {
         private readonly IContainerAppIcMPlugin _plugin;
         private readonly IWebHostEnvironment _env;
-        private readonly GeneralSettings _generalSettings;
         private readonly string icmWebPortalMessage = @"Please use this link to view the SRE agent investigation in the web portal: <a href = ""{0}"" > Azure portal link</a>";
 
         private static readonly string[] KnownFormats =
@@ -62,11 +59,10 @@ namespace Agent.Plugins.Definitions
             return false;
         }
 
-        public RCAContainerAppIcMPluginDefinition(IContainerAppIcMPlugin plugin, IWebHostEnvironment env, IOptions<GeneralSettings> generalSettings)
+        public RCAContainerAppIcMPluginDefinition(IContainerAppIcMPlugin plugin, IWebHostEnvironment env)
         {
             _plugin = plugin;
             _env = env;
-            _generalSettings = generalSettings.Value ?? new GeneralSettings();
         }
 
         [Description(@"""
@@ -204,7 +200,7 @@ namespace Agent.Plugins.Definitions
             [Description("Unique identifier for the ICM incident.")] string incidentId,
             [Description("Date and time of the ICM creation.")] DateTime icmCreateTime)
         {
-            var templateUrl = _generalSettings.PortalThreadIdLink;
+            var templateUrl = "https://aka.ms/sreagent-prefixonly#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/%2Fsubscriptions%2Fbe8d491e-109c-4ee1-aaee-dc7615af0a42%2FresourceGroups%2FACA1PAgent-rg%2Fproviders%2FMicrosoft.App%2Fagents%2FRCAAgent/sreLink/views%2Factivities%2Fthreads%2F{0}";
             if (_env.IsDevelopment())
             {
                 return "Success"; // Do not add web portal link to ICM in development environment

@@ -1,16 +1,12 @@
-using System;
 using Agent.Core.Services;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
-using FirstPartyAgent.Common.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 
 namespace Agent.Plugins.Tests.Definitions
 {
@@ -18,7 +14,6 @@ namespace Agent.Plugins.Tests.Definitions
     {
         private readonly IContainerAppIcMPlugin _mockPlugin;
         private readonly Mock<IWebHostEnvironment> _mockEnv;
-        private readonly Mock<IOptions<GeneralSettings>> _mockOptions;
         private readonly RCAContainerAppIcMPluginDefinition _pluginDefinition;
 
         public RCAContainerAppIcMPluginDefinitionTests()
@@ -32,13 +27,10 @@ namespace Agent.Plugins.Tests.Definitions
                 new Mock<ILogger<ContainerAppIcMPlugin>>().Object
             );
             _mockEnv = new Mock<IWebHostEnvironment>();
-            _mockOptions = new Mock<IOptions<GeneralSettings>>();
-            _mockOptions.Setup(x => x.Value).Returns(new GeneralSettings());
 
             _pluginDefinition = new RCAContainerAppIcMPluginDefinition(
                 _mockPlugin,
-                _mockEnv.Object,
-                _mockOptions.Object);
+                _mockEnv.Object);
         }
 
         [Fact]
@@ -49,7 +41,7 @@ namespace Agent.Plugins.Tests.Definitions
             var lastOccurrence = "2025-05-27T19:30:00Z";
             var reportedTime = "";
 
-            var expectedResult = new InvestigationTimeRangeResult(){ StartDate = new DateTime(2025, 4, 27, 18, 30, 0), EndDate = new DateTime(2025, 5, 27, 20, 30, 0)};
+            var expectedResult = new InvestigationTimeRangeResult() { StartDate = new DateTime(2025, 4, 27, 18, 30, 0), EndDate = new DateTime(2025, 5, 27, 20, 30, 0) };
 
             // Act
             var result = _pluginDefinition.GetIssueInvestigationTimeRangeRCAContainerApp(
@@ -66,7 +58,7 @@ namespace Agent.Plugins.Tests.Definitions
             var firstOccurrence = "2024-09-12T10:00:00+05:00"; // UTC+5
             var lastOccurrence = "2024-09-12T20:00:00-03:00";  // UTC-3
 
-            var expectedResult = new InvestigationTimeRangeResult(){ StartDate = new DateTime(2024, 9, 12, 4, 0, 0), EndDate = new DateTime(2024, 9, 13, 0, 0, 0)}; // Converted to UTC
+            var expectedResult = new InvestigationTimeRangeResult() { StartDate = new DateTime(2024, 9, 12, 4, 0, 0), EndDate = new DateTime(2024, 9, 13, 0, 0, 0) }; // Converted to UTC
 
             // Act
             var result = _pluginDefinition.GetIssueInvestigationTimeRangeRCAContainerApp(

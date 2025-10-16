@@ -8,7 +8,6 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
@@ -20,8 +19,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Author = Agent.Core.Models.Api.v1.Author;
-using Message = Agent.Core.Models.Api.v1.Message;
 
 namespace Agent.Plugins;
 
