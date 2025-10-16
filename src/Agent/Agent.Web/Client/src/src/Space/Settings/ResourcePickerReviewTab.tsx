@@ -234,7 +234,7 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
                 </div>
             )}
             <div
-                style={{ minHeight: errorMessage ? '445px' : '490px', maxHeight: errorMessage ? '445px' : '490px', overflowY: 'scroll' }}
+                style={{ minHeight: errorMessage ? '445px' : '490px', maxHeight: errorMessage ? '445px' : '490px', overflowY: 'auto' }}
                 data-is-scrollable="true"
             >
                 <ShimmeredDetailsList
@@ -245,6 +245,13 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
                     compact={true}
                     enableShimmer={false}
                     checkboxVisibility={CheckboxVisibility.hidden}
+                    useReducedRowRenderer={false}
+                    styles={{
+                        root: {
+                            overflow: 'visible',
+                            height: 'auto',
+                        },
+                    }}
                 />
             </div>
         </div>

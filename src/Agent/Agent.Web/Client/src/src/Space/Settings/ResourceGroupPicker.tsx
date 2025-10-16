@@ -1,9 +1,8 @@
-import { IDropdownOption, Pivot, PivotItem, ResponsiveMode, Text, Toggle } from '@fluentui/react';
-import { Tooltip } from '@fluentui/react-components';
+import { DirectionalHint, IDropdownOption, Pivot, PivotItem, ResponsiveMode, Text, Toggle } from '@fluentui/react';
+import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Tooltip } from '@fluentui/react-components';
 import { CheckmarkStarburst16Filled } from '@fluentui/react-icons';
-import { DefaultButton, PrimaryButton } from '@fluentui/react/lib/Button';
+
 import { ConstrainMode, DetailsListLayoutMode, IColumn } from '@fluentui/react/lib/DetailsList';
-import { Dialog, DialogFooter, DialogType, IDialogStyles } from '@fluentui/react/lib/Dialog';
 import { Link } from '@fluentui/react/lib/Link';
 import isEqual from 'lodash/isEqual';
 import { Dispatch, FC, FormEvent, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -153,36 +152,28 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
         }
     }, [filteredResourceGroupSet, resourceGroupsList, selectedKeys]);
 
-    const modelProps = {
-        isBlocking: false,
-        styles: {
-            main: {
-                display: 'flex',
-                flexDirection: 'column',
-                width: '850px',
-                overflowX: 'hidden',
-                height: '675px',
-                maxWidth: '850px',
-                maxHeight: '90vh',
-                overflowY: 'hidden',
-            },
-        },
-        className: styles.dialog,
-    };
-
-    const dialogContentProps = {
-        type: DialogType.normal,
-        title: intl.formatMessage(ManagedResourcesStringResources.selectResourceGroupsToMonitor),
-    };
+    const dialogTitle = intl.formatMessage(ManagedResourcesStringResources.selectResourceGroupsToMonitor);
 
     const calloutProps = {
         styles: {
             root: {
-                maxHeight: '675px',
-                maxWidth: '850px',
-                overflowY: 'hidden',
+                maxHeight: '300px', // Fixed height instead of full screen
+                maxWidth: '400px',
+                overflowY: 'auto' as const, // Allow scrolling within the dropdown
+                zIndex: 2147483647, // Maximum safe z-index value
+                position: 'fixed' as const, // Use fixed positioning
+            },
+            calloutMain: {
+                maxHeight: '300px',
+                overflowY: 'auto' as const,
+                zIndex: 2147483647, // Also set on calloutMain
+                position: 'relative' as const,
             },
         },
+        directionalHint: DirectionalHint.bottomLeftEdge, // Position under the control
+        isBeakVisible: false, // Remove the pointer/beak
+        gapSpace: 0, // No gap between control and dropdown
+        doNotLayer: false, // Keep it within the dialog layer
     };
 
     const onNameClick = useCallback(
@@ -329,8 +320,18 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
         if (selectedSubscriptionKeys.length === subscriptionDropdownOptions.length) {
             return <span>{intl.formatMessage(ManagedResourcesStringResources.allSubscriptions)}</span>;
         }
-        const filteredOptions = subscriptionOptions.filter(option => selectedSubscriptionKeys.includes(option.key as string));
-        return <span>{filteredOptions?.map((option: IDropdownOptionForFilter<Subscription>) => option.text).join(', ')}</span>;
+        if (selectedSubscriptionKeys.length === 1) {
+            const filteredOptions = subscriptionOptions.filter(option => selectedSubscriptionKeys.includes(option.key as string));
+            return <span>{filteredOptions[0]?.text}</span>;
+        }
+        if (selectedSubscriptionKeys.length > 1) {
+            return (
+                <span>
+                    {intl.formatMessage(ManagedResourcesStringResources.subscriptionsSelected, { 0: selectedSubscriptionKeys.length })}
+                </span>
+            );
+        }
+        return <span>{intl.formatMessage(ManagedResourcesStringResources.selectSubscription)}</span>;
     }, [selectedSubscriptionKeys, subscriptionOptions, subscriptionDropdownOptions.length, intl]);
 
     const locationDropdownItems = useMemo(() => {
@@ -359,8 +360,16 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
         if (!selectedLocationKeys || selectedLocationKeys.length === 0) {
             return <span>{intl.formatMessage(ManagedResourcesStringResources.allRegions)}</span>;
         }
-        const filteredOptions = locationDropdownItems.filter(option => selectedLocationKeys.includes(option.key as string));
-        return <span>{filteredOptions?.map((option: IDropdownOptionForFilter<string>) => option.text).join(', ')}</span>;
+        if (selectedLocationKeys.length === 1) {
+            const filteredOptions = locationDropdownItems.filter(option => selectedLocationKeys.includes(option.key as string));
+            return <span>{filteredOptions[0]?.text}</span>;
+        }
+        if (selectedLocationKeys.length > 1) {
+            return (
+                <span>{`${intl.formatMessage(ManagedResourcesStringResources.locationsSelected, { 0: selectedLocationKeys.length })}`}</span>
+            );
+        }
+        return <span>{intl.formatMessage(ManagedResourcesStringResources.allRegions)}</span>;
     }, [selectedLocationKeys, locationDropdownItems, intl]);
 
     const onTabLinkClick = useCallback(
@@ -372,175 +381,224 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
         [setTabKeyWrapper]
     );
 
-    const dialogStyles: Partial<IDialogStyles> = {
-        main: {
-            overflowY: 'hidden',
-        },
-    };
-
     return (
-        <Dialog
-            styles={dialogStyles}
-            hidden={hideResourceGroupPicker}
-            onDismiss={_e => setHideResourceGroupPicker(true)}
-            dialogContentProps={dialogContentProps}
-            modalProps={modelProps}
-            minWidth={850}
-            maxWidth={850}
-        >
-            <Pivot selectedKey={tabKey} onLinkClick={onTabLinkClick}>
-                <PivotItem itemKey={TabKeys.select} headerText={intl.formatMessage(ResourcePickerTabResources.selectTabTitle)} alwaysRender>
-                    <div className={styles.dialogContent}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <div style={{ paddingTop: '10px' }}>
-                                {selectedResourceGroups.length === 1
-                                    ? intl.formatMessage(ResourcePickerTabResources.resourceGroupSelected, {
-                                          max: 20 - existingResourceGroupIds.length,
-                                          count: selectedResourceGroups.length,
-                                      })
-                                    : intl.formatMessage(ResourcePickerTabResources.resourceGroupsSelected, {
-                                          max: 20 - existingResourceGroupIds.length,
-                                          count: selectedResourceGroups.length,
-                                      })}
-                            </div>
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                                <div>{intl.formatMessage(ResourcePickerTabResources.showRecommended)}</div>
-                                <Toggle
-                                    checked={showRecommended}
-                                    onChange={(_e, checked) => {
-                                        setShowRecommended(!!checked);
-                                        portalContext.logAmplitudeControlEvent({
-                                            targetType: 'toggle',
-                                            targetAction: 'changed',
-                                            targetName: 'showOnlyRecommendedRscGrpsToggle',
-                                            targetFriendlyName: 'Show only recommended resource groups toggle',
-                                            valueObjectName: checked ? 'checked' : 'unchecked',
-                                            valueObjectFriendlyName: checked ? 'Checked' : 'Unchecked',
-                                        });
-                                    }}
+        <Dialog open={!hideResourceGroupPicker} onOpenChange={(_event, data) => setHideResourceGroupPicker(!data.open)} modalType="modal">
+            <DialogSurface
+                style={{
+                    width: '850px',
+                    height: '80vh', // Fixed height as percentage of viewport
+                    maxHeight: '650px', // Maximum absolute height
+                    maxWidth: '90vw',
+                    display: 'flex',
+                    flexDirection: 'column',
+                }}
+            >
+                <DialogBody style={{ display: 'flex', flexDirection: 'column', height: 'calc(100% + 10px)' }}>
+                    <DialogTitle>{dialogTitle}</DialogTitle>
+                    <DialogContent style={{ flex: 1, overflow: 'hidden', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                        <Pivot
+                            selectedKey={tabKey}
+                            onLinkClick={onTabLinkClick}
+                            style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
+                        >
+                            <PivotItem
+                                itemKey={TabKeys.select}
+                                headerText={intl.formatMessage(ResourcePickerTabResources.selectTabTitle)}
+                                alwaysRender
+                                style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
+                            >
+                                <div className={styles.dialogContent} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    {/* Fixed header section */}
+                                    <div style={{ flexShrink: 0, marginBottom: '10px' }}>
+                                        <div style={{ marginBottom: '10px' }}>
+                                            {selectedResourceGroups.length === 1
+                                                ? intl.formatMessage(ResourcePickerTabResources.resourceGroupSelected, {
+                                                      max: 20 - existingResourceGroupIds.length,
+                                                      count: selectedResourceGroups.length,
+                                                  })
+                                                : intl.formatMessage(ResourcePickerTabResources.resourceGroupsSelected, {
+                                                      max: 20 - existingResourceGroupIds.length,
+                                                      count: selectedResourceGroups.length,
+                                                  })}
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+                                            <div>{intl.formatMessage(ResourcePickerTabResources.showRecommended)}</div>
+                                            <Toggle
+                                                checked={showRecommended}
+                                                onChange={(_e, checked) => {
+                                                    setShowRecommended(!!checked);
+                                                    portalContext.logAmplitudeControlEvent({
+                                                        targetType: 'toggle',
+                                                        targetAction: 'changed',
+                                                        targetName: 'showOnlyRecommendedRscGrpsToggle',
+                                                        targetFriendlyName: 'Show only recommended resource groups toggle',
+                                                        valueObjectName: checked ? 'checked' : 'unchecked',
+                                                        valueObjectFriendlyName: checked ? 'Checked' : 'Unchecked',
+                                                    });
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                    {/* Fixed filter row */}
+                                    <div className={styles.pickerRow} style={{ flexShrink: 0, marginBottom: '10px' }}>
+                                        <div className={styles.pickerItem}>
+                                            <SearchFilterWithResultAnnouncement
+                                                id="resource-group-search"
+                                                setFilterValue={setFilter}
+                                                filter={filter}
+                                                gridItemsCount={filteredResourceGroups.length}
+                                                placeHolder={intl.formatMessage(ManagedResourcesStringResources.search)}
+                                            />
+                                        </div>
+                                        <div className={styles.pickerItem}>
+                                            <DropdownWithFilter
+                                                multiSelect
+                                                selectedKeys={selectedSubscriptionKeys}
+                                                id="subscription-search"
+                                                options={subscriptionDropdownOptions}
+                                                filterFields={['displayName', 'subscriptionId']}
+                                                onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption) =>
+                                                    onSubscriptionChange(event, option as IDropdownOptionForFilter<Subscription>)
+                                                }
+                                                responsiveMode={ResponsiveMode.large}
+                                                onRenderTitle={onRenderSubscriptionTitle}
+                                                calloutProps={calloutProps}
+                                            />
+                                        </div>
+                                        <div className={styles.pickerItem}>
+                                            <DropdownWithFilter
+                                                multiSelect
+                                                selectedKeys={selectedLocationKeys}
+                                                id="location-search"
+                                                options={locationDropdownItems}
+                                                onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption) =>
+                                                    onLocationChange(event, option as IDropdownOptionForFilter<string>)
+                                                }
+                                                responsiveMode={ResponsiveMode.large}
+                                                onRenderTitle={onRenderLocationTitle}
+                                                placeholder={intl.formatMessage(ManagedResourcesStringResources.allRegions)}
+                                                calloutProps={calloutProps}
+                                            />
+                                        </div>
+                                    </div>
+                                    {/* Flexible table area that takes remaining space */}
+                                    <div
+                                        style={{
+                                            flex: 1,
+                                            marginBottom: '60px', // Increase margin to account for button space
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            minHeight: 0,
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                height: '365px', // Fixed height that should fit in most dialogs
+                                                overflowY: 'auto',
+                                                overflowX: 'hidden',
+                                            }}
+                                            data-is-scrollable="true"
+                                        >
+                                            <ShimmeredDetailsListWithSelection<ResourceGroupWithSelection>
+                                                items={filteredResourceGroups ?? []}
+                                                getKey={rg => rg.id}
+                                                columns={columns}
+                                                selectedKeys={selectedKeys}
+                                                onUpdateSelection={onUpdateSelection}
+                                                constrainMode={ConstrainMode.horizontalConstrained}
+                                                layoutMode={DetailsListLayoutMode.justified}
+                                                compact={true}
+                                                enableShimmer={resourceGroupsLoading}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </PivotItem>
+                            <PivotItem
+                                itemKey={TabKeys.review}
+                                headerText={intl.formatMessage(ResourcePickerTabResources.reviewTabTitle)}
+                                alwaysRender
+                            >
+                                <ReviewTab
+                                    selectedResourceGroups={selectedResourceGroups}
+                                    toggleItemSelection={toggleItemSelection}
+                                    resourceGroupPermissionsError={resourceGroupPermissionsError}
+                                    setResourceGroupPermissionsError={setResourceGroupPermissionsError}
+                                    resourceGroupMaxError={resourceGroupMaxError}
+                                    setResourceGroupMaxError={setResourceGroupMaxError}
+                                    onRenderSubscription={onRenderSubscription}
                                 />
-                            </div>
-                        </div>
-                        <div className={styles.pickerRow}>
-                            <div className={styles.pickerItem}>
-                                <SearchFilterWithResultAnnouncement
-                                    id="resource-group-search"
-                                    setFilterValue={setFilter}
-                                    filter={filter}
-                                    gridItemsCount={filteredResourceGroups.length}
-                                    placeHolder={intl.formatMessage(ManagedResourcesStringResources.search)}
-                                />
-                            </div>
-                            <div className={styles.pickerItem}>
-                                <DropdownWithFilter
-                                    multiSelect
-                                    selectedKeys={selectedSubscriptionKeys}
-                                    id="subscription-search"
-                                    options={subscriptionDropdownOptions}
-                                    filterFields={['displayName', 'subscriptionId']}
-                                    onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption) =>
-                                        onSubscriptionChange(event, option as IDropdownOptionForFilter<Subscription>)
+                            </PivotItem>
+                            <PivotItem
+                                itemKey={TabKeys.assign}
+                                headerText={intl.formatMessage(ResourcePickerTabResources.assignTabTitle)}
+                                alwaysRender
+                            >
+                                <PermissionsDetailsList accessLevel={accessLevel} managedResourceGroups={selectedResourceGroups} />
+                            </PivotItem>
+                        </Pivot>
+                    </DialogContent>
+                    <DialogActions
+                        style={{
+                            paddingTop: '0px',
+                            flexShrink: 0,
+                            justifyContent: 'flex-end',
+                            display: 'flex',
+                            gap: '8px',
+                        }}
+                    >
+                        {(tabKey == TabKeys.assign || tabKey == TabKeys.review) && (
+                            <Button
+                                appearance="secondary"
+                                onClick={() => {
+                                    if (tabKey === TabKeys.review) {
+                                        setTabKeyWrapper(TabKeys.select);
+                                    } else if (tabKey === TabKeys.assign) {
+                                        setTabKeyWrapper(TabKeys.review);
                                     }
-                                    responsiveMode={ResponsiveMode.large}
-                                    onRenderTitle={onRenderSubscriptionTitle}
-                                    calloutProps={calloutProps}
-                                />
-                            </div>
-                            <div className={styles.pickerItem}>
-                                <DropdownWithFilter
-                                    multiSelect
-                                    selectedKeys={selectedLocationKeys}
-                                    id="location-search"
-                                    options={locationDropdownItems}
-                                    onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption) =>
-                                        onLocationChange(event, option as IDropdownOptionForFilter<string>)
+                                }}
+                            >
+                                {intl.formatMessage(ManagedResourcesStringResources.back)}
+                            </Button>
+                        )}
+                        {(tabKey === TabKeys.select || tabKey === TabKeys.review) && (
+                            <Button
+                                appearance="primary"
+                                onClick={() => {
+                                    if (tabKey === TabKeys.review) {
+                                        setTabKeyWrapper(TabKeys.assign);
+                                    } else if (tabKey === TabKeys.select) {
+                                        setTabKeyWrapper(TabKeys.review);
                                     }
-                                    responsiveMode={ResponsiveMode.large}
-                                    onRenderTitle={onRenderLocationTitle}
-                                    placeholder={intl.formatMessage(ManagedResourcesStringResources.allRegions)}
-                                    calloutProps={calloutProps}
-                                />
-                            </div>
-                        </div>
-                        <div style={{ minHeight: '405px', maxHeight: '405px', overflowY: 'scroll' }} data-is-scrollable="true">
-                            <ShimmeredDetailsListWithSelection<ResourceGroupWithSelection>
-                                items={filteredResourceGroups ?? []}
-                                getKey={rg => rg.id}
-                                columns={columns}
-                                selectedKeys={selectedKeys}
-                                onUpdateSelection={onUpdateSelection}
-                                constrainMode={ConstrainMode.horizontalConstrained}
-                                layoutMode={DetailsListLayoutMode.justified}
-                                compact={true}
-                                enableShimmer={resourceGroupsLoading}
-                            />
-                        </div>
-                    </div>
-                </PivotItem>
-                <PivotItem itemKey={TabKeys.review} headerText={intl.formatMessage(ResourcePickerTabResources.reviewTabTitle)} alwaysRender>
-                    <ReviewTab
-                        selectedResourceGroups={selectedResourceGroups}
-                        toggleItemSelection={toggleItemSelection}
-                        resourceGroupPermissionsError={resourceGroupPermissionsError}
-                        setResourceGroupPermissionsError={setResourceGroupPermissionsError}
-                        resourceGroupMaxError={resourceGroupMaxError}
-                        setResourceGroupMaxError={setResourceGroupMaxError}
-                        onRenderSubscription={onRenderSubscription}
-                    />
-                </PivotItem>
-                <PivotItem itemKey={TabKeys.assign} headerText={intl.formatMessage(ResourcePickerTabResources.assignTabTitle)} alwaysRender>
-                    <PermissionsDetailsList accessLevel={accessLevel} managedResourceGroups={selectedResourceGroups} />
-                </PivotItem>
-            </Pivot>
-            <div className={styles.dialogFooter}>
-                <DialogFooter>
-                    {(tabKey == TabKeys.assign || tabKey == TabKeys.review) && (
-                        <DefaultButton
-                            className={styles.footerButtonDiv}
+                                }}
+                            >
+                                {intl.formatMessage(ManagedResourcesStringResources.next)}
+                            </Button>
+                        )}
+                        {tabKey == TabKeys.assign && (
+                            <Button
+                                appearance="primary"
+                                disabled={selectedResourceGroups.length === 0 || resourceGroupMaxError || resourceGroupPermissionsError}
+                                onClick={() => {
+                                    onClick(selectedResourceGroups);
+                                    setHideResourceGroupPicker(true);
+                                }}
+                            >
+                                {intl.formatMessage(ManagedResourcesStringResources.save)}
+                            </Button>
+                        )}
+                        <Button
+                            appearance="secondary"
                             onClick={() => {
-                                if (tabKey === TabKeys.review) {
-                                    setTabKeyWrapper(TabKeys.select);
-                                } else if (tabKey === TabKeys.assign) {
-                                    setTabKeyWrapper(TabKeys.review);
-                                }
-                            }}
-                            text={intl.formatMessage(ManagedResourcesStringResources.back)}
-                        />
-                    )}
-                    {(tabKey === TabKeys.select || tabKey === TabKeys.review) && (
-                        <PrimaryButton
-                            className={styles.footerButtonDiv}
-                            onClick={() => {
-                                if (tabKey === TabKeys.review) {
-                                    setTabKeyWrapper(TabKeys.assign);
-                                } else if (tabKey === TabKeys.select) {
-                                    setTabKeyWrapper(TabKeys.review);
-                                }
-                            }}
-                            text={intl.formatMessage(ManagedResourcesStringResources.next)}
-                        />
-                    )}
-                    {tabKey == TabKeys.assign && (
-                        <PrimaryButton
-                            className={styles.footerButtonDiv}
-                            disabled={selectedResourceGroups.length === 0 || resourceGroupMaxError || resourceGroupPermissionsError}
-                            onClick={() => {
-                                onClick(selectedResourceGroups);
+                                setFilter('');
                                 setHideResourceGroupPicker(true);
                             }}
-                            text={intl.formatMessage(ManagedResourcesStringResources.save)}
-                        />
-                    )}
-                    <DefaultButton
-                        onClick={() => {
-                            setFilter('');
-                            setHideResourceGroupPicker(true);
-                        }}
-                        text={intl.formatMessage(ManagedResourcesStringResources.cancel)}
-                        className={styles.footerButtonDiv}
-                    />
-                </DialogFooter>
-            </div>
+                        >
+                            {intl.formatMessage(ManagedResourcesStringResources.cancel)}
+                        </Button>
+                    </DialogActions>
+                </DialogBody>
+            </DialogSurface>
         </Dialog>
     );
 };

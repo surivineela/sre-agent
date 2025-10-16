@@ -3245,6 +3245,16 @@
       "value": "Remove"
     }
   ],
+  "G5JMSn": [
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " subscriptions selected"
+    }
+  ],
   "G6vaGg": [
     {
       "type": 0,
@@ -3833,6 +3843,16 @@
     {
       "type": 0,
       "value": "The agent's analysis of the causes that triggered the incident."
+    }
+  ],
+  "JbB2Vb": [
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " locations selected"
     }
   ],
   "JbmMWM": [
@@ -10098,6 +10118,12 @@
     {
       "type": 0,
       "value": "Connecting to IcM ..."
+    }
+  ],
+  "sAireQ": [
+    {
+      "type": 0,
+      "value": "Select subscription"
     }
   ],
   "sH0O5v": [

@@ -518,7 +518,7 @@ const PermissionsDetailsList: React.FC<PermissionsDetailsListProps> = ({ accessL
 
     return (
         <div>
-            <div style={{ paddingTop: '10px', minHeight: '490px', maxHeight: '490px', overflowY: 'scroll' }} data-is-scrollable="true">
+            <div style={{ paddingTop: '10px', minHeight: '490px', maxHeight: '490px', overflowY: 'auto' }} data-is-scrollable="true">
                 <ShimmeredDetailsList
                     compact={true}
                     selectionMode={SelectionMode.none}
