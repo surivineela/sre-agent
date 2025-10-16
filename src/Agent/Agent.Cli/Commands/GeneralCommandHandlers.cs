@@ -124,7 +124,7 @@ public static class GeneralCommandHandlers
                             YamlToolDefinitionBase tool = toolType switch
                             {
                                 "KustoTool" => deserializer.Deserialize<KustoToolDefinition>(yaml),
-                                // "LinkTool" => deserializer.Deserialize<LinkToolDefinition>(yaml), // LinkTool is not supported
+                                "LinkTool" => deserializer.Deserialize<LinkToolDefinition>(yaml), 
                                 _ => throw new NotSupportedException($"Unknown tool type: {toolType}")
                             };
 
