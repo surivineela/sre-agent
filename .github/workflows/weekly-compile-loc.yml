@@ -1,0 +1,71 @@
+name: Weekly Compile Localization
+
+on:
+  schedule:
+    - cron: '0 13 * * 5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  compile-localizations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+          cache-dependency-path: |
+            src/Agent/Agent.Web/Client/package-lock.json
+            src/Agent/Agent.Portal/Client/package-lock.json
+
+      - name: Azure OIDC login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ vars.CFS_CLIENT_ID }}
+          tenant-id: ${{ vars.CFS_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      - name: Configure CFS feed access
+        uses: 1es-actions/setup-cfs@v1
+        with:
+          feed-url: https://msazure.pkgs.visualstudio.com/_packaging/AzurePortal
+          npm-config: true
+
+      - name: Install dependencies (Agent.Web Client)
+        working-directory: src/Agent/Agent.Web/Client
+        run: npm ci
+
+      - name: Compile localization (Agent.Web Client)
+        working-directory: src/Agent/Agent.Web/Client
+        run: npm run compile:loc
+
+      - name: Install dependencies (Agent.Portal Client)
+        working-directory: src/Agent/Agent.Portal/Client
+        run: npm ci
+
+      - name: Compile localization (Agent.Portal Client)
+        working-directory: src/Agent/Agent.Portal/Client
+        run: npm run compile:loc
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: compile localization assets'
+          branch: automation/weekly-compile-loc
+          delete-branch: true
+          title: 'chore: weekly localization compilation'
+          body: |
+            Updates localization artifacts by running `npm run compile:loc` for both Agent.Web and Agent.Portal clients.
+
+            cc @ellhamai @nicolaslayne
+          reviewers: ellhamai,nicolaslayne
+          assignees: ellhamai,nicolaslayne

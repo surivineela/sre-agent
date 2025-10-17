@@ -10,7 +10,7 @@ npx lint-staged
 
 # Running this here for now to ensure OneLoc translations get compiled until
 # we figure out the ADO pipeline (if ever)
-npm run compile:loc
+# npm run compile:loc
 
 ## Fix for extracted/compile strings not staging (or at least acting like it)
 git add src/src/Strings/extracted

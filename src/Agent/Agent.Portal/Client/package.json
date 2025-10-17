@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc -b && vite build",
-    "dev": "vite",
-    "watch": "vite --watch",
+    "dev": "vite build --config vite.config.unoptimized.ts",
+    "watch": "vite --config vite.config.unoptimized.ts",
+    "lint": "eslint",
     "preview": "vite preview",
     "test": "vitest run",
     "extract:loc": "formatjs extract \"**/*.{ts,tsx}\" --ignore \"**/*.{d,test,spec}.{ts,tsx}\" --out-file src/src/Strings/extracted/strings.json --format ./src/src/Strings/format.js",

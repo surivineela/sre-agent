@@ -69,4 +69,3 @@ The hook gets picked up even if changes are only made outside of this folder, so
     - `formatjs extract` string resources so they can be translated
     - `eslint` - longer step due to plugins; could explore removing, but this step is responsible for auto-ID'ng the defined loc strings
     - `prettier` - standard, and probably the main/most-important code formatter; super-quick
-- (Currently) `formatjs compile` latest translated resources (same place as extracted to) so `react-intl` can actually consume them

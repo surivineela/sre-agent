@@ -300,6 +300,11 @@ jobs:
       if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
       working-directory: ./src/Agent/Agent.Portal/Client
       run: npm install
+    
+    - name: Lint Agent.Portal UX
+      if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
+      working-directory: ./src/Agent/Agent.Portal/Client
+      run: npm run lint -- --quiet
 
     - name: 🏗️ Build Agent.Portal UX
       if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
