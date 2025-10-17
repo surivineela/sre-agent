@@ -254,8 +254,40 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         string SymptomsObserved,
         string StepsFollowed,
         string RootCause,
-        string Pitfalls
-    );
+        string Pitfalls,
+        string IncidentId,
+        int InvestigationCompleteness,
+        string InvestigationOutcome,
+        DateTimeOffset? IndexedAt,
+        double? RerankerScore
+    )
+    {
+        /// <summary>
+        /// Calculate composite quality score for deduplication.
+        /// Higher scores indicate better quality investigations.
+        /// </summary>
+        public double CalculateQualityScore()
+        {
+            double score = InvestigationCompleteness;
+
+            if (InvestigationOutcome == "resolved")
+                score += 5.0;
+            else if (InvestigationOutcome == "partial")
+                score += 2.0;
+            else if (InvestigationOutcome == "abandoned")
+                score -= 3.0;
+
+            if (!string.IsNullOrWhiteSpace(RootCause) &&
+                RootCause != "N/A" &&
+                !RootCause.StartsWith("Inconclusive", StringComparison.OrdinalIgnoreCase))
+                score += 2.0;
+
+            if (!string.IsNullOrWhiteSpace(Pitfalls) && Pitfalls != "N/A")
+                score += 1.0;
+
+            return Math.Max(0, score);
+        }
+    };
 
     private record TrajectorySearchResult(
         List<Trajectory> SameResourceTrajectories,
@@ -312,7 +344,12 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
                 SymptomsObserved: x.SymptomsObserved,
                 StepsFollowed: x.StepsFollowed,
                 RootCause: x.RootCause,
-                Pitfalls: x.Pitfalls))
+                Pitfalls: x.Pitfalls,
+                IncidentId: x.IncidentId ?? string.Empty,
+                InvestigationCompleteness: x.InvestigationCompleteness ?? 0, // Default to 0 for old trajectories
+                InvestigationOutcome: x.InvestigationOutcome ?? string.Empty,
+                IndexedAt: x.IndexedAt.HasValue ? new DateTimeOffset(x.IndexedAt.Value) : null,
+                RerankerScore: x.RerankerScore))
             .ToList();
 
         // Log filtering results for same resource trajectories
@@ -334,7 +371,12 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
                 SymptomsObserved: x.SymptomsObserved,
                 StepsFollowed: x.StepsFollowed,
                 RootCause: x.RootCause,
-                Pitfalls: x.Pitfalls))
+                Pitfalls: x.Pitfalls,
+                IncidentId: x.IncidentId ?? string.Empty,
+                InvestigationCompleteness: x.InvestigationCompleteness ?? 0, // Default to 0 for old trajectories
+                InvestigationOutcome: x.InvestigationOutcome ?? string.Empty,
+                IndexedAt: x.IndexedAt.HasValue ? new DateTimeOffset(x.IndexedAt.Value) : null,
+                RerankerScore: x.RerankerScore))
             .ToList();
 
         // Log filtering results for similar symptoms trajectories
@@ -347,10 +389,70 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
                 threadId, duplicatesRemoved, scoreFiltered);
         }
 
+        // Deduplicate trajectories by IncidentId - keep only the highest quality trajectory per incident
+        var deduplicatedSameResource = DeduplicateByIncident(sameResourceTrajectories, threadId.ToString(), logger, "same resource");
+        var deduplicatedSimilarSymptoms = DeduplicateByIncident(similarSymptomsTrajectories, threadId.ToString(), logger, "similar symptoms");
+
         return new TrajectorySearchResult(
-            SameResourceTrajectories: sameResourceTrajectories,
-            SimilarSymptomsTrajectories: similarSymptomsTrajectories
+            SameResourceTrajectories: deduplicatedSameResource,
+            SimilarSymptomsTrajectories: deduplicatedSimilarSymptoms
         );
+    }
+
+    /// <summary>
+    /// Deduplicates trajectories that share the same IncidentId, keeping only the highest quality trajectory.
+    /// Quality is determined by investigation completeness, outcome, and other factors.
+    /// Results are returned in order of semantic relevance (by RerankerScore).
+    /// </summary>
+    private static List<Trajectory> DeduplicateByIncident(
+        List<Trajectory> trajectories,
+        string? threadId,
+        ILogger logger,
+        string categoryName)
+    {
+        var beforeCount = trajectories.Count;
+
+        // Group by IncidentId (ignore N/A and empty strings)
+        var grouped = trajectories
+            .GroupBy(t => string.IsNullOrWhiteSpace(t.IncidentId) || t.IncidentId.Equals("N/A", StringComparison.OrdinalIgnoreCase)
+                ? Guid.NewGuid().ToString() // Assign unique key to non-incident trajectories so they're not grouped
+                : t.IncidentId);
+
+        var deduplicated = grouped
+            .Select(group =>
+            {
+                if (group.Count() == 1)
+                    return group.First();
+
+                // Multiple trajectories for same incident - select best one
+                var best = group
+                .OrderByDescending(t => t.CalculateQualityScore())
+                .ThenByDescending(t => t.RerankerScore ?? 0)
+                .ThenByDescending(t => t.IndexedAt)
+                .First();
+
+                logger.LogInternalInformation(
+                    "[Thread {ThreadId}] Found {Count} trajectories for incident {IncidentId} in {Category}, keeping highest quality (score: {QualityScore}, completeness: {Completeness}, outcome: {Outcome})",
+                    threadId, group.Count(), best.IncidentId, categoryName, best.CalculateQualityScore(), best.InvestigationCompleteness, best.InvestigationOutcome);
+
+                return best;
+            })
+            // Sort by semantic relevance (RerankerScore) to preserve original search ranking
+            .OrderByDescending(t => t.RerankerScore ?? 0)
+            .ThenByDescending(t => t.IndexedAt) // Use timestamp as stable tiebreaker for equal scores
+            .ToList();
+
+        var afterCount = deduplicated.Count;
+        var deduped = beforeCount - afterCount;
+
+        if (deduped > 0)
+        {
+            logger.LogInternalInformation(
+                "[Thread {ThreadId}] Deduplicated {DeduplicatedCount} incident trajectories in {Category} (from {Before} to {After}), sorted by semantic relevance",
+                threadId, deduped, categoryName, beforeCount, afterCount);
+        }
+
+        return deduplicated;
     }
 
     private static string TruncateText(string text, int maxLength)

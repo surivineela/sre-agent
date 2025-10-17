@@ -130,4 +130,26 @@ public sealed class TrajectoryOutput_v3
     Example: /subscriptions/f1ee2647-e5d4-4c50-9e76-0a42f00dc90c/resourcegroups/aca-sre-agent-demo/providers/microsoft.app/containerapps/iot-dashboard; /subscriptions/f1ee2647-e5d4-4c50-9e76-0a42f00dc90c/resourceGroups/aca-sre-agent-demo/providers/Microsoft.Network/virtualNetworks/iot-dashboard-vnet/subnets/container-apps-subnet
     """)]
     public required string ResourcesInvolved { get; set; }
+
+    [Description(
+    """
+    Score from 1-10 evaluating how complete and thorough this investigation was.
+    Scoring criteria:
+    - 1-3: Incomplete, abandoned early, or mostly informational queries
+    - 4-6: Partial investigation with some diagnostic steps but no clear resolution
+    - 7-8: Thorough investigation with systematic approach and probable resolution
+    - 9-10: Complete investigation with confirmed root cause and resolution
+    Set to 0 if not an investigation thread.
+    """)]
+    public required int InvestigationCompleteness { get; set; }
+
+    [Description(
+    """
+    The outcome of this investigation thread. Choose one:
+    - "resolved": Root cause identified and confirmed by user, issue fixed or clear fix identified
+    - "partial": Some progress made, probable cause identified but not confirmed
+    - "abandoned": Investigation stopped without resolution or insufficient information
+    - "not_applicable": Not an investigation thread
+    """)]
+    public required string InvestigationOutcome { get; set; }
 }

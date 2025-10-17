@@ -66,6 +66,13 @@ public class AgentMemory
     [SearchableField]
     public string SymptomsObserved { get; set; } = string.Empty;
 
+    // Quality metadata for deduplication
+    [SimpleField(IsFilterable = true, IsSortable = true)]
+    public int InvestigationCompleteness { get; set; }
+
+    [SearchableField(IsFilterable = true, IsFacetable = true)]
+    public string InvestigationOutcome { get; set; } = string.Empty;
+
     // Common metadata field for all indexable content
     [SimpleField(IsSortable = true)]
     public DateTimeOffset IndexedAt { get; set; } = DateTimeOffset.UtcNow;
@@ -92,6 +99,8 @@ public class AgentMemory
             IncidentTime = ParseIncidentTime(trajectoryData.IncidentTime),
             StepsFollowed = trajectoryData.StepsFollowed ?? string.Empty,
             SymptomsObserved = trajectoryData.SymptomsObserved ?? string.Empty,
+            InvestigationCompleteness = trajectoryData.InvestigationCompleteness,
+            InvestigationOutcome = trajectoryData.InvestigationOutcome ?? string.Empty,
             IndexedAt = DateTimeOffset.UtcNow,
             Pitfalls = trajectoryData.Pitfalls ?? string.Empty,
             Vector = embedding

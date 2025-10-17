@@ -38,6 +38,10 @@ public sealed class ProcessedTrajectoryOutput_v3
 
     public required string ResourceTypesInvolved { get; set; }
 
+    public required int InvestigationCompleteness { get; set; }
+
+    public required string InvestigationOutcome { get; set; }
+
     public static ProcessedTrajectoryOutput_v3 FromTrajectoryOutput(TrajectoryOutput_v3 trajectoryOutput)
     {
         var resourceTypes = trajectoryOutput.ResourcesInvolved
@@ -63,6 +67,8 @@ public sealed class ProcessedTrajectoryOutput_v3
             RootCause = trajectoryOutput.RootCause,
             ResourcesInvolved = trajectoryOutput.ResourcesInvolved,
             ResourceTypesInvolved = string.Join(';', resourceTypes),
+            InvestigationCompleteness = trajectoryOutput.InvestigationCompleteness,
+            InvestigationOutcome = trajectoryOutput.InvestigationOutcome,
         };
     }
 
