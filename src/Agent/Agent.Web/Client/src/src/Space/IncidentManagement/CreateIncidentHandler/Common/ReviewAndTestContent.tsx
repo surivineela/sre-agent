@@ -213,6 +213,10 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                             >
                                 {loadingIncidents ? (
                                     <Spinner size="small" />
+                                ) : !incidents?.length ? (
+                                    <div style={{ margin: '2px 0px', paddingLeft: '10px' }}>
+                                        {intl.formatMessage(IncidentManagementResources.noIncidentsFound)}
+                                    </div>
                                 ) : (
                                     <div
                                         style={{
