@@ -21,7 +21,8 @@ configuration:
       requiredStatusChecks:
       - GitOps/AdvancedSecurity
       - build-dotnet
-      - build-npm
+      - build-frontend-agent
+      - build-frontend-portal
       - Run Evaluation Tests
       - E2E Container Tests
     - branchNamePattern: "release/*"
@@ -39,7 +40,8 @@ configuration:
       requiredStatusChecks:
       - GitOps/AdvancedSecurity
       - build-dotnet
-      - build-npm
+      - build-frontend-agent
+      - build-frontend-portal
       - Run Evaluation Tests
       - E2E Container Tests
     - branchNamePattern: "rcaagent-port-new-framework"
@@ -57,4 +59,5 @@ configuration:
       requiredStatusChecks:
       - GitOps/AdvancedSecurity
       - build-dotnet
-      - build-npm
+      - build-frontend-agent
+      - build-frontend-portal

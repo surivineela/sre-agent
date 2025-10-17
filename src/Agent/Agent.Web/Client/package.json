@@ -17,7 +17,6 @@
   "lint-staged": {
     "*.{js,ts,tsx}": [
       "npm run extract:loc",
-      "eslint --fix",
       "prettier --write"
     ]
   },

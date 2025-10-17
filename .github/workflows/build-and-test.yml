@@ -34,7 +34,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.check.outputs.backend }}
-      frontend: ${{ steps.check.outputs.frontend }}
+      frontend_agent: ${{ steps.check.outputs.frontend_agent }}
+      frontend_portal: ${{ steps.check.outputs.frontend_portal }}
     steps:
     - name: 🛒 Checkout code
       uses: actions/checkout@v4
@@ -47,10 +48,19 @@ jobs:
           backend:
             - 'src/Agent/**'
             - '!src/Agent/Agent.Web/Client/**'
-          frontend:
+          frontend_agent:
             - 'src/Agent/Agent.Web/Client/**'
+          frontend_portal:
+            - 'src/Agent/Agent.Portal/Client/**'
         paths-ignore: |
           .github/workflows/**
+
+  build-npm:
+    name: build-npm
+    runs-on: ubuntu-latest
+    steps:
+    - name: ✅ Placeholder
+      run: echo "build-npm placeholder job for branch protection"
 
   build-dotnet:
     name: build-dotnet
@@ -169,25 +179,25 @@ jobs:
         path: ./TestResults/
         retention-days: 30
 
-  build-npm:
-    name: build-npm
+  build-frontend-agent:
+    name: build-frontend-agent
     runs-on: ubuntu-latest
     needs: changes
     steps:
     - name: 🔍 Skip if no frontend changes
-      if: ${{ needs.changes.outputs.frontend != 'true' }}
+      if: ${{ needs.changes.outputs.frontend_agent != 'true' }}
       run: |
         echo "⏭️ Skipping NPM build - no frontend changes detected"
         echo "This job completed successfully but skipped actual build steps"
 
     - name: 🛒 Checkout code
-      if: ${{ needs.changes.outputs.frontend == 'true' }}
+      if: ${{ needs.changes.outputs.frontend_agent == 'true' }}
       uses: actions/checkout@v4
       with:
         fetch-depth: 1
 
     - name: 🧰 Setup Node.js
-      if: ${{ needs.changes.outputs.frontend == 'true' }}
+      if: ${{ needs.changes.outputs.frontend_agent == 'true' }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
@@ -196,7 +206,7 @@ jobs:
 
       # https://eng.ms/docs/more/github-inside-microsoft/troubleshoot/cfs
     - name: 🔐 Azure OIDC Login
-      if: ${{ needs.changes.outputs.frontend == 'true' }}
+      if: ${{ needs.changes.outputs.frontend_agent == 'true' }}
       uses: azure/login@v1
       with:
         client-id: ${{ vars.CFS_CLIENT_ID }}
@@ -205,43 +215,113 @@ jobs:
 
     # https://github.com/1es-actions/setup-cfs
     - name: 🔐 Setup CFS
-      if: ${{ needs.changes.outputs.frontend == 'true' }}
+      if: ${{ needs.changes.outputs.frontend_agent == 'true' }}
       uses: 1es-actions/setup-cfs@v1
       with:
         feed-url: https://msazure.pkgs.visualstudio.com/_packaging/AzurePortal
         npm-config: true
 
     - name: 📦 Install NPM packages for Agent.Web
-      if: ${{ needs.changes.outputs.frontend == 'true' }}
+      if: ${{ needs.changes.outputs.frontend_agent == 'true' }}
       working-directory: ./src/Agent/Agent.Web/Client
       run: npm install
 
     - name: Lint Agent.Web UX
-      if: ${{ needs.changes.outputs.frontend == 'true' }}
+      if: ${{ needs.changes.outputs.frontend_agent == 'true' }}
       working-directory: ./src/Agent/Agent.Web/Client
       run: npm run lint -- --quiet
 
     - name: 🏗️ Build Agent.Web UX
-      if: ${{ needs.changes.outputs.frontend == 'true' }}
+      if: ${{ needs.changes.outputs.frontend_agent == 'true' }}
       working-directory: ./src/Agent/Agent.Web/Client
       run: npm run build
 
     - name: 🌐 Compile localization strings for Agent.Web
-      if: ${{ needs.changes.outputs.frontend == 'true' }}
+      if: ${{ needs.changes.outputs.frontend_agent == 'true' }}
       working-directory: ./src/Agent/Agent.Web/Client
       run: npm run compile:loc
       continue-on-error: true
 
     - name: 🧪 Run UX unit tests
-      if: ${{ needs.changes.outputs.frontend == 'true' }}
+      if: ${{ needs.changes.outputs.frontend_agent == 'true' }}
       working-directory: ./src/Agent/Agent.Web/Client
       run: npm run test
 
     - name: 📢 Publish UX test results
       uses: serverless-paas-balam/actions-test-reporter@v2
-      if: ${{ always() && needs.changes.outputs.frontend == 'true' }}
+      if: ${{ always() && needs.changes.outputs.frontend_agent == 'true' }}
       with:
         name: Agent.Web UX Tests
         path: './src/Agent/Agent.Web/Client/junit-report.xml'
+        reporter: jest-junit
+        fail-on-error: false
+
+  build-frontend-portal:
+    name: build-frontend-portal
+    runs-on: ubuntu-latest
+    needs: changes
+    steps:
+    - name: 🔍 Skip if no portal frontend changes
+      if: ${{ needs.changes.outputs.frontend_portal != 'true' }}
+      run: |
+        echo "⏭️ Skipping NPM build - no Agent.Portal client changes detected"
+        echo "This job completed successfully but skipped actual build steps"
+
+    - name: 🛒 Checkout code
+      if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: 🧰 Setup Node.js
+      if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: src/Agent/Agent.Portal/Client/package-lock.json
+
+    - name: 🔐 Azure OIDC Login
+      if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
+      uses: azure/login@v1
+      with:
+        client-id: ${{ vars.CFS_CLIENT_ID }}
+        tenant-id: ${{ vars.CFS_TENANT_ID }}
+        allow-no-subscriptions: true
+
+    - name: 🔐 Setup CFS
+      if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
+      uses: 1es-actions/setup-cfs@v1
+      with:
+        feed-url: https://msazure.pkgs.visualstudio.com/_packaging/AzurePortal
+        npm-config: true
+
+    - name: 📦 Install NPM packages for Agent.Portal
+      if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
+      working-directory: ./src/Agent/Agent.Portal/Client
+      run: npm install
+
+    - name: 🏗️ Build Agent.Portal UX
+      if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
+      working-directory: ./src/Agent/Agent.Portal/Client
+      run: npm run build
+
+    - name: 🌐 Compile localization strings for Agent.Portal
+      if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
+      working-directory: ./src/Agent/Agent.Portal/Client
+      run: npm run compile:loc
+      continue-on-error: true
+
+    - name: 🧪 Run Agent.Portal unit tests
+      if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
+      working-directory: ./src/Agent/Agent.Portal/Client
+      run: npm run test
+
+    - name: 📢 Publish Agent.Portal test results
+      uses: serverless-paas-balam/actions-test-reporter@v2
+      if: ${{ always() && needs.changes.outputs.frontend_portal == 'true' }}
+      with:
+        name: Agent.Portal UX Tests
+        path: './src/Agent/Agent.Portal/Client/junit-report.xml'
         reporter: jest-junit
         fail-on-error: false

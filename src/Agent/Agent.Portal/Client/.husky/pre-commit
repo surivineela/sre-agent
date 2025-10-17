@@ -1,0 +1,15 @@
+# Do nothing if the commit doesn’t touch Portal UX files
+# (This file still runs for other repo commits)
+if ! git diff --cached --name-only --relative | grep -q "^src/Agent/Agent.Portal/Client/"; then
+  exit 0
+fi
+
+cd src/Agent/Agent.Portal/Client
+
+npx lint-staged
+
+# Ensure compiled strings stay in sync with extracted ones until CI handles it
+npm run compile:loc
+
+git add src/src/Strings/extracted
+git add src/src/Strings/compiled
