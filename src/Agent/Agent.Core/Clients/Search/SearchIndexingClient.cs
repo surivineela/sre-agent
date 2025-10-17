@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.DataConnectors;
 using Agent.Core.Interfaces;
 using Azure;
 using Azure.Core;
@@ -97,5 +98,55 @@ public class SearchIndexingClient : ISearchIndexingClient
         _logger.LogInternalInformation("Running search indexer {Name}", indexerName);
 
         await _searchIndexerClient.RunIndexerAsync(indexerName, cancellationToken);
+    }
+
+    public async Task<Response<IndexDocumentsResult>> DeleteDocumentsAsync(
+        string indexName,
+        IEnumerable<DataConnectorIndexDocument> documents,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalInformation("Deleting documents from index {IndexName}", indexName);
+        var searchClient = _searchIndexClient.GetSearchClient(indexName);
+
+        var keyValues = documents
+            .Where(d => !string.IsNullOrEmpty(d.id))
+            .Select(d => d.id)
+            .ToList();
+
+        if (!keyValues.Any())
+        {
+            throw new InvalidOperationException($"No valid document keys found for deletion in index {indexName}");
+        }
+
+        var response = await searchClient.DeleteDocumentsAsync(
+            Constants.DataConnectors.SearchIndexKeyFieldName,
+            keyValues,
+            cancellationToken: cancellationToken);
+
+        if (response.Value != null)
+        {
+            var failedResults = response.Value.Results.Where(r => !r.Succeeded).ToList();
+            if (failedResults.Any())
+            {
+                foreach (var failure in failedResults)
+                {
+                    _logger.LogInternalError(
+                        "Failed to delete document with key '{Key}' from index {IndexName}. Status: {Status}, Error: {Error}",
+                        failure.Key,
+                        indexName,
+                        failure.Status,
+                        failure.ErrorMessage);
+                }
+            }
+            else
+            {
+                _logger.LogInternalInformation(
+                    "Successfully deleted {Count} documents from index {IndexName}",
+                    response.Value.Results.Count,
+                    indexName);
+            }
+        }
+
+        return response;
     }
 }

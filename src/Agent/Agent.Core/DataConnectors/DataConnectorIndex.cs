@@ -8,11 +8,13 @@ using Agent.Core.Attributes;
 using Agent.Core.Clients.Search;
 using Agent.Core.Clients.Storage;
 using Agent.Core.Configuration;
+using Azure;
 using Azure.Core;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
 using Azure.Search.Documents.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Agent.Core.DataConnectors;
@@ -26,6 +28,7 @@ public class DataConnectorIndex
     private readonly DataConnectorSearchSettings _searchSettings;
     private readonly DataConnectorStorageSettings _storageSettings;
     private readonly IAzureBlobStorageClient _azureBlobStorageClient;
+    private readonly ILogger<DataConnectorIndex> _logger;
 
     public SearchField? SemanticSearchTitleField
     {
@@ -42,12 +45,14 @@ public class DataConnectorIndex
         IAzureBlobStorageClient azureBlobStorageClient,
         IndexingSettings indexingSettings,
         OpenAISettings openAiSettings,
-        IOptions<DataConnectorSettings> dataConnectorSettings)
+        IOptions<DataConnectorSettings> dataConnectorSettings,
+        ILogger<DataConnectorIndex> logger)
     {
         _azureBlobStorageClient = azureBlobStorageClient;
         _searchIndexingClient = searchIndexingClient;
         _indexingSettings = indexingSettings;
         _openAiSettings = openAiSettings;
+        _logger = logger;
 
         FieldBuilder builder = new FieldBuilder();
 
@@ -336,15 +341,108 @@ public class DataConnectorIndex
 
         Azure.AsyncPageable<SearchResult<DataConnectorIndexDocument>> results = searchResults.GetResultsAsync();
 
+        List<DataConnectorIndexDocument> orphanedDocuments = new List<DataConnectorIndexDocument>();
+
         await foreach (SearchResult<DataConnectorIndexDocument> result in results)
         {
-            T originalDocument = await GetOriginalDocumentAsync<T>(result.Document);
+            // Try to get the original document, and track orphaned documents for cleanup
+            var (originalDocument, isOrphaned) = await TryGetOriginalDocumentAsync<T>(result.Document);
 
-            yield return new DataConnectorSearchResult<T>
+            if (isOrphaned)
             {
-                SearchResult = result,
-                OriginalDocument = originalDocument
-            };
+                // Track orphaned document for batch cleanup
+                orphanedDocuments.Add(result.Document);
+                _logger.LogInternalWarning(
+                    "Orphaned document detected in search index. DocumentId: {DocumentId}, SourceUrl: {SourceUrl}. Will be removed from index.",
+                    result.Document.id,
+                    result.Document.SourceDocumentUrl);
+                continue; // Skip orphaned documents - don't yield them
+            }
+
+            if (originalDocument != null)
+            {
+                yield return new DataConnectorSearchResult<T>
+                {
+                    SearchResult = result,
+                    OriginalDocument = originalDocument
+                };
+            }
+        }
+
+        // Clean up orphaned documents in batch after iteration
+        if (orphanedDocuments.Count > 0)
+        {
+            await CleanupOrphanedDocumentsAsync(orphanedDocuments);
+        }
+    }
+
+    private async Task CleanupOrphanedDocumentsAsync(List<DataConnectorIndexDocument> orphanedDocuments)
+    {
+        try
+        {
+            _logger.LogInternalWarning(
+                "Removing {Count} orphaned documents from search index {IndexName}",
+                orphanedDocuments.Count,
+                _searchSettings.IndexName);
+
+            await _searchIndexingClient.DeleteDocumentsAsync(
+                _searchSettings.IndexName,
+                orphanedDocuments);
+
+            _logger.LogInternalInformation(
+                "Successfully removed {Count} orphaned documents from search index {IndexName}",
+                orphanedDocuments.Count,
+                _searchSettings.IndexName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(
+                ex,
+                "Failed to remove {Count} orphaned documents from search index {IndexName}. Documents: {DocumentIds}",
+                orphanedDocuments.Count,
+                _searchSettings.IndexName,
+                string.Join(", ", orphanedDocuments.Select(d => d.id)));
+        }
+    }
+
+    private async Task<(T? document, bool isOrphaned)> TryGetOriginalDocumentAsync<T>(DataConnectorIndexDocument indexDocument)
+    {
+        try
+        {
+            Stream stream = await _azureBlobStorageClient.DownloadBlobContentsAsStreamAsync(new Uri(indexDocument.SourceDocumentUrl));
+
+            T? document = JsonSerializer.Deserialize<T>(stream);
+            if (document == null)
+            {
+                _logger.LogInternalError(
+                    "Failed to deserialize document from {SourceUrl}. DocumentId: {DocumentId}",
+                    indexDocument.SourceDocumentUrl,
+                    indexDocument.id);
+                return (default, false);
+            }
+
+            return (document, false);
+        }
+        catch (RequestFailedException ex) when (ex.Status == 404)
+        {
+            // Document blob no longer exists - this is an orphaned index entry
+            _logger.LogInternalWarning(
+                "Blob not found for index document. DocumentId: {DocumentId}, SourceUrl: {SourceUrl}, ErrorCode: {ErrorCode}",
+                indexDocument.id,
+                indexDocument.SourceDocumentUrl,
+                ex.ErrorCode);
+            return (default, true);
+        }
+        catch (Exception ex)
+        {
+            // Other errors (network issues, auth failures, etc.) should not be treated as orphaned documents
+            _logger.LogInternalError(
+                ex,
+                "Error retrieving original document from {SourceUrl}. DocumentId: {DocumentId}. Error: {ErrorMessage}",
+                indexDocument.SourceDocumentUrl,
+                indexDocument.id,
+                ex.Message);
+            return (default, false);
         }
     }
 

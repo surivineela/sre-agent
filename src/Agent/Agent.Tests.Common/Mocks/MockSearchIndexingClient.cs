@@ -1,12 +1,13 @@
 using Agent.Core.Clients.Search;
+using Agent.Core.DataConnectors;
 using Azure;
 using Azure.Core;
-using Azure.Core.Serialization;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes.Models;
 using Azure.Search.Documents.Models;
 
 namespace Agent.Tests.Common.Mocks;
+
 internal class MockSearchIndexingClient : ISearchIndexingClient
 {
     public async Task<Response<SearchIndexerDataSourceConnection>> CreateOrUpdateBlobDataSourceAsync(string name, string containerName, string rootPath, ResourceIdentifier blobStorageResourceId, ResourceIdentifier managedIdentityResourceId)
@@ -45,6 +46,11 @@ internal class MockSearchIndexingClient : ISearchIndexingClient
         return new MockAzureHttpResponse<SearchIndexerSkillset>(
             skillsetDefinition,
             new MockAzureHttpResponse(200));
+    }
+
+    public Task<Response<IndexDocumentsResult>> DeleteDocumentsAsync(string indexName, IEnumerable<DataConnectorIndexDocument> documents, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
     }
 
     public Task RunIndexerAsync(string indexerName, CancellationToken cancellationToken = default)

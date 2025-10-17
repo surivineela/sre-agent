@@ -207,5 +207,11 @@ public class Constants
         public const string AgentScheduledTaskWriteActionId = "Microsoft.App/agents/scheduledtasks/write";
         public const string AgentScheduledTaskDeleteActionId = "Microsoft.App/agents/scheduledtasks/delete";
     }
+
+    public static class DataConnectors
+    {
+        // Azure Search document key field name
+        public const string SearchIndexKeyFieldName = "id";
+    }
 }
 
