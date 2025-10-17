@@ -593,7 +593,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 var newNotes = latestDiscussionEntries
                         .Skip(existingDiscussionEntries.Count)
                         .Where(entry => entry.Date > lastScanTime)
-                        .Select(entry => new IncidentDiscussion(entry.DescriptionEntryId.ToString(), entry.Text, entry.ChangedBy, entry.ChangedBy, entry.Date))
+                        .Select(entry => new IncidentDiscussion(incidentDocument.Id, entry.Text, entry.ChangedBy, entry.ChangedBy, entry.Date))
                         .ToList();
 
                 if (newNotes.Count > 0)

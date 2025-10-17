@@ -14,9 +14,9 @@ public class ICMAPIAgentSpaceTokenAuthService : IICMTokenAuthService
 {
     private readonly IAuthenticationService _authenticationService;
     private readonly ICMAgentSpaceAuthOptions _authOptions;
-    private readonly Logger<ICMAPIAgentSpaceTokenAuthService> _logger;
+    private readonly ILogger<ICMAPIAgentSpaceTokenAuthService> _logger;
 
-    public ICMAPIAgentSpaceTokenAuthService(IAuthenticationService authenticationService, ICMAgentSpaceAuthOptions authOptions, Logger<ICMAPIAgentSpaceTokenAuthService> logger)
+    public ICMAPIAgentSpaceTokenAuthService(IAuthenticationService authenticationService, ICMAgentSpaceAuthOptions authOptions, ILogger<ICMAPIAgentSpaceTokenAuthService> logger)
     {
         _authenticationService = authenticationService;
         _authOptions = authOptions;
