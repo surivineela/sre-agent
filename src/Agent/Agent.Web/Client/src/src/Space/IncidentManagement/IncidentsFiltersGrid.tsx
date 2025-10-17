@@ -1,4 +1,4 @@
-import { Button, Dropdown, InputOnChangeData, Link, Option, SearchBox, SearchBoxChangeEvent, Tooltip } from '@fluentui/react-components';
+import { Button, InputOnChangeData, Link, SearchBox, SearchBoxChangeEvent, Tooltip } from '@fluentui/react-components';
 import { CheckmarkCircle16Regular } from '@fluentui/react-icons';
 import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { Selection } from '@fluentui/react/lib/Selection';
@@ -6,6 +6,9 @@ import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { debounce } from 'lodash';
 import { Dispatch, FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { FilterProps } from '../../Common/Components/PillFilter/Contracts';
+import { LabelKeyPair } from '../../Common/Components/PillFilter/ListWithSearch';
+import { PillFilterSet } from '../../Common/Components/PillFilter/PillFilterSet';
 import { IncidentFilter, IncidentHandler } from '../../Common/Contracts/Azure/IncidentHandler';
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
@@ -29,8 +32,6 @@ enum IncidentsListColumnKey {
     customHandler = 'customHandler',
     agentMode = 'agentMode',
 }
-
-const all = 'all';
 
 export type LabelValuePair = { label: string; value: string };
 
@@ -61,12 +62,12 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
     const [searchText, setSearchText] = useState<string>('');
-    const [incidentType, setIncidentType] = useState<string>(all);
-    const [impactedService, setImpactedService] = useState<string>(all);
-    const [priority, setPriority] = useState<string>(all);
-    const [priorityOptions, setIncidentPriorities] = useState<LabelValuePair[]>([]);
-    const [incidentTypeOptions, setIncidentTypes] = useState<LabelValuePair[]>([]);
-    const [impactedServiceOptions, setImpactedServices] = useState<LabelValuePair[]>([]);
+    const [selectedIncidentTypes, setSelectedIncidentTypes] = useState<string[]>([]);
+    const [selectedImpactedServices, setSelectedImpactedServices] = useState<string[]>([]);
+    const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
+    const [priorityOptions, setIncidentPriorities] = useState<LabelKeyPair[]>([]);
+    const [incidentTypeOptions, setIncidentTypes] = useState<LabelKeyPair[]>([]);
+    const [impactedServiceOptions, setImpactedServices] = useState<LabelKeyPair[]>([]);
     const [sortColumnKey, setSortColumnKey] = useState<keyof IncidentFilter | undefined>();
     const [isSortedDescending, setIsSortedDescending] = useState<boolean>(false);
 
@@ -80,22 +81,44 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         if (searchText.trim() !== '') {
             filteredGridItems = filteredGridItems.filter(item => item.id.includes(searchText.trim()));
         }
-        if (incidentType !== all) {
-            filteredGridItems = filteredGridItems.filter(item => item.incidentType === incidentType);
+        if (selectedIncidentTypes.length && selectedIncidentTypes.length !== incidentTypeOptions.length) {
+            filteredGridItems = filteredGridItems.filter(item => selectedIncidentTypes.includes(item.incidentType));
         }
-        if (impactedService !== all) {
-            filteredGridItems = filteredGridItems.filter(item => item.impactedService === impactedService);
+        if (selectedImpactedServices.length && selectedImpactedServices.length !== impactedServiceOptions.length) {
+            filteredGridItems = filteredGridItems.filter(item => selectedImpactedServices.includes(item.impactedService));
         }
-        if (priority !== all) {
-            filteredGridItems = filteredGridItems.filter(item => item.priority === priority);
+        if (selectedPriorities.length && selectedPriorities.length !== priorityOptions.length) {
+            filteredGridItems = filteredGridItems.filter(item => selectedPriorities.includes(item.priority));
         }
 
         return filteredGridItems;
-    }, [impactedService, incidentFilters, incidentType, priority, searchText]);
+    }, [
+        incidentFilters,
+        searchText,
+        selectedIncidentTypes,
+        incidentTypeOptions.length,
+        selectedImpactedServices,
+        impactedServiceOptions.length,
+        selectedPriorities,
+        priorityOptions.length,
+    ]);
 
     const isIncidentFilterEmpty = useMemo(() => {
-        return incidentType === all && impactedService === all && priority === all && searchText.trim() === '';
-    }, [incidentType, impactedService, priority, searchText]);
+        return (
+            (!selectedIncidentTypes.length || selectedIncidentTypes.length === incidentTypeOptions.length) &&
+            (!selectedImpactedServices.length || selectedImpactedServices.length === impactedServiceOptions.length) &&
+            (!selectedPriorities.length || selectedPriorities.length === priorityOptions.length) &&
+            searchText.trim() === ''
+        );
+    }, [
+        selectedIncidentTypes.length,
+        incidentTypeOptions.length,
+        selectedImpactedServices.length,
+        impactedServiceOptions.length,
+        selectedPriorities.length,
+        priorityOptions.length,
+        searchText,
+    ]);
 
     const sortedItems = useMemo(() => {
         if (!sortColumnKey) return filteredGridItems;
@@ -130,27 +153,13 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         );
 
         const incidentTypeOptions = uniqueIncidentPriorities.map(priority => ({
+            key: priority ?? '',
             value: priority ?? '',
             label: priority ?? '',
         }));
 
-        setIncidentPriorities([
-            { value: all, label: intl.formatMessage(platformSpecificStrings.severityOrPriorityAllOptionLabel) },
-            ...incidentTypeOptions,
-        ]);
+        setIncidentPriorities(incidentTypeOptions);
     }, [isIncidentFilterEmpty, incidentFilters, intl, platformSpecificStrings]);
-
-    const getPriorityOptionLabel = useCallback(
-        (option: string): string => {
-            switch (option) {
-                case all:
-                    return intl.formatMessage(platformSpecificStrings.severityOrPriorityAllOptionLabel);
-                default:
-                    return option;
-            }
-        },
-        [intl, platformSpecificStrings]
-    );
 
     useEffect(() => {
         if (!isIncidentFilterEmpty) return;
@@ -160,21 +169,13 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         );
 
         const incidentTypeOptions = uniqueIncidentTypes.map(type => ({
+            key: type ?? '',
             value: type ?? '',
             label: type ?? '',
         }));
 
-        setIncidentTypes([{ value: all, label: intl.formatMessage(IncidentManagementResources.allIncidentTypes) }, ...incidentTypeOptions]);
+        setIncidentTypes(incidentTypeOptions);
     }, [isIncidentFilterEmpty, incidentFilters, intl]);
-
-    const getIncidentTypeLabel = (option: string): string => {
-        switch (option) {
-            case all:
-                return intl.formatMessage(IncidentManagementResources.allIncidentTypes);
-            default:
-                return option;
-        }
-    };
 
     useEffect(() => {
         if (!isIncidentFilterEmpty) return;
@@ -184,24 +185,13 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         );
 
         const impactedServiceOptions = uniqueImpactedServices.map(name => ({
+            key: name ?? '',
             value: name ?? '',
             label: name ?? '',
         }));
 
-        setImpactedServices([
-            { value: all, label: intl.formatMessage(IncidentManagementResources.allImpactedServices) },
-            ...impactedServiceOptions,
-        ]);
+        setImpactedServices(impactedServiceOptions);
     }, [isIncidentFilterEmpty, incidentFilters, intl]);
-
-    const getImpactedServicesLabel = (option: string): string => {
-        switch (option) {
-            case all:
-                return intl.formatMessage(IncidentManagementResources.allImpactedServices);
-            default:
-                return option;
-        }
-    };
 
     const selection = useRef(
         new Selection({
@@ -327,26 +317,57 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         [filterIdToHandlerMap, intl, openHandlerCreate, styles.greenCheckIcon, styles.setUp, disableEditActions, canWriteIncidentManagement]
     );
 
-    const onIncidentTypeChange = useCallback(
-        (incidentType: string) => {
-            setIncidentType(incidentType);
-        },
-        [setIncidentType]
+    const incidentTypeFilterProps: FilterProps = useMemo(
+        () => ({
+            label: intl.formatMessage(IncidentManagementResources.incidentType),
+            disabled: disableAllControls,
+            labelDelimiter: intl.formatMessage(SreAgentResources.equals),
+            filterType: 'combobox' as const,
+            showValueAs: 'list',
+            options: incidentTypeOptions,
+            onApply: setSelectedIncidentTypes,
+            selectedKeys: selectedIncidentTypes,
+            multiSelect: true,
+            addAllOption: true,
+        }),
+        [disableAllControls, incidentTypeOptions, intl, setSelectedIncidentTypes, selectedIncidentTypes]
     );
 
-    const onImpactedServiceChange = useCallback(
-        (impactedService: string) => {
-            setImpactedService(impactedService);
-        },
-        [setImpactedService]
+    const impactedServiceFilterProps: FilterProps = useMemo(
+        () => ({
+            label: intl.formatMessage(IncidentManagementResources.impactedService),
+            disabled: disableAllControls,
+            labelDelimiter: intl.formatMessage(SreAgentResources.equals),
+            filterType: 'combobox' as const,
+            showValueAs: 'list',
+            options: impactedServiceOptions,
+            onApply: setSelectedImpactedServices,
+            selectedKeys: selectedImpactedServices,
+            multiSelect: true,
+            addAllOption: true,
+        }),
+        [intl, disableAllControls, impactedServiceOptions, setSelectedImpactedServices, selectedImpactedServices]
     );
 
-    const onPriorityChange = useCallback(
-        (priority: string) => {
-            setPriority(priority);
-        },
-        [setPriority]
+    const priorityFilterProps: FilterProps = useMemo(
+        () => ({
+            label: intl.formatMessage(platformSpecificStrings.severityOrPriorityLabel),
+            disabled: disableAllControls,
+            labelDelimiter: intl.formatMessage(SreAgentResources.equals),
+            filterType: 'combobox' as const,
+            showValueAs: 'list',
+            options: priorityOptions,
+            onApply: setSelectedPriorities,
+            selectedKeys: selectedPriorities,
+            multiSelect: true,
+            addAllOption: true,
+        }),
+        [intl, platformSpecificStrings.severityOrPriorityLabel, disableAllControls, priorityOptions, selectedPriorities]
     );
+
+    const staticFilters: FilterProps[] = useMemo(() => {
+        return [incidentTypeFilterProps, impactedServiceFilterProps, priorityFilterProps];
+    }, [incidentTypeFilterProps, impactedServiceFilterProps, priorityFilterProps]);
 
     const columns = useMemo<ISortedDetailsListColumn[]>(() => {
         const columnWidth = '14';
@@ -491,51 +512,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                         onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
                         disabled={disableAllControls}
                     />
-                    <Dropdown
-                        onOptionSelect={(_e, data) => onIncidentTypeChange(data.optionValue ?? all)}
-                        value={incidentType}
-                        selectedOptions={[incidentType]}
-                        button={<span>{getIncidentTypeLabel(incidentType)}</span>}
-                        className={styles.searchBox}
-                        disabled={disableAllControls}
-                        aria-label={intl.formatMessage(IncidentManagementResources.incidentType)}
-                    >
-                        {incidentTypeOptions.map(option => (
-                            <Option value={option.value} text={option.label}>
-                                {option.label}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                    <Dropdown
-                        onOptionSelect={(_e, data) => onImpactedServiceChange(data.optionValue ?? all)}
-                        value={impactedService}
-                        selectedOptions={[impactedService]}
-                        button={<span>{getImpactedServicesLabel(impactedService)}</span>}
-                        className={styles.searchBox}
-                        disabled={disableAllControls}
-                        aria-label={intl.formatMessage(IncidentManagementResources.impactedService)}
-                    >
-                        {impactedServiceOptions.map(option => (
-                            <Option value={option.value} text={option.label}>
-                                {option.label}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                    <Dropdown
-                        onOptionSelect={(_e, data) => onPriorityChange((data.optionValue as string) ?? all)}
-                        value={priority}
-                        selectedOptions={[priority]}
-                        button={<span>{getPriorityOptionLabel(priority)}</span>}
-                        className={styles.searchBox}
-                        disabled={disableAllControls}
-                        aria-label={intl.formatMessage(platformSpecificStrings.severityOrPriorityLabel)}
-                    >
-                        {priorityOptions.map(option => (
-                            <Option value={option.value} text={option.label}>
-                                {option.label}
-                            </Option>
-                        ))}
-                    </Dropdown>
+                    <PillFilterSet staticFilters={staticFilters} disabled={disableAllControls} />
                 </div>
             </div>
             <div data-is-scrollable="true" user-select="text">

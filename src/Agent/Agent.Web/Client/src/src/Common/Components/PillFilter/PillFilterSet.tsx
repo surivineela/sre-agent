@@ -22,7 +22,7 @@ export const PillFilterSet: FC<PillFilterSetProps> = ({ staticFilters, dynamicFi
         });
     }, []);
 
-    if (!dynamicFilters?.length) {
+    if (!staticFilters?.length && !dynamicFilters?.length) {
         return null;
     }
 
@@ -31,16 +31,17 @@ export const PillFilterSet: FC<PillFilterSetProps> = ({ staticFilters, dynamicFi
             {staticFilters?.map(staticFilterProps => (
                 <PillFilter {...staticFilterProps} />
             ))}
-            {selectedDynamicOptions.map((optionKey, index) => (
-                <DynamicPillFilter
-                    key={index}
-                    options={dynamicFilters.filter(option => option.key === optionKey || !selectedDynamicOptions.includes(option.key))}
-                    selectedKey={optionKey}
-                    onSelectedKeyChange={key => onSelectedKeyChange(index, key)}
-                    disabled={disabled}
-                />
-            ))}
-            {selectedDynamicOptions.length < dynamicFilters.length && (
+            {dynamicFilters?.length &&
+                selectedDynamicOptions.map((optionKey, index) => (
+                    <DynamicPillFilter
+                        key={index}
+                        options={dynamicFilters.filter(option => option.key === optionKey || !selectedDynamicOptions.includes(option.key))}
+                        selectedKey={optionKey}
+                        onSelectedKeyChange={key => onSelectedKeyChange(index, key)}
+                        disabled={disabled}
+                    />
+                ))}
+            {dynamicFilters?.length && selectedDynamicOptions.length < dynamicFilters.length && (
                 <DynamicPillFilter
                     key={selectedDynamicOptions.length}
                     options={dynamicFilters.filter(option => !selectedDynamicOptions.includes(option.key))}
