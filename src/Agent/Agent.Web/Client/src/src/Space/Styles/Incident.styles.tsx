@@ -26,19 +26,6 @@ export const useActionsStatusBarStyles = makeStyles({
         maxWidth: 'fit-content',
         minWidth: '30px',
     },
-    subtitleContainer: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-    },
-    statusPill: {
-        backgroundColor: tokens.colorNeutralForeground1,
-        color: tokens.colorNeutralBackground1,
-        borderRadius: '12px',
-        fontSize: '12px',
-        padding: '0 6px',
-        fontWeight: 600,
-    },
     statusPillGray: {
         backgroundColor: tokens.colorNeutralForeground3,
         color: tokens.colorNeutralBackground1,

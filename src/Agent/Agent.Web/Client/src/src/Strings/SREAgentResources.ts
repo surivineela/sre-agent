@@ -225,6 +225,10 @@ export const SreAgentResources = defineMessages({
     connectedToTeams: { defaultMessage: 'Connected to Teams', id: '7cS956' },
     create: { defaultMessage: 'Create', id: 'VzzYJk' },
     delete: { defaultMessage: 'Delete', id: 'K3r6DQ' },
+    rename: { defaultMessage: 'Rename', id: 'iXNbPf' },
+    renameFieldLabel: { defaultMessage: 'Rename thread', id: '4Orfd8' },
+    threadTitleEmptyError: { defaultMessage: 'Thread title cannot be empty', id: '/N0Usl' },
+    renamePermissionsError: { defaultMessage: 'You do not have permission to rename this thread.', id: 'kT9YDi' },
     discard: { defaultMessage: 'Discard', id: 'nmpevl' },
     disconnect: { defaultMessage: 'Disconnect', id: 'qj1uhz' },
     endpoint: { defaultMessage: 'Endpoint', id: 'ljmS5P' },
@@ -1052,7 +1056,6 @@ export const ActivitiesThreadHeaderResources = defineMessages({
         defaultMessage: 'You do not have permission to delete this thread',
         id: 'CVAKJE',
     },
-
     deleteReportTitle: { defaultMessage: "Deleting report ''{title}''", id: 'EI/cfO' },
     deleteReportInProgressDescription: { defaultMessage: 'Deleting report', id: 'rVtn/e' },
     deleteReportSuccessDescription: { defaultMessage: 'Report was deleted successfully', id: 'YBXVNU' },
@@ -1086,6 +1089,13 @@ export const ActivitiesThreadHeaderResources = defineMessages({
     deleteIncidentNoPermissionTooltip: {
         defaultMessage: 'You do not have permission to delete this incident',
         id: 'zCA8jl',
+    },
+    renameThreadTitle: { defaultMessage: 'Rename thread title', id: 'zE+jtE' },
+    renameThreadInProgressDescription: { defaultMessage: "Renaming the thread title to ''{title}''", id: 'zMX3td' },
+    renameThreadSuccessDescription: { defaultMessage: "Thread title was renamed successfully to ''{title}''", id: 'XPR3X/' },
+    renameThreadFailureDescription: {
+        defaultMessage: 'Failed to rename thread with error: {errorMessage}',
+        id: 'pFnETG',
     },
 });
 

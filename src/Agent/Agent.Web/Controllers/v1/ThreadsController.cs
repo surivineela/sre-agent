@@ -532,6 +532,17 @@ namespace Agent.Web.Controllers.v1
             return Ok(updatedThread);
         }
 
+        [HttpPost("{threadId}/title")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
+        public async Task<ActionResult<Thread>> updateThreadTitle(Guid threadId, [FromBody] UpdateThreadTitleRequest request)
+        {
+            logger.LogInternalInformation("Updating thread title to {title}: {Id}", request.Title, threadId);
+
+            var updatedThread = await repository.UpdateThreadTitleAsync(threadId, request.Title, false);
+
+            return Ok(updatedThread);
+        }
+
         /// <summary>
         /// Marks a thread as read and updates the LastReadTime to the current timestamp
         /// </summary>

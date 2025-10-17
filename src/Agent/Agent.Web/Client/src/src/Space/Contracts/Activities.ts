@@ -19,12 +19,6 @@ export interface IActivitiesProps {
     resourceId: string;
 }
 
-export interface AgentContextProps {
-    threadContentAndActionKey: string;
-    activeThreadId: string;
-    selectThread: (thread: Thread | null) => void;
-}
-
 export interface IThreadsMenuProps {
     selectThread: (thread: Thread | null) => void;
     deleteThread?: (thread: Thread) => void;
@@ -49,6 +43,7 @@ export interface IThreadActivitiesProps {
 export type ThreadMenuHandle = {
     removeThreadFromList: (threadId: string) => void;
     updateThreadLastReadTime: (threadId: string) => void;
+    updateThreadWithNewTitle: (threadId: string, newTitle: string) => void;
 };
 
 export interface ThreadListState {

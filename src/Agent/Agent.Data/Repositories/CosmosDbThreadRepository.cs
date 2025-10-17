@@ -508,7 +508,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<Thread?> UpdateThreadTitleAsync(Guid threadId, string newTitle)
+    public async Task<Thread?> UpdateThreadTitleAsync(Guid threadId, string newTitle, bool? updateModifiedTimestamp = true)
     {
         string threadIdStr = threadId.ToString();
 
@@ -523,12 +523,20 @@ public class CosmosDbThreadRepository : IThreadRepository
                 return null;
             }
 
-            // Update the title and modified timestamp
+            // Update the title
             var updatedThreadDoc = threadDoc with
             {
-                Title = newTitle,
-                ModifiedTimestamp = DateTime.UtcNow
+                Title = newTitle
             };
+
+            // Update the modified timestamp if required
+            if (updateModifiedTimestamp != false)
+            {
+                updatedThreadDoc = updatedThreadDoc with
+                {
+                    ModifiedTimestamp = DateTime.UtcNow
+                };
+            }
 
             // Save the updated document
             await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(

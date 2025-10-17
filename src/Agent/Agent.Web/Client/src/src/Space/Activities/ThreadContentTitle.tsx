@@ -30,7 +30,7 @@ const ThreadContentTitle = ({
 }) => {
     const intl = useIntl();
     const [latestThread, setLatestThread] = useState<Thread | null | undefined>(thread);
-    const { activeThreadId } = useContext(AgentContext);
+    const { activeThreadId, subscribeThreadTitleUpdate } = useContext(AgentContext);
     const { subscribeThreadUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
@@ -72,17 +72,31 @@ const ThreadContentTitle = ({
             }
         };
 
+        const threadTitleUpdateHandler = (threadId: string, newTitle: string) => {
+            if (threadId === id) {
+                setLatestThread(prev => {
+                    if (prev) {
+                        return { ...prev, title: newTitle };
+                    }
+                    return prev;
+                });
+            }
+        };
+
         const unsubscribeMessageUpdateEvent = subscribeMessageUpdateEvent({
             handler: messageUpdateHandler,
         });
 
         const unsubscribeThreadUpdateEvent = subscribeThreadUpdateEvent(threadCreateHandler);
 
+        const unsubscribeThreadTitleUpdate = subscribeThreadTitleUpdate(threadTitleUpdateHandler);
+
         return () => {
             unsubscribeMessageUpdateEvent();
             unsubscribeThreadUpdateEvent();
+            unsubscribeThreadTitleUpdate();
         };
-    }, [thread?.id, activeThreadId, subscribeThreadUpdateEvent, subscribeMessageUpdateEvent]);
+    }, [thread?.id, activeThreadId, subscribeThreadUpdateEvent, subscribeMessageUpdateEvent, subscribeThreadTitleUpdate]);
 
     useEffect(() => {
         if (!latestThread?.id && activeThreadId) {

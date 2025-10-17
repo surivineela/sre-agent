@@ -205,6 +205,12 @@
       "value": "name"
     }
   ],
+  "/N0Usl": [
+    {
+      "type": 0,
+      "value": "Thread title cannot be empty"
+    }
+  ],
   "/RdF9w": [
     {
       "type": 0,
@@ -1193,6 +1199,12 @@
     {
       "type": 0,
       "value": "Can you audit best practices for my resource?"
+    }
+  ],
+  "4Orfd8": [
+    {
+      "type": 0,
+      "value": "Rename thread"
     }
   ],
   "4QLM52": [
@@ -6412,6 +6424,20 @@
       "value": "Connected tools"
     }
   ],
+  "XPR3X/": [
+    {
+      "type": 0,
+      "value": "Thread title was renamed successfully to '"
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": "'"
+    }
+  ],
   "XRdOZL": [
     {
       "type": 0,
@@ -8268,6 +8294,12 @@
       "value": "Create a new trigger with custom settings"
     }
   ],
+  "iXNbPf": [
+    {
+      "type": 0,
+      "value": "Rename"
+    }
+  ],
   "iZDRGO": [
     {
       "type": 0,
@@ -8622,6 +8654,12 @@
     {
       "type": 0,
       "value": "Connector type"
+    }
+  ],
+  "kT9YDi": [
+    {
+      "type": 0,
+      "value": "You do not have permission to rename this thread."
     }
   ],
   "kWBrry": [
@@ -9564,6 +9602,16 @@
     {
       "type": 0,
       "value": "Current status"
+    }
+  ],
+  "pFnETG": [
+    {
+      "type": 0,
+      "value": "Failed to rename thread with error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "pRvgsc": [
@@ -11432,6 +11480,12 @@
       "value": "Trigger name"
     }
   ],
+  "zE+jtE": [
+    {
+      "type": 0,
+      "value": "Rename thread title"
+    }
+  ],
   "zEg90u": [
     {
       "type": 0,
@@ -11442,6 +11496,20 @@
     {
       "type": 0,
       "value": "All severity"
+    }
+  ],
+  "zMX3td": [
+    {
+      "type": 0,
+      "value": "Renaming the thread title to '"
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": "'"
     }
   ],
   "zN87hN": [

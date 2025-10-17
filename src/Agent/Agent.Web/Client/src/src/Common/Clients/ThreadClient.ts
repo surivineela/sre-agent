@@ -363,6 +363,33 @@ export class ThreadClient extends DataPlaneClient {
         }
     };
 
+    public updateThreadTitle = async (threadId: string, title: string): Promise<Response<Thread | undefined>> => {
+        const url = this.getRequestUrl(`/api/v1/threads/${threadId}/title`);
+
+        try {
+            const response = await axios.post(
+                url,
+                {
+                    title,
+                    updateModifiedTimestamp: false,
+                },
+                {
+                    headers: getAgentHeaders(),
+                }
+            );
+
+            return {
+                isSuccessful: true,
+                content: response.data as Thread,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
+
     public postApprovalDecision = async (
         threadId: string,
         approvalId: string,

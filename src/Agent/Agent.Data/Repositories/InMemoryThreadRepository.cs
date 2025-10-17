@@ -76,10 +76,11 @@ namespace Agent.Data.Repositories
 
             if (favorite is not null)
             {
-                if(favorite == true)
+                if (favorite == true)
                 {
                     threads = threads.Where(t => t.Favorite == true);
-                } else
+                }
+                else
                 {
                     threads = threads.Where(t => t.Favorite == null || t.Favorite == false);
                 }
@@ -299,7 +300,7 @@ namespace Agent.Data.Repositories
             return Task.FromResult(true);
         }
 
-        public Task<Thread?> UpdateThreadTitleAsync(Guid threadId, string newTitle)
+        public Task<Thread?> UpdateThreadTitleAsync(Guid threadId, string newTitle, bool? updateModifiedTimestamp = true)
         {
             if (!_threads.TryGetValue(threadId, out var thread))
             {
@@ -307,12 +308,21 @@ namespace Agent.Data.Repositories
                 return Task.FromResult<Thread?>(null);
             }
 
-            // Update the title and modified timestamp
+            // Update the title
             var updatedThread = thread with
             {
                 Title = newTitle,
-                ModifiedTimestamp = DateTime.UtcNow
+
             };
+
+            // Update the modified timestamp if required
+            if (updateModifiedTimestamp != false)
+            {
+                updatedThread = updatedThread with
+                {
+                    ModifiedTimestamp = DateTime.UtcNow
+                };
+            }
 
             _threads[threadId] = updatedThread;
 
@@ -1239,7 +1249,7 @@ namespace Agent.Data.Repositories
             return Task.FromResult<PsqlExecution?>(execution);
         }
 
-                public Task<PsqlExecution?> ListPendingPsqlExecutionAsync(Guid threadId)
+        public Task<PsqlExecution?> ListPendingPsqlExecutionAsync(Guid threadId)
         {
             // Stub implementation for testing
             return Task.FromResult<PsqlExecution?>(null);

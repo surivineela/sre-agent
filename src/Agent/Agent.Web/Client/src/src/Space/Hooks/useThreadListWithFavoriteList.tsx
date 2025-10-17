@@ -370,6 +370,40 @@ export const useThreadListWithFavoriteList = (
         setThreadListsState(prev => removeThreadFromThreadListsState(prev, threadId));
     }, []);
 
+    const updateThreadWithNewTitle = useCallback((threadId: string, newTitle: string) => {
+        const getThreadsWithUpdatedThread = (threads: Thread[]) => {
+            for (let i = 0; i < threads.length; i++) {
+                if (threads[i].id === threadId) {
+                    const updatedThreads = [...threads];
+                    updatedThreads[i] = { ...threads[i], title: newTitle };
+                    return updatedThreads;
+                }
+            }
+            return threads;
+        };
+
+        setThreadListsState(prev => {
+            return {
+                ...prev,
+                favoriteThreadListState: {
+                    ...prev.favoriteThreadListState,
+                    threads: getThreadsWithUpdatedThread(prev.favoriteThreadListState.threads),
+                    threadsThatHaveFavoritePropertyChanged: getThreadsWithUpdatedThread(
+                        prev.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged
+                    ),
+                },
+                regularThreadListState: {
+                    ...prev.regularThreadListState,
+                    threads: getThreadsWithUpdatedThread(prev.regularThreadListState.threads),
+                    threadsThatHaveFavoritePropertyChanged: getThreadsWithUpdatedThread(
+                        prev.regularThreadListState.threadsThatHaveFavoritePropertyChanged
+                    ),
+                },
+                threadsThatHaveModifiedTimestampUpdated: getThreadsWithUpdatedThread(prev.threadsThatHaveModifiedTimestampUpdated),
+            };
+        });
+    }, []);
+
     const handleScroll = debounce((favoriteThread: boolean) => {
         if (favoriteThread) {
             loadFavoriteThreads();
@@ -512,6 +546,7 @@ export const useThreadListWithFavoriteList = (
         regularThreadsIntersectionObserverRef,
         onScroll,
         updateThreadFavoriteProperty,
+        updateThreadWithNewTitle,
         onThreadModifiedTimestampUpdated: updateThreadListsStateBasedOnThreadThatHasModifiedTimestampUpdated,
         threadItemDivsRef,
     };

@@ -22,7 +22,7 @@ public interface IThreadRepository
     Task<Thread> CreateThreadAsync(Thread thread);
     Task<bool> DeleteThreadAsync(Guid threadId);
 
-    Task<Thread?> UpdateThreadTitleAsync(Guid threadId, string newTitle);
+    Task<Thread?> UpdateThreadTitleAsync(Guid threadId, string newTitle, bool? updateModifiedTimestamp = true);
     Task<Thread?> UpdateThreadReadMarkAsync(Guid threadId, DateTime lastReadTime);
     Task<Thread?> UpdateThreadEvaluatedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp);
     Task<Thread?> UpdateTrajectoryGeneratedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp);

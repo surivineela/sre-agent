@@ -4,8 +4,9 @@ import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
 import { Agent, AgentAccessLevel, IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import { AgentTaskMetaData, InvestigationTreeNodeStatus } from '../../Common/Contracts/DataPlane/AgentTask';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
+import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
-import { AgentContextProps, ChatMessage } from './Activities';
+import { ChatMessage } from './Activities';
 
 export type IncidentManagementConnectionState = 'connected' | 'notConnected' | 'waiting';
 
@@ -52,6 +53,15 @@ type SreAgentContextProps = {
     agentLastUpdatedTime: number | undefined;
     patchAgent: (agentPayload: Partial<ArmObj<Partial<Agent>>>) => Promise<HttpResponseObject<ArmObj<Agent>>>;
     refresh: () => void;
+};
+
+type AgentContextProps = {
+    threadContentAndActionKey: string;
+    activeThreadId: string;
+    selectThread: (thread: Thread | null) => void;
+    updateThreadTitle: (threadId: string, newTitle: string) => void;
+    notifyThreadTitleUpdate: (threadId: string, newTitle: string) => void;
+    subscribeThreadTitleUpdate: (callBack: (threadId: string, newTitle: string) => void) => () => void;
 };
 
 type StreamingContextProps = {
@@ -145,6 +155,9 @@ export const AgentContext = createContext<AgentContextProps>({
     threadContentAndActionKey: '',
     activeThreadId: '',
     selectThread: () => {},
+    updateThreadTitle: (_threadId: string, _newTitle: string) => {},
+    notifyThreadTitleUpdate: async (_threadId: string, _newTitle: string) => {},
+    subscribeThreadTitleUpdate: (_callBack: (threadId: string, newTitle: string) => void) => () => {},
 });
 
 export const StreamingContext = createContext<StreamingContextProps>({

@@ -24,6 +24,9 @@ const Activities: FC = () => {
         deleteThread,
         selectThread,
         updateThreadLastReadTime,
+        updateThreadTitle,
+        notifyThreadTitleUpdate,
+        subscribeThreadTitleUpdate,
         threadContentAndActionKey,
         activeThreadId,
         threadMenuHandleRef,
@@ -54,7 +57,16 @@ const Activities: FC = () => {
     );
 
     return (
-        <AgentContext.Provider value={{ threadContentAndActionKey, activeThreadId, selectThread }}>
+        <AgentContext.Provider
+            value={{
+                threadContentAndActionKey,
+                activeThreadId,
+                selectThread,
+                updateThreadTitle,
+                notifyThreadTitleUpdate,
+                subscribeThreadTitleUpdate,
+            }}
+        >
             <div style={activitiesStylesRoot}>
                 {canReadThreads ? (
                     <>

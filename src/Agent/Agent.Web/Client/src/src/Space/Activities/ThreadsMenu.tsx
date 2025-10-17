@@ -12,7 +12,7 @@ import {
 } from '@fluentui/react-components';
 import { Dialog, DialogTrigger } from '@fluentui/react-dialog';
 import { AddRegular, PanelLeftContractRegular, PanelLeftExpandRegular, SearchRegular } from '@fluentui/react-icons';
-import { Text } from '@fluentui/react-text';
+import { Caption1, Text } from '@fluentui/react-text';
 import { tokens } from '@fluentui/react-theme';
 import { ForwardedRef, forwardRef, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -293,11 +293,13 @@ const ThreadListAccordion = ({
     return (
         <AccordionItem value={isFavorite ? ThreadSection.Favorite : ThreadSection.Chats} style={{ marginTop: '10px' }}>
             <AccordionHeader expandIconPosition="end" className={accordionHeaderStyles.accordionHeader}>
-                {isFavorite ? (
-                    <FormattedMessage {...ActivitiesResources.favoriteThreadListTitle} />
-                ) : (
-                    <FormattedMessage {...ActivitiesResources.regularThreadListTitle} />
-                )}
+                <Caption1>
+                    {isFavorite ? (
+                        <FormattedMessage {...ActivitiesResources.favoriteThreadListTitle} />
+                    ) : (
+                        <FormattedMessage {...ActivitiesResources.regularThreadListTitle} />
+                    )}
+                </Caption1>
             </AccordionHeader>
             <AccordionPanel style={{ marginLeft: tokens.spacingHorizontalXXS, marginRight: '0px' }}>
                 {threads.map(thread => {
@@ -340,8 +342,7 @@ const Loader = () => {
     return Array.from({ length: 3 }).map((_, index) => {
         return (
             <Skeleton key={index} style={skeletonStyle}>
-                <SkeletonItem size={20} style={{ maxWidth: '50%' }} />
-                <SkeletonItem size={16} />
+                <SkeletonItem size={20} />
             </Skeleton>
         );
     });

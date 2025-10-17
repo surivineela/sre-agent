@@ -26,6 +26,8 @@ export const useActivities = () => {
     const activeThreadIdRef = useRef<string>(activeThreadId);
     activeThreadIdRef.current = activeThreadId;
 
+    const threadTitleUpdateListeners = useRef<Set<(threadId: string, newTitle: string) => void>>(new Set());
+
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
     const {
@@ -103,6 +105,72 @@ export const useActivities = () => {
             }
         },
         [intl, selectThread, proxy, threadClient]
+    );
+
+    const notifyThreadTitleUpdate = useCallback((threadId: string, newTitle: string) => {
+        threadTitleUpdateListeners.current.forEach(listener => listener(threadId, newTitle));
+    }, []);
+
+    const subscribeThreadTitleUpdate = useCallback((listener: (threadId: string, newTitle: string) => void) => {
+        threadTitleUpdateListeners.current.add(listener);
+        return () => {
+            threadTitleUpdateListeners.current.delete(listener);
+        };
+    }, []);
+
+    const updateThreadTitle = useCallback(
+        async (threadId: string, newTitle: string) => {
+            const id = proxy.startNotification(
+                intl.formatMessage(ActivitiesThreadHeaderResources.renameThreadTitle),
+                intl.formatMessage(ActivitiesThreadHeaderResources.renameThreadInProgressDescription, { title: newTitle })
+            );
+
+            const response = await threadClient.updateThreadTitle(threadId, newTitle);
+
+            proxy.log({
+                action: 'updateThreadTitle',
+                actionModifier: 'success',
+                logLevel: 'info',
+                resourceId: threadId,
+            });
+
+            if (response.isSuccessful) {
+                proxy.log({
+                    action: 'updateThreadTitle',
+                    actionModifier: 'success',
+                    logLevel: 'info',
+                    resourceId: threadId,
+                });
+
+                proxy.stopNotification(
+                    id,
+                    true,
+                    intl.formatMessage(ActivitiesThreadHeaderResources.renameThreadSuccessDescription, { title: newTitle })
+                );
+                threadMenuHandleRef.current?.updateThreadWithNewTitle(threadId, newTitle);
+                notifyThreadTitleUpdate(threadId, newTitle);
+            } else {
+                const errorMessage = response.error?.message || response.error?.response?.data;
+                proxy.log({
+                    action: 'updateThreadTitle',
+                    actionModifier: 'failure',
+                    logLevel: 'error',
+                    resourceId: threadId,
+                    data: {
+                        error: errorMessage,
+                    },
+                });
+
+                proxy.stopNotification(
+                    id,
+                    false,
+                    intl.formatMessage(ActivitiesThreadHeaderResources.renameThreadFailureDescription, {
+                        errorMessage,
+                    })
+                );
+            }
+        },
+        [intl, proxy, notifyThreadTitleUpdate]
     );
 
     const updateThreadLastReadTime = useCallback((threadId: string) => {
@@ -191,6 +259,9 @@ export const useActivities = () => {
         deleteThread,
         selectThread,
         updateThreadLastReadTime,
+        updateThreadTitle,
+        notifyThreadTitleUpdate,
+        subscribeThreadTitleUpdate,
         threadContentAndActionKey,
         activeThreadId,
         threadMenuHandleRef,

@@ -8,22 +8,21 @@ import {
     useRestoreFocusSource,
     useRestoreFocusTarget,
 } from '@fluentui/react-components';
-import { CopyRegular, Delete20Regular, MoreHorizontal20Regular, StarOffRegular, StarRegular } from '@fluentui/react-icons';
+import { CopyRegular, Delete20Regular, EditRegular, MoreHorizontal20Regular, StarOffRegular, StarRegular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
-import emojiRegex from 'emoji-regex-xs';
 import { forwardRef, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import removeMd from 'remove-markdown';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
 import PermissionedMenuItem from '../../Common/Components/PermissionedMenuItem';
-import { IncidentStatus } from '../../Common/Contracts/Azure/SreAgent';
-import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
+import RenameThreadDialog from '../../Common/Components/RenameThreadDialog';
+import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { copyToClipboard } from '../../Common/Helpers/Clipboard';
 import { useThreadDeepLink } from '../../Common/Hooks/useThreadDeepLink';
 import { ActivitiesResources, ActivitiesThreadHeaderResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { AgentContext } from '../Contracts/Context';
 import { usePermissionContext } from '../Contracts/PermissionContext';
 import { useThreadMenuStyle } from '../Styles/Activities.styles';
 import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
@@ -45,11 +44,13 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
         const styles = useActionsStatusBarStyles();
         const intl = useIntl();
         const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
+        const { updateThreadTitle } = useContext(AgentContext);
         const { logAmplitudeControlEvent } = useAzPortalContext();
         const threadDeepLink = useThreadDeepLink(thread.id, resourceId, sreAgentEndpoint);
 
         const [isHovered, setIsHovered] = useState(false);
         const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+        const [isThreadRenamingDialogOpen, setIsThreadRenamingDialogOpen] = useState(false);
         const [isFavoriteSwitchButtonDisabled, setIsFavoriteSwitchButtonDisabled] = useState(false);
         const { canDeleteThreads: canDelete, canWriteThreads } = usePermissionContext();
 
@@ -59,28 +60,6 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
         const makeTextBold = useMemo(() => {
             return isThreadUnread && !isActive;
         }, [isThreadUnread, isActive]);
-
-        const getIncidentStatus = (thread: Thread) => {
-            if (thread.status?.incidentStatus?.status) {
-                switch (thread.status?.incidentStatus?.status.toLowerCase()) {
-                    case IncidentStatus.acknowledged:
-                        return intl.formatMessage(SreAgentResources.acknowledged);
-                    case IncidentStatus.triggered:
-                        return intl.formatMessage(SreAgentResources.triggered);
-                    case IncidentStatus.mitigated:
-                        return intl.formatMessage(SreAgentResources.mitigated);
-                    case IncidentStatus.closed:
-                        return intl.formatMessage(SreAgentResources.closed);
-                    case IncidentStatus.resolved:
-                        return intl.formatMessage(SreAgentResources.resolved);
-                    case IncidentStatus.active:
-                        return intl.formatMessage(SreAgentResources.active);
-                    case IncidentStatus.new:
-                        return intl.formatMessage(SreAgentResources.new);
-                }
-            }
-            return intl.formatMessage(SreAgentResources.active);
-        };
 
         const onSelectThread = useCallback(() => {
             if (isActive) return;
@@ -114,142 +93,150 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
             });
         }, [logAmplitudeControlEvent, thread, deleteThread]);
 
-        const cleanSubTitle = useMemo(() => {
-            const subTitle = thread.lastMessage?.text.substring(0, 128) || '';
-            const cleanString = removeMd(subTitle);
-
-            // Using emoji-regex-xs package which is a smaller version of emoji-regex to remove emojis from the string.
-            // It doesn't encompass all emojis but it is sufficient for our use case and has a smaller bundle size.
-            // If we need a more comprehensive solution in the future, we can consider using the full emoji-regex package
-            const eRegex = emojiRegex();
-            return cleanString.replace(eRegex, '');
-        }, [thread.lastMessage]);
+        const onUpdateThreadTitle = useCallback(
+            (newTitle: string) => {
+                setIsThreadRenamingDialogOpen(false);
+                updateThreadTitle(thread.id, newTitle);
+            },
+            [thread.id, updateThreadTitle]
+        );
 
         return (
-            <div
-                ref={ref}
-                onClick={() => onSelectThread()}
-                onKeyDown={e => {
-                    if (e.key.toLowerCase() === 'enter') {
-                        // Ensure that the event is only triggered when pressing Enter on the container itself, not on its children
-                        if (e.target === e.currentTarget) {
-                            onSelectThread();
+            <>
+                <div
+                    ref={ref}
+                    onClick={() => onSelectThread()}
+                    onKeyDown={e => {
+                        if (e.key.toLowerCase() === 'enter') {
+                            // Ensure that the event is only triggered when pressing Enter on the container itself, not on its children
+                            if (e.target === e.currentTarget) {
+                                onSelectThread();
+                            }
+                            e.stopPropagation();
                         }
-                        e.stopPropagation();
-                    }
-                }}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                onFocus={() => setIsHovered(true)}
-                onBlur={() => setIsHovered(false)}
-                id={thread.id}
-                data-testid={thread.id}
-                tabIndex={0}
-                role="treeitem"
-                className={mergeStyles(
-                    ThreadMenuStyles.threadItem,
-                    isActive ? ThreadMenuStyles.activeThreadItem : undefined,
-                    isHovered && !isActive ? ThreadMenuStyles.hoveredThreadItem : undefined
-                )}
-            >
-                {isActive && <div className={ThreadMenuStyles.borderIndicator} />}
-                <div className={ThreadMenuStyles.content}>
-                    <Text className={styles.title} size={300} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
-                        {thread.title}
-                    </Text>
-                    {thread.source === ThreadSource.incident ? (
-                        <div className={styles.subtitleContainer}>
-                            <span className={styles.statusPill}>{getIncidentStatus(thread)}</span>
-                            <Text className={styles.title} size={200} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
-                                {cleanSubTitle}
-                            </Text>
-                        </div>
-                    ) : (
-                        <Text className={styles.title} size={200} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
-                            {cleanSubTitle}
-                        </Text>
+                    }}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    onFocus={() => setIsHovered(true)}
+                    onBlur={() => setIsHovered(false)}
+                    id={thread.id}
+                    data-testid={thread.id}
+                    tabIndex={0}
+                    role="treeitem"
+                    className={mergeStyles(
+                        ThreadMenuStyles.threadItem,
+                        isActive ? ThreadMenuStyles.activeThreadItem : undefined,
+                        isHovered && !isActive ? ThreadMenuStyles.hoveredThreadItem : undefined
                     )}
-                </div>
-                <Fade visible={isHovered} appear={true} unmountOnExit={true}>
-                    <div>
-                        <Menu>
-                            <MenuTrigger disableButtonEnhancement>
-                                <MenuButton
-                                    appearance="transparent"
-                                    size="small"
-                                    icon={<MoreHorizontal20Regular />}
-                                    onClick={e => {
-                                        e.stopPropagation();
-                                    }}
-                                    {...restoreFocusTargetAttributes}
-                                />
-                            </MenuTrigger>
-                            <MenuPopover>
-                                <MenuList>
-                                    <PermissionedMenuItem
-                                        canPerform={canWriteThreads}
-                                        disabledReason={isFavoriteSwitchButtonDisabled}
-                                        noPermissionTooltip={
-                                            <FormattedMessage {...ActivitiesResources.favoriteThreadNoPermissionTooltip} />
-                                        }
-                                        icon={favorite ? <StarOffRegular /> : <StarRegular />}
+                >
+                    {isActive && <div className={ThreadMenuStyles.borderIndicator} />}
+                    <div className={ThreadMenuStyles.content}>
+                        <Text className={styles.title} size={300} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
+                            {thread.title}
+                        </Text>
+                    </div>
+                    <Fade visible={isHovered} appear={true} unmountOnExit={true}>
+                        <div>
+                            <Menu>
+                                <MenuTrigger disableButtonEnhancement>
+                                    <MenuButton
+                                        appearance="transparent"
+                                        size="small"
+                                        icon={<MoreHorizontal20Regular />}
                                         onClick={e => {
                                             e.stopPropagation();
-                                            if (!canWriteThreads) return;
-                                            setIsFavoriteSwitchButtonDisabled(true);
-                                            updateThreadFavoriteProperty(thread.id, !favorite).finally(() =>
-                                                setIsFavoriteSwitchButtonDisabled(false)
-                                            );
                                         }}
-                                    >
-                                        {favorite ? (
-                                            <FormattedMessage {...ActivitiesResources.removeFromFavorites} />
-                                        ) : (
-                                            <FormattedMessage {...ActivitiesResources.addToFavorites} />
-                                        )}
-                                    </PermissionedMenuItem>
-                                    <MenuItem
-                                        icon={<CopyRegular />}
-                                        onClick={e => {
-                                            e.stopPropagation();
-                                            copyToClipboard(threadDeepLink);
-                                        }}
-                                    >
-                                        {intl.formatMessage(SreAgentResources.copyLinkToThread)}
-                                    </MenuItem>
-                                    {deleteThread && (
+                                        {...restoreFocusTargetAttributes}
+                                    />
+                                </MenuTrigger>
+                                <MenuPopover>
+                                    <MenuList>
                                         <PermissionedMenuItem
-                                            canPerform={canDelete}
+                                            canPerform={canWriteThreads}
+                                            disabledReason={isFavoriteSwitchButtonDisabled}
                                             noPermissionTooltip={
-                                                <FormattedMessage {...ActivitiesThreadHeaderResources.deleteThreadNoPermissionTooltip} />
+                                                <FormattedMessage {...ActivitiesResources.favoriteThreadNoPermissionTooltip} />
                                             }
-                                            icon={<Delete20Regular />}
+                                            icon={favorite ? <StarOffRegular /> : <StarRegular />}
                                             onClick={e => {
                                                 e.stopPropagation();
-                                                if (canDelete) {
-                                                    setIsDeleteDialogOpen(true);
-                                                }
+                                                if (!canWriteThreads) return;
+                                                setIsFavoriteSwitchButtonDisabled(true);
+                                                updateThreadFavoriteProperty(thread.id, !favorite).finally(() =>
+                                                    setIsFavoriteSwitchButtonDisabled(false)
+                                                );
                                             }}
                                         >
-                                            {intl.formatMessage(SreAgentResources.delete)}
+                                            {favorite ? (
+                                                <FormattedMessage {...ActivitiesResources.removeFromFavorites} />
+                                            ) : (
+                                                <FormattedMessage {...ActivitiesResources.addToFavorites} />
+                                            )}
                                         </PermissionedMenuItem>
-                                    )}
-                                </MenuList>
-                            </MenuPopover>
-                        </Menu>
+                                        <MenuItem
+                                            icon={<CopyRegular />}
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                copyToClipboard(threadDeepLink);
+                                            }}
+                                        >
+                                            {intl.formatMessage(SreAgentResources.copyLinkToThread)}
+                                        </MenuItem>
+                                        <PermissionedMenuItem
+                                            {...restoreFocusTargetAttributes}
+                                            canPerform={canWriteThreads}
+                                            noPermissionTooltip={intl.formatMessage(SreAgentResources.renamePermissionsError)}
+                                            icon={<EditRegular />}
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                setIsThreadRenamingDialogOpen(true);
+                                            }}
+                                        >
+                                            {intl.formatMessage(SreAgentResources.rename)}
+                                        </PermissionedMenuItem>
+                                        {deleteThread && (
+                                            <PermissionedMenuItem
+                                                canPerform={canDelete}
+                                                noPermissionTooltip={
+                                                    <FormattedMessage
+                                                        {...ActivitiesThreadHeaderResources.deleteThreadNoPermissionTooltip}
+                                                    />
+                                                }
+                                                icon={<Delete20Regular />}
+                                                onClick={e => {
+                                                    e.stopPropagation();
+                                                    if (canDelete) {
+                                                        setIsDeleteDialogOpen(true);
+                                                    }
+                                                }}
+                                            >
+                                                {intl.formatMessage(SreAgentResources.delete)}
+                                            </PermissionedMenuItem>
+                                        )}
+                                    </MenuList>
+                                </MenuPopover>
+                            </Menu>
+                        </div>
+                    </Fade>
+                    <div onClick={e => e.stopPropagation()}>
+                        <DeleteThreadDialog
+                            restoreFocusSourceAttributes={restoreFocusSourceAttributes}
+                            thread={thread}
+                            isOpen={isDeleteDialogOpen}
+                            onOpenChange={setIsDeleteDialogOpen}
+                            onConfirmDelete={() => onConfirmDeleteThread()}
+                            source="ThreadItem"
+                        />
                     </div>
-                </Fade>
-                <div onClick={e => e.stopPropagation()}>
-                    <DeleteThreadDialog
-                        restoreFocusSourceAttributes={restoreFocusSourceAttributes}
-                        thread={thread}
-                        isOpen={isDeleteDialogOpen}
-                        onOpenChange={setIsDeleteDialogOpen}
-                        onConfirmDelete={() => onConfirmDeleteThread()}
-                        source="ThreadItem"
-                    />
                 </div>
-            </div>
+                {/** Keep the dialog out of the menu to prevent unintentional event bubbling to other onClick events*/}
+                <RenameThreadDialog
+                    thread={thread}
+                    isOpen={isThreadRenamingDialogOpen}
+                    onOpenChange={setIsThreadRenamingDialogOpen}
+                    onUpdateThreadTitle={onUpdateThreadTitle}
+                />
+            </>
         );
     }
 );

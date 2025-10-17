@@ -4,8 +4,8 @@ import { IStyle, mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { useTheme } from '@fluentui/react/lib/Theme';
 import { CSSProperties } from 'react';
 
-export const ThreadItemHeightInPx = 40;
-export const ThreadItemPaddingTopBottomInPx = 10;
+export const ThreadItemHeightInPx = 18;
+export const ThreadItemPaddingTopBottomInPx = 8;
 
 // Note: Shared navigation styles (list item hover/selection) are now in Navigation.styles.tsx
 
@@ -407,8 +407,8 @@ export const useThreadMenuStyle = () => {
 
     const borderIndicator = {
         marginLeft: '-10px',
-        height: '32px',
-        width: '4px',
+        height: '20px',
+        width: '3px',
         backgroundColor: tokens.colorBrandForeground1,
         borderRadius: '6px',
         flexShrink: 0,
@@ -525,7 +525,7 @@ export const shimmerStyle: CSSProperties = {
 };
 
 export const skeletonStyle: CSSProperties = {
-    paddingLeft: '10px',
+    paddingLeft: '15px',
     height: `${ThreadItemHeightInPx}px`,
     display: 'flex',
     flexDirection: 'column',

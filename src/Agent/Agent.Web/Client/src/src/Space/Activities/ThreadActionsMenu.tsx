@@ -16,18 +16,20 @@ import {
     useRestoreFocusSource,
     useRestoreFocusTarget,
 } from '@fluentui/react-components';
-import { CopyRegular, DeleteRegular, InfoRegular, MoreHorizontal20Regular } from '@fluentui/react-icons';
-import { memo, useContext, useMemo, useState } from 'react';
+import { CopyRegular, DeleteRegular, EditRegular, InfoRegular, MoreHorizontal20Regular } from '@fluentui/react-icons';
+import { memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import CopyButton from '../../Common/Components/CopyButton';
 import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
 import { useDialogStyles } from '../../Common/Components/Dialog.styles';
 import PermissionedMenuItem from '../../Common/Components/PermissionedMenuItem';
+import RenameThreadDialog from '../../Common/Components/RenameThreadDialog';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { copyToClipboard } from '../../Common/Helpers/Clipboard';
 import { useThreadDeepLink } from '../../Common/Hooks/useThreadDeepLink';
 import { ActivitiesThreadHeaderResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { AgentContext } from '../Contracts/Context';
 import { usePermissionContext } from '../Contracts/PermissionContext';
 
 const useStyles = makeStyles({
@@ -76,10 +78,20 @@ const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideD
     const { dialogSurface } = useDialogStyles();
     const intl = useIntl();
     const { resourceId, isCrossTenantPortalMode, sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { updateThreadTitle } = useContext(AgentContext);
     const threadDeepLink = useThreadDeepLink(thread.id, resourceId, sreAgentEndpoint);
 
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isThreadRenamingDialogOpen, setIsThreadRenamingDialogOpen] = useState(false);
+
+    const onUpdateThreadTitle = useCallback(
+        (newTitle: string) => {
+            setIsThreadRenamingDialogOpen(false);
+            updateThreadTitle(thread.id, newTitle);
+        },
+        [updateThreadTitle, thread.id]
+    );
 
     const formattedThreadInfoText = useMemo(() => {
         const createdDate = new Date(thread.createdTimestamp).toLocaleDateString();
@@ -155,7 +167,7 @@ const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideD
     const restoreFocusSourceAttributes = useRestoreFocusSource();
     const restoreFocusTargetAttributes = useRestoreFocusTarget();
 
-    const { canDeleteThreads: canDelete } = usePermissionContext();
+    const { canDeleteThreads: canDelete, canWriteThreads } = usePermissionContext();
 
     return (
         <>
@@ -179,6 +191,17 @@ const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideD
                                 {intl.formatMessage(SreAgentResources.copyLinkToThread)}
                             </MenuItem>
                         )}
+                        <PermissionedMenuItem
+                            {...restoreFocusTargetAttributes}
+                            canPerform={canWriteThreads}
+                            noPermissionTooltip={intl.formatMessage(SreAgentResources.renamePermissionsError)}
+                            icon={<EditRegular />}
+                            onClick={() => {
+                                setIsThreadRenamingDialogOpen(true);
+                            }}
+                        >
+                            {intl.formatMessage(SreAgentResources.rename)}
+                        </PermissionedMenuItem>
                         {!hideDelete && (
                             <PermissionedMenuItem
                                 canPerform={canDelete}
@@ -210,7 +233,12 @@ const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideD
                     </DialogBody>
                 </DialogSurface>
             </Dialog>
-
+            <RenameThreadDialog
+                thread={thread}
+                isOpen={isThreadRenamingDialogOpen}
+                onOpenChange={setIsThreadRenamingDialogOpen}
+                onUpdateThreadTitle={onUpdateThreadTitle}
+            />
             <DeleteThreadDialog
                 restoreFocusSourceAttributes={restoreFocusSourceAttributes}
                 thread={thread}
