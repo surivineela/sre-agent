@@ -71,31 +71,40 @@ public class ServiceNowPlugin : IServiceNowPlugin
             // Then resolve the incident
             var result = await _serviceNowApiClient.ResolveIncidentAsync(incidentId, discussionEntry);
 
-            // Update the document in CosmosDB to have a SREAgent_Resolved tag
-            var document = await GetDocumentAsync<ServiceNowIncidentDocument>(incidentId, incidentId);
-            if (document != null)
-            {
-                var updatedDoc = document;
-                if (!updatedDoc.Tags.Contains("SREAgent_Resolved"))
-                {
-                    updatedDoc.Tags.Add("SREAgent_Resolved");
-                }
-                updatedDoc.UpdatedAt = DateTime.UtcNow;
-                updatedDoc.Status = "resolved";
-
-                _logger.LogInternalInformation("Upserting existing incident document for ServiceNow incident {incidentNumber}", incidentId);
-                _ = await _container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey));
-            }
-            // if not within CosmosDB, add the record
-            else
+            try
             {
                 var incident = await GetServiceNowIncident(incidentId);
-                var incidentDocument = new ServiceNowIncidentDocument(incident);
-                incidentDocument.Tags = new List<string>() {"SREAgent_Resolved" };
-                incidentDocument = await _container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey));
-            }
 
-            _logger.LogInternalInformation($"Successfully resolved ServiceNow incident {incidentId}");
+                // Update the document in CosmosDB to have a SREAgent_Resolved tag
+                var document = await GetDocumentAsync<ServiceNowIncidentDocument>(incident.Number, incident.Number);
+                if (document != null)
+                {
+                    // do not update UpdatedAt value so that incident gets captured in next scanner iteration
+                    var updatedDoc = document;
+                    if (!updatedDoc.Tags.Contains("SREAgent_Resolved"))
+                    {
+                        updatedDoc.Tags.Add("SREAgent_Resolved");
+                    }
+                    updatedDoc.Status = "6";
+
+                    _logger.LogInternalInformation("Upserting existing incident document for ServiceNow incident {incidentNumber}", incidentId);
+                    _ = await _container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey));
+                }
+                // if not within CosmosDB, add the record
+                else
+                {
+                    var incidentDocument = new ServiceNowIncidentDocument(incident);
+                    incidentDocument.Tags = new List<string>() { "SREAgent_Resolved" };
+                    incidentDocument = await _container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey));
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"Error adding SREAgent_Resolved tag to ServiceNow incident document {incidentId}: {ex.Message}";
+                _logger.LogInternalError(ex, errorMessage);
+            }
+            
+            _logger.LogInternalInformation($"Successfully resolved ServiceNow incident document {incidentId}");
             return result;
         }
         catch (Exception ex)

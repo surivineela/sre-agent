@@ -80,6 +80,11 @@ public class AzMonitorScanner(
         await _outboundCommunicationService.NotifyIncidentStatusMetrics(Guid.Empty, incidentMetrics);
     }
 
+    protected override IncidentManagementType GetIncidentManagementType()
+    {
+        return IncidentManagementType.AzMonitor;
+    }
+
     protected override async Task<IEnumerable<AlertItem>> ScanIncidentsForFilter(AzMonitorIncidentFilterDocument filter, CancellationToken cancellationToken)
     {
         var incidents = new List<AlertItem>();

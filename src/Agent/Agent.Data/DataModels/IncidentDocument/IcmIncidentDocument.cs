@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Microsoft.AzureAd.Icm.Types;
+using System;
 using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
 
 namespace Agent.Data.DataModels;
@@ -116,9 +117,9 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
         IncidentManagerAlias = incident.IncidentManagerAlias;
         Tags = incident.Tags;
 
-
         //ICM Incident Document specific info
         CreatedAt = DateTime.UtcNow;
+        UpdatedAt = incident.LastModifiedDate.UtcDateTime;
     }
 
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName; // Cosmos DB container name
@@ -133,19 +134,26 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
 
     public DateTime CreatedAt { get; init; }
 
-    public DateTime UpdatedAt { get; set; }
+    public DateTime UpdatedAt
+    {
+        get => LastModifiedDate.UtcDateTime;
+        set { }
+    }
 
     public List<DescriptionEntry> DiscussionEntries { get; set; } = new List<DescriptionEntry>();
-
+    
     public string ExtractedKnowledge { get; set; } = string.Empty;
 
     public DateTime? MitigatedAt => MitigateData?.MitigateTime?.UtcDateTime;
 
     public DateTime? ResolvedAt => ResolveData?.ResolveTime?.UtcDateTime;
+    public string AIRootCause { get; set; } = string.Empty;
+
+    public string RootCauseDescription { get; set; } = string.Empty;
 
     public string GeneralSummary { get; set; } = string.Empty;
 
-    public DateTime HandledAt { get; set; }
+    public bool IsAssistedByAgent { get; set; } = false;
 
     public string Status => State;
 
@@ -166,8 +174,6 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
             }
         }
     }
-
-    public string AIRootCause { get; set; } = string.Empty;
 
     public static IcmIncidentDocument TruncateIcmIncidentDocument(Incident incident)
     {

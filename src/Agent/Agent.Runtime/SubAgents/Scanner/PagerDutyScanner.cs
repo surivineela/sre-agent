@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Net;
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -18,7 +19,6 @@ using Microsoft.Extensions.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Logging;
-using System.Text.Json;
 using PagerDutyIncident = Agent.Graph.Interfaces.PagerDutyIncident;
 
 namespace Agent.Runtime.SubAgents.Scanner;
@@ -31,12 +31,15 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                               IGraphDatabaseClient graphDbClient,
                               IncidentManagementSettings incidentManagementSettings,
                               IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload> incidentHandlingService,
-                              IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident> incidentAnalysisService,
+                              IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload> incidentFilterManagementService,
+                              IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident> incidentAnalysisService,
                               IAgentInboundCommunicationService agentInboundCommunicationService):IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     private const uint PageSize = 10;
     private readonly static TimeSpan ScanInterval = TimeSpan.FromMinutes(1);
+    private DateTime lastScanTime;
+    private bool isScanSucceeded = true;
 
     public async Task ScanAsync(CancellationToken cancellationToken)
     {
@@ -52,29 +55,79 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             return;
         }
 
+        var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(IncidentManagementType.PagerDuty);
+        var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(lastScanTimeKey, lastScanTimeKey);
+        lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found
         while (!cancellationToken.IsCancellationRequested)
         {
-            await ScanAllIncidentsAsync(cancellationToken);
-
+            var filters = await incidentFilterManagementService.ListIncidentFilters(false);
+            var scanStartTime = DateTime.UtcNow;
+            if (filters is null || filters.Count == 0)
+            {
+                logger.LogInternalInformation("No incident filters found, skipping PagerDuty scanner.");
+            }
+            else
+            {
+                logger.LogInternalInformation("Found {filterCount} incident filters, starting PagerDuty scanner.", filters.Count);
+                await ScanAllIncidentsAsync(filters, cancellationToken);
+                if (isScanSucceeded)
+                {
+                    lastScanTime = await UpdateLastScanTimeDocAsync(scanStartTime.AddSeconds(-50), IncidentManagementType.PagerDuty);
+                    logger.LogInternalInformation($"PagerDuty scanner completed successfully, last scan time is updated to {lastScanTime}");
+                }
+                else
+                {
+                    logger.LogInternalWarning("PagerDuty scanner encountered issues during scanning, last scan time will not be updated.");
+                }
+            }
+            var scanEndTime = DateTime.UtcNow;
             await Task.Delay(ScanInterval, cancellationToken);
         }
     }
 
-    private async Task ScanAllIncidentsAsync(CancellationToken cancellationToken)
+    private async Task ScanAllIncidentsAsync(List<PagerDutyIncidentFilterDocument> filters, CancellationToken cancellationToken)
+    {
+        foreach (var filter in filters)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                logger.LogInternalInformation("Cancellation requested, stopping the ServiceNow scanner.");
+                return;
+            }
+
+            if (filter is PagerDutyIncidentFilterDocument filterDocument && filterDocument.DocumentType == "IncidentFilterPagerDuty")
+            {
+                try
+                {
+                    await ScanIncidentsForFilter(filterDocument, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInternalError(ex, "Error scanning incidents for filter {filterId}", filterDocument.Id);
+                }
+            }
+        }
+    }
+
+    private async Task ScanIncidentsForFilter(PagerDutyIncidentFilterDocument filterDocument, CancellationToken cancellationToken)
     {
         uint page = 0;
+        isScanSucceeded = true;
+
         while (true)
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 logger.LogInternalInformation("Cancellation requested, stopping the scanner.");
+                isScanSucceeded = false;
                 return;
             }
             var offset = page * PageSize;
             try
             {
                 logger.LogInternalInformation("Scanning PagerDuty incidents, page {page}", page);
-                var response = await pagerDutyService.GetIncidentsAsync(PageSize, offset);
+                var response = await pagerDutyService.GetIncidentsAsync(PageSize, offset, lastScanTime, filterDocument.ImpactedService,
+                    filterDocument.Priority, filterDocument.TitleContains);
                 if (response is null || !response.Any())
                 {
                     logger.LogInternalInformation("No more incidents to process, stopping the scanner.");
@@ -84,15 +137,31 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                 foreach (var incident in response)
                 {
                     var incidentDocument = await GetDocumentAsync<PagerDutyIncidentDocument>(incident.IncidentId, incident.IncidentId);
-                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, cancellationToken);
+                    var existingLastModifiedTime = incidentDocument != null ? incidentDocument.UpdatedAt : DateTime.MinValue;
+                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, filterDocument, cancellationToken);
                     var relatedResourceIds = await UpdateResourceGraph(incidentDocument, incident);
 
-                    await NotifyUserAsync(incidentDocument, relatedResourceIds);
+                    // ingest incident data into App Insights if handled already. First ingestion should be upon handling, as executed in NotifyUser
+                    var threadDocument = await GetIncidentThread(incidentDocument.Id.ToString());
+                    if (threadDocument != null && incidentDocument.UpdatedAt > existingLastModifiedTime)
+                    {
+                        try
+                        {
+                            await incidentAnalysisService.Ingest(incidentDocument, filterDocument);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogInternalError(ex, "[ServiceNowScanner] Failed to ingest incident data into App Insights");
+                        }
+                    }
+
+                    await NotifyUserAsync(incidentDocument, filterDocument, relatedResourceIds);
                 }
             }
             catch (Exception ex)
             {
                 logger.LogInternalError(ex, "Error scanning PagerDuty incidents");
+                isScanSucceeded = false;
                 if (ex.Message.Contains("Unauthorized"))
                 {
                     return;
@@ -103,7 +172,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         }
     }
 
-    private async Task NotifyUserAsync(PagerDutyIncidentDocument incidentDocument, List<string> relatedResourceIds)
+    private async Task NotifyUserAsync(PagerDutyIncidentDocument incidentDocument, PagerDutyIncidentFilterDocument filterDocument, List<string> relatedResourceIds)
     {
         try
         {
@@ -221,7 +290,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     Severity = incidentDocument.Priority,
                     CreatedTime = incidentDocument.CreatedAt,
                     ImpactedService = incidentDocument.ImpactedServiceName,
-                    IncidentFilter = null,
+                    IncidentFilter = filterDocument,
                     IncidentHandler = null
                 });
             }
@@ -319,7 +388,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         return null;
     }
 
-    private async Task<PagerDutyIncidentDocument> UpsertIncidentDocumentIfNeededAsync(PagerDutyIncidentDocument? incidentDocument, Graph.Interfaces.PagerDutyIncident incident, CancellationToken cancellationToken = default)
+    private async Task<PagerDutyIncidentDocument> UpsertIncidentDocumentIfNeededAsync(PagerDutyIncidentDocument? incidentDocument, Graph.Interfaces.PagerDutyIncident incident, PagerDutyIncidentFilterDocument filterDocument, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -344,7 +413,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     Title = incident.Title,
                     // Well done PagerDuty. Took me hours to figure out where to find the real description.
                     Description = incident.FirstTriggerLogEntry.Channel?.Details ?? incident.Description,
-                    UpdatedAt = DateTime.UtcNow
+                    UpdatedAt = incident.UpdatedAt
                 };
 
                 if (latestDetails is not null)
@@ -415,18 +484,19 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                         needsUpsert = true;
                     }
 
-                    if (incidentDocument.Tags != null && incidentDocument.Tags.Contains("SREAgent_Resolved"))
+                    if (incidentDocument.UpdatedAt < incident.UpdatedAt)
                     {
+                        incidentDocument.UpdatedAt = incident.UpdatedAt;
                         needsUpsert = true;
                     }
 
                     // Once incident is mitigated or resolved, do AI analysis
                     if ((incidentDocument.Status.ToLower() == "resolved" || incidentDocument.Status.ToLower() == "closed") &&
-                        (string.IsNullOrWhiteSpace(incidentDocument.AIRootCause) || string.IsNullOrWhiteSpace(incidentDocument.GeneralSummary)))
+                        (string.IsNullOrWhiteSpace(incidentDocument.AIRootCause) || string.IsNullOrWhiteSpace(incidentDocument.RootCauseDescription) || string.IsNullOrWhiteSpace(incidentDocument.GeneralSummary)))
                     {
                         try
                         {
-                            incidentDocument = await incidentAnalysisService.AnalyzeIncident(incidentDocument, incident);
+                            incidentDocument = await incidentAnalysisService.AnalyzeIncident(incidentDocument, incident, filterDocument);
                             needsUpsert = true;
                         }
                         catch (Exception ex)
@@ -434,21 +504,27 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                             logger.LogInternalError($"[PagerDutyScanner] Error generating AI-generated insights for incident; {ex.Message}");
                         }
                     }
+                }
 
-                    if (incident.UpdatedAt > incidentDocument.UpdatedAt)
+                var newNotes = incidentDocument.Notes
+                    .Where(note => note.CreatedAt > lastScanTime.AddMinutes(-5))
+                    .OrderBy(note => note.CreatedAt)
+                    .Select(note => new IncidentDiscussion(note.Id, note.Content, note.CreatedBy?.Id ?? "Unknown", note.CreatedBy?.Name ?? "Unknown", note.CreatedAt))
+                    .ToList();
+
+                if (newNotes.Count > 0)
+                {
+                    // Check if agent assisted with incident based on new notes
+                    if (!incidentDocument.IsAssistedByAgent)
                     {
-                        incidentDocument.UpdatedAt = incident.UpdatedAt;
-                        needsUpsert = true;
-                        try
+                        var agentAssisted = await incidentAnalysisService.DetermineAgentAssistanceFromNotes(incidentDocument, newNotes);
+                        if (agentAssisted)
                         {
-                            await incidentAnalysisService.Ingest(incidentDocument);
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.LogInternalError(ex, "[PagerDutyScanner] Failed to ingest incident data into App Insights");
+                            logger.LogInternalInformation("[PagerDutyScanner] Detected agent assistance for incident {incidentId}, updating document", incidentDocument.Id);
+                            incidentDocument.IsAssistedByAgent = true;
+                            needsUpsert = true;
                         }
                     }
-
                 }
                 // var descriptionEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(incident.Description, cancellationToken: cancellationToken);
                 // TODO: try to avoid this copy
@@ -556,6 +632,45 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         {
             logger.LogInternalError(ex, "Error getting related resource ids from chat client");
             return [];
+        }
+    }
+
+    private async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime lastScanTime, IncidentManagementType type)
+    {
+        try
+        {
+            var patchOperationList = new List<PatchOperation>()
+            {
+                PatchOperation.Add($"/lastScanTime", lastScanTime)
+            };
+
+            var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(type);
+            var doc = await container.PatchItemAsync<LastScanTimeDoc>(
+                lastScanTimeKey,
+                new PartitionKey(lastScanTimeKey),
+                patchOperationList
+            );
+
+            return doc.Resource.LastScanTime;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(type);
+            var lastScanTimeDoc = new LastScanTimeDoc
+            {
+                Id = lastScanTimeKey,
+                DocumentType = lastScanTimeKey,
+                PartitionKey = lastScanTimeKey,
+                LastScanTime = lastScanTime
+            };
+
+            var doc = await container.CreateItemAsync(lastScanTimeDoc, new PartitionKey(lastScanTimeKey));
+            return doc.Resource.LastScanTime;
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Error updating LastScanTime for {incidentType} scanner", type);
+            return DateTime.UtcNow;
         }
     }
 

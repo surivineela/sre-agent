@@ -69,7 +69,7 @@ public class AzMonitorIncidentFilterManagementService : IncidentFilterManagement
     }
 
     //Overriding ListIncidentFilters so that create and save a default filter if no filter exists
-    public override async Task<List<AzMonitorIncidentFilterDocument>> ListIncidentFilters()
+    public override async Task<List<AzMonitorIncidentFilterDocument>> ListIncidentFilters(bool includeDisabled = true)
     {
         //If there isn't any filter created, create a default filter
         var queryable = _container.GetItemLinqQueryable<AzMonitorIncidentFilterDocument>(allowSynchronousQueryExecution: false)
@@ -104,6 +104,6 @@ public class AzMonitorIncidentFilterManagementService : IncidentFilterManagement
             await SaveIncidentFilter(defaultFilter);
         }
 
-        return await base.ListIncidentFilters();
+        return await base.ListIncidentFilters(includeDisabled);
     }
 }

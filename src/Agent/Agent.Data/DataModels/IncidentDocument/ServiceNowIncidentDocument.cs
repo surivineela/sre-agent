@@ -40,8 +40,11 @@ namespace Agent.Data.DataModels
         public DateTime ClosedAt { get; set; }
         public string ClosedBy { get; set; } = string.Empty;
         public string AIRootCause { get; set; } = string.Empty;
+        public string RootCauseDescription { get; set; } = string.Empty;
         public string GeneralSummary { get; set; } = string.Empty;
         public List<string> Tags { get; set; } = new List<string>();
+        public bool IsAssistedByAgent { get; set; } = false;
+
         public ServiceNowIncidentDocument() : this(
             string.Empty,
             string.Empty,

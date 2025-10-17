@@ -13,11 +13,9 @@ public record AzMonitorIncidentFilterDocument : AzMonitorIncidentFilterDocumentP
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
 
     public bool IsDeleted { get; set; }
-    public DateTime UpdatedAt { get; set; }
     public bool IsEnabled { get; set; } = true;
     public string DocumentType { get; } = IncidentFilterDocumentUtilities.GetDocumentTypeName(IncidentManagementType.AzMonitor);
     public string PartitionKey => DocumentType;
-    public DateTime CreatedAt { get; set; }
 }
 
 public record AzMonitorIncidentFilterDocumentPayload : IncidentFilterDocumentPayload

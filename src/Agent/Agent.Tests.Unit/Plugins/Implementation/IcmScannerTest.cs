@@ -22,7 +22,7 @@ public class IcmScannerTest
     private readonly Mock<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>> _mockIncidentFilterManagementService;
     private readonly Mock<IAgentInboundCommunicationService> _mockAgentInboundCommunicationService;
     private readonly Mock<IAgentOutboundCommunicationService> _mockAgentOutboundCommunicationService;
-    private readonly Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload, Incident>> _mockIncidentAnalysisService;
+    private readonly Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, Incident>> _mockIncidentAnalysisService;
     private readonly Mock<IICMPlugin> _mockIcmPlugin;
     private readonly Mock<Container> _mockContainer;
     private readonly IncidentManagementSettings _incidentManagementSettings;
@@ -39,7 +39,7 @@ public class IcmScannerTest
         _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>>();
         _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
         _mockAgentOutboundCommunicationService = new Mock<IAgentOutboundCommunicationService>();
-        _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload, Incident>>();
+        _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, Incident>>();
         _mockIcmPlugin = new Mock<IICMPlugin>();
         _incidentManagementSettings = new IncidentManagementSettings
         {
@@ -123,7 +123,7 @@ public class IcmScannerTest
     {
         // Arrange
         var scanner = CreateScanner();
-        _mockIncidentFilterManagementService.Setup(f => f.ListIncidentFilters())
+        _mockIncidentFilterManagementService.Setup(f => f.ListIncidentFilters(It.IsAny<bool>()))
             .ReturnsAsync(new List<IcmIncidentFilterDocument>());
 
         var lastScanTimeDocResponse = new Mock<ItemResponse<LastScanTimeDoc>>();
@@ -156,7 +156,7 @@ public class IcmScannerTest
         //Wrong filter type
         var filters = allFilters.Where(f => f.DocumentType == IncidentFilterDocumentUtilities.GetDocumentTypeName(IncidentManagementType.ServiceNow)).ToList();
 
-        _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
+        _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters(It.IsAny<bool>())).ReturnsAsync(filters);
 
         var incident = GetIncident(title);
         _mockIcmApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()))
@@ -191,7 +191,7 @@ public class IcmScannerTest
         var title = "Test Incident";
         var filters = new List<IcmIncidentFilterDocument> { GetIncidentFilter(title) };
 
-        _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
+        _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters(It.IsAny<bool>())).ReturnsAsync(filters);
 
         var incident = GetIncident(title);
         _mockIcmApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()))
@@ -212,7 +212,7 @@ public class IcmScannerTest
         _mockContainer.Setup(c => c.CreateItemAsync(It.IsAny<IcmIncidentDocument>(), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
                .ReturnsAsync(mockItemResponse.Object);
 
-        _mockIncidentAnalysisService.Setup(c => c.AnalyzeIncident(It.IsAny<IcmIncidentDocument>(), It.IsAny<Incident>())).ReturnsAsync(mockItemResponse.Object);
+        _mockIncidentAnalysisService.Setup(c => c.AnalyzeIncident(It.IsAny<IcmIncidentDocument>(), It.IsAny<Incident>(), It.IsAny<IcmIncidentFilterDocument?>())).ReturnsAsync(mockItemResponse.Object);
 
         var emptyThreadDocuments = new List<ThreadDocument>().AsQueryable();
         _mockContainer.Setup(c => c.GetItemLinqQueryable<ThreadDocument>(It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<QueryRequestOptions>(), It.IsAny<CosmosLinqSerializerOptions>()))
@@ -253,7 +253,7 @@ public class IcmScannerTest
         var newIncident = GetIncident(title);
         newIncident.Summary = summary; // Update the summary to simulate a change
 
-        _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
+        _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters(It.IsAny<bool>())).ReturnsAsync(filters);
 
         _mockIcmApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()))
             .ReturnsAsync(new List<Incident> { newIncident });

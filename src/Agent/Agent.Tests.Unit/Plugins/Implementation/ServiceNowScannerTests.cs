@@ -24,7 +24,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         private readonly Mock<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>> _mockIncidentManagementService;
         private readonly Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>> _mockIncidentFilterManagementService;
         private readonly Mock<IAgentInboundCommunicationService> _mockAgentInboundCommunicationService;
-        private readonly Mock<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>> _mockIncidentAnalysisService;
+        private readonly Mock<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>> _mockIncidentAnalysisService;
         private readonly CosmosDBSettings _cosmosDbSettings;
 
         public ServiceNowScannerTests()
@@ -37,8 +37,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockIncidentManagementService = new Mock<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>();
             _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>>();
             _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
-            _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>>();
-
+            _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>>();
+            
 
             _cosmosDbSettings = new CosmosDBSettings
             {
@@ -87,7 +87,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public async Task ScanAsync_NoFilters_SkipsScan()
         {
             // Arrange
-            _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters())
+            _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters(It.IsAny<bool>()))
                 .ReturnsAsync(new List<ServiceNowIncidentFilterDocument>());
 
             var lastScanTimeDocResponse = new Mock<ItemResponse<LastScanTimeDoc>>();
@@ -125,7 +125,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             //Wrong filter type
             var filters = allFilters.Where(f => f.DocumentType == IncidentFilterDocumentUtilities.GetDocumentTypeName(IncidentManagementType.Icm)).ToList();
 
-            _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
+            _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters(It.IsAny<bool>())).ReturnsAsync(filters);
             var lastScanTimeDocResponse = new Mock<ItemResponse<LastScanTimeDoc>>();
             lastScanTimeDocResponse.Setup(r => r.Resource).Returns(new LastScanTimeDoc());
 
@@ -157,7 +157,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             var filters = new List<ServiceNowIncidentFilterDocument>() { GetIncidentFilter("") };
-            _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
+            _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters(It.IsAny<bool>())).ReturnsAsync(filters);
 
             var incident = new ServiceNowIncident { IncidentId = "sys1", Number = "INC001", Title = "New Incident" };
             _mockServiceNowApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -179,7 +179,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockContainer.Setup(c => c.CreateItemAsync(It.IsAny<ServiceNowIncidentDocument>(), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mockItemResponse.Object);
 
-            _mockIncidentAnalysisService.Setup(c => c.AnalyzeIncident(It.IsAny<ServiceNowIncidentDocument>(), It.IsAny<ServiceNowIncident>())).ReturnsAsync(mockItemResponse.Object);
+            _mockIncidentAnalysisService.Setup(c => c.AnalyzeIncident(It.IsAny<ServiceNowIncidentDocument>(), It.IsAny<ServiceNowIncident>(), It.IsAny<ServiceNowIncidentFilterDocument?>())).ReturnsAsync(mockItemResponse.Object);
 
             // Setup LINQ queryable to return empty result for ThreadDocument queries
             var emptyThreadDocuments = new List<ThreadDocument>().AsQueryable();
@@ -207,7 +207,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             }
 
             // Assert
-            _mockContainer.Verify(c => c.CreateItemAsync(It.Is<ServiceNowIncidentDocument>(d => d.Id == incident.Number), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()), Times.Once);
+            // Note: ScanAsync runs in a loop, so CreateItemAsync may be called multiple times before cancellation
+            _mockContainer.Verify(c => c.CreateItemAsync(It.Is<ServiceNowIncidentDocument>(d => d.Id == incident.Number), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
         }
 
         [Fact]
@@ -215,7 +216,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             var filters = new List<ServiceNowIncidentFilterDocument>() { GetIncidentFilter("") };
-            _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
+            _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters(It.IsAny<bool>())).ReturnsAsync(filters);
 
             var incident = new ServiceNowIncident { IncidentId = "sys1", Number = "INC001", Title = "Existing Incident" };
             _mockServiceNowApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -264,7 +265,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             }
 
             // Assert
-            _mockContainer.Verify(c => c.UpsertItemAsync(It.Is<ServiceNowIncidentDocument>(d => d.Id == incident.Number), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockContainer.Verify(c => c.UpsertItemAsync(It.Is<ServiceNowIncidentDocument>(d => d.Id == incident.Number), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
         }
     }
 }

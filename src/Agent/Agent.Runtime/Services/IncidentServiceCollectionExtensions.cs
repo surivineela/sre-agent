@@ -1,7 +1,6 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
-
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
@@ -53,7 +52,7 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentHandlingService<AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentManagementService>();
                 services.AddSingleton<IIncidentFilterManagementService<AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentFilterManagementService>();
-                services.AddSingleton<IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem>, AzMonitorIncidentAnalysisService>();
+                services.AddSingleton<IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem>, AzMonitorIncidentAnalysisService>();
                 break;
 
             case IncidentManagementType.PagerDuty:
@@ -63,7 +62,7 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentManagementService>();
                 services.AddSingleton<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentFilterManagementService>();
-                services.AddSingleton<IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident>, PagerDutyIncidentAnalysisService>();
+                services.AddSingleton<IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident>, PagerDutyIncidentAnalysisService>();
                 break;
 
             case IncidentManagementType.Icm:
@@ -74,7 +73,7 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>, IcmIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentManagementService>();
                 services.AddSingleton<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentFilterManagementService>();
-                services.AddSingleton<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload, ICMIncident>, IcmIncidentAnalysisService>();
+                services.AddSingleton<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, ICMIncident>, IcmIncidentAnalysisService>();
                 break;
 
             case IncidentManagementType.ServiceNow:
@@ -84,7 +83,7 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentManagementService>();
                 services.AddSingleton<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentFilterManagementService>();
-                services.AddSingleton<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>, ServiceNowIncidentAnalysisService>();
+                services.AddSingleton<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>, ServiceNowIncidentAnalysisService>();
                 break;
 
             case IncidentManagementType.None:

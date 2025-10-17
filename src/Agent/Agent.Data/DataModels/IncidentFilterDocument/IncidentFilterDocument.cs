@@ -36,6 +36,11 @@ public record IncidentFilterDocumentPayload
     public int MaxAutomatedInvestigationAttempts { get; set; } = 3;
     public bool DeepInvestigationEnabled { get; set; } = false;
 
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+
+
     public IncidentFilterDocumentPayload()
     {
     }

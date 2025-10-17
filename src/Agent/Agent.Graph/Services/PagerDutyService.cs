@@ -349,7 +349,7 @@ public class PagerDutyService : IPagerDutyService
         using var client = CreateHttpClient();
         client.DefaultRequestHeaders.Add("From", _settings?.OboUser);
         var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.pagerduty.com/incidents/{incidentId}/notes");
-        request.Content = JsonContent.Create(new PostIncidentNoteRequest(new IncidentNote(note)));
+        request.Content = JsonContent.Create(new PostIncidentNoteRequest(new IncidentNote($"Comment added by SREAgent: {note}")));
 
         var response = await client.SendAsync(request);
         if (response.IsSuccessStatusCode)
@@ -381,9 +381,9 @@ public class PagerDutyService : IPagerDutyService
             var incidentDocument = await GetDocumentAsync<PagerDutyIncidentDocument>(incidentId, incidentId);
             if (incidentDocument != null)
             {
+                // do not update UpdatedAt value so that incident gets captured in next scanner iteration
                 incidentDocument.Status = "resolved";
                 incidentDocument.ResolvedAt = DateTime.UtcNow;
-                incidentDocument.UpdatedAt = DateTime.UtcNow;
                 incidentDocument.Tags.Add("SREAgent_Resolved");
                 await _container.UpsertItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey));
                 _logger.LogInternalInformation("Successfully updated PagerDuty incident document ID: {incidentId} in Cosmos DB", incidentId);
@@ -403,7 +403,7 @@ public class PagerDutyService : IPagerDutyService
                     DateTime.UtcNow);
 
                 updatedDoc.Tags.Add("SREAgent_Resolved");
-                updatedDoc.UpdatedAt = DateTime.UtcNow;
+                updatedDoc.ResolvedAt = DateTime.UtcNow;
 
                 _ = await _container.CreateItemAsync<PagerDutyIncidentDocument>(updatedDoc, new PartitionKey(updatedDoc.PartitionKey));
                 _logger.LogInternalWarning("PagerDuty incident document ID: {incidentId} not found in Cosmos DB", incidentId);

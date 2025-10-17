@@ -31,7 +31,7 @@ namespace Agent.Runtime.Services
     {
         Task<bool> CheckConnectivity();
         Task<List<IncidentFilterFieldOption>> ListIncidentFilterFieldOptions();
-        Task<List<TIncidentFilterDocument>> ListIncidentFilters();
+        Task<List<TIncidentFilterDocument>> ListIncidentFilters(bool includeDisabled = true);
         Task<TIncidentFilterDocument?> GetIncidentFilter(string filterId);
         Task<TIncidentFilterDocument> SaveIncidentFilter(TIncidentFilterDocument incidentFilterDocument);
         Task<bool> DeleteIncidentFilter(string filterId);
@@ -114,12 +114,12 @@ namespace Agent.Runtime.Services
             return fieldOptions;
         }
 
-        public virtual async Task<List<TIncidentFilterDocument>> ListIncidentFilters()
+        public virtual async Task<List<TIncidentFilterDocument>> ListIncidentFilters(bool includeDisabled = true)
         {
             _logger.LogInternalInformation("ListIncidentFilters: Invoked.");
 
             var queryable = _container.GetItemLinqQueryable<TIncidentFilterDocument>(allowSynchronousQueryExecution: false)
-                .Where(c => c.DocumentType == DocumentType && c.IsDeleted == false)
+                .Where(c => c.DocumentType == DocumentType && c.IsDeleted == false && (includeDisabled || c.IsEnabled))
                 .OrderByDescending(c => c.UpdatedAt);
 
             var iterator = queryable.ToFeedIterator();

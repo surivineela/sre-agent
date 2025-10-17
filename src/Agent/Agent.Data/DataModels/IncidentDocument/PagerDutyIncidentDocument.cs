@@ -35,9 +35,11 @@ public record PagerDutyIncidentDocument(
     public string Description { get; set; } = string.Empty;
     public string ExtractedKnowledge { get; set; } = string.Empty;
     public List<PagerDutyIncidentNote> Notes { get; set; } = []; // Notes of the incident sorted by CreatedAt in decending order.
-    public DateTime? ResolvedAt { get; set; }
+    public DateTime? ResolvedAt { get; set; } = null;
     public string AIRootCause { get; set; } = string.Empty;
+    public string RootCauseDescription { get; set; } = string.Empty;
     public string GeneralSummary { get; set; } = string.Empty;
+    public bool IsAssistedByAgent { get; set; } = false;
 
     public List<string> Tags = new List<string>();
 }

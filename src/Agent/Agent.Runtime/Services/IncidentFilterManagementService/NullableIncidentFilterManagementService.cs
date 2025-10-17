@@ -28,7 +28,7 @@ public class NullableIncidentFilterManagementService : IIncidentFilterManagement
         return Task.FromResult<List<IncidentFilterFieldOption>>([]);
     }
 
-    public Task<List<NullableIncidentFilterDocument>> ListIncidentFilters()
+    public Task<List<NullableIncidentFilterDocument>> ListIncidentFilters(bool includeDisabled = true)
     {
         return Task.FromResult<List<NullableIncidentFilterDocument>>([]);
     }

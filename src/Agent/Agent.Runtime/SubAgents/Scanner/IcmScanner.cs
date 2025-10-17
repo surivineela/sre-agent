@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Linq;
 using System.Net;
 using System.Text.Json;
 using Agent.Core.Configuration;
@@ -45,7 +46,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService,
     IncidentManagementSettings incidentManagementSettings,
-    IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload, ICMIncident> incidentAnalysisService) : IIncidentScanner
+    IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, ICMIncident> incidentAnalysisService) : IIncidentScanner
 {
 
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
@@ -66,7 +67,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     private readonly HashSet<string> _processedIncidents = new();
     public async Task ScanAsync(CancellationToken cancellationToken)
     {
-        var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(LastScanTimeDoc.LastScanTimeKey, LastScanTimeDoc.LastScanTimeKey);
+        var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(IncidentManagementType.Icm);
+        var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(lastScanTimeKey, lastScanTimeKey);
         lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -82,7 +84,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     logger.LogInternalError(ex, "[IcmScanner] Error processing test queue batch");
                 }
             }
-            var filters = await incidentFilterManagementService.ListIncidentFilters();
+            var filters = await incidentFilterManagementService.ListIncidentFilters(false);
             var scanStartTime = DateTime.UtcNow;
             if (filters is null || filters.Count == 0)
             {
@@ -91,12 +93,12 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             else
             {
                 logger.LogInternalInformation("[IcmScanner] Found {filterCount} incident filters, starting IcM scanner.", filters.Count);
-                await ScanAllIncidentsAsync(cancellationToken, filters);
+                await ScanAllIncidentsAsync(filters, cancellationToken);
                 if (isScanSucceeded)
                 {
                     //Once scan scceeded, update the last scan time to startTime - 50sec to give overlap between scans
                     //Since there is 30sec lag for ICM API to update incident status
-                    lastScanTime = await UpdateLastScanTimeDocAsync(scanStartTime.AddSeconds(-50));
+                    lastScanTime = await UpdateLastScanTimeDocAsync(scanStartTime.AddSeconds(-50), IncidentManagementType.Icm);
                 }
                 else
                 {
@@ -107,7 +109,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
     }
 
-    private async Task ScanAllIncidentsAsync(CancellationToken cancellationToken, List<IcmIncidentFilterDocument> filters)
+    private async Task ScanAllIncidentsAsync(List<IcmIncidentFilterDocument> filters, CancellationToken cancellationToken)
     {
 
         foreach (var filter in filters)
@@ -179,7 +181,22 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 foreach (var incident in incidents)
                 {
                     var incidentDocument = await GetDocumentAsync<IcmIncidentDocument>(incident.Id.ToString(), incident.Id.ToString());
-                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
+                    var existingLastModifiedTime = incidentDocument != null ? incidentDocument.UpdatedAt : DateTime.MinValue;
+                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, filterDocument);
+
+                    // ingest incident data into App Insights if handled already. First ingestion should be upon handling, as executed in NotifyUser
+                    var threadDocument = await GetIncidentThread(incidentDocument.Id.ToString());
+                    if (threadDocument != null && incidentDocument.UpdatedAt > existingLastModifiedTime)
+                    {
+                        try
+                        {
+                            await incidentAnalysisService.Ingest(incidentDocument, filterDocument);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogInternalError(ex, "[IcmScanner] Failed to ingest incident data into App Insights");
+                        }
+                    }
 
                     if (!await isIncidentNeedToHandle(incident))
                     {
@@ -293,7 +310,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
     }
 
-    private async Task<IcmIncidentDocument> UpsertIncidentDocumentIfNeededAsync(IcmIncidentDocument? incidentDocument, ICMIncident incident, CancellationToken cancellationToken = default)
+    private async Task<IcmIncidentDocument> UpsertIncidentDocumentIfNeededAsync(IcmIncidentDocument? incidentDocument, ICMIncident incident, IcmIncidentFilterDocument? filterDocument, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -339,23 +356,24 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 //}
 
                 //For now use UpsertItemAsync for updating IcmIncidentDocument with latest non-critical fields, later can switch to PatchItemAsync if needed.
-                var updatedDoc = new IcmIncidentDocument(incident);
-                //{
-                //    RootCause = incidentDocument.RootCause,
-                //    GeneralSummary = incidentDocument.GeneralSummary,
-                //    MitigatedAt = incident.MitigateData?.MitigateTime,
-                //    ResolvedAt = incident.ResolveData?.ResolveTime,
-                //};
+                var updatedDoc = new IcmIncidentDocument(incident)
+                {
+                    AIRootCause = incidentDocument.AIRootCause,
+                    RootCauseDescription = incidentDocument.RootCauseDescription,
+                    GeneralSummary = incidentDocument.GeneralSummary,
+                    IsAssistedByAgent = incidentDocument.IsAssistedByAgent,
+                    DiscussionEntries = incidentDocument.DiscussionEntries
+                };
 
                 // Once incident is mitigated or resolved, do AI analysis
                 string incidentStatus = incident.State.ToString();
                 if ((string.Equals(incidentStatus, IncidentStatus.Mitigated.ToString(), StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(incidentStatus, IncidentStatus.Resolved.ToString(), StringComparison.OrdinalIgnoreCase)) &&
-                    (string.IsNullOrWhiteSpace(updatedDoc.AIRootCause) || string.IsNullOrWhiteSpace(updatedDoc.GeneralSummary)))
+                    (string.IsNullOrWhiteSpace(updatedDoc.AIRootCause) || string.IsNullOrWhiteSpace(updatedDoc.RootCauseDescription) || string.IsNullOrWhiteSpace(updatedDoc.GeneralSummary)))
                 {
                     try
                     {
-                        updatedDoc = await incidentAnalysisService.AnalyzeIncident(updatedDoc, incident);
+                        updatedDoc = await incidentAnalysisService.AnalyzeIncident(updatedDoc, incident, filterDocument);
                     }
                     catch (Exception ex)
                     {
@@ -363,15 +381,24 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     }
                 }
 
-                if (updatedDoc.UpdatedAt > incidentDocument.UpdatedAt)
+                var latestDiscussionEntries = await icmApiClient.GetIncidentDiscussionEntriesAsync(incident.Id.ToString());
+                updatedDoc.DiscussionEntries = latestDiscussionEntries;
+                var newNotes = latestDiscussionEntries?
+                        .Where(entry => entry.Date > lastScanTime.AddMinutes(-5)) // Add 5 minutes buffer to avoid missing notes due to time skew
+                        .Select(entry => new IncidentDiscussion($"{entry.DescriptionEntryId.ToString()}-{entry.Date.ToString()}", entry.Text, entry.ChangedBy, entry.ChangedBy, entry.Date))
+                        .ToList() ?? new List<IncidentDiscussion>();
+
+                if (newNotes.Count > 0)
                 {
-                    try
+                    // Check if agent assisted with incident based on new notes
+                    if (!updatedDoc.IsAssistedByAgent)
                     {
-                        await incidentAnalysisService.Ingest(updatedDoc);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogInternalError(ex, "[IcmScanner] Failed to ingest incident data into App Insights");
+                        var agentAssisted = await incidentAnalysisService.DetermineAgentAssistanceFromNotes(updatedDoc, newNotes);
+                        if (agentAssisted)
+                        {
+                            logger.LogInternalInformation("[IcmScanner] Detected agent assistance for incident {incidentId}, updating document", updatedDoc.Id);
+                            updatedDoc.IsAssistedByAgent = true;
+                        }
                     }
                 }
 
@@ -398,37 +425,6 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         {
             logger.LogInternalError(ex, "[IcmScanner] Error upserting incident document for IcM incident {incidentId}", incident.Id);
             throw;
-        }
-    }
-
-    private async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime lastScanTime)
-    {
-        try
-        {
-            var patchOperationList = new List<PatchOperation>()
-        {
-            PatchOperation.Add($"/lastScanTime", lastScanTime)
-        };
-            var doc = await container.PatchItemAsync<LastScanTimeDoc>(
-                LastScanTimeDoc.LastScanTimeKey,
-                new PartitionKey(LastScanTimeDoc.LastScanTimeKey),
-                patchOperationList
-            );
-            return doc.Resource.LastScanTime;
-        }
-        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-        {
-            var lastScanTimeDoc = new LastScanTimeDoc
-            {
-                LastScanTime = DateTime.UtcNow
-            };
-            var doc = await container.CreateItemAsync(lastScanTimeDoc, new PartitionKey(lastScanTimeDoc.PartitionKey));
-            return doc.Resource.LastScanTime;
-        }
-        catch (Exception ex)
-        {
-            logger.LogInternalError(ex, "[IcmScanner] Error updating LastScanTime for IcmScanner");
-            return DateTime.UtcNow;
         }
     }
 
@@ -558,7 +554,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     Severity = incidentDocument.Priority,
                     CreatedTime = incidentDocument.CreatedDate,
                     ImpactedService = incidentDocument.ImpactedServiceName,
-                    IncidentFilter = null,
+                    IncidentFilter = filterDocument,
                     IncidentHandler = null
                 });
             }
@@ -844,7 +840,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     continue;
                 }
                 var incidentDoc = await GetDocumentAsync<IcmIncidentDocument>(item.IncidentId, item.IncidentId);
-                incidentDoc = await UpsertIncidentDocumentIfNeededAsync(incidentDoc, icmIncident, cancellationToken);
+                incidentDoc = await UpsertIncidentDocumentIfNeededAsync(incidentDoc, icmIncident, null, cancellationToken);
 
                 // Use automated RCA path only when feature enabled; otherwise fall back to standard notification.
                 if (IsAutomatedRCAEnabled && item.ForceTeamSpecific && !string.IsNullOrWhiteSpace(item.OwningTeamId))
@@ -867,6 +863,43 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             {
                 logger.LogInternalError(ex, "[IcmScanner] Error handling test queue incident {incidentId}", item.IncidentId);
             }
+        }
+    }
+
+    private async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime lastScanTime, IncidentManagementType type)
+    {
+        try
+        {
+            var patchOperationList = new List<PatchOperation>()
+            {
+                PatchOperation.Add($"/lastScanTime", lastScanTime)
+            };
+
+            var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(type);
+            var doc = await container.PatchItemAsync<LastScanTimeDoc>(
+                lastScanTimeKey,
+                new PartitionKey(lastScanTimeKey),
+                patchOperationList
+            );
+            return doc.Resource.LastScanTime;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(type);
+            var lastScanTimeDoc = new LastScanTimeDoc
+            {
+                Id = lastScanTimeKey,
+                DocumentType = lastScanTimeKey,
+                PartitionKey = lastScanTimeKey,
+                LastScanTime = lastScanTime
+            };
+            var doc = await container.CreateItemAsync(lastScanTimeDoc, new PartitionKey(lastScanTimeKey));
+            return doc.Resource.LastScanTime;
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "[IcmScanner] Error updating LastScanTime for {incidentType} scanner", type);
+            return DateTime.UtcNow;
         }
     }
 }

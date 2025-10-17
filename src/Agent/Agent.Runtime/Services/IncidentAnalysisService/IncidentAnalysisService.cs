@@ -1,41 +1,44 @@
-// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-// ------------------------------------------------------------
-
+using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
+using Agent.Core.Models.ServiceNow;
+using Agent.Core.Services;
 using Agent.Data.DataModels;
+using Agent.Graph.Interfaces;
+using Agent.Graph.Services;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Drives.Item.Items.Item.Workbook.Functions.FindB;
+using Microsoft.Graph.Models.Security;
+using Newtonsoft.Json;
 using JsonConvert = Newtonsoft.Json.JsonConvert;
+
 
 namespace Agent.Runtime.Services;
 
-public interface IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident>
-    where TIncidentDocument: IIncidentDocument
+public interface IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident>
+    where TIncidentDocument: IIncidentDocument 
+    where TIncidentFilterDocument: IIncidentFilterDocument 
     where TIncidentFilterDocumentPayload: IncidentFilterDocumentPayload
     where TIncident : class
 {
     void Ingest(IncidentAIData data);
 
-    Task Ingest(TIncidentDocument incidentDocument);
+    Task Ingest(TIncidentDocument incidentDocument, TIncidentFilterDocument? filterDoc);
 
-    Task<DataTable> GetHandlersIncidentIntakeTrend(List<string> handlerIds, DateTime startTime, DateTime endTime);
+    Task<TIncidentDocument> AnalyzeIncident(TIncidentDocument incidentDocument, TIncident incident, TIncidentFilterDocument? filterDocument);
 
-    Task<DataTable> GetHandlersIncidentOutcomeTrend(List<string> handlerIds, DateTime startTime, DateTime endTime);
-
-    Task<DataTable> GetHandlersOverview(List<string> handlerIds, DateTime startTime, DateTime endTime);
-
-    Task<DataTable> GetHandlerIncidentOutcomeTrend(string handlerId, DateTime startTime, DateTime endTime);
-
-    Task<DataTable> GetHandlerIncidentOverview(string handlerId, DateTime startTime, DateTime endTime);
-
-    Task<DataTable> GetLatestInformation(string handlerId, string incidentId);
-
-    Task<TIncidentDocument> AnalyzeIncident(TIncidentDocument incidentDocument, TIncident incident);
+    Task<bool> DetermineAgentAssistanceFromNotes(TIncidentDocument incident, List<IncidentDiscussion> newNotes);
 }
 
 // handler information to be logged
@@ -49,28 +52,40 @@ public class IncidentAIData
     public required DateTime IncidentCreatedAt { get; set; }
     public required DateTime HandlerUpdatedAt { get; set; }
     public required DateTime IncidentUpdatedAt { get; set; }
-    public required DateTime? IncidentHandledAt { get; set; }
+    public required DateTime? IncidentHandledAt { get; set; } 
     public required string Status { get; set; }
     public required bool IsMitigatedByAgent { get; set; }
+    public required bool IsAssistedByAgent { get; set; }
     public required string RootCause { get; set; }
+    public required string RootCauseDescription { get; set; }
     public required string Summary { get; set; }
     public required string ImpactedService { get; set; }
     public required DateTime? MitigatedAt { get; set; }
     public required string RunMode { get; set; }
     public required string InstructionType { get; set; }
+    public required string IncidentPlatform { get; set; }
 }
 
-public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident>: IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident>
+public class AgentAssistanceResponse
+{
+    [JsonProperty("hasMeaningfulAssistance")]
+    public bool HasMeaningfulAssistance { get; set; }
+}
+
+public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident>: IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident>
     where TIncidentDocument : IIncidentDocument
+    where TIncidentFilterDocument : TIncidentFilterDocumentPayload, IIncidentFilterDocument, new()
     where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
     where TIncident : class
 {
     protected readonly IChatClient _client;
     protected readonly IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload> _incidentManagementService;
-    private readonly ILogger<IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident>> _logger;
+    protected readonly IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> _incidentFilterManagementService;
+    protected readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
+    private readonly ILogger<IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident>> _logger;
     private readonly CoreSettings _coreSettings;
     private readonly ArmHelper _armHelper;
-    private readonly IncidentAnalysisLogger _appInsightsLogger;
+    protected readonly CustomerLogger _appInsightsLogger;
     protected readonly string _incidentRootCausePrompt;
     protected readonly string _incidentGeneralSummaryPrompt;
 
@@ -78,22 +93,38 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
     public IncidentAnalysisServiceBase(
         IChatClient client,
         IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload> incidentManagementService,
+        IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> incidentFilterManagementService,
+        IIncidentHandlerManagementService incidentHandlerManagementService,
         IThreadRepository repository,
         IAgentInboundCommunicationService inboundCommunicationService,
         CoreSettings coreSettings,
         ArmHelper armHelper,
-        ILogger<IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident>> logger)
+        CustomerLogger appInsightsLogger,
+        ILogger<IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident>> logger)
     {
         _client = client;
         _incidentManagementService = incidentManagementService;
+        _incidentHandlerManagementService = incidentHandlerManagementService;
+        _incidentFilterManagementService = incidentFilterManagementService;
         _logger = logger;
         _coreSettings = coreSettings;
         _armHelper = armHelper;
-        _appInsightsLogger = new IncidentAnalysisLogger(_coreSettings.Azure.AppInsights.ConnectionString);
+        _appInsightsLogger = appInsightsLogger;
 
         _incidentRootCausePrompt = @"Analyze the following incident and, from the provided details of the investigation and resolution steps, provide a generic root cause category that
-            the incident falls into. THe root cause category should be a few words, 5 at most. If one of the provided root causes matches this incident, choose the most suitable one. If there is no suitable category out of the provided options, create a new one. Only provide the root cause category in the response.
-            Do not include a preface or postface.";
+            the incident falls into. The root cause category should be a few words, 5 at most. 
+
+            IMPORTANT: Create a GENERIC description that can be reused for similar incidents. The description should:
+            - Expand upon the root cause category with general circumstances and patterns
+            - Avoid incident-specific details (service names, timestamps, specific error messages, etc.)
+            - Focus on the underlying technical or operational pattern that caused the issue
+            - Be broad enough that other incidents with the same root cause category can be categorized under it
+
+            Example: Instead of 'Database timeout on UserService at 3:15 PM', use 'Database performance degradation causing timeout errors under high load conditions'
+
+            If one of the provided existing root cause categories matches this incident, choose the most suitable one. If there is no suitable category out of the provided options, create a new one. 
+            Return the response as a JSON object strictly in the following schema: { ""RootCause"": ""<root cause category>"", ""Description"": ""<generic description of the root cause category>"" }
+            Do not include any additional text outside of the JSON response.";
         _incidentGeneralSummaryPrompt = @"From the provided details, analyze the following incident and provide a general summary in a few short sentences.
             In the summary, mention the context of the incident, the symptoms, and how the issue was mitigated and resolved. Only provide the summary in the response.
             Do not include a preface or postface.";
@@ -101,7 +132,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
 
 
     // when to ingest data: whenever there's an incident document
-    public void Ingest(IncidentAIData data)
+    public virtual void Ingest(IncidentAIData data)
     {
         try
         {
@@ -109,20 +140,23 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             { "ResponsePlanId", data.HandlerId },
             { "IncidentId", data.IncidentId },
             { "IncidentTitle", data.IncidentTitle },
-            { "ResponsePlanCreatedOn", data.HandlerCreatedAt.ToString("u") },
-            { "ResponsePlanUpdatedOn", data.HandlerUpdatedAt.ToString("u") },
-            { "IncidentCreatedOn", data.IncidentCreatedAt.ToString("u")  },
-            { "IncidentUpdatedOn", data.IncidentUpdatedAt.ToString("u") },
-            { "IncidentHandledOn", data.IncidentHandledAt?.ToString("u") ?? string.Empty },
+            { "ResponsePlanCreatedOn", data.HandlerCreatedAt.ToString("O") },
+            { "ResponsePlanUpdatedOn", data.HandlerUpdatedAt.ToString("O") },
+            { "IncidentCreatedOn", data.IncidentCreatedAt.ToString("O")  },
+            { "IncidentUpdatedOn", data.IncidentUpdatedAt.ToString("O") },
+            { "IncidentHandledOn", data.IncidentHandledAt?.ToString("O") ?? string.Empty },
             { "IncidentStatus", data.Status.ToLower() },
             { "IncidentSeverity", data.Priority  },
             { "IncidentMitigatedByAgent", data.IsMitigatedByAgent.ToString() },
-            { "IncidentMitigatedOn", data.MitigatedAt?.ToString("u") ?? string.Empty },
+            { "IncidentAssistedByAgent", data.IsAssistedByAgent.ToString() },
+            { "IncidentMitigatedOn", data.MitigatedAt?.ToString("O") ?? string.Empty },
             { "IncidentRootCauseCategory", data.RootCause },
+            { "IncidentRootCauseDescription", data.RootCauseDescription },
             { "IncidentSummary", data.Summary },
             { "IncidentImpactedService", data.ImpactedService },
             { "AgentAutonomyLevel", data.RunMode },
-            { "ResponsePlanCustom", (data.InstructionType == "Custom").ToString() }
+            { "ResponsePlanCustom", (data.InstructionType == "Custom").ToString() },
+            { "IncidentPlatform", data.IncidentPlatform },
         };
             _appInsightsLogger.LogCustomEvent("IncidentActivitySnapshot", payload);
         }
@@ -133,69 +167,67 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
         }
     }
 
-    // to ingest into App insights the latest incident data (instances of priority changes, reactivation, etc)
-    public async Task Ingest(TIncidentDocument incidentDoc)
+    public virtual async Task Ingest(TIncidentDocument incidentDoc, TIncidentFilterDocument? filterDoc = null)
     {
         try
         {
+            if (filterDoc == null)
+            {
+                filterDoc = await QueryFilter(incidentDoc);
+            }
+
+            var handlers = await _incidentHandlerManagementService.ListIncidentHandlers();
+            var handlerDoc = handlers.Where(h => h.Id == filterDoc?.Id).FirstOrDefault();
+
             string query = $@"
                 customEvents
-                | where name == ""IncidentActivitySnapshot""
-                | where customDimensions.IncidentId == ""{incidentDoc.Id}""
-                | extend IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent),
-                    RunMode = tostring(customDimensions.AgentAutonomyLevel), InstructionType = tostring(customDimensions.ResponsePlanCustom), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn),
-                    RootCauseCategory = tostring(customDimensions.IncidentRootCauseCategory), HandledAt = todatetime(customDimensions.IncidentHandledOn),
-                    HandlerCreatedAt = todatetime(customDimensions.ResponsePlanCreatedOn), HandlerUpdatedAt = todatetime(customDimensions.ResponsePlanUpdatedOn)
-                | summarize arg_max(UpdatedAt, HandlerId, IsMitigatedByAgent, RunMode, InstructionType, RootCauseCategory, HandledAt, HandlerCreatedAt, HandlerUpdatedAt) by IncidentId
-                | project IncidentId, HandlerId, IsMitigatedByAgent, RunMode, InstructionType, RootCauseCategory, HandledAt, HandlerCreatedAt, HandlerUpdatedAt
+                | where timestamp > ago(60d) and name == ""IncidentActivitySnapshot""
+                | where tostring(customDimensions.IncidentId) == ""{incidentDoc.Id}""
+                | extend IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), 
+                    RunMode = tostring(customDimensions.AgentAutonomyLevel), InstructionType = tostring(customDimensions.ResponsePlanCustom), UpdatedAt = tostring(customDimensions.IncidentUpdatedOn),
+                    HandledAt = tostring(customDimensions.IncidentHandledOn), HandlerCreatedAt = tostring(customDimensions.ResponsePlanCreatedOn), HandlerUpdatedAt = tostring(customDimensions.ResponsePlanUpdatedOn),
+                    IncidentPlatform = tostring(customDimensions.IncidentPlatform)
+                | summarize arg_max(UpdatedAt, HandlerId, RunMode, InstructionType, HandledAt, HandlerCreatedAt, HandlerUpdatedAt, IncidentPlatform) by IncidentId
+                | project IncidentId, HandlerId, RunMode, InstructionType, HandledAt, HandlerCreatedAt, HandlerUpdatedAt, IncidentPlatform
                 | top 1 by IncidentId";
 
             var dataTable = await Query(query);
+            DataRow? results = null;
+            string handlerId = filterDoc?.Id ?? handlerDoc?.Id ?? "No-filterid-found";
+            DateTime? handlerCreatedOn = filterDoc?.CreatedAt;
+            DateTime? handlerUpdatedOn = filterDoc?.UpdatedAt;
+            string runMode = !string.IsNullOrWhiteSpace(filterDoc?.AgentMode) ?  filterDoc.AgentMode : "review";
+            string instructionType = !string.IsNullOrWhiteSpace(handlerDoc?.CustomInstructions) ? "Custom" : "Default";
+            string incidentPlatform = GetIncidentPlatform();
 
-            // In case an incident was handled before the change of column names
-            if (dataTable == null || dataTable.Rows.Count == 0)
+            if (dataTable != null && dataTable.Rows.Count > 0)
             {
-                query = $@"
-                customEvents
-                | where name == ""IncidentActivitySnapshot""
-                | where customDimensions.IncidentId == ""{incidentDoc.Id}""
-                | extend IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.HandlerId), IsMitigatedByAgent = tostring(customDimensions.IsIncidentMitigatedByAgent),
-                    RunMode = tostring(customDimensions.HandlerRunMode), InstructionType = tostring(customDimensions.HandlerInstructionType), UpdatedAt = todatetime(customDimensions.IncidentUpdatedAt),
-                    RootCauseCategory = tostring(customDimensions.IncidentRootCauseCategory), HandledAt = todatetime(customDimensions.IncidentHandledAt),
-                    HandlerCreatedAt = todatetime(customDimensions.HandlerCreatedAt), HandlerUpdatedAt = todatetime(customDimensions.HandlerUpdatedAt)
-                | summarize arg_max(UpdatedAt, HandlerId, IsMitigatedByAgent, RunMode, InstructionType, RootCauseCategory, HandledAt, HandlerCreatedAt, HandlerUpdatedAt) by IncidentId
-                | project IncidentId, HandlerId, IsMitigatedByAgent, RunMode, InstructionType, RootCauseCategory, HandledAt, HandlerCreatedAt, HandlerUpdatedAt
-                | top 1 by IncidentId";
-
-                dataTable = await Query(query);
-
-                if (dataTable == null || dataTable.Rows.Count == 0)
-                {
-                    return;
-                }
+                results = dataTable.Rows[0];
             }
-
-            var results = dataTable.Rows[0];
 
             var data = new IncidentAIData
             {
-                HandlerId = results["HandlerId"]?.ToString() ?? string.Empty,
+                HandlerId = !string.IsNullOrWhiteSpace(results?["HandlerId"]?.ToString()) ? results?["HandlerId"]?.ToString()! : handlerId,
                 IncidentId = incidentDoc.Id,
                 IncidentTitle = incidentDoc.Title,
-                HandlerCreatedAt = DateTime.TryParse(results["HandlerCreatedAt"]?.ToString(), out DateTime handlerCreatedAt) ? handlerCreatedAt : DateTime.TryParse(results["HandledAt"].ToString(), out DateTime handledTime) ? handledTime : incidentDoc.CreatedAt,
+                HandlerCreatedAt = (DateTime)(handlerCreatedOn != null ? handlerCreatedOn : DateTime.TryParse(results?["HandlerCreatedAt"]?.ToString(), out DateTime handlerCreatedAt) ? handlerCreatedAt : DateTime.UtcNow),
                 IncidentCreatedAt = incidentDoc.CreatedAt,
-                HandlerUpdatedAt = DateTime.TryParse(results["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) ? handlerUpdatedAt: incidentDoc.CreatedAt,
+                HandlerUpdatedAt = (DateTime)(handlerUpdatedOn != null ? handlerUpdatedOn : DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) ? handlerUpdatedAt : DateTime.UtcNow),
                 IncidentUpdatedAt = incidentDoc.UpdatedAt,
-                IncidentHandledAt = DateTime.TryParse(results["HandledAt"].ToString(), out DateTime incidentHandledTime) ? incidentHandledTime : handlerCreatedAt,
+                IncidentHandledAt = DateTime.TryParse(results?["HandledAt"]?.ToString(), out DateTime incidentHandledTime) ? 
+                    (incidentHandledTime <= DateTime.MinValue.AddDays(1) ? new DateTime(Math.Max(incidentDoc.CreatedAt.Ticks, handlerCreatedOn?.Ticks ?? 0)) : incidentHandledTime) : handlerCreatedOn ?? DateTime.UtcNow,
                 MitigatedAt = IncidentMitigatedAt(incidentDoc),
                 Status = incidentDoc.Status.ToString().ToLower(),
                 Priority = incidentDoc.Priority,
                 IsMitigatedByAgent = IsMitigatedByAgent(incidentDoc),
+                IsAssistedByAgent = incidentDoc.IsAssistedByAgent,
                 RootCause = incidentDoc.AIRootCause,
+                RootCauseDescription = incidentDoc.RootCauseDescription,
                 Summary = incidentDoc.GeneralSummary,
                 ImpactedService = incidentDoc.ImpactedServiceName,
-                RunMode = results["RunMode"]?.ToString() ?? string.Empty,
-                InstructionType = results["InstructionType"]?.ToString() ?? string.Empty
+                RunMode = !string.IsNullOrWhiteSpace(results?["RunMode"]?.ToString()) ? results?["RunMode"]?.ToString()! : runMode,
+                InstructionType = !string.IsNullOrWhiteSpace(results?["InstructionType"]?.ToString()) ? results?["InstructionType"]?.ToString()! : instructionType,
+                IncidentPlatform = !string.IsNullOrWhiteSpace(results?["IncidentPlatform"]?.ToString()) ? results?["IncidentPlatform"]?.ToString()! : incidentPlatform
             };
 
             Ingest(data);
@@ -207,9 +239,83 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
         }
     }
 
-    private async Task<DataTable> Query(string query)
+    /// <summary>
+    /// Determines if the agent provided meaningful assistance based on tool usage and outcomes
+    /// </summary>
+    /// <param name="incident">The incident document</param>
+    /// <param name="newNotes">New discussion entries to analyze</param>
+    /// <returns>True if meaningful agent assistance is detected</returns>
+    public async Task<bool> DetermineAgentAssistanceFromNotes(TIncidentDocument incident, List<IncidentDiscussion> newNotes)
     {
-        string? applicationId = GetApplicationId(_coreSettings.Azure.AppInsights.ConnectionString);
+        try
+        {
+            if (IsMitigatedByAgent(incident))
+            {
+                return true;
+            }
+
+            return await AnalyzeDiscussionsForMeaningfulAssistance(newNotes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "[IncidentAnalysisService] Error determining agent assistance for incident {incidentId}", incident.Id);
+            return false;
+        }
+    }
+
+
+
+    /// <summary>
+    /// Uses AI to analyze discussions for meaningful assistance patterns
+    /// </summary>
+    private async Task<bool> AnalyzeDiscussionsForMeaningfulAssistance(List<IncidentDiscussion> newNotes)
+    {
+        try
+        {
+            // Construct AI prompt focused on assistance quality, not just presence
+            var discussionText = string.Join("\n---\n",
+                newNotes.Select(entry => $"[{entry.CreatedTimestamp:yyyy-MM-dd HH:mm}] {entry.UserId}: {entry.Message}"));
+
+            var aiPrompt = $@"
+            Analyze the following incident discussion entries to determine if an AI agent provided MEANINGFUL assistance in investigating, troubleshooting, or resolving the incident.
+
+            Consider the following as meaningful assistance:
+            1. **Investigation Actions**: Agent executed diagnostic commands, queried logs/metrics, checked service health, presented application information, or gathered relevant data
+            2. **Remediation Actions**: Agent performed mitigation steps such as restarting services/apps, scaling resources, or applying configuration changes
+            3. **Technical Analysis**: Agent analyzed logs/metrics, identified patterns, correlated events, or provided technical insights about the issue
+            4. **Knowledge Sharing**: Agent retrieved and shared relevant documentation, runbooks, past incident learnings, or troubleshooting guidance
+            5. **Diagnostic Recommendations**: Agent suggested specific investigation steps, queries to run, or areas to examine
+            6. **Root Cause Analysis**: Agent identified potential or confirmed root causes based on available evidence
+
+            DO NOT consider these as meaningful assistance:
+            - Simple messages without helpful or useful information
+            - Purely administrative or procedural actions that don't contribute to understanding or resolving the technical issue
+
+            If the agent performed ANY investigative work, presented any resource information/data, provided technical information, executed diagnostic or remediation actions, or helped advance understanding of the incident, consider it meaningful assistance.
+            Examples of meaningful assistance include: printing summary of logs, providing steps to troubleshoot the issue, providing metadata and details of the resource, executing steps towards resolution or mitigation, etcetera
+
+            Incident Discussion:
+            {discussionText}
+
+            Response Rules: Provide a response in the specified response format. DO NOT include any additional text outside of the JSON response.
+
+            Response format: {{""hasMeaningfulAssistance"": true/false}}";
+
+
+            var aiResponse = await GetAIResponse(aiPrompt);
+            var response = JsonConvert.DeserializeObject<AgentAssistanceResponse>(aiResponse);
+            return response?.HasMeaningfulAssistance ?? false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "[IncidentAnalysisService] Failed to retrieve AI response for assistance analysis");
+            return false;
+        }
+    }
+
+    protected async Task<DataTable> Query(string query)
+    {
+        string applicationId = GetApplicationId(Environment.GetEnvironmentVariable("AppSettings__Core__Azure__ApplicationInsights__ConnectionString") ?? _coreSettings.Azure.AppInsights.ConnectionString);
         if (!string.IsNullOrWhiteSpace(applicationId))
         {
             var results = await _armHelper.QueryAppInsightsByAppId(applicationId, query);
@@ -243,115 +349,6 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
         }
     }
 
-    public async Task<DataTable> GetHandlersIncidentIntakeTrend(List<string> handlerIds, DateTime startTime, DateTime endTime)
-    {
-        string query = $@"
-                customEvents
-                | where name == ""IncidentActivitySnapshot""
-                | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledOn), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn)
-                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))
-                | where HandlerId in ('{string.Join("','", handlerIds)}')
-                | summarize DistinctIncidentIds=dcount(IncidentId) by bin(IncidentHandledAt, 1d)
-                | order by IncidentHandledAt asc";
-
-        var dataTable = await Query(query);
-        return dataTable;
-    }
-
-    public async Task<DataTable> GetHandlersIncidentOutcomeTrend(List<string> handlerIds, DateTime startTime, DateTime endTime)
-    {
-        string query = $@"
-                customEvents
-                | where name == ""IncidentActivitySnapshot""
-                | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledOn), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn)
-                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))
-                | where HandlerId in ('{string.Join("','", handlerIds)}')
-                | summarize arg_max(UpdatedAt, HandlerId, Status, IsMitigatedByAgent, IncidentHandledAt) by IncidentId
-                | summarize TotalProcessed = dcount(IncidentId), HumanResolved = dcountif(IncidentId, IsMitigatedByAgent == ""false""), AgentResolved = dcountif(IncidentId, IsMitigatedByAgent == ""true""), InProgress = dcountif(IncidentId, Status == ""active"") by bin(IncidentHandledAt, 1d)
-                | order by IncidentHandledAt asc";
-
-        var dataTable = await Query(query);
-        return dataTable;
-    }
-
-
-    public async Task<DataTable> GetHandlersOverview(List<string> handlerIds, DateTime startTime, DateTime endTime)
-    {
-        string query = $@"
-                customEvents
-                | where name == ""IncidentActivitySnapshot""
-                | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledOn), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), RunMode = tostring(customDimensions.AgentAutonomyLevel), InstructionType = tostring(customDimensions.ResponsePlanCustom), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn)
-                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))
-                | where HandlerId in ('{string.Join("','", handlerIds)}')
-                | summarize arg_max(UpdatedAt, HandlerId, IsMitigatedByAgent, RunMode, InstructionType) by IncidentId
-                | summarize TotalProcessed = dcount(IncidentId), HumanResolved = dcountif(IncidentId, IsMitigatedByAgent == ""false""), AgentResolved = dcountif(IncidentId, IsMitigatedByAgent == ""true""), InProgress = dcountif(IncidentId, Status == ""active"") by HandlerId, RunMode, InstructionType
-                | order by TotalProcessed desc";
-
-        var dataTable = await Query(query);
-        return dataTable;
-    }
-
-    public async Task<DataTable> GetHandlerIncidentOutcomeTrend(string handlerId, DateTime startTime, DateTime endTime)
-    {
-        string query = $@"
-                customEvents
-                | where name == ""IncidentActivitySnapshot""
-                | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledOn), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn)
-                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))
-                | where HandlerId == {handlerId}
-                | summarize arg_max(UpdatedAt, HandlerId, Status, IsMitigatedByAgent, IncidentHandledAt) by IncidentId
-                | summarize TotalProcessed = dcount(IncidentId), HumanResolved = dcountif(IncidentId, IsMitigatedByAgent == ""Human""), AgentResolved = dcountif(IncidentId, IsMitigatedByAgent == ""Agent""), InProgress = dcountif(IncidentId, Status == ""active"") by bin(IncidentHandledAt, 1d)
-                | order by IncidentHandledAt asc";
-
-        var dataTable = await Query(query);
-        return dataTable;
-    }
-
-    public async Task<DataTable> GetHandlerIncidentOverview(string handlerId, DateTime startTime, DateTime endTime)
-    {
-        string query = $@"
-                customEvents
-                | where name == ""IncidentActivitySnapshot""
-                | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledOn), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), Priority = tostring(customDimensions.IncidentSeverity), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn)
-                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))
-                | where HandlerId == {handlerId}
-                | summarize arg_max(UpdatedAt, HandlerId, Status, Priority, IsMitigatedByAgent) by IncidentId
-                | distinct IncidentId, HandlerId, UpdatedAt, Status, Priority, IsMitigatedByAgent
-                | order by Priority desc, Status desc, IsMitigatedByAgent";
-
-        var dataTable = await Query(query);
-        return dataTable;
-    }
-
-    public async Task<DataTable> GetLatestInformation(string handlerId, string incidentId)
-    {
-        string query = $@"
-                customEvents
-                | where name == ""IncidentActivitySnapshot""
-                | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledOn),
-                        IncidentId = tostring(customDimensions.IncidentId),
-                        IncidentTitle = tostring(customDimensions.IncidentTitle),
-                        HandlerId = tostring(customDimensions.ResponsePlanId),
-                        HandlerCreatedAt = todatetime(customDimensions.ResponsePlanCreatedOn),
-                        HandlerUpdatedAt = todatetime(customDimensions.ResponsePlanUpdatedOn),
-                        IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent),
-                        Status = tostring(customDimensions.IncidentStatus),
-                        Priority = tostring(customDimensions.IncidentSeverity),
-                        CreatedAt = todatetime(customDimensions.IncidentCreatedOn),
-                        UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn),
-                        RootCause = tostring(customDimensions.IncidentRootCauseCategory),
-                        Summary = tostring(customDimensions.IncidentSummary),
-                        ImpactedService = tostring(customDimensions.IncidentImpactedService),
-                        RunMode = tostring(customDimensions.AgentAutonomyLevel),
-                        InstructionType = tostring(customDimensions.ResponsePlanCustom),
-                | where HandlerId == {handlerId} and IncidentId == {incidentId}
-                | summarize arg_max(UpdatedAt, HandlerId, CreatedAt, IncidentHandledAt, HandlerCreatedAt, HandlerUpdatedAt, Status, Priority, IsMitigatedByAgent, RootCause, ImpactedService, RunMode, InstructionType) by IncidentId,
-                | project IncidentId, HandlerId, CreatedAt, UpdatedAt, IncidentHandledAt, HandlerCreatedAt, HandlerUpdatedAt, Status, Priority, IsMitigatedByAgent, RootCause, ImpactedService, RunMode, InstructionType";
-
-        var dataTable = await Query(query);
-        return dataTable;
-    }
-
     protected async Task<string> FetchFilterFromIncident(TIncidentDocument incidentDoc)
     {
         try
@@ -359,12 +356,9 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             string query = $@"
                 customEvents
                 | where name == ""IncidentActivitySnapshot""
-                | where customDimensions.IncidentId == ""{incidentDoc.Id}""
-                | extend IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent),
-                    RunMode = tostring(customDimensions.AgentAutonomyLevel), InstructionType = tostring(customDimensions.ResponsePlanCustom), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn),
-                    RootCauseCategory = tostring(customDimensions.IncidentRootCauseCategory), HandledAt = todatetime(customDimensions.IncidentHandledOn),
-                    HandlerCreatedAt = todatetime(customDimensions.ResponsePlanCreatedOn), HandlerUpdatedAt = todatetime(customDimensions.ResponsePlanUpdatedOn)
-                | summarize arg_max(UpdatedAt, HandlerId, IsMitigatedByAgent, RunMode, InstructionType, RootCauseCategory, HandledAt, HandlerCreatedAt, HandlerUpdatedAt) by IncidentId
+                | where tostring(customDimensions.IncidentId) == ""{incidentDoc.Id}""
+                | extend IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn)
+                | summarize arg_max(UpdatedAt, HandlerId) by IncidentId
                 | project HandlerId
                 | top 1 by HandlerId";
 
@@ -372,11 +366,16 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
 
             if (dataTable == null || dataTable.Rows.Count == 0)
             {
-                return string.Empty;
+                var filter = await QueryFilter(incidentDoc);
+                if (filter == null)
+                {
+                    return string.Empty;
+                }
+                return filter.Id;
             }
 
             var results = dataTable.Rows[0];
-
+            
 
             return results["HandlerId"]?.ToString() ?? string.Empty;
         }
@@ -387,8 +386,41 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
         }
     }
 
+    protected async Task<TIncidentFilterDocument?> QueryFilter(TIncidentDocument incidentDoc)
+    {
+        var filters = await _incidentFilterManagementService.ListIncidentFilters();
+        foreach (var filter in filters)
+        {
+            var incidents = await _incidentManagementService.QueryIncidents(new IncidentQueryRequest<TIncidentFilterDocumentPayload>
+            {
+                Filter = filter,
+                DurationInDays = (DateTime.UtcNow - incidentDoc.CreatedAt).Days + 5,
+                Statuses = [],
+                Priorities = [],
+                PageSize = 100,
+                SearchTerm = incidentDoc.Id,
+                Keywords = [incidentDoc.Title],
+            });
 
-    private string? GetApplicationId(string? connectionString)
+            if (incidents.Items.Where(i => i.Id == incidentDoc.Id).Any())
+            {
+                return filter;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        return null;
+    }
+
+
+    /// <summary>
+    /// Gets the incident platform type as a string. Override in derived classes to return the specific platform.
+    /// </summary>
+    protected abstract string GetIncidentPlatform();
+
+    private string GetApplicationId(string? connectionString)
     {
         if (connectionString != null)
         {
@@ -407,10 +439,32 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             }
             return applicationId;
         }
-        return null;
+        else
+        {
+            _logger.LogInternalError("[IncidentAnalysisService] ApplicationInsights Connection string is empty");
+            throw new Exception("[IncidentAnalysisService] ApplicationInsights Connection string is empty");
+        }
     }
 
-    public abstract Task<TIncidentDocument> AnalyzeIncident(TIncidentDocument incidentDocument, TIncident incident);
+    private async Task<string> GetAIResponse(string prompt)
+    {
+        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
+        {
+            new(ChatRole.System, prompt)
+        };
+
+        var options = new ChatOptions
+        {
+            ToolMode = ChatToolMode.None,
+            Temperature = 0.2f,
+            ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
+        };
+
+        var reply = await _client.GetResponseAsync(messages, options);
+        return reply.Text;
+    }
+
+    public abstract Task<TIncidentDocument> AnalyzeIncident(TIncidentDocument incidentDocument, TIncident incident, TIncidentFilterDocument? filterDoc);
 
     protected abstract bool IsMitigatedByAgent(TIncidentDocument doc);
 

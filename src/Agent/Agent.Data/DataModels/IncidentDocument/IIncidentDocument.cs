@@ -17,5 +17,7 @@ public interface IIncidentDocument : ICosmosDocument
     string Description { get; set; }
     string ExtractedKnowledge { get; set; }
     string AIRootCause { get; set; }
+    string RootCauseDescription { get; set; }
     string GeneralSummary { get; set; }
+    bool IsAssistedByAgent { get; set; }
 }

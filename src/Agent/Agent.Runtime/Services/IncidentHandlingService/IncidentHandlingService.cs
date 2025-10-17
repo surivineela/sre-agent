@@ -65,7 +65,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     protected readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
     protected readonly IIncidentStatusMetricsService _incidentStatusMetricsService;
     protected readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
-    protected readonly IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident> _incidentAnalysisService;
+    protected readonly IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident> _incidentAnalysisService;
     protected readonly ILogger _logger;
     protected readonly Tracer _tracer;
     protected readonly IAgentFactory<AgentContext> _agentFactory;
@@ -78,7 +78,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload, TIncident> incidentAnalysisService,
+        IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident> incidentAnalysisService,
         ILogger logger,
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
@@ -102,6 +102,11 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     /// Returns the incident source type for this handler (e.g., "ICM", "PagerDuty", "ServiceNow", "AzMonitor").
     /// </summary>
     public abstract string GetIncidentSource();
+
+    /// <summary>
+    /// Gets the incident platform type as a string (e.g., "Icm", "PagerDuty", "ServiceNow", "AzMonitor").
+    /// </summary>
+    protected abstract string GetIncidentPlatform();
 
     protected abstract Task<TIncidentDocument> GetIncidentAsync(string incidentId);
 
@@ -234,20 +239,22 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                         IncidentId = incidentRequest.IncidentId,
                         IncidentTitle = incidentRequest.Title,
                         IncidentCreatedAt = incidentDetails.CreatedAt,
-                        IncidentUpdatedAt = incidentDetails.UpdatedAt,
-                        HandlerCreatedAt = DateTime.UtcNow,
-                        HandlerUpdatedAt = DateTime.UtcNow,
+                        IncidentUpdatedAt = incidentDetails.UpdatedAt > DateTime.MinValue.AddDays(1) ? incidentDetails.UpdatedAt : incidentDetails.CreatedAt,
+                        HandlerCreatedAt = matchingFilter.CreatedAt,
+                        HandlerUpdatedAt = matchingFilter.UpdatedAt,
                         IncidentHandledAt = DateTime.UtcNow,
                         MitigatedAt = null,
                         Status = incidentDetails.Status.ToString(),
                         Priority = incidentRequest.Severity,
                         IsMitigatedByAgent = false,
+                        IsAssistedByAgent = incidentDetails.IsAssistedByAgent,
                         RootCause = incidentDetails.AIRootCause,
+                        RootCauseDescription = incidentDetails.RootCauseDescription,
                         Summary = incidentDetails.GeneralSummary,
                         ImpactedService = incidentDetails.ImpactedServiceName,
                         RunMode = incidentRequest.IncidentFilter?.AgentMode ?? matchingFilter?.AgentMode ?? string.Empty,
-                        InstructionType = string.IsNullOrWhiteSpace(incidentRequest.IncidentHandler?.CustomInstructions) ? "Default" : "Custom"
-
+                        InstructionType = string.IsNullOrWhiteSpace(incidentRequest.IncidentHandler?.CustomInstructions) ? "Default" : "Custom",
+                        IncidentPlatform = GetIncidentPlatform()
                     };
                     // Can not yet ingest data for Azure Monitor
                     _incidentAnalysisService.Ingest(data);
@@ -296,11 +303,14 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                     Status = incidentDetails.Status.ToString(),
                     Priority = incidentDetails.Priority,
                     IsMitigatedByAgent = false,
+                    IsAssistedByAgent = incidentDetails.IsAssistedByAgent,
                     RootCause = incidentDetails.AIRootCause,
+                    RootCauseDescription = incidentDetails.RootCauseDescription,
                     Summary = incidentDetails.GeneralSummary,
                     ImpactedService = incidentDetails.ImpactedServiceName,
                     RunMode = matchingFilter?.AgentMode ?? request.IncidentFilter?.AgentMode ?? string.Empty,
-                    InstructionType = string.IsNullOrWhiteSpace(matchingHandler.CustomInstructions) ? "Default" : "Custom"
+                    InstructionType = string.IsNullOrWhiteSpace(matchingHandler.CustomInstructions) ? "Default" : "Custom",
+                    IncidentPlatform = GetIncidentPlatform()
 
                 };
 
@@ -374,7 +384,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
 
             bool isTest = request.IsTest;
             (var thread, var agentContext) = await _inboundCommunicationService.CreateAgentThread(
-                title: $"{(!string.IsNullOrEmpty(request.IncidentId) ? $"#{request.IncidentId}: " : "")}{request.Title}",
+                title: $"Incident Report - {request.Title}",
                 message: incidentMessage,
                 agentTypeEnum: AgentTypeEnum.Meta,
                 source: ThreadSource.Incident,
@@ -486,7 +496,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     /// <summary>
     /// For IncidentHandlingRequestModel request:
     /// filter not null, hander not null -> Validate if icm matches filter,if matches -> return handler from request
-    /// filter is null, handler is null -> Return an empty filter with handler
+    /// filter is null, handler not is null -> Return an empty filter with handler from payload
     /// filter not null, handler is null -> Validate if icm matches filter, handler returns null
     /// filter is null, handler is null -> Get filter and handler from DB
     /// </summary>
@@ -532,7 +542,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             case (null, null):
             default:
                 _logger.LogInternalInformation("[BaseIncidentService] GetIncidentFilterAndHandlerAsync: Fetching incident filters for IncidentId: {IncidentId}", incidentDetails.Id);
-                filters = await _incidentFilterManagementService.ListIncidentFilters();
+                filters = await _incidentFilterManagementService.ListIncidentFilters(false);
                 _logger.LogInternalInformation("[BaseIncidentService] GetIncidentFilterAndHandlerAsync: Retrieved {FilterCount} filters for IncidentId: {IncidentId}", filters.Count, incidentDetails.Id);
 
                 matchingFilter = GetIncidentFilter(filters, incidentDetails);
@@ -653,7 +663,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 // Emit agent action telemetry for thread creation with incident source
                 try
                 {
-                    var param = JsonSerializer.Serialize(new { IncidentSource = GetIncidentSource(), HandlerId = incidentHandler.Id });
+                    var param = JsonSerializer.Serialize(new { IncidentSource = GetIncidentSource(), HandlerId = incidentHandler.Id  });
                     _logger.LogAgentAction(
                         action: AgentActionEvents.CreateThread,
                         parameter: param,

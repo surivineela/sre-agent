@@ -56,7 +56,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem> incidentAnalysisService,
+        IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem> incidentAnalysisService,
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings
@@ -73,6 +73,11 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
     public override string GetIncidentSource()
     {
         return "AzMonitor";
+    }
+
+    protected override string GetIncidentPlatform()
+    {
+        return IncidentManagementType.AzMonitor.ToString();
     }
 
     protected override async Task<AzMonitorAlertDocument> GetIncidentAsync(string incidentId)
@@ -1039,7 +1044,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         string filterId = $"IncidentFilter_AzMonitor";
         return new AzMonitorIncidentFilterDocument()
         {
-            Id = filterId,
+            Id = request?.IncidentFilter?.Id ?? filterId,
             Name = request?.IncidentFilter?.Name ?? filterId,
             AlertId = request?.IncidentFilter?.AlertId ?? filterId,
             AgentMode = request?.IncidentFilter?.AgentMode ?? "",
@@ -1050,8 +1055,8 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             TargetResourceType = request?.IncidentFilter?.TargetResourceType ?? string.Empty,
             TargetResource = request?.IncidentFilter?.TargetResource ?? string.Empty,
             MaxAutomatedInvestigationAttempts = 3,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = request?.IncidentFilter?.CreatedAt ?? DateTime.UtcNow,
+            UpdatedAt = request?.IncidentFilter?.UpdatedAt ?? DateTime.UtcNow
         };
     }
 

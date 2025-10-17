@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Net;
+using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Runtime.Interfaces;
@@ -28,7 +29,6 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
     protected readonly Container _container;
     private bool isScanSucceeded = true;
     protected DateTime lastScanTime { get; private set; }
-
     public IncidentScannerBase(
         Container container,
         IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> incidentFilterManagementService,
@@ -77,7 +77,9 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
 
     public virtual async Task ScanAsync(CancellationToken cancellationToken)
     {
-        var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(LastScanTimeDoc.LastScanTimeKey, LastScanTimeDoc.LastScanTimeKey);
+        var incidentType = GetIncidentManagementType();
+        var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(incidentType);
+        var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(lastScanTimeKey, lastScanTimeKey);
         lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -98,7 +100,7 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
                     if (isScanSucceeded)
                     {
                         var adjustedLastScanTime = AdjustLastScanTime(lastScanTime);
-                        lastScanTime = await UpdateLastScanTimeDocAsync(adjustedLastScanTime);
+                        lastScanTime = await UpdateLastScanTimeDocAsync(adjustedLastScanTime, GetIncidentManagementType());
                         _logger.LogInternalInformation("[IncidentScannerBase] Scan completed successfully at {scanTime}. Last scan time updated to {lastScanTime}.", scanStartTime, lastScanTime);
                     }
                     else
@@ -140,7 +142,7 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
 
     protected virtual async Task<List<TIncidentFilterDocument>> GetIncidentFiltersAsync()
     {
-        return await _incidentFilterManagementService.ListIncidentFilters();
+        return await _incidentFilterManagementService.ListIncidentFilters(false);
     }
 
     /// <summary>
@@ -152,6 +154,13 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
     {
         return lastScanTime;
     }
+
+    /// <summary>
+    /// Get the incident management type for this scanner.
+    /// Must be implemented by derived classes to specify their incident type.
+    /// </summary>
+    /// <returns></returns>
+    protected abstract IncidentManagementType GetIncidentManagementType();
 
     protected virtual async Task ScanAllIncidentsAsync(List<TIncidentFilterDocument> filters, CancellationToken cancellationToken)
     {
@@ -193,7 +202,7 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
         }
     }
 
-    private async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime lastScanTime)
+    protected async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime lastScanTime, IncidentManagementType type)
     {
         try
         {
@@ -202,9 +211,10 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
                 PatchOperation.Add($"/lastScanTime", lastScanTime)
             };
 
+            var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(type);
             var doc = await _container.PatchItemAsync<LastScanTimeDoc>(
-                LastScanTimeDoc.LastScanTimeKey,
-                new PartitionKey(LastScanTimeDoc.LastScanTimeKey),
+                lastScanTimeKey,
+                new PartitionKey(lastScanTimeKey),
                 patchOperationList
             );
 
@@ -212,17 +222,21 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
+            var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(type);
             var lastScanTimeDoc = new LastScanTimeDoc
             {
+                Id = lastScanTimeKey,
+                DocumentType = lastScanTimeKey,
+                PartitionKey = lastScanTimeKey,
                 LastScanTime = DateTime.UtcNow
             };
 
-            var doc = await _container.CreateItemAsync(lastScanTimeDoc, new PartitionKey(lastScanTimeDoc.PartitionKey));
+            var doc = await _container.CreateItemAsync(lastScanTimeDoc, new PartitionKey(lastScanTimeKey));
             return doc.Resource.LastScanTime;
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error updating LastScanTime for ServiceNowScanner");
+            _logger.LogInternalError(ex, "Error updating LastScanTime for {incidentType} scanner", type);
             return DateTime.UtcNow;
         }
     }

@@ -1,12 +1,19 @@
-// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-// ------------------------------------------------------------
-
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Data;
 using Agent.Data.DataModels;
+using Agent.Framework;
+using Agent.Graph.Interfaces;
+using Agent.Logging;
 using Microsoft.Azure.Cosmos;
 using Microsoft.AzureAd.Icm.Types;
 using Microsoft.Extensions.AI;
@@ -15,8 +22,7 @@ using Newtonsoft.Json;
 using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
 
 namespace Agent.Runtime.Services;
-
-public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmIncidentDocument, IcmIncidentFilterDocumentPayload, Incident>
+public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, Incident>
 {
     private readonly ILogger<IcmIncidentAnalysisService> _logger;
     private readonly Container container;
@@ -25,26 +31,117 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
         IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> incidentManagementService,
+        IIncidentHandlerManagementService incidentHandlerManagementService,
+        IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
         IThreadRepository repository,
         IAgentInboundCommunicationService inboundCommunicationService,
         CoreSettings coreSettings,
         ArmHelper armHelper,
-        ILogger<IcmIncidentAnalysisService> logger) : base(client, incidentManagementService, repository, inboundCommunicationService, coreSettings, armHelper, logger)
+        CustomerLogger appInsightsLogger,
+        ILogger<IcmIncidentAnalysisService> logger): base(client, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
     {
         container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
         _logger = logger;
     }
 
-
-    public override async Task<IcmIncidentDocument> AnalyzeIncident(IcmIncidentDocument incidentDocument, Incident incident)
+    protected override string GetIncidentPlatform()
     {
-        var filterId = await FetchFilterFromIncident(incidentDocument);
+        return IncidentManagementType.Icm.ToString();
+    }
 
-        var rootCause = await GetRootCauseCategory(filterId, incident);
+    // need to overwrite method to ingest correct incident create time rather than incident document create time
+    public override async Task Ingest(IcmIncidentDocument incidentDoc, IcmIncidentFilterDocument? filterDoc = null)
+    {
+        try
+        {
+            if (filterDoc == null)
+            {
+                filterDoc = await QueryFilter(incidentDoc);
+            }
+
+            var handlers = await _incidentHandlerManagementService.ListIncidentHandlers();
+            var handlerDoc = handlers.Where(h => h.Id == filterDoc?.Id).FirstOrDefault();
+
+            string query = $@"
+                customEvents
+                | where name == ""IncidentActivitySnapshot""
+                | where tostring(customDimensions.IncidentId) == ""{incidentDoc.Id}""
+                | extend IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), 
+                    RunMode = tostring(customDimensions.AgentAutonomyLevel), InstructionType = tostring(customDimensions.ResponsePlanCustom), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn),
+                    HandledAt = todatetime(customDimensions.IncidentHandledOn), HandlerCreatedAt = todatetime(customDimensions.ResponsePlanCreatedOn), HandlerUpdatedAt = todatetime(customDimensions.ResponsePlanUpdatedOn)
+                | summarize arg_max(UpdatedAt, HandlerId, RunMode, InstructionType, HandledAt, HandlerCreatedAt, HandlerUpdatedAt) by IncidentId
+                | project IncidentId, HandlerId, RunMode, InstructionType, HandledAt, HandlerCreatedAt, HandlerUpdatedAt
+                | top 1 by IncidentId";
+
+            var dataTable = await Query(query);
+            DataRow? results = null;
+            string handlerId = filterDoc?.Id ?? handlerDoc?.Id ?? string.Empty;
+            DateTime? handlerCreatedOn = filterDoc?.CreatedAt;
+            DateTime? handlerUpdatedOn = filterDoc?.UpdatedAt;
+            string runMode = !string.IsNullOrWhiteSpace(filterDoc?.AgentMode) ? filterDoc.AgentMode : "review";
+            string instructionType = !string.IsNullOrWhiteSpace(handlerDoc?.CustomInstructions) ? "Custom" : "Default";
+
+            if (dataTable != null && dataTable.Rows.Count > 0)
+            {
+                results = dataTable.Rows[0];
+            }
+
+            var data = new IncidentAIData
+            {
+
+                HandlerId = !string.IsNullOrWhiteSpace(handlerId) ? handlerId : results?["HandlerId"]?.ToString() ?? "no-filter-found",
+                IncidentId = incidentDoc.Id,
+                IncidentTitle = incidentDoc.Title,
+                HandlerCreatedAt = (DateTime)(handlerCreatedOn != null ? handlerCreatedOn : DateTime.TryParse(results?["HandlerCreatedAt"]?.ToString(), out DateTime handlerCreatedAt) ? handlerCreatedAt : DateTime.UtcNow),
+                IncidentCreatedAt = incidentDoc.CreatedDate.UtcDateTime,
+                HandlerUpdatedAt = (DateTime)(handlerUpdatedOn != null ? handlerUpdatedOn :  DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) ?
+                (handlerUpdatedAt <= DateTime.MinValue.AddDays(1) ? DateTime.UtcNow : handlerUpdatedAt) : DateTime.UtcNow),
+                IncidentUpdatedAt = incidentDoc.UpdatedAt,
+                IncidentHandledAt = DateTime.TryParse(results?["HandledAt"]?.ToString(), out DateTime incidentHandledTime) ?
+                    (incidentHandledTime <= DateTime.MinValue.AddDays(1) ? new DateTime(Math.Max(incidentDoc.CreatedAt.Ticks, handlerCreatedOn?.Ticks ?? 0)) : incidentHandledTime) : handlerCreatedOn ?? DateTime.UtcNow,
+                MitigatedAt = IncidentMitigatedAt(incidentDoc),
+                Status = incidentDoc.Status.ToString().ToLower(),
+                Priority = incidentDoc.Priority,
+                IsMitigatedByAgent = IsMitigatedByAgent(incidentDoc),
+                IsAssistedByAgent = incidentDoc.IsAssistedByAgent,
+                RootCause = incidentDoc.AIRootCause,
+                RootCauseDescription = incidentDoc.RootCauseDescription,
+                Summary = incidentDoc.GeneralSummary,
+                ImpactedService = incidentDoc.ImpactedServiceName,
+                RunMode = results?["RunMode"]?.ToString() ?? runMode,
+                InstructionType = results?["InstructionType"]?.ToString() ?? instructionType,
+                IncidentPlatform = GetIncidentPlatform()
+            };
+
+            Ingest(data);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "[IncidentAnalysisService] Ingesting incident data into App Insights failed");
+            throw;
+        }
+    }
+
+    public override async Task<IcmIncidentDocument> AnalyzeIncident(IcmIncidentDocument incidentDocument, Incident incident, IcmIncidentFilterDocument? filterDocument)
+    {
+        string filterId;
+        if (filterDocument == null)
+        {
+            filterId = await FetchFilterFromIncident(incidentDocument);
+        }
+        else
+        {
+            filterId = filterDocument.Id;
+        }
+
+        var rootCauseResponse = await GetRootCauseCategory(filterId, incident);
         var generalSummary = await GetGeneralSummary(incident);
 
-        incidentDocument.AIRootCause = rootCause;
+        // Extract just the category name for backwards compatibility
+        incidentDocument.AIRootCause = rootCauseResponse.RootCause;
+        incidentDocument.RootCauseDescription = rootCauseResponse.Description;
         incidentDocument.GeneralSummary = generalSummary;
+        
         return incidentDocument;
     }
 
@@ -52,11 +149,11 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
     {
         bool isMitigatedByAgent = false;
         string status;
-
-        status = icmIncident.Status;
+        
+        status = icmIncident.Status.ToString().ToLower();
         isMitigatedByAgent = (status == "mitigated" || status == "resolved") && ((icmIncident.MitigateData?.MitigatedBy.Contains("agent") ?? false) ||
             icmIncident.Tags.Contains("SREAgent_Mitigated"));
-
+        
         return isMitigatedByAgent;
     }
 
@@ -67,14 +164,16 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
         return mitigatedAt;
     }
 
-    private async Task<string> GetRootCauseCategory(string filterId, Incident incident, CancellationToken cancellationToken = default)
+    private async Task<AIRootCauseResponse> GetRootCauseCategory(string filterId, Incident incident, CancellationToken cancellationToken = default)
     {
         try
         {
             var filterRootCauseDocument = await GetDocumentAsync(filterId, IncidentFilterAIRootCauseUtilities.GetDocumentType(IncidentManagementType.Icm));
-            var rootCauses = filterRootCauseDocument != null ? filterRootCauseDocument.RootCauses : new List<string>();
+            var existingRootCauses = filterRootCauseDocument?.RootCauses ?? new List<RootCauseCategory>();
 
-            var incidentRootCause = await GetAIRootCause(incident, rootCauses);
+            var aiRootCauseResponse = await GetAIRootCause(incident, existingRootCauses);
+            var rootCauseCategory = new RootCauseCategory(aiRootCauseResponse.RootCause, aiRootCauseResponse.Description);
+
             var updatedDoc = new IcmIncidentFilterAIRootCauseDocument();
 
             if (filterRootCauseDocument == null)
@@ -85,29 +184,31 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
                     FilterId = filterId,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    RootCauses = [incidentRootCause]
+                    RootCauses = new List<RootCauseCategory> { rootCauseCategory }
                 };
 
                 updatedDoc = await container.CreateItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
             }
             else
             {
-
-                if (!rootCauses.Select(x => x.ToLower()).Contains(incidentRootCause.ToLower()))
+                var updatedRootCauses = new List<RootCauseCategory>(existingRootCauses);
+                
+                // Check if this root cause category already exists (case-insensitive comparison)
+                if (!updatedRootCauses.Any(x => string.Equals(x.Category, rootCauseCategory.Category, StringComparison.OrdinalIgnoreCase)))
                 {
-                    rootCauses.Add(incidentRootCause);
+                    updatedRootCauses.Add(rootCauseCategory);
                 }
 
                 updatedDoc = filterRootCauseDocument with
                 {
                     UpdatedAt = DateTime.UtcNow,
-                    RootCauses = rootCauses
+                    RootCauses = updatedRootCauses
                 };
 
                 updatedDoc = await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
             }
 
-            return incidentRootCause;
+            return aiRootCauseResponse;
         }
         catch (Exception ex)
         {
@@ -116,10 +217,32 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
         }
     }
 
-    private async Task<string> GetAIRootCause(Incident incident, List<string> rootCauses)
+    private async Task<AIRootCauseResponse> GetAIRootCause(Incident incident, List<RootCauseCategory> existingRootCauses)
     {
-        string rootCause = await GetAIRootCause(_incidentRootCausePrompt, incident, rootCauses);
-        return rootCause;
+        var rootCausesForPrompt = existingRootCauses.Select(rc => new { Category = rc.Category, Description = rc.Description }).ToList();
+        
+        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
+        {
+            new(ChatRole.System, "You are an expert in incident analysis."),
+            new(ChatRole.User, @$"{_incidentRootCausePrompt}:\n\n{await IncidentOverview(incident)}"),
+            new(ChatRole.User, $"Here are the existing root cause categories and their descriptions: {JsonConvert.SerializeObject(rootCausesForPrompt)}")
+        };
+
+        var options = new ChatOptions
+        {
+            ToolMode = ChatToolMode.None,
+            Temperature = 0.2f,
+        };
+
+        var (response, result) = await _client.GetResponseAsync(messages, typeof(AIRootCauseResponse), options);
+        
+        if (result is AIRootCauseResponse rootCauseResponse)
+        {
+            return rootCauseResponse;
+        }
+        
+        _logger.LogInternalWarning("Failed to get structured response, result was null or wrong type");
+        return new AIRootCauseResponse { RootCause = "Unknown", Description = "Unable to categorize incident" };
     }
 
     private async Task<string> GetGeneralSummary(Incident incident)
@@ -154,27 +277,7 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
         {
             ToolMode = ChatToolMode.None,
             Temperature = 0.2f,
-            ResponseFormat = ChatResponseFormat.Text,
-        };
-
-        var reply = await _client.GetResponseAsync(messages, options);
-        return reply.Text;
-    }
-
-    private async Task<string> GetAIRootCause(string prompt, Incident incident, List<string> rootCauses)
-    {
-        var messages = new List<ChatMessage>
-        {
-            new(ChatRole.System, "You are an expert in incident analysis."),
-            new(ChatRole.User, @$"{prompt}:\n\n{await IncidentOverview(incident)}"),
-            new(ChatRole.User, $"Here are the provided root causes: {JsonConvert.SerializeObject(rootCauses)}")
-        };
-
-        var options = new ChatOptions
-        {
-            ToolMode = ChatToolMode.None,
-            Temperature = 0.2f,
-            ResponseFormat = ChatResponseFormat.Text,
+            ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
         };
 
         var reply = await _client.GetResponseAsync(messages, options);

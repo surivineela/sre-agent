@@ -28,7 +28,7 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         IThreadRepository repository,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident> incidentAnalysisService,
+        IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident> incidentAnalysisService,
         ILogger<ServiceNowIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> serviceNowIncidentManagementService,
@@ -118,7 +118,7 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         string filterId = $"IncidentFilter_ServiceNow";
         return new ServiceNowIncidentFilterDocument()
         {
-            Id = filterId,
+            Id = request?.IncidentFilter?.Id ?? filterId,
             Name = request?.IncidentFilter?.Name ?? filterId,
             AlertId = request?.IncidentFilter?.AlertId ?? filterId,
             AgentMode = request?.IncidentFilter?.AgentMode ?? "",
@@ -126,13 +126,18 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
             Priority = request?.IncidentFilter?.Priority ?? "",
             IncidentType = request?.IncidentFilter?.IncidentType ?? "",
             TitleContains = request?.IncidentFilter?.TitleContains ?? "",
-            UpdatedAt = DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = request?.IncidentFilter?.CreatedAt ?? DateTime.UtcNow,
+            UpdatedAt = request?.IncidentFilter?.UpdatedAt ?? DateTime.UtcNow
         };
     }
 
     public override string GetIncidentSource()
     {
         return "ServiceNow";
+    }
+
+    protected override string GetIncidentPlatform()
+    {
+        return IncidentManagementType.ServiceNow.ToString();
     }
 }

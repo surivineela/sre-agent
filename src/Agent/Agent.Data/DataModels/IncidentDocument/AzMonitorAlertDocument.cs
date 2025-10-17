@@ -57,7 +57,11 @@ public record AzMonitorAlertDocument : IIncidentDocument
 
     public string AIRootCause { get; set; } = string.Empty;
 
+    public string RootCauseDescription { get; set; } = string.Empty;
+
     public string GeneralSummary { get; set; } = string.Empty;
+
+    public bool IsAssistedByAgent { get; set; } = false;
 
     public DateTime HandledAt { get; set; }
 

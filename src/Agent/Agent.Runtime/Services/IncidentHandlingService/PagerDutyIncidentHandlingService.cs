@@ -26,7 +26,7 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
         IThreadRepository repository,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident> incidentAnalysisService,
+        IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident> incidentAnalysisService,
         ILogger<PagerDutyIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> pagerDutyincidentManagementService,
@@ -100,7 +100,7 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
         string filterId = $"IncidentFilter_PagerDuty";
         return new PagerDutyIncidentFilterDocument()
         {
-            Id = filterId,
+            Id = request?.IncidentFilter?.Id ?? filterId,
             Name = request?.IncidentFilter?.Name ?? filterId,
             AlertId = request?.IncidentFilter?.AlertId ?? filterId,
             AgentMode = request?.IncidentFilter?.AgentMode ?? "",
@@ -108,13 +108,18 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
             Priority = request?.IncidentFilter?.Priority ?? "",
             IncidentType = request?.IncidentFilter?.IncidentType ?? "",
             TitleContains = request?.IncidentFilter?.TitleContains ?? "",
-            UpdatedAt = DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = request?.IncidentFilter?.CreatedAt ?? DateTime.UtcNow,
+            UpdatedAt = request?.IncidentFilter?.UpdatedAt ?? DateTime.UtcNow
         };
     }
 
     public override string GetIncidentSource()
     {
         return "PagerDuty";
+    }
+
+    protected override string GetIncidentPlatform()
+    {
+        return IncidentManagementType.PagerDuty.ToString();
     }
 }

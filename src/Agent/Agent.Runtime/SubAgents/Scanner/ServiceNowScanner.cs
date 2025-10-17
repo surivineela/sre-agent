@@ -3,19 +3,21 @@
 // ------------------------------------------------------------
 
 using System.Net;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.ServiceNow;
+using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
+using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
-using System.Text.Json;
 
 namespace Agent.Runtime.SubAgents.Scanner;
 
@@ -27,22 +29,26 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
     IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> incidentManagementService,
     IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService,
-    IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident> incidentAnalysisService) : IIncidentScanner
+    IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident> incidentAnalysisService) : IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     private const uint PageSize = 20;
     private readonly static TimeSpan ScanInterval = TimeSpan.FromMinutes(1);
     private DateTime lastScanTime;
     private readonly static int maxOffset = 200;
+    private bool isScanSucceeded = true;
+
 
     public async Task ScanAsync(CancellationToken cancellationToken)
     {
-        var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(LastScanTimeDoc.LastScanTimeKey, LastScanTimeDoc.LastScanTimeKey);
+        var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(IncidentManagementType.ServiceNow);
+        var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(lastScanTimeKey, lastScanTimeKey);
         lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            var filters = await incidentFilterManagementService.ListIncidentFilters();
+            var filters = await incidentFilterManagementService.ListIncidentFilters(false);
+            var scanStartTime = DateTime.UtcNow;
             if (filters is null || filters.Count == 0)
             {
                 logger.LogInternalInformation("No incident filters found, skipping ServiceNow scanner.");
@@ -50,10 +56,10 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             else
             {
                 logger.LogInternalInformation("Found {filterCount} incident filters, starting ServiceNow scanner.", filters.Count);
-                bool isSuccess = await ScanAllIncidentsAsync(cancellationToken, filters);
-                if (isSuccess)
+                await ScanAllIncidentsAsync(cancellationToken, filters);
+                if (isScanSucceeded)
                 {
-                    lastScanTime = await UpdateLastScanTimeDocAsync(DateTime.UtcNow);
+                    lastScanTime = await UpdateLastScanTimeDocAsync(scanStartTime.AddSeconds(-50), IncidentManagementType.ServiceNow);
                     logger.LogInternalInformation($"ServiceNow scanner completed successfully, last scan time is updated to {lastScanTime}");
                 }
                 else
@@ -66,24 +72,23 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
         }
     }
 
-    private async Task<bool> ScanAllIncidentsAsync(CancellationToken cancellationToken, List<ServiceNowIncidentFilterDocument> filters)
+    private async Task ScanAllIncidentsAsync(CancellationToken cancellationToken, List<ServiceNowIncidentFilterDocument> filters)
     {
         // set to true if at least one filterDocument has scanned successfully
-        bool isSuccess = false;
 
         foreach (var filter in filters)
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 logger.LogInternalInformation("Cancellation requested, stopping the ServiceNow scanner.");
-                return isSuccess;
+                return;
             }
 
             if (filter is ServiceNowIncidentFilterDocument filterDocument && filterDocument.DocumentType == "IncidentFilterServiceNow")
             {
                 try
                 {
-                    isSuccess = await ScanIncidentsForFilter(filterDocument, cancellationToken) || isSuccess;
+                    await ScanIncidentsForFilter(filterDocument, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -91,22 +96,21 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 }
             }
         }
-
-        return isSuccess;
     }
 
-    private async Task<bool> ScanIncidentsForFilter(ServiceNowIncidentFilterDocument filterDocument, CancellationToken cancellationToken)
+    private async Task ScanIncidentsForFilter(ServiceNowIncidentFilterDocument filterDocument, CancellationToken cancellationToken)
     {
         logger.LogInternalInformation("Scanning incidents for filter {filterId}", filterDocument.Id);
         uint page = 0;
-        bool isSuccess = false;
+        isScanSucceeded = true;
 
         while (true)
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 logger.LogInternalInformation("Cancellation requested, stopping the ServiceNow scanner.");
-                return isSuccess;
+                isScanSucceeded = false;
+                return;
             }
 
             uint offset = page * PageSize;
@@ -114,25 +118,40 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             if (offset > maxOffset)
             {
                 logger.LogInternalInformation("Stop scanning ServiceNow incidents over {offset}", offset);
-                return isSuccess;
+                return;
             }
 
             try
             {
                 logger.LogInternalInformation("Scanning ServiceNow incidents, page {page}, lastScanTime {lastScanTime}", page, lastScanTime);
                 var incidents = await serviceNowApiClient.GetIncidentsAsync(PageSize, offset, lastScanTime, filterDocument.ImpactedService, filterDocument.TitleContains);
-                isSuccess = true;
                 if (incidents is null || incidents.Count == 0)
                 {
                     logger.LogInternalInformation("No incidents found for filter {filterId}", filterDocument.Id);
-                    return isSuccess;
+                    return;
                 }
 
                 foreach (var incident in incidents)
                 {
                     // Use Number as document ID instead of IncidentId (sys_id)
                     var incidentDocument = await GetDocumentAsync<ServiceNowIncidentDocument>(incident.Number, incident.Number);
-                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
+                    var existingLastModifiedTime = incidentDocument != null ? incidentDocument.UpdatedAt : DateTime.MinValue;
+                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, filterDocument);
+
+                    // ingest incident data into App Insights if handled already. First ingestion should be upon handling, as executed in NotifyUser
+                    var threadDocument = await GetIncidentThread(incidentDocument.Id.ToString());
+                    if (threadDocument != null && incidentDocument.UpdatedAt > existingLastModifiedTime)
+                    {
+                        try
+                        {
+                            await incidentAnalysisService.Ingest(incidentDocument, filterDocument);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogInternalError(ex, "[ServiceNowScanner] Failed to ingest incident data into App Insights");
+                        }
+                    }
+
                     await NotifyUserAsync(incidentDocument, new List<string>(), filterDocument);
                 }
 
@@ -141,7 +160,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             }
             catch (Exception ex)
             {
-                isSuccess = false;
+                isScanSucceeded = false;
                 logger.LogInternalError(ex, "Error scanning ServiceNow incidents");
             }
             page++;
@@ -164,7 +183,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
         }
     }
 
-    private async Task<ServiceNowIncidentDocument> UpsertIncidentDocumentIfNeededAsync(ServiceNowIncidentDocument? incidentDocument, ServiceNowIncident incident, CancellationToken cancellationToken = default)
+    private async Task<ServiceNowIncidentDocument> UpsertIncidentDocumentIfNeededAsync(ServiceNowIncidentDocument? incidentDocument, ServiceNowIncident incident, ServiceNowIncidentFilterDocument? filterDocument, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -184,19 +203,25 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             }
             else if (incidentDocument.Id == incident.Number)
             {
-                var updatedDoc = new ServiceNowIncidentDocument(incident);
+                var updatedDoc = new ServiceNowIncidentDocument(incident)
+                {
+                    AIRootCause = incidentDocument.AIRootCause,
+                    RootCauseDescription = incidentDocument.RootCauseDescription,
+                    GeneralSummary = incidentDocument.GeneralSummary,
+                    IsAssistedByAgent = incidentDocument.IsAssistedByAgent,
+                    DiscussionEntries = incidentDocument.DiscussionEntries,
+                    Tags = incidentDocument.Tags
+                };
 
                 // if App Insights doesn't have the latest status change to Resolved, ingest into App Insights **** We don't care about Closed for ServiceNow Incident Analysis
-                if ((updatedDoc.Status.ToLower() == "resolved" || updatedDoc.Status.ToLower() == "closed") &&
-                   (incidentDocument.Tags != null && incidentDocument.Tags.Contains("SREAgent_Resolved")))
+                // resolved = 6, closed = 7
+                if (updatedDoc.Status.ToLower() == "6" || updatedDoc.Status.ToLower() == "7")
                 {
-                    updatedDoc.Tags = incidentDocument.Tags;
-
-                    if (string.IsNullOrWhiteSpace(incidentDocument.AIRootCause) || string.IsNullOrWhiteSpace(incidentDocument.GeneralSummary))
+                    if (string.IsNullOrWhiteSpace(incidentDocument.AIRootCause) || string.IsNullOrWhiteSpace(incidentDocument.RootCauseDescription) || string.IsNullOrWhiteSpace(incidentDocument.GeneralSummary))
                     {
                         try
                         {
-                            updatedDoc = await incidentAnalysisService.AnalyzeIncident(updatedDoc, incident);
+                            updatedDoc = await incidentAnalysisService.AnalyzeIncident(updatedDoc, incident, filterDocument);
                         }
                         catch (Exception ex)
                         {
@@ -205,15 +230,31 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                     }
                 }
 
-                if (updatedDoc.UpdatedAt > incidentDocument.UpdatedAt)
+                var latestDiscussionEntries = await serviceNowApiClient.GetIncidentDiscussionEntriesAsync(incident.IncidentId);
+                updatedDoc.DiscussionEntries = latestDiscussionEntries?.Select(entry =>
+                    new ServiceNowDiscussionEntry
+                    { Id = entry.Id,
+                    IncidentId = entry.IncidentId,
+                    Date = entry.Date,
+                    ChangedBy = entry.ChangedBy,
+                    Text = entry.Text
+                    }).ToList() ?? new List<ServiceNowDiscussionEntry>();
+                var newNotes = latestDiscussionEntries?
+                        .Where(entry => entry.Date > lastScanTime.AddMinutes(-10)) // Add 5 minutes buffer to avoid missing notes due to time skew
+                        .Select(entry => new IncidentDiscussion($"{entry.Id}", entry.Text, entry.ChangedBy, entry.ChangedBy, entry.Date))
+                        .ToList() ?? new List<IncidentDiscussion>();
+
+                if (newNotes.Count > 0)
                 {
-                    try
+                    // Check if agent assisted with incident based on new notes
+                    if (!updatedDoc.IsAssistedByAgent)
                     {
-                        await incidentAnalysisService.Ingest(updatedDoc);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogInternalError(ex, "[ServiceNowScanner] Failed to ingest incident data into App Insights");
+                        var agentAssisted = await incidentAnalysisService.DetermineAgentAssistanceFromNotes(updatedDoc, newNotes);
+                        if (agentAssisted)
+                        {
+                            logger.LogInternalInformation("[ServiceNowScanner] Detected agent assistance for incident {incidentId}, updating document", updatedDoc.Id);
+                            updatedDoc.IsAssistedByAgent = true;
+                        }
                     }
                 }
 
@@ -235,41 +276,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
         }
     }
 
-    private async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime lastScanTime)
-    {
-        try
-        {
-            var patchOperationList = new List<PatchOperation>()
-            {
-                PatchOperation.Add($"/lastScanTime", lastScanTime)
-            };
-
-            var doc = await container.PatchItemAsync<LastScanTimeDoc>(
-                LastScanTimeDoc.LastScanTimeKey,
-                new PartitionKey(LastScanTimeDoc.LastScanTimeKey),
-                patchOperationList
-            );
-
-            return doc.Resource.LastScanTime;
-        }
-        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-        {
-            var lastScanTimeDoc = new LastScanTimeDoc
-            {
-                LastScanTime = DateTime.UtcNow
-            };
-
-            var doc = await container.CreateItemAsync(lastScanTimeDoc, new PartitionKey(lastScanTimeDoc.PartitionKey));
-            return doc.Resource.LastScanTime;
-        }
-        catch (Exception ex)
-        {
-            logger.LogInternalError(ex, "Error updating LastScanTime for ServiceNowScanner");
-            return DateTime.UtcNow;
-        }
-    }
-
-    private async Task NotifyUserAsync(ServiceNowIncidentDocument incidentDocument, List<string> relatedResourceIds, ServiceNowIncidentFilterDocument filterDocument)
+    private async Task NotifyUserAsync(ServiceNowIncidentDocument incidentDocument, List<string> relatedResourceIds, ServiceNowIncidentFilterDocument? filterDocument)
     {
         try
         {
@@ -380,7 +387,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             var threadDocument = await GetIncidentThread(incidentDocument.Id);
             if (threadDocument is null)
             {
-                logger.LogInternalInformation("Thread doesn't exist for incident {incidentNumber} by filter {filterId}, creating new incident thread", incidentDocument.Id, filterDocument.Id);
+                logger.LogInternalInformation("Thread doesn't exist for incident {incidentNumber} by filter {filterId}, creating new incident thread", incidentDocument.Id, filterDocument?.Id);
                 var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel<ServiceNowIncidentFilterDocumentPayload>()
                 {
                     IncidentId = incidentDocument.Id,
@@ -388,7 +395,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                     Description = incidentDocument.Description,
                     Severity = incidentDocument.Priority,
                     Source = "ServiceNow",
-                    IncidentFilter = null,
+                    IncidentFilter = filterDocument,
                     IncidentHandler = null
                 });
             }
@@ -482,5 +489,44 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             "8" => "Cancelled",
             _ => $"Status_{statusCode}"
         };
+    }
+
+    private async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime lastScanTime, IncidentManagementType type)
+    {
+        try
+        {
+            var patchOperationList = new List<PatchOperation>()
+            {
+                PatchOperation.Add($"/lastScanTime", lastScanTime)
+            };
+
+            var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(type);
+            var doc = await container.PatchItemAsync<LastScanTimeDoc>(
+                lastScanTimeKey,
+                new PartitionKey(lastScanTimeKey),
+                patchOperationList
+            );
+
+            return doc.Resource.LastScanTime;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(type);
+            var lastScanTimeDoc = new LastScanTimeDoc
+            {
+                Id = lastScanTimeKey,
+                DocumentType = lastScanTimeKey,
+                PartitionKey = lastScanTimeKey,
+                LastScanTime = lastScanTime
+            };
+
+            var doc = await container.CreateItemAsync(lastScanTimeDoc, new PartitionKey(lastScanTimeKey));
+            return doc.Resource.LastScanTime;
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Error updating LastScanTime for {incidentType} scanner", type);
+            return DateTime.UtcNow;
+        }
     }
 }
