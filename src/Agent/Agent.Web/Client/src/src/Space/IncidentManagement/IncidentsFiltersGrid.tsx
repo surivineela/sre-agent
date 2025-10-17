@@ -1,10 +1,9 @@
-import { Button, InputOnChangeData, Link, SearchBox, SearchBoxChangeEvent, Tooltip } from '@fluentui/react-components';
+import { Button, Checkbox, InputOnChangeData, Link, SearchBox, SearchBoxChangeEvent, Tooltip } from '@fluentui/react-components';
 import { CheckmarkCircle16Regular } from '@fluentui/react-icons';
-import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
-import { Selection } from '@fluentui/react/lib/Selection';
+import { ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { debounce } from 'lodash';
-import { Dispatch, FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Dispatch, FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { FilterProps } from '../../Common/Components/PillFilter/Contracts';
 import { LabelKeyPair } from '../../Common/Components/PillFilter/ListWithSearch';
@@ -23,6 +22,7 @@ export type ISortedDetailsListColumn = IColumn & {
 };
 
 enum IncidentsListColumnKey {
+    selected = 'selected',
     id = 'id',
     impactedService = 'impactedService',
     priority = 'priority',
@@ -41,6 +41,7 @@ export type IncidentsFiltersGridProps = {
     incidentFilters: IncidentFilter[];
     incidentFiltersLoading: boolean;
     filterIdToHandlerMap: Record<string, IncidentHandler>;
+    selectedFilter: IncidentFilter | undefined;
     setSelectedFilter: Dispatch<React.SetStateAction<IncidentFilter | undefined>>;
     openHandlerCreate: (handlerCreateOrEditInfo: HandlerCreateOrEditInfo) => void;
     handlerOperationStatus: OperationStatus | undefined;
@@ -55,6 +56,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         openHandlerCreate,
         handlerOperationStatus,
         filterIdToHandlerMap,
+        selectedFilter,
         setSelectedFilter,
         disabled,
         canWriteIncidentManagement = true,
@@ -192,15 +194,6 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
 
         setImpactedServices(impactedServiceOptions);
     }, [isIncidentFilterEmpty, incidentFilters, intl]);
-
-    const selection = useRef(
-        new Selection({
-            onSelectionChanged: () => {
-                const items = (selection.current.getSelection() as IncidentFilter[]) ?? [];
-                setSelectedFilter(items.length > 0 ? items[0] : undefined);
-            },
-        })
-    );
 
     const onIdClick = useCallback(
         (item: IncidentFilter) => {
@@ -369,11 +362,44 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         return [incidentTypeFilterProps, impactedServiceFilterProps, priorityFilterProps];
     }, [incidentTypeFilterProps, impactedServiceFilterProps, priorityFilterProps]);
 
+    const onRenderCheckbox = useCallback(
+        (item: IncidentFilter) => {
+            return (
+                <Checkbox
+                    checked={selectedFilter?.id === item.id}
+                    onChange={(_, data) => setSelectedFilter(data.checked ? item : undefined)}
+                    disabled={disableAllControls}
+                    input={{
+                        style: { width: 16 },
+                    }}
+                    indicator={{
+                        style: { margin: 'auto' },
+                    }}
+                    aria-label={intl.formatMessage(SreAgentResources.selectRowAriaLabel)}
+                />
+            );
+        },
+        [selectedFilter, setSelectedFilter, disableAllControls, intl]
+    );
+
     const columns = useMemo<ISortedDetailsListColumn[]>(() => {
         const columnWidth = '14';
         const { severityOrPriorityLabel } = getPlatformSpecificStrings(incidentPlatformType);
 
         const columns: ISortedDetailsListColumn[] = [
+            {
+                key: IncidentsListColumnKey.selected,
+                name: '',
+                ariaLabel: intl.formatMessage(SreAgentResources.selectRowAriaLabel),
+                fieldName: IncidentsListColumnKey.selected,
+                minWidth: 30,
+                maxWidth: 30,
+                isResizable: false,
+                onRenderHeader: () => null,
+                onRender: onRenderCheckbox,
+                isMultiline: false,
+                isSorted: false,
+            },
             {
                 key: IncidentsListColumnKey.id,
                 name: intl.formatMessage(IncidentManagementResources.incidentHandler),
@@ -488,6 +514,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
     }, [
         intl,
         incidentPlatformType,
+        onRenderCheckbox,
         onRenderId,
         sortColumnKey,
         isSortedDescending,
@@ -523,7 +550,6 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                     layoutMode={DetailsListLayoutMode.justified}
                     compact={true}
                     enableShimmer={incidentFiltersLoading}
-                    checkboxVisibility={CheckboxVisibility.always}
                     useReducedRowRenderer={true}
                     styles={{
                         root: {
@@ -531,13 +557,9 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                             userSelect: 'text',
                         },
                     }}
-                    selectionPreservedOnEmptyClick={true}
-                    selection={selection.current}
-                    selectionMode={SelectionMode.single}
+                    selectionMode={SelectionMode.none}
                     setKey="incidentFilterList"
                     getKey={(item, index) => (item && item.id ? item.id : `shimmer-${index}`)}
-                    checkButtonAriaLabel={intl.formatMessage(SreAgentResources.selectRowAriaLabel)}
-                    ariaLabelForSelectAllCheckbox={intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel)}
                 />
                 {incidentFilters.length === 0 && !incidentFiltersLoading && (
                     <div className={styles.emptyState}>

@@ -129,6 +129,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden }) =>
                         openHandlerCreate={setVisibleHandler}
                         incidentFilters={incidentFilters ?? []}
                         incidentFiltersLoading={incidentFiltersLoading || checkingConnectivity}
+                        selectedFilter={selectedIncidentFilter}
                         setSelectedFilter={setSelectedIncidentFilter}
                         filterIdToHandlerMap={filterIdToHandlerMap}
                         disabled={!checkingConnectivity && !isIncidentManagementConnected}
