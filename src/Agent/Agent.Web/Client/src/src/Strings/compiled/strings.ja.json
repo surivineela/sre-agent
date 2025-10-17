@@ -9,6 +9,12 @@
       "value": "parameters"
     }
   ],
+  "+/9vVV": [
+    {
+      "type": 0,
+      "value": "Describe it in natural language"
+    }
+  ],
   "+/nU/s": [
     {
       "type": 0,
@@ -19,20 +25,6 @@
     {
       "type": 0,
       "value": "コネクタ名の入力"
-    }
-  ],
-  "+4NN8Z": [
-    {
-      "type": 0,
-      "value": "データ コネクタ \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" を更新しています"
     }
   ],
   "+5BJJL": [
@@ -77,6 +69,18 @@
       "value": "Microsoft にフィードバックを送信する"
     }
   ],
+  "+Hx789": [
+    {
+      "type": 0,
+      "value": "Filter by severity level"
+    }
+  ],
+  "+Pmftr": [
+    {
+      "type": 0,
+      "value": "Reset draft"
+    }
+  ],
   "+S4WAz": [
     {
       "type": 0,
@@ -101,12 +105,6 @@
       "value": "種類"
     }
   ],
-  "+UcRHd": [
-    {
-      "type": 0,
-      "value": "Starter agent"
-    }
-  ],
   "+bJIWo": [
     {
       "type": 0,
@@ -117,12 +115,6 @@
     {
       "type": 0,
       "value": "インシデントを削除しますか?"
-    }
-  ],
-  "+hJd45": [
-    {
-      "type": 0,
-      "value": "データ コネクタの編集"
     }
   ],
   "+iCTRd": [
@@ -153,6 +145,12 @@
     {
       "type": 0,
       "value": "エージェントで Sev3 LiveSite インシデントに使用する既定のインシデント対応計画を追加します。"
+    }
+  ],
+  "+p60ph": [
+    {
+      "type": 0,
+      "value": "MCP server icon"
     }
   ],
   "+uAdUZ": [
@@ -225,10 +223,22 @@
       "value": "同じリソースでの過去のインシデント"
     }
   ],
+  "/WgnYE": [
+    {
+      "type": 0,
+      "value": "We couldn't understand that description. Try a different phrasing."
+    }
+  ],
   "/WrP/v": [
     {
       "type": 0,
       "value": "Container Apps オペレーター"
+    }
+  ],
+  "/Z1fHN": [
+    {
+      "type": 0,
+      "value": "Tool and subagent activity sent to user"
     }
   ],
   "/dxZCE": [
@@ -241,6 +251,12 @@
     {
       "type": 0,
       "value": "Custom Vision プロジェクトを管理します。"
+    }
+  ],
+  "/mHau5": [
+    {
+      "type": 0,
+      "value": "Failed to create connector"
     }
   ],
   "/rNkXe": [
@@ -327,6 +343,12 @@
       "value": " failed. Retry link."
     }
   ],
+  "0BUTMv": [
+    {
+      "type": 0,
+      "value": "Search..."
+    }
+  ],
   "0D+7fr": [
     {
       "type": 0,
@@ -405,6 +427,18 @@
     {
       "type": 0,
       "value": "タスクの選択"
+    }
+  ],
+  "0i3Qrd": [
+    {
+      "type": 0,
+      "value": "Agent Response"
+    }
+  ],
+  "0iLXks": [
+    {
+      "type": 0,
+      "value": "No extended agents available"
     }
   ],
   "0ltHAS": [
@@ -491,6 +525,12 @@
       "value": "タスク"
     }
   ],
+  "12GY0h": [
+    {
+      "type": 0,
+      "value": "Describe the schedule before generating a cron expression."
+    }
+  ],
   "1389z+": [
     {
       "type": 0,
@@ -541,6 +581,12 @@
       "value": "error"
     }
   ],
+  "1GbY5N": [
+    {
+      "type": 0,
+      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Connectors instead."
+    }
+  ],
   "1HLt0U": [
     {
       "type": 0,
@@ -559,6 +605,16 @@
     {
       "type": 0,
       "value": " は正常に削除されました"
+    }
+  ],
+  "1OorZL": [
+    {
+      "type": 0,
+      "value": "Failed to update connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "1PVhxx": [
@@ -609,6 +665,20 @@
       "value": "ロール"
     }
   ],
+  "1aNP56": [
+    {
+      "type": 0,
+      "value": "Connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been updated successfully"
+    }
+  ],
   "1dOMiz": [
     {
       "type": 0,
@@ -633,6 +703,12 @@
       "value": "Alert status"
     }
   ],
+  "1iEPTM": [
+    {
+      "type": 0,
+      "value": "General"
+    }
+  ],
   "1rAiXS": [
     {
       "type": 0,
@@ -643,6 +719,18 @@
     {
       "type": 0,
       "value": "このスケジュールされたタスクを一時停止しますか?"
+    }
+  ],
+  "2+TYMx": [
+    {
+      "type": 0,
+      "value": "Add a trigger"
+    }
+  ],
+  "2+atxY": [
+    {
+      "type": 0,
+      "value": "Handoff"
     }
   ],
   "2/2yg+": [
@@ -677,6 +765,18 @@
     {
       "type": 0,
       "value": "このスレッドのエージェント モードを変更する"
+    }
+  ],
+  "2Bb4rY": [
+    {
+      "type": 0,
+      "value": "Failed to update connector"
+    }
+  ],
+  "2CSEeq": [
+    {
+      "type": 0,
+      "value": "Describe the cadence—get the cron"
     }
   ],
   "2FLZrG": [
@@ -739,12 +839,6 @@
     {
       "type": 0,
       "value": "詳細な調査"
-    }
-  ],
-  "2e3GZQ": [
-    {
-      "type": 0,
-      "value": "Create a handoff agent"
     }
   ],
   "2hB9SP": [
@@ -837,6 +931,12 @@
       "value": "リソース名の入力"
     }
   ],
+  "3GLH+d": [
+    {
+      "type": 0,
+      "value": "Examples"
+    }
+  ],
   "3H77Ic": [
     {
       "type": 0,
@@ -891,6 +991,12 @@
       "value": "Save Changes"
     }
   ],
+  "3Wq8aM": [
+    {
+      "type": 0,
+      "value": "Cron"
+    }
+  ],
   "3a5wL8": [
     {
       "type": 0,
@@ -933,6 +1039,12 @@
       "value": "再開"
     }
   ],
+  "3yurtF": [
+    {
+      "type": 0,
+      "value": "Next run"
+    }
+  ],
   "3zLsNR": [
     {
       "type": 0,
@@ -943,6 +1055,12 @@
     {
       "type": 0,
       "value": "カスタムのインシデント対応計画は正常に更新されました"
+    }
+  ],
+  "4/aFfy": [
+    {
+      "type": 0,
+      "value": "Tree"
     }
   ],
   "4/nSt8": [
@@ -1005,6 +1123,12 @@
       "value": "This agent"
     }
   ],
+  "493R/T": [
+    {
+      "type": 0,
+      "value": "Share your draft instructions and we’ll tailor them for a scheduled agent run."
+    }
+  ],
   "498yM3": [
     {
       "type": 0,
@@ -1047,6 +1171,12 @@
     {
       "type": 0,
       "value": "ブック共同作成者"
+    }
+  ],
+  "4OCLSf": [
+    {
+      "type": 0,
+      "value": "Response to user"
     }
   ],
   "4OUjTL": [
@@ -1121,6 +1251,12 @@
       "value": "インシデント対応計画は、フィルター条件を適用することで、エージェントが処理する必要があるインシデントを定義し、必要な一連のインシデントへの対応を保証します。"
     }
   ],
+  "4pJVaS": [
+    {
+      "type": 0,
+      "value": "Select row"
+    }
+  ],
   "4uiKBK": [
     {
       "type": 0,
@@ -1163,6 +1299,12 @@
       "value": "実行の詳細と要求"
     }
   ],
+  "54UIcW": [
+    {
+      "type": 0,
+      "value": "We couldn’t polish the instructions. Try again shortly."
+    }
+  ],
   "59z+Aj": [
     {
       "type": 0,
@@ -1179,10 +1321,26 @@
       "value": "リポジトリへのアクセスを承認するためのアクセス許可がありません。"
     }
   ],
+  "5DqOua": [
+    {
+      "type": 0,
+      "value": "Pick an extended agent to assist you with tasks."
+    }
+  ],
   "5GUtRJ": [
     {
       "type": 0,
       "value": "レポートを送信しています..."
+    }
+  ],
+  "5Imse3": [
+    {
+      "type": 0,
+      "value": "Failed to delete connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "5MSxYS": [
@@ -1281,16 +1439,6 @@
       "value": "ユーザーにより軽減済み"
     }
   ],
-  "5dcGlG": [
-    {
-      "type": 0,
-      "value": "データ コネクタを削除できませんでした。エラー: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "5gEh2M": [
     {
       "type": 0,
@@ -1323,6 +1471,12 @@
     {
       "type": 0,
       "value": "不明"
+    }
+  ],
+  "5kK+j9": [
+    {
+      "type": 0,
+      "value": "Restart"
     }
   ],
   "5kp1Ie": [
@@ -1487,6 +1641,12 @@
       "value": "ユーザー割り当てマネージド ID"
     }
   ],
+  "6SKklv": [
+    {
+      "type": 0,
+      "value": "Remove attachment"
+    }
+  ],
   "6TO45V": [
     {
       "type": 0,
@@ -1535,6 +1695,12 @@
       "value": "関連付け ID:"
     }
   ],
+  "6dEJ43": [
+    {
+      "type": 0,
+      "value": "Cron draft"
+    }
+  ],
   "6dWeUs": [
     {
       "type": 0,
@@ -1563,6 +1729,12 @@
     {
       "type": 0,
       "value": "新しい Azure Monitor アラートが検出されました"
+    }
+  ],
+  "6umiRw": [
+    {
+      "type": 0,
+      "value": "A clear, concise description that helps other agents understand when to delegate work to this specialist agent. This appears in agent handoff decisions and collaboration workflows."
     }
   ],
   "6v8Uj+": [
@@ -1665,6 +1837,12 @@
       "value": "A unique identifier for your connector"
     }
   ],
+  "7X1tNR": [
+    {
+      "type": 0,
+      "value": "Create task"
+    }
+  ],
   "7cS956": [
     {
       "type": 0,
@@ -1681,6 +1859,12 @@
     {
       "type": 0,
       "value": "プロジェクトの詳細"
+    }
+  ],
+  "7kPmO3": [
+    {
+      "type": 0,
+      "value": "Edit connector"
     }
   ],
   "7nUCu9": [
@@ -1797,16 +1981,16 @@
       "value": "Azure Digital Twins データへのフル アクセス。"
     }
   ],
+  "8BaLs0": [
+    {
+      "type": 0,
+      "value": "Select all rows"
+    }
+  ],
   "8F5cJQ": [
     {
       "type": 0,
       "value": "カスタムのインシデント対応計画が正常に追加されました"
-    }
-  ],
-  "8Hjku9": [
-    {
-      "type": 0,
-      "value": "データ コネクタを作成しています"
     }
   ],
   "8LMIGa": [
@@ -1869,6 +2053,12 @@
       "value": "サービスと API への読み取り専用アクセス。"
     }
   ],
+  "8dASTJ": [
+    {
+      "type": 0,
+      "value": "Create a handoff sub-agent"
+    }
+  ],
   "8fYK1J": [
     {
       "type": 0,
@@ -1885,6 +2075,18 @@
     {
       "type": 0,
       "value": "Redis Cache 共同作成者"
+    }
+  ],
+  "8ojA9A": [
+    {
+      "type": 0,
+      "value": "Let AI polish the instructions"
+    }
+  ],
+  "8oyl6b": [
+    {
+      "type": 0,
+      "value": "Line chart"
     }
   ],
   "8quEg9": [
@@ -1945,6 +2147,12 @@
       "value": "すべて選択"
     }
   ],
+  "94QRkK": [
+    {
+      "type": 0,
+      "value": "Follow-up questions"
+    }
+  ],
   "94zF5I": [
     {
       "type": 0,
@@ -1961,6 +2169,18 @@
     {
       "type": 0,
       "value": "一致なし"
+    }
+  ],
+  "98A08r": [
+    {
+      "type": 0,
+      "value": "Learn more about MCP servers"
+    }
+  ],
+  "98TwgV": [
+    {
+      "type": 0,
+      "value": "Describe when and why other agents should hand off to this agent..."
     }
   ],
   "99OdS3": [
@@ -2061,6 +2281,12 @@
       "value": "注釈が正常に更新されました"
     }
   ],
+  "A3ptul": [
+    {
+      "type": 0,
+      "value": "Templates"
+    }
+  ],
   "AA/tRJ": [
     {
       "type": 0,
@@ -2095,12 +2321,6 @@
       "value": "errorMessage"
     }
   ],
-  "ALkPTF": [
-    {
-      "type": 0,
-      "value": "データ コネクタが構成されていません"
-    }
-  ],
   "ATXGa+": [
     {
       "type": 0,
@@ -2111,6 +2331,12 @@
     {
       "type": 0,
       "value": "推奨するリソース グループのみを表示"
+    }
+  ],
+  "AaJ/LU": [
+    {
+      "type": 0,
+      "value": "Polish the instructions"
     }
   ],
   "AbXVP4": [
@@ -2169,12 +2395,6 @@
     {
       "type": 0,
       "value": "Create reusable functions and actions for your agents"
-    }
-  ],
-  "ArsZkp": [
-    {
-      "type": 0,
-      "value": "データ コネクタを更新しています"
     }
   ],
   "AuFOi8": [
@@ -2269,6 +2489,16 @@
       "value": "Binding"
     }
   ],
+  "BcEbxp": [
+    {
+      "type": 1,
+      "value": "seconds"
+    },
+    {
+      "type": 0,
+      "value": "s"
+    }
+  ],
   "Bcgdb7": [
     {
       "type": 1,
@@ -2301,6 +2531,12 @@
     {
       "type": 0,
       "value": "Data type and requirement for validation"
+    }
+  ],
+  "BynA9c": [
+    {
+      "type": 0,
+      "value": "Optional tweaks"
     }
   ],
   "C2PrxB": [
@@ -2351,6 +2587,12 @@
       "value": "Connect related agents and tools"
     }
   ],
+  "CPsPh7": [
+    {
+      "type": 0,
+      "value": "How would you like to define the schedule?"
+    }
+  ],
   "CTRqZs": [
     {
       "type": 0,
@@ -2381,20 +2623,6 @@
       "value": "Open scheduled tasks"
     }
   ],
-  "CbKRyU": [
-    {
-      "type": 0,
-      "value": "データ コネクタ \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" は正常に削除されました"
-    }
-  ],
   "CfGC/2": [
     {
       "type": 0,
@@ -2417,6 +2645,12 @@
     {
       "type": 0,
       "value": "インシデント プラットフォームを変更するには、PagerDuty から切断する必要があります。エージェントはチケットを管理しなくなります。切断しますか?"
+    }
+  ],
+  "CvGdox": [
+    {
+      "type": 0,
+      "value": "Add more tools for incident response"
     }
   ],
   "CvWvf+": [
@@ -2551,6 +2785,12 @@
       "value": "No instructions provided yet."
     }
   ],
+  "Dhy8jb": [
+    {
+      "type": 0,
+      "value": "A data source connection for tools (e.g., Kusto cluster for running queries)"
+    }
+  ],
   "DlSXUR": [
     {
       "type": 0,
@@ -2603,6 +2843,12 @@
     {
       "type": 0,
       "value": "終了日の選択"
+    }
+  ],
+  "E+jVAN": [
+    {
+      "type": 0,
+      "value": "No trace data found for this thread."
     }
   ],
   "E396gv": [
@@ -2681,6 +2927,12 @@
       "value": "サブスクリプションを読み込めませんでした。"
     }
   ],
+  "EN5iMk": [
+    {
+      "type": 0,
+      "value": "Service type"
+    }
+  ],
   "ENnkRe": [
     {
       "type": 0,
@@ -2691,12 +2943,6 @@
     {
       "type": 0,
       "value": "フィルター名の入力"
-    }
-  ],
-  "EStH0G": [
-    {
-      "type": 0,
-      "value": "Agent Builder"
     }
   ],
   "EWrExf": [
@@ -2711,28 +2957,32 @@
       "value": "適用"
     }
   ],
-  "EYRPA4": [
-    {
-      "type": 0,
-      "value": "データ コネクタを更新できませんでした"
-    }
-  ],
   "EZBG/A": [
     {
       "type": 0,
       "value": "インシデント プラットフォーム"
     }
   ],
-  "EZbXbs": [
+  "Ec1M0J": [
     {
       "type": 0,
-      "value": "データ コネクタを追加または削除するためのアクセス許可がありません。"
+      "value": "Action plan"
     }
   ],
   "EdEthU": [
     {
       "type": 0,
       "value": "API Management ワークスペース共同作成者"
+    }
+  ],
+  "EdZ3pj": [
+    {
+      "type": 0,
+      "value": "Agent: "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "EicA1w": [
@@ -2745,6 +2995,18 @@
     {
       "type": 0,
       "value": "リソース グループを検索してください"
+    }
+  ],
+  "ElqLuA": [
+    {
+      "type": 0,
+      "value": "Trace data parsed with warnings."
+    }
+  ],
+  "EmN362": [
+    {
+      "type": 0,
+      "value": "Create connector"
     }
   ],
   "Ep74wA": [
@@ -2763,6 +3025,12 @@
     {
       "type": 0,
       "value": "Azure SRE エージェント"
+    }
+  ],
+  "Euy+fB": [
+    {
+      "type": 0,
+      "value": "Connect MCP server"
     }
   ],
   "EwRIOm": [
@@ -2845,6 +3113,12 @@
     {
       "type": 0,
       "value": "リポジトリ接続"
+    }
+  ],
+  "FNQNS1": [
+    {
+      "type": 0,
+      "value": "Weekdays at 9am Pacific"
     }
   ],
   "FO/nez": [
@@ -2943,18 +3217,14 @@
       "value": "削除"
     }
   ],
-  "G2GBW0": [
-    {
-      "type": 0,
-      "value": "データ コネクタ \""
-    },
+  "G5JMSn": [
     {
       "type": 1,
-      "value": "name"
+      "value": "0"
     },
     {
       "type": 0,
-      "value": "\" を作成しています"
+      "value": " subscriptions selected"
     }
   ],
   "G6vaGg": [
@@ -2987,10 +3257,28 @@
       "value": "Back to commands"
     }
   ],
+  "GNJGHu": [
+    {
+      "type": 0,
+      "value": "Update the connector configuration."
+    }
+  ],
   "GUx4Ld": [
     {
       "type": 0,
       "value": "ServiceNow エンドポイントに接続できません。エンドポイント URL を確認してください。"
+    }
+  ],
+  "GaA28c": [
+    {
+      "type": 0,
+      "value": "Incident details"
+    }
+  ],
+  "GkJbiq": [
+    {
+      "type": 0,
+      "value": "Start a new chat thread."
     }
   ],
   "Gl8fnJ": [
@@ -3105,6 +3393,12 @@
     {
       "type": 0,
       "value": "保留中の承認"
+    }
+  ],
+  "Hgs+WM": [
+    {
+      "type": 0,
+      "value": "View trace"
     }
   ],
   "Hh0q8u": [
@@ -3297,10 +3591,22 @@
       "value": "注釈を追加または編集するためのアクセス許可がありません。"
     }
   ],
+  "IbMKy+": [
+    {
+      "type": 0,
+      "value": "Use this version"
+    }
+  ],
   "IcB2fr": [
     {
       "type": 0,
       "value": "Tool method argument that receives this value"
+    }
+  ],
+  "IcUakl": [
+    {
+      "type": 0,
+      "value": "Time zone"
     }
   ],
   "IiNwpr": [
@@ -3427,12 +3733,6 @@
       "value": "アップロードしています..."
     }
   ],
-  "JHqOn0": [
-    {
-      "type": 0,
-      "value": "エージェントのナレッジ ベースを強化するために、単発アーキテクチャのドキュメント、トラブルシューティング ガイド、その他のドキュメントをアップロードします。継続的なドキュメント管理や自動更新を行う場合は、代わりにデータ コネクタの使用を検討してください。"
-    }
-  ],
   "JJNc3c": [
     {
       "type": 0,
@@ -3517,6 +3817,22 @@
       "value": "インシデントを引き起こした原因に関するエージェントの分析です。"
     }
   ],
+  "JbB2Vb": [
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " locations selected"
+    }
+  ],
+  "JbmMWM": [
+    {
+      "type": 0,
+      "value": "Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatible connector was found)"
+    }
+  ],
   "JezZlU": [
     {
       "type": 0,
@@ -3585,6 +3901,12 @@
       "value": "Review Your trigger"
     }
   ],
+  "JzOvG/": [
+    {
+      "type": 0,
+      "value": "Assumptions we made"
+    }
+  ],
   "K1h5xo": [
     {
       "type": 0,
@@ -3597,10 +3919,16 @@
       "value": "削除"
     }
   ],
-  "K6WTYI": [
+  "K7AkdL": [
     {
       "type": 0,
-      "value": "A data source connection for tools"
+      "value": "Show"
+    }
+  ],
+  "K9q4Xw": [
+    {
+      "type": 0,
+      "value": "MCP servers"
     }
   ],
   "KAYpG9": [
@@ -3757,12 +4085,6 @@
       "value": " の削除中です"
     }
   ],
-  "L5ZL+u": [
-    {
-      "type": 0,
-      "value": "データ コネクタ"
-    }
-  ],
   "LFn7Ak": [
     {
       "type": 0,
@@ -3835,10 +4157,22 @@
       "value": "フィルターはインシデント対応計画が適用されるインシデントを定義します。これらは、次のステップでプレビューするインシデントのリストに適用されます。"
     }
   ],
+  "LbkJp1": [
+    {
+      "type": 0,
+      "value": "MCP servers table"
+    }
+  ],
   "LkUvu/": [
     {
       "type": 0,
       "value": "Describe the schedule"
+    }
+  ],
+  "Lm9kBB": [
+    {
+      "type": 0,
+      "value": "Select an incident."
     }
   ],
   "LnglaU": [
@@ -3925,6 +4259,16 @@
       "value": "インシデント ID"
     }
   ],
+  "MHkWzD": [
+    {
+      "type": 1,
+      "value": "id"
+    },
+    {
+      "type": 0,
+      "value": " completed"
+    }
+  ],
   "MI5gZ+": [
     {
       "type": 0,
@@ -3941,6 +4285,12 @@
     {
       "type": 0,
       "value": "Failed to improve instructions. Please try again."
+    }
+  ],
+  "MK8Q9z": [
+    {
+      "type": 0,
+      "value": "Creating connector"
     }
   ],
   "MLVVhB": [
@@ -3983,6 +4333,12 @@
     {
       "type": 0,
       "value": "Kusto Configuration"
+    }
+  ],
+  "MgdnPi": [
+    {
+      "type": 0,
+      "value": "Response"
     }
   ],
   "MhTfXm": [
@@ -4099,6 +4455,12 @@
       "value": "承認済み"
     }
   ],
+  "NBiLYK": [
+    {
+      "type": 0,
+      "value": "Drafting…"
+    }
+  ],
   "NBxjGE": [
     {
       "type": 0,
@@ -4177,12 +4539,6 @@
       "value": "フィードバックをお送りいただきありがとうございました。"
     }
   ],
-  "Nup8Xl": [
-    {
-      "type": 0,
-      "value": "データ コネクタの作成"
-    }
-  ],
   "O3Ak71": [
     {
       "type": 0,
@@ -4199,6 +4555,12 @@
     {
       "type": 0,
       "value": "この SRE エージェントを削除しますか?この操作は元に戻すことができません。"
+    }
+  ],
+  "OIWzWF": [
+    {
+      "type": 0,
+      "value": "Filter by autonomy level"
     }
   ],
   "OJ2u8k": [
@@ -4253,6 +4615,12 @@
       "value": ". Refresh and try again."
     }
   ],
+  "OPBqEN": [
+    {
+      "type": 0,
+      "value": "Trace data parsed with errors."
+    }
+  ],
   "ORGv1Q": [
     {
       "type": 0,
@@ -4269,6 +4637,12 @@
     {
       "type": 0,
       "value": "選択したリソースには、これらのロールに対するアクセス許可があります。"
+    }
+  ],
+  "OUJuir": [
+    {
+      "type": 0,
+      "value": "Model details"
     }
   ],
   "OV0MpG": [
@@ -4363,6 +4737,12 @@
       "value": "PostgreSQL コマンド"
     }
   ],
+  "P0yf0W": [
+    {
+      "type": 0,
+      "value": "Search tools by name, category, or description"
+    }
+  ],
   "P3qxV2": [
     {
       "type": 0,
@@ -4441,6 +4821,12 @@
       "value": "Choose the Kusto connector this tool will query"
     }
   ],
+  "PSfARI": [
+    {
+      "type": 0,
+      "value": "Loading more rows..."
+    }
+  ],
   "PU1wDo": [
     {
       "type": 0,
@@ -4469,6 +4855,16 @@
     {
       "type": 0,
       "value": "仮想マシン共同作成者"
+    }
+  ],
+  "PZc06m": [
+    {
+      "type": 1,
+      "value": "tokens"
+    },
+    {
+      "type": 0,
+      "value": "t"
     }
   ],
   "Pc+tM3": [
@@ -4527,6 +4923,12 @@
       "value": "未接続"
     }
   ],
+  "PvMAYc": [
+    {
+      "type": 0,
+      "value": "No system tools match your search."
+    }
+  ],
   "Pwen/L": [
     {
       "type": 0,
@@ -4539,12 +4941,6 @@
       "value": "P2"
     }
   ],
-  "PxLzzW": [
-    {
-      "type": 0,
-      "value": "実行内容..."
-    }
-  ],
   "PysW/n": [
     {
       "type": 0,
@@ -4555,6 +4951,12 @@
     {
       "type": 0,
       "value": "Grafana ダッシュボードをプロビジョニング しています"
+    }
+  ],
+  "Q++yMM": [
+    {
+      "type": 0,
+      "value": "Subagent"
     }
   ],
   "Q/agzh": [
@@ -4629,6 +5031,12 @@
       "value": "使用 (トリガー、アクション)"
     }
   ],
+  "QY3CEK": [
+    {
+      "type": 0,
+      "value": "Handoff Description"
+    }
+  ],
   "Qc3Kdl": [
     {
       "type": 0,
@@ -4669,6 +5077,12 @@
       "value": "Web Apps"
     }
   ],
+  "QlkL14": [
+    {
+      "type": 0,
+      "value": "Updating connector"
+    }
+  ],
   "QlsDcr": [
     {
       "type": 0,
@@ -4679,6 +5093,26 @@
     {
       "type": 0,
       "value": "エージェントに付与されるロールとアクセス許可を表示するには、エージェントが管理するリソース グループを選択します。"
+    }
+  ],
+  "QmOU5t": [
+    {
+      "type": 0,
+      "value": "Deleting connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
+  "Qn8Bok": [
+    {
+      "type": 0,
+      "value": "Handback"
     }
   ],
   "QomX1y": [
@@ -4721,20 +5155,6 @@
       "value": "error"
     }
   ],
-  "R5Y4rC": [
-    {
-      "type": 0,
-      "value": "データ コネクタ \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" は正常に更新されました"
-    }
-  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -4745,6 +5165,12 @@
     {
       "type": 0,
       "value": "インシデント スレッドは移動しました"
+    }
+  ],
+  "RA3fki": [
+    {
+      "type": 0,
+      "value": "Missing context"
     }
   ],
   "RAjqKb": [
@@ -4873,12 +5299,6 @@
       "value": "count"
     }
   ],
-  "Rsq6sZ": [
-    {
-      "type": 0,
-      "value": "New handoff agents start as Autonomous. You can connect tools and other details later."
-    }
-  ],
   "S0GneP": [
     {
       "type": 0,
@@ -4897,24 +5317,20 @@
       "value": "過去 12 時間"
     }
   ],
+  "S2z35W": [
+    {
+      "type": 0,
+      "value": "Failed to create connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "S57QRB": [
     {
       "type": 0,
       "value": "フィルター条件"
-    }
-  ],
-  "S6FECK": [
-    {
-      "type": 0,
-      "value": "データ コネクタ \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" を削除しています"
     }
   ],
   "SAINuE": [
@@ -5011,6 +5427,12 @@
       "value": "No common prompts added."
     }
   ],
+  "SZMgCd": [
+    {
+      "type": 0,
+      "value": "Connect a Model Context Protocol (MCP) server to give the agent additional tools and actions for automating incident handling."
+    }
+  ],
   "Sdc+Dp": [
     {
       "type": 0,
@@ -5051,6 +5473,12 @@
     {
       "type": 0,
       "value": "自律"
+    }
+  ],
+  "StVmtb": [
+    {
+      "type": 0,
+      "value": "Generate schedule"
     }
   ],
   "SuVToZ": [
@@ -5187,6 +5615,12 @@
       "value": " のすべてのインシデント"
     }
   ],
+  "TKsgZu": [
+    {
+      "type": 0,
+      "value": "Key alerts"
+    }
+  ],
   "TMZ2Rq": [
     {
       "type": 0,
@@ -5297,16 +5731,28 @@
       "value": " から変更するためのアクセス許可がありません"
     }
   ],
-  "UKUKGA": [
+  "UNXega": [
     {
       "type": 0,
-      "value": "データ コネクタを削除できませんでした"
+      "value": "From agent"
     }
   ],
   "UPybTw": [
     {
       "type": 0,
       "value": "マップに移動"
+    }
+  ],
+  "UQUIP7": [
+    {
+      "type": 0,
+      "value": "Request error"
+    }
+  ],
+  "UU91f0": [
+    {
+      "type": 0,
+      "value": "Run once now"
     }
   ],
   "UV4Dx5": [
@@ -5405,6 +5851,12 @@
       "value": "このエージェントを削除するためのアクセス許可がありません。"
     }
   ],
+  "VA/Z1S": [
+    {
+      "type": 0,
+      "value": "Hide"
+    }
+  ],
   "VB+AjJ": [
     {
       "type": 0,
@@ -5415,6 +5867,12 @@
     {
       "type": 0,
       "value": "ユーザー割り当て済み"
+    }
+  ],
+  "VIcJZp": [
+    {
+      "type": 0,
+      "value": "List View"
     }
   ],
   "VIgoaE": [
@@ -5579,6 +6037,12 @@
       "value": "応答プランが見つかりません"
     }
   ],
+  "W1Qs5O": [
+    {
+      "type": 0,
+      "value": "Runs"
+    }
+  ],
   "W2JBdp": [
     {
       "type": 0,
@@ -5607,6 +6071,12 @@
     {
       "type": 0,
       "value": "承認"
+    }
+  ],
+  "WE9lZK": [
+    {
+      "type": 0,
+      "value": "No connectors configured"
     }
   ],
   "WHleoJ": [
@@ -5677,6 +6147,47 @@
       "value": "Pick an agent to visualize its tools, connectors, and handoffs."
     }
   ],
+  "Wekzzh": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "this item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "these "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "? This action cannot be undone."
+    }
+  ],
   "Wf6bDe": [
     {
       "type": 0,
@@ -5743,6 +6254,12 @@
       "value": "agentName"
     }
   ],
+  "X3hl5x": [
+    {
+      "type": 0,
+      "value": "Assumptions"
+    }
+  ],
   "X4Y2nv": [
     {
       "type": 0,
@@ -5787,6 +6304,12 @@
     {
       "type": 0,
       "value": "アクションは取り消されました。"
+    }
+  ],
+  "XCfiZ2": [
+    {
+      "type": 0,
+      "value": "Draft the cron for me"
     }
   ],
   "XEB3Fn": [
@@ -6281,12 +6804,6 @@
       "value": "調査を開始し、仮説を立てています"
     }
   ],
-  "aA1SYF": [
-    {
-      "type": 0,
-      "value": "データ コネクタの削除"
-    }
-  ],
   "aA8bDw": [
     {
       "type": 0,
@@ -6449,16 +6966,6 @@
       "value": "Cognitive Services Language ライター"
     }
   ],
-  "aqnJe8": [
-    {
-      "type": 0,
-      "value": "データ コネクタを更新できませんでした。エラー: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "auFFJa": [
     {
       "type": 0,
@@ -6485,6 +6992,12 @@
     {
       "type": 0,
       "value": "カスタムのインシデント対応計画の削除"
+    }
+  ],
+  "b5OEXm": [
+    {
+      "type": 0,
+      "value": "How often should it run?"
     }
   ],
   "b7D4Lh": [
@@ -6541,10 +7054,30 @@
       "value": "Connector (Optional)"
     }
   ],
+  "bdhTWR": [
+    {
+      "type": 0,
+      "value": "Name can only contain letters, numbers, or hyphens and must be "
+    },
+    {
+      "type": 1,
+      "value": "maxLength"
+    },
+    {
+      "type": 0,
+      "value": " characters or fewer."
+    }
+  ],
   "bect+9": [
     {
       "type": 0,
       "value": "安定 - 月に 1 回更新プログラムを受信します"
+    }
+  ],
+  "bjOnWH": [
+    {
+      "type": 0,
+      "value": "Add your draft instructions before asking for polish."
     }
   ],
   "blSyDZ": [
@@ -6583,6 +7116,16 @@
       "value": "過去 1 日"
     }
   ],
+  "bquSks": [
+    {
+      "type": 0,
+      "value": "Collapse span with id: "
+    },
+    {
+      "type": 1,
+      "value": "id"
+    }
+  ],
   "bri0SI": [
     {
       "type": 0,
@@ -6609,6 +7152,12 @@
     {
       "type": 0,
       "value": "インシデント対応計画の無効化"
+    }
+  ],
+  "bxSp6r": [
+    {
+      "type": 0,
+      "value": "No tools match your search."
     }
   ],
   "bxcc6L": [
@@ -6659,6 +7208,20 @@
       "value": "ロール"
     }
   ],
+  "c8Doeq": [
+    {
+      "type": 0,
+      "value": "Connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been deleted successfully"
+    }
+  ],
   "cDjhgm": [
     {
       "type": 0,
@@ -6701,6 +7264,16 @@
       "value": "ストレージ アカウント共同作成者"
     }
   ],
+  "cfbpDd": [
+    {
+      "type": 0,
+      "value": "Category: "
+    },
+    {
+      "type": 1,
+      "value": "category"
+    }
+  ],
   "ciB+oy": [
     {
       "type": 0,
@@ -6711,6 +7284,12 @@
     {
       "type": 0,
       "value": "推奨されるプロンプト"
+    }
+  ],
+  "coPQxN": [
+    {
+      "type": 0,
+      "value": "Filter by custom plan"
     }
   ],
   "coy1iv": [
@@ -6749,6 +7328,12 @@
     {
       "type": 0,
       "value": " に SRE エージェント管理者ロールが正常に追加されました"
+    }
+  ],
+  "ctcA0c": [
+    {
+      "type": 0,
+      "value": "Agent name"
     }
   ],
   "cubQfQ": [
@@ -6835,6 +7420,12 @@
     {
       "type": 0,
       "value": "スケジュールされたタスクの作成"
+    }
+  ],
+  "dLWTUk": [
+    {
+      "type": 0,
+      "value": "An AI sub-agent with instructions and tools"
     }
   ],
   "dQ5/dh": [
@@ -6929,6 +7520,12 @@
       "value": "なし"
     }
   ],
+  "dw6Z3b": [
+    {
+      "type": 0,
+      "value": "What it means"
+    }
+  ],
   "e0a3XV": [
     {
       "type": 0,
@@ -6983,6 +7580,12 @@
       "value": "エージェントで Sev3 アラートに使用する既定のインシデント対応計画を追加します。"
     }
   ],
+  "eVjPEQ": [
+    {
+      "type": 0,
+      "value": "Model Generation"
+    }
+  ],
   "eYEnNu": [
     {
       "type": 0,
@@ -7035,6 +7638,12 @@
     {
       "type": 0,
       "value": "カスタム対応ガイダンス"
+    }
+  ],
+  "et3seW": [
+    {
+      "type": 0,
+      "value": "New handoff sub-agents start as Autonomous. You can connect tools and other details later."
     }
   ],
   "euBSDU": [
@@ -7119,6 +7728,12 @@
       "value": "Cognitive Services Speech 共同作成者"
     }
   ],
+  "fIQSsD": [
+    {
+      "type": 0,
+      "value": "Couldn’t draft the cron yet. Refine the description and try again."
+    }
+  ],
   "fLkL3F": [
     {
       "type": 0,
@@ -7167,10 +7782,32 @@
       "value": "この名前のサブエージェントは既に存在します"
     }
   ],
+  "fio5op": [
+    {
+      "type": 0,
+      "value": "Output"
+    }
+  ],
+  "fjgqNG": [
+    {
+      "type": 0,
+      "value": "Failed to load trace data: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "fk/+VC": [
     {
       "type": 0,
       "value": "相関関係の範囲は、-1 (逆相関) から 1 (正相関) までです"
+    }
+  ],
+  "fssuHC": [
+    {
+      "type": 0,
+      "value": "Connect an MCP server"
     }
   ],
   "ftDEuE": [
@@ -7213,12 +7850,6 @@
     {
       "type": 0,
       "value": "エラー詳細のコピー"
-    }
-  ],
-  "g3ngVx": [
-    {
-      "type": 0,
-      "value": "Create AI agents with custom tools and data connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
     }
   ],
   "g7HOVb": [
@@ -7279,6 +7910,12 @@
     {
       "type": 0,
       "value": "IoT Hub デバイス ツインを管理します。"
+    }
+  ],
+  "gct+2s": [
+    {
+      "type": 0,
+      "value": "Incident response plan:"
     }
   ],
   "gdUWAX": [
@@ -7437,6 +8074,12 @@
       "value": "選択した管理対象リソース グループを削除できませんでした"
     }
   ],
+  "hNKm4/": [
+    {
+      "type": 0,
+      "value": "Sub-Agent"
+    }
+  ],
   "hO1Iog": [
     {
       "type": 0,
@@ -7453,6 +8096,12 @@
     {
       "type": 0,
       "value": "ブック閲覧者"
+    }
+  ],
+  "hS+M7h": [
+    {
+      "type": 0,
+      "value": "Steps to resolution"
     }
   ],
   "hWVnHh": [
@@ -7649,6 +8298,12 @@
       "value": "過去 7 日間"
     }
   ],
+  "it6Lig": [
+    {
+      "type": 0,
+      "value": "Input"
+    }
+  ],
   "it8L1Q": [
     {
       "type": 0,
@@ -7709,6 +8364,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "j1FyDL": [
+    {
+      "type": 0,
+      "value": "No extended tools available."
     }
   ],
   "j2vvrh": [
@@ -7847,6 +8508,12 @@
       "value": "次の実行"
     }
   ],
+  "jqpolM": [
+    {
+      "type": 0,
+      "value": "No system tools available."
+    }
+  ],
   "ju7bLp": [
     {
       "type": 0,
@@ -7871,6 +8538,12 @@
       "value": "YAML must include {collectionName} with at least one entry."
     }
   ],
+  "k+3+Dy": [
+    {
+      "type": 0,
+      "value": "Bar chart"
+    }
+  ],
   "k0VNHX": [
     {
       "type": 1,
@@ -7893,10 +8566,22 @@
       "value": "アラート ID"
     }
   ],
+  "kG0ZtT": [
+    {
+      "type": 0,
+      "value": "Other cron ideas"
+    }
+  ],
   "kHIJzq": [
     {
       "type": 0,
       "value": "サブスクリプションが等しい"
+    }
+  ],
+  "kQAf2d": [
+    {
+      "type": 0,
+      "value": "Select"
     }
   ],
   "kQSvkP": [
@@ -7943,12 +8628,6 @@
     {
       "type": 0,
       "value": "相関関係分析"
-    }
-  ],
-  "ko0rr4": [
-    {
-      "type": 0,
-      "value": "データ コネクタの構成を更新します。"
     }
   ],
   "koWZK8": [
@@ -8039,6 +8718,12 @@
       "value": "AzureML データ科学者"
     }
   ],
+  "lCsNuL": [
+    {
+      "type": 0,
+      "value": "Trace data found, but could not parse into spans."
+    }
+  ],
   "lDMkTI": [
     {
       "type": 0,
@@ -8047,6 +8732,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "lDx7s5": [
+    {
+      "type": 0,
+      "value": "Agent responses are more concise in this mode."
     }
   ],
   "lKv8ex": [
@@ -8065,6 +8756,12 @@
     {
       "type": 0,
       "value": "影響を受けるリソース"
+    }
+  ],
+  "lUAfdH": [
+    {
+      "type": 0,
+      "value": "MCP server name"
     }
   ],
   "lawXja": [
@@ -8111,16 +8808,16 @@
       "value": "リージョン"
     }
   ],
+  "lni1id": [
+    {
+      "type": 0,
+      "value": "Search system tools by name, category, or description"
+    }
+  ],
   "lqgE72": [
     {
       "type": 0,
       "value": "Azure Monitor に接続しています..."
-    }
-  ],
-  "ltBXTD": [
-    {
-      "type": 0,
-      "value": "Search agents, tools, or connectors"
     }
   ],
   "lvNWLS": [
@@ -8141,6 +8838,12 @@
       "value": "カスタム対応計画の生成"
     }
   ],
+  "m3Npit": [
+    {
+      "type": 0,
+      "value": "No tools available. Try creating one or clearing your filters."
+    }
+  ],
   "m57OnF": [
     {
       "type": 0,
@@ -8151,6 +8854,20 @@
     {
       "type": 0,
       "value": "エージェントで P1 基本インシデントに使用する既定のインシデント対応計画を追加します。"
+    }
+  ],
+  "m8grMF": [
+    {
+      "type": 0,
+      "value": "Connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
     }
   ],
   "mAyw3x": [
@@ -8169,6 +8886,12 @@
     {
       "type": 0,
       "value": "Owning team ID is required when adding a default response plan."
+    }
+  ],
+  "mHep2R": [
+    {
+      "type": 0,
+      "value": "Last run"
     }
   ],
   "mJXXeS": [
@@ -8281,6 +9004,12 @@
       "value": "ユーザーに軽減されたインシデント"
     }
   ],
+  "mbb8vl": [
+    {
+      "type": 0,
+      "value": "User prompt"
+    }
+  ],
   "mbtoHb": [
     {
       "type": 0,
@@ -8309,6 +9038,34 @@
     {
       "type": 0,
       "value": "インシデント応答プラン"
+    }
+  ],
+  "mm/uFP": [
+    {
+      "type": 0,
+      "value": "Filter by mitigated by"
+    }
+  ],
+  "mopY52": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " and linked it as a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgentName"
+    },
+    {
+      "type": 0,
+      "value": ". Choose what you’d like to do next."
     }
   ],
   "mq/sud": [
@@ -8443,18 +9200,10 @@
       "value": "name"
     }
   ],
-  "nh3LaL": [
+  "ncB14A": [
     {
       "type": 0,
-      "value": "Created "
-    },
-    {
-      "type": 1,
-      "value": "agentName"
-    },
-    {
-      "type": 0,
-      "value": ". Finish the setup in Incident management."
+      "value": "Agent invoked"
     }
   ],
   "nmpevl": [
@@ -8649,6 +9398,12 @@
       "value": "errorMessage"
     }
   ],
+  "ocTBQX": [
+    {
+      "type": 0,
+      "value": "Failed to delete connector"
+    }
+  ],
   "omHElC": [
     {
       "type": 0,
@@ -8667,10 +9422,34 @@
       "value": "中"
     }
   ],
+  "owa0nd": [
+    {
+      "type": 0,
+      "value": "Expand span with id: "
+    },
+    {
+      "type": 1,
+      "value": "id"
+    }
+  ],
   "ox7DwN": [
     {
       "type": 0,
       "value": "高リスク"
+    }
+  ],
+  "p/QlSI": [
+    {
+      "type": 0,
+      "value": "Updating connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
     }
   ],
   "p/xAmY": [
@@ -8727,6 +9506,12 @@
       "value": "管理対象リソース"
     }
   ],
+  "pCRg92": [
+    {
+      "type": 0,
+      "value": "You do not have permission to add or delete connectors."
+    }
+  ],
   "pDUFq5": [
     {
       "type": 0,
@@ -8737,12 +9522,6 @@
     {
       "type": 0,
       "value": "現在の状態"
-    }
-  ],
-  "pG9xP9": [
-    {
-      "type": 0,
-      "value": "この名前のデータ コネクタは既に存在します"
     }
   ],
   "pRvgsc": [
@@ -8895,6 +9674,12 @@
       "value": "合計:"
     }
   ],
+  "qavd9Y": [
+    {
+      "type": 0,
+      "value": "Tell us how often your agent should run and we’ll draft the cron expression for you."
+    }
+  ],
   "qczspd": [
     {
       "type": 0,
@@ -8917,6 +9702,12 @@
     {
       "type": 0,
       "value": "過去 7 日間のコスト"
+    }
+  ],
+  "qf1aUJ": [
+    {
+      "type": 0,
+      "value": "A connector with this name already exists"
     }
   ],
   "qhApmK": [
@@ -8955,6 +9746,20 @@
       "value": "バックエンド エンドポイント"
     }
   ],
+  "qvTohT": [
+    {
+      "type": 0,
+      "value": "No results for \""
+    },
+    {
+      "type": 1,
+      "value": "searchText"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "qvviEg": [
     {
       "type": 0,
@@ -8983,6 +9788,12 @@
     {
       "type": 0,
       "value": "Connector"
+    }
+  ],
+  "rAbWbb": [
+    {
+      "type": 0,
+      "value": "No description available"
     }
   ],
   "rBPlLc": [
@@ -9077,6 +9888,12 @@
       "value": " の関係を示しています。相関関係値は、これら 2 つのメトリックがどの程度強く影響し合っているかを示します。"
     }
   ],
+  "rTBfGn": [
+    {
+      "type": 0,
+      "value": "Service type: All"
+    }
+  ],
   "rVtn/e": [
     {
       "type": 0,
@@ -9109,6 +9926,12 @@
     {
       "type": 0,
       "value": "閉じる"
+    }
+  ],
+  "rd+inb": [
+    {
+      "type": 0,
+      "value": "Create AI agents with custom tools and connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
     }
   ],
   "rd6YZk": [
@@ -9195,6 +10018,20 @@
       "value": "インシデント応答のテスト"
     }
   ],
+  "rxcQLa": [
+    {
+      "type": 0,
+      "value": "Creating connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "ryPHA8": [
     {
       "type": 0,
@@ -9235,10 +10072,30 @@
       "value": "IcM に接続しています..."
     }
   ],
+  "sAireQ": [
+    {
+      "type": 0,
+      "value": "Select subscription"
+    }
+  ],
   "sH0O5v": [
     {
       "type": 0,
       "value": "タイトルのキーワードを入力してください"
+    }
+  ],
+  "sHc8w5": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Pick a next step below to keep building."
     }
   ],
   "sI+CCC": [
@@ -9263,6 +10120,12 @@
     {
       "type": 0,
       "value": "タイムスタンプ"
+    }
+  ],
+  "sQZhm1": [
+    {
+      "type": 0,
+      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
     }
   ],
   "sQkhYk": [
@@ -9349,6 +10212,18 @@
       "value": "System Tools (Optional)"
     }
   ],
+  "sf6hMj": [
+    {
+      "type": 0,
+      "value": "Heads-up"
+    }
+  ],
+  "sjlioi": [
+    {
+      "type": 0,
+      "value": "Subagent invoked"
+    }
+  ],
   "slxYbm": [
     {
       "type": 0,
@@ -9375,6 +10250,12 @@
     {
       "type": 0,
       "value": "agent"
+    }
+  ],
+  "sqGM6w": [
+    {
+      "type": 0,
+      "value": "Delete Items"
     }
   ],
   "srG8e2": [
@@ -9465,6 +10346,12 @@
       "value": "医療エージェント エディター"
     }
   ],
+  "tB02Wz": [
+    {
+      "type": 0,
+      "value": "Generating…"
+    }
+  ],
   "tCrMHt": [
     {
       "type": 0,
@@ -9483,24 +10370,16 @@
       "value": "Back to Edit"
     }
   ],
-  "tH6Myj": [
-    {
-      "type": 0,
-      "value": "データ コネクタ \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" は正常に作成されました"
-    }
-  ],
   "tHCvDB": [
     {
       "type": 0,
       "value": "インシデント対応計画を無効にできませんでした"
+    }
+  ],
+  "tJuu1A": [
+    {
+      "type": 0,
+      "value": "✨ AI Suggested Handoff Description"
     }
   ],
   "tLYOnZ": [
@@ -9607,6 +10486,12 @@
       "value": "\" が正常に作成されました"
     }
   ],
+  "thOyk5": [
+    {
+      "type": 0,
+      "value": "Deleting connector"
+    }
+  ],
   "tjE5Cb": [
     {
       "type": 0,
@@ -9665,6 +10550,12 @@
       "value": "Cognitive Services Custom Vision 閲覧者"
     }
   ],
+  "u3AxgJ": [
+    {
+      "type": 0,
+      "value": "Incident status:"
+    }
+  ],
   "u4WKBH": [
     {
       "type": 0,
@@ -9713,6 +10604,16 @@
       "value": "すべての自律性レベル"
     }
   ],
+  "uMF+CT": [
+    {
+      "type": 0,
+      "value": "Remove extended agent: "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "uMNRNl": [
     {
       "type": 0,
@@ -9729,6 +10630,22 @@
     {
       "type": 0,
       "value": "実行要求"
+    }
+  ],
+  "uWmprZ": [
+    {
+      "type": 1,
+      "value": "id"
+    },
+    {
+      "type": 0,
+      "value": " failed"
+    }
+  ],
+  "uYb82D": [
+    {
+      "type": 0,
+      "value": "Pick from presets"
     }
   ],
   "ubULuu": [
@@ -9759,6 +10676,12 @@
     {
       "type": 0,
       "value": "縮小"
+    }
+  ],
+  "unj6JR": [
+    {
+      "type": 0,
+      "value": "Create from template"
     }
   ],
   "unxs9C": [
@@ -9923,32 +10846,22 @@
       "value": "これにより、Azure Monitor への接続が完全に削除されます。エージェントは、Azure Monitor の通知と統合されなくなります。この接続を削除しますか?"
     }
   ],
-  "w2QcbZ": [
+  "w0xxAb": [
     {
       "type": 0,
-      "value": "Created "
-    },
-    {
-      "type": 1,
-      "value": "agentName"
-    },
-    {
-      "type": 0,
-      "value": " and linked it as a handoff for "
-    },
-    {
-      "type": 1,
-      "value": "sourceAgentName"
-    },
-    {
-      "type": 0,
-      "value": ". Finish the setup in Incident management."
+      "value": "Clear description"
     }
   ],
   "w6nz4p": [
     {
       "type": 0,
       "value": "Open incident triggers"
+    }
+  ],
+  "w8UjdT": [
+    {
+      "type": 0,
+      "value": "Connect an Azure service MCP server to give the agent more tools to resolve an incident."
     }
   ],
   "w9tk1A": [
@@ -10047,6 +10960,12 @@
       "value": "カスタムのインシデント対応計画の追加"
     }
   ],
+  "wgyFIG": [
+    {
+      "type": 0,
+      "value": "Polishing…"
+    }
+  ],
   "wkLkeE": [
     {
       "type": 0,
@@ -10083,6 +11002,18 @@
       "value": "Checking trigger setup…"
     }
   ],
+  "x1YTqM": [
+    {
+      "type": 0,
+      "value": "Describe the cadence before we can help."
+    }
+  ],
+  "x25AjF": [
+    {
+      "type": 0,
+      "value": "Tool usage ID"
+    }
+  ],
   "x3aQrV": [
     {
       "type": 0,
@@ -10093,6 +11024,12 @@
     {
       "type": 0,
       "value": "No runs yet"
+    }
+  ],
+  "x4OHX9": [
+    {
+      "type": 0,
+      "value": "Sub-Agent Builder"
     }
   ],
   "x7C8JZ": [
@@ -10199,16 +11136,6 @@
       "value": "グラフのデータ ポイントが不足しています"
     }
   ],
-  "xgNcC+": [
-    {
-      "type": 0,
-      "value": "データ コネクタを作成できませんでした。エラー: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "xmcVZ0": [
     {
       "type": 0,
@@ -10239,10 +11166,22 @@
       "value": "インシデント対応計画を作成できませんでした"
     }
   ],
+  "xsbZ+Q": [
+    {
+      "type": 0,
+      "value": "Add a tool"
+    }
+  ],
   "xtkizV": [
     {
       "type": 0,
       "value": "Web サイト共同作成者"
+    }
+  ],
+  "xvTDgy": [
+    {
+      "type": 0,
+      "value": "Search tools…"
     }
   ],
   "xxoHVE": [
@@ -10309,6 +11248,12 @@
       "value": "この操作はエージェント ID の資格情報を使用して実行されています。"
     }
   ],
+  "yX3QcY": [
+    {
+      "type": 0,
+      "value": "Tool details"
+    }
+  ],
   "yYK6LR": [
     {
       "type": 0,
@@ -10327,16 +11272,16 @@
       "value": "終了時刻"
     }
   ],
-  "yd187T": [
-    {
-      "type": 0,
-      "value": "データ コネクタを作成できませんでした"
-    }
-  ],
   "yeJPGA": [
     {
       "type": 0,
       "value": "エージェント メモリの状態を確認できませんでした。無効に切り替えます:"
+    }
+  ],
+  "yf9+0C": [
+    {
+      "type": 0,
+      "value": "Polished version"
     }
   ],
   "yh4G7g": [
@@ -10349,6 +11294,12 @@
     {
       "type": 0,
       "value": "タスク"
+    }
+  ],
+  "yhZZjG": [
+    {
+      "type": 0,
+      "value": "To agent"
     }
   ],
   "yhqGka": [
@@ -10367,6 +11318,12 @@
     {
       "type": 0,
       "value": "管理対象リソース グループ"
+    }
+  ],
+  "ynVolH": [
+    {
+      "type": 0,
+      "value": "Ask a question or enter a slash(/) to use a command"
     }
   ],
   "yo67XU": [
@@ -10397,12 +11354,6 @@
     {
       "type": 0,
       "value": "説明は 1 行の要約である必要があります。"
-    }
-  ],
-  "z6olIH": [
-    {
-      "type": 0,
-      "value": "An AI agent with instructions and tools"
     }
   ],
   "z8ZYoc": [
@@ -10439,12 +11390,6 @@
     {
       "type": 0,
       "value": "すべての重大度"
-    }
-  ],
-  "zL39WD": [
-    {
-      "type": 0,
-      "value": "Grid View"
     }
   ],
   "zN87hN": [

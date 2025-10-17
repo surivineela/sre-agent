@@ -2343,12 +2343,14 @@ export const ScheduledTasksResources = defineMessages({
     threadId: { defaultMessage: 'Thread ID', id: 'ggVnjB' },
     createdBy: { defaultMessage: 'Created by', id: 'p4mBmL' },
     createdAt: { defaultMessage: 'Created at', id: 'AbXVP4' },
+    all: { defaultMessage: 'All', id: 'zQvVDJ' },
     active: { defaultMessage: 'Active', id: '3a5wL8' },
     paused: { defaultMessage: 'Paused', id: 'C2iTEH' },
     completed: { defaultMessage: 'Completed', id: '95stPq' },
     failed: { defaultMessage: 'Failed', id: 'vXCeIi' },
     pause: { defaultMessage: 'Pause', id: 'tFFMkF' },
     resume: { defaultMessage: 'Resume', id: '3y9DGg' },
+    lastUpdated: { defaultMessage: 'Last updated', id: '0ICwq5' },
     executionHistory: { defaultMessage: 'Execution history', id: 'MPzBut' },
     noScheduledTasks: { defaultMessage: 'No scheduled tasks found', id: 'trPabo' },
     scheduledTasksDescription: {
@@ -2458,6 +2460,11 @@ export const ScheduledTasksResources = defineMessages({
     descriptionLength140: { defaultMessage: 'Description should be 140 characters or fewer.', id: 'gdUWAX' },
     failedToCreateTask: { defaultMessage: 'Failed to create scheduled task. Please try again.', id: 'cEBkPF' },
     unexpectedError: { defaultMessage: 'An unexpected error occurred.', id: 'Xkdnen' },
+    deleteScheduledTasksConfirmationTitle: { defaultMessage: 'Delete scheduled tasks', id: 'M+AZNX' },
+    deleteScheduledTasksConfirmationMessage: {
+        defaultMessage: 'Are you sure you want to delete the selected scheduled tasks? This action cannot be undone.',
+        id: 'nEnDXd',
+    },
     deleteScheduledTaskWithNameConfirmation: {
         defaultMessage: 'Are you sure you want to delete the scheduled task "{name}"? This action cannot be undone.',
         id: 'CzglId',
@@ -2501,7 +2508,13 @@ export const ScheduledTasksResources = defineMessages({
     createFromTemplate: { defaultMessage: 'Create from template', id: 'unj6JR' },
     tasks: { defaultMessage: 'Tasks', id: 'yhU1et' },
     templates: { defaultMessage: 'Templates', id: 'A3ptul' },
-    runOnceNow: { defaultMessage: 'Run once now', id: 'UU91f0' },
+    runTaskNow: { defaultMessage: 'Run task now', id: 'Y7RxDE' },
+    updateList: { defaultMessage: 'Update list', id: '8Vd2Kv' },
+    on: { defaultMessage: 'On', id: 'Zh+5A6' },
+    off: { defaultMessage: 'Off', id: 'OvzONl' },
+    turnOn: { defaultMessage: 'Turn on', id: 'npvxpr' },
+    turnOff: { defaultMessage: 'Turn off', id: 'XZ+Fx6' },
+    filterTasks: { defaultMessage: 'Filter tasks', id: 'iDPKM0' },
 });
 
 export const SubAgentsResources = defineMessages({

@@ -413,5 +413,13 @@ export const formatShortDate = (date?: Date): string => {
  * @returns A string formatted in local date and 2-digit hour:minute format
  */
 export const getLocaleDateTimeHHMM = (date: Date) => {
-    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    return `${date.toLocaleDateString()} ${getLocaleTimeHHMM(date)}`;
+};
+
+/**
+ * @param date A Date object
+ * @returns A string formatted in local date and 2-digit hour:minute format
+ */
+export const getLocaleTimeHHMM = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };

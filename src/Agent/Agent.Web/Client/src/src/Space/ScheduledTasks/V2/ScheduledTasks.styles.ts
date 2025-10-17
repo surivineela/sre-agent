@@ -25,6 +25,22 @@ export const useScheduledTasksStyles = makeStyles({
         height: 'calc(100% - 32px)',
     },
     title: { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' },
+    toolbar: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '5px',
+        padding: '20px',
+        paddingLeft: '0px',
+    },
+    toolbarButton: {
+        fontWeight: 'normal',
+        padding: '2px 8px',
+    },
+    filters: {
+        display: 'flex',
+        gap: '10px',
+        alignItems: 'center',
+    },
     menuItems: {
         display: 'flex',
         gap: '6px',

@@ -9,6 +9,12 @@
       "value": "parameters"
     }
   ],
+  "+/9vVV": [
+    {
+      "type": 0,
+      "value": "Describe it in natural language"
+    }
+  ],
   "+/nU/s": [
     {
       "type": 0,
@@ -19,20 +25,6 @@
     {
       "type": 0,
       "value": "Immettere il nome del connettore"
-    }
-  ],
-  "+4NN8Z": [
-    {
-      "type": 0,
-      "value": "Aggiornamento del connettore dati \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\""
     }
   ],
   "+5BJJL": [
@@ -77,6 +69,18 @@
       "value": "Invia feedback a Microsoft"
     }
   ],
+  "+Hx789": [
+    {
+      "type": 0,
+      "value": "Filter by severity level"
+    }
+  ],
+  "+Pmftr": [
+    {
+      "type": 0,
+      "value": "Reset draft"
+    }
+  ],
   "+S4WAz": [
     {
       "type": 0,
@@ -101,12 +105,6 @@
       "value": "Tipo"
     }
   ],
-  "+UcRHd": [
-    {
-      "type": 0,
-      "value": "Starter agent"
-    }
-  ],
   "+bJIWo": [
     {
       "type": 0,
@@ -117,12 +115,6 @@
     {
       "type": 0,
       "value": "Eliminare l'incidente?"
-    }
-  ],
-  "+hJd45": [
-    {
-      "type": 0,
-      "value": "Modifica connettore dati"
     }
   ],
   "+iCTRd": [
@@ -153,6 +145,12 @@
     {
       "type": 0,
       "value": "Aggiungere un piano di risposta agli incidenti predefinito per l'agente da usare per gli incidenti LiveSite con Gravità 3."
+    }
+  ],
+  "+p60ph": [
+    {
+      "type": 0,
+      "value": "MCP server icon"
     }
   ],
   "+uAdUZ": [
@@ -225,10 +223,22 @@
       "value": "Incidenti passati per la stessa risorsa"
     }
   ],
+  "/WgnYE": [
+    {
+      "type": 0,
+      "value": "We couldn't understand that description. Try a different phrasing."
+    }
+  ],
   "/WrP/v": [
     {
       "type": 0,
       "value": "Operatore App contenitore"
+    }
+  ],
+  "/Z1fHN": [
+    {
+      "type": 0,
+      "value": "Tool and subagent activity sent to user"
     }
   ],
   "/dxZCE": [
@@ -241,6 +251,12 @@
     {
       "type": 0,
       "value": "Gestire progetti di Visione personalizzata."
+    }
+  ],
+  "/mHau5": [
+    {
+      "type": 0,
+      "value": "Failed to create connector"
     }
   ],
   "/rNkXe": [
@@ -321,6 +337,12 @@
     {
       "type": 0,
       "value": " failed. Retry link."
+    }
+  ],
+  "0BUTMv": [
+    {
+      "type": 0,
+      "value": "Search..."
     }
   ],
   "0D+7fr": [
@@ -405,6 +427,18 @@
     {
       "type": 0,
       "value": "Seleziona attività"
+    }
+  ],
+  "0i3Qrd": [
+    {
+      "type": 0,
+      "value": "Agent Response"
+    }
+  ],
+  "0iLXks": [
+    {
+      "type": 0,
+      "value": "No extended agents available"
     }
   ],
   "0ltHAS": [
@@ -511,6 +545,12 @@
       "value": "Attività"
     }
   ],
+  "12GY0h": [
+    {
+      "type": 0,
+      "value": "Describe the schedule before generating a cron expression."
+    }
+  ],
   "1389z+": [
     {
       "type": 0,
@@ -561,6 +601,12 @@
       "value": "error"
     }
   ],
+  "1GbY5N": [
+    {
+      "type": 0,
+      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Connectors instead."
+    }
+  ],
   "1HLt0U": [
     {
       "type": 0,
@@ -579,6 +625,16 @@
     {
       "type": 0,
       "value": " è stato eliminato"
+    }
+  ],
+  "1OorZL": [
+    {
+      "type": 0,
+      "value": "Failed to update connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "1PVhxx": [
@@ -629,6 +685,20 @@
       "value": "Ruolo"
     }
   ],
+  "1aNP56": [
+    {
+      "type": 0,
+      "value": "Connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been updated successfully"
+    }
+  ],
   "1dOMiz": [
     {
       "type": 0,
@@ -653,6 +723,12 @@
       "value": "Alert status"
     }
   ],
+  "1iEPTM": [
+    {
+      "type": 0,
+      "value": "General"
+    }
+  ],
   "1rAiXS": [
     {
       "type": 0,
@@ -663,6 +739,18 @@
     {
       "type": 0,
       "value": "Sospendere l'attività pianificata?"
+    }
+  ],
+  "2+TYMx": [
+    {
+      "type": 0,
+      "value": "Add a trigger"
+    }
+  ],
+  "2+atxY": [
+    {
+      "type": 0,
+      "value": "Handoff"
     }
   ],
   "2/2yg+": [
@@ -701,6 +789,18 @@
     {
       "type": 0,
       "value": "Modificare la modalità agente per questo thread"
+    }
+  ],
+  "2Bb4rY": [
+    {
+      "type": 0,
+      "value": "Failed to update connector"
+    }
+  ],
+  "2CSEeq": [
+    {
+      "type": 0,
+      "value": "Describe the cadence—get the cron"
     }
   ],
   "2FLZrG": [
@@ -763,12 +863,6 @@
     {
       "type": 0,
       "value": "Indagine approfondita"
-    }
-  ],
-  "2e3GZQ": [
-    {
-      "type": 0,
-      "value": "Create a handoff agent"
     }
   ],
   "2hB9SP": [
@@ -861,6 +955,12 @@
       "value": "Immettere il nome della risorsa"
     }
   ],
+  "3GLH+d": [
+    {
+      "type": 0,
+      "value": "Examples"
+    }
+  ],
   "3H77Ic": [
     {
       "type": 0,
@@ -915,6 +1015,12 @@
       "value": "Save Changes"
     }
   ],
+  "3Wq8aM": [
+    {
+      "type": 0,
+      "value": "Cron"
+    }
+  ],
   "3a5wL8": [
     {
       "type": 0,
@@ -957,6 +1063,12 @@
       "value": "Riprendi"
     }
   ],
+  "3yurtF": [
+    {
+      "type": 0,
+      "value": "Next run"
+    }
+  ],
   "3zLsNR": [
     {
       "type": 0,
@@ -967,6 +1079,12 @@
     {
       "type": 0,
       "value": "Il piano di risposta agli incidenti personalizzato è stato aggiornato"
+    }
+  ],
+  "4/aFfy": [
+    {
+      "type": 0,
+      "value": "Tree"
     }
   ],
   "4/nSt8": [
@@ -1029,6 +1147,12 @@
       "value": "This agent"
     }
   ],
+  "493R/T": [
+    {
+      "type": 0,
+      "value": "Share your draft instructions and we’ll tailor them for a scheduled agent run."
+    }
+  ],
   "498yM3": [
     {
       "type": 0,
@@ -1071,6 +1195,12 @@
     {
       "type": 0,
       "value": "Collaboratore cartelle di lavoro"
+    }
+  ],
+  "4OCLSf": [
+    {
+      "type": 0,
+      "value": "Response to user"
     }
   ],
   "4OUjTL": [
@@ -1145,6 +1275,12 @@
       "value": "Un piano di risposta agli incidenti definisce gli incidenti che l'agente deve gestire applicando i criteri di filtro, assicurando risposte per il set di incidenti richiesto."
     }
   ],
+  "4pJVaS": [
+    {
+      "type": 0,
+      "value": "Select row"
+    }
+  ],
   "4uiKBK": [
     {
       "type": 0,
@@ -1187,6 +1323,12 @@
       "value": "Dettagli di esecuzione e richiesta"
     }
   ],
+  "54UIcW": [
+    {
+      "type": 0,
+      "value": "We couldn’t polish the instructions. Try again shortly."
+    }
+  ],
   "59z+Aj": [
     {
       "type": 0,
@@ -1203,10 +1345,26 @@
       "value": "Non sono disponibili le autorizzazioni per autorizzare l'accesso al repository."
     }
   ],
+  "5DqOua": [
+    {
+      "type": 0,
+      "value": "Pick an extended agent to assist you with tasks."
+    }
+  ],
   "5GUtRJ": [
     {
       "type": 0,
       "value": "Invio di un report in corso..."
+    }
+  ],
+  "5Imse3": [
+    {
+      "type": 0,
+      "value": "Failed to delete connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "5MSxYS": [
@@ -1305,16 +1463,6 @@
       "value": "Mitigato dall'utente"
     }
   ],
-  "5dcGlG": [
-    {
-      "type": 0,
-      "value": "Non è stato possibile eliminare il connettore dati con l'errore: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "5gEh2M": [
     {
       "type": 0,
@@ -1347,6 +1495,12 @@
     {
       "type": 0,
       "value": "Sconosciuto"
+    }
+  ],
+  "5kK+j9": [
+    {
+      "type": 0,
+      "value": "Restart"
     }
   ],
   "5kp1Ie": [
@@ -1511,6 +1665,12 @@
       "value": "Identità gestita assegnata dall'utente"
     }
   ],
+  "6SKklv": [
+    {
+      "type": 0,
+      "value": "Remove attachment"
+    }
+  ],
   "6TO45V": [
     {
       "type": 0,
@@ -1559,6 +1719,12 @@
       "value": "ID di correlazione:"
     }
   ],
+  "6dEJ43": [
+    {
+      "type": 0,
+      "value": "Cron draft"
+    }
+  ],
   "6dWeUs": [
     {
       "type": 0,
@@ -1587,6 +1753,12 @@
     {
       "type": 0,
       "value": "Rilevato nuovo avviso di Monitoraggio di Azure"
+    }
+  ],
+  "6umiRw": [
+    {
+      "type": 0,
+      "value": "A clear, concise description that helps other agents understand when to delegate work to this specialist agent. This appears in agent handoff decisions and collaboration workflows."
     }
   ],
   "6v8Uj+": [
@@ -1689,6 +1861,12 @@
       "value": "A unique identifier for your connector"
     }
   ],
+  "7X1tNR": [
+    {
+      "type": 0,
+      "value": "Create task"
+    }
+  ],
   "7cS956": [
     {
       "type": 0,
@@ -1705,6 +1883,12 @@
     {
       "type": 0,
       "value": "Dettagli progetto"
+    }
+  ],
+  "7kPmO3": [
+    {
+      "type": 0,
+      "value": "Edit connector"
     }
   ],
   "7nUCu9": [
@@ -1841,16 +2025,16 @@
       "value": "Accesso completo ai dati di Gemelli digitali di Azure."
     }
   ],
+  "8BaLs0": [
+    {
+      "type": 0,
+      "value": "Select all rows"
+    }
+  ],
   "8F5cJQ": [
     {
       "type": 0,
       "value": "Il piano di risposta agli incidenti personalizzato è stato aggiunto"
-    }
-  ],
-  "8Hjku9": [
-    {
-      "type": 0,
-      "value": "Creazione del connettore dati"
     }
   ],
   "8LMIGa": [
@@ -1913,6 +2097,12 @@
       "value": "Accesso di sola lettura al servizio e alle API."
     }
   ],
+  "8dASTJ": [
+    {
+      "type": 0,
+      "value": "Create a handoff sub-agent"
+    }
+  ],
   "8fYK1J": [
     {
       "type": 0,
@@ -1929,6 +2119,18 @@
     {
       "type": 0,
       "value": "Collaboratore Cache Redis"
+    }
+  ],
+  "8ojA9A": [
+    {
+      "type": 0,
+      "value": "Let AI polish the instructions"
+    }
+  ],
+  "8oyl6b": [
+    {
+      "type": 0,
+      "value": "Line chart"
     }
   ],
   "8quEg9": [
@@ -1989,6 +2191,12 @@
       "value": "Seleziona tutto"
     }
   ],
+  "94QRkK": [
+    {
+      "type": 0,
+      "value": "Follow-up questions"
+    }
+  ],
   "94zF5I": [
     {
       "type": 0,
@@ -2005,6 +2213,18 @@
     {
       "type": 0,
       "value": "Nessuna corrispondenza"
+    }
+  ],
+  "98A08r": [
+    {
+      "type": 0,
+      "value": "Learn more about MCP servers"
+    }
+  ],
+  "98TwgV": [
+    {
+      "type": 0,
+      "value": "Describe when and why other agents should hand off to this agent..."
     }
   ],
   "99OdS3": [
@@ -2105,6 +2325,12 @@
       "value": "L'annotazione è stata aggiornata"
     }
   ],
+  "A3ptul": [
+    {
+      "type": 0,
+      "value": "Templates"
+    }
+  ],
   "AA/tRJ": [
     {
       "type": 0,
@@ -2139,12 +2365,6 @@
       "value": "errorMessage"
     }
   ],
-  "ALkPTF": [
-    {
-      "type": 0,
-      "value": "Nessun connettore dati configurato"
-    }
-  ],
   "ATXGa+": [
     {
       "type": 0,
@@ -2155,6 +2375,12 @@
     {
       "type": 0,
       "value": "Mostra solo i gruppi di risorse consigliati"
+    }
+  ],
+  "AaJ/LU": [
+    {
+      "type": 0,
+      "value": "Polish the instructions"
     }
   ],
   "AbXVP4": [
@@ -2213,12 +2439,6 @@
     {
       "type": 0,
       "value": "Create reusable functions and actions for your agents"
-    }
-  ],
-  "ArsZkp": [
-    {
-      "type": 0,
-      "value": "Aggiornamento del connettore dati"
     }
   ],
   "AuFOi8": [
@@ -2313,6 +2533,16 @@
       "value": "Binding"
     }
   ],
+  "BcEbxp": [
+    {
+      "type": 1,
+      "value": "seconds"
+    },
+    {
+      "type": 0,
+      "value": "s"
+    }
+  ],
   "Bcgdb7": [
     {
       "type": 0,
@@ -2349,6 +2579,12 @@
     {
       "type": 0,
       "value": "Data type and requirement for validation"
+    }
+  ],
+  "BynA9c": [
+    {
+      "type": 0,
+      "value": "Optional tweaks"
     }
   ],
   "C2PrxB": [
@@ -2399,6 +2635,12 @@
       "value": "Connect related agents and tools"
     }
   ],
+  "CPsPh7": [
+    {
+      "type": 0,
+      "value": "How would you like to define the schedule?"
+    }
+  ],
   "CTRqZs": [
     {
       "type": 0,
@@ -2429,20 +2671,6 @@
       "value": "Open scheduled tasks"
     }
   ],
-  "CbKRyU": [
-    {
-      "type": 0,
-      "value": "Il connettore dati \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" è stato eliminato"
-    }
-  ],
   "CfGC/2": [
     {
       "type": 0,
@@ -2465,6 +2693,12 @@
     {
       "type": 0,
       "value": "Per modificare la piattaforma degli incidenti, è necessario disconnettersi da PagerDuty. L'agente non gestirà più i ticket. Disconnettersi?"
+    }
+  ],
+  "CvGdox": [
+    {
+      "type": 0,
+      "value": "Add more tools for incident response"
     }
   ],
   "CvWvf+": [
@@ -2599,6 +2833,12 @@
       "value": "No instructions provided yet."
     }
   ],
+  "Dhy8jb": [
+    {
+      "type": 0,
+      "value": "A data source connection for tools (e.g., Kusto cluster for running queries)"
+    }
+  ],
   "DlSXUR": [
     {
       "type": 0,
@@ -2651,6 +2891,12 @@
     {
       "type": 0,
       "value": "Selezione data di fine"
+    }
+  ],
+  "E+jVAN": [
+    {
+      "type": 0,
+      "value": "No trace data found for this thread."
     }
   ],
   "E396gv": [
@@ -2729,6 +2975,12 @@
       "value": "Non è stato possibile caricare le sottoscrizioni."
     }
   ],
+  "EN5iMk": [
+    {
+      "type": 0,
+      "value": "Service type"
+    }
+  ],
   "ENnkRe": [
     {
       "type": 0,
@@ -2739,12 +2991,6 @@
     {
       "type": 0,
       "value": "Immettere il nome del filtro"
-    }
-  ],
-  "EStH0G": [
-    {
-      "type": 0,
-      "value": "Agent Builder"
     }
   ],
   "EWrExf": [
@@ -2759,28 +3005,32 @@
       "value": "Applica"
     }
   ],
-  "EYRPA4": [
-    {
-      "type": 0,
-      "value": "Non è stato possibile aggiornare il connettore dati"
-    }
-  ],
   "EZBG/A": [
     {
       "type": 0,
       "value": "Piattaforma degli incidenti"
     }
   ],
-  "EZbXbs": [
+  "Ec1M0J": [
     {
       "type": 0,
-      "value": "Non sono disponibili le autorizzazioni per aggiungere o eliminare connettori dati."
+      "value": "Action plan"
     }
   ],
   "EdEthU": [
     {
       "type": 0,
       "value": "Collaboratore area di lavoro Gestione API"
+    }
+  ],
+  "EdZ3pj": [
+    {
+      "type": 0,
+      "value": "Agent: "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "EicA1w": [
@@ -2793,6 +3043,18 @@
     {
       "type": 0,
       "value": "Cerca gruppi di risorse"
+    }
+  ],
+  "ElqLuA": [
+    {
+      "type": 0,
+      "value": "Trace data parsed with warnings."
+    }
+  ],
+  "EmN362": [
+    {
+      "type": 0,
+      "value": "Create connector"
     }
   ],
   "Ep74wA": [
@@ -2811,6 +3073,12 @@
     {
       "type": 0,
       "value": "Agente SRE di Azure"
+    }
+  ],
+  "Euy+fB": [
+    {
+      "type": 0,
+      "value": "Connect MCP server"
     }
   ],
   "EwRIOm": [
@@ -2893,6 +3161,12 @@
     {
       "type": 0,
       "value": "Connessione repository"
+    }
+  ],
+  "FNQNS1": [
+    {
+      "type": 0,
+      "value": "Weekdays at 9am Pacific"
     }
   ],
   "FO/nez": [
@@ -2991,18 +3265,14 @@
       "value": "Rimuovi"
     }
   ],
-  "G2GBW0": [
-    {
-      "type": 0,
-      "value": "Creazione del connettore dati \""
-    },
+  "G5JMSn": [
     {
       "type": 1,
-      "value": "name"
+      "value": "0"
     },
     {
       "type": 0,
-      "value": "\""
+      "value": " subscriptions selected"
     }
   ],
   "G6vaGg": [
@@ -3035,10 +3305,28 @@
       "value": "Back to commands"
     }
   ],
+  "GNJGHu": [
+    {
+      "type": 0,
+      "value": "Update the connector configuration."
+    }
+  ],
   "GUx4Ld": [
     {
       "type": 0,
       "value": "Impossibile connettersi all'endpoint ServiceNow. Verificare l'URL dell'endpoint."
+    }
+  ],
+  "GaA28c": [
+    {
+      "type": 0,
+      "value": "Incident details"
+    }
+  ],
+  "GkJbiq": [
+    {
+      "type": 0,
+      "value": "Start a new chat thread."
     }
   ],
   "Gl8fnJ": [
@@ -3153,6 +3441,12 @@
     {
       "type": 0,
       "value": "Approvazioni in sospeso"
+    }
+  ],
+  "Hgs+WM": [
+    {
+      "type": 0,
+      "value": "View trace"
     }
   ],
   "Hh0q8u": [
@@ -3345,10 +3639,22 @@
       "value": "Non sono disponibili le autorizzazioni per aggiungere o modificare annotazioni."
     }
   ],
+  "IbMKy+": [
+    {
+      "type": 0,
+      "value": "Use this version"
+    }
+  ],
   "IcB2fr": [
     {
       "type": 0,
       "value": "Tool method argument that receives this value"
+    }
+  ],
+  "IcUakl": [
+    {
+      "type": 0,
+      "value": "Time zone"
     }
   ],
   "IiNwpr": [
@@ -3471,12 +3777,6 @@
       "value": "Caricamento in corso..."
     }
   ],
-  "JHqOn0": [
-    {
-      "type": 0,
-      "value": "Caricare documenti di architettura occasionali, guide alla risoluzione dei problemi e altra documentazione per migliorare la knowledge base dell'agente. Per la gestione continua dei documenti e gli aggiornamenti automatizzati, valutare la possibilità di usare i connettori dati."
-    }
-  ],
   "JJNc3c": [
     {
       "type": 0,
@@ -3581,6 +3881,22 @@
       "value": "Analisi dell'agente delle cause che hanno attivato l'incidente."
     }
   ],
+  "JbB2Vb": [
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " locations selected"
+    }
+  ],
+  "JbmMWM": [
+    {
+      "type": 0,
+      "value": "Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatible connector was found)"
+    }
+  ],
   "JezZlU": [
     {
       "type": 0,
@@ -3649,6 +3965,12 @@
       "value": "Review Your trigger"
     }
   ],
+  "JzOvG/": [
+    {
+      "type": 0,
+      "value": "Assumptions we made"
+    }
+  ],
   "K1h5xo": [
     {
       "type": 0,
@@ -3661,10 +3983,16 @@
       "value": "Elimina"
     }
   ],
-  "K6WTYI": [
+  "K7AkdL": [
     {
       "type": 0,
-      "value": "A data source connection for tools"
+      "value": "Show"
+    }
+  ],
+  "K9q4Xw": [
+    {
+      "type": 0,
+      "value": "MCP servers"
     }
   ],
   "KAYpG9": [
@@ -3821,12 +4149,6 @@
       "value": " in corso"
     }
   ],
-  "L5ZL+u": [
-    {
-      "type": 0,
-      "value": "Connettori dati"
-    }
-  ],
   "LFn7Ak": [
     {
       "type": 0,
@@ -3895,10 +4217,22 @@
       "value": "I filtri definiscono a quali incidenti si applica il piano di risposta agli incidenti. Si applicano all'elenco degli incidenti visualizzati in anteprima nel passaggio successivo."
     }
   ],
+  "LbkJp1": [
+    {
+      "type": 0,
+      "value": "MCP servers table"
+    }
+  ],
   "LkUvu/": [
     {
       "type": 0,
       "value": "Describe the schedule"
+    }
+  ],
+  "Lm9kBB": [
+    {
+      "type": 0,
+      "value": "Select an incident."
     }
   ],
   "LnglaU": [
@@ -3985,6 +4319,16 @@
       "value": "ID incidente"
     }
   ],
+  "MHkWzD": [
+    {
+      "type": 1,
+      "value": "id"
+    },
+    {
+      "type": 0,
+      "value": " completed"
+    }
+  ],
   "MI5gZ+": [
     {
       "type": 0,
@@ -4001,6 +4345,12 @@
     {
       "type": 0,
       "value": "Failed to improve instructions. Please try again."
+    }
+  ],
+  "MK8Q9z": [
+    {
+      "type": 0,
+      "value": "Creating connector"
     }
   ],
   "MLVVhB": [
@@ -4043,6 +4393,12 @@
     {
       "type": 0,
       "value": "Kusto Configuration"
+    }
+  ],
+  "MgdnPi": [
+    {
+      "type": 0,
+      "value": "Response"
     }
   ],
   "MhTfXm": [
@@ -4159,6 +4515,12 @@
       "value": "Autorizzazione concessa"
     }
   ],
+  "NBiLYK": [
+    {
+      "type": 0,
+      "value": "Drafting…"
+    }
+  ],
   "NBxjGE": [
     {
       "type": 0,
@@ -4237,12 +4599,6 @@
       "value": "Grazie per i commenti e suggerimenti inviati."
     }
   ],
-  "Nup8Xl": [
-    {
-      "type": 0,
-      "value": "Crea connettore dati"
-    }
-  ],
   "O3Ak71": [
     {
       "type": 0,
@@ -4259,6 +4615,12 @@
     {
       "type": 0,
       "value": "Eliminare questo agente SRE? L'azione non può essere annullata."
+    }
+  ],
+  "OIWzWF": [
+    {
+      "type": 0,
+      "value": "Filter by autonomy level"
     }
   ],
   "OJ2u8k": [
@@ -4313,6 +4675,12 @@
       "value": ". Refresh and try again."
     }
   ],
+  "OPBqEN": [
+    {
+      "type": 0,
+      "value": "Trace data parsed with errors."
+    }
+  ],
   "ORGv1Q": [
     {
       "type": 0,
@@ -4329,6 +4697,12 @@
     {
       "type": 0,
       "value": "Le risorse selezionate dispongono delle autorizzazioni per questi ruoli."
+    }
+  ],
+  "OUJuir": [
+    {
+      "type": 0,
+      "value": "Model details"
     }
   ],
   "OV0MpG": [
@@ -4423,6 +4797,12 @@
       "value": "Comando PostgreSQL"
     }
   ],
+  "P0yf0W": [
+    {
+      "type": 0,
+      "value": "Search tools by name, category, or description"
+    }
+  ],
   "P3qxV2": [
     {
       "type": 0,
@@ -4501,6 +4881,12 @@
       "value": "Choose the Kusto connector this tool will query"
     }
   ],
+  "PSfARI": [
+    {
+      "type": 0,
+      "value": "Loading more rows..."
+    }
+  ],
   "PU1wDo": [
     {
       "type": 0,
@@ -4529,6 +4915,16 @@
     {
       "type": 0,
       "value": "Collaboratore macchina virtuale"
+    }
+  ],
+  "PZc06m": [
+    {
+      "type": 1,
+      "value": "tokens"
+    },
+    {
+      "type": 0,
+      "value": "t"
     }
   ],
   "Pc+tM3": [
@@ -4587,6 +4983,12 @@
       "value": "Non connesso"
     }
   ],
+  "PvMAYc": [
+    {
+      "type": 0,
+      "value": "No system tools match your search."
+    }
+  ],
   "Pwen/L": [
     {
       "type": 0,
@@ -4599,12 +5001,6 @@
       "value": "P2"
     }
   ],
-  "PxLzzW": [
-    {
-      "type": 0,
-      "value": "Si vuole..."
-    }
-  ],
   "PysW/n": [
     {
       "type": 0,
@@ -4615,6 +5011,12 @@
     {
       "type": 0,
       "value": "Provisioning del dashboard di Grafana"
+    }
+  ],
+  "Q++yMM": [
+    {
+      "type": 0,
+      "value": "Subagent"
     }
   ],
   "Q/agzh": [
@@ -4689,6 +5091,12 @@
       "value": "Usi (trigger, azione)"
     }
   ],
+  "QY3CEK": [
+    {
+      "type": 0,
+      "value": "Handoff Description"
+    }
+  ],
   "Qc3Kdl": [
     {
       "type": 0,
@@ -4729,6 +5137,12 @@
       "value": "App Web"
     }
   ],
+  "QlkL14": [
+    {
+      "type": 0,
+      "value": "Updating connector"
+    }
+  ],
   "QlsDcr": [
     {
       "type": 0,
@@ -4739,6 +5153,26 @@
     {
       "type": 0,
       "value": "Per visualizzare i ruoli e le autorizzazioni che avrà l'agente, scegliere i gruppi di risorse che l'agente deve gestire."
+    }
+  ],
+  "QmOU5t": [
+    {
+      "type": 0,
+      "value": "Deleting connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
+  "Qn8Bok": [
+    {
+      "type": 0,
+      "value": "Handback"
     }
   ],
   "QomX1y": [
@@ -4781,20 +5215,6 @@
       "value": "error"
     }
   ],
-  "R5Y4rC": [
-    {
-      "type": 0,
-      "value": "Il connettore dati \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" è stato aggiornato"
-    }
-  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -4805,6 +5225,12 @@
     {
       "type": 0,
       "value": "I thread degli incidenti sono stati spostati"
+    }
+  ],
+  "RA3fki": [
+    {
+      "type": 0,
+      "value": "Missing context"
     }
   ],
   "RAjqKb": [
@@ -4953,12 +5379,6 @@
       "value": "count"
     }
   ],
-  "Rsq6sZ": [
-    {
-      "type": 0,
-      "value": "New handoff agents start as Autonomous. You can connect tools and other details later."
-    }
-  ],
   "S0GneP": [
     {
       "type": 0,
@@ -4977,24 +5397,20 @@
       "value": "Ultime 12 ore"
     }
   ],
+  "S2z35W": [
+    {
+      "type": 0,
+      "value": "Failed to create connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "S57QRB": [
     {
       "type": 0,
       "value": "Filtra per"
-    }
-  ],
-  "S6FECK": [
-    {
-      "type": 0,
-      "value": "Eliminazione del connettore dati \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\""
     }
   ],
   "SAINuE": [
@@ -5091,6 +5507,12 @@
       "value": "No common prompts added."
     }
   ],
+  "SZMgCd": [
+    {
+      "type": 0,
+      "value": "Connect a Model Context Protocol (MCP) server to give the agent additional tools and actions for automating incident handling."
+    }
+  ],
   "Sdc+Dp": [
     {
       "type": 0,
@@ -5131,6 +5553,12 @@
     {
       "type": 0,
       "value": "Autonomo"
+    }
+  ],
+  "StVmtb": [
+    {
+      "type": 0,
+      "value": "Generate schedule"
     }
   ],
   "SuVToZ": [
@@ -5267,6 +5695,12 @@
       "value": "platform"
     }
   ],
+  "TKsgZu": [
+    {
+      "type": 0,
+      "value": "Key alerts"
+    }
+  ],
   "TMZ2Rq": [
     {
       "type": 0,
@@ -5373,16 +5807,28 @@
       "value": "mode"
     }
   ],
-  "UKUKGA": [
+  "UNXega": [
     {
       "type": 0,
-      "value": "Non è stato possibile eliminare il connettore dati"
+      "value": "From agent"
     }
   ],
   "UPybTw": [
     {
       "type": 0,
       "value": "Vai alla mappa"
+    }
+  ],
+  "UQUIP7": [
+    {
+      "type": 0,
+      "value": "Request error"
+    }
+  ],
+  "UU91f0": [
+    {
+      "type": 0,
+      "value": "Run once now"
     }
   ],
   "UV4Dx5": [
@@ -5481,6 +5927,12 @@
       "value": "Non sono disponibili le autorizzazioni per eliminare questo agente."
     }
   ],
+  "VA/Z1S": [
+    {
+      "type": 0,
+      "value": "Hide"
+    }
+  ],
   "VB+AjJ": [
     {
       "type": 0,
@@ -5491,6 +5943,12 @@
     {
       "type": 0,
       "value": "Assegnato dall'utente"
+    }
+  ],
+  "VIcJZp": [
+    {
+      "type": 0,
+      "value": "List View"
     }
   ],
   "VIgoaE": [
@@ -5651,6 +6109,12 @@
       "value": "Non sono stati trovati piani di risposta"
     }
   ],
+  "W1Qs5O": [
+    {
+      "type": 0,
+      "value": "Runs"
+    }
+  ],
   "W2JBdp": [
     {
       "type": 0,
@@ -5679,6 +6143,12 @@
     {
       "type": 0,
       "value": "Approva"
+    }
+  ],
+  "WE9lZK": [
+    {
+      "type": 0,
+      "value": "No connectors configured"
     }
   ],
   "WHleoJ": [
@@ -5753,6 +6223,47 @@
       "value": "Pick an agent to visualize its tools, connectors, and handoffs."
     }
   ],
+  "Wekzzh": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "this item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "these "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "? This action cannot be undone."
+    }
+  ],
   "Wf6bDe": [
     {
       "type": 0,
@@ -5819,6 +6330,12 @@
       "value": "agentName"
     }
   ],
+  "X3hl5x": [
+    {
+      "type": 0,
+      "value": "Assumptions"
+    }
+  ],
   "X4Y2nv": [
     {
       "type": 0,
@@ -5863,6 +6380,12 @@
     {
       "type": 0,
       "value": "L'azione è stata annullata."
+    }
+  ],
+  "XCfiZ2": [
+    {
+      "type": 0,
+      "value": "Draft the cron for me"
     }
   ],
   "XEB3Fn": [
@@ -6353,12 +6876,6 @@
       "value": "Avvio dell'indagine e formulazione dell'ipotesi"
     }
   ],
-  "aA1SYF": [
-    {
-      "type": 0,
-      "value": "Eliminazione del connettore dati"
-    }
-  ],
   "aA8bDw": [
     {
       "type": 0,
@@ -6521,16 +7038,6 @@
       "value": "Ruolo con autorizzazioni di scrittura del linguaggio di Servizi cognitivi"
     }
   ],
-  "aqnJe8": [
-    {
-      "type": 0,
-      "value": "Non è stato possibile aggiornare il connettore dati con l'errore: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "auFFJa": [
     {
       "type": 0,
@@ -6561,6 +7068,12 @@
     {
       "type": 0,
       "value": "Elimina piano di risposta agli incidenti personalizzato"
+    }
+  ],
+  "b5OEXm": [
+    {
+      "type": 0,
+      "value": "How often should it run?"
     }
   ],
   "b7D4Lh": [
@@ -6617,10 +7130,30 @@
       "value": "Connector (Optional)"
     }
   ],
+  "bdhTWR": [
+    {
+      "type": 0,
+      "value": "Name can only contain letters, numbers, or hyphens and must be "
+    },
+    {
+      "type": 1,
+      "value": "maxLength"
+    },
+    {
+      "type": 0,
+      "value": " characters or fewer."
+    }
+  ],
   "bect+9": [
     {
       "type": 0,
       "value": "Stabile - Riceve gli aggiornamenti una volta al mese"
+    }
+  ],
+  "bjOnWH": [
+    {
+      "type": 0,
+      "value": "Add your draft instructions before asking for polish."
     }
   ],
   "blSyDZ": [
@@ -6659,6 +7192,16 @@
       "value": "Ultimo giorno"
     }
   ],
+  "bquSks": [
+    {
+      "type": 0,
+      "value": "Collapse span with id: "
+    },
+    {
+      "type": 1,
+      "value": "id"
+    }
+  ],
   "bri0SI": [
     {
       "type": 0,
@@ -6685,6 +7228,12 @@
     {
       "type": 0,
       "value": "Disattiva piano di risposta agli incidenti"
+    }
+  ],
+  "bxSp6r": [
+    {
+      "type": 0,
+      "value": "No tools match your search."
     }
   ],
   "bxcc6L": [
@@ -6735,6 +7284,20 @@
       "value": "Ruoli"
     }
   ],
+  "c8Doeq": [
+    {
+      "type": 0,
+      "value": "Connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been deleted successfully"
+    }
+  ],
   "cDjhgm": [
     {
       "type": 0,
@@ -6777,6 +7340,16 @@
       "value": "Collaboratore account di archiviazione"
     }
   ],
+  "cfbpDd": [
+    {
+      "type": 0,
+      "value": "Category: "
+    },
+    {
+      "type": 1,
+      "value": "category"
+    }
+  ],
   "ciB+oy": [
     {
       "type": 0,
@@ -6787,6 +7360,12 @@
     {
       "type": 0,
       "value": "Richieste suggerite"
+    }
+  ],
+  "coPQxN": [
+    {
+      "type": 0,
+      "value": "Filter by custom plan"
     }
   ],
   "coy1iv": [
@@ -6821,6 +7400,12 @@
     {
       "type": 1,
       "value": "name"
+    }
+  ],
+  "ctcA0c": [
+    {
+      "type": 0,
+      "value": "Agent name"
     }
   ],
   "cubQfQ": [
@@ -6911,6 +7496,12 @@
     {
       "type": 0,
       "value": "Crea attività pianificata"
+    }
+  ],
+  "dLWTUk": [
+    {
+      "type": 0,
+      "value": "An AI sub-agent with instructions and tools"
     }
   ],
   "dQ5/dh": [
@@ -7005,6 +7596,12 @@
       "value": "Mai"
     }
   ],
+  "dw6Z3b": [
+    {
+      "type": 0,
+      "value": "What it means"
+    }
+  ],
   "e0a3XV": [
     {
       "type": 0,
@@ -7059,6 +7656,12 @@
       "value": "Aggiungere un piano di risposta agli incidenti predefinito per l'agente da usare per gli avvisi con Gravità 3."
     }
   ],
+  "eVjPEQ": [
+    {
+      "type": 0,
+      "value": "Model Generation"
+    }
+  ],
   "eYEnNu": [
     {
       "type": 0,
@@ -7111,6 +7714,12 @@
     {
       "type": 0,
       "value": "Indicazioni risposta personalizzata"
+    }
+  ],
+  "et3seW": [
+    {
+      "type": 0,
+      "value": "New handoff sub-agents start as Autonomous. You can connect tools and other details later."
     }
   ],
   "euBSDU": [
@@ -7195,6 +7804,12 @@
       "value": "Collaboratore Voce dei Servizi cognitivi"
     }
   ],
+  "fIQSsD": [
+    {
+      "type": 0,
+      "value": "Couldn’t draft the cron yet. Refine the description and try again."
+    }
+  ],
   "fLkL3F": [
     {
       "type": 0,
@@ -7243,10 +7858,32 @@
       "value": "Esiste già un agente secondario con questo nome"
     }
   ],
+  "fio5op": [
+    {
+      "type": 0,
+      "value": "Output"
+    }
+  ],
+  "fjgqNG": [
+    {
+      "type": 0,
+      "value": "Failed to load trace data: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "fk/+VC": [
     {
       "type": 0,
       "value": "Intervalli di correlazione da -1 (inverso) a 1 (diretto)"
+    }
+  ],
+  "fssuHC": [
+    {
+      "type": 0,
+      "value": "Connect an MCP server"
     }
   ],
   "ftDEuE": [
@@ -7289,12 +7926,6 @@
     {
       "type": 0,
       "value": "Copia dettagli errore"
-    }
-  ],
-  "g3ngVx": [
-    {
-      "type": 0,
-      "value": "Create AI agents with custom tools and data connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
     }
   ],
   "g7HOVb": [
@@ -7355,6 +7986,12 @@
     {
       "type": 0,
       "value": "Gestire i dispositivi gemelli dell'hub IoT."
+    }
+  ],
+  "gct+2s": [
+    {
+      "type": 0,
+      "value": "Incident response plan:"
     }
   ],
   "gdUWAX": [
@@ -7525,6 +8162,12 @@
       "value": "Non è stato possibile eliminare i gruppi di risorse gestite selezionati"
     }
   ],
+  "hNKm4/": [
+    {
+      "type": 0,
+      "value": "Sub-Agent"
+    }
+  ],
   "hO1Iog": [
     {
       "type": 0,
@@ -7541,6 +8184,12 @@
     {
       "type": 0,
       "value": "Lettore cartelle di lavoro"
+    }
+  ],
+  "hS+M7h": [
+    {
+      "type": 0,
+      "value": "Steps to resolution"
     }
   ],
   "hWVnHh": [
@@ -7737,6 +8386,12 @@
       "value": "Ultimi 7 giorni"
     }
   ],
+  "it6Lig": [
+    {
+      "type": 0,
+      "value": "Input"
+    }
+  ],
   "it8L1Q": [
     {
       "type": 0,
@@ -7797,6 +8452,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "j1FyDL": [
+    {
+      "type": 0,
+      "value": "No extended tools available."
     }
   ],
   "j2vvrh": [
@@ -7931,6 +8592,12 @@
       "value": "Esecuzione successiva"
     }
   ],
+  "jqpolM": [
+    {
+      "type": 0,
+      "value": "No system tools available."
+    }
+  ],
   "ju7bLp": [
     {
       "type": 0,
@@ -7955,6 +8622,12 @@
       "value": "YAML must include {collectionName} with at least one entry."
     }
   ],
+  "k+3+Dy": [
+    {
+      "type": 0,
+      "value": "Bar chart"
+    }
+  ],
   "k0VNHX": [
     {
       "type": 1,
@@ -7977,10 +8650,22 @@
       "value": "ID avviso"
     }
   ],
+  "kG0ZtT": [
+    {
+      "type": 0,
+      "value": "Other cron ideas"
+    }
+  ],
   "kHIJzq": [
     {
       "type": 0,
       "value": "Sottoscrizione uguale a"
+    }
+  ],
+  "kQAf2d": [
+    {
+      "type": 0,
+      "value": "Select"
     }
   ],
   "kQSvkP": [
@@ -8027,12 +8712,6 @@
     {
       "type": 0,
       "value": "Analisi di correlazione"
-    }
-  ],
-  "ko0rr4": [
-    {
-      "type": 0,
-      "value": "Aggiornare la configurazione del connettore dati."
     }
   ],
   "koWZK8": [
@@ -8135,6 +8814,12 @@
       "value": "Scienziato dei dati di AzureML"
     }
   ],
+  "lCsNuL": [
+    {
+      "type": 0,
+      "value": "Trace data found, but could not parse into spans."
+    }
+  ],
   "lDMkTI": [
     {
       "type": 0,
@@ -8143,6 +8828,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "lDx7s5": [
+    {
+      "type": 0,
+      "value": "Agent responses are more concise in this mode."
     }
   ],
   "lKv8ex": [
@@ -8161,6 +8852,12 @@
     {
       "type": 0,
       "value": "Risorse interessate"
+    }
+  ],
+  "lUAfdH": [
+    {
+      "type": 0,
+      "value": "MCP server name"
     }
   ],
   "lawXja": [
@@ -8207,16 +8904,16 @@
       "value": "Area"
     }
   ],
+  "lni1id": [
+    {
+      "type": 0,
+      "value": "Search system tools by name, category, or description"
+    }
+  ],
   "lqgE72": [
     {
       "type": 0,
       "value": "Connessione a Monitoraggio di Azure in corso..."
-    }
-  ],
-  "ltBXTD": [
-    {
-      "type": 0,
-      "value": "Search agents, tools, or connectors"
     }
   ],
   "lvNWLS": [
@@ -8237,6 +8934,12 @@
       "value": "Genera piano di risposta personalizzato"
     }
   ],
+  "m3Npit": [
+    {
+      "type": 0,
+      "value": "No tools available. Try creating one or clearing your filters."
+    }
+  ],
   "m57OnF": [
     {
       "type": 0,
@@ -8247,6 +8950,20 @@
     {
       "type": 0,
       "value": "Aggiungere un piano di risposta agli incidenti predefinito per l'agente da usare per gli incidenti di base P1."
+    }
+  ],
+  "m8grMF": [
+    {
+      "type": 0,
+      "value": "Connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
     }
   ],
   "mAyw3x": [
@@ -8265,6 +8982,12 @@
     {
       "type": 0,
       "value": "Owning team ID is required when adding a default response plan."
+    }
+  ],
+  "mHep2R": [
+    {
+      "type": 0,
+      "value": "Last run"
     }
   ],
   "mJXXeS": [
@@ -8377,6 +9100,12 @@
       "value": "Incidenti mitigati dall'utente"
     }
   ],
+  "mbb8vl": [
+    {
+      "type": 0,
+      "value": "User prompt"
+    }
+  ],
   "mbtoHb": [
     {
       "type": 0,
@@ -8405,6 +9134,34 @@
     {
       "type": 0,
       "value": "Piano di risposta agli incidenti"
+    }
+  ],
+  "mm/uFP": [
+    {
+      "type": 0,
+      "value": "Filter by mitigated by"
+    }
+  ],
+  "mopY52": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " and linked it as a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgentName"
+    },
+    {
+      "type": 0,
+      "value": ". Choose what you’d like to do next."
     }
   ],
   "mq/sud": [
@@ -8539,18 +9296,10 @@
       "value": "name"
     }
   ],
-  "nh3LaL": [
+  "ncB14A": [
     {
       "type": 0,
-      "value": "Created "
-    },
-    {
-      "type": 1,
-      "value": "agentName"
-    },
-    {
-      "type": 0,
-      "value": ". Finish the setup in Incident management."
+      "value": "Agent invoked"
     }
   ],
   "nmpevl": [
@@ -8741,6 +9490,12 @@
       "value": "errorMessage"
     }
   ],
+  "ocTBQX": [
+    {
+      "type": 0,
+      "value": "Failed to delete connector"
+    }
+  ],
   "omHElC": [
     {
       "type": 0,
@@ -8759,10 +9514,34 @@
       "value": "Medio"
     }
   ],
+  "owa0nd": [
+    {
+      "type": 0,
+      "value": "Expand span with id: "
+    },
+    {
+      "type": 1,
+      "value": "id"
+    }
+  ],
   "ox7DwN": [
     {
       "type": 0,
       "value": "Rischio elevato"
+    }
+  ],
+  "p/QlSI": [
+    {
+      "type": 0,
+      "value": "Updating connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
     }
   ],
   "p/xAmY": [
@@ -8819,6 +9598,12 @@
       "value": "Risorse gestite"
     }
   ],
+  "pCRg92": [
+    {
+      "type": 0,
+      "value": "You do not have permission to add or delete connectors."
+    }
+  ],
   "pDUFq5": [
     {
       "type": 0,
@@ -8829,12 +9614,6 @@
     {
       "type": 0,
       "value": "Stato attuale"
-    }
-  ],
-  "pG9xP9": [
-    {
-      "type": 0,
-      "value": "Esiste già un connettore dati con questo nome"
     }
   ],
   "pRvgsc": [
@@ -8987,6 +9766,12 @@
       "value": "Totale:"
     }
   ],
+  "qavd9Y": [
+    {
+      "type": 0,
+      "value": "Tell us how often your agent should run and we’ll draft the cron expression for you."
+    }
+  ],
   "qczspd": [
     {
       "type": 0,
@@ -9009,6 +9794,12 @@
     {
       "type": 0,
       "value": "Costi per gli ultimi 7 giorni"
+    }
+  ],
+  "qf1aUJ": [
+    {
+      "type": 0,
+      "value": "A connector with this name already exists"
     }
   ],
   "qhApmK": [
@@ -9047,6 +9838,20 @@
       "value": "Endpoint back-end"
     }
   ],
+  "qvTohT": [
+    {
+      "type": 0,
+      "value": "No results for \""
+    },
+    {
+      "type": 1,
+      "value": "searchText"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "qvviEg": [
     {
       "type": 0,
@@ -9075,6 +9880,12 @@
     {
       "type": 0,
       "value": "Connector"
+    }
+  ],
+  "rAbWbb": [
+    {
+      "type": 0,
+      "value": "No description available"
     }
   ],
   "rBPlLc": [
@@ -9169,6 +9980,12 @@
       "value": " nel tempo. I valori di correlazione indicano l'influenza reciproca di queste due metriche."
     }
   ],
+  "rTBfGn": [
+    {
+      "type": 0,
+      "value": "Service type: All"
+    }
+  ],
   "rVtn/e": [
     {
       "type": 0,
@@ -9201,6 +10018,12 @@
     {
       "type": 0,
       "value": "Chiudi"
+    }
+  ],
+  "rd+inb": [
+    {
+      "type": 0,
+      "value": "Create AI agents with custom tools and connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
     }
   ],
   "rd6YZk": [
@@ -9287,6 +10110,20 @@
       "value": "Test della risposta agli incidenti"
     }
   ],
+  "rxcQLa": [
+    {
+      "type": 0,
+      "value": "Creating connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "ryPHA8": [
     {
       "type": 0,
@@ -9327,10 +10164,30 @@
       "value": "Connessione a IcM in corso..."
     }
   ],
+  "sAireQ": [
+    {
+      "type": 0,
+      "value": "Select subscription"
+    }
+  ],
   "sH0O5v": [
     {
       "type": 0,
       "value": "Immettere le parole chiave del titolo"
+    }
+  ],
+  "sHc8w5": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Pick a next step below to keep building."
     }
   ],
   "sI+CCC": [
@@ -9355,6 +10212,12 @@
     {
       "type": 0,
       "value": "Timestamp"
+    }
+  ],
+  "sQZhm1": [
+    {
+      "type": 0,
+      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
     }
   ],
   "sQkhYk": [
@@ -9441,6 +10304,18 @@
       "value": "System Tools (Optional)"
     }
   ],
+  "sf6hMj": [
+    {
+      "type": 0,
+      "value": "Heads-up"
+    }
+  ],
+  "sjlioi": [
+    {
+      "type": 0,
+      "value": "Subagent invoked"
+    }
+  ],
   "slxYbm": [
     {
       "type": 0,
@@ -9467,6 +10342,12 @@
     {
       "type": 0,
       "value": "agent"
+    }
+  ],
+  "sqGM6w": [
+    {
+      "type": 0,
+      "value": "Delete Items"
     }
   ],
   "srG8e2": [
@@ -9557,6 +10438,12 @@
       "value": "Editor agente per l'assistenza sanitaria"
     }
   ],
+  "tB02Wz": [
+    {
+      "type": 0,
+      "value": "Generating…"
+    }
+  ],
   "tCrMHt": [
     {
       "type": 0,
@@ -9575,24 +10462,16 @@
       "value": "Back to Edit"
     }
   ],
-  "tH6Myj": [
-    {
-      "type": 0,
-      "value": "Il connettore dati \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" è stato creato"
-    }
-  ],
   "tHCvDB": [
     {
       "type": 0,
       "value": "Non è possibile disabilitare il piano di risposta agli incidenti"
+    }
+  ],
+  "tJuu1A": [
+    {
+      "type": 0,
+      "value": "✨ AI Suggested Handoff Description"
     }
   ],
   "tLYOnZ": [
@@ -9699,6 +10578,12 @@
       "value": "\" completata"
     }
   ],
+  "thOyk5": [
+    {
+      "type": 0,
+      "value": "Deleting connector"
+    }
+  ],
   "tjE5Cb": [
     {
       "type": 0,
@@ -9757,6 +10642,12 @@
       "value": "Ruolo con autorizzazioni di lettura per Visione personalizzata di Servizi cognitivi"
     }
   ],
+  "u3AxgJ": [
+    {
+      "type": 0,
+      "value": "Incident status:"
+    }
+  ],
   "u4WKBH": [
     {
       "type": 0,
@@ -9805,6 +10696,16 @@
       "value": "Tutti i livelli di autonomia"
     }
   ],
+  "uMF+CT": [
+    {
+      "type": 0,
+      "value": "Remove extended agent: "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "uMNRNl": [
     {
       "type": 0,
@@ -9821,6 +10722,22 @@
     {
       "type": 0,
       "value": "Richiesta di esecuzione"
+    }
+  ],
+  "uWmprZ": [
+    {
+      "type": 1,
+      "value": "id"
+    },
+    {
+      "type": 0,
+      "value": " failed"
+    }
+  ],
+  "uYb82D": [
+    {
+      "type": 0,
+      "value": "Pick from presets"
     }
   ],
   "ubULuu": [
@@ -9851,6 +10768,12 @@
     {
       "type": 0,
       "value": "Zoom indietro"
+    }
+  ],
+  "unj6JR": [
+    {
+      "type": 0,
+      "value": "Create from template"
     }
   ],
   "unxs9C": [
@@ -10015,32 +10938,22 @@
       "value": "La connessione a Monitoraggio di Azure verrà eliminata definitivamente. L'agente non verrà più integrato con le notifiche di Monitoraggio di Azure. Eliminare la connessione?"
     }
   ],
-  "w2QcbZ": [
+  "w0xxAb": [
     {
       "type": 0,
-      "value": "Created "
-    },
-    {
-      "type": 1,
-      "value": "agentName"
-    },
-    {
-      "type": 0,
-      "value": " and linked it as a handoff for "
-    },
-    {
-      "type": 1,
-      "value": "sourceAgentName"
-    },
-    {
-      "type": 0,
-      "value": ". Finish the setup in Incident management."
+      "value": "Clear description"
     }
   ],
   "w6nz4p": [
     {
       "type": 0,
       "value": "Open incident triggers"
+    }
+  ],
+  "w8UjdT": [
+    {
+      "type": 0,
+      "value": "Connect an Azure service MCP server to give the agent more tools to resolve an incident."
     }
   ],
   "w9tk1A": [
@@ -10139,6 +11052,12 @@
       "value": "Aggiungi piano di risposta agli incidenti personalizzato"
     }
   ],
+  "wgyFIG": [
+    {
+      "type": 0,
+      "value": "Polishing…"
+    }
+  ],
   "wkLkeE": [
     {
       "type": 0,
@@ -10175,6 +11094,18 @@
       "value": "Checking trigger setup…"
     }
   ],
+  "x1YTqM": [
+    {
+      "type": 0,
+      "value": "Describe the cadence before we can help."
+    }
+  ],
+  "x25AjF": [
+    {
+      "type": 0,
+      "value": "Tool usage ID"
+    }
+  ],
   "x3aQrV": [
     {
       "type": 0,
@@ -10185,6 +11116,12 @@
     {
       "type": 0,
       "value": "No runs yet"
+    }
+  ],
+  "x4OHX9": [
+    {
+      "type": 0,
+      "value": "Sub-Agent Builder"
     }
   ],
   "x7C8JZ": [
@@ -10291,16 +11228,6 @@
       "value": "Punti dati insufficienti per il grafico"
     }
   ],
-  "xgNcC+": [
-    {
-      "type": 0,
-      "value": "Non è possibile creare il connettore dati con errore: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "xmcVZ0": [
     {
       "type": 0,
@@ -10331,10 +11258,22 @@
       "value": "Non è possibile creare il piano di risposta agli incidenti"
     }
   ],
+  "xsbZ+Q": [
+    {
+      "type": 0,
+      "value": "Add a tool"
+    }
+  ],
   "xtkizV": [
     {
       "type": 0,
       "value": "Collaboratore sito Web"
+    }
+  ],
+  "xvTDgy": [
+    {
+      "type": 0,
+      "value": "Search tools…"
     }
   ],
   "xxoHVE": [
@@ -10401,6 +11340,12 @@
       "value": "Questa operazione viene eseguita usando le credenziali dell'identità dell'agente."
     }
   ],
+  "yX3QcY": [
+    {
+      "type": 0,
+      "value": "Tool details"
+    }
+  ],
   "yYK6LR": [
     {
       "type": 0,
@@ -10419,16 +11364,16 @@
       "value": "Ora di fine"
     }
   ],
-  "yd187T": [
-    {
-      "type": 0,
-      "value": "Non è possibile creare il connettore dati"
-    }
-  ],
   "yeJPGA": [
     {
       "type": 0,
       "value": "Non è stato possibile controllare lo stato della memoria dell'agente. Fallback su disabilitato:"
+    }
+  ],
+  "yf9+0C": [
+    {
+      "type": 0,
+      "value": "Polished version"
     }
   ],
   "yh4G7g": [
@@ -10441,6 +11386,12 @@
     {
       "type": 0,
       "value": "Attività"
+    }
+  ],
+  "yhZZjG": [
+    {
+      "type": 0,
+      "value": "To agent"
     }
   ],
   "yhqGka": [
@@ -10459,6 +11410,12 @@
     {
       "type": 0,
       "value": "Gruppi di risorse gestite"
+    }
+  ],
+  "ynVolH": [
+    {
+      "type": 0,
+      "value": "Ask a question or enter a slash(/) to use a command"
     }
   ],
   "yo67XU": [
@@ -10489,12 +11446,6 @@
     {
       "type": 0,
       "value": "La descrizione deve essere un riepilogo a riga singola."
-    }
-  ],
-  "z6olIH": [
-    {
-      "type": 0,
-      "value": "An AI agent with instructions and tools"
     }
   ],
   "z8ZYoc": [
@@ -10531,12 +11482,6 @@
     {
       "type": 0,
       "value": "Qualsiasi gravità"
-    }
-  ],
-  "zL39WD": [
-    {
-      "type": 0,
-      "value": "Grid View"
     }
   ],
   "zN87hN": [

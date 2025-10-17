@@ -9,6 +9,12 @@
       "value": "parameters"
     }
   ],
+  "+/9vVV": [
+    {
+      "type": 0,
+      "value": "Describe it in natural language"
+    }
+  ],
   "+/nU/s": [
     {
       "type": 0,
@@ -19,16 +25,6 @@
     {
       "type": 0,
       "value": "Namn på anslutningsprogram"
-    }
-  ],
-  "+4NN8Z": [
-    {
-      "type": 0,
-      "value": "Uppdaterar dataanslutningen "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "+5BJJL": [
@@ -73,6 +69,18 @@
       "value": "Skicka feedback till Microsoft"
     }
   ],
+  "+Hx789": [
+    {
+      "type": 0,
+      "value": "Filter by severity level"
+    }
+  ],
+  "+Pmftr": [
+    {
+      "type": 0,
+      "value": "Reset draft"
+    }
+  ],
   "+S4WAz": [
     {
       "type": 0,
@@ -97,12 +105,6 @@
       "value": "Typ"
     }
   ],
-  "+UcRHd": [
-    {
-      "type": 0,
-      "value": "Starter agent"
-    }
-  ],
   "+bJIWo": [
     {
       "type": 0,
@@ -113,12 +115,6 @@
     {
       "type": 0,
       "value": "Vill du ta bort incident?"
-    }
-  ],
-  "+hJd45": [
-    {
-      "type": 0,
-      "value": "Redigera dataanslutning"
     }
   ],
   "+iCTRd": [
@@ -149,6 +145,12 @@
     {
       "type": 0,
       "value": "Lägg till en standardplan för svar på incidenter som agenten ska använda för Sev3 LiveSite-incidenter."
+    }
+  ],
+  "+p60ph": [
+    {
+      "type": 0,
+      "value": "MCP server icon"
     }
   ],
   "+uAdUZ": [
@@ -221,10 +223,22 @@
       "value": "Tidigare incidenter på samma resurs"
     }
   ],
+  "/WgnYE": [
+    {
+      "type": 0,
+      "value": "We couldn't understand that description. Try a different phrasing."
+    }
+  ],
   "/WrP/v": [
     {
       "type": 0,
       "value": "Operatör för containerappar"
+    }
+  ],
+  "/Z1fHN": [
+    {
+      "type": 0,
+      "value": "Tool and subagent activity sent to user"
     }
   ],
   "/dxZCE": [
@@ -237,6 +251,12 @@
     {
       "type": 0,
       "value": "Hantera Custom Vision-projekt."
+    }
+  ],
+  "/mHau5": [
+    {
+      "type": 0,
+      "value": "Failed to create connector"
     }
   ],
   "/rNkXe": [
@@ -317,6 +337,12 @@
     {
       "type": 0,
       "value": " failed. Retry link."
+    }
+  ],
+  "0BUTMv": [
+    {
+      "type": 0,
+      "value": "Search..."
     }
   ],
   "0D+7fr": [
@@ -401,6 +427,18 @@
     {
       "type": 0,
       "value": "Välj uppgift"
+    }
+  ],
+  "0i3Qrd": [
+    {
+      "type": 0,
+      "value": "Agent Response"
+    }
+  ],
+  "0iLXks": [
+    {
+      "type": 0,
+      "value": "No extended agents available"
     }
   ],
   "0ltHAS": [
@@ -495,6 +533,12 @@
       "value": "Uppgift"
     }
   ],
+  "12GY0h": [
+    {
+      "type": 0,
+      "value": "Describe the schedule before generating a cron expression."
+    }
+  ],
   "1389z+": [
     {
       "type": 0,
@@ -545,6 +589,12 @@
       "value": "error"
     }
   ],
+  "1GbY5N": [
+    {
+      "type": 0,
+      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Connectors instead."
+    }
+  ],
   "1HLt0U": [
     {
       "type": 0,
@@ -563,6 +613,16 @@
     {
       "type": 0,
       "value": " har tagits bort"
+    }
+  ],
+  "1OorZL": [
+    {
+      "type": 0,
+      "value": "Failed to update connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "1PVhxx": [
@@ -613,6 +673,20 @@
       "value": "Role (roll)"
     }
   ],
+  "1aNP56": [
+    {
+      "type": 0,
+      "value": "Connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been updated successfully"
+    }
+  ],
   "1dOMiz": [
     {
       "type": 0,
@@ -637,6 +711,12 @@
       "value": "Alert status"
     }
   ],
+  "1iEPTM": [
+    {
+      "type": 0,
+      "value": "General"
+    }
+  ],
   "1rAiXS": [
     {
       "type": 0,
@@ -647,6 +727,18 @@
     {
       "type": 0,
       "value": "Vill du pausa den här schemalagda uppgiften?"
+    }
+  ],
+  "2+TYMx": [
+    {
+      "type": 0,
+      "value": "Add a trigger"
+    }
+  ],
+  "2+atxY": [
+    {
+      "type": 0,
+      "value": "Handoff"
     }
   ],
   "2/2yg+": [
@@ -685,6 +777,18 @@
     {
       "type": 0,
       "value": "Ändra agentläge för den här tråden"
+    }
+  ],
+  "2Bb4rY": [
+    {
+      "type": 0,
+      "value": "Failed to update connector"
+    }
+  ],
+  "2CSEeq": [
+    {
+      "type": 0,
+      "value": "Describe the cadence—get the cron"
     }
   ],
   "2FLZrG": [
@@ -747,12 +851,6 @@
     {
       "type": 0,
       "value": "Djupgående undersökning"
-    }
-  ],
-  "2e3GZQ": [
-    {
-      "type": 0,
-      "value": "Create a handoff agent"
     }
   ],
   "2hB9SP": [
@@ -845,6 +943,12 @@
       "value": "Ange resursnamn"
     }
   ],
+  "3GLH+d": [
+    {
+      "type": 0,
+      "value": "Examples"
+    }
+  ],
   "3H77Ic": [
     {
       "type": 0,
@@ -899,6 +1003,12 @@
       "value": "Save Changes"
     }
   ],
+  "3Wq8aM": [
+    {
+      "type": 0,
+      "value": "Cron"
+    }
+  ],
   "3a5wL8": [
     {
       "type": 0,
@@ -941,6 +1051,12 @@
       "value": "Återuppta"
     }
   ],
+  "3yurtF": [
+    {
+      "type": 0,
+      "value": "Next run"
+    }
+  ],
   "3zLsNR": [
     {
       "type": 0,
@@ -951,6 +1067,12 @@
     {
       "type": 0,
       "value": "Den anpassade incidentsvarsplanen har uppdaterats"
+    }
+  ],
+  "4/aFfy": [
+    {
+      "type": 0,
+      "value": "Tree"
     }
   ],
   "4/nSt8": [
@@ -1013,6 +1135,12 @@
       "value": "This agent"
     }
   ],
+  "493R/T": [
+    {
+      "type": 0,
+      "value": "Share your draft instructions and we’ll tailor them for a scheduled agent run."
+    }
+  ],
   "498yM3": [
     {
       "type": 0,
@@ -1055,6 +1183,12 @@
     {
       "type": 0,
       "value": "Arbetsboksdeltagare"
+    }
+  ],
+  "4OCLSf": [
+    {
+      "type": 0,
+      "value": "Response to user"
     }
   ],
   "4OUjTL": [
@@ -1129,6 +1263,12 @@
       "value": "En plan för svar på incident definierar vilka incidenter agenten ska hantera genom att tillämpa dina filtervillkor, så att svaren avser rätt uppsättning incidenter."
     }
   ],
+  "4pJVaS": [
+    {
+      "type": 0,
+      "value": "Select row"
+    }
+  ],
   "4uiKBK": [
     {
       "type": 0,
@@ -1171,6 +1311,12 @@
       "value": "Körningsinformation och begäran"
     }
   ],
+  "54UIcW": [
+    {
+      "type": 0,
+      "value": "We couldn’t polish the instructions. Try again shortly."
+    }
+  ],
   "59z+Aj": [
     {
       "type": 0,
@@ -1187,10 +1333,26 @@
       "value": "Du har inte behörighet att bevilja åtkomst till lagringsplatsen."
     }
   ],
+  "5DqOua": [
+    {
+      "type": 0,
+      "value": "Pick an extended agent to assist you with tasks."
+    }
+  ],
   "5GUtRJ": [
     {
       "type": 0,
       "value": "Skickar en rapport..."
+    }
+  ],
+  "5Imse3": [
+    {
+      "type": 0,
+      "value": "Failed to delete connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "5MSxYS": [
@@ -1289,16 +1451,6 @@
       "value": "Åtgärdat av användare"
     }
   ],
-  "5dcGlG": [
-    {
-      "type": 0,
-      "value": "Det gick inte att ta bort dataanslutningen. Fel: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "5gEh2M": [
     {
       "type": 0,
@@ -1331,6 +1483,12 @@
     {
       "type": 0,
       "value": "Okänt"
+    }
+  ],
+  "5kK+j9": [
+    {
+      "type": 0,
+      "value": "Restart"
     }
   ],
   "5kp1Ie": [
@@ -1495,6 +1653,12 @@
       "value": "Användartilldelad hanterad identitet"
     }
   ],
+  "6SKklv": [
+    {
+      "type": 0,
+      "value": "Remove attachment"
+    }
+  ],
   "6TO45V": [
     {
       "type": 0,
@@ -1543,6 +1707,12 @@
       "value": "Korrelations-ID:"
     }
   ],
+  "6dEJ43": [
+    {
+      "type": 0,
+      "value": "Cron draft"
+    }
+  ],
   "6dWeUs": [
     {
       "type": 0,
@@ -1571,6 +1741,12 @@
     {
       "type": 0,
       "value": "Ny Azure Monitor avisering har identifierats"
+    }
+  ],
+  "6umiRw": [
+    {
+      "type": 0,
+      "value": "A clear, concise description that helps other agents understand when to delegate work to this specialist agent. This appears in agent handoff decisions and collaboration workflows."
     }
   ],
   "6v8Uj+": [
@@ -1673,6 +1849,12 @@
       "value": "A unique identifier for your connector"
     }
   ],
+  "7X1tNR": [
+    {
+      "type": 0,
+      "value": "Create task"
+    }
+  ],
   "7cS956": [
     {
       "type": 0,
@@ -1689,6 +1871,12 @@
     {
       "type": 0,
       "value": "Projektinformation"
+    }
+  ],
+  "7kPmO3": [
+    {
+      "type": 0,
+      "value": "Edit connector"
     }
   ],
   "7nUCu9": [
@@ -1813,16 +2001,16 @@
       "value": "Fullständig åtkomst till Azure Digital Twins-data."
     }
   ],
+  "8BaLs0": [
+    {
+      "type": 0,
+      "value": "Select all rows"
+    }
+  ],
   "8F5cJQ": [
     {
       "type": 0,
       "value": "Den anpassade incidentsvarsplanen har lagts till"
-    }
-  ],
-  "8Hjku9": [
-    {
-      "type": 0,
-      "value": "Dataanslutning skapas"
     }
   ],
   "8LMIGa": [
@@ -1885,6 +2073,12 @@
       "value": "Skrivskyddad åtkomst till tjänst och API:er."
     }
   ],
+  "8dASTJ": [
+    {
+      "type": 0,
+      "value": "Create a handoff sub-agent"
+    }
+  ],
   "8fYK1J": [
     {
       "type": 0,
@@ -1901,6 +2095,18 @@
     {
       "type": 0,
       "value": "Redis Cache-deltagare"
+    }
+  ],
+  "8ojA9A": [
+    {
+      "type": 0,
+      "value": "Let AI polish the instructions"
+    }
+  ],
+  "8oyl6b": [
+    {
+      "type": 0,
+      "value": "Line chart"
     }
   ],
   "8quEg9": [
@@ -1961,6 +2167,12 @@
       "value": "Välj alla"
     }
   ],
+  "94QRkK": [
+    {
+      "type": 0,
+      "value": "Follow-up questions"
+    }
+  ],
   "94zF5I": [
     {
       "type": 0,
@@ -1977,6 +2189,18 @@
     {
       "type": 0,
       "value": "Inga matchningar"
+    }
+  ],
+  "98A08r": [
+    {
+      "type": 0,
+      "value": "Learn more about MCP servers"
+    }
+  ],
+  "98TwgV": [
+    {
+      "type": 0,
+      "value": "Describe when and why other agents should hand off to this agent..."
     }
   ],
   "99OdS3": [
@@ -2077,6 +2301,12 @@
       "value": "Anteckningen har uppdaterats"
     }
   ],
+  "A3ptul": [
+    {
+      "type": 0,
+      "value": "Templates"
+    }
+  ],
   "AA/tRJ": [
     {
       "type": 0,
@@ -2111,12 +2341,6 @@
       "value": "errorMessage"
     }
   ],
-  "ALkPTF": [
-    {
-      "type": 0,
-      "value": "Inga dataanslutningar har angetts"
-    }
-  ],
   "ATXGa+": [
     {
       "type": 0,
@@ -2127,6 +2351,12 @@
     {
       "type": 0,
       "value": "Visa endast rekommenderade resursgrupper"
+    }
+  ],
+  "AaJ/LU": [
+    {
+      "type": 0,
+      "value": "Polish the instructions"
     }
   ],
   "AbXVP4": [
@@ -2185,12 +2415,6 @@
     {
       "type": 0,
       "value": "Create reusable functions and actions for your agents"
-    }
-  ],
-  "ArsZkp": [
-    {
-      "type": 0,
-      "value": "Dataanslutning uppdateras"
     }
   ],
   "AuFOi8": [
@@ -2285,6 +2509,16 @@
       "value": "Binding"
     }
   ],
+  "BcEbxp": [
+    {
+      "type": 1,
+      "value": "seconds"
+    },
+    {
+      "type": 0,
+      "value": "s"
+    }
+  ],
   "Bcgdb7": [
     {
       "type": 0,
@@ -2321,6 +2555,12 @@
     {
       "type": 0,
       "value": "Data type and requirement for validation"
+    }
+  ],
+  "BynA9c": [
+    {
+      "type": 0,
+      "value": "Optional tweaks"
     }
   ],
   "C2PrxB": [
@@ -2371,6 +2611,12 @@
       "value": "Connect related agents and tools"
     }
   ],
+  "CPsPh7": [
+    {
+      "type": 0,
+      "value": "How would you like to define the schedule?"
+    }
+  ],
   "CTRqZs": [
     {
       "type": 0,
@@ -2401,20 +2647,6 @@
       "value": "Open scheduled tasks"
     }
   ],
-  "CbKRyU": [
-    {
-      "type": 0,
-      "value": "Dataanslutningen "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " har tagits bort"
-    }
-  ],
   "CfGC/2": [
     {
       "type": 0,
@@ -2437,6 +2669,12 @@
     {
       "type": 0,
       "value": "Om du vill byta incidentplattform måste du frånkoppla PagerDuty. Agenten kommer inte längre att hantera ärenden. Vill du frånkoppla?"
+    }
+  ],
+  "CvGdox": [
+    {
+      "type": 0,
+      "value": "Add more tools for incident response"
     }
   ],
   "CvWvf+": [
@@ -2571,6 +2809,12 @@
       "value": "No instructions provided yet."
     }
   ],
+  "Dhy8jb": [
+    {
+      "type": 0,
+      "value": "A data source connection for tools (e.g., Kusto cluster for running queries)"
+    }
+  ],
   "DlSXUR": [
     {
       "type": 0,
@@ -2623,6 +2867,12 @@
     {
       "type": 0,
       "value": "Kontroll för slutdatumväljare"
+    }
+  ],
+  "E+jVAN": [
+    {
+      "type": 0,
+      "value": "No trace data found for this thread."
     }
   ],
   "E396gv": [
@@ -2697,6 +2947,12 @@
       "value": "Det gick inte att läsa in prenumerationer."
     }
   ],
+  "EN5iMk": [
+    {
+      "type": 0,
+      "value": "Service type"
+    }
+  ],
   "ENnkRe": [
     {
       "type": 0,
@@ -2707,12 +2963,6 @@
     {
       "type": 0,
       "value": "Ange filternamn"
-    }
-  ],
-  "EStH0G": [
-    {
-      "type": 0,
-      "value": "Agent Builder"
     }
   ],
   "EWrExf": [
@@ -2727,28 +2977,32 @@
       "value": "Använd"
     }
   ],
-  "EYRPA4": [
-    {
-      "type": 0,
-      "value": "Det gick inte att uppdatera dataanslutningen"
-    }
-  ],
   "EZBG/A": [
     {
       "type": 0,
       "value": "Incidentplattform"
     }
   ],
-  "EZbXbs": [
+  "Ec1M0J": [
     {
       "type": 0,
-      "value": "Du har inte behörighet att lägga till eller ta bort dataanslutningar."
+      "value": "Action plan"
     }
   ],
   "EdEthU": [
     {
       "type": 0,
       "value": "API Management-arbetsytedeltagare"
+    }
+  ],
+  "EdZ3pj": [
+    {
+      "type": 0,
+      "value": "Agent: "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "EicA1w": [
@@ -2761,6 +3015,18 @@
     {
       "type": 0,
       "value": "Sök efter resursgrupper"
+    }
+  ],
+  "ElqLuA": [
+    {
+      "type": 0,
+      "value": "Trace data parsed with warnings."
+    }
+  ],
+  "EmN362": [
+    {
+      "type": 0,
+      "value": "Create connector"
     }
   ],
   "Ep74wA": [
@@ -2779,6 +3045,12 @@
     {
       "type": 0,
       "value": "Azure SRE-agent"
+    }
+  ],
+  "Euy+fB": [
+    {
+      "type": 0,
+      "value": "Connect MCP server"
     }
   ],
   "EwRIOm": [
@@ -2861,6 +3133,12 @@
     {
       "type": 0,
       "value": "Lagringsplatsanslutning"
+    }
+  ],
+  "FNQNS1": [
+    {
+      "type": 0,
+      "value": "Weekdays at 9am Pacific"
     }
   ],
   "FO/nez": [
@@ -2959,14 +3237,14 @@
       "value": "Ta bort"
     }
   ],
-  "G2GBW0": [
-    {
-      "type": 0,
-      "value": "Skapar dataanslutningen "
-    },
+  "G5JMSn": [
     {
       "type": 1,
-      "value": "name"
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " subscriptions selected"
     }
   ],
   "G6vaGg": [
@@ -2999,10 +3277,28 @@
       "value": "Back to commands"
     }
   ],
+  "GNJGHu": [
+    {
+      "type": 0,
+      "value": "Update the connector configuration."
+    }
+  ],
   "GUx4Ld": [
     {
       "type": 0,
       "value": "Det går inte att ansluta till ServiceNow-slutpunkten. Kontrollera slutpunktens webbadress."
+    }
+  ],
+  "GaA28c": [
+    {
+      "type": 0,
+      "value": "Incident details"
+    }
+  ],
+  "GkJbiq": [
+    {
+      "type": 0,
+      "value": "Start a new chat thread."
     }
   ],
   "Gl8fnJ": [
@@ -3117,6 +3413,12 @@
     {
       "type": 0,
       "value": "Väntar på godkännanden"
+    }
+  ],
+  "Hgs+WM": [
+    {
+      "type": 0,
+      "value": "View trace"
     }
   ],
   "Hh0q8u": [
@@ -3309,10 +3611,22 @@
       "value": "Du har inte behörighet att lägga till eller redigera anteckningar."
     }
   ],
+  "IbMKy+": [
+    {
+      "type": 0,
+      "value": "Use this version"
+    }
+  ],
   "IcB2fr": [
     {
       "type": 0,
       "value": "Tool method argument that receives this value"
+    }
+  ],
+  "IcUakl": [
+    {
+      "type": 0,
+      "value": "Time zone"
     }
   ],
   "IiNwpr": [
@@ -3431,12 +3745,6 @@
       "value": "Laddar upp..."
     }
   ],
-  "JHqOn0": [
-    {
-      "type": 0,
-      "value": "Ladda upp enstaka arkitekturdokument, felsökningsguider och annan dokumentation för att förbättra agentens kunskapsbas. För löpande dokumenthantering och automatiska uppdateringar kan du istället använda dataanslutningar."
-    }
-  ],
   "JJNc3c": [
     {
       "type": 0,
@@ -3529,6 +3837,22 @@
       "value": "Agentens analys av orsakerna som utlöste incidenten."
     }
   ],
+  "JbB2Vb": [
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " locations selected"
+    }
+  ],
+  "JbmMWM": [
+    {
+      "type": 0,
+      "value": "Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatible connector was found)"
+    }
+  ],
   "JezZlU": [
     {
       "type": 0,
@@ -3597,6 +3921,12 @@
       "value": "Review Your trigger"
     }
   ],
+  "JzOvG/": [
+    {
+      "type": 0,
+      "value": "Assumptions we made"
+    }
+  ],
   "K1h5xo": [
     {
       "type": 0,
@@ -3609,10 +3939,16 @@
       "value": "Ta bort"
     }
   ],
-  "K6WTYI": [
+  "K7AkdL": [
     {
       "type": 0,
-      "value": "A data source connection for tools"
+      "value": "Show"
+    }
+  ],
+  "K9q4Xw": [
+    {
+      "type": 0,
+      "value": "MCP servers"
     }
   ],
   "KAYpG9": [
@@ -3765,12 +4101,6 @@
       "value": "name"
     }
   ],
-  "L5ZL+u": [
-    {
-      "type": 0,
-      "value": "Dataanslutningar"
-    }
-  ],
   "LFn7Ak": [
     {
       "type": 0,
@@ -3839,10 +4169,22 @@
       "value": "Filter fastställer vilka incidenter som incidentsvarsplanen ska gälla för. De gäller för listan över incidenter som förhandsvisas i nästa steg."
     }
   ],
+  "LbkJp1": [
+    {
+      "type": 0,
+      "value": "MCP servers table"
+    }
+  ],
   "LkUvu/": [
     {
       "type": 0,
       "value": "Describe the schedule"
+    }
+  ],
+  "Lm9kBB": [
+    {
+      "type": 0,
+      "value": "Select an incident."
     }
   ],
   "LnglaU": [
@@ -3929,6 +4271,16 @@
       "value": "Incident-id"
     }
   ],
+  "MHkWzD": [
+    {
+      "type": 1,
+      "value": "id"
+    },
+    {
+      "type": 0,
+      "value": " completed"
+    }
+  ],
   "MI5gZ+": [
     {
       "type": 0,
@@ -3945,6 +4297,12 @@
     {
       "type": 0,
       "value": "Failed to improve instructions. Please try again."
+    }
+  ],
+  "MK8Q9z": [
+    {
+      "type": 0,
+      "value": "Creating connector"
     }
   ],
   "MLVVhB": [
@@ -3987,6 +4345,12 @@
     {
       "type": 0,
       "value": "Kusto Configuration"
+    }
+  ],
+  "MgdnPi": [
+    {
+      "type": 0,
+      "value": "Response"
     }
   ],
   "MhTfXm": [
@@ -4103,6 +4467,12 @@
       "value": "Auktoriserad"
     }
   ],
+  "NBiLYK": [
+    {
+      "type": 0,
+      "value": "Drafting…"
+    }
+  ],
   "NBxjGE": [
     {
       "type": 0,
@@ -4181,12 +4551,6 @@
       "value": "Tack för din feedback!"
     }
   ],
-  "Nup8Xl": [
-    {
-      "type": 0,
-      "value": "Skapa dataanslutning"
-    }
-  ],
   "O3Ak71": [
     {
       "type": 0,
@@ -4203,6 +4567,12 @@
     {
       "type": 0,
       "value": "Vill du ta bort den här SRE-agenten? Du kan inte ångra den här åtgärden."
+    }
+  ],
+  "OIWzWF": [
+    {
+      "type": 0,
+      "value": "Filter by autonomy level"
     }
   ],
   "OJ2u8k": [
@@ -4253,6 +4623,12 @@
       "value": ". Refresh and try again."
     }
   ],
+  "OPBqEN": [
+    {
+      "type": 0,
+      "value": "Trace data parsed with errors."
+    }
+  ],
   "ORGv1Q": [
     {
       "type": 0,
@@ -4269,6 +4645,12 @@
     {
       "type": 0,
       "value": "De resurser som du valde har behörigheter för de här rollerna."
+    }
+  ],
+  "OUJuir": [
+    {
+      "type": 0,
+      "value": "Model details"
     }
   ],
   "OV0MpG": [
@@ -4363,6 +4745,12 @@
       "value": "PostgreSQL-kommando"
     }
   ],
+  "P0yf0W": [
+    {
+      "type": 0,
+      "value": "Search tools by name, category, or description"
+    }
+  ],
   "P3qxV2": [
     {
       "type": 0,
@@ -4441,6 +4829,12 @@
       "value": "Choose the Kusto connector this tool will query"
     }
   ],
+  "PSfARI": [
+    {
+      "type": 0,
+      "value": "Loading more rows..."
+    }
+  ],
   "PU1wDo": [
     {
       "type": 0,
@@ -4469,6 +4863,16 @@
     {
       "type": 0,
       "value": "Virtuell dator-deltagare"
+    }
+  ],
+  "PZc06m": [
+    {
+      "type": 1,
+      "value": "tokens"
+    },
+    {
+      "type": 0,
+      "value": "t"
     }
   ],
   "Pc+tM3": [
@@ -4523,6 +4927,12 @@
       "value": "Inte anslutet"
     }
   ],
+  "PvMAYc": [
+    {
+      "type": 0,
+      "value": "No system tools match your search."
+    }
+  ],
   "Pwen/L": [
     {
       "type": 0,
@@ -4535,12 +4945,6 @@
       "value": "P2"
     }
   ],
-  "PxLzzW": [
-    {
-      "type": 0,
-      "value": "Jag vill..."
-    }
-  ],
   "PysW/n": [
     {
       "type": 0,
@@ -4551,6 +4955,12 @@
     {
       "type": 0,
       "value": "Etablerar instrumentpanel för Grafana"
+    }
+  ],
+  "Q++yMM": [
+    {
+      "type": 0,
+      "value": "Subagent"
     }
   ],
   "Q/agzh": [
@@ -4625,6 +5035,12 @@
       "value": "Användningar (utlösare, åtgärd)"
     }
   ],
+  "QY3CEK": [
+    {
+      "type": 0,
+      "value": "Handoff Description"
+    }
+  ],
   "Qc3Kdl": [
     {
       "type": 0,
@@ -4665,6 +5081,12 @@
       "value": "Web Apps"
     }
   ],
+  "QlkL14": [
+    {
+      "type": 0,
+      "value": "Updating connector"
+    }
+  ],
   "QlsDcr": [
     {
       "type": 0,
@@ -4675,6 +5097,26 @@
     {
       "type": 0,
       "value": "Visa vilka roller och behörigheter agenten får genom att välja de resursgrupper som agenten ska hantera."
+    }
+  ],
+  "QmOU5t": [
+    {
+      "type": 0,
+      "value": "Deleting connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
+  "Qn8Bok": [
+    {
+      "type": 0,
+      "value": "Handback"
     }
   ],
   "QomX1y": [
@@ -4717,20 +5159,6 @@
       "value": "error"
     }
   ],
-  "R5Y4rC": [
-    {
-      "type": 0,
-      "value": "Dataanslutningen "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " har uppdaterats"
-    }
-  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -4741,6 +5169,12 @@
     {
       "type": 0,
       "value": "Incidenttrådarna har flyttats"
+    }
+  ],
+  "RA3fki": [
+    {
+      "type": 0,
+      "value": "Missing context"
     }
   ],
   "RAjqKb": [
@@ -4877,12 +5311,6 @@
       "value": "count"
     }
   ],
-  "Rsq6sZ": [
-    {
-      "type": 0,
-      "value": "New handoff agents start as Autonomous. You can connect tools and other details later."
-    }
-  ],
   "S0GneP": [
     {
       "type": 0,
@@ -4901,24 +5329,20 @@
       "value": "Senaste 12 timmarna"
     }
   ],
+  "S2z35W": [
+    {
+      "type": 0,
+      "value": "Failed to create connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "S57QRB": [
     {
       "type": 0,
       "value": "Filtrera efter"
-    }
-  ],
-  "S6FECK": [
-    {
-      "type": 0,
-      "value": "Dataanslutningen "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " tas bort"
     }
   ],
   "SAINuE": [
@@ -5015,6 +5439,12 @@
       "value": "No common prompts added."
     }
   ],
+  "SZMgCd": [
+    {
+      "type": 0,
+      "value": "Connect a Model Context Protocol (MCP) server to give the agent additional tools and actions for automating incident handling."
+    }
+  ],
   "Sdc+Dp": [
     {
       "type": 0,
@@ -5055,6 +5485,12 @@
     {
       "type": 0,
       "value": "Autonomt"
+    }
+  ],
+  "StVmtb": [
+    {
+      "type": 0,
+      "value": "Generate schedule"
     }
   ],
   "SuVToZ": [
@@ -5191,6 +5627,12 @@
       "value": "platform"
     }
   ],
+  "TKsgZu": [
+    {
+      "type": 0,
+      "value": "Key alerts"
+    }
+  ],
   "TMZ2Rq": [
     {
       "type": 0,
@@ -5297,16 +5739,28 @@
       "value": "mode"
     }
   ],
-  "UKUKGA": [
+  "UNXega": [
     {
       "type": 0,
-      "value": "Det gick inte att ta bort dataanslutningen"
+      "value": "From agent"
     }
   ],
   "UPybTw": [
     {
       "type": 0,
       "value": "Gå till karta"
+    }
+  ],
+  "UQUIP7": [
+    {
+      "type": 0,
+      "value": "Request error"
+    }
+  ],
+  "UU91f0": [
+    {
+      "type": 0,
+      "value": "Run once now"
     }
   ],
   "UV4Dx5": [
@@ -5405,6 +5859,12 @@
       "value": "Du har inte behörighet att ta bort den här agenten."
     }
   ],
+  "VA/Z1S": [
+    {
+      "type": 0,
+      "value": "Hide"
+    }
+  ],
   "VB+AjJ": [
     {
       "type": 0,
@@ -5415,6 +5875,12 @@
     {
       "type": 0,
       "value": "Användartilldelad"
+    }
+  ],
+  "VIcJZp": [
+    {
+      "type": 0,
+      "value": "List View"
     }
   ],
   "VIgoaE": [
@@ -5575,6 +6041,12 @@
       "value": "Inga svarsplaner hittades"
     }
   ],
+  "W1Qs5O": [
+    {
+      "type": 0,
+      "value": "Runs"
+    }
+  ],
   "W2JBdp": [
     {
       "type": 0,
@@ -5603,6 +6075,12 @@
     {
       "type": 0,
       "value": "Godkänn"
+    }
+  ],
+  "WE9lZK": [
+    {
+      "type": 0,
+      "value": "No connectors configured"
     }
   ],
   "WHleoJ": [
@@ -5677,6 +6155,47 @@
       "value": "Pick an agent to visualize its tools, connectors, and handoffs."
     }
   ],
+  "Wekzzh": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "this item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "these "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "? This action cannot be undone."
+    }
+  ],
   "Wf6bDe": [
     {
       "type": 0,
@@ -5743,6 +6262,12 @@
       "value": "agentName"
     }
   ],
+  "X3hl5x": [
+    {
+      "type": 0,
+      "value": "Assumptions"
+    }
+  ],
   "X4Y2nv": [
     {
       "type": 0,
@@ -5787,6 +6312,12 @@
     {
       "type": 0,
       "value": "Åtgärden avbröts."
+    }
+  ],
+  "XCfiZ2": [
+    {
+      "type": 0,
+      "value": "Draft the cron for me"
     }
   ],
   "XEB3Fn": [
@@ -6277,12 +6808,6 @@
       "value": "Startar undersökning och utarbetar hypotes"
     }
   ],
-  "aA1SYF": [
-    {
-      "type": 0,
-      "value": "Tar bort dataanslutning"
-    }
-  ],
   "aA8bDw": [
     {
       "type": 0,
@@ -6445,16 +6970,6 @@
       "value": "Cognitive Services-språkskrivare"
     }
   ],
-  "aqnJe8": [
-    {
-      "type": 0,
-      "value": "Det gick inte att uppdatera dataanslutning. Fel: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "auFFJa": [
     {
       "type": 0,
@@ -6485,6 +7000,12 @@
     {
       "type": 0,
       "value": "Ta bort anpassad incidentsvarsplan"
+    }
+  ],
+  "b5OEXm": [
+    {
+      "type": 0,
+      "value": "How often should it run?"
     }
   ],
   "b7D4Lh": [
@@ -6541,10 +7062,30 @@
       "value": "Connector (Optional)"
     }
   ],
+  "bdhTWR": [
+    {
+      "type": 0,
+      "value": "Name can only contain letters, numbers, or hyphens and must be "
+    },
+    {
+      "type": 1,
+      "value": "maxLength"
+    },
+    {
+      "type": 0,
+      "value": " characters or fewer."
+    }
+  ],
   "bect+9": [
     {
       "type": 0,
       "value": "Stabil – Får uppdateringar en gång i månaden"
+    }
+  ],
+  "bjOnWH": [
+    {
+      "type": 0,
+      "value": "Add your draft instructions before asking for polish."
     }
   ],
   "blSyDZ": [
@@ -6583,6 +7124,16 @@
       "value": "Senaste dagen"
     }
   ],
+  "bquSks": [
+    {
+      "type": 0,
+      "value": "Collapse span with id: "
+    },
+    {
+      "type": 1,
+      "value": "id"
+    }
+  ],
   "bri0SI": [
     {
       "type": 0,
@@ -6609,6 +7160,12 @@
     {
       "type": 0,
       "value": "Inaktivera incidentsvarsplan"
+    }
+  ],
+  "bxSp6r": [
+    {
+      "type": 0,
+      "value": "No tools match your search."
     }
   ],
   "bxcc6L": [
@@ -6659,6 +7216,20 @@
       "value": "Roller"
     }
   ],
+  "c8Doeq": [
+    {
+      "type": 0,
+      "value": "Connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been deleted successfully"
+    }
+  ],
   "cDjhgm": [
     {
       "type": 0,
@@ -6701,6 +7272,16 @@
       "value": "Lagringskontodeltagare"
     }
   ],
+  "cfbpDd": [
+    {
+      "type": 0,
+      "value": "Category: "
+    },
+    {
+      "type": 1,
+      "value": "category"
+    }
+  ],
   "ciB+oy": [
     {
       "type": 0,
@@ -6711,6 +7292,12 @@
     {
       "type": 0,
       "value": "Förslag på promptar"
+    }
+  ],
+  "coPQxN": [
+    {
+      "type": 0,
+      "value": "Filter by custom plan"
     }
   ],
   "coy1iv": [
@@ -6745,6 +7332,12 @@
     {
       "type": 1,
       "value": "name"
+    }
+  ],
+  "ctcA0c": [
+    {
+      "type": 0,
+      "value": "Agent name"
     }
   ],
   "cubQfQ": [
@@ -6835,6 +7428,12 @@
     {
       "type": 0,
       "value": "Skapa schemalagd uppgift"
+    }
+  ],
+  "dLWTUk": [
+    {
+      "type": 0,
+      "value": "An AI sub-agent with instructions and tools"
     }
   ],
   "dQ5/dh": [
@@ -6929,6 +7528,12 @@
       "value": "Aldrig"
     }
   ],
+  "dw6Z3b": [
+    {
+      "type": 0,
+      "value": "What it means"
+    }
+  ],
   "e0a3XV": [
     {
       "type": 0,
@@ -6983,6 +7588,12 @@
       "value": "Lägg till en standardplan för svar på incidenter som agenten ska använda för Sev3-aviseringar."
     }
   ],
+  "eVjPEQ": [
+    {
+      "type": 0,
+      "value": "Model Generation"
+    }
+  ],
   "eYEnNu": [
     {
       "type": 0,
@@ -7035,6 +7646,12 @@
     {
       "type": 0,
       "value": "Anpassad svarsvägledning"
+    }
+  ],
+  "et3seW": [
+    {
+      "type": 0,
+      "value": "New handoff sub-agents start as Autonomous. You can connect tools and other details later."
     }
   ],
   "euBSDU": [
@@ -7119,6 +7736,12 @@
       "value": "Cognitive Services-taldeltagare"
     }
   ],
+  "fIQSsD": [
+    {
+      "type": 0,
+      "value": "Couldn’t draft the cron yet. Refine the description and try again."
+    }
+  ],
   "fLkL3F": [
     {
       "type": 0,
@@ -7167,10 +7790,32 @@
       "value": "Det finns redan en underagent med det här namnet"
     }
   ],
+  "fio5op": [
+    {
+      "type": 0,
+      "value": "Output"
+    }
+  ],
+  "fjgqNG": [
+    {
+      "type": 0,
+      "value": "Failed to load trace data: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "fk/+VC": [
     {
       "type": 0,
       "value": "Korrelationsintervall från -1 (omvänd) till 1 (direkt)"
+    }
+  ],
+  "fssuHC": [
+    {
+      "type": 0,
+      "value": "Connect an MCP server"
     }
   ],
   "ftDEuE": [
@@ -7213,12 +7858,6 @@
     {
       "type": 0,
       "value": "Kopiera felinformation"
-    }
-  ],
-  "g3ngVx": [
-    {
-      "type": 0,
-      "value": "Create AI agents with custom tools and data connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
     }
   ],
   "g7HOVb": [
@@ -7279,6 +7918,12 @@
     {
       "type": 0,
       "value": "Hantera IoT Hub-enhetstvillingar."
+    }
+  ],
+  "gct+2s": [
+    {
+      "type": 0,
+      "value": "Incident response plan:"
     }
   ],
   "gdUWAX": [
@@ -7441,6 +8086,12 @@
       "value": "Det gick inte att ta bort de valda hanterade resursgrupperna"
     }
   ],
+  "hNKm4/": [
+    {
+      "type": 0,
+      "value": "Sub-Agent"
+    }
+  ],
   "hO1Iog": [
     {
       "type": 0,
@@ -7457,6 +8108,12 @@
     {
       "type": 0,
       "value": "Arbetsboksläsare"
+    }
+  ],
+  "hS+M7h": [
+    {
+      "type": 0,
+      "value": "Steps to resolution"
     }
   ],
   "hWVnHh": [
@@ -7653,6 +8310,12 @@
       "value": "Senaste 7 dagarna"
     }
   ],
+  "it6Lig": [
+    {
+      "type": 0,
+      "value": "Input"
+    }
+  ],
   "it8L1Q": [
     {
       "type": 0,
@@ -7713,6 +8376,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "j1FyDL": [
+    {
+      "type": 0,
+      "value": "No extended tools available."
     }
   ],
   "j2vvrh": [
@@ -7847,6 +8516,12 @@
       "value": "Nästa körning"
     }
   ],
+  "jqpolM": [
+    {
+      "type": 0,
+      "value": "No system tools available."
+    }
+  ],
   "ju7bLp": [
     {
       "type": 0,
@@ -7871,6 +8546,12 @@
       "value": "YAML must include {collectionName} with at least one entry."
     }
   ],
+  "k+3+Dy": [
+    {
+      "type": 0,
+      "value": "Bar chart"
+    }
+  ],
   "k0VNHX": [
     {
       "type": 1,
@@ -7893,10 +8574,22 @@
       "value": "Aviserings-id"
     }
   ],
+  "kG0ZtT": [
+    {
+      "type": 0,
+      "value": "Other cron ideas"
+    }
+  ],
   "kHIJzq": [
     {
       "type": 0,
       "value": "Prenumeration är lika med"
+    }
+  ],
+  "kQAf2d": [
+    {
+      "type": 0,
+      "value": "Select"
     }
   ],
   "kQSvkP": [
@@ -7943,12 +8636,6 @@
     {
       "type": 0,
       "value": "Korrelationsanalys"
-    }
-  ],
-  "ko0rr4": [
-    {
-      "type": 0,
-      "value": "Uppdatera konfigurationen av dataanslutningen."
     }
   ],
   "koWZK8": [
@@ -8047,6 +8734,12 @@
       "value": "AzureML-dataforskare"
     }
   ],
+  "lCsNuL": [
+    {
+      "type": 0,
+      "value": "Trace data found, but could not parse into spans."
+    }
+  ],
   "lDMkTI": [
     {
       "type": 0,
@@ -8055,6 +8748,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "lDx7s5": [
+    {
+      "type": 0,
+      "value": "Agent responses are more concise in this mode."
     }
   ],
   "lKv8ex": [
@@ -8073,6 +8772,12 @@
     {
       "type": 0,
       "value": "Berörda resurser"
+    }
+  ],
+  "lUAfdH": [
+    {
+      "type": 0,
+      "value": "MCP server name"
     }
   ],
   "lawXja": [
@@ -8119,16 +8824,16 @@
       "value": "Region"
     }
   ],
+  "lni1id": [
+    {
+      "type": 0,
+      "value": "Search system tools by name, category, or description"
+    }
+  ],
   "lqgE72": [
     {
       "type": 0,
       "value": "Ansluter till Azure Monitor ..."
-    }
-  ],
-  "ltBXTD": [
-    {
-      "type": 0,
-      "value": "Search agents, tools, or connectors"
     }
   ],
   "lvNWLS": [
@@ -8149,6 +8854,12 @@
       "value": "Generera anpassad svarsplan"
     }
   ],
+  "m3Npit": [
+    {
+      "type": 0,
+      "value": "No tools available. Try creating one or clearing your filters."
+    }
+  ],
   "m57OnF": [
     {
       "type": 0,
@@ -8159,6 +8870,20 @@
     {
       "type": 0,
       "value": "Lägg till en standardplan för svar på incidenter som agenten ska använda för P1-basincidenter."
+    }
+  ],
+  "m8grMF": [
+    {
+      "type": 0,
+      "value": "Connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
     }
   ],
   "mAyw3x": [
@@ -8177,6 +8902,12 @@
     {
       "type": 0,
       "value": "Owning team ID is required when adding a default response plan."
+    }
+  ],
+  "mHep2R": [
+    {
+      "type": 0,
+      "value": "Last run"
     }
   ],
   "mJXXeS": [
@@ -8289,6 +9020,12 @@
       "value": "Incidenter åtgärdade av användare"
     }
   ],
+  "mbb8vl": [
+    {
+      "type": 0,
+      "value": "User prompt"
+    }
+  ],
   "mbtoHb": [
     {
       "type": 0,
@@ -8317,6 +9054,34 @@
     {
       "type": 0,
       "value": "Incidentsvarsplan"
+    }
+  ],
+  "mm/uFP": [
+    {
+      "type": 0,
+      "value": "Filter by mitigated by"
+    }
+  ],
+  "mopY52": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " and linked it as a handoff for "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgentName"
+    },
+    {
+      "type": 0,
+      "value": ". Choose what you’d like to do next."
     }
   ],
   "mq/sud": [
@@ -8451,18 +9216,10 @@
       "value": "name"
     }
   ],
-  "nh3LaL": [
+  "ncB14A": [
     {
       "type": 0,
-      "value": "Created "
-    },
-    {
-      "type": 1,
-      "value": "agentName"
-    },
-    {
-      "type": 0,
-      "value": ". Finish the setup in Incident management."
+      "value": "Agent invoked"
     }
   ],
   "nmpevl": [
@@ -8653,6 +9410,12 @@
       "value": "errorMessage"
     }
   ],
+  "ocTBQX": [
+    {
+      "type": 0,
+      "value": "Failed to delete connector"
+    }
+  ],
   "omHElC": [
     {
       "type": 0,
@@ -8671,10 +9434,34 @@
       "value": "Medel"
     }
   ],
+  "owa0nd": [
+    {
+      "type": 0,
+      "value": "Expand span with id: "
+    },
+    {
+      "type": 1,
+      "value": "id"
+    }
+  ],
   "ox7DwN": [
     {
       "type": 0,
       "value": "Högrisk"
+    }
+  ],
+  "p/QlSI": [
+    {
+      "type": 0,
+      "value": "Updating connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
     }
   ],
   "p/xAmY": [
@@ -8731,6 +9518,12 @@
       "value": "Hanterade resurser"
     }
   ],
+  "pCRg92": [
+    {
+      "type": 0,
+      "value": "You do not have permission to add or delete connectors."
+    }
+  ],
   "pDUFq5": [
     {
       "type": 0,
@@ -8741,12 +9534,6 @@
     {
       "type": 0,
       "value": "Aktuell status"
-    }
-  ],
-  "pG9xP9": [
-    {
-      "type": 0,
-      "value": "Det finns redan en dataanslutning med det här namnet"
     }
   ],
   "pRvgsc": [
@@ -8895,6 +9682,12 @@
       "value": "Totalt:"
     }
   ],
+  "qavd9Y": [
+    {
+      "type": 0,
+      "value": "Tell us how often your agent should run and we’ll draft the cron expression for you."
+    }
+  ],
   "qczspd": [
     {
       "type": 0,
@@ -8917,6 +9710,12 @@
     {
       "type": 0,
       "value": "Kostnader de senaste 7 dagarna"
+    }
+  ],
+  "qf1aUJ": [
+    {
+      "type": 0,
+      "value": "A connector with this name already exists"
     }
   ],
   "qhApmK": [
@@ -8955,6 +9754,20 @@
       "value": "Serverdelsslutpunkt"
     }
   ],
+  "qvTohT": [
+    {
+      "type": 0,
+      "value": "No results for \""
+    },
+    {
+      "type": 1,
+      "value": "searchText"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "qvviEg": [
     {
       "type": 0,
@@ -8983,6 +9796,12 @@
     {
       "type": 0,
       "value": "Connector"
+    }
+  ],
+  "rAbWbb": [
+    {
+      "type": 0,
+      "value": "No description available"
     }
   ],
   "rBPlLc": [
@@ -9077,6 +9896,12 @@
       "value": " över tid. Korrelationsvärdena visar hur starkt dessa två mått påverkar varandra."
     }
   ],
+  "rTBfGn": [
+    {
+      "type": 0,
+      "value": "Service type: All"
+    }
+  ],
   "rVtn/e": [
     {
       "type": 0,
@@ -9109,6 +9934,12 @@
     {
       "type": 0,
       "value": "Stäng"
+    }
+  ],
+  "rd+inb": [
+    {
+      "type": 0,
+      "value": "Create AI agents with custom tools and connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
     }
   ],
   "rd6YZk": [
@@ -9195,6 +10026,20 @@
       "value": "Incidentåtgärder"
     }
   ],
+  "rxcQLa": [
+    {
+      "type": 0,
+      "value": "Creating connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "ryPHA8": [
     {
       "type": 0,
@@ -9235,10 +10080,30 @@
       "value": "Ansluter till IcM ..."
     }
   ],
+  "sAireQ": [
+    {
+      "type": 0,
+      "value": "Select subscription"
+    }
+  ],
   "sH0O5v": [
     {
       "type": 0,
       "value": "Ange nyckelord för titel"
+    }
+  ],
+  "sHc8w5": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Pick a next step below to keep building."
     }
   ],
   "sI+CCC": [
@@ -9263,6 +10128,12 @@
     {
       "type": 0,
       "value": "Tidsstämplar"
+    }
+  ],
+  "sQZhm1": [
+    {
+      "type": 0,
+      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
     }
   ],
   "sQkhYk": [
@@ -9349,6 +10220,18 @@
       "value": "System Tools (Optional)"
     }
   ],
+  "sf6hMj": [
+    {
+      "type": 0,
+      "value": "Heads-up"
+    }
+  ],
+  "sjlioi": [
+    {
+      "type": 0,
+      "value": "Subagent invoked"
+    }
+  ],
   "slxYbm": [
     {
       "type": 0,
@@ -9375,6 +10258,12 @@
     {
       "type": 0,
       "value": "agent"
+    }
+  ],
+  "sqGM6w": [
+    {
+      "type": 0,
+      "value": "Delete Items"
     }
   ],
   "srG8e2": [
@@ -9465,6 +10354,12 @@
       "value": "Sjukvårdsagentredigerare"
     }
   ],
+  "tB02Wz": [
+    {
+      "type": 0,
+      "value": "Generating…"
+    }
+  ],
   "tCrMHt": [
     {
       "type": 0,
@@ -9483,24 +10378,16 @@
       "value": "Back to Edit"
     }
   ],
-  "tH6Myj": [
-    {
-      "type": 0,
-      "value": "Dataanslutningen "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " har skapats"
-    }
-  ],
   "tHCvDB": [
     {
       "type": 0,
       "value": "Det gick inte att inaktivera incidentsvarsplanen"
+    }
+  ],
+  "tJuu1A": [
+    {
+      "type": 0,
+      "value": "✨ AI Suggested Handoff Description"
     }
   ],
   "tLYOnZ": [
@@ -9607,6 +10494,12 @@
       "value": " har skapats"
     }
   ],
+  "thOyk5": [
+    {
+      "type": 0,
+      "value": "Deleting connector"
+    }
+  ],
   "tjE5Cb": [
     {
       "type": 0,
@@ -9665,6 +10558,12 @@
       "value": "Cognitive Services Custom Vision-läsare"
     }
   ],
+  "u3AxgJ": [
+    {
+      "type": 0,
+      "value": "Incident status:"
+    }
+  ],
   "u4WKBH": [
     {
       "type": 0,
@@ -9713,6 +10612,16 @@
       "value": "Alla självbestämmandenivåer"
     }
   ],
+  "uMF+CT": [
+    {
+      "type": 0,
+      "value": "Remove extended agent: "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "uMNRNl": [
     {
       "type": 0,
@@ -9729,6 +10638,22 @@
     {
       "type": 0,
       "value": "Körningsbegäran"
+    }
+  ],
+  "uWmprZ": [
+    {
+      "type": 1,
+      "value": "id"
+    },
+    {
+      "type": 0,
+      "value": " failed"
+    }
+  ],
+  "uYb82D": [
+    {
+      "type": 0,
+      "value": "Pick from presets"
     }
   ],
   "ubULuu": [
@@ -9759,6 +10684,12 @@
     {
       "type": 0,
       "value": "Zooma ut"
+    }
+  ],
+  "unj6JR": [
+    {
+      "type": 0,
+      "value": "Create from template"
     }
   ],
   "unxs9C": [
@@ -9923,32 +10854,22 @@
       "value": "Med den här åtgärden tas anslutningen till Azure Monitor bort permanent. Agenten kommer inte längre att integreras med Azure Monitor-meddelanden. Vill du ta bort den här anslutningen?"
     }
   ],
-  "w2QcbZ": [
+  "w0xxAb": [
     {
       "type": 0,
-      "value": "Created "
-    },
-    {
-      "type": 1,
-      "value": "agentName"
-    },
-    {
-      "type": 0,
-      "value": " and linked it as a handoff for "
-    },
-    {
-      "type": 1,
-      "value": "sourceAgentName"
-    },
-    {
-      "type": 0,
-      "value": ". Finish the setup in Incident management."
+      "value": "Clear description"
     }
   ],
   "w6nz4p": [
     {
       "type": 0,
       "value": "Open incident triggers"
+    }
+  ],
+  "w8UjdT": [
+    {
+      "type": 0,
+      "value": "Connect an Azure service MCP server to give the agent more tools to resolve an incident."
     }
   ],
   "w9tk1A": [
@@ -10047,6 +10968,12 @@
       "value": "Lägg till anpassad incidentsvarsplan"
     }
   ],
+  "wgyFIG": [
+    {
+      "type": 0,
+      "value": "Polishing…"
+    }
+  ],
   "wkLkeE": [
     {
       "type": 0,
@@ -10083,6 +11010,18 @@
       "value": "Checking trigger setup…"
     }
   ],
+  "x1YTqM": [
+    {
+      "type": 0,
+      "value": "Describe the cadence before we can help."
+    }
+  ],
+  "x25AjF": [
+    {
+      "type": 0,
+      "value": "Tool usage ID"
+    }
+  ],
   "x3aQrV": [
     {
       "type": 0,
@@ -10093,6 +11032,12 @@
     {
       "type": 0,
       "value": "No runs yet"
+    }
+  ],
+  "x4OHX9": [
+    {
+      "type": 0,
+      "value": "Sub-Agent Builder"
     }
   ],
   "x7C8JZ": [
@@ -10199,16 +11144,6 @@
       "value": "Otillräckliga datapunkter för diagrammet"
     }
   ],
-  "xgNcC+": [
-    {
-      "type": 0,
-      "value": "Det gick inte att skapa dataanslutning. Fel: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "xmcVZ0": [
     {
       "type": 0,
@@ -10239,10 +11174,22 @@
       "value": "Det gick inte att skapa incidentsvarsplan"
     }
   ],
+  "xsbZ+Q": [
+    {
+      "type": 0,
+      "value": "Add a tool"
+    }
+  ],
   "xtkizV": [
     {
       "type": 0,
       "value": "Webbplatsdeltagare"
+    }
+  ],
+  "xvTDgy": [
+    {
+      "type": 0,
+      "value": "Search tools…"
     }
   ],
   "xxoHVE": [
@@ -10309,6 +11256,12 @@
       "value": "Den här åtgärden körs med agentens autentiseringsuppgifter."
     }
   ],
+  "yX3QcY": [
+    {
+      "type": 0,
+      "value": "Tool details"
+    }
+  ],
   "yYK6LR": [
     {
       "type": 0,
@@ -10327,16 +11280,16 @@
       "value": "Sluttid"
     }
   ],
-  "yd187T": [
-    {
-      "type": 0,
-      "value": "Det gick inte att skapa dataanslutningen"
-    }
-  ],
   "yeJPGA": [
     {
       "type": 0,
       "value": "Det gick inte att kontrollera agentens minnesstatus. Återgår till inaktiverat:"
+    }
+  ],
+  "yf9+0C": [
+    {
+      "type": 0,
+      "value": "Polished version"
     }
   ],
   "yh4G7g": [
@@ -10349,6 +11302,12 @@
     {
       "type": 0,
       "value": "Uppgifter"
+    }
+  ],
+  "yhZZjG": [
+    {
+      "type": 0,
+      "value": "To agent"
     }
   ],
   "yhqGka": [
@@ -10367,6 +11326,12 @@
     {
       "type": 0,
       "value": "Hanterade resursgrupper"
+    }
+  ],
+  "ynVolH": [
+    {
+      "type": 0,
+      "value": "Ask a question or enter a slash(/) to use a command"
     }
   ],
   "yo67XU": [
@@ -10397,12 +11362,6 @@
     {
       "type": 0,
       "value": "Beskrivningen måste vara en sammanfattande rad."
-    }
-  ],
-  "z6olIH": [
-    {
-      "type": 0,
-      "value": "An AI agent with instructions and tools"
     }
   ],
   "z8ZYoc": [
@@ -10439,12 +11398,6 @@
     {
       "type": 0,
       "value": "Alla allvarlighetsgrader"
-    }
-  ],
-  "zL39WD": [
-    {
-      "type": 0,
-      "value": "Grid View"
     }
   ],
   "zN87hN": [

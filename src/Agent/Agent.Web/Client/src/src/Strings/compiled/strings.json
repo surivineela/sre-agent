@@ -373,6 +373,12 @@
       "value": "This map shows how your application's resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into a core application group based on the primary resource."
     }
   ],
+  "0ICwq5": [
+    {
+      "type": 0,
+      "value": "Last updated"
+    }
+  ],
   "0KB3lG": [
     {
       "type": 0,
@@ -2069,6 +2075,12 @@
     {
       "type": 0,
       "value": "Failed to resume task"
+    }
+  ],
+  "8Vd2Kv": [
+    {
+      "type": 0,
+      "value": "Update list"
     }
   ],
   "8Wiwkg": [
@@ -4247,6 +4259,12 @@
       "value": "Edit custom response plan"
     }
   ],
+  "M+AZNX": [
+    {
+      "type": 0,
+      "value": "Delete scheduled tasks"
+    }
+  ],
   "M/3/kG": [
     {
       "type": 0,
@@ -5783,12 +5801,6 @@
       "value": "Request error"
     }
   ],
-  "UU91f0": [
-    {
-      "type": 0,
-      "value": "Run once now"
-    }
-  ],
   "UV4Dx5": [
     {
       "type": 0,
@@ -6514,6 +6526,12 @@
     {
       "type": 0,
       "value": "Failed to validate the access key. Please try again."
+    }
+  ],
+  "Y7RxDE": [
+    {
+      "type": 0,
+      "value": "Run task now"
     }
   ],
   "YBXVNU": [
@@ -8264,6 +8282,12 @@
       "value": "Perform data science tasks in Azure Machine Learning."
     }
   ],
+  "iDPKM0": [
+    {
+      "type": 0,
+      "value": "Filter tasks"
+    }
+  ],
   "iDSWYk": [
     {
       "type": 0,
@@ -9228,6 +9252,12 @@
     {
       "type": 0,
       "value": "Running"
+    }
+  ],
+  "nEnDXd": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected scheduled tasks? This action cannot be undone."
     }
   ],
   "nFOo9o": [
