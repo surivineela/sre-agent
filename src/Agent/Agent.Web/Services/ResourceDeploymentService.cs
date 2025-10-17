@@ -4,7 +4,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents;

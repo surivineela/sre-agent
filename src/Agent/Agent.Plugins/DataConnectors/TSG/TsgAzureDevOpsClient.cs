@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Interfaces;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 using Agent.Logging;
 using Azure.Core;
 using Azure.Identity;
@@ -95,7 +95,7 @@ namespace Agent.Plugins.DataConnectors.TSG
                 var url = $"https://dev.azure.com/{_settings.Organization}/{_settings.ProjectName}/_apis/git/repositories/{_settings.RepositoryName}/items?scopePath={Uri.EscapeDataString(path)}&recursionLevel={recursionLevel}&includeContent=false&api-version=7.0";
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", token);                
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", token);
 
                 var response = await _httpClient.SendAsync(request);
                 _logger.LogInternalInformation($"debug message using Bearer: Received response with status code: {response.Content}");

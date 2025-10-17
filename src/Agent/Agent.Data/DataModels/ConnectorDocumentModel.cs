@@ -10,7 +10,7 @@ namespace Agent.Data.DataModels;
 /// <summary>
 /// A factory for creating generic CosmosDocument wrappers from specific domain models.
 /// </summary>
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 
 /// <summary>
 /// A factory for creating flattened Cosmos DB documents as dictionaries.

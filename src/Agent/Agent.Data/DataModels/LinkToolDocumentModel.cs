@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 
 namespace Agent.Data.DataModels;
 
@@ -25,9 +25,10 @@ public record LinkToolDocumentModel : ToolDocumentModel
         string description,
         List<YamlParameter> parameters,
         List<string> attributes,
-    YamlMetadata metadata ,
+    YamlMetadata metadata,
         string operationId
-    ) : base(id, name, type, connector, description, parameters, attributes, metadata, operationId) {
+    ) : base(id, name, type, connector, description, parameters, attributes, metadata, operationId)
+    {
 
     }
 

@@ -5,7 +5,6 @@
 using System.Reflection;
 using System.Text;
 using Agent.Framework;
-using Agent.Framework.Reasoning.Models;
 using Agent.Plugins.Kusto.Tools;
 using YamlDotNet.Serialization;
 

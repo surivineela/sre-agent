@@ -2,18 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.ComponentModel;
-using System.Reflection;
 using Agent.Core.Configuration;
-using Agent.Framework;
-using Agent.Plugins;
 using Agent.Plugins.Tools;
-using Agent.Runtime.Interfaces;
-using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -21,7 +12,7 @@ using Moq;
 
 namespace Agent.Tests.Unit
 {
-    
+
     public class DataConnectorResolverServiceTest : IDisposable
     {
         private readonly Mock<ILogger<DataConnectorResolverService>> _mockLogger;
@@ -68,15 +59,15 @@ namespace Agent.Tests.Unit
         }
 
         [Fact]
-        public  void GetConnectorSetting_Sucess_With_ClusterUrl()
+        public void GetConnectorSetting_Sucess_With_ClusterUrl()
         {
-           var dataservice= new DataConnectorResolverService(_connectorSettings.Object, _logger, _env.Object);
+            var dataservice = new DataConnectorResolverService(_connectorSettings.Object, _logger, _env.Object);
 
-           var settings = dataservice.GetConnectorFromSettings<KustoConnector>("Kusto", "Kusto", "cappseus.eastus.kusto.windows.net");
-              Assert.NotNull(settings);
-              Assert.Equal("KustoDev2", settings.Name);
-                Assert.Equal("Kusto", settings.Type);
-                Assert.Equal("https://cappseus.eastus.kusto.windows.net", settings.ClusterUrl);
+            var settings = dataservice.GetConnectorFromSettings<KustoConnector>("Kusto", "Kusto", "cappseus.eastus.kusto.windows.net");
+            Assert.NotNull(settings);
+            Assert.Equal("KustoDev2", settings.Name);
+            Assert.Equal("Kusto", settings.Type);
+            Assert.Equal("https://cappseus.eastus.kusto.windows.net", settings.ClusterUrl);
         }
 
         [Fact]
@@ -101,7 +92,7 @@ namespace Agent.Tests.Unit
             {
                 var settings = dataservice.GetConnectorFromSettings<KustoConnector>("Kusto", "Kusto", "unknown.eastus.kusto.windows.net");
                 Assert.Null(settings);
-      
+
             }
             catch (Exception ex)
             {
@@ -130,7 +121,7 @@ namespace Agent.Tests.Unit
             Assert.Equal("KustoAgentSpace", settings.Name);
             Assert.Equal("Kusto", settings.Type);
             Assert.Equal("https://kustoagentspace.kusto.windows.net", settings.ClusterUrl);
-            Assert.Equal(Agent.Framework.Reasoning.Models.ConnectorAuthType.AgentSpace, settings.Auth.AuthenticationType);
+            Assert.Equal(Agent.Framework.ConnectorAuthType.AgentSpace, settings.Auth.AuthenticationType);
         }
 
         public void Dispose()

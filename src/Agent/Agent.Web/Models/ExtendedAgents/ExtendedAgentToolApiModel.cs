@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json.Serialization;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 
 namespace Agent.Web.Models.ExtendedAgents;
 

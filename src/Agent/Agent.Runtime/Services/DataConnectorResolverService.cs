@@ -4,7 +4,6 @@
 
 using Agent.Core.Configuration;
 using Agent.Framework;
-using Agent.Framework.Reasoning.Models;
 using Agent.Plugins.Tools;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

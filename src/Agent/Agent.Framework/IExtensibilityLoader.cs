@@ -1,4 +1,8 @@
-namespace Agent.Framework.Interfaces;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+namespace Agent.Framework;
 
 public interface IExtensibilityLoader
 {

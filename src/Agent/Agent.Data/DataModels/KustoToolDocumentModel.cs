@@ -3,9 +3,10 @@
 // ------------------------------------------------------------
 
 
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 
 namespace Agent.Data.DataModels;
+
 public enum KustoExecutionMode
 {
     Function,
@@ -30,7 +31,7 @@ public record KustoToolDocumentModel : ToolDocumentModel
         string description,
         List<YamlParameter> parameters,
         List<string> attributes,
-    YamlMetadata metadata ,
+    YamlMetadata metadata,
         string operationId
     ) : base(id, name, type, connector, description, parameters, attributes, metadata, operationId) { }
 
@@ -41,5 +42,5 @@ public record KustoToolDocumentModel : ToolDocumentModel
     public string Database { get; set; } = string.Empty;
     public string? ClusterHint { get; set; }
     public List<KustoRegionalGroupSettings> RegionalClusterGroups { get; set; } = new List<KustoRegionalGroupSettings>();
-    public string?  ClusterUri { get; set; }
+    public string? ClusterUri { get; set; }
 }

@@ -7,7 +7,6 @@ using System.Reflection;
 using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
-using Agent.Framework.Interfaces;
 using Agent.Framework.Models;
 using Agent.Plugins;
 using Agent.Runtime.Interfaces;

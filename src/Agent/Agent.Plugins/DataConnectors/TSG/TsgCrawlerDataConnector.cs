@@ -5,7 +5,7 @@
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Agent.Core.Interfaces;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 

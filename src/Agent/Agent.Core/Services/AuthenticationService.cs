@@ -6,7 +6,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 using Agent.Logging;
 using Azure.Core;
 using Azure.Identity;

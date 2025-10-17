@@ -4,7 +4,7 @@
 
 using Agent.Core.DataConnectors;
 using Agent.Data.DataModels;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 using YamlDotNet.Serialization;
 
 namespace Agent.Plugins.Tools

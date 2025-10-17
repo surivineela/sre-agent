@@ -5,7 +5,6 @@
 using System.Reflection;
 using Agent.Core.Configuration;
 using Agent.Framework;
-using Agent.Framework.Interfaces;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Tools;

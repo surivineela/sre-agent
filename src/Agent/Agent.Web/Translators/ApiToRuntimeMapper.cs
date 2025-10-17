@@ -6,7 +6,6 @@ using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Data.Tools;
 using Agent.Plugins.Tools;
-using Agent.Framework.Reasoning.Models;
 using Agent.Web.Models.ExtendedAgents;
 
 namespace Agent.Web.Services;

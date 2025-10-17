@@ -3,9 +3,10 @@
 // ------------------------------------------------------------
 
 
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 
 namespace Agent.Data.DataModels;
+
 public record KustoConnectorDocumentModel : ConnectorDocumentModel
 {
     public string ClusterUrl { get; set; } = string.Empty;
@@ -20,17 +21,18 @@ public record KustoConnectorDocumentModel : ConnectorDocumentModel
         string description,
         ConnectorAuthSettings auth,
         bool enabled,
-        
+
         string operationId
-    ) : base( id,
+    ) : base(id,
      name,
      type,
      description,
      metadata,
      auth,
      enabled,
-     operationId) { }
+     operationId)
+    { }
 
 
-      public List<KustoRegionalGroupSettings> RegionalClusterGroups { get; set; } = new();
+    public List<KustoRegionalGroupSettings> RegionalClusterGroups { get; set; } = new();
 }

@@ -5,16 +5,12 @@
 using System.Runtime.CompilerServices;
 using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 using Agent.Plugins.Kusto;
-using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Tools;
-using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using Moq;
 
 namespace Agent.Tests.Unit.Plugins.KustoPluginTests
@@ -30,7 +26,7 @@ namespace Agent.Tests.Unit.Plugins.KustoPluginTests
         private readonly ILogger<KustoPlugin> _pluginLogger;
         private string _kustoClusterName;
         private const int _retryCount = 3;
-    private const int _retryDelaySeconds = 5; // 5 second delay between retries
+        private const int _retryDelaySeconds = 5; // 5 second delay between retries
 
         public KustoPluginConnectionTests()
         {

@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 using System.Text.Json;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers.ExtendedAgents;
@@ -11,7 +10,6 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Validation;
 using Agent.Framework;
-using Agent.Framework.Reasoning.Models;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.Tools;
 using Agent.Runtime.Interfaces;
@@ -701,13 +699,13 @@ User Prompt To Improve (between <<< and >>>):
         {
             _logger.LogInternalInformation("ListSystemTools: Invoked with search: {Search}", search);
 
-           // Get all tools (system + extended)
+            // Get all tools (system + extended)
             var allTools = await Task.Run(() => _toolFactory.FetchAvailableToolInfo());
 
             // Get extended tools from database to filter them out
             var extendedToolsData = await _extendedAgentService.GetToolsAsync(1, 1000, null);
             var extendedToolNames = new HashSet<string>(
-                extendedToolsData.Select(t => t.Name), 
+                extendedToolsData.Select(t => t.Name),
                 StringComparer.OrdinalIgnoreCase);
 
             // Filter to only system tools (exclude extended tools)
@@ -720,14 +718,14 @@ User Prompt To Improve (between <<< and >>>):
             {
                 var searchLower = search.ToLowerInvariant();
                 systemTools = systemTools
-                    .Where(tool => 
+                    .Where(tool =>
                         tool.Name.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ||
                         (tool.Description?.Contains(searchLower, StringComparison.OrdinalIgnoreCase) == true) ||
                         (tool.PluginName?.Contains(searchLower, StringComparison.OrdinalIgnoreCase) == true))
                     .ToList();
             }
 
-            _logger.LogInternalInformation("ListSystemTools: Retrieved {Count} system tools (filtered {ExtendedCount} extended tools)", 
+            _logger.LogInternalInformation("ListSystemTools: Retrieved {Count} system tools (filtered {ExtendedCount} extended tools)",
                 systemTools.Count, extendedToolNames.Count);
 
 

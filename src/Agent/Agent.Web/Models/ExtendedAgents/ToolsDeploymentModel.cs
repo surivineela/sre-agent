@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 using YamlDotNet.Serialization;
 
 namespace Agent.Web.Models.ExtendedAgents

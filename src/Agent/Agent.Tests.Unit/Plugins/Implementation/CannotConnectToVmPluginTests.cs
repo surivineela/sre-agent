@@ -11,7 +11,7 @@ using Agent.Core.Interfaces;
 using Azure.Core;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 using Agent.Logging;
 
 namespace Agent.Tests.Unit.Plugins.Implementation

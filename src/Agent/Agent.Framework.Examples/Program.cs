@@ -15,7 +15,6 @@ using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
-using Agent.Framework.Interfaces;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;

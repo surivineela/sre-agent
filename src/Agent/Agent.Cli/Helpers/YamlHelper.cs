@@ -42,7 +42,7 @@ public static class YamlHelper
         File.WriteAllText(Path.Combine(folder, $"{name}.yaml"), yaml, new UTF8Encoding(false));
     }
 
-    public static void WriteToolYamlFile(string folder, string name, YamlToolDefinitionBase tool, Framework.Reasoning.Models.YamlMetadata? documentMetadata = null)
+    public static void WriteToolYamlFile(string folder, string name, YamlToolDefinitionBase tool, Framework.YamlMetadata? documentMetadata = null)
     {
         Directory.CreateDirectory(folder);
 
@@ -52,7 +52,7 @@ public static class YamlHelper
             // Note: tool list is actually a single tool, but to keep it how the api expects right now, rename later
             Kind = "ToolList",
             Metadata = documentMetadata != null ?
-                new YamlMetadata
+                new Services.YamlMetadata
                 {
                     Owner = documentMetadata.Owner ?? string.Empty,
                     Version = documentMetadata.Version ?? string.Empty,
@@ -60,7 +60,7 @@ public static class YamlHelper
                     UpdatedAt = documentMetadata.UpdatedAt?.ToString() ?? string.Empty,
                     CreatedAt = documentMetadata.CreatedAt?.ToString() ?? string.Empty
                 } :
-                new YamlMetadata(),
+                new Services.YamlMetadata(),
             Spec = new ToolListSpec { Tools = [tool] }
         };
 

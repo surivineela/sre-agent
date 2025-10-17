@@ -11,14 +11,13 @@ namespace Agent.Data.DataModels;
 /// A factory for creating generic CosmosDocument wrappers from specific domain models.
 /// </summary>
 using System.Collections.Generic;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 
 public record PlugInConfigDocumentModel(
     string Id,
     string Name,
     IDictionary<string, object> Config,
-
-YamlMetadata Metadata,
+    YamlMetadata Metadata,
     string OperationId
 ) : ICosmosDocument
 {

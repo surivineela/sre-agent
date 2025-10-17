@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Tools;

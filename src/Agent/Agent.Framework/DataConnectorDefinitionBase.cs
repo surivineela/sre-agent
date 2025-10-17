@@ -4,7 +4,7 @@
 
 using YamlDotNet.Serialization;
 
-namespace Agent.Framework.Reasoning.Models;
+namespace Agent.Framework;
 
 /// <summary>
 /// Base class for all YAML-defined data connectors (Kusto, SQL, API, etc.)

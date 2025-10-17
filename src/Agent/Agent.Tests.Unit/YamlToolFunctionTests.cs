@@ -5,9 +5,6 @@
 using System.Reflection;
 using System.Text.Json;
 using Agent.Framework;
-using Agent.Framework.Reasoning.Models;
-using Agent.Plugins.Tools;
-using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -109,7 +106,7 @@ namespace Agent.Tests.Unit
             // Arrange
             var toolDef = CreateTestToolDefinition();
             var yamlToolFunction = new YamlToolFunction<object>(_serviceProvider, _assemblies, toolDef);
-            
+
             // Get the AIFunction and create test arguments
             var aiFunction = yamlToolFunction.GetToolFunction();
             var args = new AIFunctionArguments
@@ -132,7 +129,7 @@ namespace Agent.Tests.Unit
             // Arrange
             var toolDef = CreateTestToolDefinition();
             var yamlToolFunction = new YamlToolFunction<object>(_serviceProvider, _assemblies, toolDef);
-            
+
             var aiFunction = yamlToolFunction.GetToolFunction();
             var args = new AIFunctionArguments(); // Empty arguments
 
@@ -221,10 +218,10 @@ namespace Agent.Tests.Unit
             var toolDef = CreateTestToolDefinition();
             var yamlToolFunction = new YamlToolFunction<object>(_serviceProvider, _assemblies, toolDef);
             var threadId = Guid.NewGuid();
-            
+
             // Get the AIFunction
             var aiFunction = yamlToolFunction.GetToolFunction(threadId);
-            
+
             // Create arguments based on YAML parameter names
             var arguments = new AIFunctionArguments
             {
@@ -247,35 +244,35 @@ namespace Agent.Tests.Unit
             // Arrange
             var toolDef = CreateTestToolDefinition();
             var yamlToolFunction = new YamlToolFunction<object>(_serviceProvider, _assemblies, toolDef);
-            
+
             // Act
             var aiFunction = yamlToolFunction.GetToolFunction();
             var schema = aiFunction.JsonSchema;
 
             // Assert
             Assert.NotEqual(default(JsonElement), schema);
-            
+
             // Verify schema structure
             Assert.True(schema.TryGetProperty("type", out var typeProperty));
             Assert.Equal("object", typeProperty.GetString());
-            
+
             // Verify properties contain our YAML parameters
             Assert.True(schema.TryGetProperty("properties", out var propertiesProperty));
-            
+
             // Check message parameter
             Assert.True(propertiesProperty.TryGetProperty("message", out var messageProperty));
             Assert.True(messageProperty.TryGetProperty("type", out var messageType));
             Assert.Equal("string", messageType.GetString());
             Assert.True(messageProperty.TryGetProperty("description", out var messageDescription));
             Assert.Equal("Test message parameter", messageDescription.GetString());
-            
-            // Check count parameter  
+
+            // Check count parameter
             Assert.True(propertiesProperty.TryGetProperty("count", out var countProperty));
             Assert.True(countProperty.TryGetProperty("type", out var countType));
             Assert.Equal("integer", countType.GetString());
             Assert.True(countProperty.TryGetProperty("description", out var countDescription));
             Assert.Equal("Test count parameter", countDescription.GetString());
-            
+
             // Verify required parameters
             Assert.True(schema.TryGetProperty("required", out var requiredProperty));
             var requiredArray = requiredProperty.EnumerateArray().Select(x => x.GetString()).ToList();
@@ -290,7 +287,7 @@ namespace Agent.Tests.Unit
             var toolDef = CreateTestToolDefinition();
             var yamlToolFunction = new YamlToolFunction<object>(_serviceProvider, _assemblies, toolDef);
             var aiFunction = yamlToolFunction.GetToolFunction();
-            
+
             // Create arguments with only optional parameter
             var arguments = new AIFunctionArguments
             {
@@ -314,7 +311,7 @@ namespace Agent.Tests.Unit
             var toolDef = new TestYamlToolDefinition
             {
                 Name = "RequiredTestTool",
-                Type = "TestYamlPlugin", 
+                Type = "TestYamlPlugin",
                 Description = "Tool to test required parameter behavior",
                 Parameters = new List<YamlParameter>
                 {
@@ -326,7 +323,7 @@ namespace Agent.Tests.Unit
             };
 
             var yamlToolFunction = new YamlToolFunction<object>(_serviceProvider, _assemblies, toolDef);
-            
+
             // Act
             var aiFunction = yamlToolFunction.GetToolFunction();
             var schema = aiFunction.JsonSchema;
@@ -334,18 +331,18 @@ namespace Agent.Tests.Unit
             // Assert - Check required array contains only required parameters
             Assert.True(schema.TryGetProperty("required", out var requiredProperty));
             var requiredArray = requiredProperty.EnumerateArray().Select(x => x.GetString()).ToHashSet();
-            
+
             // Required parameters should be in the required array
             Assert.Contains("requiredParam1", requiredArray);
             Assert.Contains("requiredParam2", requiredArray);
-            
+
             // Optional parameters should NOT be in the required array
             Assert.DoesNotContain("optionalParam1", requiredArray);
             Assert.DoesNotContain("optionalParam2", requiredArray);
-            
+
             // Should have exactly 2 required parameters
             Assert.Equal(2, requiredArray.Count);
-            
+
             // Verify all parameters are still in properties regardless of required status
             Assert.True(schema.TryGetProperty("properties", out var properties));
             Assert.True(properties.TryGetProperty("requiredParam1", out _));
@@ -376,10 +373,10 @@ namespace Agent.Tests.Unit
             // Add the complex plugin to services
             _services.AddTransient<ComplexTestYamlPlugin>();
             var serviceProvider = _services.BuildServiceProvider();
-            
+
             var yamlToolFunction = new YamlToolFunction<object>(serviceProvider, _assemblies, toolDef);
             var aiFunction = yamlToolFunction.GetToolFunction();
-            
+
             // Create arguments with all parameter types
             var arguments = new AIFunctionArguments
             {
@@ -423,35 +420,35 @@ namespace Agent.Tests.Unit
             };
 
             var yamlToolFunction = new YamlToolFunction<object>(_serviceProvider, _assemblies, toolDef);
-            
+
             // Act
             var aiFunction = yamlToolFunction.GetToolFunction();
             var schema = aiFunction.JsonSchema;
 
             // Assert
             Assert.True(schema.TryGetProperty("properties", out var properties));
-            
+
             // Check all parameter types are correctly mapped
             Assert.True(properties.TryGetProperty("stringParam", out var stringParam));
             Assert.Equal("string", stringParam.GetProperty("type").GetString());
             Assert.Equal("String parameter description", stringParam.GetProperty("description").GetString());
-            
+
             Assert.True(properties.TryGetProperty("intParam", out var intParam));
             Assert.Equal("integer", intParam.GetProperty("type").GetString());
             Assert.Equal("Integer parameter description", intParam.GetProperty("description").GetString());
-            
+
             Assert.True(properties.TryGetProperty("boolParam", out var boolParam));
             Assert.Equal("boolean", boolParam.GetProperty("type").GetString());
             Assert.Equal("Boolean parameter description", boolParam.GetProperty("description").GetString());
-            
+
             Assert.True(properties.TryGetProperty("doubleParam", out var doubleParam));
             Assert.Equal("number", doubleParam.GetProperty("type").GetString());
             Assert.Equal("Double parameter description", doubleParam.GetProperty("description").GetString());
-            
+
             Assert.True(properties.TryGetProperty("directParam", out var directParam));
             Assert.Equal("string", directParam.GetProperty("type").GetString());
             Assert.Equal("Direct parameter description", directParam.GetProperty("description").GetString());
-            
+
             // Check required parameters
             Assert.True(schema.TryGetProperty("required", out var required));
             var requiredList = required.EnumerateArray().Select(x => x.GetString()).ToList();
@@ -508,7 +505,7 @@ namespace Agent.Tests.Unit
             // Assert - Should execute without throwing exceptions
             Assert.NotNull(result);
             var resultString = result.ToString();
-            
+
             // The SafeConvertType should handle null and invalid conversions gracefully
             // null message should be handled as empty string or null
             // invalid number should default to 0
@@ -533,7 +530,7 @@ namespace Agent.Tests.Unit
         public async Task<string> Run(string message = "", int count = 0)
         {
             await Task.Delay(1); // Simulate async work
-            
+
             return $"Plugin executed with message: '{message}' and count: {count}";
         }
     }
@@ -547,19 +544,19 @@ namespace Agent.Tests.Unit
         public async Task<string> Run(Dictionary<string, object> args, string directParam = "")
         {
             await Task.Delay(1); // Simulate async work
-            
+
             if (args == null)
             {
                 return "Complex plugin executed with no parameters";
             }
-            
+
             var stringParam = args.TryGetValue("stringParam", out var strValue) ? strValue?.ToString() ?? "" : "";
             var intParam = args.TryGetValue("intParam", out var intValue) ? SafeConvertToInt(intValue) : 0;
             var boolParam = args.TryGetValue("boolParam", out var boolValue) ? SafeConvertToBool(boolValue) : false;
             var doubleParam = args.TryGetValue("doubleParam", out var doubleValue) ? SafeConvertToDouble(doubleValue) : 0.0;
-            
+
             var directInfo = !string.IsNullOrEmpty(directParam) ? $", directParam: {directParam}" : "";
-            
+
             return $"Complex plugin executed: stringParam: {stringParam}, intParam: {intParam}, boolParam: {boolParam}, doubleParam: {doubleParam}{directInfo}";
         }
 
@@ -591,7 +588,7 @@ namespace Agent.Tests.Unit
         {
             if (string.IsNullOrWhiteSpace(Name))
                 throw new ArgumentException("Tool name is required.");
-            
+
             if (string.IsNullOrWhiteSpace(Type))
                 throw new ArgumentException("Tool type is required.");
         }

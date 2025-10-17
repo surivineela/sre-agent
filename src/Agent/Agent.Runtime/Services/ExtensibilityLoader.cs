@@ -5,7 +5,6 @@
 using Agent.Core.Interfaces;
 using Agent.Data;
 using Agent.Framework;
-using Agent.Framework.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;

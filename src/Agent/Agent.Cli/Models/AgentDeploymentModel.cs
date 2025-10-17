@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Framework;
-using Agent.Framework.Reasoning.Models;
 using YamlDotNet.Serialization;
 
 namespace Agent.Cli.Models

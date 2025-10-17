@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-namespace Agent.Framework.Reasoning.Models
+namespace Agent.Framework
 {
     public enum ConnectorAuthType
     {

@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Framework.Models;
-using Agent.Framework.Reasoning.Models;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 

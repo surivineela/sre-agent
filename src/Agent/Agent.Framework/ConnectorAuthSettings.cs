@@ -5,7 +5,7 @@
 using System.ComponentModel.DataAnnotations;
 using YamlDotNet.Serialization;
 
-namespace Agent.Framework.Reasoning.Models
+namespace Agent.Framework
 {
     public class ConnectorAuthSettings
     {

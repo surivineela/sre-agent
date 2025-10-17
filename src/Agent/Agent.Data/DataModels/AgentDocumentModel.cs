@@ -1,7 +1,7 @@
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Framework.Models;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 
 public record AgentDocumentModel(
     string Id,

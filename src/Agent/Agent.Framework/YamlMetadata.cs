@@ -5,7 +5,7 @@
 using System.Text.Json.Serialization;
 using YamlDotNet.Serialization;
 
-namespace Agent.Framework.Reasoning.Models
+namespace Agent.Framework
 {
     public class YamlMetadata
     {
@@ -29,5 +29,4 @@ namespace Agent.Framework.Reasoning.Models
         [JsonPropertyName("created_at")]
         public DateTime? CreatedAt { get; set; }
     }
-
 }

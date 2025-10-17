@@ -2,8 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models.Api.v1;
-
 namespace Agent.Data.DataModels;
 
 /// <summary>
@@ -12,14 +10,6 @@ namespace Agent.Data.DataModels;
 /// <summary>
 /// A factory for creating generic CosmosDocument wrappers from specific domain models.
 /// </summary>
-using System.Collections.Generic;
-using System.ComponentModel;
-using Agent.Framework;
-using Agent.Framework.Reasoning.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
-
 /// <summary>
 /// A factory for creating flattened Cosmos DB documents as dictionaries.
 /// </summary>

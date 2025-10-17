@@ -2,14 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Framework.Reasoning.Models;
-
 namespace Agent.Framework;
 
 public interface IConnectorResolver
 {
     T GetConnectorFromSettings<T>(string connectorName, string connectorType, string dataSource) where T : DataConnectorDefinitionBase, new();
-    
+
     List<DataConnectorBasicInfo> GetAllDataConnectors();
 
     string? GetAgentSpaceDataConnectorIdentity();

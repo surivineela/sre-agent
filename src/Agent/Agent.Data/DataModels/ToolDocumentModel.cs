@@ -11,9 +11,9 @@ namespace Agent.Data.DataModels;
 /// A factory for creating generic CosmosDocument wrappers from specific domain models.
 /// </summary>
 using System.Collections.Generic;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 
-public record   ToolDocumentModel(
+public record ToolDocumentModel(
     string Id,
     string Name,
     string Type,
@@ -21,7 +21,7 @@ public record   ToolDocumentModel(
     string Description,
     List<YamlParameter> Parameters,
     List<string> Attributes,
-    
+
 YamlMetadata Metadata,
     string OperationId
 ) : ICosmosDocument
