@@ -647,12 +647,6 @@
       "value": "Highlight Point"
     }
   ],
-  "1VSsQF": [
-    {
-      "type": 0,
-      "value": "Failed to create default incident response plan"
-    }
-  ],
   "1YF+AW": [
     {
       "type": 0,
@@ -11384,6 +11378,16 @@
     {
       "type": 0,
       "value": "Core application group type"
+    }
+  ],
+  "ysBuRt": [
+    {
+      "type": 0,
+      "value": "Failed to create default incident response plan. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "yxXhfZ": [

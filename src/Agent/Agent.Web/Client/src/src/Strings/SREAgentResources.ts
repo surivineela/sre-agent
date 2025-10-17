@@ -1473,7 +1473,7 @@ export const IncidentManagementNotificationResources = defineMessages({
     createDefaultHandlerTitle: { defaultMessage: 'Creating default incident response plan', id: 't3wAiN' },
     createDefaultHandlerInProgress: { defaultMessage: 'Creating default incident response plan', id: 't3wAiN' },
     createDefaultHandlerSuccess: { defaultMessage: 'Created default incident response plan', id: 'AmnkPD' },
-    createDefaultHandlerFailed: { defaultMessage: 'Failed to create default incident response plan', id: '1VSsQF' },
+    createDefaultHandlerFailed: { defaultMessage: 'Failed to create default incident response plan. Error: {errorMessage}', id: 'ysBuRt' },
     deleteFilterTitle: { defaultMessage: 'Deleting incident response plan', id: 'it8L1Q' },
     deleteFilterInProgress: { defaultMessage: 'Deleting incident response plan', id: 'it8L1Q' },
     deleteFilterSuccess: { defaultMessage: 'Deleted incident response plan', id: '4ZoIgV' },

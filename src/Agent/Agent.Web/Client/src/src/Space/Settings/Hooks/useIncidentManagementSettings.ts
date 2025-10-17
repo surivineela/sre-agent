@@ -4,6 +4,7 @@ import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
+import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClient';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
 import { IncidentFilterDocumentPayload } from '../../../Common/Contracts/Azure/IncidentHandler';
@@ -492,6 +493,7 @@ export function useIncidentManagementSettings(close: (() => void) | undefined) {
                                             intl.formatMessage(IncidentManagementNotificationResources.createDefaultHandlerSuccess)
                                         );
                                     } else {
+                                        const errorMessage = getDataPlaneErrorMessage(filterResult.error);
                                         azPortalContext.log({
                                             action: 'create-defaultHandler',
                                             actionModifier: 'failed',
@@ -500,12 +502,16 @@ export function useIncidentManagementSettings(close: (() => void) | undefined) {
                                         });
                                         setHasFilters(false);
                                         setSaveFailure(
-                                            intl.formatMessage(IncidentManagementNotificationResources.createDefaultHandlerFailed)
+                                            intl.formatMessage(IncidentManagementNotificationResources.createDefaultHandlerFailed, {
+                                                errorMessage,
+                                            })
                                         );
                                         azPortalContext.stopNotification(
                                             handlerNotificationId,
                                             false,
-                                            intl.formatMessage(IncidentManagementNotificationResources.createDefaultHandlerFailed)
+                                            intl.formatMessage(IncidentManagementNotificationResources.createDefaultHandlerFailed, {
+                                                errorMessage,
+                                            })
                                         );
                                     }
                                 });
@@ -534,11 +540,12 @@ export function useIncidentManagementSettings(close: (() => void) | undefined) {
             initialValues.platform,
             resourceId,
             setIsIncidentManagementConnected,
-            sreAgentEndpoint,
             incidentHandlerClient,
             setHasFilters,
             patchAgent,
             close,
+            getPlatformName,
+            waitForConnectivity,
         ]
     );
     const disconnect = useCallback(() => {
