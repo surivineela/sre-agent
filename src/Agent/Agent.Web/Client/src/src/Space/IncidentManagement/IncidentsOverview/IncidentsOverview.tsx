@@ -159,6 +159,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     } = useIncidentThreadList(
         undefined,
         searchText,
+        selectedPriorities,
         selectedStatuses,
         selectedInvestigationStatuses,
         selectedTimeRange,

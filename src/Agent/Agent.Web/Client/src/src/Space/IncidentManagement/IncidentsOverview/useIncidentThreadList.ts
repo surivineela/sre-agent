@@ -101,6 +101,7 @@ const processThreads = (
 export const useIncidentThreadList = (
     initialThreads?: Thread[],
     searchText?: string,
+    priorityFilters?: string[],
     statusFilters?: string[],
     investigationStatusFilters?: string[],
     createdTimeFilter?: TimeRangeValue,
@@ -147,6 +148,7 @@ export const useIncidentThreadList = (
     const getThreads = useCallback(
         async (
             searchText: string | undefined,
+            priority: string[] | undefined,
             status: string[] | undefined,
             investigationStatus: string[] | undefined,
             createdTimeRange: TimeRangeValue | undefined,
@@ -158,6 +160,7 @@ export const useIncidentThreadList = (
 
             const filterStrings = getOdataFilterParts(
                 searchText,
+                priority,
                 status,
                 investigationStatus,
                 createdTimeRange,
@@ -178,6 +181,7 @@ export const useIncidentThreadList = (
     const getThreadCounts = useCallback(
         async (
             searchText: string | undefined,
+            priority: string[] | undefined,
             status: string[] | undefined,
             investigationStatus: string[] | undefined,
             createdTimeRange: TimeRangeValue | undefined,
@@ -185,6 +189,7 @@ export const useIncidentThreadList = (
         ) => {
             const filterStrings = getOdataFilterParts(
                 searchText,
+                priority,
                 status,
                 investigationStatus,
                 createdTimeRange,
@@ -200,13 +205,14 @@ export const useIncidentThreadList = (
     const getInitialThreads = useCallback(
         async (
             searchText: string | undefined,
+            priority: string[] | undefined,
             status: string[] | undefined,
             investigationStatus: string[] | undefined,
             createdTimeRange: TimeRangeValue | undefined,
             sortColumn: IncidentsListColumnKey | undefined,
             sortDescending: boolean | undefined
         ) => {
-            return await getThreads(searchText, status, investigationStatus, createdTimeRange, 0, sortColumn, sortDescending);
+            return await getThreads(searchText, priority, status, investigationStatus, createdTimeRange, 0, sortColumn, sortDescending);
         },
         [getThreads]
     );
@@ -218,6 +224,7 @@ export const useIncidentThreadList = (
 
             const oldThreadsResponse = await getThreads(
                 searchText,
+                priorityFilters,
                 statusFilters,
                 investigationStatusFilters,
                 createdTimeFilter,
@@ -253,6 +260,7 @@ export const useIncidentThreadList = (
     }, [
         getThreads,
         searchText,
+        priorityFilters,
         statusFilters,
         investigationStatusFilters,
         createdTimeFilter,
@@ -338,6 +346,7 @@ export const useIncidentThreadList = (
 
                 const initialThreadsPromise = getInitialThreads(
                     searchText,
+                    priorityFilters,
                     statusFilters,
                     investigationStatusFilters,
                     createdTimeFilter,
@@ -347,6 +356,7 @@ export const useIncidentThreadList = (
 
                 const threadCountsPromise = getThreadCounts(
                     searchText,
+                    priorityFilters,
                     statusFilters,
                     investigationStatusFilters,
                     createdTimeFilter,
@@ -382,6 +392,7 @@ export const useIncidentThreadList = (
         };
     }, [
         searchText,
+        priorityFilters,
         statusFilters,
         investigationStatusFilters,
         createdTimeFilter,
@@ -413,12 +424,14 @@ export const useIncidentThreadList = (
 
 const getOdataFilterParts = (
     searchText: string | undefined,
+    priority: string[] | undefined,
     status: string[] | undefined,
     investigationStatus: string[] | undefined,
     createdTimeRange: TimeRangeValue | undefined,
     loadThreadsCallTimestamp?: string,
     sortDescending?: boolean
 ) => {
+    const priorityFilter = priority?.some(s => s === 'all') ? [] : priority;
     const statusFilter = status?.some(s => s === 'all') ? [] : status;
     const investigationStatusFilter = investigationStatus?.some(s => s === 'all') ? [] : investigationStatus;
 
@@ -438,6 +451,18 @@ const getOdataFilterParts = (
         ];
         const textFilterString = `(${textFilterParts.join(' or ')})`;
         filterStrings.push(textFilterString);
+    }
+
+    if (priorityFilter?.length) {
+        const priorityFilterStrings = priorityFilter.map(s => {
+            const priorityToLower = s.toLowerCase();
+            return `tolower(incidentDetails/incidentPriority) eq '${priorityToLower}'`;
+        });
+        let priorityFilterString = priorityFilterStrings.join(' or ');
+        if (priorityFilterStrings.length > 1) {
+            priorityFilterString = `(${priorityFilterString})`;
+        }
+        filterStrings.push(priorityFilterString);
     }
 
     if (statusFilter?.length) {
