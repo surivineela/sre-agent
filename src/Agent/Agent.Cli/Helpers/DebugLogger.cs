@@ -101,9 +101,9 @@ public static class DebugLogger
         {
             try
             {
-                var formatted = System.Text.Json.JsonSerializer.Serialize(
-                    System.Text.Json.JsonSerializer.Deserialize<object>(content),
-                    new System.Text.Json.JsonSerializerOptions { WriteIndented = true }
+                var formatted = JsonSerializer.Serialize(
+                    JsonSerializer.Deserialize<object>(content),
+                    new JsonSerializerOptions { WriteIndented = true }
                 );
                 return formatted;
             }
@@ -126,9 +126,9 @@ public static class DebugLogger
         {
             try
             {
-                var formatted = System.Text.Json.JsonSerializer.Serialize(
-                    System.Text.Json.JsonSerializer.Deserialize<object>(content),
-                    new System.Text.Json.JsonSerializerOptions { WriteIndented = true }
+                var formatted = JsonSerializer.Serialize(
+                    JsonSerializer.Deserialize<object>(content),
+                    new JsonSerializerOptions { WriteIndented = true }
                 );
                 return formatted;
             }
@@ -376,7 +376,7 @@ public static class DebugLogger
         var color = isValid ? ConsoleColor.DarkGray : ConsoleColor.DarkGray;
         WriteWithColor(color, $"? VALIDATION: {statusIcon} {target}");
 
-        if (!isValid && errors != null && errors.Any())
+        if (!isValid && errors != null && errors.Count != 0)
         {
             foreach (var error in errors)
             {

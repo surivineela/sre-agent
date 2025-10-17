@@ -124,7 +124,7 @@ public static class ToolDefinitionService
             }
         }
 
-        return toolTypes.OrderBy(t => t.Name).ToList();
+        return [.. toolTypes.OrderBy(t => t.Name)];
     }
 
     /// <summary>
@@ -215,7 +215,7 @@ public static class ToolDefinitionService
             }
         }
 
-        return connectorTypes.OrderBy(c => c.Name).ToList();
+        return [.. connectorTypes.OrderBy(c => c.Name)];
     }
 
     /// <summary>
@@ -587,7 +587,7 @@ parameters:
             return GetFallbackProperties(type);
         }
 
-        return properties.OrderBy(p => p).ToList();
+        return [.. properties.OrderBy(p => p)];
     }
 
     /// <summary>

@@ -6,7 +6,7 @@ using System.CommandLine;
 using System.Text;
 using Agent.Cli.Helpers;
 using Agent.Cli.Services;
-using Agent.Framework; // For YamlAgentDescriptor
+using Agent.Framework;
 
 namespace Agent.Cli.Commands;
 
@@ -99,12 +99,12 @@ public static class InteractiveCommandHandlers
             catch (Exception ex)
             {
                 ProgressService.MultiStepProgress.Fail($"Setup failed: {ex.Message}");
-                ProgressService.ShowError("Setup failed", new[]
-                {
+                ProgressService.ShowError("Setup failed",
+                [
                     "Check if the server URL is correct",
                     "Ensure the server is running and accessible",
                     "Try again with a different URL"
-                });
+                ]);
                 // Loop back to ask again
             }
         }
@@ -231,12 +231,12 @@ public static class InteractiveCommandHandlers
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"Agent creation failed: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"Agent creation failed: {ex.Message}",
+            [
                 "Try creating a simpler agent first",
                 "Check your server connection",
                 "Use 'srectl help troubleshooting' for more help"
-            });
+            ]);
 
             if (ConsoleUI.Confirm("Would you like to try again?", true))
             {
@@ -261,20 +261,20 @@ public static class InteractiveCommandHandlers
                 "You are a friendly Performance Monitor agent focused on system performance analysis, metrics interpretation, and optimization suggestions. You have a keen eye for identifying performance bottlenecks, resource utilization patterns, and capacity planning opportunities. Your recommendations are always data-driven and practical, helping teams understand not just what is happening but why it matters and how to improve it systematically.",
                 "You are a friendly Documentation Helper agent who creates and maintains technical documentation, runbooks, and troubleshooting guides. You excel at transforming complex technical processes into clear, step-by-step documentation that teams can easily follow. Your writing style is concise yet comprehensive, and you always consider the end-user experience when organizing information and creating helpful examples and diagrams."
             },
-            "Incident Response" => new[]
-            {
+            "Incident Response" =>
+            [
                 "Use ICM + Kusto Frontend Investigator preset (recommended)",
                 "You are a friendly ICM Alert Triager agent who specializes in analyzing ICM incidents with precision and care. You expertly run Kusto queries to gather comprehensive diagnostics, correlate incident data across multiple systems, and prioritize alerts based on severity and business impact. Your approach combines technical expertise with clear communication, helping teams understand incident scope and recommended actions. You remain calm under pressure and provide structured, actionable guidance during critical situations."
-            },
-            "Kubernetes Operations" => new[]
-            {
+            ],
+            "Kubernetes Operations" =>
+            [
                 "Use AKS Remediation Agent preset (recommended)"
-            },
-            "Azure CLI Operations" => new[]
-            {
+            ],
+            "Azure CLI Operations" =>
+            [
                 "Use Azure CLI Command Executor preset (recommended)"
-            },
-            _ => new[] { "Default agent description" }
+            ],
+            _ => ["Default agent description"]
         };
 
         for (int i = 0; i < samples.Length; i++)
@@ -503,11 +503,11 @@ public static class InteractiveCommandHandlers
 
             var agentDirs = Directory.Exists(agentsDir) ?
                 Directory.GetDirectories(agentsDir).Select(Path.GetFileName).Where(n => !string.IsNullOrEmpty(n)).ToArray() :
-                Array.Empty<string>();
+                [];
 
             var toolDirs = Directory.Exists(toolsDir) ?
                 Directory.GetDirectories(toolsDir).Select(Path.GetFileName).Where(n => !string.IsNullOrEmpty(n)).ToArray() :
-                Array.Empty<string>();
+                [];
 
             if (agentDirs.Length > 0 || toolDirs.Length > 0)
             {
@@ -554,38 +554,6 @@ public static class InteractiveCommandHandlers
         {
             // Silently handle any errors in context display
         }
-    }
-
-    private static Task ShowQuickActions()
-    {
-        try
-        {
-            // Show recent agents for quick access
-            var agentsDir = "agents";
-            if (Directory.Exists(agentsDir))
-            {
-                var agentDirs = Directory.GetDirectories(agentsDir)
-                    .Select(Path.GetFileName)
-                    .Where(name => !string.IsNullOrEmpty(name))
-                    .Take(3)
-                    .ToArray();
-
-                if (agentDirs.Length > 0)
-                {
-                    Console.WriteLine();
-                    ConsoleUI.WriteInfo("Quick Actions:");
-                    for (int i = 0; i < agentDirs.Length && i < 3; i++)
-                    {
-                        ConsoleUI.WriteKeyValue($"{i + 4}", $"Deploy '{agentDirs[i]}'", 3);
-                    }
-                }
-            }
-        }
-        catch
-        {
-            // Silently handle any errors
-        }
-        return Task.CompletedTask;
     }
 
     private static async Task<bool> HandleMenuChoice(string choice)
@@ -704,12 +672,12 @@ public static class InteractiveCommandHandlers
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"Workspace initialization failed: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"Workspace initialization failed: {ex.Message}",
+            [
                 "Check if the server URL is correct and accessible",
                 "Ensure the server is running",
                 "Try again with a different URL"
-            });
+            ]);
         }
     }
 
@@ -723,8 +691,8 @@ public static class InteractiveCommandHandlers
         var agentsDir = "agents";
         var toolsDir = "tools";
 
-        var agentDirs = Directory.Exists(agentsDir) ? Directory.GetDirectories(agentsDir) : Array.Empty<string>();
-        var toolDirs = Directory.Exists(toolsDir) ? Directory.GetDirectories(toolsDir) : Array.Empty<string>();
+        var agentDirs = Directory.Exists(agentsDir) ? Directory.GetDirectories(agentsDir) : [];
+        var toolDirs = Directory.Exists(toolsDir) ? Directory.GetDirectories(toolsDir) : [];
 
         if (agentDirs.Length == 0 && toolDirs.Length == 0)
         {
@@ -762,12 +730,12 @@ public static class InteractiveCommandHandlers
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"Deployment failed: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"Deployment failed: {ex.Message}",
+            [
                 "Check your server connection",
                 "Verify the resource configurations",
                 "Try deploying individual resources"
-            });
+            ]);
         }
     }
 
@@ -866,12 +834,12 @@ public static class InteractiveCommandHandlers
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"Chat failed to start: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"Chat failed to start: {ex.Message}",
+            [
                 "Check your server connection",
                 "Verify agents are deployed",
                 "Try 'srectl status' to diagnose issues"
-            });
+            ]);
         }
     }
 
@@ -957,12 +925,12 @@ public static class InteractiveCommandHandlers
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"Scheduled task creation failed: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"Scheduled task creation failed: {ex.Message}",
+            [
                 "Check your server connection",
                 "Verify the task parameters",
                 "Try with a simpler configuration"
-            });
+            ]);
 
             if (ConsoleUI.Confirm("Would you like to try again?", true))
             {
@@ -1086,12 +1054,12 @@ public static class InteractiveCommandHandlers
             // Save YAML locally first
             try
             {
-                var manifest = new Agent.Common.Core.Manifests.ScheduledTaskManifest
+                var manifest = new Common.Core.Manifests.ScheduledTaskManifest
                 {
                     ApiVersion = "azuresre.ai/v1",
                     Kind = "ScheduledTask",
-                    Metadata = new Agent.Common.Core.Manifests.ManifestMetadata { Name = name },
-                    Spec = new Agent.Common.Core.Manifests.ScheduledTaskSpec
+                    Metadata = new Common.Core.Manifests.ManifestMetadata { Name = name },
+                    Spec = new Common.Core.Manifests.ScheduledTaskSpec
                     {
                         Name = name,
                         Description = $"Interactive task: {name}",
@@ -1115,7 +1083,7 @@ public static class InteractiveCommandHandlers
                 var dir = Path.Combine("scheduledtasks", name);
                 Directory.CreateDirectory(dir);
                 var path = Path.Combine(dir, $"{name}.yaml");
-                await File.WriteAllTextAsync(path, yaml, System.Text.Encoding.UTF8);
+                await File.WriteAllTextAsync(path, yaml, Encoding.UTF8);
 
                 ConsoleUI.WriteBullet($"Saved YAML manifest to: {path}", ConsoleColor.Green);
             }
@@ -1237,12 +1205,12 @@ public static class InteractiveCommandHandlers
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"Tool creation failed: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"Tool creation failed: {ex.Message}",
+            [
                 "Check the tool name and type",
                 "Ensure the tools directory exists",
                 "Try with a different name"
-            });
+            ]);
 
             if (ConsoleUI.Confirm("Would you like to try again?", true))
             {
@@ -1267,12 +1235,12 @@ public static class InteractiveCommandHandlers
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"Status check failed: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"Status check failed: {ex.Message}",
+            [
                 "Check your configuration",
                 "Verify server connectivity",
                 "Try 'srectl init' if not configured"
-            });
+            ]);
         }
     }
 
@@ -1321,12 +1289,12 @@ public static class InteractiveCommandHandlers
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"Command execution failed: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"Command execution failed: {ex.Message}",
+            [
                 "Check your input parameters",
                 "Verify server connectivity",
                 "Try a simpler command first"
-            });
+            ]);
         }
     }
 
@@ -1454,12 +1422,12 @@ public static class InteractiveCommandHandlers
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"Failed to get information: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"Failed to get information: {ex.Message}",
+            [
                 "Check your server connection",
                 "Verify your configuration with 'srectl status'",
                 "Try again with --debug for more details"
-            });
+            ]);
         }
     }
 
@@ -1471,7 +1439,7 @@ public static class InteractiveCommandHandlers
         try
         {
             string finalInstructions = instructions;
-            List<string> finalTools = new();
+            List<string> finalTools = [];
 
             if (useSmart)
             {
@@ -1482,7 +1450,7 @@ public static class InteractiveCommandHandlers
                     if (ok)
                     {
                         finalInstructions = string.IsNullOrWhiteSpace(generated) ? instructions : generated;
-                        finalTools = recommendedTools ?? new List<string>();
+                        finalTools = recommendedTools ?? [];
                         ConsoleUI.WriteInfo($"AI suggested {finalTools.Count} tool(s)", ConsoleColor.Gray);
 
                         if (mcpTools?.Count > 0)
@@ -1506,14 +1474,14 @@ public static class InteractiveCommandHandlers
                 Name = name,
                 Instructions = finalInstructions,
                 Tools = finalTools,
-                Handoffs = new List<string>(),
+                Handoffs = [],
                 HandoffDescription = string.Empty,
                 AllowParallelToolCalls = false,
                 MaxReflectionCount = 0,
                 CriticPromptPath = string.Empty,
                 CriticOnHandOff = false,
                 CustomReflectionNote = string.Empty,
-                CommonPrompts = new List<string>(),
+                CommonPrompts = [],
                 Temperature = null,
                 OutputType = null
             };
@@ -1563,19 +1531,19 @@ public static class InteractiveCommandHandlers
             {
                 Name = name,
                 Instructions = instructions,
-                Tools = new List<string>
-                {
+                Tools =
+                [
                     "RunAzCliWriteCommands",
                     "RunAzCliReadCommands",
                     "GetAzCliHelp",
                     "SearchDocuments"
-                },
-                CommonPrompts = new List<string>
-                {
+                ],
+                CommonPrompts =
+                [
                     "format_guidelines",
                     "guard_rail"
-                },
-                Handoffs = new List<string>(),
+                ],
+                Handoffs = [],
                 HandoffDescription = handoffDescription,
                 MaxReflectionCount = 2,
                 CriticPromptPath = "CriticPrompts/aks-critic-prompt_medium.txt",
@@ -1640,8 +1608,8 @@ public static class InteractiveCommandHandlers
             {
                 Name = name,
                 Instructions = instructions,
-                Tools = new List<string>
-                {
+                Tools =
+                [
                     "SearchResourceByName",
                     "ListResourcesByType",
                     "RunKubectlReadCommand",
@@ -1655,13 +1623,13 @@ public static class InteractiveCommandHandlers
                     "PlotPieChart",
                     "PlotBarChart",
                     "HandoffBack"
-                },
-                CommonPrompts = new List<string>
-                {
+                ],
+                CommonPrompts =
+                [
                     "format_guidelines",
                     "guard_rail"
-                },
-                Handoffs = new List<string>(),
+                ],
+                Handoffs = [],
                 HandoffDescription = handoffDescription,
                 MaxReflectionCount = 0,
                 CriticPromptPath = string.Empty,
@@ -1691,19 +1659,19 @@ public static class InteractiveCommandHandlers
             {
                 Name = name,
                 Instructions = instructions,
-                Tools = new List<string>
-                {
+                Tools =
+                [
                     "RunAzCliWriteCommands",
                     "RunAzCliReadCommands",
                     "GetAzCliHelp",
                     "SearchDocuments"
-                },
-                CommonPrompts = new List<string>
-                {
+                ],
+                CommonPrompts =
+                [
                     "format_guidelines",
                     "guard_rail"
-                },
-                Handoffs = new List<string>(),
+                ],
+                Handoffs = [],
                 HandoffDescription = string.Empty,
                 MaxReflectionCount = 1,
                 CriticPromptPath = string.Empty,
@@ -1733,8 +1701,8 @@ public static class InteractiveCommandHandlers
             {
                 Name = name,
                 Instructions = instructions,
-                Tools = new List<string>
-                {
+                Tools =
+                [
                     "SearchResourceByName",
                     "ListResourcesByType",
                     "RunKubectlReadCommand",
@@ -1748,13 +1716,13 @@ public static class InteractiveCommandHandlers
                     "PlotPieChart",
                     "PlotBarChart",
                     "HandoffBack"
-                },
-                CommonPrompts = new List<string>
-                {
+                ],
+                CommonPrompts =
+                [
                     "format_guidelines",
                     "guard_rail"
-                },
-                Handoffs = new List<string>(),
+                ],
+                Handoffs = [],
                 HandoffDescription = string.Empty,
                 MaxReflectionCount = 0,
                 CriticPromptPath = string.Empty,
@@ -1845,15 +1813,15 @@ public static class InteractiveCommandHandlers
             {
                 Name = name,
                 Instructions = "You triage ICM incidents and run Kusto to investigate a web app frontend. Be concise and use the provided tools.",
-                Tools = new List<string> { "CheckAllScenarioImpact" },
-                Handoffs = new List<string>(),
+                Tools = ["CheckAllScenarioImpact"],
+                Handoffs = [],
                 HandoffDescription = string.Empty,
                 AllowParallelToolCalls = false,
                 MaxReflectionCount = 0,
                 CriticPromptPath = string.Empty,
                 CriticOnHandOff = false,
                 CustomReflectionNote = string.Empty,
-                CommonPrompts = new List<string>(),
+                CommonPrompts = [],
                 Temperature = 0.2f,
                 OutputType = null
             };
@@ -1923,7 +1891,7 @@ description: A {type} tool created interactively";
             {
                 AgentCommandOptions.ChatAgentNameOption
             };
-            var parseResult = chatCmd.Parse(new[] { "--agent", agentName });
+            var parseResult = chatCmd.Parse(["--agent", agentName]);
             await GeneralCommandHandlers.HandleChatCommand(parseResult);
         }
         catch (Exception ex)
@@ -2090,12 +2058,12 @@ description: A {type} tool created interactively";
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"Agent deployment failed: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"Agent deployment failed: {ex.Message}",
+            [
                 "Check your server connection",
                 "Verify the agent configuration is valid",
                 "Try 'srectl status' to check connectivity"
-            });
+            ]);
         }
     }
 
@@ -2138,12 +2106,12 @@ description: A {type} tool created interactively";
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"Agent testing failed: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"Agent testing failed: {ex.Message}",
+            [
                 "Check if the agent is properly deployed",
                 "Verify server connectivity",
                 "Try with a simpler message"
-            });
+            ]);
         }
     }
 
@@ -2169,12 +2137,12 @@ description: A {type} tool created interactively";
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"Tool deployment failed: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"Tool deployment failed: {ex.Message}",
+            [
                 "Check your server connection",
                 "Verify the tool configuration is valid",
                 "Try 'srectl status' to check connectivity"
-            });
+            ]);
         }
     }
 
@@ -2294,12 +2262,12 @@ description: A {type} tool created interactively";
         }
         catch (Exception ex)
         {
-            ProgressService.ShowError($"YAML deployment failed: {ex.Message}", new[]
-            {
+            ProgressService.ShowError($"YAML deployment failed: {ex.Message}",
+            [
                 "Check the YAML file format",
                 "Verify server connection",
                 "Ensure the file contains valid configuration"
-            });
+            ]);
         }
     }
 

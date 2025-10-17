@@ -30,5 +30,5 @@ public class CliConfiguration
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [JsonPropertyName("tags")]
-    public List<string> Tags { get; set; } = new List<string> { "example", "demo", "generic" };
+    public List<string> Tags { get; set; } = ["example", "demo", "generic"];
 }

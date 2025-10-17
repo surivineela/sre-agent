@@ -20,9 +20,9 @@ public static class ProgressService
     public static class MultiStepProgress
     {
         private static int _currentStep = 0;
-        private static string[] _steps = Array.Empty<string>();
+        private static string[] _steps = [];
         private static DateTime _stepStart = DateTime.Now;
-        private static List<(string step, TimeSpan duration, bool success)> _completedSteps = new();
+        private static List<(string step, TimeSpan duration, bool success)> _completedSteps = [];
 
         public static void Initialize(string[] steps)
         {

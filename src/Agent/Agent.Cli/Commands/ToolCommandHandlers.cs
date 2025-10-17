@@ -19,6 +19,15 @@ namespace Agent.Cli.Commands;
 /// </summary>
 public static class ToolCommandHandlers
 {
+    private static readonly string[] value =
+                [
+                    "# NOTE: This is a Kusto tool template. Update it before applying.",
+                    "# - Set a meaningful description, database, and query.",
+                    "# - Ensure the 'connector' points to a configured Kusto connector.",
+                    "# - Verify the connector principal has required ADX permissions (see http://aka.ms/1psreagent).",
+                    ""
+                ];
+
     /// <summary>
     /// Handles the tool create command.
     /// </summary>
@@ -74,14 +83,7 @@ public static class ToolCommandHandlers
             // For KustoTool, prepend a helpful header with modification + permissions guidance
             if (!string.IsNullOrWhiteSpace(type) && type.Equals("KustoTool", StringComparison.OrdinalIgnoreCase))
             {
-                var header = string.Join('\n', new[]
-                {
-                    "# NOTE: This is a Kusto tool template. Update it before applying.",
-                    "# - Set a meaningful description, database, and query.",
-                    "# - Ensure the 'connector' points to a configured Kusto connector.",
-                    "# - Verify the connector principal has required ADX permissions (see http://aka.ms/1psreagent).",
-                    ""
-                });
+                var header = string.Join('\n', value);
                 toolYaml = header + toolYaml;
             }
 
@@ -261,7 +263,7 @@ public static class ToolCommandHandlers
 
             var connectorTypes = ToolDefinitionService.GetAvailableConnectorTypes();
 
-            if (!connectorTypes.Any())
+            if (connectorTypes.Count == 0)
             {
                 ConsoleUI.WriteStatus(false, "No connector types found.");
                 return;
@@ -377,43 +379,6 @@ public static class ToolCommandHandlers
             ConsoleUI.WriteStatus(false, $"Failed to list tools: {ex.Message}");
             Environment.Exit(1);
         }
-    }
-
-    private static Dictionary<string, object> CreateKustoToolTemplate(string name)
-    {
-        return new Dictionary<string, object>
-        {
-            ["name"] = name,
-            ["type"] = "KustoTool",
-            ["connector"] = "default-kusto-connector",
-            ["description"] = $"A Kusto query tool for {name}. Please update this description with specific details about what this tool does.",
-            ["mode"] = "query",
-            ["function"] = name,
-            ["query"] = "// Please provide your KQL query here\n// Example:\n// MyTable\n// | where TimeGenerated > ago(1h)\n// | take 10",
-            ["file"] = $"Queries/{name}.kql",
-            ["database"] = "DefaultDB",
-            ["clusterHint"] = "default-cluster",
-            ["parameters"] = new List<object>
-            {
-                new Dictionary<string, object>
-                {
-                    ["name"] = "timeRange",
-                    ["type"] = "string",
-                    ["required"] = true,
-                    ["description"] = "Time range for the query (e.g., '1h', '24h')",
-                    ["mapTo"] = "args",
-                    ["target"] = "dictionary:args:string"
-                }
-            },
-            ["attributes"] = new List<string>(),
-            ["metadata"] = new Dictionary<string, object>
-            {
-                ["owner"] = "team-name",
-                ["version"] = "1.0",
-                ["tags"] = new List<string> { "query", "kusto" },
-                ["lastUpdated"] = DateTime.UtcNow.ToString("yyyy-MM-dd")
-            }
-        };
     }
 
     private static string NormalizeNewlines(string s)
@@ -668,7 +633,7 @@ public static class ToolCommandHandlers
 
         var toolTypes = ToolDefinitionService.GetAvailableToolTypes();
 
-        if (!toolTypes.Any())
+        if (toolTypes.Count == 0)
         {
             ConsoleUI.WriteStatus(false, "No tool types found.");
             return;
@@ -712,7 +677,7 @@ public static class ToolCommandHandlers
         ConsoleUI.WriteKeyValue("Namespace", details.Namespace, 12);
         Console.WriteLine();
 
-        if (details.SupportedProperties.Any())
+        if (details.SupportedProperties.Count != 0)
         {
             ConsoleUI.WriteSection("Supported Properties");
             foreach (var prop in details.SupportedProperties)
@@ -1105,7 +1070,7 @@ public static class ToolCommandHandlers
 
             // Check for dependencies by searching for tool references in agent files
             var dependencies = FindToolDependencies(toolName);
-            if (dependencies.Any())
+            if (dependencies.Count != 0)
             {
                 ConsoleUI.WriteInfo($"Found {dependencies.Count} potential dependencies:", ConsoleColor.Yellow);
                 foreach (var dep in dependencies)
@@ -1123,12 +1088,12 @@ public static class ToolCommandHandlers
             ConsoleUI.WriteSection("Summary");
             Console.WriteLine($"   • Tool '{toolName}' would be deleted from server");
             Console.WriteLine($"   • Target server: {config.ResourceUrl}");
-            if (dependencies.Any())
+            if (dependencies.Count != 0)
             {
                 ConsoleUI.WriteBullet($"{dependencies.Count} potential dependencies found", ConsoleColor.Yellow);
             }
             ConsoleUI.WriteCommand("To actually delete the tool", $"srectl tool delete --name {toolName}");
-            if (dependencies.Any())
+            if (dependencies.Count != 0)
             {
                 ConsoleUI.WriteInfo("Consider updating dependent agents first to avoid deployment issues", ConsoleColor.Yellow);
             }

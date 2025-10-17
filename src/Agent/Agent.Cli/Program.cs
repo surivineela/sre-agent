@@ -183,34 +183,34 @@ public static class Program
         ConsoleUI.WriteKeyValue("--quiet", "Minimize output", 20, ConsoleColor.Green);
         Console.WriteLine();
 
-        ConsoleUI.WriteCommandGroup("Core Commands", new[] {
+        ConsoleUI.WriteCommandGroup("Core Commands", [
             ("help", "Interactive help with examples and troubleshooting"),
             ("status", "Connection and workspace status"),
             ("interactive", "Interactive guided mode (recommended to get started)"),
             ("version", "Version and build details"),
             ("welcome", "Welcome screen and getting-started guide"),
-        });
+        ]);
 
-        ConsoleUI.WriteCommandGroup("Setup & Management", new[] {
+        ConsoleUI.WriteCommandGroup("Setup & Management", [
             ("init", "Initialize SREAgent CLI configuration and workspace"),
             ("sync", "Sync agents and tools YAML from remote into local workspace"),
             ("list", "List various resources from the remote server"),
             ("apply-yaml", "Apply any YAML configuration file to the server")
-        });
+        ]);
 
-        ConsoleUI.WriteCommandGroup("Interaction & Workflows", new[] {
+        ConsoleUI.WriteCommandGroup("Interaction & Workflows", [
             ("chat", "Start an interactive chat session with the SRE Agent"),
             ("thread", "Thread management commands")
-        });
+        ]);
 
-        ConsoleUI.WriteCommandGroup("Resource Management", new[] {
+        ConsoleUI.WriteCommandGroup("Resource Management", [
             ("agent", "Manage user-authored, extensible agents"),
             ("tool", "Manage user-authored, reusable tools"),
             ("doc", "Upload and manage documents like TSGs, architecture docs, and runbooks"),
             ("profile", "Switch between SRE Agent instances (multiple local/remote profiles supported)"),
             ("incidenthandler", "Manage incident handlers and filters"),
             ("scheduledtask", "Manage scheduled tasks for automated agent operations")
-        });
+        ]);
 
         if (isFirstTime)
         {
@@ -282,7 +282,7 @@ public static class Program
 
     private static string GetCommandPath(SymbolResult result)
     {
-        var parts = new System.Collections.Generic.Stack<string>();
+        var parts = new Stack<string>();
         for (var r = result; r is not null; r = r.Parent)
         {
             if (r is CommandResult cr && cr.Command is not RootCommand)

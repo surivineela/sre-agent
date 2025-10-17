@@ -4,7 +4,7 @@
 
 using System.CommandLine;
 
-namespace Agent.Cli.Helpers
+namespace Agent.Cli.Commands
 {
     public static class CommandLineCompatExtensions
     {

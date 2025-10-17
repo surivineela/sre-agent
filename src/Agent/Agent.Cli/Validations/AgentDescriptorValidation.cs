@@ -15,7 +15,7 @@ public static class AgentDescriptorValidation
     /// </summary>
     public static void ValidateAgentDescriptor(IAgentDescriptor? agentDescriptor, out List<string> errors)
     {
-        errors = new List<string>();
+        errors = [];
         ValidateBasicConstraints(agentDescriptor, errors);
     }
 
@@ -62,7 +62,7 @@ public static class AgentDescriptorValidation
         // Ensure tools is not null - convert to empty array if null
         if (agentDescriptor.Tools == null)
         {
-            agentDescriptor.Tools = new List<string>();
+            agentDescriptor.Tools = [];
         }
         else if (agentDescriptor.Tools.Count > 0)
         {
@@ -82,7 +82,7 @@ public static class AgentDescriptorValidation
         // Ensure mcp tools is not null - convert to empty array if null
         if (agentDescriptor.McpTools == null)
         {
-            agentDescriptor.McpTools = new List<string>();
+            agentDescriptor.McpTools = [];
         }
         else if (agentDescriptor.McpTools.Count > 0)
         {
@@ -108,7 +108,7 @@ public static class AgentDescriptorValidation
         // Ensure handoffs is not null - convert to empty array if null
         if (agentDescriptor.Handoffs == null)
         {
-            agentDescriptor.Handoffs = new List<string>();
+            agentDescriptor.Handoffs = [];
         }
         else if (agentDescriptor.Handoffs.Count > 0)
         {

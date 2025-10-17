@@ -21,7 +21,7 @@ public class ThreadManagerService
 
     public class ThreadStorage
     {
-        public List<ThreadInfo> Threads { get; set; } = new();
+        public List<ThreadInfo> Threads { get; set; } = [];
     }
 
     public async Task<string?> GetCurrentThreadIdAsync()
@@ -60,13 +60,13 @@ public class ThreadManagerService
             {
                 var json = await File.ReadAllTextAsync(_threadsFile);
                 var storage = JsonSerializer.Deserialize<ThreadStorage>(json);
-                return storage?.Threads ?? new List<ThreadInfo>();
+                return storage?.Threads ?? [];
             }
-            return new List<ThreadInfo>();
+            return [];
         }
         catch
         {
-            return new List<ThreadInfo>();
+            return [];
         }
     }
 
@@ -90,7 +90,7 @@ public class ThreadManagerService
             // Keep only the last 100 threads
             if (threads.Count > 100)
             {
-                threads = threads.OrderByDescending(t => t.LastUsedAt).Take(100).ToList();
+                threads = [.. threads.OrderByDescending(t => t.LastUsedAt).Take(100)];
             }
 
             var storage = new ThreadStorage { Threads = threads };

@@ -21,7 +21,7 @@ public static class ToolResponseParser
     {
         if (string.IsNullOrEmpty(jsonResponse))
         {
-            return Array.Empty<JsonElement>();
+            return [];
         }
 
         try
@@ -32,7 +32,7 @@ public static class ToolResponseParser
             if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
             {
                 // Direct array structure: [...]
-                return jsonDoc.RootElement.EnumerateArray().ToArray();
+                return [.. jsonDoc.RootElement.EnumerateArray()];
             }
             else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Object)
             {
@@ -46,26 +46,26 @@ public static class ToolResponseParser
                         toolsElement.TryGetProperty("data", out var toolsDataElement) &&
                         toolsDataElement.ValueKind == JsonValueKind.Array)
                     {
-                        return toolsDataElement.EnumerateArray().ToArray();
+                        return [.. toolsDataElement.EnumerateArray()];
                     }
                     // Pattern 2: { "data": { "tools": [...] } } - Full nested structure
                     else if (dataElement.ValueKind == JsonValueKind.Object &&
                         dataElement.TryGetProperty("tools", out var directToolsElement) &&
                         directToolsElement.ValueKind == JsonValueKind.Array)
                     {
-                        return directToolsElement.EnumerateArray().ToArray();
+                        return [.. directToolsElement.EnumerateArray()];
                     }
                     // Pattern 3: { "data": [...] } - Data is direct array
                     else if (dataElement.ValueKind == JsonValueKind.Array)
                     {
-                        return dataElement.EnumerateArray().ToArray();
+                        return [.. dataElement.EnumerateArray()];
                     }
                 }
                 // Pattern 3: { "tools": [...] } - Direct tools property
                 else if (jsonDoc.RootElement.TryGetProperty("tools", out var directToolsElement) &&
                          directToolsElement.ValueKind == JsonValueKind.Array)
                 {
-                    return directToolsElement.EnumerateArray().ToArray();
+                    return [.. directToolsElement.EnumerateArray()];
                 }
             }
         }
@@ -74,7 +74,7 @@ public static class ToolResponseParser
             // Failed to parse as JSON, return empty array
         }
 
-        return Array.Empty<JsonElement>();
+        return [];
     }
 
     /// <summary>
@@ -151,7 +151,7 @@ public static class ToolResponseParser
                 if (tool.TryGetProperty("parameters", out var paramsElement) && paramsElement.ValueKind == JsonValueKind.Array)
                 {
                     var parameters = paramsElement.EnumerateArray().Select(p => p.GetString()).Where(p => !string.IsNullOrEmpty(p)).ToList();
-                    if (parameters.Any())
+                    if (parameters.Count != 0)
                     {
                         Helpers.ConsoleUI.WriteKeyValue("  Parameters", string.Join(", ", parameters), 13, ConsoleColor.Gray, ConsoleColor.White);
                     }
@@ -233,7 +233,7 @@ public static class ToolResponseParser
                                 }
                             }
                         }
-                        if (parameters.Any())
+                        if (parameters.Count != 0)
                         {
                             Helpers.ConsoleUI.WriteKeyValue("  Parameters", string.Join(", ", parameters), 13, ConsoleColor.Gray, ConsoleColor.White);
                         }
@@ -246,7 +246,7 @@ public static class ToolResponseParser
                         {
                             paramNames.Add(param.Name);
                         }
-                        if (paramNames.Any())
+                        if (paramNames.Count != 0)
                         {
                             Helpers.ConsoleUI.WriteKeyValue("  Parameters", string.Join(", ", paramNames), 13, ConsoleColor.Gray, ConsoleColor.White);
                         }

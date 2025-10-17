@@ -377,7 +377,7 @@ public class ApiService : IDisposable
             // Log the results using debug logger
             DebugLogger.Debug("Tools", $"Found {localTools.Count} local tools: {string.Join(", ", localTools.Take(5))}{(localTools.Count > 5 ? "..." : "")}");
             DebugLogger.Debug("Tools", $"Found {remoteTools.Count} remote tools: {string.Join(", ", remoteTools.Take(5))}{(remoteTools.Count > 5 ? "..." : "")}");
-            if (errors.Any())
+            if (errors.Count != 0)
             {
                 DebugLogger.Debug("Tools", $"Errors: {string.Join("; ", errors)}");
             }
@@ -491,8 +491,10 @@ public class ApiService : IDisposable
 
             // Create the request
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
-            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
-            request.Content = new StringContent(wrappedYamlContent, Encoding.UTF8, "application/yaml");
+            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl)
+            {
+                Content = new StringContent(wrappedYamlContent, Encoding.UTF8, "application/yaml")
+            };
 
             DebugLogger.Debug("Request", $"Making apply request to {requestUrl}");
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
@@ -642,7 +644,7 @@ public class ApiService : IDisposable
                         if (agent.TryGetProperty("tools", out var toolsElement) && toolsElement.ValueKind == JsonValueKind.Array)
                         {
                             var tools = toolsElement.EnumerateArray().Select(t => t.GetString()).Where(t => !string.IsNullOrEmpty(t)).ToList();
-                            if (tools.Any())
+                            if (tools.Count != 0)
                             {
                                 ConsoleUI.WriteKeyValue("  Tools", string.Join(", ", tools), 13, ConsoleColor.Gray, ConsoleColor.White);
                             }
@@ -652,7 +654,7 @@ public class ApiService : IDisposable
                         if (agent.TryGetProperty("handoffs", out var handoffsElement) && handoffsElement.ValueKind == JsonValueKind.Array)
                         {
                             var handoffs = handoffsElement.EnumerateArray().Select(h => h.GetString()).Where(h => !string.IsNullOrEmpty(h)).ToList();
-                            if (handoffs.Any())
+                            if (handoffs.Count != 0)
                             {
                                 ConsoleUI.WriteKeyValue("  Handoffs", string.Join(", ", handoffs), 13, ConsoleColor.Gray, ConsoleColor.White);
                             }
@@ -668,7 +670,7 @@ public class ApiService : IDisposable
                 else
                 {
                     // Get pagination info from different response structures
-                    int totalCount = agents.GetArrayLength(); // Default fallback
+                    int totalCount = agents.GetArrayLength();
                     bool hasMore = false;
                     int pageSize = 50;
                     int pageIndex = 0;
@@ -1046,7 +1048,7 @@ public class ApiService : IDisposable
                 var names = new List<string>();
                 var jsonDoc = JsonDocument.Parse(content);
                 JsonElement dataEl;
-                
+
                 // Check for new nested structure: { data: { tools: { data: [...] } } }
                 if (jsonDoc.RootElement.TryGetProperty("data", out var outerDataElement) &&
                     outerDataElement.TryGetProperty("tools", out var toolsWrapperElement) &&
@@ -1241,11 +1243,11 @@ public class ApiService : IDisposable
                 {
                     Owner = config.Owner ?? "your-team@example.com",
                     Version = config.Version ?? "1.0.0",
-                    Tags = config.Tags?.Any() == true ? config.Tags : new List<string> { "example", "demo", "generic" },
+                    Tags = config.Tags?.Any() == true ? config.Tags : ["example", "demo", "generic"],
                     CreatedAt = config.CreatedAt != default(DateTime) ? config.CreatedAt.ToString("yyyy-MM-dd") : DateTime.UtcNow.ToString("yyyy-MM-dd"),
                     UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd")
                 },
-                Spec = new ToolListSpec { Tools = new List<object> { toolData } }
+                Spec = new ToolListSpec { Tools = [toolData] }
             };
 
             // Serialize to YAML
@@ -1256,8 +1258,10 @@ public class ApiService : IDisposable
 
             // Create the request
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
-            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
-            request.Content = new StringContent(wrappedYamlContent, Encoding.UTF8, "application/yaml");
+            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl)
+            {
+                Content = new StringContent(wrappedYamlContent, Encoding.UTF8, "application/yaml")
+            };
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -1298,14 +1302,16 @@ public class ApiService : IDisposable
             {
                 AgentName = agentName,
                 CustomInstructions = customInstructions,
-                Incidents = new object[0],
-                Tools = new object[0]
+                Incidents = Array.Empty<object>(),
+                Tools = Array.Empty<object>()
             };
 
             var jsonContent = JsonSerializer.Serialize(requestPayload);
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/generateInstructions?includeAllTools=true";
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
-            request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
+            {
+                Content = new StringContent(jsonContent, Encoding.UTF8, "application/json")
+            };
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -1383,8 +1389,10 @@ public class ApiService : IDisposable
 
             // Create the request - send YAML directly to the same endpoint
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
-            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
-            request.Content = new StringContent(yamlContent, Encoding.UTF8, "application/yaml");
+            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl)
+            {
+                Content = new StringContent(yamlContent, Encoding.UTF8, "application/yaml")
+            };
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -1446,8 +1454,10 @@ public class ApiService : IDisposable
 
             var jsonContent = JsonSerializer.Serialize(requestPayload);
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads";
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
-            request.Content = new StringContent(jsonContent, Encoding.UTF8);
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
+            {
+                Content = new StringContent(jsonContent, Encoding.UTF8)
+            };
             request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
@@ -1492,8 +1502,10 @@ public class ApiService : IDisposable
 
             var jsonContent = JsonSerializer.Serialize(requestPayload);
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages";
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
-            request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
+            {
+                Content = new StringContent(jsonContent, Encoding.UTF8, "application/json")
+            };
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -1531,8 +1543,8 @@ public class ApiService : IDisposable
             var retryCount = 0;
 
             // For snappy spinner animation with shimmer effect
-            string[] dots = new[] { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" };
-            string[] colors = new[] { "[36m", "[96m", "[37m", "[97m" }; // Mono cyan color
+            string[] dots = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+            string[] colors = ["[36m", "[96m", "[37m", "[97m"]; // Mono cyan color
             int dotIndex = 0;
             int colorIndex = 0;
             bool waitingPrinted = false;
@@ -1572,7 +1584,7 @@ public class ApiService : IDisposable
 
                     // Check if we have agent responses (more than 1 message means agent has responded)
                     var agentMessages = messages.Where(m => m.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase)).ToList();
-                    if (agentMessages.Any())
+                    if (agentMessages.Count != 0)
                     {
                         if (waitingPrinted)
                         {
@@ -1739,7 +1751,7 @@ public class ApiService : IDisposable
                         }
 
                         // Sort messages by timestamp
-                        currentMessages = currentMessages.OrderBy(m => m.Timestamp).ToList();
+                        currentMessages = [.. currentMessages.OrderBy(m => m.Timestamp)];
 
                         // Display new messages
                         if (currentMessages.Count > lastDisplayedMessageCount)
@@ -1772,7 +1784,7 @@ public class ApiService : IDisposable
 
                         // Check if we have agent responses
                         var agentMessages = currentMessages.Where(m => m.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase)).ToList();
-                        if (agentMessages.Any())
+                        if (agentMessages.Count != 0)
                         {
                             hasSeenAgentResponse = true;
 
@@ -1877,7 +1889,7 @@ public class ApiService : IDisposable
             // Handle empty content
             if (string.IsNullOrWhiteSpace(content))
             {
-                return new List<ThreadMessage>();
+                return [];
             }
 
             // Extract messages from various response formats
@@ -1975,8 +1987,8 @@ public class ApiService : IDisposable
             var hasDisplayedInitialMessages = false;
 
             // For snappy spinner animation with shimmer effect
-            string[] dots = new[] { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" };
-            string[] colors = new[] { "[36m", "[96m", "[37m", "[97m" }; // Mono cyan color
+            string[] dots = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+            string[] colors = ["[36m", "[96m", "[37m", "[97m"]; // Mono cyan color
             int dotIndex = 0;
             int colorIndex = 0;
             bool waitingPrinted = false;
@@ -2019,7 +2031,7 @@ public class ApiService : IDisposable
                     }
 
                     // Sort messages by timestamp
-                    currentMessages = currentMessages.OrderBy(m => m.Timestamp).ToList();
+                    currentMessages = [.. currentMessages.OrderBy(m => m.Timestamp)];
 
                     // On first run, display all existing messages
                     if (!hasDisplayedInitialMessages)
@@ -2054,7 +2066,7 @@ public class ApiService : IDisposable
 
                         // Check if we already have agent responses
                         var agentMessages = currentMessages.Where(m => m.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase)).ToList();
-                        if (agentMessages.Any())
+                        if (agentMessages.Count != 0)
                         {
                             hasSeenAgentResponse = true;
                         }
@@ -2094,7 +2106,7 @@ public class ApiService : IDisposable
 
                     // Check if we have agent responses and determine completion
                     var currentAgentMessages = currentMessages.Where(m => m.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase)).ToList();
-                    if (currentAgentMessages.Any())
+                    if (currentAgentMessages.Count != 0)
                     {
                         hasSeenAgentResponse = true;
 
@@ -2262,7 +2274,7 @@ public class ApiService : IDisposable
                             .Where(x => !string.IsNullOrEmpty(x))
                             .ToList();
 
-                        var agentList = dependentAgents.Any() ? string.Join(", ", dependentAgents) : "unknown agents";
+                        var agentList = dependentAgents.Count != 0 ? string.Join(", ", dependentAgents) : "unknown agents";
                         return (false, $"Cannot delete agent '{agentName}': it is used by the following agents: {agentList}");
                     }
 
@@ -2325,7 +2337,7 @@ public class ApiService : IDisposable
                             .Where(x => !string.IsNullOrEmpty(x))
                             .ToList();
 
-                        var agentList = dependentAgents.Any() ? string.Join(", ", dependentAgents) : "unknown agents";
+                        var agentList = dependentAgents.Count != 0 ? string.Join(", ", dependentAgents) : "unknown agents";
                         return (false, $"Cannot delete tool '{toolName}': it is used by the following agents: {agentList}");
                     }
 
@@ -2666,7 +2678,7 @@ public class ApiService : IDisposable
                         {
                             Owner = agentDescriptor.Metadata?.Owner ?? string.Empty,
                             Version = agentDescriptor.Metadata?.Version ?? string.Empty,
-                            Tags = agentDescriptor.Metadata?.Tags ?? new List<string>(),
+                            Tags = agentDescriptor.Metadata?.Tags ?? [],
                             CreatedAt = agentDescriptor.Metadata?.CreatedAt?.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") ?? string.Empty,
                             UpdatedAt = agentDescriptor.Metadata?.UpdatedAt?.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") ?? string.Empty
                         }
@@ -2731,7 +2743,7 @@ public class ApiService : IDisposable
             {
                 var jsonDoc = JsonDocument.Parse(content);
                 JsonElement toolsArray;
-                
+
                 // Check for new nested structure: { data: { tools: { data: [...] } } }
                 if (jsonDoc.RootElement.TryGetProperty("data", out var outerDataElement) &&
                     outerDataElement.TryGetProperty("tools", out var toolsWrapperElement) &&
@@ -2960,17 +2972,18 @@ public class ApiService : IDisposable
 
             // Validate all files exist before starting upload
             var invalidFiles = filePaths.Where(file => !File.Exists(file)).ToList();
-            if (invalidFiles.Any())
+            if (invalidFiles.Count != 0)
             {
                 return (false, $"Files not found: {string.Join(", ", invalidFiles.Select(Path.GetFileName))}");
             }
 
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/AgentMemory/upload";
 
-            using var multipartContent = new MultipartFormDataContent();
-
-            // Add indexing parameter
-            multipartContent.Add(new StringContent(triggerIndexing.ToString().ToLower()), "triggerIndexing");
+            using var multipartContent = new MultipartFormDataContent
+            {
+                // Add indexing parameter
+                { new StringContent(triggerIndexing.ToString().ToLower()), "triggerIndexing" }
+            };
 
             // Add files to the multipart content
             var fileContents = new List<IDisposable>();
@@ -2988,8 +3001,10 @@ public class ApiService : IDisposable
                     multipartContent.Add(fileContent, "files", fileName);
                 }
 
-                var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
-                request.Content = multipartContent;
+                var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
+                {
+                    Content = multipartContent
+                };
 
                 var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -3475,7 +3490,7 @@ public class YamlMetadata
 {
     public string Owner { get; set; } = string.Empty;
     public string Version { get; set; } = string.Empty;
-    public List<string> Tags { get; set; } = new List<string>();
+    public List<string> Tags { get; set; } = [];
     public string UpdatedAt { get; set; } = string.Empty;
     public string CreatedAt { get; set; } = string.Empty;
 }
@@ -3526,7 +3541,7 @@ public class StructuredAgentYaml : StructuredAgentYamlWrapper<YamlAgentDescripto
 public class ToolListSpec
 {
     [YamlMember(Alias = "tools")]
-    public List<object> Tools { get; set; } = new List<object>();
+    public List<object> Tools { get; set; } = [];
 }
 
 /// <summary>

@@ -24,13 +24,13 @@ public static class CommandSuggestionService
 
         if (!hasConfig)
         {
-            suggestions.AddRange(new[]
-            {
+            suggestions.AddRange(
+            [
                 "srectl init --resource-url https://localhost:7023",
                 "srectl init --resource-url https://your-agent-endpoint.ai",
                 "srectl help quickstart"
-            });
-            return suggestions.ToArray();
+            ]);
+            return [.. suggestions];
         }
 
         // Context-aware suggestions based on workspace state
@@ -40,47 +40,45 @@ public static class CommandSuggestionService
         if (!hasAgents && !hasTools)
         {
             // First-time user suggestions
-            suggestions.AddRange(new[]
-            {
+            suggestions.AddRange(
+            [
                 "srectl agent create --name MyFirstAgent --smart",
                 "srectl tool show-types",
                 "srectl chat",
                 "srectl help examples"
-            });
+            ]);
         }
         else if (hasAgents && !hasTools)
         {
             // User has agents but no tools
-            suggestions.AddRange(new[]
-            {
+            suggestions.AddRange(
+            [
                 "srectl tool create --name QueryMetrics --type KustoTool",
                 "srectl agent test --name [agent-name] --message 'Hello'",
                 "srectl list agents",
                 "srectl chat"
-            });
+            ]);
         }
         else
         {
             // Experienced user suggestions
-            suggestions.AddRange(new[]
-            {
+            suggestions.AddRange(
+            [
                 "srectl agent apply --name [agent-name]",
                 "srectl agent validate --all --check-tools",
                 "srectl thread new --message 'Your question here'",
                 "srectl chat",
                 "srectl list agents"
-            });
+            ]);
         }
 
         // Filter suggestions based on current input
         if (!string.IsNullOrEmpty(currentInput))
         {
-            suggestions = suggestions
-                .Where(s => s.Contains(currentInput, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            suggestions = [.. suggestions.Where(s => s.Contains(currentInput, StringComparison.OrdinalIgnoreCase))];
         }
 
-        return suggestions.ToArray();
+        return [.. suggestions];
     }
 
     /// <summary>
@@ -97,7 +95,7 @@ public static class CommandSuggestionService
         if (!string.IsNullOrEmpty(errorContext))
         {
             var contextSuggestions = GetErrorContextSuggestions(errorContext, failedCommand);
-            suggestions = contextSuggestions.Concat(suggestions).ToArray();
+            suggestions = [.. contextSuggestions, .. suggestions];
         }
 
         for (int i = 0; i < Math.Min(5, suggestions.Length); i++)
@@ -122,45 +120,45 @@ public static class CommandSuggestionService
 
         if (error.Contains("connection") || error.Contains("network") || error.Contains("unreachable"))
         {
-            return new[]
-            {
+            return
+            [
                 "srectl profile get  # Check current server URL",
                 "srectl list agents --debug  # Test connection with debug info",
                 "srectl init --resource-url <correct-url>  # Update server URL"
-            };
+            ];
         }
 
         if (error.Contains("not found") || error.Contains("404"))
         {
-            return new[]
-            {
+            return
+            [
                 "srectl list agents  # See what's actually deployed",
                 "srectl agent apply --name [agent-name]  # Deploy the agent first",
                 "srectl agent validate --all  # Check agent configurations"
-            };
+            ];
         }
 
         if (error.Contains("validation") || error.Contains("invalid"))
         {
-            return new[]
-            {
+            return
+            [
                 "srectl agent validate --all --check-tools  # Detailed validation",
                 "srectl tool show-types  # See available tool types",
                 $"{failedCommand} --debug  # Run with debug output"
-            };
+            ];
         }
 
         if (error.Contains("permission") || error.Contains("auth") || error.Contains("unauthorized"))
         {
-            return new[]
-            {
+            return
+            [
                 "srectl profile get  # Check authentication settings",
                 "srectl init --resource-url <url>  # Reinitialize with auth",
                 "Contact your admin for access permissions"
-            };
+            ];
         }
 
-        return Array.Empty<string>();
+        return [];
     }
 
     /// <summary>
@@ -288,7 +286,7 @@ public static class CommandSuggestionService
     private static Task<string> BuildAgentTestCommand()
     {
         // Get available agents
-        var agentDirs = Directory.Exists("agents") ? Directory.GetDirectories("agents") : Array.Empty<string>();
+        var agentDirs = Directory.Exists("agents") ? Directory.GetDirectories("agents") : [];
 
         if (agentDirs.Length == 0)
         {
@@ -373,22 +371,22 @@ public static class CommandSuggestionService
         // This would be expanded to include all command options
         return command switch
         {
-            "agent create" => new List<CommandOption>
-            {
+            "agent create" =>
+            [
                 new("--name", "Agent name (required)", "MyAgent"),
                 new("--smart", "Use AI assistance", ""),
                 new("--instructions", "Agent instructions", "\"Help with DevOps tasks such as monitoring and incident response\""),
                 new("--tools", "Tools to include", "Tool1 Tool2"),
                 new("--debug", "Enable debug logging", "")
-            },
-            "tool create" => new List<CommandOption>
-            {
+            ],
+            "tool create" =>
+            [
                 new("--name", "Tool name (required)", "QueryMetrics"),
                 new("--type", "Tool type (required)", "KustoTool"),
                 new("--path", "Organization path", "\"Metrics/Performance\""),
                 new("--debug", "Enable debug logging", "")
-            },
-            _ => new List<CommandOption>()
+            ],
+            _ => []
         };
     }
 

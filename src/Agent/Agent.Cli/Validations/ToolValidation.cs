@@ -11,7 +11,7 @@ namespace Agent.Cli.Validations
     {
         public static bool ValidateTool(string name, string type, out List<string> errors)
         {
-            errors = new List<string>();
+            errors = [];
             if (string.IsNullOrWhiteSpace(name))
                 errors.Add("Tool name must not be empty.");
             if (name != null && name.Any(char.IsWhiteSpace))
@@ -27,7 +27,7 @@ namespace Agent.Cli.Validations
         /// </summary>
         public static bool ValidateToolYaml(string yamlContent, out List<string> errors)
         {
-            errors = new List<string>();
+            errors = [];
 
             try
             {

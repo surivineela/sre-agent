@@ -29,7 +29,7 @@ public static class ProfileCommandHandlers
 
             DebugLogger.Debug("Profiles", $"Found {profiles.Count} profiles, current: {currentProfile ?? "none"}");
 
-            if (!profiles.Any())
+            if (profiles.Count == 0)
             {
                 ConsoleUI.WriteInfo("No profiles found.", ConsoleColor.Gray);
                 return Task.CompletedTask;

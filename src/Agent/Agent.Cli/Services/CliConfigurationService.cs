@@ -73,7 +73,7 @@ public class CliConfigurationService : ICliConfigurationService
     public IEnumerable<string> GetAvailableProfiles()
     {
         if (!Directory.Exists(ProfilesDir))
-            return Enumerable.Empty<string>();
+            return [];
 
         return Directory.GetFiles(ProfilesDir, "*.json")
             .Select(Path.GetFileNameWithoutExtension)

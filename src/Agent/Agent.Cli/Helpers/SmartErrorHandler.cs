@@ -122,96 +122,84 @@ public static class SmartErrorHandler
         return errorType switch
         {
             ErrorType.Network => new RecoverySuggestions(
-                new[]
-                {
-                    new RecoveryOption("Test server connection", async () => await TestConnection()),
-                    new RecoveryOption("Check configuration", async () => await VerifyConfiguration())
-                },
-                new[]
-                {
+                [
+                    new RecoveryOption("Test server connection", TestConnection),
+                    new RecoveryOption("Check configuration", VerifyConfiguration)
+                ],
+                [
                     "Verify server URL with 'srectl profile get'",
                     "Check if server is running and accessible",
                     "Try initializing with correct URL: 'srectl init --resource-url <url>'",
                     "Check firewall and network connectivity"
-                }
+                ]
             ),
 
             ErrorType.Authentication => new RecoverySuggestions(
-                new[]
-                {
-                    new RecoveryOption("Reinitialize with authentication", async () => await ReinitializeAuth())
-                },
-                new[]
-                {
+                [
+                    new RecoveryOption("Reinitialize with authentication", ReinitializeAuth)
+                ],
+                [
                     "Check if authentication is required for your server",
                     "Contact your administrator for access permissions",
                     "Verify you're using the correct server URL",
                     "Try reinitializing: 'srectl init --resource-url <url>'"
-                }
+                ]
             ),
 
             ErrorType.NotFound => new RecoverySuggestions(
-                new[]
-                {
+                [
                     new RecoveryOption("List available resources", async () => await ListResources(commandContext))
-                },
-                new[]
-                {
+                ],
+                [
                     "Check if the resource exists: 'srectl list agents' or 'srectl list tools'",
                     "Deploy the resource first if needed",
                     "Verify the name is spelled correctly",
                     "Use 'srectl status' to check workspace state"
-                }
+                ]
             ),
 
             ErrorType.Validation => new RecoverySuggestions(
-                new[]
-                {
-                    new RecoveryOption("Validate all configurations", async () => await ValidateAll())
-                },
-                new[]
-                {
+                [
+                    new RecoveryOption("Validate all configurations", ValidateAll)
+                ],
+                [
                     "Run validation: 'srectl agent validate --all --check-tools'",
                     "Check YAML syntax in your configuration files",
                     "Verify tool names and types are correct",
                     "Use 'srectl tool show-types' to see available types"
-                }
+                ]
             ),
 
             ErrorType.FileSystem => new RecoverySuggestions(
-                new[]
-                {
-                    new RecoveryOption("Initialize workspace structure", async () => await InitializeWorkspace())
-                },
-                new[]
-                {
+                [
+                    new RecoveryOption("Initialize workspace structure", InitializeWorkspace)
+                ],
+                [
                     "Initialize workspace: 'srectl init --resource-url <url>'",
                     "Check if you're in the correct directory",
                     "Verify file paths and permissions",
                     "Recreate missing directories manually"
-                }
+                ]
             ),
 
             ErrorType.Timeout => new RecoverySuggestions(
-                Array.Empty<RecoveryOption>(),
-                new[]
-                {
+                [],
+                [
                     "Try the operation again - it might be a temporary issue",
                     "Use --no-wait flag if available to avoid waiting",
                     "Check server performance and load",
                     "Break down complex operations into smaller steps"
-                }
+                ]
             ),
 
             _ => new RecoverySuggestions(
-                Array.Empty<RecoveryOption>(),
-                new[]
-                {
+                [],
+                [
                     "Try running the command with --debug for more details",
                     "Check 'srectl help troubleshooting' for common solutions",
                     "Verify your workspace with 'srectl status'",
                     "Consider reporting this issue if it persists"
-                }
+                ]
             )
         };
     }

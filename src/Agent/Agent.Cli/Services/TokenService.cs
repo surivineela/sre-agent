@@ -16,7 +16,7 @@ public interface ITokenService
 
 public class TokenService : ITokenService
 {
-    private static readonly string[] Scopes = { "https://azuresre.dev/.default" };
+    private static readonly string[] Scopes = ["https://azuresre.dev/.default"];
 
     public async Task<string?> GetAccessTokenAsync()
     {

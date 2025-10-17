@@ -38,32 +38,32 @@ public static class InteractiveHelpService
         ConsoleUI.WriteKeyValue("--quiet", "Minimize output", 20, ConsoleColor.Green);
         Console.WriteLine();
 
-        ConsoleUI.WriteCommandGroup("Core Commands", new[] {
+        ConsoleUI.WriteCommandGroup("Core Commands", [
             ("welcome", "Show welcome screen and getting started guide"),
             ("help", "Interactive help system with examples and troubleshooting"),
             ("suggest", "Get intelligent command suggestions based on workspace"),
             ("status", "Show workspace status and health check"),
             ("interactive", "Start interactive guided mode for step-by-step assistance"),
             ("version", "Show version information and build details")
-        });
+        ]);
 
-        ConsoleUI.WriteCommandGroup("Setup & Management", new[] {
+        ConsoleUI.WriteCommandGroup("Setup & Management", [
             ("init", "Initialize SREAgent CLI configuration and workspace"),
             ("list", "List various resources from the remote server"),
             ("apply-yaml", "Apply any YAML configuration file to the server")
-        });
+        ]);
 
-        ConsoleUI.WriteCommandGroup("Interaction & Workflows", new[] {
+        ConsoleUI.WriteCommandGroup("Interaction & Workflows", [
             ("chat", "Start an interactive chat session with the SRE Agent"),
             ("thread", "Thread management commands")
-        });
+        ]);
 
-        ConsoleUI.WriteCommandGroup("Resource Management", new[] {
+        ConsoleUI.WriteCommandGroup("Resource Management", [
             ("agent", "Agent commands"),
             ("tool", "Tool commands"),
             ("doc", "Document management commands"),
             ("profile", "Profile management commands")
-        });
+        ]);
 
         ConsoleUI.WriteSection("Quick Actions");
         ConsoleUI.WriteCommand("Start chatting", "srectl chat");

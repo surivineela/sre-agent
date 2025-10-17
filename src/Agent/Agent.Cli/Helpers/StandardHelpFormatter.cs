@@ -119,14 +119,14 @@ public static class StandardHelpFormatter
 
         // Short description = first non-empty line of header
         var shortDesc = header
-            .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
             .FirstOrDefault()?.Trim() ?? header.Trim();
 
         var examples = new List<(string Comment, string Command)>();
         if (!string.IsNullOrWhiteSpace(examplesBlock))
         {
             string? pendingComment = null;
-            foreach (var raw in examplesBlock.Split(new[] { '\r', '\n' }, StringSplitOptions.None))
+            foreach (var raw in examplesBlock.Split(['\r', '\n'], StringSplitOptions.None))
             {
                 var line = raw.Trim();
                 if (string.IsNullOrWhiteSpace(line))
@@ -169,35 +169,5 @@ public static class StandardHelpFormatter
         Console.WriteLine();
 
         ShowCommandGroups(parentCommand, commandGroups, groupDescriptions);
-    }
-
-    /// <summary>
-    /// Shows a bottom banner section with command group context
-    /// </summary>
-    private static void ShowBottomBanner(string groupDisplayName, string groupDescription, ConsoleColor bannerColor)
-    {
-        var bannerLines = new[]
-        {
-            groupDisplayName,
-            "",
-            groupDescription
-        };
-
-        // Calculate the width needed for the banner
-        var maxContentWidth = bannerLines.Max(line => line.Length);
-        var totalWidth = Math.Max(maxContentWidth + 4, 40); // At least 40 chars wide
-        var horizontalLine = new string(ConsoleUI.Chars.H[0], totalWidth - 2);
-
-        ConsoleUI.WithColor(bannerColor, () =>
-        {
-            Console.WriteLine($"{ConsoleUI.Chars.TL}{horizontalLine}{ConsoleUI.Chars.TR}");
-            foreach (var line in bannerLines)
-            {
-                var paddedLine = line.PadRight(totalWidth - 4);
-                Console.WriteLine($"{ConsoleUI.Chars.V} {paddedLine} {ConsoleUI.Chars.V}");
-            }
-            Console.WriteLine($"{ConsoleUI.Chars.BL}{horizontalLine}{ConsoleUI.Chars.BR}");
-        });
-        Console.WriteLine();
     }
 }

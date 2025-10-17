@@ -4,13 +4,11 @@
 
 using System.CommandLine;
 using System.Reflection;
-using System.Text.Json;
 using Agent.Cli.Helpers;
 using Agent.Cli.Models;
 using Agent.Cli.Services;
 using Agent.Data.Tools;
 using Agent.Framework;
-using Agent.Framework.Reasoning.Models;
 
 namespace Agent.Cli.Commands;
 
@@ -168,6 +166,7 @@ public static class GeneralCommandHandlers
             Environment.Exit(1);
         }
     }
+
     /// <summary>
     /// Handles the init command with a specific resource URL.
     /// </summary>
@@ -316,7 +315,7 @@ public static class GeneralCommandHandlers
                         }
                     }
 
-                    if (agentNames.Any())
+                    if (agentNames.Count != 0)
                     {
                         foreach (var name in agentNames.OrderBy(n => n))
                         {
@@ -350,9 +349,11 @@ public static class GeneralCommandHandlers
             }
             Environment.Exit(success ? 0 : 1);
         }
-    }    /// <summary>
-         /// Handles the list tools command.
-         /// </summary>
+    }
+
+    /// <summary>
+    /// Handles the list tools command.
+    /// </summary>
     public static async Task HandleListToolsCommand(ParseResult parseResult)
     {
         // Ensure debug/quiet flags are honored for this handler
@@ -809,43 +810,6 @@ public static class GeneralCommandHandlers
     }
 
     /// <summary>
-    /// Handles the agent-busy scenario by polling and printing any new agent messages without changing the thread.
-    /// </summary>
-    private static async Task HandleAgentBusyAsync(ApiService apiService, string threadId, HashSet<string> printedMessageIds)
-    {
-        // Poll a few times to allow the in-flight response to complete
-        const int attempts = 5;
-        for (int i = 0; i < attempts; i++)
-        {
-            await PrintNewAgentMessagesInOrderAsync(apiService, threadId, printedMessageIds);
-            await Task.Delay(10000);
-        }
-    }
-
-    /// <summary>
-    /// Waits until no new streaming messages have arrived for quietMs, up to timeoutMs.
-    /// </summary>
-    private static async Task WaitForStreamingQuietAsync(Func<DateTime?> lastMessageAtProvider, int quietMs, int timeoutMs)
-    {
-        var start = DateTime.UtcNow;
-        DateTime? last = lastMessageAtProvider();
-        while ((DateTime.UtcNow - start).TotalMilliseconds < timeoutMs)
-        {
-            var current = lastMessageAtProvider();
-            if (current != null)
-            {
-                // If we haven't seen a new message for quietMs, we consider it done
-                if ((DateTime.UtcNow - current.Value).TotalMilliseconds >= quietMs)
-                {
-                    return;
-                }
-            }
-            await Task.Delay(150);
-            last = current;
-        }
-    }
-
-    /// <summary>
     /// Unified waiting function that keeps a spinner up until the agent is done.
     /// For streaming: waits until isAgentWorking becomes false with a quiet buffer.
     /// For HTTP: polls and prints messages while spinning.
@@ -858,7 +822,7 @@ public static class GeneralCommandHandlers
         string threadId,
         HashSet<string> printedIds)
     {
-        string[] dots = new[] { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" };
+        string[] dots = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
         var i = 0;
         var started = DateTime.UtcNow;
 
@@ -1046,7 +1010,6 @@ public static class GeneralCommandHandlers
 
         bool serverConnected = false;
         bool remoteAgentsAvailable = false;
-        bool remoteToolsAvailable = false;
 
         if (hasConfig)
         {
@@ -1075,8 +1038,7 @@ public static class GeneralCommandHandlers
                     var (toolsSuccess, toolsResponse) = await apiService.ListToolsAsync();
 
                     remoteAgentsAvailable = agentsSuccess;
-                    remoteToolsAvailable = toolsSuccess;
-
+                    var remoteToolsAvailable = toolsSuccess;
                     if (agentsSuccess) ConsoleUI.WriteBullet("Remote Agents: Available");
                     if (toolsSuccess) ConsoleUI.WriteBullet("Remote Tools: Available");
 

@@ -170,7 +170,7 @@ public static class IncidentHandlerCommandHandlers
             var handlers = await apiService.GetIncidentHandlersAsync();
             var matchingHandlers = handlers?.Where(h => h["incidentFilterId"]?.ToString() == filterId).ToList();
 
-            if (matchingHandlers?.Any() == true)
+            if (matchingHandlers?.Count > 0)
             {
                 ConsoleUI.WriteInfo($"Found {matchingHandlers.Count} existing incident handler(s) for this filter.");
 
@@ -346,7 +346,7 @@ public static class IncidentHandlerCommandHandlers
                 var filters = await apiService.GetIncidentFiltersAsync();
                 if (filters != null)
                 {
-                    filterMap = new Dictionary<string, JsonNode>();
+                    filterMap = [];
                     foreach (var filter in filters)
                     {
                         var filterId = filter["Id"]?.ToString();

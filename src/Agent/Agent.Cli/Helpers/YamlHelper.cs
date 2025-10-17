@@ -7,7 +7,6 @@ using System.Text;
 using Agent.Cli.Models;
 using Agent.Cli.Services;
 using Agent.Framework;
-using Agent.Framework.Reasoning.Models;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -43,7 +42,7 @@ public static class YamlHelper
         File.WriteAllText(Path.Combine(folder, $"{name}.yaml"), yaml, new UTF8Encoding(false));
     }
 
-    public static void WriteToolYamlFile(string folder, string name, YamlToolDefinitionBase tool, Agent.Framework.Reasoning.Models.YamlMetadata? documentMetadata = null)
+    public static void WriteToolYamlFile(string folder, string name, YamlToolDefinitionBase tool, Framework.Reasoning.Models.YamlMetadata? documentMetadata = null)
     {
         Directory.CreateDirectory(folder);
 
@@ -52,17 +51,17 @@ public static class YamlHelper
         {
             // Note: tool list is actually a single tool, but to keep it how the api expects right now, rename later
             Kind = "ToolList",
-            Metadata = documentMetadata != null ? 
-                new Agent.Cli.Services.YamlMetadata 
-                { 
+            Metadata = documentMetadata != null ?
+                new YamlMetadata
+                {
                     Owner = documentMetadata.Owner ?? string.Empty,
                     Version = documentMetadata.Version ?? string.Empty,
-                    Tags = documentMetadata.Tags?.ToList() ?? new List<string>(),
+                    Tags = documentMetadata.Tags?.ToList() ?? [],
                     UpdatedAt = documentMetadata.UpdatedAt?.ToString() ?? string.Empty,
                     CreatedAt = documentMetadata.CreatedAt?.ToString() ?? string.Empty
-                } : 
-                new Agent.Cli.Services.YamlMetadata(),
-            Spec = new ToolListSpec { Tools = new List<object> { tool } }
+                } :
+                new YamlMetadata(),
+            Spec = new ToolListSpec { Tools = [tool] }
         };
 
         DebugLogger.Debug("WriteToolYamlFile", $"Created deployment model - Kind: {deploymentModel.Kind}, ApiVersion: {deploymentModel.ApiVersion}");
@@ -74,10 +73,10 @@ public static class YamlHelper
             .Build();
 
         var yaml = serializer.Serialize(deploymentModel);
-        
+
         DebugLogger.Debug("WriteToolYamlFile", $"Generated YAML length: {yaml.Length}");
         DebugLogger.Debug("WriteToolYamlFile", $"YAML preview (first 200 chars): {yaml.Substring(0, Math.Min(200, yaml.Length))}");
-        
+
         File.WriteAllText(Path.Combine(folder, $"{name}.yaml"), yaml, new UTF8Encoding(false));
     }
 
@@ -160,7 +159,7 @@ public class ToolMetadataFilterVisitor : ChainedObjectGraphVisitor
     private readonly KeepImportantPropertiesVisitor _baseVisitor;
     private bool _inToolsArray = false;
 
-    public ToolMetadataFilterVisitor(IObjectGraphVisitor<IEmitter> next) : base(next) 
+    public ToolMetadataFilterVisitor(IObjectGraphVisitor<IEmitter> next) : base(next)
     {
         _baseVisitor = new KeepImportantPropertiesVisitor(next);
     }
@@ -173,7 +172,7 @@ public class ToolMetadataFilterVisitor : ChainedObjectGraphVisitor
             _inToolsArray = true;
         }
         // Reset when we encounter top-level fields (exiting tools context)
-        else if (!_inToolsArray || (key.Name.Equals("api_version", StringComparison.OrdinalIgnoreCase) || 
+        else if (!_inToolsArray || (key.Name.Equals("api_version", StringComparison.OrdinalIgnoreCase) ||
                                    key.Name.Equals("kind", StringComparison.OrdinalIgnoreCase) ||
                                    key.Name.Equals("spec", StringComparison.OrdinalIgnoreCase)))
         {
@@ -200,7 +199,7 @@ public class KeepImportantPropertiesVisitor : ChainedObjectGraphVisitor
     {
         // Document structure - always keep at top level
         "api_version",
-        "kind", 
+        "kind",
         "metadata",
         "spec"
     };
@@ -229,7 +228,7 @@ public class KeepImportantPropertiesVisitor : ChainedObjectGraphVisitor
         // Always preserve structural fields at document root level
         if (StructuralFields.Contains(key.Name))
             return base.EnterMapping(key, value, context, serializer);
-            
+
         // Always preserve important content fields
         if (AlwaysPreserve.Contains(key.Name))
             return base.EnterMapping(key, value, context, serializer);

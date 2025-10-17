@@ -84,9 +84,9 @@ public static class DocumentCommandHandlers
 
             // Perform the upload
             using var apiService = new ApiService();
-            var result = await apiService.UploadDocumentsAsync(filesToUpload, shouldTriggerIndexing);
-            var success = result.Item1;
-            var response = result.Item2;
+            var (Success, Response) = await apiService.UploadDocumentsAsync(filesToUpload, shouldTriggerIndexing);
+            var success = Success;
+            var response = Response;
 
             if (success)
             {
@@ -259,9 +259,9 @@ public static class DocumentCommandHandlers
 
             // Perform the search
             using var apiService = new ApiService();
-            var result = await apiService.SearchDocumentsAsync(query);
-            var success = result.Item1;
-            var response = result.Item2;
+            var (Success, Response) = await apiService.SearchDocumentsAsync(query);
+            var success = Success;
+            var response = Response;
 
             if (success)
             {
@@ -297,9 +297,9 @@ public static class DocumentCommandHandlers
 
             // Perform the reindexing
             using var apiService = new ApiService();
-            var result = await apiService.ReindexDocumentsAsync();
-            var success = result.Item1;
-            var response = result.Item2;
+            var (Success, Response) = await apiService.ReindexDocumentsAsync();
+            var success = Success;
+            var response = Response;
 
             if (success)
             {
