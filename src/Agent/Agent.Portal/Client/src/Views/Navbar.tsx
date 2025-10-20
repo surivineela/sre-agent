@@ -5,7 +5,16 @@ import { PortalResources } from '../Strings/Resources';
 
 export const Navbar = () => {
     const intl = useIntl();
-    const { signOut } = useAuth();
+    const { signIn, signOut, status, user } = useAuth();
+
+    const isAuthenticated = status === 'authenticated';
+    const isPending = status === 'pending';
+    const personaName = user?.name;
+    const personaSecondaryText = user?.username;
+
+    const handleSignInDifferentAccount = () => {
+        void signIn({ prompt: 'select_account' });
+    };
 
     return (
         <div
@@ -29,19 +38,31 @@ export const Navbar = () => {
             <div>
                 <Popover>
                     <PopoverTrigger>
-                        <Persona avatar={{ image: { src: '' } }} />
+                        <Persona avatar={{ image: { src: '' } }} name={personaName} secondaryText={personaSecondaryText} />
                     </PopoverTrigger>
 
                     <PopoverSurface>
                         <div>
-                            <Persona avatar={{ image: { src: '' } }} name="Full Name" secondaryText="email@microsoft.com" />
+                            <Persona avatar={{ image: { src: '' } }} name={personaName} secondaryText={personaSecondaryText} />
                             <div>Directory dropdown</div>
 
                             <Divider />
 
                             <div>
-                                <Button>{intl.formatMessage(PortalResources.signInWithDifferentAccount)}</Button>
-                                <Button onClick={() => signOut()}>{intl.formatMessage(PortalResources.signOut)}</Button>
+                                {isAuthenticated ? (
+                                    <>
+                                        <Button disabled={isPending} onClick={handleSignInDifferentAccount}>
+                                            {intl.formatMessage(PortalResources.signInWithDifferentAccount)}
+                                        </Button>
+                                        <Button disabled={isPending} onClick={() => void signOut()}>
+                                            {intl.formatMessage(PortalResources.signOut)}
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <Button appearance="primary" disabled={isPending} onClick={() => void signIn()}>
+                                        {intl.formatMessage(PortalResources.signIn)}
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </PopoverSurface>

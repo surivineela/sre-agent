@@ -2,12 +2,12 @@ import { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useIntl } from 'react-intl';
 import { createBrowserRouter, Outlet, RouterProvider, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from './src/Common/Contexts/AuthContext';
-import { PortalResources } from './src/Strings/Resources';
-import { AgentIFrameView } from './src/Views/Agent/AgentIFrameView';
-import { HomeView } from './src/Views/Home/HomeView';
-import { LandingPage } from './src/Views/LandingPage/LandingPage';
-import { Navbar } from './src/Views/Navbar';
+import { useAuth } from './Common/Contexts/AuthContext';
+import { PortalResources } from './Strings/Resources';
+import { AgentIFrameView } from './Views/Agent/AgentIFrameView';
+import { HomeView } from './Views/Home/HomeView';
+import { LandingPage } from './Views/LandingPage/LandingPage';
+import { Navbar } from './Views/Navbar';
 
 // TODOs:
 // - Authentication (Entra, Graph, ARM/Graph/SreAgent/AppInsights tokens)

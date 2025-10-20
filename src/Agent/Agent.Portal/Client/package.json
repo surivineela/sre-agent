@@ -10,8 +10,8 @@
     "lint": "eslint",
     "preview": "vite preview",
     "test": "vitest run",
-    "extract:loc": "formatjs extract \"**/*.{ts,tsx}\" --ignore \"**/*.{d,test,spec}.{ts,tsx}\" --out-file src/src/Strings/extracted/strings.json --format ./src/src/Strings/format.js",
-    "compile:loc": "formatjs compile-folder --ast --format ./src/src/Strings/format.js \"src/src/Strings/extracted\" \"src/src/Strings/compiled\" ",
+    "extract:loc": "formatjs extract \"**/*.{ts,tsx}\" --ignore \"**/*.{d,test,spec}.{ts,tsx}\" --out-file src/Strings/extracted/strings.json --format ./src/Strings/format.js",
+    "compile:loc": "formatjs compile-folder --ast --format ./src/Strings/format.js \"src/Strings/extracted\" \"src/Strings/compiled\" ",
     "prepare": "cd ../../../../ && husky src/Agent/Agent.Portal/Client/.husky || true"
   },
   "lint-staged": {
@@ -21,6 +21,8 @@
     ]
   },
   "dependencies": {
+    "@azure/msal-browser": "^3.30.0",
+    "@azure/msal-react": "^2.0.13",
     "@fluentui/react-components": "^9.68.3",
     "@fluentui/react-icons": "^2.0.307",
     "lodash": "^4.17.21",

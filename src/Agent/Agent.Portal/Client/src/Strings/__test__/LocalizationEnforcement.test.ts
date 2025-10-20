@@ -46,7 +46,7 @@ function collectAllMessageDescriptors(): MessageDescriptorInfo[] {
 
 function scanForRawAriaLabels(): string[] {
     // Recursively scan .tsx files for aria-label="..." literal strings (not expressions)
-    const projectRoot = path.resolve(__dirname, '../../../'); // points to src/src
+    const projectRoot = path.resolve(__dirname, '../../'); // points to src
     const offenders: string[] = [];
     const ignoreDirs = new Set(['node_modules', '.git', '__test__', 'Strings']);
 

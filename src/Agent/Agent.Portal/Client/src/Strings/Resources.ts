@@ -8,6 +8,7 @@ export const PortalResources = defineMessages({
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     signOut: { defaultMessage: 'Sign out', id: 'xXbJso' },
     signInWithDifferentAccount: { defaultMessage: 'Sign in with a different account', id: 'oHGFwy' },
+    signIn: { defaultMessage: 'Sign in', id: 'SQJto2' },
     createYourFirstAgent: { defaultMessage: 'Create your first Azure SRE Agent', id: 'H/i1A+' },
     createYourFirstAgentSubtext: {
         defaultMessage:
