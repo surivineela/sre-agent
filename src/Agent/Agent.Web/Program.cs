@@ -642,10 +642,7 @@ public class Program
         if (isAcaFirstPartyAgent)
         {
             // Register ACA First Party tools
-            builder.Services
-                .AddTransient<RCAContainerAppIcMPluginDefinition>()
-                .AddTransient<RCAContainerAppQuotaPluginDefinition>();
-
+            builder.RegisterAcaFirstPartyApp();
         }
 
         builder.Services.AddSingleton<IAgentsFactory, ThirdPartyAgentsFactory>();
@@ -663,36 +660,32 @@ public class Program
         builder.Services.AddSingleton<ICustomAgentFileService>(
             sp => sp.GetRequiredService<CustomAgentFileService>());
 
-        //Overwrite KustoClient from ValidateAndRegisterFirstPartyTypes if is not Container FirstParty Agent
-        if (!isAcaFirstPartyAgent)
+        builder.Services.AddSingleton<KustoConnector>(sp =>
         {
-            builder.Services.AddSingleton<KustoConnector>(sp =>
+            var actionSettings = sp.GetRequiredService<ActionSettings>();
+            var kustoAuthSetting = new ConnectorAuthSettings()
             {
-                var actionSettings = sp.GetRequiredService<ActionSettings>();
-                var kustoAuthSetting = new ConnectorAuthSettings()
-                {
-                    AuthenticationType = ConnectorAuthType.UAMI,
-                    ManagedIdentityResourceId = actionSettings.Identity ?? string.Empty,
-                };
-                if (builder.Environment.IsDevelopment())
-                {
-                    kustoAuthSetting.AuthenticationType = ConnectorAuthType.User;
-                }
-                return new KustoConnector()
-                {
-                    Auth = kustoAuthSetting,
-                    Enabled = true,
-                    RegionalClusterGroups = []
-                };
-            });
-            builder.Services.AddSingleton<KustoClient>(sp =>
+                AuthenticationType = ConnectorAuthType.UAMI,
+                ManagedIdentityResourceId = actionSettings.Identity ?? string.Empty,
+            };
+            if (builder.Environment.IsDevelopment())
             {
-                var logger = sp.GetRequiredService<ILogger<KustoClient>>();
-                var kustoSetting = sp.GetRequiredService<KustoConnector>();
-                var authSvc = sp.GetRequiredService<IAuthenticationService>();
-                return new KustoClient(logger, kustoSetting, authSvc);
-            });
-        }
+                kustoAuthSetting.AuthenticationType = ConnectorAuthType.User;
+            }
+            return new KustoConnector()
+            {
+                Auth = kustoAuthSetting,
+                Enabled = true,
+                RegionalClusterGroups = []
+            };
+        });
+        builder.Services.AddSingleton<KustoClient>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<KustoClient>>();
+            var kustoSetting = sp.GetRequiredService<KustoConnector>();
+            var authSvc = sp.GetRequiredService<IAuthenticationService>();
+            return new KustoClient(logger, kustoSetting, authSvc);
+        });
 
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
         builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
