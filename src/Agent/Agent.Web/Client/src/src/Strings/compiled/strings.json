@@ -585,6 +585,12 @@
       "value": "Override default meta agent"
     }
   ],
+  "1CcjQj": [
+    {
+      "type": 0,
+      "value": "Add a response plan to automate incident handling"
+    }
+  ],
   "1DDIYv": [
     {
       "type": 0,
@@ -3343,6 +3349,12 @@
       "value": "Describe what this tool does..."
     }
   ],
+  "FPdoJ3": [
+    {
+      "type": 0,
+      "value": "Define how incidents are detected and reviewed, and the instructions for how the agent responds."
+    }
+  ],
   "FSYccN": [
     {
       "type": 0,
@@ -3505,6 +3517,12 @@
       "value": "Start a new chat thread."
     }
   ],
+  "GkKcbX": [
+    {
+      "type": 0,
+      "value": "Add a response plan"
+    }
+  ],
   "Gl8fnJ": [
     {
       "type": 0,
@@ -3599,6 +3617,12 @@
     {
       "type": 0,
       "value": "Select when the task should stop running"
+    }
+  ],
+  "HQ4NJ3": [
+    {
+      "type": 0,
+      "value": "Learn more about response plans"
     }
   ],
   "HQhDfV": [
@@ -3881,6 +3905,12 @@
     {
       "type": 0,
       "value": "Select an agent to view its configuration."
+    }
+  ],
+  "ItmLyp": [
+    {
+      "type": 0,
+      "value": "Connect an incident platform"
     }
   ],
   "IuFETn": [
@@ -6201,6 +6231,12 @@
       "value": "Remove starter agent"
     }
   ],
+  "V5w7/I": [
+    {
+      "type": 0,
+      "value": "Optimize alert response with an incident platform"
+    }
+  ],
   "V9A1Xh": [
     {
       "type": 0,
@@ -8192,6 +8228,12 @@
       "value": "Output"
     }
   ],
+  "fjOQVZ": [
+    {
+      "type": 0,
+      "value": "Learn more about incident platform integration"
+    }
+  ],
   "fjgqNG": [
     {
       "type": 0,
@@ -10016,6 +10058,12 @@
     {
       "type": 0,
       "value": "Manage without access. Can't manage security policies or parent SQL servers."
+    }
+  ],
+  "p8Ubox": [
+    {
+      "type": 0,
+      "value": "Connect an incident management platform so the agent will collect, analyze, and respond to alerts."
     }
   ],
   "pAFuFx": [

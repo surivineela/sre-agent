@@ -1466,6 +1466,20 @@ export const IncidentManagementResources = defineMessages({
     filterBySeverityLevel: { defaultMessage: 'Filter by severity level', id: '+Hx789' },
     filterByMitigatedBy: { defaultMessage: 'Filter by mitigated by', id: 'mm/uFP' },
     generating: { defaultMessage: 'Generating…', id: 'tB02Wz' },
+    platformEmptyStateTitle: { defaultMessage: 'Optimize alert response with an incident platform', id: 'V5w7/I' },
+    platformEmptyStateMessage: {
+        defaultMessage: 'Connect an incident management platform so the agent will collect, analyze, and respond to alerts.',
+        id: 'p8Ubox',
+    },
+    platformEmptyStateLearnMore: { defaultMessage: 'Learn more about incident platform integration', id: 'fjOQVZ' },
+    platformEmptyStateButtonText: { defaultMessage: 'Connect an incident platform', id: 'ItmLyp' },
+    handlersEmptyStateTitle: { defaultMessage: 'Add a response plan to automate incident handling', id: '1CcjQj' },
+    handlersEmptyStateMessage: {
+        defaultMessage: 'Define how incidents are detected and reviewed, and the instructions for how the agent responds.',
+        id: 'FPdoJ3',
+    },
+    handlersEmptyStateLearnMore: { defaultMessage: 'Learn more about response plans', id: 'HQ4NJ3' },
+    handlersEmptyStateButtonText: { defaultMessage: 'Add a response plan', id: 'GkKcbX' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

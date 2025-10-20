@@ -59,7 +59,7 @@ const IncidentManagement: FC = () => {
 
     const showWatchtower = useConfigSetting(SettingNames.ShowWatchtower);
 
-    const [disableOverviewAndHandlers, setDisableOverviewAndHandlers] = useState(false);
+    const [disableAnalysis, setDisableAnalysis] = useState(false);
     const [iconsInitialized, setIconsInitialized] = useState(false);
     const [navigationHidden, setNavigationHidden] = useState<boolean>(false);
     const [navigationCollapsed, setNavigationCollapsed] = useState<boolean>(false);
@@ -82,7 +82,7 @@ const IncidentManagement: FC = () => {
             {
                 key: IncidentManagementMenuKeys.IncidentOverview,
                 label: intl.formatMessage(SreAgentResources.incidents),
-                disabled: disableOverviewAndHandlers,
+                disabled: false,
             },
         ];
 
@@ -90,14 +90,14 @@ const IncidentManagement: FC = () => {
             items.push({
                 key: IncidentManagementMenuKeys.Analysis,
                 label: intl.formatMessage(IncidentManagementResources.analysis),
-                disabled: disableOverviewAndHandlers || !agentAppInsightsAppId,
+                disabled: disableAnalysis || !agentAppInsightsAppId,
             });
         }
 
         items.push({
             key: IncidentManagementMenuKeys.HandlerConfiguration,
             label: intl.formatMessage(IncidentManagementResources.responsePlans),
-            disabled: disableOverviewAndHandlers,
+            disabled: false,
         });
 
         if (showControlPlaneDependentFeatures) {
@@ -109,7 +109,7 @@ const IncidentManagement: FC = () => {
         }
 
         return items;
-    }, [intl, disableOverviewAndHandlers, showWatchtower, agentAppInsightsAppId, showControlPlaneDependentFeatures]);
+    }, [intl, disableAnalysis, showWatchtower, agentAppInsightsAppId, showControlPlaneDependentFeatures]);
 
     const renderNavIcon = useCallback(
         (key: IncidentManagementMenuKeys) => {
@@ -174,10 +174,10 @@ const IncidentManagement: FC = () => {
     useEffect(() => {
         if (incidentPlatformType) {
             if (incidentPlatformType === IncidentManagementType.None) {
-                setDisableOverviewAndHandlers(true);
+                setDisableAnalysis(true);
                 navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.IncidentPlatform}` });
             } else {
-                setDisableOverviewAndHandlers(false);
+                setDisableAnalysis(false);
             }
         }
     }, [incidentPlatformType]);

@@ -292,13 +292,13 @@ export function useIncidentManagementSettings(close: (() => void) | undefined) {
 
     const waitForConnectivity = useCallback(async () => {
         for (let i = 0; i < 120; i++) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
             if (incidentManagementConnectionStateRef.current === 'connected') {
                 return true;
             }
             if (incidentManagementConnectionStateRef.current === 'notConnected') {
                 return false;
             }
-            await new Promise(resolve => setTimeout(resolve, 1000));
         }
         return false;
     }, []);

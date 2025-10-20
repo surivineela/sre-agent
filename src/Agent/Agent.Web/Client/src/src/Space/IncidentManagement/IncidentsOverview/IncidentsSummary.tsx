@@ -71,7 +71,7 @@ const useStyles = makeStyles({
 
 interface SummarySectionProps {
     title: string;
-    fields: { props: StatusLabelProps; value: number }[];
+    fields: { props: StatusLabelProps; value: number | undefined }[];
     loading?: boolean;
     addDivider?: boolean;
 }
@@ -111,11 +111,13 @@ interface IncidentsSummaryInnerProps {
 
 const IncidentsSummaryInner: FC<IncidentsSummaryInnerProps> = ({ sections }) => {
     const styles = useStyles();
+    const nonEmptySections = useMemo(() => sections.filter(section => section.fields.length > 0), [sections]);
+
     return (
         <div className={styles.summaryRoot}>
             <div className={styles.summaryContainer}>
-                {sections.map((section, index) => (
-                    <SummarySection key={index} {...section} addDivider={index !== sections.length - 1} />
+                {nonEmptySections.map((section, index) => (
+                    <SummarySection key={index} {...section} addDivider={index !== nonEmptySections.length - 1} />
                 ))}
             </div>
         </div>
@@ -168,6 +170,13 @@ export const IncidentsSummary: FC<IncidentsSummaryProps> = ({ threadCounts, load
                 { status: IncidentStatus.assigned, value: assignedCount },
                 { status: IncidentStatus.inProgress, value: inProgressCount },
             ];
+        } else if (threadCounts?.incidentStatusCounts.length) {
+            return threadCounts.incidentStatusCounts.map(item => {
+                return {
+                    status: (item.status || IncidentStatus.active) as IncidentStatus,
+                    value: item.count,
+                };
+            });
         }
 
         return [];

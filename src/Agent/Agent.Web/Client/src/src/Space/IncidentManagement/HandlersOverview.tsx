@@ -1,8 +1,9 @@
-import { FC, useCallback, useContext, useEffect, useState } from 'react';
+import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { IncidentFilter } from '../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { IncidentManagementResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
@@ -23,8 +24,18 @@ interface HandlersOverviewProps {
 const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden }) => {
     const { logAmplitudeControlEvent } = useAzPortalContext();
     const {
-        incidentManagement: { isIncidentManagementConnected, checkingConnectivity, refreshConnectivity },
+        incidentManagement: { incidentPlatformType, isIncidentManagementConnected, checkingConnectivity, refreshConnectivity },
     } = useContext(SreAgentContext);
+
+    const incidentManagementConfigured = useMemo(
+        () => incidentPlatformType && incidentPlatformType !== IncidentManagementType.None,
+        [incidentPlatformType]
+    );
+
+    const platformConfiguredAndConnected = useMemo(
+        () => !!incidentManagementConfigured && !checkingConnectivity && isIncidentManagementConnected,
+        [incidentManagementConfigured, checkingConnectivity, isIncidentManagementConnected]
+    );
 
     const { canWriteIncidentManagement, canDeleteIncidentManagement } = useUserPermissions();
     const intl = useIntl();
@@ -118,7 +129,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden }) =>
                             }}
                             isFilterSelected={!!selectedIncidentFilter}
                             isFilterEnabled={!selectedIncidentFilter || selectedIncidentFilter?.isEnabled}
-                            connected={!checkingConnectivity && isIncidentManagementConnected}
+                            connected={platformConfiguredAndConnected}
                             canWriteIncidentManagement={canWriteIncidentManagement}
                             canDeleteIncidentManagement={canDeleteIncidentManagement}
                         />
@@ -132,7 +143,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden }) =>
                         selectedFilter={selectedIncidentFilter}
                         setSelectedFilter={setSelectedIncidentFilter}
                         filterIdToHandlerMap={filterIdToHandlerMap}
-                        disabled={!checkingConnectivity && !isIncidentManagementConnected}
+                        disabled={!platformConfiguredAndConnected}
                         canWriteIncidentManagement={canWriteIncidentManagement}
                     />
                 </div>

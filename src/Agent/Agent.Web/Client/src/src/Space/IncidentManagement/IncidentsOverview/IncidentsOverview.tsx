@@ -21,6 +21,7 @@ import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { debounce } from 'lodash';
 import { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useNavigate } from 'react-router-dom';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClient';
@@ -43,8 +44,9 @@ import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
 import { SreAgentContext } from '../../Contracts/Context';
 import { TracePanel } from '../../Foundry/app/components/shell/playground/tracing/TracePanel';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
+import { IncidentManagementEmptyState } from '../Common/IncidentManagementEmptyState';
 import { PlatformConnectionMessageBar } from '../Common/PlatformConnectionMessageBar';
-import { IncidentsListColumnKey } from '../CreateIncidentHandler/Contracts';
+import { IncidentManagementMenuKeys, IncidentsListColumnKey } from '../CreateIncidentHandler/Contracts';
 import IncidentChat from '../IncidentChat';
 import {
     getColumnInfo,
@@ -76,10 +78,16 @@ interface IncidentsOverviewProps {
 }
 
 const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, showControlPlaneDependentFeatures }) => {
+    const navigate = useNavigate();
     const {
-        incidentManagement: { incidentPlatformType },
+        incidentManagement: { incidentPlatformType, hasFilters },
     } = useContext(SreAgentContext);
     const platformSpecificStrings = useMemo(() => getPlatformSpecificStrings(incidentPlatformType), [incidentPlatformType]);
+
+    const incidentManagementConfigured = useMemo(
+        () => incidentPlatformType && incidentPlatformType !== IncidentManagementType.None,
+        [incidentPlatformType]
+    );
 
     const azPortalContext = useContext(AzPortalContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
@@ -148,6 +156,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     }, [selectedThreadInfo, incidentHandlerClient]);
 
     const {
+        hasAnyIncidents,
         threadCounts,
         threads: incidentThreads,
         isLoadingInitialThreadsAndCounts: incidentThreadsLoading,
@@ -527,6 +536,36 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
         return filters;
     }, [timeFilterProps, statusFilterProps, priorityFilterProps, investigationStatusFilterProps]);
 
+    const emptyState = useMemo(() => {
+        if (incidentThreads.length || incidentThreadsLoading || hasAnyIncidents) {
+            return null;
+        }
+
+        if (!incidentManagementConfigured) {
+            return (
+                <IncidentManagementEmptyState
+                    type="noPlatform"
+                    onButtonClick={() =>
+                        navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.IncidentPlatform}` })
+                    }
+                />
+            );
+        }
+
+        if (!hasFilters) {
+            return (
+                <IncidentManagementEmptyState
+                    type="noHandlers"
+                    onButtonClick={() =>
+                        navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.HandlerConfiguration}` })
+                    }
+                />
+            );
+        }
+
+        return <div style={{ textAlign: 'center' }}>{intl.formatMessage(IncidentManagementResources.noIncidentsFound)}</div>;
+    }, [incidentThreads.length, incidentThreadsLoading, hasAnyIncidents, incidentManagementConfigured, hasFilters, intl, navigate]);
+
     return (
         <>
             {selectedThreadInfo?.fullScreen ? (
@@ -724,11 +763,9 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                                             >
                                                 <Spinner size="tiny" aria-label={intl.formatMessage(SreAgentResources.loadingMoreRows)} />
                                             </div>
-                                        ) : incidentThreads.length === 0 && !incidentThreadsLoading ? (
-                                            <div style={{ textAlign: 'center' }}>
-                                                {intl.formatMessage(IncidentManagementResources.noIncidentsFound)}
-                                            </div>
-                                        ) : null}
+                                        ) : (
+                                            emptyState
+                                        )}
                                     </div>
                                 </div>
                             </div>

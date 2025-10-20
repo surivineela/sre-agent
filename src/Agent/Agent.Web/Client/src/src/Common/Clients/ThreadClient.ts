@@ -205,7 +205,10 @@ export class ThreadClient extends DataPlaneClient {
 
             return {
                 isSuccessful: true,
-                content: data ?? {},
+                content: data ?? {
+                    incidentStatusCounts: [],
+                    investigationStatusCounts: [],
+                },
             };
         } catch (e) {
             return {

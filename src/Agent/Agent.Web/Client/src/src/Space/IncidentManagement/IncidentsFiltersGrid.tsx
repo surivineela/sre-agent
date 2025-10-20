@@ -1,19 +1,21 @@
-import { Button, Checkbox, InputOnChangeData, Link, SearchBox, SearchBoxChangeEvent, Tooltip } from '@fluentui/react-components';
+import { Checkbox, InputOnChangeData, Link, SearchBox, SearchBoxChangeEvent, Tooltip } from '@fluentui/react-components';
 import { CheckmarkCircle16Regular } from '@fluentui/react-icons';
 import { ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { debounce } from 'lodash';
 import { Dispatch, FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useNavigate } from 'react-router-dom';
 import { FilterProps } from '../../Common/Components/PillFilter/Contracts';
 import { LabelKeyPair } from '../../Common/Components/PillFilter/ListWithSearch';
 import { PillFilterSet } from '../../Common/Components/PillFilter/PillFilterSet';
 import { IncidentFilter, IncidentHandler } from '../../Common/Contracts/Azure/IncidentHandler';
-import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
+import { AgentMode, IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
-import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
+import { IncidentManagementEmptyState } from './Common/IncidentManagementEmptyState';
+import { HandlerCreateOrEditInfo, IncidentManagementMenuKeys, OperationStatus } from './CreateIncidentHandler/Contracts';
 import { getPlatformSpecificStrings } from './Utilities';
 
 export type ISortedDetailsListColumn = IColumn & {
@@ -62,6 +64,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         canWriteIncidentManagement = true,
     } = props;
     const intl = useIntl();
+    const navigate = useNavigate();
     const styles = useIncidentManagementStyles();
     const [searchText, setSearchText] = useState<string>('');
     const [selectedIncidentTypes, setSelectedIncidentTypes] = useState<string[]>([]);
@@ -77,6 +80,11 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         incidentManagement: { incidentPlatformType },
     } = useContext(SreAgentContext);
     const platformSpecificStrings = useMemo(() => getPlatformSpecificStrings(incidentPlatformType), [incidentPlatformType]);
+
+    const incidentManagementConfigured = useMemo(
+        () => incidentPlatformType && incidentPlatformType !== IncidentManagementType.None,
+        [incidentPlatformType]
+    );
 
     const filteredGridItems = useMemo(() => {
         let filteredGridItems = incidentFilters;
@@ -144,8 +152,8 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
     );
 
     const disableAllControls = useMemo(() => {
-        return handlerOperationStatus === 'inprogress' || disabled || incidentFiltersLoading;
-    }, [handlerOperationStatus, disabled, incidentFiltersLoading]);
+        return handlerOperationStatus === 'inprogress' || disabled || incidentFiltersLoading || !incidentManagementConfigured;
+    }, [handlerOperationStatus, disabled, incidentFiltersLoading, incidentManagementConfigured]);
 
     useEffect(() => {
         if (!isIncidentFilterEmpty) return;
@@ -528,6 +536,25 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         handleColumnClick,
     ]);
 
+    const emptyState = useMemo(() => {
+        if (incidentFilters.length || incidentFiltersLoading) {
+            return null;
+        }
+
+        if (!incidentManagementConfigured) {
+            return (
+                <IncidentManagementEmptyState
+                    type="noPlatform"
+                    onButtonClick={() =>
+                        navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.IncidentPlatform}` })
+                    }
+                />
+            );
+        }
+
+        return <IncidentManagementEmptyState type="noHandlers" onButtonClick={() => openHandlerCreate({})} />;
+    }, [incidentFilters.length, incidentFiltersLoading, incidentManagementConfigured, navigate, openHandlerCreate]);
+
     return (
         <div style={{ width: '100%' }}>
             <div>
@@ -561,39 +588,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                     setKey="incidentFilterList"
                     getKey={(item, index) => (item && item.id ? item.id : `shimmer-${index}`)}
                 />
-                {incidentFilters.length === 0 && !incidentFiltersLoading && (
-                    <div className={styles.emptyState}>
-                        <div>
-                            <img src="./NewFilter.svg" alt="NewFilter" />
-                        </div>
-                        <div className={styles.emptyStateTitle}>{intl.formatMessage(IncidentManagementResources.getStarted)}</div>
-                        {(() => {
-                            const tooltipMsg =
-                                disableEditActions && !canWriteIncidentManagement
-                                    ? intl.formatMessage(IncidentManagementResources.noPermissionNewIncidentHandler)
-                                    : null;
-                            const btn = (
-                                <Button
-                                    appearance="primary"
-                                    onClick={() => {
-                                        openHandlerCreate({});
-                                    }}
-                                    className={styles.newIncidentFilterButton}
-                                    disabled={disableEditActions}
-                                >
-                                    {intl.formatMessage(IncidentManagementResources.newIncidentHandler)}
-                                </Button>
-                            );
-                            return tooltipMsg ? (
-                                <Tooltip relationship="label" content={tooltipMsg}>
-                                    {btn}
-                                </Tooltip>
-                            ) : (
-                                btn
-                            );
-                        })()}
-                    </div>
-                )}
+                {emptyState}
             </div>
         </div>
     );

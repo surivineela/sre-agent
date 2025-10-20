@@ -110,6 +110,7 @@ export const useIncidentThreadList = (
     visible?: boolean,
     refresh?: number
 ) => {
+    const [hasAnyIncidents, setHasAnyIncidents] = useState<boolean>();
     const [threadCounts, setThreadCounts] = useState<IncidentThreadCounts>();
     const [threads, setThreads] = useState<Thread[]>(initialThreads || []);
     const [moreThreadsToLoad, setMoreThreadsToLoad] = useState<boolean>(true);
@@ -154,7 +155,8 @@ export const useIncidentThreadList = (
             createdTimeRange: TimeRangeValue | undefined,
             threadCount: number | undefined,
             sortColumn: IncidentsListColumnKey | undefined,
-            sortDescending: boolean | undefined = true
+            sortDescending: boolean | undefined = true,
+            limit?: number
         ) => {
             const { columnPath: sortColumnPath } = getColumnInfo(sortColumn || 'modifiedTimestamp');
 
@@ -170,7 +172,7 @@ export const useIncidentThreadList = (
 
             return await threadClient.getIncidentThreads({
                 skip: threadCount ?? 0,
-                top: ThreadLoadingCounts.default,
+                top: limit ?? ThreadLoadingCounts.default,
                 orderBy: `${sortColumnPath}${sortDescending ? '+desc' : ''}`,
                 filter: filterStrings.join(' and '),
             });
@@ -281,6 +283,19 @@ export const useIncidentThreadList = (
             handleScroll();
         }
     };
+
+    useEffect(() => {
+        let isSubscribed = true;
+        getThreads(undefined, undefined, undefined, undefined, undefined, 0, undefined, undefined, 1).then(response => {
+            if (isSubscribed) {
+                const threads = response.content ?? [];
+                setHasAnyIncidents(threads.length > 0);
+            }
+        });
+        return () => {
+            isSubscribed = false;
+        };
+    }, [getThreads]);
 
     // Use an intersection observer to load more threads to overflow the threads list div if the current number of threads
     // does not overflow the threads list div anymore due to events such as zoom out, which makes InifiniteScroll not able to work.
@@ -405,6 +420,7 @@ export const useIncidentThreadList = (
     ]);
 
     return {
+        hasAnyIncidents,
         threadCounts,
 
         threads,
