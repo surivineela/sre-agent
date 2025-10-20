@@ -13,7 +13,7 @@ import { ChevronDownRegular, ChevronRightRegular } from '@fluentui/react-icons';
 import { FC, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { getResourceTypeFriendlyName } from '../../Common/Helpers/Resources';
-import { ComponentResources, GraphResources } from '../../Strings/SREAgentResources';
+import { ComponentResources, GraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ResourceExtended } from '../Contracts/Graph';
 
 type ChildResource = {
@@ -92,6 +92,11 @@ export const ResourcesTable: FC<ResourcesTableProps> = ({ resources, onLoadAppGr
                                             size="small"
                                             icon={isExpanded ? <ChevronDownRegular /> : <ChevronRightRegular />}
                                             onClick={() => toggleExpand(resource.name)}
+                                            aria-label={
+                                                isExpanded
+                                                    ? intl.formatMessage(SreAgentResources.collapse)
+                                                    : intl.formatMessage(SreAgentResources.expand)
+                                            }
                                         />
                                     }
                                 >

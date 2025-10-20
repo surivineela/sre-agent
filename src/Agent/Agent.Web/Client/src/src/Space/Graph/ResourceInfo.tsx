@@ -48,17 +48,16 @@ const isNullOrUndefined = (input?: unknown): boolean => {
 const useStyles = makeStyles({
     root: {
         maxWidth: '350px',
-        minWidth: '150px',
+        minWidth: '300px',
         padding: '20px',
-        height: 'calc(100% - 8px)',
-        flex: '1 1 auto',
+        height: 'calc(100% - 40px)',
+        flex: '1 0 auto',
         overflowY: 'auto',
         position: 'relative',
         borderLeft: `1px solid ${tokens.colorNeutralBackground3}`,
     },
     infoContent: {
         width: '100%',
-        height: '100%',
     },
     title: {
         lineHeight: '24px',
@@ -86,6 +85,7 @@ const useStyles = makeStyles({
         position: 'absolute',
         top: '50%',
         left: '50%',
+        transform: 'translate(-50%, -50%)',
     },
     textarea: {
         display: 'block',
@@ -153,17 +153,16 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => 
 
     return selectedNode ? (
         <div className={infoContent}>
-            <Text as="h2" size={600} weight="semibold" className={title}>
-                <div className={titleRow}>
-                    <img className={titleIcon} src={resolveResourceIcon(iconType)} alt={iconType || 'resource'} />
-                    <span>{selectedNode?.name ?? ''}</span>
-                </div>
-            </Text>
-
-            <div>
-                {isLoading ? (
-                    <Spinner size="large" className={spinner} />
-                ) : (
+            {isLoading ? (
+                <Spinner size="large" className={spinner} />
+            ) : (
+                <>
+                    <Text as="h2" size={600} weight="semibold" className={title}>
+                        <div className={titleRow}>
+                            <img className={titleIcon} src={resolveResourceIcon(iconType)} alt={iconType || 'resource'} />
+                            <span>{selectedNode?.name ?? ''}</span>
+                        </div>
+                    </Text>
                     <div className={content}>
                         <SummaryField
                             label={intl.formatMessage(ResourceInfoResources.name)}
@@ -312,8 +311,8 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => 
                             </PermissionedActionLink>
                         </SummaryField>
                     </div>
-                )}
-            </div>
+                </>
+            )}
             <Toaster toasterId={toasterId} />
         </div>
     ) : null;

@@ -1,6 +1,6 @@
 import { Image, Link, makeStyles, mergeClasses, Spinner, Text, tokens } from '@fluentui/react-components';
 import { memo } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { AppHealth } from '../../Strings/SREAgentResources';
 
 interface HealthStatusProps {
@@ -29,6 +29,8 @@ const useStyles = makeStyles({
 const HealthStatus = ({ health, showReportButton, onClickReportButton, isSendingReport }: HealthStatusProps) => {
     const { container, healthStatus, common } = useStyles();
 
+    const intl = useIntl();
+
     let healthIconSrc = '';
     let healthText: { defaultMessage: string; id: string } | undefined = undefined;
     let isNodeUnhealthy = false;
@@ -51,7 +53,7 @@ const HealthStatus = ({ health, showReportButton, onClickReportButton, isSending
     return health ? (
         <div className={mergeClasses(container, common)}>
             <div className={mergeClasses(common, healthStatus)}>
-                {healthIconSrc && <Image src={healthIconSrc} width={16} height={16} />}
+                {healthIconSrc && healthText && <Image src={healthIconSrc} width={16} height={16} alt={intl.formatMessage(healthText)} />}
                 <Text wrap={false}>{healthText ? <FormattedMessage {...healthText} /> : health}</Text>
             </div>
             {showReportButton &&

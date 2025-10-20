@@ -34,7 +34,6 @@ export const useGraphStyles = makeStyles({
         backgroundColor: tokens.colorNeutralBackground1,
         borderTopLeftRadius: tokens.borderRadiusXLarge,
         boxShadow: tokens.shadow4,
-        height: 'calc(100vh - 0.5rem - 1px - 50px)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -42,11 +41,10 @@ export const useGraphStyles = makeStyles({
     rootContainer: {
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
-        paddingTop: '0.5rem',
+        height: 'calc(100vh - 60px)',
+        padding: '10px ',
         borderTop: '1px solid rgba(204, 204, 204, 0.8)',
         backgroundColor: tokens.colorNeutralBackground3,
-        paddingLeft: '15px',
         gap: '0.25rem',
     },
     radioGroupContainer: {
