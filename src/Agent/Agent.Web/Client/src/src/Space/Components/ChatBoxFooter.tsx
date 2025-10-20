@@ -393,9 +393,9 @@ const ChatBoxFooter = ({
                             $setSelection(rangeSelection);
 
                             const shortcutNode = $createShortcutNode(shortcut);
-                            const whitespaceNode = $createTextNode(' ');
-                            rangeSelection.insertNodes([shortcutNode, whitespaceNode]);
-                            whitespaceNode.select(0, 0);
+                            const emptySpaceNode = $createTextNode('');
+                            rangeSelection.insertNodes([shortcutNode, emptySpaceNode]);
+                            emptySpaceNode.select(0, 0);
                         }
                     });
                     return;
