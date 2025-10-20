@@ -2317,6 +2317,7 @@ export const KnowledgeBaseResources = defineMessages({
 
 export const DailyReportsTabResources = defineMessages({
     selectADate: { defaultMessage: 'Select a date', id: '7qOQpv' },
+    loadingReportsAriaLabel: { defaultMessage: 'Loading daily reports', id: 'Hs02Tq' },
 });
 
 export const ScheduledTasksResources = defineMessages({

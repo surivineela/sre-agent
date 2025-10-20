@@ -119,7 +119,7 @@ const DailyReportThreadDropdown: React.FC<DailyReportThreadDropdownProps> = ({ s
                 style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', margin: '20px 0px' }}
             >
                 {isLoadingInitialThreads ? (
-                    <Skeleton style={{ width: '500px' }}>
+                    <Skeleton aria-label={intl.formatMessage(DailyReportsTabResources.loadingReportsAriaLabel)} style={{ width: '500px' }}>
                         <SkeletonItem style={{ height: '25px' }} />
                     </Skeleton>
                 ) : (
@@ -141,7 +141,10 @@ const DailyReportThreadDropdown: React.FC<DailyReportThreadDropdownProps> = ({ s
                             );
                         })}
                         {moreThreadsToLoad && (
-                            <Skeleton ref={intersectionObserverRef}>
+                            <Skeleton
+                                aria-label={intl.formatMessage(DailyReportsTabResources.loadingReportsAriaLabel)}
+                                ref={intersectionObserverRef}
+                            >
                                 <SkeletonItem />
                             </Skeleton>
                         )}

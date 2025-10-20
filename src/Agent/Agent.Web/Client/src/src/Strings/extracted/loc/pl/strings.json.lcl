@@ -7627,7 +7627,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Note: There {count, plural, one {is # highlighted point} other {are # highlighted points}} in this chart that may require attention.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Uwaga: na tym wykresie znajduje się {count, plural, one {# wyróżniony punkt} few {# wyróżnione punkty} many {# wyróżnionych punktów}}, które mogą wymagać uwagi.]]></Val>
+            <Val><![CDATA[Uwaga: na tym wykresie znajduje się {count, plural, one {# wyróżniony punkt} other {# wyróżnionych punktów}}, które mogą wymagać uwagi.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
