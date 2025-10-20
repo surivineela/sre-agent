@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 import { KnowledgeGraphBuildStatus } from '../Contracts/Azure/SreAgent';
@@ -21,6 +21,9 @@ export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: Rea
     const [isKnowledgeGraphBuildCompleted, setIsKnowledgeGraphBuildCompleted] = useState(true);
     const [hasChatPermissions, setHasChatPermissions] = useState(true);
     const [progressPercent, setProgressPercent] = useState(100);
+
+    // Should only log the completion event if we see it in-progress, and only once
+    const hasLoggedAfterInProgress = useRef(true);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
@@ -99,6 +102,24 @@ export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: Rea
                 }
                 setProgressPercent(percent);
 
+                if (percent >= 100) {
+                    if (!hasLoggedAfterInProgress.current) {
+                        proxy.logAmplitudeOperationEvent({
+                            targetType: 'load',
+                            targetAction: 'loaded',
+                            targetName: 'knowledgeGraphBuildCompleted',
+                            targetFriendlyName: 'Knowledge graph build completed',
+                            metadata: {
+                                crawledCount: result.data?.crawledCount,
+                                totalVisibleResources: result.data?.totalVisibleResources,
+                            },
+                        });
+                        hasLoggedAfterInProgress.current = true;
+                    }
+                } else {
+                    hasLoggedAfterInProgress.current = false;
+                }
+
                 const interval = isCompleted ? 20000 : 5000;
 
                 timeoutId = setTimeout(() => {
@@ -116,7 +137,7 @@ export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: Rea
                 clearTimeout(timeoutId);
             }
         };
-    }, [getProgress, hasChatPermissions]);
+    }, [getProgress, hasChatPermissions, proxy]);
 
     return (
         <KnowledgeGraphBuildStatusContext.Provider value={{ isKnowledgeGraphBuildCompleted, hasChatPermissions, progressPercent }}>

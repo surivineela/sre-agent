@@ -5,7 +5,15 @@ import { useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
-import { Approval, AzCliExecution, KubectlExecution, MemorySearchResult, PsqlExecution } from '../../Common/Contracts/DataPlane/Message';
+import {
+    Approval,
+    ApprovalDecision,
+    AzCliExecution,
+    ExecutionStatus,
+    KubectlExecution,
+    MemorySearchResult,
+    PsqlExecution,
+} from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
@@ -413,6 +421,42 @@ export const useChatBox = (
         const specialMessageId = specialMessage?.id;
         const isSpecialMessageInInitialState = isInitialState(specialMessage?.status);
         const hasMemorySearchResult = !!chatMessageContent.memorySearchResult;
+
+        // Log telemetry for pending approval/execution messages (once per message)
+        if (specialMessage) {
+            const isPending =
+                specialMessage.status === ApprovalDecision.Pending ||
+                specialMessage.status === ApprovalDecision.PendingAuthorization ||
+                specialMessage.status === ExecutionStatus.Pending ||
+                specialMessage.status === ExecutionStatus.PendingAuthorization;
+
+            if (isPending) {
+                const isApproval = !!chatMessageContent.approval;
+
+                const metadata: Record<string, unknown> = {
+                    threadId: currentThreadIdRef.current || streamingMessage.additionalProperties?.threadId || threadId || userDefinedThreadIdRef.current,
+                    threadType: threadSource ?? 'unknown',
+                    messageId: specialMessage.id,
+                    status: specialMessage.status,
+                };
+
+                if (!isApproval) {
+                    metadata.executionType = chatMessageContent.azCliExecution
+                        ? 'azCli'
+                        : chatMessageContent.kubectlExecution
+                          ? 'kubectl'
+                          : 'psql';
+                }
+
+                proxy.logAmplitudeOperationEvent({
+                    targetType: 'load',
+                    targetAction: 'loaded',
+                    targetName: isApproval ? 'pendingApprovalMessage' : 'pendingExecutionMessage',
+                    targetFriendlyName: isApproval ? 'Pending approval message' : 'Pending execution message',
+                    metadata,
+                });
+            }
+        }
 
         if (!specialMessage || isSpecialMessageInInitialState || hasMemorySearchResult) {
             setStreamingMessage(prev => {
