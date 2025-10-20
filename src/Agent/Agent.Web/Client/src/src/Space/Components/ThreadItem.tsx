@@ -122,7 +122,6 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
                     id={thread.id}
                     data-testid={thread.id}
                     tabIndex={0}
-                    role="treeitem"
                     className={mergeStyles(
                         ThreadMenuStyles.threadItem,
                         isActive ? ThreadMenuStyles.activeThreadItem : undefined,

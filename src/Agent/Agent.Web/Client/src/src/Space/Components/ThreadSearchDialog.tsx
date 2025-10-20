@@ -8,11 +8,11 @@ import { Body1, Caption2 } from '@fluentui/react-text';
 import { tokens } from '@fluentui/react-theme';
 import debounce from 'lodash/debounce';
 import { memo, useCallback, useState } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useThreadList } from '../Hooks/useThreadList';
 import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
 
@@ -130,14 +130,18 @@ const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThrea
         'modifiedTimestamp'
     );
 
+    const intl = useIntl();
+
     return (
         <DialogSurface className={surface}>
             <DialogBody className={mergeClasses(common, body)}>
-                <DialogTitle>
-                    <FormattedMessage {...SreAgentResources.search} />
-                </DialogTitle>
+                <DialogTitle>{intl.formatMessage(SreAgentResources.search)}</DialogTitle>
                 <DialogContent className={mergeClasses(common, content)}>
-                    <SearchBox className={searchBox} onChange={(_, data) => onSearchTextChange(data?.value || '')} />
+                    <SearchBox
+                        aria-label={intl.formatMessage(SreAgentResources.search)}
+                        className={searchBox}
+                        onChange={(_, data) => onSearchTextChange(data?.value || '')}
+                    />
                     <div className={mergeClasses(scrollable, common, threadsStyles)} ref={threadListDivRef} onScroll={onScroll}>
                         {threads.map(thread => (
                             <ThreadItemButton key={thread.id} thread={thread} onClickThreadButton={onClickThreadButton} />
@@ -187,8 +191,10 @@ const ThreadItemButton = memo(({ thread, onClickThreadButton }: { thread: Thread
 const ThreadItemLoader = memo(() => {
     const { common, threadItemLoader, skeletonItems, circleSkeleton, rectangleSkeletons } = useThreadSearchDialogStyles();
 
+    const intl = useIntl();
+
     return (
-        <Skeleton className={threadItemLoader}>
+        <Skeleton aria-label={intl.formatMessage(ActivitiesResources.threadsLoadingSkeletonAriaLabel)} className={threadItemLoader}>
             {Array.from({ length: 3 }, (_, index) => (
                 <div key={index} className={skeletonItems}>
                     <SkeletonItem shape={'circle'} size={20} className={circleSkeleton} />

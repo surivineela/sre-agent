@@ -1,5 +1,5 @@
 import { Button, ButtonProps, Tooltip } from '@fluentui/react-components';
-import { FC, ReactNode } from 'react';
+import { forwardRef, ReactNode } from 'react';
 
 export interface PermissionedButtonProps extends Omit<ButtonProps, 'disabled'> {
     /** Whether the user has permission to perform the action */
@@ -19,15 +19,17 @@ export interface PermissionedButtonProps extends Omit<ButtonProps, 'disabled'> {
  * Reusable button that encapsulates permission-based disabling + tooltip.
  * If the user lacks permission, we render a disabled button wrapped in a Tooltip with an explanatory message.
  */
-export const PermissionedButton: FC<PermissionedButtonProps> = ({
-    canPerform,
-    noPermissionTooltip,
-    allowedTooltip,
-    disabledReason = false,
-    hideIfNoPermission = false,
-    children,
-    ...buttonProps
-}) => {
+export const PermissionedButton = forwardRef<HTMLButtonElement, PermissionedButtonProps>((props, ref) => {
+    const {
+        canPerform,
+        noPermissionTooltip,
+        allowedTooltip,
+        disabledReason = false,
+        hideIfNoPermission = false,
+        children,
+        ...buttonProps
+    } = props;
+
     if (!canPerform) {
         if (hideIfNoPermission) return null;
         return (
@@ -40,7 +42,7 @@ export const PermissionedButton: FC<PermissionedButtonProps> = ({
     }
 
     const button = (
-        <Button {...(buttonProps as ButtonProps)} disabled={disabledReason}>
+        <Button ref={ref} {...(buttonProps as ButtonProps)} disabled={disabledReason}>
             {children}
         </Button>
     );
@@ -52,6 +54,6 @@ export const PermissionedButton: FC<PermissionedButtonProps> = ({
     ) : (
         button
     );
-};
+});
 
 export default PermissionedButton;

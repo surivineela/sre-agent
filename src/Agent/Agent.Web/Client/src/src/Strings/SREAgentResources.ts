@@ -1037,6 +1037,10 @@ export const ActivitiesResources = defineMessages({
         defaultMessage: 'Add to favorites',
         id: 'tWX1j9',
     },
+    threadsLoadingSkeletonAriaLabel: {
+        defaultMessage: 'Loading chat threads',
+        id: 'puQ/kF',
+    },
 });
 
 export const ActivitiesThreadHeaderResources = defineMessages({

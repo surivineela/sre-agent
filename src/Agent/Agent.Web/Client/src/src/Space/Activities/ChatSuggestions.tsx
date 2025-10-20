@@ -307,9 +307,6 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
                             key={suggestion}
                             onClick={() => handleCategoryClick(suggestion)}
                             appearance={clickedKey === suggestion ? 'primary' : 'secondary'}
-                            className={
-                                clickedKey === suggestion ? chatSuggestionsStyles.buttonClicked : chatSuggestionsStyles.buttonUnclicked
-                            }
                             icon={iconMap[suggestion]}
                         >
                             <Text size={200} weight={'medium'}>

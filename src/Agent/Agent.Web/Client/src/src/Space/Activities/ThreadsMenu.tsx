@@ -214,7 +214,6 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                     <Fade visible={!collapsed}>
                         <div
                             className={mergeClasses(scrollable, threadMenuStyles.threadListContainer)}
-                            role="tree"
                             ref={threadListDivRef}
                             onScroll={onScroll}
                         >
@@ -339,9 +338,15 @@ const ThreadListAccordion = ({
 };
 
 const Loader = () => {
+    const intl = useIntl();
+
     return Array.from({ length: 3 }).map((_, index) => {
         return (
-            <Skeleton key={index} style={skeletonStyle}>
+            <Skeleton
+                aria-label={intl.formatMessage(ActivitiesResources.threadsLoadingSkeletonAriaLabel)}
+                key={index}
+                style={skeletonStyle}
+            >
                 <SkeletonItem size={20} />
             </Skeleton>
         );
