@@ -55,17 +55,28 @@ jobs:
         working-directory: src/Agent/Agent.Portal/Client
         run: npm run compile:loc
 
-      - name: Create pull request
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'chore: compile localization assets'
-          branch: automation/weekly-compile-loc
-          delete-branch: true
-          title: 'chore: weekly localization compilation'
-          body: |
-            Updates localization artifacts by running `npm run compile:loc` for both Agent.Web and Agent.Portal clients.
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            cc @ellhamai @nicolaslayne
-          reviewers: ellhamai,nicolaslayne
-          assignees: ellhamai,nicolaslayne
+      - name: Create and push branch with changes
+        run: |
+          git checkout -b automation/weekly-compile-loc
+          git add .
+          git commit -m "chore: compile localization assets" || echo "No changes to commit"
+          git push -f origin automation/weekly-compile-loc
+
+      - name: Create pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "chore: weekly localization compilation" \
+            --body "Updates localization artifacts by running \`npm run compile:loc\` for both Agent.Web and Agent.Portal clients.
+
+          cc @ellhamai @nicolaslayne" \
+            --base main \
+            --head automation/weekly-compile-loc \
+            --reviewer ellhamai,nicolaslayne \
+            --assignee ellhamai,nicolaslayne || echo "PR may already exist"
