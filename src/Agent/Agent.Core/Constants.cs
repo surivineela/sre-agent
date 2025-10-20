@@ -19,6 +19,7 @@ public class Constants
     public const string AksOboTokenScope = "6dae42f8-4368-4678-94ff-3960e28e3630/.default";
     public const string AzureDevOpsScope = "499b84ac-1321-427f-aa17-267ca6975798/.default";
     public const string SynapseOboTokenScope = "https://dev.azuresynapse.net/.default";
+    public const string AppInsightsTokenScope = "https://api.applicationinsights.io/.default";
 
     public const string HttpClientForRazor = "Razor";
 
