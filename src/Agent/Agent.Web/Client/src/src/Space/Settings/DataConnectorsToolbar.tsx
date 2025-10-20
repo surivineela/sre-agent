@@ -1,18 +1,21 @@
-import { Button } from '@fluentui/react-components';
+import { Button, InputOnChangeData, SearchBox, SearchBoxChangeEvent } from '@fluentui/react-components';
 import { Add16Regular, ArrowClockwise16Regular, Delete16Regular } from '@fluentui/react-icons';
 import { FC } from 'react';
 import { useIntl } from 'react-intl';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { DataConnectorsResources, SreAgentResources } from '../../Strings/SREAgentResources';
-import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
+import { useDataKnowledgeSpaceStyles } from './Styles/DataKnowledgeSpace.styles';
 
 export type DataConnectorsToolbarProps = {
     onRefreshClick: () => void;
     onNewDataConnectorClick: () => void;
     onDeleteDataConnectorClick: () => void;
     isConnectorSelected: boolean;
+    selectedCount?: number;
     isOperationInProgress?: boolean;
+    searchText?: string;
+    onSearchChange?: (event: SearchBoxChangeEvent, data: InputOnChangeData) => void;
 };
 
 const DataConnectorsToolbar: FC<DataConnectorsToolbarProps> = ({
@@ -21,9 +24,11 @@ const DataConnectorsToolbar: FC<DataConnectorsToolbarProps> = ({
     onDeleteDataConnectorClick,
     isConnectorSelected,
     isOperationInProgress = false,
+    searchText = '',
+    onSearchChange,
 }) => {
     const intl = useIntl();
-    const styles = useIncidentManagementStyles();
+    const styles = useDataKnowledgeSpaceStyles();
     const { canWriteAgent } = useUserPermissions();
 
     return (
@@ -32,6 +37,7 @@ const DataConnectorsToolbar: FC<DataConnectorsToolbarProps> = ({
                 icon={<Add16Regular />}
                 appearance="transparent"
                 className={styles.button}
+                style={{ fontWeight: 500 }}
                 canPerform={canWriteAgent}
                 disabledReason={isOperationInProgress}
                 noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionDataConnectors)}
@@ -39,18 +45,6 @@ const DataConnectorsToolbar: FC<DataConnectorsToolbarProps> = ({
             >
                 {intl.formatMessage(DataConnectorsResources.createDataConnector)}
             </PermissionedButton>
-            <Button
-                icon={<ArrowClockwise16Regular />}
-                appearance="transparent"
-                className={styles.button}
-                onClick={() => {
-                    onRefreshClick();
-                }}
-                disabled={isOperationInProgress}
-            >
-                {intl.formatMessage(SreAgentResources.refresh)}
-            </Button>
-            <div className={styles.divider} />
             <PermissionedButton
                 icon={<Delete16Regular />}
                 appearance="transparent"
@@ -60,8 +54,25 @@ const DataConnectorsToolbar: FC<DataConnectorsToolbarProps> = ({
                 noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionDataConnectors)}
                 onClick={() => onDeleteDataConnectorClick()}
             >
-                {intl.formatMessage(SreAgentResources.delete)}
+                {intl.formatMessage(DataConnectorsResources.disconnect)}
             </PermissionedButton>
+            <SearchBox
+                className={styles.searchBox}
+                placeholder={intl.formatMessage(DataConnectorsResources.searchPlaceholder)}
+                value={searchText}
+                onChange={onSearchChange}
+            />
+            <Button
+                icon={<ArrowClockwise16Regular />}
+                appearance="transparent"
+                className={styles.toolbarRefresh}
+                onClick={() => {
+                    onRefreshClick();
+                }}
+                disabled={isOperationInProgress}
+            >
+                {intl.formatMessage(SreAgentResources.refresh)}
+            </Button>
         </div>
     );
 };

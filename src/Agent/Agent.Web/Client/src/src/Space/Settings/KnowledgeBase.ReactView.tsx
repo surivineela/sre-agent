@@ -121,7 +121,6 @@ const KnowledgeBase: FC = () => {
                 <Text className={styles.filesSelectedText}>
                     {intl.formatMessage(KnowledgeBaseResources.filesSelected, {
                         count: selectedUploadedFileKeys.length,
-                        plural: selectedUploadedFileKeys.length > 1 ? 's' : '',
                     })}
                 </Text>
             )}

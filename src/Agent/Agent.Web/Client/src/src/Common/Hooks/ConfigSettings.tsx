@@ -13,6 +13,7 @@ export enum SettingNames {
     /** Only used by unit tests */
     ForUnitTests = 'forUnitTests',
     ShowSubAgentsItemInSettings = 'showSubAgentsItemInSettings',
+    DataKnowledgeSpace = 'dataKnowledgeSpace',
     McpServer = 'McpServer',
 }
 
@@ -30,6 +31,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.ShowWatchtower]: true,
         [SettingNames.ForUnitTests]: true,
+        [SettingNames.DataKnowledgeSpace]: true,
     },
 };
 

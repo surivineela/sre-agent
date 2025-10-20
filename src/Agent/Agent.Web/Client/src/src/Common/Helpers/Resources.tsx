@@ -51,6 +51,15 @@ const ICON_LOOKUP: Record<string, string> = {
     // Monitoring
     components: 'ApplicationInsights.svg',
 
+    //Knowledge Base
+    knowledgebase: 'KnowledgeBase.svg',
+    folder: 'folder.svg',
+    dataconnectors: 'DataConnectors.svg',
+    azuredataexplorer: 'AzureDataExplorer.svg',
+    azuredevops: 'AzureDevOps.svg',
+    github: 'github-mark.svg',
+    url: 'Url.svg',
+
     // Others Azure Resource Types
     'microsoft.documentdb/databaseaccounts': 'CosmosDB.svg',
     'microsoft.eventgrid/topics': 'EventGridTopic.svg',

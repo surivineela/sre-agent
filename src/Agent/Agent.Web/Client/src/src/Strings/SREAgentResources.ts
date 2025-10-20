@@ -269,6 +269,7 @@ export const SreAgentResources = defineMessages({
     selectResourceGroups: { defaultMessage: 'Select resource groups', id: 'ftfFhS' },
     selectResourceGroupsToMonitor: { defaultMessage: 'Select resource groups to monitor', id: 'CfGC/2' },
     search: { defaultMessage: 'Search', id: 'xmcVZ0' },
+    service: { defaultMessage: 'Service', id: 'YfC689' },
     summary: { defaultMessage: 'Summary', id: 'RrCui3' },
     incidentResearch: { defaultMessage: 'Incident research', id: 'JjNi2L' },
     incidentResearchInProgress: { defaultMessage: 'Incident research in progress...', id: 'aPWGNa' },
@@ -1754,6 +1755,7 @@ export const SettingsTabResources = defineMessages({
     dataConnectors: { defaultMessage: 'Connectors', id: '2mMJRv' },
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
+    dataKnowledgeSpace: { defaultMessage: 'Data knowledge space', id: '5U04OG' },
     subAgents: { defaultMessage: 'Sub-agents', id: 'VIn2J0' },
     mcpServers: { defaultMessage: 'MCP servers', id: 'K9q4Xw' },
     upgradeChannel: { defaultMessage: 'Preview Upgrade Channel', id: 'W6NO8g' },
@@ -2159,10 +2161,10 @@ export const DataConnectorsResources = defineMessages({
     keyVaultUri: { defaultMessage: 'Key Vault URI', id: 'auFFJa' },
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
     source: { defaultMessage: 'Source', id: 'aH4De2' },
-    noDataConnectors: { defaultMessage: 'No connectors configured', id: 'WE9lZK' },
-    createDataConnector: { defaultMessage: 'Create connector', id: 'EmN362' },
-    editDataConnector: { defaultMessage: 'Edit connector', id: '7kPmO3' },
-    editDataConnectorDescription: { defaultMessage: 'Update the connector configuration.', id: 'GNJGHu' },
+    noDataConnectors: { defaultMessage: 'No data connectors configured', id: 'ALkPTF' },
+    createDataConnector: { defaultMessage: 'Connect a data source', id: 'tZmd+w' },
+    editDataConnector: { defaultMessage: 'Edit data connector', id: '+hJd45' },
+    editDataConnectorDescription: { defaultMessage: 'Update the data connector configuration.', id: 'ko0rr4' },
     namePlaceholder: { defaultMessage: 'Enter connector name', id: '+2NFJn' },
     typePlaceholder: { defaultMessage: 'Select connector type', id: 'ftDEuE' },
     dataSourcePlaceholder: { defaultMessage: 'Enter connection string or endpoint', id: 'f+cHle' },
@@ -2185,15 +2187,90 @@ export const DataConnectorsResources = defineMessages({
     dataConnectorUpdated: { defaultMessage: 'Connector "{name}" has been updated successfully', id: '1aNP56' },
     updateDataConnectorFailed: { defaultMessage: 'Failed to update connector', id: '2Bb4rY' },
     updateDataConnectorWithMessageFailed: { defaultMessage: 'Failed to update connector with error: {error}', id: '1OorZL' },
+    connectorType: { defaultMessage: 'Connector Type', id: 'XHc00z' },
+    lastModified: { defaultMessage: 'Last Modified', id: 'J8u7Xg' },
+    lastSynced: { defaultMessage: 'Last Synced', id: 'Z8Y6DE' },
+    status: { defaultMessage: 'Status', id: 'tzMNF3' },
+    connected: { defaultMessage: 'Connected', id: 'IvjoDS' },
+    edit: { defaultMessage: 'Edit', id: 'wEQDC6' },
+    delete: { defaultMessage: 'Delete', id: 'K3r6DQ' },
+    disconnect: { defaultMessage: 'Disconnect', id: 'qj1uhz' },
+    deletingMultipleDataConnectors: { defaultMessage: 'Deleting {count} data connectors...', id: 'BmEERa' },
+    successfullyDeletedMultiple: { defaultMessage: 'Successfully deleted {count} data connectors', id: 'GCVZ4/' },
+    failedToDeleteAll: { defaultMessage: 'Failed to delete all {count} data connectors', id: 'oBxxMY' },
+    partialDeleteSuccess: {
+        defaultMessage: 'Deleted {successCount} data connectors. Failed to delete {failedCount}: {failedItems}',
+        id: 'LQ2AtR',
+    },
+    searchPlaceholder: { defaultMessage: 'Search data connectors', id: 'xmcVZ0' },
+    dataConnectorItemType: { defaultMessage: 'data connector', id: 'AbleKr' },
+    disconnectDataConnectorTitle: { defaultMessage: 'Disconnect data connector?', id: 'Tg4Q8g' },
+    disconnectMultipleDataConnectorsTitle: { defaultMessage: 'Disconnect {count} data connectors?', id: 'nkYx6+' },
+    disconnectDataConnectorMessage: {
+        defaultMessage:
+            'This will permanently disconnect this data connector from the agent. Are you sure you want to disconnect this data connector?',
+        id: 'HKlw1J',
+    },
+    disconnectMultipleDataConnectorsMessage: {
+        defaultMessage:
+            'This will permanently disconnect {count} data connectors from the agent. Are you sure you want to disconnect these data connectors?',
+        id: 's04Z5U',
+    },
+    databaseQueryConnector: { defaultMessage: 'Database query connector', id: 'CbntSG' },
+    databaseIndexingConnector: { defaultMessage: 'Database indexing connector', id: 'KqwLPK' },
+    documentationConnector: { defaultMessage: 'Documentation connector', id: 'rlwohK' },
+    connectDataSource: { defaultMessage: 'Connect a data source', id: 'tZmd+w' },
+    serviceAll: { defaultMessage: 'All', id: 'zQvVDJ' },
+    cancel: { defaultMessage: 'Cancel', id: '47FYwb' },
+    back: { defaultMessage: 'Back', id: 'cyR7Kh' },
+    connectToAgent: { defaultMessage: 'Connect to agent', id: 'qh9t2U' },
+    repositoryUrl: { defaultMessage: 'Repository URL', id: 'AA/tRJ' },
+    managedIdentity: { defaultMessage: 'Managed identity', id: 'Ys9AIu' },
+    addIdentity: { defaultMessage: 'Add identity', id: 'xUuESs' },
+    predefinedQueriesDescription: {
+        defaultMessage: 'The agent uses predefined queries for structured logs, telemetry, and time series data.',
+        id: 'IomdzL',
+    },
+    queryGenerationDescription: {
+        defaultMessage: 'The agent generates queries by learning about your logs, telemetry, and time series data.',
+        id: 'MUVpbF',
+    },
+    documentationDescription: {
+        defaultMessage: 'The agent references documentation and files to understand your projects and processes.',
+        id: 'qQh4Xu',
+    },
+    emptyStateTitle: {
+        defaultMessage: "Increase the agent's knowledge of your infrastructure",
+        id: 'kGh923',
+    },
+    emptyStateDescription: {
+        defaultMessage: 'Provide information the agent will reference when analyzing or answering questions.',
+        id: 'Ots765',
+    },
+    addDataConnector: {
+        defaultMessage: 'Add data connector',
+        id: 'uhd456',
+    },
+    noSearchResults: {
+        defaultMessage: 'No data connectors match your search',
+        id: 'yRt423',
+    },
+    noSearchResultsDescription: {
+        defaultMessage: 'Try different search terms or clear your search to see all data connectors.',
+        id: 'mno345',
+    },
+    dataConnectors: {
+        defaultMessage: 'Data Connectors',
+        id: 'pqr789',
+    },
 });
 
 export const KnowledgeBaseResources = defineMessages({
     fileUploadDescription: {
         defaultMessage:
             "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Connectors instead.",
-        id: '1GbY5N',
+        id: 'hgT723',
     },
-    // File upload errors and messages
     filesRejected: {
         defaultMessage: '{count} document(s) rejected ({fileNames}). Only .md and .txt files are allowed.',
         id: 'SXEeds',
@@ -2220,8 +2297,8 @@ export const KnowledgeBaseResources = defineMessages({
         id: '3jPMQI',
     },
     uploadFiles: {
-        defaultMessage: 'Upload Files',
-        id: 'wwNLHo',
+        defaultMessage: 'Add a file',
+        id: 'f0Sf6g',
     },
     // Uploaded files list
     fileName: {
@@ -2241,14 +2318,13 @@ export const KnowledgeBaseResources = defineMessages({
         id: 'KoJ1C+',
     },
     filesSelected: {
-        defaultMessage: '{count} document{plural} selected',
-        id: 'kqurtu',
+        defaultMessage: '{count, plural, one {{count} document selected} other {{count} documents selected}}',
+        id: 'tgh813',
     },
     noFilesUploaded: {
         defaultMessage: 'No documents uploaded yet',
         id: '1HLt0U',
     },
-    // Dialog and UI strings
     searchForFiles: {
         defaultMessage: 'Search for files...',
         id: 'JlJ8dZ',
@@ -2293,6 +2369,10 @@ export const KnowledgeBaseResources = defineMessages({
         defaultMessage: 'Please wait while your files are being uploaded...',
         id: 'crWYMh',
     },
+    // Additional strings
+    addFile: { defaultMessage: 'Add file', id: 'sXiGbo' },
+    documentation: { defaultMessage: 'Documentation', id: 'isGKnz' },
+    lastIndexed: { defaultMessage: 'Last indexed {time}', id: 'ngNj+t' },
     filesUploadedSuccessfully: {
         defaultMessage: 'Files uploaded successfully',
         id: 'ag1Rum',
@@ -2312,6 +2392,108 @@ export const KnowledgeBaseResources = defineMessages({
     refresh: {
         defaultMessage: 'Refresh',
         id: 'rELDbB',
+    },
+    fileSize: {
+        defaultMessage: 'File size',
+        id: '3xkLyH',
+    },
+    fileDataClassification: {
+        defaultMessage: 'Data classification',
+        id: 'NTdict',
+    },
+    lastModified: {
+        defaultMessage: 'Last modified',
+        id: '1Jufsz',
+    },
+    source: {
+        defaultMessage: 'Source',
+        id: 'aH4De2',
+    },
+    logs: {
+        defaultMessage: 'Logs',
+        id: 'SNuQo7',
+    },
+    selectClassification: {
+        defaultMessage: 'Select classification',
+        id: 'fvWWGl',
+    },
+    selectedFilesTable: {
+        defaultMessage: 'Selected files table',
+        id: '9XASFm',
+    },
+    removeFile: {
+        defaultMessage: 'Remove file',
+        id: 'hgAzMV',
+    },
+    folder: {
+        defaultMessage: 'Folder',
+        id: 'ukQpDs',
+    },
+    filesStoredIn: {
+        defaultMessage: 'Files will be stored in placeholder',
+        id: 'lvINcI',
+    },
+    editFile: {
+        defaultMessage: 'Edit file',
+        id: 'S3BjwA',
+    },
+    edit: {
+        defaultMessage: 'Edit',
+        id: 'wEQDC6',
+    },
+    download: {
+        defaultMessage: 'Download',
+        id: '5q3qC0',
+    },
+    deleteFile: {
+        defaultMessage: 'Delete file?',
+        id: '7bDMaW',
+    },
+    deleteFiles: {
+        defaultMessage: 'Delete {count} files?',
+        id: 'RK9Ag4',
+    },
+    deleteFileMessage: {
+        defaultMessage:
+            'This will permanently delete the file from the knowledge sources the agent uses. Are you sure you want to delete this file?',
+        id: 'rBhkvO',
+    },
+    deleteFilesMessage: {
+        defaultMessage:
+            'This will permanently delete {count} files from the knowledge sources the agent uses. Are you sure you want to delete these files?',
+        id: '9+dRta',
+    },
+    addFileAction: {
+        defaultMessage: 'Add a file',
+        id: 'xyz890',
+    },
+    noSearchResults: {
+        defaultMessage: 'No files match your search',
+        id: 'vwx234',
+    },
+    noSearchResultsDescription: {
+        defaultMessage: 'Try different search terms or clear your search to see all files.',
+        id: 'yza567',
+    },
+    dragFilesHere: {
+        defaultMessage: 'Drag files here or',
+        id: 'abc123',
+    },
+    browseForFiles: {
+        defaultMessage: 'browse for files',
+        id: 'def456',
+    },
+    supportedFileFormats: {
+        defaultMessage: 'Supported file formats: .md and .txt',
+        id: 'ghi789',
+    },
+    maximumFileSize: {
+        defaultMessage: 'Maximum file size: 100MB',
+        id: 'jkl012',
+    },
+    knowledgeBase: {
+        defaultMessage: 'Knowledge Base',
+        id: 'stu345',
     },
 });
 
@@ -2509,6 +2691,13 @@ export const ScheduledTasksResources = defineMessages({
     promptAiWarnings: { defaultMessage: 'Key alerts', id: 'TKsgZu' },
     promptAiSuggestions: { defaultMessage: 'Optional tweaks', id: 'BynA9c' },
     promptAiFollowUps: { defaultMessage: 'Missing context', id: 'RA3fki' },
+    // Delete confirmation dialog strings
+    deleteFileTitle: { defaultMessage: 'Delete file?', id: '7bDMaW' },
+    deleteFileMessage: {
+        defaultMessage:
+            'This will permanently delete the file from the knowledge sources the agent uses. Are you sure you want to delete this file?',
+        id: 'rBhkvO',
+    },
     createTask: { defaultMessage: 'Create task', id: '7X1tNR' },
     createFromTemplate: { defaultMessage: 'Create from template', id: 'unj6JR' },
     tasks: { defaultMessage: 'Tasks', id: 'yhU1et' },
@@ -3381,4 +3570,19 @@ export const ThreadTraceResources = defineMessages({
     failedToLoadTraceData: { defaultMessage: 'Failed to load trace data: {message}', id: 'fjgqNG' },
     hide: { defaultMessage: 'Hide', id: 'VA/Z1S' },
     show: { defaultMessage: 'Show', id: 'K7AkdL' },
+});
+
+export const DeleteConfirmationDialogResources = defineMessages({
+    titleSingle: { defaultMessage: '{actionVerb} {itemType}?', id: 'BV7QgK' },
+    titleMultiple: { defaultMessage: '{actionVerb} {count} {itemType}s?', id: 'DDSwQB' },
+    messageSingle: {
+        defaultMessage: 'This will permanently {actionVerb} this {itemType}. Are you sure you want to {actionVerb} this {itemType}?',
+        id: 'Q4f1wN',
+    },
+    messageMultiple: {
+        defaultMessage: 'This will permanently {actionVerb} {count} {itemType}s. Are you sure you want to {actionVerb} these {itemType}s?',
+        id: '8eOoHt',
+    },
+    selectedItemsLabel: { defaultMessage: 'Selected {itemType}', id: 'ChQQJ0' },
+    cancel: { defaultMessage: 'Cancel', id: '47FYwb' },
 });

@@ -12,6 +12,7 @@ import { useSharedNavDrawerStyles } from '../Styles/Navigation.styles';
 import AccessControl from './AccessControl.ReactView';
 import Basics from './Basics.ReactView';
 import DataConnectors from './DataConnectors.ReactView';
+import DataKnowledgeSpace from './DataKnowledgeSpace';
 import Identity from './Identity.ReactView';
 import KnowledgeBase from './KnowledgeBase.ReactView';
 import ManagedResources from './ManagedResources.ReactView';
@@ -28,6 +29,7 @@ export enum SettingsKeys {
     Identity = 'identity',
     KnowledgeBase = 'knowledgeBase',
     SubAgents = 'subAgents',
+    DataKnowledgeSpace = 'dataKnowledgeSpace',
     McpServers = 'mcpServers',
 }
 
@@ -44,6 +46,7 @@ const Settings: FC = () => {
     const showDataConnectors = useConfigSetting(SettingNames.DataConnectors);
     const showKnowledgeBase = useKnowledgeBaseConfig();
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
+    const showDataKnowledgeSpace = useConfigSetting(SettingNames.DataKnowledgeSpace);
     const showMcpServer = useConfigSetting(SettingNames.McpServer);
 
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
@@ -111,6 +114,13 @@ const Settings: FC = () => {
             });
         }
 
+        if (showDataKnowledgeSpace) {
+            items.push({
+                name: intl.formatMessage(SettingsTabResources.dataKnowledgeSpace),
+                key: SettingsKeys.DataKnowledgeSpace,
+            });
+        }
+
         return items;
     }, [intl, showDataConnectors, showKnowledgeBase, showMcpServer, showSubAgents]);
 
@@ -166,6 +176,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.GrafanaDashboard && <GrafanaDashboard />}
                     {selectedKey === SettingsKeys.DataConnectors && showDataConnectors && <DataConnectors />}
                     {selectedKey === SettingsKeys.KnowledgeBase && showKnowledgeBase && <KnowledgeBase />}
+                    {selectedKey === SettingsKeys.DataKnowledgeSpace && showDataKnowledgeSpace && <DataKnowledgeSpace />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
                     {selectedKey === SettingsKeys.Identity && <Identity />}
                     {selectedKey === SettingsKeys.SubAgents && showSubAgents && <SubAgents />}

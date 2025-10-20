@@ -23,12 +23,17 @@ export const useKnowledgeBaseStyles = makeStyles({
         gap: '5px',
     },
     searchBox: {
-        width: '330px',
+        width: '230px',
+        marginLeft: '16px',
         zIndex: 1,
     },
     toolbarButton: {
         paddingLeft: '0px',
         minWidth: '20px',
+    },
+    toolbarRefresh: {
+        minWidth: '20px',
+        marginLeft: 'auto',
     },
     toolbarDivider: {
         padding: '0px',
@@ -37,27 +42,35 @@ export const useKnowledgeBaseStyles = makeStyles({
         marginBottom: '8px',
     },
     detailsListContainer: {
-        width: '99%',
-        overflow: 'hidden',
+        width: '100%',
+        overflow: 'visible',
     },
     detailsList: {
         paddingTop: '0px',
-        marginTop: '-16px',
+        marginTop: '0px',
     },
     noFilesContainer: {
-        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
         textAlign: 'center',
+        gap: '20px',
+        paddingTop: '0px',
     },
     dialogSurface: {
-        maxWidth: '500px',
-        minWidth: '400px',
+        maxWidth: '800px',
+        minWidth: '500px',
+        padding: '0px',
     },
     dialogContent: {
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
     },
-
+    dialogBody: {
+        padding: '24px',
+    },
     dropZone: {
         borderRadius: '8px',
         padding: '24px 16px',
@@ -67,6 +80,7 @@ export const useKnowledgeBaseStyles = makeStyles({
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: tokens.colorNeutralBackground2,
     },
     dropZoneIdle: {
         border: `2px dashed ${tokens.colorNeutralStroke2}`,
@@ -85,9 +99,12 @@ export const useKnowledgeBaseStyles = makeStyles({
     selectedFilesContainer: {
         width: '100%',
         textAlign: 'left',
+        paddingTop: '25px',
+        paddingBottom: '25px',
     },
     selectedFilesTitle: {
         marginBottom: '8px',
+        fontWeight: 500,
         display: 'block',
     },
     fileList: {
@@ -118,5 +135,123 @@ export const useKnowledgeBaseStyles = makeStyles({
     },
     hiddenFileInput: {
         display: 'none',
+    },
+    dialogFooter: {
+        borderTop: '1px solid ' + tokens.colorNeutralStroke1Pressed,
+        width: '100%',
+        padding: '16px',
+        justifyContent: 'flex-end',
+        gap: '8px',
+    },
+    nameCell: {
+        width: '200px',
+        minWidth: '200px',
+    },
+    nameCellContent: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingRight: '12px',
+    },
+    fileTableHeaderCell35: {
+        width: '35%',
+    },
+    fileTableHeaderCell25: {
+        width: '25%',
+    },
+    fileTableHeaderCell30: {
+        width: '30%',
+    },
+    fileTableHeaderCell10: {
+        width: '10%',
+    },
+    fileTableScrollContainer: {
+        maxHeight: '250px',
+        overflowY: 'auto',
+    },
+    fileIconCell: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+    },
+    fileIcon: {
+        fontSize: '16px',
+        color: tokens.colorNeutralForeground2,
+    },
+    classificationDropdown: {
+        minWidth: '180px',
+    },
+    editDialogSurface: {
+        padding: '0px',
+        width: '550px',
+    },
+    editDialogTitle: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+    },
+    editDialogTitleContent: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+    },
+    editDialogSubtitle: {
+        fontSize: '14px',
+        fontWeight: 'normal',
+        color: tokens.colorNeutralForeground2,
+    },
+    editDialogContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '32px',
+        paddingTop: '32px',
+        paddingBottom: '32px',
+    },
+    editDialogField: {
+        width: '100%',
+    },
+    uploadInfoContainer: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        fontSize: '12px',
+        color: tokens.colorNeutralForeground2,
+    },
+    uploadInfoText: {
+        fontSize: '12px',
+        color: tokens.colorNeutralForeground2,
+    },
+    browseLinkText: {
+        color: tokens.colorBrandForeground1,
+        textDecoration: 'underline',
+        cursor: 'pointer',
+    },
+    folderIcon: {
+        height: '50px',
+        width: '50px',
+    },
+    checkboxCell: {
+        width: '20px',
+        minWidth: '20px',
+    },
+    sizeCell: {
+        width: '150px',
+        minWidth: '150px',
+    },
+    classificationCell: {
+        width: '150px',
+        minWidth: '150px',
+    },
+    dateCell: {
+        width: '200px',
+        minWidth: '200px',
+    },
+    menuContainer: {
+        marginRight: '20px',
+    },
+    dismissButton: {
+        minWidth: 'auto',
+    },
+    editDialogButton: {
+        minWidth: '40px',
     },
 });

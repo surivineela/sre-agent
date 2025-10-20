@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { GenericErrorResources } from '../../Strings/SREAgentResources';
+import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 import { AgentMemoryClient } from '../Clients/AgentMemoryClient';
 import { SettingNames, useConfigSetting } from './ConfigSettings';
 
@@ -8,6 +9,8 @@ export const useKnowledgeBaseConfig = () => {
     const staticConfig = useConfigSetting(SettingNames.KnowledgeBase);
     const [backendEnabled, setBackendEnabled] = useState<boolean | null>(null);
     const intl = useIntl();
+
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     useEffect(() => {
         // Only check backend if static config allows it
@@ -17,7 +20,6 @@ export const useKnowledgeBaseConfig = () => {
 
         const checkBackendStatus = async () => {
             try {
-                const sreAgentEndpoint = window.location.origin;
                 const client = AgentMemoryClient.getInstance(sreAgentEndpoint);
 
                 const response = await client.getStatus();
