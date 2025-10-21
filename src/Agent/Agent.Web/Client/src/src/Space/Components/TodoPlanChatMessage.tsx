@@ -1,8 +1,10 @@
-import { Card, CardHeader, Link, makeStyles, Subtitle2, Text, tokens } from '@fluentui/react-components';
+import { EntityCard, EntityTitle } from '@fluentui-copilot/react-copilot';
+import { Link, makeStyles, Subtitle2, Text } from '@fluentui/react-components';
 import { TaskListAdd24Regular } from '@fluentui/react-icons';
 import { memo, useContext } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { useIntl } from 'react-intl';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
+import { ToDoPlanResources } from '../../Strings/SREAgentResources';
 import { ChatBoxContext } from '../Contracts/Context';
 
 const useStyles = makeStyles({
@@ -12,13 +14,8 @@ const useStyles = makeStyles({
         gap: '12px',
         padding: '5px 0px',
     },
-    card: {
-        height: 'fit-content',
-        padding: '20px',
-        borderRadius: tokens.borderRadiusLarge,
-    },
-    header: {
-        width: '100%',
+    text: {
+        paddingLeft: '3px',
     },
 });
 
@@ -27,36 +24,35 @@ const TodoPlanChatMessage = ({ todoPlan }: { todoPlan: TodoInfo }) => {
 
     const styles = useStyles();
 
+    const intl = useIntl();
+
     return (
         <div className={styles.root}>
-            <Text>
-                <FormattedMessage id="6HiPiX" defaultMessage="A new To-do Plan has been created:" />
-            </Text>
-            <Card
+            <Text className={styles.text}>{intl.formatMessage(ToDoPlanResources.cardTitle)}</Text>
+            <EntityCard
                 orientation="horizontal"
-                className={styles.card}
-                onClick={e => {
-                    e.stopPropagation();
-                }}
-            >
-                <CardHeader
-                    className={styles.header}
-                    image={<TaskListAdd24Regular fontSize={32} />}
-                    header={
-                        <Link
-                            appearance="subtle"
-                            onClick={e => {
-                                e.stopPropagation();
-                                openTodoPlan(todoPlan);
-                            }}
-                        >
-                            <Subtitle2 wrap={true} block={true}>
-                                {todoPlan.title}
-                            </Subtitle2>
-                        </Link>
-                    }
-                />
-            </Card>
+                role="group"
+                style={{ maxWidth: 'unset' }}
+                entityTitle={
+                    <EntityTitle
+                        media={<TaskListAdd24Regular />}
+                        primaryText={
+                            <Link
+                                appearance="subtle"
+                                onClick={e => {
+                                    e.stopPropagation();
+                                    openTodoPlan(todoPlan);
+                                }}
+                            >
+                                <Subtitle2 wrap={true} block={true}>
+                                    {todoPlan.title}
+                                </Subtitle2>
+                            </Link>
+                        }
+                        secondaryText={intl.formatMessage(ToDoPlanResources.todoPlanText)}
+                    />
+                }
+            />
         </div>
     );
 };

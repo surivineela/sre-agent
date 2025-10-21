@@ -1,9 +1,10 @@
-import { InlineDrawer, Toolbar, ToolbarButton, useRestoreFocusSource } from '@fluentui/react-components';
-import { Dismiss24Regular, List24Regular } from '@fluentui/react-icons';
+import { Button, Caption1, DrawerHeader, InlineDrawer, Subtitle2, Text, useRestoreFocusSource } from '@fluentui/react-components';
+import { ChatWarningRegular, Dismiss24Regular, TaskListLtrRegular } from '@fluentui/react-icons';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { TodoPlan } from '../../../Common/Contracts/DataPlane/TodoPlan';
-import { SreAgentResources } from '../../../Strings/SREAgentResources';
+import { TodoItemStatus, TodoPlan } from '../../../Common/Contracts/DataPlane/TodoPlan';
+import { AntUxStringComparison, equals } from '../../../Common/Helpers/Strings';
+import { SreAgentResources, ToDoPlanResources } from '../../../Strings/SREAgentResources';
 import { useTodoPlanDrawerStyles } from '../../Styles/TodoPlan.styles';
 import TodoPlanContentFixed from './TodoPlanContentFixed';
 
@@ -78,48 +79,45 @@ const TodoPlanDrawer = (props: ITodoPlanDrawerProps) => {
                 width: sideBarWidth === null ? '520px' : `${sideBarWidth}px`,
             }}
         >
-            <div className={styles.header}>
-                <div className={styles.titleContainer}>
-                    <h3 className={styles.titleText}>{selectedPlan?.title || 'Todo Plan'}</h3>
-                    <div className={styles.titleProgressRow}>
-                        <div className={styles.titleProgressBar}>
-                            <div
-                                className={styles.titleProgressFill as any}
-                                style={{
-                                    width: `${(() => {
-                                        const total = selectedPlan?.items?.length ?? 0;
-                                        const comp = selectedPlan?.items?.filter(i => i.status === 'Completed').length ?? 0;
-                                        return total > 0 ? (comp / total) * 100 : 0;
-                                    })()}%`,
-                                }}
-                            />
-                        </div>
-                        <span className={styles.titleCount}>
+            <DrawerHeader>
+                <div className={styles.header}>
+                    <div className={styles.headerIconContainer}>
+                        <TaskListLtrRegular style={{ height: '100%' }} fontSize={'32px'} />
+                    </div>
+                    <div className={styles.headerTextContainer}>
+                        <Subtitle2 block={true} wrap={false} className={styles.headerText}>
+                            {selectedPlan?.title || intl.formatMessage(ToDoPlanResources.todoPlanText)}
+                        </Subtitle2>
+                        <Caption1 block={true} wrap={false} className={styles.headerText}>
                             {(() => {
                                 const total = selectedPlan?.items?.length ?? 0;
-                                const comp = selectedPlan?.items?.filter(i => i.status === 'Completed').length ?? 0;
-                                return `${comp}/${total}`;
+                                const comp =
+                                    selectedPlan?.items?.filter(i =>
+                                        equals(i.status, TodoItemStatus.Completed, AntUxStringComparison.IgnoreCase)
+                                    ).length ?? 0;
+                                return intl.formatMessage(ToDoPlanResources.todoPlanProgress, { completed: comp, total });
                             })()}
-                        </span>
+                        </Caption1>
+                    </div>
+                    <div className={styles.headerButton}>
+                        <Button
+                            aria-label={intl.formatMessage(SreAgentResources.closePanel)}
+                            appearance="subtle"
+                            icon={<Dismiss24Regular />}
+                            onClick={() => setCollapsed(true)}
+                            style={{ width: '100%' }}
+                        />
                     </div>
                 </div>
-                <Toolbar className={styles.headerToolbar}>
-                    <ToolbarButton
-                        aria-label={intl.formatMessage(SreAgentResources.closePanel)}
-                        appearance="subtle"
-                        icon={<Dismiss24Regular />}
-                        onClick={() => setCollapsed(true)}
-                    />
-                </Toolbar>
-            </div>
+            </DrawerHeader>
 
             <div className={styles.content}>
                 {selectedPlan ? (
                     <TodoPlanContentFixed plan={selectedPlan} />
                 ) : (
                     <div className={styles.emptyStateContainer}>
-                        <List24Regular className={styles.emptyStateIcon} />
-                        <span className={styles.emptyStateText}>{intl.formatMessage(SreAgentResources.noTodoPlanAvailable)}</span>
+                        <ChatWarningRegular className={styles.emptyStateIcon} />
+                        <Text>{intl.formatMessage(ToDoPlanResources.noTodoPlanAvailable)}</Text>
                     </div>
                 )}
             </div>

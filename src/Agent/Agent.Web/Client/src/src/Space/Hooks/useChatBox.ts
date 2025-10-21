@@ -544,8 +544,6 @@ export const useChatBox = (
             return;
         }
 
-        console.log('######### $$$$$$$$$$ Current Message Chunk: ' + JSON.stringify(messageChunkQueue.current, null, 2));
-
         if (isUserStreamingMessage(currentMessageChunk)) {
             if (!currentThreadIdRef.current && threadIdFromStream) {
                 setCurrentThreadId(threadIdFromStream);

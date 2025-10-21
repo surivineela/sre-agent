@@ -517,10 +517,6 @@ export const SreAgentResources = defineMessages({
             'This chart shows the relationship between {y1} and {y2} over time. The correlation values indicate how strongly these two metrics influence each other.',
         id: 'rQAyD6',
     },
-    noTodoPlanAvailable: {
-        defaultMessage: 'No todo plan available',
-        id: 'bri0SI',
-    },
     assigned: { defaultMessage: 'Assigned', id: 'iZDRGO' },
     selectAllRowsAriaLabel: { defaultMessage: 'Select all rows', id: '8BaLs0' },
     selectRowAriaLabel: { defaultMessage: 'Select row', id: '4pJVaS' },
@@ -639,6 +635,25 @@ export const AgentTaskResources = defineMessages({
     conclusionNodeText: {
         defaultMessage: 'Conclusion',
         id: 'ZjlBPk',
+    },
+});
+
+export const ToDoPlanResources = defineMessages({
+    noTodoPlanAvailable: {
+        defaultMessage: 'No todo plan available',
+        id: 'bri0SI',
+    },
+    todoPlanProgress: {
+        defaultMessage: '{completed} of {total} completed',
+        id: '9sDoY5',
+    },
+    cardTitle: {
+        defaultMessage: 'Here is the To-Do plan:',
+        id: 'c/8Uhj',
+    },
+    todoPlanText: {
+        defaultMessage: 'To-Do Plan',
+        id: 'icyjmd',
     },
 });
 

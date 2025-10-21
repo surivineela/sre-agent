@@ -1,8 +1,9 @@
-import { mergeClasses } from '@fluentui/react-components';
-import { CheckmarkFilled } from '@fluentui/react-icons';
+import { Caption2, Spinner, Text, tokens } from '@fluentui/react-components';
+import { CheckmarkRegular, CircleRegular, DismissRegular } from '@fluentui/react-icons';
 import { memo, useMemo } from 'react';
 import { TodoItem, TodoItemStatus, TodoPlan } from '../../../Common/Contracts/DataPlane/TodoPlan';
-import { todoPlanAnimations, useTodoPlanContentStyles } from '../../Styles/TodoPlan.styles';
+import { getSafeDateTime } from '../../../Common/Helpers/Date';
+import { useTodoPlanContentStyles } from '../../Styles/TodoPlan.styles';
 
 interface TodoPlanContentFixedProps {
     plan: TodoPlan;
@@ -11,87 +12,58 @@ interface TodoPlanContentFixedProps {
 const TodoPlanContentFixed = ({ plan }: TodoPlanContentFixedProps) => {
     const styles = useTodoPlanContentStyles();
 
-    const getTaskDotClass = (status: TodoItemStatus) => {
-        switch (status) {
-            case TodoItemStatus.Completed:
-                return mergeClasses(styles.taskDot, styles.taskDotCompleted);
-            case TodoItemStatus.InProgress:
-                return mergeClasses(styles.taskDot, styles.taskDotInProgress);
-            case TodoItemStatus.Failed:
-                return mergeClasses(styles.taskDot, styles.taskDotFailed);
-            case TodoItemStatus.Pending:
-            default:
-                return mergeClasses(styles.taskDot, styles.taskDotPending);
-        }
-    };
-
-    const formatTimestamp = (timestamp?: string) => {
-        if (!timestamp) return null;
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMins / 60);
-
-        if (diffMins < 1) return 'now';
-        if (diffMins < 60) return `${diffMins}m`;
-        if (diffHours < 24) return `${diffHours}h`;
-
-        const isToday = date.toDateString() === now.toDateString();
-        if (isToday) {
-            return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-        }
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    };
-
-    const sortedItems = useMemo(() => {
-        return [...plan.items].sort((a, b) => a.order - b.order);
-    }, [plan.items]);
-
     return (
-        <>
-            <style>{todoPlanAnimations}</style>
-
-            <div className={styles.container}>
-                <div className={styles.timeline}>
-                    <div className={styles.timelineLine} />
-
-                    {sortedItems.map((item: TodoItem, index) => (
-                        <div
-                            key={index}
-                            className={mergeClasses(styles.taskItem, index === sortedItems.length - 1 ? styles.taskItemLast : undefined)}
-                        >
-                            <div className={getTaskDotClass(item.status)}>
-                                {item.status === TodoItemStatus.Completed && <CheckmarkFilled className={styles.completedIcon} />}
-                                {item.status === TodoItemStatus.Pending && <div className={styles.innerDotPending} />}
-                                {item.status === TodoItemStatus.Failed && <div className={styles.innerDotFailed} />}
-                            </div>
-
-                            <div className={styles.taskContent}>
-                                <p
-                                    className={mergeClasses(
-                                        styles.taskText,
-                                        item.status === TodoItemStatus.Completed ? styles.taskTextCompleted : undefined
-                                    )}
-                                >
-                                    {item.content}
-                                    {item.status === TodoItemStatus.Completed && item.completedAt && (
-                                        <span className={mergeClasses(styles.taskMeta, styles.taskMetaInline)}>
-                                            · {formatTimestamp(item.completedAt)}
-                                        </span>
-                                    )}
-                                </p>
-
-                                {item.status === TodoItemStatus.InProgress && item.startedAt && (
-                                    <div className={styles.taskMeta}>Started {formatTimestamp(item.startedAt)}</div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+        <div className={styles.container}>
+            {plan.items.map((item: TodoItem, index) => (
+                <div key={index} className={styles.taskItem}>
+                    <StatusIcon status={item.status} />
+                    <Status item={item} />
                 </div>
-            </div>
-        </>
+            ))}
+        </div>
     );
 };
+
+const StatusIcon = memo(({ status }: { status: TodoItemStatus }) => {
+    const styles = useTodoPlanContentStyles();
+
+    switch (status) {
+        case TodoItemStatus.Completed:
+            return <CheckmarkRegular className={styles.taskItemIcon} style={{ color: tokens.colorPaletteGreenForeground1 }} />;
+        case TodoItemStatus.InProgress:
+            return <Spinner size={'extra-tiny'} className={styles.taskItemIcon} />;
+        case TodoItemStatus.Failed:
+            return <DismissRegular className={styles.taskItemIcon} style={{ color: tokens.colorPaletteRedForeground1 }} />;
+        default:
+            return <CircleRegular className={styles.taskItemIcon} style={{ opacity: 0.5 }} />;
+    }
+});
+
+const Status = memo(({ item }: { item: TodoItem }) => {
+    const styles = useTodoPlanContentStyles();
+
+    const timestampString = useMemo(() => {
+        const timestamp = item.startedAt || item.completedAt;
+
+        if (!timestamp) return '';
+
+        const date = getSafeDateTime(timestamp);
+
+        return date.toLocaleString();
+    }, [item.startedAt, item.completedAt]);
+
+    return (
+        <Text
+            block={true}
+            className={styles.taskItemContent}
+            style={{
+                width: '100%',
+                opacity: item.status === TodoItemStatus.Pending ? 0.5 : 1,
+            }}
+        >
+            {item.content} {timestampString && <Caption2 as={'span'}>{timestampString}</Caption2>}
+        </Text>
+    );
+});
 
 export default memo(TodoPlanContentFixed);
