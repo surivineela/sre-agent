@@ -41,51 +41,42 @@ extends:
     - serviceConnection: k8seprod      # used by session cli image
 
     stages:
-    - stage: build
+    - stage: build_and_test
+      dependsOn: []
       ${{ if parameters.isOfficialBuild }}:
-        displayName: "🛠️ Build Official"
+        displayName: "🛠️ Build & Test Official"
       ${{ else }}:
-        displayName: "🛠️ Build NonOfficial"
+        displayName: "🛠️ Build & Test NonOfficial"
+      variables:
+        #
+        # Shared variables for all jobs in this stage
+        #
+        BuildSolution: .\src\Agent\Agent.sln
+        BuildSolutionOutputPath: $(Build.SourcesDirectory)\sln_output
+        BuildConfiguration: Release
+        BuildNugetConfigPath: .\src\nuget.config
+        ProjectSourcePath: '$(Build.SourcesDirectory)\src\Agent'
+        ArtifactDirectory: '$(Build.SourcesDirectory)\out'
+        ${{ if parameters.isOfficialBuild }}:
+          ExtraBuildFlags: '/p:Version=$(Build.BuildNumber) /p:OfficialBuild=true'
+        ${{ else }}:
+          ExtraBuildFlags: ''
+      
       jobs:
-      - job: main # Super std name for main build step in this stage
+      - job: build
         displayName: "🔨 Build Agent"
-        variables:
-          #
-          # Constants (because there is no better way to do it in YAML)
-          #
-          BuildSolution: .\src\Agent\Agent.sln
-          BuildSolutionOutputPath: $(Build.SourcesDirectory)\sln_output
-          BuildConfiguration: Release
-          BuildNugetConfigPath: .\src\nuget.config
-
-          # Input and source location-related variables
-          #
-          ProjectSourcePath: '$(Build.SourcesDirectory)\src\Agent'
-          #
-          # Build flags
-          #
-          ${{ if parameters.isOfficialBuild }}:
-            ExtraBuildFlags: '/p:Version=$(Build.BuildNumber) /p:OfficialBuild=true'
-          ${{ else }}:
-            ExtraBuildFlags: ''
-
-          #
-          # Artifact and build output location-related variables
-          #
-          # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
-          ArtifactDirectory: '$(Build.SourcesDirectory)\out'
-
         steps:
         - checkout: self
+          fetchDepth: 1
           persistCredentials: true # For localized file check-in
 
           # Used to get the packages that referenced by generated WorkerExtensions.csproj 
         - task: NuGetAuthenticate@1
           displayName: NuGetAuthenticate
 
-        # Collect Build info & make output directories just in case
+        # Collect Build information & make output directories just in case
         - task: PowerShell@2
-          displayName: "ℹ️ Collect build info"
+          displayName: "ℹ️ Collect Build Information"
           continueOnError: true # This is not a required step, don't stop the build if it fails
           inputs:
             targetType: 'inline'
@@ -182,27 +173,6 @@ extends:
             workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
         
         #
-        # UX - Agent.Web - Unit tests
-        #
-        - task: Npm@1
-          displayName: '🧪 UX - Agent.Web - Unit tests'
-          inputs:
-              command: 'custom'
-              workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
-              customCommand: 'run test'
-        
-        #
-        # UX - Agent.Web - Publish unit test results
-        #
-        - task: PublishTestResults@2
-          displayName: '📢 Publish UX - Agent.Web - Unit test results'
-          inputs:
-            testResultsFormat: JUnit
-            testResultsFiles: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\junit-report.xml'
-            failTaskOnFailedTests: true
-            testRunTitle: 'UX_AgentWeb_UnitTests'
-        
-        #
         # UX - Agent.Portal - Install NPM packages
         #
         - task: Npm@1
@@ -212,26 +182,27 @@ extends:
             workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Portal\Client'
         
         #
-        # UX - Agent.Portal - Unit tests
+        # UX - Agent.Web - Build React app
         #
         - task: Npm@1
-          displayName: '🧪 UX - Agent.Portal - Unit tests'
+          displayName: 'UX - Agent.Web - Build React app'
+          env:
+            SRE_UX_VERSION: $(Build.BuildNumber)
           inputs:
-              command: 'custom'
-              workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Portal\Client'
-              customCommand: 'run test'
+            command: 'custom'
+            customCommand: 'run build'
+            workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
         
         #
-        # UX - Agent.Portal - Publish unit test results
+        # UX - Agent.Portal - Build React app
         #
-        - task: PublishTestResults@2
-          displayName: '📢 Publish UX - Agent.Portal - Unit test results'
+        - task: Npm@1
+          displayName: 'UX - Agent.Portal - Build React app'
           inputs:
-            testResultsFormat: JUnit
-            testResultsFiles: '$(Build.SourcesDirectory)\src\Agent\Agent.Portal\Client\junit-report.xml'
-            failTaskOnFailedTests: true
-            testRunTitle: 'UX_AgentPortal_UnitTests'
-
+            command: 'custom'
+            customCommand: 'run build'
+            workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Portal\Client'
+        
         #
         # Build Solution
         #
@@ -242,19 +213,18 @@ extends:
           inputs:
             command: build
             projects: '$(BuildSolution)'
-            arguments: '--no-restore --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
+            arguments: '--no-restore --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber) -p:SkipReactBuild=true'
             includeNuGetOrg: false
 
         - task: DotNetCoreCLI@2
           displayName: '🔨 Publish Agent.Web'
           env:
-            SRE_UX_VERSION: $(Build.BuildNumber) # UX builds again here, so env vars must be the same so the hash matches
-            # TODO - hook up Agent.Portal build and env var
+            SRE_UX_VERSION: $(Build.BuildNumber)
           inputs:
             command: 'publish'
             publishWebProjects: false
             projects: '.\src\Agent\Agent.Web\Agent.Web.csproj'
-            arguments: '--no-restore --output $(ArtifactDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
+            arguments: '--no-restore --output $(ArtifactDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber) -p:SkipReactBuild=true'
             includeNuGetOrg: false
             zipAfterPublish: false
 
@@ -267,31 +237,6 @@ extends:
             arguments: '--no-restore --output $(ArtifactDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
             includeNuGetOrg: false
             zipAfterPublish: false
-
-        # Add runtime test for Agent.Web
-        # Commenting this out for now, since running this project depends on settings being present
-        # (We want to know if something is broken before runtime)
-        # We can re-enable this once we set up some infra or mock this for pipelines
-        #
-        # - task: PowerShell@2
-        #   displayName: '🧪 Runtime test Agent.Web'
-        #   inputs:
-        #     targetType: 'inline'
-        #     workingDirectory: $(Build.SourcesDirectory)
-        #     script: |
-        #         $process = Start-Process -FilePath "dotnet" -ArgumentList "run --project ./src/Agent/Agent.Web/Agent.Web.csproj --session" -RedirectStandardOutput "runtime.log" -RedirectStandardError "error.log" -PassThru
-        #         Write-Host "Started Agent.Web with PID: $($process.Id)"
-        #         Start-Sleep -Seconds 30
-        #         if (!$process.HasExited) {
-        #           Write-Host "Agent.Web ran successfully for 30 seconds, stopping process..."
-        #           Stop-Process -Id $process.Id -Force
-        #           exit 0
-        #         } else {
-        #           Write-Host "Agent.Web crashed or exited prematurely"
-        #           Write-Host "Error logs:"
-        #           Get-Content "error.log"
-        #           exit 1
-        #         }
 
         # keep roslynanalyzers task separate from dotnet build, otherwise compile-time LoggerMessage autogen partial classes will result in build error CS8795
         - task: RoslynAnalyzers@3
@@ -344,6 +289,142 @@ extends:
             path: '$(ArtifactDirectory)'
             artifact: drop_build_main
           displayName: 'Publish Artifact'
+        
+        # - task: PowerShell@2
+        #   displayName: 'Copy dockerfile to output directory'
+        #   inputs:
+        #     targetType: 'inline'
+        #     script: |
+        #       Copy-Item -Path $(Build.SourcesDirectory)\src\Deployment\Agent.Web\Dockerfile -Destination $(ob_outputDirectory)\src\Deployment\Agent.Web\Dockerfile
+
+      - job: ux_test
+        displayName: "🎨 UX Tests"
+        steps:
+        - checkout: self
+          fetchDepth: 1
+          persistCredentials: true # For localized file check-in
+
+        #
+        # UX - Set node version for installing npm packages
+        #
+        - task: NodeTool@0
+          inputs:
+            versionSpec: "22.x"
+            checkLatest: true
+
+        #
+        # UX - Authenticate NPM registry (this auth should cover Agent.Portal as well)
+        #
+        - task: npmAuthenticate@0
+          displayName: 'UX - Auth'
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\.npmrc'
+
+        #
+        # UX - Agent.Web - Install NPM packages
+        #
+        - task: Npm@1
+          displayName: 'UX - Agent.Web - Install NPM packages'
+          inputs:
+            command: 'install'
+            workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
+        
+        #
+        # UX - Agent.Portal - Install NPM packages
+        #
+        - task: Npm@1
+          displayName: 'UX - Agent.Portal - Install NPM packages'
+          inputs:
+            command: 'install'
+            workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Portal\Client'
+
+        #
+        # UX - Agent.Web - Unit tests
+        #
+        - task: Npm@1
+          displayName: '🧪 UX - Agent.Web - Unit tests'
+          inputs:
+              command: 'custom'
+              workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
+              customCommand: 'run test'
+        
+        #
+        # UX - Agent.Web - Publish unit test results
+        #
+        - task: PublishTestResults@2
+          displayName: '📢 Publish UX - Agent.Web - Unit test results'
+          inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\junit-report.xml'
+            failTaskOnFailedTests: true
+            testRunTitle: 'UX_AgentWeb_UnitTests'
+        
+        #
+        # UX - Agent.Portal - Unit tests
+        #
+        - task: Npm@1
+          displayName: '🧪 UX - Agent.Portal - Unit tests'
+          inputs:
+              command: 'custom'
+              workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Portal\Client'
+              customCommand: 'run test'
+        
+        #
+        # UX - Agent.Portal - Publish unit test results
+        #
+        - task: PublishTestResults@2
+          displayName: '📢 Publish UX - Agent.Portal - Unit test results'
+          inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '$(Build.SourcesDirectory)\src\Agent\Agent.Portal\Client\junit-report.xml'
+            failTaskOnFailedTests: true
+            testRunTitle: 'UX_AgentPortal_UnitTests'
+
+      - job: runtime_test
+        displayName: "🧪 Runtime Tests"
+        steps:
+        - checkout: self
+          fetchDepth: 1
+          persistCredentials: true # For localized file check-in
+
+          # Used to get the packages that referenced by generated WorkerExtensions.csproj 
+        - task: NuGetAuthenticate@1
+          displayName: NuGetAuthenticate
+
+        #
+        # Just start the build process
+        #
+        - task: UseDotNet@2
+          continueOnError: false
+          displayName: '🧰 Setup .NET 9'
+          inputs:
+            version: 9.x
+            packageType: 'sdk'
+
+        #
+        # Restore nuget packages
+        #
+        - task: DotNetCoreCLI@2
+          displayName: '🔨 Restore Nuget packages'
+          inputs:
+            command: 'restore'
+            projects: |
+              $(BuildSolution)
+            includeNuGetOrg: false
+            feedsToUse: config
+            nugetConfigPath: $(BuildNugetConfigPath)
+            ## verbosityRestore: 'detailed'  # Use this to figure out whether the NuGet restore is hitting public internet.
+        
+        #
+        # Build Solution
+        #
+        - task: DotNetCoreCLI@2
+          displayName: '🦾 Build Agent solution'
+          inputs:
+            command: build
+            projects: '$(BuildSolution)'
+            arguments: '--no-restore --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber) -p:SkipReactBuild=true'
+            includeNuGetOrg: false
 
         # Run unit tests
         - task: DotNetCoreCLI@2
@@ -396,17 +477,11 @@ extends:
             testResultsFormat: VSTest
             testResultsFiles: '$(Build.SourcesDirectory)\TestResults\*.trx'
             failTaskOnFailedTests: true
-        
-        # - task: PowerShell@2
-        #   displayName: 'Copy dockerfile to output directory'
-        #   inputs:
-        #     targetType: 'inline'
-        #     script: |
-        #       Copy-Item -Path $(Build.SourcesDirectory)\src\Deployment\Agent.Web\Dockerfile -Destination $(ob_outputDirectory)\src\Deployment\Agent.Web\Dockerfile
 
     - ${{ if parameters.isOfficialBuild }}:
       - stage: docker_agent_web
-        dependsOn: build
+        dependsOn:
+        - build_and_test
         jobs:
         - job: image_build
           displayName: "🔨 Build Docker Image for Agent.Web"
@@ -418,8 +493,9 @@ extends:
             # This task downloads the build artifacts from the previous stage.
           - task: DownloadPipelineArtifact@2
             inputs:
-              targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
+              targetPath: $(Build.SourcesDirectory)/dst/drop_build_main/Agent.Web
               artifact: drop_build_main
+              patterns: '**/Agent.Web/**'
 
           - task: 1ES.BuildContainerImage@1
             displayName: 'Build Docker image for Agent.Web'
@@ -433,12 +509,14 @@ extends:
             outputs:
             - output: containerImage
               image: sre-agent-web:$(Build.BuildNumber)
+              # Commented out remote image push
               remoteImage:
               - sreagentdev.azurecr.io/sre-agent-web:$(Build.BuildNumber)
               - sreagentprod.azurecr.io/sre-agent-web:$(Build.BuildNumber)
 
       - stage: docker_session_cli
-        dependsOn: build
+        dependsOn:
+        - build_and_test
         jobs:
         - job: image_build
           displayName: "🔨 Build Docker Image for Session.Cli"
@@ -450,8 +528,9 @@ extends:
             # This task downloads the build artifacts from the previous stage.
           - task: DownloadPipelineArtifact@2
             inputs:
-              targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
+              targetPath: $(Build.SourcesDirectory)/dst/drop_build_main/Session.Cli
               artifact: drop_build_main
+              patterns: '**/Session.Cli/**'
 
           - task: 1ES.BuildContainerImage@1
             displayName: 'Build Docker image for Session.Cli'
@@ -465,6 +544,7 @@ extends:
             outputs:
             - output: containerImage
               image: session-cli:$(Build.BuildNumber)
+              # Commented out remote image push
               remoteImage:
               - sreagentdev.azurecr.io/session-cli:$(Build.BuildNumber)
               - sreagentprod.azurecr.io/session-cli:$(Build.BuildNumber)
