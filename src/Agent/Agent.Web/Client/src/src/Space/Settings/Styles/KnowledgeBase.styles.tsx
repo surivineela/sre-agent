@@ -254,4 +254,8 @@ export const useKnowledgeBaseStyles = makeStyles({
     editDialogButton: {
         minWidth: '40px',
     },
+    dialogSurfaceOrg: {
+        maxWidth: '800px',
+        minWidth: '500px',
+    },
 });

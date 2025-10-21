@@ -54,10 +54,10 @@ const DataKnowledgeSpace: FC = () => {
             <div className={styles.tabsContainer}>
                 <TabList selectedValue={selectedTab} onTabSelect={onTabSelect} style={getTabListStyle(theme as Theme)}>
                     <Tab id="KnowledgeBase" value={TabValues.KnowledgeBase}>
-                        File Source
+                        {intl.formatMessage(SettingsTabResources.fileSource)}
                     </Tab>
                     <Tab id="DataConnectors" value={TabValues.DataConnectors}>
-                        Data Source
+                        {intl.formatMessage(SettingsTabResources.dataSource)}
                     </Tab>
                 </TabList>
             </div>

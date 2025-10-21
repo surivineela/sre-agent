@@ -1770,6 +1770,8 @@ export const SettingsTabResources = defineMessages({
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
     dataKnowledgeSpace: { defaultMessage: 'Data knowledge space', id: '5U04OG' },
+    fileSource: { defaultMessage: 'File Source', id: 'CJ6tzL' },
+    dataSource: { defaultMessage: 'Data Source', id: 'uudb6D' },
     subAgents: { defaultMessage: 'Sub-agents', id: 'VIn2J0' },
     mcpServers: { defaultMessage: 'MCP servers', id: 'K9q4Xw' },
     upgradeChannel: { defaultMessage: 'Preview Upgrade Channel', id: 'W6NO8g' },

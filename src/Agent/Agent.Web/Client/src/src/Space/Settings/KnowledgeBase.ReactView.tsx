@@ -143,7 +143,7 @@ const KnowledgeBase: FC = () => {
             </div>
 
             <Dialog open={isUploadModalOpen} onOpenChange={(_, data) => setIsUploadModalOpen(data.open)}>
-                <DialogSurface className={styles.dialogSurface}>
+                <DialogSurface className={styles.dialogSurfaceOrg}>
                     <DialogBody>
                         <DialogTitle>{intl.formatMessage(KnowledgeBaseResources.uploadFiles)}</DialogTitle>
                         <DialogContent className={styles.dialogContent}>
