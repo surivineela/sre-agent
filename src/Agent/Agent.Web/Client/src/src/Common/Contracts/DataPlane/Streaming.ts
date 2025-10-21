@@ -6,7 +6,7 @@ export type StreamingMessageType =
     | 'kubectl'
     | 'approval'
     | 'psql'
-    | 'taskupdate'
+    | 'deepinvestigation'
     | 'memorysearch'
     | 'todoplan'
     | null;

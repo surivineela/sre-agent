@@ -385,12 +385,13 @@ export const useChatBox = (
         const memorySearchResult = getSpecialMessageContentFromStreamingMessage<MemorySearchResult>(streamingMessage, 'memorysearch');
         const todoInfo = getSpecialMessageContentFromStreamingMessage<TodoInfo>(streamingMessage, 'todoplan');
         const psqlExecution = getSpecialMessageContentFromStreamingMessage<PsqlExecution>(streamingMessage, 'psql');
+        const agentTaskInfo = getSpecialMessageContentFromStreamingMessage<AgentTaskMetaData>(streamingMessage, 'deepinvestigation');
+
         const text =
             messageContent?.text && !approval && !azCliExecution && !kubectlExecution && !memorySearchResult && !psqlExecution && !todoInfo
                 ? messageContent.text
                 : '';
 
-        const agentTaskInfo = getSpecialMessageContentFromStreamingMessage<AgentTaskMetaData>(streamingMessage, 'taskupdate');
         const isImage = isImageStreamingMessageType(streamingMessage);
 
         if (approval) {
@@ -434,7 +435,11 @@ export const useChatBox = (
                 const isApproval = !!chatMessageContent.approval;
 
                 const metadata: Record<string, unknown> = {
-                    threadId: currentThreadIdRef.current || streamingMessage.additionalProperties?.threadId || threadId || userDefinedThreadIdRef.current,
+                    threadId:
+                        currentThreadIdRef.current ||
+                        streamingMessage.additionalProperties?.threadId ||
+                        threadId ||
+                        userDefinedThreadIdRef.current,
                     threadType: threadSource ?? 'unknown',
                     messageId: specialMessage.id,
                     status: specialMessage.status,
