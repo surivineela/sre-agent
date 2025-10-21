@@ -136,14 +136,11 @@ public static class TestHelpers
         builder.Services.AddSingleton(Mock.Of<IKustoPlugin>());
         builder.Services.AddSingleton(Mock.Of<ITimePlugin>());
 
-        builder.Services.AddSingleton<IContainerAppIcMPlugin, ContainerAppIcMPlugin>();
         // Also provide a mock for the Agent.Core IICMAPIClient used by first-party plugins
         builder.Services.AddSingleton(Mock.Of<Agent.Core.Services.IICMAPIClient>());
         builder.Services.AddSingleton<ICMWorkflowClient>();
         builder.Services.AddSingleton(Mock.Of<IICMAPIClient>());
         builder.Services
-
-            .AddTransient<RCAContainerAppIcMPluginDefinition>()
 
             .AddTransient<RCAContainerAppQuotaPluginDefinition>()
 

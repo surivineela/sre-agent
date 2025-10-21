@@ -122,7 +122,7 @@ public sealed class IncidentInvestigationTaskHandler(
                 logger.LogInternalInformation($"Successfully loaded {allAgents.Count} agents");
 
                 // Common tools
-                toolSubset.AddRange(["OneLinerToRCA", "GetASIPageForManagedCluster", "GetASIPageForContainerAppJob", "GetASIPageForManagedEnvironment", "GetASIPageForRevision", "PlotTimeSeriesData", "HandoffBack"]);
+                toolSubset.AddRange(["GetASIPageForManagedCluster", "GetASIPageForContainerAppJob", "GetASIPageForManagedEnvironment", "GetASIPageForRevision", "PlotTimeSeriesData", "HandoffBack"]);
                 logger.LogInternalInformation($"Complete tool subset: [{string.Join(", ", toolSubset.Distinct())}]");
             }
 

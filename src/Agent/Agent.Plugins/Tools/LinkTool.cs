@@ -24,7 +24,7 @@ namespace Agent.Plugins.Link.Tools
             _definition = (LinkToolDefinition)definition;
         }
 
-        public async Task<string> Run(Dictionary<string, string> args)
+        public async Task<string> Run(Dictionary<string, string> args, Guid? threadId = null)
         {
             if (_definition == null)
                 throw new InvalidOperationException("Tool definition was not set.");
@@ -39,16 +39,31 @@ namespace Agent.Plugins.Link.Tools
 
             foreach (System.Text.RegularExpressions.Match match in matches)
             {
-                string placeholder = match.Groups[0].Value;   // e.g. {{fromDate}}
-                string key = match.Groups[1].Value;           // e.g. fromDate
+                string placeholder = match.Groups[0].Value;   // e.g. {{fromDate}} or {{threadId}}
+                string key = match.Groups[1].Value;           // e.g. fromDate or threadId
+                string? valueToReplace = null;
 
-                if (!args.TryGetValue(key, out var rawValue))
+                // Special handling for threadId placeholder
+                if (key.Equals("threadId", StringComparison.OrdinalIgnoreCase))
+                {
+                    valueToReplace = threadId?.ToString();
+                }
+                // Regular argument handling
+                else if (args.TryGetValue(key, out var rawValue))
+                {
+                    valueToReplace = rawValue.Trim();
+                }
+                else
                 {
                     throw new ArgumentException($"Missing required argument: '{key}' for placeholder '{placeholder}'");
                 }
 
-                string encodedValue = Uri.EscapeDataString(rawValue.Trim());
-                result = result.Replace(placeholder, encodedValue);
+                // Replace placeholder with URL-encoded value if we have a value
+                if (valueToReplace != null)
+                {
+                    string encodedValue = Uri.EscapeDataString(valueToReplace);
+                    result = result.Replace(placeholder, encodedValue);
+                }
             }
 
             return await Task.FromResult(result);

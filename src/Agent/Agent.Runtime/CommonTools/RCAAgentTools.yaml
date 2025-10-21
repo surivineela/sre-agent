@@ -1,7 +1,6 @@
 name: rca_agent_tools
 
 tools:
-  - OneLinerToRCA
 
   - GetASIPageForManagedCluster
   - GetASIPageForContainerAppJob

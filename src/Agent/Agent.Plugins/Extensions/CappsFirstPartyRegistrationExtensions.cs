@@ -32,7 +32,6 @@ public static class CappsFirstPartyRegistrationExtensions
 
         // Register ACA First Party tools
         builder.Services
-            .AddTransient<RCAContainerAppIcMPluginDefinition>()
             .AddTransient<RCAContainerAppQuotaPluginDefinition>();
 
         var secretResolvedEnvConfig = new { };
@@ -40,7 +39,6 @@ public static class CappsFirstPartyRegistrationExtensions
 
         builder.Services.AddSingleton<ITeamsClient, TeamsClient>();
         builder.Services.AddSingleton<TeamsClientSettings>();
-        builder.Services.AddSingleton<IContainerAppIcMPlugin, ContainerAppIcMPlugin>();
 
         builder.Services.AddOptionsWithValidateOnStart<Agent.Core.Configuration.ICMWorkflowSettings>()
             .BindConfiguration("AppSettings:Core:External:ICMWorkflows")
