@@ -128,12 +128,15 @@ public class ExtendedAgentService : IExtendedAgentService
             }
 
             var extendedAgents = await _extendedAgentRepository.GetAgentsAsync(limit: 1000);
+            var loadedAgentNames = new List<string>();
             foreach (var extendedAgent in extendedAgents)
             {
                 try
                 {
                     var concreteAgent = DocumentToRuntimeMapper.ToRuntimeAgent(extendedAgent);
                     _agentFactory.LoadAgentFromDescriptor(concreteAgent, true);
+                    _logger.LogInternalInformation("Loaded extended agent from Cosmos: {AgentName}", extendedAgent.Name);
+                    loadedAgentNames.Add(extendedAgent.Name);
                 }
                 catch (Exception ex)
                 {
@@ -141,6 +144,7 @@ public class ExtendedAgentService : IExtendedAgentService
                 }
             }
             _agentFactory.UpdateHandoffs();
+            _logger.LogInternalInformation("Completed loading extended agents from Cosmos: {AgentNames}", string.Join(", ", loadedAgentNames));
             // load tools stored in Cosmos
         }
         catch (Exception ex)
@@ -285,12 +289,15 @@ public class ExtendedAgentService : IExtendedAgentService
         try
         {
             var extendedAgents = await _extendedAgentRepository.GetAgentsAsync(limit: 1000);
+            var loadedAgentNames = new List<string>();
             foreach (var extendedAgent in extendedAgents)
             {
                 try
                 {
                     var concreteAgent = DocumentToRuntimeMapper.ToRuntimeAgent(extendedAgent);
                     _agentFactory.LoadAgentFromDescriptor(concreteAgent, true);
+                    _logger.LogInternalInformation("Loaded extended agent from Cosmos: {AgentName}", extendedAgent.Name);
+                    loadedAgentNames.Add(extendedAgent.Name);
                 }
                 catch (Exception ex)
                 {
@@ -299,6 +306,7 @@ public class ExtendedAgentService : IExtendedAgentService
             }
 
             // load tools stored in Cosmos
+            _logger.LogInternalInformation("Completed loading extended agents from Cosmos: {AgentNames}", string.Join(", ", loadedAgentNames));
         }
         catch (Exception ex)
         {

@@ -77,6 +77,7 @@ public class ExtendedAgentController : ControllerBase
     {
         try
         {
+            _logger.LogInternalInformation("ApplyAgentConfiguration: Received apply request");
             // Parse agent section
             var deserializer = new DeserializerBuilder()
                 .WithNamingConvention(UnderscoredNamingConvention.Instance)
@@ -92,6 +93,7 @@ public class ExtendedAgentController : ControllerBase
 
             if (generic == null || string.IsNullOrEmpty(generic.Kind))
             {
+                _logger.LogInternalWarning("ApplyAgentConfiguration: Missing kind on resource");
                 return BadRequest(new ExtendedAgentErrorResponse
                 {
                     ErrorCode = "VALIDATION_FAILED",
@@ -144,6 +146,9 @@ public class ExtendedAgentController : ControllerBase
                 }
             }
 
+            var resourceKind = generic.Kind ?? "unknown";
+            _logger.LogInternalInformation("ApplyAgentConfiguration: Processing resource kind {Kind}", resourceKind);
+
             var result = new ExtendedAgentApply();
 
             // Handle different resource types
@@ -154,6 +159,7 @@ public class ExtendedAgentController : ControllerBase
                     var structureValidationErrors = _extendedAgentService.ValidateYamlStructure(yamlDict);
                     if (structureValidationErrors.Count > 0)
                     {
+                        _logger.LogInternalWarning("ApplyAgentConfiguration: YAML structure validation failed for agent");
                         var errorDetails = structureValidationErrors.Select(error =>
                             new ExtendedAgentErrorField("yaml", error)).ToList();
 
@@ -188,6 +194,8 @@ public class ExtendedAgentController : ControllerBase
                         Spec = (YamlAgentDescriptor)agentDescriptor
                     };
 
+                    var agentName = agentDeployment.Spec?.Name ?? "unknown";
+                    _logger.LogInternalInformation("ApplyAgentConfiguration: Applying agent {AgentName}", agentName);
                     await _resourceDeploymentService.ApplyAsync(agentDeployment);
                     result = new ExtendedAgentApply
                     {
@@ -197,11 +205,12 @@ public class ExtendedAgentController : ControllerBase
                         Timestamp = DateTime.UtcNow,
                         Details = new ExtendedAgentApplyDetails
                         {
-                            AgentName = agentDeployment.Spec.Name,
-                            ToolsCount = agentDeployment.Spec.Tools?.Count ?? 0,
-                            McpToolsCount = agentDeployment.Spec.McpTools?.Count ?? 0
+                            AgentName = agentDeployment.Spec?.Name ?? string.Empty,
+                            ToolsCount = agentDeployment.Spec?.Tools?.Count ?? 0,
+                            McpToolsCount = agentDeployment.Spec?.McpTools?.Count ?? 0
                         }
                     };
+                    _logger.LogInternalInformation("ApplyAgentConfiguration: Agent {AgentName} apply accepted", agentName);
                     break;
 
                 case "ToolList":
@@ -215,22 +224,32 @@ public class ExtendedAgentController : ControllerBase
                     switch (resource)
                     {
                         case ToolsDeploymentModel tool:
+                            var toolCount = tool.Spec?.Tools?.Count ?? 0;
+                            _logger.LogInternalInformation("ApplyAgentConfiguration: Applying tool list with {Count} tools", toolCount);
                             await _resourceDeploymentService.ApplyAsync(tool);
                             break;
 
                         case ConnectorsDeploymentModel connector:
+                            var connectorCount = connector.Spec?.Connectors?.Count ?? 0;
+                            _logger.LogInternalInformation("ApplyAgentConfiguration: Applying connector list with {Count} connectors", connectorCount);
                             await _resourceDeploymentService.ApplyAsync(connector);
                             break;
 
                         case PluginConfigDeploymentModel pluginConfig:
+                            var pluginName = pluginConfig.Spec?.PluginName ?? "unknown";
+                            _logger.LogInternalInformation("ApplyAgentConfiguration: Applying plugin configuration for {PluginName}", pluginName);
                             await _resourceDeploymentService.ApplyAsync(pluginConfig);
                             break;
 
                         case CommonToolsListDeploymentModel commonToolsList:
+                            var commonToolsCount = commonToolsList.Spec?.CommonToolsLists?.Count ?? 0;
+                            _logger.LogInternalInformation("ApplyAgentConfiguration: Applying common tools list with {Count} entries", commonToolsCount);
                             await _resourceDeploymentService.ApplyAsync(commonToolsList);
                             break;
 
                         case CommonPromptDeploymentModel commonPrompt:
+                            var promptCount = commonPrompt.Spec?.CommonPrompts?.Count ?? 0;
+                            _logger.LogInternalInformation("ApplyAgentConfiguration: Applying common prompt list with {Count} prompts", promptCount);
                             await _resourceDeploymentService.ApplyAsync(commonPrompt);
                             break;
 
@@ -244,15 +263,18 @@ public class ExtendedAgentController : ControllerBase
             }
 
             var webResponse = ExtendedAgentApplyResponse.FromRuntime(result);
+            _logger.LogInternalInformation("ApplyAgentConfiguration: Returning Accepted for kind {Kind}", resourceKind);
 
             return Accepted(webResponse);
         }
         catch (ValidationException ex)
         {
+            _logger.LogInternalError(ex, "ApplyAgentConfiguration: Validation exception encountered");
             return BadRequest(new { error = ex.Message });
         }
         catch (Exception ex)
         {
+            _logger.LogInternalError(ex, "ApplyAgentConfiguration: Unexpected exception encountered");
             return StatusCode(500, new { error = ex.Message });
         }
     }

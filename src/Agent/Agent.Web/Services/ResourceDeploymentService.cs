@@ -10,6 +10,7 @@ using Agent.Runtime.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Web.Services;
 
@@ -45,6 +46,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
     private readonly IPluginSettingsTypeRegistry _pluginSettingsTypeRegistry;
     private readonly IReloadableSettingsStore _settingsStore;
     private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<ResourceDeploymentService> _logger;
 
     public ResourceDeploymentService(
         IYamlValidatorFactory validatorFactory,
@@ -53,7 +55,8 @@ public class ResourceDeploymentService : IResourceDeploymentService
         IExtendedAgentService extendedAgentService,
         IReloadableSettingsStore settingsStore,
         IPluginSettingsTypeRegistry pluginSettingsTypeRegistry,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        ILogger<ResourceDeploymentService> logger)
     {
         _validatorFactory = validatorFactory;
         _translatorFactory = translatorFactory;
@@ -62,85 +65,112 @@ public class ResourceDeploymentService : IResourceDeploymentService
         _pluginSettingsTypeRegistry = pluginSettingsTypeRegistry;
         _settingsStore = settingsStore;
         _serviceProvider = serviceProvider;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     }
 
     public async Task<IActionResult> ApplyAsync(AgentDeploymentModel spec)
     {
+        if (spec == null)
+        {
+            throw new ArgumentNullException(nameof(spec));
+        }
+
+        if (spec.Spec == null)
+        {
+            throw new ArgumentNullException(nameof(spec.Spec));
+        }
+
+        var agentSpec = spec.Spec;
+        var agentName = agentSpec.Name;
+        if (string.IsNullOrWhiteSpace(agentName))
+        {
+            throw new ArgumentException("Agent name cannot be null or empty", nameof(agentSpec.Name));
+        }
+
         var operationId = Guid.NewGuid().ToString();
-        var currentTime = DateTime.UtcNow;
-        var currentTimeIso = currentTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+        _logger.LogInternalInformation("Starting agent apply for {AgentName} with operation id {OperationId}", agentName, operationId);
 
-        // Check if the agent already exists to determine CreatedAt value
-        var existingAgent = await _repository.GetAgentByNameAsync(spec.Spec.Name);
-
-        // Update metadata with timestamps
-        var metadata = spec.Metadata ?? new YamlMetadata();
-        metadata.UpdatedAt = currentTime;
-
-        // Only set CreatedAt if this is a new agent
-        if (existingAgent == null)
+        try
         {
-            metadata.CreatedAt = currentTime;
-        }
-        else
-        {
-            // Preserve existing CreatedAt timestamp
-            metadata.CreatedAt = existingAgent.Metadata?.CreatedAt ?? currentTime;
-        }
+            var currentTime = DateTime.UtcNow;
 
-        // Map agent
-        var agentDoc = new AgentDocumentModel(
-            Name: spec.Spec.Name,
-            Id: spec.Spec.Name,
-            Instructions: spec.Spec.Instructions,
-            HandoffDescription: spec.Spec.HandoffDescription,
-            Handoffs: spec.Spec.Handoffs,
-            Tools: spec.Spec.Tools,
-            Connectors: spec.Spec.Connectors,
-            AllowParallelToolCalls: spec.Spec.AllowParallelToolCalls,
-            AgentsAsTools: spec.Spec.AgentsAsTools,
-            MaxReflectionCount: spec.Spec.MaxReflectionCount,
-            CriticPromptPath: spec.Spec.CriticPromptPath,
-            CriticOnHandOff: spec.Spec.CriticOnHandOff,
-            CustomReflectionNote: spec.Spec.CustomReflectionNote,
-            CommonPrompts: spec.Spec.CommonPrompts,
-            CommonTools: spec.Spec.CommonTools,
-            DisableDocumentRetrieval: spec.Spec.DisableDocumentRetrieval,
-            EnableHandoffPromptOverride: spec.Spec.EnableHandoffPromptOverride,
-            HandoffPromptOverride: spec.Spec.HandoffPromptOverride,
-            UserPromptOverride: spec.Spec.UserPromptOverride,
-            InstructionsOverride: spec.Spec.InstructionsOverride,
-            Temperature: spec.Spec.Temperature,
-            // Workflow agent properties
-            AgentType: spec.Spec.AgentType,
-            ParameterExtractionAgent: spec.Spec.ParameterExtractionAgent,
-            OrchestrationStartAgents: spec.Spec.OrchestrationStartAgents,
-            ResultSummarizationPrompt: spec.Spec.ResultSummarizationPrompt,
-            NextAgentMappings: spec.Spec.NextAgentMappings,
-            OutputType: spec.Spec.OutputType,
-            Metadata: metadata,
-            OperationId: operationId
-        );
+            // Check if the agent already exists to determine CreatedAt value
+            var existingAgent = await _repository.GetAgentByNameAsync(agentName);
 
-        // Persist agent to Cosmos (tools and connectors are already referenced by name in the agent document)
-        await _repository.UpdateAgentAsync(agentDoc, operationId);
-        await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
-        var result = new ExtendedAgentApply
-        {
-            Status = ExtendedAgentApplyStatus.Accepted,
-            Message = "Agent and tools deployment initiated",
-            OperationId = "",
-            Timestamp = DateTime.UtcNow,
-            Details = new ExtendedAgentApplyDetails
+            // Update metadata with timestamps
+            var metadata = spec.Metadata ?? new YamlMetadata();
+            metadata.UpdatedAt = currentTime;
+
+            // Only set CreatedAt if this is a new agent
+            if (existingAgent == null)
             {
-                AgentName = spec.Spec.Name,
-                ToolsCount = spec.Spec.Tools?.Count ?? 0,
-                ConnectorsCount = spec.Spec.Connectors?.Count ?? 0
+                metadata.CreatedAt = currentTime;
             }
-        };
+            else
+            {
+                // Preserve existing CreatedAt timestamp
+                metadata.CreatedAt = existingAgent.Metadata?.CreatedAt ?? currentTime;
+            }
 
-        return new OkObjectResult(result);
+            // Map agent
+            var agentDoc = new AgentDocumentModel(
+                Name: agentName,
+                Id: agentName,
+                Instructions: agentSpec.Instructions ?? string.Empty,
+                HandoffDescription: agentSpec.HandoffDescription,
+                Handoffs: agentSpec.Handoffs,
+                Tools: agentSpec.Tools,
+                Connectors: agentSpec.Connectors,
+                AllowParallelToolCalls: agentSpec.AllowParallelToolCalls,
+                AgentsAsTools: agentSpec.AgentsAsTools,
+                MaxReflectionCount: agentSpec.MaxReflectionCount,
+                CriticPromptPath: agentSpec.CriticPromptPath,
+                CriticOnHandOff: agentSpec.CriticOnHandOff,
+                CustomReflectionNote: agentSpec.CustomReflectionNote,
+                CommonPrompts: agentSpec.CommonPrompts,
+                CommonTools: agentSpec.CommonTools,
+                DisableDocumentRetrieval: agentSpec.DisableDocumentRetrieval,
+                EnableHandoffPromptOverride: agentSpec.EnableHandoffPromptOverride,
+                HandoffPromptOverride: agentSpec.HandoffPromptOverride,
+                UserPromptOverride: agentSpec.UserPromptOverride,
+                InstructionsOverride: agentSpec.InstructionsOverride,
+                Temperature: agentSpec.Temperature,
+                // Workflow agent properties
+                AgentType: agentSpec.AgentType,
+                ParameterExtractionAgent: agentSpec.ParameterExtractionAgent,
+                OrchestrationStartAgents: agentSpec.OrchestrationStartAgents,
+                ResultSummarizationPrompt: agentSpec.ResultSummarizationPrompt,
+                NextAgentMappings: agentSpec.NextAgentMappings,
+                OutputType: agentSpec.OutputType,
+                Metadata: metadata,
+                OperationId: operationId
+            );
+
+            // Persist agent to Cosmos (tools and connectors are already referenced by name in the agent document)
+            await _repository.UpdateAgentAsync(agentDoc, operationId);
+            await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
+            var result = new ExtendedAgentApply
+            {
+                Status = ExtendedAgentApplyStatus.Accepted,
+                Message = "Agent and tools deployment initiated",
+                OperationId = "",
+                Timestamp = DateTime.UtcNow,
+                Details = new ExtendedAgentApplyDetails
+                {
+                    AgentName = agentName,
+                    ToolsCount = agentSpec.Tools?.Count ?? 0,
+                    ConnectorsCount = agentSpec.Connectors?.Count ?? 0
+                }
+            };
+            _logger.LogInternalInformation("Agent apply succeeded for {AgentName} with operation id {OperationId}", agentName, operationId);
+            return new OkObjectResult(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Agent apply failed for {AgentName} with operation id {OperationId}", agentName, operationId);
+            throw;
+        }
     }
 
     public async Task<IActionResult> ApplyAsync(ConnectorsDeploymentModel spec)
