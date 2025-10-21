@@ -16,8 +16,8 @@
 
 ### Check deployment status of agent site
 
-1. https://github.com/serverless-paas-balam/sreagent-infra/actions/workflows/build-deploy.yml
-2. "Deploy to Cluster" step -> build number appended to the image (will align with build pipeline) -> what region it reached (Ex: australiaeast)
+- Build pipeline (correlate version w/ commit): https://dev.azure.com/msazure/One/_build?definitionId=421313&_a=summary
+- Deployments ASI dashboard: https://asi.azure.ms/services/SRE%20Agent/pages/SRE%20Agent%20Overview
 
 ### Portal (PaasServerless extension) entrypoint
 

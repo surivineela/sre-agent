@@ -8,13 +8,10 @@ import { AgentIFrameView } from './Views/Agent/AgentIFrameView';
 import { HomeView } from './Views/Home/HomeView';
 import { LandingPage } from './Views/LandingPage/LandingPage';
 import { Navbar } from './Views/Navbar/Navbar';
+import { NotificationToastContainer } from './Views/Notifications/NotificationToastContainer';
 
 // TODOs:
 // - Authentication (Entra, Graph, ARM/Graph/SreAgent/AppInsights tokens)
-// - Telemetry & misc portal infra for agent iframe
-// - Notifications + notification center (Fluent Toasts recommends having one)
-// - Feature flag infra
-// - Privacy/terms/trademarks links
 
 // Routing:
 // - Landing page for signed-out users
@@ -45,6 +42,8 @@ const PortalLayout = () => {
                 <meta name="description" content={siteTitle} />
             </Helmet>
 
+            <NotificationToastContainer />
+
             <main style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
                 <Navbar />
 
@@ -70,5 +69,29 @@ const router = createBrowserRouter([
 ]);
 
 export const SreAgentPortal = () => {
+    useEffect(() => {
+        const logSiteVersion = () => {
+            const version = import.meta.env.SRE_AGENT_PORTAL_VERSION;
+            if (version) {
+                console.log(`
+                    ╔═════════════════════════════════════════════╗
+                       🤖🌀 SRE Agent Portal Version: ${version}
+                    ╚═════════════════════════════════════════════╝
+                `);
+                /*telemetry.log({
+                    action: 'AgentSiteVersion',
+                    actionModifier: 'info',
+                    data: { version },
+                });*/
+            }
+        };
+
+        // Log initial and every 60 minutes (for long-running sessions)
+        logSiteVersion();
+        const interval = setInterval(logSiteVersion, 60 * 60 * 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
     return <RouterProvider router={router} />;
 };

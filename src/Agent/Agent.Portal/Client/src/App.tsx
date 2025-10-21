@@ -1,4 +1,5 @@
 import { FluentProvider, webDarkTheme, webLightTheme } from '@fluentui/react-components';
+import { NotificationProvider } from './Common/Contexts/NotificationContext';
 import { useUserPreferences } from './Common/Contexts/UserPreferencesContext';
 import { SreAgentPortal } from './SreAgentPortal';
 import { IntlProvider } from './Strings/Intl/IntlProvider';
@@ -11,7 +12,9 @@ const App = () => {
     return (
         <IntlProvider locale={locale}>
             <FluentProvider theme={resolvedTheme === 'dark' ? webDarkTheme : webLightTheme}>
-                <SreAgentPortal />
+                <NotificationProvider>
+                    <SreAgentPortal />
+                </NotificationProvider>
             </FluentProvider>
         </IntlProvider>
     );

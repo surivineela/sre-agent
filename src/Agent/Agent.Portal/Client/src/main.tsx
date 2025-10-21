@@ -14,11 +14,6 @@ if (!rootElement) {
     throw new Error('Root element not found');
 }
 
-void msalInstance.handleRedirectPromise().catch(error => {
-    // Surface redirect issues during development without breaking rendering.
-    console.error('MSAL redirect handling failed', error);
-});
-
 createRoot(rootElement).render(
     <StrictMode>
         <HelmetProvider>

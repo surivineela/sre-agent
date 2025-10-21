@@ -47,6 +47,13 @@
 - **`UserPreferencesContext`** – Context provider wrapping `useUserPreferences` for app-wide access.
 - Storage key: `sre-agent-portal-preferences`
 
+## Notifications
+
+- **`NotificationContext`** – Global notification system with support for in-progress, success, error, warning, and info states.
+- **`useNotifications()`** – Hook providing explicit API (`start/succeed/fail`), one-off notifications (`info/warning/error`), Promise tracking, and polling support.
+- **UI Components** – Navbar bell icon with badge/spinner, slide-out drawer with history, and auto-dismissing toasts at top-right.
+- **Full documentation**: See `docs/NOTIFICATIONS.md` for usage patterns and examples.
+
 ## Related Artifacts
 
 - Shared localization config lives in `Agent.Web/Client/src/Strings/LocProject.json` (includes portal extraction paths).

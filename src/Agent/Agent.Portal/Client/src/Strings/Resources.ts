@@ -9,6 +9,7 @@ export const PortalResources = defineMessages({
     signOut: { defaultMessage: 'Sign out', id: 'xXbJso' },
     signInWithDifferentAccount: { defaultMessage: 'Sign in with a different account', id: 'oHGFwy' },
     signIn: { defaultMessage: 'Sign in', id: 'SQJto2' },
+    close: { defaultMessage: 'Close', id: 'rbrahO' },
     createYourFirstAgent: { defaultMessage: 'Create your first Azure SRE Agent', id: 'H/i1A+' },
     createYourFirstAgentSubtext: {
         defaultMessage:
@@ -34,4 +35,34 @@ export const PortalResources = defineMessages({
     },
     tryAzureForFree: { defaultMessage: 'Try Azure for free', id: 'wCtBb6' },
     exploreAgentSkills: { defaultMessage: 'Explore agent skills', id: 'i50Kb0' },
+    privacyAndCookies: { defaultMessage: 'Privacy & cookies', id: 'DdnNXo' },
+    termsAndConditions: { defaultMessage: 'Terms & conditions', id: 'bPyOFk' },
+    trademarks: { defaultMessage: 'Trademarks', id: 'I6cq17' },
+    notifications: { defaultMessage: 'Notifications', id: 'NAidKb' },
+    dismissAll: { defaultMessage: 'Dismiss all', id: 'eHNXXp' },
+    dismissCompleted: { defaultMessage: 'Dismiss completed', id: 'P/DTRU' },
+    noNotifications: { defaultMessage: 'No notifications', id: 'fpexn2' },
+    noNotificationsDescription: {
+        defaultMessage: 'Notifications will appear here when actions are performed',
+        id: 'W4H4Z9',
+    },
+    dismiss: { defaultMessage: 'Dismiss', id: 'TDaF6J' },
+    justNow: { defaultMessage: 'Just now', id: 'bxv59V' },
+    secondsAgo: {
+        defaultMessage: '{count, plural, one {# second ago} other {# seconds ago}}',
+        id: 'sYoT7W',
+    },
+    minutesAgo: {
+        defaultMessage: '{count, plural, one {# minute ago} other {# minutes ago}}',
+        id: 'aLBTVj',
+    },
+    hoursAgo: {
+        defaultMessage: '{count, plural, one {# hour ago} other {# hours ago}}',
+        id: 'LupnQU',
+    },
+    daysAgo: {
+        defaultMessage: '{count, plural, one {# day ago} other {# days ago}}',
+        id: '8OCpdQ',
+    },
+    requestError: { defaultMessage: 'Request error', id: 'UQUIP7' },
 });

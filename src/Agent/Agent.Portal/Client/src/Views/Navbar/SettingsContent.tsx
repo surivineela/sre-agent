@@ -1,6 +1,7 @@
-import { Combobox, Label, makeStyles, Option, tokens } from '@fluentui/react-components';
+import { Combobox, Label, Link, makeStyles, Option, tokens } from '@fluentui/react-components';
 import { useIntl } from 'react-intl';
 import { ImageRadioGroup, ImageRadioOption } from '../../Common/Components/ImageRadioGroup';
+import { LearnMoreLinks } from '../../Common/Constants/Links';
 import { useUserPreferences } from '../../Common/Contexts/UserPreferencesContext';
 import { PortalResources } from '../../Strings/Resources';
 
@@ -18,6 +19,25 @@ const useStyles = makeStyles({
     },
     combobox: {
         width: '100%',
+    },
+    footer: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalXS,
+        marginTop: tokens.spacingVerticalL,
+        paddingTop: tokens.spacingVerticalL,
+        borderTopWidth: '1px',
+        borderTopStyle: 'solid',
+        borderTopColor: tokens.colorNeutralStroke2,
+    },
+    footerLinks: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: tokens.spacingHorizontalM,
+        alignItems: 'center',
+    },
+    footerLink: {
+        fontSize: tokens.fontSizeBase200,
     },
 });
 
@@ -115,6 +135,20 @@ export const SettingsContent = () => {
                         </Option>
                     ))}
                 </Combobox>
+            </div>
+
+            <div className={styles.footer}>
+                <div className={styles.footerLinks}>
+                    <Link className={styles.footerLink} href={LearnMoreLinks.privacyAndCookies} target="_blank" rel="noopener noreferrer">
+                        {intl.formatMessage(PortalResources.privacyAndCookies)}
+                    </Link>
+                    <Link className={styles.footerLink} href={LearnMoreLinks.termsAndConditions} target="_blank" rel="noopener noreferrer">
+                        {intl.formatMessage(PortalResources.termsAndConditions)}
+                    </Link>
+                    <Link className={styles.footerLink} href={LearnMoreLinks.trademarks} target="_blank" rel="noopener noreferrer">
+                        {intl.formatMessage(PortalResources.trademarks)}
+                    </Link>
+                </div>
             </div>
         </div>
     );
