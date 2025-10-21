@@ -649,9 +649,9 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                 title,
                 startDateTime,
                 severity,
-                String.Empty,
-                String.Empty,
-                String.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
                 InvestigationStatus.InProgress)
         );
 
@@ -799,7 +799,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                 title,
                 startDateTime,
                 severity,
-                String.Empty,
+                string.Empty,
                 handlerDoc.IncidentFilterId,
                 handlerDoc.Id,
                 InvestigationStatus.InProgress)
@@ -1061,19 +1061,4 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
     }
 
     #endregion
-
-    private class InvestigationSummaries
-    {
-        public required string containerTitle { get; set; }
-        public required SummaryItem[] summaries { get; set; }
-    }
-
-    private class SummaryItem
-    {
-        public required string title { get; set; }
-        public required string summary { get; set; }
-        public bool isCollapsed { get; set; }
-        public required string status { get; set; }
-        public bool isFinal { get; set; }
-    }
 }

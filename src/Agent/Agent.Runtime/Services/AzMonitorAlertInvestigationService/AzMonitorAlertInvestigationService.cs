@@ -22,7 +22,6 @@ namespace Agent.Runtime.Services.AzMonitorAlertInvestigationService;
 public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationService
 {
     private readonly ILogger<AzMonitorAlertInvestigationService> _logger;
-    private readonly IAgentInboundCommunicationService _inboundCommunicationService;
     private readonly IThreadRepository _repository;
     private readonly ILogQueryService _logQueryService;
     private readonly IChatClient _chatClient;
@@ -37,14 +36,12 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
         IThreadRepository repository,
         ILogQueryService logQueryService,
         [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
-        IAgentInboundCommunicationService inboundCommunicationService,
         IAzureActivityLogsPlugin azureActivityLogsPlugin,
         IGraphDBPlugin graphDBPlugin,
         IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
         ILogger<AzMonitorAlertInvestigationService> logger)
     {
         _repository = repository;
-        _inboundCommunicationService = inboundCommunicationService;
         _logQueryService = logQueryService;
         _chatClient = chatClient;
         _azureActivityLogsPlugin = azureActivityLogsPlugin;

@@ -62,8 +62,8 @@ public class AzMonitorScanner(
             IncidentId = incident.Id,
             Title = incident.Name,
             Severity = incident.Properties.Essentials?.Severity ?? string.Empty,
-            IncidentFilter = filter,
-            IncidentHandler = null,
+            IncidentFilter = null, // GetIncidentFilterAndHandlerAsync will set this value
+            IncidentHandler = null, // GetIncidentFilterAndHandlerAsync will set this value
             CreatedTime = ParseDateTimeOffset(incident.Properties.Essentials?.StartDateTime),
             ImpactedService = string.Empty
         };

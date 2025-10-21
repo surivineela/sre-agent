@@ -472,11 +472,11 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     {
         var matchingFilters = filters
             .Where(filter =>
-                ((string.IsNullOrWhiteSpace(filter.ImpactedService)) || (filter.ImpactedService == incidentDetails.ImpactedServiceId || filter.ImpactedService == incidentDetails.ImpactedServiceName))
+                (string.IsNullOrWhiteSpace(filter.ImpactedService) || filter.ImpactedService == incidentDetails.ImpactedServiceId || filter.ImpactedService == incidentDetails.ImpactedServiceName)
                 &&
-                ((string.IsNullOrWhiteSpace(filter.Priority)) || IsPriorityMatch(filter.Priority, incidentDetails.Priority))
+                (string.IsNullOrWhiteSpace(filter.Priority) || IsPriorityMatch(filter.Priority, incidentDetails.Priority))
                 &&
-                ((string.IsNullOrWhiteSpace(filter.IncidentType)) || (filter.IncidentType == incidentDetails.IncidentType))
+                (string.IsNullOrWhiteSpace(filter.IncidentType) || (filter.IncidentType == incidentDetails.IncidentType))
                 &&
                 (string.IsNullOrWhiteSpace(filter.TitleContains) || (incidentDetails.Title?.Contains(filter.TitleContains, StringComparison.OrdinalIgnoreCase) ?? false))
             )
@@ -512,9 +512,9 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 Name: request?.IncidentHandler?.Name ?? handlerId,
                 Description: request?.IncidentHandler?.Description ?? "",
                 IncidentFilterId: filterId,
-                IncidentProcessingGuide: request?.IncidentHandler?.IncidentProcessingGuide ?? new List<string>(),
-                Incidents: request?.IncidentHandler?.Incidents ?? new List<string>(),
-                Tools: request?.IncidentHandler?.Tools ?? new List<string>(),
+                IncidentProcessingGuide: request?.IncidentHandler?.IncidentProcessingGuide ?? [],
+                Incidents: request?.IncidentHandler?.Incidents ?? [],
+                Tools: request?.IncidentHandler?.Tools ?? [],
                 CustomInstructions: request?.IncidentHandler?.CustomInstructions ?? "",
                 CreatedAt: DateTime.UtcNow
             );
@@ -525,7 +525,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         {
             case (IncidentFilterDocumentPayload _, IncidentHandlerDocumentPayload _):
                 _logger.LogInternalInformation("[BaseIncidentService] GetIncidentFilterAndHandlerAsync: Request has IncidentHandler and IncidentFilter, Check if incident matches given filter and return handler from request if matches");
-                filters = new List<TIncidentFilterDocument>() { defaultFilter };
+                filters = [defaultFilter];
                 matchingFilter = GetIncidentFilter(filters, incidentDetails);
                 return (matchingFilter, defaultHandler);
 
@@ -535,7 +535,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
 
             case (IncidentFilterDocumentPayload _, null):
                 _logger.LogInternalInformation("[BaseIncidentService] GetIncidentFilterAndHandlerAsync: Request only has IncidentFilter, no IncidentHandler, Check if incident matches given filter");
-                filters = new List<TIncidentFilterDocument>() { defaultFilter };
+                filters = [defaultFilter];
                 matchingFilter = GetIncidentFilter(filters, incidentDetails);
                 return (matchingFilter, null);
 
@@ -613,8 +613,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 {
                     Name = dynamicAgentName,
                     Instructions = systemPrompt,
-                    Tools = incidentHandler.Tools ?? new List<string>(),
-                    Handoffs = new List<string>(), // Can be extended if needed
+                    Tools = incidentHandler.Tools ?? [],
+                    Handoffs = [], // Can be extended if needed
                     AllowParallelToolCalls = false,
                     Temperature = 0.7f
                 };

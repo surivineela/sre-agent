@@ -78,18 +78,16 @@ namespace Agent.Runtime.Services
 
             var fieldOptions = new List<IncidentFilterFieldOption>()
             {
-                new IncidentFilterFieldOption
-                {
+                new() {
                     FieldName = nameof(IncidentFilterDocumentPayload.AgentMode),
                     DisplayName = "Agent Mode",
                     Options = new List<KeyValuePair<string, string>>
                     {
-                        new KeyValuePair<string, string>(AgentModes.Review, AgentModes.Review),
-                        new KeyValuePair<string, string>(AgentModes.Autonomous, AgentModes.Autonomous),
+                        new(AgentModes.Review, AgentModes.Review),
+                        new(AgentModes.Autonomous, AgentModes.Autonomous),
                     }
                 },
-                new IncidentFilterFieldOption
-                {
+                new() {
                     FieldName = nameof(IncidentFilterDocumentPayload.DeepInvestigationEnabled),
                     DisplayName = "Enable Deep Investigation",
                     FieldInputType = IncidentFilterInputType.Dropdown,

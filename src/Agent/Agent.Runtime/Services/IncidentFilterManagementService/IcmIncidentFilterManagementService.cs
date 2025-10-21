@@ -64,11 +64,11 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
 
         var priorityOptions = new List<KeyValuePair<string, string>>
                 {
-                    new KeyValuePair<string, string>("1", "1"),
-                    new KeyValuePair<string, string>("2", "2"),
-                    new KeyValuePair<string, string>("25", "25"),
-                    new KeyValuePair<string, string>("3", "3"),
-                    new KeyValuePair<string, string>("4", "4")
+                    new("1", "1"),
+                    new("2", "2"),
+                    new("25", "25"),
+                    new("3", "3"),
+                    new("4", "4")
                 };
         result.Add(new IncidentFilterFieldOption
         {

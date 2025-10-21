@@ -4,7 +4,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
-using Agent.Core.DataConnectors;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.ServiceNow;
 using Agent.Core.Services;
@@ -16,7 +15,6 @@ using Agent.Graph.Services;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents.Scanner;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.SREAgent.Incidents.IcM.Model;
 using Microsoft.SREAgent.Incidents.IcM.Service;
@@ -24,6 +22,7 @@ using IICMAPIClient = Agent.Core.Services.IICMAPIClient;
 
 
 namespace Agent.Runtime.Services;
+
 public static class IncidentServiceCollectionExtensions
 {
     private static IServiceCollection AddDefaultIncidentApiClientsAndScanner(this IServiceCollection services)
@@ -67,7 +66,6 @@ public static class IncidentServiceCollectionExtensions
 
             case IncidentManagementType.Icm:
                 services.AddICMClientRelatedServices();
-
                 services.AddSingleton<IIncidentScanner, IcmScanner>();
 
                 services.AddSingleton<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>, IcmIncidentHandlingService>();
@@ -97,7 +95,7 @@ public static class IncidentServiceCollectionExtensions
         services.AddSingleton<IIncidentHandlerManagementService, IncidentHandlerManagementService>();
         services.AddSingleton<IInstructionGenerationService, InstructionGenerationService>();
         services.AddSingleton<IIncidentStatusMetricsService, IncidentStatusMetricsService>();
-        services.AddSingleton<Agent.Core.Services.IPublishedToolsService, Agent.Core.Services.PublishedToolsService>();
+        services.AddSingleton<IPublishedToolsService, PublishedToolsService>();
 
         services.AddSingleton<IIncidentFilterManagementServiceFactory, IncidentFilterManagementServiceFactory>();
         services.AddSingleton<IIncidentManagementServiceFactory, IncidentManagementServiceFactory>();
@@ -133,7 +131,7 @@ public static class IncidentServiceCollectionExtensions
             agentSpaceEndpoint = string.Empty;
             scope = incidentManagementSettings.ConnectionName ?? string.Empty;
         }
-        
+
         var icmAPISDKApiOptions = new ICMApiOptions()
         {
             ApiEndpoint = apiEndpoint
@@ -160,7 +158,7 @@ public static class IncidentServiceCollectionExtensions
         }
         else if (ICMAPIAgentSpaceTokenAuthService.IsAgentSpaceProxyConfigured(icmAgentSpaceAuthOptions))
         {
-            services.AddSingleton<ICMAgentSpaceAuthOptions>(icmAgentSpaceAuthOptions);
+            services.AddSingleton(icmAgentSpaceAuthOptions);
             services.AddICMAPIServicesWithTokenAuth<ICMAPIAgentSpaceTokenAuthService>(icmAPISDKApiOptions);
         }
         else if (ICMAPICertAuthService.IsCertAuthConfigured(icmAppsettings))

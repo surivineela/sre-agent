@@ -67,11 +67,10 @@ namespace Agent.Runtime.Services
                 var configuredPlatform = _incidentManagementSettings?.Type.ToString() ?? string.Empty;
 
                 // Filter out incident handler tools from general tool selection, except for the configured platform
-                availableTools = availableTools.Where(tool =>
+                availableTools = [.. availableTools.Where(tool =>
                     !tool.IsIncidentHandlerTool ||
                     (tool.IsIncidentHandlerTool &&
-                     tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))
-                    .ToList();
+                     tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))];
 
                 _logger.LogInternalInformation("FilterTools: Filtered tools for platform {Platform}. Remaining: {FilteredCount}",
                     configuredPlatform, availableTools.Count);
@@ -337,19 +336,18 @@ namespace Agent.Runtime.Services
                 var configuredPlatform = _incidentManagementSettings?.Type.ToString() ?? string.Empty;
 
                 // Filter out incident handler tools from general tool selection, except for the configured platform
-                availableTools = availableTools.Where(tool =>
+                availableTools = [.. availableTools.Where(tool =>
                     !tool.IsIncidentHandlerTool ||
                     (tool.IsIncidentHandlerTool &&
-                     tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))
-                    .ToList();
+                     tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))];
 
                 _logger.LogInternalInformation("GetAvailableToolsPrompt: Filtered tools for platform {Platform}. Remaining: {FilteredCount}",
                     configuredPlatform, availableTools.Count);
             }
 
-            if (request.Tools != null && request.Tools.Any())
+            if (request.Tools != null && request.Tools.Count != 0)
             {
-                availableTools = availableTools.Where(tool => request.Tools.Contains(tool.Name, StringComparer.OrdinalIgnoreCase)).ToList();
+                availableTools = [.. availableTools.Where(tool => request.Tools.Contains(tool.Name, StringComparer.OrdinalIgnoreCase))];
                 _logger.LogInternalInformation("GetAvailableToolsPrompt: Filtered available tools to {Count} based on request.Tools for AgentName: {AgentName}", availableTools.Count, request.AgentName);
             }
 

@@ -51,11 +51,11 @@ public class AzMonitorIncidentFilterManagementService : IncidentFilterManagement
 
         var priorityOptions = new List<KeyValuePair<string, string>>
             {
-                new KeyValuePair<string, string>("Sev0", "Sev0"),
-                new KeyValuePair<string, string>("Sev1", "Sev1"),
-                new KeyValuePair<string, string>("Sev2", "Sev2"),
-                new KeyValuePair<string, string>("Sev3", "Sev3"),
-                new KeyValuePair<string, string>("Sev4", "Sev4"),
+                new("Sev0", "Sev0"),
+                new("Sev1", "Sev1"),
+                new("Sev2", "Sev2"),
+                new("Sev3", "Sev3"),
+                new("Sev4", "Sev4"),
             };
 
         result.Add(new IncidentFilterFieldOption

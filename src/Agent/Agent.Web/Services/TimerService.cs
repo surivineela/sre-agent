@@ -82,7 +82,7 @@ public class TimerService : IHostedService, IDisposable
     private CustomerLogger _customerLogger;
     private CustomerAuditLogger _customerAuditLogger;
     private LocalAuthScanner _localAuthScanner;
-    private Agent.ScheduledTasks.Services.ScheduledTaskExecutionService _scheduledTaskExecutionService;
+    private ScheduledTasks.Services.ScheduledTaskExecutionService _scheduledTaskExecutionService;
 
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
@@ -177,7 +177,7 @@ public class TimerService : IHostedService, IDisposable
         CustomerAuditLogger customerAuditLogger,
         IIncidentScanner incidentScanner,
         LocalAuthScanner localAuthScanner,
-        Agent.ScheduledTasks.Services.ScheduledTaskExecutionService scheduledTaskExecutionService)
+        ScheduledTasks.Services.ScheduledTaskExecutionService scheduledTaskExecutionService)
     {
         _logger = logger;
         _crawlerService = crawlerService;

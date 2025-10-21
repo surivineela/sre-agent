@@ -62,11 +62,11 @@ public class ServiceNowIncidentFilterManagementService : IncidentFilterManagemen
 
         var priorityOptions = new List<KeyValuePair<string, string>>
             {
-                new KeyValuePair<string, string>("1", "Critical"),
-                new KeyValuePair<string, string>("2", "High"),
-                new KeyValuePair<string, string>("3", "Moderate"),
-                new KeyValuePair<string, string>("4", "Low"),
-                new KeyValuePair<string, string>("5", "Planning")
+                new("1", "Critical"),
+                new("2", "High"),
+                new("3", "Moderate"),
+                new("4", "Low"),
+                new("5", "Planning")
             };
 
         result.Add(new IncidentFilterFieldOption
