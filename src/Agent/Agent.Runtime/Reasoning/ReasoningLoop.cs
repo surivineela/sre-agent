@@ -523,6 +523,8 @@ public class ReasoningLoop : IDisposable
                                 if (!modificationResult.PassToMainLoop)
                                 {
                                     // Modifier handled the message, no need to continue with main loop
+                                    _rootSpan?.End();
+                                    _rootSpan = null;
                                     return;
                                 }
                             }
