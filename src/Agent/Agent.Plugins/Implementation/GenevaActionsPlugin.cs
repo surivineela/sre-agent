@@ -9,12 +9,9 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Services;
-using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
-using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Models;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -31,11 +28,8 @@ public class GenevaActionWorkflowResponse
 
 public class GenevaActionsPlugin : IGenevaActionsPlugin
 {
-    private readonly ICMWorkflowClient _icmWorkflowClient;
     private readonly KustoClient _kustoClient;
     private readonly ILogger<GenevaActionsPlugin> _logger;
-    private readonly CosmosClient _cosmosDBService;
-    private readonly CosmosDBSettings _cosmosDBSettings;
     private readonly GenevaActionsSettings _genevaActionsSettings;
     private readonly AgentSpaceProxySettings _agentSpaceProxySettings;
     private readonly IICMAPIClient _icmAPIClient;
@@ -44,12 +38,10 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
 
     private readonly bool _icmWorkflowReadOnly;
     private const string _genevaActionSecretName = "GenevaActionConfigs";
-    private const string GenevaActionProxyDefaultScope = "https://management.azure.com";
 
     private Lazy<Task<List<GenevaActionConfig>>> _lazyGenevaActions;
     private OneBranchApprovalService _oneBranchApprovalService;
     private IKeyVaultService _keyVaultService;
-    private IThreadRepository _threadRepository;
     private IAgentOutboundCommunicationService _agentOutboundCommunicationService;
     private TokenCredentialHttpClientHandler _tokenCredentialHttpClientHandler;
 
@@ -62,34 +54,26 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
 
     public GenevaActionsPlugin(
         IHostEnvironment hostEnvironment,
-        ICMWorkflowClient icmWorkflowClient,
         KustoClient kustoPlugin,
         ILogger<GenevaActionsPlugin> logger,
-        CosmosClient cosmosDBService,
-        CosmosDBSettings cosmosDBSettings,
         GenevaActionsSettings genevaActionsSettings,
         ICMWorkflowSettings iCMWorkflowSettings,
         OneBranchApprovalService oneBranchApprovalService,
         AgentSpaceProxySettings agentSpaceProxySettings,
         IICMAPIClient iCMAPIClient,
         IKeyVaultService keyVaultService,
-        IThreadRepository threadRepository,
         IAuthenticationService authenticationService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService)
     {
         _logger = logger;
         _hostEnvironment = hostEnvironment;
-        _icmWorkflowClient = icmWorkflowClient;
         _kustoClient = kustoPlugin;
-        _cosmosDBService = cosmosDBService;
-        _cosmosDBSettings = cosmosDBSettings;
         _genevaActionsSettings = genevaActionsSettings;
         _icmWorkflowReadOnly = iCMWorkflowSettings.ReadOnly;
         _lazyGenevaActions = new Lazy<Task<List<GenevaActionConfig>>>(() => InitializeGenevaActionsConfig());
         _oneBranchApprovalService = oneBranchApprovalService;
         _icmAPIClient = iCMAPIClient;
         _keyVaultService = keyVaultService;
-        _threadRepository = threadRepository;
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
         _authenticationService = authenticationService;
         _agentSpaceProxySettings = agentSpaceProxySettings;
@@ -310,32 +294,6 @@ No approval request found for document ID: {documentId}. Please ensure the docum
         return message;
     }
 
-    private async Task<bool> IsSubscriptionInternal(string subscriptionId)
-    {
-        var logMessage = $"[is_subscription_internal] Checking if subscription {subscriptionId} is internal.";
-        _logger.LogInternalInformation(logMessage);
-        var kustoQuery = $@"DataStudio_ServiceTree_AzureSubscription_Snapshot
-                | where SubscriptionId == '{subscriptionId}'
-                | project ServiceName, SubscriptionId, ServiceId, Environment
-                | take 1";
-
-        var reader = await _kustoClient.PerformQueryAsync($"https://servicetreepublic.westus.kusto.windows.net", "Shared", kustoQuery);
-        var kustoResult = new KustoQueryResult(reader, kustoQuery);
-        if (!string.IsNullOrWhiteSpace(kustoResult.Result) && kustoResult.Result != "ZERO_ROWS_RETURNED")
-        {
-            var kustoResultDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(kustoResult.Result);
-            if (kustoResultDictionary != null && kustoResultDictionary.Count > 0)
-            {
-                var subscriptionIdFromKusto = kustoResultDictionary["SubscriptionId"];
-                if (subscriptionIdFromKusto == subscriptionId)
-                {
-                    return true; // Subscription is internal
-                }
-            }
-        }
-        return false;
-    }
-
     public async Task<string> ExecuteGenevaAction(string incidentId, string extensionName, string actionName, string inputParameters)
     {
         _logger.LogInternalInformation("[GenevaActionsPlugin] Proceeding with executing Geneva Action");
@@ -502,15 +460,6 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
 
 
         var subscriptionId = inputParameters.ContainsKey("subscriptionId") ? inputParameters["subscriptionId"] : (inputParameters.ContainsKey("subscription") ? inputParameters["subscription"] : null);
-        //if (!string.IsNullOrWhiteSpace(subscriptionId))
-        //{
-        //    if (!genevaAction.IsAllowedOnExternalSubs && !(await IsSubscriptionInternal(subscriptionId)))
-        //    {
-        //        logMessage = $"[is_subscription_internal] The subscription {subscriptionId} is external. This action is not allowed.";
-        //        _logger.LogInternalWarning(logMessage);
-        //        return logMessage;
-        //    }
-        //}
 
         _logger.LogInternalInformation("[GenevaActionsPlugin] Proceeding with executing Geneva Action");
         var response = await ExecuteGenevaActionWorkflow(genevaAction.WorkflowName, genevaAction.ActionName, inputParameters);
