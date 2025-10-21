@@ -22,7 +22,7 @@ public static class AgentTaskHostBuilderExtensions
         {
             bool is1PAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
             var embeddingGenerator = provider.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
-            return new AgentTaskLocalStore(is1PAgent ? ["AgentsV2\\ACA-FirstParty\\"] : [], embeddingGenerator);
+            return new AgentTaskLocalStore([], embeddingGenerator);
         });
 
         hostBuilder.Services.AddSingleton<AgentTaskService>();

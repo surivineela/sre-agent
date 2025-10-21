@@ -94,10 +94,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
             if (_is1PAgent)
             {
-                var allAgents = YamlHelper.LoadAgentsFromYamlDirectories(
-                    new List<string> { Path.Combine("AgentsV2", "ACA-FirstParty") },
-                    "RCA"
-                );
+                var allAgents = new List<YamlAgentDescriptor>();
 
                 // Load agents from the extensibility API
                 for (int i = 0; ; i++)

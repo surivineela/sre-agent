@@ -491,6 +491,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             return;
         }
 
+        if (!Directory.Exists(_agentsYamlDirectory))
+        {
+            _logger.LogInternalError("Agent YAML directory does not exist: {directory}", _agentsYamlDirectory);
+            throw new DirectoryNotFoundException($"Agent YAML directory does not exist: {_agentsYamlDirectory}");
+        }
+
         var yamlFiles = Directory.GetFiles(_agentsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
                        .Concat(Directory.GetFiles(_agentsYamlDirectory, "*.yml", SearchOption.AllDirectories));
 
@@ -670,6 +676,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             return;
         }
 
+        if (!Directory.Exists(_commonPromptsYamlDirectory))
+        {
+            _logger.LogInternalError("Common prompts YAML directory does not exist: {directory}", _commonPromptsYamlDirectory);
+            throw new DirectoryNotFoundException($"Common prompts YAML directory does not exist: {_commonPromptsYamlDirectory}");
+        }
+
         var yamlFiles = Directory.GetFiles(_commonPromptsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
             .Concat(Directory.GetFiles(_commonPromptsYamlDirectory, "*.yml", SearchOption.AllDirectories));
 
@@ -731,6 +743,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         if (_commonToolsYamlDirectory is null)
         {
             return;
+        }
+
+        if (!Directory.Exists(_commonToolsYamlDirectory))
+        {
+            _logger.LogInternalError("Common tools YAML directory does not exist: {directory}", _commonToolsYamlDirectory);
+            throw new DirectoryNotFoundException($"Common tools YAML directory does not exist: {_commonToolsYamlDirectory}");
         }
 
         var yamlFiles = Directory.GetFiles(_commonToolsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
