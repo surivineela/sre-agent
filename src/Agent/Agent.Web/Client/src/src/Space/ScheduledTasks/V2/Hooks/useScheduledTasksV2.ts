@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ScheduledTasksClient } from '../../../../Common/Clients/ScheduledTasksClient';
-import { ScheduledTask } from '../../../Contracts/ScheduledTasks';
+import { CreateScheduledTaskRequest, ScheduledTask } from '../../../Contracts/ScheduledTasks';
 
 export const useScheduledTasksV2 = () => {
     const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
@@ -13,6 +13,11 @@ export const useScheduledTasksV2 = () => {
     const scheduledTasksClient = useMemo(
         () => ScheduledTasksClient.getInstance(sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)),
         [azPortalContext, sreAgentEndpoint]
+    );
+
+    const createTask = useCallback(
+        (task: CreateScheduledTaskRequest) => scheduledTasksClient.createScheduledTask(task),
+        [scheduledTasksClient]
     );
 
     const refreshTasks = useCallback(async () => {
@@ -38,6 +43,7 @@ export const useScheduledTasksV2 = () => {
     return {
         scheduledTasks,
         loading,
+        createTask,
         refreshTasks,
         deleteTask,
         pauseTask,

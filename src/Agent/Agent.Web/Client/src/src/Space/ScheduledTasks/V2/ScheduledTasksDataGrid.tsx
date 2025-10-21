@@ -36,7 +36,7 @@ import { getLocaleDateTimeHHMM } from '../../../Common/Helpers/Date';
 import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
 import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
-import { useScheduledTasksStyles } from './ScheduledTasks.styles';
+import { getHumanReadableCronExpression } from './ScheduledTasksUtilities';
 
 enum ScheduledTaskDataGridColumns {
     name = 'name',
@@ -57,7 +57,6 @@ interface ScheduledTasksDataGridProps {
 
 export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ scheduledTasks, selectedTaskIds, setSelectedTaskIds }) => {
     const intl = useIntl();
-    const styles = useScheduledTasksStyles();
     const { refreshTasks, pauseTask, resumeTask, deleteTask } = useContext(ScheduledTasksContext);
 
     const onSelectionChange: DataGridProps['onSelectionChange'] = useCallback(
@@ -164,7 +163,7 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                 </Dialog>
             );
         },
-        [intl, onDeleteTask, onPauseTask, onResumeTask, onRunTaskNow, styles.menuItems]
+        [intl, onDeleteTask, onPauseTask, onResumeTask, onRunTaskNow]
     );
 
     const onRenderStatus = useCallback(
@@ -200,30 +199,12 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
         [intl]
     );
 
-    const onRenderSchedule = useCallback((item: ScheduledTask) => {
-        // Convert common cron expressions to human-readable format
-        const cronToHuman = (cron: string) => {
-            const cronMap: { [key: string]: string } = {
-                '0 * * * *': 'Every hour',
-                '*/5 * * * *': 'Every 5 minutes',
-                '*/15 * * * *': 'Every 15 minutes',
-                '*/30 * * * *': 'Every 30 minutes',
-                '0 */2 * * *': 'Every 2 hours',
-                '0 */6 * * *': 'Every 6 hours',
-                '0 */12 * * *': 'Every 12 hours',
-                '0 0 * * *': 'Daily at midnight',
-                '0 9 * * *': 'Daily at 9 AM',
-                '0 0 * * 0': 'Weekly on Sunday',
-                '0 0 1 * *': 'Monthly on 1st',
-            };
-
-            return cronMap[cron] || cron;
-        };
-
-        const humanReadable = cronToHuman(item.cronExpression);
-
-        return <TableCellLayout truncate>{humanReadable}</TableCellLayout>;
-    }, []);
+    const onRenderSchedule = useCallback(
+        (item: ScheduledTask) => {
+            return <TableCellLayout truncate>{getHumanReadableCronExpression(item.cronExpression, intl)}</TableCellLayout>;
+        },
+        [intl]
+    );
 
     const onRenderLastRun = useCallback(
         (item: ScheduledTask) => {
@@ -274,7 +255,6 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
             }),
             createTableColumn<ScheduledTask>({
                 columnId: ScheduledTaskDataGridColumns.schedule,
-                compare: (a, b) => a.cronExpression.localeCompare(b.cronExpression),
                 renderHeaderCell: () => intl.formatMessage(ScheduledTasksResources.schedule),
                 renderCell: onRenderSchedule,
             }),
@@ -317,6 +297,7 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                 resizableColumns
                 columnSizingOptions={columnSizingOptions}
                 selectionMode="multiselect"
+                focusMode="none"
                 selectedItems={selectedTaskIds}
                 onSelectionChange={onSelectionChange}
                 getRowId={item => item.id}

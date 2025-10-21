@@ -32,6 +32,10 @@ export const useScheduledTasksStyles = makeStyles({
         padding: '20px',
         paddingLeft: '0px',
     },
+    toolbarButtons: {
+        display: 'flex',
+        gap: '12px',
+    },
     toolbarButton: {
         fontWeight: 'normal',
         padding: '2px 8px',
@@ -45,5 +49,43 @@ export const useScheduledTasksStyles = makeStyles({
         display: 'flex',
         gap: '6px',
         alignItems: 'center',
+    },
+    taskForm: {
+        display: 'flex',
+        gap: '24px',
+        padding: '12px 0',
+        justifyContent: 'space-around',
+    },
+    taskFormDivider: {
+        backgroundColor: '#D1D1D1',
+        width: '1px',
+        height: '328px',
+    },
+    taskFormLeft: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        maxWidth: '460px',
+    },
+    taskFormRight: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'stretch',
+        gap: '24px',
+    },
+    taskFormTimeFields: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(84px, 1fr))',
+        gap: '12px',
+        maxWidth: '460px',
+        '& .fui-Dropdown': {
+            minWidth: '0 !important',
+            width: '100%',
+        },
+    },
+    taskFormDateFields: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '12px',
     },
 });

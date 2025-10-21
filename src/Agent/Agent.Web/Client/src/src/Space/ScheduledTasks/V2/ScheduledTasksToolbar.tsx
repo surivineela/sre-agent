@@ -17,7 +17,6 @@ import {
     AddRegular,
     ArrowClockwise20Regular,
     ArrowClockwiseRegular,
-    ArrowRightRegular,
     DeleteRegular,
     PlayRegular,
     RecordStopRegular,
@@ -29,6 +28,7 @@ import { PillFilter } from '../../../Common/Components/PillFilter/PillFilter';
 import { getLocaleTimeHHMM } from '../../../Common/Helpers/Date';
 import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
+import { CreateOrEditScheduledTaskDialog, ScheduledTaskDialogMode } from './Common/CreateOrEditScheduledTaskDialog';
 import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
 import { useScheduledTasksStyles } from './ScheduledTasks.styles';
 import { TaskStatusFilterKey } from './ScheduledTasksUtilities';
@@ -68,12 +68,6 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
     const isRunTaskNowButtonDisabled = useMemo(() => selectedTasks?.length === 0 || isLoading, [isLoading, selectedTasks?.length]);
 
     const isDeleteButtonDisabled = useMemo(() => selectedTasks?.length === 0 || isLoading, [isLoading, selectedTasks]);
-
-    const onCreateTask = useCallback(() => {
-        // TODO: Open create task panel
-    }, []);
-
-    const onCreateTaskFromTemplate = useCallback(() => {}, []);
 
     const onRefresh = useCallback(async () => {
         await refreshTasks();
@@ -117,14 +111,16 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
 
     return (
         <div className={styles.toolbar}>
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div className={styles.toolbarButtons}>
                 <Toolbar style={{ padding: 0 }}>
-                    <ToolbarButton className={styles.toolbarButton} icon={<AddRegular />} onClick={onCreateTask}>
-                        {intl.formatMessage(ScheduledTasksResources.createTask)}
-                    </ToolbarButton>
-                    <ToolbarButton className={styles.toolbarButton} icon={<ArrowRightRegular />} onClick={onCreateTaskFromTemplate}>
-                        {intl.formatMessage(ScheduledTasksResources.createFromTemplate)}
-                    </ToolbarButton>
+                    <CreateOrEditScheduledTaskDialog
+                        dialogTrigger={
+                            <ToolbarButton className={styles.toolbarButton} icon={<AddRegular />}>
+                                {intl.formatMessage(ScheduledTasksResources.createTask)}
+                            </ToolbarButton>
+                        }
+                        mode={ScheduledTaskDialogMode.Create}
+                    />
                     <ToolbarButton className={styles.toolbarButton} icon={<ArrowClockwiseRegular />} onClick={onRefresh}>
                         {intl.formatMessage(ScheduledTasksResources.updateList)}
                     </ToolbarButton>

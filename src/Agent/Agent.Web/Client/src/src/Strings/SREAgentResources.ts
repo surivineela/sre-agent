@@ -269,7 +269,7 @@ export const SreAgentResources = defineMessages({
     selectResourceGroups: { defaultMessage: 'Select resource groups', id: 'ftfFhS' },
     selectResourceGroupsToMonitor: { defaultMessage: 'Select resource groups to monitor', id: 'CfGC/2' },
     search: { defaultMessage: 'Search', id: 'xmcVZ0' },
-    service: { defaultMessage: 'Service', id: 'YfC689' },
+    service: { defaultMessage: 'Service', id: 'n7yYXG' },
     summary: { defaultMessage: 'Summary', id: 'RrCui3' },
     incidentResearch: { defaultMessage: 'Incident research', id: 'JjNi2L' },
     incidentResearchInProgress: { defaultMessage: 'Incident research in progress...', id: 'aPWGNa' },
@@ -2216,7 +2216,7 @@ export const DataConnectorsResources = defineMessages({
         defaultMessage: 'Deleted {successCount} data connectors. Failed to delete {failedCount}: {failedItems}',
         id: 'LQ2AtR',
     },
-    searchPlaceholder: { defaultMessage: 'Search data connectors', id: 'xmcVZ0' },
+    searchPlaceholder: { defaultMessage: 'Search data connectors', id: 'a5dT17' },
     dataConnectorItemType: { defaultMessage: 'data connector', id: 'AbleKr' },
     disconnectDataConnectorTitle: { defaultMessage: 'Disconnect data connector?', id: 'Tg4Q8g' },
     disconnectMultipleDataConnectorsTitle: { defaultMessage: 'Disconnect {count} data connectors?', id: 'nkYx6+' },
@@ -2255,27 +2255,27 @@ export const DataConnectorsResources = defineMessages({
     },
     emptyStateTitle: {
         defaultMessage: "Increase the agent's knowledge of your infrastructure",
-        id: 'kGh923',
+        id: 'aSipXt',
     },
     emptyStateDescription: {
         defaultMessage: 'Provide information the agent will reference when analyzing or answering questions.',
-        id: 'Ots765',
+        id: 'OYAXyI',
     },
     addDataConnector: {
         defaultMessage: 'Add data connector',
-        id: 'uhd456',
+        id: 'o3uElD',
     },
     noSearchResults: {
         defaultMessage: 'No data connectors match your search',
-        id: 'yRt423',
+        id: 'y3Uu5i',
     },
     noSearchResultsDescription: {
         defaultMessage: 'Try different search terms or clear your search to see all data connectors.',
-        id: 'mno345',
+        id: '9G+4ga',
     },
     dataConnectors: {
         defaultMessage: 'Data Connectors',
-        id: 'pqr789',
+        id: 'MQNtQ+',
     },
 });
 
@@ -2283,7 +2283,7 @@ export const KnowledgeBaseResources = defineMessages({
     fileUploadDescription: {
         defaultMessage:
             "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Connectors instead.",
-        id: 'hgT723',
+        id: '1GbY5N',
     },
     filesRejected: {
         defaultMessage: '{count} document(s) rejected ({fileNames}). Only .md and .txt files are allowed.',
@@ -2333,7 +2333,7 @@ export const KnowledgeBaseResources = defineMessages({
     },
     filesSelected: {
         defaultMessage: '{count, plural, one {{count} document selected} other {{count} documents selected}}',
-        id: 'tgh813',
+        id: 'NsLW3l',
     },
     noFilesUploaded: {
         defaultMessage: 'No documents uploaded yet',
@@ -2479,35 +2479,35 @@ export const KnowledgeBaseResources = defineMessages({
     },
     addFileAction: {
         defaultMessage: 'Add a file',
-        id: 'xyz890',
+        id: 'f0Sf6g',
     },
     noSearchResults: {
         defaultMessage: 'No files match your search',
-        id: 'vwx234',
+        id: 'hzElIu',
     },
     noSearchResultsDescription: {
         defaultMessage: 'Try different search terms or clear your search to see all files.',
-        id: 'yza567',
+        id: 'NSWNPa',
     },
     dragFilesHere: {
         defaultMessage: 'Drag files here or',
-        id: 'abc123',
+        id: 'gDVRX+',
     },
     browseForFiles: {
         defaultMessage: 'browse for files',
-        id: 'def456',
+        id: 'FvtGBp',
     },
     supportedFileFormats: {
         defaultMessage: 'Supported file formats: .md and .txt',
-        id: 'ghi789',
+        id: 'YsFdGq',
     },
     maximumFileSize: {
         defaultMessage: 'Maximum file size: 100MB',
-        id: 'jkl012',
+        id: '0sA1BF',
     },
     knowledgeBase: {
         defaultMessage: 'Knowledge Base',
-        id: 'stu345',
+        id: 'EbNaDn',
     },
 });
 
@@ -2567,7 +2567,7 @@ export const ScheduledTasksResources = defineMessages({
     agentInstructionsSection: { defaultMessage: 'Agent Instructions', id: '9MPGF8' },
     whenShouldTaskRun: { defaultMessage: 'When should this task run?', id: 'FSYccN' },
     customCronExpression: { defaultMessage: 'Custom Cron Expression', id: 'VB+AjJ' },
-    cronExpressionPlaceholder: { defaultMessage: '0 0 * * *', id: 'panI3e' },
+    cronExpressionPlaceholder: { defaultMessage: 'e.g. 0 0 * * *', id: 'g4II+z' },
     cronExpressionDescription: {
         defaultMessage: 'Advanced: Use cron format (minute hour day month day-of-week)',
         id: 'a7QT/5',
@@ -2723,6 +2723,50 @@ export const ScheduledTasksResources = defineMessages({
     turnOn: { defaultMessage: 'Turn on', id: 'npvxpr' },
     turnOff: { defaultMessage: 'Turn off', id: 'XZ+Fx6' },
     filterTasks: { defaultMessage: 'Filter tasks', id: 'iDPKM0' },
+    createAScheduledTask: { defaultMessage: 'Create a scheduled task', id: '6aH1+U' },
+    taskName: { defaultMessage: 'Task name', id: 'wbwhbH' },
+    taskNamePlaceholder: { defaultMessage: 'Enter a scheduled task name', id: '+pmvA0' },
+    taskDetails: { defaultMessage: 'Task details', id: 'HADwwN' },
+    taskDetailsPlaceholder: { defaultMessage: 'Enter task details', id: 'cBcrgh' },
+    taskDetailsTip: {
+        defaultMessage:
+            'Keep the description brief and explain the task’s actions. Include necessary resource identifiers, specify time-sensitive information, and define success/failure signals or required output formats.',
+        id: '4Qhg3L',
+    },
+    frequency: { defaultMessage: 'Frequency', id: 'vAW30j' },
+    daily: { defaultMessage: 'Daily', id: 'zxvhnE' },
+    weekly: { defaultMessage: 'Weekly', id: '/clOBU' },
+    customCron: { defaultMessage: 'Custom cron', id: 'G/YsSs' },
+    dayOfWeek: { defaultMessage: 'Day of week', id: 'gD6r6x' },
+    monday: { defaultMessage: 'Monday', id: 'azMsfM' },
+    tuesday: { defaultMessage: 'Tuesday', id: 'YAgYL6' },
+    wednesday: { defaultMessage: 'Wednesday', id: 'lxblgl' },
+    thursday: { defaultMessage: 'Thursday', id: 'qAhUUO' },
+    friday: { defaultMessage: 'Friday', id: 'QrihTZ' },
+    saturday: { defaultMessage: 'Saturday', id: 'WMNHPh' },
+    sunday: { defaultMessage: 'Sunday', id: 'mJR06P' },
+    monthly: { defaultMessage: 'Monthly', id: 'wYsv4Z' },
+    dayOfMonth: { defaultMessage: 'Day of month', id: 'oMsZ4g' },
+    timeOfDay: { defaultMessage: 'Time of day', id: 'h0W8DM' },
+    am: { defaultMessage: 'AM', id: 'N0d5pM' },
+    pm: { defaultMessage: 'PM', id: 'qxlJil' },
+    everyHour: { defaultMessage: 'Every hour', id: 'strvmG' },
+    everyHours: { defaultMessage: 'Every {hours} hours', id: 'QWEHW2' },
+    everyMinute: { defaultMessage: 'Every minute', id: '/XIuIr' },
+    everyMinutes: { defaultMessage: 'Every {minutes} minutes', id: 'NwAgjY' },
+    dailyAt: { defaultMessage: 'Daily at {time}', id: '726zma' },
+    weeklyOn: { defaultMessage: 'Weekly on {day} at {time}', id: '5SH2BD' },
+    monthlyOn: { defaultMessage: 'Monthly on day {dayOfMonth} at {time}', id: '2ep4et' },
+    advancedSettings: { defaultMessage: 'Advanced settings', id: 'zhoVUT' },
+    timeZone: { defaultMessage: 'Time zone', id: 'IcUakl' },
+    startOn: { defaultMessage: 'Start on', id: 'ZOO+kP' },
+    repeatUntil: { defaultMessage: 'Repeat until', id: 'ts7YvN' },
+    groupMessages: { defaultMessage: 'Group messages', id: 'yBYOge' },
+    groupInSameThread: { defaultMessage: 'Group in the same thread', id: '2Qw127' },
+    startANewThread: { defaultMessage: 'Start a new thread for each run', id: 'MM0Ryt' },
+    setARunLimit: { defaultMessage: 'Set a run limit', id: 'tTVtNj' },
+    setARunLimitPlaceholder: { defaultMessage: "Leave the field blank if there's no limit", id: '26Vq1R' },
+    setARunLimitTooltip: { defaultMessage: 'The task will stop running after reaching this number', id: '9X3VEw' },
 });
 
 export const SubAgentsResources = defineMessages({

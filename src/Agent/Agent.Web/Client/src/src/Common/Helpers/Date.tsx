@@ -423,3 +423,27 @@ export const getLocaleDateTimeHHMM = (date: Date) => {
 export const getLocaleTimeHHMM = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
+
+/**
+ *
+ * @param date A Date object
+ * @param interval A positive integer to round the time to
+ * @returns A Date object with the rounded time
+ */
+export const roundTimeToNearestMinuteInterval = (date: Date, interval: number): Date => {
+    const roundedDate = new Date(date);
+    const minutes = roundedDate.getMinutes();
+    const remainder = minutes % interval;
+
+    if (remainder < interval / 2) {
+        // Round down
+        roundedDate.setMinutes(minutes - remainder);
+    } else {
+        // Round up
+        roundedDate.setMinutes(minutes + (interval - remainder));
+    }
+
+    roundedDate.setSeconds(0);
+    roundedDate.setMilliseconds(0);
+    return roundedDate;
+};

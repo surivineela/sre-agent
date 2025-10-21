@@ -12,7 +12,15 @@ import { getFilterKeyFromScheduledTaskStatus, TaskStatusFilterKey } from './Sche
 export const ScheduledTasks: FC = () => {
     const intl = useIntl();
     const styles = useScheduledTasksStyles();
-    const { scheduledTasks, loading: isScheduledTasksLoading, refreshTasks, deleteTask, pauseTask, resumeTask } = useScheduledTasksV2();
+    const {
+        scheduledTasks,
+        loading: isScheduledTasksLoading,
+        createTask,
+        refreshTasks,
+        deleteTask,
+        pauseTask,
+        resumeTask,
+    } = useScheduledTasksV2();
     const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [statusFilter, setStatusFilter] = useState<TaskStatusFilterKey>(TaskStatusFilterKey.All);
@@ -35,6 +43,7 @@ export const ScheduledTasks: FC = () => {
     return (
         <ScheduledTasksContext.Provider
             value={{
+                createTask,
                 refreshTasks,
                 pauseTask,
                 resumeTask,

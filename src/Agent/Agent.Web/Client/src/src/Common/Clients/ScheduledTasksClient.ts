@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ScheduledTask } from '../../Space/Contracts/ScheduledTasks';
+import { CreateScheduledTaskRequest, ScheduledTask } from '../../Space/Contracts/ScheduledTasks';
 import { getAgentHeaders } from '../Helpers/headers';
 import { DataPlaneClient, Response } from './DataPlaneClient';
 import { LogFunction } from './IncidentHandlerClient';
@@ -38,6 +38,58 @@ export class ScheduledTasksClient extends DataPlaneClient {
                 action: 'getScheduledTasks',
                 actionModifier: 'failed',
                 data: `Failed to get scheduled tasks: ${errorMessage}`,
+            });
+            return {
+                isSuccessful: false,
+                error: errorMessage,
+            };
+        }
+    }
+
+    public async createScheduledTask(task: CreateScheduledTaskRequest): Promise<Response<{ taskId: string }>> {
+        const url = this.getRequestUrl('/api/v1/scheduledtasks');
+        try {
+            const response = await axios.post(url, task, {
+                headers: getAgentHeaders(),
+            });
+
+            return {
+                isSuccessful: true,
+                content: response.data as { taskId: string },
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            this._log?.({
+                logLevel: 'error',
+                action: 'createScheduledTask',
+                actionModifier: 'failed',
+                data: `Failed to create scheduled task: ${errorMessage}`,
+            });
+            return {
+                isSuccessful: false,
+                error: errorMessage,
+            };
+        }
+    }
+
+    public async updateScheduledTask(id: string, updates: Partial<ScheduledTask>): Promise<Response<void>> {
+        const url = this.getRequestUrl(`/api/v1/scheduledtasks/${id}`);
+        try {
+            const response = await axios.put(url, updates, {
+                headers: getAgentHeaders(),
+            });
+
+            return {
+                isSuccessful: true,
+                content: response.data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            this._log?.({
+                logLevel: 'error',
+                action: 'updateScheduledTask',
+                actionModifier: 'failed',
+                data: `Failed to update scheduled task: ${errorMessage}`,
             });
             return {
                 isSuccessful: false,
