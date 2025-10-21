@@ -5,6 +5,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import App from './App';
 import { msalInstance } from './Common/Auth/msalConfig';
 import { AuthProvider } from './Common/Contexts/AuthContext';
+import { UserPreferencesProvider } from './Common/Contexts/UserPreferencesContext';
 import './index.css';
 
 const rootElement = document.getElementById('root');
@@ -23,7 +24,9 @@ createRoot(rootElement).render(
         <HelmetProvider>
             <MsalProvider instance={msalInstance}>
                 <AuthProvider>
-                    <App />
+                    <UserPreferencesProvider>
+                        <App />
+                    </UserPreferencesProvider>
                 </AuthProvider>
             </MsalProvider>
         </HelmetProvider>

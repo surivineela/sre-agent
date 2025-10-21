@@ -17,4 +17,21 @@ export const PortalResources = defineMessages({
     },
     createAgent: { defaultMessage: 'Create agent', id: 'UrGI9K' },
     viewPopularSkills: { defaultMessage: 'View popular skills', id: 'Ch3IdZ' },
+    settings: { defaultMessage: 'Settings', id: 'D3idYv' },
+    themes: { defaultMessage: 'Themes', id: 'Avsnjl' },
+    system: { defaultMessage: 'System', id: '+CwN9C' },
+    light: { defaultMessage: 'Light', id: '3cc4Ct' },
+    dark: { defaultMessage: 'Dark', id: 'tOdNiY' },
+    language: { defaultMessage: 'Language', id: 'y1Z3or' },
+    reduceSiteReliabilityExpenses: {
+        defaultMessage: 'Reduce site reliability expenses with Azure SRE Agents',
+        id: 's7mQCK',
+    },
+    reduceSiteReliabilityExpensesDescription: {
+        defaultMessage:
+            'Azure SRE Agents reduce site reliability costs by proactively identifying issues, automating tasks, and preventing downtime.',
+        id: 'TleXgd',
+    },
+    tryAzureForFree: { defaultMessage: 'Try Azure for free', id: 'wCtBb6' },
+    exploreAgentSkills: { defaultMessage: 'Explore agent skills', id: 'i50Kb0' },
 });

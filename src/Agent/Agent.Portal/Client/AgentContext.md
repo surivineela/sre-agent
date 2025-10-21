@@ -15,11 +15,37 @@
 - `src/Strings/Intl` – Shared Intl provider and helper utilities.
 - `src/Strings/extracted` – Generated `strings.json` source for localization (empty placeholder committed).
 - `src/Strings/compiled` – Placeholder for compiled translation bundles produced by localization tooling.
+- `src/Common/Hooks` – Reusable React hooks (localStorage persistence, user preferences, etc.).
+- `src/Common/Contexts` – React context providers (Auth, UserPreferences, etc.).
+
+## Architecture & Patterns
+
+### Static Hosting
+
+- This portal is served as **static HTML/JS** with no server-side rendering (SSR).
+- All hooks and utilities assume `window` is always available at runtime (although are likely wrapped in try/catch blocks)
+
+### No Barrel Exports
+
+- **Do not create `index.ts` barrel files** for re-exporting hooks, components, or utilities.
+- Use direct imports (e.g., `import { useUserPreferences } from '../Hooks/useUserPreferences'`).
+
+### Arrow Functions
+
+- Use **arrow function syntax** for all function declarations (components, hooks, utilities).
+- Example: `export const useMyHook = () => { ... }` instead of `export function useMyHook() { ... }`
 
 ## Authentication
 
 - Redirect-based Entra ID auth wired with `@azure/msal-browser` + `@azure/msal-react`; configuration lives in `src/Common/Auth/msalConfig.ts`.
 - `AuthContext` now proxies MSAL state (`status`, `user`, `signIn`, `signOut`), enabling the navbar persona to trigger sign-in/out flows.
+
+## User Preferences
+
+- **`useLocalStorage`** – Generic hook for type-safe localStorage persistence with cross-tab sync.
+- **`useUserPreferences`** – Domain-specific hook built on `useLocalStorage` for managing theme, locale, tenant, subscriptions, resource groups, and last accessed agent.
+- **`UserPreferencesContext`** – Context provider wrapping `useUserPreferences` for app-wide access.
+- Storage key: `sre-agent-portal-preferences`
 
 ## Related Artifacts
 

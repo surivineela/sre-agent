@@ -7,14 +7,14 @@ import { PortalResources } from './Strings/Resources';
 import { AgentIFrameView } from './Views/Agent/AgentIFrameView';
 import { HomeView } from './Views/Home/HomeView';
 import { LandingPage } from './Views/LandingPage/LandingPage';
-import { Navbar } from './Views/Navbar';
+import { Navbar } from './Views/Navbar/Navbar';
 
 // TODOs:
 // - Authentication (Entra, Graph, ARM/Graph/SreAgent/AppInsights tokens)
-// - UserStorage in localStorage - persist theme, locale, directory, subscription + filter
-// - Navbar settings menu: Locale + theme infra (prereq: UserStorage in localStorage; dark mode as default)
+// - Telemetry & misc portal infra for agent iframe
 // - Notifications + notification center (Fluent Toasts recommends having one)
 // - Feature flag infra
+// - Privacy/terms/trademarks links
 
 // Routing:
 // - Landing page for signed-out users
