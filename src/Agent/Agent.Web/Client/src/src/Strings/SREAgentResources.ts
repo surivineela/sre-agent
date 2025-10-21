@@ -636,6 +636,10 @@ export const AgentTaskResources = defineMessages({
         defaultMessage: 'You do not have permission to turn Deep Investigations on.',
         id: 'Ysew65',
     },
+    conclusionNodeText: {
+        defaultMessage: 'Conclusion',
+        id: 'ZjlBPk',
+    },
 });
 
 export const PermissionsResources = defineMessages({

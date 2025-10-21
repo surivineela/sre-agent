@@ -1,11 +1,22 @@
-import { Body1, Body2, Button, Card, CardFooter, CardHeader, makeStyles, tokens, useRestoreFocusTarget } from '@fluentui/react-components';
+import {
+    Body1,
+    Body2,
+    Button,
+    Card,
+    CardFooter,
+    CardHeader,
+    makeStyles,
+    mergeClasses,
+    tokens,
+    useRestoreFocusTarget,
+} from '@fluentui/react-components';
 import { ChevronDownUpRegular, ChevronUpDownRegular } from '@fluentui/react-icons';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext } from 'react';
 import { AgentTaskNodeSize, GraphFlowNode } from '../../Contracts/Activities';
 import { AgentTaskContext, AgentTaskGraphContext } from '../../Contracts/Context';
 import NodeStatusPill from './NodeStatusPill';
-import { getHypothesisNodeThemeColor } from './Utility';
+import { getHypothesisNodeThemeColor, useCommonStyles } from './Utility';
 
 const useStyles = makeStyles({
     nodeContainer: {
@@ -14,7 +25,6 @@ const useStyles = makeStyles({
         height: `${AgentTaskNodeSize.HypothesisNode.height}px`,
     },
     card: {
-        borderRadius: tokens.borderRadiusXLarge,
         width: '100%',
         position: 'relative',
         height: '100%',
@@ -60,6 +70,7 @@ const HypothesisNode = (props: NodeProps<GraphFlowNode>) => {
     const { data, id } = props;
 
     const { nodeContainer, card, title, description, cardFooter, handle } = useStyles();
+    const commonStyles = useCommonStyles();
 
     const { toggleNode } = useContext(AgentTaskContext);
     const { selectedNodeId, selectNode } = useContext(AgentTaskGraphContext);
@@ -71,8 +82,8 @@ const HypothesisNode = (props: NodeProps<GraphFlowNode>) => {
             <Card
                 {...restoreFocusTargetAttributes}
                 focusMode={'tab-only'}
-                className={card}
-                style={{ border: `1.5px solid ${getHypothesisNodeThemeColor(data.status)}` }}
+                className={mergeClasses(card, commonStyles.card)}
+                style={{ border: `${tokens.strokeWidthThin} solid ${getHypothesisNodeThemeColor(data.status)}` }}
                 selected={selectedNodeId === id}
                 onSelectionChange={(e, selection) => {
                     e.stopPropagation();

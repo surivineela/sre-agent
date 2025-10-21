@@ -96,7 +96,7 @@ const useDownButtonStyles = makeStyles({
         pointerEvents: 'auto',
         position: 'absolute',
         right: '50%',
-        bottom: '110%',
+        bottom: '105%',
     },
     hidden: {
         opacity: '0',

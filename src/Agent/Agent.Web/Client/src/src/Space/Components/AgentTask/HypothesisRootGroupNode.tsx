@@ -8,8 +8,8 @@ const useStyles = makeStyles({
         width: '100%',
         height: '100%',
         background: 'transparent',
-        border: `2px solid ${tokens.colorNeutralBackground3Selected} `,
-        borderRadius: tokens.borderRadiusXLarge,
+        border: `${tokens.strokeWidthThicker} solid ${tokens.colorNeutralStroke2}`,
+        borderRadius: '24px',
         zIndex: -99,
     },
     handle: {

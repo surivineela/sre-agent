@@ -1,8 +1,11 @@
-import { Card, CardHeader, makeStyles, Subtitle1, Subtitle2, tokens } from '@fluentui/react-components';
+import { Badge, Card, CardHeader, makeStyles, mergeClasses, Subtitle1, Subtitle2, tokens } from '@fluentui/react-components';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext } from 'react';
+import { FormattedMessage } from 'react-intl';
+import { AgentTaskResources } from '../../../Strings/SREAgentResources';
 import { AgentTaskNodeSize, GraphFlowNode } from '../../Contracts/Activities';
 import { AgentTaskGraphContext } from '../../Contracts/Context';
+import { useCommonStyles } from './Utility';
 
 const useStyles = makeStyles({
     nodeContainer: {
@@ -12,19 +15,13 @@ const useStyles = makeStyles({
     },
     tag: {
         position: 'absolute',
-        top: '-22px',
+        top: '-18px',
         left: '50%',
         transform: 'translateX(-50%)',
-        padding: '11px 10px',
-        backgroundColor: tokens.colorPaletteBlueBorderActive,
-        borderRadius: tokens.borderRadiusCircular,
-        color: tokens.colorNeutralForegroundInverted2,
         zIndex: 2,
     },
     card: {
-        border: `2px solid ${tokens.colorPaletteBlueBorderActive}`,
-        borderRadius: tokens.borderRadiusXLarge,
-        boxShadow: tokens.shadow4Brand,
+        backgroundColor: tokens.colorNeutralBackground2,
         width: '100%',
         height: '100%',
         padding: '35px 16px',
@@ -47,15 +44,20 @@ const ConclusionNode = (props: NodeProps<GraphFlowNode>) => {
     const { data, id } = props;
 
     const { nodeContainer, tag, card, title, handle } = useStyles();
+    const commonStyles = useCommonStyles();
 
     const { selectedNodeId, selectNode } = useContext(AgentTaskGraphContext);
 
     return (
         <div className={nodeContainer}>
-            <Subtitle2 className={tag}>{'Conclusion'}</Subtitle2>
+            <Badge className={tag} size={'extra-large'}>
+                <Subtitle2>
+                    <FormattedMessage {...AgentTaskResources.conclusionNodeText} />
+                </Subtitle2>
+            </Badge>
             <Card
                 focusMode={'tab-only'}
-                className={card}
+                className={mergeClasses(card, commonStyles.card, commonStyles.cardBorder)}
                 selected={selectedNodeId === id}
                 onSelectionChange={(_, selection) => selectNode(selection.selected ? id : null)}
             >

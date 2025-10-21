@@ -275,8 +275,7 @@ const textFieldMaxWidth = '1000px';
 export const useChatInputStyles = makeStyles({
     root: {
         flex: '0 0 auto',
-        marginTop: '20px',
-        marginBottom: '20px',
+        margin: '5px 0px',
         padding: '0px 20px',
     },
     chatStatement: {

@@ -1,4 +1,4 @@
-import { Body1, Card, CardHeader, makeStyles, Subtitle1, Text, tokens } from '@fluentui/react-components';
+import { Body1, Card, CardHeader, makeStyles, mergeClasses, Subtitle1, Text, tokens } from '@fluentui/react-components';
 import { NodeProps } from '@xyflow/react';
 import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
@@ -8,7 +8,7 @@ import remarkGfm from 'remark-gfm';
 import { SreAgentResources } from '../../../Strings/SREAgentResources';
 import { AgentTaskNodeSize, GraphFlowNode } from '../../Contracts/Activities';
 import { AgentTaskGraphContext } from '../../Contracts/Context';
-import { getInitialInvestigationStepsIcon } from './Utility';
+import { getInitialInvestigationStepsIcon, useCommonStyles } from './Utility';
 
 const useStyles = makeStyles({
     nodeContainer: {
@@ -17,8 +17,7 @@ const useStyles = makeStyles({
         height: `${AgentTaskNodeSize.InitialInvestigationNode.height}px`,
     },
     card: {
-        border: `1px solid ${tokens.colorNeutralBackground3Selected} `,
-        borderRadius: tokens.borderRadiusXLarge,
+        backgroundColor: tokens.colorNeutralBackground1,
         width: '100%',
         height: '100%',
         padding: '16px',
@@ -85,6 +84,7 @@ const InitialInvestigationNode = (props: NodeProps<GraphFlowNode>) => {
     const intl = useIntl();
 
     const { nodeContainer, card, header, title, description, stepsContainer, stepContainer, stepText } = useStyles();
+    const commonStyles = useCommonStyles();
 
     const { selectedNodeId, selectNode } = useContext(AgentTaskGraphContext);
 
@@ -176,7 +176,7 @@ const InitialInvestigationNode = (props: NodeProps<GraphFlowNode>) => {
     return (
         <div className={nodeContainer}>
             <Card
-                className={card}
+                className={mergeClasses(card, commonStyles.card, commonStyles.cardBorder)}
                 // Do not check the data.id because it is the investigation group node's id
                 selected={selectedNodeId === id}
                 onSelectionChange={(_, selection) => {

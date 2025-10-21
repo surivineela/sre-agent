@@ -1,10 +1,11 @@
-import { tokens } from '@fluentui/react-components';
+import { makeStyles, tokens } from '@fluentui/react-components';
 import {
     ArrowClockwiseFilled,
     ArrowCounterclockwiseFilled,
     CheckmarkCircleColor,
     CheckmarkCircleRegular,
     DismissCircleRegular,
+    FluentIcon,
     QuestionCircleRegular,
     SubtractCircleRegular,
 } from '@fluentui/react-icons';
@@ -32,15 +33,19 @@ export const getInitialInvestigationStepsIcon = (status: string) => {
     }
 };
 
-export const getStatusPillComponentStyleProperties = (status?: string | null) => {
+export const getStatusPillComponentStyleProperties = (
+    status?: string | null
+):
+    | {
+        icon: FluentIcon;
+        color?: 'brand' | 'success' | 'severe' | 'warning' | 'important' | 'informative' | 'subtle';
+    }
+    | undefined => {
     switch (status?.toLowerCase()) {
         case InvestigationStatusCommon.NotStarted:
             return {
-                iconFontColor: undefined,
-                statusTextFontColor: undefined,
                 icon: SubtractCircleRegular,
-                backgroundColor: undefined,
-                borderColor: tokens.colorNeutralBackground6,
+                color: 'subtle',
             };
         case AgentTaskStatus.InProgress:
         case InvestigationStatusCommon.InProgress:
@@ -49,55 +54,37 @@ export const getStatusPillComponentStyleProperties = (status?: string | null) =>
         case HypothesisStatus.Pending:
         case HypothesisStatus.Validating:
             return {
-                iconFontColor: tokens.colorBrandForegroundLinkHover,
-                statusTextFontColor: undefined,
                 icon: ArrowCounterclockwiseFilled,
-                backgroundColor: undefined,
-                borderColor: tokens.colorNeutralBackground6,
+                color: 'brand',
             };
         case AgentTaskStatus.Complete:
         case InvestigationStatusCommon.Complete:
         case TaskProgressStatus.Completed:
         case HypothesisStatus.Validated:
             return {
-                iconFontColor: tokens.colorNeutralForegroundInverted,
-                statusTextFontColor: tokens.colorNeutralForegroundInverted,
                 icon: CheckmarkCircleRegular,
-                backgroundColor: tokens.colorPaletteGreenBackground3,
-                borderColor: undefined,
+                color: 'success',
             };
         case AgentTaskStatus.Failed:
         case TaskProgressStatus.Failed:
             return {
-                iconFontColor: tokens.colorNeutralForegroundInverted,
-                statusTextFontColor: tokens.colorNeutralForegroundInverted,
                 icon: DismissCircleRegular,
-                backgroundColor: tokens.colorStatusDangerBackground3,
-                borderColor: undefined,
+                color: 'severe',
             };
         case HypothesisStatus.Invalidated:
             return {
-                iconFontColor: undefined,
-                statusTextFontColor: undefined,
                 icon: DismissCircleRegular,
-                backgroundColor: tokens.colorNeutralBackground3,
-                borderColor: undefined,
+                color: 'important',
             };
         case HypothesisStatus.Inconclusive:
             return {
-                iconFontColor: tokens.colorStatusWarningForeground3,
-                statusTextFontColor: tokens.colorStatusWarningForeground3,
                 icon: QuestionCircleRegular,
-                backgroundColor: undefined,
-                borderColor: tokens.colorStatusWarningForeground1,
+                color: 'warning',
             };
         case AgentTaskStatus.Cancelled:
             return {
-                iconFontColor: undefined,
-                statusTextFontColor: undefined,
                 icon: SubtractCircleRegular,
-                backgroundColor: undefined,
-                borderColor: tokens.colorNeutralBackground6,
+                color: 'informative',
             };
     }
 };
@@ -144,3 +131,14 @@ export const getHypothesisNodeThemeColor = (status?: string | null) => {
             return tokens.colorNeutralForeground3;
     }
 };
+
+export const useCommonStyles = makeStyles({
+    card: {
+        transitionProperty: 'box-shadow',
+        transitionDelay: tokens.curveDecelerateMid,
+        transitionDuration: tokens.durationNormal,
+    },
+    cardBorder: {
+        border: `${tokens.strokeWidthThick} solid ${tokens.colorNeutralStroke2}`,
+    },
+});
