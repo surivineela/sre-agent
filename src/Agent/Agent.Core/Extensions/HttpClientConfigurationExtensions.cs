@@ -64,6 +64,15 @@ namespace Agent.Core.Extensions
                 client.Timeout = TimeSpan.FromMinutes(15); // Set timeout to 15 minutes
             }).AddHttpMessageHandler<SessionPoolAccessTokenHandler>();
         }
+
+        public static void AddPagerDutyHttpClient(this IServiceCollection services)
+        {
+            services.AddHttpClient(Constants.HttpClientForPagerDuty, client =>
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "SRE Agent");
+                client.Timeout = TimeSpan.FromMinutes(5); // Set timeout to 5 minutes for PagerDuty API calls.
+            });
+        }
     }
 
     // This handler targets for Agent's arm operation

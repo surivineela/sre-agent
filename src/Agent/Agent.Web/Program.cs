@@ -699,6 +699,7 @@ public class Program
         builder.Services.AddCrawlerHttpClient();
         builder.Services.AddSearchEndpointHttpClient();
         builder.Services.AddSessionPoolHttpClient();
+        builder.Services.AddPagerDutyHttpClient();
         builder.Services.AddSingleton<ILogAnalyticsService, LogAnalyticsService>();
         builder.Services.AddSingleton<ILogAnalysisService, LogAnalysisService>();
 

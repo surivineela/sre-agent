@@ -28,6 +28,7 @@ public class Constants
     public const string HttpClientForSearchEndpoint = "SearchEndpoint";
     public const string HttpClientForAzureDevOps = "AzureDevOps";
     public const string HttpClientForSessionPool = "SessionPool";
+    public const string HttpClientForPagerDuty = "PagerDuty";
 
     public const string SREAgentPromptStarter =
         $"""

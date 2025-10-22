@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -18,13 +19,12 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Octokit;
-using static IdentityModel.OidcConstants;
 
 namespace Agent.Plugins.Implementation;
 
 public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
                             IGraphDatabaseClient graphDatabaseClient,
+                            IHttpClientFactory httpClientFactory,
                             CosmosDBSettings cosmosDbSettings,
                             CosmosClient cosmosClient,
                             IPagerDutyService pagerDutyService,
@@ -33,6 +33,7 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
     private readonly IncidentManagementSettings _settings = monitor.CurrentValue;
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, PagerDutyIncidentDocument.ContainerName);
     private readonly Container azMonitorContainer = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
+    private readonly HttpClient _httpClient = httpClientFactory.CreateClient(Constants.HttpClientForPagerDuty);
 
     public async Task CloseAzureMonitorAlert(string alertId)
     {
@@ -69,7 +70,9 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
     public async Task<string> GetAgentResponseAsync(string userQuery, string incidentId)
     {
         if (string.IsNullOrEmpty(incidentId))
+        {
             throw new ArgumentException("Incident ID not found in the user query. Please include 'incident:INCIDENT_ID' in your query.");
+        }
 
         if (_settings?.Type != IncidentManagementType.PagerDuty)
         {
@@ -81,8 +84,7 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
             throw new InvalidOperationException("PagerDuty API key is not configured.");
         }
 
-        var apiUrl = "https://api.pagerduty.com/chat_assistant/chat";
-        var clientMetadata = new { client_type = "public_api" };
+        var apiUrl = "https://api.pagerduty.com/advance/chat";
 
         string sessionId = Guid.NewGuid().ToString();
         string timestamp = DateTime.UtcNow.ToString("o");
@@ -92,19 +94,19 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
             session_id = sessionId,
             timestamp = timestamp,
             message = userQuery,
-            incident_id = incidentId,
-            client_metadata = clientMetadata
+            incident_id = incidentId
         };
 
         string jsonPayload = JsonSerializer.Serialize(payload);
 
-        using (var client = new HttpClient())
+        using (var request = new HttpRequestMessage(HttpMethod.Post, apiUrl))
         {
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", $"token={_settings.ConnectionKey}");
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.Authorization = new AuthenticationHeaderValue("Token", $"token={_settings.ConnectionKey}");
+            request.Headers.Add("X-EARLY-ACCESS", "gen_ai_api_early_access");
+            request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
             string responseContent = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
