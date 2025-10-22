@@ -226,12 +226,18 @@ public class WorkflowOrchestrator : IDisposable
 
             if (result.HandoffDetected && !string.IsNullOrEmpty(result.HandoffTargetAgent))
             {
-                _logger.LogInternalInformation($"Router agent handoff detected: {routerAgent.Name} -> {result.HandoffTargetAgent}");
+                var message = $"Router agent {routerAgent.Name} decided to hand off to {result.HandoffTargetAgent}";
+                _logger.LogInternalInformation(message);
+                await PostAssistantMessageToThreadAsync(new ChatMessage(ChatRole.Assistant, message));
                 return result.HandoffTargetAgent;
             }
-
-            _logger.LogInternalWarning($"Router agent {routerAgent.Name} completed without handoff");
-            return null;
+            else
+            {
+                var message = $"Router agent {routerAgent.Name} completed without handoff";
+                _logger.LogInternalWarning(message);
+                await PostAssistantMessageToThreadAsync(new ChatMessage(ChatRole.Assistant, message));
+                return null;
+            }
         }
         catch (Exception ex)
         {
@@ -390,12 +396,12 @@ public class WorkflowOrchestrator : IDisposable
                     _logger.LogInternalInformation($"Starting branch {i + 1}: {startAgent}");
 
                     // Execute each branch independently
-                    var branchTask = ExecuteAgentBranchAsync(startAgent, branchContext, new HashSet<string>(), cancellationToken);
-                    branchTasks.Add(branchTask);
+                    await ExecuteAgentBranchAsync(startAgent, branchContext, new HashSet<string>(), cancellationToken);
+                    //branchTasks.Add(branchTask);
                 }
 
                 // Wait for all branches to complete
-                await Task.WhenAll(branchTasks);
+                //await Task.WhenAll(branchTasks);
             }
             else
             {
@@ -642,7 +648,7 @@ public class WorkflowOrchestrator : IDisposable
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Error executing agent {agent.Name} with parameters");
-            return null;
+            throw;
         }
     }
 
@@ -1019,7 +1025,23 @@ Please consolidate the findings, identify key insights, and provide actionable r
 
             // Post summary to thread
             var summaryMessage = new ChatMessage(ChatRole.Assistant, finalMessage + $"Id: {_context.Id} ThreadId: {_context.ThreadId}");
-            _chatHistory.Add(summaryMessage);
+
+            await PostAssistantMessageToThreadAsync(summaryMessage);
+
+            _logger.LogInternalInformation("Workflow summary posted to thread successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error summarizing workflow results");
+            throw;
+        }
+    }
+
+    private async Task PostAssistantMessageToThreadAsync(ChatMessage chatMessage)
+    {
+        try
+        {
+            _chatHistory.Add(chatMessage);
 
             var messageId = Guid.NewGuid();
             // Persist to repository
@@ -1027,7 +1049,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 Id: messageId,
                 AgentContextId: _context.Id,
                 Role: ReasoningMessageRoleEnum.Assistant,
-                SerializedChatMessage: JsonSerializer.Serialize(summaryMessage));
+                SerializedChatMessage: JsonSerializer.Serialize(chatMessage));
 
 
             await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
@@ -1041,15 +1063,12 @@ Please consolidate the findings, identify key insights, and provide actionable r
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                 _context.ThreadId,
                 string.Empty,
-                summaryMessage,
+                chatMessage,
                 messageId);
-
-            _logger.LogInternalInformation("Workflow summary posted to thread successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error summarizing workflow results");
-            throw;
+            _logger.LogInternalWarning(ex, "Failed to persist reasoning message for workflow chat message");
         }
     }
 

@@ -502,11 +502,19 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
         foreach (var yamlFile in yamlFiles)
         {
-            var agent = LoadAgentFromYamlContent(File.ReadAllText(yamlFile), false);
-            _logger.LogInternalInformation(
-                "Successfully loaded agent descriptor '{agentName}' from YAML file '{yamlFile}'.",
-                agent.Name,
-                yamlFile);
+            try
+            {
+                var agent = LoadAgentFromYamlContent(File.ReadAllText(yamlFile), false);
+                _logger.LogInternalInformation(
+                    "Successfully loaded agent descriptor '{agentName}' from YAML file '{yamlFile}'.",
+                    agent.Name,
+                    yamlFile);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to load agent from YAML file '{yamlFile}'.", yamlFile);
+                throw;
+            }
         }
     }
 
