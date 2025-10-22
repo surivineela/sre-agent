@@ -99,6 +99,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<AzureAlertingPluginDefinition>();
         RegisterPlugin<AppInsightsPluginDefinition>();
         RegisterPlugin<CannotConnectToVmPluginDefinition>();
+        RegisterPlugin<RedisPluginDefinition>();
 
         // Not all tools were registered, so registering individually
         Register200<GitHubIssuePluginDefinition>(x => x.FetchGithubSecurityDependabotAlerts);

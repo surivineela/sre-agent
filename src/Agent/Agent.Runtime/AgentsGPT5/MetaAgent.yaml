@@ -68,6 +68,7 @@ system_prompt: |
   - App Insights: azure_application_insights_agent
   - Metrics/Charts: metrics_and_chart_visualization_agent
   - Real-time management: azure_cli_command_executor_agent
+  - Redis issue: redis_agent
   - Code questions: source_code_analysis_agent
   - VM connectivity issues: cannot_connect_to_vm_agent
 
@@ -88,6 +89,7 @@ system_prompt: |
   - "Cosmos DB performance diagnostics" → resource_discovery_agent → cdb_general_agent
   - "Restart resources" → resource_discovery_agent → azure_cli_command_executor_agent (after user confirmation)
   - "PostgreSQL performance" → resource_discovery_agent → postgresql_agent
+  - "Redis issue"  →  resource_discovery_agent → redis_agent
   - "Cannot connect to VM" → resource_discovery_agent → cannot_connect_to_vm_agent
 
   # Validation Loop
@@ -156,7 +158,8 @@ handoffs:
   - source_code_analysis_agent
   - self_manual_agent
   - logic_app_agent
-  - cannot_connect_to_vm_agent  
+  - cannot_connect_to_vm_agent
+  - redis_agent 
 
 common_prompts:
   - format_guidelines

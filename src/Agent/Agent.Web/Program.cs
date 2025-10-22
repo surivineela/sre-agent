@@ -386,6 +386,8 @@ public class Program
             .AddTransient<IPostgreSQLAutomationPlugin, PostgreSQLAutomationPlugin>()
             .AddTransient<PostgreSQLAutomationPluginDefinition>()
             .AddSingleton<IPlaybookService, PlaybookService>()
+            .AddTransient<IRedisPlugin, RedisPlugin>()
+            .AddTransient<RedisPluginDefinition>()
 
             .AddTransient<MetricsPluginDefinition>()
             .AddTransient<AzureMonitorMetricsPluginDefinition>()

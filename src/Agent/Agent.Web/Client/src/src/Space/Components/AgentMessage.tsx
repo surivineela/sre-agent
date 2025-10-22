@@ -3,7 +3,6 @@ import { IAgentMessageProps } from '../Contracts/Activities';
 import { useScheduledTaskMessage } from '../Hooks/useScheduledTaskMessage';
 import AgentTaskChatMessage from './AgentTaskChatMessage';
 import ApprovalMessage from './ApprovalMessage';
-import TodoPlanChatMessage from './TodoPlanChatMessage';
 import ChangeDiffMessage from './ChangeDiffMessage';
 import DailyReportMessage from './DailyReportMessage';
 import ErrorChatMessage from './ErrorMessage';
@@ -13,6 +12,7 @@ import PsqlExecutionMessage from './PsqlExecutionMessage';
 import ScheduledTaskCreationCard from './ScheduledTaskCreationCard';
 import ScheduledTaskExecutionCard from './ScheduledTaskExecutionCard';
 import TextOrImageMessage from './TextOrImageMessage';
+import TodoPlanChatMessage from './TodoPlanChatMessage';
 
 const AgentMessage = ({
     messageContent,
