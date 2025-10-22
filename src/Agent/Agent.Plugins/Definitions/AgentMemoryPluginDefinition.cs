@@ -514,12 +514,10 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
                 TotalResults: trajectories.SameResourceTrajectories.Count + trajectories.SimilarSymptomsTrajectories.Count + userMemories.Count + documents.Count
             );
 
-            // Stream to frontend using same pattern as AzCli - serialize and stream with StreamMessageType
-            var jsonString = System.Text.Json.JsonSerializer.Serialize(memorySearchResult);
-            await agentOutboundCommunicationService.AppendAgentStreamMessage(
+            // Stream to frontend AND persist to database using the new method
+            await agentOutboundCommunicationService.AppendAgentMemorySearchMessage(
                 threadId,
-                jsonString,
-                Agent.Core.Models.Api.v1.StreamMessageType.MemorySearch
+                memorySearchResult
             );
         }
     }

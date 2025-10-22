@@ -929,19 +929,10 @@ public class CosmosDbThreadRepository : IThreadRepository
                         approvalDoc = approvalResults.FirstOrDefault();
                     }
 
-                    messageDocWithApproval = new MessageDocument(messageDoc.Id,
-                        messageDoc.ThreadId,
-                        messageDoc.TimeStamp,
-                        messageDoc.Author,
-                        messageDoc.Text,
-                        messageDoc.IsImageContent,
-                        messageDoc.Posted,
-                        approvalDoc?.ToDomainModel(),
-                        messageDoc.AzCliExecution,
-                        messageDoc.KubectlExecution,
-                        messageDoc.PsqlExecution,
-                        messageDoc.IncidentDiscussionId,
-                        messageDoc.IsDailyReport);
+                    messageDocWithApproval = messageDoc with
+                    {
+                        Approval = approvalDoc?.ToDomainModel()
+                    };
                 }
 
                 if (messageDoc.AzCliExecution != null)
@@ -960,21 +951,12 @@ public class CosmosDbThreadRepository : IThreadRepository
 
                     if (executionDoc != null)
                     {
-                        messageDocWithApproval = new MessageDocument(
-                            messageDoc.Id,
-                            messageDoc.ThreadId,
-                            messageDoc.TimeStamp,
-                            messageDoc.Author,
-                            messageDoc.Text,
-                            messageDoc.IsImageContent,
-                            messageDoc.Posted,
-                            messageDoc.Approval,
-                            executionDoc.ToDomainModel(),
-                            null,
-                            null,
-                            messageDoc.IncidentDiscussionId,
-                            messageDoc.IsDailyReport
-                        );
+                        messageDocWithApproval = messageDoc with
+                        {
+                            AzCliExecution = executionDoc.ToDomainModel(),
+                            KubectlExecution = null,
+                            PsqlExecution = null
+                        };
                     }
                 }
 
@@ -994,21 +976,11 @@ public class CosmosDbThreadRepository : IThreadRepository
 
                     if (executionDoc != null)
                     {
-                        messageDocWithApproval = new MessageDocument(
-                            messageDoc.Id,
-                            messageDoc.ThreadId,
-                            messageDoc.TimeStamp,
-                            messageDoc.Author,
-                            messageDoc.Text,
-                            messageDoc.IsImageContent,
-                            messageDoc.Posted,
-                            messageDoc.Approval,
-                            null, // Use the updated execution
-                            executionDoc.ToDomainModel(),
-                            messageDoc.PsqlExecution,
-                            messageDoc.IncidentDiscussionId,
-                            messageDoc.IsDailyReport
-                        );
+                        messageDocWithApproval = messageDoc with
+                        {
+                            AzCliExecution = null,
+                            KubectlExecution = executionDoc.ToDomainModel()
+                        };
                     }
                 }
 
@@ -1028,21 +1000,12 @@ public class CosmosDbThreadRepository : IThreadRepository
 
                     if (executionDoc != null)
                     {
-                        messageDocWithApproval = new MessageDocument(
-                            messageDoc.Id,
-                            messageDoc.ThreadId,
-                            messageDoc.TimeStamp,
-                            messageDoc.Author,
-                            messageDoc.Text,
-                            messageDoc.IsImageContent,
-                            messageDoc.Posted,
-                            messageDoc.Approval,
-                            null, // Use the updated execution
-                            null,
-                            executionDoc.ToPsqlDomainModel(),
-                            messageDoc.IncidentDiscussionId,
-                            messageDoc.IsDailyReport
-                        );
+                        messageDocWithApproval = messageDoc with
+                        {
+                            AzCliExecution = null,
+                            KubectlExecution = null,
+                            PsqlExecution = executionDoc.ToPsqlDomainModel()
+                        };
                     }
                 }
                 messages.Add(messageDocWithApproval.ToDomainModel(isDailyReport: messageDoc.IsDailyReport));
@@ -1085,19 +1048,10 @@ public class CosmosDbThreadRepository : IThreadRepository
                         approvalDoc = approvalResults.FirstOrDefault();
                     }
 
-                    messageDocWithApproval = new MessageDocument(messageDoc.Id,
-                        messageDoc.ThreadId,
-                        messageDoc.TimeStamp,
-                        messageDoc.Author,
-                        messageDoc.Text,
-                        messageDoc.IsImageContent,
-                        messageDoc.Posted,
-                        approvalDoc?.ToDomainModel(),
-                        messageDoc.AzCliExecution,
-                        messageDoc.KubectlExecution,
-                        messageDoc.PsqlExecution,
-                        messageDoc.IncidentDiscussionId,
-                        messageDoc.IsDailyReport);
+                    messageDocWithApproval = messageDoc with
+                    {
+                        Approval = approvalDoc?.ToDomainModel()
+                    };
                 }
                 messages.Add(messageDocWithApproval.ToDomainModel(isDailyReport: messageDoc.IsDailyReport));
             }
@@ -1139,21 +1093,11 @@ public class CosmosDbThreadRepository : IThreadRepository
 
                     if (executionDoc != null)
                     {
-                        messageDocWithApproval = new MessageDocument(
-                            messageDoc.Id,
-                            messageDoc.ThreadId,
-                            messageDoc.TimeStamp,
-                            messageDoc.Author,
-                            messageDoc.Text,
-                            messageDoc.IsImageContent,
-                            messageDoc.Posted,
-                            messageDoc.Approval,
-                            executionDoc.ToDomainModel(), // Use the updated execution
-                            null,
-                            messageDoc.PsqlExecution,
-                            messageDoc.IncidentDiscussionId,
-                            messageDoc.IsDailyReport
-                        );
+                        messageDocWithApproval = messageDoc with
+                        {
+                            AzCliExecution = executionDoc.ToDomainModel(),
+                            KubectlExecution = null
+                        };
                     }
                 }
 
@@ -1197,21 +1141,11 @@ public class CosmosDbThreadRepository : IThreadRepository
 
                     if (executionDoc != null)
                     {
-                        messageDocWithApproval = new MessageDocument(
-                            messageDoc.Id,
-                            messageDoc.ThreadId,
-                            messageDoc.TimeStamp,
-                            messageDoc.Author,
-                            messageDoc.Text,
-                            messageDoc.IsImageContent,
-                            messageDoc.Posted,
-                            messageDoc.Approval,
-                            null, // AzCliExecution
-                            executionDoc.ToDomainModel(), // KubectlExecution
-                            messageDoc.PsqlExecution,
-                            messageDoc.IncidentDiscussionId,
-                            messageDoc.IsDailyReport
-                        );
+                        messageDocWithApproval = messageDoc with
+                        {
+                            AzCliExecution = null,
+                            KubectlExecution = executionDoc.ToDomainModel()
+                        };
                     }
                 }
                 messages.Add(messageDocWithApproval.ToDomainModel(isDailyReport: messageDoc.IsDailyReport));
@@ -2872,21 +2806,12 @@ public class CosmosDbThreadRepository : IThreadRepository
 
                     if (executionDoc != null)
                     {
-                        messageDocWithApproval = new MessageDocument(
-                            messageDoc.Id,
-                            messageDoc.ThreadId,
-                            messageDoc.TimeStamp,
-                            messageDoc.Author,
-                            messageDoc.Text,
-                            messageDoc.IsImageContent,
-                            messageDoc.Posted,
-                            messageDoc.Approval,
-                            null, // AzCliExecution
-                            null, // KubectlExecution
-                            executionDoc.ToPsqlDomainModel(), // Use the PsqlExecution
-                            messageDoc.IncidentDiscussionId,
-                            messageDoc.IsDailyReport
-                        );
+                        messageDocWithApproval = messageDoc with
+                        {
+                            AzCliExecution = null,
+                            KubectlExecution = null,
+                            PsqlExecution = executionDoc.ToPsqlDomainModel()
+                        };
                     }
                 }
 

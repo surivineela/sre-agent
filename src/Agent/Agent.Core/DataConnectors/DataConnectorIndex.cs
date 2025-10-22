@@ -385,9 +385,14 @@ public class DataConnectorIndex
                 orphanedDocuments.Count,
                 _searchSettings.IndexName);
 
+            var documentIds = orphanedDocuments
+                .Where(d => !string.IsNullOrEmpty(d.id))
+                .Select(d => d.id)
+                .ToHashSet();
+
             await _searchIndexingClient.DeleteDocumentsAsync(
                 _searchSettings.IndexName,
-                orphanedDocuments);
+                documentIds);
 
             _logger.LogInternalInformation(
                 "Successfully removed {Count} orphaned documents from search index {IndexName}",

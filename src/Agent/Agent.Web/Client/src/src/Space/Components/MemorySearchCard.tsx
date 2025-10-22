@@ -102,7 +102,7 @@ const MemorySearchCard = ({ memoryResult, className }: MemorySearchCardProps) =>
     const styles = useStyles();
     const intl = useIntl();
 
-    const hasResults = memoryResult.TotalResults > 0;
+    const hasResults = memoryResult.totalResults > 0;
 
     const renderTrajectories = (trajectories: any[], title: string) => {
         if (trajectories.length === 0) return null;
@@ -115,15 +115,15 @@ const MemorySearchCard = ({ memoryResult, className }: MemorySearchCardProps) =>
                 <div className={styles.itemsContainer}>
                     {trajectories.map((trajectory, index) => (
                         <div key={index} className={styles.trajectoryItem}>
-                            <Text className={styles.trajectoryTitle}>{trajectory.Title}</Text>
+                            <Text className={styles.trajectoryTitle}>{trajectory.title}</Text>
                             <Text className={styles.trajectoryDetail}>
-                                {intl.formatMessage(MemorySearchCardResources.symptoms, { symptoms: trajectory.SymptomsObserved })}
+                                {intl.formatMessage(MemorySearchCardResources.symptoms, { symptoms: trajectory.symptomsObserved })}
                             </Text>
                             <Text className={styles.trajectoryDetail}>
-                                {intl.formatMessage(MemorySearchCardResources.rootCause, { rootCause: trajectory.RootCause })}
+                                {intl.formatMessage(MemorySearchCardResources.rootCause, { rootCause: trajectory.rootCause })}
                             </Text>
                             <Text className={styles.trajectoryDetail}>
-                                {intl.formatMessage(MemorySearchCardResources.steps, { steps: trajectory.StepsFollowed })}
+                                {intl.formatMessage(MemorySearchCardResources.steps, { steps: trajectory.stepsFollowed })}
                             </Text>
                         </div>
                     ))}
@@ -160,7 +160,7 @@ const MemorySearchCard = ({ memoryResult, className }: MemorySearchCardProps) =>
                     <Caption1 className={styles.headerSubtitle}>
                         {hasResults
                             ? intl.formatMessage(MemorySearchCardResources.relevantMemoriesFound, {
-                                  numMemories: memoryResult.TotalResults,
+                                  numMemories: memoryResult.totalResults,
                               })
                             : intl.formatMessage(MemorySearchCardResources.relevantMemoriesNotFound)}
                     </Caption1>
@@ -175,15 +175,15 @@ const MemorySearchCard = ({ memoryResult, className }: MemorySearchCardProps) =>
             {hasResults && (
                 <div className={styles.content}>
                     {renderTrajectories(
-                        memoryResult.SameResourceTrajectories,
+                        memoryResult.sameResourceTrajectories,
                         intl.formatMessage(MemorySearchCardResources.pastIncidentsOnSameResource)
                     )}
                     {renderTrajectories(
-                        memoryResult.SimilarSymptomsTrajectories,
+                        memoryResult.similarSymptomsTrajectories,
                         intl.formatMessage(MemorySearchCardResources.similarSymptomIncidents)
                     )}
-                    {renderMemories(memoryResult.UserMemories, intl.formatMessage(MemorySearchCardResources.userMemories))}
-                    {renderMemories(memoryResult.Documents, intl.formatMessage(MemorySearchCardResources.relevantDocuments))}
+                    {renderMemories(memoryResult.userMemories, intl.formatMessage(MemorySearchCardResources.userMemories))}
+                    {renderMemories(memoryResult.documents, intl.formatMessage(MemorySearchCardResources.relevantDocuments))}
                 </div>
             )}
         </div>

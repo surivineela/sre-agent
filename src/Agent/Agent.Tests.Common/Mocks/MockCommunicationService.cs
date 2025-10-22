@@ -222,6 +222,13 @@ namespace Agent.Tests.Common.Mocks
             Messages.Add(chatMessageContent);
             return Task.CompletedTask;
         }
+
+        public Task<Guid> AppendAgentMemorySearchMessage(Guid threadId, MemorySearchResult memorySearchResult, Guid messageId = default)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, MemorySearchResult: {memorySearchResult}");
+            Messages.Add(memorySearchResult?.ToString() ?? string.Empty);
+            return Task.FromResult(Guid.NewGuid());
+        }
     }
 }
 

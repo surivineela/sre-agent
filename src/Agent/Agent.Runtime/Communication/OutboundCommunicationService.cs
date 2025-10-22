@@ -196,6 +196,30 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         return await _sinkService.SinkAgentMessageAsync(threadId, "Approval Request for Processing Azure SRE Agent Request", true, approval, messageId);
     }
 
+    public async Task<Guid> AppendAgentMemorySearchMessage(Guid threadId, MemorySearchResult memorySearchResult, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        Guid resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
+        try
+        {
+            string jsonString = JsonSerializer.Serialize(memorySearchResult, _serializerOptions);
+            // Stream to frontend using StreamMessageType.MemorySearch
+            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.MemorySearch, resolvedMessageId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream memory search message for thread {ThreadId}", threadId);
+        }
+
+        // Persist to database - use a descriptive text message
+        string messageText = $"Memory Search: Found {memorySearchResult.TotalResults} relevant results";
+        return await _sinkService.SinkAgentMessageAsync(threadId, messageText, false, null, resolvedMessageId, null, null, memorySearchResult, null);
+    }
+
     public async Task NotifyThreadEvent(Guid threadId, Core.Models.Api.v1.Thread thread)
     {
         if (threadId == Guid.Empty)

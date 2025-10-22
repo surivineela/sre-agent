@@ -19,5 +19,5 @@ public interface ISearchIndexingClient
     Task<Response<SearchIndexerSkillset>> CreateOrUpdateSkillsetAsync(SearchIndexerSkillset skillsetDefinition);
     Task<SearchResults<TResult>> SearchAsync<TResult>(string indexName, string searchText, SearchOptions searchOptions, CancellationToken cancellationToken = default);
     Task RunIndexerAsync(string indexerName, CancellationToken cancellationToken = default);
-    Task<Response<IndexDocumentsResult>> DeleteDocumentsAsync(string indexName, IEnumerable<DataConnectorIndexDocument> documents, CancellationToken cancellationToken = default);
+    Task<Response<IndexDocumentsResult>> DeleteDocumentsAsync(string indexName, IReadOnlySet<string> documentIds, CancellationToken cancellationToken = default);
 }

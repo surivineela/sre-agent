@@ -19,7 +19,7 @@ public class SinkService
         _logger = logger;
     }
 
-    public async Task<Guid> SinkAgentMessageAsync(Guid threadId, string messageText, bool isImageContent = false, Approval? approval = null, Guid agentResponseMessageId = default, DateTime? recordedDateTime = null, AgentTaskInfo? agentTaskInfo = null, TodoInfo? todoInfo = null)
+    public async Task<Guid> SinkAgentMessageAsync(Guid threadId, string messageText, bool isImageContent = false, Approval? approval = null, Guid agentResponseMessageId = default, DateTime? recordedDateTime = null, AgentTaskInfo? agentTaskInfo = null, MemorySearchResult? memorySearchResult = null, TodoInfo? todoInfo = null)
     {
         var messageId = agentResponseMessageId == default ? Guid.NewGuid() : agentResponseMessageId;
         var agentMessage = new Message(
@@ -31,6 +31,7 @@ public class SinkService
             Posted: new Posted(false),
             Approval: approval,
             AgentTaskInfo: agentTaskInfo,
+            MemorySearchResult: memorySearchResult,
             TodoInfo: todoInfo
         );
 

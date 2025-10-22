@@ -25,6 +25,8 @@ public record MessageDocument(
     bool IsDailyReport = false,
     // Agent Task information associated with this message (for deep investigation notifications)
     AgentTaskInfo? AgentTaskInfo = null,
+    // Memory search results from agent memory plugin
+    MemorySearchResult? MemorySearchResult = null,
     // Todo Plan information associated with this message (for todo plan notifications)
     TodoInfo? TodoInfo = null
 ) : ICosmosDocument
@@ -50,6 +52,7 @@ public record MessageDocument(
             IncidentDiscussionId: message.IncidentDiscussionId,
             message.IsDailyReport,
             message.AgentTaskInfo ?? null,
+            message.MemorySearchResult ?? null,
             message.TodoInfo ?? null
         );
 
@@ -68,6 +71,7 @@ public record MessageDocument(
             IncidentDiscussionId: IncidentDiscussionId,
             IsDailyReport,
             AgentTaskInfo,
+            MemorySearchResult: MemorySearchResult,
             TodoInfo: TodoInfo
         );
 }

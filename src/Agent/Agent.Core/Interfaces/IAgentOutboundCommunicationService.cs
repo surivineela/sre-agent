@@ -85,6 +85,7 @@ public interface IAgentOutboundCommunicationService
 
     Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default);
     Task<Guid> AppendAgentApprovalMessage(Guid threadId, Approval approval);
+    Task<Guid> AppendAgentMemorySearchMessage(Guid threadId, MemorySearchResult memorySearchResult, Guid messageId = default);
 
     /// <summary>
     /// Streams a message directly to the reasoning loop, bypassing normal tool call flow

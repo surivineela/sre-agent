@@ -102,25 +102,21 @@ public class SearchIndexingClient : ISearchIndexingClient
 
     public async Task<Response<IndexDocumentsResult>> DeleteDocumentsAsync(
         string indexName,
-        IEnumerable<DataConnectorIndexDocument> documents,
+        IReadOnlySet<string> documentIds,
         CancellationToken cancellationToken = default)
     {
+        if (!documentIds.Any())
+        {
+            _logger.LogInternalInformation("No documents to delete from index {IndexName}", indexName);
+            return null!; // No operation needed for empty set
+        }
+
         _logger.LogInternalInformation("Deleting documents from index {IndexName}", indexName);
         var searchClient = _searchIndexClient.GetSearchClient(indexName);
 
-        var keyValues = documents
-            .Where(d => !string.IsNullOrEmpty(d.id))
-            .Select(d => d.id)
-            .ToList();
-
-        if (!keyValues.Any())
-        {
-            throw new InvalidOperationException($"No valid document keys found for deletion in index {indexName}");
-        }
-
         var response = await searchClient.DeleteDocumentsAsync(
             Constants.DataConnectors.SearchIndexKeyFieldName,
-            keyValues,
+            documentIds,
             cancellationToken: cancellationToken);
 
         if (response.Value != null)

@@ -48,7 +48,7 @@ internal class MockSearchIndexingClient : ISearchIndexingClient
             new MockAzureHttpResponse(200));
     }
 
-    public Task<Response<IndexDocumentsResult>> DeleteDocumentsAsync(string indexName, IEnumerable<DataConnectorIndexDocument> documents, CancellationToken cancellationToken = default)
+    public Task<Response<IndexDocumentsResult>> DeleteDocumentsAsync(string indexName, IReadOnlySet<string> documentIds, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

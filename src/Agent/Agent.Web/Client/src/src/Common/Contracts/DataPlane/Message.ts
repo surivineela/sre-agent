@@ -23,8 +23,7 @@ export interface MessageContent {
     todoInfo?: TodoInfo;
 }
 
-export interface Message extends MessageMetaData, MessageContent {
-}
+export interface Message extends MessageMetaData, MessageContent {}
 
 export interface Approval {
     id: string;
@@ -138,22 +137,22 @@ export interface ChangeDiffItem {
 }
 
 export interface MemorySearchResult {
-    ResourceId: string;
-    Symptoms: string;
-    SameResourceTrajectories: TrajectoryResult[];
-    SimilarSymptomsTrajectories: TrajectoryResult[];
-    UserMemories: string[];
-    Documents: string[];
-    Timestamp: string;
-    TotalResults: number;
+    resourceId: string;
+    symptoms: string;
+    sameResourceTrajectories: TrajectoryResult[];
+    similarSymptomsTrajectories: TrajectoryResult[];
+    userMemories: string[];
+    documents: string[];
+    timestamp: string;
+    totalResults: number;
 }
 
 export interface TrajectoryResult {
-    Id: string;
-    Title: string;
-    InitialSymptoms: string;
-    SymptomsObserved: string;
-    StepsFollowed: string;
-    RootCause: string;
-    Pitfalls: string;
+    id: string;
+    title: string;
+    initialSymptoms: string;
+    symptomsObserved: string;
+    stepsFollowed: string;
+    rootCause: string;
+    pitfalls: string;
 }
