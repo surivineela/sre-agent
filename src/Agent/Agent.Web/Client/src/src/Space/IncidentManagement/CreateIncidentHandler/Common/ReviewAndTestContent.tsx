@@ -107,6 +107,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                         display: 'flex',
                         flexDirection: 'column',
                         paddingTop: 20,
+                        height: 'calc(100% - 20px)',
                     }}
                 >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '33%', flex: 'none' }}>
@@ -174,6 +175,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                         flexDirection: 'column',
                         gap: 16,
                         paddingTop: 20,
+                        height: 'calc(100% - 20px)',
                     }}
                 >
                     {!view && (
@@ -267,6 +269,10 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                             threadSource={ThreadSource.incident}
                             isAgentTaskEnabled={false}
                             stylesProps={{
+                                rootStyle: {
+                                    height: `0%`,
+                                    flex: '1 1 auto',
+                                },
                                 chatBoxAndAgentTask: {
                                     boxShadow: 'unset',
                                     borderRadius: 'unset',

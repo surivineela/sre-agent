@@ -16,7 +16,7 @@ import { ChatBoxContext, ThreadAgentModeContext } from '../Contracts/Context';
 import { useAgentTask } from '../Hooks/useAgentTask';
 import { useChatBox } from '../Hooks/useChatBox';
 import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
-import { getChatBoxV2Styles } from '../Styles/Activities.styles';
+import { getChatBoxV2Styles, ThreadTitleHeight } from '../Styles/Activities.styles';
 import AgentTask from './AgentTask/AgentTask';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
@@ -90,8 +90,14 @@ export const ChatBox = ({
         [getGroupedChatMessages, openAgentTask, openTodoPlan]
     );
 
+    // Use style instead of classname to override the CopilotProvider styule to avoid global styles conflict
     return (
-        <CopilotProvider {...CopilotTheme} mode={'canvas'} theme={theme.isInverted ? webDarkTheme : webLightTheme}>
+        <CopilotProvider
+            {...CopilotTheme}
+            mode={'canvas'}
+            theme={theme.isInverted ? webDarkTheme : webLightTheme}
+            style={stylesProps?.rootStyle || { height: `calc(100% - ${ThreadTitleHeight + 5}px)` }}
+        >
             <ChatBoxContext.Provider value={chatBoxCtxValue}>
                 <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
                     <div className={chatBoxStyles.chatBoxAndAgentTask}>

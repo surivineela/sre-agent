@@ -6,13 +6,14 @@ import { CSSProperties } from 'react';
 
 export const ThreadItemHeightInPx = 18;
 export const ThreadItemPaddingTopBottomInPx = 8;
+export const ThreadTitleHeight = 50;
 
 // Note: Shared navigation styles (list item hover/selection) are now in Navigation.styles.tsx
 
 export const activitiesStylesRoot: CSSProperties = {
     display: 'flex',
     justifyContent: 'flex-start',
-    alignItems: 'flex-start',
+    alignItems: 'stretch',
     overflow: 'hidden',
     borderTop: '1px solid rgba(204,204,204,.8)',
     backgroundColor: tokens.colorNeutralBackground3,
@@ -48,6 +49,7 @@ export const ThreadContentStyles = mergeStyleSets({
         overflowY: 'hidden',
         fontSize: '16px',
         lineHeight: '22px',
+        height: '100%',
     },
     titleContainer: {
         display: 'flex',
@@ -55,7 +57,7 @@ export const ThreadContentStyles = mergeStyleSets({
         justifyContent: 'flex-start',
         alignItems: 'center',
         gap: '10px',
-        height: '50px',
+        height: `${ThreadTitleHeight}px`,
     },
     title: {
         lineHeight: '24px',
@@ -100,7 +102,7 @@ export const useChatBoxStyles = makeStyles({
 
 export const ChatBoxStyles = mergeStyleSets({
     chatBox: {
-        height: 'calc(100vh - 100px)',
+        height: '100%',
         borderRadius: tokens.borderRadiusXLarge,
         minWidth: '300px',
         marginRight: '4px',
@@ -176,6 +178,7 @@ export interface AgentTaskStyleProps {
 }
 
 export interface ChatBoxV2StyleProps {
+    rootStyle?: CSSProperties;
     chatBoxAndAgentTask?: GriffelStyle;
     chatBox?: GriffelStyle;
     chatBoxInner?: GriffelStyle;
@@ -190,14 +193,15 @@ export const getChatBoxV2Styles = (agentTaskVisible?: boolean, overrides?: ChatB
     mergeStyleSets({
         chatBoxAndAgentTask: {
             display: 'flex',
-            width: 'calc(100% - 4px)',
+            width: 'calc(100% - 5px)',
+            height: '100%',
             boxShadow: tokens.shadow4,
             borderRadius: tokens.borderRadiusXLarge,
             marginBottom: '5px',
             ...overrides?.chatBoxAndAgentTask,
         },
         chatBox: {
-            height: 'calc(100vh - 100px)',
+            height: '100%',
             minWidth: '300px',
             width: '100%',
             ...overrides?.chatBox,
@@ -362,7 +366,7 @@ export const useThreadMenuStyle = () => {
     const root: IStyle = {
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 50px)',
+        height: '100%',
         maxWidth: '100%',
         position: 'absolute',
         left: '0',

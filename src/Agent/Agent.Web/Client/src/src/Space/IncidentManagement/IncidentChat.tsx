@@ -51,6 +51,9 @@ const IncidentChatInner: FC<IncidentChatInnerProps> = ({ selectedThread, isAgent
             collapseResizables={() => {}}
             isAgentTaskEnabled={!!isAgentTaskEnabled}
             stylesProps={{
+                rootStyle: {
+                    height: '100%',
+                },
                 chatBoxAndAgentTask: {
                     boxShadow: 'unset',
                     borderRadius: 'unset',

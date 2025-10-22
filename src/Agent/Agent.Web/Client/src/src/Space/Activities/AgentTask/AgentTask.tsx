@@ -54,7 +54,7 @@ const useAgentTaskStyles = (overrides?: AgentTaskStyleProps) =>
     mergeStyleSets({
         root: {
             backgroundColor: tokens.colorNeutralBackground1,
-            height: 'calc(100vh - 100px)',
+            height: '100%',
             flex: '1 0 auto',
             borderTopRightRadius: tokens.borderRadiusXLarge,
             borderBottomRightRadius: tokens.borderRadiusXLarge,
