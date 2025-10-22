@@ -39,6 +39,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
     private const uint PageSize = 10;
     private readonly static TimeSpan ScanInterval = TimeSpan.FromMinutes(1);
     private DateTime lastScanTime;
+    private DateTime latestIncidentCreatedAtUtc;
     private bool isScanSucceeded = true;
 
     public async Task ScanAsync(CancellationToken cancellationToken)
@@ -58,10 +59,11 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(IncidentManagementType.PagerDuty);
         var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(lastScanTimeKey, lastScanTimeKey);
         lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found
+        latestIncidentCreatedAtUtc = lastScanTime;
         while (!cancellationToken.IsCancellationRequested)
         {
+            latestIncidentCreatedAtUtc = lastScanTime;
             var filters = await incidentFilterManagementService.ListIncidentFilters(false);
-            var scanStartTime = DateTime.UtcNow;
             if (filters is null || filters.Count == 0)
             {
                 logger.LogInternalInformation("No incident filters found, skipping PagerDuty scanner.");
@@ -72,15 +74,14 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                 await ScanAllIncidentsAsync(filters, cancellationToken);
                 if (isScanSucceeded)
                 {
-                    lastScanTime = await UpdateLastScanTimeDocAsync(scanStartTime.AddSeconds(-50), IncidentManagementType.PagerDuty);
-                    logger.LogInternalInformation($"PagerDuty scanner completed successfully, last scan time is updated to {lastScanTime}");
+                    lastScanTime = await UpdateLastScanTimeDocAsync(latestIncidentCreatedAtUtc, IncidentManagementType.PagerDuty);
+                    logger.LogInternalInformation($"PagerDuty scanner completed successfully, last scanned created_at is {lastScanTime:O}");
                 }
                 else
                 {
                     logger.LogInternalWarning("PagerDuty scanner encountered issues during scanning, last scan time will not be updated.");
                 }
             }
-            var scanEndTime = DateTime.UtcNow;
             await Task.Delay(ScanInterval, cancellationToken);
         }
     }
@@ -136,6 +137,11 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
 
                 foreach (var incident in response)
                 {
+                    var incidentCreatedAtUtc = EnsureUtc(incident.CreatedAt);
+                    if (incidentCreatedAtUtc > latestIncidentCreatedAtUtc)
+                    {
+                        latestIncidentCreatedAtUtc = incidentCreatedAtUtc;
+                    }
                     var incidentDocument = await GetDocumentAsync<PagerDutyIncidentDocument>(incident.IncidentId, incident.IncidentId);
                     var existingLastModifiedTime = incidentDocument != null ? incidentDocument.UpdatedAt : DateTime.MinValue;
                     incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, filterDocument, cancellationToken);
@@ -635,13 +641,13 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         }
     }
 
-    private async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime lastScanTime, IncidentManagementType type)
+    private async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime latestTimestampUtc, IncidentManagementType type)
     {
         try
         {
             var patchOperationList = new List<PatchOperation>()
             {
-                PatchOperation.Add($"/lastScanTime", lastScanTime)
+                PatchOperation.Add($"/lastScanTime", latestTimestampUtc)
             };
 
             var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(type);
@@ -661,7 +667,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                 Id = lastScanTimeKey,
                 DocumentType = lastScanTimeKey,
                 PartitionKey = lastScanTimeKey,
-                LastScanTime = lastScanTime
+                LastScanTime = latestTimestampUtc
             };
 
             var doc = await container.CreateItemAsync(lastScanTimeDoc, new PartitionKey(lastScanTimeKey));
@@ -672,6 +678,16 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             logger.LogInternalError(ex, "Error updating LastScanTime for {incidentType} scanner", type);
             return DateTime.UtcNow;
         }
+    }
+
+    private static DateTime EnsureUtc(DateTime timestamp)
+    {
+        return timestamp.Kind switch
+        {
+            DateTimeKind.Unspecified => DateTime.SpecifyKind(timestamp, DateTimeKind.Utc),
+            DateTimeKind.Utc => timestamp,
+            _ => timestamp.ToUniversalTime()
+        };
     }
 
     private async Task<T?> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument

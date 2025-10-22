@@ -54,6 +54,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     private readonly static TimeSpan ScanInterval = TimeSpan.FromMinutes(1);
     private bool isScanSucceeded = true;
     private DateTime lastScanTime;
+    private DateTime? latestModifiedDateInScan = null;
     //After offset > 5000, ICM endpoint will returning 400 bad request
     //Updating offset to 200, since now it will apply on every existing incident Filter
     private readonly static int maxOffset = 200;
@@ -94,16 +95,26 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             {
                 logger.LogInternalInformation("[IcmScanner] Found {filterCount} incident filters, starting IcM scanner.", filters.Count);
                 await ScanAllIncidentsAsync(filters, cancellationToken);
+                latestModifiedDateInScan = null; // Reset for each scan cycle
                 if (isScanSucceeded)
                 {
-                    //Once scan scceeded, update the last scan time to startTime - 50sec to give overlap between scans
-                    //Since there is 30sec lag for ICM API to update incident status
-                    lastScanTime = await UpdateLastScanTimeDocAsync(scanStartTime.AddSeconds(-50), IncidentManagementType.Icm);
+                    if (latestModifiedDateInScan.HasValue)
+                    {
+                        // Use the latest ModifiedDate from incidents fetched in this scan as the new checkpoint
+                        // This ensures we don't miss incidents due to API lag or timing issues
+                        lastScanTime = await UpdateLastScanTimeDocAsync(latestModifiedDateInScan.Value, IncidentManagementType.Icm);
+                        logger.LogInternalInformation("[IcmScanner] Updated checkpoint to latest incident ModifiedDate: {lastScanTime}", lastScanTime);
+                    }
+                    else
+                    {
+                        logger.LogInternalInformation("[IcmScanner] No incidents found in this scan, lastScanTime remains at: {lastScanTime}", lastScanTime);
+                    }
                 }
                 else
                 {
                     logger.LogInternalWarning("[IcmScanner] IcM scanner failed to scan incidents, last scan time will not be updated.");
                 }
+                
             }
             await Task.Delay(ScanInterval, cancellationToken);
         }
@@ -178,8 +189,17 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     return;
                 }
 
+                // Track the latest ModifiedDate from this batch of incidents
                 foreach (var incident in incidents)
                 {
+                    // Update the latest ModifiedDate seen in this scan
+                    // Convert DateTimeOffset to UTC DateTime for consistent checkpoint tracking
+                    var incidentModifiedDate = incident.LastModifiedDate.UtcDateTime;
+                    if (!latestModifiedDateInScan.HasValue || incidentModifiedDate > latestModifiedDateInScan.Value)
+                    {
+                        latestModifiedDateInScan = incidentModifiedDate;
+                    }
+
                     var incidentDocument = await GetDocumentAsync<IcmIncidentDocument>(incident.Id.ToString(), incident.Id.ToString());
                     var existingLastModifiedTime = incidentDocument != null ? incidentDocument.UpdatedAt : DateTime.MinValue;
                     incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, filterDocument);

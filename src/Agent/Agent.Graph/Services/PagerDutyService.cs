@@ -61,7 +61,7 @@ public class PagerDutyService : IPagerDutyService
         {
             throw new ArgumentOutOfRangeException(nameof(since), "Since must be within the last 180 days.");
         }
- 
+
         // The default time range of Listing incidents is a month, per https://developer.pagerduty.com/api-reference/9d0b4b12e36f9-list-incidents
         // Note: include%5B%5D=first_trigger_log_entries is required to get the full log entry, which contains the real incident description.
         // Note: removing the status filters as they prevent indexing incidents that will be used to derive learnings from
@@ -127,6 +127,7 @@ public class PagerDutyService : IPagerDutyService
         string apiPath = QueryHelpers.AddQueryString("https://api.pagerduty.com/incidents", queryParams);
 
         var request = new HttpRequestMessage(HttpMethod.Get, apiPath);
+        _logger.LogInternalInformation("PagerDuty incidents request URL: {url}", apiPath);
 
         using var client = CreateHttpClient();
         var response = await client.SendAsync(request);
