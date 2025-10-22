@@ -95,7 +95,7 @@ public class TrajectoryEvals
         Assert.IsTrue(extractedTrajectory.IsInvestigationThread);
 
         await File.WriteAllTextAsync(
-            Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "Quality", $"traj_{inputFile}.txt"),
+            Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "Quality", $"traj_{inputFile}.json"),
             JsonSerializer.Serialize(extractedTrajectory, _jsonOptions));
 
         // todo: add quality evaluation using LLM
@@ -133,7 +133,7 @@ public class TrajectoryEvals
         Assert.IsFalse(extractedTrajectory.IsInvestigationThread);
 
         await File.WriteAllTextAsync(
-            Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "Relevance", $"traj_{inputFile}.txt"),
+            Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "Relevance", $"traj_{inputFile}.json"),
             JsonSerializer.Serialize(extractedTrajectory, _jsonOptions));
     }
 
@@ -167,7 +167,7 @@ public class TrajectoryEvals
         Assert.IsTrue(extractedTrajectory.IsInvestigationThread);
 
         await File.WriteAllTextAsync(
-            Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "DebugTraces", $"traj_{inputFile}.txt"),
+            Path.Join(AppContext.BaseDirectory, "../../..", "Data", "Trajectory", "DebugTraces", $"traj_{inputFile}.json"),
             JsonSerializer.Serialize(extractedTrajectory, _jsonOptions));
 
         // todo: add quality evaluation using LLM

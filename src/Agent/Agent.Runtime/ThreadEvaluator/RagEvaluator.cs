@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Text;
-using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -139,7 +138,7 @@ public class RagEvaluator : IRagEvaluator
 
                         _logger.LogAgentAction(
                             action: AgentActionEvents.EvaluateRag,
-                            parameter: JsonSerializer.Serialize(evaluationResult),
+                            parameter: WebJsonSerializer.Serialize(evaluationResult),
                             status: AgentActionStatus.Success,
                             duration: 0,
                             threadId: thread.Id.ToString(),
@@ -187,11 +186,11 @@ public class RagEvaluator : IRagEvaluator
     /// Evaluates a SearchMemory result using RetrievalEvaluator
     /// </summary>
     private async Task<RagEvaluationResult> EvaluateSearchMemoryResult(
-    ThreadModel thread,
-    AgentContext agentContext,
-    SearchMemoryCall call,
-    FunctionResultContent result,
-    CancellationToken cancellationToken)
+        ThreadModel thread,
+        AgentContext agentContext,
+        SearchMemoryCall call,
+        FunctionResultContent result,
+        CancellationToken cancellationToken)
     {
         var retrievalResult = result.Result?.ToString() ?? "";
 
@@ -208,6 +207,9 @@ public class RagEvaluator : IRagEvaluator
                 ResourceId: call.ResourceId,
                 SearchQuery: call.Symptoms,
                 RetrievalScore: -1, // Use -1 to indicate skipped evaluation
+                Precision: -1,
+                Recall: null,
+                RankingScore: -1,
                 Explanation: "Skipped - No relevant results found",
                 Reasoning: "Evaluation skipped as SearchMemory returned no relevant memories, documents, or past incidents",
                 EvaluatedAt: DateTime.UtcNow
@@ -216,10 +218,19 @@ public class RagEvaluator : IRagEvaluator
 
         try
         {
-            // Build query context from the SearchMemory call
-            var query = BuildQueryFromSearchMemoryCall(call);
+            var evalResult = await EvaluateRetrievalScore(call, retrievalResult);
 
-            var evalResult = await EvaluateRetrievalScore(query, retrievalResult);
+            // Calculate metrics
+            var totalDocs = evalResult.DocumentScores.Count;
+            var relevantDocs = evalResult.DocumentScores.Count(d => d.RelevanceScore >= 4);
+
+            // Precision = relevant docs / total retrieved docs
+            var precision = totalDocs > 0 ? (double)relevantDocs / totalDocs : 0;
+
+            // Average relevance score across all documents
+            var averageRelevanceScore = totalDocs > 0
+                ? evalResult.DocumentScores.Average(d => d.RelevanceScore)
+                : 0;
 
             return new RagEvaluationResult(
                 ThreadId: thread.Id,
@@ -227,9 +238,12 @@ public class RagEvaluator : IRagEvaluator
                 CallId: call.CallId,
                 ResourceId: call.ResourceId,
                 SearchQuery: call.Symptoms,
-                RetrievalScore: evalResult?.Score ?? 0,
-                Explanation: evalResult?.Explanation ?? "Unknown",
-                Reasoning: evalResult?.ThoughtChain ?? "No reasoning available",
+                RetrievalScore: averageRelevanceScore,
+                Precision: precision,
+                Recall: null, // Will be populated when we implement recall calculation
+                RankingScore: evalResult.RankingQualityScore,
+                Explanation: WebJsonSerializer.Serialize(evalResult.DocumentScores),
+                Reasoning: evalResult.ThoughtChain,
                 EvaluatedAt: DateTime.UtcNow
             );
         }
@@ -244,9 +258,12 @@ public class RagEvaluator : IRagEvaluator
                 CallId: call.CallId,
                 ResourceId: call.ResourceId,
                 SearchQuery: call.Symptoms,
-                RetrievalScore: 0,
-                Explanation: "Error",
-                Reasoning: "Evaluation failed",
+                RetrievalScore: -1,
+                Precision: -1,
+                Recall: null,
+                RankingScore: -1,
+                Explanation: "Evaluation failed",
+                Reasoning: $"Error: {ex}",
                 EvaluatedAt: DateTime.UtcNow
             );
         }
@@ -271,13 +288,22 @@ public class RagEvaluator : IRagEvaluator
         return false;
     }
 
-    private record RetrievalEvaluationResult(
-        string ThoughtChain,
-        string Explanation,
-        int Score);
+    public record DocumentRelevanceScore(
+        string Title,
+        int RelevanceScore,
+        string Reasoning);
 
-    private async Task<RetrievalEvaluationResult> EvaluateRetrievalScore(string query, string retrievalResult)
+    public record RetrievalEvaluationResult(
+        string ThoughtChain,
+        List<DocumentRelevanceScore> DocumentScores,
+        string RankingReasoning,
+        int RankingQualityScore);
+
+    public async Task<RetrievalEvaluationResult> EvaluateRetrievalScore(SearchMemoryCall call, string retrievalResult)
     {
+        // Build query context from the SearchMemory call
+        var query = BuildQueryFromSearchMemoryCall(call);
+
         // The prompts are taken from https://github.com/dotnet/extensions/blob/43bde7f6e8b6e8f66af1dbf5690d9aa6ee6df809/src/Libraries/Microsoft.Extensions.AI.Evaluation.Quality/RetrievalEvaluator.cs#L133
         // The Microsoft.Extensions.AI.Evaluation.Quality hard coded the temperature in chatOptions, which makes it not compatible with GPT-5
         // So we implement our own evaluator using their prompt.
@@ -295,6 +321,29 @@ public class RagEvaluator : IRagEvaluator
         """
         # Definition
         **Retrieval** refers to measuring how relevant the context chunks are to address a query and how the most relevant context chunks are surfaced at the top of the list. It emphasizes the extraction and ranking of the most relevant information at the top, without introducing bias from external knowledge and ignoring factual correctness. It assesses the relevance and effectiveness of the retrieved context chunks with respect to the query.
+
+        # Input Structure
+        The CONTEXT you will evaluate contains different types of retrieved information, organized in markdown format:
+
+        1. **Trajectories (Past Incidents)**: These appear under section headers "## Similar Past Incidents..." or "## Past Incidents with Similar Symptoms...". Each trajectory is identified by:
+           - A level-3 header: `### [Trajectory Title]`
+           - Followed by bullet points with: Symptoms, Steps followed for resolution, Root Cause, Pitfalls to avoid
+           - Example: `### Web App High CPU - Memory Leak Investigation`
+
+        2. **User Memories**: These appear under section header "## Related User Memories". Each memory is identified by:
+           - A bold label: `**Memory N:**` where N is a number
+           - Followed by quoted text content
+           - Example: `**Memory 1:**` followed by `> Some user memory content...`
+
+        3. **Documents**: These appear under section header "## Relevant Documentation". Each document is identified by:
+           - A bold label: `**Document N:**` where N is a number
+           - Followed by content in code blocks (```)
+           - Example: `**Document 1:**` followed by ``` document content ```
+
+        When evaluating, you must:
+        - Identify each item by its title (for trajectories) or label (for memories/documents)
+        - Score each item individually based on relevance to the QUERY
+        - Consider the ordering: items appearing earlier in each section should ideally be more relevant
 
         # Ratings
         ## [Retrieval Score: 1] (Irrelevant Context, External Knowledge Bias)
@@ -353,12 +402,24 @@ public class RagEvaluator : IRagEvaluator
         const string OutputInstructions =
         """
         # Tasks
-        ## Please provide your assessment Score for the previous CONTEXT in relation to the QUERY based on the Definitions above. Your output should include the following information:
-        - **ThoughtChain**: To improve the reasoning process, think step by step and include a step-by-step explanation of your thought process as you analyze the data based on the definitions. Keep it brief and start your ThoughtChain with "Let's think step by step:".
+        ## Please provide your assessment for the previous CONTEXT in relation to the QUERY based on the Definitions above. Your output should include the following information:
 
-        - **Explanation**: a very short explanation of why you think the input Data should get that Score.
+        - **ThoughtChain**: Think step by step and explain your thought process as you analyze the CONTEXT based on the definitions. Start with "Let's think step by step:".
 
-        - **Score**: based on your previous analysis, provide your Score.The Score you give MUST be a integer score(i.e., "1", "2"...) based on the levels of the definitions.
+        - **DocumentScores**: An array containing one entry for EACH item in the CONTEXT. For each item:
+          - **Title**: Extract the title/identifier exactly as it appears:
+            - For trajectories: the text after `###` (e.g., "Web App High CPU - Memory Leak Investigation")
+            - For memories: the label (e.g., "Memory 1")
+            - For documents: the label (e.g., "Document 1")
+          - **RelevanceScore**: Integer 1-5 indicating how relevant this specific item is to addressing the QUERY
+          - **Reasoning**: Brief explanation of why this item received this relevance score
+
+        - **RankingReasoning**: Explain whether the most relevant items appear at the top of their respective sections or are ranked lower. Assess if the ranking helps surface the most useful information first.
+
+        - **RankingQualityScore**: Integer 1-5 assessing overall ranking quality across all sections, where:
+          - 5 = Most relevant items consistently appear first
+          - 3 = Mixed ranking with some relevant items buried
+          - 1 = Poor ranking with most relevant items at the bottom
         """;
 
         List<ChatMessage> evaluationInstructions = [
@@ -411,7 +472,10 @@ public record RagEvaluationResult(
     string CallId,
     string ResourceId,
     string SearchQuery,
-    int RetrievalScore,
+    double RetrievalScore,
+    double Precision,
+    double? Recall,
+    int RankingScore,
     string Explanation,
     string Reasoning,
     DateTime EvaluatedAt

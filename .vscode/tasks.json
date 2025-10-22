@@ -55,6 +55,23 @@
                 "panel": "shared"
             },
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "watch Agent.Web",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/src/Agent/Agent.Web/Agent.Web.csproj"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always"
+            },
+            "isBackground": true,
+            "problemMatcher": "$msCompile"
         }
     ]
 }

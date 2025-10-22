@@ -63,7 +63,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory<AgentContext> toolFactory,
         AzureSettings azureSettings,
-        IAgentRuntimeModifier<AgentContext> AgentRuntimeModifier,
+        IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
         ActionSettings actionSettings,
         CoreSettings coreSettings,
         Tracer tracer,
@@ -82,7 +82,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _embeddingGenerator = embeddingGenerator;
         _outboundCommunicationService = outboundCommunicationService;
         _agentFactory = agentFactory;
-        _agentRuntimeModifier = AgentRuntimeModifier;
+        _agentRuntimeModifier = agentRuntimeModifier;
         _threadRepository = threadRepository;
         _toolFactory = toolFactory;
         _actionSettings = actionSettings;

@@ -1,0 +1,17 @@
+{
+    "ReasoningScratchPad": "Analyzing performance degradation with focus on database query efficiency",
+    "IsInvestigationThread": true,
+    "ClassificationReason": "Performance issue traced to database layer",
+    "Title": "App Service Performance Degradation - High CPU",
+    "IncidentTitle": "Web App Slow Performance",
+    "IncidentId": "INC002",
+    "IncidentTime": "2024-01-20T14:00:00Z",
+    "SystemDesignKnowledge": "ASP.NET Core web application with SQL database backend",
+    "InitialSymptoms": "Users complaining about slow page loads especially during business hours",
+    "SymptomsObserved": "High CPU utilization at 90%, slow response times, performance degradation during peak hours",
+    "StepsFollowed": "1. Identified slow database queries\n2. Added missing indexes\n3. Optimized query patterns\n4. CPU usage dropped to 30%",
+    "RootCause": "Inefficient database queries causing high CPU load",
+    "Pitfalls": "Don't scale up without investigating query performance first",
+    "ResourcesInvolved": "/subscriptions/test/resourceGroups/rg2/providers/Microsoft.Web/sites/webapp2",
+    "ResourceTypesInvolved": "Microsoft.Web/sites"
+}

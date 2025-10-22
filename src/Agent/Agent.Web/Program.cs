@@ -223,12 +223,7 @@ public class Program
             builder.Configuration.GetSection("AppSettings:Core:External:MCP"));
 
         // Add AzureSearchSettings registration
-        builder.Services.AddSingleton<Agent.Core.Configuration.AzureSearchSettings>(sp =>
-        {
-            var searchSettings = GetAzureSearchSettings(builder.Configuration);
-
-            return searchSettings;
-        });
+        builder.RegisterAzureSearchSettings();
 
         // Add TsgCrawlerSettings registration right after the AzureSearchSettings registration
         builder.Services.AddSingleton<Agent.Core.Configuration.TsgCrawlerSettings>(sp =>
@@ -720,8 +715,6 @@ public class Program
                 sp.GetRequiredService<DataConnectorIndex>());
         });
         builder.Services.AddTransient<TsgPluginDefinition>();
-
-        var searchSettings = GetAzureSearchSettings(builder.Configuration);
 
         // Register ApplensDetectorPlugin - now always enabled
         builder.Services.AddTransient<ApplensDetectorPluginDefinition>(sp =>

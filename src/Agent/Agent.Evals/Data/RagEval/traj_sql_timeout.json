@@ -1,0 +1,17 @@
+{
+  "ReasoningScratchPad": "Investigating database timeout patterns and connectivity issues",
+  "IsInvestigationThread": true,
+  "ClassificationReason": "Database connectivity and performance issue",
+  "Title": "SQL Database Connection Timeout Issues",
+  "IncidentTitle": "Database Timeout Errors",
+  "IncidentId": "INC004",
+  "IncidentTime": "2024-02-01T09:00:00Z",
+  "SystemDesignKnowledge": "Azure SQL Database with application connectivity",
+  "InitialSymptoms": "Application logs showing frequent timeout exceptions",
+  "SymptomsObserved": "Database connection timeout errors, query timeout exceptions, intermittent connectivity failures",
+  "StepsFollowed": "1. Checked network connectivity\n2. Reviewed firewall rules\n3. Optimized long-running queries\n4. Increased connection timeout settings",
+  "RootCause": "Network latency and long-running queries causing timeouts",
+  "Pitfalls": "Don't just increase timeouts - investigate and fix slow queries",
+  "ResourcesInvolved": "/subscriptions/test/resourceGroups/rg4/providers/Microsoft.Sql/servers/sqlserver1",
+  "ResourceTypesInvolved": "Microsoft.Sql/servers"
+}

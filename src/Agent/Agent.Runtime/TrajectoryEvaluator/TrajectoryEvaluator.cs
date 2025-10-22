@@ -222,7 +222,7 @@ public class TrajectoryEvaluator
 
                     var vector = await _embeddingGenerator.GenerateVectorForAgentMemoryAsync(trajectory.SymptomsObserved, _logger, cancellationToken);
                     var memory = AgentMemory.FromTrajectory(
-                        id: thread.Id.ToString(),
+                        trajectoryGuid: thread.Id, // use thread id as the id to keep it unique + update existing memory on re-eval
                         trajectoryData: trajectory,
                         embedding: [.. vector.Span]
                     );

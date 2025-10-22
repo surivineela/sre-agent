@@ -1,0 +1,17 @@
+{
+    "ReasoningScratchPad": "Investigating storage access permissions and authentication issues",
+    "IsInvestigationThread": true,
+    "ClassificationReason": "Authentication and authorization issue with storage access",
+    "Title": "Storage Account Access Denied - 403 Errors",
+    "IncidentTitle": "Storage Access Failures",
+    "IncidentId": "INC005",
+    "IncidentTime": "2024-02-05T11:00:00Z",
+    "SystemDesignKnowledge": "Azure Blob Storage with SAS token authentication",
+    "InitialSymptoms": "Application unable to access storage blobs, 403 errors in logs",
+    "SymptomsObserved": "403 Forbidden errors when accessing blob storage, authentication failures, SAS token issues",
+    "StepsFollowed": "1. Verified SAS token expiration\n2. Checked storage account permissions\n3. Regenerated access keys\n4. Updated application configuration",
+    "RootCause": "Expired SAS token and incorrect RBAC permissions",
+    "Pitfalls": "Always check token expiration before regenerating keys",
+    "ResourcesInvolved": "/subscriptions/test/resourceGroups/rg5/providers/Microsoft.Storage/storageAccounts/storage1",
+    "ResourceTypesInvolved": "Microsoft.Storage/storageAccounts"
+}

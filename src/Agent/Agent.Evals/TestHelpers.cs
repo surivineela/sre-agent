@@ -54,6 +54,7 @@ public static class TestHelpers
 
         builder.LoadAppSettings(isDevelopment: true);
         builder.RegisterAppSettingsNoValidation<AppSettings>();
+        builder.RegisterAzureSearchSettings();
 
         var llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
 
@@ -106,6 +107,8 @@ public static class TestHelpers
             builder.AddConsole();
         });
 
+        builder.Services.AddHttpClient();
+
         outLLMDeploymentName = llmDeploymentName;
 
         return builder;
@@ -113,6 +116,7 @@ public static class TestHelpers
 
     public static HostApplicationBuilder RegisterDefaultServices(this HostApplicationBuilder builder)
     {
+        builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
         builder.Services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
         builder.Services.AddSingleton<IThreadRepository, InMemoryThreadRepository>();
         builder.Services.AddSingleton<IInstanceManagementRepository, InMemoryInstanceManagementRepository>();
@@ -429,16 +433,17 @@ public static class TestHelpers
         return TestHost.Create(host);
     }
 
-    public static bool IsAgentMemoryEnabled(this HostApplicationBuilder builder)
+    public static bool IsAgentMemoryEnabled(this IHostApplicationBuilder builder)
     {
         var agentMemorySettings = builder.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
         return agentMemorySettings?.Enabled ?? false;
     }
 
-    public static void ConfigureAgentMemory(this HostApplicationBuilder builder)
+    public static IHostApplicationBuilder ConfigureAgentMemory(this IHostApplicationBuilder builder)
     {
         builder.Services.AddAgentMemory(
             enableAgentMemory: builder.IsAgentMemoryEnabled());
+        return builder;
     }
 
     /// <summary>

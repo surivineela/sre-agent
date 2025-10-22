@@ -1,21 +1,8 @@
 using System.Text.Json;
-using Agent.Core.Interfaces;
-using Agent.Core.Models;
-using Agent.Core.Services;
 using Agent.Data.AgentMemory;
-using Agent.Plugins;
-using Agent.Plugins.Interface;
-using Agent.Plugins.Mocks;
-using Agent.Runtime.SubAgents;
-using Agent.Tests.Common;
-using Agent.Tests.Common.Mocks;
-using Agent.Tests.Common.ScenarioTestHelpers;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace Agent.Evals.Rag;
 
@@ -56,38 +43,10 @@ public partial class DocumentRetrievalEval
         }
 
         builder.RegisterDefaultServices();
-        builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
-        // Add AzureSearchSettings registration
-        builder.Services.AddSingleton<Agent.Core.Configuration.AzureSearchSettings>(sp =>
-        {
-            var searchSettings = GetAzureSearchSettings(builder.Configuration);
-
-            return searchSettings;
-        });
         builder.ConfigureAgentMemory();
 
         _host = builder.Build();
         await _host.StartAsync();
-    }
-
-    private static Agent.Core.Configuration.AzureSearchSettings GetAzureSearchSettings(IConfiguration configuration)
-    {
-        var settings = configuration.GetSection("AppSettings:Core:Azure:AzureSearch").Get<Agent.Core.Configuration.AzureSearchSettings>();
-        if (settings == null)
-        {
-            var firstPartySettings = configuration
-                .GetSection("AppSettings:Core:External:AzureSearch")
-                .Get<Agent.Core.Configuration.AzureSearchSettings>();
-            if (firstPartySettings != null)
-            {
-                settings = firstPartySettings;
-            }
-            else
-            {
-                settings = new Agent.Core.Configuration.AzureSearchSettings();
-            }
-        }
-        return settings;
     }
 
     [TestCleanup]

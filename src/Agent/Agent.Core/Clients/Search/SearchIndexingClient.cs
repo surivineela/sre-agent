@@ -145,4 +145,29 @@ public class SearchIndexingClient : ISearchIndexingClient
 
         return response;
     }
+
+    public async Task DeleteIndexIfExistsAsync(string indexName)
+    {
+        try
+        {
+            _logger.LogInternalInformation("Deleting search index...");
+            var index = await _searchIndexClient.GetIndexAsync(indexName);
+
+            if (!index.HasValue)
+            {
+                _logger.LogInternalInformation("Search index does not exist, skipping deletion.");
+                return;
+            }
+
+            var searchIndex = index.Value;
+
+            await _searchIndexClient.DeleteIndexAsync(searchIndex);
+
+            _logger.LogInternalInformation("Search index deleted successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to delete search index");
+        }
+    }
 }

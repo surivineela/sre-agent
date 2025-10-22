@@ -389,7 +389,7 @@ namespace Agent.Web.Controllers.v1
             {
                 var embedding = await embeddingGenerator.GenerateVectorForAgentMemoryAsync(trajectoryOutput.SymptomsObserved, logger);
                 var memory = AgentMemory.FromTrajectory(
-                    id: Guid.NewGuid().ToString(),
+                    trajectoryGuid: Guid.NewGuid(), // generate random guid
                     trajectoryData: trajectoryOutput,
                     embedding: [.. embedding.Span]);
 

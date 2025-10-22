@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Reflection.Metadata;
 using System.Text.Json;
 using Agent.Core.Models;
 using Azure.Search.Documents.Indexes;
@@ -78,17 +77,18 @@ public class AgentMemory
     public DateTimeOffset IndexedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public static AgentMemory FromTrajectory(
-        string id,
+        Guid trajectoryGuid,
         ProcessedTrajectoryOutput_v3 trajectoryData,
         List<float> embedding)
     {
+        var trajectoryId = trajectoryGuid.ToString();
         return new AgentMemory
         {
-            Id = id,
+            Id = trajectoryId,
             Type = Constants.AgentMemoryType.Trajectory.ToLowerString(),
             Title = trajectoryData.Title,
             ChunkId = string.Empty,
-            ParentId = id,
+            ParentId = trajectoryId,
             Chunk = JsonSerializer.Serialize(trajectoryData),
             ResourceTypes = trajectoryData.ResourceTypesInvolved?.ToLowerInvariant().Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
             ResourceIds = trajectoryData.ResourcesInvolved?.ToLowerInvariant().Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],

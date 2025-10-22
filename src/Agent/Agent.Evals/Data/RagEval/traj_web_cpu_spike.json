@@ -1,0 +1,17 @@
+{
+    "ReasoningScratchPad": "Investigating CPU spike patterns related to traffic surges and autoscaling behavior",
+    "IsInvestigationThread": true,
+    "ClassificationReason": "Scaling configuration issue under load",
+    "Title": "Container App CPU Spikes During Peak Hours",
+    "IncidentTitle": "Container App Performance Issues",
+    "IncidentId": "INC003",
+    "IncidentTime": "2024-01-25T18:00:00Z",
+    "SystemDesignKnowledge": "Azure Container Apps with horizontal pod autoscaling",
+    "InitialSymptoms": "Alert triggered for high CPU usage, users reporting intermittent errors",
+    "SymptomsObserved": "CPU spikes to 100% during peak traffic, autoscaling not keeping up, intermittent timeouts",
+    "StepsFollowed": "1. Reviewed autoscaling configuration\n2. Adjusted min/max replica counts\n3. Tuned CPU threshold triggers\n4. Optimized container startup time",
+    "RootCause": "Insufficient autoscaling configuration for traffic patterns",
+    "Pitfalls": "Ensure autoscaling thresholds are set appropriately for workload",
+    "ResourcesInvolved": "/subscriptions/test/resourceGroups/rg3/providers/Microsoft.App/containerApps/app1",
+    "ResourceTypesInvolved": "Microsoft.App/containerApps"
+}

@@ -214,5 +214,31 @@ Otherwise, there may be required settings which are not auto-populated by the pr
             configuration["MicrosoftAppTenantId"] = teamsBotConfig.TenantId;
             sc.AddSingleton(configuration);
         }
+
+        public static IHostApplicationBuilder RegisterAzureSearchSettings(this IHostApplicationBuilder builder)
+        {
+            builder.Services.AddSingleton(GetAzureSearchSettings);
+            return builder;
+        }
+
+        private static AzureSearchSettings GetAzureSearchSettings(IServiceProvider serviceProvider)
+        {
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+
+            // try azure settings
+            var settings = configuration
+                .GetSection("AppSettings:Core:Azure:AzureSearch")
+                .Get<AzureSearchSettings>();
+
+            // try external if not found
+            settings ??= configuration
+                .GetSection("AppSettings:Core:External:AzureSearch")
+                .Get<AzureSearchSettings>();
+
+            // create new as last default
+            settings ??= new AzureSearchSettings();
+
+            return settings;
+        }
     }
 }

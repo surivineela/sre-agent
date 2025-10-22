@@ -1,0 +1,17 @@
+{
+  "ReasoningScratchPad": "Investigating high CPU and memory growth pattern in web application",
+  "IsInvestigationThread": true,
+  "ClassificationReason": "Performance issue with resource leak characteristics",
+  "Title": "Web App High CPU - Memory Leak Investigation",
+  "IncidentTitle": "Web App Performance Degradation",
+  "IncidentId": "INC001",
+  "IncidentTime": "2024-01-15T10:00:00Z",
+  "SystemDesignKnowledge": "ASP.NET Core web application with caching layer",
+  "InitialSymptoms": "Users reporting slow response times, monitoring shows high CPU",
+  "SymptomsObserved": "High CPU usage at 95%, increasing memory consumption over time, slow response times",
+  "StepsFollowed": "1. Monitored memory usage patterns\n2. Analyzed heap dumps\n3. Identified memory leak in caching layer\n4. Deployed fix with proper object disposal",
+  "RootCause": "Memory leak in application code - cached objects not being disposed properly",
+  "Pitfalls": "Avoid restarting app without identifying root cause - leak will recur",
+  "ResourcesInvolved": "/subscriptions/test/resourceGroups/rg1/providers/Microsoft.Web/sites/webapp1",
+  "ResourceTypesInvolved": "Microsoft.Web/sites"
+}

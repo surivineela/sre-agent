@@ -10,7 +10,6 @@ using Azure.Search.Documents.Indexes.Models;
 using Azure.Search.Documents.Models;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using static Agent.Data.AgentMemory.Constants;
 
@@ -22,7 +21,6 @@ public class AgentMemoryClient : IAgentMemoryClient
     private readonly BlobServiceClient _agentBlobClient;
     private readonly SearchIndexerClient _indexerClient;
     private readonly SearchClient _searchClient;
-    private readonly IHostEnvironment _hostEnvironment;
     private readonly AgentMemorySettings _agentMemorySettings;
     private readonly OpenAISettings _openAISettings;
     private readonly ISearchIndexService _searchIndexService;
@@ -41,7 +39,6 @@ public class AgentMemoryClient : IAgentMemoryClient
         [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryBlobClient)] BlobServiceClient agentBlobClient,
         [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryIndexerClient)] SearchIndexerClient indexerClient,
         [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryAISearchClient)] SearchClient searchClient,
-        IHostEnvironment hostEnvironment,
         AgentMemorySettings agentMemorySettings,
         OpenAISettings openAISettings,
         ISearchIndexService searchIndexService)
@@ -50,7 +47,6 @@ public class AgentMemoryClient : IAgentMemoryClient
         _agentBlobClient = agentBlobClient;
         _indexerClient = indexerClient;
         _searchClient = searchClient;
-        _hostEnvironment = hostEnvironment;
         _agentMemorySettings = agentMemorySettings;
         _openAISettings = openAISettings;
         _searchIndexService = searchIndexService;

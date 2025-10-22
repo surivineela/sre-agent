@@ -1,7 +1,4 @@
 using System.Text.Json;
-using Agent.Core.Interfaces;
-using Agent.Core.Models;
-using Agent.Core.Services;
 using Agent.Data.AgentMemory;
 using Agent.Evals.Evaluators;
 using Microsoft.Extensions.AI;
@@ -9,8 +6,6 @@ using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Services.WebApi;
-using Prometheus.Protobuf;
 
 namespace Agent.Evals.Rag;
 
@@ -51,14 +46,16 @@ public partial class TrajectoryEval
         }
 
         builder.RegisterDefaultServices();
-        builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
         builder.ConfigureAgentMemory();
 
         _host = builder.Build();
         await _host.StartAsync();
 
-        // Setup the index once for the entire test class
-        await SetupIndex();
+        // Setup the index once for the entire test class using shared helper
+        await RagTestHelpers.SetupTestIndexAsync(
+            testContext,
+            _host,
+            dataFolderPath: Path.Combine("Data", "Trajectory"));
         Console.WriteLine("Index initialized for test class.");
     }
 
@@ -348,46 +345,4 @@ public partial class TrajectoryEval
     }
 
     #endregion
-
-    private static async Task SetupIndex()
-    {
-        var indexSerivce = _host!.Services.GetRequiredService<ISearchIndexService>();
-        var embeddingGenerator = _host.Services.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
-
-        Console.WriteLine("Setting up search index...");
-
-        // rebuild the index
-        await indexSerivce.DeleteIndexIfExistsAsync();
-        await indexSerivce.CreateOrUpdateIndexAsync();
-
-        var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "Trajectory");
-        var trajectoryFiles = Directory.GetFiles(
-            dataFolderPath,
-            "traj_*.txt",
-            SearchOption.AllDirectories);
-
-        if (trajectoryFiles.Length == 0)
-        {
-            Assert.Fail("No trajectory files found for indexing.");
-        }
-
-        Console.WriteLine($"Found {trajectoryFiles.Length} trajectory files to index.");
-
-        foreach (var trajectoryFile in trajectoryFiles)
-        {
-            var trajectoryContent = await File.ReadAllTextAsync(trajectoryFile);
-            var trajectory = JsonSerializer.Deserialize<ProcessedTrajectoryOutput_v3>(trajectoryContent, JsonSerializerOptions.Web);
-            // Use a console logger for token logging during test indexing
-            var loggerFactory = _host.Services.GetRequiredService<ILoggerFactory>();
-            var consoleLogger = loggerFactory.CreateLogger("TrajectoryRetrievalEval");
-            var embedding = await embeddingGenerator.GenerateVectorForAgentMemoryAsync(trajectory!.SymptomsObserved, consoleLogger);
-            var agentMemory = AgentMemory.FromTrajectory(Guid.NewGuid().ToString(), trajectory, [.. embedding.Span]);
-
-            // Index the trajectory content
-            await indexSerivce.IndexContentAsync(agentMemory);
-        }
-
-        Console.WriteLine("Index setup completed.");
-    }
-
 }
