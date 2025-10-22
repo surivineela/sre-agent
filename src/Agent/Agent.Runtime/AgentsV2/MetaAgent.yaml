@@ -146,6 +146,10 @@ system_prompt: |
 
 handoff_description: "Handoff to this agent when you don't have tools to continue the next step"
 
+tools:
+  - PostTeamsMessage
+  - GetTeamsMessages
+
 handoffs:
   - resource_discovery_agent
   - logs_resource_discovery_agent
@@ -186,7 +190,7 @@ max_reflection_count: 1
 custom_reflection_note: |
   Did the agent focus on user intent, for example, "show events or errors for AKS cluster" should only focus on that AKS cluster without list other resource type on Azure. For multiple resources, the agent should make a plan to handoff to agents one by one.
   Did the agent handoff to the most scoped agent for the task?
-  This agent is meta agent, it's always this agent's job to do delegation, if reasoning message contains any handoff description, did the agent actually call specific handoff tool/transfer tool? 
+  This agent is meta agent, it's always this agent's job to do delegation, if reasoning message contains any handoff description, did the agent actually call specific handoff tool/transfer tool?
   For azure resource lookup, always handoff to resource query agent to present a table of subscriptions if not specified
 
 output_type: MetaAgentOutput

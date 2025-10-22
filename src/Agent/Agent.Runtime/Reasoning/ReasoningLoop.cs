@@ -1163,6 +1163,13 @@ public class ReasoningLoop : IDisposable
 
             foreach (var toolName in agent.FactoryTools)
             {
+                // Skip disabled tools (those that don't meet EnabledIf condition)
+                if (_toolFactory.IsToolDisabled(toolName))
+                {
+                    _logger.LogInternalDebug("Skipping disabled tool {toolName} for agent {agentName}", toolName, agent.Name);
+                    continue;
+                }
+
                 var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
 
                 tools.Add(tool);

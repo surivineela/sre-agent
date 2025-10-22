@@ -113,8 +113,9 @@ public sealed class ReplayToolFactory<TContext> : AsyncInitializerBase, IToolFac
 
         function = null;
         return false;
-    }    /// <summary>
+    }
 
+    /// <summary>
     /// Checks if a tool with the given name exists, either in replay data or in the inner factory.
     /// </summary>
     public bool HasTool(string name)
@@ -132,6 +133,15 @@ public sealed class ReplayToolFactory<TContext> : AsyncInitializerBase, IToolFac
 
         // Fall back to checking the inner factory
         return _innerFactory.HasTool(name);
+    }
+
+    /// <summary>
+    /// Checks if a tool is disabled (doesn't meet EnabledIf condition).
+    /// </summary>
+    public bool IsToolDisabled(string name)
+    {
+        // Delegate to inner factory
+        return _innerFactory.IsToolDisabled(name);
     }
 
     public void CheckForReplayFailures()

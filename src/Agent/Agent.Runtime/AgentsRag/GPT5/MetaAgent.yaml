@@ -133,6 +133,8 @@ handoff_description: |
 
 tools:
   - SearchMemory
+  - PostTeamsMessage
+  - GetTeamsMessages
 
 handoffs:
   - resource_discovery_agent

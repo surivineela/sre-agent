@@ -19,6 +19,7 @@ using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Services.Interfaces;
+using Agent.Plugins.Tools;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
@@ -261,6 +262,36 @@ public static class TestHelpers
 
         builder.Services.AddSingleton<IReasoningLoopManager, ReasoningLoopManager>();
         builder.Services.AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>();
+
+        // Configure IConnectorResolver with TeamsApiHubConnector
+        builder.Services.AddSingleton<IConnectorResolver>(sp =>
+        {
+            var mockResolver = new Mock<IConnectorResolver>();
+
+            // Setup TeamsApiHubConnector with default values
+            var teamsConnector = new TeamsApiHubConnector
+            {
+                ConnectionRuntimeUrl = "https://test-teams-api.azurewebsites.net/",
+                GroupId = "00000000-0000-0000-0000-000000000000",
+                ChannelId = "19:test-channel@thread.tacv2",
+                Auth = new ConnectorAuthSettings
+                {
+                    AuthenticationType = ConnectorAuthType.ManagedIdentity
+                }
+            };
+
+            mockResolver
+                .Setup(x => x.GetConnectorFromSettings<TeamsApiHubConnector>(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
+                .Returns(teamsConnector);
+
+            return mockResolver.Object;
+        });
+
+        builder.Services.AddSingleton<ITeamsPlugin, TeamsPlugin>();
+        builder.Services.AddSingleton<TeamsPluginDefinition>();
 
         builder.Services.AddSingleton(TracerProvider.Default.GetTracer("SREAgentTests"));
         builder.Services.AddSingleton(Mock.Of<CustomerLogger>());

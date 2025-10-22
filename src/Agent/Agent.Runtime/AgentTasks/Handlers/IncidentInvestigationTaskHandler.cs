@@ -179,6 +179,13 @@ public sealed class IncidentInvestigationTaskHandler(
 
                 foreach (var toolName in agent.FactoryTools)
                 {
+                    // Skip disabled tools (those that don't meet EnabledIf condition)
+                    if ((toolFactory as ToolFactory<AgentContext>)!.IsToolDisabled(toolName))
+                    {
+                        logger.LogInternalDebug("Skipping disabled tool {toolName} for agent {agentName}", toolName, agent.Name);
+                        continue;
+                    }
+
                     var tool = (toolFactory as ToolFactory<AgentContext>)!.GetTool(toolName, context.ThreadId);
 
                     tools.Add(tool);

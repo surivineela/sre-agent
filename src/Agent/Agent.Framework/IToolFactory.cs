@@ -51,6 +51,8 @@ public interface IToolFactory<TContext> : IAsyncInitializer
 
     public bool HasTool(string name);
 
+    public bool IsToolDisabled(string name);
+
     public Task FindAndRegisterAllToolsAsync(BehaviorOnNameConflict onNameConflict);
 
     public List<ToolInfo> FetchAvailableToolInfo(Func<MethodInfo, bool>? filter = null);

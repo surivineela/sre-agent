@@ -145,6 +145,8 @@ handoff_description: "Handoff to this agent when you don't have tools to continu
 
 tools:
   - SearchMemory
+  - PostTeamsMessage
+  - GetTeamsMessages
 
 handoffs:
   - resource_discovery_agent

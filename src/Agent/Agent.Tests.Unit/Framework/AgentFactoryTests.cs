@@ -57,6 +57,8 @@ public class AgentFactoryTests
         _services.AddSingleton(_mockLogger.Object);
         _services.AddSingleton(_mockToolFactoryLogger.Object);
         _services.AddTransient<TestTools>();
+        _services.AddTransient<TestDataConnectorTools>();
+        _services.AddTransient<TestSlackTools>();
         SetupServiceProviderWithHostEnvironmentAndConfiguration();
         _serviceProvider = _services.BuildServiceProvider();
     }
@@ -85,6 +87,20 @@ public class AgentFactoryTests
         {
             AutoHandoffToMeta = true,
             EnableHandoffReasoning = true,
+        });
+
+        // Add CoreSettings with DataConnectors for testing DataConnectorType conditions
+        _services.AddSingleton(new CoreSettings
+        {
+            DataConnectors = new List<DataConnectorInstanceSettings>
+            {
+                new DataConnectorInstanceSettings
+                {
+                    Name = "TestTeamsConnector",
+                    DataConnectorType = "Teams",
+                    DataSource = "https://test.teams.com"
+                }
+            }
         });
     }
 
@@ -155,6 +171,41 @@ public class AgentFactoryTests
         // Test that common tools are loaded
         Assert.Contains("TestTool1", agent1.FactoryTools);
         Assert.Contains("TestTool2", agent1.FactoryTools);
+    }
+
+    [Fact]
+    public async Task YamlAgentLoadsOptionalToolsCorrectly()
+    {
+        // Arrange
+        Environment.SetEnvironmentVariable("YamlTestFeature", "On");
+        try
+        {
+            var toolFactory = CreateToolFactory();
+
+            var agentFactory = new AgentFactory<AgentContext>(
+                logger: _mockLogger.Object,
+                toolFactory: toolFactory,
+                chatClientProvider: _mockChatClientProvider.Object,
+                assembliesToScan: [],
+                modeConfigurator: _mockAgentModeConfigurator.Object,
+                agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+                commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+                commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools")
+            );
+            await agentFactory.InitializeAsync();
+
+            // Act
+            var agent1 = agentFactory.GetAgent("agent1");
+
+            // Assert
+            Assert.NotNull(agent1);
+            // TestManualTool should be included from both regular tools and optional tools (when condition is met)
+            Assert.Contains("TestManualTool", agent1.FactoryTools);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("YamlTestFeature", null);
+        }
     }
 
     [Fact]
@@ -234,6 +285,213 @@ public class AgentFactoryTests
         Assert.DoesNotContain("You can only perform READ operations", agent.Instructions);
     }
 
+    [Fact]
+    public async Task OptionalToolsAreIncludedWhenConditionIsMet()
+    {
+        // Arrange
+        Environment.SetEnvironmentVariable("TestFeature", "Enabled");
+        try
+        {
+            var toolFactory = CreateToolFactory();
+
+            var agentFactory = new AgentFactory<AgentContext>(
+                logger: _mockLogger.Object,
+                toolFactory: toolFactory,
+                chatClientProvider: _mockChatClientProvider.Object,
+                assembliesToScan: [Assembly.GetExecutingAssembly()],
+                modeConfigurator: _mockAgentModeConfigurator.Object,
+                commonToolsYamlDirectory: null
+            );
+            await agentFactory.InitializeAsync();
+
+            // Act
+            var agent = agentFactory.GetAgent("TestAgent3WithOptionalTools");
+
+            // Assert
+            Assert.NotNull(agent);
+            Assert.Contains("TestAutoTool", agent.FactoryTools);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("TestFeature", null);
+        }
+    }
+
+    [Fact]
+    public async Task OptionalToolsAreNotIncludedWhenConditionIsNotMet()
+    {
+        // Arrange
+        Environment.SetEnvironmentVariable("TestFeature", "Disabled");
+        try
+        {
+            var toolFactory = CreateToolFactory();
+
+            var agentFactory = new AgentFactory<AgentContext>(
+                logger: _mockLogger.Object,
+                toolFactory: toolFactory,
+                chatClientProvider: _mockChatClientProvider.Object,
+                assembliesToScan: [Assembly.GetExecutingAssembly()],
+                modeConfigurator: _mockAgentModeConfigurator.Object,
+                commonToolsYamlDirectory: null
+            );
+            await agentFactory.InitializeAsync();
+
+            // Act
+            var agent = agentFactory.GetAgent("TestAgent3WithOptionalTools");
+
+            // Assert
+            Assert.NotNull(agent);
+            // The tool is in FactoryTools, but should be marked as disabled
+            Assert.Contains("TestAutoTool", agent.FactoryTools);
+            Assert.True(toolFactory.IsToolDisabled("TestAutoTool"), "TestAutoTool should be disabled when condition is not met");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("TestFeature", null);
+        }
+    }
+
+    [Fact]
+    public async Task OptionalToolsAreNotIncludedWhenEnvironmentVariableIsNotSet()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _mockChatClientProvider.Object,
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null
+        );
+        await agentFactory.InitializeAsync();
+
+        // Act
+        var agent = agentFactory.GetAgent("TestAgent4WithOptionalToolsOnly");
+
+        // Assert
+        Assert.NotNull(agent);
+        // The tool is in FactoryTools, but should be marked as disabled since env var is not set
+        Assert.Contains("TestAutoTool", agent.FactoryTools);
+        Assert.True(toolFactory.IsToolDisabled("TestAutoTool"), "TestAutoTool should be disabled when env var is not set");
+    }
+
+    [Fact]
+    public async Task MultipleOptionalToolsCanBeConditionallyEnabled()
+    {
+        // Arrange
+        Environment.SetEnvironmentVariable("TestFeature", "Enabled");
+        try
+        {
+            var toolFactory = CreateToolFactory();
+
+            var agentFactory = new AgentFactory<AgentContext>(
+                logger: _mockLogger.Object,
+                toolFactory: toolFactory,
+                chatClientProvider: _mockChatClientProvider.Object,
+                assembliesToScan: [Assembly.GetExecutingAssembly()],
+                modeConfigurator: _mockAgentModeConfigurator.Object,
+                commonToolsYamlDirectory: null
+            );
+            await agentFactory.InitializeAsync();
+
+            // Act
+            var agent = agentFactory.GetAgent("TestAgent5WithMultipleOptionalTools");
+
+            // Assert
+            Assert.NotNull(agent);
+            // Both tools should be in FactoryTools
+            Assert.Contains("TestAutoTool", agent.FactoryTools);
+            Assert.Contains("TestManualTool", agent.FactoryTools);
+            // Both tools should be enabled when the EnabledIf condition is met
+            Assert.False(toolFactory.IsToolDisabled("TestAutoTool"), "TestAutoTool should be enabled");
+            Assert.False(toolFactory.IsToolDisabled("TestManualTool"), "TestManualTool should be enabled");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("TestFeature", null);
+        }
+    }
+
+    [Fact]
+    public async Task OptionalToolWithEmptyConditionIsNotEnabled()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _mockChatClientProvider.Object,
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null
+        );
+        await agentFactory.InitializeAsync();
+
+        // Act
+        var agent = agentFactory.GetAgent("TestAgent6WithEmptyCondition");
+
+        // Assert
+        Assert.NotNull(agent);
+        // Tool is in FactoryTools but should still be disabled since the plugin has EnabledIf condition that's not met
+        Assert.Contains("TestAutoTool", agent.FactoryTools);
+        Assert.True(toolFactory.IsToolDisabled("TestAutoTool"), "TestAutoTool should be disabled");
+    }
+
+    [Fact]
+    public async Task ToolsAreEnabledWhenDataConnectorTypeExists()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _mockChatClientProvider.Object,
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null
+        );
+        await agentFactory.InitializeAsync();
+
+        // Act
+        var agent = agentFactory.GetAgent("TestAgent7WithDataConnectorCondition");
+
+        // Assert
+        Assert.NotNull(agent);
+        // Tool should be in FactoryTools and enabled since Teams DataConnector exists in CoreSettings
+        Assert.Contains("TestDataConnectorTool", agent.FactoryTools);
+        Assert.False(toolFactory.IsToolDisabled("TestDataConnectorTool"), "TestDataConnectorTool should be enabled when Teams connector exists");
+    }
+
+    [Fact]
+    public async Task ToolsAreDisabledWhenDataConnectorTypeDoesNotExist()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _mockChatClientProvider.Object,
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null
+        );
+        await agentFactory.InitializeAsync();
+
+        // Act
+        var agent = agentFactory.GetAgent("TestAgent8WithMissingDataConnector");
+
+        // Assert
+        Assert.NotNull(agent);
+        // Tool should be in FactoryTools but disabled since Slack DataConnector does not exist
+        Assert.Contains("TestSlackTool", agent.FactoryTools);
+        Assert.True(toolFactory.IsToolDisabled("TestSlackTool"), "TestSlackTool should be disabled when Slack connector does not exist");
+    }
+
     private ToolFactory<AgentContext> CreateToolFactory()
     {
         var toolFactory = new ToolFactory<AgentContext>(
@@ -310,6 +568,186 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
 }
 
+public class TestAgent3WithOptionalToolsDescriptor : IAgentDescriptor
+{
+    public string Name { get; set; } = "TestAgent3WithOptionalTools";
+    public string Instructions { get; set; } = "Test Instructions";
+    public string? HandoffDescription { get; set; } = "Test Handoff Description";
+    public List<string> Handoffs { get; set; } = [];
+    public List<string> Tools { get; set; } = ["TestAutoTool"];
+    public List<string> McpTools { get; set; } = [];
+    public bool AllowParallelToolCalls { get; set; } = false;
+    public int MaxReflectionCount { get; set; } = 0;
+    public string CustomReflectionNote { get; set; } = string.Empty;
+    public List<string> CommonPrompts { get; set; } = [];
+    public List<string> CommonTools { get; set; } = [];
+    public string CriticPromptPath { get; set; } = string.Empty;
+    public bool CriticOnHandOff { get; set; } = false;
+    public float? Temperature { get; set; } = null;
+    public string? LlmModelName { get; set; } = null;
+    public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
+    public string? OutputType { get; set; } = null;
+    public string? UserPromptOverride { get; set; } = null;
+    public bool DisableDocumentRetrieval { get; set; } = false;
+    public bool EnableHandoffPromptOverride { get; set; } = false;
+    public bool DisableCommonPrompts { get; set; } = false;
+    public AgentType AgentType { get; set; } = AgentType.Autonomous;
+    public string? ParameterExtractionAgent { get; set; } = string.Empty;
+    public List<string> OrchestrationStartAgents { get; set; } = [];
+    public string? ResultSummarizationPrompt { get; set; } = string.Empty;
+    public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+}
+
+public class TestAgent4WithOptionalToolsOnlyDescriptor : IAgentDescriptor
+{
+    public string Name { get; set; } = "TestAgent4WithOptionalToolsOnly";
+    public string Instructions { get; set; } = "Test Instructions";
+    public string? HandoffDescription { get; set; } = "Test Handoff Description";
+    public List<string> Handoffs { get; set; } = [];
+    public List<string> Tools { get; set; } = ["TestAutoTool"];
+    public List<string> McpTools { get; set; } = [];
+    public bool AllowParallelToolCalls { get; set; } = false;
+    public int MaxReflectionCount { get; set; } = 0;
+    public string CustomReflectionNote { get; set; } = string.Empty;
+    public List<string> CommonPrompts { get; set; } = [];
+    public List<string> CommonTools { get; set; } = [];
+    public string CriticPromptPath { get; set; } = string.Empty;
+    public bool CriticOnHandOff { get; set; } = false;
+    public float? Temperature { get; set; } = null;
+    public string? LlmModelName { get; set; } = null;
+    public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
+    public string? OutputType { get; set; } = null;
+    public string? UserPromptOverride { get; set; } = null;
+    public bool DisableDocumentRetrieval { get; set; } = false;
+    public bool EnableHandoffPromptOverride { get; set; } = false;
+    public bool DisableCommonPrompts { get; set; } = false;
+    public AgentType AgentType { get; set; } = AgentType.Autonomous;
+    public string? ParameterExtractionAgent { get; set; } = string.Empty;
+    public List<string> OrchestrationStartAgents { get; set; } = [];
+    public string? ResultSummarizationPrompt { get; set; } = string.Empty;
+    public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+}
+
+public class TestAgent5WithMultipleOptionalToolsDescriptor : IAgentDescriptor
+{
+    public string Name { get; set; } = "TestAgent5WithMultipleOptionalTools";
+    public string Instructions { get; set; } = "Test Instructions";
+    public string? HandoffDescription { get; set; } = "Test Handoff Description";
+    public List<string> Handoffs { get; set; } = [];
+    public List<string> Tools { get; set; } = ["TestAutoTool", "TestManualTool"];
+    public List<string> McpTools { get; set; } = [];
+    public bool AllowParallelToolCalls { get; set; } = false;
+    public int MaxReflectionCount { get; set; } = 0;
+    public string CustomReflectionNote { get; set; } = string.Empty;
+    public List<string> CommonPrompts { get; set; } = [];
+    public List<string> CommonTools { get; set; } = [];
+    public string CriticPromptPath { get; set; } = string.Empty;
+    public bool CriticOnHandOff { get; set; } = false;
+    public float? Temperature { get; set; } = null;
+    public string? LlmModelName { get; set; } = null;
+    public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
+    public string? OutputType { get; set; } = null;
+    public string? UserPromptOverride { get; set; } = null;
+    public bool DisableDocumentRetrieval { get; set; } = false;
+    public bool EnableHandoffPromptOverride { get; set; } = false;
+    public bool DisableCommonPrompts { get; set; } = false;
+    public AgentType AgentType { get; set; } = AgentType.Autonomous;
+    public string? ParameterExtractionAgent { get; set; } = string.Empty;
+    public List<string> OrchestrationStartAgents { get; set; } = [];
+    public string? ResultSummarizationPrompt { get; set; } = string.Empty;
+    public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+}
+
+public class TestAgent6WithEmptyConditionDescriptor : IAgentDescriptor
+{
+    public string Name { get; set; } = "TestAgent6WithEmptyCondition";
+    public string Instructions { get; set; } = "Test Instructions";
+    public string? HandoffDescription { get; set; } = "Test Handoff Description";
+    public List<string> Handoffs { get; set; } = [];
+    public List<string> Tools { get; set; } = ["TestAutoTool"];
+    public List<string> McpTools { get; set; } = [];
+    public bool AllowParallelToolCalls { get; set; } = false;
+    public int MaxReflectionCount { get; set; } = 0;
+    public string CustomReflectionNote { get; set; } = string.Empty;
+    public List<string> CommonPrompts { get; set; } = [];
+    public List<string> CommonTools { get; set; } = [];
+    public string CriticPromptPath { get; set; } = string.Empty;
+    public bool CriticOnHandOff { get; set; } = false;
+    public float? Temperature { get; set; } = null;
+    public string? LlmModelName { get; set; } = null;
+    public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
+    public string? OutputType { get; set; } = null;
+    public string? UserPromptOverride { get; set; } = null;
+    public bool DisableDocumentRetrieval { get; set; } = false;
+    public bool EnableHandoffPromptOverride { get; set; } = false;
+    public bool DisableCommonPrompts { get; set; } = false;
+    public AgentType AgentType { get; set; } = AgentType.Autonomous;
+    public string? ParameterExtractionAgent { get; set; } = string.Empty;
+    public List<string> OrchestrationStartAgents { get; set; } = [];
+    public string? ResultSummarizationPrompt { get; set; } = string.Empty;
+    public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+}
+
+public class TestAgent7WithDataConnectorConditionDescriptor : IAgentDescriptor
+{
+    public string Name { get; set; } = "TestAgent7WithDataConnectorCondition";
+    public string Instructions { get; set; } = "Test Instructions";
+    public string? HandoffDescription { get; set; } = "Test Handoff Description";
+    public List<string> Handoffs { get; set; } = [];
+    public List<string> Tools { get; set; } = ["TestDataConnectorTool"];
+    public List<string> McpTools { get; set; } = [];
+    public bool AllowParallelToolCalls { get; set; } = false;
+    public int MaxReflectionCount { get; set; } = 0;
+    public string CustomReflectionNote { get; set; } = string.Empty;
+    public List<string> CommonPrompts { get; set; } = [];
+    public List<string> CommonTools { get; set; } = [];
+    public string CriticPromptPath { get; set; } = string.Empty;
+    public bool CriticOnHandOff { get; set; } = false;
+    public float? Temperature { get; set; } = null;
+    public string? LlmModelName { get; set; } = null;
+    public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
+    public string? OutputType { get; set; } = null;
+    public string? UserPromptOverride { get; set; } = null;
+    public bool DisableDocumentRetrieval { get; set; } = false;
+    public bool EnableHandoffPromptOverride { get; set; } = false;
+    public bool DisableCommonPrompts { get; set; } = false;
+    public AgentType AgentType { get; set; } = AgentType.Autonomous;
+    public string? ParameterExtractionAgent { get; set; } = string.Empty;
+    public List<string> OrchestrationStartAgents { get; set; } = [];
+    public string? ResultSummarizationPrompt { get; set; } = string.Empty;
+    public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+}
+
+public class TestAgent8WithMissingDataConnectorDescriptor : IAgentDescriptor
+{
+    public string Name { get; set; } = "TestAgent8WithMissingDataConnector";
+    public string Instructions { get; set; } = "Test Instructions";
+    public string? HandoffDescription { get; set; } = "Test Handoff Description";
+    public List<string> Handoffs { get; set; } = [];
+    public List<string> Tools { get; set; } = ["TestSlackTool"];
+    public List<string> McpTools { get; set; } = [];
+    public bool AllowParallelToolCalls { get; set; } = false;
+    public int MaxReflectionCount { get; set; } = 0;
+    public string CustomReflectionNote { get; set; } = string.Empty;
+    public List<string> CommonPrompts { get; set; } = [];
+    public List<string> CommonTools { get; set; } = [];
+    public string CriticPromptPath { get; set; } = string.Empty;
+    public bool CriticOnHandOff { get; set; } = false;
+    public float? Temperature { get; set; } = null;
+    public string? LlmModelName { get; set; } = null;
+    public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
+    public string? OutputType { get; set; } = null;
+    public string? UserPromptOverride { get; set; } = null;
+    public bool DisableDocumentRetrieval { get; set; } = false;
+    public bool EnableHandoffPromptOverride { get; set; } = false;
+    public bool DisableCommonPrompts { get; set; } = false;
+    public AgentType AgentType { get; set; } = AgentType.Autonomous;
+    public string? ParameterExtractionAgent { get; set; } = string.Empty;
+    public List<string> OrchestrationStartAgents { get; set; } = [];
+    public string? ResultSummarizationPrompt { get; set; } = string.Empty;
+    public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+}
+
 public class TestCommonPrompt : IPromptDescriptor
 {
     public const string PromptText = "test prompt text";
@@ -334,7 +772,7 @@ public class TestTodoWritePrompt : IPromptDescriptor
     public string Prompt { get; set; } = PromptText;
 }
 
-[AgentToolPlugin]
+[AgentToolPlugin(EnabledIf = "TestFeature:Enabled")]
 internal class TestTools
 {
     [AgentTool(ToolMode.Auto)]
@@ -349,5 +787,27 @@ internal class TestTools
     public string TestManualTool()
     {
         return "Test manual tool";
+    }
+}
+
+[AgentToolPlugin(EnabledIf = "DataConnectorType:Teams")]
+internal class TestDataConnectorTools
+{
+    [AgentTool(ToolMode.Auto)]
+    [Description("Test Data Connector Tool for Teams")]
+    public string TestDataConnectorTool()
+    {
+        return "Test data connector tool";
+    }
+}
+
+[AgentToolPlugin(EnabledIf = "DataConnectorType:Slack")]
+internal class TestSlackTools
+{
+    [AgentTool(ToolMode.Auto)]
+    [Description("Test Slack Tool")]
+    public string TestSlackTool()
+    {
+        return "Test Slack tool";
     }
 }

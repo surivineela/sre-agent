@@ -186,6 +186,18 @@ public class DataConnectorResolverService : IConnectorResolver
                 kustoConnector.ClusterUrl = $"https://{dsUri.Host}";
                 kustoConnector.Database = dsUri.AbsolutePath.TrimStart('/');
             }
+            else if (connector is TeamsApiHubConnector teamsApiHubConnector)
+            {
+                var parts = settings.DataSource.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length != 3)
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid DataSource format for TeamsApiHub connector '{settings.Name}'. Expected format: 'ApiBaseUrl;GroupId;ChannelId'.");
+                }
+                teamsApiHubConnector.ConnectionRuntimeUrl = parts[0];
+                teamsApiHubConnector.GroupId = parts[1];
+                teamsApiHubConnector.ChannelId = parts[2];
+            }
 
             connector.Validate();
             return connector;

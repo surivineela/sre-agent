@@ -373,6 +373,8 @@ public class Program
             .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
             .AddSingleton<IRoleAssignmentPlugin, RoleAssignmentPlugin>()
             .AddSingleton<IAppLogsQueryService, AppLogsQueryService>()
+            .AddSingleton<ITeamsPlugin, TeamsPlugin>()
+            .AddSingleton<TeamsPluginDefinition>()
 
             .AddTransient<IFunctionAppConfigurationChecksPlugin, FunctionAppConfigurationChecksPlugin>()
 

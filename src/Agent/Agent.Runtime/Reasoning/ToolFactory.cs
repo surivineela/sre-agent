@@ -32,6 +32,7 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     private readonly IServiceProvider _serviceProvider;
     private readonly IEnumerable<Assembly> _assemblies;
     private readonly Dictionary<string, IDeferredToolFunction> _tools = new();
+    private readonly HashSet<string> _disabledTools = new();
     private readonly IExtensibilityLoader? _extensibilityLoader;
     private readonly IMcpConnectable _mcpToolsRepository;
     private readonly bool _handoffReasoningEnabled;
@@ -230,6 +231,9 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
                     continue;
                 }
 
+                // Check EnabledIf condition to determine if tools should be disabled
+                var isPluginEnabled = IsConditionMet(attribute.EnabledIf);
+
                 // if handoff reasoning enabled, ignore AgentControlFlowPluginDefinition
                 if (_handoffReasoningEnabled
                     && pluginType == typeof(AgentControlFlowPluginDefinition))
@@ -260,6 +264,13 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
                     if (!RegisterTool(functionName, tool, onNameConflict))
                     {
                         _logger.LogInternalWarning("Failed to register tool {functionName} from type {pluginType} due to name conflict.", functionName, pluginType.FullName);
+                    }
+                    else if (!isPluginEnabled)
+                    {
+                        // Track disabled tools
+                        _disabledTools.Add(functionName);
+                        _logger.LogInternalInformation("Tool {functionName} from plugin {pluginType} is disabled due to EnabledIf condition: {enabledIf}",
+                            functionName, pluginType.Name, attribute.EnabledIf);
                     }
                 }
             }
@@ -420,6 +431,49 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     public bool HasTool(string name)
     {
         return _tools.ContainsKey(name);
+    }
+
+    public bool IsToolDisabled(string name)
+    {
+        return _disabledTools.Contains(name);
+    }
+
+    private bool IsConditionMet(string condition)
+    {
+        if (string.IsNullOrEmpty(condition))
+        {
+            return true;
+        }
+
+        var parts = condition.Split(':', 2);
+        if (parts.Length != 2)
+        {
+            _logger.LogInternalWarning("Invalid EnabledIf condition format: {condition}", condition);
+            return false;
+        }
+
+        var conditionType = parts[0];
+        var expectedValue = parts[1];
+
+        // Check if it's a DataConnectorType condition
+        if (conditionType.Equals("DataConnectorType", StringComparison.OrdinalIgnoreCase))
+        {
+            var coreSettings = _serviceProvider.GetService<CoreSettings>();
+            if (coreSettings == null)
+            {
+                _logger.LogInternalWarning("CoreSettings not found in service provider for DataConnectorType condition check");
+                return false;
+            }
+
+            var hasConnector = coreSettings.DataConnectors
+                .Any(dc => string.Equals(dc.DataConnectorType, expectedValue, StringComparison.OrdinalIgnoreCase));
+
+            return hasConnector;
+        }
+
+        // Default: treat as environment variable check
+        var actualValue = Environment.GetEnvironmentVariable(conditionType);
+        return string.Equals(actualValue, expectedValue, StringComparison.OrdinalIgnoreCase);
     }
 
     public AIFunction GetTool(string name, Guid threadId)
