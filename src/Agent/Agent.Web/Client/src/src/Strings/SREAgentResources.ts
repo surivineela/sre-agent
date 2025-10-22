@@ -1098,7 +1098,10 @@ export const ActivitiesThreadHeaderResources = defineMessages({
     },
 
     deleteIncidentTitle: { defaultMessage: "Deleting incident ''{title}''", id: 'pnlHOZ' },
+    deleteMultipleIncidentsTitle: { defaultMessage: 'Deleting {count} incidents', id: 'zeJdWA' },
     deleteIncidentInProgressDescription: { defaultMessage: 'Deleting incident', id: 'XbNTkN' },
+    deletingIncident: { defaultMessage: 'Deleting incident {title}', id: 'jw1Wpc' },
+    deletingIncidents: { defaultMessage: 'Deleting incidents {titles}', id: 'BhRlDa' },
     deleteIncidentSuccessDescription: { defaultMessage: 'Incident was deleted successfully', id: 'yNCGjc' },
     deleteIncidentFailureDescription: {
         defaultMessage: 'Failed to delete incident with error: {errorMessage}',
@@ -1252,6 +1255,8 @@ export const IncidentHandlerCreateResources = defineMessages({
             'With incident response plans, the agent chooses the tools it needs to manage common types of incidents. Custom response plans replace this capability by giving the agent specific instructions that you provide.',
         id: 'JRLN0D',
     },
+    responsePlanDetails: { defaultMessage: 'Response plan details', id: 'XHoPAJ' },
+    customInstructions: { defaultMessage: 'Custom instructions', id: 'D7U9Zo' },
     selectedIncidents: { defaultMessage: 'Selected incidents', id: 'DX7w9O' },
     selectedIncidentsEmptyText: { defaultMessage: 'No incidents selected', id: 'QQX4Pv' },
     filterStep: { defaultMessage: 'Create incident response plan', id: 'Z9pRs5' },
@@ -1480,6 +1485,8 @@ export const IncidentManagementResources = defineMessages({
     noRcaCategoriesFound: { defaultMessage: 'No root cause analysis categories found', id: 'jRtus7' },
     assistedByAgent: { defaultMessage: 'Assisted by agent', id: 'ryPHA8' },
     incidentsAssistedByAgent: { defaultMessage: 'Incidents assisted by agent', id: 'SyPo+k' },
+    deleteIncidentThreadConfirmation: { defaultMessage: 'Are you sure you want to delete the selected incident thread?', id: 'qs5hhk' },
+    deleteIncidentThreadsConfirmation: { defaultMessage: 'Are you sure you want to delete the selected incident threads?', id: 'us/IXr' },
     filterByAutonomyLevel: { defaultMessage: 'Filter by autonomy level', id: 'OIWzWF' },
     filterByCustomPlan: { defaultMessage: 'Filter by custom plan', id: 'coPQxN' },
     filterBySeverityLevel: { defaultMessage: 'Filter by severity level', id: '+Hx789' },

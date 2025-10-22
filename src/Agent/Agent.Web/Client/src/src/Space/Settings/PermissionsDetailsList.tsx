@@ -1,15 +1,17 @@
 import {
-    CheckboxVisibility,
-    ConstrainMode,
-    DetailsListLayoutMode,
-    DetailsRow,
-    IColumn,
-    IDetailsRowProps,
-    IDetailsRowStyleProps,
-    IDetailsRowStyles,
-    SelectionMode,
-} from '@fluentui/react/lib/DetailsList';
-import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
+    createTableColumn,
+    DataGrid,
+    DataGridBody,
+    DataGridCell,
+    DataGridHeader,
+    DataGridHeaderCell,
+    DataGridRow,
+    makeStyles,
+    SkeletonItem,
+    TableCellLayout,
+    TableColumnDefinition,
+    tokens,
+} from '@fluentui/react-components';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -19,6 +21,29 @@ import { AgentAccessLevel } from '../../Common/Contracts/Azure/SreAgent';
 import { PermissionsResources } from '../../Strings/SREAgentResources';
 import { ResourceGroup } from './Hooks/useResourceGroups';
 import { useManagedResourcesStyles } from './Styles/ManagedResources.styles';
+
+const useLocalStyles = makeStyles({
+    dataGrid: {
+        width: '100%',
+        tableLayout: 'auto',
+    },
+    dataGridHeader: {
+        fontWeight: '600',
+        position: 'sticky',
+        top: '0',
+        backgroundColor: tokens.colorNeutralBackground1,
+        zIndex: '1',
+    },
+    scrollContainer: {
+        paddingTop: '10px',
+        overflowY: 'auto',
+        maxHeight: 'calc(80vh - 200px)', // Dialog is 80vh, subtract space for tabs, header, footer, padding
+    },
+    innerScrollContainer: {
+        overflowY: 'auto',
+        maxHeight: '100%',
+    },
+});
 
 enum RoleListColumnKey {
     role = 'role',
@@ -38,11 +63,10 @@ interface PermissionsDetailsListProps {
 
 const PermissionsDetailsList: React.FC<PermissionsDetailsListProps> = ({ accessLevel, managedResourceGroups }) => {
     const styles = useManagedResourcesStyles();
+    const localStyles = useLocalStyles();
     const portalContext = useContext(AzPortalContext);
     const intl = useIntl();
 
-    const [sortedColumn, setSortedColumn] = useState<string | undefined>();
-    const [isSortedDescending, setIsSortedDescending] = useState<boolean>(false);
     const [basePermissionsGridItems, setBasePermissionsGridItems] = useState<RoleGridItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [allResourceTypes, setAllResourceTypes] = useState<string[]>([]);
@@ -407,129 +431,101 @@ const PermissionsDetailsList: React.FC<PermissionsDetailsListProps> = ({ accessL
         setBasePermissionsGridItems(gridItems);
     }, [allResourceTypes, accessLevel, permissionsMap]);
 
-    const permissionsGridItems = useMemo(() => {
-        if (!sortedColumn) {
-            return basePermissionsGridItems;
-        }
-
-        const sortedItems = [...basePermissionsGridItems].sort((a, b) => {
-            let aValue: string;
-            let bValue: string;
-
-            if (sortedColumn === RoleListColumnKey.role) {
-                aValue = a.title;
-                bValue = b.title;
-            } else if (sortedColumn === RoleListColumnKey.description) {
-                aValue = a.description;
-                bValue = b.description;
-            } else {
-                return 0;
-            }
-
-            const comparison = aValue.localeCompare(bValue);
-            return isSortedDescending ? -comparison : comparison;
-        });
-
-        return sortedItems;
-    }, [basePermissionsGridItems, sortedColumn, isSortedDescending]);
-
-    const onColumnClick = useCallback(
-        (_ev: React.MouseEvent<HTMLElement>, column: IColumn) => {
-            if (sortedColumn === column.key) {
-                setIsSortedDescending(!isSortedDescending);
-            } else {
-                setSortedColumn(column.key);
-                setIsSortedDescending(false);
-            }
-        },
-        [sortedColumn, isSortedDescending]
-    );
-
-    const onRenderRoles = useCallback(
-        (item: RoleGridItem) => {
-            return <div className={styles.row}>{item.title}</div>;
-        },
-        [styles.row]
-    );
-
-    const onRenderDescription = useCallback(
-        (item: RoleGridItem) => {
-            return <div className={styles.row}>{item.description}</div>;
-        },
-        [styles.row]
-    );
-
-    const onRenderRow = useCallback((props?: IDetailsRowProps) => {
-        //Note: only needed for custom non-selectable row styles
-        if (!props) return null;
-        return (
-            <DetailsRow
-                {...props}
-                styles={(_rowStyleProps: IDetailsRowStyleProps): Partial<IDetailsRowStyles> => ({
-                    root: {
-                        selectors: {
-                            '&:hover': {
-                                backgroundColor: 'transparent',
-                                cursor: 'default',
-                            },
-                            '&:active': {
-                                backgroundColor: 'transparent',
-                            },
-                            '& button': {
-                                pointerEvents: 'none',
-                            },
-                        },
-                    },
-                })}
-            />
-        );
-    }, []);
-
-    const columns = React.useMemo<IColumn[]>(() => {
+    const columns = React.useMemo<TableColumnDefinition<RoleGridItem>[]>(() => {
         return [
-            {
-                key: RoleListColumnKey.role,
-                name: intl.formatMessage(PermissionsResources.role),
-                fieldName: RoleListColumnKey.role,
-                minWidth: 200,
-                maxWidth: 200,
-                isResizable: true,
-                isMultiline: true,
-                isSorted: sortedColumn === RoleListColumnKey.role,
-                isSortedDescending: sortedColumn === RoleListColumnKey.role ? isSortedDescending : false,
-                onColumnClick: onColumnClick,
-                onRender: onRenderRoles,
-            },
-            {
-                key: RoleListColumnKey.description,
-                name: intl.formatMessage(PermissionsResources.description),
-                fieldName: RoleListColumnKey.description,
-                minWidth: 300,
-                maxWidth: 500,
-                isResizable: true,
-                isMultiline: true,
-                isSorted: sortedColumn === RoleListColumnKey.description,
-                isSortedDescending: sortedColumn === RoleListColumnKey.description ? isSortedDescending : false,
-                onColumnClick: onColumnClick,
-                onRender: onRenderDescription,
-            },
+            createTableColumn<RoleGridItem>({
+                columnId: RoleListColumnKey.role,
+                compare: (a, b) => a.title.localeCompare(b.title),
+                renderHeaderCell: () => <span style={{ fontWeight: 600 }}>{intl.formatMessage(PermissionsResources.role)}</span>,
+                renderCell: item => (
+                    <TableCellLayout>
+                        <div className={styles.row}>{item.title}</div>
+                    </TableCellLayout>
+                ),
+            }),
+            createTableColumn<RoleGridItem>({
+                columnId: RoleListColumnKey.description,
+                compare: (a, b) => a.description.localeCompare(b.description),
+                renderHeaderCell: () => <span style={{ fontWeight: 600 }}>{intl.formatMessage(PermissionsResources.description)}</span>,
+                renderCell: item => (
+                    <TableCellLayout>
+                        <div className={styles.row}>{item.description}</div>
+                    </TableCellLayout>
+                ),
+            }),
         ];
-    }, [intl, sortedColumn, isSortedDescending, onColumnClick, onRenderRoles, onRenderDescription]);
+    }, [intl, styles.row]);
+
+    const columnSizingOptions = React.useMemo(
+        () => ({
+            [RoleListColumnKey.role]: {
+                minWidth: 200,
+                idealWidth: 200,
+            },
+            [RoleListColumnKey.description]: {
+                minWidth: 300,
+                idealWidth: 500,
+            },
+        }),
+        []
+    );
 
     return (
         <div>
-            <div style={{ paddingTop: '10px', minHeight: '490px', maxHeight: '490px', overflowY: 'auto' }} data-is-scrollable="true">
-                <ShimmeredDetailsList
-                    compact={true}
-                    selectionMode={SelectionMode.none}
-                    columns={columns}
-                    constrainMode={ConstrainMode.horizontalConstrained}
-                    items={permissionsGridItems}
-                    layoutMode={DetailsListLayoutMode.justified}
-                    enableShimmer={isLoading}
-                    checkboxVisibility={CheckboxVisibility.hidden}
-                    onRenderRow={onRenderRow}
-                />
+            <div className={localStyles.scrollContainer} data-is-scrollable="true">
+                {isLoading ? (
+                    <DataGrid
+                        items={Array(5).fill({})}
+                        columns={columns}
+                        getRowId={() => Math.random().toString()}
+                        className={localStyles.dataGrid}
+                        resizableColumns
+                        columnSizingOptions={columnSizingOptions}
+                        size="small"
+                    >
+                        <DataGridHeader className={localStyles.dataGridHeader}>
+                            <DataGridRow>
+                                {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
+                            </DataGridRow>
+                        </DataGridHeader>
+                        <DataGridBody<RoleGridItem>>
+                            {() => (
+                                <DataGridRow<RoleGridItem>>
+                                    {() => (
+                                        <DataGridCell>
+                                            <SkeletonItem size={16} />
+                                        </DataGridCell>
+                                    )}
+                                </DataGridRow>
+                            )}
+                        </DataGridBody>
+                    </DataGrid>
+                ) : (
+                    <div className={localStyles.innerScrollContainer}>
+                        <DataGrid
+                            items={basePermissionsGridItems}
+                            columns={columns}
+                            getRowId={item => item.role}
+                            className={localStyles.dataGrid}
+                            resizableColumns
+                            sortable
+                            columnSizingOptions={columnSizingOptions}
+                        >
+                            <DataGridHeader className={localStyles.dataGridHeader}>
+                                <DataGridRow>
+                                    {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
+                                </DataGridRow>
+                            </DataGridHeader>
+                            <DataGridBody<RoleGridItem>>
+                                {({ item, rowId }) => (
+                                    <DataGridRow<RoleGridItem> key={rowId}>
+                                        {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
+                                    </DataGridRow>
+                                )}
+                            </DataGridBody>
+                        </DataGrid>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -1,35 +1,70 @@
-import { ConstrainMode, DetailsListLayoutMode } from '@fluentui/react';
 import {
     Button,
+    createTableColumn,
+    DataGrid,
+    DataGridBody,
+    DataGridCell,
+    DataGridHeader,
+    DataGridHeaderCell,
+    DataGridRow,
     Dialog,
     DialogActions,
     DialogBody,
     DialogSurface,
     DialogTitle,
     InputOnChangeData,
+    Link,
+    makeStyles,
     MessageBar,
     MessageBarBody,
     MessageBarGroup,
     SearchBox,
     SearchBoxChangeEvent,
+    SkeletonItem,
+    TableCellLayout,
+    TableColumnDefinition,
+    tokens,
     Toolbar,
     ToolbarButton,
     ToolbarDivider,
 } from '@fluentui/react-components';
 import { Add16Regular, ArrowClockwise16Regular, Delete16Regular } from '@fluentui/react-icons';
 import { debounce } from 'lodash';
-import { FC, useContext } from 'react';
+import { FC, useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import PermissionedToolbarButton from '../../Common/Components/PermissionedToolbarButton';
-import ShimmeredDetailsListWithSelection from '../../Common/Components/ShimmeredDetailsListWithSelection';
+import { getUserFriendlyLocation } from '../../Common/Helpers/LocationHelper';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { ManagedResourcesStringResources, SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useManagedResources } from './Hooks/useManagedResources';
-import { ResourceGroup } from './Hooks/useResourceGroups';
+import { getSubscriptionId, ResourceGroup } from './Hooks/useResourceGroups';
 import ResourceGroupPicker from './ResourceGroupPicker';
 import { useManagedResourcesStyles } from './Styles/ManagedResources.styles';
+
+const useLocalStyles = makeStyles({
+    scrollableContainer: {
+        width: '100%',
+        overflowX: 'auto',
+        overflowY: 'auto',
+        minWidth: '0',
+    },
+    dataGrid: {
+        width: '100%',
+        '& table': {
+            width: '100%',
+            tableLayout: 'auto',
+        },
+    },
+    dataGridHeader: {
+        fontWeight: '600',
+        position: 'sticky',
+        top: '0',
+        backgroundColor: tokens.colorNeutralBackground1,
+        zIndex: '1',
+    },
+});
 
 const ManagedResources: FC = () => {
     const { resourceId } = useContext(EnvironmentContext);
@@ -37,13 +72,14 @@ const ManagedResources: FC = () => {
     const intl = useIntl();
 
     const styles = useManagedResourcesStyles();
+    const localStyles = useLocalStyles();
     const { canWriteAgent } = useUserPermissions();
 
     const {
         managedResourceGroups,
-        columns,
         isLoading,
         subscriptionOptions,
+        subscriptionsList,
         searchText,
         selectedKeys,
         onUpdateSelection,
@@ -60,6 +96,89 @@ const ManagedResources: FC = () => {
         refresh,
         isUpdating,
     } = useManagedResources(resourceId, az);
+
+    const openResourceOverviewBlade = useCallback(
+        (id: string) => {
+            if (id) {
+                az.openBlade({
+                    extension: 'HubsExtension',
+                    detailBlade: 'ResourceMenuBlade',
+                    detailBladeInputs: {
+                        id,
+                    },
+                });
+            }
+        },
+        [az]
+    );
+
+    const columns = useMemo<TableColumnDefinition<ResourceGroup>[]>(
+        () => [
+            createTableColumn<ResourceGroup>({
+                columnId: 'name',
+                compare: (a, b) => a.name.localeCompare(b.name),
+                renderHeaderCell: () => (
+                    <span style={{ fontWeight: 600 }}>{intl.formatMessage(ManagedResourcesStringResources.resourceGroup)}</span>
+                ),
+                renderCell: item => (
+                    <TableCellLayout media={<img src="./ResourceGroup.svg" alt="ResourceGroup" style={{ height: 16, width: 16 }} />}>
+                        <Link onClick={() => openResourceOverviewBlade(item.id)}>{item.name}</Link>
+                    </TableCellLayout>
+                ),
+            }),
+            createTableColumn<ResourceGroup>({
+                columnId: 'subscription',
+                compare: (a, b) => {
+                    const aSubId = getSubscriptionId(a.id);
+                    const bSubId = getSubscriptionId(b.id);
+                    const aSub = subscriptionsList?.find(s => s.subscriptionId === aSubId);
+                    const bSub = subscriptionsList?.find(s => s.subscriptionId === bSubId);
+                    return (aSub?.displayName ?? '').localeCompare(bSub?.displayName ?? '');
+                },
+                renderHeaderCell: () => (
+                    <span style={{ fontWeight: 600 }}>{intl.formatMessage(ManagedResourcesStringResources.subscription)}</span>
+                ),
+                renderCell: item => {
+                    const subscriptionId = getSubscriptionId(item.id);
+                    const subscription = subscriptionsList?.find(s => s.subscriptionId === subscriptionId);
+                    return (
+                        <TableCellLayout>
+                            <Link onClick={() => openResourceOverviewBlade(item.id.split('/resource')[0])}>
+                                {subscription?.displayName ?? ''}
+                            </Link>
+                        </TableCellLayout>
+                    );
+                },
+            }),
+            createTableColumn<ResourceGroup>({
+                columnId: 'location',
+                compare: (a, b) => a.location.localeCompare(b.location),
+                renderHeaderCell: () => (
+                    <span style={{ fontWeight: 600 }}>{intl.formatMessage(ManagedResourcesStringResources.region)}</span>
+                ),
+                renderCell: item => <TableCellLayout>{getUserFriendlyLocation(item.location)}</TableCellLayout>,
+            }),
+        ],
+        [intl, subscriptionsList, openResourceOverviewBlade]
+    );
+
+    const columnSizingOptions = useMemo(
+        () => ({
+            name: {
+                minWidth: 200,
+                idealWidth: 400,
+            },
+            subscription: {
+                minWidth: 150,
+                idealWidth: 300,
+            },
+            location: {
+                minWidth: 100,
+                idealWidth: 200,
+            },
+        }),
+        []
+    );
 
     return (
         <div className={styles.container}>
@@ -114,18 +233,52 @@ const ManagedResources: FC = () => {
                     onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
                 />
             </div>
-            <div style={{ width: '99%', maxWidth: '99%' }}>
-                <ShimmeredDetailsListWithSelection<ResourceGroup>
-                    enableShimmer={isLoading}
-                    items={managedResourceGroups || []}
-                    getKey={rg => rg.id}
-                    columns={columns}
-                    selectedKeys={selectedKeys}
-                    onUpdateSelection={onUpdateSelection}
-                    className={styles.detailsList}
-                    layoutMode={DetailsListLayoutMode.justified}
-                    constrainMode={ConstrainMode.horizontalConstrained}
-                />
+            <div style={{ width: '100%', paddingTop: '10px' }}>
+                {isLoading && (!managedResourceGroups || managedResourceGroups.length === 0) ? (
+                    <div>
+                        {Array.from({ length: 5 }).map((_, index) => (
+                            <div key={index} style={{ display: 'flex', padding: '8px 12px', alignItems: 'center', gap: '12px' }}>
+                                <SkeletonItem size={16} style={{ width: '30px' }} />
+                                <SkeletonItem size={16} style={{ width: '300px', flex: 1 }} />
+                                <SkeletonItem size={16} style={{ width: '200px' }} />
+                                <SkeletonItem size={16} style={{ width: '150px' }} />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className={localStyles.scrollableContainer}>
+                        <DataGrid
+                            items={managedResourceGroups || []}
+                            columns={columns}
+                            sortable
+                            selectionMode="multiselect"
+                            selectedItems={new Set(selectedKeys)}
+                            onSelectionChange={(_, data) => {
+                                const newSelectedKeys = Array.from(data.selectedItems).map(String);
+                                const selectedItems = managedResourceGroups?.filter(rg => newSelectedKeys.includes(rg.id)) || [];
+                                onUpdateSelection({ selectedItems, selectedKeys: newSelectedKeys });
+                            }}
+                            getRowId={item => item.id}
+                            resizableColumns
+                            columnSizingOptions={columnSizingOptions}
+                            className={localStyles.dataGrid}
+                            size="small"
+                        >
+                            <DataGridHeader className={localStyles.dataGridHeader}>
+                                <DataGridRow>
+                                    {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
+                                </DataGridRow>
+                            </DataGridHeader>
+                            <DataGridBody<ResourceGroup>>
+                                {({ item, rowId }) => (
+                                    <DataGridRow<ResourceGroup> key={rowId}>
+                                        {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
+                                    </DataGridRow>
+                                )}
+                            </DataGridBody>
+                        </DataGrid>
+                    </div>
+                )}
             </div>
             <Dialog open={showDeleteConfirmationDialog} onOpenChange={(_, data) => setShowDeleteConfirmationDialog(data.open)}>
                 <DialogSurface>

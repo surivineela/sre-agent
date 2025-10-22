@@ -122,6 +122,7 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
     children,
     labelDelimiter = ':',
     valueMaxWidth = 200,
+    useInDialog = false,
 }) => {
     const intl = useIntl();
     const styles = usePillStyles();
@@ -214,9 +215,15 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
                     position: 'below',
                     align: 'start',
                 }}
-                mountNode={{ className: styles.portalContainer }}
+                {...(!useInDialog && { mountNode: { className: styles.portalContainer } })}
             >
-                <PopoverSurface className={styles.surface} style={{ maxHeight: maxPopoverHeight }}>
+                <PopoverSurface
+                    className={styles.surface}
+                    style={{
+                        maxHeight: maxPopoverHeight,
+                        ...(useInDialog && { zIndex: 2000000 }),
+                    }}
+                >
                     <div className={styles.body}>{children}</div>
                     <DialogActions className={styles.dialogActions}>
                         <Button

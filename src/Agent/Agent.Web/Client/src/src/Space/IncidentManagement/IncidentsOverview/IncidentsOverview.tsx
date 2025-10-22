@@ -1,23 +1,26 @@
 import {
     Button,
-    Drawer,
-    DrawerBody,
-    DrawerHeader,
-    DrawerHeaderTitle,
+    createTableColumn,
+    DataGrid,
+    DataGridBody,
+    DataGridCell,
+    DataGridHeader,
+    DataGridHeaderCell,
+    DataGridRow,
     InputOnChangeData,
     Link,
+    makeStyles,
     SearchBox,
     SearchBoxChangeEvent,
+    SkeletonItem,
     Spinner,
+    TableCellLayout,
+    TableColumnDefinition,
+    TableColumnId,
     tokens,
-    Toolbar,
-    ToolbarButton,
-    ToolbarGroup,
     useRestoreFocusSource,
 } from '@fluentui/react-components';
-import { ArrowClockwise16Regular, Branch16Regular, Dismiss24Regular, FullScreenMaximize16Regular } from '@fluentui/react-icons';
-import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
-import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
+import { ArrowClockwise16Regular, Branch16Regular } from '@fluentui/react-icons';
 import { debounce } from 'lodash';
 import { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -44,6 +47,7 @@ import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
 import { SreAgentContext } from '../../Contracts/Context';
 import { TracePanel } from '../../Foundry/app/components/shell/playground/tracing/TracePanel';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
+import IncidentChatDrawer from '../Common/IncidentChatDrawer';
 import { IncidentManagementEmptyState } from '../Common/IncidentManagementEmptyState';
 import { PlatformConnectionMessageBar } from '../Common/PlatformConnectionMessageBar';
 import { IncidentManagementMenuKeys, IncidentsListColumnKey } from '../CreateIncidentHandler/Contracts';
@@ -55,14 +59,10 @@ import {
     getPlatformSpecificStrings,
     getPriorities,
 } from '../Utilities';
+import { BulkDeleteDialog } from './BulkDeleteDialog';
 import { IncidentsSummary } from './IncidentsSummary';
 import { StatusLabel } from './StatusLabel';
 import { useIncidentThreadList } from './useIncidentThreadList';
-
-type ISortedDetailsListColumn<T> = IColumn & {
-    sort?: (items: T[], isSortedDescending: boolean) => T[];
-    disableColumnClick?: boolean;
-};
 
 const showThreadTraceUI = Url.getFeatureValue('showThreadTraceUI') === 'true';
 
@@ -76,6 +76,32 @@ interface IncidentsOverviewProps {
     agentAppInsightsAppId?: string;
     showControlPlaneDependentFeatures?: boolean;
 }
+
+interface IncidentsSkeletonLoaderProps {
+    showControlPlaneDependentFeatures?: boolean;
+    rowCount?: number;
+    className?: string;
+}
+
+const IncidentsSkeletonLoader: FC<IncidentsSkeletonLoaderProps> = ({ showControlPlaneDependentFeatures, rowCount = 5, className }) => {
+    return (
+        <div>
+            {Array.from({ length: rowCount }).map((_, index) => (
+                <div key={index} className={className}>
+                    <SkeletonItem size={16} style={{ width: '30px' }} />
+                    <SkeletonItem size={16} style={{ width: '100px' }} />
+                    <SkeletonItem size={16} style={{ width: '200px', flex: 1 }} />
+                    <SkeletonItem size={16} style={{ width: '60px' }} />
+                    <SkeletonItem size={16} style={{ width: '100px' }} />
+                    <SkeletonItem size={16} style={{ width: '150px' }} />
+                    <SkeletonItem size={16} style={{ width: '120px' }} />
+                    {showControlPlaneDependentFeatures && <SkeletonItem size={16} style={{ width: '120px' }} />}
+                    <SkeletonItem size={16} style={{ width: '120px' }} />
+                </div>
+            ))}
+        </div>
+    );
+};
 
 const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, showControlPlaneDependentFeatures }) => {
     const navigate = useNavigate();
@@ -99,6 +125,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
 
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
+    const localStyles = useIncidentsOverviewStyles();
     const [searchText, setSearchText] = useState<string>('');
     const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRangeValue>();
     const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
@@ -109,6 +136,8 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     const [refreshCounter, setRefreshCounter] = useState<number>(0);
 
     const [selectedThreadInfo, setSelectedThreadInfo] = useState<SelectedThreadInfo | null>(null);
+    const [selectedThreads, setSelectedThreads] = useState<Set<string>>(new Set());
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const traceFocusRestorationRef = useRef<HTMLButtonElement>(null);
 
@@ -229,14 +258,73 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
         }
     }, [intl, proxy, deleteThread, closeThread, selectedThreadInfo?.thread]);
 
-    const handleColumnClick = useCallback(
-        (column: IColumn) => {
-            const isSameColumn = column.key === sortColumnKey;
-            setSortColumnKey(column.key as IncidentsListColumnKey);
-            setIsSortedDescending(isSameColumn ? !isSortedDescending : false);
-        },
-        [sortColumnKey, isSortedDescending]
-    );
+    const handleBulkDelete = useCallback(() => {
+        const selectedThreadIds = Array.from(selectedThreads);
+        const selectedThreadsList = incidentThreads.filter(t => selectedThreadIds.includes(t.id));
+
+        if (selectedThreadsList.length === 0) return;
+
+        setIsDeleteDialogOpen(false);
+
+        proxy.log({
+            action: 'bulkDeleteIncidentThreads',
+            actionModifier: 'start',
+            logLevel: 'info',
+            data: { count: selectedThreadsList.length },
+        });
+
+        const title =
+            selectedThreadsList.length === 1
+                ? selectedThreadsList[0].title
+                : `${selectedThreadsList.length} ${intl.formatMessage(IncidentManagementResources.incidents)}`;
+
+        const description =
+            selectedThreadsList.length === 1
+                ? intl.formatMessage(ActivitiesThreadHeaderResources.deletingIncident, { title: selectedThreadsList[0].title })
+                : intl.formatMessage(ActivitiesThreadHeaderResources.deletingIncidents, {
+                      titles: selectedThreadsList.map((t: Thread) => t.title).join(', '),
+                  });
+
+        const id = proxy.startNotification(
+            intl.formatMessage(ActivitiesThreadHeaderResources.deleteIncidentTitle, {
+                title: title,
+            }),
+            description
+        );
+
+        Promise.all(selectedThreadsList.map((thread: Thread) => deleteThread(thread.id))).then(responses => {
+            const successCount = responses.filter((r: any) => r.isSuccessful).length;
+            const failureCount = responses.length - successCount;
+
+            if (failureCount === 0) {
+                setSelectedThreads(new Set());
+
+                proxy.log({
+                    action: 'bulkDeleteIncidentThreads',
+                    actionModifier: 'success',
+                    logLevel: 'info',
+                    data: { count: successCount },
+                });
+
+                proxy.stopNotification(id, true, intl.formatMessage(ActivitiesThreadHeaderResources.deleteIncidentSuccessDescription));
+            } else {
+                proxy.log({
+                    action: 'bulkDeleteIncidentThreads',
+                    actionModifier: 'failure',
+                    logLevel: 'error',
+                    data: { successCount, failureCount },
+                });
+
+                proxy.stopNotification(
+                    id,
+                    false,
+                    intl.formatMessage(ActivitiesThreadHeaderResources.deleteIncidentFailureDescription, {
+                        errorMessage: `${failureCount} of ${responses.length} failed`,
+                    })
+                );
+            }
+        });
+    }, [proxy, intl, deleteThread, selectedThreads, incidentThreads]);
 
     const disableAllControls = useMemo(() => {
         return incidentThreadsLoading;
@@ -315,133 +403,151 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     const onRenderTitle = useCallback(
         (item: Thread) => {
             return (
-                <Link style={{ fontSize: '13px' }} onClick={() => openThreadDrawer(item)} disabled={disableAllControls}>
+                <Link
+                    className={localStyles.titleLink}
+                    onClick={e => {
+                        e.stopPropagation();
+                        openThreadDrawer(item);
+                    }}
+                    disabled={disableAllControls}
+                >
                     {getColumnInfo(IncidentsListColumnKey.title).getColumnValue(item)}
                 </Link>
             );
         },
-        [openThreadDrawer, disableAllControls]
+        [localStyles, openThreadDrawer, disableAllControls]
     );
 
-    const columns = useMemo<ISortedDetailsListColumn<Thread>[]>(() => {
-        const columns: ISortedDetailsListColumn<Thread>[] = [
-            {
-                key: IncidentsListColumnKey.incidentId,
-                name: intl.formatMessage(platformSpecificStrings.incidentOrAlertIdLabel),
-                fieldName: IncidentsListColumnKey.incidentId,
-                isResizable: true,
-                minWidth: 100,
-                maxWidth: 150,
-                isMultiline: true,
-                onRender: item => getColumnInfo(IncidentsListColumnKey.incidentId).getColumnValue(item),
-                isSorted: sortColumnKey === IncidentsListColumnKey.incidentId,
-                isSortedDescending: isSortedDescending,
-                onColumnClick: (_, col) => handleColumnClick(col),
-            },
-            {
-                key: IncidentsListColumnKey.title,
-                name: intl.formatMessage(platformSpecificStrings.incidentOrAlertTitleLabel),
-                fieldName: IncidentsListColumnKey.title,
-                isResizable: true,
-                minWidth: 150,
-                maxWidth: 800,
-                isMultiline: true,
-                onRender: item => onRenderTitle(item),
-                isSorted: sortColumnKey === IncidentsListColumnKey.title,
-                isSortedDescending: isSortedDescending,
-                onColumnClick: (_, col) => handleColumnClick(col),
-            },
+    const columns = useMemo<TableColumnDefinition<Thread>[]>(() => {
+        const cols: TableColumnDefinition<Thread>[] = [
+            createTableColumn<Thread>({
+                columnId: IncidentsListColumnKey.incidentId,
+                compare: (a, b) => {
+                    const aVal = getColumnInfo(IncidentsListColumnKey.incidentId).getColumnValue(a) as string;
+                    const bVal = getColumnInfo(IncidentsListColumnKey.incidentId).getColumnValue(b) as string;
+                    return aVal.localeCompare(bVal);
+                },
+                renderHeaderCell: () => (
+                    <span style={{ fontWeight: 600 }}>{intl.formatMessage(platformSpecificStrings.incidentOrAlertIdLabel)}</span>
+                ),
+                renderCell: item => (
+                    <TableCellLayout>{getColumnInfo(IncidentsListColumnKey.incidentId).getColumnValue(item)}</TableCellLayout>
+                ),
+            }),
+            createTableColumn<Thread>({
+                columnId: IncidentsListColumnKey.title,
+                compare: (a, b) => {
+                    const aVal = getColumnInfo(IncidentsListColumnKey.title).getColumnValue(a) as string;
+                    const bVal = getColumnInfo(IncidentsListColumnKey.title).getColumnValue(b) as string;
+                    return aVal.localeCompare(bVal);
+                },
+                renderHeaderCell: () => (
+                    <span style={{ fontWeight: 600 }}>{intl.formatMessage(platformSpecificStrings.incidentOrAlertTitleLabel)}</span>
+                ),
+                renderCell: item => <TableCellLayout>{onRenderTitle(item)}</TableCellLayout>,
+            }),
+            createTableColumn<Thread>({
+                columnId: IncidentsListColumnKey.priority,
+                compare: (a, b) => {
+                    const aVal = getColumnInfo(IncidentsListColumnKey.priority).getColumnValue(a) as string;
+                    const bVal = getColumnInfo(IncidentsListColumnKey.priority).getColumnValue(b) as string;
+                    return aVal.localeCompare(bVal);
+                },
+                renderHeaderCell: () => (
+                    <span style={{ fontWeight: 600 }}>{intl.formatMessage(platformSpecificStrings.severityOrPriorityLabel)}</span>
+                ),
+                renderCell: item => (
+                    <TableCellLayout>{getColumnInfo(IncidentsListColumnKey.priority).getColumnValue(item)}</TableCellLayout>
+                ),
+            }),
+            createTableColumn<Thread>({
+                columnId: IncidentsListColumnKey.incidentStatus,
+                compare: (a, b) => {
+                    const aVal = a.status?.incidentStatus?.status ?? '';
+                    const bVal = b.status?.incidentStatus?.status ?? '';
+                    return aVal.localeCompare(bVal);
+                },
+                renderHeaderCell: () => (
+                    <span style={{ fontWeight: 600 }}>{intl.formatMessage(platformSpecificStrings.incidentOrAlertStatusLabel)}</span>
+                ),
+                renderCell: item => (
+                    <TableCellLayout>
+                        <StatusLabel type="incidentStatus" status={item.status?.incidentStatus?.status as IncidentStatus} />
+                    </TableCellLayout>
+                ),
+            }),
+            createTableColumn<Thread>({
+                columnId: IncidentsListColumnKey.agentStatus,
+                compare: (a, b) => {
+                    const aVal = a.incidentDetails?.investigationStatus ?? '';
+                    const bVal = b.incidentDetails?.investigationStatus ?? '';
+                    return aVal.localeCompare(bVal);
+                },
+                renderHeaderCell: () => (
+                    <span style={{ fontWeight: 600 }}>{intl.formatMessage(IncidentManagementResources.agentStatus)}</span>
+                ),
+                renderCell: item => (
+                    <TableCellLayout>
+                        {item.incidentDetails?.investigationStatus ? (
+                            <StatusLabel type="investigationStatus" status={item.incidentDetails?.investigationStatus} />
+                        ) : (
+                            '-'
+                        )}
+                    </TableCellLayout>
+                ),
+            }),
+            createTableColumn<Thread>({
+                columnId: IncidentsListColumnKey.createdTimestamp,
+                compare: (a, b) => {
+                    const aVal = a.createdTimestamp ?? '';
+                    const bVal = b.createdTimestamp ?? '';
+                    return aVal.localeCompare(bVal);
+                },
+                renderHeaderCell: () => (
+                    <span style={{ fontWeight: 600 }}>{intl.formatMessage(IncidentManagementResources.incidentCreated)}</span>
+                ),
+                renderCell: item => (
+                    <TableCellLayout>{getColumnInfo(IncidentsListColumnKey.createdTimestamp).getColumnValue(item)}</TableCellLayout>
+                ),
+            }),
         ];
 
-        columns.push(
-            {
-                key: IncidentsListColumnKey.priority,
-                name: intl.formatMessage(platformSpecificStrings.severityOrPriorityLabel),
-                fieldName: IncidentsListColumnKey.priority,
-                isResizable: true,
-                isMultiline: true,
-                minWidth: 75,
-                maxWidth: 75,
-                onRender: item => getColumnInfo(IncidentsListColumnKey.priority).getColumnValue(item),
-                isSorted: sortColumnKey === IncidentsListColumnKey.priority,
-                isSortedDescending: isSortedDescending,
-                onColumnClick: (_, col) => handleColumnClick(col),
-            },
-            {
-                key: IncidentsListColumnKey.incidentStatus,
-                name: intl.formatMessage(platformSpecificStrings.incidentOrAlertStatusLabel),
-                fieldName: IncidentsListColumnKey.incidentStatus,
-                isResizable: true,
-                minWidth: 100,
-                maxWidth: 250,
-                onRender: item => <StatusLabel type="incidentStatus" status={item.status?.incidentStatus?.status} />,
-                isSorted: sortColumnKey === IncidentsListColumnKey.incidentStatus,
-                isSortedDescending: isSortedDescending,
-                onColumnClick: (_, col) => handleColumnClick(col),
-            },
-            {
-                key: IncidentsListColumnKey.agentStatus,
-                name: intl.formatMessage(IncidentManagementResources.agentStatus),
-                fieldName: IncidentsListColumnKey.agentStatus,
-                isResizable: true,
-                isMultiline: true,
-                minWidth: 150,
-                maxWidth: 250,
-                onRender: item =>
-                    item.incidentDetails?.investigationStatus ? (
-                        <StatusLabel type="investigationStatus" status={item.incidentDetails?.investigationStatus} />
-                    ) : (
-                        '-'
-                    ),
-                isSorted: sortColumnKey === IncidentsListColumnKey.agentStatus,
-                isSortedDescending: isSortedDescending,
-                onColumnClick: (_, col) => handleColumnClick(col),
-            },
-            {
-                key: IncidentsListColumnKey.createdTimestamp,
-                name: intl.formatMessage(IncidentManagementResources.incidentCreated),
-                fieldName: IncidentsListColumnKey.createdTimestamp,
-                isResizable: true,
-                minWidth: 100,
-                maxWidth: 250,
-                isMultiline: true,
-                onRender: item => getColumnInfo(IncidentsListColumnKey.createdTimestamp).getColumnValue(item),
-                isSorted: sortColumnKey === IncidentsListColumnKey.createdTimestamp,
-                isSortedDescending: isSortedDescending,
-                onColumnClick: (_, col) => handleColumnClick(col),
-            }
-        );
-
         if (incidentPlatformType !== IncidentManagementType.AzMonitor) {
-            columns.push({
-                key: IncidentsListColumnKey.impactedService,
-                name: intl.formatMessage(IncidentManagementResources.impactedService),
-                fieldName: IncidentsListColumnKey.impactedService,
-                isResizable: true,
-                minWidth: 150,
-                maxWidth: 250,
-                onRender: item => getColumnInfo(IncidentsListColumnKey.impactedService).getColumnValue(item),
-                isSorted: sortColumnKey === IncidentsListColumnKey.impactedService,
-                isSortedDescending: isSortedDescending,
-                onColumnClick: (_, col) => handleColumnClick(col),
-            });
+            cols.push(
+                createTableColumn<Thread>({
+                    columnId: IncidentsListColumnKey.impactedService,
+                    compare: (a, b) => {
+                        const aVal = getColumnInfo(IncidentsListColumnKey.impactedService).getColumnValue(a) as string;
+                        const bVal = getColumnInfo(IncidentsListColumnKey.impactedService).getColumnValue(b) as string;
+                        return aVal.localeCompare(bVal);
+                    },
+                    renderHeaderCell: () => (
+                        <span style={{ fontWeight: 600 }}>{intl.formatMessage(IncidentManagementResources.impactedService)}</span>
+                    ),
+                    renderCell: item => (
+                        <TableCellLayout>{getColumnInfo(IncidentsListColumnKey.impactedService).getColumnValue(item)}</TableCellLayout>
+                    ),
+                })
+            );
         }
 
-        columns.push({
-            key: IncidentsListColumnKey.handler,
-            name: intl.formatMessage(IncidentManagementResources.responsePlanName),
-            fieldName: IncidentsListColumnKey.handler,
-            isResizable: true,
-            minWidth: 150,
-            maxWidth: 250,
-            onRender: item => getColumnInfo(IncidentsListColumnKey.handler).getColumnValue(item),
-            isSorted: sortColumnKey === IncidentsListColumnKey.handler,
-            isSortedDescending: isSortedDescending,
-            onColumnClick: (_, col) => handleColumnClick(col),
-        });
+        cols.push(
+            createTableColumn<Thread>({
+                columnId: IncidentsListColumnKey.handler,
+                compare: (a, b) => {
+                    const aVal = getColumnInfo(IncidentsListColumnKey.handler).getColumnValue(a) as string;
+                    const bVal = getColumnInfo(IncidentsListColumnKey.handler).getColumnValue(b) as string;
+                    return aVal.localeCompare(bVal);
+                },
+                renderHeaderCell: () => (
+                    <span style={{ fontWeight: 600 }}>{intl.formatMessage(IncidentManagementResources.responsePlanName)}</span>
+                ),
+                renderCell: item => <TableCellLayout>{getColumnInfo(IncidentsListColumnKey.handler).getColumnValue(item)}</TableCellLayout>,
+            })
+        );
 
-        return columns;
-    }, [intl, sortColumnKey, isSortedDescending, onRenderTitle, handleColumnClick, platformSpecificStrings, incidentPlatformType]);
+        return cols;
+    }, [intl, onRenderTitle, platformSpecificStrings, incidentPlatformType]);
 
     const restoreFocusSourceAttributes = useRestoreFocusSource();
 
@@ -566,6 +672,44 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
         return <div style={{ textAlign: 'center' }}>{intl.formatMessage(IncidentManagementResources.noIncidentsFound)}</div>;
     }, [incidentThreads.length, incidentThreadsLoading, hasAnyIncidents, incidentManagementConfigured, hasFilters, intl, navigate]);
 
+    const columnSizingOptions = useMemo(
+        () => ({
+            [IncidentsListColumnKey.incidentId]: {
+                minWidth: 120,
+                idealWidth: 150,
+            },
+            [IncidentsListColumnKey.title]: {
+                minWidth: 200,
+                idealWidth: 250,
+            },
+            [IncidentsListColumnKey.priority]: {
+                minWidth: 80,
+                idealWidth: 100,
+            },
+            [IncidentsListColumnKey.incidentStatus]: {
+                minWidth: 120,
+                idealWidth: 150,
+            },
+            [IncidentsListColumnKey.agentStatus]: {
+                minWidth: 120,
+                idealWidth: 150,
+            },
+            [IncidentsListColumnKey.createdTimestamp]: {
+                minWidth: 130,
+                idealWidth: 180,
+            },
+            [IncidentsListColumnKey.impactedService]: {
+                minWidth: 120,
+                idealWidth: 150,
+            },
+            [IncidentsListColumnKey.handler]: {
+                minWidth: 120,
+                idealWidth: 150,
+            },
+        }),
+        []
+    );
+
     return (
         <>
             {selectedThreadInfo?.fullScreen ? (
@@ -579,13 +723,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                             <Button
                                 ref={traceFocusRestorationRef}
                                 icon={<Branch16Regular />}
-                                style={{
-                                    fontWeight: 'normal',
-                                    fontSize: '12px',
-                                    lineHeight: '16px',
-                                    padding: '2px 8px 2px 4px',
-                                    margin: 'auto',
-                                }}
+                                className={localStyles.traceViewButton}
                                 onClick={openThreadTrace}
                                 disabled={!agentAppInsightsAppId}
                             >
@@ -596,96 +734,46 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 />
             ) : (
                 <>
-                    <Drawer
+                    <IncidentChatDrawer
                         {...restoreFocusSourceAttributes}
-                        type="overlay"
-                        separator
-                        open={!!selectedThreadInfo && !selectedThreadInfo.fullScreen}
-                        modalType="non-modal"
-                        position="end"
+                        isOpen={!!selectedThreadInfo && !selectedThreadInfo.fullScreen}
+                        thread={selectedThreadInfo?.thread}
+                        onClose={closeThread}
+                        onDeleteThread={handleThreadDelete}
+                        onEnterFullScreen={openThreadFullScreen}
                         size="large"
-                        style={{ marginTop: '50px', marginBottom: '8px', borderRadius: tokens.borderRadiusXLarge }}
-                    >
-                        <DrawerHeader style={{ padding: '16px 16px 7px 16px' }}>
-                            <DrawerHeaderTitle
-                                heading={{
-                                    style: {
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        gap: 8,
-                                        alignItems: 'center',
-                                        justifyContent: 'start',
-                                        overflow: 'hidden',
-                                    },
-                                }}
-                                action={
-                                    <Toolbar>
-                                        <ToolbarGroup style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
-                                            <Button
-                                                icon={<FullScreenMaximize16Regular />}
-                                                style={{
-                                                    fontWeight: 'normal',
-                                                    fontSize: '12px',
-                                                    lineHeight: '16px',
-                                                    padding: '2px 8px 2px 4px',
-                                                    margin: 'auto',
-                                                }}
-                                                onClick={openThreadFullScreen}
-                                            >
-                                                {intl.formatMessage(IncidentManagementResources.fullPage)}
-                                            </Button>
-                                            {showThreadTraceUI && (
-                                                <Button
-                                                    ref={traceFocusRestorationRef}
-                                                    icon={<Branch16Regular />}
-                                                    style={{
-                                                        fontWeight: 'normal',
-                                                        fontSize: '12px',
-                                                        lineHeight: '16px',
-                                                        padding: '2px 8px 2px 4px',
-                                                        margin: 'auto',
-                                                    }}
-                                                    onClick={openThreadTrace}
-                                                >
-                                                    {intl.formatMessage(IncidentManagementResources.viewTrace)}
-                                                </Button>
-                                            )}
-                                            <ToolbarButton
-                                                aria-label={intl.formatMessage(IncidentManagementResources.closePanel)}
-                                                appearance="transparent"
-                                                icon={<Dismiss24Regular />}
-                                                onClick={closeThread}
-                                            />
-                                        </ToolbarGroup>
-                                    </Toolbar>
-                                }
-                            >
-                                <div style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                                    {selectedThreadInfo?.thread.title}
-                                </div>
-                                {selectedThreadInfo?.thread && (
-                                    <ThreadActionsMenu
-                                        thread={selectedThreadInfo.thread}
-                                        handleThreadDelete={handleThreadDelete}
-                                        hideCopyDeeplink={true}
-                                    />
-                                )}
-                            </DrawerHeaderTitle>
-                        </DrawerHeader>
-                        <DrawerBody style={{ padding: '0px 16px 0px 0px' }}>
-                            {selectedThreadInfo?.thread && (
-                                <IncidentChat
-                                    selectedThread={selectedThreadInfo.thread}
-                                    exitToHome={closeThread}
+                        titleActions={
+                            showThreadTraceUI ? (
+                                <Button
+                                    ref={traceFocusRestorationRef}
+                                    icon={<Branch16Regular />}
+                                    style={{
+                                        fontWeight: 'normal',
+                                        fontSize: '12px',
+                                        lineHeight: '16px',
+                                        padding: '2px 8px 2px 4px',
+                                        margin: 'auto',
+                                    }}
+                                    onClick={openThreadTrace}
+                                >
+                                    {intl.formatMessage(IncidentManagementResources.viewTrace)}
+                                </Button>
+                            ) : undefined
+                        }
+                        titleSuffix={
+                            selectedThreadInfo?.thread ? (
+                                <ThreadActionsMenu
+                                    thread={selectedThreadInfo.thread}
                                     handleThreadDelete={handleThreadDelete}
+                                    hideCopyDeeplink={true}
                                 />
-                            )}
-                        </DrawerBody>
-                    </Drawer>
+                            ) : undefined
+                        }
+                    />
                     <div className={styles.navPanelWrapper}>
                         <div className={styles.navPanelContent}>
                             <div className={styles.navPanelPadding}>
-                                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                <div className={localStyles.fullHeightFlexContainer}>
                                     <PlatformConnectionMessageBar />
                                     <div className={styles.incidentFiltersContainer}>
                                         <SearchBox
@@ -709,62 +797,89 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                                         >
                                             {intl.formatMessage(IncidentManagementResources.refresh)}
                                         </Button>
+                                        <BulkDeleteDialog
+                                            isOpen={isDeleteDialogOpen}
+                                            onOpenChange={setIsDeleteDialogOpen}
+                                            selectedThreads={selectedThreads}
+                                            incidentThreads={incidentThreads}
+                                            onConfirmDelete={handleBulkDelete}
+                                            disabled={disableAllControls || !!selectedThreadInfo}
+                                            className={styles.button}
+                                        />
                                     </div>
                                     <IncidentsSummary threadCounts={threadCounts} loading={incidentThreadsLoading} />
-                                    <div
-                                        data-is-scrollable="true"
-                                        user-select="text"
-                                        style={{
-                                            overflowY: 'auto',
-                                            overflowX: 'auto',
-                                            minHeight: incidentThreads.length < 4 ? 'fit-content' : '200px',
-                                        }}
-                                        ref={threadListDivRef}
-                                        onScroll={onScroll}
-                                    >
-                                        <ShimmeredDetailsList
-                                            columns={columns}
-                                            constrainMode={ConstrainMode.horizontalConstrained}
-                                            items={incidentThreads ?? []}
-                                            layoutMode={DetailsListLayoutMode.justified}
-                                            compact={true}
-                                            enableShimmer={incidentThreadsLoading}
-                                            checkboxVisibility={CheckboxVisibility.always}
-                                            useReducedRowRenderer={true}
-                                            styles={{
-                                                root: {
-                                                    width: '100%',
-                                                    userSelect: 'text',
-                                                },
-                                            }}
-                                            detailsListStyles={{
-                                                root: { overflowX: 'visible', overflowY: 'visible' },
-                                                headerWrapper: {
-                                                    '& > div': {
-                                                        paddingTop: '0px !important',
-                                                    },
-                                                },
-                                            }}
-                                            selectionMode={SelectionMode.none}
-                                            setKey="incidentFilterList"
-                                            getKey={(item, index) => (item && item.id ? item.id : `shimmer-${index}`)}
-                                        />
-                                        {moreThreadsToLoad && !incidentThreadsLoading ? (
-                                            // TODO (andimarc): use shimmer row instead
-                                            <div
-                                                ref={intersectionObserverRef}
-                                                style={{
-                                                    height: '20px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    padding: '10px',
-                                                }}
-                                            >
-                                                <Spinner size="tiny" aria-label={intl.formatMessage(SreAgentResources.loadingMoreRows)} />
-                                            </div>
+                                    <div className={localStyles.tableContainer}>
+                                        {incidentThreadsLoading && incidentThreads.length === 0 ? (
+                                            <IncidentsSkeletonLoader
+                                                showControlPlaneDependentFeatures={showControlPlaneDependentFeatures}
+                                                className={localStyles.skeletonRow}
+                                            />
                                         ) : (
-                                            emptyState
+                                            <div
+                                                data-is-scrollable="true"
+                                                user-select="text"
+                                                className={localStyles.scrollableList}
+                                                ref={threadListDivRef}
+                                                onScroll={onScroll}
+                                            >
+                                                <DataGrid
+                                                    items={incidentThreads ?? []}
+                                                    columns={columns}
+                                                    sortable
+                                                    sortState={{
+                                                        sortColumn: sortColumnKey as TableColumnId,
+                                                        sortDirection: isSortedDescending ? 'descending' : 'ascending',
+                                                    }}
+                                                    onSortChange={(_, nextSortState) => {
+                                                        if (nextSortState.sortColumn) {
+                                                            setSortColumnKey(nextSortState.sortColumn as IncidentsListColumnKey);
+                                                            setIsSortedDescending(nextSortState.sortDirection === 'descending');
+                                                        }
+                                                    }}
+                                                    selectionMode="multiselect"
+                                                    selectedItems={selectedThreads}
+                                                    onSelectionChange={(_, data) => setSelectedThreads(data.selectedItems as Set<string>)}
+                                                    getRowId={item => item.id}
+                                                    resizableColumns
+                                                    className={localStyles.dataGrid}
+                                                    columnSizingOptions={columnSizingOptions}
+                                                    size="small"
+                                                >
+                                                    <DataGridHeader className={localStyles.stickyHeader}>
+                                                        <DataGridRow>
+                                                            {({ renderHeaderCell }) => (
+                                                                <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                                                            )}
+                                                        </DataGridRow>
+                                                    </DataGridHeader>
+                                                    <DataGridBody<Thread>>
+                                                        {({ item, rowId }) => (
+                                                            <DataGridRow<Thread> key={rowId} className={localStyles.dataGridRow}>
+                                                                {({ renderCell, columnId }) => (
+                                                                    <DataGridCell
+                                                                        focusMode={
+                                                                            columnId === IncidentsListColumnKey.title ? 'none' : undefined
+                                                                        }
+                                                                    >
+                                                                        {renderCell(item)}
+                                                                    </DataGridCell>
+                                                                )}
+                                                            </DataGridRow>
+                                                        )}
+                                                    </DataGridBody>
+                                                </DataGrid>
+                                                {moreThreadsToLoad && !incidentThreadsLoading ? (
+                                                    // TODO (andimarc): use shimmer row instead
+                                                    <div ref={intersectionObserverRef} className={localStyles.spinnerContainer}>
+                                                        <Spinner
+                                                            size="tiny"
+                                                            aria-label={intl.formatMessage(SreAgentResources.loadingMoreRows)}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    emptyState
+                                                )}
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -786,5 +901,78 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
         </>
     );
 };
+
+const useIncidentsOverviewStyles = makeStyles({
+    traceViewButton: {
+        fontWeight: 'normal',
+        fontSize: '12px',
+        lineHeight: '16px',
+        paddingTop: '2px',
+        paddingBottom: '2px',
+        paddingLeft: '4px',
+        paddingRight: '8px',
+        marginLeft: 'auto',
+    },
+    titleLink: {
+        fontSize: '13px',
+    },
+    fullHeightFlexContainer: {
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: '0',
+        overflow: 'hidden',
+    },
+    tableContainer: {
+        flex: '1',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '0',
+        minWidth: '0',
+        overflow: 'hidden',
+    },
+    scrollableList: {
+        flex: '1',
+        overflowY: 'auto',
+        overflowX: 'auto',
+        minHeight: '0',
+        minWidth: '0',
+        scrollbarGutter: 'stable',
+    },
+    spinnerContainer: {
+        height: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingTop: '10px',
+        paddingBottom: '10px',
+    },
+    emptyState: {
+        textAlign: 'center',
+    },
+    skeletonRow: {
+        display: 'flex',
+        padding: '8px 12px',
+        alignItems: 'center',
+        gap: '12px',
+    },
+    dataGrid: {
+        width: '100%',
+        maxWidth: '100%',
+        paddingTop: '5px',
+        boxSizing: 'border-box',
+    },
+    stickyHeader: {
+        fontWeight: '600',
+        position: 'sticky',
+        top: '0',
+        backgroundColor: tokens.colorNeutralBackground1,
+        zIndex: '1',
+    },
+    dataGridRow: {
+        width: '100%',
+    },
+});
 
 export default IncidentsOverview;

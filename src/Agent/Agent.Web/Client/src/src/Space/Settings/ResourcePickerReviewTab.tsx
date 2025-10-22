@@ -1,8 +1,21 @@
-import { IconButton, MessageBar, MessageBarType } from '@fluentui/react';
-import { CheckmarkCircle16Filled, DismissCircle16Filled } from '@fluentui/react-icons';
-import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn } from '@fluentui/react/lib/DetailsList';
-import { Link } from '@fluentui/react/lib/Link';
-import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
+import {
+    Button,
+    createTableColumn,
+    DataGrid,
+    DataGridBody,
+    DataGridCell,
+    DataGridHeader,
+    DataGridHeaderCell,
+    DataGridRow,
+    Link,
+    makeStyles,
+    MessageBar,
+    MessageBarBody,
+    TableCellLayout,
+    TableColumnDefinition,
+    tokens,
+} from '@fluentui/react-components';
+import { CheckmarkCircle16Filled, Delete16Regular, DismissCircle16Filled } from '@fluentui/react-icons';
 import { Dispatch, FC, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -12,6 +25,47 @@ import { ManagedResourcesStringResources, ResourcePickerTabResources, SreAgentRe
 import { ResourceGroup } from './Hooks/useResourceGroups';
 import { ResourceGroupWithSelection } from './ResourceGroupPicker';
 import { useManagedResourcesStyles } from './Styles/ManagedResources.styles';
+
+const useLocalStyles = makeStyles({
+    dataGrid: {
+        width: '100%',
+        tableLayout: 'auto',
+    },
+    dataGridHeader: {
+        fontWeight: '600',
+        position: 'sticky',
+        top: '0',
+        backgroundColor: tokens.colorNeutralBackground1,
+        zIndex: '1',
+    },
+    deleteButton: {
+        minWidth: 'auto',
+        padding: '4px',
+    },
+    headerText: {
+        fontWeight: '600',
+    },
+    resourceGroupIcon: {
+        height: '16px',
+        width: '16px',
+    },
+    resourceGroupLink: {
+        userSelect: 'text',
+    },
+    container: {
+        display: 'flex',
+        gap: '5px',
+        flexDirection: 'column',
+    },
+    errorMessageContainer: {
+        paddingTop: '5px',
+        marginBottom: '-5px',
+    },
+    scrollableArea: {
+        flex: '1',
+        overflowY: 'auto',
+    },
+});
 
 enum ResourceGroupListColumnKey {
     name = 'name',
@@ -57,6 +111,7 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
     const intl = useIntl();
 
     const styles = useManagedResourcesStyles();
+    const localStyles = useLocalStyles();
     const [managedResourceGroups, setManagedResourceGroups] = useState<ManagedResourceGroupGridItem[]>([]);
 
     const checkHasPermissionToCreateIdentities = useCallback(async (resourceGroup: string) => {
@@ -85,60 +140,6 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
         runResourceGroupPermissionChecks();
     }, [selectedResourceGroups, runResourceGroupPermissionChecks, setResourceGroupMaxError]);
 
-    const onNameClick = useCallback(
-        (id: string) => {
-            if (id) {
-                portalContext.openBlade({
-                    extension: 'HubsExtension',
-                    detailBlade: 'ResourceGroupOverview',
-                    detailBladeInputs: {
-                        id,
-                    },
-                });
-            }
-        },
-        [portalContext]
-    );
-
-    const onRenderName = useCallback(
-        (item: ResourceGroupWithSelection) => {
-            return (
-                <div className={styles.statusRow}>
-                    <img src="./ResourceGroup.svg" alt="ResourceGroup" style={{ height: 16, width: 16 }} />
-                    <Link style={{ userSelect: 'text' }} onClick={_e => onNameClick(item.id)}>
-                        {item.name}
-                    </Link>
-                </div>
-            );
-        },
-        [styles.statusRow, onNameClick]
-    );
-
-    const onRenderLocation = useCallback(
-        (item: ManagedResourceGroupGridItem) => {
-            return <div className={styles.row}>{getUserFriendlyLocation(item.location)}</div>;
-        },
-        [styles.row]
-    );
-
-    const onRenderPermissions = useCallback(
-        (item: ManagedResourceGroupGridItem) => {
-            return (
-                <div className={styles.row}>
-                    <div className={styles.iconRow}>
-                        {item.permissions ? (
-                            <CheckmarkCircle16Filled primaryFill={'green'} />
-                        ) : (
-                            <DismissCircle16Filled primaryFill={'red'} />
-                        )}
-                        {item.permissions ? intl.formatMessage(SreAgentResources.yes) : intl.formatMessage(SreAgentResources.no)}
-                    </div>
-                </div>
-            );
-        },
-        [styles, intl]
-    );
-
     const onDeleteClick = useCallback(
         (item: ManagedResourceGroupGridItem) => {
             toggleItemSelection(item.id);
@@ -151,71 +152,91 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
         [managedResourceGroups, setResourceGroupPermissionsError, setManagedResourceGroups, toggleItemSelection]
     );
 
-    const onRenderDelete = useCallback(
-        (item: ManagedResourceGroupGridItem) => {
-            return (
-                <IconButton
-                    iconProps={{ iconName: 'Delete' }}
-                    onClick={() => {
-                        onDeleteClick(item);
-                    }}
-                    style={{ height: '14px', width: '14px' }}
-                />
-            );
-        },
-        [onDeleteClick]
-    );
-
-    const columns = useMemo<IColumn[]>(() => {
+    const columns = useMemo<TableColumnDefinition<ManagedResourceGroupGridItem>[]>(() => {
         return [
-            {
-                key: ResourceGroupListColumnKey.name,
-                name: intl.formatMessage(ManagedResourcesStringResources.resourceGroupName),
-                fieldName: ResourceGroupListColumnKey.name,
-                minWidth: 200,
-                maxWidth: 300,
-                isResizable: true,
-                onRender: onRenderName,
-            },
-            {
-                key: ResourceGroupListColumnKey.subscription,
-                name: intl.formatMessage(ManagedResourcesStringResources.subscription),
-                fieldName: ResourceGroupListColumnKey.subscription,
-                minWidth: 175,
-                maxWidth: 175,
-                isResizable: true,
-                onRender: onRenderSubscription,
-            },
-            {
-                key: ResourceGroupListColumnKey.location,
-                name: intl.formatMessage(ManagedResourcesStringResources.location),
-                fieldName: ResourceGroupListColumnKey.location,
-                minWidth: 100,
-                maxWidth: 100,
-                isResizable: true,
-                onRender: onRenderLocation,
-            },
-            {
-                key: ResourceGroupListColumnKey.permissions,
-                name: intl.formatMessage(ResourcePickerTabResources.permissionsForRoleAssignment),
-                fieldName: ResourceGroupListColumnKey.permissions,
-                minWidth: 170,
-                maxWidth: 170,
-                isResizable: true,
-                onRender: onRenderPermissions,
-                isMultiline: true,
-            },
-            {
-                key: ResourceGroupListColumnKey.delete,
-                name: '',
-                fieldName: ResourceGroupListColumnKey.delete,
-                minWidth: 25,
-                maxWidth: 25,
-                isResizable: true,
-                onRender: onRenderDelete,
-            },
+            createTableColumn<ManagedResourceGroupGridItem>({
+                columnId: ResourceGroupListColumnKey.name,
+                renderHeaderCell: () => (
+                    <span className={localStyles.headerText}>{intl.formatMessage(ManagedResourcesStringResources.resourceGroupName)}</span>
+                ),
+                renderCell: item => (
+                    <TableCellLayout>
+                        <div className={styles.statusRow}>
+                            <img src="./ResourceGroup.svg" alt="ResourceGroup" className={localStyles.resourceGroupIcon} />
+                            <Link
+                                className={localStyles.resourceGroupLink}
+                                onClick={_e => {
+                                    if (item.id) {
+                                        portalContext.openBlade({
+                                            extension: 'HubsExtension',
+                                            detailBlade: 'ResourceGroupOverview',
+                                            detailBladeInputs: {
+                                                id: item.id,
+                                            },
+                                        });
+                                    }
+                                }}
+                            >
+                                {item.name}
+                            </Link>
+                        </div>
+                    </TableCellLayout>
+                ),
+            }),
+            createTableColumn<ManagedResourceGroupGridItem>({
+                columnId: ResourceGroupListColumnKey.subscription,
+                renderHeaderCell: () => (
+                    <span className={localStyles.headerText}>{intl.formatMessage(ManagedResourcesStringResources.subscription)}</span>
+                ),
+                renderCell: item => (
+                    <TableCellLayout>{onRenderSubscription(item as unknown as ResourceGroupWithSelection)}</TableCellLayout>
+                ),
+            }),
+            createTableColumn<ManagedResourceGroupGridItem>({
+                columnId: ResourceGroupListColumnKey.location,
+                renderHeaderCell: () => (
+                    <span className={localStyles.headerText}>{intl.formatMessage(ManagedResourcesStringResources.location)}</span>
+                ),
+                renderCell: item => <TableCellLayout>{getUserFriendlyLocation(item.location)}</TableCellLayout>,
+            }),
+            createTableColumn<ManagedResourceGroupGridItem>({
+                columnId: ResourceGroupListColumnKey.permissions,
+                renderHeaderCell: () => (
+                    <span className={localStyles.headerText}>
+                        {intl.formatMessage(ResourcePickerTabResources.permissionsForRoleAssignment)}
+                    </span>
+                ),
+                renderCell: item => (
+                    <TableCellLayout>
+                        <div className={styles.iconRow}>
+                            {item.permissions ? (
+                                <CheckmarkCircle16Filled primaryFill={'green'} />
+                            ) : (
+                                <DismissCircle16Filled primaryFill={'red'} />
+                            )}
+                            {item.permissions ? intl.formatMessage(SreAgentResources.yes) : intl.formatMessage(SreAgentResources.no)}
+                        </div>
+                    </TableCellLayout>
+                ),
+            }),
+            createTableColumn<ManagedResourceGroupGridItem>({
+                columnId: ResourceGroupListColumnKey.delete,
+                renderHeaderCell: () => '',
+                renderCell: item => (
+                    <TableCellLayout>
+                        <Button
+                            icon={<Delete16Regular />}
+                            appearance="subtle"
+                            size="small"
+                            className={localStyles.deleteButton}
+                            onClick={() => onDeleteClick(item)}
+                            aria-label="Delete"
+                        />
+                    </TableCellLayout>
+                ),
+            }),
         ];
-    }, [onRenderName, onRenderSubscription, onRenderLocation, onRenderPermissions, onRenderDelete, intl]);
+    }, [intl, styles, portalContext, onRenderSubscription, onDeleteClick, localStyles]);
 
     const errorMessage = useMemo(() => {
         if (resourceGroupMaxError) {
@@ -226,33 +247,63 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
         return '';
     }, [intl, resourceGroupMaxError, resourceGroupPermissionsError]);
 
+    const columnSizingOptions = useMemo(
+        () => ({
+            [ResourceGroupListColumnKey.name]: {
+                minWidth: 200,
+                idealWidth: 300,
+            },
+            [ResourceGroupListColumnKey.subscription]: {
+                minWidth: 150,
+                idealWidth: 175,
+            },
+            [ResourceGroupListColumnKey.location]: {
+                minWidth: 100,
+                idealWidth: 100,
+            },
+            [ResourceGroupListColumnKey.permissions]: {
+                minWidth: 150,
+                idealWidth: 170,
+            },
+            [ResourceGroupListColumnKey.delete]: {
+                minWidth: 50,
+                idealWidth: 50,
+            },
+        }),
+        []
+    );
+
     return (
-        <div style={{ display: 'flex', gap: '5px', flexDirection: 'column' }}>
+        <div className={localStyles.container}>
             {errorMessage && (
-                <div style={{ paddingTop: '5px', marginBottom: '-5px' }}>
-                    <MessageBar messageBarType={MessageBarType.error}>{errorMessage}</MessageBar>
+                <div className={localStyles.errorMessageContainer}>
+                    <MessageBar intent="error">
+                        <MessageBarBody>{errorMessage}</MessageBarBody>
+                    </MessageBar>
                 </div>
             )}
-            <div
-                style={{ minHeight: errorMessage ? '445px' : '490px', maxHeight: errorMessage ? '445px' : '490px', overflowY: 'auto' }}
-                data-is-scrollable="true"
-            >
-                <ShimmeredDetailsList
-                    columns={columns}
-                    constrainMode={ConstrainMode.horizontalConstrained}
+            <div className={localStyles.scrollableArea} data-is-scrollable="true">
+                <DataGrid
                     items={managedResourceGroups}
-                    layoutMode={DetailsListLayoutMode.justified}
-                    compact={true}
-                    enableShimmer={false}
-                    checkboxVisibility={CheckboxVisibility.hidden}
-                    useReducedRowRenderer={false}
-                    styles={{
-                        root: {
-                            overflow: 'visible',
-                            height: 'auto',
-                        },
-                    }}
-                />
+                    columns={columns}
+                    sortable
+                    resizableColumns
+                    columnSizingOptions={columnSizingOptions}
+                    getRowId={item => item.id}
+                    className={localStyles.dataGrid}
+                    size="small"
+                >
+                    <DataGridHeader className={localStyles.dataGridHeader}>
+                        <DataGridRow>{({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}</DataGridRow>
+                    </DataGridHeader>
+                    <DataGridBody<ManagedResourceGroupGridItem>>
+                        {({ item, rowId }) => (
+                            <DataGridRow<ManagedResourceGroupGridItem> key={rowId}>
+                                {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
+                            </DataGridRow>
+                        )}
+                    </DataGridBody>
+                </DataGrid>
             </div>
         </div>
     );

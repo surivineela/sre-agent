@@ -5,7 +5,7 @@ export const useManagedResourcesStyles = makeStyles({
     pillsContainer: { display: 'flex', flexDirection: 'row', gap: '5px' },
     buttonStyle: { width: 'fit-content' },
     buttonsContainer: { display: 'flex', flexDirection: 'row', gap: '10px' },
-    container: { display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' },
+    container: { display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', minWidth: '0' },
     pickerItem: {
         flex: 1,
         maxWidth: '33.33%',

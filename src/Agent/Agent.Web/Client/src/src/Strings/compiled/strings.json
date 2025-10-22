@@ -2693,6 +2693,16 @@
       "value": "Incident response"
     }
   ],
+  "BhRlDa": [
+    {
+      "type": 0,
+      "value": "Deleting incidents "
+    },
+    {
+      "type": 1,
+      "value": "titles"
+    }
+  ],
   "BkOSF2": [
     {
       "type": 0,
@@ -2921,6 +2931,12 @@
       "value": "Mitigated by agent"
     }
   ],
+  "D7U9Zo": [
+    {
+      "type": 0,
+      "value": "Custom instructions"
+    }
+   ],
   "DDSwQB": [
     {
       "type": 1,
@@ -6734,6 +6750,12 @@
       "value": "Connector Type"
     }
   ],
+  "XHoPAJ": [
+    {
+      "type": 0,
+      "value": "Response plan details"
+    }
+  ],
   "XJ+Lww": [
     {
       "type": 0,
@@ -9028,6 +9050,16 @@
       "value": "Save"
     }
   ],
+  "jw1Wpc": [
+    {
+      "type": 0,
+      "value": "Deleting incident "
+    },
+    {
+      "type": 1,
+      "value": "title"
+    }
+  ],
   "jxYyO2": [
     {
       "type": 0,
@@ -10352,6 +10384,12 @@
       "value": "Backend Endpoint"
     }
   ],
+  "qs5hhk": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected incident thread?"
+    }
+  ],
   "qvTohT": [
     {
       "type": 0,
@@ -11340,6 +11378,12 @@
       "value": "Tools selected for incident response"
     }
   ],
+  "us/IXr": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected incident threads?"
+    }
+  ],
   "uyO1AJ": [
     {
       "type": 0,
@@ -12118,6 +12162,20 @@
     {
       "type": 0,
       "value": "Choose resource groups"
+    }
+  ],
+  "zeJdWA": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " incidents"
     }
   ],
   "zfM/75": [
