@@ -311,7 +311,6 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                     RunMode = matchingFilter?.AgentMode ?? request.IncidentFilter?.AgentMode ?? string.Empty,
                     InstructionType = string.IsNullOrWhiteSpace(matchingHandler.CustomInstructions) ? "Default" : "Custom",
                     IncidentPlatform = GetIncidentPlatform()
-
                 };
 
                 // Can not yet ingest data for Azure Monitor
@@ -507,7 +506,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         string filterId = $"IncidentFilter{incidentDetails.DocumentType}";
         var defaultFilter = GetDefaultIncidentFilter(request);
         var defaultHandler = new IncidentHandlerDocument(
-                Id: handlerId,
+                Id: request?.IncidentHandler?.Name ?? handlerId,
                 DocumentType: handlerId,
                 Name: request?.IncidentHandler?.Name ?? handlerId,
                 Description: request?.IncidentHandler?.Description ?? "",

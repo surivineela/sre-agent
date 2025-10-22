@@ -573,9 +573,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     Description = incidentDocument.Description,
                     Severity = incidentDocument.Priority,
                     CreatedTime = incidentDocument.CreatedDate,
-                    ImpactedService = incidentDocument.ImpactedServiceName,
-                    IncidentFilter = filterDocument,
-                    IncidentHandler = null
+                    ImpactedService = incidentDocument.ImpactedServiceName
                 });
             }
             else

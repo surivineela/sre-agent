@@ -75,6 +75,7 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
             { "IncidentImpactedService", data.ImpactedService },
             { "AgentAutonomyLevel", data.RunMode },
             { "ResponsePlanCustom", (data.InstructionType == "Custom").ToString() },
+            { "IncidentPlatform", data.IncidentPlatform }
         };
             _appInsightsLogger.LogCustomEvent("IncidentActivitySnapshot", payload);
         }
@@ -300,7 +301,7 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
         {
             new(ChatRole.System, "You are an expert in incident analysis."),
-            new(ChatRole.User, @$"{prompt}:\n\n{IncidentOverview(incident)}")
+            new(ChatRole.User, @$"{prompt}:\n\n{await IncidentOverview(incident)}")
         };
 
         var options = new ChatOptions

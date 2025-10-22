@@ -25,6 +25,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
 {
     private readonly Container container;
     private readonly ILogger<PagerDutyIncidentAnalysisService> _logger;
+
     public PagerDutyIncidentAnalysisService(
         IChatClient client,
         CosmosClient cosmosClient,
@@ -72,6 +73,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
             { "IncidentImpactedService", data.ImpactedService },
             { "AgentAutonomyLevel", data.RunMode },
             { "ResponsePlanCustom", (data.InstructionType == "Custom").ToString() },
+            { "IncidentPlatform", data.IncidentPlatform }
         };
             _appInsightsLogger.LogCustomEvent("IncidentActivitySnapshot", payload);
         }

@@ -295,9 +295,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     Description = incidentDocument.Description,
                     Severity = incidentDocument.Priority,
                     CreatedTime = incidentDocument.CreatedAt,
-                    ImpactedService = incidentDocument.ImpactedServiceName,
-                    IncidentFilter = filterDocument,
-                    IncidentHandler = null
+                    ImpactedService = incidentDocument.ImpactedServiceName
                 });
             }
             else
