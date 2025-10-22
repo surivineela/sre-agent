@@ -24,6 +24,7 @@ export const getFilterValues = (
         priority: values.priority,
         titleContains: values.titleContains,
         agentMode: values.agentMode,
+        deepInvestigationEnabled: values.deepInvestigationEnabled,
         owningTeamId: values.owningTeamId,
         createdBy: values.createdBy,
         monitorId: values.monitorId,

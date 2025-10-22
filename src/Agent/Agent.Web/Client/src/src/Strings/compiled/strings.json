@@ -2963,6 +2963,12 @@
       "value": "s?"
     }
   ],
+  "DJN+DZ": [
+    {
+      "type": 0,
+      "value": "Choose whether to run deep investigations alongside regular investigations"
+    }
+  ],
   "DMEE1o": [
     {
       "type": 0,
@@ -10728,6 +10734,12 @@
     {
       "type": 0,
       "value": "Agent endpoint"
+    }
+  ],
+  "s7HLdg": [
+    {
+      "type": 0,
+      "value": "Run deep investigation autonomously"
     }
   ],
   "s8HBot": [

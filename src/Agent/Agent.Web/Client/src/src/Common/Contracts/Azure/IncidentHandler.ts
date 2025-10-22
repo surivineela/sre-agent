@@ -93,6 +93,7 @@ export interface IncidentFilter {
     titleContains: string;
     /** If no value, will be empty string */
     agentMode?: AgentMode;
+    deepInvestigationEnabled?: boolean;
     owningTeamId?: string; // only for IcM
     createdBy?: string; // only for IcM
     monitorId?: string; // only for IcM

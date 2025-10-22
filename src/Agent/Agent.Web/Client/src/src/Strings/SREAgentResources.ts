@@ -1275,6 +1275,11 @@ export const IncidentHandlerCreateResources = defineMessages({
             'Filters define which incidents the incident response plan applies to. These apply to the list of incidents previewed in the next step.',
         id: 'LZyV4T',
     },
+    enableDeepInvestigationTitle: {
+        defaultMessage: 'Choose whether to run deep investigations alongside regular investigations',
+        id: 'DJN+DZ',
+    },
+    enableDeepInvestigationDescription: { defaultMessage: 'Run deep investigation autonomously', id: 's7HLdg' },
     addCustomResponseGuidanceTitle: { defaultMessage: 'Add custom response guidance (optional)', id: 'koWZK8' },
     addCustomResponseGuidanceDescription: {
         defaultMessage: 'This guidance helps generate the tools list and the final prompt the agent uses during incident handling.',

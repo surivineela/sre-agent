@@ -17,5 +17,6 @@ export interface IncidentHandlerCreateFormValues {
     incidentProcessingGuide?: string;
 
     useCustomHandler?: boolean;
+    deepInvestigationEnabled?: boolean;
     includePastIncidents?: boolean;
 }

@@ -254,6 +254,18 @@ export const FilterStep: FC = () => {
                 </Field>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.enableDeepInvestigationTitle)}</Text>
+
+                    <Checkbox
+                        name={'deepInvestigationEnabled'}
+                        checked={values.deepInvestigationEnabled}
+                        onChange={(_, data) => setFieldValue('deepInvestigationEnabled', data.checked)}
+                        label={intl.formatMessage(IncidentHandlerCreateResources.enableDeepInvestigationDescription)}
+                        labelPosition="after"
+                    />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <Text size={400} weight="semibold">
                         {intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceTitle)}
                     </Text>

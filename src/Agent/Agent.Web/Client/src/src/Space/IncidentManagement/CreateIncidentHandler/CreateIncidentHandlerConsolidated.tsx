@@ -41,6 +41,7 @@ const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props 
         incidentProcessingGuide: undefined,
 
         useCustomHandler: false,
+        deepInvestigationEnabled: false,
         includePastIncidents: false,
     });
 

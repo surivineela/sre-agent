@@ -869,6 +869,7 @@ export const useConsolidatedCreateIncidentHandler = (
                 priority: handlerCreateOrEditInfo.filter?.priority,
                 titleContains: handlerCreateOrEditInfo.filter?.titleContains,
                 agentMode: handlerCreateOrEditInfo.filter?.agentMode || AgentMode.review,
+                deepInvestigationEnabled: handlerCreateOrEditInfo.filter?.deepInvestigationEnabled || false,
                 owningTeamId: handlerCreateOrEditInfo.filter?.owningTeamId || '',
                 createdBy: handlerCreateOrEditInfo.filter?.createdBy || '',
                 monitorId: handlerCreateOrEditInfo.filter?.monitorId || '',
