@@ -34,6 +34,16 @@ configuration:
     role: Write
   - member: liuqi
     role: Write
+  - member: andimarc
+    role: Write
+  - member: stpelleg
+    role: Write
+  - member: nicolaslayne
+    role: Write
+  - member: yoonaoh
+    role: Write
+  - member: evtheodo
+    role: Write    
   - team: k4appscore
     role: Read
   - team: srea-devs
