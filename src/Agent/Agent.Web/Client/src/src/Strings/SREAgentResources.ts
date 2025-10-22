@@ -1622,6 +1622,7 @@ export const ManagedResourcesStringResources = defineMessages({
     region: { defaultMessage: 'Region', id: 'lnaWo/' },
     resourceGroup: { defaultMessage: 'Resource group', id: '+uAdUZ' },
     refresh: { defaultMessage: 'Refresh', id: 'rELDbB' },
+    deleteResourceGroupAriaLabel: { defaultMessage: 'Delete resource group {resourceGroupName}', id: 'XG++pU' },
 });
 
 export const MetricsResources = defineMessages({

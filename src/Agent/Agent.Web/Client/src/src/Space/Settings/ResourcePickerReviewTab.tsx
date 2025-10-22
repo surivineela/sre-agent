@@ -230,7 +230,9 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
                             size="small"
                             className={localStyles.deleteButton}
                             onClick={() => onDeleteClick(item)}
-                            aria-label="Delete"
+                            aria-label={intl.formatMessage(ManagedResourcesStringResources.deleteResourceGroupAriaLabel, {
+                                resourceGroupName: item.name,
+                            })}
                         />
                     </TableCellLayout>
                 ),

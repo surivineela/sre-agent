@@ -327,23 +327,26 @@ export const chatInputTextStyles = {
 export const useDialogStyles = makeStyles({
     dialogSurface: {
         width: '950px',
-        maxWidth: '950px',
+        maxWidth: '95vw',
         display: 'flex',
         flexDirection: 'column',
         gap: '15px',
         maxHeight: '750px',
+        overflowX: 'auto',
     },
     dialogBody: {
         display: 'flex',
         flexDirection: 'column',
         gap: '15px',
         overflow: 'hidden',
+        minWidth: '0',
     },
     dialogContent: {
         display: 'flex',
         flexDirection: 'column',
         gap: '15px',
         maxWidth: '100%',
+        overflowX: 'auto',
     },
 });
 
