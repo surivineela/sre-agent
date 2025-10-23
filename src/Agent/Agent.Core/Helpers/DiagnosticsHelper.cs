@@ -8,6 +8,7 @@ using Agent.Core.Interfaces;
 using Azure.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Net.Http.Headers;
 
 namespace Agent.Core.Helpers
 {
@@ -94,6 +95,10 @@ namespace Agent.Core.Helpers
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
             request.Headers.Add("x-ms-internal-client", "true");
             
+             // Set UserAgent to be SREAgent
+            ProductInfoHeaderValue sreUserAgent = new ProductInfoHeaderValue("SREAgent", AgentNameHelper.GetAgentName(_hostEnvironment.IsProduction()));
+            request.Headers.UserAgent.Add(sreUserAgent);
+
             // Add authorization header with bearer token
             string token = await GetAuthorizationTokenAsync();
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
