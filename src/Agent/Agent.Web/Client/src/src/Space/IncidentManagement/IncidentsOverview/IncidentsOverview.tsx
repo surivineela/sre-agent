@@ -1,3 +1,4 @@
+import { format } from '@fluentui/react';
 import {
     Button,
     createTableColumn,
@@ -38,6 +39,7 @@ import {
 } from '../../../Common/Components/PillFilter/Contracts';
 import { LabelKeyPair } from '../../../Common/Components/PillFilter/ListWithSearch';
 import { PillFilterSet } from '../../../Common/Components/PillFilter/PillFilterSet';
+import { icmIncidentUrlTemplate } from '../../../Common/Constants/Links';
 import { IncidentDocument } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { InvestigationStatus, Thread } from '../../../Common/Contracts/DataPlane/Thread';
@@ -430,9 +432,23 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 renderHeaderCell: () => (
                     <span style={{ fontWeight: 600 }}>{intl.formatMessage(platformSpecificStrings.incidentOrAlertIdLabel)}</span>
                 ),
-                renderCell: item => (
-                    <TableCellLayout>{getColumnInfo(IncidentsListColumnKey.incidentId).getColumnValue(item)}</TableCellLayout>
-                ),
+                renderCell: item => {
+                    const incidentId = getColumnInfo(IncidentsListColumnKey.incidentId).getColumnValue(item);
+                    // We assume this is an ICM incident if the current platform type is ICM and the incident ID is numeric
+                    const isIcmIncident = incidentPlatformType === IncidentManagementType.Icm && incidentId && /^\d+$/.test(incidentId);
+                    const icmIncidentUrl = isIcmIncident ? format(icmIncidentUrlTemplate, incidentId) : undefined;
+                    return (
+                        <TableCellLayout>
+                            {icmIncidentUrl ? (
+                                <Link href={icmIncidentUrl} target="_blank" rel="noopener noreferrer">
+                                    {incidentId}
+                                </Link>
+                            ) : (
+                                incidentId
+                            )}
+                        </TableCellLayout>
+                    );
+                },
             }),
             createTableColumn<Thread>({
                 columnId: IncidentsListColumnKey.title,
