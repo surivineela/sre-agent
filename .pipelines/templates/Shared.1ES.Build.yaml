@@ -144,6 +144,9 @@ extends:
             dependencyPackageSource: 'https://msazure.pkgs.visualstudio.com/One/_packaging/OnelocbuildLocToolsFeed/nuget/v3/index.json'
             repoType: gitHub
             isCreatePrSelected: true
+            isShouldReusePrSelected: true
+            isAutoCompletePrSelected: false
+            isSetAutoCompletePrSelected: true
             gitHubPrMergeMethod: squash
             prSourceBranchPrefix: 'locfiles'
 
