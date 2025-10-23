@@ -493,9 +493,9 @@ extends:
             # This task downloads the build artifacts from the previous stage.
           - task: DownloadPipelineArtifact@2
             inputs:
-              targetPath: $(Build.SourcesDirectory)/dst/drop_build_main/Agent.Web
+              targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
               artifact: drop_build_main
-              patterns: '**/Agent.Web/**'
+              patterns: 'Agent.Web/**'
 
           - task: 1ES.BuildContainerImage@1
             displayName: 'Build Docker image for Agent.Web'
@@ -528,9 +528,9 @@ extends:
             # This task downloads the build artifacts from the previous stage.
           - task: DownloadPipelineArtifact@2
             inputs:
-              targetPath: $(Build.SourcesDirectory)/dst/drop_build_main/Session.Cli
+              targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
               artifact: drop_build_main
-              patterns: '**/Session.Cli/**'
+              patterns: 'Session.Cli/**'
 
           - task: 1ES.BuildContainerImage@1
             displayName: 'Build Docker image for Session.Cli'
