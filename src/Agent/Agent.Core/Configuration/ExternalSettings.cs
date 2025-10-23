@@ -13,6 +13,7 @@ namespace Agent.Core.Configuration
         public DashboardSettings Dashboard { get; set; } = new();
         public IncidentManagementSettings IncidentManagement { get; set; } = new();
         public GenevaActionsSettings GenevaActions { get; set; } = new();
+        public MdmMetricsSettings MdmMetrics { get; set; } = new();
 
         public ICMWorkflowSettings ICMWorkflows { get; set; } = new();
         public AgentHelperSettings AgentHelper { get; set; } = new();

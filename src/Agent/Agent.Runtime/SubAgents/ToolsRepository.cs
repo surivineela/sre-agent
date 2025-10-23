@@ -96,6 +96,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<FunctionAppDeploymentChecksPluginDefinition>();
         RegisterPlugin<PostgreSQLPluginDefinition>();
         RegisterPlugin<PagerDutyIncidentPluginDefinition>();
+        RegisterPlugin<MdmMetricsPluginDefinition>();
         RegisterPlugin<AzureAlertingPluginDefinition>();
         RegisterPlugin<AppInsightsPluginDefinition>();
         RegisterPlugin<CannotConnectToVmPluginDefinition>();

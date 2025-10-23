@@ -235,6 +235,11 @@ public class AuthenticationService : IAuthenticationService
         return GetManagedIdentityCredential(GetActionIdentity());
     }
 
+    public TokenCredential GetMdmMetricsCredential()
+    {
+        return GetManagedIdentityCredential(GetActionIdentity());
+    }
+
     public async Task<string> GetGrafanaAccessToken()
     {
         if (!string.IsNullOrEmpty(_dashboardSettings.GrafanaApiKey))

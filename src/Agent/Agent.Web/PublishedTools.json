@@ -205,6 +205,34 @@
     {
       "name": "GetAllAzureDataFactoryPipelinesStatus",
       "version": "latest"
+    },
+    {
+      "name": "GetNamespaces",
+      "version": "latest"
+    },
+    {
+      "name": "GetMetricNames",
+      "version": "latest"
+    },
+    {
+      "name": "GetDimensionNames",
+      "version": "latest"
+    },
+    {
+      "name": "GetDimensionValues",
+      "version": "latest"
+    },
+    {
+      "name": "GetMultipleTimeSeries",
+      "version": "latest"
+    },
+    {
+      "name": "GetTimeSeries",
+      "version": "latest"
+    },
+    {
+      "name": "GetTimeSeriesAnalysis",
+      "version": "latest"
     }
   ]
 }

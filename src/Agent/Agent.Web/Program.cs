@@ -433,6 +433,7 @@ public class Program
             .AddTransient<APIManagementPluginDefinition>()
             .AddTransient<AgentMemoryPluginDefinition>()
             .AddTransient<GenevaActionsPluginDefinition>()
+            .AddTransient<MdmMetricsPluginDefinition>()
             .AddTransient<ICMPluginDefinition>()
             .AddTransient<AzureAlertingPluginDefinition>()
             .AddTransient<WebAppPluginDefinition>()
@@ -468,6 +469,7 @@ public class Program
             .AddTransient<ICodeInterpreterPlugin, CodeInterpreterPlugin>()
             .AddTransient<IAPIManagementPlugin, APIManagementPlugin>()
             .AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
+            .AddTransient<IMdmMetricsPlugin, MdmMetricsPlugin>()
             .AddTransient<AgentHelperService>()
             .AddTransient<ILogicAppsPlugin, LogicAppsPlugin>()
 

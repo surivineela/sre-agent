@@ -189,6 +189,7 @@ Otherwise, there may be required settings which are not auto-populated by the pr
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.IncidentManagement);
 
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.GenevaActions);
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.MdmMetrics);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.ICMWorkflows);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.OneBranchApprovalService);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.AgentHelper);

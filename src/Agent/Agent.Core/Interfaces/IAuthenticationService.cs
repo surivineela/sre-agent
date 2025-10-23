@@ -90,6 +90,12 @@ public interface IAuthenticationService
 
     public TokenCredential GetLogAnalyticsCredential();
 
+    /// <summary>
+    /// Get the credential to access MDM (Microsoft Diagnostics Metrics) service
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetMdmMetricsCredential();
+
     public Task<TokenCredential> GetKubernetesOperationCredential();
 
     public string? GetActionIdentity();

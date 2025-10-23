@@ -294,6 +294,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
         // FIX: Implement missing interface member
         public TokenCredential GetAgentSpaceProxyCredential() => _credential;
+
+        public TokenCredential GetMdmMetricsCredential() => _credential;
     }
 
     internal sealed class FakeTokenCredential : TokenCredential
