@@ -34,6 +34,7 @@ export default class AzPortalProxy {
         'portal.azure.eaglex.ic.gov',
         'portal.azure.microsoft.scloud',
         'portal.azure.net',
+        'ms.sre.azure.com',
     ];
 
     public static envInfo: IEnvironmentInfo = {} as IEnvironmentInfo;
