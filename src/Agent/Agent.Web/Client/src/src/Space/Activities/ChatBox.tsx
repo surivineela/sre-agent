@@ -35,8 +35,7 @@ export const ChatBox = ({
     todoPlanDrawer,
 }: IChatBoxProps) => {
     const {
-        chatHistory,
-        newMessages,
+        messages,
         isAgentTyping,
         temporaryUserMessage,
         streamingMessage,
@@ -45,7 +44,6 @@ export const ChatBox = ({
         isWaitingForStreamingMessages,
         isLoading,
         sendMessage,
-        postSystemMessage,
         isNewAndCleanThread,
         messagesDivRef,
         intersectionObserverRef,
@@ -126,76 +124,38 @@ export const ChatBox = ({
                                         {/* Display permission error message if any*/}
                                         <PermissionErrorChatMessage key={'permission-error-chat-message'} isLoading={isLoading} />
 
-                                        {/* Chat history */}
-                                        {!isLoading &&
-                                            chatHistory?.map((messages, index) => {
-                                                return (
-                                                    <ChatMessages
-                                                        // set key to chathistory.length - index to ensure the existing page always has the same key to prevent re-rendering
-                                                        key={chatHistory.length - index}
-                                                        messages={messages}
-                                                        threadId={currentThreadId || ''}
-                                                        prevMessageBeforeTheFirstMessage={
-                                                            chatHistory?.[index - 1]?.[chatHistory?.[index - 1]?.length - 1]
-                                                        }
-                                                        nextMessageAfterTheLastMessage={
-                                                            chatHistory?.[index + 1]?.[0] ||
-                                                            newMessages[0] ||
-                                                            temporaryUserMessage ||
-                                                            streamingMessage
-                                                        }
-                                                    />
-                                                );
-                                            })}
-
-                                        {/* New messages */}
+                                        {/* Non streaming messages */}
                                         {!isLoading && (
-                                            <ChatMessages
-                                                messages={newMessages}
-                                                threadId={currentThreadId || ''}
-                                                prevMessageBeforeTheFirstMessage={
-                                                    chatHistory?.[chatHistory.length - 1]?.[
-                                                        chatHistory?.[chatHistory.length - 1]?.length - 1
-                                                    ]
-                                                }
-                                                nextMessageAfterTheLastMessage={temporaryUserMessage || streamingMessage || undefined}
-                                            />
-                                        )}
-
-                                        {temporaryUserMessage && (
-                                            <ChatMessage
-                                                key={temporaryUserMessage.id}
-                                                message={temporaryUserMessage}
-                                                threadId={currentThreadId || ''}
-                                                threadSource={threadSource}
-                                                previousMessage={
-                                                    newMessages[newMessages.length - 1] ||
-                                                    chatHistory?.[chatHistory.length - 1]?.[
-                                                        chatHistory?.[chatHistory.length - 1]?.length - 1
-                                                    ]
-                                                }
-                                            />
-                                        )}
-
-                                        {!isLoading && streamingMessage && (
-                                            <ChatMessage
-                                                key={streamingMessage.id}
-                                                message={streamingMessage}
-                                                isStreamingMessage={true}
-                                                isTyping={isAgentTyping}
-                                                threadId={currentThreadId || ''}
-                                                threadSource={threadSource}
-                                                toolCallText={toolCallText}
-                                                isWaitingForStreamingMessages={isWaitingForStreamingMessages}
-                                                updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
-                                                previousMessage={
-                                                    temporaryUserMessage ||
-                                                    newMessages[newMessages.length - 1] ||
-                                                    chatHistory?.[chatHistory.length - 1]?.[
-                                                        chatHistory?.[chatHistory.length - 1]?.length - 1
-                                                    ]
-                                                }
-                                            />
+                                            <>
+                                                <ChatMessages
+                                                    messages={messages}
+                                                    threadId={currentThreadId || ''}
+                                                    nextMessageAfterTheLastMessage={temporaryUserMessage || streamingMessage || undefined}
+                                                />
+                                                {temporaryUserMessage && (
+                                                    <ChatMessage
+                                                        key={temporaryUserMessage.id}
+                                                        message={temporaryUserMessage}
+                                                        threadId={currentThreadId || ''}
+                                                        threadSource={threadSource}
+                                                        previousMessage={messages[messages.length - 1]}
+                                                    />
+                                                )}
+                                                {streamingMessage && (
+                                                    <ChatMessage
+                                                        key={streamingMessage.id}
+                                                        message={streamingMessage}
+                                                        isStreamingMessage={true}
+                                                        isTyping={isAgentTyping}
+                                                        threadId={currentThreadId || ''}
+                                                        threadSource={threadSource}
+                                                        toolCallText={toolCallText}
+                                                        isWaitingForStreamingMessages={isWaitingForStreamingMessages}
+                                                        updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
+                                                        previousMessage={temporaryUserMessage || messages[messages.length - 1]}
+                                                    />
+                                                )}
+                                            </>
                                         )}
                                     </CopilotChat>
                                 </div>
@@ -215,7 +175,6 @@ export const ChatBox = ({
                                     isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
                                     isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
                                     onClickDeepInvestigationButton={onClickDeepInvestigationButton}
-                                    postSystemMessage={postSystemMessage}
                                 />
                             </div>
                         </div>

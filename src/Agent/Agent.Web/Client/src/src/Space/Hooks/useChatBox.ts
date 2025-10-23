@@ -25,10 +25,10 @@ import {
     composeUserMessage,
     constructUserMessageFromStreamingMessage,
     getDefaultDeepInvestigationStatusChatMessage,
-    getDefaultSREAgentAuthor,
     getSpecialMessageContentFromStreamingMessage,
     getStreamingMessageText,
     getToolCallText,
+    isChatMessageContentASpecialMessageContent,
     isChatMessageContentNonImageText,
     isChatMessageEmpty,
     isDefaultStreamingMessageType,
@@ -69,8 +69,7 @@ export const useChatBox = (
 
     const [currentThreadId, setCurrentThreadId] = useState<string | null>(threadId || null);
 
-    const [allMessages, setAllMessages] = useState<ChatMessage[]>([]);
-    const [newMessages, setNewMessages] = useState<ChatMessage[]>([]);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
 
     const [temporaryUserMessage, setTemporaryUserMessage] = useState<ChatMessage | null>(null);
     const [streamingMessage, setStreamingMessage] = useState<ChatMessage | null | undefined>();
@@ -103,22 +102,18 @@ export const useChatBox = (
     const responseEndLoggedRef = useRef<boolean>(false);
     const isDeepInvestigationTurnedOnRef = useRef<boolean>(isDeepInvestigationTurnedOn);
 
-    const { chatHistory, isLoadingInitialChatHistory, loadOlderMessagesRef, newestMessageTimestampInOldMessages } = useChatHistory(
+    const { chatHistoryLength, isLoadingInitialChatHistory, loadOlderMessagesRef, newestMessageTimestampInOldMessages } = useChatHistory(
+        messages,
+        setMessages,
         threadId,
-        threadSource,
         () => {
             currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
         }
     );
 
     const isNewAndCleanThread = useMemo(
-        () =>
-            !isLoadingInitialChatHistory &&
-            !currentThreadId &&
-            (chatHistory?.length ?? 0) === 0 &&
-            newMessages.length === 0 &&
-            !streamingMessage,
-        [isLoadingInitialChatHistory, currentThreadId, chatHistory, newMessages, streamingMessage]
+        () => !isLoadingInitialChatHistory && !currentThreadId && messages.length === 0 && !streamingMessage,
+        [isLoadingInitialChatHistory, currentThreadId, messages, streamingMessage]
     );
 
     const scrollToBottom = (smooth: boolean) =>
@@ -155,7 +150,7 @@ export const useChatBox = (
         setIsDeepInvestigationTurnedOn(!currentValue);
 
         pushCurrentStreamingMessageToNewMessages();
-        setNewMessages(prev => [...prev, getDefaultDeepInvestigationStatusChatMessage(!currentValue)]);
+        setMessages(prev => [...prev, getDefaultDeepInvestigationStatusChatMessage(!currentValue)]);
 
         proxy.logAmplitudeControlEvent({
             targetType: 'button',
@@ -211,11 +206,11 @@ export const useChatBox = (
     const getGroupedChatMessages = useCallback(
         (message: ChatMessage, isStreamingMessage?: boolean): ChatMessage[] => {
             // Treat streaming messages as the latest message
-            const currentMessageIndex = isStreamingMessage ? allMessages.length : allMessages.findIndex(msg => msg.id === message.id);
+            const currentMessageIndex = isStreamingMessage ? messages.length : messages.findIndex(msg => msg.id === message.id);
 
             const groupedMessages: ChatMessage[] = [message];
             for (let i = currentMessageIndex - 1; i >= 0; i--) {
-                const previousMessage = allMessages[i];
+                const previousMessage = messages[i];
                 if (shouldGroupWithPreviousMessage(message, previousMessage)) {
                     groupedMessages.unshift(previousMessage);
                 } else {
@@ -225,7 +220,7 @@ export const useChatBox = (
 
             return groupedMessages;
         },
-        [allMessages]
+        [messages]
     );
 
     const pushCurrentStreamingMessageToNewMessages = () => {
@@ -233,28 +228,9 @@ export const useChatBox = (
         setStreamingMessage(null);
 
         if (currentStreamingMessage && !isChatMessageEmpty(currentStreamingMessage)) {
-            setNewMessages(prev => [...prev, cloneDeep(currentStreamingMessage)]);
+            setMessages(prev => [...prev, cloneDeep(currentStreamingMessage)]);
         }
     };
-
-    const postSystemMessage = useCallback(
-        (text: string) => {
-            if (!text) {
-                return;
-            }
-
-            const systemMessage: ChatMessage = {
-                id: Guid.newGuid(),
-                timeStamp: new Date().toISOString(),
-                author: getDefaultSREAgentAuthor(),
-                contents: [{ text }],
-            };
-
-            setNewMessages(prev => [...prev, systemMessage]);
-            requestAnimationFrame(() => scrollToBottom(false));
-        },
-        [scrollToBottom]
-    );
 
     const sendMessageHandler = useCallback(
         async (message: string, options?: SendMessageOptions) => {
@@ -268,7 +244,6 @@ export const useChatBox = (
 
             try {
                 const starterAgentName = options?.starterAgentName?.trim() || undefined;
-                const forceNewThread = options?.forceNewThread ?? false;
 
                 const messageRequest: MessageCreateRequest = {
                     text: message,
@@ -278,16 +253,7 @@ export const useChatBox = (
                     agent: starterAgentName,
                 };
 
-                const shouldCreateNewThread = forceNewThread || !currentThreadId;
-
-                if (shouldCreateNewThread) {
-                    setCurrentThreadId(null);
-                    currentThreadIdRef.current = '';
-                    isNewThreadAdded.current = false;
-                }
-
-                //ToDo: Handle errors of sendMessage, createThread and pollResponses
-                if (!shouldCreateNewThread && currentThreadId) {
+                if (currentThreadId) {
                     // Issue a request to create a new message in the current thread
                     startMessageStreamingOnExistingThread(currentThreadId, messageRequest);
                 } else {
@@ -315,28 +281,16 @@ export const useChatBox = (
 
     const getMessageIndexInStreamingMessage = (streamingMessage: ChatMessage | undefined | null, specialMessageId: string | undefined) => {
         const result = streamingMessage?.contents.findIndex(content => {
-            return (
-                specialMessageId &&
-                (content.approval?.id === specialMessageId ||
-                    content.azCliExecution?.id === specialMessageId ||
-                    content.kubectlExecution?.id === specialMessageId ||
-                    content.psqlExecution?.id === specialMessageId)
-            );
+            return isChatMessageContentASpecialMessageContent(content, specialMessageId);
         });
         return result === -1 ? undefined : result;
     };
 
-    const getMessageIndexInNewMessages = (newMessages: ChatMessage[], specialMessageId: string | undefined) => {
-        for (let i = newMessages.length - 1; i >= 0; i--) {
-            for (let j = newMessages[i].contents.length - 1; j >= 0; j--) {
-                const content = newMessages[i].contents[j];
-                if (
-                    specialMessageId &&
-                    (content.approval?.id === specialMessageId ||
-                        content.azCliExecution?.id === specialMessageId ||
-                        content.kubectlExecution?.id === specialMessageId ||
-                        content.psqlExecution?.id === specialMessageId)
-                ) {
+    const getMessageIndexInExistingMessages = (messages: ChatMessage[], specialMessageId: string | undefined) => {
+        for (let i = messages.length - 1; i >= 0; i--) {
+            for (let j = messages[i].contents.length - 1; j >= 0; j--) {
+                const content = messages[i].contents[j];
+                if (isChatMessageContentASpecialMessageContent(content, specialMessageId)) {
                     return [i, j];
                 }
             }
@@ -388,7 +342,14 @@ export const useChatBox = (
         const agentTaskInfo = getSpecialMessageContentFromStreamingMessage<AgentTaskMetaData>(streamingMessage, 'deepinvestigation');
 
         const text =
-            messageContent?.text && !approval && !azCliExecution && !kubectlExecution && !memorySearchResult && !psqlExecution && !todoInfo
+            messageContent?.text &&
+            !approval &&
+            !azCliExecution &&
+            !kubectlExecution &&
+            !memorySearchResult &&
+            !psqlExecution &&
+            !todoInfo &&
+            !agentTaskInfo
                 ? messageContent.text
                 : '';
 
@@ -485,13 +446,13 @@ export const useChatBox = (
             }
         });
 
-        setNewMessages(prev => {
-            const newMessages = [...prev];
-            const index = getMessageIndexInNewMessages(newMessages, specialMessageId);
+        setMessages(prev => {
+            const messages = [...prev];
+            const index = getMessageIndexInExistingMessages(messages, specialMessageId);
             if (index !== undefined) {
                 const [messageIndex, contentIndex] = index;
-                newMessages[messageIndex].contents[contentIndex] = chatMessageContent;
-                return cloneDeep(newMessages);
+                messages[messageIndex].contents[contentIndex] = chatMessageContent;
+                return cloneDeep(messages);
             } else {
                 return prev;
             }
@@ -555,7 +516,7 @@ export const useChatBox = (
 
             const userMessage = constructUserMessageFromStreamingMessage(currentMessageChunk);
             setTemporaryUserMessage(null);
-            setNewMessages(prev => [...prev, userMessage]);
+            setMessages(prev => [...prev, userMessage]);
 
             handleCompletedMessageChunk(currentMessageChunk);
         } else if (isUpdatedSpecialStreamingMessage(currentMessageChunk)) {
@@ -705,7 +666,7 @@ export const useChatBox = (
     // to make sure the chat does not scroll to top before the next paint
     useLayoutEffect(() => {
         let timeoutId: number | undefined = undefined;
-        if (messagesDivRef.current && (chatHistory?.length || 0) > 0) {
+        if (messagesDivRef.current && chatHistoryLength > 0) {
             const prevScrollHeight = currentScrollHeight.current;
             const prevScrollTop = currentScrollTop.current;
 
@@ -722,7 +683,7 @@ export const useChatBox = (
                 cancelAnimationFrame(timeoutId);
             }
         };
-    }, [chatHistory?.length]);
+    }, [chatHistoryLength]);
 
     useEffect(() => {
         // When new messages are added or the streaming message is initialized, scroll to the bottom
@@ -744,8 +705,8 @@ export const useChatBox = (
         const result: ChatMessage[] = [];
         const seenTexts = new Set<string>();
 
-        for (let i = allMessages.length - 1; i >= 0 && result.length < 3; i--) {
-            const msg = allMessages[i];
+        for (let i = messages.length - 1; i >= 0 && result.length < 3; i--) {
+            const msg = messages[i];
             const text = msg.contents[0]?.text;
             if (text && msg.author.role !== 'SREAgent' && !seenTexts.has(text)) {
                 result.push(msg);
@@ -755,7 +716,7 @@ export const useChatBox = (
         return result.map(message => {
             return message.contents[0].text || '';
         });
-    }, [allMessages]);
+    }, [messages]);
 
     useEffect(() => {
         if (streamingMessage && !isChatMessageEmpty(streamingMessage)) {
@@ -775,10 +736,6 @@ export const useChatBox = (
         currentThreadIdRef.current = currentThreadId || '';
     }, [currentThreadId]);
 
-    useEffect(() => {
-        setAllMessages([...(chatHistory?.flat() || []), ...newMessages]);
-    }, [chatHistory, newMessages]);
-
     // Record the last read time and cache all the old messages when the component is unmounted
     useEffect(() => {
         return () => {
@@ -789,8 +746,7 @@ export const useChatBox = (
     }, []);
 
     return {
-        chatHistory,
-        newMessages,
+        messages,
         isLoading: isLoadingInitialChatHistory,
         isAgentTyping,
         isWaitingForStreamingMessages,
@@ -799,7 +755,6 @@ export const useChatBox = (
         toolCallText,
         isCancellingStreaming,
         sendMessage: sendMessageHandler,
-        postSystemMessage,
         isNewAndCleanThread,
         messagesDivRef,
         intersectionObserverRef,

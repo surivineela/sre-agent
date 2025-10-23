@@ -154,12 +154,10 @@ export interface IChatBoxFooterProps {
     isDeepInvestigationButtonEnabled: boolean;
     isDeepInvestigationTurnedOn: boolean;
     onClickDeepInvestigationButton: () => void;
-    postSystemMessage: (text: string) => void;
 }
 
 export interface SendMessageOptions {
     starterAgentName?: string;
-    forceNewThread?: boolean;
     commandId?: string;
 }
 

@@ -1,5 +1,5 @@
 import { createIntl, createIntlCache } from 'react-intl';
-import { IncidentStatus, SREAgentUserId } from '../../Common/Contracts/Azure/SreAgent';
+import { SREAgentUserId } from '../../Common/Contracts/Azure/SreAgent';
 import {
     Approval,
     ApprovalDecision,
@@ -472,37 +472,6 @@ export const pushAllThreadsThatHaveModifiedTimestampUpdatedToThreadLists = (
     };
 };
 
-/**
- * Update the text of the existing messages if they have been updated.
- * @param prevMessages
- * @param updatedMessages
- */
-export const updateOldMessagesText = (prevMessages: ChatMessage[] | undefined, updatedMessages: ChatMessage[]) => {
-    //Do not update the messages if the prevMessages is undefined or empty or updatedMessages is empty
-    if (prevMessages === undefined || prevMessages.length === 0 || updatedMessages.length === 0) return prevMessages;
-
-    const updatedPrevMessages = [...prevMessages];
-    let isPrevMessagesUpdated = false;
-
-    const messagesMap: Map<string, ChatMessage> = new Map<string, ChatMessage>();
-    updatedMessages.forEach((msg: ChatMessage) => messagesMap.set(msg.id, msg));
-
-    for (let i = prevMessages.length - 1; i >= 0; i--) {
-        const message = messagesMap.get(prevMessages[i].id);
-        if (message && message.contents[0].text !== prevMessages[i].contents[0].text) {
-            updatedPrevMessages[i] = { ...prevMessages[i], contents: [{ ...prevMessages[i].contents[0], text: message.contents[0].text }] };
-            isPrevMessagesUpdated = true;
-
-            messagesMap.delete(prevMessages[i].id);
-            if (messagesMap.size === 0) {
-                break;
-            }
-        }
-    }
-
-    return isPrevMessagesUpdated ? updatedPrevMessages : prevMessages;
-};
-
 export const getDefaultSREAgentAuthor = (): MessageAuthor => {
     return {
         role: 'SREAgent',
@@ -789,20 +758,6 @@ export const removeThreadIdsFromUnreadThreads = (unreadThreadsIds: Set<string>, 
     return unreadThreadsIds;
 };
 
-/**
- * Check if the incident thread is close, resolved or mitigated.
- * @param thread
- * @returns
- */
-export const isIncidentThreadCompleted = (thread?: Thread | null): boolean => {
-    if (!thread || thread.source !== ThreadSource.incident) {
-        return true;
-    }
-
-    const status = thread.status?.incidentStatus?.status?.toLowerCase();
-    return status === IncidentStatus.resolved || status === IncidentStatus.closed || status === IncidentStatus.mitigated;
-};
-
 export const isChatMessageEmpty = (message?: ChatMessage | null): boolean => {
     const messageContents = message?.contents || [];
 
@@ -817,6 +772,16 @@ export const isChatMessageEmpty = (message?: ChatMessage | null): boolean => {
             !!content.todoInfo
         );
     });
+};
+
+export const isChatMessageContentASpecialMessageContent = (content: ChatMessageContent, specialMessageId: string | undefined): boolean => {
+    return (
+        !!specialMessageId &&
+        (content.approval?.id === specialMessageId ||
+            content.azCliExecution?.id === specialMessageId ||
+            content.kubectlExecution?.id === specialMessageId ||
+            content.psqlExecution?.id === specialMessageId)
+    );
 };
 
 export const convertMessageToChatMessage = (message: Message): ChatMessage => {

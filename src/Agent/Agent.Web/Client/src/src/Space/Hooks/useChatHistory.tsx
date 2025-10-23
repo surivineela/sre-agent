@@ -1,45 +1,33 @@
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
-import { ThreadClient } from '../../Common/Clients/ThreadClient';
-import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
-import {
-    convertMessageToChatMessage,
-    getIntervalBetweenLoading,
-    isIncidentThreadCompleted,
-    updateOldMessagesText,
-} from '../Activities/Utility';
+import { convertMessageToChatMessage, getIntervalBetweenLoading } from '../Activities/Utility';
 import { ChatMessage, MessageLoadingCounts } from '../Contracts/Activities';
 
 export const useChatHistory = (
+    messages: ChatMessage[],
+    setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
     threadId: string | null | undefined,
-    threadSource: string | null | undefined,
     prepareForAddingChatHistory: () => void
 ) => {
-    const [isIncidentInvestigationInProgress, setIsIncidentInvestigationInProgress] = useState<boolean>(
-        threadSource === ThreadSource.incident
-    );
     const [newestMessageTimestampInOldMessages, setNewestMessageTimestampInOldMessages] = useState<string | null>(null);
     const [isLoadingInitialChatHistory, setIsLoadingInitialChatHistory] = useState<boolean>(true);
-    const [chatHistory, setChatHistory] = useState<ChatMessage[][]>([]);
+    const [chatHistoryLength, setChatHistoryLength] = useState<number>(0);
 
     const exponentialBackoffDepth = useRef(-1);
     const timeout = useRef<NodeJS.Timeout | undefined>(undefined);
     const loadOlderMessagesRef = useRef<(() => void) | null>(null);
     const isFetchingPreviousPage = useRef<boolean>(false);
     const hasPreviousPage = useRef<boolean>(true);
+    const timestampCutOffForFetchingLatestMessagesRef = useRef<string | undefined | null>(null);
+    timestampCutOffForFetchingLatestMessagesRef.current = messages[0]?.timeStamp;
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
     const messageClient = MessageClient.getInstance(sreAgentEndpoint);
-
-    const timestampCutOffForFetchingLatestMessages = useMemo(() => {
-        return chatHistory[0]?.[0]?.timeStamp;
-    }, [chatHistory]);
 
     const fetchPage = async (
         threadId: string | undefined | null,
-        maxTimestamp: string | null | undefined
+        maxTimestamp: string | undefined | null
     ): Promise<ChatMessage[] | undefined> => {
         if (threadId) {
             const messagesResponse = await messageClient.getMessages(threadId, {
@@ -68,7 +56,7 @@ export const useChatHistory = (
             isLoadingInitialChatHistory ||
             isFetchingPreviousPage.current ||
             !hasPreviousPage.current ||
-            !timestampCutOffForFetchingLatestMessages
+            !timestampCutOffForFetchingLatestMessagesRef.current
         ) {
             return;
         }
@@ -77,29 +65,32 @@ export const useChatHistory = (
 
         timeout.current = setTimeout(async () => {
             isFetchingPreviousPage.current = true;
-            const newPage = await fetchPage(threadId, timestampCutOffForFetchingLatestMessages);
+            const newPage = await fetchPage(threadId, timestampCutOffForFetchingLatestMessagesRef.current);
             if (!newPage) {
                 exponentialBackoffDepth.current += 1;
             } else {
                 if (newPage.length > 0) {
                     prepareForAddingChatHistory();
-                    setChatHistory(prev => [newPage, ...prev]);
+                    setMessages(prev => [...newPage, ...prev]);
+                    setChatHistoryLength(prev => prev + newPage.length);
                 }
                 exponentialBackoffDepth.current = -1; // Reset on successful fetch
             }
             isFetchingPreviousPage.current = false;
         }, interval);
-    }, [threadId, timestampCutOffForFetchingLatestMessages, isLoadingInitialChatHistory]);
+    }, [threadId, isLoadingInitialChatHistory]);
 
     useEffect(() => {
         if (threadId) {
             const loadInitialPage = async () => {
                 setIsLoadingInitialChatHistory(true);
-                setChatHistory([]);
+                setMessages([]);
+                setChatHistoryLength(0);
                 const initialPage = await fetchPage(threadId, undefined);
                 if (initialPage && initialPage.length > 0) {
                     prepareForAddingChatHistory();
-                    setChatHistory([initialPage]);
+                    setMessages([...initialPage]);
+                    setChatHistoryLength(initialPage.length);
                 }
                 setNewestMessageTimestampInOldMessages(initialPage?.[initialPage.length - 1]?.timeStamp || '');
                 setIsLoadingInitialChatHistory(false);
@@ -109,7 +100,8 @@ export const useChatHistory = (
         } else {
             setNewestMessageTimestampInOldMessages('');
             setIsLoadingInitialChatHistory(false);
-            setChatHistory([]);
+            setMessages([]);
+            setChatHistoryLength(0);
             hasPreviousPage.current = false;
         }
     }, [threadId]);
@@ -118,61 +110,6 @@ export const useChatHistory = (
         loadOlderMessagesRef.current = loadOlderMessages;
     }, [loadOlderMessages]);
 
-    // If this is an incident thread, periodically refresh the latest 5 old messages to check for the progress
-    useEffect(() => {
-        let isSubscribed = true;
-        let timeoutId: NodeJS.Timeout | undefined = undefined;
-
-        if (isIncidentInvestigationInProgress && threadId && !isLoadingInitialChatHistory) {
-            const refreshOldMessages = async () => {
-                if (newestMessageTimestampInOldMessages) {
-                    const [threadResponse, updatedOldMessagesResponse] = await Promise.all([
-                        threadClient.getThread(threadId),
-                        messageClient.getMessages(threadId, {
-                            skip: 0,
-                            top: 5,
-                            descending: true,
-                            maxTimestamp: newestMessageTimestampInOldMessages,
-                            maxTimestampInclusive: true,
-                        }),
-                    ]);
-
-                    const threadCompleted = threadResponse.isSuccessful && isIncidentThreadCompleted(threadResponse.content);
-                    const updatedOldMessages = updatedOldMessagesResponse.content || [];
-
-                    if (isSubscribed) {
-                        if (threadCompleted) {
-                            setIsIncidentInvestigationInProgress(false);
-                        }
-                        if (updatedOldMessagesResponse.isSuccessful && updatedOldMessages.length > 0) {
-                            setChatHistory(prev => {
-                                const lastPage = prev[prev.length - 1];
-                                const updatedLastPage = updateOldMessagesText(
-                                    lastPage,
-                                    updatedOldMessages.map(convertMessageToChatMessage).reverse()
-                                );
-
-                                if (updatedLastPage && updatedLastPage !== lastPage) {
-                                    return [...prev.slice(0, -1), updatedLastPage];
-                                }
-                                return prev;
-                            });
-                        }
-                    }
-
-                    timeoutId = setTimeout(refreshOldMessages, 10000);
-                }
-            };
-
-            refreshOldMessages();
-        }
-
-        return () => {
-            isSubscribed = false;
-            clearTimeout(timeoutId);
-        };
-    }, [threadId, isLoadingInitialChatHistory, isIncidentInvestigationInProgress, newestMessageTimestampInOldMessages]);
-
     useEffect(() => {
         return () => {
             clearTimeout(timeout.current);
@@ -180,7 +117,7 @@ export const useChatHistory = (
     }, []);
 
     return {
-        chatHistory,
+        chatHistoryLength,
         isLoadingInitialChatHistory,
         loadOlderMessagesRef,
         newestMessageTimestampInOldMessages,
