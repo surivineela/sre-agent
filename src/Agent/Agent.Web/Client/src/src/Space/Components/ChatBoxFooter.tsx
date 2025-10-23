@@ -141,7 +141,6 @@ const ChatBoxFooter = ({
     isCancellingStreaming,
     threadId,
     threadSource,
-    showDeepInvestigationButton,
     isDeepInvestigationButtonEnabled,
     isDeepInvestigationTurnedOn,
     onClickDeepInvestigationButton,
@@ -824,7 +823,6 @@ const ChatBoxFooter = ({
                     customNodes={[ShortcutNode, GhostTextNode]}
                     contentBefore={
                         <ContentBefore
-                            showDeepInvestigationButton={showDeepInvestigationButton}
                             isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
                             isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
                             onClickDeepInvestigationButton={onClickDeepInvestigationButton}
@@ -984,7 +982,6 @@ const Attachments = memo((props: { selectedAgentName: string; handleClearSelecte
 });
 
 const ContentBefore = (props: {
-    showDeepInvestigationButton: boolean;
     isDeepInvestigationButtonEnabled: boolean;
     isDeepInvestigationTurnedOn: boolean;
     onClickDeepInvestigationButton: () => void;
@@ -1000,7 +997,6 @@ const ContentBefore = (props: {
     return (
         <>
             <DeepInvestigationButton
-                showDeepInvestigationButton={props.showDeepInvestigationButton}
                 isDeepInvestigationButtonEnabled={props.isDeepInvestigationButtonEnabled}
                 isDeepInvestigationTurnedOn={props.isDeepInvestigationTurnedOn}
                 onClickDeepInvestigationButton={props.onClickDeepInvestigationButton}
@@ -1023,12 +1019,10 @@ const ContentBefore = (props: {
 
 const DeepInvestigationButton = memo(
     ({
-        showDeepInvestigationButton,
         isDeepInvestigationButtonEnabled,
         isDeepInvestigationTurnedOn,
         onClickDeepInvestigationButton,
     }: {
-        showDeepInvestigationButton: boolean;
         isDeepInvestigationButtonEnabled: boolean;
         isDeepInvestigationTurnedOn: boolean;
         onClickDeepInvestigationButton: () => void;
@@ -1044,19 +1038,17 @@ const DeepInvestigationButton = memo(
             : intl.formatMessage(AgentTaskResources.deepInvestigationTurnedOffMessage);
 
         return (
-            showDeepInvestigationButton && (
-                <PermissionedButton
-                    canPerform={canWriteThreads}
-                    noPermissionTooltip={canWriteThreads ? '' : tooltipContentWhenNoPermission}
-                    allowedTooltip={stateTooltip}
-                    icon={<SearchSparkle32Regular />}
-                    disabledReason={!isDeepInvestigationButtonEnabled}
-                    appearance={isDeepInvestigationTurnedOn ? 'primary' : 'subtle'}
-                    shape={'rounded'}
-                    onClick={() => onClickDeepInvestigationButton()}
-                    style={{ marginRight: tokens.spacingHorizontalS, height: '100%' }}
-                />
-            )
+            <PermissionedButton
+                canPerform={canWriteThreads}
+                noPermissionTooltip={canWriteThreads ? '' : tooltipContentWhenNoPermission}
+                allowedTooltip={stateTooltip}
+                icon={<SearchSparkle32Regular />}
+                disabledReason={!isDeepInvestigationButtonEnabled}
+                appearance={isDeepInvestigationTurnedOn ? 'primary' : 'subtle'}
+                shape={'rounded'}
+                onClick={() => onClickDeepInvestigationButton()}
+                style={{ marginRight: tokens.spacingHorizontalS, height: '100%' }}
+            />
         );
     }
 );

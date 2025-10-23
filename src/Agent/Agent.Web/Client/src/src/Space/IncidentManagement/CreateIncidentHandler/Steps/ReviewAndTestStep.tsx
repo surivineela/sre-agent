@@ -17,6 +17,8 @@ export const ReviewAndTestStep: FC = () => {
     const { isValid, dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
     const { generatingUpdatedTools, exitToHome, setCurrentStep, saveHandler } = useContext(IncidentHandlerConsolidatedCreateContext);
     const [selectedTab, setSelectedTab] = useState<ReviewAndTestView>('review');
+    // Set forceShowTabs to true when deep investigation or todo plan panel is open
+    const [forceShowTabs, setForceShowTabs] = useState(false);
     const intl = useIntl();
     const { width } = useWindowSize();
 
@@ -32,9 +34,18 @@ export const ReviewAndTestStep: FC = () => {
         return `calc(100% - ${nonPanelHeight}px)`;
     }, [showTabs]);
 
+    const onOpenSidePanel = () => {
+        setForceShowTabs(true);
+        setSelectedTab('test');
+    };
+
+    const onCloseSidePanel = () => {
+        setForceShowTabs(false);
+    };
+
     return (
         <>
-            {showTabs && (
+            {(showTabs || forceShowTabs) && (
                 <TabList
                     selectedValue={selectedTab}
                     onTabSelect={(_, data) => setSelectedTab(data.value as ReviewAndTestView)}
@@ -57,7 +68,11 @@ export const ReviewAndTestStep: FC = () => {
                     overflowY: 'auto',
                 }}
             >
-                <ReviewAndTestContent view={showTabs ? selectedTab : undefined} />
+                <ReviewAndTestContent
+                    view={(showTabs || forceShowTabs) ? selectedTab : undefined}
+                    onOpenSidePanel={onOpenSidePanel}
+                    onCloseSidePanel={onCloseSidePanel}
+                />
             </div>
             <div
                 style={{

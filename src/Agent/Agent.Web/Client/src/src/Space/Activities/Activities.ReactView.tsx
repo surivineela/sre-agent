@@ -33,12 +33,6 @@ const Activities: FC = () => {
     } = useActivities();
 
     const [menuCollapsed, setMenuCollapsed] = useState<boolean>(false);
-    const [actionsCollapsed, setActionsCollapsed] = useState<boolean>(true);
-
-    const collapseResizables = useCallback(() => {
-        setMenuCollapsed(true);
-        setActionsCollapsed(true);
-    }, []);
 
     const onExpandOrCollapseThreadsMenu = useCallback(
         (collapsed: boolean) => {
@@ -65,6 +59,7 @@ const Activities: FC = () => {
                 updateThreadTitle,
                 notifyThreadTitleUpdate,
                 subscribeThreadTitleUpdate,
+                setMenuCollapsed,
             }}
         >
             <div style={activitiesStylesRoot}>
@@ -75,7 +70,7 @@ const Activities: FC = () => {
                             initialWidth="320px"
                             minWidthPixels={200}
                             maxWidthPixels={640}
-                            maxWidthPercent={actionsCollapsed ? 50 : 33}
+                            maxWidthPercent={50}
                             collapsedWidthPixels={70}
                             collapsed={menuCollapsed}
                             setCollapsed={onExpandOrCollapseThreadsMenu}
@@ -95,7 +90,6 @@ const Activities: FC = () => {
                             addThread={addThread}
                             deleteThread={deleteThread}
                             updateThreadLastReadTime={updateThreadLastReadTime}
-                            collapseResizables={collapseResizables}
                         />
                     </>
                 ) : (

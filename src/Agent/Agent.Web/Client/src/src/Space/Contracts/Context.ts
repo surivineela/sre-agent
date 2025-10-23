@@ -1,4 +1,4 @@
-import { createContext } from 'react';
+import { createContext, Dispatch, SetStateAction } from 'react';
 import { HttpResponseObject } from '../../Common/ArmHelper.types';
 import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
 import { Agent, AgentAccessLevel, IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
@@ -62,6 +62,7 @@ type AgentContextProps = {
     updateThreadTitle: (threadId: string, newTitle: string) => void;
     notifyThreadTitleUpdate: (threadId: string, newTitle: string) => void;
     subscribeThreadTitleUpdate: (callBack: (threadId: string, newTitle: string) => void) => () => void;
+    setMenuCollapsed: Dispatch<SetStateAction<boolean>>;
 };
 
 type StreamingContextProps = {
@@ -158,6 +159,7 @@ export const AgentContext = createContext<AgentContextProps>({
     updateThreadTitle: (_threadId: string, _newTitle: string) => {},
     notifyThreadTitleUpdate: async (_threadId: string, _newTitle: string) => {},
     subscribeThreadTitleUpdate: (_callBack: (threadId: string, newTitle: string) => void) => () => {},
+    setMenuCollapsed: () => {},
 });
 
 export const StreamingContext = createContext<StreamingContextProps>({

@@ -11,9 +11,17 @@ export interface IncidentChatProps {
     isExpandedView?: boolean;
     handleThreadDelete: () => void;
     titleActions?: React.ReactNode;
+    openThreadFullScreen?: () => void;
 }
 
-const IncidentChat: FC<IncidentChatProps> = ({ selectedThread, exitToHome, isExpandedView, handleThreadDelete, titleActions }) => {
+const IncidentChat: FC<IncidentChatProps> = ({
+    selectedThread,
+    exitToHome,
+    isExpandedView,
+    handleThreadDelete,
+    titleActions,
+    openThreadFullScreen,
+}) => {
     const styles = useIncidentManagementStyles();
 
     return isExpandedView ? (
@@ -25,12 +33,12 @@ const IncidentChat: FC<IncidentChatProps> = ({ selectedThread, exitToHome, isExp
         >
             <div className={styles.navPanelContent}>
                 <div className={styles.incidentChatWrapper}>
-                    <IncidentChatInner selectedThread={selectedThread} isAgentTaskEnabled={true} />
+                    <IncidentChatInner selectedThread={selectedThread} canOpenAgentTaskPanel={true} />
                 </div>
             </div>
         </TitleBarNavigation>
     ) : (
-        <IncidentChatInner selectedThread={selectedThread} isAgentTaskEnabled={false} />
+        <IncidentChatInner selectedThread={selectedThread} canOpenAgentTaskPanel={false} openThreadFullScreen={openThreadFullScreen} />
     );
 };
 
@@ -38,18 +46,19 @@ export default IncidentChat;
 
 interface IncidentChatInnerProps {
     selectedThread: Thread;
-    isAgentTaskEnabled?: boolean;
+    canOpenAgentTaskPanel: boolean;
+    openThreadFullScreen?: () => void;
 }
 
-const IncidentChatInner: FC<IncidentChatInnerProps> = ({ selectedThread, isAgentTaskEnabled }) => {
+const IncidentChatInner: FC<IncidentChatInnerProps> = ({ selectedThread, canOpenAgentTaskPanel, openThreadFullScreen }) => {
     return (
         <ChatBox
             threadId={selectedThread.id}
             addThread={() => {}}
             updateThreadLastReadTime={() => {}}
             threadSource={selectedThread.source}
-            collapseResizables={() => {}}
-            isAgentTaskEnabled={!!isAgentTaskEnabled}
+            canOpenAgentTaskPanel={canOpenAgentTaskPanel}
+            onOpenAgentTaskPanel={openThreadFullScreen}
             stylesProps={{
                 rootStyle: {
                     height: '100%',
@@ -61,15 +70,8 @@ const IncidentChatInner: FC<IncidentChatInnerProps> = ({ selectedThread, isAgent
                     height: '100%',
                     marginBottom: '0px',
                 },
-                chatBox: {
-                    height: '100%',
-                },
                 chatBoxInner: {
                     borderRadius: 'unset',
-                },
-                chatContainer: {
-                    // marginLeft: 'auto',
-                    // marginRight: 'auto',
                 },
             }}
         />

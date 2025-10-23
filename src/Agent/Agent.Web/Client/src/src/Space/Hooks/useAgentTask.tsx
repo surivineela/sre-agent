@@ -1,5 +1,5 @@
 import cloneDeep from 'lodash/cloneDeep';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AgentTaskClient } from '../../Common/Clients/AgentTaskClient';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
@@ -14,8 +14,11 @@ import { useAgentTaskStreamHandler } from './useAgentTaskStreamHandler';
 export const useAgentTask = (
     threadId: string | undefined,
     userDefinedThreadId: string,
-    collapseResizables: (() => void) | undefined,
-    isLoadingInitialChatHistory: boolean
+    isLoadingInitialChatHistory: boolean,
+    canOpenAgentTaskPanel: boolean,
+    onOpenAgentTaskPanel?: () => void,
+    onCloseAgentTaskPanel?: () => void,
+    setMenuCollapsed?: Dispatch<SetStateAction<boolean>>
 ) => {
     const { updateTreeState } = useAgentTaskStreamHandler();
 
@@ -45,12 +48,19 @@ export const useAgentTask = (
         (task: AgentTaskMetaData) => {
             if (isAgentTaskCollapsed) {
                 setIsAgentTaskCollapsed(false);
-                collapseResizables?.();
+                setMenuCollapsed?.(true);
             }
             setTask(task);
+
+            onOpenAgentTaskPanel?.();
         },
-        [collapseResizables, isAgentTaskCollapsed]
+        [setMenuCollapsed, isAgentTaskCollapsed, onOpenAgentTaskPanel]
     );
+
+    const closeAgentTask = useCallback(() => {
+        setIsAgentTaskCollapsed(true);
+        onCloseAgentTaskPanel?.();
+    }, [onCloseAgentTaskPanel]);
 
     const updateTaskDropdownOption = (...tasks: AgentTaskMetaData[]) => {
         setTaskDropdownOptions(prev => {
@@ -288,11 +298,14 @@ export const useAgentTask = (
     }, []);
     useEffect(() => {
         // If the component is unmounted, do not call collapseResizables as it is on activities level which can accidentally open the thread menu when the thread is already navigted away.
-        if (!isLoadingInitialChatHistory && hasExistingTasks && isMounted.current) {
+        if (!isLoadingInitialChatHistory && hasExistingTasks && isMounted.current && canOpenAgentTaskPanel) {
             setIsAgentTaskCollapsed(false);
-            collapseResizables?.();
+            setMenuCollapsed?.(true);
+        } else {
+            setIsAgentTaskCollapsed(true);
+            setMenuCollapsed?.(false);
         }
-    }, [isLoadingInitialChatHistory, hasExistingTasks, collapseResizables]);
+    }, [isLoadingInitialChatHistory, hasExistingTasks, setMenuCollapsed, canOpenAgentTaskPanel]);
 
     return {
         taskDropdownOptions,
@@ -301,8 +314,8 @@ export const useAgentTask = (
         selectedTaskId,
         taskDropdownValue,
         isAgentTaskCollapsed,
-        setIsAgentTaskCollapsed,
         openAgentTask,
+        closeAgentTask,
 
         currentTreeStateValue,
         isLoadingTreeState,

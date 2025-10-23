@@ -1,4 +1,5 @@
 import { Edge, Node } from '@xyflow/react';
+import { Dispatch, SetStateAction } from 'react';
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import { InvestigationTreeNode, InvestigationTreeState } from '../../Common/Contracts/DataPlane/AgentTask';
 import {
@@ -31,7 +32,6 @@ export interface IThreadContentProps {
     addThread: (threadId: string, newThreadToSelect?: Thread) => void;
     deleteThread: (thread: Thread) => void;
     updateThreadLastReadTime: (threadId: string) => void;
-    collapseResizables: () => void;
 }
 
 export interface IThreadActivitiesProps {
@@ -64,13 +64,15 @@ export interface ThreadListsState {
 export interface IChatBoxProps {
     addThread: (threadId: string, newThreadToSelect?: Thread) => void;
     updateThreadLastReadTime: (threadId: string) => void;
-    isAgentTaskEnabled: boolean;
+    canOpenAgentTaskPanel: boolean;
     threadId?: string;
     threadSource?: string;
     stylesProps?: ChatBoxV2StyleProps;
     agentTaskStyleProps?: AgentTaskStyleProps;
-    collapseResizables?: () => void;
     todoPlanDrawer?: any; // Using any for now - could be strongly typed later
+    onOpenAgentTaskPanel?: () => void; // Pass this callback to trigger the side effects when the Agent Task Panel is opened
+    onCloseAgentTaskPanel?: () => void; // Pass this callback to trigger the side effects when the Agent Task Panel is closed
+    setMenuCollapsed?: Dispatch<SetStateAction<boolean>>;
 }
 
 export interface IChatMessageProps {
@@ -149,7 +151,6 @@ export interface IChatBoxFooterProps {
     isCancellingStreaming: boolean;
     threadId?: string | null;
     threadSource?: string;
-    showDeepInvestigationButton: boolean;
     isDeepInvestigationButtonEnabled: boolean;
     isDeepInvestigationTurnedOn: boolean;
     onClickDeepInvestigationButton: () => void;

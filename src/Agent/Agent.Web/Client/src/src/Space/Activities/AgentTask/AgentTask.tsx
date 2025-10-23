@@ -46,7 +46,7 @@ interface IAgentTaskProps {
     toggleNode: (nodeId: string) => void;
     getNodeStatus: (nodeId: string) => string | null;
     collapsed?: boolean;
-    setCollapsed: (collapsed: boolean) => void;
+    closeAgentTask: () => void;
     stylesProps?: AgentTaskStyleProps;
 }
 
@@ -82,7 +82,12 @@ const useAgentTaskStyles = (overrides?: AgentTaskStyleProps) =>
             flex: '1 1 auto',
             ...overrides?.titleContainer,
         },
-        titleText: { textOverflow: 'ellipsis', overflow: 'hidden', ...overrides?.titleText },
+        titleText: {
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+            flex: '0 0 auto',
+            ...overrides?.titleText,
+        },
         titleStatus: {
             display: 'flex',
             alignItems: 'center',
@@ -131,7 +136,7 @@ const AgentTask = (props: IAgentTaskProps) => {
         toggleNode,
         getNodeStatus,
         collapsed,
-        setCollapsed,
+        closeAgentTask,
         stylesProps,
     } = props;
 
@@ -206,7 +211,7 @@ const AgentTask = (props: IAgentTaskProps) => {
                     open={!collapsed}
                     ref={sidebarRef}
                     className={styles.root}
-                    style={{ minWidth: '50%', width: sideBarWidth === null ? '80%' : `${sideBarWidth}px` }}
+                    style={{ minWidth: '50%', width: sideBarWidth === null ? '60%' : `${sideBarWidth}px`, maxWidth: 'calc(100% - 400px)' }}
                 >
                     <div className={styles.header}>
                         <div className={styles.titleContainer}>
@@ -251,7 +256,7 @@ const AgentTask = (props: IAgentTaskProps) => {
                                 aria-label={intl.formatMessage(GenericErrorResources.closePanel)}
                                 appearance="subtle"
                                 icon={<Dismiss24Regular />}
-                                onClick={() => setCollapsed(true)}
+                                onClick={() => closeAgentTask()}
                             />
                         </Toolbar>
                     </div>

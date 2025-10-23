@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTodoPlans } from './useTodoPlans';
 
 export const useTodoPlanDrawer = (
     threadId: string | null,
-    collapseResizables: (() => void) | undefined,
+    setMenuCollapsed: Dispatch<SetStateAction<boolean>>,
     isLoadingInitialChatHistory: boolean
 ) => {
     const [isTodoPlanDrawerCollapsed, setIsTodoPlanDrawerCollapsed] = useState<boolean>(true);
@@ -41,14 +41,14 @@ export const useTodoPlanDrawer = (
         (planId?: string) => {
             if (isTodoPlanDrawerCollapsed) {
                 setIsTodoPlanDrawerCollapsed(false);
-                collapseResizables?.();
+                setMenuCollapsed(true);
             }
             // If specific plan ID provided (from TodoPlanChatMessage click), select it
             if (planId) {
                 setSelectedPlanId(planId);
             }
         },
-        [collapseResizables, isTodoPlanDrawerCollapsed]
+        [isTodoPlanDrawerCollapsed, setMenuCollapsed]
     );
 
     // Always mount the drawer when there are todo plans so a button can open it on demand
@@ -61,7 +61,7 @@ export const useTodoPlanDrawer = (
         // Auto-show only if there are todos, the drawer is collapsed, user hasn't manually hidden, AND content is recent (<= 1h)
         if (currentTodoCount > 0 && isTodoPlanDrawerCollapsed && !userManuallyHidRef.current && isRecent) {
             setIsTodoPlanDrawerCollapsed(false);
-            collapseResizables?.();
+            setMenuCollapsed(true);
         } else if (currentTodoCount === 0 && !isTodoPlanDrawerCollapsed) {
             // Auto-hide when no todos (and reset manual hide flag for next time)
             setIsTodoPlanDrawerCollapsed(true);
@@ -69,7 +69,7 @@ export const useTodoPlanDrawer = (
         }
 
         // Update the previous count
-    }, [todoPlans.length, isTodoPlanDrawerCollapsed, collapseResizables, isRecent]);
+    }, [todoPlans.length, isTodoPlanDrawerCollapsed, setMenuCollapsed, isRecent]);
 
     // Track when user manually toggles visibility
     useEffect(() => {
@@ -94,9 +94,9 @@ export const useTodoPlanDrawer = (
     useEffect(() => {
         if (!isLoadingInitialChatHistory && hasExistingPlans && isRecent && !userManuallyHidRef.current) {
             setIsTodoPlanDrawerCollapsed(false);
-            collapseResizables?.();
+            setMenuCollapsed(true);
         }
-    }, [isLoadingInitialChatHistory, hasExistingPlans, collapseResizables, isRecent]);
+    }, [isLoadingInitialChatHistory, hasExistingPlans, setMenuCollapsed, isRecent]);
 
     return {
         // Data

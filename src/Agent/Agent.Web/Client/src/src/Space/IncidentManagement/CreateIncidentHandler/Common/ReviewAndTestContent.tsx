@@ -20,9 +20,11 @@ import { ToolsToolbar } from '../ToolsToolbar';
 export type ReviewAndTestView = 'review' | 'test';
 export interface ReviewAndTestContentProps {
     view?: ReviewAndTestView;
+    onOpenSidePanel?: () => void;
+    onCloseSidePanel?: () => void;
 }
 
-export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) => {
+export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOpenSidePanel, onCloseSidePanel }) => {
     const { errors, values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -267,7 +269,9 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                             addThread={() => {}}
                             updateThreadLastReadTime={() => {}}
                             threadSource={ThreadSource.incident}
-                            isAgentTaskEnabled={false}
+                            canOpenAgentTaskPanel={!!view}
+                            onOpenAgentTaskPanel={onOpenSidePanel}
+                            onCloseAgentTaskPanel={onCloseSidePanel}
                             stylesProps={{
                                 rootStyle: {
                                     height: `0%`,
@@ -280,9 +284,6 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                                     height: '100%',
                                     minHeight: '400px',
                                     marginBottom: '0px',
-                                },
-                                chatBox: {
-                                    height: '100%',
                                 },
                                 chatBoxInner: {
                                     borderRadius: 'unset',

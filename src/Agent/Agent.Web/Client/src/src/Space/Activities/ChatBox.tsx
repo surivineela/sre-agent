@@ -28,8 +28,10 @@ export const ChatBox = ({
     threadSource,
     stylesProps,
     agentTaskStyleProps,
-    collapseResizables,
-    isAgentTaskEnabled,
+    canOpenAgentTaskPanel,
+    onOpenAgentTaskPanel,
+    onCloseAgentTaskPanel,
+    setMenuCollapsed,
     todoPlanDrawer,
 }: IChatBoxProps) => {
     const {
@@ -64,11 +66,14 @@ export const ChatBox = ({
 
     const theme = useTheme();
 
-    const { isAgentTaskCollapsed, setIsAgentTaskCollapsed, openAgentTask, hasExistingTasks, ...rest } = useAgentTask(
+    const { isAgentTaskCollapsed, closeAgentTask, openAgentTask, hasExistingTasks, ...rest } = useAgentTask(
         threadId,
         userDefinedThreadIdRef.current,
-        collapseResizables,
-        isLoading
+        isLoading,
+        canOpenAgentTaskPanel,
+        onOpenAgentTaskPanel,
+        onCloseAgentTaskPanel,
+        setMenuCollapsed
     );
 
     const threadAgentModeData = useThreadAgentMode(threadId, threadSource);
@@ -207,7 +212,6 @@ export const ChatBox = ({
                                     isCancellingStreaming={isCancellingStreaming}
                                     threadId={currentThreadId}
                                     threadSource={threadSource}
-                                    showDeepInvestigationButton={isAgentTaskEnabled}
                                     isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
                                     isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
                                     onClickDeepInvestigationButton={onClickDeepInvestigationButton}
@@ -215,14 +219,12 @@ export const ChatBox = ({
                                 />
                             </div>
                         </div>
-                        {isAgentTaskEnabled && (
-                            <AgentTask
-                                {...rest}
-                                collapsed={isAgentTaskCollapsed}
-                                setCollapsed={setIsAgentTaskCollapsed}
-                                stylesProps={agentTaskStyleProps}
-                            />
-                        )}
+                        <AgentTask
+                            {...rest}
+                            collapsed={isAgentTaskCollapsed}
+                            closeAgentTask={closeAgentTask}
+                            stylesProps={agentTaskStyleProps}
+                        />
                         {!hasExistingTasks && todoPlanDrawer && <TodoPlanManager drawerState={todoPlanDrawer} />}
                     </div>
                 </ThreadAgentModeContext.Provider>
