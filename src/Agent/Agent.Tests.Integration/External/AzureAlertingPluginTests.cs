@@ -9,6 +9,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data;
+using Agent.Plugins.Connector;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Interface;

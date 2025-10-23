@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Agent.Data.Tools;
+using Agent.Plugins.Connector;
 using Agent.Plugins.Tools;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;

@@ -5,8 +5,8 @@
 using System.Collections.Concurrent;
 using System.Data;
 using Agent.Core.Interfaces;
+using Agent.Plugins.Connector;
 using Agent.Plugins.KustoPlugin;
-using Agent.Plugins.Tools;
 using Kusto.Data.Common;
 using Microsoft.Extensions.Logging;
 using KustoData = Kusto.Data;

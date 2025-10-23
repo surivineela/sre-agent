@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Connector;
 using Agent.Plugins.Tools;
 using Microsoft.Extensions.Logging;
 

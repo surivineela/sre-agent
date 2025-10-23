@@ -3,13 +3,12 @@
 // ------------------------------------------------------------
 
 using System.Net;
-using System.Net.Http.Json;
 using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Framework;
+using Agent.Plugins.Connector;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Interface;
-using Agent.Plugins.Tools;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
 using Moq;

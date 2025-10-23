@@ -1,13 +1,19 @@
-using Agent.Core.DataConnectors;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Framework;
 
-namespace Agent.Plugins.Tools;
+namespace Agent.Plugins.Connector;
 
-public class TeamsApiHubConnector : DataConnectorDefinitionBase
+public class OutlookConnector : DataConnectorDefinitionBase
 {
     public string ConnectionRuntimeUrl { get; set; } = string.Empty;
-    public string GroupId { get; set; } = string.Empty;
-    public string ChannelId { get; set; } = string.Empty;
+
+    public override void ConfigureFromDataSource(string dataSource)
+    {
+        ConnectionRuntimeUrl = dataSource;
+    }
 
     public override void Validate()
     {
@@ -21,16 +27,6 @@ public class TeamsApiHubConnector : DataConnectorDefinitionBase
         if (!Uri.TryCreate(ConnectionRuntimeUrl, UriKind.Absolute, out _))
         {
             throw new ArgumentException("ConnectionRuntimeUrl must be a valid absolute URI.", nameof(ConnectionRuntimeUrl));
-        }
-
-        if (!Guid.TryParse(GroupId, out _))
-        {
-            throw new ArgumentException("GroupId must be a valid GUID.", nameof(GroupId));
-        }
-
-        if (string.IsNullOrWhiteSpace(ChannelId))
-        {
-            throw new ArgumentException("ChannelId cannot be null or empty.", nameof(ChannelId));
         }
     }
 }

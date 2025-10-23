@@ -5,6 +5,7 @@
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Data.Tools;
+using Agent.Plugins.Connector;
 using Agent.Plugins.Tools;
 using Agent.Web.Models.ExtendedAgents;
 

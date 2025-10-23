@@ -4,7 +4,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Framework;
-using Agent.Plugins.Tools;
+using Agent.Plugins.Connector;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -179,27 +179,10 @@ public class DataConnectorResolverService : IConnectorResolver
                 }
             };
 
-            // Special handling for Kusto connectors
-            if (connector is KustoConnector kustoConnector &&
-                Uri.TryCreate(settings.DataSource, UriKind.Absolute, out var dsUri))
-            {
-                kustoConnector.ClusterUrl = $"https://{dsUri.Host}";
-                kustoConnector.Database = dsUri.AbsolutePath.TrimStart('/');
-            }
-            else if (connector is TeamsApiHubConnector teamsApiHubConnector)
-            {
-                var parts = settings.DataSource.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length != 3)
-                {
-                    throw new InvalidOperationException(
-                        $"Invalid DataSource format for TeamsApiHub connector '{settings.Name}'. Expected format: 'ApiBaseUrl;GroupId;ChannelId'.");
-                }
-                teamsApiHubConnector.ConnectionRuntimeUrl = parts[0];
-                teamsApiHubConnector.GroupId = parts[1];
-                teamsApiHubConnector.ChannelId = parts[2];
-            }
-
+            // Configure connector from DataSource
+            connector.ConfigureFromDataSource(settings.DataSource);
             connector.Validate();
+
             return connector;
         }
         catch (Exception ex)

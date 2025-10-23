@@ -145,6 +145,7 @@ handoff_description: "Handoff to this agent when you don't have tools to continu
 
 tools:
   - SearchMemory
+  - SendOutlookEmail
   - PostTeamsMessage
   - GetTeamsMessages
 

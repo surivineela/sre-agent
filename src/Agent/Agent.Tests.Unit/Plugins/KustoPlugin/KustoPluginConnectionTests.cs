@@ -7,6 +7,7 @@ using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Plugins.Kusto;
+using Agent.Plugins.Connector;
 using Agent.Plugins.Tools;
 using Azure.Identity;
 using Microsoft.Extensions.AI;

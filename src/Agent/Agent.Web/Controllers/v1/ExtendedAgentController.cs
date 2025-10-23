@@ -10,6 +10,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Validation;
 using Agent.Framework;
+using Agent.Plugins.Connector;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.Tools;
 using Agent.Runtime.Interfaces;

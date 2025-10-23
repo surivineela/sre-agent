@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.Definitions.Connector;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
@@ -76,6 +77,7 @@ public class ToolsRepository : IToolsRepository
         Register200<ArmPluginDefinition>(x => x.ListKeysAndUpdateAppSettingsAsync);
 
         RegisterPlugin<TimePluginDefinition>();
+        RegisterPlugin<OutlookConnectorPluginDefinition>();
         RegisterPlugin<MIConfigurationCheckPluginDefinition>();
         RegisterPlugin<GithubWorkflowTriggerPluginDefinition>();
         RegisterPlugin<RemediationPluginDefinition>();

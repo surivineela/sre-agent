@@ -14,12 +14,13 @@ using Agent.Graph.Crawler.Metrics;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Clients;
+using Agent.Plugins.Connector;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.Definitions.Connector;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Services.Interfaces;
-using Agent.Plugins.Tools;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
@@ -290,8 +291,13 @@ public static class TestHelpers
             return mockResolver.Object;
         });
 
+        // Register Teams Plugin dependencies
         builder.Services.AddSingleton<ITeamsPlugin, TeamsPlugin>();
         builder.Services.AddSingleton<TeamsPluginDefinition>();
+
+        // Register Outlook Connector Plugin dependencies
+        builder.Services.AddSingleton<IOutlookConnectorPlugin, OutlookConnectorPlugin>();
+        builder.Services.AddTransient<OutlookConnectorPluginDefinition>();
 
         builder.Services.AddSingleton(TracerProvider.Default.GetTracer("SREAgentTests"));
         builder.Services.AddSingleton(Mock.Of<CustomerLogger>());

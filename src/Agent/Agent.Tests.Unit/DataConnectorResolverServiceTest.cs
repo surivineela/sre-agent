@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
-using Agent.Plugins.Tools;
+using Agent.Plugins.Connector;
 using Agent.Runtime.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

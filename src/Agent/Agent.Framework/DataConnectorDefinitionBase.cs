@@ -29,6 +29,17 @@ public class DataConnectorDefinitionBase
     [YamlMember(Alias = "metadata")]
     public YamlMetadata Metadata { get; set; } = new();
 
+    /// <summary>
+    /// Configures the connector from the data source string.
+    /// Override in derived classes to parse connector-specific DataSource formats.
+    /// </summary>
+    /// <param name="dataSource">The data source connection string or configuration</param>
+    public virtual void ConfigureFromDataSource(string dataSource)
+    {
+        // Default implementation does nothing
+        // Derived classes override to parse their specific DataSource format
+    }
+
     public virtual void Validate()
     {
         if (string.IsNullOrWhiteSpace(Name))

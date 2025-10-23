@@ -7,6 +7,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Plugins;
+using Agent.Plugins.Connector;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;

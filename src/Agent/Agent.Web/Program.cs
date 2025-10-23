@@ -23,7 +23,9 @@ using Agent.Graph.Services;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Clients;
+using Agent.Plugins.Connector;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.Definitions.Connector;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Implementation.AzureApplicationInsightsPlugin;
@@ -350,6 +352,7 @@ public class Program
             .AddSingleton<Agent.Plugins.Models.GitHubClient>()
             .AddSingleton<IAzureDevOpsWorkItemPlugin, AzureDevOpsWorkItemPlugin>()
             .AddSingleton<IAzureDevOpsSourceCodeSearch, AzureDevOpsSourceCodeSearch>()
+            .AddSingleton<IOutlookConnectorPlugin, OutlookConnectorPlugin>()
             .AddTransient<IGithubIssuePlugin, GitHubIssuePlugin>()
             .AddTransient<ICustomerLogsPlugin, CustomerLogsPlugin>()
             .AddTransient<IWebAppRestartPlugin, WebAppRestartPlugin>()
@@ -401,6 +404,7 @@ public class Program
             .AddTransient<AzureApplicationInsightsPluginDefinition>()
             .AddTransient<ArmPluginDefinition>()
             .AddTransient<TimePluginDefinition>()
+            .AddTransient<OutlookConnectorPluginDefinition>()
             .AddTransient<CustomerLogsPluginDefinition>()
             .AddTransient<MIConfigurationCheckPluginDefinition>()
             .AddTransient<GithubWorkflowTriggerPluginDefinition>()

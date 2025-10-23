@@ -7,6 +7,7 @@ using Agent.Data.Tools;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
+using Agent.Plugins.Connector;
 using Agent.Plugins.Tools;
 
 namespace Agent.Plugins.Kusto.Tools

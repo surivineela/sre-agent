@@ -133,6 +133,7 @@ handoff_description: |
 
 tools:
   - SearchMemory
+  - SendOutlookEmail
   - PostTeamsMessage
   - GetTeamsMessages
 

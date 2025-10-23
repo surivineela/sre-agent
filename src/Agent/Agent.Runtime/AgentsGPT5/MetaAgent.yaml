@@ -136,6 +136,7 @@ handoff_description: |
   - You don't have tools to perform the next required step.
 
 tools:
+  - SendOutlookEmail
   - PostTeamsMessage
   - GetTeamsMessages
 

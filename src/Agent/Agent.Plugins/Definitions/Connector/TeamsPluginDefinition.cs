@@ -7,7 +7,7 @@ using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 
-namespace Agent.Plugins.Definitions
+namespace Agent.Plugins.Definitions.Connector
 {
     [AgentToolPlugin(Category = ToolCategories.Utility, EnabledIf = "DataConnectorType:Teams")]
     public class TeamsPluginDefinition

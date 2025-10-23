@@ -9,9 +9,9 @@ using System.Text.Json;
 using AdaptiveCards;
 using Agent.Core.Interfaces;
 using Agent.Framework;
+using Agent.Plugins.Connector;
 using Agent.Plugins.Extensions;
 using Agent.Plugins.Interface;
-using Agent.Plugins.Tools;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
 
