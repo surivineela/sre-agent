@@ -197,7 +197,7 @@ export class AgentMessageRegex {
     // Check for mermaid code blocks
     public static readonly mermaidRegex = /```mermaid\n([\s\S]*?)\n```/g;
     // Check for chart data blocks
-    public static readonly chartRegex = /```chart-data\n([\s\S]*?)\n```/g;
+    public static readonly chartRegex = /```chart-data[\r\n]+([\s\S]*?)[\r\n]+```/g;
     // Check if the entire message is just a incident-alert block
     public static readonly incidentAlertRegex = /```incident-alert\s+([\s\S]*?)```/;
     public static readonly changeDiffRegex = /```change-diff\n([\s\S]*?)\n```/g;

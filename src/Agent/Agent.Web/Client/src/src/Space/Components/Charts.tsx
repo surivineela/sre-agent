@@ -120,7 +120,7 @@ const getAreaColors = (index: number) => {
 };
 
 const extractChartData = (text: string): ChartData | null => {
-    const chartRegex = /```chart-data\n([\s\S]*?)\n```/;
+    const chartRegex = /```chart-data[\r\n]+([\s\S]*?)[\r\n]+```/;
     const match = text.match(chartRegex);
 
     if (match && match[1]) {
@@ -138,7 +138,7 @@ const extractChartData = (text: string): ChartData | null => {
 const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
     const chartData = useMemo(() => extractChartData(messageText), [messageText]);
     const description = useMemo(() => {
-        const descriptionRegex = /```chart-data\n[\s\S]*?\n```\n([\s\S]*)/;
+        const descriptionRegex = /```chart-data[\r\n]+[\s\S]*?[\r\n]+```[\r\n]+([\s\S]*)/;
         const match = messageText.match(descriptionRegex);
         return match ? match[1] : '';
     }, [messageText]);
