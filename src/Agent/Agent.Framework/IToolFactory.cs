@@ -28,6 +28,8 @@ public enum BehaviorOnNameConflict
 public interface IToolFactory<TContext> : IAsyncInitializer
     where TContext : class
 {
+    int RegisteredToolCount { get; }
+
     /// <summary>
     /// Find an AI function by its name.
     /// </summary>

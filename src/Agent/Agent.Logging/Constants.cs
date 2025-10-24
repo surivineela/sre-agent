@@ -27,6 +27,7 @@ namespace Agent.Logging
         public const string ThumbsDown = nameof(ThumbsDown);
         public const string ThumbsUp = nameof(ThumbsUp);
         public const string ToolExecution = nameof(ToolExecution);
+        public const string Heartbeat = nameof(Heartbeat);
 
         // LLM-as-Judge Evals
         public const string EvaluateHandoffs = "evaluate.handoffs";

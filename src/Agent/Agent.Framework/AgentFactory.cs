@@ -16,6 +16,8 @@ public interface IAgentFactory<TContext> : IAsyncInitializer
 
     public IReadOnlyDictionary<string, IPromptDescriptor> PromptDescriptors { get; }
 
+    public int RegisteredAgentCount { get; }
+
     public Agent<TContext> LoadAgentFromYamlContent(string yamlContent, bool isCustomAgent);
 
     public Agent<TContext> LoadAgentFromDescriptor(YamlAgentDescriptor yamlContent, bool isCustomAgent);
@@ -56,6 +58,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly bool _agentMemoryRetrievalEnabled;
     private readonly bool _isAcaFirstPartyAgent = false;
     private readonly bool _scheduledTasksEnabled;
+
+    public int RegisteredAgentCount => _agents.Count;
 
     public AgentFactory(
         ILogger<AgentFactory<TContext>> logger,

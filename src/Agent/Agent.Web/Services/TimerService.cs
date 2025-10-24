@@ -14,6 +14,7 @@ using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
 using Agent.Runtime.Interfaces;
+using Agent.Runtime.Heartbeat;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
@@ -64,6 +65,7 @@ public class TimerService : IHostedService, IDisposable
     private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
     private readonly IThreadRepository _repository;
     private readonly SinkService _sinkService;
+    private readonly HeartbeatReporter _heartbeatReporter;
 
     private CrawlerSettings _settings;
     private TimerSettings _timerSettings;
@@ -143,6 +145,10 @@ public class TimerService : IHostedService, IDisposable
     private bool _scheduledTaskTimerIsRunning = false;
     private TimeSpan _scheduledTaskTimerInterval = TimeSpan.FromMinutes(1);
 
+    private Timer? _heartbeatTimer = null;
+    private bool _heartbeatTimerIsRunning = false;
+    private TimeSpan _heartbeatTimerInterval = TimeSpan.FromMinutes(30);
+
     private List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
 
     private bool _pagerDutyWelcomeSent = false;
@@ -177,6 +183,7 @@ public class TimerService : IHostedService, IDisposable
         CustomerAuditLogger customerAuditLogger,
         IIncidentScanner incidentScanner,
         LocalAuthScanner localAuthScanner,
+        HeartbeatReporter heartbeatReporter,
         ScheduledTasks.Services.ScheduledTaskExecutionService scheduledTaskExecutionService)
     {
         _logger = logger;
@@ -204,6 +211,7 @@ public class TimerService : IHostedService, IDisposable
         _customerAuditLogger = customerAuditLogger;
         _incidentScanner = incidentScanner;
         _localAuthScanner = localAuthScanner;
+    _heartbeatReporter = heartbeatReporter;
         _scheduledTaskExecutionService = scheduledTaskExecutionService;
         _agentMemorySettings = agentMemorySettings;
 
@@ -270,6 +278,9 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Starting Scheduled Task execution timer...");
         StartScheduledTaskTimer(cancellationToken);
 
+        _logger.LogInternalInformation("Starting heartbeat reporter timer...");
+        StartHeartbeatTimer(cancellationToken);
+
         if (!string.IsNullOrEmpty(_incidentManagementSettings.Type?.ToString()))
         {
             _logger.LogInternalInformation($"Starting {_incidentManagementSettings.Type} Scanner timer ...");
@@ -288,6 +299,7 @@ public class TimerService : IHostedService, IDisposable
         _trajectoryEvaluatorTimer?.Change(Timeout.Infinite, 0); // Stop the TrajectoryEvaluator timer
         _localAuthScannerTimer?.Change(Timeout.Infinite, 0); // Stop the Local Auth scanner timer
         _scheduledTaskTimer?.Change(Timeout.Infinite, 0); // Stop the Scheduled Task timer
+    _heartbeatTimer?.Change(Timeout.Infinite, 0); // Stop the Heartbeat timer
 
         // Stop all generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)
@@ -856,6 +868,32 @@ public class TimerService : IHostedService, IDisposable
         }, null, TimeSpan.FromMinutes(1), _scheduledTaskTimerInterval);
     }
 
+    public void StartHeartbeatTimer(CancellationToken cancellationToken)
+    {
+        _heartbeatTimer = new Timer(async _ =>
+        {
+            if (_heartbeatTimerIsRunning)
+            {
+                _logger.LogInternalInformation("Heartbeat reporter is already running. Skip this round.");
+                return;
+            }
+
+            try
+            {
+                _heartbeatTimerIsRunning = true;
+                await _heartbeatReporter.ReportAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error executing heartbeat timer.");
+            }
+            finally
+            {
+                _heartbeatTimerIsRunning = false;
+            }
+        }, null, TimeSpan.Zero, _heartbeatTimerInterval);
+    }
+
     public void Dispose()
     {
         _logger.LogInternalInformation("Disposing Azure Resource Crawler Worker");
@@ -864,6 +902,7 @@ public class TimerService : IHostedService, IDisposable
         _threadEvaluatorTimer?.Dispose();
         _localAuthScannerTimer?.Dispose();
         _scheduledTaskTimer?.Dispose();
+        _heartbeatTimer?.Dispose();
 
         // Dispose generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)

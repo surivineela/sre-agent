@@ -18,6 +18,8 @@ public sealed class ReplayToolFactory<TContext> : AsyncInitializerBase, IToolFac
     private readonly IToolFactory<TContext> _innerFactory;
     private readonly ReplayToolCore _replayCore;
 
+    public int RegisteredToolCount => _innerFactory.RegisteredToolCount;
+
     public IEnumerable<string> FunctionNames => _replayCore.FunctionNames;
     public HashSet<string> FunctionNamesAllowingFuzzyMatch => _replayCore.FunctionNamesAllowingFuzzyMatch;
     public HashSet<string> FunctionNamesEnabledForReplay => _replayCore.FunctionNamesEnabledForReplay;

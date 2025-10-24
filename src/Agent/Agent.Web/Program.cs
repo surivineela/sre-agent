@@ -41,6 +41,7 @@ using Agent.Plugins.Tools;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.AgentTasks;
+using Agent.Runtime.Heartbeat;
 using Agent.Runtime.Communication;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.IncidentHandlerAgent;
@@ -744,6 +745,8 @@ public class Program
         {
             builder.Services.AddSingleton(subAgentType);
         }
+
+        builder.Services.AddSingleton<HeartbeatReporter>();
 
         builder.Services.AddHostedService<TimerService>();
 

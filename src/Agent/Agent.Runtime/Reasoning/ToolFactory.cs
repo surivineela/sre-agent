@@ -37,6 +37,8 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     private readonly IMcpConnectable _mcpToolsRepository;
     private readonly bool _handoffReasoningEnabled;
 
+    public int RegisteredToolCount => _tools.Count;
+
     public ToolFactory(
         ILogger<ToolFactory<TContext>> logger,
         IServiceProvider serviceProvider,
