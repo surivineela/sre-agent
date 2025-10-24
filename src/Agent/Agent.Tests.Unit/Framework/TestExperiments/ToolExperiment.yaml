@@ -1,0 +1,14 @@
+experiment_id: tool_experiment
+description: Tool overlay experiment
+enabled: true
+coverage: 1.0
+variants:
+  - name: tools_variant
+    split: 1.0
+    overlay:
+      tools:
+        - agent_names: ["agent1"]
+          replace_tools: ["ReplaceToolA", "ReplaceToolB"]
+        - agent_names: ["agent2"]
+          add_tools: ["ExtraTool1", "ExtraTool2"]
+          remove_tools: ["TestManualTool"]

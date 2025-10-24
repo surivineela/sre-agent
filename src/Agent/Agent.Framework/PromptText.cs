@@ -70,6 +70,12 @@ public class PromptText
                 builder.AppendLine();
             }
 
+            foreach (var promptEnder in _promptEnders)
+            {
+                builder.AppendLine(promptEnder);
+                builder.AppendLine();
+            }
+
             _text = builder.ToString();
         }
 

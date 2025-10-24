@@ -26,7 +26,6 @@ public class AgentFactoryTests
 {
     private readonly Mock<ILogger<AgentFactory<AgentContext>>> _mockLogger;
     private readonly Mock<ILogger<ToolFactory<AgentContext>>> _mockToolFactoryLogger;
-    private readonly Mock<ChatClientProvider> _mockChatClientProvider;
     private readonly Mock<IAgentModeConfigurator<AgentContext>> _mockAgentModeConfigurator;
     private readonly Mock<IExtensibilityLoader> _mockExtendedAgentRepository;
     private readonly Mock<IMcpConnectable> _mockMcpToolsRepository;
@@ -37,7 +36,6 @@ public class AgentFactoryTests
     {
         _mockLogger = new Mock<ILogger<AgentFactory<AgentContext>>>();
         _mockToolFactoryLogger = new Mock<ILogger<ToolFactory<AgentContext>>>();
-        _mockChatClientProvider = new Mock<ChatClientProvider>(_serviceProvider);
         _mockAgentModeConfigurator = new Mock<IAgentModeConfigurator<AgentContext>>();
         _mockExtendedAgentRepository = new Mock<IExtensibilityLoader>();
         _mockMcpToolsRepository = new Mock<IMcpConnectable>();
@@ -59,6 +57,13 @@ public class AgentFactoryTests
         _services.AddTransient<TestTools>();
         _services.AddTransient<TestDataConnectorTools>();
         _services.AddTransient<TestSlackTools>();
+        _services.AddSingleton<ChatClientProvider>();
+
+        foreach (var (llmModel, clientName) in LlmModels.LlmClients)
+        {
+            _services.AddKeyedSingleton(clientName, Mock.Of<IChatClient>());
+        }
+
         SetupServiceProviderWithHostEnvironmentAndConfiguration();
         _serviceProvider = _services.BuildServiceProvider();
     }
@@ -113,7 +118,7 @@ public class AgentFactoryTests
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _mockChatClientProvider.Object,
+            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
             modeConfigurator: _mockAgentModeConfigurator.Object,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             commonToolsYamlDirectory: null
@@ -141,7 +146,7 @@ public class AgentFactoryTests
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _mockChatClientProvider.Object,
+            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -185,7 +190,7 @@ public class AgentFactoryTests
             var agentFactory = new AgentFactory<AgentContext>(
                 logger: _mockLogger.Object,
                 toolFactory: toolFactory,
-                chatClientProvider: _mockChatClientProvider.Object,
+                chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
                 assembliesToScan: [],
                 modeConfigurator: _mockAgentModeConfigurator.Object,
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -234,7 +239,7 @@ public class AgentFactoryTests
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _mockChatClientProvider.Object,
+            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             commonToolsYamlDirectory: null
@@ -270,7 +275,7 @@ public class AgentFactoryTests
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _mockChatClientProvider.Object,
+            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             commonToolsYamlDirectory: null
@@ -297,7 +302,7 @@ public class AgentFactoryTests
             var agentFactory = new AgentFactory<AgentContext>(
                 logger: _mockLogger.Object,
                 toolFactory: toolFactory,
-                chatClientProvider: _mockChatClientProvider.Object,
+                chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
                 assembliesToScan: [Assembly.GetExecutingAssembly()],
                 modeConfigurator: _mockAgentModeConfigurator.Object,
                 commonToolsYamlDirectory: null
@@ -329,7 +334,7 @@ public class AgentFactoryTests
             var agentFactory = new AgentFactory<AgentContext>(
                 logger: _mockLogger.Object,
                 toolFactory: toolFactory,
-                chatClientProvider: _mockChatClientProvider.Object,
+                chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
                 assembliesToScan: [Assembly.GetExecutingAssembly()],
                 modeConfigurator: _mockAgentModeConfigurator.Object,
                 commonToolsYamlDirectory: null
@@ -360,7 +365,7 @@ public class AgentFactoryTests
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _mockChatClientProvider.Object,
+            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             commonToolsYamlDirectory: null
@@ -389,7 +394,7 @@ public class AgentFactoryTests
             var agentFactory = new AgentFactory<AgentContext>(
                 logger: _mockLogger.Object,
                 toolFactory: toolFactory,
-                chatClientProvider: _mockChatClientProvider.Object,
+                chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
                 assembliesToScan: [Assembly.GetExecutingAssembly()],
                 modeConfigurator: _mockAgentModeConfigurator.Object,
                 commonToolsYamlDirectory: null
@@ -423,7 +428,7 @@ public class AgentFactoryTests
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _mockChatClientProvider.Object,
+            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             commonToolsYamlDirectory: null
@@ -449,7 +454,7 @@ public class AgentFactoryTests
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _mockChatClientProvider.Object,
+            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             commonToolsYamlDirectory: null
@@ -475,7 +480,7 @@ public class AgentFactoryTests
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _mockChatClientProvider.Object,
+            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             commonToolsYamlDirectory: null
@@ -490,6 +495,28 @@ public class AgentFactoryTests
         // Tool should be in FactoryTools but disabled since Slack DataConnector does not exist
         Assert.Contains("TestSlackTool", agent.FactoryTools);
         Assert.True(toolFactory.IsToolDisabled("TestSlackTool"), "TestSlackTool should be disabled when Slack connector does not exist");
+    }
+
+    [Fact]
+    public async Task LoadsExperiments()
+    {
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            assembliesToScan: [],
+            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
+            experimentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments")
+        );
+
+        await agentFactory.InitializeAsync();
+
+        Assert.NotEmpty(agentFactory.Experiments);
     }
 
     private ToolFactory<AgentContext> CreateToolFactory()

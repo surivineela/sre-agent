@@ -1,0 +1,11 @@
+experiment_id: coverage_experiment
+description: Coverage 0 experiment should not apply overlay
+enabled: true
+coverage: 0.0
+variants:
+  - name: cov_variant
+    split: 1.0
+    overlay:
+      prompts:
+        - agent_names: ["agent1"]
+          prepend_system_prompt: "COVERAGE_SHOULD_NOT_APPLY"

@@ -1,0 +1,48 @@
+experiment_id: prompt_experiment
+description: Test Experiment
+enabled: true
+coverage: 1.0 # full coverage so assignment always in experiment during tests unless forced otherwise
+variants:
+  - name: control
+    split: 0.2
+    overlay: {}
+  - name: prompt_overlay
+    split: 0.2
+    overlay:
+      prompts:
+        - agent_names: ["agent1"]
+          replace_system_prompt: |
+            Replaced system prompt for agent1.
+          append_system_prompt: |
+            Appended text.
+          prepend_system_prompt: |
+            Prepended text.
+          handoff_instructions: New handoff instructions.
+  - name: common_prompts_variant
+    split: 0.2
+    overlay:
+      prompts:
+        - agent_names: ["agent1"]
+          replace_system_prompt: |
+            Replaced system prompt for testing common_prompts.
+          common_prompts:
+            - prompt2
+          apply_standard_modifiers: false
+  - name: no_handoff_instructions_variant
+    split: 0.2
+    overlay:
+      prompts:
+        - agent_names: ["agent1"]
+          replace_system_prompt: |
+            Replaced system prompt without handoff instructions.
+          has_handoff_instructions: false
+          apply_standard_modifiers: false
+  - name: apply_standard_modifiers_variant
+    split: 0.2
+    overlay:
+      prompts:
+        - agent_names: ["agent1"]
+          replace_system_prompt: |
+            Replaced system prompt with standard modifiers.
+
+

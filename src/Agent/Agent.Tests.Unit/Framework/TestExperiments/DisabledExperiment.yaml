@@ -1,0 +1,11 @@
+experiment_id: disabled_experiment
+description: Disabled experiment should not apply overlays
+enabled: false
+coverage: 1.0
+variants:
+  - name: disabled_variant
+    split: 1.0
+    overlay:
+      prompts:
+        - agent_names: ["agent1"]
+          prepend_system_prompt: "DISABLED_EXPERIMENT_SHOULD_NOT_APPLY"

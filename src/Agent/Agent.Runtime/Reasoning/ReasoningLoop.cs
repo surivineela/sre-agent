@@ -42,7 +42,7 @@ public class ReasoningLoop : IDisposable
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IThreadRepository _threadRepository;
     private readonly IToolFactory<AgentContext> _toolFactory;
-    private readonly IAgentFactory<AgentContext> _agentFactory;
+    private readonly IAgentProvider<AgentContext> _agentProvider;
     private readonly ActionSettings _actionSettings;
     private readonly Tracer _tracer;
     private readonly CustomerLogger _customerLogger;
@@ -122,7 +122,7 @@ public class ReasoningLoop : IDisposable
         ActionSettings actionSettings,
         Tracer tracer,
         CustomerLogger customerLogger,
-        IAgentFactory<AgentContext> agentFactory,
+        IAgentProvider<AgentContext> agentProvider,
         bool enableReasoningDebugOutput,
         ISearchEndpointService searchEndpointService,
         SearchHelper searchHelper,
@@ -150,7 +150,7 @@ public class ReasoningLoop : IDisposable
         _actionSettings = actionSettings;
         _tracer = tracer;
         _customerLogger = customerLogger;
-        _agentFactory = agentFactory;
+        _agentProvider = agentProvider;
         _enableReasoningDebugOutput = enableReasoningDebugOutput;
         _searchEndpointService = searchEndpointService;
         _searchHelper = searchHelper ?? throw new ArgumentNullException(nameof(searchHelper));
@@ -178,6 +178,8 @@ public class ReasoningLoop : IDisposable
 
         _logger.LogInternalInformation("Experimental Flag: AgentMemoryEnabled: {agentMemoryEnabled}", _agentMemoryEnabled);
         _logger.LogInternalInformation("Experimental Flag: AutoHandOffEnabled: {autoHandOffEnabled}", _autoHandOffEnabled);
+        _logger.LogInternalInformation("Active Experiment Variants: {experimentVariants}",
+            FormatExperimentVariants(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
     }
     public virtual void CancelCurrentOperation()
     {
@@ -210,7 +212,7 @@ public class ReasoningLoop : IDisposable
 
         try
         {
-            var currentAgent = _agentFactory.GetAgent(agentName);
+            var currentAgent = _agentProvider.GetAgent(agentName, _context.ThreadId.ToString());
             _context = _context with
             {
                 CurrentAgent = agentName.ToLower(),
@@ -390,6 +392,7 @@ public class ReasoningLoop : IDisposable
                 _rootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
                 _rootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ReasoningLoop);
                 _rootSpan.SetAttribute(TraceAttribute.FeatureConfig, WebJsonSerializer.Serialize(_featureConfig));
+                _rootSpan.SetAttribute(TraceAttribute.ExperimentVariants, FormatExperimentVariants(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
             }
 
             try
@@ -753,7 +756,7 @@ public class ReasoningLoop : IDisposable
                         // pop agent off the chain
                         _context.AgentHandoffChain.RemoveAt(_context.AgentHandoffChain.Count - 1);
                         var agentName = _context.AgentHandoffChain[^1];
-                        var newAgent = _agentFactory.GetAgent(agentName);
+                        var newAgent = _agentProvider.GetAgent(agentName, _context.ThreadId.ToString());
 
                         runResult = runResult.WithNewAgent(newAgent);
                     }
@@ -1015,7 +1018,7 @@ public class ReasoningLoop : IDisposable
 
             await PersistReasoningMessagesAsync(agentChatHistory, result.NewItems);
 
-            var progressSummaryAgent = _agentFactory.GetAgent("progress_summary_agent");
+            var progressSummaryAgent = _agentProvider.GetAgent("progress_summary_agent", _context.ThreadId.ToString());
 
             var summaryResult = await Runner.RunAsync(
                 startingAgent: progressSummaryAgent,
@@ -2461,6 +2464,27 @@ public class ReasoningLoop : IDisposable
         }
 
         return JsonSerializer.Serialize(tools.Select(t => ((AIFunction)t).JsonSchema), AIJsonUtilities.DefaultOptions);
+    }
+
+    private static string FormatExperimentVariants(IReadOnlyDictionary<string, Variant> variants)
+    {
+        try
+        {
+            var result = variants.Select(kv =>
+            {
+                return new
+                {
+                    ExperimentId = kv.Key,
+                    Variant = kv.Value,
+                };
+            }).ToList();
+
+            return JsonSerializer.Serialize(result, _chatMessageJsonOptions);
+        }
+        catch (Exception e)
+        {
+            return $"Error formatting experiment variants: {e.Message}";
+        }
     }
 
     private void RefreshUserCancellationTokenSource()

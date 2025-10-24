@@ -99,5 +99,14 @@ namespace Agent.Tests.Unit.Framework
 
             Assert.StartsWith("def", prompt.ToString());
         }
+
+        [Fact]
+        public void AddPromptEnder_AddsPrompt()
+        {
+            var prompt = new PromptText("abc");
+            prompt.AddPromptEnder("def");
+
+            Assert.EndsWith("def", prompt.ToString().Trim());
+        }
     }
 }

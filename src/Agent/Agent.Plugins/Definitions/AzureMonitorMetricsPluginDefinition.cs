@@ -33,7 +33,9 @@ namespace Agent.Plugins
             return await _plugin.ListMetricsForAzureResource(resourceId);
         }
 
-        [Description("Get time-series metric values for a specific metric name of a azure resource id. Returns metric records for the start time and end time provided using 'Average' aggregation with the interval value inputed. Use chart plugin to render visual where possible")]
+        [Description("""
+        Get time-series metric values for a specific metric name of a azure resource id. Returns metric records for the start time and end time provided using 'Average' aggregation with the interval value inputed. Use chart plugin to render visual where possible
+        """)]
         [AgentTool(ToolMode.Auto)]
         public async Task<IReadOnlyList<MetricTimeSeriesElement>> GetMetricTimeSeriesElementsForAzureResource(
             [Description("Azure Resource Id of the resource, e.g., /subscriptions/xxx/resourceGroups/yyy/providers/Microsoft.Web/sites/myapp")] string resourceId,

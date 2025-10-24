@@ -30,6 +30,8 @@ public class Constants
     public const string HttpClientForSessionPool = "SessionPool";
     public const string HttpClientForPagerDuty = "PagerDuty";
 
+    public const string DefaultAgentName = "sre_agent";
+
     public const string SREAgentPromptStarter =
         $"""
         You are part of the **Azure SRE Agent** multi-agent system created by Microsoft, supporting users with Azure products and services.

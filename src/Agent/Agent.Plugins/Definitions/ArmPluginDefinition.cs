@@ -201,6 +201,40 @@ BEST PRACTICES:
 - Always include --subscription parameter
 - Executes immediately - no approval needed
 - Use to understand current state before changes
+
+# Pre-execution User Notification
+  - Notify users concisely before executing any command (read, write, help):
+     - "Checking [what] to [why]"
+     - "Running [command type] to [purpose]"
+  - For help lookups: explain briefly (e.g., "Finding the correct upgrade command using az help.")
+
+## Step-by-Step Query Handling Process for Read Operations
+  ### 1. Understand the Goal
+        - Gather known context (subscription, resource group, resource names/IDs) from conversation history; only prompt for what's missing.
+        - Restate user objectives and distinguish read vs write actions.
+        - For write actions, plan to understand current state first.
+  ### 2. Formulate Investigation Plan
+        - Decide which read commands to run and which properties to inspect (e.g., SKU/tier, capacity, tags, network rules, dependencies).
+        - Prefer resource IDs when referencing related resources.
+  ### 3. Execute Read Commands
+        - Run necessary list/show/get, and any other non-mutating commands immediately.
+        - Include --subscription in commands; use --query to focus output.
+        - For existence checks: az [service] show ... 2>/dev/null || echo "Not found".
+  ### 4. Analyze Current State
+        - Parse and document configuration, state, and dependencies.
+        - Determine difference between current and desired state.
+  ### 5. Summary
+        - Summarize what was investigated, changed, and the final state.
+        - Suggest next steps or recommendations.
+
+# Troubleshooting and Error-Handling Playbook
+  ## Read Command Failures
+  - Broaden scope (remove `--query`).
+  - Verify spelling and case sensitivity.
+  - Check resource group and resource names.
+  - Try using `--ids`.
+  - If issues persist, list parent resources first (e.g., list plans before running `webapp show`).
+  - Run `GetAzCliHelpAsync` for command help. If further clarification is needed, use `SearchDocuments`.
 """)]
         [AgentTool(ToolMode.Manual)]
         public async Task<string> RunAzCliReadCommandsAsync(
@@ -224,6 +258,62 @@ BEST PRACTICES:
 - Explain what will change
 - Include rollback commands when possible
 - Requires USER APPROVAL before execution
+
+# Pre-execution User Notification
+  - Notify users concisely before executing any command (read, write, help):
+     - "Checking [what] to [why]"
+     - "Running [command type] to [purpose]"
+  - For help lookups: explain briefly (e.g., "Finding the correct upgrade command using az help.")
+
+## Step-by-Step Query Handling Process for Read and Write Operations
+  ### 1. Understand the Goal
+        - Gather known context (subscription, resource group, resource names/IDs) from conversation history; only prompt for what's missing.
+        - Restate user objectives and distinguish read vs write actions.
+        - For write actions, plan to understand current state first.
+  ### 2. Formulate Investigation Plan
+        - Decide which read commands to run and which properties to inspect (e.g., SKU/tier, capacity, tags, network rules, dependencies).
+        - Prefer resource IDs when referencing related resources.
+  ### 3. Execute Read Commands
+        - Run necessary list/show/get, and any other non-mutating commands immediately.
+        - Include --subscription in commands; use --query to focus output.
+        - For existence checks: az [service] show ... 2>/dev/null || echo "Not found".
+  ### 4. Analyze Current State
+        - Parse and document configuration, state, and dependencies.
+        - Determine difference between current and desired state.
+  ### 5. Get Command Help (Write Operations)
+        - Always call GetAzCliHelpAsync for the targeted operation (e.g., helpTopic="webapp scale").
+        - Use grepPattern for key parameters if useful.
+        - If help is insufficient, escalate per Help Command Strategy; use SearchDocuments if needed.
+  ### 6. Construct Write Command
+        - Build with verified parameters; ensure minimal, idempotent changes; never include delete operations.
+        - Prefer resource IDs where possible.
+        - Prepare rollback commands.
+  ### 7. Validate and Assess Impact
+        - Confirm permissibility (no delete/remove commands).
+        - Provide a risk matrix: availability, security, performance, cost, compliance, blast radius.
+        - Outline rollback paths and status-check commands for asynchronous operations.
+  ### 8. Request Approval (Write Operations)
+        - Present current state, proposed changes, exact commands, impact assessment, and rollback plan.
+        - Wait for explicit approval before executing.
+  ### 9. Execute Write Command (After Approval)
+        - Call RunAzCliWriteCommandsAsync for approved commands only.
+        - For long-running operations, use --no-wait and provide progress commands.
+        - Validate and handle errors, including retries or fallbacks if required.
+  ### 10. Verify Changes
+        - Run follow-up read commands; confirm before/after state.
+        - For async operations, communicate progress/status and expected timelines.
+  ### 11. Summary
+        - Summarize what was investigated, changed, and the final state.
+        - Suggest next steps or recommendations.
+
+# Troubleshooting and Error-Handling Playbook
+  ## Read Command Failures
+  - Broaden scope (remove `--query`).
+  - Verify spelling and case sensitivity.
+  - Check resource group and resource names.
+  - Try using `--ids`.
+  - If issues persist, list parent resources first (e.g., list plans before running `webapp show`).
+  - Run `GetAzCliHelpAsync` for command help. If further clarification is needed, use `SearchDocuments`.
 """)]
         [AgentTool(ToolMode.Manual)]
         public async Task<string> RunAzCliWriteCommandsAsync(
@@ -243,6 +333,18 @@ EXAMPLES:
 - Filter help for location info: 'webapp create' with pattern 'location' (returns only help lines mentioning 'location')
 - Filter for parameter info: 'containerapp' with pattern '--cpu' (returns only lines about CPU parameters)
 NOTE: This is an internal tool for command validation, not for generating user documentation.
+## Help Command Strategy
+- When you need to get command help, follow this reasoning pattern:
+### Help Command Chain of Thought:
+- Initial Help Attempt: "Let me figure out the command syntax for [specific operation]"
+- If Help Not Found: "That specific command wasn't found. Let me try the broader [service] category"
+- If Still Not Found: "Let me check the parent [service-group] commands"
+- Final Fallback: "Let me search for the base [service] help"
+### Help Command Hierarchy (Max 6 attempts):
+- Attempt 1: Specific operation (e.g., "webapp scale")
+- Attempt 2: Service level (e.g., "webapp")
+- Attempt 3: Service group (e.g., "app")
+- Attempt 4: Base service (e.g., "az webapp --help" equivalent)
 """)]
         [AgentTool(ToolMode.Manual)]
         public async Task<string> GetAzCliHelpAsync(

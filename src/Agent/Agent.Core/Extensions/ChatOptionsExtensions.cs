@@ -121,7 +121,7 @@ public static class ChatOptionsExtensions
                     && clientMetadata.DefaultModelId.Contains("gpt-5", StringComparison.OrdinalIgnoreCase)
                     && !clientMetadata.DefaultModelId.Contains("gpt-5-chat", StringComparison.OrdinalIgnoreCase))
                 {
-                    completionOptions = AugmentVerbosityData(completionOptions, verbosity);
+                    completionOptions = AugmentData(completionOptions, VerbosityKey, verbosity);
                 }
 
                 // log probabilities for each output token
@@ -166,11 +166,11 @@ public static class ChatOptionsExtensions
         return options;
     }
 
-    // workaround until SDK adds the verbosity property
-    // reference: https://github.com/openai/openai-dotnet/issues/593#issuecomment-3169547444
-    private static ChatCompletionOptions AugmentVerbosityData(
+    // workaround for missing values in SDK
+    private static ChatCompletionOptions AugmentData(
         ChatCompletionOptions options,
-        string verbosity)
+        string key,
+        object value)
     {
         // ChatCompletionOptions IJsonModel does not implement create correctly
         // It creates new object from binaryData input instead of merging with existing
@@ -184,10 +184,13 @@ public static class ChatOptionsExtensions
 
             // Copy existing fields
             foreach (var prop in doc.RootElement.EnumerateObject())
+            {
                 prop.WriteTo(writer);
+            }
 
-            // Add top-level "verbosity"
-            writer.WriteString("verbosity", verbosity);
+            writer.WritePropertyName(key);
+
+            JsonSerializer.Serialize(writer, value);
 
             writer.WriteEndObject();
         }

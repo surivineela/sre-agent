@@ -600,6 +600,7 @@ public class Program
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
                 commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
+                experimentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Experiments"),
                 promptStarters: promptStarters.ToArray(),
                 promptEnders: [Core.Constants.SREAgentFinalInstructions],
                 defaultOutputType: typeof(DefaultAgentOutput),
@@ -607,9 +608,26 @@ public class Program
                 extensibiltyLoader: extensibilityLoader,
                 gpt5Enabled: isGPT5Enabled,
                 agentMemoryRetrievalEnabled: agentMemoryRetrievalEnabled,
-                acaFirstPartyAgent: isAcaFirstPartyAgent,
                 scheduledTasksEnabled: isScheduledTaskEnabled);
         });
+
+        // Register AgentProvider as singleton for per-thread experiment variant support
+        builder.Services.AddSingleton<IAgentProvider<AgentContext>>(sp =>
+        {
+            var agentFactory = sp.GetRequiredService<IAgentFactory<AgentContext>>();
+            var variantAssigner = sp.GetRequiredService<IVariantAssigner>();
+            var logger = sp.GetRequiredService<ILogger<AgentProvider<AgentContext>>>();
+            var instanceId = Environment.GetEnvironmentVariable("AGENT_NAME") ?? Core.Constants.DefaultAgentName;
+
+            return new AgentProvider<AgentContext>(
+                factory: agentFactory,
+                variantAssigner: variantAssigner,
+                logger: logger,
+                instanceId: instanceId);
+        });
+
+        // Register IVariantAssigner
+        builder.Services.AddSingleton<IVariantAssigner, HashVariantAssigner>();
 
         builder.Services.ConfigureAsyncInitializers();
 

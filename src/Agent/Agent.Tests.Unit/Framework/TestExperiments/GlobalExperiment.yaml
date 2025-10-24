@@ -1,0 +1,12 @@
+experiment_id: global_experiment
+unit: Global
+description: Global experiment applies same variant across all threads
+enabled: true
+coverage: 1.0
+variants:
+  - name: global_variant
+    split: 1.0
+    overlay:
+      prompts:
+        - agent_names: ["agent1"]
+          prepend_system_prompt: "GLOBAL_VARIANT_APPLIED"

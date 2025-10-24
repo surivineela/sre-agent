@@ -107,4 +107,48 @@ public class Agent<TContext>(string name) where TContext : class
     {
         return ChatClient ?? config.ChatClient;
     }
+
+    /// <summary>
+    /// Creates a shallow clone of this agent. Collections are copied but not deeply cloned.
+    /// Handoffs are initialized as empty and should be populated by the caller (e.g., AgentGraphCloner).
+    /// </summary>
+    public Agent<TContext> ShallowClone()
+    {
+        return new Agent<TContext>(Name)
+        {
+            Instructions = Instructions,
+            HandoffDescription = HandoffDescription,
+            MaxReflectionCount = MaxReflectionCount,
+            CustomReflectionNote = CustomReflectionNote,
+            CriticPromptPath = CriticPromptPath,
+            CriticOnHandOff = CriticOnHandOff,
+            AllowParallelToolCalls = AllowParallelToolCalls,
+            UserPromptOverride = UserPromptOverride,
+            DisableDocumentRetrieval = DisableDocumentRetrieval,
+            EnableHandoffPromptOverride = EnableHandoffPromptOverride,
+            DisableCommonPrompts = DisableCommonPrompts,
+            ChatToolMode = ChatToolMode,
+            Temperature = Temperature,
+            ReasoningEffortLevel = ReasoningEffortLevel,
+            AlwaysAddPlanReminder = AlwaysAddPlanReminder,
+
+            // Clone collections
+            FactoryTools = new List<string>(FactoryTools),
+            Tools = new List<AIFunction>(Tools),
+            CustomTools = new List<AIFunction>(CustomTools),
+            Handoffs = [], // Will be populated by AgentGraphCloner
+            AgentsAsTools = [], // Will be populated by AgentGraphCloner
+
+            // Workflow properties
+            AgentType = AgentType,
+            ParameterExtractionAgent = ParameterExtractionAgent,
+            OrchestrationStartAgents = new List<string>(OrchestrationStartAgents),
+            ResultSummarizationPrompt = ResultSummarizationPrompt,
+            NextAgentMappings = new List<Models.NextAgentMapping>(NextAgentMappings),
+
+            OutputType = OutputType,
+            ChatClient = ChatClient,
+            Hooks = Hooks // Hooks can be shared across clones
+        };
+    }
 }

@@ -30,6 +30,8 @@ public interface IAgentFactory<TContext> : IAsyncInitializer
     public void LoadCommonToolsListFromDescriptor(YamlCommonToolsDescriptor toolsList);
 
     void UpdateHandoffs();
+
+    IReadOnlyList<Experiment> Experiments { get; }
 }
 
 public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory<TContext>
@@ -48,16 +50,23 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly string? _agentsYamlDirectory;
     private readonly string? _commonPromptsYamlDirectory;
     private readonly string? _commonToolsYamlDirectory;
+    private readonly string? _experimentsYamlDirectory;
     private readonly IEnumerable<string>? _promptStarters;
     private readonly IEnumerable<string>? _promptEnders;
     private readonly Type? _defaultOutputType;
     private readonly IAgentModeConfigurator<TContext> _modeConfigurator;
     private readonly bool _enableHandoffReasoning;
     private readonly IExtensibilityLoader? _extensibiltyLoader;
+
+    /// <summary>
+    /// Gets whether handoff reasoning is enabled for agents created by this factory.
+    /// Exposed for use by AgentProvider.
+    /// </summary>
+    public bool EnableHandoffReasoning => _enableHandoffReasoning;
     private readonly bool _gpt5Enabled;
     private readonly bool _agentMemoryRetrievalEnabled;
-    private readonly bool _isAcaFirstPartyAgent = false;
     private readonly bool _scheduledTasksEnabled;
+    private readonly List<Experiment> _experiments = [];
 
     public int RegisteredAgentCount => _agents.Count;
 
@@ -70,6 +79,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         string? agentsYamlDirectory = null,
         string? commonPromptsYamlDirectory = null,
         string? commonToolsYamlDirectory = null,
+        string? experimentsYamlDirectory = null,
         IEnumerable<string>? promptStarters = null,
         IEnumerable<string>? promptEnders = null,
         Type? defaultOutputType = null,
@@ -77,7 +87,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         IExtensibilityLoader? extensibiltyLoader = null,
         bool gpt5Enabled = false,
         bool agentMemoryRetrievalEnabled = false,
-        bool acaFirstPartyAgent = false,
         bool scheduledTasksEnabled = false
     )
     {
@@ -88,6 +97,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         _agentsYamlDirectory = agentsYamlDirectory;
         _commonPromptsYamlDirectory = commonPromptsYamlDirectory;
         _commonToolsYamlDirectory = commonToolsYamlDirectory;
+        _experimentsYamlDirectory = experimentsYamlDirectory;
         _promptStarters = promptStarters;
         _promptEnders = promptEnders;
         _modeConfigurator = modeConfigurator;
@@ -96,7 +106,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         _extensibiltyLoader = extensibiltyLoader;
         _gpt5Enabled = gpt5Enabled;
         _agentMemoryRetrievalEnabled = agentMemoryRetrievalEnabled;
-        _isAcaFirstPartyAgent = acaFirstPartyAgent;
         _scheduledTasksEnabled = scheduledTasksEnabled;
     }
 
@@ -202,8 +211,40 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
         agent.ChatClient = _chatClientProvider.GetChatClient(agentDescriptor.LlmModelName);
 
-        agent.Instructions
-            .WithHandoffInstructions();
+        ConfigureAgentInstructions(agent, agentDescriptor);
+
+        // Add common tools to the agent
+        if (agentDescriptor.CommonTools != null && agentDescriptor.CommonTools.Count > 0)
+        {
+            foreach (var commonToolName in agentDescriptor.CommonTools)
+            {
+                if (!_commonToolsDescriptors.TryGetValue(commonToolName, out var commonTools))
+                {
+                    _logger.LogInternalWarning("Agent descriptor {descriptorName} has a common tool {commonToolName} that does not exist.",
+                        agentDescriptor.Name, commonToolName);
+
+                    throw new Exception($"Agent descriptor {agentDescriptor.Name} has a common tool {commonToolName} that does not exist.");
+                }
+
+                // Add all tools from the common tool definition to the agent's tools list
+                agent.FactoryTools.AddRange(commonTools);
+            }
+        }
+
+        if (_agents.ContainsKey(agentDescriptor.Name) && !isCustomAgent && !overwrite)
+        {
+            _logger.LogInternalError("Agent with name {agentName} already exists and overwrite is not allowed.", agentDescriptor.Name);
+            throw new Exception($"Agent with name {agentDescriptor.Name} already exists and overwrite is not allowed.");
+        }
+
+        _agents[agentDescriptor.Name] = agent;
+        _agentDescriptors[agentDescriptor.Name] = agentDescriptor;
+        return agent;
+    }
+
+    private void ConfigureAgentInstructions(Agent<TContext> agent, IAgentDescriptor agentDescriptor)
+    {
+        agent.Instructions.WithHandoffInstructions();
 
         if (_promptStarters is not null)
         {
@@ -234,24 +275,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             agentDescriptor.CommonPrompts.Add("todo_write");
         }
 
-        // Add common tools to the agent
-        if (agentDescriptor.CommonTools != null && agentDescriptor.CommonTools.Count > 0)
-        {
-            foreach (var commonToolName in agentDescriptor.CommonTools)
-            {
-                if (!_commonToolsDescriptors.TryGetValue(commonToolName, out var commonTools))
-                {
-                    _logger.LogInternalWarning("Agent descriptor {descriptorName} has a common tool {commonToolName} that does not exist.",
-                        agentDescriptor.Name, commonToolName);
-
-                    throw new Exception($"Agent descriptor {agentDescriptor.Name} has a common tool {commonToolName} that does not exist.");
-                }
-
-                // Add all tools from the common tool definition to the agent's tools list
-                agent.FactoryTools.AddRange(commonTools);
-            }
-        }
-
         if (_promptEnders is not null)
         {
             foreach (var promptEnder in _promptEnders)
@@ -259,16 +282,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                 agent.Instructions.AddPromptEnder(promptEnder);
             }
         }
-
-        if (_agents.ContainsKey(agentDescriptor.Name) && !isCustomAgent && !overwrite)
-        {
-            _logger.LogInternalError("Agent with name {agentName} already exists and overwrite is not allowed.", agentDescriptor.Name);
-            throw new Exception($"Agent with name {agentDescriptor.Name} already exists and overwrite is not allowed.");
-        }
-
-        _agents[agentDescriptor.Name] = agent;
-        _agentDescriptors[agentDescriptor.Name] = agentDescriptor;
-        return agent;
     }
 
     private Type? GetOutputType(IAgentDescriptor agentDescriptor)
@@ -352,6 +365,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                 );
 
                 agent.Tools.Add(tool);
+                agent.AgentsAsTools.Add(tool);
 
                 _logger.LogInternalInformation("Added agent {targetAgent} as tool to agent {sourceAgent}",
                 agentAsTool.AgentName, agentDescriptor.Name);
@@ -423,6 +437,9 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             UpdateHandoffs();
 
             UpdateAgentTools();
+
+            // Load experiments but don't apply them - they will be applied per-thread by AgentProvider
+            LoadExperimentsFromYaml();
         }
         catch (Exception ex)
         {
@@ -866,4 +883,290 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
     public IReadOnlyDictionary<string, IPromptDescriptor> PromptDescriptors =>
        _promptDescriptors.AsReadOnly();
+
+    private void LoadExperimentsFromYaml()
+    {
+        if (_experimentsYamlDirectory is null)
+        {
+            return;
+        }
+
+        var yamlFiles = Directory.GetFiles(_experimentsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
+            .Concat(Directory.GetFiles(_experimentsYamlDirectory, "*.yml", SearchOption.AllDirectories));
+
+        foreach (var yamlFile in yamlFiles)
+        {
+            try
+            {
+                string yamlContent = File.ReadAllText(yamlFile);
+                var experiment = Experiment.FromYaml(yamlContent);
+                _experiments.Add(experiment);
+                _logger.LogInternalInformation(
+                    "Successfully loaded experiment '{experimentId}' from YAML file '{yamlFile}'.",
+                    experiment.ExperimentId,
+                    yamlFile);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Failed to load experiment from file {filePath}.", yamlFile);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Applies a variant overlay to a provided agent graph.
+    /// This method is public to allow AgentProvider to apply overlays to cloned agent graphs.
+    /// </summary>
+    /// <param name="agentGraph">The agent graph to apply the overlay to</param>
+    /// <param name="overlay">The variant overlay to apply</param>
+    public void ApplyVariantOverlayToGraph(Dictionary<string, Agent<TContext>> agentGraph, VariantOverlay overlay)
+    {
+        if (overlay.PromptOverlay != null)
+        {
+            foreach (var po in overlay.PromptOverlay)
+            {
+                if (OverlayAppliesToAllAgents(po.AgentNames))
+                {
+                    foreach (var agent in agentGraph.Values)
+                    {
+                        ApplyPromptOverlay(agent, po);
+                    }
+                }
+                else
+                {
+                    foreach (var agentName in po.AgentNames)
+                    {
+                        if (agentGraph.TryGetValue(agentName, out var agent))
+                        {
+                            ApplyPromptOverlay(agent, po);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (overlay.ToolOverlay != null)
+        {
+            foreach (var to in overlay.ToolOverlay)
+            {
+                if (OverlayAppliesToAllAgents(to.AgentNames))
+                {
+                    foreach (var agent in agentGraph.Values)
+                    {
+                        ApplyToolOverlay(agent, to);
+                    }
+                }
+                else
+                {
+                    foreach (var agentName in to.AgentNames)
+                    {
+                        if (agentGraph.TryGetValue(agentName, out var agent))
+                        {
+                            ApplyToolOverlay(agent, to);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (overlay.HandoffOverlay != null)
+        {
+            foreach (var ho in overlay.HandoffOverlay)
+            {
+                if (OverlayAppliesToAllAgents(ho.AgentNames))
+                {
+                    foreach (var agent in agentGraph.Values)
+                    {
+                        ApplyHandoffOverlay(agent, ho, agentGraph);
+                    }
+                }
+                else
+                {
+                    foreach (var agentName in ho.AgentNames)
+                    {
+                        if (agentGraph.TryGetValue(agentName, out var agent))
+                        {
+                            ApplyHandoffOverlay(agent, ho, agentGraph);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (overlay.ParamOverlay != null)
+        {
+            foreach (var pa in overlay.ParamOverlay)
+            {
+                if (OverlayAppliesToAllAgents(pa.AgentNames))
+                {
+                    foreach (var agent in agentGraph.Values)
+                    {
+                        ApplyParamOverlay(agent, pa);
+                    }
+                }
+                else
+                {
+                    foreach (var agentName in pa.AgentNames)
+                    {
+                        if (agentGraph.TryGetValue(agentName, out var agent))
+                        {
+                            ApplyParamOverlay(agent, pa);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static bool OverlayAppliesToAllAgents(IEnumerable<string> agentNames)
+    {
+        return agentNames.Contains("*");
+    }
+
+    private void ApplyPromptOverlay(Agent<TContext> agent, PromptOverlay overlay)
+    {
+        if (overlay.ReplaceSystemPrompt != null)
+        {
+            // replace base system prompt
+            agent.Instructions = overlay.ReplaceSystemPrompt;
+
+            // add handoff instructions if specified
+            if (overlay.HasHandoffInstructions)
+            {
+                agent.Instructions.WithHandoffInstructions();
+            }
+
+            // re-apply standard modifiers if specified (this will override custom value for 'HasHandoffInstructions' above)
+            if (overlay.ApplyStandardModifiers)
+            {
+                ConfigureAgentInstructions(agent, _agentDescriptors[agent.Name]);
+            }
+        }
+        if (overlay.PrependSystemPrompt != null)
+        {
+            agent.Instructions = overlay.PrependSystemPrompt + "\n" + agent.Instructions;
+        }
+        if (overlay.AppendSystemPrompt != null)
+        {
+            agent.Instructions += "\n" + overlay.AppendSystemPrompt;
+        }
+        if (overlay.HandoffInstructions != null)
+        {
+            agent.HandoffDescription = overlay.HandoffInstructions;
+        }
+
+        // add custom common prompts
+        if (overlay.CommonPrompts != null)
+        {
+            foreach (var commonPromptName in overlay.CommonPrompts)
+            {
+                if (!_promptDescriptors.TryGetValue(commonPromptName, out var commonPrompt))
+                {
+                    _logger.LogInternalWarning("Prompt overlay has a common prompt {commonPromptName} that does not exist.",
+                        commonPromptName);
+
+                    continue;
+                }
+
+                if (_agentDescriptors[agent.Name].CommonPrompts.Contains(commonPromptName) && overlay.ApplyStandardModifiers)
+                {
+                    // already added in base instructions
+                    continue;
+                }
+
+                agent.Instructions.AddCommonPrompt(commonPrompt.Prompt);
+            }
+        }
+    }
+
+    private static void ApplyToolOverlay(Agent<TContext> agent, ToolOverlay overlay)
+    {
+        if (overlay.ReplaceTools != null)
+        {
+            agent.FactoryTools = [.. overlay.ReplaceTools];
+        }
+        if (overlay.AddTools != null)
+        {
+            foreach (var tool in overlay.AddTools)
+            {
+                if (!agent.FactoryTools.Contains(tool))
+                {
+                    agent.FactoryTools.Add(tool);
+                }
+            }
+        }
+        if (overlay.RemoveTools != null)
+        {
+            foreach (var tool in overlay.RemoveTools)
+            {
+                agent.FactoryTools.Remove(tool);
+            }
+        }
+    }
+
+    private void ApplyHandoffOverlay(Agent<TContext> agent, HandoffOverlay overlay, Dictionary<string, Agent<TContext>>? agentGraph = null)
+    {
+        var agents = agentGraph ?? _agents;
+
+        if (overlay.ReplaceHandoffs != null)
+        {
+            agent.Handoffs = [.. overlay.ReplaceHandoffs
+              .Where(agents.ContainsKey)
+              .Where(h => _scheduledTasksEnabled || h != "scheduled_task_agent")
+              .Select(h => Handoff<TContext>.Create(
+                  agent: agents[h],
+                  enableHandoffReasoning: _enableHandoffReasoning))];
+        }
+        if (overlay.AddHandoffs != null)
+        {
+            foreach (var handoff in overlay.AddHandoffs)
+            {
+                if (agents.ContainsKey(handoff) && !agent.Handoffs.Any(h => h.AgentName == handoff))
+                {
+                    if (_scheduledTasksEnabled || handoff != "scheduled_task_agent")
+                    {
+                        agent.Handoffs.Add(Handoff<TContext>.Create(
+                            agent: agents[handoff],
+                            enableHandoffReasoning: _enableHandoffReasoning));
+                    }
+                }
+            }
+        }
+        if (overlay.RemoveHandoffs != null)
+        {
+            foreach (var handoff in overlay.RemoveHandoffs)
+            {
+                agent.Handoffs.RemoveAll(h => h.AgentName == handoff);
+            }
+        }
+    }
+
+    private void ApplyParamOverlay(Agent<TContext> agent, ParamOverlay overlay)
+    {
+        if (overlay.ModelName != null && LlmModels.LlmClients.ContainsKey(overlay.ModelName))
+        {
+            agent.ChatClient = _chatClientProvider.GetChatClient(overlay.ModelName);
+        }
+        if (overlay.ReasoningEffortLevel != null)
+        {
+            agent.ReasoningEffortLevel = overlay.ReasoningEffortLevel;
+        }
+        if (overlay.OutputType != null)
+        {
+            // check system type 'string'
+            if (overlay.OutputType == "string")
+            {
+                agent.OutputType = typeof(string);
+            }
+            else
+            {
+                var resolvedType = _assembliesToScan.SelectMany(a => a.GetTypes())
+                    .FirstOrDefault(t => t.Name == overlay.OutputType)
+                    ?? throw new InvalidOperationException(
+                        $"Output type {overlay.OutputType} not found in assemblies {string.Join(", ", _assembliesToScan.Select(a => a.GetName().Name))}.");
+            }
+        }
+    }
+
+    public IReadOnlyList<Experiment> Experiments => _experiments.AsReadOnly();
 }

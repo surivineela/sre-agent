@@ -351,10 +351,28 @@ public static class TestHelpers
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
                 commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
+                experimentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Experiments"),
                 promptStarters: [Core.Constants.SREAgentPromptStarter],
                 promptEnders: [Core.Constants.SREAgentFinalInstructions],
                 defaultOutputType: typeof(DefaultAgentOutput),
                 extensibiltyLoader: extensionLoader);
+        });
+
+        // disable experiments by default in tests, can be overridden in specific tests
+        builder.Services.AddSingleton<IVariantAssigner, DisableExperimentsVariantAssigner>();
+
+        builder.Services.AddSingleton<IAgentProvider<AgentContext>>(sp =>
+        {
+            var agentFactory = sp.GetRequiredService<IAgentFactory<AgentContext>>();
+            var variantAssigner = sp.GetRequiredService<IVariantAssigner>();
+            var logger = sp.GetRequiredService<ILogger<AgentProvider<AgentContext>>>();
+            var instanceId = Environment.GetEnvironmentVariable("AGENT_NAME") ?? Core.Constants.DefaultAgentName;
+
+            return new AgentProvider<AgentContext>(
+                factory: agentFactory,
+                variantAssigner: variantAssigner,
+                logger: logger,
+                instanceId: instanceId);
         });
 
         builder.Services.ConfigureAsyncInitializers();

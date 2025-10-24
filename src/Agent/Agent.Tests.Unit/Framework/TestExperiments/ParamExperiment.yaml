@@ -1,0 +1,12 @@
+experiment_id: param_experiment
+description: Param overlay experiment
+enabled: true
+coverage: 1.0
+variants:
+  - name: params_variant
+    split: 1.0
+    overlay:
+      agent_params:
+        - agent_names: ["*"]
+          model_name: gpt-4o
+          reasoning_effort_level: high

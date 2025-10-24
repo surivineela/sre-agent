@@ -59,6 +59,9 @@ public static class TraceAttribute
     public const string AgentTaskType = "task.type";
     public const string AgentTaskInput = "task.input";
     public const string AgentTaskStep = "task.step";
+
+    // experiments
+    public const string ExperimentVariants = "experiment.variants";
 }
 
 public static class TraceOperationName

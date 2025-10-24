@@ -1,0 +1,18 @@
+name: agent4
+
+system_prompt: |
+  You are a helpful assistant with access to helper agents.
+
+handoff_description: "Handoff to this agent for complex tasks."
+
+agents_as_tools:
+  - agent_name: agent3
+    tool_name: use_agent3_as_tool
+    tool_description: "Use agent3 to process specialized requests"
+    input_description: "The task or question for agent3"
+
+tools:
+  - TestAutoTool
+
+common_prompts:
+  - todo_write

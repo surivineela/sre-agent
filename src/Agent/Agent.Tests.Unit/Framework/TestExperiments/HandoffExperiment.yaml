@@ -1,0 +1,15 @@
+experiment_id: handoff_experiment
+description: Handoff overlay experiment
+enabled: true
+coverage: 1.0
+variants:
+  - name: handoffs_variant
+    split: 1.0
+    overlay:
+      handoffs:
+        - agent_names: ["agent1"]
+          replace_handoffs: ["agent3"]
+        - agent_names: ["agent2"]
+          remove_handoffs: ["agent1"]
+        - agent_names: ["agent3"]
+          add_handoffs: ["agent1"]

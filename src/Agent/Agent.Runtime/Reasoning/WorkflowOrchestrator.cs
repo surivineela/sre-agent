@@ -30,7 +30,7 @@ public class WorkflowOrchestrator : IDisposable
     private readonly IChatClient _chatClient;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IThreadRepository _threadRepository;
-    private readonly IAgentFactory<AgentContext> _agentFactory;
+    private readonly IAgentProvider<AgentContext> _agentProvider;
     private AgentContext _context; // made mutable to allow state transitions similar to ReasoningLoop
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly Tracer _tracer;
@@ -63,7 +63,7 @@ public class WorkflowOrchestrator : IDisposable
         IAgentOutboundCommunicationService outboundCommunicationService,
         IThreadRepository threadRepository,
         AgentContext context,
-        IAgentFactory<AgentContext> agentFactory,
+        IAgentProvider<AgentContext> agentProvider,
         IToolFactory<AgentContext> toolFactory,
     Tracer tracer,
     IncidentManagementSettings incidentManagementSettings,
@@ -75,7 +75,7 @@ public class WorkflowOrchestrator : IDisposable
         _outboundCommunicationService = outboundCommunicationService;
         _threadRepository = threadRepository;
         _context = context;
-        _agentFactory = agentFactory;
+        _agentProvider = agentProvider;
         _toolFactory = toolFactory;
         _tracer = tracer;
         _incidentManagementSettings = incidentManagementSettings;
@@ -270,7 +270,7 @@ public class WorkflowOrchestrator : IDisposable
                 return;
             }
 
-            var currentAgent = _agentFactory.GetAgent(currentAgentName);
+            var currentAgent = _agentProvider.GetAgent(currentAgentName, _context.ThreadId.ToString());
             if (currentAgent == null)
             {
                 _logger.LogInternalError($"Agent {currentAgentName} not found");
@@ -338,7 +338,7 @@ public class WorkflowOrchestrator : IDisposable
             if (!string.IsNullOrEmpty(parameterExtractionAgentName))
             {
                 _logger.LogInternalInformation($"Executing parameter extraction agent: {parameterExtractionAgentName}");
-                var parameterAgent = _agentFactory.GetAgent(parameterExtractionAgentName);
+                var parameterAgent = _agentProvider.GetAgent(parameterExtractionAgentName, _context.ThreadId.ToString());
                 var parameterResult = await ExecuteAgentWithHistory(parameterAgent, cancellationToken);
 
                 if (parameterResult != null)
@@ -685,7 +685,7 @@ public class WorkflowOrchestrator : IDisposable
             branchContext.ExecutedAgentCount++;
             branchContext.StepNumber++;
 
-            var agent = _agentFactory.GetAgent(agentName);
+            var agent = _agentProvider.GetAgent(agentName, _context.ThreadId.ToString());
             var result = await ExecuteAgentWithParameters(agent, branchContext, cancellationToken);
 
             if (result != null)

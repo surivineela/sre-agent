@@ -12,6 +12,21 @@ public class AgentAsTool<TContext> : AIFunction where TContext : class
     private readonly int _maxTurns;
     private string _inputDescription { get; }
 
+    /// <summary>
+    /// Gets the name of the target agent that this tool wraps.
+    /// </summary>
+    public string TargetAgentName => _targetAgent.Name;
+
+    /// <summary>
+    /// Gets the maximum number of turns the agent can take.
+    /// </summary>
+    public int MaxTurns => _maxTurns;
+
+    /// <summary>
+    /// Gets the description for the input parameter.
+    /// </summary>
+    public string InputDescription => _inputDescription;
+
     public RunConfig? RunConfig { get; set; }
     public RunHooks<TContext>? RunHooks { get; set; }
 

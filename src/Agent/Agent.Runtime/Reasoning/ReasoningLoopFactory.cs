@@ -20,7 +20,7 @@ namespace Agent.Runtime.Reasoning;
 public interface IReasoningLoopFactory
 {
     Task<ReasoningLoop> Create(AgentContext context);
-    Agent<AgentContext> GetAgent(string agentName);
+    Agent<AgentContext> GetAgent(string agentName, string? threadId = null);
 }
 
 public class ReasoningLoopFactory : IReasoningLoopFactory
@@ -30,7 +30,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IChatClient _chatClient;
     private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
-    private readonly IAgentFactory<AgentContext> _agentFactory;
+    private readonly IAgentProvider<AgentContext> _agentProvider;
     private readonly IAgentRuntimeModifier<AgentContext> _agentRuntimeModifier;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IThreadRepository _threadRepository;
@@ -60,7 +60,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
         IAgentOutboundCommunicationService outboundCommunicationService,
         IThreadRepository threadRepository,
-        IAgentFactory<AgentContext> agentFactory,
+        IAgentProvider<AgentContext> agentProvider,
         IToolFactory<AgentContext> toolFactory,
         AzureSettings azureSettings,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
@@ -81,7 +81,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _chatClient = chatClient;
         _embeddingGenerator = embeddingGenerator;
         _outboundCommunicationService = outboundCommunicationService;
-        _agentFactory = agentFactory;
+        _agentProvider = agentProvider;
         _agentRuntimeModifier = agentRuntimeModifier;
         _threadRepository = threadRepository;
         _toolFactory = toolFactory;
@@ -158,8 +158,9 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             context.AgentHandoffChain.Add(currentStartingAgentName);
         }
 
-        var defaultStartingAgent = _agentFactory.GetAgent(defaultStartingAgentName);
-        var currentStartingAgent = _agentFactory.GetAgent(currentStartingAgentName);
+        var threadId = context.ThreadId.ToString();
+        var defaultStartingAgent = _agentProvider.GetAgent(defaultStartingAgentName, threadId);
+        var currentStartingAgent = _agentProvider.GetAgent(currentStartingAgentName, threadId);
 
         // update thread doc with enabled features on reasoning loop creation
         await UpdateThreadFeatureConfig(context.ThreadId);
@@ -170,7 +171,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         {
             try
             {
-                var dispatchedAgent = _agentFactory.GetAgent(currentStartingAgentName);
+                var dispatchedAgent = _agentProvider.GetAgent(currentStartingAgentName, threadId);
                 _logger.LogInternalInformation($"Creating WorkflowOrchestrator for dispatched RCA agent: {currentStartingAgentName}");
 
                 // Create WorkflowOrchestrator for the dispatched orchestrator agent
@@ -180,7 +181,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     outboundCommunicationService: _outboundCommunicationService,
                     threadRepository: _threadRepository,
                     context: context,
-                    agentFactory: _agentFactory,
+                    agentProvider: _agentProvider,
                     toolFactory: _toolFactory,
                     tracer: _tracer,
                     incidentManagementSettings: _incidentManagementSettings,
@@ -203,7 +204,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     actionSettings: _actionSettings,
                     tracer: _tracer,
                     customerLogger: _customerLogger,
-                    agentFactory: _agentFactory,
+                    agentProvider: _agentProvider,
                     enableReasoningDebugOutput: _enableReasoningDebugOutput,
                     searchEndpointService: _searchEndpointService,
                     searchHelper: _searchHelper,
@@ -236,7 +237,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             actionSettings: _actionSettings,
             tracer: _tracer,
             customerLogger: _customerLogger,
-            agentFactory: _agentFactory,
+            agentProvider: _agentProvider,
             enableReasoningDebugOutput: _enableReasoningDebugOutput,
             searchEndpointService: _searchEndpointService,
             searchHelper: _searchHelper,
@@ -250,9 +251,9 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         return loop;
     }
 
-    public Agent<AgentContext> GetAgent(string agentName)
+    public Agent<AgentContext> GetAgent(string agentName, string? threadId = null)
     {
-        return _agentFactory.GetAgent(agentName);
+        return _agentProvider.GetAgent(agentName, threadId);
     }
 
     private Task UpdateThreadFeatureConfig(Guid threadId)

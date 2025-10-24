@@ -1,0 +1,18 @@
+experiment_id: perthread_experiment
+unit: PerThread
+description: Per-thread experiment applies different variants per thread
+enabled: true
+coverage: 1.0
+variants:
+  - name: variant_a
+    split: 0.5
+    overlay:
+      prompts:
+        - agent_names: ["agent1"]
+          prepend_system_prompt: "PER_THREAD_VARIANT_A"
+  - name: variant_b
+    split: 0.5
+    overlay:
+      prompts:
+        - agent_names: ["agent1"]
+          prepend_system_prompt: "PER_THREAD_VARIANT_B"
