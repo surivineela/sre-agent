@@ -2244,7 +2244,7 @@ The available tools go below:
     ]
   },
   {
-    "Name": "GetIssueInvestigationTimeRangeRCAContainerApp",
+    "Name": "GetIssueInvestigationTimeRange",
     "Description": "\r\n        Calculates the effective time range for issue investigation based on the available input parameters. \r\n        At least one of the following must be provided: issueFirstOccurrence, issueLastOccurrence, or reportedIssueObservedOnTime.\r\n        **Important:**\r\n        - Do NOT use this function if none of the input parameters are available.\r\n        ",
     "Parameters": [
       "issueFirstOccurrence",

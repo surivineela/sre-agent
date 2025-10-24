@@ -740,7 +740,7 @@ public sealed class IncidentInvestigationTaskHandler(
         {
             toolNames.AddRange(
             [
-                "GetIssueInvestigationTimeRangeRCAContainerApp",
+                "GetIssueInvestigationTimeRange",
                 "GetIncidentInfoRCAContainerApp",
                 "SearchContainerAppsResourcesByName",
                 "SearchDesignDocs",

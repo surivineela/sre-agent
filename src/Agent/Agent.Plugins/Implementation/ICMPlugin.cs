@@ -17,6 +17,12 @@ using Microsoft.AzureAd.Icm.IcmV3OData.Models;
 using Attachment = Microsoft.AzureAd.Icm.IcmV3OData.Models.Attachment;
 
 namespace Agent.Plugins.Implementation;
+
+public class InvestigationTimeRangeResult
+{
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+}
 public class ICMPlugin : IICMPlugin
 {
     private readonly IICMAPIClient _icmApiClient;
@@ -38,6 +44,49 @@ public class ICMPlugin : IICMPlugin
         _chatCompletionService = chatClient.AsChatCompletionService();
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
+    }
+
+    public InvestigationTimeRangeResult GetIssueInvestigationTimeRange(DateTime? issueFirstOccurrence, DateTime? issueLastOccurrence, DateTime? reportedIssueObservedOnTime)
+    {
+        if (issueFirstOccurrence == null && issueLastOccurrence == null && reportedIssueObservedOnTime == null)
+        {
+            throw new ArgumentException("At least one of the issueFirstOccurrence, issueLastOccurrence or reportedIssueObservedOnTime should be provided.");
+        }
+
+        var now = DateTime.UtcNow;
+
+        // If no endDate, set to now
+        DateTime endDate = (issueLastOccurrence != null && issueLastOccurrence != DateTime.MinValue) ? issueLastOccurrence.Value
+            : (reportedIssueObservedOnTime.HasValue ? reportedIssueObservedOnTime.Value.AddDays(2) : now);
+
+        // If no startDate, set to now-10d
+        DateTime startDate = (issueFirstOccurrence != null && issueFirstOccurrence != DateTime.MinValue) ? issueFirstOccurrence.Value
+            : (reportedIssueObservedOnTime.HasValue ? reportedIssueObservedOnTime.Value.AddDays(-2) : now.AddDays(-10));
+
+        // Ensure the start date is not after the end date
+        if (startDate > endDate)
+        {
+            startDate = endDate.AddDays(-10);
+        }
+
+        // If the range is greater than 1 month, adjust startDate to be 1 month before endDate
+        if ((endDate - startDate).TotalDays > 30)
+        {
+            startDate = endDate.AddMonths(-1);
+        }
+
+
+
+        // Add a 1-hour buffer before and after the time window to capture events near the start and end of the investigation period.
+        startDate = startDate.AddHours(-1);
+        endDate = endDate.AddHours(1);
+
+        _logger.LogInternalInformation($"Calculated investigation time range: StartDate={startDate}, EndDate={endDate}");
+        return new InvestigationTimeRangeResult()
+        {
+            StartDate = startDate,
+            EndDate = endDate
+        };
     }
 
     /// <summary>

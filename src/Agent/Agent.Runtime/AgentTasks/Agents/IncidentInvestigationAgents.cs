@@ -1118,7 +1118,7 @@ public static class IncidentInvestigationAgents
         The tools that the next agent will need are tools that will help do the following:
 
         1. Retrieve incident data.
-        2. Always call the `GetIssueInvestigationTimeRangeRCAContainerApp` tool to accurately determine the investigation time range after extracting the time window of the issue from the incident summary.
+        2. Always call the `GetIssueInvestigationTimeRange` tool to accurately determine the investigation time range after extracting the time window of the issue from the incident summary.
         3. Collect details about affected resources, assembling all relevant context from the incident.
         4. Search ContainerApp, ContainerAppsJob, SessionPool, Managed Environments resources mentioned in the incident summary, to verify their existence.
         """;

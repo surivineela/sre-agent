@@ -125,7 +125,7 @@
           "value": {
             "$type": "functionCall",
             "callId": "call_Vyp6zj8rYlKz1WT5PQmrjQNl",
-            "name": "GetIssueInvestigationTimeRangeRCAContainerApp",
+            "name": "GetIssueInvestigationTimeRange",
             "arguments": {
               "issueFirstOccurrence": "2025-07-02T11:00:00Z",
               "issueLastOccurrence": "2025-07-02T15:05:59Z",

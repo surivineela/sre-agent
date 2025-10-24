@@ -1,5 +1,7 @@
 using System.ComponentModel;
+using System.Globalization;
 using Agent.Core.Models;
+using Agent.Plugins.Implementation;
 using Agent.Plugins.Interface;
 using Microsoft.AzureAd.Icm.IcmV3OData.Models;
 using Microsoft.AzureAd.Icm.Types;
@@ -23,6 +25,43 @@ public class ICMPluginDefinition
         _icmPlugin = icmPlugin ?? throw new ArgumentNullException(nameof(icmPlugin));
     }
 
+    private static readonly string[] KnownFormats =
+{
+    "yyyy-MM-ddTHH:mm:ssZ",   // ISO 8601 UTC
+    "yyyy-MM-ddTHH:mm:ss",    // ISO without Z
+    "yyyy-MM-dd",             // Date only
+    "MM/dd/yyyy HH:mm:ss",
+    "MM/dd/yyyy",
+    "dd/MM/yyyy",
+    "dd-MMM-yyyy",
+};
+
+    public static bool TryParseSmart(string? input, out DateTimeOffset result)
+    {
+        // First, try general parse
+        if (DateTimeOffset.TryParse(input,
+                                    CultureInfo.InvariantCulture,
+                                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                                    out result))
+        {
+            return true;
+        }
+
+        // Then, try known patterns
+        foreach (var format in KnownFormats)
+        {
+            if (DateTimeOffset.TryParseExact(input,
+                                             format,
+                                             CultureInfo.InvariantCulture,
+                                             DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                                             out result))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     [Description("Get ICM incident details")]
     public async Task<Incident> GetIncidentInfo(
        [Description("Incident ID")] string incidentId)
@@ -30,14 +69,12 @@ public class ICMPluginDefinition
         return await _icmPlugin.GetIncidentInfo(incidentId);
     }
 
-
     [Description("Get ICM incident custom fields")]
     public async Task<List<CustomField>> GetCustomFields(
         [Description("Incident ID")] string incidentId)
     {
         return await _icmPlugin.GetCustomFields(incidentId);
     }
-
 
     [Description("Search for incidents and returns matching incidents with details like CreatedDateTime, Id, Title etc.")]
     public async Task<string> SearchIncidents(
@@ -48,20 +85,17 @@ public class ICMPluginDefinition
         return await _icmPlugin.SearchIncidents(searchString, lookbackPeriodInDays, resultCountLimit);
     }
 
-
     [Description("Get current UTC date and time")]
     public string GetCurrentUtcDateTime()
     {
         return _icmPlugin.GetCurrentUtcDateTime();
     }
 
-
     [Description("This tool identifies potential relationships between incidents. Invoke this tool whenever the user requests assistance with finding related, parent, or child incidents; especially when conditions such as time windows, title matching, or shared patterns are specified. The rules are applied internally to guide the agent's actions without being returned to the user.")]
     public string GetIcmCorrelationAndLinkingRules()
     {
         return _icmPlugin.GetIcmCorrelationAndLinkingRules();
     }
-
 
     [Description("Get Azure Alerting discussion entry")]
     public async Task<DescriptionEntry?> GetAlertingDiscussionEntry(
@@ -70,14 +104,12 @@ public class ICMPluginDefinition
         return await _icmPlugin.GetAlertingDiscussionEntry(incidentId);
     }
 
-
     [Description("Get ICM discussion entries")]
     public async Task<List<DescriptionEntry>> GetDiscussionEntries(
         [Description("Incident ID")] string incidentId)
     {
         return await _icmPlugin.GetDiscussionEntries(incidentId);
     }
-
 
     [Description("Transfer ICM incident")]
     public async Task<string> TransferIncident(
@@ -89,7 +121,6 @@ public class ICMPluginDefinition
         return await _icmPlugin.TransferIncident(incidentId, discussionEntry, tenantName, owningTeam);
     }
 
-
     [Description("Mitigate ICM incident")]
     public async Task<string> MitigateIncident(
        [Description("Incident ID")] string incidentId,
@@ -97,7 +128,6 @@ public class ICMPluginDefinition
     {
         return await _icmPlugin.MitigateIncident(incidentId, discussionEntry);
     }
-
 
     [Description("Downgrade severity of ICM incident 2 to 3")]
     public async Task<string> DowngradeSeverity(
@@ -117,7 +147,6 @@ public class ICMPluginDefinition
         return await _icmPlugin.UpdateIncidentSeverity(incidentId, severity, discussionEntry);
     }
 
-
     [Description("Resolve ICM incident")]
     public async Task<string> ResolveIncident(
            [Description("Incident ID")] string incidentId,
@@ -125,7 +154,6 @@ public class ICMPluginDefinition
     {
         return await _icmPlugin.ResolveIncident(incidentId, discussionEntry);
     }
-
 
     [Description("Post ICM discussion entry")]
     public async Task<string> PostDiscussionEntry(
@@ -135,7 +163,6 @@ public class ICMPluginDefinition
         return await _icmPlugin.PostDiscussionEntry(incidentId, discussionEntry);
     }
 
-
     [Description("Add a tag to an ICM incident")]
     public async Task<string> AddTagToIncident(
         [Description("Id of the incident")] string incidentId,
@@ -143,7 +170,6 @@ public class ICMPluginDefinition
     {
         return await _icmPlugin.AddTagToIncident(incidentId, tag);
     }
-
 
     [Description("Add a keyword to an ICM incident")]
     public async Task<string> AddKeywordToIncident(
@@ -160,7 +186,6 @@ public class ICMPluginDefinition
         return await _icmPlugin.AcknowledgeIncident(incidentId);
     }
 
-
     [Description("Get repair items associated with an ICM incident")]
     public async Task<List<ExternalLink>> GetIncidentRepairItems(
         [Description("Incident ID")] long incidentId)
@@ -168,14 +193,12 @@ public class ICMPluginDefinition
         return await _icmPlugin.GetIncidentRepairItems(incidentId);
     }
 
-
     [Description("​Gets basic info for all the linked incidents maked as related and associated with the given incident id")]
     public async Task<List<string>> GetLinkedRelatedIncidentInfo(
         [Description("Incident ID used to fetch and return basic information about the related incidents associated with it.")] long incidentId)
     {
         return await _icmPlugin.GetLinkedRelatedIncidentInfo(incidentId);
     }
-
 
     [Description("Adds a related incident link to the given incident id")]
     public async Task<string> AddRelatedIncidentLink(
@@ -185,7 +208,6 @@ public class ICMPluginDefinition
         return await _icmPlugin.AddRelatedIncidentLink(incidentId, relatedIncidentId);
     }
 
-
     [Description("Removes a related incident link from the given incident id")]
     public async Task<string> RemoveRelatedIncidentLink(
         [Description("Incident ID to remove the related incident from")] long incidentId,
@@ -194,14 +216,12 @@ public class ICMPluginDefinition
         return await _icmPlugin.RemoveRelatedIncidentLink(incidentId, relatedIncidentId);
     }
 
-
     [Description("​Gets basic info of the parent incident associated with the given incident id")]
     public async Task<string> GetParentIncidentInfo(
         [Description("Incident ID used to fetch and return basic information about the parent incident ID associated with it.")] long incidentId)
     {
         return await _icmPlugin.GetParentIncidentInfo(incidentId);
     }
-
 
     [Description("Adds a parent incident link to the given incident id")]
     public async Task<string> AddParentIncidentLink(
@@ -211,14 +231,12 @@ public class ICMPluginDefinition
         return await _icmPlugin.AddParentIncidentLink(incidentId, parentIncidentId);
     }
 
-
     [Description("Removes a parent incident link from the given incident id")]
     public async Task<string> RemoveParentIncidentLink(
         [Description("Incident ID to remove the parent from")] long incidentId)
     {
         return await _icmPlugin.RemoveParentIncidentLink(incidentId);
     }
-
 
     [Description("​Gets basic info for all the child incidents associated with the given incident id")]
     public async Task<List<string>> GetChildIncidentsInfo(
@@ -242,6 +260,31 @@ public class ICMPluginDefinition
         [Description("String content to attach as a file")] string content)
     {
         return await _icmPlugin.AddIncidentAttachmentFromContent(incidentId, fileName, content);
+    }
+
+    [Description(@"""
+        Purpose:
+        Calculates the effective time range for issue investigation based on available timestamps.
+
+        Scenario:
+        Use this tool to determine the investigation window for an incident when at least one relevant timestamp is available.
+
+        Output:
+        Returns a JSON object with two fields:
+        - StartDate (string): ISO 8601 timestamp of investigation start
+        - EndDate (string): ISO 8601 timestamp of investigation end
+        """
+        )]
+    public InvestigationTimeRangeResult GetIssueInvestigationTimeRange(
+            [Description("ISO 8601 string for the first occurrence of the issue, or leave null if not available.")] string? issueFirstOccurrence,
+            [Description("ISO 8601 string for the last occurrence of the issue, or leave null if not available.")] string? issueLastOccurrence,
+            [Description("ISO 8601 string for when the issue was observed and reported, or leave null if not available.")] string? reportedIssueObservedOnTime)
+    {
+        TryParseSmart(issueFirstOccurrence, out var issueFirstOccurrenceDate);
+        TryParseSmart(issueLastOccurrence, out var issueLastOccurrenceDate);
+        TryParseSmart(reportedIssueObservedOnTime, out var reportedIssueObservedOnTimeDate);
+
+        return _icmPlugin.GetIssueInvestigationTimeRange(issueFirstOccurrenceDate.DateTime, issueLastOccurrenceDate.DateTime, reportedIssueObservedOnTimeDate.DateTime);
     }
 
     [Description("List all attachments for an ICM incident")]
