@@ -3,7 +3,7 @@ name: E2E Container Tests
 on:
   pull_request:
     branches:
-      - '**'
+      - main
   workflow_dispatch: {}
 
 permissions:
@@ -28,6 +28,7 @@ env:
   AZURE_CLIENT_ID: ${{ vars.CFS_CLIENT_ID }}
   AZURE_SUBSCRIPTION_ID: be8d491e-109c-4ee1-aaee-dc7615af0a42
   OIDC_REFRESH_ENABLED: 'true'
+  FAILED_ON_TEST_FAILURE: 'true' # When a hotfix is urgently required, configure the setting to 'false' to bypass test failures temporarily.
 
 jobs:
   run-e2e:
@@ -220,7 +221,7 @@ jobs:
           retention-days: 14
 
       - name: ❌ Fail if tests failed
-        if: steps.run.outcome == 'failure'
+        if: ${{ steps.run.outcome == 'failure' && env.FAILED_ON_TEST_FAILURE == 'true' }}
         run: |
           echo "E2E container tests failed" >&2
           exit 1
