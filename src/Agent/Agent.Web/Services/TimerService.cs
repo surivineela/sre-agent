@@ -506,7 +506,7 @@ public class TimerService : IHostedService, IDisposable
             if (!_dashboardImportedOnce)
             {
                 _logger.LogInternalInformation("DailyReportTimer: Dashboard not imported yet, try to import it first.");
-                var dashboardUrl = await _dailyReportScanner.TryToImportDashboards();
+                var dashboardUrl = await _dailyReportScanner.TryToImportDashboards(cancellationToken);
                 _dashboardImportedOnce = true;
                 _logger.LogInternalInformation("DailyReportTimer: Dashboard imported: {dashboardUrl}", dashboardUrl);
             }

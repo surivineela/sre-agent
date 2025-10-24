@@ -69,6 +69,8 @@ const GrafanaDashboard: FC = () => {
         onCreateGrafanaDashboard,
     } = useGrafanaDashboard(environmentContext.resourceId, environmentContext.userInfo?.objectId);
 
+    const grafanaDashboardsUrl = grafanaEndpoint ? `${grafanaEndpoint.replace(/\/+$/, '')}/dashboards` : '';
+
     return (
         <div className={styles.container}>
             <div className={styles.titleGrafanaDashboardHeader}>{intl.formatMessage(SettingsTabResources.grafanaDashboard)}</div>
@@ -96,8 +98,8 @@ const GrafanaDashboard: FC = () => {
                         orientation="horizontal"
                         className={styles.displayFieldLabel}
                     >
-                        <Link href={grafanaEndpoint} target="_blank" className={styles.grafanaUrlLinkContainer}>
-                            {grafanaEndpoint}
+                        <Link href={grafanaDashboardsUrl} target="_blank" className={styles.grafanaUrlLinkContainer}>
+                            {grafanaDashboardsUrl}
                         </Link>
                     </Field>
                 </div>

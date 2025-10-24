@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -159,7 +160,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             {
                 try
                 {
-                    mainDashboardUrl = await TryToImportDashboards();
+                    mainDashboardUrl = await TryToImportDashboards(cancellationToken);
                     dashboardSummary = await CaptureAndSummarizeDashboardsAsync(mainDashboardUrl);
                 }
                 catch (Exception ex)
@@ -225,7 +226,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         }
 
         // Returns main dashboard url
-        public async Task<string?> TryToImportDashboards()
+        public async Task<string?> TryToImportDashboards(CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(_grafanaUrl))
             {
@@ -236,15 +237,15 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             {
                 string uid = await SetupPrometheusDataSourceAsync(_grafanaUrl, _prometheusUrl, _dataSourceName);
                 _logger.LogInternalInformation("data source {uid} already setup", uid);
-                var (dashboardUrl, dashboardUid) = await CreateAndPublishDashboard(uid);
+                var (dashboardUrl, dashboardUid) = await CreateAndPublishDashboard(uid, cancellationToken);
                 _logger.LogInternalInformation("Main dashboard {uid} imported. Url {url}", dashboardUid, dashboardUrl);
 
                 // Activate predefined Azure Monitor dashboards
-                await ActivateAzureMonitorDashboards();
+                await ActivateAzureMonitorDashboards(cancellationToken);
                 _logger.LogInternalInformation("Azure monitor dashboards imported");
 
                 // Activate predefined customized dashboards (except the main dashboard)
-                await ActivateCustomizedDashboards([_mainDashboardFilePath]);
+                await ActivateCustomizedDashboards([_mainDashboardFilePath], cancellationToken);
                 _logger.LogInternalInformation("Customized dashboards imported");
                 return dashboardUrl;
             }
@@ -431,6 +432,11 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
 
             return new ScreenshotResponse() { Screenshot = string.Empty };
+        }
+
+        private async Task<string> GetAccessTokenForGrafana()
+        {
+            return await _authenticationService.GetGrafanaAccessToken();
         }
 
         private string? GetParameterizedDashboardUrl(string dashboardUrl, ArmResourceNode armResourceNode)
@@ -864,7 +870,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
         }
 
-        private async Task<(string?, string?)> CreateAndPublishDashboard(string dataSourceUid)
+        private async Task<(string?, string?)> CreateAndPublishDashboard(string dataSourceUid, CancellationToken cancellationToken)
         {
             try
             {
@@ -881,7 +887,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                 // string dateFormatted = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
                 dashboardJson = dashboardJson.Replace("\"title\": \"SRE Azure Resource Overview\"",
-                    $"\"title\": \"{AgentNameHelper.GetMainDashboardTitle(_hostEnvironment.IsProduction())}\"");
+                    $"\"title\": \"{AgentNameHelper.GetCustomerAgentName(_hostEnvironment.IsProduction())} - Azure Resource Overview\"");
+
+                // Ensure SRE folder exists (create if missing) and get its UID
+                var (folderUid, folderId) = await EnsureSreFolderAsync(cancellationToken);
 
                 // Get access token for Azure Managed Grafana
                 var token = await GetAccessTokenForGrafana();
@@ -893,10 +902,11 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     PluginId = "prometheus",
                     Value = _dataSourceName,
                 };
-                // Publish dashboard directly to Azure Managed Grafana
-                var dashboardUid = await PublishDashboardToManagedGrafana(dashboardJson, token, [input]);
 
-                _logger.LogInternalInformation("Successfully published dashboard with UID: {DashboardUid}", dashboardUid);
+                // Publish dashboard to the Azure SRE Agent folder
+                var dashboardUid = await PublishDashboardToManagedGrafana(dashboardJson, token, new[] { input }, folderUid, folderId);
+
+                _logger.LogInternalInformation("Successfully published dashboard with UID: {DashboardUid} in SRE folder (uid={FolderUid})", dashboardUid, folderUid);
                 string dashboardUrl = $"{_grafanaUrl}/d/{dashboardUid}";
 
                 return (dashboardUrl, dashboardUid);
@@ -908,30 +918,120 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
         }
 
-        private async Task<string> GetAccessTokenForGrafana()
+        private async Task<(string? folderUid, int? folderId)> EnsureSreFolderAsync(CancellationToken cancellationToken)
         {
-            return await _authenticationService.GetGrafanaAccessToken();
+            const string folderTitle = "Azure SRE Agent";
+            const int maxAttempts = 3;
+            int attempt = 0;
+
+            // Early cancellation check
+            cancellationToken.ThrowIfCancellationRequested();
+
+            while (attempt < maxAttempts)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                attempt++;
+                try
+                {
+                    var token = await GetAccessTokenForGrafana(); // (No CT overload available)
+
+                    _httpClient.DefaultRequestHeaders.Clear();
+                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
+                    // 1. Search for existing folder
+                    var searchResponse = await _httpClient.GetAsync(
+                        $"{_grafanaUrl}/api/search?type=dash-folder&query={Uri.EscapeDataString(folderTitle)}",
+                        cancellationToken);
+
+                    if (searchResponse.IsSuccessStatusCode)
+                    {
+                        var json = await searchResponse.Content.ReadAsStringAsync(cancellationToken);
+                        var arr = JsonSerializer.Deserialize<JsonElement>(json);
+                        if (arr.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var item in arr.EnumerateArray())
+                            {
+                                if (item.TryGetProperty("title", out var titleEl) &&
+                                    string.Equals(titleEl.GetString(), folderTitle, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    string? existingUid = item.TryGetProperty("uid", out var uidEl) ? uidEl.GetString() : null;
+                                    int? existingId = item.TryGetProperty("id", out var idEl) ? idEl.GetInt32() : null;
+                                    if (!string.IsNullOrEmpty(existingUid))
+                                    {
+                                        if (attempt > 1)
+                                        {
+                                            _logger.LogInternalInformation("SRE folder found after retry attempt {Attempt}", attempt);
+                                        }
+                                        return (existingUid, existingId);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // 2. Not found -> attempt create
+                    var createPayload = new { title = folderTitle };
+                    var createContent = new StringContent(JsonSerializer.Serialize(createPayload), Encoding.UTF8, "application/json");
+                    var createResponse = await _httpClient.PostAsync(
+                        $"{_grafanaUrl}/api/folders",
+                        createContent,
+                        cancellationToken);
+
+                    if (createResponse.IsSuccessStatusCode)
+                    {
+                        var createJson = await createResponse.Content.ReadAsStringAsync(cancellationToken);
+                        var obj = JsonSerializer.Deserialize<JsonElement>(createJson);
+                        string? uid = obj.TryGetProperty("uid", out var uidEl2) ? uidEl2.GetString() : null;
+                        int? id = obj.TryGetProperty("id", out var idEl2) ? idEl2.GetInt32() : null;
+                        _logger.LogInternalInformation("Created SRE folder (attempt {Attempt}) uid={Uid} id={Id}", attempt, uid, id);
+                        return (uid, id);
+                    }
+
+                    if (createResponse.StatusCode == System.Net.HttpStatusCode.Conflict)
+                    {
+                        _logger.LogInternalInformation("SRE folder creation returned 409 Conflict (attempt {Attempt}/{MaxAttempts}). Retrying search.", attempt, maxAttempts);
+                        await Task.Delay(TimeSpan.FromMilliseconds(150 * attempt), cancellationToken);
+                        continue;
+                    }
+
+                    var err = await createResponse.Content.ReadAsStringAsync(cancellationToken);
+                    _logger.LogInternalWarning("Attempt {Attempt}/{MaxAttempts} failed to create SRE folder: {Status} {Error}", attempt, maxAttempts, createResponse.StatusCode, err);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInternalInformation("EnsureSreFolderAsync canceled at attempt {Attempt}", attempt);
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning("Attempt {Attempt}/{MaxAttempts} exception ensuring SRE folder: {Message}", attempt, maxAttempts, ex.Message);
+                    await Task.Delay(TimeSpan.FromMilliseconds(150 * attempt), cancellationToken);
+                }
+            }
+
+            _logger.LogInternalWarning("Exceeded maximum attempts ({MaxAttempts}) ensuring SRE folder.", maxAttempts);
+            return (null, null);
         }
 
-        private async Task<string> PublishDashboardToManagedGrafana(string dashboardJson, string accessToken, DashboardInput[] inputs)
+        private async Task<string> PublishDashboardToManagedGrafana(string dashboardJson, string accessToken, DashboardInput[] dashboardInputs, string? agentFolderUid = null, int? agentFolderId = null)
         {
             var dashboardObject = JsonSerializer.Deserialize<JsonElement>(dashboardJson);
 
-            // Prepare the dashboard import request
-            var importRequest = new
+            // Build the import request with either agentFolderUid or agentFolderId (Grafana accepts either)
+            object importRequest = new
             {
                 dashboard = dashboardObject,
                 overwrite = true,
-                folderId = 0,
-                inputs = inputs,
+                folderUid = agentFolderUid,
+                folderId = !string.IsNullOrEmpty(agentFolderUid) ? null : agentFolderId ?? (int?)0,
+                inputs = dashboardInputs,
             };
 
             var requestJson = JsonSerializer.Serialize(importRequest);
             var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-            var token = await GetAccessTokenForGrafana();
             _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
 
             var response = await _httpClient.PostAsync($"{_grafanaUrl}/api/dashboards/db", content);
             if (!response.IsSuccessStatusCode)
@@ -952,7 +1052,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             throw new Exception("Failed to get dashboard UID from response");
         }
 
-        private async Task ActivateAzureMonitorDashboards()
+        private async Task ActivateAzureMonitorDashboards(CancellationToken cancellationToken)
         {
             try
             {
@@ -995,6 +1095,17 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     }
                 }
 
+                if (dashboardMap.Count == 0)
+                {
+                    _logger.LogInternalInformation("No new Azure Monitor dashboards available for import");
+                    return;
+                }
+
+                _logger.LogInternalInformation("Prepared {Count} dashboards available for import", dashboardMap.Count);
+
+                // Ensure folder before import
+                var (agentFolderUid, agentFolderId) = await EnsureSreFolderAsync(cancellationToken);
+
                 // Activate each dashboard in our list
                 foreach (var dashboardTitle in _dashboardsToActivate)
                 {
@@ -1020,12 +1131,15 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                     try
                     {
+
                         // Create the import request exactly matching the format in your trace
                         var importRequest = new
                         {
                             pluginId = "grafana-azure-monitor-datasource",
                             path = dashboardPath,
                             overwrite = true,
+                            folderUid = agentFolderUid,
+                            folderId = !string.IsNullOrEmpty(agentFolderUid) ? null : agentFolderId ?? (int?)0,
                             inputs = new[]
                             {
                                 new
@@ -1062,17 +1176,25 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
         }
 
-        private async Task ActivateCustomizedDashboards(IList<string> excludes)
+        private async Task ActivateCustomizedDashboards(IList<string> excludes, CancellationToken cancellationToken)
         {
             var dashboards = Directory.GetFiles(_dashboardsDirectory, "*.json").Except(excludes);
 
-            var accessToken = await GetAccessTokenForGrafana();
-            foreach (var dashboard in dashboards)
+            try
             {
-                var dashboardJson = File.ReadAllText(dashboard);
-                dashboardJson = dashboardJson.Replace("\"datasource\": \"KnowledgeGraph\"", $"\"datasource\": \"{_dataSourceName}\"");
-                await PublishDashboardToManagedGrafana(dashboardJson, accessToken, []);
-                _logger.LogInternalInformation("Successfully published customized dashboard: {DashboardName}", Path.GetFileName(dashboard));
+                var accessToken = await GetAccessTokenForGrafana();
+                var (folderUid, folderId) = await EnsureSreFolderAsync(cancellationToken);
+                foreach (var dashboard in dashboards)
+                {
+                    var dashboardJson = File.ReadAllText(dashboard);
+                    dashboardJson = dashboardJson.Replace("\"datasource\": \"KnowledgeGraph\"", $"\"datasource\": \"{_dataSourceName}\"");
+                    await PublishDashboardToManagedGrafana(dashboardJson, accessToken, Array.Empty<DashboardInput>(), folderUid, folderId);
+                    _logger.LogInternalInformation("Successfully published customized dashboard: {DashboardName}", Path.GetFileName(dashboard));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error activating customize dashboards {Message}", ex.Message);
             }
         }
 
