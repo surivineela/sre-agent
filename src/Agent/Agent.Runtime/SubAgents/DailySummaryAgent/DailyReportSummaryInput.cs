@@ -2,10 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models.Api.v1;
+using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Newtonsoft.Json;
-using System.ComponentModel;
 
 namespace Agent.Runtime.SubAgents.DailyReportSummary
 {
@@ -19,6 +18,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         public CVESummary? CVESummary { get; set; } = null;
         public IncidentSummary? IncidentsSummary { get; set; } = null;
         public List<AppGroupResourceSummary>? AppGroupResourceSummary { get; set; } = null;
+        public CodeOptimizationsSummary? CodeOptimizationsSummary { get; set; } = null;
         public RecommendedActionsAndObservations? RecommendedActionsAndObservations { get; set; } = null;
     }
 
@@ -61,6 +61,30 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         public string Name { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
         public AppHealthInfo? AppHealthInfo { get; set; } = null;
+    }
+
+    public class CodeOptimizationsSummary
+    {
+        public int TotalRecommendations { get; set; }
+        public int CpuRecommendations { get; set; }
+        public int MemoryRecommendations { get; set; }
+        public int BlockingRecommendations { get; set; }
+        public List<ResourceGroupCodeInsights> ResourceGroups { get; set; } = new();
+    }
+
+    public class ResourceGroupCodeInsights
+    {
+        public string SubscriptionId { get; set; } = string.Empty;
+        public string ResourceGroupName { get; set; } = string.Empty;
+        public List<AppCodeInsights> Apps { get; set; } = new();
+    }
+
+    public class AppCodeInsights
+    {
+        public string ResourceId { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public List<InsightsRecommendationContract> Insights { get; set; } = new();
     }
 
     public class IncidentSummary

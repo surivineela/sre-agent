@@ -1681,6 +1681,12 @@
       "value": "These incidents match your filter criteria. If an incident is missing, go back to the previous step and modify the filter parameters."
     }
   ],
+  "6Lox/s": [
+    {
+      "type": 0,
+      "value": "recommendations"
+    }
+  ],
   "6OBtew": [
     {
       "type": 0,
@@ -1787,6 +1793,12 @@
     {
       "type": 0,
       "value": "New Azure Monitor Alert Detected"
+    }
+  ],
+  "6uXK2h": [
+    {
+      "type": 0,
+      "value": "CPU"
     }
   ],
   "6umiRw": [
@@ -2935,44 +2947,6 @@
     {
       "type": 0,
       "value": "Custom instructions"
-    }
-   ],
-  "DDSwQB": [
-    {
-      "type": 1,
-      "value": "actionVerb"
-    },
-    {
-      "type": 0,
-      "value": " "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " "
-    },
-    {
-      "type": 1,
-      "value": "itemType"
-    },
-    {
-      "type": 0,
-      "value": "s?"
-    }
-  ],
-  "DJN+DZ": [
-    {
-      "type": 0,
-      "value": "Choose whether to run deep investigations alongside regular investigations"
-    }
-  ],
-  "DMEE1o": [
-    {
-      "type": 0,
-      "value": "Select a tool to connect"
     }
   ],
   "DMd1Ql": [
@@ -4615,6 +4589,12 @@
       "value": "Incidents not handled by response plan criteria"
     }
   ],
+  "MJ2jZQ": [
+    {
+      "type": 0,
+      "value": "Total insights"
+    }
+  ],
   "MJUuF5": [
     {
       "type": 0,
@@ -5453,6 +5433,12 @@
     {
       "type": 0,
       "value": "Edit annotation"
+    }
+  ],
+  "QgBuiV": [
+    {
+      "type": 0,
+      "value": "CPU usage insights"
     }
   ],
   "QgFHei": [
@@ -6630,10 +6616,24 @@
       "value": "The name must begin with a letter, end with a letter or number, and contain only letters, numbers, and hyphens. It must be 2 to 23 characters long."
     }
   ],
+  "Wv5vPo": [
+    {
+      "type": 0,
+      "value": "Code optimization insights"
+    }
+  ],
   "WygVDv": [
     {
       "type": 0,
-      "value": "Administer HDInsight cluster pools."
+      "value": "Ready to start a new chat with extended agent “"
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "”. Your next message will launch it."
     }
   ],
   "WzNnqa": [
@@ -8196,6 +8196,12 @@
       "value": "Cognitive Services Speech Contributor"
     }
   ],
+  "fHE7i7": [
+    {
+      "type": 0,
+      "value": "Code optimizations"
+    }
+  ],
   "fIQSsD": [
     {
       "type": 0,
@@ -8968,6 +8974,12 @@
       "value": "Setup complete"
     }
   ],
+  "jPm39S": [
+    {
+      "type": 0,
+      "value": "Blocking usage insights"
+    }
+  ],
   "jRtus7": [
     {
       "type": 0,
@@ -9142,6 +9154,12 @@
       "value": "Provisioning of your Grafana dashboard is in progress."
     }
   ],
+  "kXyCO1": [
+    {
+      "type": 0,
+      "value": "Code optimizations"
+    }
+  ],
   "kX8T8H": [
     {
       "type": 0,
@@ -9232,16 +9250,16 @@
       "value": "error"
     }
   ],
-  "ks97gc": [
+  "ku+mDU": [
     {
       "type": 0,
       "value": "Use an existing trigger configuration"
     }
   ],
-  "ku+mDU": [
+  "kzEo9q": [
     {
       "type": 0,
-      "value": "State"
+      "value": "Issue"
     }
   ],
   "l0TtPi": [
@@ -9362,6 +9380,12 @@
       "value": "Region"
     }
   ],
+  "lsQw8x": [
+    {
+      "type": 0,
+      "value": "Total"
+    }
+  ],
   "lni1id": [
     {
       "type": 0,
@@ -9442,6 +9466,12 @@
       "value": "Detailed multi-line instructions. Provide: goal, context/resources, constraints, success criteria."
     }
   ],
+  "mJQX1P": [
+    {
+      "type": 0,
+      "value": "Type"
+    }
+  ],
   "mGh+K0": [
     {
       "type": 0,
@@ -9470,6 +9500,12 @@
     {
       "type": 0,
       "value": "Start"
+    }
+  ],
+  "mV1r8W": [
+    {
+      "type": 0,
+      "value": "Impact"
     }
   ],
   "mRJIzw": [
@@ -9754,6 +9790,12 @@
     {
       "type": 0,
       "value": "Cron expression is required"
+    }
+  ],
+  "newId1": [
+    {
+      "type": 0,
+      "value": "No code optimization recommendations detected."
     }
   ],
   "nUT0Lv": [
@@ -10680,6 +10722,12 @@
       "value": "Test incident response"
     }
   ],
+  "ryAzxy": [
+    {
+      "type": 0,
+      "value": "Performance Issue"
+    }
+  ],
   "rxcQLa": [
     {
       "type": 0,
@@ -11178,6 +11226,12 @@
     {
       "type": 0,
       "value": "\" has been created successfully"
+    }
+  ],
+  "tghh4t": [
+    {
+      "type": 0,
+      "value": "Blocking"
     }
   ],
   "thOyk5": [
@@ -12050,7 +12104,7 @@
       "value": "Core application group type"
     }
   ],
-  "ysBuRt": [
+  "yzfsFI": [
     {
       "type": 0,
       "value": "Failed to create default incident response plan. Error: "
@@ -12066,22 +12120,10 @@
       "value": "Saved incident management configuration"
     }
   ],
-  "yza567": [
+  "z8Yk7H": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all files."
-    }
-  ],
-  "yzfsFI": [
-    {
-      "type": 0,
-      "value": "Short one-line summary (<=140 chars)"
-    }
-  ],
-  "z5cF/O": [
-    {
-      "type": 0,
-      "value": "Description must be a single line summary."
+      "value": "recommendations"
     }
   ],
   "z8ZYoc": [

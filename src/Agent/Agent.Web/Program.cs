@@ -533,6 +533,9 @@ public class Program
             .AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>()
             .AddSingleton<IReasoningLoopManager, ReasoningLoopManager>()
             .AddSingleton<ISearchPlugin, SearchPlugin>()
+            // Code Optimizations plugin
+            .AddTransient<ICodeOptimizationsPlugin, CodeOptimizationsPlugin>()
+            .AddTransient<CodeOptimizationsPluginDefinition>()
             .AddSingleton<SearchHelper>()
             .AddSingleton<ISearchIndexingClient, SearchIndexingClient>()
             .AddSingleton<OneBranchApprovalService>()

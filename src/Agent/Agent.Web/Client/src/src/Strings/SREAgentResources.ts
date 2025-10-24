@@ -2036,6 +2036,8 @@ export const DailyReportResources = defineMessages({
     repositoryInsights: { defaultMessage: 'Repository insights', id: 'oY4j0R' },
     incidentsSummary: { defaultMessage: 'Incidents summary', id: 'zpkKsD' },
     coreAppGroupHealthPerformance: { defaultMessage: 'Core application group health + performance', id: 'SPdP4q' },
+    codeOptimizations: { defaultMessage: 'Code optimizations', id: 'fHE7i7' },
+    codeOptimizationInsights: { defaultMessage: 'Code optimization insights', id: 'DF0TNm' },
 
     // Severity levels
     critical: { defaultMessage: 'Critical', id: '2pzTGC' },
@@ -2063,6 +2065,19 @@ export const DailyReportResources = defineMessages({
     availability: { defaultMessage: 'Availability', id: 'hOxIeP' },
     cpuUsage: { defaultMessage: 'CPU usage', id: '+DBMRK' },
     memory: { defaultMessage: 'Memory', id: 'dVx3yz' },
+
+    // Code Optimizations metrics
+    codeOptimizationsCpu: { defaultMessage: 'CPU usage insights', id: 'FGP0Kd' },
+    codeOptimizationsMemory: { defaultMessage: 'Memory usage insights', id: 'vB/Cv7' },
+    codeOptimizationsBlocking: { defaultMessage: 'Blocking usage insights', id: 'vsQnBO' },
+    codeOptimizationsTotal: { defaultMessage: 'Total insights', id: '0pysPM' },
+    codeOptimizationsRecommendations: { defaultMessage: 'recommendations', id: '6Lox/s' },
+    codeOptimizationsType: { defaultMessage: 'Type', id: '+U6ozc' },
+    codeOptimizationsImpactValue: { defaultMessage: 'Peak Usage', id: 'V4yeoh' },
+    codeOptimizationsIssue: { defaultMessage: 'Performance Issue', id: 'oQJEFn' },
+    codeOptimizationsNoRecommendationsMessage: { defaultMessage: 'No code optimization recommendations detected.', id: 'HFuyFh' },
+    codeOptimizationsLearnMore: { defaultMessage: 'Learn more about code optimizations', id: 'txLniB' },
+    codeOptimizationsGetMoreDetails: { defaultMessage: 'Get more details about these insights', id: 'uva2Xo' },
 
     // App group resource info
     coreAppGroupResourceName: { defaultMessage: 'Core application group resource name', id: 'ibf4+R' },

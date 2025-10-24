@@ -3138,6 +3138,71 @@ public class ArmHelper
         }
     }
 
+    public async Task<IEnumerable<AggregatedInsightsContract>> GetCodeOptimizationsInsightsAsync(string appId, string roleName)
+    {
+        try
+        {
+            // Build the insights endpoint covering the last 24 hours
+            var endTimeUtc = DateTime.UtcNow;
+            var startTimeUtc = endTimeUtc.AddHours(-24);
+            var endpoint = $"https://dataplane.diagnosticservices.azure.com/api/apps/{appId}/insights/rollups?role={roleName}&api-version=2023-11-09&startTime={Uri.EscapeDataString(startTimeUtc.ToString("o"))}&endTime={Uri.EscapeDataString(endTimeUtc.ToString("o"))}";
+            var jsonResponse = await GetCodeOptimizationsInsightsInternalAsync(endpoint);
+
+            if (string.IsNullOrWhiteSpace(jsonResponse))
+            {
+                return [];
+            }
+
+            var trimmed = jsonResponse.TrimStart();
+            List<AggregatedInsightsContract> results;
+            try
+            {
+                results = JsonSerializer.Deserialize<List<AggregatedInsightsContract>>(jsonResponse) ?? new List<AggregatedInsightsContract>();
+            }
+            catch (JsonException jex)
+            {
+                _logger.LogInternalWarning($"Failed to deserialize Code Optimizations response: {jex.Message}");
+                throw new InvalidOperationException("Invalid Code Optimizations response format.", jex);
+            }
+            return results;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("An error occurred while executing the code optimizations query.", ex);
+        }
+    }
+
+    private async Task<string> GetCodeOptimizationsInsightsInternalAsync(string url)
+    {
+        try
+        {
+            var httpClient = _httpClientFactory.CreateClient();
+            var cred = _authService.GetDiagnosticServiceCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "api://dataplane.diagnosticservices.azure.com" }), CancellationToken.None);
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            var response = await httpClient.GetAsync(url);
+
+            var body = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                return body;
+            }
+
+            _logger.LogInternalWarning($"Failed to query Code Optimizations (GET) Status={response.StatusCode}");
+            if (CheckForUnauthorizedAccess(response))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to Code Optimizations resource {url}");
+            }
+            throw new InvalidOperationException($"FAILED! Querying {url} Failed: Status {response.StatusCode}, Message: {body}");
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
     private async Task<string> ExecuteAppInsightsQueryInternal(string url, string queryString, string? timeSpan, bool formatAsTsv)
     {
         try
@@ -3185,6 +3250,69 @@ public class ArmHelper
             throw;
         }
     }
+
+    /// <summary>
+    /// Calls the dataplane diagnosticservices bulk insights rollups API and returns the results.
+    /// </summary>
+    /// <param name="bulkRequest">List of objects with appId and roleName</param>
+    /// <param name="startTime">Start time (UTC)</param>
+    /// <param name="endTime">End time (UTC)</param>
+    /// <returns>List of BulkAggregatedInsightsResult</returns>
+    public async Task<IEnumerable<AggregatedInsightsContract>> GetCodeOptimizationsInsightsBulkAsync(
+        BulkInsightsPostBodyContract bulkRequest,
+        DateTime startTime,
+        DateTime endTime)
+    {
+        var url = $"https://dataplane.diagnosticservices.azure.com/api/apps/bulk/insights/rollups?api-version=2025-01-07-preview&startTime={Uri.EscapeDataString(startTime.ToString("o"))}&endTime={Uri.EscapeDataString(endTime.ToString("o"))}";
+        var responseJson = await GetCodeOptimizationsInsightsBulkInternalAsync(url, bulkRequest);
+        if (string.IsNullOrWhiteSpace(responseJson))
+        {
+            return new List<AggregatedInsightsContract>();
+        }
+        try
+        {
+            return JsonSerializer.Deserialize<List<AggregatedInsightsContract>>(responseJson) ?? new List<AggregatedInsightsContract>();
+
+        }
+        catch (JsonException jex)
+        {
+            _logger.LogInternalWarning($"Failed to deserialize bulk code optimizations insights: {jex.Message}");
+            return new List<AggregatedInsightsContract>();
+        }
+    }
+
+    private async Task<string> GetCodeOptimizationsInsightsBulkInternalAsync(string url, BulkInsightsPostBodyContract bulkRequest)
+    {
+        try
+        {
+            var httpClient = _httpClientFactory.CreateClient();
+            var cred = _authService.GetDiagnosticServiceCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "api://dataplane.diagnosticservices.azure.com" }), CancellationToken.None);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            var requestBody = JsonSerializer.Serialize(bulkRequest);
+            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+            var response = await httpClient.SendAsync(request);
+            var body = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                return body;
+            }
+            _logger.LogInternalWarning($"Failed to query Code Optimizations Bulk (POST) Status={response.StatusCode}");
+            if (CheckForUnauthorizedAccess(response))
+            {
+                throw new ToolExecutionUnauthorizedException($"Unauthorized access to Code Optimizations resource {url}");
+            }
+            throw new InvalidOperationException($"FAILED! Querying {url} Failed: Status {response.StatusCode}, Message: {body}");
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
 
     public async Task<List<string>> GetHostNamesOfAppServices(string resourceId)
     {

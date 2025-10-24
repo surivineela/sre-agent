@@ -230,6 +230,16 @@ public class AuthenticationService : IAuthenticationService
         return GetManagedIdentityCredential(GetActionIdentity());
     }
 
+    public TokenCredential GetDiagnosticServiceCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetManagedIdentityCredential(GetActionIdentity());
+    }
+
     public async Task<string> GetGrafanaAccessToken()
     {
         if (!string.IsNullOrEmpty(_dashboardSettings.GrafanaApiKey))

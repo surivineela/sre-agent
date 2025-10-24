@@ -12,6 +12,7 @@ using System.Threading;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
@@ -35,6 +36,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         private readonly IGraphDatabaseClient _graphDatabaseClient;
         private readonly IGrafanaPlugin _grafanaPlugin;
         private readonly IGraphDBPlugin _graphDBPlugin;
+        private readonly ICodeOptimizationsPlugin _codeOptimizationsPlugin;
         private readonly HttpClient _httpClient;
         private readonly IChatClient _chatClient;
         private readonly string _dashboardsDirectory;
@@ -76,6 +78,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             IGraphDatabaseClient graphDatabaseClient,
             IGrafanaPlugin grafanaPlugin,
             IGraphDBPlugin graphDBPlugin,
+            ICodeOptimizationsPlugin codeOptimizationsPlugin,
             HttpClient httpClient,
             IChatClient chatClient,
             DashboardSettings dashboardSettings,
@@ -102,6 +105,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             _grafanaUrl = dashboardSettings.GrafanaUrl.TrimEnd('/');
             _prometheusUrl = dashboardSettings.PrometheusUrl.TrimEnd('/');
             _graphDBPlugin = graphDBPlugin;
+            _codeOptimizationsPlugin = codeOptimizationsPlugin;
             _dataSourceName = dashboardSettings.GrafanaDataSourceName ?? "KnowledgeGraph";
             _puppeteerScreenshotApiUrl = puppeteerScreenshotApiUrl;
             //_puppeteerScreenshotApiUrl = "http://20.57.166.55:3000";//puppeteerScreenshotApiUrl;
@@ -151,6 +155,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var cveSummary = await GetCVESummary();
             var incidentsSummary = await GetIncidentsSummary();
             var appGroupsHealthSummary = await GetAppGroupsHealthSummaryAsync();
+            var codeOptimizationsSummary = await GetCodeOptimizationsSummaryAsync();
             var dashboardSummary = string.Empty;
 
             string? mainDashboardUrl = string.Empty;
@@ -168,7 +173,19 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     _logger.LogInternalError(ex, "Failed to create and publish dashboard, generate daily report without it");
                 }
             }
-            var suggestedActionsAndObservations = await GenerateSuggestedActionsAndOverallObservations(dashboardSummary, mainDashboardUrl, cveSummary, appGroupsHealthSummary, incidentsSummary);
+
+            var summarizedCodeOptimizationsReport = $"Total Recommendations: {codeOptimizationsSummary.TotalRecommendations}, " +
+                   $"CPU Recommendations: {codeOptimizationsSummary.CpuRecommendations}, " +
+                   $"Memory Recommendations: {codeOptimizationsSummary.MemoryRecommendations}, " +
+                   $"Blocking Recommendations: {codeOptimizationsSummary.BlockingRecommendations}";
+
+            var suggestedActionsAndObservations = await GenerateSuggestedActionsAndOverallObservations(
+                dashboardSummary,
+                mainDashboardUrl,
+                cveSummary,
+                appGroupsHealthSummary,
+                incidentsSummary,
+                summarizedCodeOptimizationsReport);
 
             var overview = GenerateOverview(cveSummary, incidentsSummary, appGroupsHealthSummary);
             _logger.LogInternalInformation("Overview generated successfully.");
@@ -182,6 +199,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 CVESummary = cveSummary,
                 IncidentsSummary = incidentsSummary,
                 AppGroupResourceSummary = appGroupsHealthSummary,
+                CodeOptimizationsSummary = codeOptimizationsSummary,
                 RecommendedActionsAndObservations = suggestedActionsAndObservations
             };
 
@@ -223,6 +241,112 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 Timestamp: DateTime.UtcNow);
             await _agentInboundCommunicationService.ProcessUserMessageAsync(message);
             return thread;
+        }
+
+        private async Task<CodeOptimizationsSummary> GetCodeOptimizationsSummaryAsync()
+        {
+            var summary = new CodeOptimizationsSummary();
+
+            try
+            {
+                // Get all App Services
+                var appServiceList = await _graphDBPlugin.ListResourcesByTypeAsync(
+                    resourceType: "microsoft.web/sites",
+                    propertyName: string.Empty,
+                    propertyValue: string.Empty,
+                    skip: 0,
+                    take: -1);
+
+                // Build a list of resource info for batch call
+                var resourceInfoList = appServiceList
+                    .Select(res => new
+                    {
+                        SubscriptionId = res.GetValueOrDefault("subscriptionId")?.ToString() ?? string.Empty,
+                        ResourceGroupName = res.GetValueOrDefault("resourceGroupName")?.ToString() ?? string.Empty,
+                        Name = res.GetValueOrDefault("resourceName")?.ToString() ?? string.Empty,
+                        Type = res.GetValueOrDefault("resourceType")?.ToString() ?? string.Empty
+                    })
+                    .Where(x => !string.IsNullOrEmpty(x.SubscriptionId) && !string.IsNullOrEmpty(x.ResourceGroupName) && !string.IsNullOrEmpty(x.Name))
+                    .ToList();
+
+                // Build resourceIds for bulk call
+                var resourceIds = resourceInfoList
+                    .Select(x => $"/subscriptions/{x.SubscriptionId}/resourceGroups/{x.ResourceGroupName}/providers/{x.Type}/{x.Name}")
+                    .ToList();
+
+                // Call insights for all resources
+                var insightsBulkResult = await _codeOptimizationsPlugin.GetCodeOptimizationInsightsBulkAsync(resourceIds);
+
+                // Log that we fetched code optimizations insights
+                var totalInsights = insightsBulkResult?.Values.Sum(insights => insights?.Count() ?? 0) ?? 0;
+                _logger.LogInternalInformation(
+                    "Fetched code optimization insights for {ResourceIdCount} resource IDs, total insights: {TotalInsights}",
+                    resourceIds.Count,
+                    totalInsights);
+
+                // Group by subscription + resource group
+                var groups = resourceInfoList
+                    .GroupBy(r => new
+                    {
+                        r.SubscriptionId,
+                        r.ResourceGroupName
+                    })
+                    .OrderBy(g => g.Key.SubscriptionId)
+                    .ThenBy(g => g.Key.ResourceGroupName);
+
+                foreach (var group in groups)
+                {
+                    var rgEntry = new ResourceGroupCodeInsights
+                    {
+                        SubscriptionId = group.Key.SubscriptionId,
+                        ResourceGroupName = group.Key.ResourceGroupName
+                    };
+
+                    foreach (var resource in group)
+                    {
+                        var resourceId = $"/subscriptions/{resource.SubscriptionId}/resourceGroups/{resource.ResourceGroupName}/providers/{resource.Type}/{resource.Name}";
+                        try
+                        {
+                            List<InsightsRecommendationContract> insightsList = new List<InsightsRecommendationContract>();
+                            if (insightsBulkResult != null && insightsBulkResult.TryGetValue(resourceId, out var insights))
+                            {
+                                insightsList = insights.ToList();
+                            }
+
+                            if (insightsList.Count > 0)
+                            {
+                                rgEntry.Apps.Add(new AppCodeInsights
+                                {
+                                    ResourceId = resourceId,
+                                    Name = resource.Name,
+                                    Type = resource.Type,
+                                    Insights = insightsList
+                                });
+
+                                summary.TotalRecommendations += insightsList.Count;
+                                summary.CpuRecommendations += insightsList.Count(i => string.Equals(i.Type, "CPU", StringComparison.OrdinalIgnoreCase));
+                                summary.MemoryRecommendations += insightsList.Count(i => string.Equals(i.Type, "Memory", StringComparison.OrdinalIgnoreCase));
+                                summary.BlockingRecommendations += insightsList.Count(i => string.Equals(i.Type, "Blocking", StringComparison.OrdinalIgnoreCase));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalWarning("Failed to fetch code optimization insights for {ResourceId}: {Message}", resourceId, ex.Message);
+                        }
+                    }
+
+                    if (rgEntry.Apps.Count > 0)
+                    {
+                        summary.ResourceGroups.Add(rgEntry);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error generating Code Optimizations Summary: {Message}", ex.Message);
+            }
+
+            return summary;
         }
 
         // Returns main dashboard url
@@ -775,7 +899,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             string? dashboardUrl,
             CVESummary cveSummary,
             List<AppGroupResourceSummary> appHealthSummary,
-            IncidentSummary incidentsSummary)
+            IncidentSummary incidentsSummary,
+            string? codeOptimizationsSummary)
         {
             try
             {
@@ -787,7 +912,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     DashboardSummary = dashboardSummary,
                     CVESummary = cveSummary,
                     AppHealthSummary = appHealthSummary,
-                    IncidentsSummary = incidentsSummary
+                    IncidentsSummary = incidentsSummary,
+                    CodeOptimizationsSummary = codeOptimizationsSummary
                 };
 
                 var jsonContext = JsonSerializer.Serialize(context, new JsonSerializerOptions
@@ -803,7 +929,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     "- DashboardSummary: Overall system dashboard metrics and trends\n" +
                     "- CVESummary: Security vulnerabilities and their details\n" +
                     "- AppHealthSummary: Health status of applications across subscriptions. Healthy Apps will not have historical data. Unhealthy Apps will have detailed historical data for reference.\n" +
-                    "- IncidentsSummary: Active and recent incidents from PagerDuty and Azure Monitor\n\n" +
+                    "- IncidentsSummary: Active and recent incidents from PagerDuty and Azure Monitor\n" +
+                    "- CodeOptimizationsSummary: Code optimization recommendations for improving CPU, memory, or thread blocking issues\n\n" +
                     "For any sections that are null, empty, or missing, simply ignore them and focus on the available data.\n\n" +
                     "Here is the current monitoring data:\n\n" + jsonContext + "\n\n" +
                     "Based on the available data, generate a structured response with prioritized actions and key observations. " +

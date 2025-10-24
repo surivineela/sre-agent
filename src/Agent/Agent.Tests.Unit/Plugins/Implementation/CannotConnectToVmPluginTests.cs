@@ -296,6 +296,9 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public TokenCredential GetAgentSpaceProxyCredential() => _credential;
 
         public TokenCredential GetMdmMetricsCredential() => _credential;
+
+        public TokenCredential GetDiagnosticServiceCredential() => _credential;
+        
     }
 
     internal sealed class FakeTokenCredential : TokenCredential

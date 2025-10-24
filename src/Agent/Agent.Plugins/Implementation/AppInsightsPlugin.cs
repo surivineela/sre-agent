@@ -157,7 +157,7 @@ public class AppInsightsPlugin : IAppInsightsPlugin
         }
     }
 
-    private string? GetInstrumentationKey(string? connectionString)
+    public string? GetInstrumentationKey(string? connectionString)
     {
         if (connectionString != null)
         {

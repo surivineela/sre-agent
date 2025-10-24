@@ -113,6 +113,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<SourceCodeAnalysisAgentPluginDefinition>();
 
         RegisterPlugin<AzureSupportCenterPluginDefinition>();
+        RegisterPlugin<CodeOptimizationsPluginDefinition>();
     }
 
     /// <summary>

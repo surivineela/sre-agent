@@ -1,5 +1,5 @@
 import { IChartProps, LineChart } from '@fluentui/react-charting';
-import { Badge, Button, Card, CardHeader, Text, tokens } from '@fluentui/react-components';
+import { Badge, Button, Card, CardHeader, Link, Text, tokens } from '@fluentui/react-components';
 import {
     AlertUrgentFilled,
     ChatRegular,
@@ -7,11 +7,13 @@ import {
     ChevronDownRegular,
     ChevronUpRegular,
     ErrorCircleRegular,
+    OpenRegular,
     ShieldRegular,
     TaskListLtrRegular,
 } from '@fluentui/react-icons';
 import React, { useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
+import codeOptimizationsLogo from '../../../assets/codeOptimizationsLogo.svg';
 import { DailyReportResources } from '../../Strings/SREAgentResources';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 import { ArmResourceDescriptor } from '../Helpers/ResourceDescriptors';
@@ -86,6 +88,36 @@ interface CVESummary {
     LowVulnerabilities: number;
 }
 
+// Code Optimizations insights contracts
+interface InsightsRecommendationContract {
+    PerformanceIssue: string;
+    CurrentCondition: string;
+    Type: string;
+    ImpactPercent: string;
+    PortalLink?: string;
+}
+
+interface AppCodeInsights {
+    ResourceId: string;
+    Name: string;
+    Type: string;
+    Insights: InsightsRecommendationContract[];
+}
+
+interface ResourceGroupCodeInsights {
+    SubscriptionId: string;
+    ResourceGroupName: string;
+    Apps: AppCodeInsights[];
+}
+
+interface CodeOptimizationsSummary {
+    TotalRecommendations: number;
+    CpuRecommendations: number;
+    MemoryRecommendations: number;
+    BlockingRecommendations: number;
+    ResourceGroups: ResourceGroupCodeInsights[];
+}
+
 interface ActionItem {
     Priority: string;
     Description: string;
@@ -134,6 +166,7 @@ interface DailyReportData {
     CVESummary: CVESummary | null;
     IncidentsSummary: IncidentSummary;
     AppGroupResourceSummary: AppGroupResourceSummary[];
+    CodeOptimizationsSummary: CodeOptimizationsSummary | null;
     RecommendedActionsAndObservations: RecommendedActionsAndObservations | null;
 }
 
@@ -148,6 +181,7 @@ type SectionKey =
     | 'incidents'
     | 'actions'
     | 'security'
+    | 'codeOptimizations'
     | 'unhealthyResources'
     | 'degradedResources'
     | 'healthyResources';
@@ -297,6 +331,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
         incidents: false,
         actions: true,
         security: false,
+        codeOptimizations: false,
         unhealthyResources: false,
         degradedResources: false,
         healthyResources: false,
@@ -1657,6 +1692,255 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                             </div>
                                         )}
                                     </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Code Optimizations Section */}
+                <div style={{ marginBottom: '16px' }} data-section="code-optimizations">
+                    <Card
+                        onClick={() => toggleSection('codeOptimizations')}
+                        style={{
+                            backgroundColor: tokens.colorNeutralBackground2,
+                            padding: '12px 16px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            boxShadow: 'none',
+                            border: 'none',
+                        }}
+                    >
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                            }}
+                        >
+                            {openSections.codeOptimizations ? (
+                                <ChevronDownRegular
+                                    style={{
+                                        color: tokens.colorNeutralForeground2,
+                                        fontSize: '16px',
+                                    }}
+                                />
+                            ) : (
+                                <ChevronUpRegular
+                                    style={{
+                                        transform: 'rotate(90deg)',
+                                        color: tokens.colorNeutralForeground2,
+                                        fontSize: '16px',
+                                    }}
+                                />
+                            )}
+                            <img
+                                src={codeOptimizationsLogo}
+                                alt={intl.formatMessage(DailyReportResources.codeOptimizationInsights)}
+                                style={{ width: 20, height: 20 }}
+                            />
+                            <Text size={400} weight="semibold">
+                                {intl.formatMessage(DailyReportResources.codeOptimizationInsights)} (
+                                {data.CodeOptimizationsSummary?.TotalRecommendations ?? 0})
+                            </Text>
+                        </div>
+                    </Card>
+
+                    {openSections.codeOptimizations && (
+                        <div style={{ padding: '16px 0' }}>
+                            {!data.CodeOptimizationsSummary || (data.CodeOptimizationsSummary.TotalRecommendations || 0) === 0 ? (
+                                <Card style={{ textAlign: 'center', padding: '32px 16px' }}>
+                                    <div style={{ color: tokens.colorPaletteGreenForeground2, fontSize: '24px', marginBottom: '16px' }}>
+                                        <CheckmarkCircleRegular fontSize={32} />
+                                    </div>
+                                    <Text weight="semibold" style={{ display: 'block', textAlign: 'center' }}>
+                                        {intl.formatMessage(DailyReportResources.codeOptimizationsNoRecommendationsMessage)}{' '}
+                                        <Link
+                                            href="https://learn.microsoft.com/en-us/azure/azure-monitor/optimization-insights/code-optimizations-profiler-overview"
+                                            target="_blank"
+                                            inline
+                                            style={{
+                                                fontSize: '14px',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                            }}
+                                        >
+                                            {intl.formatMessage(DailyReportResources.codeOptimizationsLearnMore)}
+                                            <OpenRegular style={{ fontSize: '14px' }} />
+                                        </Link>
+                                    </Text>
+                                </Card>
+                            ) : (
+                                <>
+                                    {/* Totals */}
+                                    <div
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(4, 1fr)',
+                                            gap: '12px',
+                                            marginBottom: '16px',
+                                        }}
+                                    >
+                                        <Card style={{ padding: '16px' }}>
+                                            <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                                                {intl.formatMessage(DailyReportResources.codeOptimizationsTotal)}
+                                            </Text>
+                                            <Text block weight="semibold" size={600}>
+                                                {data.CodeOptimizationsSummary.TotalRecommendations}
+                                            </Text>
+                                        </Card>
+                                        <Card style={{ padding: '16px' }}>
+                                            <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                                                {intl.formatMessage(DailyReportResources.codeOptimizationsCpu)}
+                                            </Text>
+                                            <Text block weight="semibold" size={600}>
+                                                {data.CodeOptimizationsSummary.CpuRecommendations}
+                                            </Text>
+                                        </Card>
+                                        <Card style={{ padding: '16px' }}>
+                                            <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                                                {intl.formatMessage(DailyReportResources.codeOptimizationsMemory)}
+                                            </Text>
+                                            <Text block weight="semibold" size={600}>
+                                                {data.CodeOptimizationsSummary.MemoryRecommendations}
+                                            </Text>
+                                        </Card>
+                                        <Card style={{ padding: '16px' }}>
+                                            <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                                                {intl.formatMessage(DailyReportResources.codeOptimizationsBlocking)}
+                                            </Text>
+                                            <Text block weight="semibold" size={600} style={{ color: tokens.colorPaletteRedForeground2 }}>
+                                                {data.CodeOptimizationsSummary.BlockingRecommendations}
+                                            </Text>
+                                        </Card>
+                                    </div>
+
+                                    {/* Groups */}
+                                    {data.CodeOptimizationsSummary.ResourceGroups.map((rg, rgIdx) => (
+                                        <Card
+                                            key={rgIdx}
+                                            style={{ marginBottom: '16px', border: `1px solid ${tokens.colorNeutralStroke1}` }}
+                                        >
+                                            <div style={{ padding: '12px 16px', backgroundColor: tokens.colorNeutralBackground2 }}>
+                                                <Text weight="semibold">{rg.ResourceGroupName}</Text>
+                                                <Text size={200} style={{ color: tokens.colorNeutralForeground3, marginLeft: '8px' }}>
+                                                    {rg.SubscriptionId}
+                                                </Text>
+                                            </div>
+                                            <div style={{ padding: '12px 16px' }}>
+                                                {rg.Apps.map((app, appIdx) => (
+                                                    <Card
+                                                        key={appIdx}
+                                                        style={{
+                                                            marginBottom: '12px',
+                                                            boxShadow: 'none',
+                                                            border: `1px solid ${tokens.colorNeutralStroke1}`,
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                padding: '12px 16px',
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                            }}
+                                                        >
+                                                            <div>
+                                                                <Text weight="semibold">{app.Name}</Text>
+                                                                <Text block size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                                                                    {app.Type}
+                                                                </Text>
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ padding: '0 16px 16px 16px' }}>
+                                                            {/* Simple table-like layout */}
+                                                            <div
+                                                                style={{
+                                                                    display: 'grid',
+                                                                    gridTemplateColumns: '140px 100px 1fr',
+                                                                    gap: '8px',
+                                                                    color: tokens.colorNeutralForeground3,
+                                                                    fontSize: '12px',
+                                                                    marginBottom: '8px',
+                                                                }}
+                                                            >
+                                                                <div>{intl.formatMessage(DailyReportResources.codeOptimizationsType)}</div>
+                                                                <div>
+                                                                    {intl.formatMessage(DailyReportResources.codeOptimizationsImpactValue)}
+                                                                </div>
+                                                                <div>{intl.formatMessage(DailyReportResources.codeOptimizationsIssue)}</div>
+                                                            </div>
+                                                            {app.Insights.map((ins, insIdx) => (
+                                                                <div
+                                                                    key={insIdx}
+                                                                    style={{
+                                                                        display: 'grid',
+                                                                        gridTemplateColumns: '140px 100px 1fr',
+                                                                        gap: '8px',
+                                                                        padding: '8px 0',
+                                                                        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+                                                                    }}
+                                                                >
+                                                                    <div>
+                                                                        <Badge
+                                                                            appearance="tint"
+                                                                            style={{
+                                                                                backgroundColor: 'transparent',
+                                                                                color:
+                                                                                    ins.Type.toLowerCase() === 'cpu'
+                                                                                        ? tokens.colorPalettePinkForeground2
+                                                                                        : tokens.colorPaletteTealForeground2,
+                                                                            }}
+                                                                        >
+                                                                            {ins.Type}
+                                                                        </Badge>
+                                                                    </div>
+                                                                    <div>
+                                                                        <Text>{ins.ImpactPercent}</Text>
+                                                                    </div>
+                                                                    <div>
+                                                                        <Text weight="semibold">{ins.PerformanceIssue}</Text>
+                                                                        <Text
+                                                                            block
+                                                                            size={200}
+                                                                            style={{ color: tokens.colorNeutralForeground3 }}
+                                                                        >
+                                                                            {ins.CurrentCondition}
+                                                                        </Text>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            {/* Additional contextual message */}
+                                                            {app.Insights?.length > 0 && app.Insights[0].PortalLink && (
+                                                                <div
+                                                                    style={{
+                                                                        marginTop: '8px',
+                                                                        fontSize: '12px',
+                                                                    }}
+                                                                >
+                                                                    <Link
+                                                                        href={app.Insights[0].PortalLink}
+                                                                        target="_blank"
+                                                                        inline
+                                                                        style={{
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '4px',
+                                                                        }}
+                                                                    >
+                                                                        {intl.formatMessage(
+                                                                            DailyReportResources.codeOptimizationsGetMoreDetails
+                                                                        )}
+                                                                        <OpenRegular style={{ fontSize: '14px' }} />
+                                                                    </Link>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </Card>
+                                                ))}
+                                            </div>
+                                        </Card>
+                                    ))}
                                 </>
                             )}
                         </div>

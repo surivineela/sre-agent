@@ -101,6 +101,7 @@ public interface IAuthenticationService
     public TokenCredential GetAgentSpaceProxyCredential();
 
     public TokenCredential GetAzureDevOpsCredential();
+    public TokenCredential GetDiagnosticServiceCredential();
     public Task<string> GetGitHubAccessToken();
 
     /// <summary>
