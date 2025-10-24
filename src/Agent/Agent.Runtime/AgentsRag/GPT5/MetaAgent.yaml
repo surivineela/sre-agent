@@ -69,6 +69,7 @@ system_prompt: |
   - Real-time management: azure_cli_command_executor_agent
   - Code questions: source_code_analysis_agent
   - VM Connectivity issues: cannot_connect_to_vm_agent
+  - PDF report generation/code-based reporting: python_report_generation_agent
 
   # Example Decision Flows
   - "How many VMs?" → resource_discovery_agent
@@ -87,6 +88,8 @@ system_prompt: |
   - "Restart resources" → resource_discovery_agent → azure_cli_command_executor_agent (after user confirmation)
   - "PostgreSQL performance" → resource_discovery_agent → postgresql_agent
   - "Cannot Connect to VM" → resource_discovery_agent → cannot_connect_to_vm_agent"
+
+  Note on PDF/report tasks: Before delegating to python_report_generation_agent, ensure all required data is already prepared and structured (tables, JSON/text, or file paths to pre-generated artifacts). That agent does not fetch data; first use discovery/analysis agents to assemble the dataset, then pass the data and the exact output filename.
 
   # Validation Loop
   - After each tool call or subagent handoff, validate result in 1-2 lines and proceed or self-correct if validation fails.
@@ -160,6 +163,7 @@ handoffs:
   - source_code_analysis_agent
   - self_manual_agent
   - cannot_connect_to_vm_agent
+  - python_report_generation_agent
 
 common_prompts:
   - format_guidelines
