@@ -17,12 +17,6 @@ public interface IAuthenticationService
     public TokenCredential GetDocumentDbCredential();
 
     /// <summary>
-    /// Get the credential to access the dts
-    /// </summary>
-    /// <returns></returns>
-    public TokenCredential GetDtsCredential();
-
-    /// <summary>
     /// Get the credential to access the search endpoint through workload identity
     /// </summary>
     /// <returns></returns>

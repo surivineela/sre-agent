@@ -69,17 +69,6 @@ module monitoring 'monitoring.bicep' = {
   ]
 }
 
-module dts 'dts.bicep' = {
-  name: 'dtsDeployment'
-  params: {
-    namePrefix: namePrefix
-  }
-  dependsOn: [
-    appConfig
-    keyVault
-  ]
-}
-
 module search 'search.bicep' = {
   name: 'searchDeployment'
   params: {

@@ -154,34 +154,10 @@ You can set up npm authentication using our script:
 
 1. Project should automatically start with no additional configuration. Required settings should be pulled from the Azure App Config instance that was set up as part of the private environment deployment. For optional settings, copy appsettings.json to appsettings.development.json and add any settings you need. These settings will override any other settings.
 
-> **Disclaimer: Advanced Configurations Ahead**  
-> The following sections describe advanced configuration steps for setting up the Durable Task Scheduler (DTS) and Dashboard Settings.  
+> **Disclaimer: Advanced Configurations Ahead**
+> The following section describes advanced configuration steps for setting up Dashboard Settings.
 > These are not required for running the agent. Only complete them if they are necessary for your use case, otherwise, proceed to:
 > [Next: Running the Application](running-the-app.md) or [Continue Setup for 1p Agent](1p-agent-development.md)
-
-
-### Durable Task Scheduler
-The deployment script deploys the DTS service. You can grab the connection string from the portal and update your `appsettings.Development.json`.
-
-Note: 
-1. If you get the connection string from the deployed resource in the portal, it will be missing the `TaskHub` parameter, which you'll need to add manually (also in the portal).
-1. Make sure there is a Durable Task Data Contributor role assignment; otherwise, you should add it first.
-
-```
-  "AppSettings": {
-    "Core": {
-      "Azure": {
-        "DTS": {
-          "ConnectionString": "<connection string>"
-        },
-      }
-    }
-  }
-```    
-
-Another option is to leave the connection string blank so it uses the emulator. Its convenient because every time you restart it, you start from a blank slate.
-Run the emulator using: `just durable-emulator` (or `./src/run-durable-emulator.ps1`)
-* If you do choose to use the emulator, you will need to install Docker beforehand.
 
 ### Dashboard Settings
 * Note: Configuring dashboard settings is not mandatory, and will not affect your execution of the application. This is an optional section and should be done if you require the analytics here. 

@@ -31,11 +31,6 @@
     // Log Analytics Workspace
     "logAnalyticsWorkspaceNameSuffix": "-log-analytics",
 
-     // Durable Task Scheduler
-     "durableTaskSchedulerNameSuffix": "-dts",
-     "durableTaskSchedulerTaskHubNameSuffix": "-dts-hub",
-     "defaultDTSLocation": "westus2",
-
     // Roles
     "appConfigurationDataReader": "516239f1-63e1-4d78-a4de-a74fb236a071",
     "keyVaultSecretsUser": "4633458b-17de-408a-b874-0445c86b69e6",
