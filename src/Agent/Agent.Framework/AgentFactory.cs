@@ -402,22 +402,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             LoadAgentFromAssembly();
             LoadAgentFromYaml();
             LoadDynamicIncidentManagementAgent();
-            if (_extensibiltyLoader != null)
-            {
-                var extendedAgents = await _extensibiltyLoader.LoadExtendedAgentsAsync();
-                foreach (var agent in extendedAgents)
-                {
-                    try
-                    {
-                        LoadAgentFromDescriptor(agent, true);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogInternalError(ex, "[AgentFactory:EXT] Failed to load extended agent {AgentName}", agent.Name);
-                    }
-                }
-            }
-
             if (_gpt5Enabled)
             {
                 var path = Path.Combine(AppContext.BaseDirectory, "AgentsGPT5");
@@ -432,6 +416,22 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                     path = Path.Combine(AppContext.BaseDirectory, "AgentsRag", "GPT5");
                 }
                 LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: false);
+            }
+
+            if (_extensibiltyLoader != null)
+            {
+                var extendedAgents = await _extensibiltyLoader.LoadExtendedAgentsAsync();
+                foreach (var agent in extendedAgents)
+                {
+                    try
+                    {
+                        LoadAgentFromDescriptor(agent, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalError(ex, "[AgentFactory:EXT] Failed to load extended agent {AgentName}", agent.Name);
+                    }
+                }
             }
 
             UpdateHandoffs();
