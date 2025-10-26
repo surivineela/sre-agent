@@ -233,6 +233,26 @@
     {
       "name": "GetTimeSeriesAnalysis",
       "version": "latest"
+    },
+    {
+      "name": "WaitInMilliSeconds",
+      "version": "latest"
+    },
+    {
+      "name": "QueryAppInsightsByResourceId",
+      "version": "latest"
+    },
+    {
+      "name": "QueryAppInsightsByAppId",
+      "version": "latest"
+    },
+    {
+      "name": "QueryLogAnalyticsByResourceId",
+      "version": "latest"
+    },
+    {
+      "name": "QueryLogAnalyticsByWorkspaceId",
+      "version": "latest"
     }
   ]
 }
