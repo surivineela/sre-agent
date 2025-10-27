@@ -21,6 +21,8 @@ public class Constants
     public const string SynapseOboTokenScope = "https://dev.azuresynapse.net/.default";
     public const string AppInsightsTokenScope = "https://api.applicationinsights.io/.default";
 
+    public const string CosmosDbOboTokenScope = "https://cosmos.azure.com/.default";
+
     public const string HttpClientForRazor = "Razor";
 
     public const string HttpClientForCrawler = "Crawler";

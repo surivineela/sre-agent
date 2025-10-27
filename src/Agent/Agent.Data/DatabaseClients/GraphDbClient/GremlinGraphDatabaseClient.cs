@@ -3,7 +3,11 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using System.Threading.Tasks;
+using Agent.Core;
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
+using Agent.Logging;
 using Gremlin.Net.Driver;
 using Gremlin.Net.Driver.Exceptions;
 using Gremlin.Net.Structure.IO.GraphSON;
@@ -31,25 +35,32 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
     public class GremlinGraphDatabaseClient : IGraphDatabaseClient
     {
-        private Lazy<GremlinClient> _gremlinClient;
+        private Lazy<Task<GremlinClient>> _gremlinClient;
         private readonly ILogger<GremlinGraphDatabaseClient> _logger;
         private readonly AsyncPolicy _retryPolicy;
+        private readonly IAuthenticationService _authenticationService;
+        private readonly GraphSettings _graphSettings;
+        private CancellationTokenSource _tokenExpiryCts = new CancellationTokenSource();
 
         private const string DefaultGraphName = "g";
         public string GraphName { get; set; } = DefaultGraphName;
 
-        public GremlinGraphDatabaseClient(GremlinClient client, ILogger<GremlinGraphDatabaseClient> logger)
+        public GremlinGraphDatabaseClient(GremlinClient client, ILogger<GremlinGraphDatabaseClient> logger, IAuthenticationService authenticationService)
         {
             _logger = logger;
-            _gremlinClient = new Lazy<GremlinClient>(client);
+            _graphSettings = new GraphSettings();
+            _gremlinClient = new Lazy<Task<GremlinClient>>(Task.FromResult(client));
             _retryPolicy = BuildRetryPolicy();
+            _authenticationService = authenticationService;
         }
 
-        public GremlinGraphDatabaseClient(GraphSettings graphSettings, ILogger<GremlinGraphDatabaseClient> logger)
+        public GremlinGraphDatabaseClient(GraphSettings graphSettings, ILogger<GremlinGraphDatabaseClient> logger, IAuthenticationService authenticationService)
         {
             _logger = logger;
-            _gremlinClient = new Lazy<GremlinClient>(() => CreateGremlinClient(graphSettings), LazyThreadSafetyMode.ExecutionAndPublication);
+            _graphSettings = graphSettings;
+            _gremlinClient = new Lazy<Task<GremlinClient>>(async () => await CreateGremlinClient(graphSettings), LazyThreadSafetyMode.ExecutionAndPublication);
             _retryPolicy = BuildRetryPolicy();
+            _authenticationService = authenticationService;
         }
 
         private AsyncPolicy BuildRetryPolicy()
@@ -103,14 +114,49 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                     });
         }
 
-        private GremlinClient CreateGremlinClient(GraphSettings graphSettings)
+        private async Task<GremlinClient> CreateGremlinClient(GraphSettings graphSettings)
+        {
+            var hostname = $"{graphSettings.AccountName}.{graphSettings.DomainSuffix}";
+            var port = 443;
+            var username = $"/dbs/{graphSettings.Database}/colls/{graphSettings.Collection}";
+            string password;
+
+            if (string.IsNullOrEmpty(graphSettings.ApiKey))
+            {
+                _logger.LogInternalInformation("Using Managed Identity Authentication for Gremlin");
+                var cred = _authenticationService.GetGraphDbCredential();
+                var token = await cred.GetTokenAsync(
+                    new Azure.Core.TokenRequestContext(
+                        [Constants.CosmosDbOboTokenScope]
+                    ),
+
+                    CancellationToken.None
+                );
+
+                password = token.Token;
+                var tokenExpiration = token.ExpiresOn.UtcDateTime;
+
+                // refresh token 10 minutes before expiration
+                _tokenExpiryCts = new CancellationTokenSource();
+                _tokenExpiryCts.CancelAfter(tokenExpiration - DateTime.UtcNow - TimeSpan.FromMinutes(10));
+            }
+            else
+            {
+                _logger.LogInternalInformation("Using API Key Authentication for Gremlin");
+                password = graphSettings.ApiKey;
+            }
+
+            return CreateGremlinClient(hostname, port, username, password);
+        }
+
+        private GremlinClient CreateGremlinClient(string hostname, int port, string username, string password)
         {
             var gremlinServer = new GremlinServer(
-                hostname: $"{graphSettings.AccountName}.{graphSettings.DomainSuffix}",
-                port: 443,
+                hostname: hostname,
+                port: port,
                 enableSsl: true,
-                username: $"/dbs/{graphSettings.Database}/colls/{graphSettings.Collection}",
-                password: graphSettings.ApiKey
+                username: username,
+                password: password
             );
 
             var random = new Random();
@@ -137,17 +183,26 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 });
         }
 
-        private GremlinClient GetGremlinClientValue()
+        private async Task<GremlinClient> GetGremlinClientValue()
         {
             try
             {
-                return _gremlinClient.Value;
+                _tokenExpiryCts.Token.ThrowIfCancellationRequested();
+                return await _gremlinClient.Value;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // reset the lazy object to re-initialize next time
-                _gremlinClient = new Lazy<GremlinClient>(() => CreateGremlinClient(new GraphSettings()), LazyThreadSafetyMode.ExecutionAndPublication);
-                throw;
+                if (ex is OperationCanceledException)
+                {
+                    _logger.LogInternalInformation("Recreating Gremlin client due to token expiration.");
+                }
+                else
+                {
+                    _logger.LogInternalError(ex, "Recreating Gremlin client due to exception.");
+                }
+
+                _gremlinClient = new Lazy<Task<GremlinClient>>(() => CreateGremlinClient(_graphSettings), LazyThreadSafetyMode.ExecutionAndPublication);
+                return await _gremlinClient.Value;
             }
         }
 
@@ -301,7 +356,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 if (this.GraphName == DefaultGraphName)
                 {
-                    return await GetGremlinClientValue().SubmitAsync<T>(query);
+                    return await (await GetGremlinClientValue()).SubmitAsync<T>(query);
                 }
                 else
                 {
@@ -312,7 +367,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                         .AddArgument(Tokens.ArgsAliases, new Dictionary<string, string> { { "g", this.GraphName } })
                         .AddArgument(Tokens.ArgsGremlin, query);
 
-                    return await GetGremlinClientValue().SubmitAsync<T>(msgBuilder.Create());
+                    return await (await GetGremlinClientValue()).SubmitAsync<T>(msgBuilder.Create());
                 }
             });
         }
@@ -426,7 +481,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         {
             if (string.Equals(edge.Relationship, newRelationship, StringComparison.OrdinalIgnoreCase))
             {
-                return ; // no change
+                return; // no change
             }
 
             var sourceSan = GetSanitizedCosmosDBId(edge.SourceNodeId);

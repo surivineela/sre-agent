@@ -260,6 +260,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public TokenCredential GetPostgresSqlCredential() => _credential;
 
         public TokenCredential GetDocumentDbCredential() => _credential;
+        public TokenCredential GetGraphDbCredential() => _credential;
         public Task<AccessToken> GetTokenFromAgentSpaceProxy(string scope, string resourceId)
             => Task.FromResult(new AccessToken("fake-token", DateTimeOffset.UtcNow.AddHours(1)));
 

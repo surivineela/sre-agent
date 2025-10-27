@@ -43,7 +43,8 @@ public static class ServiceCollectionExtensionsForMocks
             {
                 var gremlinLogger = sp.GetRequiredService<ILoggerFactory>()
                     .CreateLogger<GremlinGraphDatabaseClient>();
-                var dbClient = new GremlinGraphDatabaseClient(internalClient, gremlinLogger);
+                var authService = sp.GetRequiredService<IAuthenticationService>();
+                var dbClient = new GremlinGraphDatabaseClient(internalClient, gremlinLogger, authService);
                 dbClient.GraphName = graphName;
                 return dbClient;
             });

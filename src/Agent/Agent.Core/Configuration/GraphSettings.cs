@@ -11,7 +11,6 @@ namespace Agent.Core.Configuration
         [Required]
         public string AccountName { get; set; } = string.Empty;
 
-        [Required]
         public string ApiKey { get; set; } = string.Empty;
 
         [Required]
