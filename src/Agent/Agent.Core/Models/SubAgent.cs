@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Agent.Core.Extensions;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -24,10 +25,10 @@ namespace Agent.Core.Models
             Tools = Tools()
         };
 
-        public SubAgent(string name, IChatClient chatClient, bool isSkippingInitChatHistory = false)
+        public SubAgent(string name, IChatClientProvider chatClientProvider, bool isSkippingInitChatHistory = false)
         {
             Name = name;
-            _chatClient = chatClient
+            _chatClient = chatClientProvider.DefaultModel
                 .AsBuilder()
                 .UseFunctionInvocation()
                 .Build();
@@ -38,7 +39,7 @@ namespace Agent.Core.Models
             }
             else
             {
-               ChatHistory = [];
+                ChatHistory = [];
             }
         }
 

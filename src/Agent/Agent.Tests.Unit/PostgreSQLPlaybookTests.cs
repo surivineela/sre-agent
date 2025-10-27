@@ -5,7 +5,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Configuration;
 using Agent.Core.Services;
 using Agent.Logging;
-using Microsoft.Extensions.AI;
+using Agent.Framework;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
@@ -42,7 +42,7 @@ namespace Agent.Tests.Unit
             var mockHostEnvironment = new Mock<IHostEnvironment>();
             var mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
             var mockSessionPoolService = new Mock<ISessionPoolService>();
-            var mockChatClient = new Mock<IChatClient>();
+            var mockChatClient = new Mock<IChatClientProvider>();
 
             var armHelper = new ArmHelper(
                 mockArmLogger.Object,

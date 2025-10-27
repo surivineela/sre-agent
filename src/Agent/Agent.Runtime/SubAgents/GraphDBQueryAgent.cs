@@ -5,6 +5,7 @@
 using Agent.Core.Extensions;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.AI;
@@ -51,8 +52,8 @@ TIPS:
 IMPORTANT: If you find apps not following best practices, call the 'postToTeams' tool to notify the end user with a descriptive message.
 ";
 
-        public GraphDBQueryAgent(GraphDBPluginDefinition def, IChatClient chatClient, ILogger<GraphDBQueryAgent> logger, IPostToTeamsPlugin teamsPlugin)
-            : base("GraphDBQueryAgent", chatClient)
+        public GraphDBQueryAgent(GraphDBPluginDefinition def, IChatClientProvider chatClientProvider, ILogger<GraphDBQueryAgent> logger, IPostToTeamsPlugin teamsPlugin)
+            : base("GraphDBQueryAgent", chatClientProvider)
         {
             _logger = logger;
             _def = def;

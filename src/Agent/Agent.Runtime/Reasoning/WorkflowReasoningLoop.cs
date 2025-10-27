@@ -30,8 +30,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
     public WorkflowReasoningLoop(
         WorkflowOrchestrator workflowOrchestrator,
         ILoggerFactory loggerFactory,
-        IChatClient chatClient,
-        IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
+        IChatClientProvider chatClientProvider,
         IAgentOutboundCommunicationService outboundCommunicationService,
         Agent<AgentContext> defaultStartingAgent,
         Agent<AgentContext> startingAgent,
@@ -54,8 +53,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
     bool modeSwitchEnabled)
         : base(
             loggerFactory: loggerFactory,
-            chatClient: chatClient,
-            embeddingGenerator: embeddingGenerator,
+            chatClientProvider: chatClientProvider,
             outboundCommunicationService: outboundCommunicationService,
             defaultStartingAgent: defaultStartingAgent,
             startingAgent: startingAgent,
@@ -77,7 +75,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
     {
         _workflowOrchestrator = new WorkflowOrchestrator(
             loggerFactory: loggerFactory,
-            chatClient: chatClient,
+            chatClientProvider: chatClientProvider,
             outboundCommunicationService: outboundCommunicationService,
             threadRepository: threadRepository,
             context: context,
@@ -86,7 +84,6 @@ public class WorkflowReasoningLoop : ReasoningLoop
             tracer: tracer,
             incidentManagementSettings: incidentManagementSettings,
             coreSettings: coreSettings);
-
         _logger = loggerFactory.CreateLogger<WorkflowReasoningLoop>();
     }
 

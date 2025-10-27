@@ -11,6 +11,8 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
     using Agent.Core.Configuration;
     using Agent.Core.DataConnectors;
     using Agent.Core.Interfaces;
+    using Agent.Framework;
+
     using Azure.Storage.Blobs.Models;
     using Microsoft.Extensions.AI;
     using Microsoft.Extensions.Logging;
@@ -35,7 +37,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         // If it fails, a lot of work goes to waste.
         private readonly AsyncRetryPolicy _blobUploadRetryPolicy;
         private readonly ILogger<KustoTableIndexerDataConnector> _logger;
-        private readonly IChatClient _chatClient;
+        private readonly IChatClientProvider _chatClientProvider;
         private readonly ILoggerFactory _loggerFactory;
         private readonly DataConnectorIndex _kustoMetadataIndex;
         private readonly DataConnectorStorage<KustoTableIndexerDataConnector> _storage;
@@ -45,7 +47,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         private KustoTableSummarizer? _kustoSummarizer;
 
         public KustoTableIndexerDataConnector(
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             ILoggerFactory loggerFactory,
             DataConnectorIndex kustoMetadataIndex,
             DataConnectorStorage<KustoTableIndexerDataConnector> storage,
@@ -53,7 +55,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         {
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _logger = loggerFactory.CreateLogger<KustoTableIndexerDataConnector>();
-            _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
+            _chatClientProvider = chatClientProvider ?? throw new ArgumentNullException(nameof(chatClientProvider));
             _kustoMetadataIndex = kustoMetadataIndex;
             _storage = storage;
             _authService = authService;
@@ -83,7 +85,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
             _logger.LogInternalInformation($"Using managed identity resource ID {instanceSettings.Identity} and auth source {instanceSettings.Source} for Kusto summarizer.");
 
-            _kustoSummarizer = new KustoTableSummarizer(_chatClient, new Uri(instanceSettings.DataSource), instanceSettings.Identity, instanceSettings.Source, _loggerFactory, _authService);
+            _kustoSummarizer = new KustoTableSummarizer(_chatClientProvider, new Uri(instanceSettings.DataSource), instanceSettings.Identity, instanceSettings.Source, _loggerFactory, _authService);
 
             return Task.CompletedTask;
         }

@@ -8,6 +8,7 @@ using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Agent.Core.Models;
 using Agent.Data.AgentMemory;
+using Agent.Framework;
 using Agent.Plugins.DataConnectors.Documentation;
 using Agent.Web.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ namespace Agent.Web.Controllers.v1
     [Route("api/v1/[controller]")]
     public class AgentMemoryController(ILogger<AgentMemoryController> logger,
                                     IAgentMemoryClient agentMemoryClient,
-                                    IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
+                                    IChatClientProvider chatClientProvider,
                                     ISearchIndexService searchIndexService,
                                     DataConnectorStorage<UserDocumentDataConnector> dataConnectorStorage,
                                     DataConnectorIndex dataConnectorIndex,
@@ -387,7 +388,7 @@ namespace Agent.Web.Controllers.v1
 
             try
             {
-                var embedding = await embeddingGenerator.GenerateVectorForAgentMemoryAsync(trajectoryOutput.SymptomsObserved, logger);
+                var embedding = await chatClientProvider.EmbeddingModel.GenerateVectorForAgentMemoryAsync(trajectoryOutput.SymptomsObserved, logger);
                 var memory = AgentMemory.FromTrajectory(
                     trajectoryGuid: Guid.NewGuid(), // generate random guid
                     trajectoryData: trajectoryOutput,

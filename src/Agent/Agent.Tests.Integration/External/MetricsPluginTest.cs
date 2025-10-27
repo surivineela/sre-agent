@@ -36,7 +36,7 @@ namespace Agent.Tests.Integration
             services.AddScoped<IMetricsPlugin, MetricsPlugin>();
             services.AddScoped<MetricsPluginDefinition>();
             services.ConfigureAzureOpenAIClient();
-            services.ConfigureIChatClient();
+            services.ConfigureIChatClient(_config);
 
             ServiceProvider s = services.BuildServiceProvider();
 

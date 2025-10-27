@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
@@ -14,18 +15,18 @@ namespace Agent.Runtime.SubAgents.FeedbackRCAAgent
     public class FeedbackRCAScanner
     {
         private readonly ILogger<FeedbackRCAScanner> _logger;
-        private readonly IChatClient _chatClient;
+        private readonly IChatClientProvider _chatClientProvider;
         private readonly SinkService _sinkService;
         private readonly IThreadRepository _threadRepository;
 
         public FeedbackRCAScanner(
             ILogger<FeedbackRCAScanner> logger,
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             SinkService sinkService,
             IThreadRepository threadRepository)
         {
             _logger = logger;
-            _chatClient = chatClient;
+            _chatClientProvider = chatClientProvider;
             _sinkService = sinkService;
             _threadRepository = threadRepository;
         }
@@ -42,12 +43,12 @@ namespace Agent.Runtime.SubAgents.FeedbackRCAAgent
                 return;
             }
 
-           var messageFeedback = await _threadRepository.GetMessageFeedbackNeedingRCAAsync();
+            var messageFeedback = await _threadRepository.GetMessageFeedbackNeedingRCAAsync();
 
             if (messageFeedback != null)
             {
                 var feedbackRCAAgent = new FeedbackRCAAgent(
-                    _chatClient,
+                    _chatClientProvider,
                     _sinkService,
                     _threadRepository,
                     messageFeedback: messageFeedback);

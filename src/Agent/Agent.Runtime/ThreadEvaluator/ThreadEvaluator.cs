@@ -30,7 +30,7 @@ public partial class ThreadEvaluator
 {
     private readonly ILogger<ThreadEvaluator> _logger;
     private readonly IThreadRepository _threadRepository;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly Tracer _tracer;
     private readonly IRagEvaluator _ragEvaluator;
     // Configurable time windows for thread filtering
@@ -40,7 +40,7 @@ public partial class ThreadEvaluator
     public ThreadEvaluator(
       ILogger<ThreadEvaluator> logger,
       IThreadRepository threadRepository,
-      IChatClient chatClient,
+      IChatClientProvider chatClientProvider,
       Tracer tracer,
       IRagEvaluator ragEvaluator,
       TimeSpan? evaluationHistoryRange = null,
@@ -48,7 +48,7 @@ public partial class ThreadEvaluator
     {
         _logger = logger;
         _threadRepository = threadRepository;
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
         _tracer = tracer;
         _ragEvaluator = ragEvaluator;
 
@@ -220,17 +220,17 @@ public partial class ThreadEvaluator
 
             // Get chat and reasoning message history for LLM evaluation
             (var chatHistory, var reasoningHistory) = await GetMessageHistories(thread.Id, agentContextsList);
-            
+
             // Call LLM to evaluate thread quality
             var llmEvaluation = await EvaluateThreadWithLLM(thread, chatHistory, reasoningHistory, toolCallMetrics, cancellationToken);
-            
+
             // If LLM evaluation failed, return null to indicate the thread should not be marked as evaluated
             if (llmEvaluation == null)
             {
                 _logger.LogInternalWarning($"Skipping thread {thread.Id} evaluation due to LLM evaluation failure");
                 return null;
             }
-            
+
             // Calculate SAT Score as the average of all dimensions, rounded up to an integer
             var satScore = Math.Ceiling((double)(llmEvaluation.Resolved + llmEvaluation.Satisfied + llmEvaluation.Automatic + llmEvaluation.Smooth + llmEvaluation.Concise + llmEvaluation.Adherence) / 6.0);
 
@@ -583,7 +583,7 @@ public partial class ThreadEvaluator
             {
                 Temperature = 0
             };
-            var response = await _chatClient.GetResponseAsync(chatMessages, chatOptions, cancellationToken: cancellationToken);
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(chatMessages, chatOptions, cancellationToken: cancellationToken);
             var jsonResponse = response.GetMessage().Text?.Trim();
             if (string.IsNullOrEmpty(jsonResponse))
             {
@@ -821,7 +821,7 @@ public partial class ThreadEvaluator
                 ResponseFormat = ChatResponseFormat.Text,
             };
 
-            var response = await _chatClient.GetResponseAsync(chatMessages, chatOptions);
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(chatMessages, chatOptions);
             var jsonResponse = response.GetMessage().Text?.Trim();
 
             if (string.IsNullOrEmpty(jsonResponse))
@@ -1058,7 +1058,7 @@ public partial class ThreadEvaluator
                 Temperature = 0
             };
 
-            var response = await _chatClient.GetResponseAsync(chatMessages, chatOptions, cancellationToken: cancellationToken);
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(chatMessages, chatOptions, cancellationToken: cancellationToken);
             var jsonResponse = response.GetMessage().Text?.Trim();
             if (string.IsNullOrEmpty(jsonResponse))
             {

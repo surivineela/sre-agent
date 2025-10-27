@@ -32,7 +32,7 @@ public sealed class IncidentInvestigationTaskHandler(
     ILogger<IncidentInvestigationTaskHandler> logger,
     IAgentTasksRepository agentTaskRepository,
     IThreadRepository threadRepository,
-    IChatClient chatClient,
+    IChatClientProvider chatClientProvider,
     IToolFactory<AgentContext> toolFactory,
     IExtendedAgentService extendedAgentService,
     IAgentOutboundCommunicationService outboundCommunicationService,
@@ -982,7 +982,7 @@ public sealed class IncidentInvestigationTaskHandler(
                 {
                     var docs = new List<SearchDocument>();
                     string query = await DocumentRetrieval.GenerateSearchQuery(
-                        chatClient,
+                        chatClientProvider.DefaultModel,
                         [inputMessage],
                         "How to investigate this issue?",
                         logger);
@@ -1020,7 +1020,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
                 var runConfig = new RunConfig
                 {
-                    ChatClient = chatClient,
+                    ChatClient = chatClientProvider.DefaultModel,
                     LoggerFactory = loggerFactory,
                 };
 

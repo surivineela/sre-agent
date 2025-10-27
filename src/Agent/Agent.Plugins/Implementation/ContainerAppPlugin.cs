@@ -15,6 +15,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.JsonConverters;
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Agent.Plugins.Services.Interfaces;
@@ -41,7 +42,7 @@ namespace Agent.Plugins.Implementation
         private readonly ILogger<ContainerAppPlugin> _logger;
         private readonly IAuthenticationService _authService;
         private readonly ILogAnalyticsService _logAnalyticsService;
-        private readonly IChatClient _chatClient;
+        private readonly IChatClientProvider _chatClientProvider;
         private readonly IArmClientFactory _armClientFactory;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IDiagnosticsPlugin _diagnosticsPlugin;
@@ -69,7 +70,7 @@ namespace Agent.Plugins.Implementation
             IAuthenticationService authService,
             IHttpClientFactory httpClientFactory,
             ILogAnalyticsService logAnalyticsService,
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             IDiagnosticsPlugin diagnosticsPlugin)
         {
             _databaseClient = graphDbClient;
@@ -79,7 +80,7 @@ namespace Agent.Plugins.Implementation
             _logger = logger;
             _authService = authService;
             _logAnalyticsService = logAnalyticsService;
-            _chatClient = chatClient;
+            _chatClientProvider = chatClientProvider;
             _armClientFactory = armClientFactory;
             _httpClientFactory = httpClientFactory;
             _diagnosticsPlugin = diagnosticsPlugin;
@@ -593,7 +594,7 @@ namespace Agent.Plugins.Implementation
                 }
             };
 
-            var response = await _chatClient.GetResponseAsync(messages, options);
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
             return response.Text;
         }
 
@@ -2167,7 +2168,7 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var response = await _chatClient.GetResponseAsync(messages, options);
+                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
                 string result = response.Text.Trim().ToLowerInvariant();
 
                 return result == "true";
@@ -2363,7 +2364,7 @@ Here are the logs in JSON format:
 
 {logsJson}";
 
-                var response = await _chatClient.GetResponseAsync(prompt);
+                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
                 return response.Text;
             }
             catch (Exception ex)

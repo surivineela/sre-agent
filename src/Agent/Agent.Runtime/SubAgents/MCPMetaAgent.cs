@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
@@ -13,15 +14,17 @@ namespace Agent.Runtime.SubAgents
 {
     public class MCPMetaAgent : SubAgent, IMcpConnectable
     {
+        private readonly IChatClientProvider _chatClientProvider;
         public override string SystemPrompt { get; protected set; } = $@"You must delegate to another MCP server.
 MCP stands for Model Context Protocol and represents a server which exposes prompts, tools, and resources to an LLM.";
 
         private ConcurrentDictionary<McpConnection, MCPAgent> _agents = new ConcurrentDictionary<McpConnection, MCPAgent>();
         private ConcurrentDictionary<McpConnection, AIFunction> _tools = new ConcurrentDictionary<McpConnection, AIFunction>();
 
-        public MCPMetaAgent(IChatClient chatClient, ILoggerFactory loggerFactory)
-            : base("MCPMetaAgent", chatClient)
+        public MCPMetaAgent(IChatClientProvider chatClientProvider, ILoggerFactory loggerFactory)
+            : base("MCPMetaAgent", chatClientProvider)
         {
+            _chatClientProvider = chatClientProvider;
         }
 
         public override IList<AITool> Tools()
@@ -37,7 +40,7 @@ MCP stands for Model Context Protocol and represents a server which exposes prom
         /// <inheritdoc />
         public void TryAddServer(McpConnection connection)
         {
-            MCPAgent agent = new MCPAgent(connection, _chatClient) { Id = connection.Id, ClientName = connection.Id };
+            MCPAgent agent = new MCPAgent(connection, _chatClientProvider) { Id = connection.Id, ClientName = connection.Id };
 
             bool successful = _agents.TryAdd(connection, agent);
 

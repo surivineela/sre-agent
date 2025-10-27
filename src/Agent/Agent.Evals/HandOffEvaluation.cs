@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Runtime.ThreadEvaluator;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,7 +68,7 @@ public class HandOffEvaluation
     {
         // Create proper mocks for the ThreadEvaluator dependencies
         var mockLogger = (await GetTestHostAsync()).Host.Services.GetRequiredService<ILogger<ThreadEvaluator>>();
-        var mockChatClient = (await GetTestHostAsync()).Host.Services.GetRequiredService<IChatClient>();
+        var mockChatClientProvider = (await GetTestHostAsync()).Host.Services.GetRequiredService<IChatClientProvider>();
         var mockTracer = (await GetTestHostAsync()).Host.Services.GetRequiredService<Tracer>();
 
         // Create a mock IThreadRepository
@@ -78,7 +79,7 @@ public class HandOffEvaluation
         var threadEvaluator = new ThreadEvaluator(
             logger: mockLogger,
             threadRepository: mockThreadRepository.Object,
-            chatClient: mockChatClient,
+            chatClientProvider: mockChatClientProvider,
             tracer: mockTracer,
             ragEvaluator: mockRagEvaluator.Object
         );

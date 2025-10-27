@@ -5,6 +5,7 @@
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Agent.Core;
 using Agent.Core.Helpers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.CommandLineUtils;
@@ -32,7 +33,7 @@ namespace Agent.Cmd
         public ScenarioCommand(
             ILogger<ScenarioCommand> logger,
             HttpClient httpClient,
-            [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient)
+            [FromKeyedServices(Constants.FunctionInvocationChatClient)] IChatClient chatClient)
         {
             _logger = logger;
             _httpClient = httpClient;
@@ -44,7 +45,7 @@ namespace Agent.Cmd
         {
             command.Description = "Run agent scenarios with batching";
             command.HelpOption("-?|-h|--help");
-            
+
             var countArg = command.Argument("count", "Number of scenario runs");
             var messageArg = command.Argument("message", "Start message for the scenario");
             var staggerSecondsOption = command.Option("-s|--staggerSeconds", "Number of seconds to wait before starting the next scenario", CommandOptionType.SingleValue);
@@ -58,7 +59,7 @@ namespace Agent.Cmd
                     return 1;
                 }
 
-                
+
 
                 if (string.IsNullOrEmpty(messageArg.Value))
                 {
@@ -68,7 +69,7 @@ namespace Agent.Cmd
 
                 var baseUrl = baseUrlOption.HasValue() ? baseUrlOption.Value() : "https://localhost:7023";
                 var stagger = TimeSpan.FromSeconds(staggerSecondsOption.HasValue() ? int.Parse(staggerSecondsOption.Value()) : 1);
-                
+
                 await RunScenariosAsync(count, messageArg.Value, baseUrl, stagger);
                 return 0;
             });
@@ -78,7 +79,7 @@ namespace Agent.Cmd
         {
             const int batchSize = 5; // Reasonable batch size for concurrency
             var batches = (int)Math.Ceiling((double)totalCount / batchSize);
-            
+
             _logger.LogInformation($"Starting {totalCount} scenario runs in {batches} batches of up to {batchSize} concurrent runs each");
             Console.WriteLine($"Starting {totalCount} scenario runs in {batches} batches of up to {batchSize} concurrent runs each");
 
@@ -113,7 +114,7 @@ namespace Agent.Cmd
                     .ToList();
 
                 await Task.WhenAll(monitoringTasks);
-                
+
                 completedRuns += runsInThisBatch;
                 Console.WriteLine($"Batch {batchIndex + 1} completed. Total progress: {completedRuns}/{totalCount}");
             }
@@ -140,7 +141,7 @@ namespace Agent.Cmd
                 var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PostAsync($"{baseUrl}/api/v1/threads", content);
-                
+
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError($"Failed to start scenario run: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
@@ -149,7 +150,7 @@ namespace Agent.Cmd
 
                 var responseJson = await response.Content.ReadAsStringAsync();
                 var responseObj = JsonSerializer.Deserialize<JsonElement>(responseJson, _serializerOptions);
-                
+
                 if (responseObj.TryGetProperty("id", out var idProperty))
                 {
                     var threadId = idProperty.GetString();
@@ -173,18 +174,18 @@ namespace Agent.Cmd
             {
                 var autoReplyHelper = new AutoReplyHelper(_chatClient);
                 var tokenSource = new CancellationTokenSource();
-                if(!Debugger.IsAttached)
+                if (!Debugger.IsAttached)
                 {
                     tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
-                } 
+                }
                 _logger.LogInformation($"Monitoring thread {threadId}...");
 
                 while (true)
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(5), tokenSource.Token); 
+                    await Task.Delay(TimeSpan.FromSeconds(5), tokenSource.Token);
 
                     var chatHistoryResponse = await _httpClient.GetAsync($"{baseUrl}/api/v1/chathistory/agentFramework/{threadId}");
-                    
+
                     if (!chatHistoryResponse.IsSuccessStatusCode)
                     {
                         _logger.LogWarning($"Failed to get chat history for thread {threadId}: {chatHistoryResponse.StatusCode}");
@@ -192,13 +193,13 @@ namespace Agent.Cmd
                     }
 
                     var responseJson = await chatHistoryResponse.Content.ReadAsStringAsync();
-                    
+
                     // Save the thread file on every update
                     await SaveThreadResultAsync(threadId, responseJson);
-                    
+
                     var messages = JsonSerializer.Deserialize<List<ChatMessage>>(responseJson, _serializerOptions) ?? [];
                     var reply = await autoReplyHelper.AssessAndGetReply(messages);
-                    if(reply != null)
+                    if (reply != null)
                     {
                         var requestBody = new
                         {
@@ -208,7 +209,7 @@ namespace Agent.Cmd
                         };
 
                         var postReplyResponse = await _httpClient.PostAsync($"{baseUrl}/api/v1/threads/{threadId}/messages", JsonContent.Create(requestBody));
-                        if(!postReplyResponse.IsSuccessStatusCode)
+                        if (!postReplyResponse.IsSuccessStatusCode)
                         {
                             _logger.LogError($"Failed to post reply for thread {threadId}: {postReplyResponse.StatusCode} - {await postReplyResponse.Content.ReadAsStringAsync()}");
                         }
@@ -218,7 +219,7 @@ namespace Agent.Cmd
                         }
                     }
 
-                    if(autoReplyHelper.AssessedState == AutoReplyHelper.AssessedAgentState.Complete)
+                    if (autoReplyHelper.AssessedState == AutoReplyHelper.AssessedAgentState.Complete)
                     {
                         break;
                     }
@@ -236,10 +237,10 @@ namespace Agent.Cmd
             {
                 var messages = JsonSerializer.Deserialize<ChatMessage[]>(jsonContent, _serializerOptions);
                 jsonContent = JsonSerializer.Serialize(messages, _serializerOptions);
-                
+
                 var filePath = Path.Combine(_exportDir, $"{threadId}.json");
                 await File.WriteAllTextAsync(filePath, jsonContent);
-                
+
                 _logger.LogInformation($"Saved thread {threadId} result to {filePath}");
             }
             catch (Exception ex)
@@ -252,22 +253,22 @@ namespace Agent.Cmd
         {
             // Get the directory where the Agent.Cmd.exe is located
             var executableDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "";
-            
+
             // Create timestamp with minute-level granularity in format yyyy-MM-dd_HH-mm
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm");
-            
+
             // Navigate up to find the src directory, then go to Agent.Evals\ToolReplayLogs\Export
             var srcDir = executableDir;
             while (!string.IsNullOrEmpty(srcDir) && !Directory.Exists(Path.Combine(srcDir, "Agent")))
             {
                 srcDir = Directory.GetParent(srcDir)?.FullName;
             }
-            
+
             if (!string.IsNullOrEmpty(srcDir))
             {
                 return Path.Combine(srcDir, "Agent", "Agent.Evals", "ToolReplayLogs", "Export", timestamp);
             }
-            
+
             // Fallback to current directory if we can't find the proper structure
             return Path.Combine(Directory.GetCurrentDirectory(), "Export", timestamp);
         }

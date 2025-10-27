@@ -38,7 +38,7 @@ public class ExtendedAgentController : ControllerBase
     private readonly ILogger<ExtendedAgentController> _logger;
     private readonly IConnectorResolver _connectorResolver;
     private readonly IAuthenticationService _authenticationService;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly IInstructionGenerationService _instructionGenerationService;
     private readonly IToolFactory<AgentContext> _toolFactory;
 
@@ -48,7 +48,7 @@ public class ExtendedAgentController : ControllerBase
         IResourceDeploymentService agentService,
         IConnectorResolver connectorResolver,
         IAuthenticationService authenticationService,
-        IChatClient chatClient,
+        IChatClientProvider chatClientProvider,
         IInstructionGenerationService instructionGenerationService,
         IToolFactory<AgentContext> toolFactory
        )
@@ -58,7 +58,7 @@ public class ExtendedAgentController : ControllerBase
         _extendedAgentService = extendedAgentService;
         _connectorResolver = connectorResolver;
         _authenticationService = authenticationService;
-        _chatClient = chatClient; // default chat client injected via DI
+        _chatClientProvider = chatClientProvider;
         _instructionGenerationService = instructionGenerationService;
         _toolFactory = toolFactory;
     }
@@ -668,7 +668,7 @@ User Prompt To Improve (between <<< and >>>):
             var prompt = systemPrompt + request.Prompt + "\n>>>";
 
             var chatOptions = new ChatOptions { Temperature = 1.0f };
-            var chatResponse = await _chatClient.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
+            var chatResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
             var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
 
             // Log the raw content for debugging

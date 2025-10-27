@@ -45,7 +45,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
     };
 
     public IncidentHandlerAgent(
-        [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
+        IChatClientProvider chatClientProvider,
         IAgentsFactory agentsFactory,
         IToolFactory<AgentContext> toolFactory,
         ILogger<IncidentHandlerAgent> logger,
@@ -57,7 +57,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         IIncidentStatusMetricsService incidentsStatusMetricsService
         )
     {
-        _chatClient = chatClient;
+        _chatClient = chatClientProvider.GetModelByKey<IChatClient>(Constants.FunctionInvocationChatClient);
         _threadService = threadService;
         _threadRepository = threadRepository;
         _logger = logger;

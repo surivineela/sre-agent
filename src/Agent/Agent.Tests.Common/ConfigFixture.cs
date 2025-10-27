@@ -22,7 +22,7 @@ namespace Agent.Tests.Common
             Builder.LoadAppSettings();
             Builder.ValidateAndRegisterAppSettings<AppSettings>();
             Builder.Services.ConfigureAzureOpenAIClient();
-            Builder.Services.ConfigureIChatClient();
+            Builder.Services.ConfigureIChatClient(Builder.Configuration);
 
             var sp = Builder.Services.BuildServiceProvider();
 

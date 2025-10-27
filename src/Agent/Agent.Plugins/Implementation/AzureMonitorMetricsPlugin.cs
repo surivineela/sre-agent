@@ -6,6 +6,8 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 using Azure.Core;
 using Azure.Monitor.Query.Models;
@@ -16,7 +18,7 @@ namespace Agent.Plugins;
 public class AzureMonitorMetricsPlugin : IAzureMonitorMetricsPlugin
 {
     private readonly AzureMonitorMetricsHelper _azureMonitorMetricsHelper;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     public Guid? ThreadId { get; set; }
 
     // In-memory cache: key is "resourceType", value is List<MetricDefinition>
@@ -24,10 +26,10 @@ public class AzureMonitorMetricsPlugin : IAzureMonitorMetricsPlugin
 
     public AzureMonitorMetricsPlugin(
         AzureMonitorMetricsHelper azureMonitorMetricsHelper,
-        IChatClient chatClient)
+        IChatClientProvider chatClientProvider)
     {
         _azureMonitorMetricsHelper = azureMonitorMetricsHelper;
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
     }
 
     public async Task<List<MetricDefinition>> ListMetricsForAzureResource(string resourceId)
@@ -135,7 +137,7 @@ public class AzureMonitorMetricsPlugin : IAzureMonitorMetricsPlugin
             new ChatMessage(ChatRole.User, JsonSerializer.Serialize(timeSeriesElements, JsonSerializerOptions.Web))
         };
 
-        var response = await _chatClient.GetResponseAsync(messages, options);
+        var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
 
         return response.Text;
     }

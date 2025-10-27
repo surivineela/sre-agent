@@ -29,7 +29,7 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
     private readonly Container container;
     private readonly ILogger<ServiceNowIncidentAnalysisService> _logger;
     public ServiceNowIncidentAnalysisService(
-        IChatClient client,
+        IChatClientProvider chatClientProvider,
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
         IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> incidentManagementService,
@@ -40,7 +40,7 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
         CoreSettings coreSettings,
         ArmHelper armHelper,
         CustomerLogger appInsightsLogger,
-        ILogger<ServiceNowIncidentAnalysisService> logger) : base(client, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
+        ILogger<ServiceNowIncidentAnalysisService> logger) : base(chatClientProvider, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
     {
         container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
         _logger = logger;
@@ -176,7 +176,7 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
         incidentDocument.AIRootCause = rootCauseResponse.RootCause;
         incidentDocument.RootCauseDescription = rootCauseResponse.Description;
         incidentDocument.GeneralSummary = generalSummary;
-        
+
         return incidentDocument;
     }
 
@@ -184,10 +184,10 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
     {
         bool isMitigatedByAgent = false;
         string status;
-        
+
         status = serviceNowIncident.Status.ToString().ToLower();
         isMitigatedByAgent = (status == "6" || status == "7") && (serviceNowIncident.Tags?.Contains("SREAgent_Resolved") ?? false);
-               
+
         return isMitigatedByAgent;
     }
 
@@ -242,7 +242,7 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
         else
         {
             var updatedRootCauses = new List<RootCauseCategory>(existingRootCauses);
-            
+
             // Check if this root cause category already exists (case-insensitive comparison)
             if (!updatedRootCauses.Any(x => string.Equals(x.Category, rootCauseCategory.Category, StringComparison.OrdinalIgnoreCase)))
             {
@@ -265,7 +265,7 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
     private async Task<AIRootCauseResponse> GetAIRootCause(ServiceNowIncident incident, List<RootCauseCategory> existingRootCauses)
     {
         var rootCausesForPrompt = existingRootCauses.Select(rc => new { Category = rc.Category, Description = rc.Description }).ToList();
-        
+
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
         {
             new(ChatRole.System, "You are an expert in incident analysis."),
@@ -279,13 +279,13 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
             Temperature = 0.2f,
         };
 
-        var (response, result) = await _client.GetResponseAsync(messages, typeof(AIRootCauseResponse), options);
-        
+        var (response, result) = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, typeof(AIRootCauseResponse), options);
+
         if (result is AIRootCauseResponse rootCauseResponse)
         {
             return rootCauseResponse;
         }
-        
+
         _logger.LogInternalWarning("Failed to get structured response, result was null or wrong type");
         return new AIRootCauseResponse { RootCause = "Unknown", Description = "Unable to categorize incident" };
     }
@@ -311,7 +311,7 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
             ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
         };
 
-        var reply = await _client.GetResponseAsync(messages, options);
+        var reply = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
         return reply.Text;
     }
 
@@ -354,7 +354,8 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
             case 7: return "Closed";
             case 8: return "Cancelled";
             default: return "Active";
-        };
+        }
+        ;
     }
 
 }

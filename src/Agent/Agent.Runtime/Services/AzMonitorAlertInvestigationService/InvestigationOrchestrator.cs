@@ -17,6 +17,7 @@ using OpenTelemetry.Trace;
 using OpenTelemetry;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Agent.Data.DataModels.IncidentModel;
+using Agent.Framework;
 
 namespace Agent.Runtime.Services.AzMonitorAlertInvestigation;
 
@@ -29,7 +30,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
     private readonly IReflexionEvaluator _reflexionEvaluator;
     private readonly IHypothesisGenerator _hypothesisGenerator;
     private readonly IThreadRepository _repository;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly ILogger<InvestigationOrchestrator> _logger;
     private readonly Tracer _tracer;
 
@@ -38,7 +39,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         IReflexionEvaluator reflexionEvaluator,
         IHypothesisGenerator hypothesisGenerator,
         IThreadRepository repository,
-        IChatClient chatClient,
+        IChatClientProvider chatClientProvider,
         ILogger<InvestigationOrchestrator> logger,
         Tracer tracer)
     {
@@ -46,7 +47,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         _reflexionEvaluator = reflexionEvaluator;
         _hypothesisGenerator = hypothesisGenerator;
         _repository = repository;
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
         _logger = logger;
         _tracer = tracer;
     }
@@ -281,7 +282,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
                 }
             };
 
-            var response = await _chatClient.GetResponseAsync(
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(
                 new List<ChatMessage> { new ChatMessage(ChatRole.System, summarizePrompt) },
                 options);
 

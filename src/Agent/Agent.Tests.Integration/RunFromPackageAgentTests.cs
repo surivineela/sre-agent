@@ -24,7 +24,7 @@ namespace Agent.Tests.Integration
         private readonly ITestOutputHelper _output;
         private readonly IConfiguration _config;
         private readonly TestChatClient ToolCallingChatClient;
-        
+
         // Test resource IDs for different scenarios
         private const string ValidWindowsResourceId = "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Web/sites/test-function-app-windows";
         private const string ValidLinuxResourceId = "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Web/sites/test-function-app-linux";
@@ -44,7 +44,7 @@ namespace Agent.Tests.Integration
             services.AddSingleton<IRunFromPackagePlugin, RunFromPackagePlugin>();
             services.AddSingleton<RunFromPackagePluginDefinition>();
             services.ConfigureAzureOpenAIClient();
-            services.ConfigureIChatClient();
+            services.ConfigureIChatClient(_config);
 
             ServiceProvider s = services.BuildServiceProvider();
 
@@ -223,7 +223,7 @@ namespace Agent.Tests.Integration
         {
             // Test that GPT5 agent provides structured planning with checklist
             await ToolCallingChatClient.CompleteAsync($"Diagnose and fix any WEBSITE_RUN_FROM_PACKAGE issues for function app: {ValidWindowsResourceId}");
-            
+
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("checklist or plan with bullets"));
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("structured approach or steps"));
         }
@@ -233,7 +233,7 @@ namespace Agent.Tests.Integration
         {
             // Test that GPT5 agent prioritizes critical issues before optimization recommendations
             await ToolCallingChatClient.CompleteAsync($"Analyze WEBSITE_RUN_FROM_PACKAGE for function app {ValidWindowsResourceId} and provide both critical issues and optimization recommendations");
-            
+
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("critical issues first or priority order"));
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("functional problems before optimization"));
         }
@@ -243,7 +243,7 @@ namespace Agent.Tests.Integration
         {
             // Test that GPT5 agent validates package structure before configuration updates
             await ToolCallingChatClient.CompleteAsync($"Update WEBSITE_RUN_FROM_PACKAGE to use this new package URL: https://test.blob.core.windows.net/deployments/newpackage.zip for function app: {ValidWindowsResourceId}");
-            
+
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("package structure validation or inspect package"));
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("before configuration update"));
         }
@@ -253,7 +253,7 @@ namespace Agent.Tests.Integration
         {
             // Test that GPT5 agent categorizes issues by severity (Critical, High, Medium, Low)
             await ToolCallingChatClient.CompleteAsync($"Perform comprehensive analysis of WEBSITE_RUN_FROM_PACKAGE issues for function app: {ValidWindowsResourceId}");
-            
+
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("severity or categorize by critical"));
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("broken functionality vs optimization"));
         }
@@ -267,7 +267,7 @@ namespace Agent.Tests.Integration
         {
             // Simulate a complex workflow: check status, diagnose, recommend repair
             await ToolCallingChatClient.CompleteAsync($"For function app {ValidWindowsResourceId}, first check the WEBSITE_RUN_FROM_PACKAGE status, then diagnose any issues, and provide repair recommendations");
-            
+
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("status check"));
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("diagnostic"));
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("recommendations"));
@@ -278,7 +278,7 @@ namespace Agent.Tests.Integration
         {
             // Test security-focused workflow with URL validation and SAS token generation
             await ToolCallingChatClient.CompleteAsync($"For function app {ValidWindowsResourceId}, validate the external package URL https://test.blob.core.windows.net/deployments/package.zip and generate a secure SAS token for storage account 'test'");
-            
+
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("URL validation"));
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("SAS token"));
         }
@@ -288,7 +288,7 @@ namespace Agent.Tests.Integration
         {
             // Test that GPT5 agent properly masks sensitive information in URLs
             await ToolCallingChatClient.CompleteAsync($"Validate this URL with SAS token: https://test.blob.core.windows.net/deployments/package.zip?sig=secrettoken&st=2024-01-01&se=2024-01-02 for function app: {ValidWindowsResourceId}");
-            
+
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("masked or hidden sensitive parameters"));
             Assert.False(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("secrettoken"), "Should not expose secret tokens");
         }
@@ -298,7 +298,7 @@ namespace Agent.Tests.Integration
         {
             // Test that GPT5 agent requires explicit user consent before configuration changes
             await ToolCallingChatClient.CompleteAsync($"Update WEBSITE_RUN_FROM_PACKAGE configuration for function app: {ValidWindowsResourceId}");
-            
+
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("explicit consent or user approval required"));
         }
 
@@ -307,7 +307,7 @@ namespace Agent.Tests.Integration
         {
             // Test SKU migration scenario
             await ToolCallingChatClient.CompleteAsync($"For function app {ValidLinuxResourceId} on Linux Consumption plan, check SKU compatibility for WEBSITE_RUN_FROM_PACKAGE and provide migration recommendations");
-            
+
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("SKU compatibility"));
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("recommendations"));
         }
@@ -317,7 +317,7 @@ namespace Agent.Tests.Integration
         {
             // Test that GPT5 agent follows the systematic 8-step workflow with post-action validation
             await ToolCallingChatClient.CompleteAsync($"Perform complete WEBSITE_RUN_FROM_PACKAGE analysis and remediation for function app: {ValidWindowsResourceId}");
-            
+
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("initial assessment or configuration analysis"));
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("verification or validation"));
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("systematic approach or step-by-step"));

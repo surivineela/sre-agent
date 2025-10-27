@@ -22,12 +22,13 @@ using Newtonsoft.Json;
 using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
 
 namespace Agent.Runtime.Services;
-public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, Incident>
+
+public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, Incident>
 {
     private readonly ILogger<IcmIncidentAnalysisService> _logger;
     private readonly Container container;
     public IcmIncidentAnalysisService(
-        IChatClient client,
+        IChatClientProvider chatClientProvider,
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
         IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> incidentManagementService,
@@ -38,7 +39,7 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
         CoreSettings coreSettings,
         ArmHelper armHelper,
         CustomerLogger appInsightsLogger,
-        ILogger<IcmIncidentAnalysisService> logger): base(client, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
+        ILogger<IcmIncidentAnalysisService> logger) : base(chatClientProvider, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
     {
         container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
         _logger = logger;
@@ -94,7 +95,7 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
                 IncidentTitle = incidentDoc.Title,
                 HandlerCreatedAt = (DateTime)(handlerCreatedOn != null ? handlerCreatedOn : DateTime.TryParse(results?["HandlerCreatedAt"]?.ToString(), out DateTime handlerCreatedAt) ? handlerCreatedAt : DateTime.UtcNow),
                 IncidentCreatedAt = incidentDoc.CreatedDate.UtcDateTime,
-                HandlerUpdatedAt = (DateTime)(handlerUpdatedOn != null ? handlerUpdatedOn :  DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) ?
+                HandlerUpdatedAt = (DateTime)(handlerUpdatedOn != null ? handlerUpdatedOn : DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) ?
                 (handlerUpdatedAt <= DateTime.MinValue.AddDays(1) ? DateTime.UtcNow : handlerUpdatedAt) : DateTime.UtcNow),
                 IncidentUpdatedAt = incidentDoc.UpdatedAt,
                 IncidentHandledAt = DateTime.TryParse(results?["HandledAt"]?.ToString(), out DateTime incidentHandledTime) ?
@@ -141,7 +142,7 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
         incidentDocument.AIRootCause = rootCauseResponse.RootCause;
         incidentDocument.RootCauseDescription = rootCauseResponse.Description;
         incidentDocument.GeneralSummary = generalSummary;
-        
+
         return incidentDocument;
     }
 
@@ -149,11 +150,11 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
     {
         bool isMitigatedByAgent = false;
         string status;
-        
+
         status = icmIncident.Status.ToString().ToLower();
         isMitigatedByAgent = (status == "mitigated" || status == "resolved") && ((icmIncident.MitigateData?.MitigatedBy.Contains("agent") ?? false) ||
             icmIncident.Tags.Contains("SREAgent_Mitigated"));
-        
+
         return isMitigatedByAgent;
     }
 
@@ -192,7 +193,7 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
             else
             {
                 var updatedRootCauses = new List<RootCauseCategory>(existingRootCauses);
-                
+
                 // Check if this root cause category already exists (case-insensitive comparison)
                 if (!updatedRootCauses.Any(x => string.Equals(x.Category, rootCauseCategory.Category, StringComparison.OrdinalIgnoreCase)))
                 {
@@ -220,7 +221,7 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
     private async Task<AIRootCauseResponse> GetAIRootCause(Incident incident, List<RootCauseCategory> existingRootCauses)
     {
         var rootCausesForPrompt = existingRootCauses.Select(rc => new { Category = rc.Category, Description = rc.Description }).ToList();
-        
+
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
         {
             new(ChatRole.System, "You are an expert in incident analysis."),
@@ -234,13 +235,13 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
             Temperature = 0.2f,
         };
 
-        var (response, result) = await _client.GetResponseAsync(messages, typeof(AIRootCauseResponse), options);
-        
+        var (response, result) = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, typeof(AIRootCauseResponse), options);
+
         if (result is AIRootCauseResponse rootCauseResponse)
         {
             return rootCauseResponse;
         }
-        
+
         _logger.LogInternalWarning("Failed to get structured response, result was null or wrong type");
         return new AIRootCauseResponse { RootCause = "Unknown", Description = "Unable to categorize incident" };
     }
@@ -280,7 +281,7 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
             ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
         };
 
-        var reply = await _client.GetResponseAsync(messages, options);
+        var reply = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
         return reply.Text;
     }
 

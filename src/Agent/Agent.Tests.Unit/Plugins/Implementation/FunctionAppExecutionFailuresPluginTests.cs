@@ -13,7 +13,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Logging;
-using Microsoft.Extensions.AI;
+using Agent.Framework;
 using Microsoft.Extensions.Hosting;
 using Moq.Protected;
 using System.Net;
@@ -30,14 +30,14 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         private readonly Mock<ILogger<FunctionAppExecutionFailuresPlugin>> _mockLogger;
         private readonly FunctionAppExecutionFailuresPlugin _plugin;
         private readonly FunctionAppExecutionFailuresPlugin _pluginWithArmHelper;
-        
+
         // ArmHelper related mocks
         private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
         private readonly Mock<HttpMessageHandler> _mockHttpMessageHandler;
         private readonly Mock<IArmClientFactory> _mockArmClientFactory;
         private readonly Mock<IAuthenticationService> _mockAuthService;
         private readonly Mock<IHostEnvironment> _mockHostEnvironment;
-        private readonly Mock<IChatClient> _mockChatClient;
+        private readonly Mock<IChatClientProvider> _mockChatClientProvider;
         private readonly Mock<ICrawlerTriggerService> _mockCrawlerTriggerService;
         private readonly Mock<ISessionPoolService> _mockSessionPoolService;
         private readonly ArmHelper _armHelper;
@@ -60,7 +60,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockArmClientFactory = new Mock<IArmClientFactory>();
             _mockAuthService = new Mock<IAuthenticationService>();
             _mockHostEnvironment = new Mock<IHostEnvironment>();
-            _mockChatClient = new Mock<IChatClient>();
+            _mockChatClientProvider = new Mock<IChatClientProvider>();
             _mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
             _mockSessionPoolService = new Mock<ISessionPoolService>();
             var mockCustomerLogger = new Mock<CustomerLogger>();
@@ -81,7 +81,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 _mockHostEnvironment.Object,
                 _mockCrawlerTriggerService.Object,
                 _mockSessionPoolService.Object,
-                _mockChatClient.Object);
+                _mockChatClientProvider.Object);
 
             // Create plugin instance without ArmHelper for existing tests
             _plugin = new FunctionAppExecutionFailuresPlugin(
@@ -500,7 +500,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Assert
             Assert.NotNull(result);
             Assert.Equal(3, result.Count);
-            
+
             // Verify the data is correctly parsed and sorted by timestamp
             var firstDataPoint = result[0];
             Assert.Equal("Function1", firstDataPoint.FunctionName);
@@ -532,7 +532,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.NotNull(result);
-            
+
             // Verify that the query was called with the resource ID and a query that includes the expected time range
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
@@ -555,7 +555,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.NotNull(result);
-            
+
             // Verify that the query uses 1d time grain for long time ranges
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
@@ -578,7 +578,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.NotNull(result);
-            
+
             // Verify that the query uses 10m time grain for medium time ranges
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
@@ -601,7 +601,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.NotNull(result);
-            
+
             // Verify that the query uses the extracted resource name (last part after the slash)
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
@@ -625,7 +625,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.NotNull(result);
-            
+
             // Verify that the query uses the simple resource name
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
@@ -666,7 +666,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Assert
             Assert.NotNull(result);
             Assert.Empty(result);
-            
+
             // Verify that an error was logged
             _mockLogger.Verify(
                 x => x.Log(
@@ -730,7 +730,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
-                    It.Is<string>(query => 
+                    It.Is<string>(query =>
                         query.Contains("requests") &&
                         query.Contains("success == false") &&
                         query.Contains("client_Type != \"Browser\"") &&
@@ -860,7 +860,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.Equal(expectedCallStacks, result);
-            
+
             // Verify the method was called with correct parameter
             _mockAppCodeAnalysisPlugin.Verify(
                 x => x.GetCallStackForApp(TestResourceId),
@@ -882,7 +882,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.Equal(emptyCallStacks, result);
-            
+
             // Verify the method was called
             _mockAppCodeAnalysisPlugin.Verify(
                 x => x.GetCallStackForApp(TestResourceId),
@@ -904,7 +904,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.Equal(nullResult, result);
-            
+
             // Verify the method was called
             _mockAppCodeAnalysisPlugin.Verify(
                 x => x.GetCallStackForApp(TestResourceId),
@@ -927,7 +927,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.Equal($"Failed to retrieve call stacks: {exceptionMessage}", result);
-            
+
             // Verify error was logged
             _mockLogger.Verify(
                 x => x.Log(
@@ -955,7 +955,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.Equal($"Failed to retrieve call stacks: {httpExceptionMessage}", result);
-            
+
             // Verify error was logged with the HTTP exception
             _mockLogger.Verify(
                 x => x.Log(
@@ -983,7 +983,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.Equal($"Failed to retrieve call stacks: {timeoutMessage}", result);
-            
+
             // Verify error was logged with the timeout exception
             _mockLogger.Verify(
                 x => x.Log(
@@ -1035,7 +1035,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.Equal(callStacksResult, result);
-            
+
             // Verify the method was called with the different resource ID
             _mockAppCodeAnalysisPlugin.Verify(
                 x => x.GetCallStackForApp(differentResourceId),
@@ -1076,7 +1076,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.Equal(complexCallStacks, result);
-            
+
             // Verify the method was called
             _mockAppCodeAnalysisPlugin.Verify(
                 x => x.GetCallStackForApp(TestResourceId),
@@ -1106,7 +1106,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
-                    It.Is<string>(query => 
+                    It.Is<string>(query =>
                         query.Contains("exceptions") &&
                         query.Contains("client_Type != \"Browser\"") &&
                         query.Contains($"cloud_RoleName =~ \"{TestResourceName}\"") &&
@@ -1122,7 +1122,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var startTime = new DateTime(2023, 11, 15, 9, 0, 0, DateTimeKind.Utc);
             var endTime = new DateTime(2023, 11, 15, 10, 0, 0, DateTimeKind.Utc);
             var mockResponse = CreateMockTop3ExceptionsResponse();
-            
+
             _mockAppInsightsPlugin
                 .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
@@ -1137,7 +1137,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
-                    It.Is<string>(query => 
+                    It.Is<string>(query =>
                         query.Contains($"start=datetime({startTime:O})") &&
                         query.Contains($"end=datetime({endTime:O})") &&
                         query.Contains("let timeGrain=5m"))), // 1 hour range should use 5m grain
@@ -1160,7 +1160,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
-                    It.Is<string>(query => 
+                    It.Is<string>(query =>
                         query.Contains("exceptions") &&
                         query.Contains("let timeGrain=5m"))), // Default 1 hour range should use 5m grain
                 Times.Once);
@@ -1183,7 +1183,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var startTime = DateTime.UtcNow.AddDays(-2);
             var endTime = DateTime.UtcNow;
             var mockResponse = CreateMockTop3ExceptionsResponse();
-            
+
             _mockAppInsightsPlugin
                 .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
@@ -1235,7 +1235,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
-                    It.Is<string>(query => 
+                    It.Is<string>(query =>
                         query.Contains("exceptions") &&
                         query.Contains("FunctionName = iif(outerMessage has \"Result: Function\"") &&
                         query.Contains("parse outerMessage with * \"Exception: \" ExceptionType \":\" ExceptionMessage") &&
@@ -1268,7 +1268,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
-                    It.Is<string>(query => 
+                    It.Is<string>(query =>
                         query.Contains("exceptions") &&
                         query.Contains("client_Type != \"Browser\"") &&
                         query.Contains($"cloud_RoleName =~ \"{TestResourceName}\"") &&
@@ -1287,7 +1287,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var startTime = new DateTime(2023, 11, 15, 8, 0, 0, DateTimeKind.Utc);
             var endTime = new DateTime(2023, 11, 15, 20, 0, 0, DateTimeKind.Utc);
             var mockResponse = CreateMockTop3ExceptionsWithStackTracesResponse();
-            
+
             _mockAppInsightsPlugin
                 .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
@@ -1302,7 +1302,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
-                    It.Is<string>(query => 
+                    It.Is<string>(query =>
                         query.Contains($"start=datetime({startTime:O})") &&
                         query.Contains($"end=datetime({endTime:O})") &&
                         query.Contains("let timeGrain=10m"))), // 12 hour range should use 10m grain
@@ -1325,7 +1325,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
-                    It.Is<string>(query => 
+                    It.Is<string>(query =>
                         query.Contains("exceptions") &&
                         query.Contains("let timeGrain=5m"))), // Default 1 hour range should use 5m grain
                 Times.Once);
@@ -1377,7 +1377,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockAppInsightsPlugin.Verify(
                 x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
-                    It.Is<string>(query => 
+                    It.Is<string>(query =>
                         query.Contains("exceptions") &&
                         query.Contains("extend FullExceptionMessage = iif(isempty(ExceptionMessage), message, ExceptionMessage)") &&
                         query.Contains("extend FullStackTrace = iif(isempty(StackTrace), details, StackTrace)") &&
@@ -1394,7 +1394,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var startTime = DateTime.UtcNow.AddDays(-3);
             var endTime = DateTime.UtcNow;
             var mockResponse = CreateMockTop3ExceptionsWithStackTracesResponse();
-            
+
             _mockAppInsightsPlugin
                 .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
@@ -1452,24 +1452,24 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                         },
                         ["rows"] = new JArray
                         {
-                            new JArray 
-                            { 
-                                "System.ArgumentException", 
-                                "Invalid parameter provided", 
+                            new JArray
+                            {
+                                "System.ArgumentException",
+                                "Invalid parameter provided",
                                 "at Function1.Run() in Function1.cs:line 25",
                                 15
                             },
-                            new JArray 
-                            { 
-                                "System.NullReferenceException", 
-                                "Object reference not set to an instance of an object", 
+                            new JArray
+                            {
+                                "System.NullReferenceException",
+                                "Object reference not set to an instance of an object",
                                 "at Function2.Run() in Function2.cs:line 12",
                                 8
                             },
-                            new JArray 
-                            { 
-                                "System.InvalidOperationException", 
-                                "Operation not valid for current state", 
+                            new JArray
+                            {
+                                "System.InvalidOperationException",
+                                "Operation not valid for current state",
                                 "at Function3.Run() in Function3.cs:line 18",
                                 3
                             }
@@ -1498,33 +1498,33 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                         },
                         ["rows"] = new JArray
                         {
-                            new JArray 
-                            { 
+                            new JArray
+                            {
                                 "System.ArgumentException",
                                 new JArray { "Invalid parameter provided", "Null argument passed", "Missing required parameter" },
-                                new JArray 
-                                { 
-                                    "at Function1.Run() in Function1.cs:line 25", 
+                                new JArray
+                                {
+                                    "at Function1.Run() in Function1.cs:line 25",
                                     "at Function1.Run() in Function1.cs:line 30",
                                     "at Function1.Run() in Function1.cs:line 35"
                                 },
                                 new JArray { "Function1", "Function1", "Function1" },
                                 20
                             },
-                            new JArray 
-                            { 
+                            new JArray
+                            {
                                 "System.NullReferenceException",
                                 new JArray { "Object reference not set", "Null object access" },
-                                new JArray 
-                                { 
-                                    "at Function2.Run() in Function2.cs:line 12", 
+                                new JArray
+                                {
+                                    "at Function2.Run() in Function2.cs:line 12",
                                     "at Function2.Run() in Function2.cs:line 20"
                                 },
                                 new JArray { "Function2", "Function2" },
                                 12
                             },
-                            new JArray 
-                            { 
+                            new JArray
+                            {
                                 "System.InvalidOperationException",
                                 new JArray { "Operation not valid for current state" },
                                 new JArray { "at Function3.Run() in Function3.cs:line 18" },

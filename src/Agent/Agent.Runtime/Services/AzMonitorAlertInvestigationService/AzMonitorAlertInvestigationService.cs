@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels.IncidentModel;
+using Agent.Framework;
 using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Azure.Core;
@@ -24,7 +25,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
     private readonly ILogger<AzMonitorAlertInvestigationService> _logger;
     private readonly IThreadRepository _repository;
     private readonly ILogQueryService _logQueryService;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly IGraphDBPlugin _graphDBPlugin;
     private readonly IAzureActivityLogsPlugin _azureActivityLogsPlugin;
     private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
@@ -35,7 +36,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
     public AzMonitorAlertInvestigationService(
         IThreadRepository repository,
         ILogQueryService logQueryService,
-        [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
+        IChatClientProvider chatClientProvider,
         IAzureActivityLogsPlugin azureActivityLogsPlugin,
         IGraphDBPlugin graphDBPlugin,
         IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
@@ -43,7 +44,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
     {
         _repository = repository;
         _logQueryService = logQueryService;
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
         _azureActivityLogsPlugin = azureActivityLogsPlugin;
         _azureMonitorMetricsPlugin = azureMonitorMetricsPlugin;
         _graphDBPlugin = graphDBPlugin;
@@ -404,7 +405,7 @@ CRITICAL:
                 Temperature = (float)0.1
             };
 
-            var relevantQueriesJson = await _chatClient.GetResponseAsync(
+            var relevantQueriesJson = await _chatClientProvider.DefaultModel.GetResponseAsync(
                 relevantQueriesPrompt,
                 options);
 
@@ -752,7 +753,7 @@ BEGIN by calling ListAvailableMetrics now.";
                 }
             };
 
-            var response = await _chatClient.GetResponseAsync(new List<ChatMessage> { message }, options);
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(new List<ChatMessage> { message }, options);
             return response.Text;
         }
         catch (Exception ex)
@@ -779,7 +780,7 @@ BEGIN by calling ListAvailableMetrics now.";
                 }
             };
 
-            var response = await _chatClient.GetResponseAsync(new List<ChatMessage> { message }, options);
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(new List<ChatMessage> { message }, options);
             return response.Text;
         }
         catch (Exception ex)

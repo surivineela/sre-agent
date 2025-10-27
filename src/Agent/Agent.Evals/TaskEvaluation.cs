@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Runtime.ThreadEvaluator;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,7 +72,7 @@ public class TaskEvaluation
     {
         // Create proper services from TestHost like HandOffEvaluation does
         var mockLogger = (await GetTestHostAsync()).Host.Services.GetRequiredService<ILogger<ThreadEvaluator>>();
-        var mockChatClient = (await GetTestHostAsync()).Host.Services.GetRequiredService<IChatClient>();
+        var mockChatClientProvider = (await GetTestHostAsync()).Host.Services.GetRequiredService<IChatClientProvider>();
         var mockTracer = (await GetTestHostAsync()).Host.Services.GetRequiredService<Tracer>();
 
         // Create a mock IThreadRepository
@@ -82,7 +83,7 @@ public class TaskEvaluation
         var threadEvaluator = new ThreadEvaluator(
             logger: mockLogger,
             threadRepository: mockThreadRepository.Object,
-            chatClient: mockChatClient,
+            chatClientProvider: mockChatClientProvider,
             tracer: mockTracer,
             ragEvaluator: mockRagEvaluator.Object
         );
@@ -109,9 +110,9 @@ public class TaskEvaluation
         TestContext.WriteLine("");
 
         // Now call the actual EvaluateTasksWithLLM method
-    var evaluationResults = await threadEvaluator.EvaluateTaskWithLLM(
-            thread,
-            testCase.ChatMessages);
+        var evaluationResults = await threadEvaluator.EvaluateTaskWithLLM(
+                thread,
+                testCase.ChatMessages);
 
         // Display the evaluation results
         TestContext.WriteLine($"=== Evaluation Results ===");

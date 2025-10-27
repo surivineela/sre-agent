@@ -5,18 +5,19 @@
 using Microsoft.Extensions.AI;
 using Agent.Core.Interfaces;
 using Agent.Core.Extensions;
+using Agent.Framework;
 
 namespace Agent.Core.Helpers;
 
 public class TitleGenerationService : ITitleGenerationService
 {
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly IThreadRepository _threadRepository;
     public TitleGenerationService(
-        IChatClient chatClient,
+        IChatClientProvider chatClientProvider,
         IThreadRepository threadRepository)
     {
-        _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
+        _chatClientProvider = chatClientProvider ?? throw new ArgumentNullException(nameof(chatClientProvider));
         _threadRepository = threadRepository ?? throw new ArgumentNullException(nameof(threadRepository));
     }
 
@@ -45,7 +46,7 @@ public class TitleGenerationService : ITitleGenerationService
                 new ChatMessage(ChatRole.User, message)
             };
 
-            var response = await _chatClient.GetResponseAsync(chats);
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(chats);
             string title = response.GetMessage().Text?.Trim() ?? "";
 
             // Validate the response

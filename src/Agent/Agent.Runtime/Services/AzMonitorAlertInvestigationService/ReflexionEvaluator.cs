@@ -5,8 +5,10 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data.DataModels.IncidentModel;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
@@ -20,7 +22,7 @@ namespace Agent.Runtime.Services.AzMonitorAlertInvestigation;
 /// </summary>
 public class ReflexionEvaluator : IReflexionEvaluator
 {
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly ILogger<ReflexionEvaluator> _logger;
 
     private static readonly HashSet<string> AllSteps = new(StringComparer.OrdinalIgnoreCase)
@@ -33,9 +35,9 @@ public class ReflexionEvaluator : IReflexionEvaluator
         "AnalyzeGenericLogQueries"
     };
 
-    public ReflexionEvaluator(IChatClient chatClient, ILogger<ReflexionEvaluator> logger)
+    public ReflexionEvaluator(IChatClientProvider chatClientProvider, ILogger<ReflexionEvaluator> logger)
     {
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
         _logger = logger;
     }
 
@@ -54,7 +56,7 @@ public class ReflexionEvaluator : IReflexionEvaluator
                     ["response_format"] = "json"
                 }
             };
-            var response = await _chatClient.GetResponseAsync(
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(
                 new List<ChatMessage> { new ChatMessage(ChatRole.System, prompt) },
                 options);
             return DeserializeReflexionResponse(response.Text, context);

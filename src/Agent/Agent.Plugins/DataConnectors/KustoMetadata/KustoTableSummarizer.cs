@@ -31,15 +31,15 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             Be specific about the data, its use cases, and what kind of questions it can answer.
             """;
 
-        private readonly IChatClient _chatClient;
+        private readonly IChatClientProvider _chatClientProvider;
         private readonly KustoClient _kustoClient;
         private readonly ChatOptions _chatOptions;
         private readonly Uri _clusterUri;
         private readonly ILogger<KustoTableSummarizer> _logger;
 
-        public KustoTableSummarizer(IChatClient chatClient, Uri clusterUri, string managedIdentityResourceId, DataConnectorSource dataConnectorSource, ILoggerFactory loggerFactory, IAuthenticationService authService)
+        public KustoTableSummarizer(IChatClientProvider chatClientProvider, Uri clusterUri, string managedIdentityResourceId, DataConnectorSource dataConnectorSource, ILoggerFactory loggerFactory, IAuthenticationService authService)
         {
-            _chatClient = chatClient;
+            _chatClientProvider = chatClientProvider;
             _clusterUri = clusterUri;
             _logger = loggerFactory.CreateLogger<KustoTableSummarizer>();
             _kustoClient = BuildKustoClient(loggerFactory, authService, managedIdentityResourceId, dataConnectorSource);
@@ -520,7 +520,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                         userMessage
                     };
 
-                    ChatResponse response = await _chatClient.GetResponseAsync(messages, _chatOptions, cancellationToken);
+                    ChatResponse response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, _chatOptions, cancellationToken);
 
                     return response.Messages.Last().Text;
                 }

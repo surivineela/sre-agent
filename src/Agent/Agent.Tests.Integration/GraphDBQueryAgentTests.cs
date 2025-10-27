@@ -39,7 +39,7 @@ namespace Agent.Tests.Integration
             services.AddScoped<IGraphDBPlugin, GraphDBPlugin>();
             services.AddScoped<GraphDBQueryAgent>();
             services.ConfigureAzureOpenAIClient();
-            services.ConfigureIChatClient();
+            services.ConfigureIChatClient(_config);
 
             ServiceProvider s = services.BuildServiceProvider();
 

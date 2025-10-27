@@ -4,6 +4,7 @@
 
 using Agent.Core.Extensions;
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -26,8 +27,8 @@ namespace Agent.Runtime.SubAgents
             "Don't use random characters in resource names; at least make sure it's a reproducible hash"
         ];
 
-        public BestPracticeScannerAgent(GraphDBQueryAgent graphDBQueryAgent, IChatClient chatClient, ILogger<BestPracticeScannerAgent> logger)
-            : base("BestPracticeScannerAgent", chatClient)
+        public BestPracticeScannerAgent(GraphDBQueryAgent graphDBQueryAgent, IChatClientProvider chatClientProvider, ILogger<BestPracticeScannerAgent> logger)
+            : base("BestPracticeScannerAgent", chatClientProvider)
         {
             _graphDBQueryAgent = graphDBQueryAgent;
             _logger = logger;

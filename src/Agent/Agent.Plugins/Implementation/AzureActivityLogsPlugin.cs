@@ -26,6 +26,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Rest;
 using Microsoft.Rest.Azure;
 using Microsoft.Rest.Azure.OData;
+using Agent.Framework;
 
 namespace Agent.Plugins.Implementation
 {
@@ -34,7 +35,7 @@ namespace Agent.Plugins.Implementation
         private readonly ILogger<AzureActivityLogsPlugin> _logger;
         private readonly IGraphDatabaseClient _graphDbClient;
         private readonly IAuthenticationService _authService;
-        private readonly IChatClient _chatClient;
+        private readonly IChatClientProvider _chatClientProvider;
         private readonly IGraphDBPlugin _graphDBPlugin;
         private readonly IAgentOutboundCommunicationService _outboundService;
 
@@ -44,14 +45,14 @@ namespace Agent.Plugins.Implementation
             ILogger<AzureActivityLogsPlugin> logger,
             IGraphDatabaseClient graphDbClient,
             IAuthenticationService authService,
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             IGraphDBPlugin graphDBPlugin,
             IAgentOutboundCommunicationService outboundService)
         {
             _logger = logger;
             _graphDbClient = graphDbClient;
             _authService = authService;
-            _chatClient = chatClient;
+            _chatClientProvider = chatClientProvider;
             _graphDBPlugin = graphDBPlugin;
             _outboundService = outboundService;
         }
@@ -595,7 +596,7 @@ Here are the logs in JSON format:
 
 Please provide a highly concise summary with sections for each of the above points. Focus on who made changes (mention the name), when they were made, and what kinds of changes were made. Identify patterns and potential issues. Remember the summary should be very concise and to the point. Respond in a **minimalist, structured format** with no fluff. Using fewer words per point while preserving clarity.";
 
-                var response = await _chatClient.GetResponseAsync(prompt);
+                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
                 return response.Text;
             }
             catch (Exception ex)
@@ -636,7 +637,7 @@ Here are the failed deployments in JSON format:
 
 Focus on actionable troubleshooting steps. Extract specific error codes, resource conflicts, permission issues, or template problems. Provide clear next steps for resolving each type of failure. Be concise but thorough in your analysis.";
 
-                var response = await _chatClient.GetResponseAsync(prompt);
+                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
                 return response.Text;
             }
             catch (Exception ex)
@@ -950,7 +951,7 @@ Provide:
 {resourceChangesJson}
 
 Respond in a concise, structured format with bullet points and short sentences.";
-            var response = await _chatClient.GetResponseAsync(prompt);
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
             return response.Text;
         }
 
@@ -1223,7 +1224,7 @@ Respond in a concise, structured format with bullet points and short sentences."
 
                 // Create a special message that will be rendered as a diff viewer
                 Guid messageId = Guid.NewGuid();
-                                
+
                 // Create the change diff message format that the front-end will recognize
                 var changeDiffMessage = $"```change-diff\n{changeDiffJson}\n```\n{description}";
 

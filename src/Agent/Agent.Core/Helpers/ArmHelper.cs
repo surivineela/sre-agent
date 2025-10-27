@@ -19,6 +19,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using Agent.Core.Services;
+using Agent.Framework;
 using Agent.Logging;
 using Azure;
 using Azure.Core;
@@ -66,7 +67,7 @@ public class ArmHelper
     private readonly IAuthenticationService _authService;
     private readonly AzureSettings _azureSettings;
     private readonly IHostEnvironment _hostEnvironment;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly ISessionPoolService _sessionPoolService;
 
     private readonly ICrawlerTriggerService _crawlerTriggerService;
@@ -168,7 +169,7 @@ public class ArmHelper
         IHostEnvironment hostEnvironment,
         ICrawlerTriggerService crawlerTriggerService,
         ISessionPoolService sessionPoolService,
-        IChatClient chatClient)
+        IChatClientProvider chatClientProvider)
     {
         _logger = logger;
         _customerLogger = customerLogger;
@@ -179,7 +180,7 @@ public class ArmHelper
         _hostEnvironment = hostEnvironment;
         _crawlerTriggerService = crawlerTriggerService;
         _sessionPoolService = sessionPoolService;
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
     }
 
     public async Task<List<AzureSubscription>> GetSubscriptionsAsync()
@@ -2646,17 +2647,17 @@ public class ArmHelper
         _crawlerTriggerService.TriggerArmCrawl(resourceId);
     }
 
-        public async Task<VirtualMachineResource> GetVirtualMachineResourceAsync(string resourceId)
+    public async Task<VirtualMachineResource> GetVirtualMachineResourceAsync(string resourceId)
+    {
+        var armClient = await _armClientFactory.GetArmOperationClient();
+        var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
+        if (virtualMachineResource == null)
         {
-            var armClient = await _armClientFactory.GetArmOperationClient();
-            var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
-            if (virtualMachineResource == null)
-            {
-                throw new ArgumentException($"Resource with ID {resourceId} is not a valid Virtual Machine resource.");
-            }
-            var virtualMachineResourceResponse = await virtualMachineResource.GetAsync();
-            return virtualMachineResourceResponse.Value;
+            throw new ArgumentException($"Resource with ID {resourceId} is not a valid Virtual Machine resource.");
         }
+        var virtualMachineResourceResponse = await virtualMachineResource.GetAsync();
+        return virtualMachineResourceResponse.Value;
+    }
 
     public async Task<string> GetArmResourceAsJsonAsync(string resourceId)
     {
@@ -4353,7 +4354,7 @@ public class ArmHelper
         }
         catch (Exception ex)
         {
-            var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClient, ex.Message);
+            var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClientProvider.DefaultModel, ex.Message);
             return executionResult;
         }
     }

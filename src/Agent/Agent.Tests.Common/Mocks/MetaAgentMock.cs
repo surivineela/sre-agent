@@ -1,5 +1,6 @@
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Services.Interfaces;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Agent.Tests.Common.Mocks;
+
 public static class MetaAgentMock
 {
     public static ThirdPartyAgentsFactory GetMockedThirdPartAgentsFactory(
@@ -59,7 +61,7 @@ public static class MetaAgentMock
             githubIssuePlugin ?? Mock.Of<IGithubIssuePlugin>(),
             graphDBPlugin ?? Mock.Of<IGraphDBPlugin>(),
             //appReliabilityPlugin ?? Mock.Of<IMetaAgentAppReliabilityPlugin>(),
-            Mock.Of<IConnectedIntegrationsPlugin>(),            
+            Mock.Of<IConnectedIntegrationsPlugin>(),
             appCodePlugin ?? Mock.Of<IAppCodeAnalysisPlugin>(),
             diagnosticsPlugin ?? Mock.Of<IDiagnosticsPlugin>(),
             metricsPlugin ?? Mock.Of<IMetricsPlugin>(),
@@ -76,7 +78,7 @@ public static class MetaAgentMock
     }
 
     public static MetaAgent GetMockedMetaAgent(
-        IChatClient chatClient,
+        IChatClientProvider chatClientProvider,
         IAgentsFactory agentsFactory,
         ILogger<MetaAgent>? logger = null,
         ThreadService? threadService = null,
@@ -86,7 +88,7 @@ public static class MetaAgentMock
     {
 
         return new MetaAgent(
-            chatClient,
+            chatClientProvider,
             agentsFactory,
             logger ?? Mock.Of<ILogger<MetaAgent>>(),
             Mock.Of<CustomerLogger>(),

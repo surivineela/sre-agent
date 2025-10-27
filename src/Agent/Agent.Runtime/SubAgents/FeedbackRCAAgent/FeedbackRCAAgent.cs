@@ -7,6 +7,7 @@ using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
 using AIChatMessage = Microsoft.Extensions.AI.ChatMessage;
@@ -18,11 +19,11 @@ namespace Agent.Runtime.SubAgents.FeedbackRCAAgent
         private readonly MessageFeedback? _messageFeedback;
 
         public FeedbackRCAAgent(
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             SinkService sinkService,
             IThreadRepository repository,
             MessageFeedback? messageFeedback = null)
-            : base("Feedback RCA Agent", chatClient)
+            : base("Feedback RCA Agent", chatClientProvider)
         {
             _messageFeedback = messageFeedback;
         }

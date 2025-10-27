@@ -13,6 +13,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.ServiceNow;
 using Agent.Core.Services;
 using Agent.Data.DataModels;
+using Agent.Framework;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Agent.Logging;
@@ -27,9 +28,9 @@ using JsonConvert = Newtonsoft.Json.JsonConvert;
 namespace Agent.Runtime.Services;
 
 public interface IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident>
-    where TIncidentDocument: IIncidentDocument 
-    where TIncidentFilterDocument: IIncidentFilterDocument 
-    where TIncidentFilterDocumentPayload: IncidentFilterDocumentPayload
+    where TIncidentDocument : IIncidentDocument
+    where TIncidentFilterDocument : IIncidentFilterDocument
+    where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
     where TIncident : class
 {
     void Ingest(IncidentAIData data);
@@ -52,7 +53,7 @@ public class IncidentAIData
     public required DateTime IncidentCreatedAt { get; set; }
     public required DateTime HandlerUpdatedAt { get; set; }
     public required DateTime IncidentUpdatedAt { get; set; }
-    public required DateTime? IncidentHandledAt { get; set; } 
+    public required DateTime? IncidentHandledAt { get; set; }
     public required string Status { get; set; }
     public required bool IsMitigatedByAgent { get; set; }
     public required bool IsAssistedByAgent { get; set; }
@@ -72,13 +73,13 @@ public class AgentAssistanceResponse
     public bool HasMeaningfulAssistance { get; set; }
 }
 
-public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident>: IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident>
+public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident> : IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident>
     where TIncidentDocument : IIncidentDocument
     where TIncidentFilterDocument : TIncidentFilterDocumentPayload, IIncidentFilterDocument, new()
     where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
     where TIncident : class
 {
-    protected readonly IChatClient _client;
+    protected readonly IChatClientProvider _chatClientProvider;
     protected readonly IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload> _incidentManagementService;
     protected readonly IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> _incidentFilterManagementService;
     protected readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
@@ -91,7 +92,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
 
 
     public IncidentAnalysisServiceBase(
-        IChatClient client,
+        IChatClientProvider chatClientProvider,
         IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload> incidentManagementService,
         IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
@@ -102,7 +103,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
         CustomerLogger appInsightsLogger,
         ILogger<IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident>> logger)
     {
-        _client = client;
+        _chatClientProvider = chatClientProvider;
         _incidentManagementService = incidentManagementService;
         _incidentHandlerManagementService = incidentHandlerManagementService;
         _incidentFilterManagementService = incidentFilterManagementService;
@@ -196,7 +197,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             string handlerId = filterDoc?.Id ?? handlerDoc?.Id ?? "No-filterid-found";
             DateTime? handlerCreatedOn = filterDoc?.CreatedAt;
             DateTime? handlerUpdatedOn = filterDoc?.UpdatedAt;
-            string runMode = !string.IsNullOrWhiteSpace(filterDoc?.AgentMode) ?  filterDoc.AgentMode : "review";
+            string runMode = !string.IsNullOrWhiteSpace(filterDoc?.AgentMode) ? filterDoc.AgentMode : "review";
             string instructionType = !string.IsNullOrWhiteSpace(handlerDoc?.CustomInstructions) ? "Custom" : "Default";
             string incidentPlatform = GetIncidentPlatform();
 
@@ -214,7 +215,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
                 IncidentCreatedAt = incidentDoc.CreatedAt,
                 HandlerUpdatedAt = (DateTime)(handlerUpdatedOn != null ? handlerUpdatedOn : DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) ? handlerUpdatedAt : DateTime.UtcNow),
                 IncidentUpdatedAt = incidentDoc.UpdatedAt,
-                IncidentHandledAt = DateTime.TryParse(results?["HandledAt"]?.ToString(), out DateTime incidentHandledTime) ? 
+                IncidentHandledAt = DateTime.TryParse(results?["HandledAt"]?.ToString(), out DateTime incidentHandledTime) ?
                     (incidentHandledTime <= DateTime.MinValue.AddDays(1) ? new DateTime(Math.Max(incidentDoc.CreatedAt.Ticks, handlerCreatedOn?.Ticks ?? 0)) : incidentHandledTime) : handlerCreatedOn ?? DateTime.UtcNow,
                 MitigatedAt = IncidentMitigatedAt(incidentDoc),
                 Status = incidentDoc.Status.ToString().ToLower(),
@@ -375,7 +376,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             }
 
             var results = dataTable.Rows[0];
-            
+
 
             return results["HandlerId"]?.ToString() ?? string.Empty;
         }
@@ -460,7 +461,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
         };
 
-        var reply = await _client.GetResponseAsync(messages, options);
+        var reply = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
         return reply.Text;
     }
 

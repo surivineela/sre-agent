@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Services;
+using Agent.Core.Interfaces;
 
 namespace Agent.Runtime.Services
 {
@@ -31,7 +32,7 @@ namespace Agent.Runtime.Services
 
     public class InstructionGenerationService : IInstructionGenerationService
     {
-        private readonly IChatClient _chatClient;
+        private readonly IChatClientProvider _chatClientProvider;
         private readonly IToolFactory<AgentContext> _toolFactory;
         private readonly IIncidentManagementServiceFactory _incidentManagementServiceFactory;
         private readonly ILogger<InstructionGenerationService> _logger;
@@ -40,7 +41,7 @@ namespace Agent.Runtime.Services
 
         public InstructionGenerationService(
             IToolFactory<AgentContext> toolFactory,
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             IIncidentManagementServiceFactory incidentManagementServiceFactory,
             ILogger<InstructionGenerationService> logger,
             IncidentManagementSettings incidentManagementSettings,
@@ -48,7 +49,7 @@ namespace Agent.Runtime.Services
             )
         {
             _toolFactory = toolFactory;
-            _chatClient = chatClient;
+            _chatClientProvider = chatClientProvider;
             _incidentManagementServiceFactory = incidentManagementServiceFactory;
             _logger = logger;
             _incidentManagementSettings = incidentManagementSettings;
@@ -185,7 +186,7 @@ namespace Agent.Runtime.Services
 
                 _logger.LogInternalInformation("GenerateInstructionsFromIncidents: Sending system prompt to chat client for instruction generation. AgentName: {AgentName}", request.AgentName);
 
-                var instructionGenerationResponse = await _chatClient.GetResponseAsync(
+                var instructionGenerationResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(
                     new ChatMessage(ChatRole.System, systemMessage),
                     new ChatOptions
                     {
@@ -278,7 +279,7 @@ namespace Agent.Runtime.Services
             {
                 _logger.LogInternalInformation("ExtractKnowledgeFromIncident: Sending incident details to chat client for summarization. IncidentId: {IncidentId}", incident);
 
-                var response = await _chatClient.GetResponseAsync(
+                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(
                     new ChatMessage(ChatRole.System, systemMessage),
                     new ChatOptions
                     {

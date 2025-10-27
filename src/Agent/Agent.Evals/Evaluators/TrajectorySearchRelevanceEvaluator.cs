@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Data.AgentMemory;
+using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
@@ -26,7 +27,7 @@ public class TrajectorySearchRelevanceEvaluator : IEvaluator
     public const string RecallMetricName = "Recall";
     public const string F1ScoreMetricName = "F1Score";
 
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly ILogger<TrajectorySearchRelevanceEvaluator> _logger;
 
     /// <inheritdoc/>
@@ -40,9 +41,9 @@ public class TrajectorySearchRelevanceEvaluator : IEvaluator
         ActionabilityMetricName
     ];
 
-    public TrajectorySearchRelevanceEvaluator(IChatClient chatClient, ILogger<TrajectorySearchRelevanceEvaluator> logger)
+    public TrajectorySearchRelevanceEvaluator(IChatClientProvider chatClientProvider, ILogger<TrajectorySearchRelevanceEvaluator> logger)
     {
-        _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
+        _chatClientProvider = chatClientProvider ?? throw new ArgumentNullException(nameof(chatClientProvider));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -152,7 +153,7 @@ Return ONLY the JSON object. No explanation text, no comments, no introduction, 
                 new(ChatRole.User, userPrompt)
             };
 
-            var response = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, cancellationToken: cancellationToken);
             var evaluation = response.Text ?? "No evaluation generated";
 
             _logger.LogInternalInformation("Completed trajectory search relevance evaluation");
@@ -199,8 +200,8 @@ Return ONLY the JSON object. No explanation text, no comments, no introduction, 
 
             int relevantRetrieved = retrievedIdSet.Count(id => groundTruthIdSet.Contains(id));
 
-            double precision = retrievedIdSet.Count > 0 ? (double) relevantRetrieved / retrievedIdSet.Count : 0.0;
-            double recall = groundTruthTrajectoryIds.Count > 0 ? (double) relevantRetrieved / groundTruthTrajectoryIds.Count : 0.0;
+            double precision = retrievedIdSet.Count > 0 ? (double)relevantRetrieved / retrievedIdSet.Count : 0.0;
+            double recall = groundTruthTrajectoryIds.Count > 0 ? (double)relevantRetrieved / groundTruthTrajectoryIds.Count : 0.0;
             double f1Score = (precision + recall) > 0 ? 2 * (precision * recall) / (precision + recall) : 0.0;
 
             var metrics = new List<NumericMetric>

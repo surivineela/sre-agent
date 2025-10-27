@@ -34,7 +34,7 @@ namespace Agent.Plugins
     public partial class KubePlugin : IKubePlugin
     {
         private readonly ILogger? _logger;
-        private readonly IChatClient _chatClient;
+        private readonly IChatClientProvider _chatClientProvider;
         private readonly IKubernetesClientFactory _kubernetesClientFactory;
         private readonly IPrometheusQueryService _prometheusQueryService;
         private readonly IAzureMetricsClient _azureMetricsClient;
@@ -56,7 +56,7 @@ namespace Agent.Plugins
         private const string LegacyAKSNodePoolLabel = "agentpool";
 
         public KubePlugin(
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             IPrometheusQueryService prometheusQueryService,
             IAzureMetricsClient azureMetricsClient,
             IKubernetesClientFactory kubernetesClientFactory,
@@ -74,7 +74,7 @@ namespace Agent.Plugins
             IPrometheusEndpointService prometheusEndpointService)
         {
             _logger = logger;
-            _chatClient = chatClient;
+            _chatClientProvider = chatClientProvider;
             _prometheusQueryService = prometheusQueryService;
             _azureMetricsClient = azureMetricsClient;
             _kubernetesClientFactory = kubernetesClientFactory;
@@ -670,7 +670,7 @@ namespace Agent.Plugins
             try
             {
                 var chatResponse = await ChatClientHelper.ExecuteWithRetryAsync(
-                    async () => await _chatClient.GetResponseAsync(prompt, new ChatOptions
+                    async () => await _chatClientProvider.DefaultModel.GetResponseAsync(prompt, new ChatOptions
                     {
                         Temperature = 0.5f,
                     }),
@@ -2089,7 +2089,7 @@ namespace Agent.Plugins
             V1Pod pod,
             string targetContainerName)
         {
-            if(stderr != null && (stderr.Contains("Illuminate has not been executed") ||
+            if (stderr != null && (stderr.Contains("Illuminate has not been executed") ||
                     stderr.Contains("must be present") ||
                     stderr.Contains("This indicates the diagnosis data is stale")))
             {
@@ -2105,7 +2105,7 @@ namespace Agent.Plugins
             }
             else
             {
-                 return stdout;
+                return stdout;
             }
         }
 

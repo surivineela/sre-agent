@@ -4,8 +4,10 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data.DataModels.IncidentModel;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
@@ -16,12 +18,12 @@ namespace Agent.Runtime.Services.AzMonitorAlertInvestigation;
 
 public class HypothesisGenerator : IHypothesisGenerator
 {
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly ILogger<HypothesisGenerator> _logger;
 
-    public HypothesisGenerator(IChatClient chatClient, ILogger<HypothesisGenerator> logger)
+    public HypothesisGenerator(IChatClientProvider chatClientProvider, ILogger<HypothesisGenerator> logger)
     {
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
         _logger = logger;
     }
 
@@ -42,7 +44,7 @@ public class HypothesisGenerator : IHypothesisGenerator
                 }
             };
 
-            var response = await _chatClient.GetResponseAsync(
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(
                 new List<ChatMessage> { new ChatMessage(ChatRole.System, prompt) },
                 options);
 

@@ -27,7 +27,7 @@ public class WorkflowOrchestrator : IDisposable
 {
     private readonly ILogger<WorkflowOrchestrator> _logger;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IThreadRepository _threadRepository;
     private readonly IAgentProvider<AgentContext> _agentProvider;
@@ -59,7 +59,7 @@ public class WorkflowOrchestrator : IDisposable
 
     public WorkflowOrchestrator(
         ILoggerFactory loggerFactory,
-        IChatClient chatClient,
+        IChatClientProvider chatClientProvider,
         IAgentOutboundCommunicationService outboundCommunicationService,
         IThreadRepository threadRepository,
         AgentContext context,
@@ -71,7 +71,7 @@ public class WorkflowOrchestrator : IDisposable
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<WorkflowOrchestrator>();
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
         _outboundCommunicationService = outboundCommunicationService;
         _threadRepository = threadRepository;
         _context = context;
@@ -217,7 +217,7 @@ public class WorkflowOrchestrator : IDisposable
                 _chatHistory,
                 new RunConfig
                 {
-                    ChatClient = _chatClient,
+                    ChatClient = _chatClientProvider.DefaultModel,
                     LoggerFactory = _loggerFactory
                 },
                 context: _context,
@@ -562,7 +562,7 @@ public class WorkflowOrchestrator : IDisposable
                 _chatHistory,
                 new RunConfig
                 {
-                    ChatClient = _chatClient,
+                    ChatClient = _chatClientProvider.DefaultModel,
                     LoggerFactory = _loggerFactory
                 },
                 context: _context,
@@ -630,7 +630,7 @@ public class WorkflowOrchestrator : IDisposable
                 messages,
                 new RunConfig
                 {
-                    ChatClient = _chatClient,
+                    ChatClient = _chatClientProvider.DefaultModel,
                     LoggerFactory = _loggerFactory
                 },
                 context: _context,
@@ -989,7 +989,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 ? threadPath
                 : $"{baseUrl!.TrimEnd('/')}{threadPath}";
 
-            var response = await _chatClient.GetResponseAsync(summaryMessages, options: chatOptions, cancellationToken: cancellationToken);
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(summaryMessages, options: chatOptions, cancellationToken: cancellationToken);
 
             // The first response will likely be a tool-call; get the final summary after tool execution
             string? finalSummaryFromToolFlow = null;
@@ -1469,7 +1469,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                     followup.Add(assistant);              // assistant message that called the tool
                     followup.Add(new ChatMessage(ChatRole.Tool, aiContents)); // tool result
 
-                    var followupResponse = await _chatClient.GetResponseAsync(followup, cancellationToken: ct);
+                    var followupResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(followup, cancellationToken: ct);
                     var text = TryGetAssistantText(followupResponse);
                     if (!string.IsNullOrWhiteSpace(text))
                     {

@@ -13,6 +13,7 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Plugins.Interface;
+using Agent.Framework;
 
 namespace Agent.Plugins.Implementation
 {
@@ -20,14 +21,14 @@ namespace Agent.Plugins.Implementation
     {
         private readonly ILogger<GrafanaPlugin> _logger;
         private readonly DashboardSettings _dashboardSettings;
-        private readonly IChatClient _chatClient;
+        private readonly IChatClientProvider _chatClientProvider;
         private readonly IAuthenticationService _authService;
         private readonly IHttpClientFactory _httpClientFactory;
-        public GrafanaPlugin(ILogger<GrafanaPlugin> logger, DashboardSettings dashboardSettings, IChatClient chatClient, IAuthenticationService authService, IHttpClientFactory httpClientFactory)
+        public GrafanaPlugin(ILogger<GrafanaPlugin> logger, DashboardSettings dashboardSettings, IChatClientProvider chatClientProvider, IAuthenticationService authService, IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
             _dashboardSettings = dashboardSettings;
-            _chatClient = chatClient;
+            _chatClientProvider = chatClientProvider;
             _authService = authService;
             _logger = logger;
             _httpClientFactory = httpClientFactory;
@@ -212,7 +213,7 @@ namespace Agent.Plugins.Implementation
             };
 
             // Make the LLM call
-            var llmResponse = await _chatClient.GetResponseAsync(messages, chatOptions);
+            var llmResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, chatOptions);
             if (llmResponse.Messages.Count == 0)
             {
                 throw new Exception("No response from LLM.");

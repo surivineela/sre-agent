@@ -6,6 +6,7 @@ using System.Text;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Helpers;
@@ -40,16 +41,16 @@ public class RagEvaluator : IRagEvaluator
 {
     private readonly ILogger<RagEvaluator> _logger;
     private readonly IThreadRepository _threadRepository;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
 
     public RagEvaluator(
         ILogger<RagEvaluator> logger,
         IThreadRepository threadRepository,
-        IChatClient chatClient)
+        IChatClientProvider chatClientProvider)
     {
         _logger = logger;
         _threadRepository = threadRepository;
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
     }
 
     /// <summary>
@@ -429,7 +430,7 @@ public class RagEvaluator : IRagEvaluator
             new(ChatRole.System, OutputInstructions),
         ];
 
-        var result = await _chatClient.GetResponseAsync<RetrievalEvaluationResult>(evaluationInstructions);
+        var result = await _chatClientProvider.DefaultModel.GetResponseAsync<RetrievalEvaluationResult>(evaluationInstructions);
         return result.Result;
     }
 

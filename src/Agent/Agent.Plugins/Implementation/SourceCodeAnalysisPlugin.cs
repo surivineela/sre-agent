@@ -2,12 +2,14 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Text.Json;
+using Agent.Core.Interfaces;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Octokit;
+using Agent.Framework;
 
 namespace Agent.Plugins.Implementation;
 
@@ -18,7 +20,7 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
     private readonly IAzureDevOpsSourceCodeSearch _azureDevOpsSourceCodeSearch;
     private readonly IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin;
     private readonly ILogger<SourceCodeAnalysisPlugin> _logger;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private static readonly HttpClient _httpClient = new();
 
     private const string SYSTEM_PROMPT = @"""
@@ -126,14 +128,14 @@ Output:
                                     IGithubIssuePlugin githubIssuePlugin,
                                     IAzureDevOpsSourceCodeSearch azureDevOpsSourceCodeSearch,
                                     IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin,
-                                    IChatClient chatClient)
+                                    IChatClientProvider chatClientProvider)
     {
         _gitHubClient = gitHubClient.Client;
         _githubIssuePlugin = githubIssuePlugin;
         _azureDevOpsWorkItemPlugin = azureDevOpsWorkItemPlugin;
         _azureDevOpsSourceCodeSearch = azureDevOpsSourceCodeSearch;
         _logger = logger;
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
     }
 
     public async Task<string> QueryRepositoryBasedOnError(string resourceId, string errorDescription)
@@ -157,13 +159,13 @@ Output:
             return $"Error occurred while querying repository: {ex.Message}";
         }
     }
-    
+
     private void LogHttpResponse(HttpResponseMessage response, string apiName, string responseContent = "")
     {
         // Log response status
         _logger.LogInternalInformation("{ApiName} Response - Status Code: {StatusCode}", apiName, response.StatusCode);
         _logger.LogInternalInformation("{ApiName} Response - Reason Phrase: {ReasonPhrase}", apiName, response.ReasonPhrase);
-        
+
         // Log response headers (excluding sensitive ones)
         _logger.LogInternalInformation("{ApiName} Response Headers:", apiName);
         foreach (var header in response.Headers)
@@ -171,7 +173,7 @@ Output:
             var headerValue = SensitiveHeaders.Contains(header.Key) ? "[REDACTED]" : string.Join(", ", header.Value);
             _logger.LogInternalInformation("  {HeaderName}: {HeaderValue}", header.Key, headerValue);
         }
-        
+
         // Log content headers if they exist (excluding sensitive ones)
         if (response.Content?.Headers != null)
         {
@@ -182,7 +184,7 @@ Output:
                 _logger.LogInternalInformation("  {HeaderName}: {HeaderValue}", header.Key, headerValue);
             }
         }
-        
+
         // Log response content if provided
         if (!string.IsNullOrEmpty(responseContent))
         {
@@ -256,7 +258,7 @@ Output:
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         request.Headers.Add("X-GitHub-Api-Version", "2024-05-14");
         string password = _gitHubClient.Credentials?.Password ?? throw new InvalidOperationException($"GitHub credentials are not set - please ensure the GitHub repository {repoUrl} is connected.");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", password); 
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", password);
 
         request.Content = new StringContent(JsonSerializer.Serialize(new SemanticSearchRequest
         {
@@ -269,12 +271,12 @@ Output:
         {
             var response = await _httpClient.SendAsync(request);
             var responseString = await response.Content.ReadAsStringAsync();
-            
+
             // Log all response details using helper method
             LogHttpResponse(response, "GitHub Embeddings API", responseString);
-            
+
             response.EnsureSuccessStatusCode();
-            
+
             var res = JsonSerializer.Deserialize<SemanticSearchResponse>(responseString, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
@@ -300,10 +302,10 @@ Output:
             using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
             request.Headers.UserAgent.ParseAdd("MS-SRE-Agent/1.0");
             string password = _gitHubClient.Credentials?.Password ?? throw new InvalidOperationException($"GitHub credentials are not set - please ensure the GitHub repository {repoUrl} is connected.");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", password); 
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", password);
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
-            
+
             // Log all response details using helper method
             LogHttpResponse(response, "Repository Index Status API", responseContent);
 
@@ -361,10 +363,10 @@ Output:
 
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
-            
+
             // Log all response details using helper method
             LogHttpResponse(response, "Force Repository Indexing API", responseContent);
-            
+
             var responseStatus = response.StatusCode switch
             {
                 System.Net.HttpStatusCode.Created => "Indexing task queued successfully (201 Created).",
@@ -437,11 +439,11 @@ Output:
         (string organization, string project, string repo) = AzureDevOpsWorkItemPlugin.ParseRepositoryUrl(azureDevOpsParsedUrl);
 
         List<ChatMessage> messages = [
-            new ChatMessage(ChatRole.System, SYSTEM_PROMPT), 
+            new ChatMessage(ChatRole.System, SYSTEM_PROMPT),
             new ChatMessage(ChatRole.User, query)
         ];
 
-        var chatResponse = await _chatClient.GetResponseAsync(messages);
+        var chatResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(messages);
         var searchQueries = chatResponse.Messages[0].Text?.Trim();
 
         var allResults = new List<string>();
@@ -449,7 +451,7 @@ Output:
         if (!string.IsNullOrEmpty(searchQueries))
         {
             List<string> queries;
-            
+
             // Try to parse as JSON array first, otherwise treat as single query
             if (searchQueries.StartsWith("[") && searchQueries.EndsWith("]"))
             {
@@ -469,7 +471,7 @@ Output:
             }
 
             var processedFiles = new HashSet<string>();
-            
+
             foreach (var searchQuery in queries)
             {
                 var searchResult = await _azureDevOpsSourceCodeSearch.SearchAsync(repoUrl: azureDevOpsParsedUrl, searchTerm: searchQuery);
@@ -483,7 +485,7 @@ Output:
                         {
                             continue;
                         }
-                        
+
                         if (result.Matches != null && result.Matches.Count > 0)
                         {
                             foreach (var match in result.Matches)
@@ -536,4 +538,4 @@ Output:
 
         return string.Join("\n---\n", resultStrings);
     }
-} 
+}

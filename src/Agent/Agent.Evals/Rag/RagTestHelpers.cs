@@ -11,6 +11,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Data;
 using Agent.Data.AgentMemory;
+using Agent.Framework;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.ThreadEvaluator;
 using Agent.Tests.Common.Mocks;
@@ -99,7 +100,8 @@ public static class RagTestHelpers
         var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger(typeof(RagTestHelpers));
 
-        var embeddingGenerator = host.Services.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
+        var chatClientProvider = host.Services.GetRequiredService<IChatClientProvider>();
+        var embeddingGenerator = chatClientProvider.EmbeddingModel;
 
         var indexService = host.Services.GetRequiredService<ISearchIndexService>();
 

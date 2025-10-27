@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Agent.Data.AgentMemory;
 using Agent.Evals.Evaluators;
+using Agent.Framework;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.DependencyInjection;
@@ -107,19 +108,19 @@ public partial class TrajectoryEval
     public async Task TestComprehensiveEvaluation()
     {
         var agentMemoryClient = _host!.Services.GetRequiredService<IAgentMemoryClient>();
-        var chatClient = _host.Services.GetRequiredService<IChatClient>();
+        var chatClientProvider = _host.Services.GetRequiredService<IChatClientProvider>();
         var loggerFactory = _host.Services.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger<TrajectorySearchRelevanceEvaluator>();
 
-        await TestComprehensiveEvaluation(agentMemoryClient, chatClient, logger);
+        await TestComprehensiveEvaluation(agentMemoryClient, chatClientProvider, logger);
     }
 
-    private async Task TestComprehensiveEvaluation(IAgentMemoryClient agentMemoryClient, IChatClient chatClient, ILogger<TrajectorySearchRelevanceEvaluator> logger)
+    private async Task TestComprehensiveEvaluation(IAgentMemoryClient agentMemoryClient, IChatClientProvider chatClientProvider, ILogger<TrajectorySearchRelevanceEvaluator> logger)
     {
         Console.WriteLine("\n=== Comprehensive Evaluation with LLM Judge ===");
         var evaluationQueries = LoadComprehensiveEvaluationQueries();
 
-        var trajectoryEvaluator = new TrajectorySearchRelevanceEvaluator(chatClient, logger);
+        var trajectoryEvaluator = new TrajectorySearchRelevanceEvaluator(chatClientProvider, logger);
 
         foreach (var query in evaluationQueries)
         {
@@ -182,18 +183,18 @@ public partial class TrajectoryEval
     public async Task TestGroundTruthEvaluation()
     {
         var agentMemoryClient = _host!.Services.GetRequiredService<IAgentMemoryClient>();
-        var chatClient = _host.Services.GetRequiredService<IChatClient>();
+        var chatClientProvider = _host.Services.GetRequiredService<IChatClientProvider>();
         var loggerFactory = _host.Services.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger<TrajectorySearchRelevanceEvaluator>();
 
-        await TestGroundTruthEvaluation(agentMemoryClient, chatClient, logger);
+        await TestGroundTruthEvaluation(agentMemoryClient, chatClientProvider, logger);
     }
 
-    private async Task TestGroundTruthEvaluation(IAgentMemoryClient agentMemoryClient, IChatClient chatClient, ILogger<TrajectorySearchRelevanceEvaluator> logger)
+    private async Task TestGroundTruthEvaluation(IAgentMemoryClient agentMemoryClient, IChatClientProvider chatClientProvider, ILogger<TrajectorySearchRelevanceEvaluator> logger)
     {
         Console.WriteLine("\n=== Ground Truth Evaluation ===");
 
-        var trajectoryEvaluator = new TrajectorySearchRelevanceEvaluator(chatClient, logger);
+        var trajectoryEvaluator = new TrajectorySearchRelevanceEvaluator(chatClientProvider, logger);
 
         // Load ground truth mappings from data file
         var groundTruthMappings = LoadGroundTruthMappings();

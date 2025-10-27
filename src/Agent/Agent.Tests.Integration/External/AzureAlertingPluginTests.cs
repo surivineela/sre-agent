@@ -65,7 +65,7 @@ namespace Agent.Tests.Integration.External
               .BindConfiguration("AppSettings:Core:External:Kusto")
               .ValidateDataAnnotations();
 
-            services.AddSingleton<IICMWorkflowClient,ICMWorkflowClient>();
+            services.AddSingleton<IICMWorkflowClient, ICMWorkflowClient>();
             services.AddSingleton<ICMWorkflowClient>();
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<AzureSettings>>().Value.CosmosDB);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<AzureSettings>>().Value.Crawler);
@@ -95,11 +95,11 @@ namespace Agent.Tests.Integration.External
             services.AddSingleton<IHostEnvironment>(_environment);
 
             services.AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>();
-            
+
             services.AddSingleton<KustoClient>();
             services.AddCosmosClient();
             services.ConfigureAzureOpenAIClient();
-            services.ConfigureIChatClient();
+            services.ConfigureIChatClient(_config);
 
             _serviceProvider = services.BuildServiceProvider();
         }
@@ -117,7 +117,7 @@ namespace Agent.Tests.Integration.External
                 clusterName: "wawscus",
                 databaseName: "wawsprod",
                 false);
-            
+
             Assert.NotNull(result);
         }
 

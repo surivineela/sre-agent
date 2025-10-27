@@ -37,9 +37,9 @@ export const getStatusPillComponentStyleProperties = (
     status?: string | null
 ):
     | {
-        icon: FluentIcon;
-        color?: 'brand' | 'success' | 'severe' | 'warning' | 'important' | 'informative' | 'subtle';
-    }
+          icon: FluentIcon;
+          color?: 'brand' | 'success' | 'severe' | 'warning' | 'important' | 'informative' | 'subtle';
+      }
     | undefined => {
     switch (status?.toLowerCase()) {
         case InvestigationStatusCommon.NotStarted:

@@ -7,6 +7,7 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
+using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -20,8 +21,7 @@ public class SearchHelper
     private readonly ILogger<SearchHelper> _logger;
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchEndpointSettings _searchEndpointSettings;
-    private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly Tracer _tracer;
 
     private const int MaxContentLengthForLLM = 2000;
@@ -30,15 +30,13 @@ public class SearchHelper
             ILogger<SearchHelper> logger,
             ISearchEndpointService searchEndpointService,
             AzureSettings azureSettings,
-            IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             Tracer tracer)
     {
         _logger = logger;
         _searchEndpointService = searchEndpointService;
         _searchEndpointSettings = azureSettings.SearchEndpoint;
-        _embeddingGenerator = embeddingGenerator;
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
         _tracer = tracer;
     }
 
@@ -78,7 +76,7 @@ public class SearchHelper
                 }
                 searchType = SearchType.Hybrid;
                 _logger.LogInternalInformation($"Generating embedding for '{searchText}'");
-                vector = await DocumentRetrieval.GenerateSearchVector(_embeddingGenerator, searchText, _searchEndpointSettings.VectorDimensions, _logger);
+                vector = await DocumentRetrieval.GenerateSearchVector(_chatClientProvider.EmbeddingModel, searchText, _searchEndpointSettings.VectorDimensions, _logger);
                 span?.End();
                 span = null;
             }
@@ -127,7 +125,7 @@ public class SearchHelper
                 span.SetAttribute(TraceAttribute.ThreadId, threadId);
                 span.SetAttribute(TraceAttribute.OperationName, "retrieval.llm.rerank");
             }
-            var reranked = await DocumentRetrieval.RerankWithLLM(_chatClient, searchText, optimizedResults, _logger);
+            var reranked = await DocumentRetrieval.RerankWithLLM(_chatClientProvider.DefaultModel, searchText, optimizedResults, _logger);
             span?.End();
             span = null;
 

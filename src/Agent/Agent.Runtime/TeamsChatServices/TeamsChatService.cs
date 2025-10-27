@@ -10,6 +10,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Streaming;
 using Agent.Data.Repositories;
+using Agent.Framework;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
@@ -31,7 +32,7 @@ namespace Agent.Runtime.TeamsChatServices;
 public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
 {
     private readonly ILogger<TeamsBot> _logger;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly IThreadTeamsMappingRepository _conversationThreadMapping;
     private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
     private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
@@ -69,10 +70,10 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         IThreadTeamsMappingRepository threadTeamsMappingRepository,
         TeamsBotSettings teamsBot,
         ITitleGenerationService titleGenerationService,
-        IChatClient chatClient)
+        IChatClientProvider chatClientProvider)
     {
         _logger = logger;
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
         _conversationThreadMapping = threadTeamsMappingRepository;
         _teamsAdapter = teamsAdapter;
         _agentInboundCommunicationService = agentInboundCommunicationService;
@@ -172,7 +173,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                         new ChatMessage(ChatRole.System, prompt),
                         new ChatMessage(ChatRole.User, messageText)
                     };
-                    var quickResponse = await _chatClient.GetResponseAsync(_chats);
+                    var quickResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(_chats);
                     var text = quickResponse.GetMessage().Text;
                     if (text == null || text.Contains("SKIP"))
                     {

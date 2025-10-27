@@ -21,13 +21,14 @@ using PagerDutyIncident = Agent.Graph.Interfaces.PagerDutyIncident;
 
 
 namespace Agent.Runtime.Services;
+
 public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident>
 {
     private readonly Container container;
     private readonly ILogger<PagerDutyIncidentAnalysisService> _logger;
 
     public PagerDutyIncidentAnalysisService(
-        IChatClient client,
+        IChatClientProvider chatClientProvider,
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
         IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> incidentManagementService,
@@ -38,7 +39,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
         CoreSettings coreSettings,
         ArmHelper armHelper,
         CustomerLogger appInsightsLogger,
-        ILogger<PagerDutyIncidentAnalysisService> logger) : base(client, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
+        ILogger<PagerDutyIncidentAnalysisService> logger) : base(chatClientProvider, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
     {
         container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
         _logger = logger;
@@ -173,7 +174,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
         incidentDocument.AIRootCause = rootCauseResponse.RootCause;
         incidentDocument.RootCauseDescription = rootCauseResponse.Description;
         incidentDocument.GeneralSummary = generalSummary;
-        
+
         return incidentDocument;
     }
 
@@ -184,7 +185,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
 
         status = pdIncident.Status.ToLower();
         isMitigatedByAgent = (status == "resolved" || status == "closed") && (pdIncident.Tags?.Contains("SREAgent_Mitigated") ?? false);
-        
+
         return isMitigatedByAgent;
     }
 
@@ -221,7 +222,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
         else
         {
             var updatedRootCauses = new List<RootCauseCategory>(existingRootCauses);
-            
+
             // Check if this root cause category already exists (case-insensitive comparison)
             if (!updatedRootCauses.Any(x => string.Equals(x.Category, rootCauseCategory.Category, StringComparison.OrdinalIgnoreCase)))
             {
@@ -243,7 +244,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
     private async Task<AIRootCauseResponse> GetAIRootCause(PagerDutyIncident incident, List<RootCauseCategory> existingRootCauses)
     {
         var rootCausesForPrompt = existingRootCauses.Select(rc => new { Category = rc.Category, Description = rc.Description }).ToList();
-        
+
         var messages = new List<Microsoft.Extensions.AI.ChatMessage>
         {
             new(ChatRole.System, "You are an expert in incident analysis."),
@@ -257,13 +258,13 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
             Temperature = 0.2f,
         };
 
-        var (response, result) = await _client.GetResponseAsync(messages, typeof(AIRootCauseResponse), options);
-        
+        var (response, result) = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, typeof(AIRootCauseResponse), options);
+
         if (result is AIRootCauseResponse rootCauseResponse)
         {
             return rootCauseResponse;
         }
-        
+
         _logger.LogInternalWarning("Failed to get structured response, result was null or wrong type");
         return new AIRootCauseResponse { RootCause = "Unknown", Description = "Unable to categorize incident" };
     }
@@ -305,7 +306,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
             ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
         };
 
-        var reply = await _client.GetResponseAsync(messages, options);
+        var reply = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
         return reply.Text;
     }
 

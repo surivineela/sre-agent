@@ -11,6 +11,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
+using Agent.Framework;
 
 namespace Agent.Runtime.SubAgents.CVEAgent
 {
@@ -19,7 +20,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
         private readonly ILogger<CVEScanner> _logger;
         private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
         private readonly IGraphDatabaseClient _graphDatabaseClient;
-        private readonly IChatClient _chatClient;
+        private readonly IChatClientProvider _chatClientProvider;
         private readonly IGraphDBPlugin _graphDbPlugin;
         private readonly IGithubIssuePlugin _githubIssuePlugin;
         private readonly SinkService _sinkService;
@@ -30,7 +31,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
             ILogger<CVEScanner> logger,
             IAgentInboundCommunicationService agentInboundCommunicationService,
             IGraphDatabaseClient graphDatabaseClient,
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             IGraphDBPlugin graphDBPlugin,
             IGithubIssuePlugin githubIssuePlugin,
             SinkService sinkService,
@@ -40,7 +41,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
             _logger = logger;
             _agentInboundCommunicationService = agentInboundCommunicationService;
             _graphDatabaseClient = graphDatabaseClient;
-            _chatClient = chatClient;
+            _chatClientProvider = chatClientProvider;
             _graphDbPlugin = graphDBPlugin;
             _githubIssuePlugin = githubIssuePlugin;
             _sinkService = sinkService;
@@ -87,7 +88,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                     agentTypeEnum: AgentTypeEnum.CVE);
 
                 var cveAgent = new CVEAgent(
-                    _chatClient,
+                    _chatClientProvider,
                     _graphDbPlugin,
                     _githubIssuePlugin,
                     _sinkService,

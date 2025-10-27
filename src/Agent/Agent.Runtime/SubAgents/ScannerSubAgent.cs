@@ -7,6 +7,7 @@ using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
 
@@ -19,12 +20,12 @@ namespace Agent.Runtime.SubAgents
         private readonly bool _isConcludingThreadAfterOpeningMessages;
         public ScannerSubAgent(
             string name,
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             SinkService sinkService,
             IThreadRepository repository,
             bool isConcludingThreadAfterOpeningMessages,
             bool isSkippingInitChatHistory = false)
-            : base(name, chatClient, isSkippingInitChatHistory)
+            : base(name, chatClientProvider, isSkippingInitChatHistory)
         {
             _sinkService = sinkService;
             _repository = repository;

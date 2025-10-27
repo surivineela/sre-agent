@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Reflection;
+using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -357,7 +358,7 @@ public class DeclarativeEvalRunner
 
         var evalClient = _host.Services.GetRequiredService<IChatClient>();
         _chatConfiguration = new ChatConfiguration(evalClient);
-        _agentStateAssessmentClient = _host.Services.GetRequiredKeyedService<IChatClient>("function-invocation-enabled");
+        _agentStateAssessmentClient = _host.Services.GetRequiredKeyedService<IChatClient>(Constants.FunctionInvocationChatClient);
 
         await _host.StartAsync();
     }

@@ -27,8 +27,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
 {
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<ReasoningLoopFactory> _logger;
-    private readonly IChatClient _chatClient;
-    private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IAgentProvider<AgentContext> _agentProvider;
     private readonly IAgentRuntimeModifier<AgentContext> _agentRuntimeModifier;
@@ -56,8 +55,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
 
     public ReasoningLoopFactory(
         ILoggerFactory loggerFactory,
-        IChatClient chatClient,
-        IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
+        IChatClientProvider chatClientProvider,
         IAgentOutboundCommunicationService outboundCommunicationService,
         IThreadRepository threadRepository,
         IAgentProvider<AgentContext> agentProvider,
@@ -78,8 +76,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoopFactory>();
-        _chatClient = chatClient;
-        _embeddingGenerator = embeddingGenerator;
+        _chatClientProvider = chatClientProvider;
         _outboundCommunicationService = outboundCommunicationService;
         _agentProvider = agentProvider;
         _agentRuntimeModifier = agentRuntimeModifier;
@@ -177,7 +174,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                 // Create WorkflowOrchestrator for the dispatched orchestrator agent
                 var workflowOrchestrator = new WorkflowOrchestrator(
                     loggerFactory: _loggerFactory,
-                    chatClient: _chatClient,
+                    chatClientProvider: _chatClientProvider,
                     outboundCommunicationService: _outboundCommunicationService,
                     threadRepository: _threadRepository,
                     context: context,
@@ -193,8 +190,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                 return new WorkflowReasoningLoop(
                     workflowOrchestrator: workflowOrchestrator,
                     loggerFactory: _loggerFactory,
-                    chatClient: _chatClient,
-                    embeddingGenerator: _embeddingGenerator,
+                    chatClientProvider: _chatClientProvider,
                     outboundCommunicationService: _outboundCommunicationService,
                     defaultStartingAgent: dispatchedAgent,
                     startingAgent: dispatchedAgent,
@@ -226,8 +222,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         // Create and return a new instance of ReasoningLoop
         var loop = new ReasoningLoop(
             loggerFactory: _loggerFactory,
-            chatClient: _chatClient,
-            embeddingGenerator: _embeddingGenerator,
+            chatClientProvider: _chatClientProvider,
             outboundCommunicationService: _outboundCommunicationService,
             defaultStartingAgent: defaultStartingAgent,
             startingAgent: currentStartingAgent,

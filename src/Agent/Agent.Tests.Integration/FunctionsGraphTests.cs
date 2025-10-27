@@ -14,8 +14,10 @@ using Agent.Core.Models;
 using Agent.Core.Services;
 using Agent.Core.Configuration;
 using Agent.Logging;
+using Agent.Framework;
 
 namespace Agent.Tests.Integration;
+
 public class FunctionsGraphTests
 {
     private ILogger _logger;
@@ -43,7 +45,7 @@ public class FunctionsGraphTests
     public async Task ListFunctionApps()
     {
         var loggerFactory = _host.Services.GetRequiredService<ILoggerFactory>();
-        
+
         // Create a mock ArmHelper with minimal setup for integration test
         var mockArmLogger = new Mock<ILogger<ArmHelper>>();
         var mockHttpClientFactory = new Mock<IHttpClientFactory>();
@@ -51,7 +53,7 @@ public class FunctionsGraphTests
         var mockCustomerLogger = new Mock<CustomerLogger>();
         var mockAuthService = new Mock<IAuthenticationService>();
         var mockHostEnvironment = new Mock<IHostEnvironment>();
-        var mockChatClient = new Mock<IChatClient>();
+        var mockChatClientProvider = new Mock<IChatClientProvider>();
         var mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
         var mockSessionPoolService = new Mock<ISessionPoolService>();
         var azureSettings = new AzureSettings();
@@ -66,14 +68,14 @@ public class FunctionsGraphTests
             mockHostEnvironment.Object,
             mockCrawlerTriggerService.Object,
             mockSessionPoolService.Object,
-            mockChatClient.Object);
+            mockChatClientProvider.Object);
 
         var plugin = new FunctionAppsPlugin(_graphClient, loggerFactory.CreateLogger<FunctionAppsPlugin>(), armHelper, mockHttpClientFactory.Object);
         var definition = new FunctionAppsPluginDefinition(plugin);
 
         var apps = await definition.ListFunctionAppsAsync(new Guid("29e3378b-0aaf-45da-b3c6-6fd0eea164e4"));
 
-        foreach(var app in apps)
+        foreach (var app in apps)
         {
             _logger.LogInformation($"Function App: {app.Name}, Resource ID: {app.ResourceId}");
         }

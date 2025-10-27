@@ -36,7 +36,7 @@ namespace Agent.Tests.Integration
             services.AddScoped<ITimePlugin, TimePlugin>();
             services.AddScoped<TimePluginDefinition>();
             services.ConfigureAzureOpenAIClient();
-            services.ConfigureIChatClient();
+            services.ConfigureIChatClient(_config);
 
             ServiceProvider s = services.BuildServiceProvider();
 

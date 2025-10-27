@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
 
@@ -17,8 +18,8 @@ namespace Agent.Runtime.SubAgents
         private McpConnection _mcpConnection;
         private IList<AITool> _tools;
 
-        public MCPAgent(McpConnection mcpConnection, IChatClient chatClient)
-            : base("MCPAgent", chatClient)
+        public MCPAgent(McpConnection mcpConnection, IChatClientProvider chatClientProvider)
+            : base("MCPAgent", chatClientProvider)
         {
             _mcpConnection = mcpConnection;
             _tools = _mcpConnection.Tools ?? new List<AITool>();

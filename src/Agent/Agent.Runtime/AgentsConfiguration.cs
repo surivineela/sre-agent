@@ -3,15 +3,18 @@
 // ------------------------------------------------------------
 
 using System.ClientModel.Primitives;
+using Agent.Core;
 using Agent.Core.Clients.Chat;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Services;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -136,36 +139,41 @@ namespace Agent.Runtime
             }
         }
 
-        public static IServiceCollection ConfigureIChatClient(this IServiceCollection services)
+        public static IServiceCollection ConfigureIChatClient(this IServiceCollection services, IConfiguration configuration)
         {
-            // register default IChatClient
-            services.AddSingleton(sp =>
+            var chatClientProviderSettings = configuration.GetSection("AppSettings:Core:ChatClientProvider").Get<ChatClientProviderSettings>();
+            // register keyed IChatClient for all models in ChatClientProviderSettings.ModelNames
+            if (chatClientProviderSettings != null && !string.IsNullOrWhiteSpace(chatClientProviderSettings.ModelNames))
             {
-                var client = sp.GetRequiredService<AzureOpenAIClient>();
-                var openAISettings = sp.GetRequiredService<OpenAISettings>();
-                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+                var modelNames = chatClientProviderSettings.ModelNames
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(m => m.Trim())
+                    .Where(m => !string.IsNullOrWhiteSpace(m))
+                    .Distinct()
+                    .ToList();
 
-                return sp.CreateChatClientBuilder().Build();
-            });
-
-            // register per model chat clients
-            foreach (var kvp in LlmModels.LlmClients)
-            {
-                // key name is client in LlmClients dictionary
-                services.AddKeyedSingleton(kvp.Value, (sp, _) =>
+                foreach (var modelName in modelNames)
                 {
-                    var client = sp.GetRequiredService<AzureOpenAIClient>();
-                    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+                    services.AddKeyedSingleton(modelName, (sp, _) =>
+                    {
+                        return sp.CreateChatClientBuilder(openAiDeploymentName: modelName).Build();
+                    });
+                }
+            }
 
-                    return sp
-                        .CreateChatClientBuilder(openAiDeploymentName: kvp.Key)
-                        .Build();
+            // backward compatibility
+            var openAISettings = configuration.GetSection("AppSettings:Core:Azure:OpenAI").Get<OpenAISettings>();
+            if (openAISettings != null && !string.IsNullOrWhiteSpace(openAISettings.LLMDeploymentName))
+            {
+                services.AddKeyedSingleton(openAISettings.LLMDeploymentName, (sp, _) =>
+                {
+                    return sp.CreateChatClientBuilder(openAiDeploymentName: openAISettings.LLMDeploymentName).Build();
                 });
             }
 
             // register special case chat clients
             services
-                .AddKeyedSingleton("function-invocation-enabled", (sp, _) =>
+                .AddKeyedSingleton(Constants.FunctionInvocationChatClient, (sp, _) =>
                 {
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
@@ -175,27 +183,12 @@ namespace Agent.Runtime
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
                             x.IncludeDetailedErrors = true;
-                        })
-                        .Build();
-                })
-                .AddKeyedSingleton("subagentv2-reasoning", (sp, _) =>
-                {
-                    var client = sp.GetRequiredService<AzureOpenAIClient>();
-                    var openAISettings = sp.GetRequiredService<OpenAISettings>();
-                    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-                    var settings = sp.GetRequiredService<InstanceManagementSettings>();
-
-                    return sp.CreateChatClientBuilder()
-                        .UseFunctionInvocation(loggerFactory, x =>
-                        {
-                            x.IncludeDetailedErrors = true;
-                            x.MaximumIterationsPerRequest = settings.ReasoningChatClientMaximumIterations;
                         })
                         .Build();
                 });
 
             // register chat client provider
-            services.AddSingleton<ChatClientProvider>();
+            services.AddSingleton<IChatClientProvider, ChatClientProvider>();
 
             return services;
         }

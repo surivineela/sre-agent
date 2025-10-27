@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Agent.Core.Services;
 
 namespace Agent.Tests.Unit.Framework;
 
@@ -44,11 +45,8 @@ public class AgentProviderTests
         _services.AddSingleton(_mockToolFactoryLogger.Object);
         _services.AddSingleton(_mockProviderLogger.Object);
         _services.AddTransient<TestTools>();
-        _services.AddSingleton<ChatClientProvider>();
-        foreach (var (llmModel, clientName) in LlmModels.LlmClients)
-        {
-            _services.AddKeyedSingleton(clientName, Mock.Of<IChatClient>());
-        }
+        _services.AddSingleton<IChatClientProvider, ChatClientProvider>();
+        _services.AddLogging();
         SetupHostEnvAndConfig();
         _serviceProvider = _services.BuildServiceProvider();
     }
@@ -74,6 +72,23 @@ public class AgentProviderTests
             AutoHandoffToMeta = true,
             EnableHandoffReasoning = true,
         });
+
+        var modelNames = "gpt-5,gpt-5-mini";
+        foreach (var name in modelNames.Split(','))
+        {
+            _services.AddKeyedSingleton(name, Mock.Of<IChatClient>());
+        }
+        var embeddingModelName = "text-embedding-3-large";
+        _services.Configure<ChatClientProviderSettings>(o =>
+        {
+            o.ModelNames = modelNames;
+            o.DefaultModelName = modelNames.Split(',').First();
+            o.EmbeddingModelName = embeddingModelName;
+        });
+        _services.Configure<OpenAISettings>(o =>
+        {
+            o.LLMDeploymentName = modelNames.Split(',').First();
+        });
     }
 
     private ToolFactory<AgentContext> CreateToolFactory() => new(
@@ -92,7 +107,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -119,7 +134,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -148,7 +163,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -177,7 +192,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -207,7 +222,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -234,7 +249,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -264,7 +279,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -307,7 +322,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -333,7 +348,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -359,7 +374,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -394,7 +409,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -556,7 +571,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -591,7 +606,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -630,7 +645,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -660,7 +675,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -689,7 +704,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -722,7 +737,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -747,7 +762,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -785,7 +800,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -821,7 +836,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -851,7 +866,7 @@ public class AgentProviderTests
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<ChatClientProvider>(),
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),

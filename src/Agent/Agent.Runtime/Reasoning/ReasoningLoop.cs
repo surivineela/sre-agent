@@ -37,8 +37,7 @@ public class ReasoningLoop : IDisposable
 {
     private readonly ILogger<ReasoningLoop> _logger;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly IChatClient _chatClient;
-    private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IThreadRepository _threadRepository;
     private readonly IToolFactory<AgentContext> _toolFactory;
@@ -111,8 +110,7 @@ public class ReasoningLoop : IDisposable
 
     public ReasoningLoop(
         ILoggerFactory loggerFactory,
-        IChatClient chatClient,
-        IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
+        IChatClientProvider chatClientProvider,
         IAgentOutboundCommunicationService outboundCommunicationService,
         Agent<AgentContext> defaultStartingAgent, // for autohandoff
         Agent<AgentContext> startingAgent,
@@ -134,8 +132,7 @@ public class ReasoningLoop : IDisposable
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoop>();
-        _chatClient = chatClient;
-        _embeddingGenerator = embeddingGenerator;
+        _chatClientProvider = chatClientProvider;
         _outboundCommunicationService = outboundCommunicationService;
         _msgCh = Channel.CreateUnbounded<ReasoningLoopMessage>(new UnboundedChannelOptions
         {
@@ -702,7 +699,7 @@ public class ReasoningLoop : IDisposable
     {
         var runConfig = new RunConfig
         {
-            ChatClient = _chatClient,
+            ChatClient = _chatClientProvider.DefaultModel,
             LoggerFactory = _loggerFactory,
             EnableDebugOutput = _enableReasoningDebugOutput,
             ThreadId = _context.ThreadId
@@ -2047,7 +2044,7 @@ public class ReasoningLoop : IDisposable
 
             var memoryId = $"memory_{_context.ThreadId}_{DateTime.UtcNow.Ticks}";
 
-            var vector = await _embeddingGenerator.GenerateVectorForAgentMemoryAsync(memoryContent, _logger, cancellationToken);
+            var vector = await _chatClientProvider.EmbeddingModel.GenerateVectorForAgentMemoryAsync(memoryContent, _logger, cancellationToken);
 
             var memory = AgentMemory.FromUserMemory(
                 id: memoryId,
@@ -2201,7 +2198,7 @@ public class ReasoningLoop : IDisposable
 
             chatMessages.Add(new(ChatRole.User, prompt));
 
-            var response = await _chatClient.GetResponseAsync(chatMessages, cancellationToken: cancellationToken);
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(chatMessages, cancellationToken: cancellationToken);
             var responseText = response.GetMessage().Text ?? "I couldn't generate a response from your memories.";
 
             var responseMessage = new ChatMessage(ChatRole.Assistant, responseText);
@@ -2238,7 +2235,7 @@ public class ReasoningLoop : IDisposable
                 chatHistory: _chatHistory!,
                 startingAgent: _defaultStartingAgent.Name,
                 autoHandOffEnabled: _autoHandOffEnabled,
-                chatClient: _chatClient);
+                chatClient: _chatClientProvider.DefaultModel);
 
             // modify chat history
             var compactedChatMessage = new ChatMessage(ChatRole.User, compactedChat);
@@ -2525,7 +2522,7 @@ public class ReasoningLoop : IDisposable
             // Set up RunConfig for direct agent invocation
             var runConfig = new RunConfig
             {
-                ChatClient = _chatClient,
+                ChatClient = _chatClientProvider.DefaultModel,
                 LoggerFactory = _loggerFactory,
                 EnableDebugOutput = _enableReasoningDebugOutput,
                 ThreadId = _context.ThreadId

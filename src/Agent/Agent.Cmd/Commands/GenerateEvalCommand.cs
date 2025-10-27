@@ -5,6 +5,7 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using Agent.Core;
 using Agent.Evals.Models;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
@@ -41,7 +42,7 @@ namespace Agent.Cmd
 
         public GenerateEvalCommand(
             ILogger<GenerateEvalCommand> logger,
-            [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient)
+            [FromKeyedServices(Constants.FunctionInvocationChatClient)] IChatClient chatClient)
         {
             _logger = logger;
             _chatClient = chatClient;

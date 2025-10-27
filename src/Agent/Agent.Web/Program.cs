@@ -79,6 +79,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using Microsoft.Azure.Amqp.Framing;
 
 namespace Agent.Web;
 
@@ -224,6 +225,13 @@ public class Program
         // Configure MCP settings
         builder.Services.Configure<MCPSettings>(
             builder.Configuration.GetSection("AppSettings:Core:External:MCP"));
+
+        // Configure ChatClientProvider settings
+        builder.Services.Configure<ChatClientProviderSettings>(
+            builder.Configuration.GetSection("AppSettings:Core:ChatClientProvider"));
+
+        builder.Services.Configure<OpenAISettings>(
+            builder.Configuration.GetSection("AppSettings:Core:Azure:OpenAI"));
 
         // Add AzureSearchSettings registration
         builder.RegisterAzureSearchSettings();
@@ -572,7 +580,7 @@ public class Program
         {
             var logger = sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>();
             var toolFactory = sp.GetRequiredService<IToolFactory<AgentContext>>();
-            var chatClientProvider = sp.GetRequiredService<ChatClientProvider>();
+            var chatClientProvider = sp.GetRequiredService<IChatClientProvider>();
             var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
             var experimentalSettings = sp.GetRequiredService<ExperimentalSettings>();
             var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
@@ -737,7 +745,7 @@ public class Program
         builder.Services
             .ConfigureIChatCompletionService()
             .ConfigureAzureOpenAIClient()
-            .ConfigureIChatClient()
+            .ConfigureIChatClient(builder.Configuration)
             .ConfigureIEmbeddingGenerator();
 
         // Register TSG Plugin - Always enabled since it uses DataConnector (not Azure Search)

@@ -10,13 +10,14 @@ using Agent.Logging;
 using Agent.Data.DataModels.IncidentModel;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Agent.Framework;
 
 namespace Agent.Runtime.Services;
 
 public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem>
 {
     public AzMonitorIncidentAnalysisService(
-        IChatClient client,
+        IChatClientProvider chatClientProvider,
         IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload> incidentManagementService,
         IIncidentFilterManagementService<AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
@@ -26,7 +27,7 @@ public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMo
         ArmHelper armHelper,
         CustomerLogger appInsightsLogger,
         ILogger<IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem>> logger)
-        : base(client, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
+        : base(chatClientProvider, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
     {
     }
 

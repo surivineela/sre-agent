@@ -38,7 +38,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         private readonly IGraphDBPlugin _graphDBPlugin;
         private readonly ICodeOptimizationsPlugin _codeOptimizationsPlugin;
         private readonly HttpClient _httpClient;
-        private readonly IChatClient _chatClient;
+        private readonly IChatClientProvider _chatClientProvider;
         private readonly string _dashboardsDirectory;
         private readonly string _mainDashboardFilePath;
         private readonly string _grafanaUrl;
@@ -80,7 +80,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             IGraphDBPlugin graphDBPlugin,
             ICodeOptimizationsPlugin codeOptimizationsPlugin,
             HttpClient httpClient,
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             DashboardSettings dashboardSettings,
             IGraphService graphDbService,
             IAuthenticationService authenticationService,
@@ -99,7 +99,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             _graphDatabaseClient = graphDatabaseClient;
             _grafanaPlugin = grafanaPlugin;
             _httpClient = httpClient;
-            _chatClient = chatClient;
+            _chatClientProvider = chatClientProvider;
             _dashboardsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "DailySummaryAgent", "Dashboards");
             _mainDashboardFilePath = Path.Combine(_dashboardsDirectory, mainDashboardFile);
             _grafanaUrl = dashboardSettings.GrafanaUrl.TrimEnd('/');
@@ -871,7 +871,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 };
 
                 // Call the LLM to get the summary
-                var response = await _chatClient.GetResponseAsync(messages, options);
+                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
                 var summary = response.Messages.Count > 0 ? response.Messages[0].Text : "Unable to generate summary from dashboards.";
                 try
                 {
@@ -974,7 +974,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     }
                 };
 
-                var response = await _chatClient.GetResponseAsync(messages, typeof(RecommendedActionsAndObservations), options);
+                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, typeof(RecommendedActionsAndObservations), options);
                 try
                 {
                     var result = (RecommendedActionsAndObservations?)response.result;
@@ -1884,7 +1884,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                         }
                     };
 
-                    var response = await _chatClient.GetResponseAsync(messages, typeof(IncidentAnalysisResult), options);
+                    var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, typeof(IncidentAnalysisResult), options);
                     try
                     {
                         var result = (IncidentAnalysisResult?)response.result;

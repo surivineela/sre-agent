@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -26,8 +27,8 @@ To do so, confirm:
 
 You can run multiple tool calls to answer a single question.";
 
-        public ArchitectureAgent(GraphDBQueryAgent queryAgent, IChatClient chatClient, ILogger<ArchitectureAgent> logger) 
-            : base("ArchitectureAgent", chatClient)
+        public ArchitectureAgent(GraphDBQueryAgent queryAgent, IChatClientProvider chatClientProvider, ILogger<ArchitectureAgent> logger)
+            : base("ArchitectureAgent", chatClientProvider)
         {
             _logger = logger;
             _queryAgent = queryAgent;

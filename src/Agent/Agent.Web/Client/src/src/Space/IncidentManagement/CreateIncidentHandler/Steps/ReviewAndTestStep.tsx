@@ -69,7 +69,7 @@ export const ReviewAndTestStep: FC = () => {
                 }}
             >
                 <ReviewAndTestContent
-                    view={(showTabs || forceShowTabs) ? selectedTab : undefined}
+                    view={showTabs || forceShowTabs ? selectedTab : undefined}
                     onOpenSidePanel={onOpenSidePanel}
                     onCloseSidePanel={onCloseSidePanel}
                 />

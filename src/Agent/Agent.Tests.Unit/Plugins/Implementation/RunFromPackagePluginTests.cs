@@ -18,7 +18,7 @@ using Agent.Plugins.Models.RunFromPackage;
 using Agent.Core.Services;
 using Azure.Core;
 using Azure.Storage.Blobs;
-using Microsoft.Extensions.AI;
+using Agent.Framework;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -58,7 +58,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var mockHostEnvironment = new Mock<IHostEnvironment>();
             var mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
             var mockSessionPoolService = new Mock<ISessionPoolService>();
-            var mockChatClient = new Mock<IChatClient>();
+            var mockChatClient = new Mock<IChatClientProvider>();
 
             _armHelper = new ArmHelper(
                 mockArmLogger.Object,

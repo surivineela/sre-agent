@@ -7,6 +7,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
@@ -23,7 +24,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
         private readonly IGraphDatabaseClient _graphDatabaseClient;
         private readonly SinkService _sinkService;
         private readonly IGraphDBPlugin _graphDbPlugin;
-        private readonly IChatClient _chatClient;
+        private readonly IChatClientProvider _chatClientProvider;
 
         public SourceCodeScanner(
             IThreadRepository threadRepository,
@@ -32,7 +33,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
             IGraphDatabaseClient graphDatabaseClient,
             SinkService sinkService,
             IGraphDBPlugin graphDbPlugin,
-            IChatClient chatClient)
+            IChatClientProvider chatClientProvider)
         {
             _logger = logger;
             _threadRepository = threadRepository;
@@ -40,7 +41,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
             _graphDatabaseClient = graphDatabaseClient;
             _sinkService = sinkService;
             _graphDbPlugin = graphDbPlugin;
-            _chatClient = chatClient;
+            _chatClientProvider = chatClientProvider;
         }
 
         public async Task Scan(CancellationToken cancellationToken)
@@ -77,7 +78,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                     agentTypeEnum: AgentTypeEnum.SourceCode);
 
                 var sourceCodeAgent = new SourceCodeAgent(
-                    _chatClient,
+                    _chatClientProvider,
                     _graphDbPlugin,
                     sinkService: _sinkService,
                     repository: _threadRepository,

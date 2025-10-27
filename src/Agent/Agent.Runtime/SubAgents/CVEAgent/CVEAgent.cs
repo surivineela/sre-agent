@@ -6,6 +6,7 @@ using System.Text;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
@@ -23,14 +24,14 @@ namespace Agent.Runtime.SubAgents.CVEAgent
         private readonly Kernel _kernel;
 
         public CVEAgent(
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             IGraphDBPlugin graphDBPlugin,
             IGithubIssuePlugin gitHubIssuePlugin,
             SinkService sinkService,
             IThreadRepository repository,
             Kernel kernel,
             List<RepoUrlStatus>? reposToScan = null)
-            : base("CVE Agent", chatClient, sinkService, repository, isConcludingThreadAfterOpeningMessages: true)
+            : base("CVE Agent", chatClientProvider, sinkService, repository, isConcludingThreadAfterOpeningMessages: true)
         {
             _githubIssuePlugin = gitHubIssuePlugin;
             _graphDBPlugin = graphDBPlugin;

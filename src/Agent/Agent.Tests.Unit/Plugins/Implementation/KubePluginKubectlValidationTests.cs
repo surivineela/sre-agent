@@ -14,7 +14,6 @@ using Agent.Graph.Services;
 using Agent.Plugins;
 using Agent.Prometheus.Services;
 using Agent.Plugins.Interface;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -29,7 +28,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public KubePluginKubectlValidationTests()
         {
             // Create all required mocks
-            var mockChatClient = new Mock<IChatClient>();
+            var mockChatClient = new Mock<IChatClientProvider>();
             var mockPrometheusQueryService = new Mock<IPrometheusQueryService>();
             var mockAzureMetricsClient = new Mock<IAzureMetricsClient>();
             var mockKubernetesClientFactory = new Mock<IKubernetesClientFactory>();

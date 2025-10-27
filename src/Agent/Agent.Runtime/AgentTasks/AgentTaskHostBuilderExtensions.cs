@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Framework;
 using Agent.Runtime.AgentTasks.Handlers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,8 +22,8 @@ public static class AgentTaskHostBuilderExtensions
         hostBuilder.Services.AddSingleton(provider =>
         {
             bool is1PAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
-            var embeddingGenerator = provider.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
-            return new AgentTaskLocalStore([], embeddingGenerator);
+            var chatClientProvider = provider.GetRequiredService<IChatClientProvider>();
+            return new AgentTaskLocalStore([], chatClientProvider.EmbeddingModel);
         });
 
         hostBuilder.Services.AddSingleton<AgentTaskService>();

@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -45,7 +46,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly Dictionary<string, List<string>> _commonToolsDescriptors = [];
     private readonly ILogger<AgentFactory<TContext>> _logger;
     private readonly IToolFactory<TContext> _toolFactory;
-    private readonly ChatClientProvider _chatClientProvider;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly IEnumerable<Assembly> _assembliesToScan;
     private readonly string? _agentsYamlDirectory;
     private readonly string? _commonPromptsYamlDirectory;
@@ -73,7 +74,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     public AgentFactory(
         ILogger<AgentFactory<TContext>> logger,
         IToolFactory<TContext> toolFactory,
-        ChatClientProvider chatClientProvider,
+        IChatClientProvider chatClientProvider,
         IEnumerable<Assembly> assembliesToScan,
         IAgentModeConfigurator<TContext> modeConfigurator,
         string? agentsYamlDirectory = null,
@@ -144,10 +145,10 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
 
         if (!string.IsNullOrEmpty(agentDescriptor.LlmModelName)
-            && !LlmModels.LlmClients.ContainsKey(agentDescriptor.LlmModelName))
+            && !_chatClientProvider.IsModelSupported(agentDescriptor.LlmModelName))
         {
             throw new Exception($"Agent descriptor {agentDescriptor.Name} refers unsupported model deployment: {agentDescriptor.LlmModelName}." +
-                $"Supported LLM Model Names are: {string.Join(", ", LlmModels.LlmClients.Keys)}");
+                $"Supported LLM Model Names are: {string.Join(", ", _chatClientProvider.GetSupportedModels())}");
         }
 
         if (agentDescriptor.McpTools != null && agentDescriptor.McpTools.Any(tool => !_toolFactory.HasTool(tool)))
@@ -209,7 +210,10 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             agent.Temperature = agentDescriptor.Temperature.Value;
         }
 
-        agent.ChatClient = _chatClientProvider.GetChatClient(agentDescriptor.LlmModelName);
+        if (!string.IsNullOrEmpty(agentDescriptor.LlmModelName))
+        {
+            agent.ChatClient = _chatClientProvider.GetModelByKey<IChatClient>(agentDescriptor.LlmModelName);
+        }
 
         ConfigureAgentInstructions(agent, agentDescriptor);
 
@@ -1143,9 +1147,9 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
     private void ApplyParamOverlay(Agent<TContext> agent, ParamOverlay overlay)
     {
-        if (overlay.ModelName != null && LlmModels.LlmClients.ContainsKey(overlay.ModelName))
+        if (overlay.ModelName != null && _chatClientProvider.IsModelSupported(overlay.ModelName))
         {
-            agent.ChatClient = _chatClientProvider.GetChatClient(overlay.ModelName);
+            agent.ChatClient = _chatClientProvider.GetModelByKey<IChatClient>(overlay.ModelName);
         }
         if (overlay.ReasoningEffortLevel != null)
         {

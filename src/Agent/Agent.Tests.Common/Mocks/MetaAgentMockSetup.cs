@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
+using Agent.Framework;
 using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Mocks;
@@ -37,8 +39,8 @@ public class MetaAgentMockSetup
     {
         this.ThreadRepository = (InMemoryThreadRepository)services.GetRequiredService<IThreadRepository>();
 
-        var chatClient = services.GetRequiredKeyedService<IChatClient>("function-invocation-enabled");
-        var graphDBPlugin = ActivatorUtilities.CreateInstance<GraphDBPlugin>(services, chatClient, new DashboardSettings(), this.AuthenticationService);
+        var chatClientProvider = services.GetRequiredService<IChatClientProvider>();
+        var graphDBPlugin = ActivatorUtilities.CreateInstance<GraphDBPlugin>(services, chatClientProvider, new DashboardSettings(), this.AuthenticationService);
 
         // TODO: add container apps plugin
         // this is harder because the container apps plugin requires more mocked dependencies.
@@ -49,7 +51,7 @@ public class MetaAgentMockSetup
             );
 
         this.Agent = GetMockedMetaAgent(
-            chatClient,
+            chatClientProvider,
             factory,
             threadService: services.GetRequiredService<ThreadService>(),
             threadRepository: this.ThreadRepository);

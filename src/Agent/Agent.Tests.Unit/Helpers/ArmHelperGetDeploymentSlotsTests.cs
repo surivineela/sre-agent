@@ -11,7 +11,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Logging;
-using Microsoft.Extensions.AI;
+using Agent.Framework;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -29,7 +29,7 @@ namespace Agent.Tests.Unit.Helpers
         private readonly Mock<IArmClientFactory> _mockArmClientFactory;
         private readonly Mock<IAuthenticationService> _mockAuthService;
         private readonly Mock<IHostEnvironment> _mockHostEnvironment;
-        private readonly Mock<IChatClient> _mockChatClient;
+        private readonly Mock<IChatClientProvider> _mockChatClientProvider;
         private readonly Mock<ICrawlerTriggerService> _mockCrawlerTriggerService;
         private readonly Mock<ISessionPoolService> _mockSessionPoolService;
         private readonly Mock<CustomerLogger> _mockCustomerLogger;
@@ -45,7 +45,7 @@ namespace Agent.Tests.Unit.Helpers
             _mockArmClientFactory = new Mock<IArmClientFactory>();
             _mockAuthService = new Mock<IAuthenticationService>();
             _mockHostEnvironment = new Mock<IHostEnvironment>();
-            _mockChatClient = new Mock<IChatClient>();
+            _mockChatClientProvider = new Mock<IChatClientProvider>();
             _mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
             _mockSessionPoolService = new Mock<ISessionPoolService>();
             var mockAzureSettings = new AzureSettings();
@@ -65,7 +65,7 @@ namespace Agent.Tests.Unit.Helpers
                 _mockHostEnvironment.Object,
                 _mockCrawlerTriggerService.Object,
                 _mockSessionPoolService.Object,
-                _mockChatClient.Object);
+                _mockChatClientProvider.Object);
         }
 
         [Fact]
@@ -220,7 +220,7 @@ namespace Agent.Tests.Unit.Helpers
             // Act & Assert
             var exception = await Should.ThrowAsync<ArgumentException>(
                 async () => await _armHelper.GetDeploymentSlotsResourceIdsAsync(resourceId!));
-            
+
             exception.ParamName.ShouldBe("resourceId");
             exception.Message.ShouldContain("Resource ID is required");
         }
@@ -234,7 +234,7 @@ namespace Agent.Tests.Unit.Helpers
             // Act & Assert
             var exception = await Should.ThrowAsync<ArgumentException>(
                 async () => await _armHelper.GetDeploymentSlotsResourceIdsAsync(resourceId));
-            
+
             exception.ParamName.ShouldBe("resourceId");
             exception.Message.ShouldContain("Invalid resource ID format");
         }
@@ -251,7 +251,7 @@ namespace Agent.Tests.Unit.Helpers
             // Act & Assert
             var exception = await Should.ThrowAsync<ToolExecutionUnauthorizedException>(
                 async () => await _armHelper.GetDeploymentSlotsResourceIdsAsync(resourceId));
-            
+
             exception.Message.ShouldContain("Unauthorized access to resource");
             exception.Message.ShouldContain(resourceId);
         }
@@ -268,7 +268,7 @@ namespace Agent.Tests.Unit.Helpers
             // Act & Assert
             var exception = await Should.ThrowAsync<ToolExecutionUnauthorizedException>(
                 async () => await _armHelper.GetDeploymentSlotsResourceIdsAsync(resourceId));
-            
+
             exception.Message.ShouldContain("Unauthorized access to resource");
             exception.Message.ShouldContain(resourceId);
         }
@@ -330,7 +330,7 @@ namespace Agent.Tests.Unit.Helpers
             // Act & Assert
             var exception = await Should.ThrowAsync<HttpRequestException>(
                 async () => await _armHelper.GetDeploymentSlotsResourceIdsAsync(resourceId));
-            
+
             exception.Message.ShouldBe(exceptionMessage);
 
             // Verify error was logged

@@ -72,26 +72,46 @@ public static class TestHelpers
                 throw new InvalidOperationException("OpenAI API key is missing. Pass it as a TestRunParameter.");
             }
 
-            llmDeploymentName = builder.Configuration["OpenAIModel"];
-            if (string.IsNullOrEmpty(llmDeploymentName))
-            {
-                throw new InvalidOperationException("OpenAI API model is missing. Pass it as a TestRunParameter.");
-            }
-
             var aiEndpoint = builder.Configuration["OpenAIEndpoint"];
             if (string.IsNullOrEmpty(aiEndpoint))
             {
                 throw new InvalidOperationException("OpenAI API endpoint is missing. Pass it as a TestRunParameter.");
             }
 
+            var modelNames = builder.Configuration["ModelNames"];
+            if (string.IsNullOrEmpty(modelNames))
+            {
+                throw new InvalidOperationException("OpenAI API model is missing. Pass it as a TestRunParameter.");
+            }
+
+            var defaultModelName = builder.Configuration["DefaultModelName"];
+            if (string.IsNullOrEmpty(defaultModelName))
+            {
+                throw new InvalidOperationException("OpenAI API default model name is missing. Pass it as a TestRunParameter.");
+            }
+
+            var embeddingModelName = builder.Configuration["EmbeddingModelName"];
+            if (string.IsNullOrEmpty(embeddingModelName))
+            {
+                throw new InvalidOperationException("OpenAI Embedding Model name is missing. Pass it as a TestRunParameter.");
+            }
+
             // instantiate openAiSettings from the env vars
-            builder.Services.AddSingleton(
-                new OpenAISettings
-                {
-                    Endpoint = aiEndpoint,
-                    LLMDeploymentName = llmDeploymentName,
-                    ApiKey = apiKey,
-                });
+            builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["AppSettings:Core:Azure:OpenAI:Endpoint"] = aiEndpoint,
+                ["AppSettings:Core:Azure:OpenAI:ApiKey"] = apiKey,
+                ["AppSettings:Core:Azure:OpenAI:EmbeddingGeneratorDeploymentName"] = embeddingModelName,
+                ["AppSettings:Core:ChatClientProvider:ModelNames"] = modelNames,
+                ["AppSettings:Core:ChatClientProvider:DefaultModelName"] = defaultModelName,
+                ["AppSettings:Core:ChatClientProvider:EmbeddingModelName"] = embeddingModelName,
+            });
+            builder.Services.Configure<ChatClientProviderSettings>(o =>
+            {
+                o.ModelNames = modelNames;
+                o.DefaultModelName = defaultModelName;
+                o.EmbeddingModelName = embeddingModelName;
+            });
         }
         else
         {
@@ -101,7 +121,7 @@ public static class TestHelpers
         builder.Services
             .ConfigureAzureOpenAIClient()
             .ConfigureIChatCompletionService()
-            .ConfigureIChatClient()
+            .ConfigureIChatClient(builder.Configuration)
             .ConfigureIEmbeddingGenerator();
 
         builder.Services.AddLogging(builder =>
@@ -338,7 +358,7 @@ public static class TestHelpers
             var logger = sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>();
             var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
             var extensionLoader = sp.GetRequiredService<IExtensibilityLoader>();
-            var chatClientProvider = sp.GetRequiredService<ChatClientProvider>();
+            var chatClientProvider = sp.GetRequiredService<IChatClientProvider>();
             var toolFactory = sp.GetRequiredService<IToolFactory<AgentContext>>();
             return new AgentFactory<AgentContext>(
                 logger: logger,

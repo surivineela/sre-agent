@@ -8,6 +8,7 @@ using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
@@ -32,7 +33,7 @@ public sealed class MetaAgent : IAgent
 
 
     public MetaAgent(
-        [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
+        IChatClientProvider chatClientProvider,
         IAgentsFactory agentsFactory,
         ILogger<MetaAgent> logger,
         CustomerLogger customerLogger,
@@ -40,7 +41,7 @@ public sealed class MetaAgent : IAgent
         IThreadRepository threadRepository
         )
     {
-        _chatClient = chatClient;
+        _chatClient = chatClientProvider.GetModelByKey<IChatClient>(Constants.FunctionInvocationChatClient);
         _threadService = threadService;
         _threadRepository = threadRepository;
         _log = logger;
@@ -84,7 +85,7 @@ public sealed class MetaAgent : IAgent
         List<ChatResponseUpdate> bufferedResponses = new();
 
 
-        var options = new ChatOptions{Temperature = 0.7f};
+        var options = new ChatOptions { Temperature = 0.7f };
         // exceptions should be handled by caller due to yield return
         var streamResponses = _chatClient.GetStreamingResponseAsync(
             chatHistory,

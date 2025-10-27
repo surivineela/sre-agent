@@ -8,6 +8,7 @@ using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
@@ -24,12 +25,12 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
         private readonly List<SourceCodeStatus>? _appsWithoutSourceCodeNodes;
 
         public SourceCodeAgent(
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             IGraphDBPlugin graphDBPlugin,
             SinkService sinkService,
             IThreadRepository repository,
             List<SourceCodeStatus>? appsWithoutSourceCodeNodes = null)
-            : base("Source Code Agent", chatClient, sinkService, repository, isConcludingThreadAfterOpeningMessages: false)
+            : base("Source Code Agent", chatClientProvider, sinkService, repository, isConcludingThreadAfterOpeningMessages: false)
         {
             _graphDBPlugin = graphDBPlugin;
             _appsWithoutSourceCodeNodes = appsWithoutSourceCodeNodes;
@@ -81,7 +82,7 @@ This workflow does not need to wait for explicit user approval to proceed. Just 
                 new AIChatMessage(ChatRole.System, SystemPrompt)
             };
 
-            if (_appsWithoutSourceCodeNodes != null &&  _appsWithoutSourceCodeNodes.Any())
+            if (_appsWithoutSourceCodeNodes != null && _appsWithoutSourceCodeNodes.Any())
             {
                 messages.AddRange(GetMessagesToInformAgentAboutAppsWithoutSourceCode(_appsWithoutSourceCodeNodes));
             }

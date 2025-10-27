@@ -15,6 +15,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Framework;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Schema;
@@ -43,7 +44,7 @@ namespace Agent.Plugins
         public Guid? ThreadId { get; set; }
 
         private readonly IGraphDatabaseClient _graphDbClient;
-        private readonly IChatClient _chatClient;
+        private readonly IChatClientProvider _chatClientProvider;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
         private readonly ILogger<GraphDBPlugin> _logger;
 
@@ -71,7 +72,7 @@ namespace Agent.Plugins
 
         public GraphDBPlugin(
             IGraphDatabaseClient graphDbClient,
-            IChatClient chatClient,
+            IChatClientProvider chatClientProvider,
             DashboardSettings dashboardSettings,
             IAgentOutboundCommunicationService agentOutboundCommunicationService,
             ILogger<GraphDBPlugin> logger,
@@ -81,7 +82,7 @@ namespace Agent.Plugins
             AzureResourceGraphClient azureResourceGraphClient)
         {
             _graphDbClient = graphDbClient;
-            _chatClient = chatClient;
+            _chatClientProvider = chatClientProvider;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
             _logger = logger;
             _dashboardSettings = dashboardSettings;
@@ -295,7 +296,7 @@ Strict Requirements:
 Input JSON:
 {jsonResult}
 """;
-                    var response = await _chatClient.GetResponseAsync(prompt, new ChatOptions { Temperature = 0.2f });
+                    var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt, new ChatOptions { Temperature = 0.2f });
                     var mermaidSpec = response.Text;
                     _logger.LogInternalInformation($"Generated Mermaid specification successfully: {mermaidSpec}");
 
@@ -410,7 +411,7 @@ graph LR
     A[Resource1] --> B[Resource2]
     B --> C[Resource3]
 Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'. Do not include any markdown formatting, code fences, or additional text.";
-                    var response = await _chatClient.GetResponseAsync(prompt);
+                    var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
                     var mermaidSpec = response.Text;
                     _logger.LogInternalInformation("Generated Mermaid specification successfully");
 
@@ -2056,7 +2057,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                     }
                 };
 
-                var response = await _chatClient.GetResponseAsync(messages, options);
+                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
                 string summary = response.Text;
 
                 _logger.LogInternalInformation("Dashboard summary generated successfully for {DashboardUrl}", dashboardUrl);
@@ -2294,7 +2295,7 @@ Provide:
 {resourceChangesJson}
 
 Respond in a concise, structured format with bullet points and short sentences.";
-            var response = await _chatClient.GetResponseAsync(prompt);
+            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
             return response.Text;
         }
 
@@ -2661,7 +2662,7 @@ Provide a detailed analysis including:
 
 Focus on extracting actionable information about what specifically changed. Look for patterns in the HTTP requests, operation names, and properties. Identify the business impact of these changes and any potential issues or rollback scenarios.";
 
-                var response = await _chatClient.GetResponseAsync(prompt);
+                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
                 return response.Text;
             }
             catch (Exception ex)

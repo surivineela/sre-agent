@@ -10,7 +10,6 @@ using Agent.Plugins;
 using Agent.Prometheus.Services;
 using Agent.Plugins.Interface;
 using k8s;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -39,7 +38,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
       // Create an actual instance with our mocked dependencies
       _kubePlugin = new KubePlugin(
-          new Mock<IChatClient>().Object,
+          new Mock<IChatClientProvider>().Object,
           new Mock<IPrometheusQueryService>().Object,
           new Mock<IAzureMetricsClient>().Object,
           _mockKubernetesClientFactory.Object,

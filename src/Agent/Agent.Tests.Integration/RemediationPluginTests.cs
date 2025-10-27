@@ -40,7 +40,7 @@ namespace Agent.Tests.Integration
             services.AddSingleton<IRemediationPlugin, RemediationPlugin>();
             services.AddSingleton<RemediationPluginDefinition>();
             services.ConfigureAzureOpenAIClient();
-            services.ConfigureIChatClient();
+            services.ConfigureIChatClient(_config);
 
             ServiceProvider s = services.BuildServiceProvider();
 

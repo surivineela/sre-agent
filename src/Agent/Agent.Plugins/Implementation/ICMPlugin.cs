@@ -15,6 +15,7 @@ using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
 using TextContent = Microsoft.SemanticKernel.TextContent;
 using Microsoft.AzureAd.Icm.IcmV3OData.Models;
 using Attachment = Microsoft.AzureAd.Icm.IcmV3OData.Models.Attachment;
+using Agent.Framework;
 
 namespace Agent.Plugins.Implementation;
 
@@ -23,6 +24,7 @@ public class InvestigationTimeRangeResult
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
 }
+
 public class ICMPlugin : IICMPlugin
 {
     private readonly IICMAPIClient _icmApiClient;
@@ -34,14 +36,14 @@ public class ICMPlugin : IICMPlugin
     private const string AgentMitigatedTag = "SREAgent_Mitigated";
     private const bool ProcessImages = true;
 
-    public ICMPlugin(IICMAPIClient icmAPIClient, ILogger<ICMPlugin> logger, IChatClient chatClient)
+    public ICMPlugin(IICMAPIClient icmAPIClient, ILogger<ICMPlugin> logger, IChatClientProvider chatClientProvider)
     {
         _logger = logger;
         _icmApiClient = icmAPIClient;
 
 
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        _chatCompletionService = chatClient.AsChatCompletionService();
+        _chatCompletionService = chatClientProvider.DefaultModel.AsChatCompletionService();
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
     }
@@ -777,12 +779,12 @@ Example structure:
             // Check file type - only allow specific extensions
             var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                ".png", ".html", ".txt", ".zip", ".csv", ".json", ".xlsx", ".svg", ".jpg", ".docx", 
-                ".msg", ".pdf", ".log", ".eml", ".mp4", ".xml", ".gif", ".jpeg", ".dat", ".etl", 
-                ".sts", ".sql", ".mht", ".cab", ".evtx", ".pptx", ".sqlplan", ".alcpuprofile", 
-                ".7z", ".pbix", ".rar", ".one", ".yaml", ".py", ".jfif", ".wav", ".xls", ".tsv", 
-                ".tiff", ".tgz", ".sit", ".sgml", ".rtf", ".rdf", ".ram", ".ra", ".qt", ".ppt", 
-                ".pl", ".ogg", ".mpeg", ".mp3", ".midi", ".jar", ".hqx", ".gz", ".doc", ".dtd", 
+                ".png", ".html", ".txt", ".zip", ".csv", ".json", ".xlsx", ".svg", ".jpg", ".docx",
+                ".msg", ".pdf", ".log", ".eml", ".mp4", ".xml", ".gif", ".jpeg", ".dat", ".etl",
+                ".sts", ".sql", ".mht", ".cab", ".evtx", ".pptx", ".sqlplan", ".alcpuprofile",
+                ".7z", ".pbix", ".rar", ".one", ".yaml", ".py", ".jfif", ".wav", ".xls", ".tsv",
+                ".tiff", ".tgz", ".sit", ".sgml", ".rtf", ".rdf", ".ram", ".ra", ".qt", ".ppt",
+                ".pl", ".ogg", ".mpeg", ".mp3", ".midi", ".jar", ".hqx", ".gz", ".doc", ".dtd",
                 ".css", ".bz2", ".bmp", ".avi", ".au"
             };
 
@@ -850,12 +852,12 @@ Example structure:
             // Check file type - only allow specific extensions
             var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                ".png", ".html", ".txt", ".zip", ".csv", ".json", ".xlsx", ".svg", ".jpg", ".docx", 
-                ".msg", ".pdf", ".log", ".eml", ".mp4", ".xml", ".gif", ".jpeg", ".dat", ".etl", 
-                ".sts", ".sql", ".mht", ".cab", ".evtx", ".pptx", ".sqlplan", ".alcpuprofile", 
-                ".7z", ".pbix", ".rar", ".one", ".yaml", ".py", ".jfif", ".wav", ".xls", ".tsv", 
-                ".tiff", ".tgz", ".sit", ".sgml", ".rtf", ".rdf", ".ram", ".ra", ".qt", ".ppt", 
-                ".pl", ".ogg", ".mpeg", ".mp3", ".midi", ".jar", ".hqx", ".gz", ".doc", ".dtd", 
+                ".png", ".html", ".txt", ".zip", ".csv", ".json", ".xlsx", ".svg", ".jpg", ".docx",
+                ".msg", ".pdf", ".log", ".eml", ".mp4", ".xml", ".gif", ".jpeg", ".dat", ".etl",
+                ".sts", ".sql", ".mht", ".cab", ".evtx", ".pptx", ".sqlplan", ".alcpuprofile",
+                ".7z", ".pbix", ".rar", ".one", ".yaml", ".py", ".jfif", ".wav", ".xls", ".tsv",
+                ".tiff", ".tgz", ".sit", ".sgml", ".rtf", ".rdf", ".ram", ".ra", ".qt", ".ppt",
+                ".pl", ".ogg", ".mpeg", ".mp3", ".midi", ".jar", ".hqx", ".gz", ".doc", ".dtd",
                 ".css", ".bz2", ".bmp", ".avi", ".au"
             };
 
@@ -867,7 +869,7 @@ Example structure:
 
             // Convert string content to bytes and check size
             byte[] contentBytes = Encoding.UTF8.GetBytes(content);
-            
+
             // Check content size (15MB limit as per ICM API documentation)
             const long maxFileSizeBytes = 15 * 1024 * 1024; // 15MB
             if (contentBytes.Length > maxFileSizeBytes)

@@ -156,7 +156,9 @@ jobs:
       env:
         OpenAIEndpoint: https://sre3ppipe-openai-swedencentral.openai.azure.com/
         OpenAIKey: ${{ secrets.EVALS_OPENAI_KEY_41 }}
-        OpenAIModel: sre3ppipe-gpt-41
+        ModelNames: sre3ppipe-gpt-41
+        DefaultModelName: sre3ppipe-gpt-41
+        EmbeddingModelName: text-embedding-3-large
         IterationCount: ${{ github.event_name == 'pull_request' && '1' || '5' }}
         SkipReactBuild: 'true'
       continue-on-error: true
@@ -263,7 +265,9 @@ jobs:
       env:
         OpenAIEndpoint: https://sre3ppipe-openai-swedencentral.openai.azure.com/
         OpenAIKey: ${{ secrets.EVALS_OPENAI_KEY_41 }}
-        OpenAIModel: sre3ppipe-gpt-41
+        ModelNames: sre3ppipe-gpt-41
+        DefaultModelName: sre3ppipe-gpt-41
+        EmbeddingModelName: text-embedding-3-large
         IterationCount: '1'
         SkipReactBuild: 'true'
         TEST_FOLDER: Data/Unstable,Data/UnstableRCAAgent

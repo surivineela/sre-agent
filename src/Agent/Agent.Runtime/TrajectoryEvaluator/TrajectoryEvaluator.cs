@@ -7,6 +7,7 @@ using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
+using Agent.Framework;
 using Agent.Runtime.Helpers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -25,12 +26,11 @@ public class TrajectoryEvaluator
 {
     private readonly ILogger<TrajectoryEvaluator> _logger;
     private readonly IThreadRepository _threadRepository;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
     private readonly IAgentMemoryClient _memory;
     private readonly Tracer _tracer;
     private readonly TimeSpan _evaluationHistoryRange; // How far back to search for threads
     private readonly TimeSpan _coolDownPeriod;         // Minimum time since last modification before evaluation
-    private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
 
     private readonly ISearchIndexService _searchIndexService;
 
@@ -39,22 +39,20 @@ public class TrajectoryEvaluator
     public TrajectoryEvaluator(
         ILogger<TrajectoryEvaluator> logger,
         IThreadRepository threadRepository,
-        IChatClient chatClient,
+        IChatClientProvider chatClientProvider,
         IAgentMemoryClient memory,
         Tracer tracer,
         ISearchIndexService searchIndexService,
-        IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
         TimeSpan? evaluationHistoryRange = null,
         TimeSpan? coolDownPeriod = null)
     {
         _logger = logger;
         _threadRepository = threadRepository;
-        _chatClient = chatClient;
+        _chatClientProvider = chatClientProvider;
         _tracer = tracer;
         _memory = memory;
 
         _searchIndexService = searchIndexService;
-        _embeddingGenerator = embeddingGenerator;
 
         // Allow overriding default time windows
         _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
@@ -206,7 +204,7 @@ public class TrajectoryEvaluator
             // todo: pass in autohandoff from the thread info
             var startAgent = agentContext.AgentHandoffChain.FirstOrDefault(defaultValue: "meta_agent");
             var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
-                chatClient: _chatClient,
+                chatClient: _chatClientProvider.DefaultModel,
                 chatMessages: chatMessages,
                 startAgent: startAgent,
                 cancellationToken: cancellationToken);
@@ -220,7 +218,7 @@ public class TrajectoryEvaluator
                     var trajectoryString = JsonSerializer.Serialize(trajectory, _jsonSerializerOptions);
                     await SaveTrajectoryAsync(thread.Id, trajectoryString, trajectoryInfo.PromptHash, cancellationToken);
 
-                    var vector = await _embeddingGenerator.GenerateVectorForAgentMemoryAsync(trajectory.SymptomsObserved, _logger, cancellationToken);
+                    var vector = await _chatClientProvider.EmbeddingModel.GenerateVectorForAgentMemoryAsync(trajectory.SymptomsObserved, _logger, cancellationToken);
                     var memory = AgentMemory.FromTrajectory(
                         trajectoryGuid: thread.Id, // use thread id as the id to keep it unique + update existing memory on re-eval
                         trajectoryData: trajectory,

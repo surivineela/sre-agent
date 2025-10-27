@@ -19,6 +19,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
+using Agent.Framework;
 
 namespace Agent.Plugins;
 
@@ -29,19 +30,19 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
     private readonly MdmMetricsSettings _settings;
     private readonly ILogger<MdmMetricsPlugin> _logger;
     private readonly MdmMetricsAccessTokenProvider _tokenProvider;
-    private readonly IChatClient _chatClient;
+    private readonly IChatClientProvider _chatClientProvider;
 
     public MdmMetricsPlugin(
         MdmMetricsSettings settings,
         ILogger<MdmMetricsPlugin> logger,
         IAuthenticationService authenticationService,
         IHostEnvironment hostEnvironment,
-        IChatClient chatClient)
+        IChatClientProvider chatClientProvider)
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _tokenProvider = new MdmMetricsAccessTokenProvider(settings, logger, authenticationService, hostEnvironment);
-        _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
+        _chatClientProvider = chatClientProvider ?? throw new ArgumentNullException(nameof(chatClientProvider));
     }
 
     /// <summary>
@@ -343,7 +344,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
 
         // Parse aggregation type - currently only Automatic is supported
         var aggregationType = Microsoft.Cloud.Metrics.Client.Query.AggregationType.Automatic;
-        if (!string.IsNullOrWhiteSpace(request.AggregationType) && 
+        if (!string.IsNullOrWhiteSpace(request.AggregationType) &&
             !request.AggregationType.Equals("Automatic", StringComparison.OrdinalIgnoreCase))
         {
             throw new ArgumentException($"Invalid aggregation type: {request.AggregationType}. Only 'Automatic' is currently supported.");
@@ -358,8 +359,8 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
 
         foreach (var def in request.Definitions)
         {
-            if (string.IsNullOrWhiteSpace(def.MonitoringAccount) || 
-                string.IsNullOrWhiteSpace(def.MetricNamespace) || 
+            if (string.IsNullOrWhiteSpace(def.MonitoringAccount) ||
+                string.IsNullOrWhiteSpace(def.MetricNamespace) ||
                 string.IsNullOrWhiteSpace(def.MetricName))
             {
                 throw new ArgumentException("Each definition must include monitoringAccount, metricNamespace, and metricName.");
@@ -474,7 +475,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
         </autonomy>
 
         <contextual_query>
-        { (string.IsNullOrWhiteSpace(contextualQuery) ? "No additional contextual query provided, provide a general analysis." : contextualQuery) }
+        {(string.IsNullOrWhiteSpace(contextualQuery) ? "No additional contextual query provided, provide a general analysis." : contextualQuery)}
         </contextual_query>
         """;
 
@@ -487,7 +488,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
             }
         };
 
-    var payloadJson = System.Text.Json.JsonSerializer.Serialize(payload, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        var payloadJson = System.Text.Json.JsonSerializer.Serialize(payload, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
         var messages = new[]
         {
@@ -495,7 +496,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
             new ChatMessage(ChatRole.User, payloadJson)
         };
 
-        var response = await _chatClient.GetResponseAsync(messages, options).ConfigureAwait(false);
+        var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options).ConfigureAwait(false);
 
         _logger.LogInternalInformation("[MdmMetricsPlugin] [GetTimeSeriesAnalysisAsync] - Analysis generated successfully");
         return response.Text;
@@ -704,14 +705,14 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
     {
         using var client = new HttpClient();
         var token = await _tokenProvider.AcquireTokenAsync("https://microsoftmetrics.com").ConfigureAwait(false);
-        
+
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Add("Authorization", $"Bearer {token}");
         request.Headers.Add("ClientId", "SREAgent");
         request.Headers.Add("TraceGuid", Guid.NewGuid().ToString("B"));
         request.Headers.Add("SourceIdentity", Environment.MachineName);
         request.Headers.Add("User-Agent", "MdmMetricsPlugin/1.0");
-        
+
         if (acceptJson)
         {
             request.Headers.Accept.Clear();
@@ -719,7 +720,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
         }
 
         using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-        
+
         if (!response.IsSuccessStatusCode)
         {
             var errorText = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
