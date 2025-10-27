@@ -1802,6 +1802,7 @@ export const SettingsTabResources = defineMessages({
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
     dataKnowledgeSpace: { defaultMessage: 'Data knowledge space', id: '5U04OG' },
+    usage: { defaultMessage: 'Agent usage + limit', id: '3HS12m' },
     fileSource: { defaultMessage: 'File Source', id: 'CJ6tzL' },
     dataSource: { defaultMessage: 'Data Source', id: 'uudb6D' },
     subAgents: { defaultMessage: 'Sub-agents', id: 'VIn2J0' },
@@ -1894,6 +1895,84 @@ export const GrafanaDashboardResources = defineMessages({
         id: 'RH8rNM',
     },
     enterResourceName: { defaultMessage: 'Enter resource name', id: '3DzXFS' },
+});
+
+export const UsageResources = defineMessages({
+    updateAllocationTitle: {
+        defaultMessage: 'Update AAU allocation',
+        id: 'rU0caB',
+    },
+    updateAllocationInProgressDescription: {
+        defaultMessage: 'Updating AAU allocation from {oldValue} to {newValue}.',
+        id: 'QChoto',
+    },
+    updateAllocationSuccessDescription: {
+        defaultMessage: 'AAU allocation updated from {oldValue} to {newValue} successfully.',
+        id: '/TZk1G',
+    },
+    updateAllocationFailedDescription: {
+        defaultMessage: 'Failed to update AAU allocation. Error: {errorMessage}',
+        id: 'XMUseu',
+    },
+    description: {
+        defaultMessage:
+            'Azure SRE Agent billing is measured in Azure agent units (AAU). Monthly AAU billing reflects both the fixed always-on flow and variable usage from active flow. You can increase or decrease the active flow AAU allocation at any time.',
+        id: 'TO55dt',
+    },
+    descriptionLinkText: {
+        defaultMessage: 'Learn more about how to calculate cost',
+        id: '8dTxSy',
+    },
+    changeAAUAllocationText: {
+        defaultMessage: 'Change AAU allocation',
+        id: 'fr6Gnj',
+    },
+    monthlyAAULimitLabel: {
+        defaultMessage: 'Monthly AAU limit:',
+        id: 'AHQdRU',
+    },
+    billingDescription: {
+        defaultMessage: 'Always-on flow + {count, number} active flow AAUs',
+        id: 'a1UV+9',
+    },
+    activeFlowResetMessage: {
+        defaultMessage: 'Active flow AAUs reset in {days, plural, =0 {today} one {# day} other {# days}}',
+        id: 'uLmZLS',
+    },
+    totalActiveFlowConsumptionTitle: {
+        defaultMessage: 'Total active flow consumption',
+        id: 'Pa1S0J',
+    },
+    consumptionAAUUsageLabel: {
+        defaultMessage: 'Consumption AAU usage',
+        id: 'dWSIqT',
+    },
+    dailyActiveFlowConsumptionTitle: {
+        defaultMessage: 'Daily active flow consumption',
+        id: '8AMq3a',
+    },
+    aauConsumptionLegendText: {
+        defaultMessage: 'AAU Consumption',
+        id: 'QOSRgI',
+    },
+    dialogDescription: {
+        defaultMessage:
+            'You can increase or decrease active flow AAUs as needed. If the agent reaches the active flow limit, it continues running only in the always-on flow but is unavailable for chat and actions.',
+        id: '5Y6lHe',
+    },
+    usageLimitSliderAriaLabel: {
+        defaultMessage: 'Monthly AAU limit slider',
+        id: 'R3mMmc',
+    },
+    usageLimitErrorMessage: {
+        defaultMessage: 'The maximum AAU limit is 20,000',
+        id: 'kLL6yL',
+    },
+    usageLimitWarningMessage: {
+        defaultMessage:
+            'The current consumption exceeds the new allocation, which will take effect next month. Until then, the agent will run only in the always-on flow. Chat and actions will be unavailable.',
+        id: 'AdnFH8',
+    },
 });
 
 export const FeedbackResources = defineMessages({

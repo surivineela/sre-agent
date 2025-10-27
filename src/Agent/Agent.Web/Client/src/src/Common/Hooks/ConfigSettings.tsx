@@ -15,6 +15,7 @@ export enum SettingNames {
     ShowSubAgentsItemInSettings = 'showSubAgentsItemInSettings',
     DataKnowledgeSpace = 'dataKnowledgeSpace',
     McpServer = 'McpServer',
+    Usage = 'usage'
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
@@ -32,6 +33,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowWatchtower]: true,
         [SettingNames.ForUnitTests]: true,
         [SettingNames.DataKnowledgeSpace]: true,
+        [SettingNames.Usage]: true,
     },
 };
 
