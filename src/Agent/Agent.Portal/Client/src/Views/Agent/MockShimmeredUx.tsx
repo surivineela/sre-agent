@@ -1,6 +1,7 @@
 import { Image, makeStyles, shorthands, Skeleton, SkeletonItem, tokens } from '@fluentui/react-components';
 import { CircleFilled } from '@fluentui/react-icons';
 import { useIntl } from 'react-intl';
+import { useAssetUrl } from '../../Common/Hooks/useAssetUrl';
 import { PortalResources } from '../../Strings/Resources';
 
 /** Shamelessly stolen from Paas extension which originally stole from sreagent-runtime repo */
@@ -101,6 +102,7 @@ const useStyles = makeStyles({
 export const MockShimmeredUx = () => {
     const intl = useIntl();
     const styles = useStyles();
+    const assetUrl = useAssetUrl('SreAgent.svg');
 
     return (
         <div className={styles.wrapper}>
@@ -147,7 +149,7 @@ export const MockShimmeredUx = () => {
                         </div>
 
                         <div className={styles.agentContent}>
-                            <Image src="./SreAgent.svg" width={32} height={32} alt={intl.formatMessage(PortalResources.azureSreAgent)} />
+                            <Image src={assetUrl} width={32} height={32} alt={intl.formatMessage(PortalResources.azureSreAgent)} />
                             <AgentMessageLoadingComponent />
                         </div>
                     </div>
