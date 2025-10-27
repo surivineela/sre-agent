@@ -2329,10 +2329,18 @@ export const DataConnectorsResources = defineMessages({
 });
 
 export const KnowledgeBaseResources = defineMessages({
+    fileUploadTitle: {
+        defaultMessage: 'Add a knowledge source',
+        id: 'a8czK7',
+    },
     fileUploadDescription: {
         defaultMessage:
-            "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Connectors instead.",
-        id: '1GbY5N',
+            'Add a file or connect an external data source, such as a service or repository, to help the agent generate more informed responses.',
+        id: 'Z+uDP9',
+    },
+    fileUploadLinkDescription: {
+        defaultMessage: 'Learn more about knowledge sources',
+        id: 's00xPm',
     },
     filesRejected: {
         defaultMessage: '{count} document(s) rejected ({fileNames}). Only .md and .txt files are allowed.',
@@ -2365,8 +2373,8 @@ export const KnowledgeBaseResources = defineMessages({
     },
     // Uploaded files list
     fileName: {
-        defaultMessage: 'Document Name',
-        id: 'vR27zt',
+        defaultMessage: 'File Name',
+        id: 'xHpwlo',
     },
     delete: {
         defaultMessage: 'Delete',
@@ -2434,8 +2442,6 @@ export const KnowledgeBaseResources = defineMessages({
     },
     // Additional strings
     addFile: { defaultMessage: 'Add file', id: 'sXiGbo' },
-    documentation: { defaultMessage: 'Documentation', id: 'isGKnz' },
-    lastIndexed: { defaultMessage: 'Last indexed {time}', id: 'ngNj+t' },
     filesUploadedSuccessfully: {
         defaultMessage: 'Files uploaded successfully',
         id: 'ag1Rum',
@@ -2456,30 +2462,6 @@ export const KnowledgeBaseResources = defineMessages({
         defaultMessage: 'Refresh',
         id: 'rELDbB',
     },
-    fileSize: {
-        defaultMessage: 'File size',
-        id: '3xkLyH',
-    },
-    fileDataClassification: {
-        defaultMessage: 'Data classification',
-        id: 'NTdict',
-    },
-    lastModified: {
-        defaultMessage: 'Last modified',
-        id: '1Jufsz',
-    },
-    source: {
-        defaultMessage: 'Source',
-        id: 'aH4De2',
-    },
-    logs: {
-        defaultMessage: 'Logs',
-        id: 'SNuQo7',
-    },
-    selectClassification: {
-        defaultMessage: 'Select classification',
-        id: 'fvWWGl',
-    },
     selectedFilesTable: {
         defaultMessage: 'Selected files table',
         id: '9XASFm',
@@ -2493,20 +2475,8 @@ export const KnowledgeBaseResources = defineMessages({
         id: 'ukQpDs',
     },
     filesStoredIn: {
-        defaultMessage: 'Files will be stored in placeholder',
-        id: 'lvINcI',
-    },
-    editFile: {
-        defaultMessage: 'Edit file',
-        id: 'S3BjwA',
-    },
-    edit: {
-        defaultMessage: 'Edit',
-        id: 'wEQDC6',
-    },
-    download: {
-        defaultMessage: 'Download',
-        id: '5q3qC0',
+        defaultMessage: 'Files will be stored in the agent.',
+        id: 'NIrBo5',
     },
     deleteFile: {
         defaultMessage: 'Delete file?',

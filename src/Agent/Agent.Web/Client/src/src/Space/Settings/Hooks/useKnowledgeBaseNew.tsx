@@ -8,9 +8,6 @@ import { KnowledgeBaseResources } from '../../../Strings/SREAgentResources';
 
 export interface UploadedFile {
     name: string;
-    size: number;
-    dataClassification: string;
-    lastModified: string;
 }
 
 export interface UseKnowledgeBaseReturn {
@@ -39,9 +36,6 @@ export interface UseKnowledgeBaseReturn {
     onUpdateUploadedFileSelection: (selectedKeys: string[]) => void;
     handleRefresh: () => void;
     setSearchText: (searchText: string) => void;
-    handleEditFile: (fileName: string, editData?: { newName: string; dataClassification: string }) => void;
-    handleDeleteSingleFile: (fileName: string) => Promise<void>;
-    handleDownloadFile: (fileName: string) => void;
 
     // Utils
     formatFileSize: (bytes: number) => string;
@@ -111,9 +105,6 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
                 const fileNames = Array.isArray(response.content?.files) ? response.content.files : [];
                 const files = fileNames.map(fileName => ({
                     name: fileName,
-                    size: 0, // Default value since API doesn't provide this yet
-                    dataClassification: 'All', // Default value
-                    lastModified: new Date().toISOString(), // Default to current date
                 }));
                 setUploadedFiles(files);
             } else {
@@ -388,90 +379,6 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
         loadUploadedFiles();
     }, [loadUploadedFiles]);
 
-    // Individual file handlers
-    const handleEditFile = useCallback(
-        (fileName: string, editData?: { newName: string; dataClassification: string }) => {
-            if (editData) {
-                // TODO: Implement actual edit functionality with API call
-                console.log('Save edit:', {
-                    originalName: fileName,
-                    newName: editData.newName,
-                    dataClassification: editData.dataClassification,
-                });
-                // TODO: Update the file in the backend
-                // TODO: Refresh the file list after successful edit
-            } else {
-                // Just logging when called without edit data (for opening dialog)
-                console.log('Edit file:', fileName);
-            }
-
-            portalContext.log({
-                action: 'editFile',
-                actionModifier: editData ? 'saved' : 'initiated',
-                resourceId,
-                logLevel: 'info',
-                data: { fileName, editData },
-            });
-        },
-        [portalContext, resourceId]
-    );
-
-    const handleDeleteSingleFile = useCallback(
-        async (fileName: string) => {
-            try {
-                setIsDeletingFiles(true);
-                const response = await agentMemoryClient.deleteDocument(fileName);
-
-                if (response.isSuccessful) {
-                    // Remove from local state immediately
-                    setUploadedFiles(prev => prev.filter(file => file.name !== fileName));
-                    scheduleRefresh(); // Also refresh from server
-                    portalContext.log({
-                        action: 'deleteSingleFile',
-                        actionModifier: 'succeeded',
-                        resourceId,
-                        logLevel: 'info',
-                        data: { fileName },
-                    });
-                } else {
-                    portalContext.log({
-                        action: 'deleteSingleFile',
-                        actionModifier: 'failed',
-                        resourceId,
-                        logLevel: 'error',
-                        data: { fileName, error: response.error },
-                    });
-                }
-            } catch (error) {
-                portalContext.log({
-                    action: 'deleteSingleFile',
-                    actionModifier: 'failed',
-                    resourceId,
-                    logLevel: 'error',
-                    data: { fileName, error: String(error) },
-                });
-            } finally {
-                setIsDeletingFiles(false);
-            }
-        },
-        [agentMemoryClient, scheduleRefresh, portalContext, resourceId]
-    );
-
-    const handleDownloadFile = useCallback(
-        (fileName: string) => {
-            // TODO: Implement download functionality
-            console.log('Download file:', fileName);
-            portalContext.log({
-                action: 'downloadFile',
-                actionModifier: 'initiated',
-                resourceId,
-                logLevel: 'info',
-                data: { fileName },
-            });
-        },
-        [portalContext, resourceId]
-    );
-
     // Columns configuration
     const columns = useMemo<TableColumnDefinition<UploadedFile>[]>(() => {
         return [
@@ -480,26 +387,6 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
                 compare: (a, b) => a.name.localeCompare(b.name),
                 renderHeaderCell: () => <span style={{ fontWeight: 500 }}>{intl.formatMessage(KnowledgeBaseResources.fileName)}</span>,
                 renderCell: fileObj => fileObj.name,
-            }),
-            createTableColumn<UploadedFile>({
-                columnId: 'size',
-                compare: (a, b) => a.size - b.size,
-                renderHeaderCell: () => <span style={{ fontWeight: 500 }}>{intl.formatMessage(KnowledgeBaseResources.fileSize)}</span>,
-                renderCell: fileObj => formatFileSize(fileObj.size),
-            }),
-            createTableColumn<UploadedFile>({
-                columnId: 'dataClassification',
-                compare: (a, b) => a.dataClassification.localeCompare(b.dataClassification),
-                renderHeaderCell: () => (
-                    <span style={{ fontWeight: 500 }}>{intl.formatMessage(KnowledgeBaseResources.fileDataClassification)}</span>
-                ),
-                renderCell: fileObj => fileObj.dataClassification,
-            }),
-            createTableColumn<UploadedFile>({
-                columnId: 'lastModified',
-                compare: (a, b) => new Date(a.lastModified).getTime() - new Date(b.lastModified).getTime(),
-                renderHeaderCell: () => <span style={{ fontWeight: 500 }}>{intl.formatMessage(KnowledgeBaseResources.lastModified)}</span>,
-                renderCell: fileObj => fileObj.lastModified,
             }),
         ];
     }, [intl, formatFileSize]);
@@ -522,12 +409,6 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
         switch (columnId) {
             case 'name':
                 return { width: '250px', minWidth: '250px' };
-            case 'size':
-                return { width: '150px', minWidth: '150px' };
-            case 'dataClassification':
-                return { width: '150px', minWidth: '150px' };
-            case 'lastModified':
-                return { width: '200px', minWidth: '200px' };
             default:
                 return { width: 'auto' };
         }
@@ -581,9 +462,6 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
         onUpdateUploadedFileSelection,
         handleRefresh,
         setSearchText,
-        handleEditFile,
-        handleDeleteSingleFile,
-        handleDownloadFile,
 
         // Utils
         formatFileSize,

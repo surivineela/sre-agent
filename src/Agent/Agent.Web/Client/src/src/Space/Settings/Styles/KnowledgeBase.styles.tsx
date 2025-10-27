@@ -8,11 +8,14 @@ export const useKnowledgeBaseStyles = makeStyles({
         width: '100%',
     },
     header: {
-        fontSize: '18px',
+        fontSize: '20px',
         fontWeight: 600,
     },
     description: {
         marginBottom: '16px',
+        maxWidth: '580px',
+        wordWrap: 'break-word',
+        overflowWrap: 'break-word',
     },
     buttonsContainer: {
         marginBottom: '16px',
@@ -143,27 +146,8 @@ export const useKnowledgeBaseStyles = makeStyles({
         justifyContent: 'flex-end',
         gap: '8px',
     },
-    nameCell: {
-        width: '200px',
-        minWidth: '200px',
-    },
-    nameCellContent: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingRight: '12px',
-    },
     fileTableHeaderCell35: {
         width: '35%',
-    },
-    fileTableHeaderCell25: {
-        width: '25%',
-    },
-    fileTableHeaderCell30: {
-        width: '30%',
-    },
-    fileTableHeaderCell10: {
-        width: '10%',
     },
     fileTableScrollContainer: {
         maxHeight: '250px',
@@ -174,41 +158,13 @@ export const useKnowledgeBaseStyles = makeStyles({
         alignItems: 'center',
         gap: '8px',
     },
+    actionCell: {
+        textAlign: 'right',
+        paddingRight: '30px',
+    },
     fileIcon: {
         fontSize: '16px',
         color: tokens.colorNeutralForeground2,
-    },
-    classificationDropdown: {
-        minWidth: '180px',
-    },
-    editDialogSurface: {
-        padding: '0px',
-        width: '550px',
-    },
-    editDialogTitle: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-    },
-    editDialogTitleContent: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-    },
-    editDialogSubtitle: {
-        fontSize: '14px',
-        fontWeight: 'normal',
-        color: tokens.colorNeutralForeground2,
-    },
-    editDialogContent: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '32px',
-        paddingTop: '32px',
-        paddingBottom: '32px',
-    },
-    editDialogField: {
-        width: '100%',
     },
     uploadInfoContainer: {
         display: 'flex',
@@ -220,9 +176,8 @@ export const useKnowledgeBaseStyles = makeStyles({
         fontSize: '12px',
         color: tokens.colorNeutralForeground2,
     },
-    browseLinkText: {
+    linkText: {
         color: tokens.colorBrandForeground1,
-        textDecoration: 'underline',
         cursor: 'pointer',
     },
     folderIcon: {
@@ -230,29 +185,9 @@ export const useKnowledgeBaseStyles = makeStyles({
         width: '50px',
     },
     checkboxCell: {
-        width: '20px',
-        minWidth: '20px',
-    },
-    sizeCell: {
-        width: '150px',
-        minWidth: '150px',
-    },
-    classificationCell: {
-        width: '150px',
-        minWidth: '150px',
-    },
-    dateCell: {
-        width: '200px',
-        minWidth: '200px',
-    },
-    menuContainer: {
-        marginRight: '20px',
-    },
-    dismissButton: {
-        minWidth: 'auto',
-    },
-    editDialogButton: {
-        minWidth: '40px',
+        width: '5px',
+        minWidth: '5px',
+        maxWidth: '5px',
     },
     dialogSurfaceOrg: {
         maxWidth: '800px',

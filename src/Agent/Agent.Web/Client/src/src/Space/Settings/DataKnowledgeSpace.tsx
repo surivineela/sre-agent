@@ -6,7 +6,6 @@ import { useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { KnowledgeBaseResources, SettingsTabResources } from '../../Strings/SREAgentResources';
 import DataConnectors from './DataKnowledgeSpaceComponents.tsx/DataConnectors.ReactView';
-import KnowledgeBase from './DataKnowledgeSpaceComponents.tsx/KnowledgeBase.ReactView';
 import { useDataKnowledgeSpaceStyles } from './Styles/DataKnowledgeSpace.styles';
 
 const getTabListStyle = (theme: Theme) => {
@@ -16,7 +15,6 @@ const getTabListStyle = (theme: Theme) => {
 };
 
 enum TabValues {
-    KnowledgeBase = 'knowledgebase',
     DataConnectors = 'dataconnectors',
 }
 
@@ -25,7 +23,7 @@ const DataKnowledgeSpace: FC = () => {
     const theme = useContext(ThemeContext);
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
 
-    const [selectedTab, setSelectedTab] = useState<TabValues>(TabValues.KnowledgeBase);
+    const [selectedTab, setSelectedTab] = useState<TabValues>(TabValues.DataConnectors);
 
     const styles = useDataKnowledgeSpaceStyles();
 
@@ -53,18 +51,12 @@ const DataKnowledgeSpace: FC = () => {
             </div>
             <div className={styles.tabsContainer}>
                 <TabList selectedValue={selectedTab} onTabSelect={onTabSelect} style={getTabListStyle(theme as Theme)}>
-                    <Tab id="KnowledgeBase" value={TabValues.KnowledgeBase}>
-                        {intl.formatMessage(SettingsTabResources.fileSource)}
-                    </Tab>
                     <Tab id="DataConnectors" value={TabValues.DataConnectors}>
                         {intl.formatMessage(SettingsTabResources.dataSource)}
                     </Tab>
                 </TabList>
             </div>
-            <div className={styles.containerDivider}>
-                {selectedTab === TabValues.DataConnectors && <DataConnectors />}
-                {selectedTab === TabValues.KnowledgeBase && <KnowledgeBase />}
-            </div>
+            <div className={styles.containerDivider}>{selectedTab === TabValues.DataConnectors && <DataConnectors />}</div>
         </div>
     );
 };

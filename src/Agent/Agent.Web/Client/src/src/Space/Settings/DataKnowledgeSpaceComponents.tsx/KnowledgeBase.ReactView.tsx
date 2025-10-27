@@ -7,16 +7,7 @@ import {
     DialogContent,
     DialogSurface,
     DialogTitle,
-    Dropdown,
-    Input,
     InputOnChangeData,
-    Label,
-    Menu,
-    MenuItem,
-    MenuList,
-    MenuPopover,
-    MenuTrigger,
-    Option,
     SearchBox,
     SearchBoxChangeEvent,
     Table,
@@ -29,18 +20,7 @@ import {
     Toolbar,
     ToolbarButton,
 } from '@fluentui/react-components';
-import {
-    Add16Regular,
-    ArrowClockwise16Regular,
-    ArrowDownload16Regular,
-    Delete16Regular,
-    Delete20Regular,
-    Dismiss20Regular,
-    DocumentText16Regular,
-    DocumentText32Regular,
-    Edit16Regular,
-    MoreHorizontal20Regular,
-} from '@fluentui/react-icons';
+import { Add16Regular, ArrowClockwise16Regular, Delete16Regular, Delete20Regular, DocumentText16Regular } from '@fluentui/react-icons';
 import { debounce } from 'lodash';
 import { FC, useContext, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -54,29 +34,14 @@ import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 import { EmptyState } from './EmptyState';
 
 const ACCEPTED_FILE_TYPES = '.md,.txt';
-const DATA_CLASSIFICATION_OPTIONS = ['logs', 'source', 'documentation'] as const;
-
-const renderDataClassificationOptions = (intl: any) =>
-    DATA_CLASSIFICATION_OPTIONS.map(option => (
-        <Option key={option} value={intl.formatMessage(KnowledgeBaseResources[option])}>
-            {intl.formatMessage(KnowledgeBaseResources[option])}
-        </Option>
-    ));
 
 const KnowledgeBase: FC = () => {
     const intl = useIntl();
     const portalContext = useContext(AzPortalContext);
     const { resourceId } = useContext(EnvironmentContext);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-    const [fileClassifications, setFileClassifications] = useState<{ [key: number]: string }>({});
-    const [lastIndexedTime, setLastIndexedTime] = useState<string>('');
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [fileToDelete, setFileToDelete] = useState<string | null>(null);
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-    const [fileToEdit, setFileToEdit] = useState<{ name: string; size: number; dataClassification: string } | null>(null);
-    const [editFileName, setEditFileName] = useState('');
-    const [editDataClassification, setEditDataClassification] = useState(intl.formatMessage(KnowledgeBaseResources.documentation));
-
     const styles = useKnowledgeBaseStyles();
 
     const {
@@ -103,35 +68,12 @@ const KnowledgeBase: FC = () => {
         onUpdateUploadedFileSelection,
         handleRefresh,
         setSearchText,
-        formatFileSize,
         fileInputRef,
-        handleEditFile,
-        handleDownloadFile,
-        handleDeleteSingleFile,
     } = useKnowledgeBase(portalContext, resourceId);
 
     const handleUploadAndClose = async () => {
         await handleUploadFiles();
         setIsUploadModalOpen(false);
-    };
-
-    const handleClassificationChange = (fileIndex: number, selectedOptions: string[]) => {
-        setFileClassifications(prev => ({
-            ...prev,
-            [fileIndex]: selectedOptions[0] || intl.formatMessage(KnowledgeBaseResources.documentation),
-        }));
-    };
-
-    const handleRefreshWithTime = () => {
-        // Update the last indexed time
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-        });
-        setLastIndexedTime(timeString);
-        handleRefresh();
     };
 
     const isDeleteDisabled = selectedUploadedFileKeys.length === 0 || isDeletingFiles;
@@ -161,11 +103,7 @@ const KnowledgeBase: FC = () => {
     };
 
     const handleDeleteConfirmation = async () => {
-        if (fileToDelete) {
-            await handleDeleteSingleFile(fileToDelete);
-        } else {
-            await handleBulkDeleteFiles();
-        }
+        await handleBulkDeleteFiles();
         setIsDeleteConfirmOpen(false);
         setFileToDelete(null);
     };
@@ -175,65 +113,22 @@ const KnowledgeBase: FC = () => {
         setFileToDelete(null);
     };
 
-    const handleSingleFileDelete = (fileName: string) => {
-        setFileToDelete(fileName);
-        setIsDeleteConfirmOpen(true);
-    };
-
     const handleBulkDeleteStart = () => {
         setFileToDelete(null);
         setIsDeleteConfirmOpen(true);
-    };
-
-    const handleOpenEditDialog = (fileName: string) => {
-        const file = uploadedFiles.find(f => f.name === fileName);
-        if (file) {
-            setFileToEdit(file);
-            const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, '');
-            setEditFileName(nameWithoutExtension);
-            setEditDataClassification(file.dataClassification);
-            setIsEditDialogOpen(true);
-        }
-    };
-
-    const handleSaveEdit = async () => {
-        if (fileToEdit) {
-            await handleEditFile(fileToEdit.name, {
-                newName: editFileName,
-                dataClassification: editDataClassification,
-            });
-        }
-        setIsEditDialogOpen(false);
-        setFileToEdit(null);
-        setEditFileName('');
-        setEditDataClassification(intl.formatMessage(KnowledgeBaseResources.documentation));
-    };
-
-    const handleCancelEdit = () => {
-        setIsEditDialogOpen(false);
-        setFileToEdit(null);
-        setEditFileName('');
-        setEditDataClassification(intl.formatMessage(KnowledgeBaseResources.documentation));
     };
 
     useEffect(() => {
         setSelectedRowsSet(new Set(selectedUploadedFileKeys));
     }, [selectedUploadedFileKeys]);
 
-    useEffect(() => {
-        if (!isLoadingFiles && uploadedFiles.length > 0 && !lastIndexedTime) {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true,
-            });
-            setLastIndexedTime(timeString);
-        }
-    }, [isLoadingFiles, uploadedFiles.length, lastIndexedTime]);
-
     return (
         <div className={styles.container}>
+            <div className={styles.header}>{intl.formatMessage(KnowledgeBaseResources.fileUploadTitle)}</div>
+            <Text className={styles.description}>
+                {intl.formatMessage(KnowledgeBaseResources.fileUploadDescription)}{' '}
+                <span className={styles.linkText}>{intl.formatMessage(KnowledgeBaseResources.fileUploadLinkDescription)}</span>
+            </Text>
             <div className={styles.buttonsContainer}>
                 <Toolbar>
                     <ToolbarButton
@@ -266,11 +161,9 @@ const KnowledgeBase: FC = () => {
                         className={styles.toolbarRefresh}
                         appearance="subtle"
                         disabled={isLoadingFiles || isUploading}
-                        onClick={handleRefreshWithTime}
+                        onClick={handleRefresh}
                     >
-                        {lastIndexedTime
-                            ? intl.formatMessage(KnowledgeBaseResources.lastIndexed, { time: lastIndexedTime })
-                            : intl.formatMessage(KnowledgeBaseResources.refresh)}
+                        {intl.formatMessage(KnowledgeBaseResources.refresh)}
                     </ToolbarButton>
                 </Toolbar>
             </div>
@@ -313,57 +206,7 @@ const KnowledgeBase: FC = () => {
                                         onChange={(_e, data) => handleRowSelect(item.name, data.checked === true)}
                                     />
                                 </TableCell>
-                                <TableCell className={styles.nameCell}>
-                                    <div className={styles.nameCellContent}>
-                                        <span>{item.name}</span>
-                                        <div className={styles.menuContainer}>
-                                            <Menu>
-                                                <MenuTrigger disableButtonEnhancement>
-                                                    <Button
-                                                        appearance="transparent"
-                                                        size="small"
-                                                        icon={<MoreHorizontal20Regular />}
-                                                        onClick={e => e.stopPropagation()}
-                                                    />
-                                                </MenuTrigger>
-                                                <MenuPopover>
-                                                    <MenuList>
-                                                        <MenuItem
-                                                            icon={<Edit16Regular />}
-                                                            onClick={e => {
-                                                                e.stopPropagation();
-                                                                handleOpenEditDialog(item.name);
-                                                            }}
-                                                        >
-                                                            {intl.formatMessage(KnowledgeBaseResources.edit)}
-                                                        </MenuItem>
-                                                        <MenuItem
-                                                            icon={<Delete16Regular />}
-                                                            onClick={e => {
-                                                                e.stopPropagation();
-                                                                handleSingleFileDelete(item.name);
-                                                            }}
-                                                        >
-                                                            {intl.formatMessage(SreAgentResources.delete)}
-                                                        </MenuItem>
-                                                        <MenuItem
-                                                            icon={<ArrowDownload16Regular />}
-                                                            onClick={e => {
-                                                                e.stopPropagation();
-                                                                handleDownloadFile(item.name);
-                                                            }}
-                                                        >
-                                                            {intl.formatMessage(KnowledgeBaseResources.download)}
-                                                        </MenuItem>
-                                                    </MenuList>
-                                                </MenuPopover>
-                                            </Menu>
-                                        </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell className={styles.sizeCell}>{formatFileSize(item.size)}</TableCell>
-                                <TableCell className={styles.classificationCell}>{item.dataClassification}</TableCell>
-                                <TableCell className={styles.dateCell}>{item.lastModified}</TableCell>
+                                <TableCell>{item.name}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -399,7 +242,7 @@ const KnowledgeBase: FC = () => {
                                     />
                                     <Text>
                                         {intl.formatMessage(KnowledgeBaseResources.dragFilesHere)}{' '}
-                                        <span onClick={handleButtonClick} className={styles.browseLinkText}>
+                                        <span onClick={handleButtonClick} className={styles.linkText}>
                                             {intl.formatMessage(KnowledgeBaseResources.browseForFiles)}
                                         </span>
                                     </Text>
@@ -423,13 +266,6 @@ const KnowledgeBase: FC = () => {
                                                     <TableHeaderCell className={styles.fileTableHeaderCell35}>
                                                         {intl.formatMessage(KnowledgeBaseResources.fileName)}
                                                     </TableHeaderCell>
-                                                    <TableHeaderCell className={styles.fileTableHeaderCell25}>
-                                                        {intl.formatMessage(KnowledgeBaseResources.fileSize)}
-                                                    </TableHeaderCell>
-                                                    <TableHeaderCell className={styles.fileTableHeaderCell30}>
-                                                        {intl.formatMessage(KnowledgeBaseResources.fileDataClassification)}
-                                                    </TableHeaderCell>
-                                                    <TableHeaderCell className={styles.fileTableHeaderCell10}></TableHeaderCell>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -441,32 +277,7 @@ const KnowledgeBase: FC = () => {
                                                                 <Text>{file.name}</Text>
                                                             </div>
                                                         </TableCell>
-                                                        <TableCell>
-                                                            <Text>{formatFileSize(file.size)}</Text>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Dropdown
-                                                                aria-labelledby="data-classification-label"
-                                                                placeholder={intl.formatMessage(
-                                                                    KnowledgeBaseResources.selectClassification
-                                                                )}
-                                                                value={
-                                                                    fileClassifications[index] ||
-                                                                    intl.formatMessage(KnowledgeBaseResources.documentation)
-                                                                }
-                                                                selectedOptions={[
-                                                                    fileClassifications[index] ||
-                                                                        intl.formatMessage(KnowledgeBaseResources.documentation),
-                                                                ]}
-                                                                onOptionSelect={(_, data) =>
-                                                                    handleClassificationChange(index, data.selectedOptions)
-                                                                }
-                                                                className={styles.classificationDropdown}
-                                                            >
-                                                                {renderDataClassificationOptions(intl)}
-                                                            </Dropdown>
-                                                        </TableCell>
-                                                        <TableCell>
+                                                        <TableCell className={styles.actionCell}>
                                                             <Button
                                                                 appearance="subtle"
                                                                 icon={<Delete20Regular />}
@@ -500,73 +311,6 @@ const KnowledgeBase: FC = () => {
                             {isUploading
                                 ? intl.formatMessage(KnowledgeBaseResources.uploading)
                                 : intl.formatMessage(KnowledgeBaseResources.uploadFiles)}
-                        </Button>
-                    </DialogActions>
-                </DialogSurface>
-            </Dialog>
-
-            <Dialog open={isEditDialogOpen} onOpenChange={(_, data) => setIsEditDialogOpen(data.open)}>
-                <DialogSurface className={styles.editDialogSurface}>
-                    <DialogBody className={styles.dialogBody}>
-                        <DialogTitle className={styles.editDialogTitle}>
-                            <div className={styles.editDialogTitleContent}>
-                                <DocumentText32Regular />
-                                <div>
-                                    <div>{intl.formatMessage(KnowledgeBaseResources.editFile)}</div>
-                                    {fileToEdit && (
-                                        <Text className={styles.editDialogSubtitle}>
-                                            {fileToEdit.name} • {formatFileSize(fileToEdit.size)}
-                                        </Text>
-                                    )}
-                                </div>
-                            </div>
-                            <Button
-                                appearance="transparent"
-                                icon={<Dismiss20Regular />}
-                                onClick={handleCancelEdit}
-                                size="small"
-                                className={styles.dismissButton}
-                            />
-                        </DialogTitle>
-                        <DialogContent className={styles.editDialogContent}>
-                            <div>
-                                <Label htmlFor="fileName">{intl.formatMessage(KnowledgeBaseResources.fileName)}</Label>
-                                <Input
-                                    id="fileName"
-                                    value={editFileName}
-                                    onChange={(_, data) => setEditFileName(data.value)}
-                                    className={styles.editDialogField}
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="dataClassification">
-                                    {intl.formatMessage(KnowledgeBaseResources.fileDataClassification)}
-                                </Label>
-                                <Dropdown
-                                    id="dataClassification"
-                                    aria-labelledby="data-classification-label"
-                                    placeholder={intl.formatMessage(KnowledgeBaseResources.selectClassification)}
-                                    value={editDataClassification}
-                                    selectedOptions={[editDataClassification]}
-                                    onOptionSelect={(_, data) => setEditDataClassification(data.selectedOptions[0] || 'documentation')}
-                                    className={styles.editDialogField}
-                                >
-                                    {renderDataClassificationOptions(intl)}
-                                </Dropdown>
-                            </div>
-                        </DialogContent>
-                    </DialogBody>
-                    <DialogActions className={styles.dialogFooter}>
-                        <Button
-                            appearance="primary"
-                            onClick={handleSaveEdit}
-                            disabled={!editFileName.trim()}
-                            className={styles.editDialogButton}
-                        >
-                            {intl.formatMessage(SreAgentResources.save)}
-                        </Button>
-                        <Button appearance="secondary" onClick={handleCancelEdit} className={styles.editDialogButton}>
-                            {intl.formatMessage(SreAgentResources.cancel)}
                         </Button>
                     </DialogActions>
                 </DialogSurface>
