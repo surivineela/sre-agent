@@ -1,0 +1,92 @@
+import { IPublicClientApplication } from '@azure/msal-browser';
+import { getCloudEndpoints } from '../Auth/cloudConfig';
+import { TelemetrySource } from '../Constants/Telemetry';
+import { Response } from '../Contracts/Response';
+import { LogLevel } from '../Contracts/Telemetry';
+import { logTelemetryEvent } from '../Hooks/useTelemetry';
+import { Client } from './Client';
+
+export class GraphClient extends Client {
+    private static _instance: GraphClient | null = null;
+
+    private constructor(instance: IPublicClientApplication, telemetrySource: TelemetrySource) {
+        super(instance, telemetrySource);
+    }
+
+    public static getInstance(instance: IPublicClientApplication, telemetrySource: TelemetrySource): GraphClient {
+        if (!GraphClient._instance) {
+            GraphClient._instance = new GraphClient(instance, telemetrySource);
+        }
+        return GraphClient._instance;
+    }
+
+    /**
+     * Fetches the user's profile photo from Microsoft Graph.
+     * Returns a blob URL that can be used in an img src, or undefined if no photo is set.
+     * MSAL automatically handles token caching and refreshing.
+     */
+    public async getProfilePhoto(): Promise<Response<string | undefined>> {
+        const tokenResponse = await this.getAccessToken('graph');
+
+        if (!tokenResponse.isSuccessful) {
+            return {
+                isSuccessful: false,
+                error: tokenResponse.error,
+            };
+        }
+
+        try {
+            const endpoints = getCloudEndpoints();
+            const photoResponse = await fetch(`${endpoints.graph}/v1.0/me/photos/96x96/$value`, {
+                headers: {
+                    Authorization: `Bearer ${tokenResponse.content}`,
+                },
+            });
+
+            if (photoResponse.ok) {
+                const blob = await photoResponse.blob();
+                const url = URL.createObjectURL(blob);
+                return {
+                    isSuccessful: true,
+                    content: url,
+                };
+            } else if (photoResponse.status === 404) {
+                // User doesn't have a profile photo set
+                return {
+                    isSuccessful: true,
+                    content: undefined,
+                };
+            } else {
+                const error = new Error(`Failed to fetch profile photo: ${photoResponse.status}`);
+                logTelemetryEvent({
+                    action: 'fetch-profile-photo',
+                    actionModifier: 'failed',
+                    logLevel: LogLevel.Error,
+                    telemetrySource: this.telemetrySource,
+                    additionalData: {
+                        status: photoResponse.status,
+                        statusText: photoResponse.statusText,
+                    },
+                });
+                return {
+                    isSuccessful: false,
+                    error,
+                };
+            }
+        } catch (error) {
+            logTelemetryEvent({
+                action: 'fetch-profile-photo',
+                actionModifier: 'error',
+                logLevel: LogLevel.Error,
+                telemetrySource: this.telemetrySource,
+                additionalData: {
+                    error: error instanceof Error ? error.message : String(error),
+                },
+            });
+            return {
+                isSuccessful: false,
+                error,
+            };
+        }
+    }
+}

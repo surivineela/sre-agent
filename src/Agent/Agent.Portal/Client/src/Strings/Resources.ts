@@ -6,6 +6,7 @@ export const PortalResources = defineMessages({
         id: 'He4/qi',
     },
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
+    agents: { defaultMessage: 'Agents', id: 'GBnvl1' },
     signOut: { defaultMessage: 'Sign out', id: 'xXbJso' },
     signInWithDifferentAccount: { defaultMessage: 'Sign in with a different account', id: 'oHGFwy' },
     signIn: { defaultMessage: 'Sign in', id: 'SQJto2' },
@@ -65,4 +66,8 @@ export const PortalResources = defineMessages({
         id: '8OCpdQ',
     },
     requestError: { defaultMessage: 'Request error', id: 'UQUIP7' },
+    name: { defaultMessage: 'Name', id: 'HAlOn1' },
+    subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
+    resourceGroup: { defaultMessage: 'Resource group', id: '+uAdUZ' },
+    region: { defaultMessage: 'Region', id: 'lnaWo/' },
 });

@@ -1,9 +1,19 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { TelemetrySource } from '../../Common/Constants/Telemetry';
+import { useTelemetry } from '../../Common/Hooks/useTelemetry';
 
 export const useAgentView = (resourceId: string, sreLink?: string) => {
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const { logEvent } = useTelemetry(TelemetrySource.AgentIFrameView, resourceId);
 
-    console.log('useAgentView called with', resourceId, sreLink);
+    console.log(sreLink);
+
+    useEffect(() => {
+        logEvent({
+            action: 'agent-view-initialized',
+            actionModifier: 'success',
+        });
+    }, [logEvent]);
 
     return {
         agentUxUrl: 'https://eastus2-agent-1--d7e3ef0a.60d80d9b.eastus2.azuresre.ai/static/',

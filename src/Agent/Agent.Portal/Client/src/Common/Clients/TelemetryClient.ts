@@ -1,8 +1,8 @@
-export class TelemetryClient {
-    private _endpoint: string;
+import { TelemetryEvent } from '../Contracts/Telemetry';
 
-    constructor(endpoint: string) {
-        this._endpoint = endpoint;
-        console.log(this._endpoint);
+export class TelemetryClient {
+    public static logEvent(event: TelemetryEvent): void {
+        // TODO: Hook up to telemetry/ILogger API
+        console.log(event);
     }
 }

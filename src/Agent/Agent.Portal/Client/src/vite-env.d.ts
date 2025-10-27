@@ -1,1 +1,10 @@
 /// <reference types="vite/client" />
+
+interface ImportMetaEnv {
+    readonly VITE_MSAL_CLIENT_ID: string;
+    readonly SRE_AGENT_PORTAL_VERSION?: string;
+}
+
+interface ImportMeta {
+    readonly env: ImportMetaEnv;
+}

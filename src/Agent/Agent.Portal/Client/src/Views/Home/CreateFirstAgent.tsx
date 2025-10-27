@@ -1,4 +1,4 @@
-import { Button } from '@fluentui/react-components';
+import { Button, Card, Image, Text } from '@fluentui/react-components';
 import { Add16Regular, Library16Regular } from '@fluentui/react-icons';
 import { useIntl } from 'react-intl';
 import { PortalResources } from '../../Strings/Resources';
@@ -7,19 +7,19 @@ export const CreateFirstAgent = () => {
     const intl = useIntl();
 
     return (
-        <div>
-            <div>Illustration</div>
+        <Card style={{ width: 1000, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 32 }}>
+            <Image src="./SreAgent.svg" width={192} height={192} alt={intl.formatMessage(PortalResources.azureSreAgent)} />
 
-            <div>{intl.formatMessage(PortalResources.createYourFirstAgent)}</div>
+            <Text weight="semibold">{intl.formatMessage(PortalResources.createYourFirstAgent)}</Text>
 
-            <div>{intl.formatMessage(PortalResources.createYourFirstAgentSubtext)}</div>
+            <Text>{intl.formatMessage(PortalResources.createYourFirstAgentSubtext)}</Text>
 
-            <div>
+            <div style={{ display: 'flex', gap: 8 }}>
                 <Button appearance="primary" icon={<Add16Regular />}>
                     {intl.formatMessage(PortalResources.createAgent)}
                 </Button>
                 <Button icon={<Library16Regular />}>{intl.formatMessage(PortalResources.viewPopularSkills)}</Button>
             </div>
-        </div>
+        </Card>
     );
 };

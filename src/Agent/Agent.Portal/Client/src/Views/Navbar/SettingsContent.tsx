@@ -1,11 +1,29 @@
-import { Combobox, Label, Link, makeStyles, Option, tokens } from '@fluentui/react-components';
+import {
+    Button,
+    Combobox,
+    Label,
+    Link,
+    makeStyles,
+    Option,
+    Popover,
+    PopoverSurface,
+    PopoverTrigger,
+    tokens,
+    Tooltip,
+} from '@fluentui/react-components';
+import { Settings32Regular } from '@fluentui/react-icons';
 import { useIntl } from 'react-intl';
 import { ImageRadioGroup, ImageRadioOption } from '../../Common/Components/ImageRadioGroup';
 import { LearnMoreLinks } from '../../Common/Constants/Links';
+import { useAuth } from '../../Common/Contexts/AuthContext';
 import { useUserPreferences } from '../../Common/Contexts/UserPreferencesContext';
 import { PortalResources } from '../../Strings/Resources';
 
 const useStyles = makeStyles({
+    popoverSurface: {
+        minWidth: '320px',
+        padding: tokens.spacingVerticalL,
+    },
     section: {
         display: 'flex',
         flexDirection: 'column',
@@ -49,6 +67,7 @@ interface LanguageOption {
 export const SettingsContent = () => {
     const intl = useIntl();
     const styles = useStyles();
+    const { isAuthenticated } = useAuth();
     const { theme, locale, setTheme, setLocale } = useUserPreferences();
 
     const languageOptions: LanguageOption[] = [
@@ -110,46 +129,71 @@ export const SettingsContent = () => {
     ];
 
     return (
-        <div>
-            <div className={styles.section}>
-                <Label className={styles.sectionTitle}>{intl.formatMessage(PortalResources.themes)}</Label>
-                <ImageRadioGroup
-                    options={themeOptions}
-                    value={theme}
-                    onChange={setTheme}
-                    ariaLabel={intl.formatMessage(PortalResources.themes)}
-                />
-            </div>
+        <Popover>
+            <PopoverTrigger>
+                <Tooltip content={intl.formatMessage(PortalResources.settings)} relationship="label">
+                    <Button
+                        icon={<Settings32Regular />}
+                        appearance="subtle"
+                        disabled={!isAuthenticated}
+                        aria-label={intl.formatMessage(PortalResources.settings)}
+                    />
+                </Tooltip>
+            </PopoverTrigger>
 
-            <div className={styles.section}>
-                <Label className={styles.sectionTitle}>{intl.formatMessage(PortalResources.language)}</Label>
-                <Combobox
-                    className={styles.combobox}
-                    value={getSelectedLanguage()}
-                    onOptionSelect={(_, data) => data.optionText && handleLanguageChange(data.optionText)}
-                    aria-label={intl.formatMessage(PortalResources.language)}
-                >
-                    {languageOptions.map(option => (
-                        <Option key={option.value} text={option.label}>
-                            {option.label}
-                        </Option>
-                    ))}
-                </Combobox>
-            </div>
+            <PopoverSurface className={styles.popoverSurface}>
+                <div>
+                    <div className={styles.section}>
+                        <Label className={styles.sectionTitle}>{intl.formatMessage(PortalResources.themes)}</Label>
+                        <ImageRadioGroup
+                            options={themeOptions}
+                            value={theme}
+                            onChange={setTheme}
+                            ariaLabel={intl.formatMessage(PortalResources.themes)}
+                        />
+                    </div>
 
-            <div className={styles.footer}>
-                <div className={styles.footerLinks}>
-                    <Link className={styles.footerLink} href={LearnMoreLinks.privacyAndCookies} target="_blank" rel="noopener noreferrer">
-                        {intl.formatMessage(PortalResources.privacyAndCookies)}
-                    </Link>
-                    <Link className={styles.footerLink} href={LearnMoreLinks.termsAndConditions} target="_blank" rel="noopener noreferrer">
-                        {intl.formatMessage(PortalResources.termsAndConditions)}
-                    </Link>
-                    <Link className={styles.footerLink} href={LearnMoreLinks.trademarks} target="_blank" rel="noopener noreferrer">
-                        {intl.formatMessage(PortalResources.trademarks)}
-                    </Link>
+                    <div className={styles.section}>
+                        <Label className={styles.sectionTitle}>{intl.formatMessage(PortalResources.language)}</Label>
+                        <Combobox
+                            className={styles.combobox}
+                            value={getSelectedLanguage()}
+                            onOptionSelect={(_, data) => data.optionText && handleLanguageChange(data.optionText)}
+                            aria-label={intl.formatMessage(PortalResources.language)}
+                        >
+                            {languageOptions.map(option => (
+                                <Option key={option.value} text={option.label}>
+                                    {option.label}
+                                </Option>
+                            ))}
+                        </Combobox>
+                    </div>
+
+                    <div className={styles.footer}>
+                        <div className={styles.footerLinks}>
+                            <Link
+                                className={styles.footerLink}
+                                href={LearnMoreLinks.privacyAndCookies}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {intl.formatMessage(PortalResources.privacyAndCookies)}
+                            </Link>
+                            <Link
+                                className={styles.footerLink}
+                                href={LearnMoreLinks.termsAndConditions}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {intl.formatMessage(PortalResources.termsAndConditions)}
+                            </Link>
+                            <Link className={styles.footerLink} href={LearnMoreLinks.trademarks} target="_blank" rel="noopener noreferrer">
+                                {intl.formatMessage(PortalResources.trademarks)}
+                            </Link>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </PopoverSurface>
+        </Popover>
     );
 };

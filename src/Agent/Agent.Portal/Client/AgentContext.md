@@ -25,6 +25,21 @@
 - This portal is served as **static HTML/JS** with no server-side rendering (SSR).
 - All hooks and utilities assume `window` is always available at runtime (although are likely wrapped in try/catch blocks)
 
+### Telemetry
+
+- **`useTelemetry(source, resourceId?)`** – Hook for logging events with automatic sanitization and console output.
+- **`logTelemetryEvent(event)`** – Non-hook version for use outside React components (classes, utilities).
+- Use telemetry **instead of `console.log`/`console.error`** for all application logging, API requests, and error tracking.
+- Telemetry sources are defined in `TelemetrySource` enum; add new sources as needed for major features/areas.
+- **Pass telemetry source from caller context** - hooks accept `telemetrySource` parameter representing where they're used (e.g., `HomeBrowseView`), not what they are. This enables feature-level visibility.
+
+### API Clients
+
+- **Client classes** (`SreAgentClient`, `GraphClient`) handle API requests with MSAL token acquisition.
+- Clients accept MSAL `instance` and `account` in constructor; use singleton pattern via `getInstance()`.
+- MSAL's `acquireTokenSilent()` **automatically handles token caching and refresh** - no manual token management needed for regular API calls.
+- For iframe scenarios requiring proactive token pushing, use `useAuthTokenManager` hook instead.
+
 ### No Barrel Exports
 
 - **Do not create `index.ts` barrel files** for re-exporting hooks, components, or utilities.
@@ -39,6 +54,9 @@
 
 - Redirect-based Entra ID auth wired with `@azure/msal-browser` + `@azure/msal-react`; configuration lives in `src/Common/Auth/msalConfig.ts`.
 - `AuthContext` now proxies MSAL state (`status`, `user`, `signIn`, `signOut`), enabling the navbar persona to trigger sign-in/out flows.
+- **API clients** use MSAL's `acquireTokenSilent` for automatic token management (caching, refresh).
+- **Iframe token manager** (`useAuthTokenManager`) handles proactive token refresh for iframe communication scenarios.
+- **Full documentation**: See `docs/Authentication.md` for usage patterns and examples.
 
 ## User Preferences
 
@@ -52,7 +70,7 @@
 - **`NotificationContext`** – Global notification system with support for in-progress, success, error, warning, and info states.
 - **`useNotifications()`** – Hook providing explicit API (`start/succeed/fail`), one-off notifications (`info/warning/error`), Promise tracking, and polling support.
 - **UI Components** – Navbar bell icon with badge/spinner, slide-out drawer with history, and auto-dismissing toasts at top-right.
-- **Full documentation**: See `docs/NOTIFICATIONS.md` for usage patterns and examples.
+- **Full documentation**: See `docs/Notifications.md` for usage patterns and examples.
 
 ## Related Artifacts
 

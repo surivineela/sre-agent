@@ -14,6 +14,10 @@ dist-ssr
 .eslintcache
 junit-report.xml
 
+# Environment files (only ignore *.local since main ones contain public keys)
+.env.local
+.env.*.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

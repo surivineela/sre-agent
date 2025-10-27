@@ -1,44 +1,47 @@
-import { Button, Divider, Persona } from '@fluentui/react-components';
+import { Button, Divider, Persona, Popover, PopoverSurface, PopoverTrigger } from '@fluentui/react-components';
 import { useIntl } from 'react-intl';
+import { TelemetrySource } from '../../Common/Constants/Telemetry';
 import { useAuth } from '../../Common/Contexts/AuthContext';
+import { useProfilePhoto } from '../../Common/Hooks/useProfilePhoto';
 import { PortalResources } from '../../Strings/Resources';
 
 export const UserAuthContent = () => {
     const intl = useIntl();
-    const { signIn, signOut, status, user } = useAuth();
-
-    const isAuthenticated = status === 'authenticated';
-    const isPending = status === 'pending';
-    const personaName = user?.name;
-    const personaSecondaryText = user?.username;
+    const { signIn, signOut, isAuthenticated, user } = useAuth();
+    const { photoUrl } = useProfilePhoto(TelemetrySource.PortalLayout);
 
     const handleSignInDifferentAccount = () => {
-        void signIn({ prompt: 'select_account' });
+        signIn({ prompt: 'select_account' });
     };
 
     return (
-        <div>
-            <Persona avatar={{ image: { src: '' } }} name={personaName} secondaryText={personaSecondaryText} />
-            <div>Directory dropdown</div>
+        <Popover>
+            <PopoverTrigger>
+                <Persona avatar={{ image: { src: photoUrl } }} />
+            </PopoverTrigger>
 
-            <Divider />
-
-            <div>
+            <PopoverSurface>
                 {isAuthenticated ? (
-                    <>
-                        <Button disabled={isPending} onClick={handleSignInDifferentAccount}>
-                            {intl.formatMessage(PortalResources.signInWithDifferentAccount)}
-                        </Button>
-                        <Button disabled={isPending} onClick={() => void signOut()}>
-                            {intl.formatMessage(PortalResources.signOut)}
-                        </Button>
-                    </>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <Persona avatar={{ image: { src: photoUrl } }} name={user?.name} secondaryText={user?.username} />
+
+                        <div>Directory dropdown: {user?.tenantId}</div>
+
+                        <Divider />
+
+                        <div style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
+                            <Button onClick={handleSignInDifferentAccount}>
+                                {intl.formatMessage(PortalResources.signInWithDifferentAccount)}
+                            </Button>
+                            <Button onClick={() => void signOut()}>{intl.formatMessage(PortalResources.signOut)}</Button>
+                        </div>
+                    </div>
                 ) : (
-                    <Button appearance="primary" disabled={isPending} onClick={() => void signIn()}>
+                    <Button appearance="primary" onClick={() => signIn()}>
                         {intl.formatMessage(PortalResources.signIn)}
                     </Button>
                 )}
-            </div>
-        </div>
+            </PopoverSurface>
+        </Popover>
     );
 };

@@ -1,4 +1,5 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo } from 'react';
+import { ReactNode, createContext, useCallback, useContext, useMemo } from 'react';
+import { TelemetrySource } from '../Constants/Telemetry';
 import { useLocalStorage } from '../Hooks/useLocalStorage';
 import { useSystemTheme } from '../Hooks/useSystemTheme';
 
@@ -44,15 +45,19 @@ interface UserPreferencesContextValue {
 
 const STORAGE_KEY = 'sre-agent-portal-preferences';
 
-const getDefaultPreferences = (): UserPreferences => ({
+const defaultPreferences: UserPreferences = {
     theme: 'system',
     locale: typeof navigator !== 'undefined' ? navigator.language || 'en' : 'en',
-});
+};
 
 const UserPreferencesContext = createContext<UserPreferencesContextValue | undefined>(undefined);
 
 export const UserPreferencesProvider = ({ children }: { children: ReactNode }) => {
-    const { value: preferences, setValue: setPreferences } = useLocalStorage<UserPreferences>(STORAGE_KEY, getDefaultPreferences());
+    const { value: preferences, setValue: setPreferences } = useLocalStorage<UserPreferences>(
+        STORAGE_KEY,
+        defaultPreferences,
+        TelemetrySource.PortalLayout
+    );
     const systemTheme = useSystemTheme();
 
     // Resolve 'system' theme to actual dark/light based on system preference
@@ -104,24 +109,38 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
         [updatePreference]
     );
 
-    const value: UserPreferencesContextValue = {
-        preferences,
-        updatePreference,
-        updatePreferences,
-        theme: preferences.theme,
-        resolvedTheme,
-        locale: preferences.locale,
-        tenantId: preferences.tenantId,
-        selectedSubscriptions: preferences.selectedSubscriptions,
-        selectedResourceGroups: preferences.selectedResourceGroups,
-        lastAccessedAgentRscId: preferences.lastAccessedAgentRscId,
-        setTheme,
-        setLocale,
-        setTenantId,
-        setSelectedSubscriptions,
-        setSelectedResourceGroups,
-        setLastAccessedAgentRscId,
-    };
+    const value = useMemo<UserPreferencesContextValue>(
+        () => ({
+            preferences,
+            updatePreference,
+            updatePreferences,
+            theme: preferences.theme,
+            resolvedTheme,
+            locale: preferences.locale,
+            tenantId: preferences.tenantId,
+            selectedSubscriptions: preferences.selectedSubscriptions,
+            selectedResourceGroups: preferences.selectedResourceGroups,
+            lastAccessedAgentRscId: preferences.lastAccessedAgentRscId,
+            setTheme,
+            setLocale,
+            setTenantId,
+            setSelectedSubscriptions,
+            setSelectedResourceGroups,
+            setLastAccessedAgentRscId,
+        }),
+        [
+            preferences,
+            resolvedTheme,
+            updatePreference,
+            updatePreferences,
+            setTheme,
+            setLocale,
+            setTenantId,
+            setSelectedSubscriptions,
+            setSelectedResourceGroups,
+            setLastAccessedAgentRscId,
+        ]
+    );
 
     return <UserPreferencesContext.Provider value={value}>{children}</UserPreferencesContext.Provider>;
 };

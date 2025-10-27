@@ -1,27 +1,36 @@
-import { Configuration, PublicClientApplication, RedirectRequest } from '@azure/msal-browser';
+import { Configuration, LogLevel, PublicClientApplication, RedirectRequest } from '@azure/msal-browser';
 
-// TODO: Actually hook up and test. Will tenant/client/etc be SRE Agent 1P app,
-// or will one/all of these switch based on the user's selected directory/tenant?
-
-const MSAL_CLIENT_ID = 'your-client-id-here';
-const MSAL_TENANT_ID = 'your-tenant-id-here';
-const MSAL_AUTHORITY = `https://login.microsoftonline.com/${MSAL_TENANT_ID}`;
+const MSAL_CLIENT_ID = import.meta.env.VITE_MSAL_CLIENT_ID;
+// Multi-tenant authority - allows users from any tenant to sign in
+const MSAL_AUTHORITY = 'https://login.microsoftonline.com/organizations';
 
 export const msalConfig: Configuration = {
     auth: {
         clientId: MSAL_CLIENT_ID,
         authority: MSAL_AUTHORITY,
-        // Shouldn't need redirectUri for the time being - just land back on the homepage
-        // redirectUri: window.location.origin,
+        redirectUri: window.location.origin + '/auth/callback',
     },
     cache: {
-        cacheLocation: 'sessionStorage',
+        cacheLocation: 'localStorage',
         storeAuthStateInCookie: false,
+    },
+    system: {
+        loggerOptions: {
+            loggerCallback: (level, message, containsPii) => {
+                if (containsPii) return;
+                const levelName = LogLevel[level] || level;
+                console.log(`[MSAL ${levelName}]: ${message}`);
+            },
+            logLevel: LogLevel.Warning, // Change to LogLevel.Verbose for more detailed logs
+        },
     },
 };
 
+export type AuthScopeIdentifier = 'arm' | 'graph' | 'sreAgent' | 'appInsights';
+
 export const loginRequest: RedirectRequest = {
-    scopes: ['openid', 'profile', 'email'],
+    scopes: ['User.Read'],
 };
 
+/** No need to call `msalInstance.initialize()` as `MsalProvider` does hit under-the-hood */
 export const msalInstance = new PublicClientApplication(msalConfig);

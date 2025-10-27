@@ -1,17 +1,16 @@
 import { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useIntl } from 'react-intl';
-import { createBrowserRouter, Outlet, RouterProvider, useLocation, useNavigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, RouterProvider, useLocation } from 'react-router-dom';
+import { TelemetrySource } from './Common/Constants/Telemetry';
 import { useAuth } from './Common/Contexts/AuthContext';
+import { useTelemetry } from './Common/Hooks/useTelemetry';
 import { PortalResources } from './Strings/Resources';
 import { AgentIFrameView } from './Views/Agent/AgentIFrameView';
-import { HomeView } from './Views/Home/HomeView';
+import { HomeBrowseView } from './Views/Home/HomeBrowseView';
 import { LandingPage } from './Views/LandingPage/LandingPage';
 import { Navbar } from './Views/Navbar/Navbar';
 import { NotificationToastContainer } from './Views/Notifications/NotificationToastContainer';
-
-// TODOs:
-// - Authentication (Entra, Graph, ARM/Graph/SreAgent/AppInsights tokens)
 
 // Routing:
 // - Landing page for signed-out users
@@ -19,21 +18,19 @@ import { NotificationToastContainer } from './Views/Notifications/NotificationTo
 
 const PortalLayout = () => {
     const intl = useIntl();
-    const { status } = useAuth();
-    const navigate = useNavigate();
+    const { isAuthenticated, isLoading: isLoadingAuth } = useAuth();
     const location = useLocation();
 
     const siteTitle = useMemo(() => intl.formatMessage(PortalResources.azureSreAgents), [intl]);
 
-    useEffect(() => {
-        if (status === 'unauthenticated' && location.pathname !== '/welcome') {
-            navigate('/welcome', { replace: true });
-        }
-
-        if (status === 'authenticated' && location.pathname === '/welcome') {
-            navigate('/', { replace: true });
-        }
-    }, [status, location.pathname, navigate]);
+    const shouldRedirectUnauthenticated = useMemo(
+        () => !isAuthenticated && location.pathname !== '/welcome',
+        [isAuthenticated, location.pathname]
+    );
+    const shouldRedirectAuthenticated = useMemo(
+        () => isAuthenticated && location.pathname === '/welcome',
+        [isAuthenticated, location.pathname]
+    );
 
     return (
         <>
@@ -48,7 +45,13 @@ const PortalLayout = () => {
                 <Navbar />
 
                 <div style={{ flex: 1, overflow: 'auto' }}>
-                    <Outlet />
+                    {isLoadingAuth ? null : shouldRedirectUnauthenticated ? (
+                        <Navigate to="/welcome" replace />
+                    ) : shouldRedirectAuthenticated ? (
+                        <Navigate to="/" replace />
+                    ) : (
+                        <Outlet />
+                    )}
                 </div>
             </main>
         </>
@@ -60,15 +63,17 @@ const router = createBrowserRouter([
         path: '/',
         element: <PortalLayout />,
         children: [
-            { index: true, element: <HomeView /> },
+            { index: true, element: <HomeBrowseView /> },
             { path: 'welcome', element: <LandingPage /> },
             { path: 'agents/:agentId', element: <AgentIFrameView /> },
-            { path: '*', element: <HomeView /> },
+            { path: '*', element: <HomeBrowseView /> },
         ],
     },
 ]);
 
 export const SreAgentPortal = () => {
+    const { logEvent } = useTelemetry(TelemetrySource.PortalLayout, undefined);
+
     useEffect(() => {
         const logSiteVersion = () => {
             const version = import.meta.env.SRE_AGENT_PORTAL_VERSION;
@@ -78,11 +83,12 @@ export const SreAgentPortal = () => {
                        🤖🌀 SRE Agent Portal Version: ${version}
                     ╚═════════════════════════════════════════════╝
                 `);
-                /*telemetry.log({
+
+                logEvent({
                     action: 'AgentSiteVersion',
                     actionModifier: 'info',
-                    data: { version },
-                });*/
+                    additionalData: { version },
+                });
             }
         };
 
@@ -91,7 +97,7 @@ export const SreAgentPortal = () => {
         const interval = setInterval(logSiteVersion, 60 * 60 * 1000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [logEvent]);
 
     return <RouterProvider router={router} />;
 };

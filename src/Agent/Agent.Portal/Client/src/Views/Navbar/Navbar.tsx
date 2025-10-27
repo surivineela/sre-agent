@@ -1,19 +1,6 @@
-import {
-    Button,
-    Image,
-    makeStyles,
-    Persona,
-    Popover,
-    PopoverSurface,
-    PopoverTrigger,
-    Text,
-    tokens,
-    Tooltip,
-} from '@fluentui/react-components';
-import { Settings32Regular } from '@fluentui/react-icons';
+import { Image, makeStyles, Text, tokens, Tooltip } from '@fluentui/react-components';
 import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../Common/Contexts/AuthContext';
 import { PortalResources } from '../../Strings/Resources';
 import { NotificationButton } from './NotificationButton';
 import { SettingsContent } from './SettingsContent';
@@ -55,21 +42,12 @@ const useStyles = makeStyles({
             backgroundColor: tokens.colorNeutralBackground4Pressed,
         },
     },
-    popoverSurface: {
-        minWidth: '320px',
-        padding: tokens.spacingVerticalL,
-    },
 });
 
 export const Navbar = () => {
     const intl = useIntl();
     const navigate = useNavigate();
-    const { status, user } = useAuth();
     const styles = useStyles();
-
-    const isPending = status === 'pending';
-    const personaName = user?.name;
-    const personaSecondaryText = user?.username;
 
     return (
         <div className={styles.navbar}>
@@ -83,32 +61,9 @@ export const Navbar = () => {
             <div className={styles.section}>
                 <NotificationButton />
 
-                <Popover>
-                    <PopoverTrigger>
-                        <Tooltip content={intl.formatMessage(PortalResources.settings)} relationship="label">
-                            <Button
-                                icon={<Settings32Regular />}
-                                appearance="subtle"
-                                disabled={isPending}
-                                aria-label={intl.formatMessage(PortalResources.settings)}
-                            />
-                        </Tooltip>
-                    </PopoverTrigger>
+                <SettingsContent />
 
-                    <PopoverSurface className={styles.popoverSurface}>
-                        <SettingsContent />
-                    </PopoverSurface>
-                </Popover>
-
-                <Popover>
-                    <PopoverTrigger>
-                        <Persona avatar={{ image: { src: '' } }} name={personaName} secondaryText={personaSecondaryText} />
-                    </PopoverTrigger>
-
-                    <PopoverSurface>
-                        <UserAuthContent />
-                    </PopoverSurface>
-                </Popover>
+                <UserAuthContent />
             </div>
         </div>
     );

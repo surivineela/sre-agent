@@ -3,10 +3,6 @@ import { useAccount, useIsAuthenticated, useMsal } from '@azure/msal-react';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo } from 'react';
 import { loginRequest } from '../Auth/msalConfig';
 
-// TODO: Token acquisition
-
-export type AuthStatus = 'authenticated' | 'unauthenticated' | 'pending';
-
 interface AuthenticatedUser {
     name?: string;
     username?: string;
@@ -14,7 +10,8 @@ interface AuthenticatedUser {
 }
 
 interface AuthContextValue {
-    status: AuthStatus;
+    isAuthenticated: boolean;
+    isLoading: boolean;
     user: AuthenticatedUser | null;
     signIn: (requestOverrides?: Partial<RedirectRequest>) => Promise<void>;
     signOut: () => Promise<void>;
@@ -23,26 +20,11 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const { instance, accounts, inProgress } = useMsal();
-    const activeAccount = instance.getActiveAccount();
-    const primaryAccount = activeAccount ?? accounts[0] ?? null;
-
-    useEffect(() => {
-        if (primaryAccount && !activeAccount) {
-            instance.setActiveAccount(primaryAccount);
-        }
-    }, [instance, activeAccount, primaryAccount]);
-
-    const account = useAccount(primaryAccount ?? undefined);
+    const { instance, inProgress } = useMsal();
     const isAuthenticated = useIsAuthenticated();
+    const account = useAccount();
 
-    const status: AuthStatus = useMemo(() => {
-        if (isAuthenticated) {
-            return 'authenticated';
-        }
-
-        return inProgress !== InteractionStatus.None ? 'pending' : 'unauthenticated';
-    }, [isAuthenticated, inProgress]);
+    const isLoadingAuth = useMemo(() => inProgress !== InteractionStatus.None, [inProgress]);
 
     const user = useMemo<AuthenticatedUser | null>(() => {
         if (!account) {
@@ -64,19 +46,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     const signOut = useCallback(async () => {
-        const accountToLogout = instance.getActiveAccount();
-        await instance.logoutRedirect({ account: accountToLogout ?? undefined });
-    }, [instance]);
+        await instance.logoutRedirect({ account: account ?? undefined, logoutHint: account?.idTokenClaims?.login_hint });
+    }, [account, instance]);
 
     const value = useMemo<AuthContextValue>(
         () => ({
-            status,
+            isAuthenticated,
+            isLoading: isLoadingAuth,
             user,
             signIn,
             signOut,
         }),
-        [status, user, signIn, signOut]
+        [isAuthenticated, user, signIn, signOut, isLoadingAuth]
     );
+
+    // If there are accounts but no active account, set one
+    useEffect(() => {
+        if (inProgress === InteractionStatus.None) {
+            const accounts = instance.getAllAccounts();
+            if (accounts.length > 0 && !instance.getActiveAccount()) {
+                instance.setActiveAccount(accounts[0]);
+            }
+        }
+    }, [inProgress, instance]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

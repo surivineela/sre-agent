@@ -1,11 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
+import { TelemetrySource } from '../Constants/Telemetry';
+import { LogLevel } from '../Contracts/Telemetry';
+import { logTelemetryEvent } from './useTelemetry';
 
-const readFromStorage = <T>(key: string, defaultValue: T): T => {
+const readFromStorage = <T,>(key: string, defaultValue: T, telemetrySource: TelemetrySource): T => {
     try {
         const item = localStorage.getItem(key);
         return item ? (JSON.parse(item) as T) : defaultValue;
     } catch (error) {
-        console.warn(`Error reading localStorage key "${key}":`, error);
+        logTelemetryEvent({
+            action: 'read-from-storage',
+            actionModifier: 'failed',
+            logLevel: LogLevel.Warning,
+            telemetrySource,
+            additionalData: {
+                key,
+                error: error instanceof Error ? error.message : String(error),
+            },
+        });
         return defaultValue;
     }
 };
@@ -17,14 +29,15 @@ const readFromStorage = <T>(key: string, defaultValue: T): T => {
  * @template T - The type of value to store
  * @param key - localStorage key
  * @param defaultValue - Default value if key doesn't exist
+ * @param telemetrySource
  * @returns Object with value and setValue
  */
-export const useLocalStorage = <T>(key: string, defaultValue: T) => {
+export const useLocalStorage = <T,>(key: string, defaultValue: T, telemetrySource: TelemetrySource) => {
     const [value, setValue] = useState<T>(defaultValue);
 
     useEffect(() => {
-        setValue(readFromStorage(key, defaultValue));
-    }, [key, defaultValue]);
+        setValue(readFromStorage(key, defaultValue, telemetrySource));
+    }, [key, defaultValue, telemetrySource]);
 
     const setStoredValue = useCallback(
         (newValue: T | ((prev: T) => T)) => {
@@ -42,10 +55,19 @@ export const useLocalStorage = <T>(key: string, defaultValue: T) => {
                     })
                 );
             } catch (error) {
-                console.error(`Error setting localStorage key "${key}":`, error);
+                logTelemetryEvent({
+                    action: 'set-storage-value',
+                    actionModifier: 'failed',
+                    logLevel: LogLevel.Error,
+                    telemetrySource,
+                    additionalData: {
+                        key,
+                        error: error instanceof Error ? error.message : String(error),
+                    },
+                });
             }
         },
-        [key, value]
+        [key, value, telemetrySource]
     );
 
     useEffect(() => {
@@ -55,14 +77,23 @@ export const useLocalStorage = <T>(key: string, defaultValue: T) => {
                     const newValue = e.newValue ? (JSON.parse(e.newValue) as T) : defaultValue;
                     setValue(newValue);
                 } catch (error) {
-                    console.warn(`Error parsing storage event for key "${key}":`, error);
+                    logTelemetryEvent({
+                        action: 'parse-storage-event',
+                        actionModifier: 'failed',
+                        logLevel: LogLevel.Warning,
+                        telemetrySource,
+                        additionalData: {
+                            key,
+                            error: error instanceof Error ? error.message : String(error),
+                        },
+                    });
                 }
             }
         };
 
         window.addEventListener('storage', handleStorageChange);
         return () => window.removeEventListener('storage', handleStorageChange);
-    }, [key, defaultValue]);
+    }, [key, defaultValue, telemetrySource]);
 
     return { value, setValue: setStoredValue };
 };
