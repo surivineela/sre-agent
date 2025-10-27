@@ -20,7 +20,7 @@ public class AgentsUsageTests
     {
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "test");
 
-        var builder = Web.Program.CreateWebApplicationBuilder([]);
+        var builder = Agent.Web.Program.CreateWebApplicationBuilder([]);
 
         // Mock the IMcpConnectable service to prevent actual MCP connections during tests
         var mockMcpConnectable = new Mock<IMcpConnectable>();

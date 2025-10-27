@@ -4,6 +4,7 @@
 
 using System.Reflection;
 using System.Text;
+using System.Linq;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -140,6 +141,7 @@ public class TimerService : IHostedService, IDisposable
     private Timer? _localAuthScannerTimer = null;
     private bool _localAuthScannerTimerIsRunning = false;
     private TimeSpan _localAuthScannerTimerInterval = TimeSpan.FromDays(1);
+    private DateTime? _localAuthScannerLastRunUtc;
 
     private Timer? _scheduledTaskTimer = null;
     private bool _scheduledTaskTimerIsRunning = false;
@@ -216,6 +218,49 @@ public class TimerService : IHostedService, IDisposable
         _agentMemorySettings = agentMemorySettings;
 
         _customerAuditLogger = customerAuditLogger;
+    }
+
+    // ============================================================================
+    // DO NOT USE - Test-only constructor
+    // This constructor uses default! should ONLY be used by unit tests.
+    // It only initializes the minimal dependencies needed for ShouldRunLocalAuthScannerAsync testing.
+    // ============================================================================
+    /// <summary>
+    /// Internal constructor for testing - only initializes dependencies required for ShouldRunLocalAuthScannerAsync.
+    /// </summary>
+    internal TimerService(IThreadRepository repository, ILogger<TimerService> logger)
+    {
+        _repository = repository;
+        _logger = logger;
+        _localAuthScannerTimerInterval = TimeSpan.FromDays(1);
+
+        // Initialize non-nullable fields with default values - not used in tests
+        _crawlerService = default!;
+        _teamsPlugin = default!;
+        _graphPlugin = default!;
+        _chartPlugin = default!;
+        _agentInboundCommunicationService = default!;
+        _sinkService = default!;
+        _heartbeatReporter = default!;
+        _settings = default!;
+        _timerSettings = default!;
+        _incidentManagementSettings = default!;
+        _agentMemorySettings = default!;
+        _dashboardSettings = default!;
+        _tlsBestPracticesScanner = default!;
+        _dailyReportScanner = default!;
+        _sourceCodeScanner = default!;
+        _cveScanner = default!;
+        _appServiceScanner = default!;
+        _scoreCardService = default!;
+        _feedbackRCAScanner = default!;
+        _threadEvaluator = default!;
+        _trajectoryEvaluator = default!;
+        _customerLogger = default!;
+        _customerAuditLogger = default!;
+        _localAuthScanner = default!;
+        _scheduledTaskExecutionService = default!;
+        _incidentScanner = default!;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -830,7 +875,14 @@ public class TimerService : IHostedService, IDisposable
             try
             {
                 _localAuthScannerTimerIsRunning = true;
+
+                if (!await ShouldRunLocalAuthScannerAsync())
+                {
+                    return;
+                }
+
                 await _localAuthScanner.ScanAsync(cancellationToken);
+                _localAuthScannerLastRunUtc = DateTime.UtcNow;
             }
             catch (Exception ex)
             {
@@ -841,6 +893,77 @@ public class TimerService : IHostedService, IDisposable
                 _localAuthScannerTimerIsRunning = false;
             }
         }, null, TimeSpan.FromMinutes(5), _localAuthScannerTimerInterval);
+    }
+
+    internal async Task<bool> ShouldRunLocalAuthScannerAsync()
+    {
+        var nowUtc = DateTime.UtcNow;
+
+        if (_localAuthScannerLastRunUtc.HasValue)
+        {
+            var elapsedSinceLastRun = nowUtc - _localAuthScannerLastRunUtc.Value;
+            if (elapsedSinceLastRun < _localAuthScannerTimerInterval)
+            {
+                _logger.LogInternalInformation("Local Auth scanner already ran at {LastRunUtc}. Skipping this execution.", _localAuthScannerLastRunUtc.Value);
+                return false;
+            }
+        }
+
+        try
+        {
+            var recentThreads = await _repository.GetThreadsBySourceAsync(
+                source: ThreadSource.BestPractices,
+                createdAfter: nowUtc - _localAuthScannerTimerInterval);
+
+            var latestLocalAuthThread = (recentThreads ?? Enumerable.Empty<Core.Models.Api.v1.Thread>())
+                .Where(thread => thread.Title.StartsWith("LocalAuthScanner", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(thread => thread.CreatedTimestamp)
+                .FirstOrDefault();
+
+            if (latestLocalAuthThread != null)
+            {
+                if (!_localAuthScannerLastRunUtc.HasValue || latestLocalAuthThread.CreatedTimestamp > _localAuthScannerLastRunUtc.Value)
+                {
+                    _localAuthScannerLastRunUtc = latestLocalAuthThread.CreatedTimestamp;
+                }
+
+                if (nowUtc - latestLocalAuthThread.CreatedTimestamp < _localAuthScannerTimerInterval)
+                {
+                    _logger.LogInternalInformation("Local Auth scanner already produced a thread at {LastRunUtc}. Skipping this execution.", latestLocalAuthThread.CreatedTimestamp);
+                    return false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Unable to determine last Local Auth scanner execution. Proceeding with scan.");
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Allows tests to seed the cached last-run timestamp without relying on reflection.
+    /// </summary>
+    internal void SetLocalAuthScannerLastRunUtcForTesting(DateTime? timestamp)
+    {
+        _localAuthScannerLastRunUtc = timestamp;
+    }
+
+    /// <summary>
+    /// Allows tests to read the cached last-run timestamp for assertions.
+    /// </summary>
+    internal DateTime? GetLocalAuthScannerLastRunUtcForTesting()
+    {
+        return _localAuthScannerLastRunUtc;
+    }
+
+    /// <summary>
+    /// Allows tests to set the scanner interval for testing different time windows.
+    /// </summary>
+    internal void SetLocalAuthScannerTimerIntervalForTesting(TimeSpan interval)
+    {
+        _localAuthScannerTimerInterval = interval;
     }
 
     public void StartScheduledTaskTimer(CancellationToken cancellationToken)
