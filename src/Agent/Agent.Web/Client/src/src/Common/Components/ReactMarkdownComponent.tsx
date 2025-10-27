@@ -27,6 +27,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
+import { getAgentHeaders } from '../Helpers/headers';
 
 const useStyles = makeStyles({
     chatRoot: {
@@ -378,11 +379,50 @@ const ReactMarkdownComponent = ({ content, className, variant = 'default', isUse
                     // It's likely not entirely sound to just replaceAll('__') either...
                     u: ({ children }: any) => <Text underline>{children}</Text>,
                     blockquote: ({ children }: any) => <blockquote className={styles.blockquote}>{children}</blockquote>,
-                    a: ({ children, href }: any) => (
-                        <Link href={href} target="_blank" rel="noopener noreferrer">
-                            {children}
-                        </Link>
-                    ),
+                    a: ({ children, href }: any) => {
+                        const isApiFileLink = href?.startsWith('/api/files/');
+
+                        const handleFileDownload = async (e: React.MouseEvent) => {
+                            e.preventDefault();
+
+                            try {
+                                const response = await fetch(href, {
+                                    headers: getAgentHeaders(),
+                                });
+
+                                if (!response.ok) {
+                                    throw new Error(`Failed to download file: ${response.statusText}`);
+                                }
+
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = href.split('/').pop() || 'download';
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                window.URL.revokeObjectURL(url);
+                            } catch (error) {
+                                console.error('Error downloading file:', error);
+                                window.open(href, '_blank');
+                            }
+                        };
+
+                        if (isApiFileLink) {
+                            return (
+                                <Link onClick={handleFileDownload} style={{ cursor: 'pointer' }}>
+                                    {children}
+                                </Link>
+                            );
+                        }
+
+                        return (
+                            <Link href={href} target="_blank" rel="noopener noreferrer">
+                                {children}
+                            </Link>
+                        );
+                    },
                     code: (props: any) => {
                         const isInPre = props.node?.parent?.tagName === 'pre';
                         const cls = isInPre ? styles.codeBlockInPre : styles.codeInline;
