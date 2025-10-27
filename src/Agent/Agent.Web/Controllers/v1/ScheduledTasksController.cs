@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using Agent.Core.Extensions;
 using Agent.Data.DataModels;
+using Agent.Framework;
 using Agent.ScheduledTasks.Services;
 using Agent.Web.Authorization;
 using Agent.Web.Models.ExtendedAgents.Response;
@@ -52,7 +53,7 @@ namespace Agent.Web.Controllers.v1
     public class ScheduledTasksController(
         IScheduledTaskManagementService scheduledTaskService,
         ILogger<ScheduledTasksController> logger,
-        IChatClient chatClient) : ControllerBase
+        IChatClientProvider chatClientProvider) : ControllerBase
     {
         [HttpGet]
         [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskReadActionId)]
@@ -268,7 +269,7 @@ namespace Agent.Web.Controllers.v1
                 }
 
                 var chatOptions = new ChatOptions { Temperature = 1.0f };
-                var chatResponse = await chatClient.GetResponseAsync(promptBuilder.ToString(), chatOptions, HttpContext.RequestAborted);
+                var chatResponse = await chatClientProvider.DefaultModel.GetResponseAsync(promptBuilder.ToString(), chatOptions, HttpContext.RequestAborted);
                 var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
 
                 logger.LogInternalInformation("Cron generation raw response: {Content}", content);
@@ -349,7 +350,7 @@ Prompt to improve (between <<< and >>>):
                 var prompt = systemPrompt + request.Prompt.Trim() + "\n>>>";
 
                 var chatOptions = new ChatOptions { Temperature = 1.0f };
-                var chatResponse = await chatClient.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
+                var chatResponse = await chatClientProvider.DefaultModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
                 var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
 
                 logger.LogInternalInformation("Scheduled task prompt improvement raw response: {Content}", content);

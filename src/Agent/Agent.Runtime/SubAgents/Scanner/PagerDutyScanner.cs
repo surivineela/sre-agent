@@ -20,6 +20,7 @@ using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Logging;
 using PagerDutyIncident = Agent.Graph.Interfaces.PagerDutyIncident;
+using Agent.Framework;
 
 namespace Agent.Runtime.SubAgents.Scanner;
 
@@ -27,13 +28,13 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                               IPagerDutyService pagerDutyService,
                               CosmosClient cosmosClient,
                               CosmosDBSettings cosmosDbSettings,
-                              IChatClient chatClient,
+                              IChatClientProvider chatClientProvider,
                               IGraphDatabaseClient graphDbClient,
                               IncidentManagementSettings incidentManagementSettings,
                               IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload> incidentHandlingService,
                               IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload> incidentFilterManagementService,
                               IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident> incidentAnalysisService,
-                              IAgentInboundCommunicationService agentInboundCommunicationService):IIncidentScanner
+                              IAgentInboundCommunicationService agentInboundCommunicationService) : IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     private const uint PageSize = 10;
@@ -629,7 +630,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
 
         try
         {
-            var response = await chatClient.GetResponseAsync<List<string>>(messages, options);
+            var response = await chatClientProvider.DefaultModel.GetResponseAsync<List<string>>(messages, options);
             return response.Result;
         }
         catch (Exception ex)
