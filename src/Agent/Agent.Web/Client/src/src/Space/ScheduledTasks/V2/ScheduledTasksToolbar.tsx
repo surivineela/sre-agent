@@ -1,24 +1,9 @@
-import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogBody,
-    DialogContent,
-    DialogSurface,
-    DialogTitle,
-    DialogTrigger,
-    SearchBox,
-    Text,
-    Toolbar,
-    ToolbarButton,
-    ToolbarDivider,
-} from '@fluentui/react-components';
+import { SearchBox, Text, Toolbar, ToolbarButton, ToolbarDivider } from '@fluentui/react-components';
 import {
     AddRegular,
     ArrowClockwise20Regular,
     ArrowClockwiseRegular,
     DeleteRegular,
-    PlayRegular,
     RecordStopRegular,
     ReplayRegular,
 } from '@fluentui/react-icons';
@@ -29,6 +14,7 @@ import { getLocaleTimeHHMM } from '../../../Common/Helpers/Date';
 import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
 import { CreateOrEditScheduledTaskDialog, ScheduledTaskDialogMode } from './Common/CreateOrEditScheduledTaskDialog';
+import { DeleteScheduledTaskDialog } from './Common/DeleteScheduledTaskDialog';
 import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
 import { useScheduledTasksStyles } from './ScheduledTasks.styles';
 import { TaskStatusFilterKey } from './ScheduledTasksUtilities';
@@ -65,8 +51,6 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
         return !hasPausedTaskSelected || isLoading;
     }, [isLoading, selectedTasks]);
 
-    const isRunTaskNowButtonDisabled = useMemo(() => selectedTasks?.length === 0 || isLoading, [isLoading, selectedTasks?.length]);
-
     const isDeleteButtonDisabled = useMemo(() => selectedTasks?.length === 0 || isLoading, [isLoading, selectedTasks]);
 
     const onRefresh = useCallback(async () => {
@@ -77,7 +61,7 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
         const activeTasks = selectedTasks?.filter(task => task.status === ScheduledTaskStatus.Active) || [];
         // start notification ?
         const responses = await Promise.all(activeTasks.map(task => pauseTask(task.id)));
-        if (responses.every(response => response.isSuccessful)) {
+        if (responses.some(response => response.isSuccessful)) {
             await refreshTasks();
         }
     }, [pauseTask, refreshTasks, selectedTasks]);
@@ -86,19 +70,15 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
         const pausedTasks = selectedTasks?.filter(task => task.status === ScheduledTaskStatus.Paused) || [];
         // start notification ?
         const responses = await Promise.all(pausedTasks.map(task => resumeTask(task.id)));
-        if (responses.every(response => response.isSuccessful)) {
+        if (responses.some(response => response.isSuccessful)) {
             await refreshTasks();
         }
     }, [resumeTask, refreshTasks, selectedTasks]);
 
-    const onRunTasksNow = useCallback(async () => {
-        // TODO: Implement triggering task manually
-    }, []);
-
     const onDeleteTasks = useCallback(async () => {
         // start notification ?
         const responses = await Promise.all(selectedTasks?.map(task => deleteTask(task.id)) || []);
-        if (responses.every(response => response.isSuccessful)) {
+        if (responses.some(response => response.isSuccessful)) {
             await refreshTasks();
         }
     }, [deleteTask, refreshTasks, selectedTasks]);
@@ -141,15 +121,14 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
                     >
                         {intl.formatMessage(ScheduledTasksResources.turnOn)}
                     </ToolbarButton>
-                    <ToolbarButton
-                        className={styles.toolbarButton}
-                        icon={<PlayRegular />}
-                        onClick={onRunTasksNow}
-                        disabled={isRunTaskNowButtonDisabled}
-                    >
-                        {intl.formatMessage(ScheduledTasksResources.runTaskNow)}
-                    </ToolbarButton>
-                    <DeleteToolbarButtonAndDialog deleteTasks={onDeleteTasks} disabled={isDeleteButtonDisabled} />
+                    <DeleteScheduledTaskDialog
+                        dialogTrigger={
+                            <ToolbarButton className={styles.toolbarButton} icon={<DeleteRegular />} disabled={isDeleteButtonDisabled}>
+                                {intl.formatMessage(SreAgentResources.delete)}
+                            </ToolbarButton>
+                        }
+                        deleteTasks={onDeleteTasks}
+                    />
                 </Toolbar>
                 <ScheduledTasksFilters
                     searchQuery={searchQuery}
@@ -165,47 +144,6 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
                 </div>
             )}
         </div>
-    );
-};
-
-interface DeleteToolbarButtonAndDialogProps {
-    deleteTasks: () => void;
-    disabled: boolean;
-}
-
-const DeleteToolbarButtonAndDialog: FC<DeleteToolbarButtonAndDialogProps> = ({ disabled, deleteTasks }) => {
-    const intl = useIntl();
-    const styles = useScheduledTasksStyles();
-    const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-
-    return (
-        <Dialog open={isDialogOpen} onOpenChange={(_, data) => setIsDialogOpen(data.open)}>
-            <DialogTrigger disableButtonEnhancement>
-                <ToolbarButton className={styles.toolbarButton} icon={<DeleteRegular />} disabled={disabled}>
-                    {intl.formatMessage(SreAgentResources.delete)}
-                </ToolbarButton>
-            </DialogTrigger>
-            <DialogSurface aria-labelledby="delete-dialog-title" aria-describedby="delete-dialog-content">
-                <DialogBody>
-                    <DialogTitle id="delete-dialog-title">
-                        {intl.formatMessage(ScheduledTasksResources.deleteScheduledTasksConfirmationTitle)}
-                    </DialogTitle>
-                    <DialogContent id="delete-dialog-content">
-                        {intl.formatMessage(ScheduledTasksResources.deleteScheduledTasksConfirmationMessage)}
-                    </DialogContent>
-                    <DialogActions>
-                        <DialogTrigger disableButtonEnhancement>
-                            <Button appearance="primary" onClick={deleteTasks}>
-                                {intl.formatMessage(SreAgentResources.delete)}
-                            </Button>
-                        </DialogTrigger>
-                        <DialogTrigger disableButtonEnhancement>
-                            <Button appearance="secondary">{intl.formatMessage(SreAgentResources.cancel)}</Button>
-                        </DialogTrigger>
-                    </DialogActions>
-                </DialogBody>
-            </DialogSurface>
-        </Dialog>
     );
 };
 

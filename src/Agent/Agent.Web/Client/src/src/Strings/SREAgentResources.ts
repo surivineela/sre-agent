@@ -2773,6 +2773,7 @@ export const ScheduledTasksResources = defineMessages({
     turnOff: { defaultMessage: 'Turn off', id: 'XZ+Fx6' },
     filterTasks: { defaultMessage: 'Filter tasks', id: 'iDPKM0' },
     createAScheduledTask: { defaultMessage: 'Create a scheduled task', id: '6aH1+U' },
+    editAScheduledTask: { defaultMessage: 'Edit a scheduled task', id: 'BLU3k6' },
     taskName: { defaultMessage: 'Task name', id: 'wbwhbH' },
     taskNamePlaceholder: { defaultMessage: 'Enter a scheduled task name', id: '+pmvA0' },
     taskDetails: { defaultMessage: 'Task details', id: 'HADwwN' },
@@ -2810,12 +2811,15 @@ export const ScheduledTasksResources = defineMessages({
     timeZone: { defaultMessage: 'Time zone', id: 'IcUakl' },
     startOn: { defaultMessage: 'Start on', id: 'ZOO+kP' },
     repeatUntil: { defaultMessage: 'Repeat until', id: 'ts7YvN' },
-    groupMessages: { defaultMessage: 'Group messages', id: 'yBYOge' },
-    groupInSameThread: { defaultMessage: 'Group in the same thread', id: '2Qw127' },
-    startANewThread: { defaultMessage: 'Start a new thread for each run', id: 'MM0Ryt' },
+    messageGroupingForUpdates: { defaultMessage: 'Message grouping for updates', id: 'XV8dOu' },
+    useSameThread: { defaultMessage: 'Use same thread', id: 'sI/fs2' },
+    newThreadForEachRun: { defaultMessage: 'New thread for each run', id: 'WfXPv6' },
     setARunLimit: { defaultMessage: 'Set a run limit', id: 'tTVtNj' },
     setARunLimitPlaceholder: { defaultMessage: "Leave the field blank if there's no limit", id: '26Vq1R' },
     setARunLimitTooltip: { defaultMessage: 'The task will stop running after reaching this number', id: '9X3VEw' },
+    refineWithAi: { defaultMessage: 'Refine with AI', id: 'uwY8Nf' },
+    refiningDetails: { defaultMessage: 'Refining details...', id: 'XVG+T1' },
+    refineWithAiTooltip: { defaultMessage: 'Use AI to enhance and validate your task instructions', id: '17sQau' },
 });
 
 export const SubAgentsResources = defineMessages({

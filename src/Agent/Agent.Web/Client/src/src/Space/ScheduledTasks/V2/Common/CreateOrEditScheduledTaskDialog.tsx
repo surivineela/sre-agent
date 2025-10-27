@@ -33,6 +33,7 @@ export const CreateOrEditScheduledTaskDialog: FC<CreateOrEditScheduledTaskDialog
     const intl = useIntl();
     const { refreshTasks } = useContext(ScheduledTasksContext);
     const { initialValues, save: saveScheduledTaskSettings } = useScheduledTaskSettings(
+        mode,
         mode === ScheduledTaskDialogMode.Edit ? scheduledTask : undefined
     );
     const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
@@ -61,7 +62,9 @@ export const CreateOrEditScheduledTaskDialog: FC<CreateOrEditScheduledTaskDialog
                         >
                             <DialogBody>
                                 <DialogTitle id="task-dialog-title">
-                                    {intl.formatMessage(ScheduledTasksResources.createAScheduledTask)}
+                                    {mode === ScheduledTaskDialogMode.Create
+                                        ? intl.formatMessage(ScheduledTasksResources.createAScheduledTask)
+                                        : intl.formatMessage(ScheduledTasksResources.editAScheduledTask)}
                                 </DialogTitle>
                                 <DialogContent id="task-dialog-content">
                                     <ScheduledTaskForm />
@@ -69,11 +72,15 @@ export const CreateOrEditScheduledTaskDialog: FC<CreateOrEditScheduledTaskDialog
                                 <DialogActions>
                                     <DialogTrigger disableButtonEnhancement>
                                         <Button appearance="primary" onClick={submitForm}>
-                                            {intl.formatMessage(ScheduledTasksResources.createTask)}
+                                            {mode === ScheduledTaskDialogMode.Create
+                                                ? intl.formatMessage(ScheduledTasksResources.createTask)
+                                                : intl.formatMessage(SreAgentResources.save)}
                                         </Button>
                                     </DialogTrigger>
                                     <DialogTrigger disableButtonEnhancement>
-                                        <Button appearance="secondary">{intl.formatMessage(SreAgentResources.cancel)}</Button>
+                                        <Button appearance="secondary" onClick={e => e.stopPropagation()}>
+                                            {intl.formatMessage(SreAgentResources.cancel)}
+                                        </Button>
                                     </DialogTrigger>
                                 </DialogActions>
                             </DialogBody>

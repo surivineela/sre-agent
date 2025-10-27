@@ -5,9 +5,12 @@ import { CreateScheduledTaskRequest } from '../../../Contracts/ScheduledTasks';
 export interface ScheduledTasksContextProps {
     refreshTasks: () => Promise<void>;
     createTask: (task: CreateScheduledTaskRequest) => Promise<Response<{ taskId: string }>>;
+    updateTask: (id: string, task: CreateScheduledTaskRequest) => Promise<Response<void>>;
     pauseTask: (id: string) => Promise<Response<void>>;
     resumeTask: (id: string) => Promise<Response<void>>;
     deleteTask: (id: string) => Promise<Response<void>>;
+    isOperationInProgress: boolean;
+    setIsOperationInProgress: (value: boolean) => void;
 }
 
 export const ScheduledTasksContext = createContext<ScheduledTasksContextProps>({} as ScheduledTasksContextProps);

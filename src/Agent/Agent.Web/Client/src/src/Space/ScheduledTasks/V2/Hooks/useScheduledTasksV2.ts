@@ -20,6 +20,11 @@ export const useScheduledTasksV2 = () => {
         [scheduledTasksClient]
     );
 
+    const updateTask = useCallback(
+        (id: string, task: CreateScheduledTaskRequest) => scheduledTasksClient.updateScheduledTask(id, task),
+        [scheduledTasksClient]
+    );
+
     const refreshTasks = useCallback(async () => {
         setLoading(true);
         const response = await scheduledTasksClient.getScheduledTasks();
@@ -44,6 +49,7 @@ export const useScheduledTasksV2 = () => {
         scheduledTasks,
         loading,
         createTask,
+        updateTask,
         refreshTasks,
         deleteTask,
         pauseTask,

@@ -16,6 +16,7 @@ export const ScheduledTasks: FC = () => {
         scheduledTasks,
         loading: isScheduledTasksLoading,
         createTask,
+        updateTask,
         refreshTasks,
         deleteTask,
         pauseTask,
@@ -24,6 +25,7 @@ export const ScheduledTasks: FC = () => {
     const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [statusFilter, setStatusFilter] = useState<TaskStatusFilterKey>(TaskStatusFilterKey.All);
+    const [isOperationInProgress, setIsOperationInProgress] = useState<boolean>(false);
 
     const filteredTasks = useMemo(() => {
         let tasks = [...scheduledTasks];
@@ -44,10 +46,13 @@ export const ScheduledTasks: FC = () => {
         <ScheduledTasksContext.Provider
             value={{
                 createTask,
+                updateTask,
                 refreshTasks,
                 pauseTask,
                 resumeTask,
                 deleteTask,
+                isOperationInProgress,
+                setIsOperationInProgress,
             }}
         >
             <div className={styles.root}>

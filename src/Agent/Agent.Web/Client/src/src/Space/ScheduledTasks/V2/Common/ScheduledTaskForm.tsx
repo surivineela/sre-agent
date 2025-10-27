@@ -1,10 +1,24 @@
-import { Dropdown, Field, InfoLabel, Input, Option, OptionOnSelectData, Textarea } from '@fluentui/react-components';
+import {
+    Button,
+    Dropdown,
+    Field,
+    InfoLabel,
+    Input,
+    Option,
+    OptionOnSelectData,
+    Spinner,
+    Textarea,
+    Tooltip,
+} from '@fluentui/react-components';
 import { DatePicker } from '@fluentui/react-datepicker-compat';
+import { Wand24Regular } from '@fluentui/react-icons';
 import { formatDateToTimeString, TimePicker } from '@fluentui/react-timepicker-compat';
 import { useFormikContext } from 'formik';
-import { useMemo } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ScheduledTasksResources } from '../../../../Strings/SREAgentResources';
+import { improvePrompt } from '../../../Graph/ExtendedAgentCreationDialog/services/promptImprovementService';
 import { useScheduledTasksStyles } from '../ScheduledTasks.styles';
 import { DayOfTheWeek, getDaysOfTheWeek, GroupMessageKey, ScheduledTaskFormProps, TaskFrequencyKey } from '../ScheduledTasksUtilities';
 
@@ -12,6 +26,8 @@ export const ScheduledTaskForm = () => {
     const intl = useIntl();
     const styles = useScheduledTasksStyles();
     const { values, setFieldValue } = useFormikContext<ScheduledTaskFormProps>();
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const [isApplyingImprovement, setIsApplyingImprovement] = useState<boolean>(false);
 
     const frequencyOptions = useMemo(
         () => ({
@@ -35,11 +51,25 @@ export const ScheduledTaskForm = () => {
 
     const groupMessagesOptions = useMemo(
         () => ({
-            [GroupMessageKey.SameThread]: intl.formatMessage(ScheduledTasksResources.groupInSameThread),
-            [GroupMessageKey.NewThread]: intl.formatMessage(ScheduledTasksResources.startANewThread),
+            [GroupMessageKey.SameThread]: intl.formatMessage(ScheduledTasksResources.useSameThread),
+            [GroupMessageKey.NewThread]: intl.formatMessage(ScheduledTasksResources.newThreadForEachRun),
         }),
         [intl]
     );
+
+    const onClickRefineWithAI = async () => {
+        setIsApplyingImprovement(true);
+        try {
+            const result = await improvePrompt(sreAgentEndpoint, values.details);
+            if (result?.improvedPrompt) {
+                setFieldValue('details', result.improvedPrompt);
+            }
+        } catch (error) {
+            console.log('Failed to apply AI improvements:', error);
+        } finally {
+            setIsApplyingImprovement(false);
+        }
+    };
 
     return (
         <div className={styles.taskForm}>
@@ -54,12 +84,47 @@ export const ScheduledTaskForm = () => {
                     />
                 </Field>
                 <Field
-                    label={intl.formatMessage(ScheduledTasksResources.taskDetails)}
+                    label={
+                        <div className={styles.fieldLabelRow}>
+                            <span>
+                                {intl.formatMessage(ScheduledTasksResources.taskDetails)}
+                                <span className={styles.fieldRequiredStar} aria-hidden="true">
+                                    {' '}
+                                    *
+                                </span>
+                            </span>
+                            <div className={styles.fieldActionGroup}>
+                                <Tooltip
+                                    content={intl.formatMessage(ScheduledTasksResources.refineWithAiTooltip)}
+                                    relationship="description"
+                                >
+                                    <Button
+                                        appearance="subtle"
+                                        size="small"
+                                        disabled={!values.details?.trim() || isApplyingImprovement}
+                                        onClick={onClickRefineWithAI}
+                                        className={styles.promptImprovementButton}
+                                    >
+                                        {isApplyingImprovement ? (
+                                            <>
+                                                <Spinner size="extra-tiny" />
+                                                {intl.formatMessage(ScheduledTasksResources.refiningDetails)}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Wand24Regular />
+                                                {intl.formatMessage(ScheduledTasksResources.refineWithAi)}
+                                            </>
+                                        )}
+                                    </Button>
+                                </Tooltip>
+                            </div>
+                        </div>
+                    }
                     hint={intl.formatMessage(ScheduledTasksResources.taskDetailsTip)}
-                    required
                 >
                     <Textarea
-                        style={{ height: '160px' }}
+                        style={{ height: '200px' }}
                         placeholder={intl.formatMessage(ScheduledTasksResources.taskDetailsPlaceholder)}
                         value={values.details}
                         onChange={(_, data) => {
@@ -167,7 +232,7 @@ export const ScheduledTaskForm = () => {
                         />
                     </Field>
                 </div>
-                <Field label={intl.formatMessage(ScheduledTasksResources.groupMessages)}>
+                <Field label={intl.formatMessage(ScheduledTasksResources.messageGroupingForUpdates)}>
                     <Dropdown
                         value={groupMessagesOptions[values.groupMessages as GroupMessageKey]}
                         selectedOptions={[values.groupMessages]}

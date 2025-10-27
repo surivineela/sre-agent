@@ -29,7 +29,7 @@ export interface ScheduledTaskExecution {
 
 export interface CreateScheduledTaskRequest {
     name: string;
-    description: string;
+    description?: string;
     cronExpression: string;
     agentPrompt: string;
     agent?: string; // The agent name to associate with this scheduled task

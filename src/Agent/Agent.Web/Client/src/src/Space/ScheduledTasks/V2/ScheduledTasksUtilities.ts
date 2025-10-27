@@ -1,6 +1,7 @@
 import { IntlShape } from 'react-intl';
 import { ScheduledTasksResources } from '../../../Strings/SREAgentResources';
 import { ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
+import { normalizeCronExpression } from '../../Graph/ExtendedAgentCreationDialog/utils/schedule';
 
 export enum TaskStatusFilterKey {
     All = 'All',
@@ -187,4 +188,44 @@ export const getCronExpression = (params: {
         default:
             return '';
     }
+};
+
+export const getTimeFieldValuesFromCronExpression = (cron?: string) => {
+    let frequency: TaskFrequencyKey | undefined;
+    let timeOfDay: Date | undefined;
+    let dayOfWeek: DayOfTheWeek | undefined;
+    let dayOfMonth: string | undefined;
+
+    if (cron) {
+        const normalizedCron = normalizeCronExpression(cron);
+        const [cronMinute, cronHour, cronDayOfMonth, cronMonth, cronDayOfWeek] = normalizedCron.split(' ');
+        // Doesn't need to be local time, as this is displayed to the user, who will select as if it's local,
+        // and the value will be converted back to UTC when saving
+        const cronMinuteUTC = parseInt(cronMinute);
+        const cronHourUTC = parseInt(cronHour);
+
+        if (cronMinuteUTC >= 0 && cronHourUTC >= 0) {
+            timeOfDay = new Date();
+            timeOfDay.setUTCMinutes(cronMinuteUTC);
+            timeOfDay.setUTCHours(cronHourUTC);
+        }
+
+        dayOfWeek = parseInt(cronDayOfWeek) as DayOfTheWeek;
+        dayOfMonth = cronDayOfMonth;
+
+        if (timeOfDay) {
+            if (cronDayOfMonth === '*' && cronMonth === '*' && cronDayOfWeek === '*') {
+                frequency = TaskFrequencyKey.Daily;
+            } else if (cronDayOfMonth === '*' && cronMonth === '*' && cronDayOfWeek !== '*') {
+                frequency = TaskFrequencyKey.Weekly;
+            } else if (cronDayOfMonth !== '*' && cronMonth === '*' && cronDayOfWeek === '*') {
+                frequency = TaskFrequencyKey.Monthly;
+            } else {
+                frequency = TaskFrequencyKey.Custom;
+            }
+        } else {
+            frequency = TaskFrequencyKey.Custom;
+        }
+    }
+    return { frequency, timeOfDay, dayOfWeek, dayOfMonth };
 };

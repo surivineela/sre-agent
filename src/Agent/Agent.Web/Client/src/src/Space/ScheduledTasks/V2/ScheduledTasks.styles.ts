@@ -64,7 +64,7 @@ export const useScheduledTasksStyles = makeStyles({
     taskFormLeft: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px',
+        gap: tokens.spacingHorizontalXL,
         maxWidth: '460px',
     },
     taskFormRight: {
@@ -87,5 +87,27 @@ export const useScheduledTasksStyles = makeStyles({
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: '12px',
+    },
+    fieldActionGroup: {
+        display: 'inline-flex',
+        alignItems: 'center',
+    },
+    fieldLabelRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        gap: tokens.spacingHorizontalM,
+    },
+    fieldRequiredStar: {
+        color: tokens.colorPaletteRedForeground1,
+        fontWeight: tokens.fontWeightRegular,
+        lineHeight: 1,
+    },
+    promptImprovementButton: {
+        display: 'flex',
+        gap: tokens.spacingHorizontalXS,
+        alignItems: 'center',
+        fontSize: tokens.fontSizeBase200,
     },
 });

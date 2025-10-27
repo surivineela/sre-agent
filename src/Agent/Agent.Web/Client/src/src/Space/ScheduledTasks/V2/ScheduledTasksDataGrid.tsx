@@ -1,6 +1,5 @@
 import {
     Badge,
-    Button,
     createTableColumn,
     DataGrid,
     DataGridBody,
@@ -10,11 +9,6 @@ import {
     DataGridProps,
     DataGridRow,
     Dialog,
-    DialogActions,
-    DialogBody,
-    DialogContent,
-    DialogSurface,
-    DialogTitle,
     DialogTrigger,
     Menu,
     MenuButton,
@@ -26,15 +20,16 @@ import {
     TableCellLayout,
     TableColumnDefinition,
     TableColumnId,
-    Text,
 } from '@fluentui/react-components';
-import { DeleteRegular, MoreHorizontalRegular, PauseRegular, PlayRegular, ReplayRegular } from '@fluentui/react-icons';
+import { DeleteRegular, MoreHorizontalRegular, PauseRegular, ReplayRegular } from '@fluentui/react-icons';
 import { Link } from '@fluentui/react/lib/Link';
 import { FC, useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { getLocaleDateTimeHHMM } from '../../../Common/Helpers/Date';
 import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
+import { CreateOrEditScheduledTaskDialog, ScheduledTaskDialogMode } from './Common/CreateOrEditScheduledTaskDialog';
+import { DeleteScheduledTaskDialog } from './Common/DeleteScheduledTaskDialog';
 import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
 import { getHumanReadableCronExpression } from './ScheduledTasksUtilities';
 
@@ -86,10 +81,6 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
         [refreshTasks, resumeTask]
     );
 
-    const onRunTaskNow = useCallback(async () => {
-        // TODO: Implement triggering task manually
-    }, []);
-
     const onDeleteTask = useCallback(
         async (id: string) => {
             const response = await deleteTask(id);
@@ -101,11 +92,12 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
     );
 
     const onRenderName = useCallback((item: ScheduledTask) => {
-        // TODO: Replace onClick to task details page
         return (
-            <TableCellLayout truncate>
-                <Link onClick={() => {}}>{item.name}</Link>
-            </TableCellLayout>
+            <CreateOrEditScheduledTaskDialog
+                dialogTrigger={<Link>{item.name}</Link>}
+                mode={ScheduledTaskDialogMode.Edit}
+                scheduledTask={item}
+            />
         );
     }, []);
 
@@ -130,9 +122,6 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                                             {intl.formatMessage(ScheduledTasksResources.turnOn)}
                                         </MenuItem>
                                     ))}
-                                <MenuItem icon={<PlayRegular />} onClick={() => onRunTaskNow()}>
-                                    {intl.formatMessage(ScheduledTasksResources.runTaskNow)}
-                                </MenuItem>
                                 <DialogTrigger disableButtonEnhancement>
                                     <MenuItem icon={<DeleteRegular />}>{intl.formatMessage(SreAgentResources.delete)}</MenuItem>
                                 </DialogTrigger>
@@ -140,30 +129,11 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                         </MenuPopover>
                     </Menu>
 
-                    <DialogSurface aria-labelledby="delete-task-dialog-title" aria-describedby="delete-task-dialog-content">
-                        <DialogBody>
-                            <DialogTitle id="delete-task-dialog-title">
-                                {intl.formatMessage(ScheduledTasksResources.deleteScheduledTasksConfirmationTitle)}
-                            </DialogTitle>
-                            <DialogContent id="delete-task-dialog-content">
-                                {intl.formatMessage(ScheduledTasksResources.deleteScheduledTasksConfirmationMessage)}
-                            </DialogContent>
-                            <DialogActions>
-                                <DialogTrigger disableButtonEnhancement>
-                                    <Button appearance="primary" onClick={() => onDeleteTask(item.id)}>
-                                        {intl.formatMessage(SreAgentResources.delete)}
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogTrigger disableButtonEnhancement>
-                                    <Button appearance="secondary">{intl.formatMessage(SreAgentResources.cancel)}</Button>
-                                </DialogTrigger>
-                            </DialogActions>
-                        </DialogBody>
-                    </DialogSurface>
+                    <DeleteScheduledTaskDialog deleteTasks={() => onDeleteTask(item.id)} />
                 </Dialog>
             );
         },
-        [intl, onDeleteTask, onPauseTask, onResumeTask, onRunTaskNow]
+        [intl, onDeleteTask, onPauseTask, onResumeTask]
     );
 
     const onRenderStatus = useCallback(
@@ -201,19 +171,16 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
 
     const onRenderSchedule = useCallback(
         (item: ScheduledTask) => {
-            return <TableCellLayout truncate>{getHumanReadableCronExpression(item.cronExpression, intl)}</TableCellLayout>;
+            return getHumanReadableCronExpression(item.cronExpression, intl);
         },
         [intl]
     );
 
     const onRenderLastRun = useCallback(
         (item: ScheduledTask) => {
-            if (!item.lastExecutionTime) {
-                return <TableCellLayout truncate>{intl.formatMessage(SreAgentResources.never)}</TableCellLayout>;
-            }
-
-            const date = new Date(item.lastExecutionTime);
-            return <TableCellLayout truncate>{getLocaleDateTimeHHMM(date)}</TableCellLayout>;
+            return item.lastExecutionTime
+                ? getLocaleDateTimeHHMM(new Date(item.lastExecutionTime))
+                : intl.formatMessage(SreAgentResources.never);
         },
         [intl]
     );
@@ -221,17 +188,17 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
     const onRenderNextRun = useCallback(
         (item: ScheduledTask) => {
             if (!item.nextExecutionTime || item.status !== ScheduledTaskStatus.Active) {
-                return <TableCellLayout truncate>{intl.formatMessage(SreAgentResources.notScheduled)}</TableCellLayout>;
+                return intl.formatMessage(SreAgentResources.notScheduled);
             }
 
             const date = new Date(item.nextExecutionTime);
-            return <TableCellLayout truncate>{getLocaleDateTimeHHMM(date)}</TableCellLayout>;
+            return getLocaleDateTimeHHMM(date);
         },
         [intl]
     );
 
     const onRenderRuns = useCallback((item: ScheduledTask) => {
-        return <Text>{item.executionCount}</Text>;
+        return `${item.executionCount}`;
     }, []);
 
     const columns: TableColumnDefinition<ScheduledTask>[] = useMemo(
@@ -289,45 +256,43 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
     );
 
     return (
-        <>
-            <DataGrid
-                items={scheduledTasks || []}
-                columns={columns}
-                sortable
-                resizableColumns
-                columnSizingOptions={columnSizingOptions}
-                selectionMode="multiselect"
-                focusMode="none"
-                selectedItems={selectedTaskIds}
-                onSelectionChange={onSelectionChange}
-                getRowId={item => item.id}
-                style={{ minWidth: '800px' }}
-            >
-                <DataGridHeader>
-                    <DataGridRow
+        <DataGrid
+            items={scheduledTasks || []}
+            columns={columns}
+            sortable
+            resizableColumns
+            columnSizingOptions={columnSizingOptions}
+            selectionMode="multiselect"
+            selectedItems={selectedTaskIds}
+            onSelectionChange={onSelectionChange}
+            getRowId={item => item.id}
+        >
+            <DataGridHeader>
+                <DataGridRow
+                    selectionCell={{
+                        checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel) },
+                    }}
+                >
+                    {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
+                </DataGridRow>
+            </DataGridHeader>
+            <DataGridBody<ScheduledTask>>
+                {({ item, rowId }) => (
+                    <DataGridRow<ScheduledTask>
+                        key={rowId}
                         selectionCell={{
-                            checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel) },
+                            checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectRowAriaLabel) },
                         }}
                     >
-                        {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
+                        {({ renderCell, columnId }) => (
+                            <DataGridCell focusMode={getCellFocusMode(columnId)} onClick={e => e.stopPropagation()}>
+                                <TableCellLayout truncate>{renderCell(item)}</TableCellLayout>
+                            </DataGridCell>
+                        )}
                     </DataGridRow>
-                </DataGridHeader>
-                <DataGridBody<ScheduledTask>>
-                    {({ item, rowId }) => (
-                        <DataGridRow<ScheduledTask>
-                            key={rowId}
-                            selectionCell={{
-                                checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectRowAriaLabel) },
-                            }}
-                        >
-                            {({ renderCell, columnId }) => (
-                                <DataGridCell focusMode={getCellFocusMode(columnId)}>{renderCell(item)}</DataGridCell>
-                            )}
-                        </DataGridRow>
-                    )}
-                </DataGridBody>
-            </DataGrid>
-        </>
+                )}
+            </DataGridBody>
+        </DataGrid>
     );
 };
 
@@ -345,8 +310,8 @@ const columnSizingOptions = {
         defaultWidth: 150,
     },
     schedule: {
-        minWidth: 150,
-        defaultWidth: 200,
+        minWidth: 200,
+        defaultWidth: 250,
     },
     lastRun: {
         minWidth: 150,
