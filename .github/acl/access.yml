@@ -32,6 +32,8 @@ configuration:
     role: Write
   - member: yefuwang
     role: Write
+  - member: layliu
+    role: Write
   - member: liuqi
     role: Write
   - member: andimarc
