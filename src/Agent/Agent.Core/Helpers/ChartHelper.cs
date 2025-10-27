@@ -44,16 +44,35 @@ public static class ChartHelper
         if (chartImageInput.TimeSeries == null || !chartImageInput.TimeSeries.Any())
             return string.Empty;
 
-        // Extract data for plotting
-        DateTime[] dts = chartImageInput.TimeSeries.Select(data => data.Timestamp).ToArray();
-        double[] ys = chartImageInput.TimeSeries.Select(data => data.Value).ToArray();
-
         // Create a new ScottPlot plot
         var plt = new Plot();
 
-        // Plot data
-        plt.Add.Scatter(dts, ys);
+        // Group data by series name to create separate lines
+        var groupedData = chartImageInput.TimeSeries
+            .GroupBy(data => data.Name)
+            .ToList();
+
+        // Plot each series separately with unique colors
+        int colorIndex = 0;
+        foreach (var group in groupedData)
+        {
+            DateTime[] dts = group.Select(data => data.Timestamp).ToArray();
+            double[] ys = group.Select(data => data.Value).ToArray();
+
+            var scatter = plt.Add.Scatter(dts, ys);
+            scatter.LegendText = group.Key; // Set legend text to series name
+            scatter.LineWidth = 2;
+
+            // Apply color from palette
+            if (colorIndex < flatHexColors.Length)
+            {
+                scatter.Color = new Color(flatHexColors[colorIndex]);
+            }
+            colorIndex++;
+        }
+
         plt.Axes.DateTimeTicksBottom();
+        plt.ShowLegend();
 
         // Set plot title and labels
         if (!string.IsNullOrWhiteSpace(chartImageInput.Title))
@@ -211,7 +230,7 @@ public static class ChartHelper
                 plt.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(ticks);
                 plt.Axes.Bottom.MajorTickStyle.Length = 0; // As per example
             }
-            
+
             if (chartInput.HideGridLines)
             {
                 plt.HideGrid();
@@ -223,7 +242,7 @@ public static class ChartHelper
             }
             else
             {
-                 plt.Axes.Margins(bottom: 0); 
+                 plt.Axes.Margins(bottom: 0);
             }
 
             // Common finalization for this branch
@@ -235,7 +254,7 @@ public static class ChartHelper
             if (File.Exists(imageFileManual))
                 File.Delete(imageFileManual);
 
-            plt.SavePng(imageFileManual, 800, 600); 
+            plt.SavePng(imageFileManual, 800, 600);
             string base64Manual = ConvertImageToBase64String(imageFileManual);
             File.Delete(imageFileManual);
             return base64Manual;
@@ -253,9 +272,9 @@ public static class ChartHelper
             string[] labels = chartInput.Data.Select(x => x.Category).ToArray();
 
             var barPlot = plt.Add.Bars(values);
-            
+
             plt.Axes.SetLimitsX(-0.5, positions.Length - 0.5);
-            
+
             var ticks = new List<ScottPlot.Tick>();
             for (int i = 0; i < positions.Length; i++)
             {
@@ -263,14 +282,14 @@ public static class ChartHelper
             }
             plt.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(ticks.ToArray());
             plt.Axes.Bottom.TickLabelStyle.Alignment = Alignment.MiddleCenter;
-            
+
             try
             {
-                if (barPlot.Bars != null && barPlot.Bars.Any()) 
+                if (barPlot.Bars != null && barPlot.Bars.Any())
                 {
                     for (int i = 0; i < barPlot.Bars.Count; i++)
                     {
-                        if (i < values.Length) 
+                        if (i < values.Length)
                         {
                             string colorHex = flatHexColors[i % flatHexColors.Length];
                             if (!string.IsNullOrEmpty(colorHex))
@@ -281,7 +300,7 @@ public static class ChartHelper
                                 }
                                 catch
                                 {
-                                    barPlot.Bars[i].FillColor = new Color("#808080"); 
+                                    barPlot.Bars[i].FillColor = new Color("#808080");
                                 }
                             }
                         }
@@ -330,7 +349,7 @@ public static class ChartHelper
         // potentially requiring color information in ScatterPoint or grouping.
         if (flatHexColors.Any())
         {
-            scatter.MarkerColor = new Color(flatHexColors[0]); 
+            scatter.MarkerColor = new Color(flatHexColors[0]);
         }
         else
         {
@@ -355,7 +374,7 @@ public static class ChartHelper
         // Customize the plot
         if (!string.IsNullOrWhiteSpace(chartInput.Title))
             plt.Title(chartInput.Title);
-        
+
         if (!string.IsNullOrWhiteSpace(chartInput.XAxisLabel))
             plt.XLabel(chartInput.XAxisLabel);
 
@@ -368,7 +387,7 @@ public static class ChartHelper
             File.Delete(imageFile);
 
         // Consider making size configurable, e.g., via ScatterChartInput
-        plt.SavePng(imageFile, 800, 600); 
+        plt.SavePng(imageFile, 800, 600);
         string base64 = ConvertImageToBase64String(imageFile);
         File.Delete(imageFile);
         return base64;
