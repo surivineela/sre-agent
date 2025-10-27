@@ -176,14 +176,14 @@ export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContext
 
 // Node Size Configuration
 export class ExtendedAgentNodeSize {
-    static readonly agentWidth = 384; // 320 * 1.2
-    static readonly agentHeight = 168; // 140 * 1.2
-    static readonly toolWidth = 312; // 260 * 1.2
-    static readonly toolHeight = 132; // 110 * 1.2
+    static readonly agentWidth = 320;
+    static readonly agentHeight = 118;
+    static readonly toolWidth = 320;
+    static readonly toolHeight = 40;
     static readonly connectorWidth = 264; // 220 * 1.2
     static readonly connectorHeight = 108; // 90 * 1.2
-    static readonly triggerWidth = 336; // 280 * 1.2
-    static readonly triggerHeight = 144; // 120 * 1.2
+    static readonly triggerWidth = 320;
+    static readonly triggerHeight = 118;
 }
 
 // Filter Types

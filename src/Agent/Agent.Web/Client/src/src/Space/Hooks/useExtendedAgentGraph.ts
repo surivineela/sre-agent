@@ -13,7 +13,7 @@ import {
     PaginatedResponse,
     SystemTool,
 } from '../Contracts/ExtendedAgentGraph';
-import { buildExtendedAgentGraph, filterGraphBySearch } from '../Graph/ExtendedAgentGraphUtility';
+import { buildExtendedAgentGraph } from '../Graph/ExtendedAgentGraphUtility';
 
 export const useExtendedAgentGraph = () => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
@@ -328,13 +328,6 @@ export const useExtendedAgentGraph = () => {
 
             filteredNodes = filteredNodes.filter(node => connectedNodeIds.has(node.id));
             filteredEdges = filteredEdges.filter(edge => connectedNodeIds.has(edge.source) && connectedNodeIds.has(edge.target));
-        }
-
-        // Filter by search query
-        if (filters.searchQuery && filters.searchQuery.trim()) {
-            const result = filterGraphBySearch(filteredNodes, filteredEdges, filters.searchQuery);
-            filteredNodes = result.nodes;
-            filteredEdges = result.edges;
         }
 
         return { nodes: filteredNodes, edges: filteredEdges };

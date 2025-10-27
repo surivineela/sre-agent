@@ -1,5 +1,16 @@
-import { makeStyles, tokens } from '@fluentui/react-components';
+import { GriffelStyle, makeStyles, tokens } from '@fluentui/react-components';
 import { ExtendedAgentNodeSize } from '../Contracts/ExtendedAgentGraph';
+
+const containerCommonStyles: GriffelStyle = {
+    flex: '1 1 auto',
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderTopLeftRadius: tokens.borderRadiusXLarge,
+    boxShadow: tokens.shadow4,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    minHeight: 0,
+};
 
 export const useExtendedAgentGraphStyles = makeStyles({
     visualRoot: {
@@ -8,7 +19,7 @@ export const useExtendedAgentGraphStyles = makeStyles({
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
         width: '100%',
-        height: 'calc(100% - 2rem)',
+        height: '100%',
         minHeight: 0,
         overflow: 'hidden',
         position: 'relative',
@@ -26,36 +37,30 @@ export const useExtendedAgentGraphStyles = makeStyles({
         transform: 'translate(-50%, -50%)',
     },
     container: {
-        flex: '1 1 auto',
-        padding: '1rem',
-        paddingRight: 0,
-        paddingTop: 0,
-        backgroundColor: tokens.colorNeutralBackground1,
-        borderTopLeftRadius: tokens.borderRadiusXLarge,
-        boxShadow: tokens.shadow4,
-        height: 'calc(100vh - 0.5rem - 1px - 50px)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        minHeight: 0,
+        ...containerCommonStyles,
+    },
+    gridViewContainer: {
+        ...containerCommonStyles,
+        paddingBottom: '16px',
+        paddingLeft: '16px',
     },
     rootContainer: {
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
-        paddingTop: '0.5rem',
+        height: 'calc(100vh - 45px - 16px)',
+        paddingTop: '16px',
         borderTop: '1px solid rgba(204, 204, 204, 0.8)',
         backgroundColor: tokens.colorNeutralBackground3,
         paddingLeft: '15px',
-        gap: '0.25rem',
+        gap: '16px',
     },
-    radioGroupContainer: {
-        paddingRight: '1rem',
-        paddingBottom: '0.25rem',
-        flex: 'none',
+    toolbarWrapper: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
     },
     statusMessageContainer: {
-        paddingRight: '1rem',
+        paddingRight: '16px',
         marginBottom: tokens.spacingVerticalS,
     },
     selectorOverlay: {
@@ -65,7 +70,6 @@ export const useExtendedAgentGraphStyles = makeStyles({
         right: 0,
         display: 'flex',
         justifyContent: 'flex-start',
-        padding: '12px 16px 0 16px',
         pointerEvents: 'none',
         boxSizing: 'border-box',
         zIndex: 10,
@@ -88,6 +92,29 @@ export const useExtendedAgentGraphStyles = makeStyles({
         pointerEvents: 'auto',
         height: '100%',
     },
+    menuItemWithIcon: {
+        gap: '12px',
+        alignItems: 'center',
+        '& .fui-MenuItem__icon': {
+            height: 'unset',
+            width: 'unset',
+        },
+    },
+    menuIconWrapper: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '36px',
+        width: '36px',
+        borderRadius: '8px',
+    },
+    menuItemContent: {
+        fontWeight: tokens.fontWeightSemibold,
+        fontSize: tokens.fontSizeBase300,
+        lineHeight: tokens.lineHeightBase300,
+        letterSpacing: '0%',
+        verticalAlign: 'middle',
+    },
 });
 
 // Agent Node Styles
@@ -99,25 +126,19 @@ export const useExtendedAgentNodeStyles = makeStyles({
     agentCard: {
         width: `${ExtendedAgentNodeSize.agentWidth}px`,
         minHeight: `${ExtendedAgentNodeSize.agentHeight}px`,
-        borderRadius: tokens.borderRadiusXLarge,
+        borderRadius: '16px',
         cursor: 'pointer',
         transition: 'box-shadow 0.2s ease-in-out',
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        backgroundColor: tokens.colorNeutralBackground3,
-        padding: tokens.spacingHorizontalM,
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        padding: '20px',
         display: 'flex',
         flexDirection: 'column',
         gap: tokens.spacingVerticalS,
         position: 'relative',
-    },
-    autonomousCard: {
-        backgroundColor: tokens.colorNeutralBackground3,
-    },
-    orchestratorCard: {
-        backgroundColor: tokens.colorNeutralBackground3,
-    },
-    activityCard: {
-        backgroundColor: tokens.colorNeutralBackground3,
+        boxShadow: tokens.shadow16,
+        ':hover': {
+            backgroundColor: tokens.colorNeutralBackground1Hover,
+        },
     },
     cardHighlighted: {
         boxShadow: tokens.shadow8,
@@ -127,33 +148,28 @@ export const useExtendedAgentNodeStyles = makeStyles({
     },
     cardSelected: {
         border: `2px solid ${tokens.colorBrandStroke1}`,
-        boxShadow: tokens.shadow16,
-        backgroundColor: `${tokens.colorBrandBackground2} !important`,
     },
     header: {},
     headerText: {},
     description: {},
-    badge: {},
     cardContent: {
         display: 'flex',
         flexDirection: 'column',
-        gap: tokens.spacingVerticalS,
+        gap: '12px',
         flex: 1,
     },
     titleRow: {
         display: 'flex',
-        gap: tokens.spacingHorizontalS,
+        gap: '12px',
         alignItems: 'center',
     },
     iconWrapper: {
         width: '36px',
         height: '36px',
-        borderRadius: '50%',
-        backgroundColor: tokens.colorBrandBackground2,
+        borderRadius: '8px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: tokens.colorBrandForegroundInverted,
         flexShrink: 0,
     },
     nameBlock: {
@@ -161,7 +177,7 @@ export const useExtendedAgentNodeStyles = makeStyles({
         minWidth: 0,
         display: 'flex',
         flexDirection: 'column',
-        gap: tokens.spacingVerticalXXS,
+        gap: '4px',
     },
     nameText: {
         color: tokens.colorNeutralForeground1,
@@ -175,13 +191,9 @@ export const useExtendedAgentNodeStyles = makeStyles({
         overflow: 'hidden',
         textOverflow: 'ellipsis',
     },
-    instructionsText: {
-        color: tokens.colorNeutralForeground2,
-        display: '-webkit-box',
-        WebkitLineClamp: 3,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden',
-        fontSize: tokens.fontSizeBase200,
+    badgeRow: {
+        display: 'flex',
+        gap: '8px',
     },
     emptyText: {
         color: tokens.colorNeutralForeground3,
@@ -202,10 +214,13 @@ export const useExtendedAgentNodeStyles = makeStyles({
         boxShadow: tokens.shadow16,
         borderRadius: tokens.borderRadiusMedium,
     },
-    toolsBadge: {
-        position: 'absolute',
-        top: tokens.spacingVerticalS,
-        right: tokens.spacingHorizontalS,
+    badge: {
+        width: 'fit-content',
+        minWidth: '24px',
+        padding: '0 4px',
+        borderRadius: tokens.borderRadiusCircular,
+        border: tokens.colorNeutralStroke2,
+        color: tokens.colorNeutralForeground3,
         zIndex: 1,
     },
 });
@@ -219,22 +234,19 @@ export const useToolNodeStyles = makeStyles({
     toolCard: {
         width: `${ExtendedAgentNodeSize.toolWidth}px`,
         minHeight: `${ExtendedAgentNodeSize.toolHeight}px`,
-        borderRadius: tokens.borderRadiusXLarge,
+        borderRadius: '16px',
         cursor: 'pointer',
         transition: 'box-shadow 0.2s ease-in-out',
-        backgroundColor: tokens.colorNeutralBackground3,
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        padding: tokens.spacingHorizontalM,
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        padding: '20px',
         display: 'flex',
         flexDirection: 'column',
         gap: tokens.spacingVerticalS,
         position: 'relative',
-    },
-    kustoToolCard: {
-        backgroundColor: tokens.colorNeutralBackground3,
-    },
-    linkToolCard: {
-        backgroundColor: tokens.colorNeutralBackground3,
+        boxShadow: tokens.shadow16,
+        ':hover': {
+            backgroundColor: tokens.colorNeutralBackground1Hover,
+        },
     },
     cardHighlighted: {
         boxShadow: tokens.shadow8,
@@ -244,30 +256,25 @@ export const useToolNodeStyles = makeStyles({
     },
     cardSelected: {
         border: `2px solid ${tokens.colorBrandStroke1}`,
-        boxShadow: tokens.shadow16,
-        backgroundColor: `${tokens.colorBrandBackground2} !important`,
     },
     header: {},
     headerText: {},
     description: {},
-    connectorBadge: {},
     cardContent: {
         display: 'flex',
         flexDirection: 'column',
-        gap: tokens.spacingVerticalS,
+        gap: '12px',
         flex: 1,
     },
     titleRow: {
         display: 'flex',
-        gap: tokens.spacingHorizontalS,
+        gap: '12px',
         alignItems: 'center',
     },
     iconWrapper: {
-        width: '32px',
-        height: '32px',
+        width: '36px',
+        height: '36px',
         borderRadius: '8px',
-        backgroundColor: tokens.colorPaletteBlueBackground2,
-        color: tokens.colorPaletteBlueForeground2,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -278,7 +285,7 @@ export const useToolNodeStyles = makeStyles({
         minWidth: 0,
         display: 'flex',
         flexDirection: 'column',
-        gap: tokens.spacingVerticalXXS,
+        gap: '4px',
     },
     nameText: {
         color: tokens.colorNeutralForeground1,
@@ -286,28 +293,11 @@ export const useToolNodeStyles = makeStyles({
         overflow: 'hidden',
         textOverflow: 'ellipsis',
     },
-    subtitleText: {
-        color: tokens.colorNeutralForeground3,
-        fontSize: tokens.fontSizeBase200,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
+    kustoToolCard: {
+        backgroundColor: tokens.colorNeutralBackground3,
     },
-    descriptionText: {
-        color: tokens.colorNeutralForeground2,
-        display: '-webkit-box',
-        WebkitLineClamp: 3,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden',
-        fontSize: tokens.fontSizeBase200,
-    },
-    footerRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: tokens.spacingHorizontalS,
-    },
-    mutedText: {
-        color: tokens.colorNeutralForeground3,
+    linkToolCard: {
+        backgroundColor: tokens.colorNeutralBackground3,
     },
 });
 
@@ -320,55 +310,47 @@ export const useTriggerNodeStyles = makeStyles({
     triggerCard: {
         width: `${ExtendedAgentNodeSize.triggerWidth}px`,
         minHeight: `${ExtendedAgentNodeSize.triggerHeight}px`,
-        borderRadius: tokens.borderRadiusXLarge,
+        borderRadius: '16px',
         cursor: 'pointer',
         transition: 'box-shadow 0.2s ease-in-out',
-        backgroundColor: tokens.colorNeutralBackground3,
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        padding: tokens.spacingHorizontalM,
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        padding: '20px',
         display: 'flex',
         flexDirection: 'column',
         gap: tokens.spacingVerticalS,
         position: 'relative',
-    },
-    incidentTriggerCard: {
-        backgroundColor: tokens.colorNeutralBackground3,
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-    },
-    scheduledTriggerCard: {
-        backgroundColor: tokens.colorNeutralBackground3,
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        boxShadow: tokens.shadow16,
+        ':hover': {
+            backgroundColor: tokens.colorNeutralBackground1Hover,
+        },
     },
     cardHighlighted: {
         boxShadow: tokens.shadow8,
     },
     cardHovered: {
         boxShadow: tokens.shadow16,
-        transform: 'translateY(-2px)',
     },
     cardSelected: {
         border: `2px solid ${tokens.colorBrandStroke1}`,
-        boxShadow: tokens.shadow16,
-        backgroundColor: `${tokens.colorBrandBackground2} !important`,
     },
     cardContent: {
         display: 'flex',
         flexDirection: 'column',
-        gap: tokens.spacingVerticalS,
+        gap: '12px',
         flex: 1,
     },
     titleRow: {
         display: 'flex',
-        alignItems: 'flex-start',
-        gap: tokens.spacingHorizontalS,
+        gap: '12px',
+        alignItems: 'center',
     },
     iconWrapper: {
-        width: '24px',
-        height: '24px',
+        width: '36px',
+        height: '36px',
+        borderRadius: '8px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: tokens.colorNeutralForeground1,
         flexShrink: 0,
     },
     nameBlock: {
@@ -376,6 +358,7 @@ export const useTriggerNodeStyles = makeStyles({
         minWidth: 0,
         display: 'flex',
         flexDirection: 'column',
+        gap: '4px',
     },
     nameText: {
         fontWeight: tokens.fontWeightSemibold,
@@ -390,23 +373,23 @@ export const useTriggerNodeStyles = makeStyles({
         lineHeight: tokens.lineHeightBase200,
         wordBreak: 'break-word',
     },
-    descriptionText: {
-        color: tokens.colorNeutralForeground2,
-        display: '-webkit-box',
-        WebkitLineClamp: 2,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden',
-        fontSize: tokens.fontSizeBase200,
+    badgeRow: {
+        display: 'flex',
+        gap: '8px',
+    },
+    badge: {
+        width: 'fit-content',
+        minWidth: '24px',
+        padding: '0 4px',
+        borderRadius: tokens.borderRadiusCircular,
+        border: tokens.colorNeutralStroke2,
+        color: tokens.colorNeutralForeground3,
+        zIndex: 1,
     },
     mutedText: {
         color: tokens.colorNeutralForeground3,
         fontSize: tokens.fontSizeBase200,
         fontStyle: 'italic',
-    },
-    statusBadge: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: tokens.spacingHorizontalXS,
     },
     footerRow: {
         display: 'flex',

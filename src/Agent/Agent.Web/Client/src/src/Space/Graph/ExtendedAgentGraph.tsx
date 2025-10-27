@@ -30,6 +30,7 @@ import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
 import { useScheduledTasks } from '../Hooks/useScheduledTasks';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { ConnectorCard } from './ConnectorCard';
+import CreateButton from './CreateButton';
 import { ExtendedAgentCard } from './ExtendedAgentCard';
 import { EntityType } from './ExtendedAgentCreationDialog/types';
 import { ExtendedAgentCreationDialog } from './ExtendedAgentCreationDialogNew';
@@ -47,7 +48,6 @@ import { ExtendedAgentInfoPanel } from './ExtendedAgentInfoPanel';
 import { ExtendedAgentRelationshipDialog } from './ExtendedAgentRelationshipDialog';
 import { ExtendedAgentSelector } from './ExtendedAgentSelector';
 import { buildMetaAgentYaml, convertExtendedEntityToYaml } from './ExtendedAgentYamlUtils';
-import { FloatingActionButton } from './FloatingActionButton';
 import { ToolCard } from './ToolCard';
 import { TriggerCard } from './TriggerCard';
 
@@ -126,8 +126,8 @@ const ExtendedAgentGraphContent = memo(() => {
         reactFlow,
         spinner,
         rootContainer,
+        toolbarWrapper,
         container,
-        radioGroupContainer,
         selectorOverlay,
         infoPanelContainer,
         infoPanelFloating,
@@ -576,8 +576,18 @@ const ExtendedAgentGraphContent = memo(() => {
     const handleAgentSelect = useCallback(
         (agentName?: string) => {
             setFilters(prev => ({ ...prev, agentName }));
+            const targetNode = nodes.find(node => node.id === `agent_${agentName}`);
+            if (targetNode) {
+                requestAnimationFrame(() => {
+                    reactFlowInstance.fitView({
+                        nodes: [{ id: targetNode.id }],
+                        duration: 600,
+                        padding: 0.1,
+                    });
+                });
+            }
         },
-        [setFilters]
+        [setFilters, nodes, reactFlowInstance]
     );
 
     const handleSearchQueryChange = useCallback(
@@ -1294,17 +1304,7 @@ const ExtendedAgentGraphContent = memo(() => {
         }
 
         return (
-            <ExtendedAgentListView
-                agents={agents}
-                tools={tools}
-                connectors={connectors}
-                isLoading={loading}
-                onRefresh={handleRefresh}
-                onCreateClick={() => {
-                    setCreationDialogContext(undefined);
-                    setIsCreationDialogOpen(true);
-                }}
-            />
+            <ExtendedAgentListView agents={agents} tools={tools} connectors={connectors} isLoading={loading} onRefresh={handleRefresh} />
         );
     };
 
@@ -1321,6 +1321,23 @@ const ExtendedAgentGraphContent = memo(() => {
         }
     }
 
+    const handleCreateItemStandalone = useCallback(
+        (itemType: EntityType) => {
+            setCreationDialogContext(undefined);
+            setCreationDialogInitialTypeOverride(itemType);
+            setCreationDialogTriggerAgentName(undefined);
+            setCreationSuccess(undefined);
+            setIsCreationDialogOpen(true);
+        },
+        [
+            setCreationDialogContext,
+            setCreationDialogInitialTypeOverride,
+            setCreationDialogTriggerAgentName,
+            setCreationSuccess,
+            setIsCreationDialogOpen,
+        ]
+    );
+
     return (
         <ExtendedAgentGraphContext.Provider
             value={{
@@ -1336,7 +1353,8 @@ const ExtendedAgentGraphContent = memo(() => {
             }}
         >
             <div className={rootContainer}>
-                <div className={radioGroupContainer}>
+                <div className={toolbarWrapper}>
+                    <CreateButton handleCreateItemStandalone={handleCreateItemStandalone} disabled={isLoading || !hasData} />
                     <RadioGroup
                         value={currentView}
                         layout="horizontal"
@@ -1346,7 +1364,6 @@ const ExtendedAgentGraphContent = memo(() => {
                         <Radio value={ExtendedAgentGraphView.Grid} label={intl.formatMessage(ExtendedAgentsGraphResources.gridView)} />
                     </RadioGroup>
                 </div>
-
                 {creationSuccessMessage && (
                     <div className={statusMessageContainer}>
                         <MessageBar intent="success" layout="multiline">
@@ -1410,9 +1427,10 @@ const ExtendedAgentGraphContent = memo(() => {
                                         searchQuery={filters.searchQuery ?? ''}
                                         onAgentSelect={handleAgentSelect}
                                         onSearchQueryChange={handleSearchQueryChange}
-                                        isLoading={loading}
                                         onRefresh={handleRefresh}
-                                        selectedAgent={selectedAgent}
+                                        setSelectedNode={setSelectedNode}
+                                        isLoading={loading}
+                                        nodes={nodes}
                                         nodeCount={nodes.length}
                                         edgeCount={edges.length}
                                         showAgentPicker={hasAgents}
@@ -1431,18 +1449,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                     }}
                                 />
                             ) : (
-                                <>
-                                    {renderGraphContent()}
-                                    {currentView === ExtendedAgentGraphView.Visual && !isLoading && hasData && (
-                                        <FloatingActionButton
-                                            onClick={() => {
-                                                setCreationDialogContext(undefined);
-                                                setIsCreationDialogOpen(true);
-                                            }}
-                                            tooltip={intl.formatMessage(ExtendedAgentsGraphResources.createNewEntityTooltip)}
-                                        />
-                                    )}
-                                </>
+                                <>{renderGraphContent()}</>
                             )}
                         </div>
 

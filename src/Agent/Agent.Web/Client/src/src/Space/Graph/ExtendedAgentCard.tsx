@@ -9,11 +9,12 @@ import {
     MenuTrigger,
     mergeClasses,
     Text,
+    tokens,
     Tooltip,
 } from '@fluentui/react-components';
-import { Add24Regular, Bot24Regular, BotSparkle24Regular, Flash24Regular } from '@fluentui/react-icons';
+import { Add24Regular, Agents24Regular, MoreHorizontal16Regular } from '@fluentui/react-icons';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
-import { memo, MouseEvent, useContext, useMemo } from 'react';
+import { memo, MouseEvent, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgent, ExtendedAgentGraphContext, ExtendedAgentGraphNode } from '../Contracts/ExtendedAgentGraph';
@@ -61,9 +62,6 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
 
     const {
         agentCard,
-        autonomousCard,
-        orchestratorCard,
-        activityCard,
         cardHighlighted,
         cardHovered,
         cardSelected,
@@ -73,11 +71,10 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
         nameBlock,
         nameText,
         subtitleText,
-        instructionsText,
-        emptyText,
+        badgeRow,
         quickActionButton,
         menuPopover,
-        toolsBadge,
+        badge,
     } = useExtendedAgentNodeStyles();
     const intl = useIntl();
 
@@ -89,27 +86,12 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
 
     const cardStyles = mergeClasses(
         agentCard,
-        agentType === 'Autonomous' ? autonomousCard : undefined,
-        agentType === 'Orchestrator' ? orchestratorCard : undefined,
-        agentType === 'Activity' ? activityCard : undefined,
         !isHovered && nodesToHighlight.includes(id) ? cardHighlighted : undefined,
         isHovered ? cardHovered : undefined,
         isSelectedNode ? cardSelected : undefined
     );
 
-    const AgentIcon = useMemo(() => {
-        switch (agentType) {
-            case 'Orchestrator':
-                return BotSparkle24Regular;
-            case 'Activity':
-                return Flash24Regular;
-            default:
-                return Bot24Regular;
-        }
-    }, [agentType]);
-
     const toolCount = agent?.tools?.length || 0;
-    const instructions = agent?.instructions?.trim();
 
     const handleOpenRelationships = (event: MouseEvent<HTMLButtonElement>) => {
         event.stopPropagation();
@@ -123,15 +105,10 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
             <Handles />
             <Card onClick={() => setSelectedNode(data)} className={cardStyles}>
-                {toolCount > 0 && (
-                    <Badge appearance="filled" size="small" className={toolsBadge}>
-                        {intl.formatMessage(ExtendedAgentsGraphResources.toolsCountBadge, { count: toolCount })}
-                    </Badge>
-                )}
                 <div className={cardContent}>
                     <div className={titleRow}>
-                        <div className={iconWrapper}>
-                            <AgentIcon />
+                        <div className={iconWrapper} style={{ backgroundColor: tokens.colorPaletteLavenderBackground2 }}>
+                            <Agents24Regular style={{ color: tokens.colorPaletteLavenderForeground2 }} />
                         </div>
                         <div className={nameBlock}>
                             <Text className={nameText}>{data?.name}</Text>
@@ -145,13 +122,13 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
                                 )}
                             </Text>
                         </div>
+                        <MoreHorizontal16Regular />
                     </div>
-
-                    {instructions ? (
-                        <Text className={instructionsText}>{instructions}</Text>
-                    ) : (
-                        <Text className={emptyText}>{intl.formatMessage(ExtendedAgentsGraphResources.noInstructions)}</Text>
-                    )}
+                    <div className={badgeRow}>
+                        <Badge appearance="outline" size="small" className={badge}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.toolsCountBadge, { count: toolCount })}
+                        </Badge>
+                    </div>
                 </div>
                 {isSelectedNode && agent?.name && (
                     <Menu positioning="above-end">

@@ -1,10 +1,11 @@
-import { Badge, Card, mergeClasses, Text } from '@fluentui/react-components';
-import { Alert24Regular, Clock24Regular, Pause24Regular, Play24Regular } from '@fluentui/react-icons';
+import { Badge, Card, mergeClasses, Text, tokens } from '@fluentui/react-components';
+import { MoreHorizontal16Regular, Play24Regular, Timer24Regular, Warning24Regular } from '@fluentui/react-icons';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgentGraphContext, ExtendedAgentGraphNode, ExtendedTrigger } from '../Contracts/ExtendedAgentGraph';
+import { getHumanReadableCronExpression } from '../ScheduledTasks/V2/ScheduledTasksUtilities';
 import { useTriggerNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { getHandleId } from './Utility';
 
@@ -35,16 +36,14 @@ const Handles = memo(() => {
 Handles.displayName = 'TriggerHandles';
 
 export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
-    const { data, id } = props;
     const intl = useIntl();
+    const { data, id } = props;
 
     const { selectedNode, setSelectedNode, hoverNode, unHoverNode, hoveredNodeId, nodesToHighlight } =
         useContext(ExtendedAgentGraphContext);
 
     const {
         triggerCard,
-        incidentTriggerCard,
-        scheduledTriggerCard,
         cardHighlighted,
         cardHovered,
         cardSelected,
@@ -54,10 +53,8 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
         nameBlock,
         nameText,
         subtitleText,
-        descriptionText,
-        mutedText,
-        statusBadge,
-        footerRow,
+        badge,
+        badgeRow,
     } = useTriggerNodeStyles();
 
     const trigger = data?.data as ExtendedTrigger;
@@ -67,34 +64,96 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
 
     const cardStyles = mergeClasses(
         triggerCard,
-        triggerType === 'incident' ? incidentTriggerCard : undefined,
-        triggerType === 'scheduled' ? scheduledTriggerCard : undefined,
         !isHovered && nodesToHighlight.includes(id) ? cardHighlighted : undefined,
         isHovered ? cardHovered : undefined,
         isSelectedNode ? cardSelected : undefined
     );
 
-    const TriggerIcon = useMemo(() => {
+    const triggerIcon = useMemo(() => {
         switch (triggerType) {
             case 'incident':
-                return Alert24Regular;
+                return (
+                    <div className={iconWrapper} style={{ backgroundColor: tokens.colorPaletteCranberryBackground2 }}>
+                        <Warning24Regular style={{ color: tokens.colorPaletteCranberryForeground2 }} />
+                    </div>
+                );
             case 'scheduled':
-                return Clock24Regular;
+                return (
+                    <div className={iconWrapper} style={{ backgroundColor: tokens.colorPaletteForestBackground2 }}>
+                        <Timer24Regular style={{ color: tokens.colorPaletteForestForeground2 }} />
+                    </div>
+                );
             default:
-                return Play24Regular;
+                return (
+                    <div className={iconWrapper} style={{ backgroundColor: tokens.colorNeutralBackground3 }}>
+                        <Play24Regular style={{ color: tokens.colorNeutralForeground3 }} />
+                    </div>
+                );
         }
     }, [triggerType]);
 
-    const StatusIcon = trigger?.status === 'Paused' ? Pause24Regular : Play24Regular;
+    const statusBadgeElement = useMemo(() => {
+        const triggerStatus = trigger?.status ?? 'Active';
+        let backgroundColor: string | undefined;
+        let color: string | undefined;
+        let borderColor: string | undefined;
+        switch (triggerStatus) {
+            case 'Active':
+                backgroundColor = tokens.colorStatusSuccessBackground1;
+                color = tokens.colorStatusSuccessForeground1;
+                borderColor = tokens.colorStatusSuccessBorder1;
+                break;
+            case 'Paused':
+                backgroundColor = tokens.colorStatusWarningBackground1;
+                color = tokens.colorStatusWarningForeground1;
+                borderColor = tokens.colorStatusWarningBorder1;
+                break;
+            case 'Disabled':
+                backgroundColor = tokens.colorNeutralBackgroundDisabled;
+                color = tokens.colorNeutralForegroundDisabled;
+                borderColor = tokens.colorNeutralForegroundDisabled;
+                break;
+            default:
+                break;
+        }
 
-    const triggerDescription = trigger?.description?.trim();
-    const triggerStatus = trigger?.status ?? 'Active';
-    const triggerSubtitle =
-        triggerType === 'incident'
-            ? `${trigger?.priority || 'All priorities'} • ${trigger?.incidentType || 'All types'}`
-            : trigger?.cronExpression
-              ? `${trigger.cronExpression} (${trigger.timezone || 'UTC'})`
-              : 'Custom schedule';
+        return (
+            <Badge
+                appearance="outline"
+                size="small"
+                className={badge}
+                style={{
+                    backgroundColor: backgroundColor,
+                    color: color,
+                    borderColor: borderColor,
+                }}
+            >
+                {triggerStatus}
+            </Badge>
+        );
+    }, [trigger?.status]);
+
+    const chronBadgeElement = useMemo(() => {
+        if (triggerType !== 'scheduled' || !trigger?.cronExpression) {
+            return null;
+        }
+
+        return (
+            <Badge appearance="outline" size="small" className={badge}>
+                {getHumanReadableCronExpression(trigger.cronExpression, intl)}
+            </Badge>
+        );
+    }, [triggerType, trigger?.cronExpression]);
+
+    const triggerSubtitle = useMemo(
+        () =>
+            triggerType === 'incident'
+                ? intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeIncident)
+                : triggerType === 'scheduled'
+                  ? intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeScheduled)
+                  : '',
+        [triggerType, intl]
+    );
 
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
@@ -102,33 +161,17 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
             <Card onClick={() => setSelectedNode(data)} className={cardStyles}>
                 <div className={cardContent}>
                     <div className={titleRow}>
-                        <div className={iconWrapper}>
-                            <TriggerIcon />
-                        </div>
+                        {triggerIcon}
                         <div className={nameBlock}>
                             <Text className={nameText}>{data?.name}</Text>
                             <Text className={subtitleText}>{triggerSubtitle}</Text>
                         </div>
+                        <MoreHorizontal16Regular />
                     </div>
 
-                    {triggerDescription ? (
-                        <Text className={descriptionText}>{triggerDescription}</Text>
-                    ) : (
-                        <Text className={mutedText}>{intl.formatMessage(ExtendedAgentsGraphResources.noDescription)}</Text>
-                    )}
-
-                    <div className={footerRow}>
-                        <Text className={mutedText}>Agent: {trigger?.agentName || 'Not specified'}</Text>
-                        <div className={statusBadge}>
-                            <StatusIcon style={{ width: '12px', height: '12px', marginRight: '4px' }} />
-                            <Badge
-                                appearance={triggerStatus === 'Active' ? 'filled' : 'outline'}
-                                color={triggerStatus === 'Active' ? 'success' : triggerStatus === 'Paused' ? 'warning' : 'danger'}
-                                size="small"
-                            >
-                                {triggerStatus}
-                            </Badge>
-                        </div>
+                    <div className={badgeRow}>
+                        {statusBadgeElement}
+                        {chronBadgeElement}
                     </div>
                 </div>
             </Card>

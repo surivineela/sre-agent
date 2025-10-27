@@ -378,3 +378,32 @@ export const filterGraphBySearch = (
 
     return { nodes: filteredNodes, edges: filteredEdges };
 };
+
+export const getNodesMatchingSearchQuery = (nodes: Node<ExtendedAgentGraphNode>[], searchQuery: string): Node<ExtendedAgentGraphNode>[] => {
+    if (!searchQuery.trim()) {
+        return nodes;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const matchingNodes: Node<ExtendedAgentGraphNode>[] = [];
+
+    // Find matching nodes
+    nodes.forEach(node => {
+        const name = node.data?.name?.toLowerCase() || '';
+        const description =
+            node.data?.type === ExtendedAgentNodeType.Agent
+                ? (node.data.data as ExtendedAgent)?.instructions?.toLowerCase() || ''
+                : node.data?.type === ExtendedAgentNodeType.Tool
+                  ? (node.data.data as ExtendedTool)?.description?.toLowerCase() || ''
+                  : node.data?.type === ExtendedAgentNodeType.SystemTool
+                    ? (node.data.data as SystemTool)?.description?.toLowerCase() || ''
+                    : node.data?.type === ExtendedAgentNodeType.Trigger
+                      ? (node.data.data as ExtendedTrigger)?.description?.toLowerCase() || ''
+                      : (node.data.data as ExtendedConnector)?.description?.toLowerCase() || '';
+
+        if (name.includes(query) || description.includes(query)) {
+            matchingNodes.push(node);
+        }
+    });
+    return matchingNodes;
+};

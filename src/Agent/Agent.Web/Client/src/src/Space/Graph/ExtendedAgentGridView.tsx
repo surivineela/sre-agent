@@ -31,7 +31,6 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import {
-    Add16Regular,
     ArrowClockwise16Regular,
     ChevronDown16Regular,
     ChevronRight16Regular,
@@ -176,7 +175,6 @@ interface ExtendedAgentListViewProps {
     connectors: ExtendedConnector[];
     isLoading: boolean;
     onRefresh: () => void;
-    onCreateClick: () => void;
 }
 
 type EntityItem = {
@@ -188,14 +186,7 @@ type EntityItem = {
     data: ExtendedAgent | ExtendedTool | ExtendedConnector;
 };
 
-export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
-    agents,
-    tools,
-    connectors,
-    isLoading,
-    onRefresh,
-    onCreateClick,
-}) => {
+export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({ agents, tools, connectors, isLoading, onRefresh }) => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const intl = useIntl();
 
@@ -443,7 +434,7 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
     );
 
     return (
-        <div className={styles.container}>
+        <div className={styles.container} style={{ paddingBottom: '16px', paddingLeft: '16px' }}>
             <Text className={styles.description}>{intl.formatMessage(ExtendedAgentsGraphResources.subAgentBuilderDescription)}</Text>
 
             <div className={styles.searchAndToolbar}>
@@ -454,9 +445,6 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
                 />
 
                 <Toolbar>
-                    <ToolbarButton icon={<Add16Regular />} appearance="subtle" disabled={isLoading} onClick={onCreateClick}>
-                        {intl.formatMessage(SreAgentResources.create)}
-                    </ToolbarButton>
                     <ToolbarButton icon={<ArrowClockwise16Regular />} appearance="subtle" disabled={isLoading} onClick={onRefresh}>
                         {intl.formatMessage(SreAgentResources.refresh)}
                     </ToolbarButton>

@@ -3595,6 +3595,11 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'A meta agent override already exists in your system.',
         id: 'VnySGb',
     },
+    subagent: { defaultMessage: 'Subagent', id: 'Q++yMM' },
+    noNodesFound: {
+        defaultMessage: 'No nodes found',
+        id: 'sNuzQE',
+    },
 });
 
 export const ThreadTraceResources = defineMessages({

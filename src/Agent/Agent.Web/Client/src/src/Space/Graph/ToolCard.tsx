@@ -1,9 +1,7 @@
-import { Badge, Card, mergeClasses, Text } from '@fluentui/react-components';
-import { Database24Regular, Link24Regular, Wrench24Regular } from '@fluentui/react-icons';
+import { Badge, Card, mergeClasses, Text, tokens } from '@fluentui/react-components';
+import { MoreHorizontal16Regular, WrenchSettings24Regular } from '@fluentui/react-icons';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
-import { memo, useContext, useMemo } from 'react';
-import { useIntl } from 'react-intl';
-import { ExtendedAgentsGraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { memo, useContext } from 'react';
 import {
     ExtendedAgentGraphContext,
     ExtendedAgentGraphNode,
@@ -57,13 +55,7 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
         iconWrapper,
         nameBlock,
         nameText,
-        subtitleText,
-        descriptionText,
-        footerRow,
-        mutedText,
     } = useToolNodeStyles();
-    const intl = useIntl();
-
     const isHovered = hoveredNodeId === id;
     const isSelectedNode = selectedNode?.id === id;
 
@@ -83,43 +75,19 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
         isSelectedNode ? cardSelected : undefined
     );
 
-    const ToolIcon = useMemo(() => {
-        if (isSystemTool) {
-            return Wrench24Regular;
-        }
-
-        switch (toolType) {
-            case 'KustoTool':
-                return Database24Regular;
-            case 'LinkTool':
-                return Link24Regular;
-            default:
-                return Wrench24Regular;
-        }
-    }, [isSystemTool, toolType]);
-
-    const toolDescription = (isSystemTool ? systemTool?.description : tool?.description)?.trim();
-    const connectorOrPlugin = isSystemTool
-        ? (systemTool?.pluginName ?? intl.formatMessage(SreAgentResources.NA))
-        : (tool?.connector ?? intl.formatMessage(SreAgentResources.NA));
-    const connectorLabel = isSystemTool
-        ? intl.formatMessage(ExtendedAgentsGraphResources.systemToolPluginLabel)
-        : intl.formatMessage(ExtendedAgentsGraphResources.connectorLabel);
-    const parameterCount = isSystemTool ? (systemTool?.parameters?.length ?? 0) : (tool?.parameters?.length ?? 0);
-
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
             <Handles />
             <Card onClick={() => setSelectedNode(data)} className={cardStyles}>
                 <div className={cardContent}>
                     <div className={titleRow}>
-                        <div className={iconWrapper}>
-                            <ToolIcon />
+                        <div className={iconWrapper} style={{ backgroundColor: tokens.colorPaletteLilacBackground2 }}>
+                            <WrenchSettings24Regular style={{ color: tokens.colorPaletteLilacForeground2 }} />
                         </div>
                         <div className={nameBlock}>
                             <Text className={nameText}>{data?.name}</Text>
-                            <Text className={subtitleText}>{toolType}</Text>
                         </div>
+                        <MoreHorizontal16Regular />
                         {!isSystemTool && tool?.connector && (
                             <Badge appearance="outline" size="tiny">
                                 {tool.connector}
@@ -130,21 +98,6 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
                                 {systemTool.resourceType}
                             </Badge>
                         )}
-                    </div>
-
-                    {toolDescription ? (
-                        <Text className={descriptionText}>{toolDescription}</Text>
-                    ) : (
-                        <Text className={mutedText}>{intl.formatMessage(ExtendedAgentsGraphResources.noDescription)}</Text>
-                    )}
-
-                    <div className={footerRow}>
-                        <Text className={mutedText}>
-                            {intl.formatMessage(ExtendedAgentsGraphResources.parametersSectionTitle)}: {parameterCount}
-                        </Text>
-                        <Text className={mutedText}>
-                            {connectorLabel}: {connectorOrPlugin}
-                        </Text>
                     </div>
                 </div>
             </Card>
