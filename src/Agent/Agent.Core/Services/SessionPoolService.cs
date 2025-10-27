@@ -4,6 +4,7 @@
 
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
@@ -163,7 +164,7 @@ public class SessionPoolService : ISessionPoolService
             DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
         });
 
-        _logger.LogInternalInformation($"POST code/execute (identifier={identifier}) bodySize={code.Length}");
+        _logger.LogInternalInformation($"POST code/execute to endpoint {url} with bodySize={code.Length}");
         try
         {
             var client = _httpClientFactory.CreateClient(Constants.HttpClientForSessionPool);
@@ -202,8 +203,8 @@ public class SessionPoolService : ISessionPoolService
             filename.Replace("mnt/data/", "");
         }
 
-        var url = $"{baseEndpoint.TrimEnd('/')}/python/downloadFile?fileName={filename}&identifier={identifier}&api-version=2024-02-02-preview";
-        _logger.LogInternalInformation($"Downloading session file '{filename}' (identifier={identifier})");
+        var url = $"{baseEndpoint.TrimEnd('/')}/files/content/{UrlEncoder.Default.Encode(filename)}?identifier={identifier}&api-version=2024-02-02-preview";
+        _logger.LogInternalInformation($"Downloading session file '{filename}' from session pool endpoint {url}");
         try
         {
             var client = _httpClientFactory.CreateClient(Constants.HttpClientForSessionPool);
