@@ -11,7 +11,9 @@ export const getDataPlaneErrorMessage = (error: any): string => {
         }
 
         if (typeof error.response.data === 'object') {
-            return error.response.data.message || error.response.data.error || error.response.data.title;
+            const parsedError =
+                error.response.data.message || error.response.data.error?.message || error.response.data.error || error.response.data.title;
+            return typeof parsedError === 'string' ? parsedError : JSON.stringify(parsedError);
         }
     }
 
@@ -19,7 +21,8 @@ export const getDataPlaneErrorMessage = (error: any): string => {
         return `${error.response.status}: ${error.response.statusText}`;
     }
 
-    return error?.message || '';
+    const parsedError = error?.message || '';
+    return typeof parsedError === 'string' ? parsedError : JSON.stringify(parsedError);
 };
 
 export class DataPlaneClient {

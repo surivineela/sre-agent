@@ -5,6 +5,7 @@ import { useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AppInsightsClient } from '../../Common/Clients/AppInsightsClient';
+import { getDataPlaneErrorMessage } from '../../Common/Clients/DataPlaneClient';
 import { TimeRangeValue, TimespanKeys } from '../../Common/Components/PillFilter/Contracts';
 import { getDefaultTimeRangeOptions } from '../../Common/Components/PillFilter/Hooks/useTimeRangePillFilter';
 import { PillFilter } from '../../Common/Components/PillFilter/PillFilter';
@@ -270,8 +271,8 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
             setIncidentCoverageResponse(data);
             setIsIncidentCoverageLoading(false);
         } else {
-            const error = response.error?.response?.data?.error;
-            setQueryErrorMessage(error);
+            const errorMessage = getDataPlaneErrorMessage(response.error);
+            setQueryErrorMessage(errorMessage);
             log({
                 action: 'fetchIncidentCoverageData',
                 actionModifier: 'failed',
@@ -304,8 +305,8 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
             setIncidentSummaryResponse(data);
             setIsIncidentSummaryLoading(false);
         } else {
-            const error = response.error?.response?.data?.error;
-            setQueryErrorMessage(error);
+            const errorMessage = getDataPlaneErrorMessage(response.error);
+            setQueryErrorMessage(errorMessage);
             log({
                 action: 'fetchIncidentSummaryData',
                 actionModifier: 'failed',
@@ -340,6 +341,8 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
             setIncidentHandlersResponse(data);
             setIsIncidentHandlersLoading(false);
         } else {
+            const errorMessage = getDataPlaneErrorMessage(response.error);
+            setQueryErrorMessage(errorMessage);
             log({
                 action: 'fetchIncidentHandlersData',
                 actionModifier: 'failed',
@@ -377,12 +380,14 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                             />
 
                             {queryErrorMessage && (
-                                <MessageBar intent="error" style={{ maxWidth: 1000 }}>
-                                    <MessageBarBody>
-                                        <MessageBarTitle>{intl.formatMessage(SreAgentResources.requestError)}</MessageBarTitle>
-                                        {queryErrorMessage}
-                                    </MessageBarBody>
-                                </MessageBar>
+                                <div style={{ maxWidth: 1000 }}>
+                                    <MessageBar intent="error">
+                                        <MessageBarBody>
+                                            <MessageBarTitle>{intl.formatMessage(SreAgentResources.requestError)}</MessageBarTitle>
+                                            {queryErrorMessage}
+                                        </MessageBarBody>
+                                    </MessageBar>
+                                </div>
                             )}
 
                             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
