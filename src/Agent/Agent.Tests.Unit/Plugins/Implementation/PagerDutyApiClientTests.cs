@@ -73,6 +73,14 @@ public class PagerDutyApiClientTests
         Assert.True(result.Notes.Count > 0);
     }
 
+    [Fact]
+    public async Task TestGetIncidents_Fatal_Deserialization()
+    {
+        var stringRes = await ReadJsonFromFileAsync("GetIncidents_Fatal_Deserialization.json");
+        MockHttpResponse(stringRes);
+        await Assert.ThrowsAnyAsync<Exception>(() => _pagerDutyService.GetIncidentsAsync(1, 0));
+    }
+
     #region Utility Methods
     private void MockHttpResponse(string jsonResponse, HttpStatusCode statusCode = HttpStatusCode.OK)
     {

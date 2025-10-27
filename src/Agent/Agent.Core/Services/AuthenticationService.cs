@@ -319,11 +319,6 @@ public class AuthenticationService : IAuthenticationService
 
     public TokenCredential GetIcmApiCredential()
     {
-        if (_hostEnvironment.IsDevelopment())
-        {
-            return GetDefaultAzureCredential();
-        }
-
         return GetManagedIdentityCredential(_actionSettings.Identity);
     }
 

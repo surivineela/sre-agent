@@ -1,0 +1,131 @@
+{
+  "incidents": [
+    {
+      "incident_number": 76,
+      "title": "500 Errors",
+      "description": "500 Errors",
+      "created_at": "2025-10-08T19:28:41Z",
+      "updated_at": "2025-10-08T19:28:41Z",
+      "status": "triggered",
+      "incident_key": "853915ec848f48d89c92cd88bb77a8f4",
+      "service": {
+        "id": "PHQDN4S",
+        "type": "service_reference",
+        "summary": "Default Service",
+        "self": "https://api.pagerduty.com/services/PHQDN4S",
+        "html_url": "https://microsoft-sre-agent-test.pagerduty.com/service-directory/PHQDN4S"
+      },
+      "assignments": [
+        {
+          "at": "2025-10-08T19:28:41Z",
+          "assignee": {
+            "id": "P2ASMN2",
+            "type": "user_reference",
+            "summary": "Dheeraj Bandaru",
+            "self": "https://api.pagerduty.com/users/P2ASMN2",
+            "html_url": "https://microsoft-sre-agent-test.pagerduty.com/users/P2ASMN2"
+          }
+        }
+      ],
+      "assigned_via": "escalation_policy",
+      "last_status_change_at": "2025-10-08T19:28:41Z",
+      "resolved_at": null,
+      "first_trigger_log_entry": {
+        "id": "RRQP429Q6JQFM94D84JZDC8KTQ",
+        "type": "trigger_log_entry",
+        "summary": "Triggered through the website.",
+        "self": "https://api.pagerduty.com/log_entries/RRQP429Q6JQFM94D84JZDC8KTQ",
+        "html_url": "https://microsoft-sre-agent-test.pagerduty.com/incidents/Q391Y5VW0YYUEL/log_entries/RRQP429Q6JQFM94D84JZDC8KTQ%22,,
+        "created_at": "2025-10-08T19:28:41Z",
+        "agent": {
+          "id": "P2ASMN2",
+          "type": "user_reference",
+          "summary": "Dheeraj Bandaru",
+          "self": "https://api.pagerduty.com/users/P2ASMN2",
+          "html_url": "https://microsoft-sre-agent-test.pagerduty.com/users/P2ASMN2"
+        },
+        "channel": {
+          "type": "web_trigger",
+          "summary": "500 Errors",
+          "subject": "500 Errors",
+          "details": "Azure Resources are experiencing 500 errors."
+        },
+        "service": {
+          "id": "PHQDN4S",
+          "type": "service_reference",
+          "summary": "Default Service",
+          "self": "https://api.pagerduty.com/services/PHQDN4S",
+          "html_url": "https://microsoft-sre-agent-test.pagerduty.com/service-directory/PHQDN4S"
+        },
+        "incident": {
+          "id": "Q391Y5VW0YYUEL",
+          "type": "incident_reference",
+          "summary": "[#76] 500 Errors",
+          "self": "https://api.pagerduty.com/incidents/Q391Y5VW0YYUEL",
+          "html_url": "https://microsoft-sre-agent-test.pagerduty.com/incidents/Q391Y5VW0YYUEL"
+        },
+        "teams": [],
+        "contexts": [],
+        "event_details": {
+          "description": "500 Errors"
+        }
+      },
+      "alert_counts": {
+        "all": 0,
+        "triggered": 0,
+        "resolved": 0
+      },
+      "is_mergeable": true,
+      "incident_type": {
+        "name": "incident_default"
+      },
+      "escalation_policy": {
+        "id": "P4GQGQR",
+        "type": "escalation_policy_reference",
+        "summary": "Default",
+        "self": "https://api.pagerduty.com/escalation_policies/P4GQGQR",
+        "html_url": "https://microsoft-sre-agent-test.pagerduty.com/escalation_policies/P4GQGQR"
+      },
+      "teams": [],
+      "pending_actions": [],
+      "acknowledgements": [],
+      "basic_alert_grouping": null,
+      "alert_grouping": null,
+      "last_status_change_by": {
+        "id": "PHQDN4S",
+        "type": "service_reference",
+        "summary": "Default Service",
+        "self": "https://api.pagerduty.com/services/PHQDN4S",
+        "html_url": "https://microsoft-sre-agent-test.pagerduty.com/service-directory/PHQDN4S"
+      },
+      "priority": {
+        "id": "P2FDSV4",
+        "type": "priority",
+        "summary": "P1",
+        "self": "https://api.pagerduty.com/priorities/P2FDSV4",
+        "html_url": null,
+        "account_id": "PZGTWCS",
+        "color": "a8171c",
+        "created_at": "2025-06-10T14:11:26Z",
+        "description": "",
+        "name": "P1",
+        "order": 500000000,
+        "schema_version": 0,
+        "updated_at": "2025-06-10T14:11:26Z"
+      },
+      "incidents_responders": [],
+      "responder_requests": [],
+      "subscriber_requests": [],
+      "urgency": "high",
+      "id": "Q391Y5VW0YYUEL",
+      "type": "incident",
+      "summary": "[#76] 500 Errors",
+      "self": "https://api.pagerduty.com/incidents/Q391Y5VW0YYUEL",
+      "html_url": "https://microsoft-sre-agent-test.pagerduty.com/incidents/Q391Y5VW0YYUEL"
+    },
+  ],
+  "limit": 10,
+  "offset": 0,
+  "total": null,
+  "more": false
+}

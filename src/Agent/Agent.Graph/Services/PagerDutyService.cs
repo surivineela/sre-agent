@@ -133,16 +133,26 @@ public class PagerDutyService : IPagerDutyService
         var response = await client.SendAsync(request);
         if (response.IsSuccessStatusCode)
         {
-            var incidentsResponse = await response.Content.ReadFromJsonAsync<PagerDutyIncidentsResponse>();
-            if (incidentsResponse is not null)
+            try
             {
-                _logger.LogInternalInformation("Successfully retrieved {count} PagerDuty incidents.", incidentsResponse.Incidents.Count);
-                return incidentsResponse.Incidents;
+                var incidentsResponse = await response.Content.ReadFromJsonAsync<PagerDutyIncidentsResponse>();
+                if (incidentsResponse is not null)
+                {
+                    _logger.LogInternalInformation("Successfully retrieved {count} PagerDuty incidents.", incidentsResponse.Incidents.Count);
+                    return incidentsResponse.Incidents;
+                }
+                else
+                {
+                    string responseContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogInternalError($"Failed to deserialize PagerDuty incidents response. Response : {responseContent}");
+                    return Enumerable.Empty<PagerDutyIncident>();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogInternalError("Failed to deserialize PagerDuty incidents response.");
-                throw new Exception("Failed to deserialize OData response.");
+                string responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInternalError($"Failed to deserialize PagerDuty incidents response. Message : {ex.Message}. Response : {responseContent}");
+                throw;
             }
         }
         else

@@ -15,6 +15,7 @@ using Agent.Graph.Services;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents.Scanner;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.SREAgent.Incidents.IcM.Model;
 using Microsoft.SREAgent.Incidents.IcM.Service;
@@ -112,6 +113,8 @@ public static class IncidentServiceCollectionExtensions
         var icmAppsettings = incidentManagementSettings.ICMAPI;
         var dataConnectorInstanceSettings = serviceProvider.GetRequiredService<CoreSettings>().DataConnectors;
 
+        bool IsDevelopment = serviceProvider.GetRequiredService<IHostEnvironment>().IsDevelopment();
+
         // Check if there's an AgentSpace ICM data connector configured, get first one since we only support one for now
         var agentSpaceIcmConnector = dataConnectorInstanceSettings?
             .FirstOrDefault(dc => dc.Source == DataConnectorSource.AgentSpace &&
@@ -148,7 +151,7 @@ public static class IncidentServiceCollectionExtensions
         // else if Agent Space Proxy is configured, use ICMAPIAgentSpaceTokenService
         // else if cert auth is configured, use ICMAPICertAuthService
         // else use Managed Identity
-        if (!string.IsNullOrWhiteSpace(icmAppsettings.UserToken))
+        if (IsDevelopment)
         {
             var authOptions = new ICMLocalAuthOptions()
             {
