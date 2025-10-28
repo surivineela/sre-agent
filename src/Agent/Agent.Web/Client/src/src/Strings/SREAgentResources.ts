@@ -25,6 +25,7 @@ export const SreAgentResources = defineMessages({
     add: { defaultMessage: 'Add', id: '2/2yg+' },
     remove: { defaultMessage: 'Remove', id: 'G/yZLu' },
     new: { defaultMessage: 'New', id: 'bW7B87' },
+    next: { defaultMessage: 'Next', id: '9+Ddtu' },
     resources: { defaultMessage: 'Resources', id: 'c/KktL' },
     notApplicable: { defaultMessage: 'Not applicable', id: '61zy45' },
     NA: { defaultMessage: 'N/A', id: 'PW+sL4' },
