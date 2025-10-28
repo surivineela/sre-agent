@@ -3,6 +3,7 @@ import { HttpResponseObject } from '../../Common/ArmHelper.types';
 import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
 import { Agent, AgentAccessLevel, IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import { AgentTaskMetaData, InvestigationTreeNodeStatus } from '../../Common/Contracts/DataPlane/AgentTask';
+import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
@@ -206,4 +207,16 @@ export const AgentTaskContext = createContext<AgentTaskContextProps>({
 export const AgentTaskGraphContext = createContext<AgentTaskGraphContextProps>({
     selectNode: (_: string | null) => {},
     selectedNodeId: null,
+});
+
+type MemorySidePanelContextProps = {
+    memoryResult: MemorySearchResult | null;
+    openMemorySidePanel: (result: MemorySearchResult) => void;
+    closeMemorySidePanel: () => void;
+};
+
+export const MemorySidePanelContext = createContext<MemorySidePanelContextProps>({
+    memoryResult: null,
+    openMemorySidePanel: (_: MemorySearchResult) => {},
+    closeMemorySidePanel: () => {},
 });

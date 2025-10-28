@@ -2928,9 +2928,11 @@ export const MemorySearchCardResources = defineMessages({
     similarSymptomIncidents: { defaultMessage: 'Similar Symptom Incidents', id: 'rI2aPZ' },
     userMemories: { defaultMessage: 'User Memories', id: '+iCTRd' },
     relevantDocuments: { defaultMessage: 'Relevant Documents', id: 'oBv1Sy' },
-    symptoms: { defaultMessage: 'Symptoms: {symptoms}', id: 't2u8dC' },
-    rootCause: { defaultMessage: 'Root Cause: {rootCause}', id: 's5cLGN' },
-    steps: { defaultMessage: 'Steps: {steps}', id: 'LRTerU' },
+    memorySearchResultsIntro: { defaultMessage: 'Here are the memory search results:', id: 'CeDXMM' },
+    viewMemorySearchResults: { defaultMessage: 'View Memory Search Results', id: 'I1tfGG' },
+    symptomsLabel: { defaultMessage: 'Symptoms:', id: 'h4XDJP' },
+    rootCauseLabel: { defaultMessage: 'Root Cause:', id: 'sILeXv' },
+    stepsLabel: { defaultMessage: 'Steps:', id: '+mtpY7' },
 });
 
 export const ExtendedAgentsGraphResources = defineMessages({

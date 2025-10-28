@@ -1,14 +1,21 @@
-import { Badge, Caption1, Text, makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
-import { SearchSparkle20Regular } from '@fluentui/react-icons';
-import { memo } from 'react';
+import { Badge, Button, Caption1, Text, Tooltip, makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
+import { ChevronDownUp16Regular, ChevronUpDown16Regular, SearchSparkle20Regular } from '@fluentui/react-icons';
+import { memo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
-import { MemorySearchCardResources } from '../../Strings/SREAgentResources';
+import { MemorySearchCardResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
 interface MemorySearchCardProps {
     memoryResult: MemorySearchResult;
     className?: string;
 }
+
+// Configuration for preview mode when collapsed
+const PREVIEW_CONFIG = {
+    maxItemsPerSection: 1, // Show top 1 item per section
+    maxLinesPerText: 3, // Truncate text to 3 lines
+    maxCharsPerLine: 150, // Approximate characters per line for truncation
+};
 
 const useStyles = makeStyles({
     card: {
@@ -57,7 +64,7 @@ const useStyles = makeStyles({
     sectionTitle: {
         fontWeight: tokens.fontWeightSemibold,
         color: tokens.colorNeutralForeground1,
-        fontSize: tokens.fontSizeBase200,
+        fontSize: tokens.fontSizeBase300,
     },
     itemsContainer: {
         display: 'flex',
@@ -76,12 +83,12 @@ const useStyles = makeStyles({
     trajectoryTitle: {
         fontWeight: tokens.fontWeightSemibold,
         color: tokens.colorNeutralForeground1,
-        fontSize: tokens.fontSizeBase200,
+        fontSize: tokens.fontSizeBase300,
     },
     trajectoryDetail: {
         color: tokens.colorNeutralForeground2,
-        fontSize: tokens.fontSizeBase100,
-        lineHeight: tokens.lineHeightBase100,
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase200,
     },
     memoryItem: {
         backgroundColor: tokens.colorNeutralBackground2,
@@ -90,10 +97,16 @@ const useStyles = makeStyles({
         ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
         color: tokens.colorNeutralForeground2,
         fontSize: tokens.fontSizeBase200,
-        fontStyle: 'italic',
         lineHeight: tokens.lineHeightBase200,
     },
     badge: {
+        marginLeft: 'auto',
+    },
+    collapsedSummary: {
+        color: tokens.colorNeutralForeground3,
+        fontSize: tokens.fontSizeBase200,
+    },
+    expandButton: {
         marginLeft: 'auto',
     },
 });
@@ -101,11 +114,45 @@ const useStyles = makeStyles({
 const MemorySearchCard = ({ memoryResult, className }: MemorySearchCardProps) => {
     const styles = useStyles();
     const intl = useIntl();
+    const [isCollapsed, setIsCollapsed] = useState(true);
 
     const hasResults = memoryResult.totalResults > 0;
 
-    const renderTrajectories = (trajectories: any[], title: string) => {
+    // Utility function to truncate text
+    const truncateText = (text: string, maxLines: number = PREVIEW_CONFIG.maxLinesPerText): string => {
+        if (!text) return '';
+        const maxChars = maxLines * PREVIEW_CONFIG.maxCharsPerLine;
+        if (text.length <= maxChars) return text;
+        return text.substring(0, maxChars) + '...';
+    };
+
+    // Generate collapsed summary text
+    const getCollapsedSummary = () => {
+        const parts: string[] = [];
+        if (memoryResult.sameResourceTrajectories.length > 0) {
+            parts.push(
+                `${memoryResult.sameResourceTrajectories.length} past incident${memoryResult.sameResourceTrajectories.length > 1 ? 's' : ''}`
+            );
+        }
+        if (memoryResult.similarSymptomsTrajectories.length > 0) {
+            parts.push(
+                `${memoryResult.similarSymptomsTrajectories.length} similar symptom${memoryResult.similarSymptomsTrajectories.length > 1 ? 's' : ''}`
+            );
+        }
+        if (memoryResult.userMemories.length > 0) {
+            parts.push(`${memoryResult.userMemories.length} user memor${memoryResult.userMemories.length > 1 ? 'ies' : 'y'}`);
+        }
+        if (memoryResult.documents.length > 0) {
+            parts.push(`${memoryResult.documents.length} document${memoryResult.documents.length > 1 ? 's' : ''}`);
+        }
+        return parts.join(', ');
+    };
+
+    const renderTrajectories = (trajectories: any[], title: string, isPreview: boolean = false) => {
         if (trajectories.length === 0) return null;
+
+        const itemsToShow = isPreview ? trajectories.slice(0, PREVIEW_CONFIG.maxItemsPerSection) : trajectories;
+        const hasMore = isPreview && trajectories.length > PREVIEW_CONFIG.maxItemsPerSection;
 
         return (
             <div className={styles.section}>
@@ -113,27 +160,53 @@ const MemorySearchCard = ({ memoryResult, className }: MemorySearchCardProps) =>
                     {title} ({trajectories.length})
                 </Text>
                 <div className={styles.itemsContainer}>
-                    {trajectories.map((trajectory, index) => (
+                    {itemsToShow.map((trajectory, index) => (
                         <div key={index} className={styles.trajectoryItem}>
                             <Text className={styles.trajectoryTitle}>{trajectory.title}</Text>
-                            <Text className={styles.trajectoryDetail}>
-                                {intl.formatMessage(MemorySearchCardResources.symptoms, { symptoms: trajectory.symptomsObserved })}
-                            </Text>
-                            <Text className={styles.trajectoryDetail}>
-                                {intl.formatMessage(MemorySearchCardResources.rootCause, { rootCause: trajectory.rootCause })}
-                            </Text>
-                            <Text className={styles.trajectoryDetail}>
-                                {intl.formatMessage(MemorySearchCardResources.steps, { steps: trajectory.stepsFollowed })}
-                            </Text>
+                            {isPreview ? (
+                                <>
+                                    <Text className={styles.trajectoryDetail}>
+                                        {intl.formatMessage(MemorySearchCardResources.symptomsLabel)}{' '}
+                                        {truncateText(trajectory.symptomsObserved, 1)}
+                                    </Text>
+                                    <Text className={styles.trajectoryDetail}>
+                                        {intl.formatMessage(MemorySearchCardResources.rootCauseLabel)}{' '}
+                                        {truncateText(trajectory.rootCause, 1)}
+                                    </Text>
+                                    <Text className={styles.trajectoryDetail} style={{ fontStyle: 'italic' }}>
+                                        ...
+                                    </Text>
+                                </>
+                            ) : (
+                                <>
+                                    <Text className={styles.trajectoryDetail}>
+                                        {intl.formatMessage(MemorySearchCardResources.symptomsLabel)} {trajectory.symptomsObserved}
+                                    </Text>
+                                    <Text className={styles.trajectoryDetail}>
+                                        {intl.formatMessage(MemorySearchCardResources.rootCauseLabel)} {trajectory.rootCause}
+                                    </Text>
+                                    <Text className={styles.trajectoryDetail}>
+                                        {intl.formatMessage(MemorySearchCardResources.stepsLabel)} {trajectory.stepsFollowed}
+                                    </Text>
+                                </>
+                            )}
                         </div>
                     ))}
+                    {hasMore && (
+                        <Caption1 className={styles.collapsedSummary}>
+                            +{trajectories.length - PREVIEW_CONFIG.maxItemsPerSection} more...
+                        </Caption1>
+                    )}
                 </div>
             </div>
         );
     };
 
-    const renderMemories = (memories: string[], title: string) => {
+    const renderMemories = (memories: string[], title: string, isPreview: boolean = false) => {
         if (memories.length === 0) return null;
+
+        const itemsToShow = isPreview ? memories.slice(0, PREVIEW_CONFIG.maxItemsPerSection) : memories;
+        const hasMore = isPreview && memories.length > PREVIEW_CONFIG.maxItemsPerSection;
 
         return (
             <div className={styles.section}>
@@ -141,11 +214,16 @@ const MemorySearchCard = ({ memoryResult, className }: MemorySearchCardProps) =>
                     {title} ({memories.length})
                 </Text>
                 <div className={styles.itemsContainer}>
-                    {memories.map((memory, index) => (
+                    {itemsToShow.map((memory, index) => (
                         <div key={index} className={styles.memoryItem}>
-                            <Text>{memory}</Text>
+                            <Text className={styles.trajectoryDetail}>{isPreview ? truncateText(memory, 2) : memory}</Text>
                         </div>
                     ))}
+                    {hasMore && (
+                        <Caption1 className={styles.collapsedSummary}>
+                            +{memories.length - PREVIEW_CONFIG.maxItemsPerSection} more...
+                        </Caption1>
+                    )}
                 </div>
             </div>
         );
@@ -164,11 +242,27 @@ const MemorySearchCard = ({ memoryResult, className }: MemorySearchCardProps) =>
                               })
                             : intl.formatMessage(MemorySearchCardResources.relevantMemoriesNotFound)}
                     </Caption1>
+                    {isCollapsed && hasResults && <Caption1 className={styles.collapsedSummary}>{getCollapsedSummary()}</Caption1>}
                 </div>
                 {hasResults && (
-                    <Badge appearance="filled" color="brand" className={styles.badge}>
-                        {intl.formatMessage(MemorySearchCardResources.memory)}
-                    </Badge>
+                    <>
+                        <Badge appearance="filled" color="brand" className={styles.badge}>
+                            {intl.formatMessage(MemorySearchCardResources.memory)}
+                        </Badge>
+                        <Tooltip
+                            relationship="label"
+                            content={
+                                isCollapsed ? intl.formatMessage(SreAgentResources.expand) : intl.formatMessage(SreAgentResources.collapse)
+                            }
+                        >
+                            <Button
+                                icon={isCollapsed ? <ChevronUpDown16Regular /> : <ChevronDownUp16Regular />}
+                                onClick={() => setIsCollapsed(!isCollapsed)}
+                                size="small"
+                                className={styles.expandButton}
+                            />
+                        </Tooltip>
+                    </>
                 )}
             </div>
 
@@ -176,14 +270,16 @@ const MemorySearchCard = ({ memoryResult, className }: MemorySearchCardProps) =>
                 <div className={styles.content}>
                     {renderTrajectories(
                         memoryResult.sameResourceTrajectories,
-                        intl.formatMessage(MemorySearchCardResources.pastIncidentsOnSameResource)
+                        intl.formatMessage(MemorySearchCardResources.pastIncidentsOnSameResource),
+                        isCollapsed
                     )}
                     {renderTrajectories(
                         memoryResult.similarSymptomsTrajectories,
-                        intl.formatMessage(MemorySearchCardResources.similarSymptomIncidents)
+                        intl.formatMessage(MemorySearchCardResources.similarSymptomIncidents),
+                        isCollapsed
                     )}
-                    {renderMemories(memoryResult.userMemories, intl.formatMessage(MemorySearchCardResources.userMemories))}
-                    {renderMemories(memoryResult.documents, intl.formatMessage(MemorySearchCardResources.relevantDocuments))}
+                    {renderMemories(memoryResult.userMemories, intl.formatMessage(MemorySearchCardResources.userMemories), isCollapsed)}
+                    {/* Documents are now shown in the side panel instead */}
                 </div>
             )}
         </div>

@@ -1,7 +1,8 @@
 import { CopilotChat, CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { mergeClasses, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { useTheme } from '@fluentui/react/lib/Theme';
-import { memo, useMemo } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
@@ -9,10 +10,11 @@ import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
 import ChatMessage from '../Components/ChatMessage';
 import ChatMessages from '../Components/ChatMessages';
+import MemorySidePanel from '../Components/MemorySidePanel';
 import PermissionErrorChatMessage from '../Components/PermissionErrorChatMessage';
 import { TodoPlanManager } from '../Components/TodoPlan';
 import { IChatBoxProps } from '../Contracts/Activities';
-import { ChatBoxContext, ThreadAgentModeContext } from '../Contracts/Context';
+import { ChatBoxContext, MemorySidePanelContext, ThreadAgentModeContext } from '../Contracts/Context';
 import { useAgentTask } from '../Hooks/useAgentTask';
 import { useChatBox } from '../Hooks/useChatBox';
 import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
@@ -64,14 +66,22 @@ export const ChatBox = ({
 
     const theme = useTheme();
 
-    const { isAgentTaskCollapsed, closeAgentTask, openAgentTask, hasExistingTasks, ...rest } = useAgentTask(
+    // Memory side panel state - defined early so it can be passed to hooks
+    const [memoryPanelResult, setMemoryPanelResult] = useState<MemorySearchResult | null>(null);
+
+    const closeMemorySidePanel = useCallback(() => {
+        setMemoryPanelResult(null);
+    }, []);
+
+    const { isAgentTaskCollapsed, setIsAgentTaskCollapsed, openAgentTask, closeAgentTask, hasExistingTasks, ...rest } = useAgentTask(
         threadId,
         userDefinedThreadIdRef.current,
         isLoading,
         canOpenAgentTaskPanel,
         onOpenAgentTaskPanel,
         onCloseAgentTaskPanel,
-        setMenuCollapsed
+        setMenuCollapsed,
+        closeMemorySidePanel
     );
 
     const threadAgentModeData = useThreadAgentMode(threadId, threadSource);
@@ -86,11 +96,28 @@ export const ChatBox = ({
         if (!todoPlanDrawer) return;
         const plan = todoPlanDrawer.todoPlans.find((p: any) => p.id === todoInfo.id);
         todoPlanDrawer.openTodoPlanDrawer(plan?.id);
+        // Close memory side panel when opening todo plan drawer
+        closeMemorySidePanel();
     };
 
     const chatBoxCtxValue = useMemo(
         () => ({ getGroupedChatMessages, openAgentTask, openTodoPlan }),
         [getGroupedChatMessages, openAgentTask, openTodoPlan]
+    );
+
+    const openMemorySidePanel = useCallback(
+        (result: MemorySearchResult) => {
+            setMemoryPanelResult(result);
+            // Close other side panels when opening memory side panel
+            setIsAgentTaskCollapsed(true);
+            todoPlanDrawer?.setIsTodoPlanDrawerCollapsed(true);
+        },
+        [setIsAgentTaskCollapsed, todoPlanDrawer]
+    );
+
+    const memorySidePanelValue = useMemo(
+        () => ({ memoryResult: memoryPanelResult, openMemorySidePanel, closeMemorySidePanel }),
+        [memoryPanelResult, openMemorySidePanel, closeMemorySidePanel]
     );
 
     // Use style instead of classname to override the CopilotProvider styule to avoid global styles conflict
@@ -101,93 +128,98 @@ export const ChatBox = ({
             theme={theme.isInverted ? webDarkTheme : webLightTheme}
             style={stylesProps?.rootStyle || { height: `calc(100% - ${ThreadTitleHeight + 5}px)` }}
         >
-            <ChatBoxContext.Provider value={chatBoxCtxValue}>
-                <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
-                    <div className={chatBoxStyles.chatBoxAndAgentTask}>
-                        <div className={chatBoxStyles.chatBox}>
-                            <div className={chatBoxStyles.chatBoxInner}>
-                                <div
-                                    className={mergeClasses(scrollable, chatBoxStyles.chatContainer)}
-                                    ref={messagesDivRef}
-                                    onScroll={onScroll}
-                                >
-                                    <CopilotChat className={chatBoxStyles.chat}>
-                                        <div ref={intersectionObserverRef} />
+            <MemorySidePanelContext.Provider value={memorySidePanelValue}>
+                <ChatBoxContext.Provider value={chatBoxCtxValue}>
+                    <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
+                        <div className={chatBoxStyles.chatBoxAndAgentTask}>
+                            <div className={chatBoxStyles.chatBox}>
+                                <div className={chatBoxStyles.chatBoxInner}>
+                                    <div
+                                        className={mergeClasses(scrollable, chatBoxStyles.chatContainer)}
+                                        ref={messagesDivRef}
+                                        onScroll={onScroll}
+                                    >
+                                        <CopilotChat className={chatBoxStyles.chat}>
+                                            <div ref={intersectionObserverRef} />
 
-                                        {isLoading && !isWelcomeThread && <ChatLoading />}
+                                            {isLoading && !isWelcomeThread && <ChatLoading />}
 
-                                        {isNewAndCleanThread && !isWelcomeThread && <ChatSuggestions sendMessage={sendMessage} />}
+                                            {isNewAndCleanThread && !isWelcomeThread && <ChatSuggestions sendMessage={sendMessage} />}
 
-                                        {/* Insert the richer welcome experience once at the top for welcome threads */}
-                                        {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
+                                            {/* Insert the richer welcome experience once at the top for welcome threads */}
+                                            {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
 
-                                        {/* Display permission error message if any*/}
-                                        <PermissionErrorChatMessage key={'permission-error-chat-message'} isLoading={isLoading} />
+                                            {/* Display permission error message if any*/}
+                                            <PermissionErrorChatMessage key={'permission-error-chat-message'} isLoading={isLoading} />
 
-                                        {/* Non streaming messages */}
-                                        {!isLoading && (
-                                            <>
-                                                <ChatMessages
-                                                    messages={messages}
-                                                    threadId={currentThreadId || ''}
-                                                    nextMessageAfterTheLastMessage={temporaryUserMessage || streamingMessage || undefined}
-                                                />
-                                                {temporaryUserMessage && (
-                                                    <ChatMessage
-                                                        key={temporaryUserMessage.id}
-                                                        message={temporaryUserMessage}
+                                            {/* Non streaming messages */}
+                                            {!isLoading && (
+                                                <>
+                                                    <ChatMessages
+                                                        messages={messages}
                                                         threadId={currentThreadId || ''}
-                                                        threadSource={threadSource}
-                                                        previousMessage={messages[messages.length - 1]}
+                                                        nextMessageAfterTheLastMessage={temporaryUserMessage || streamingMessage || undefined}
                                                     />
-                                                )}
-                                                {streamingMessage && (
-                                                    <ChatMessage
-                                                        key={streamingMessage.id}
-                                                        message={streamingMessage}
-                                                        isStreamingMessage={true}
-                                                        isTyping={isAgentTyping}
-                                                        threadId={currentThreadId || ''}
-                                                        threadSource={threadSource}
-                                                        toolCallText={toolCallText}
-                                                        isWaitingForStreamingMessages={isWaitingForStreamingMessages}
-                                                        updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
-                                                        previousMessage={temporaryUserMessage || messages[messages.length - 1]}
-                                                    />
-                                                )}
-                                            </>
-                                        )}
-                                    </CopilotChat>
+                                                    {temporaryUserMessage && (
+                                                        <ChatMessage
+                                                            key={temporaryUserMessage.id}
+                                                            message={temporaryUserMessage}
+                                                            threadId={currentThreadId || ''}
+                                                            threadSource={threadSource}
+                                                            previousMessage={messages[messages.length - 1]}
+                                                        />
+                                                    )}
+                                                    {streamingMessage && (
+                                                        <ChatMessage
+                                                            key={streamingMessage.id}
+                                                            message={streamingMessage}
+                                                            isStreamingMessage={true}
+                                                            isTyping={isAgentTyping}
+                                                            threadId={currentThreadId || ''}
+                                                            threadSource={threadSource}
+                                                            toolCallText={toolCallText}
+                                                            isWaitingForStreamingMessages={isWaitingForStreamingMessages}
+                                                            updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
+                                                            previousMessage={temporaryUserMessage || messages[messages.length - 1]}
+                                                        />
+                                                    )}
+                                                </>
+                                            )}
+                                        </CopilotChat>
+                                    </div>
+
+                                    <ChatBoxFooter
+                                        sendMessage={sendMessage}
+                                        isLoading={isLoading}
+                                        downButtonState={downButtonState}
+                                        onClickDownButton={onClickDownButton}
+                                        prompts={prompts}
+                                        messagePromptsUsed={messagePromptsUsed}
+                                        cancelStreaming={cancelStreaming}
+                                        isTyping={!!isAgentTyping}
+                                        isCancellingStreaming={isCancellingStreaming}
+                                        threadId={currentThreadId}
+                                        threadSource={threadSource}
+                                        isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
+                                        isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                                        onClickDeepInvestigationButton={onClickDeepInvestigationButton}
+                                    />
                                 </div>
-
-                                <ChatBoxFooter
-                                    sendMessage={sendMessage}
-                                    isLoading={isLoading}
-                                    downButtonState={downButtonState}
-                                    onClickDownButton={onClickDownButton}
-                                    prompts={prompts}
-                                    messagePromptsUsed={messagePromptsUsed}
-                                    cancelStreaming={cancelStreaming}
-                                    isTyping={!!isAgentTyping}
-                                    isCancellingStreaming={isCancellingStreaming}
-                                    threadId={currentThreadId}
-                                    threadSource={threadSource}
-                                    isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
-                                    isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
-                                    onClickDeepInvestigationButton={onClickDeepInvestigationButton}
-                                />
                             </div>
+                            <AgentTask
+                                {...rest}
+                                collapsed={isAgentTaskCollapsed}
+                                closeAgentTask={closeAgentTask}
+                                stylesProps={agentTaskStyleProps}
+                            />
+                            {!hasExistingTasks && todoPlanDrawer && <TodoPlanManager drawerState={todoPlanDrawer} />}
+                            {!hasExistingTasks && memoryPanelResult && (
+                                <MemorySidePanel memoryResult={memoryPanelResult} onClose={closeMemorySidePanel} />
+                            )}
                         </div>
-                        <AgentTask
-                            {...rest}
-                            collapsed={isAgentTaskCollapsed}
-                            closeAgentTask={closeAgentTask}
-                            stylesProps={agentTaskStyleProps}
-                        />
-                        {!hasExistingTasks && todoPlanDrawer && <TodoPlanManager drawerState={todoPlanDrawer} />}
-                    </div>
-                </ThreadAgentModeContext.Provider>
-            </ChatBoxContext.Provider>
+                    </ThreadAgentModeContext.Provider>
+                </ChatBoxContext.Provider>
+            </MemorySidePanelContext.Provider>
         </CopilotProvider>
     );
 };

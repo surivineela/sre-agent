@@ -142,7 +142,7 @@ export interface MemorySearchResult {
     sameResourceTrajectories: TrajectoryResult[];
     similarSymptomsTrajectories: TrajectoryResult[];
     userMemories: string[];
-    documents: string[];
+    documents: DocumentResult[];
     timestamp: string;
     totalResults: number;
 }
@@ -155,4 +155,14 @@ export interface TrajectoryResult {
     stepsFollowed: string;
     rootCause: string;
     pitfalls: string;
+}
+
+export interface DocumentResult {
+    id: string;
+    title: string;
+    documentType: string;
+    summary: string | null;
+    content: string | null;
+    url: string | null;
+    relevanceScore: number | null;
 }

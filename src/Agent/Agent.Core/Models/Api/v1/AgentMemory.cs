@@ -10,7 +10,7 @@ public record MemorySearchResult(
     List<TrajectoryResult> SameResourceTrajectories,
     List<TrajectoryResult> SimilarSymptomsTrajectories,
     List<string> UserMemories,
-    List<string> Documents,
+    List<DocumentResult> Documents,
     DateTime Timestamp,
     int TotalResults
 );
@@ -23,4 +23,14 @@ public record TrajectoryResult(
     string StepsFollowed,
     string RootCause,
     string Pitfalls
+);
+
+public record DocumentResult(
+    string Id,
+    string Title,
+    string DocumentType,
+    string? Summary,
+    string? Content,
+    string? Url,
+    double? RelevanceScore
 );

@@ -7,18 +7,26 @@ using System.Text;
 using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
+using Agent.Core.Extensions;
+using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
+using Agent.Framework;
 using Agent.Plugins.DataConnectors.Documentation;
 using Agent.Plugins.DataConnectors.TSG;
-using Agent.Core.Interfaces;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Definitions;
 
 [AgentToolPlugin]
-public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, AgentMemorySettings agentMemorySettings, DataConnectorIndex dataConnectorindex, ILogger<AgentMemoryPluginDefinition> logger, IAgentOutboundCommunicationService agentOutboundCommunicationService)
+public class AgentMemoryPluginDefinition(
+    IAgentMemoryClient agentMemoryClient,
+    AgentMemorySettings agentMemorySettings,
+    DataConnectorIndex dataConnectorindex,
+    ILogger<AgentMemoryPluginDefinition> logger,
+    IAgentOutboundCommunicationService agentOutboundCommunicationService,
+    IChatClientProvider chatClient)
 {
     public const string NoRelevantResultsMessage = "No relevant memories, documents, or past incidents found for the current symptoms";
     public const string NoSameResourceIncidentsMessage = "No past incidents found on the same resource";
@@ -59,11 +67,11 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
     }
 
     private string BuildMemoryResponse(
-        List<string> documents,
+        List<DocumentResult> documents,
         List<string> userMemories,
         TrajectorySearchResult trajectories)
     {
-        var threadId = ToolStatic.AsyncLocalThreadId.Value;
+        var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
         var sb = new StringBuilder();
 
         if (trajectories.SameResourceTrajectories.Count > 0)
@@ -137,11 +145,15 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
             for (int i = 0; i < documents.Count; i++)
             {
                 var doc = documents[i];
-                var truncatedDoc = TruncateText(doc, 400);
-                sb.AppendLine($"**Document {i + 1}:**");
-                sb.AppendLine("```");
-                sb.AppendLine(truncatedDoc);
-                sb.AppendLine("```");
+                sb.AppendLine($"**Document {i + 1}: {doc.Title}**");
+                if (!string.IsNullOrEmpty(doc.Content))
+                {
+                    sb.AppendLine($"- **Content:** {doc.Content}");
+                }
+                if (!string.IsNullOrEmpty(doc.Url))
+                {
+                    sb.AppendLine($"- **Link:** {doc.Url}");
+                }
                 sb.AppendLine();
             }
         }
@@ -159,7 +171,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         return sb.ToString();
     }
 
-    private async Task<List<string>> SearchDocumentAsync(string symptoms)
+    private async Task<List<DocumentResult>> SearchDocumentAsync(string symptoms)
     {
         if (!agentMemorySettings.DocumentRetrievalEnabled)
         {
@@ -167,8 +179,8 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
             return [];
         }
 
-        var threadId = ToolStatic.AsyncLocalThreadId.Value;
-        var allDocuments = new List<string>();
+        var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
+        var allDocuments = new List<DocumentResult>();
 
         // Apply vector similarity threshold directly in the search query for efficiency
         var userDocuments = dataConnectorindex.SearchAsync<UserDocument>(
@@ -188,12 +200,25 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         var allUserDocuments = await userDocuments.ToListAsync();
 
         // Apply additional filtering based on reranker score
-        var filteredUserDocuments = allUserDocuments
+        var filteredUserDocumentsData = allUserDocuments
             .Where(d => d.SearchResult.Document.RerankerScore.HasValue && d.SearchResult.Document.RerankerScore >= agentMemorySettings.MinimumRerankerScoreThreshold)
-            .Select(d => d.SearchResult.Document.Chunk)
             .ToList();
 
-        var userDocFilteredCount = allUserDocuments.Count - filteredUserDocuments.Count;
+        // Generate LLM summaries in parallel for user documents
+        var userDocSummaryTasks = filteredUserDocumentsData.Select(async d =>
+            new DocumentResult(
+                Id: d.OriginalDocument.Id,
+                Title: d.OriginalDocument.Title,
+                DocumentType: "User Document",
+                Summary: await GenerateLLMSummaryAsync(d.OriginalDocument.Title, d.SearchResult.Document.Chunk, 200),
+                Content: d.OriginalDocument.Contents, // Full document from the index
+                Url: null, // User documents don't have public URLs
+                RelevanceScore: d.SearchResult.Document.RerankerScore)
+        );
+
+        var filteredUserDocuments = await Task.WhenAll(userDocSummaryTasks);
+
+        var userDocFilteredCount = allUserDocuments.Count - filteredUserDocuments.Length;
         if (userDocFilteredCount > 0)
         {
             logger.LogInternalInformation(
@@ -207,12 +232,25 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         var allTsgDocuments = await tsgDocuments.ToListAsync();
 
         // Apply additional filtering based on reranker score
-        var filteredTsgDocuments = allTsgDocuments
+        var filteredTsgDocumentsData = allTsgDocuments
             .Where(d => d.SearchResult.Document.RerankerScore.HasValue && d.SearchResult.Document.RerankerScore >= agentMemorySettings.MinimumRerankerScoreThreshold)
-            .Select(d => d.SearchResult.Document.Chunk)
             .ToList();
 
-        var tsgDocFilteredCount = allTsgDocuments.Count - filteredTsgDocuments.Count;
+        // Generate LLM summaries in parallel for TSG documents
+        var tsgDocSummaryTasks = filteredTsgDocumentsData.Select(async d =>
+            new DocumentResult(
+                Id: d.OriginalDocument.Id,
+                Title: d.OriginalDocument.Title,
+                DocumentType: d.OriginalDocument.DocumentType ?? "TSG Document",
+                Summary: await GenerateLLMSummaryAsync(d.OriginalDocument.Title, d.SearchResult.Document.Chunk, 200),
+                Content: d.OriginalDocument.Contents, // Full document from the index
+                Url: d.OriginalDocument.Url, // Public URLs
+                RelevanceScore: d.SearchResult.Document.RerankerScore)
+        );
+
+        var filteredTsgDocuments = await Task.WhenAll(tsgDocSummaryTasks);
+
+        var tsgDocFilteredCount = allTsgDocuments.Count - filteredTsgDocuments.Length;
         if (tsgDocFilteredCount > 0)
         {
             logger.LogInternalInformation(
@@ -223,10 +261,47 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         allDocuments.AddRange(filteredTsgDocuments);
 
         logger.LogInternalInformation(
-            "[Thread {ThreadId}] Retrieved {Count} total documents ({UserDocCount} UserDocuments + {TsgDocCount} TsgDocuments) after all filtering (VectorSimilarity >= {VectorThreshold}, RerankerScore >= {RerankerThreshold})",
-            threadId, allDocuments.Count, filteredUserDocuments.Count, filteredTsgDocuments.Count, agentMemorySettings.DocumentVectorSimilarityThreshold, agentMemorySettings.MinimumRerankerScoreThreshold);
+            "[Thread {ThreadId}] Retrieved {Count} total documents ({UserDocCount} UserDocuments + {TsgDocCount} TsgDocuments) before deduplication",
+            threadId, allDocuments.Count, filteredUserDocuments.Length, filteredTsgDocuments.Length);
 
-        return allDocuments;
+        // Log all document titles for debugging
+        foreach (var doc in allDocuments)
+        {
+            logger.LogInternalInformation(
+                "[Thread {ThreadId}] Document before dedup: Title='{Title}', Id='{Id}', Score={Score}",
+                threadId, doc.Title, doc.Id, doc.RelevanceScore);
+        }
+
+        // Deduplicate documents by normalized title only
+        var deduplicatedDocuments = allDocuments
+            .GroupBy(d => (d.Title ?? "").Trim(), StringComparer.OrdinalIgnoreCase)
+            .Select(g =>
+            {
+                var best = g.OrderByDescending(d => d.RelevanceScore ?? 0).First();
+                if (g.Count() > 1)
+                {
+                    logger.LogInternalInformation(
+                        "[Thread {ThreadId}] Deduplicating {Count} documents with title '{Title}', keeping one with score {Score}",
+                        threadId, g.Count(), best.Title, best.RelevanceScore);
+                }
+                return best;
+            })
+            .OrderByDescending(d => d.RelevanceScore ?? 0)
+            .ToList();
+
+        var duplicateCount = allDocuments.Count - deduplicatedDocuments.Count;
+        if (duplicateCount > 0)
+        {
+            logger.LogInternalInformation(
+                "[Thread {ThreadId}] Deduplicated {DuplicateCount} document chunks by title, keeping highest scoring chunk per document. Final count: {FinalCount}",
+                threadId, duplicateCount, deduplicatedDocuments.Count);
+        }
+
+        logger.LogInternalInformation(
+            "[Thread {ThreadId}] Returning {Count} unique documents after all filtering (VectorSimilarity >= {VectorThreshold}, RerankerScore >= {RerankerThreshold}) and deduplication",
+            threadId, deduplicatedDocuments.Count, agentMemorySettings.DocumentVectorSimilarityThreshold, agentMemorySettings.MinimumRerankerScoreThreshold);
+
+        return deduplicatedDocuments;
     }
 
     private async Task<List<string>> SearchUserMemoryAsync(string symptoms)
@@ -321,7 +396,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         ));
 
         var retrieved = await Task.WhenAll(similarSymptoms, pastIncidents);
-        var threadId = ToolStatic.AsyncLocalThreadId.Value;
+        var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
 
         // Log initial retrieval counts
         logger.LogInternalInformation(
@@ -468,14 +543,70 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         return text.Substring(0, truncateIndex).TrimEnd() + "...";
     }
 
+    private async Task<string> GenerateLLMSummaryAsync(string documentTitle, string chunk, int maxLength = 200)
+    {
+        if (string.IsNullOrWhiteSpace(chunk))
+            return string.Empty;
+
+        var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
+
+        try
+        {
+            logger.LogInternalInformation("[Thread {ThreadId}] Generating LLM summary for document: {DocumentTitle}", threadId, documentTitle);
+
+            var messages = new List<ChatMessage>
+        {
+            new ChatMessage(ChatRole.System,
+                "You are a technical documentation summarizer. Create concise, searchable summaries that help users quickly understand document content."),
+            new ChatMessage(ChatRole.User, $@"Summarize this chunk from the document ""{documentTitle}"":
+
+{TruncateText(chunk, 2000)}
+
+Create a summary under {maxLength} characters that:
+- Describes what information this section contains
+- Mentions key technical concepts, APIs, or features discussed
+- Uses specific terminology from the source text
+- Avoids generic phrases like ""this document explains""
+- Is written as plain text without formatting
+
+Summary:")
+        };
+
+            var response = await chatClient.FastModel.GetResponseAsync(messages, new ChatOptions
+            {
+                MaxOutputTokens = 100, // ~200 chars, plus some buffer
+                Temperature = (float?)0.3 // Lower temperature for more consistent summaries
+            });
+
+            var summary = response?.GetMessage()?.Text?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(summary))
+            {
+                logger.LogInternalWarning("[Thread {ThreadId}] LLM summary generation returned empty for {DocumentTitle}", threadId, documentTitle);
+                return string.Empty;
+            }
+
+            summary = TruncateText(summary, maxLength);
+
+            logger.LogInternalInformation("[Thread {ThreadId}] Successfully generated LLM summary for {DocumentTitle}: {Summary}", threadId, documentTitle, TruncateText(summary, 50));
+
+            return summary;
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "[Thread {ThreadId}] Error generating LLM summary for {DocumentTitle}", threadId, documentTitle);
+            return string.Empty;
+        }
+    }
+
     /// <summary>
     /// Pushes memory search results to the agent chat interface using streaming pattern.
     /// Creates MemorySearchResult and streams it to frontend for real-time rendering.
     /// </summary>
-    private async Task PushMemoryResultToChat(ChatMessage msg, List<string> documents, List<string> userMemories, TrajectorySearchResult trajectories, string resourceId, string symptoms)
+    private async Task PushMemoryResultToChat(ChatMessage msg, List<DocumentResult> documents, List<string> userMemories, TrajectorySearchResult trajectories, string resourceId, string symptoms)
     {
-        var agentTaskId = ToolStatic.AsyncLocalAgentTaskId.Value;
-        var threadId = ToolStatic.AsyncLocalThreadId.Value;
+        var agentTaskId = Core.ToolStatic.AsyncLocalAgentTaskId.Value;
+        var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
 
         if (agentTaskId.HasValue)
         {

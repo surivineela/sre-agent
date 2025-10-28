@@ -18,7 +18,8 @@ export const useAgentTask = (
     canOpenAgentTaskPanel: boolean,
     onOpenAgentTaskPanel?: () => void,
     onCloseAgentTaskPanel?: () => void,
-    setMenuCollapsed?: Dispatch<SetStateAction<boolean>>
+    setMenuCollapsed?: Dispatch<SetStateAction<boolean>>,
+    closeMemorySidePanel?: () => void
 ) => {
     const { updateTreeState } = useAgentTaskStreamHandler();
 
@@ -51,10 +52,11 @@ export const useAgentTask = (
                 setMenuCollapsed?.(true);
             }
             setTask(task);
-
+            // Close memory side panel when opening agent task
+            closeMemorySidePanel?.();
             onOpenAgentTaskPanel?.();
         },
-        [setMenuCollapsed, isAgentTaskCollapsed, onOpenAgentTaskPanel]
+        [setMenuCollapsed, isAgentTaskCollapsed, closeMemorySidePanel, onOpenAgentTaskPanel]
     );
 
     const closeAgentTask = useCallback(() => {
@@ -314,6 +316,7 @@ export const useAgentTask = (
         selectedTaskId,
         taskDropdownValue,
         isAgentTaskCollapsed,
+        setIsAgentTaskCollapsed,
         openAgentTask,
         closeAgentTask,
 
