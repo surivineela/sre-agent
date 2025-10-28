@@ -54,6 +54,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     const messageUpdateHandlersRef = useRef<Set<(...args: any[]) => void>>(new Set());
     const threadUpdateHandlersRef = useRef<Set<(...args: any[]) => void>>(new Set());
     const taskUpdateHandlersRef = useRef<Set<(...args: any[]) => void>>(new Set());
+    const todoPlanUpdateHandlersRef = useRef<Set<(...args: any[]) => void>>(new Set());
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
@@ -97,6 +98,14 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
         };
     }, []);
 
+    const subscribeTodoPlanUpdateEvent = useCallback((handler: (message: StreamingMessage) => void) => {
+        todoPlanUpdateHandlersRef.current.add(handler);
+
+        return () => {
+            todoPlanUpdateHandlersRef.current.delete(handler);
+        };
+    }, []);
+
     const configureEventListeners = () => {
         connectionRef.current?.on(MessageResponseType.MessageUpdate, (message: StreamingMessage) => {
             latestMessageUpdateCallback(message);
@@ -108,18 +117,23 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
         connectionRef.current?.on(MessageResponseType.TaskUpdate, (message: StreamingMessage) => {
             taskUpdateHandlersRef.current.forEach(handler => handler(message));
         });
+        connectionRef.current?.on(MessageResponseType.TodoPlanUpdate, (message: StreamingMessage) => {
+            todoPlanUpdateHandlersRef.current.forEach(handler => handler(message));
+        });
     };
 
     const cleanupEventListeners = () => {
         connectionRef.current?.off(MessageResponseType.MessageUpdate);
         connectionRef.current?.off(MessageResponseType.ThreadUpdate);
         connectionRef.current?.off(MessageResponseType.TaskUpdate);
+        connectionRef.current?.off(MessageResponseType.TodoPlanUpdate);
     };
 
     const cleanupHandlers = () => {
         messageUpdateHandlersRef.current.clear();
         threadUpdateHandlersRef.current.clear();
         taskUpdateHandlersRef.current.clear();
+        todoPlanUpdateHandlersRef.current.clear();
     };
 
     const sendMessage = (method: MessageRequestType, ...args: any[]) => {
@@ -311,6 +325,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
                 subscribeMessageUpdateEvent,
                 subscribeThreadUpdateEvent,
                 subscribeTaskUpdateEvent,
+                subscribeTodoPlanUpdateEvent,
                 isConnecting,
                 isConnected,
                 isReconnecting,

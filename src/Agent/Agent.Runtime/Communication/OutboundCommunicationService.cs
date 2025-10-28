@@ -472,6 +472,38 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
+    public async Task AppendTodoPlanUpdate(Guid threadId, string todoPlanData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            // If no cancellation token provided, try to get it from AsyncLocal (set during tool execution)
+            if (cancellationToken == default && ToolStatic.AsyncLocalCancellationToken.Value != default)
+            {
+                cancellationToken = ToolStatic.AsyncLocalCancellationToken.Value;
+                _logger.LogInternalInformation("Using AsyncLocal cancellation token for streaming todo plan update to thread {ThreadId}", threadId);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await _streamingService.StreamTodoPlanUpdateAsync(threadId, todoPlanData, messageId, recordedDateTime: recordedDateTime, cancellationToken: cancellationToken);
+
+            _logger.LogExternalInformation("Successfully sent todo plan update for thread {ThreadId}", threadId);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("Todo plan update streaming cancelled for thread {ThreadId}", threadId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream todo plan update for thread {ThreadId}", threadId);
+        }
+    }
+
     public async Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null)
     {
         _logger.LogInternalInformation("orchestrationInstanceId {orchestrationInstanceId} completed with status: {Status}", orchestrationInstanceId, status);

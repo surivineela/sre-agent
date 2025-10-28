@@ -1,13 +1,15 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
+import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { TodoPlan } from '../../Common/Contracts/DataPlane/TodoPlan';
+import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
+import { StreamingContext } from '../Contracts/Context';
 
 interface UseTodoPlansResult {
     todoPlans: TodoPlan[];
     isLoading: boolean;
     error: string | null;
-    refetch: () => Promise<void>;
 }
 
 export const useTodoPlans = (threadId: string | null): UseTodoPlansResult => {
@@ -15,76 +17,84 @@ export const useTodoPlans = (threadId: string | null): UseTodoPlansResult => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { subscribeTodoPlanUpdateEvent } = useContext(StreamingContext);
 
-    const fetchTodoPlans = useCallback(
-        async (isBackgroundPoll = false) => {
-            if (!threadId || !sreAgentEndpoint) {
+    const fetchTodoPlans = useCallback(async () => {
+        if (!threadId || !sreAgentEndpoint) {
+            setTodoPlans([]);
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
+            const response = await threadClient.getTodoPlans(threadId);
+
+            if (response.isSuccessful && response.content) {
+                const sortedPlans = response.content.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                setTodoPlans(sortedPlans);
+            } else {
+                setError(response.error?.message || 'Failed to fetch todo plans');
                 setTodoPlans([]);
-                return;
             }
-
-            // Only show loading for initial fetch, not background polls
-            if (!isBackgroundPoll) {
-                setIsLoading(true);
-            }
-            setError(null);
-
-            try {
-                const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
-                const response = await threadClient.getTodoPlans(threadId);
-
-                if (response.isSuccessful && response.content) {
-                    const sortedPlans = response.content.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-                    // Only update if data actually changed
-                    setTodoPlans(currentPlans => {
-                        const hasChanged = JSON.stringify(currentPlans) !== JSON.stringify(sortedPlans);
-                        if (hasChanged) {
-                            return sortedPlans;
-                        }
-                        return currentPlans;
-                    });
-                } else {
-                    setError(response.error?.message || 'Failed to fetch todo plans');
-                    setTodoPlans([]);
-                }
-            } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-                setError(errorMessage);
-                setTodoPlans([]);
-            } finally {
-                if (!isBackgroundPoll) {
-                    setIsLoading(false);
-                }
-            }
-        },
-        [threadId, sreAgentEndpoint]
-    );
-
-    const refetch = useCallback(async () => {
-        await fetchTodoPlans();
-    }, [fetchTodoPlans]);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+            setError(errorMessage);
+            setTodoPlans([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [threadId, sreAgentEndpoint]);
 
     useEffect(() => {
         fetchTodoPlans();
     }, [fetchTodoPlans]);
 
     useEffect(() => {
-        if (!threadId || !sreAgentEndpoint) {
-            return;
-        }
+        let isSubscribed = true;
 
-        const interval = setInterval(() => {
-            fetchTodoPlans(true);
-        }, 5000); // Poll every 5 seconds
+        const unsubscribe = subscribeTodoPlanUpdateEvent((message?: StreamingMessage) => {
+            const messageThreadId = message?.additionalProperties?.threadId;
+            const streamMessageType = message?.additionalProperties?.streamMessageType;
+            const isTodoPlanUpdate = streamMessageType && equals(streamMessageType, 'todoplan', AntUxStringComparison.IgnoreCase);
+            const content = message?.contents?.[0]?.text;
 
-        return () => clearInterval(interval);
-    }, [fetchTodoPlans, threadId, sreAgentEndpoint]);
+            if (isSubscribed && messageThreadId && messageThreadId === threadId && isTodoPlanUpdate && content) {
+                try {
+                    const updatedPlan = JSON.parse(content) as TodoPlan;
+
+                    setTodoPlans(currentPlans => {
+                        const existingIndex = currentPlans.findIndex(p => p.id === updatedPlan.id);
+
+                        let newPlans: TodoPlan[];
+                        if (existingIndex !== -1) {
+                            // Update existing plan
+                            newPlans = [...currentPlans];
+                            newPlans[existingIndex] = updatedPlan;
+                        } else {
+                            // Add new plan
+                            newPlans = [updatedPlan, ...currentPlans];
+                        }
+
+                        return newPlans.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                    });
+                } catch (err) {
+                    console.error('Failed to parse TodoPlan update:', err);
+                }
+            }
+        });
+
+        return () => {
+            unsubscribe();
+            isSubscribed = false;
+        };
+    }, [subscribeTodoPlanUpdateEvent, threadId]);
 
     return {
         todoPlans,
         isLoading,
         error,
-        refetch,
     };
 };

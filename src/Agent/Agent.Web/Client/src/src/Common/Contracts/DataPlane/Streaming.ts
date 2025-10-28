@@ -21,6 +21,7 @@ export enum MessageResponseType {
     MessageUpdate = 'MessageUpdate',
     ThreadUpdate = 'ThreadUpdate',
     TaskUpdate = 'TaskUpdate',
+    TodoPlanUpdate = 'TodoPlanUpdate',
 }
 
 export interface StreamingMessage {

@@ -7,7 +7,7 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
-import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { IncidentManagementResources, SreAgentResources, ToDoPlanResources } from '../../Strings/SREAgentResources';
 import { AgentContext, StreamingContext } from '../Contracts/Context';
 import { ThreadContentStyles } from '../Styles/Activities.styles';
 import ThreadActionsMenu from './ThreadActionsMenu';
@@ -16,14 +16,19 @@ import { isFinalStreamingMessage, parseThreadFromStreamingText } from './Utility
 const ThreadContentTitle = ({
     thread,
     deleteThread,
-    hasExistingPlans,
+    todoPlanDrawer,
     showTraceButton,
     toggleTraceVisibility,
     traceFocusRestorationRef,
 }: {
     thread: Thread | null | undefined;
     deleteThread: (thread: Thread) => void;
-    hasExistingPlans: boolean;
+    todoPlanDrawer?: {
+        hasExistingPlans: boolean;
+        isTodoPlanDrawerCollapsed: boolean;
+        openTodoPlanDrawer: () => void;
+        setIsTodoPlanDrawerCollapsed: (collapsed: boolean) => void;
+    };
     showTraceButton: boolean;
     toggleTraceVisibility: () => void;
     traceFocusRestorationRef: React.RefObject<HTMLButtonElement>;
@@ -128,25 +133,29 @@ const ThreadContentTitle = ({
                         {intl.formatMessage(IncidentManagementResources.viewTrace)}
                     </Button>
                 )}
-                {threadId && hasExistingPlans && <HeaderTodoToggleButton />}
+                {threadId && todoPlanDrawer?.hasExistingPlans && (
+                    <HeaderTodoToggleButton
+                        isOpen={!todoPlanDrawer.isTodoPlanDrawerCollapsed}
+                        onToggle={() => {
+                            if (todoPlanDrawer.isTodoPlanDrawerCollapsed) {
+                                todoPlanDrawer.openTodoPlanDrawer();
+                            } else {
+                                todoPlanDrawer.setIsTodoPlanDrawerCollapsed(true);
+                            }
+                        }}
+                    />
+                )}
             </div>
         </div>
     );
 };
 
-const HeaderTodoToggleButton = () => {
-    const [isOpen, setIsOpen] = useState(false);
+const HeaderTodoToggleButton = ({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) => {
+    const intl = useIntl();
 
-    useEffect(() => {
-        const onState = (e: Event) => {
-            const ce = e as CustomEvent<{ open: boolean }>;
-            setIsOpen(!!ce.detail?.open);
-        };
-        window.addEventListener('todo-plan-state', onState as EventListener);
-        return () => window.removeEventListener('todo-plan-state', onState as EventListener);
-    }, []);
-
-    const tooltip = isOpen ? 'Close Todo Plans' : 'Open Todo Plans';
+    const tooltip = isOpen
+        ? intl.formatMessage(ToDoPlanResources.todoPlanCloseTooltip)
+        : intl.formatMessage(ToDoPlanResources.todoPlanOpenTooltip);
 
     return (
         <Tooltip content={tooltip} relationship="label">
@@ -156,7 +165,7 @@ const HeaderTodoToggleButton = () => {
                 icon={<TaskListLtr20Regular />}
                 appearance={'subtle'}
                 shape="circular"
-                onClick={() => window.dispatchEvent(new Event('toggle-todo-plan'))}
+                onClick={onToggle}
                 style={{ color: tokens.colorNeutralForeground2 }}
             />
         </Tooltip>

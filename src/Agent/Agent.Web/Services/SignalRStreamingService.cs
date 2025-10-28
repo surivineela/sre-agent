@@ -232,6 +232,44 @@ namespace Agent.Web.Services
             }
         }
 
+        public async Task StreamTodoPlanUpdateAsync(Guid threadId, string todoPlanData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Check for cancellation before processing
+                cancellationToken.ThrowIfCancellationRequested();
+
+                _logger.LogInternalInformation("Streaming todo plan update for thread {ThreadId}", threadId);
+
+                var streamMessage = new ChatResponseUpdate
+                {
+                    AuthorName = "Azure SRE Agent",
+                    Role = ChatRole.Assistant,
+                    CreatedAt = recordedDateTime ?? DateTime.UtcNow,
+                    Contents = [new TextContent(todoPlanData)],
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        { "streamMessageType", StreamMessageType.TodoPlan.ToString() },
+                        { "threadId", threadId.ToString() },
+                        { "messageId", messageId?.ToString() ?? Guid.NewGuid().ToString() },
+                    }
+                };
+
+                await _hubContext.Clients.All.TodoPlanUpdate(streamMessage);
+
+                _logger.LogInternalInformation("Successfully streamed todo plan update for thread {ThreadId}", threadId);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInternalInformation("Todo plan update streaming cancelled for thread {ThreadId}", threadId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Failed to stream todo plan update for thread {ThreadId}", threadId);
+                // Don't rethrow - streaming failures should not break the tool call
+            }
+        }
+
         public async Task StreamChatResponseUpdateAsync(Guid threadId, ChatResponseUpdate update, CancellationToken cancellationToken = default)
         {
             try

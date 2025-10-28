@@ -2692,10 +2692,27 @@ public class ReasoningLoop : IDisposable
                 updateType = DetermineUpdateType(existingPlan, todoPlan);
             }
 
-            // Create and stream TodoInfo message for TodoPlan chat card (only for new plans)
+            // Serialize and stream the TodoPlan (for both create and update)
+            var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+            {
+                Converters = { new JsonStringEnumConverter() }
+            };
+            var todoPlanJson = JsonSerializer.Serialize(todoPlan, options);
+
+            // Stream the TodoPlan for live updates
+            await _outboundCommunicationService.AppendTodoPlanUpdate(
+                threadId,
+                todoPlanJson,
+                todoPlan.TriggerMessageId,
+                todoPlan.LastUpdated
+            );
+
+            _logger.LogInternalInformation("Streamed TodoPlan update for thread {ThreadId}, plan {TodoPlanId}, updateType: {UpdateType}", threadId, todoPlan.Id, updateType);
+
+            // Create TodoInfo message card ONLY for new plans (to show card in chat)
             if (updateType == TodoPlanUpdateType.Created)
             {
-                _logger.LogInternalInformation("Creating TodoInfo message for new TodoPlan {TodoPlanId} in thread {ThreadId}", todoPlan.Id, threadId);
+                _logger.LogInternalInformation("Creating TodoInfo message card for new TodoPlan {TodoPlanId} in thread {ThreadId}", todoPlan.Id, threadId);
 
                 var todoInfo = new TodoInfo(
                     todoPlan.Id,
@@ -2705,17 +2722,12 @@ public class ReasoningLoop : IDisposable
                     todoPlan.TriggerMessageId
                 );
 
-                // Serialize TodoInfo for message
-                var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
-                {
-                    Converters = { new JsonStringEnumConverter() }
-                };
                 var todoInfoJson = JsonSerializer.Serialize(todoInfo, options);
                 ChatMessage message = new ChatMessage(ChatRole.User, todoInfoJson);
 
-                _logger.LogInternalInformation("Streaming TodoInfo message with type TodoPlan for thread {ThreadId}, messageId {MessageId}", threadId, todoPlan.TriggerMessageId);
+                _logger.LogInternalInformation("Creating TodoInfo message card for thread {ThreadId}, messageId {MessageId}", threadId, todoPlan.TriggerMessageId);
 
-                // Stream the TodoInfo message with TodoPlan type for frontend processing
+                // Create the card in chat (stored in DB)
                 await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                     threadId,
                     string.Empty,
@@ -2726,11 +2738,11 @@ public class ReasoningLoop : IDisposable
                     type: StreamMessageType.TodoPlan
                 );
 
-                _logger.LogInternalInformation("Successfully streamed TodoInfo message for TodoPlan {TodoPlanId}", todoPlan.Id);
+                _logger.LogInternalInformation("Successfully created TodoInfo message card for TodoPlan {TodoPlanId}", todoPlan.Id);
             }
             else
             {
-                _logger.LogInternalInformation("Skipping TodoInfo streaming for TodoPlan {TodoPlanId} - updateType: {UpdateType}", todoPlan.Id, updateType);
+                _logger.LogInternalInformation("Skipping TodoInfo card creation for TodoPlan {TodoPlanId} - updateType: {UpdateType}", todoPlan.Id, updateType);
             }
 
             _logger.LogInternalInformation("Successfully processed todo plan persistence and streaming for thread {ThreadId}", threadId);

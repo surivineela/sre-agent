@@ -34,7 +34,7 @@ export const ThreadContent = memo(({ thread, addThread, deleteThread, updateThre
             <ThreadContentTitle
                 thread={thread}
                 deleteThread={deleteThread}
-                hasExistingPlans={todoPlanDrawer.hasExistingPlans}
+                todoPlanDrawer={todoPlanDrawer}
                 showTraceButton={showThreadTraceUI && showControlPlaneDependentFeatures && !!agentAppInsightsAppId}
                 toggleTraceVisibility={() => setShowTrace(!showTrace)}
                 traceFocusRestorationRef={traceFocusRestorationRef}

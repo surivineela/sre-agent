@@ -137,6 +137,25 @@ namespace Agent.Tests.Common.Mocks
 
             return Task.CompletedTask;
         }
+
+        public Task StreamTodoPlanUpdateAsync(Guid threadId, string todoPlanData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+        {
+            var streamedMessage = new StreamedMessage
+            {
+                ThreadId = threadId,
+                Message = todoPlanData,
+                Type = StreamMessageType.TodoPlan,
+                Timestamp = DateTime.UtcNow,
+                MessageId = messageId ?? Guid.NewGuid()
+            };
+
+            StreamedMessages.Add(streamedMessage);
+
+            _logger.LogInternalInformation("Mock: Streamed todo plan update for thread {ThreadId}: {TodoPlanData}",
+                threadId, todoPlanData);
+
+            return Task.CompletedTask;
+        }
     }
 
     public class StreamedMessage

@@ -63,6 +63,14 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
+        public Task AppendTodoPlanUpdate(Guid threadId, string todoPlanData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            _logger?.LogInternalInformation($"Mock: Todo plan update for thread {threadId}: {todoPlanData}");
+            Messages.Add(todoPlanData);
+            return Task.CompletedTask;
+        }
+
         public Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, string? callId = null, CancellationToken cancellationToken = default)
         {
             Messages.Add(aiTool.Name);

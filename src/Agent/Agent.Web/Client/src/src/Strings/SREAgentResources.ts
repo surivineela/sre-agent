@@ -655,6 +655,14 @@ export const ToDoPlanResources = defineMessages({
         defaultMessage: 'To-Do Plan',
         id: 'icyjmd',
     },
+    todoPlanCloseTooltip: {
+        defaultMessage: 'Close Todo Plans',
+        id: '8wQLC0',
+    },
+    todoPlanOpenTooltip: {
+        defaultMessage: 'Open Todo Plans',
+        id: 'eCZ0j1',
+    },
 });
 
 export const PermissionsResources = defineMessages({

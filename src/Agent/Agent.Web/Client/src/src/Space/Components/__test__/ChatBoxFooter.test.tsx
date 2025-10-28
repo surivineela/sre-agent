@@ -49,6 +49,7 @@ const Wrapper: React.FC<{ children: React.ReactNode; permission?: boolean }> = (
                             subscribeMessageUpdateEvent: () => () => {},
                             subscribeThreadUpdateEvent: () => () => {},
                             subscribeTaskUpdateEvent: () => () => {},
+                            subscribeTodoPlanUpdateEvent: () => () => {},
                         }}
                     >
                         <PermissionContext.Provider
