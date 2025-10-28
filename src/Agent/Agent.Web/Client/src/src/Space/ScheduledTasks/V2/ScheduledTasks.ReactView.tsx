@@ -56,28 +56,30 @@ export const ScheduledTasks: FC = () => {
             }}
         >
             <div className={styles.root}>
-                <div className={styles.content}>
-                    <div className={styles.padding}>
-                        <div className={styles.title}>
-                            <Subtitle1 as="h3" style={{ margin: 0 }}>
-                                {intl.formatMessage(ScheduledTasksResources.tasks)}
-                            </Subtitle1>
-                            <Body1>{intl.formatMessage(ScheduledTasksResources.scheduledTasksDescription)}</Body1>
+                <div className={styles.tabRoot}>
+                    <div className={styles.content}>
+                        <div className={styles.padding}>
+                            <div className={styles.title}>
+                                <Subtitle1 as="h3" style={{ margin: 0 }}>
+                                    {intl.formatMessage(ScheduledTasksResources.tasks)}
+                                </Subtitle1>
+                                <Body1>{intl.formatMessage(ScheduledTasksResources.scheduledTasksDescription)}</Body1>
+                            </div>
+                            <ScheduledTasksToolbar
+                                selectedTasks={selectedTasks}
+                                isLoading={isScheduledTasksLoading}
+                                searchQuery={searchQuery}
+                                setSearchQuery={setSearchQuery}
+                                statusFilter={statusFilter}
+                                setStatusFilter={setStatusFilter}
+                            />
+                            <ScheduledTasksDataGrid
+                                scheduledTasks={filteredTasks}
+                                isScheduledTasksLoading={isScheduledTasksLoading}
+                                selectedTaskIds={selectedTaskIds}
+                                setSelectedTaskIds={setSelectedTaskIds}
+                            />
                         </div>
-                        <ScheduledTasksToolbar
-                            selectedTasks={selectedTasks}
-                            isLoading={isScheduledTasksLoading}
-                            searchQuery={searchQuery}
-                            setSearchQuery={setSearchQuery}
-                            statusFilter={statusFilter}
-                            setStatusFilter={setStatusFilter}
-                        />
-                        <ScheduledTasksDataGrid
-                            scheduledTasks={filteredTasks}
-                            isScheduledTasksLoading={isScheduledTasksLoading}
-                            selectedTaskIds={selectedTaskIds}
-                            setSelectedTaskIds={setSelectedTaskIds}
-                        />
                     </div>
                 </div>
             </div>

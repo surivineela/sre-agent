@@ -31,11 +31,12 @@ export enum ScheduledTaskDialogMode {
 
 export const CreateOrEditScheduledTaskDialog: FC<CreateOrEditScheduledTaskDialog> = ({ dialogTrigger, mode, scheduledTask }) => {
     const intl = useIntl();
-    const { refreshTasks } = useContext(ScheduledTasksContext);
-    const { initialValues, save: saveScheduledTaskSettings } = useScheduledTaskSettings(
-        mode,
-        mode === ScheduledTaskDialogMode.Edit ? scheduledTask : undefined
-    );
+    const { refreshTasks, isOperationInProgress } = useContext(ScheduledTasksContext);
+    const {
+        initialValues,
+        validationSchema,
+        save: saveScheduledTaskSettings,
+    } = useScheduledTaskSettings(mode, mode === ScheduledTaskDialogMode.Edit ? scheduledTask : undefined);
     const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
     return (
@@ -44,16 +45,17 @@ export const CreateOrEditScheduledTaskDialog: FC<CreateOrEditScheduledTaskDialog
 
             <Formik<ScheduledTaskFormProps>
                 initialValues={initialValues}
+                validationSchema={validationSchema}
                 onSubmit={values => {
                     saveScheduledTaskSettings(values).then(response => {
-                        if (response.isSuccessful) {
+                        if (response?.isSuccessful) {
                             setIsDialogOpen(false);
                             refreshTasks();
                         }
                     });
                 }}
             >
-                {({ submitForm }) => {
+                {({ submitForm, dirty }) => {
                     return (
                         <DialogSurface
                             style={{ minWidth: 'fit-content' }}
@@ -71,7 +73,7 @@ export const CreateOrEditScheduledTaskDialog: FC<CreateOrEditScheduledTaskDialog
                                 </DialogContent>
                                 <DialogActions>
                                     <DialogTrigger disableButtonEnhancement>
-                                        <Button appearance="primary" onClick={submitForm}>
+                                        <Button appearance="primary" onClick={submitForm} disabled={!dirty || isOperationInProgress}>
                                             {mode === ScheduledTaskDialogMode.Create
                                                 ? intl.formatMessage(ScheduledTasksResources.createTask)
                                                 : intl.formatMessage(SreAgentResources.save)}

@@ -25,6 +25,8 @@ import { DeleteRegular, MoreHorizontalRegular, PauseRegular, ReplayRegular } fro
 import { Link } from '@fluentui/react/lib/Link';
 import { FC, useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
+import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { getErrorMessageOrStringify } from '../../../Common/Clients/ArmClient';
 import { getLocaleDateTimeHHMM } from '../../../Common/Helpers/Date';
 import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
@@ -52,7 +54,9 @@ interface ScheduledTasksDataGridProps {
 
 export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ scheduledTasks, selectedTaskIds, setSelectedTaskIds }) => {
     const intl = useIntl();
-    const { refreshTasks, pauseTask, resumeTask, deleteTask } = useContext(ScheduledTasksContext);
+    const azPortalContext = useContext(AzPortalContext);
+    const { refreshTasks, pauseTask, resumeTask, deleteTask, isOperationInProgress, setIsOperationInProgress } =
+        useContext(ScheduledTasksContext);
 
     const onSelectionChange: DataGridProps['onSelectionChange'] = useCallback(
         (_: any, data: OnSelectionChangeData) => {
@@ -62,33 +66,120 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
     );
 
     const onPauseTask = useCallback(
-        async (id: string) => {
-            const response = await pauseTask(id);
-            if (response.isSuccessful) {
-                await refreshTasks();
+        async (task: ScheduledTask) => {
+            const { id, name } = task;
+
+            const notificationId = azPortalContext.startNotification(
+                intl.formatMessage(ScheduledTasksResources.pauseTaskTitle),
+                intl.formatMessage(ScheduledTasksResources.pauseTaskInProgress, { name: name ?? id })
+            );
+
+            try {
+                setIsOperationInProgress(true);
+                const response = await pauseTask(id);
+                if (response.isSuccessful) {
+                    await refreshTasks();
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        true,
+                        intl.formatMessage(ScheduledTasksResources.taskPausedSuccessfully)
+                    );
+                } else {
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        false,
+                        intl.formatMessage(ScheduledTasksResources.failedToPauseTask, { errorMessage: response.error })
+                    );
+                }
+            } catch (error) {
+                azPortalContext.stopNotification(
+                    notificationId,
+                    false,
+                    intl.formatMessage(ScheduledTasksResources.failedToPauseTask, { errorMessage: getErrorMessageOrStringify(error) })
+                );
+            } finally {
+                setIsOperationInProgress(false);
             }
         },
-        [pauseTask, refreshTasks]
+        [azPortalContext, intl, setIsOperationInProgress, pauseTask, refreshTasks]
     );
 
     const onResumeTask = useCallback(
-        async (id: string) => {
-            const response = await resumeTask(id);
-            if (response.isSuccessful) {
-                await refreshTasks();
+        async (task: ScheduledTask) => {
+            const { id, name } = task;
+
+            const notificationId = azPortalContext.startNotification(
+                intl.formatMessage(ScheduledTasksResources.resumeTaskTitle),
+                intl.formatMessage(ScheduledTasksResources.resumeTaskInProgress, { name: name ?? id })
+            );
+
+            try {
+                setIsOperationInProgress(true);
+                const response = await resumeTask(id);
+                if (response.isSuccessful) {
+                    await refreshTasks();
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        true,
+                        intl.formatMessage(ScheduledTasksResources.taskResumedSuccessfully)
+                    );
+                } else {
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        false,
+                        intl.formatMessage(ScheduledTasksResources.failedToResumeTask, { errorMessage: response.error })
+                    );
+                }
+            } catch (error) {
+                azPortalContext.stopNotification(
+                    notificationId,
+                    false,
+                    intl.formatMessage(ScheduledTasksResources.failedToResumeTask, { errorMessage: getErrorMessageOrStringify(error) })
+                );
+            } finally {
+                setIsOperationInProgress(false);
             }
         },
-        [refreshTasks, resumeTask]
+        [azPortalContext, intl, setIsOperationInProgress, resumeTask, refreshTasks]
     );
 
     const onDeleteTask = useCallback(
-        async (id: string) => {
-            const response = await deleteTask(id);
-            if (response.isSuccessful) {
-                await refreshTasks();
+        async (task: ScheduledTask) => {
+            const { id, name } = task;
+
+            const notificationId = azPortalContext.startNotification(
+                intl.formatMessage(ScheduledTasksResources.deleteTaskTitle),
+                intl.formatMessage(ScheduledTasksResources.deleteTaskInProgress, { name: name ?? id })
+            );
+
+            try {
+                setIsOperationInProgress(true);
+                const response = await deleteTask(id);
+                if (response.isSuccessful) {
+                    await refreshTasks();
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        true,
+                        intl.formatMessage(ScheduledTasksResources.taskDeletedSuccessfully)
+                    );
+                } else {
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        false,
+                        intl.formatMessage(ScheduledTasksResources.failedToDeleteTask, { errorMessage: response.error })
+                    );
+                }
+            } catch (error) {
+                azPortalContext.stopNotification(
+                    notificationId,
+                    false,
+                    intl.formatMessage(ScheduledTasksResources.failedToDeleteTask, { errorMessage: getErrorMessageOrStringify(error) })
+                );
+            } finally {
+                setIsOperationInProgress(false);
             }
         },
-        [deleteTask, refreshTasks]
+        [azPortalContext, intl, setIsOperationInProgress, deleteTask, refreshTasks]
     );
 
     const onRenderName = useCallback((item: ScheduledTask) => {
@@ -107,18 +198,18 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                 <Dialog>
                     <Menu>
                         <MenuTrigger>
-                            <MenuButton appearance="transparent" icon={<MoreHorizontalRegular />} />
+                            <MenuButton appearance="transparent" icon={<MoreHorizontalRegular />} disabled={isOperationInProgress} />
                         </MenuTrigger>
 
                         <MenuPopover>
                             <MenuList>
                                 {item.status !== ScheduledTaskStatus.Completed &&
                                     (item.status === ScheduledTaskStatus.Active ? (
-                                        <MenuItem icon={<PauseRegular />} onClick={() => onPauseTask(item.id)}>
+                                        <MenuItem icon={<PauseRegular />} onClick={() => onPauseTask(item)}>
                                             {intl.formatMessage(ScheduledTasksResources.turnOff)}
                                         </MenuItem>
                                     ) : (
-                                        <MenuItem icon={<ReplayRegular />} onClick={() => onResumeTask(item.id)}>
+                                        <MenuItem icon={<ReplayRegular />} onClick={() => onResumeTask(item)}>
                                             {intl.formatMessage(ScheduledTasksResources.turnOn)}
                                         </MenuItem>
                                     ))}
@@ -129,11 +220,15 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                         </MenuPopover>
                     </Menu>
 
-                    <DeleteScheduledTaskDialog deleteTasks={() => onDeleteTask(item.id)} />
+                    <DeleteScheduledTaskDialog
+                        deleteTasks={() => onDeleteTask(item)}
+                        title={intl.formatMessage(ScheduledTasksResources.deleteTaskConfirmationTitle)}
+                        content={intl.formatMessage(ScheduledTasksResources.deleteTaskConfirmationMessage, { name: item.name ?? item.id })}
+                    />
                 </Dialog>
             );
         },
-        [intl, onDeleteTask, onPauseTask, onResumeTask]
+        [intl, isOperationInProgress, onDeleteTask, onPauseTask, onResumeTask]
     );
 
     const onRenderStatus = useCallback(

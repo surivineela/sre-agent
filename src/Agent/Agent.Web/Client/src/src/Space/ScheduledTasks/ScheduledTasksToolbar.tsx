@@ -86,7 +86,7 @@ const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
                         <DialogContent>
                             {selectedTask && (
                                 <>
-                                    {intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskWithNameConfirmation, {
+                                    {intl.formatMessage(ScheduledTasksResources.deleteTaskConfirmationMessage, {
                                         name: selectedTask.name,
                                     })}
                                 </>

@@ -4,6 +4,15 @@ export const useScheduledTasksStyles = makeStyles({
     root: {
         display: 'flex',
         flexDirection: 'column',
+        height: 'calc(100vh - 60px)',
+        padding: '10px ',
+        borderTop: '1px solid rgba(204, 204, 204, 0.8)',
+        backgroundColor: tokens.colorNeutralBackground3,
+        gap: '0.25rem',
+    },
+    tabRoot: {
+        display: 'flex',
+        flexDirection: 'column',
         margin: '16px 20px 5px 20px',
         borderRadius: tokens.borderRadiusXLarge,
         boxShadow: tokens.shadow4,

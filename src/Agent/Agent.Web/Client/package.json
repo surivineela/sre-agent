@@ -58,7 +58,8 @@
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
     "remove-markdown": "^0.6.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

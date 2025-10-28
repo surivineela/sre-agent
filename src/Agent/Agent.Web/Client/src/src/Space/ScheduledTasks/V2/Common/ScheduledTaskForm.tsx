@@ -25,7 +25,7 @@ import { DayOfTheWeek, getDaysOfTheWeek, GroupMessageKey, ScheduledTaskFormProps
 export const ScheduledTaskForm = () => {
     const intl = useIntl();
     const styles = useScheduledTasksStyles();
-    const { values, setFieldValue } = useFormikContext<ScheduledTaskFormProps>();
+    const { values, setFieldValue, errors, setFieldTouched, touched } = useFormikContext<ScheduledTaskFormProps>();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const [isApplyingImprovement, setIsApplyingImprovement] = useState<boolean>(false);
 
@@ -74,12 +74,20 @@ export const ScheduledTaskForm = () => {
     return (
         <div className={styles.taskForm}>
             <div className={styles.taskFormLeft}>
-                <Field label={intl.formatMessage(ScheduledTasksResources.taskName)} required>
+                <Field
+                    label={intl.formatMessage(ScheduledTasksResources.taskName)}
+                    validationState={touched.name && errors.name ? 'error' : undefined}
+                    validationMessage={touched.name ? errors.name : undefined}
+                    required
+                >
                     <Input
                         placeholder={intl.formatMessage(ScheduledTasksResources.taskNamePlaceholder)}
                         value={values.name}
                         onChange={(_, data) => {
                             setFieldValue('name', data.value);
+                        }}
+                        onBlur={() => {
+                            setFieldTouched('name', true);
                         }}
                     />
                 </Field>
@@ -122,6 +130,8 @@ export const ScheduledTaskForm = () => {
                         </div>
                     }
                     hint={intl.formatMessage(ScheduledTasksResources.taskDetailsTip)}
+                    validationState={touched.details && errors.details ? 'error' : undefined}
+                    validationMessage={touched.details ? errors.details : undefined}
                 >
                     <Textarea
                         style={{ height: '200px' }}
@@ -130,6 +140,10 @@ export const ScheduledTaskForm = () => {
                         onChange={(_, data) => {
                             setFieldValue('details', data.value);
                         }}
+                        onBlur={() => {
+                            setFieldTouched('details', true);
+                        }}
+                        disabled={isApplyingImprovement}
                     />
                 </Field>
             </div>

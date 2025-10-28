@@ -23,6 +23,7 @@ import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import RbacWarningBanner from '../Common/Components/RbacWarningBanner';
 import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
+import { SettingNames, useConfigSetting } from '../Common/Hooks/ConfigSettings';
 import { useFeatureFlags } from '../Common/Hooks/useFeatureFlags';
 import { LocalStorageFlags, useLocalStorage } from '../Common/Hooks/useLocalStorage';
 import {
@@ -41,7 +42,7 @@ import Graph from './Graph/Graph';
 import { useIncidentManagementConnectivity } from './Hooks/useIncidentManagementConnectivity';
 import { useIncidentPlatformType } from './Hooks/useIncidentPlatformType';
 import IncidentManagement from './IncidentManagement/IncidentManagement';
-import ScheduledTasksOverview from './ScheduledTasks/ScheduledTasksOverview';
+import { ScheduledTasks } from './ScheduledTasks/V2/ScheduledTasks.ReactView';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
 import Settings from './Settings/Settings.ReactView';
 import { useSreAgentSpaceStyles } from './Settings/Styles/SreAgentSpaceStyles';
@@ -162,12 +163,10 @@ const TabsListWrapper: FC = () => {
         return isIncidentManagementTeachingPopoverDismissed !== 'true';
     }, [isIncidentManagementTeachingPopoverDismissed]);
 
-    const { features } = useFeatureFlags();
-
-    // Show scheduled tasks tab based on backend feature flag only
-    const showScheduledTasksTab = features.scheduledTasks;
+    const showScheduledTasksTab = useConfigSetting(SettingNames.ShowScheduledTasksTab);
 
     // Show extended agents graph tab based on backend feature flag only
+    const { features } = useFeatureFlags();
     const showExtendedAgentsGraphTab = features.extendedAgentsGraph;
 
     const { controlPlaneTabsVisible, incidentManagementTabVisible, incidentManagementTabDisabled, logsTabDisabled, onLogsClick } =
@@ -356,7 +355,7 @@ const router = createHashRouter([
             { path: 'views/activities/threads/:threadId', element: <Activities /> },
             { path: 'views/activities', element: <Activities /> },
             { path: 'views/dailyreports', element: <DailyReports /> },
-            { path: 'views/scheduledtasks', element: <ScheduledTasksOverview /> },
+            { path: 'views/scheduledtasks', element: <ScheduledTasks /> },
             { path: 'views/extendedagentsgraph', element: <ExtendedAgentGraph /> },
             { path: '*', element: <Activities /> },
         ],
