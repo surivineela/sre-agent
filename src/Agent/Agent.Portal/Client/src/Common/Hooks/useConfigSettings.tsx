@@ -2,8 +2,18 @@ import { useMemo } from 'react';
 import { Location, useLocation } from 'react-router-dom';
 
 export enum SettingNames {
+    /** 1 Error -> 5 Verbose */
     LogLevel = 'loglevel',
+    /** Comma-separated TelemetrySources */
     LogSource = 'logsource',
+    /** For AgentIFrame feature flags */
+    Ext = 'ext',
+    /** For agent site deep link */
+    SreLink = 'srelink',
+    /** Use local agent site UX and backend */
+    SreLocal = 'sre_local',
+    /** Use local agent site UX with prod backend */
+    SreUxLocal = 'sre_ux_local',
     /** Only used by unit tests */
     ForUnitTests = 'forUnitTests',
 }

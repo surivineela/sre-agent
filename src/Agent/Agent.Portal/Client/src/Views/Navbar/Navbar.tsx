@@ -1,7 +1,6 @@
 import { Image, makeStyles, Text, tokens, Tooltip } from '@fluentui/react-components';
 import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router-dom';
-import { useAssetUrl } from '../../Common/Hooks/useAssetUrl';
 import { PortalResources } from '../../Strings/Resources';
 import { NotificationButton } from './NotificationButton';
 import { SettingsContent } from './SettingsContent';
@@ -49,13 +48,12 @@ export const Navbar = () => {
     const intl = useIntl();
     const navigate = useNavigate();
     const styles = useStyles();
-    const assetUrl = useAssetUrl('SreAgent.svg');
 
     return (
         <div className={styles.navbar}>
             <Tooltip content={intl.formatMessage(PortalResources.azureSreAgents)} relationship="label">
                 <div className={styles.logoSection} onClick={() => navigate('/')}>
-                    <Image src={assetUrl} width={18} height={18} alt={intl.formatMessage(PortalResources.azureSreAgents)} />
+                    <Image src='SreAgent.svg' width={18} height={18} alt={intl.formatMessage(PortalResources.azureSreAgents)} />
                     <Text weight="semibold">{intl.formatMessage(PortalResources.azureSreAgents)}</Text>
                 </div>
             </Tooltip>

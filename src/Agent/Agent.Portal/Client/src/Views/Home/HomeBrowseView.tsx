@@ -20,6 +20,7 @@ import {
 import { Add16Regular } from '@fluentui/react-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useNavigate } from 'react-router-dom';
 import { SreAgentClient } from '../../Common/Clients/SreAgentClient';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
 import { useAuth } from '../../Common/Contexts/AuthContext';
@@ -34,6 +35,7 @@ export const HomeBrowseView = () => {
     const { instance } = useMsal();
     const { isAuthenticated } = useAuth();
     const { logEvent } = useTelemetry(TelemetrySource.HomeBrowseView, undefined);
+    const navigate = useNavigate();
 
     const sreAgentClient = useMemo(() => SreAgentClient.getInstance(instance, TelemetrySource.HomeBrowseView), [instance]);
 
@@ -47,7 +49,7 @@ export const HomeBrowseView = () => {
             renderHeaderCell: () => intl.formatMessage(PortalResources.name),
             renderCell: item => (
                 <TableCellLayout>
-                    <Link href={`/agents${item.id}`}>{item.name}</Link>
+                    <Link onClick={() => navigate(`/agents/${encodeURIComponent(item.id)}`)}>{item.name}</Link>
                 </TableCellLayout>
             ),
         }),

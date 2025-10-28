@@ -70,4 +70,9 @@ export const PortalResources = defineMessages({
     subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
     resourceGroup: { defaultMessage: 'Resource group', id: '+uAdUZ' },
     region: { defaultMessage: 'Region', id: 'lnaWo/' },
+    whitelistErrorMessage: { defaultMessage: 'This subscription is not currently whitelisted to use SRE Agent. Please contact your administrator or support team to request access.', id: 'Kbdzt3' },
+    iframeUnauthorizedMessage: { defaultMessage: 'We were unable to load the URL {agentUxUrl}. This may be due to the existence of a firewall or network restrictions placed on the domain of your agent. Please speak to your network administrator to remove this restriction in order to proceed with interacting with your agent.', id: 'kbQZUj' },
+    iframeZscalerUnauthorizedMessage: { defaultMessage: "We were unable to load the URL {agentUxUrl}. We've detected that your organization has selected Zscaler to protect you from unknown domains. Please speak to your network administrator to remove the restriction on this domain in order to proceed with interacting with your agent.", id: 'GDEEBE' },
+    operationCancelled: { defaultMessage: 'Operation cancelled', id: 'g82HU6' },
+    directory: { defaultMessage: 'Directory', id: 'RDwKyy' },
 });

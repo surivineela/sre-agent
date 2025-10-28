@@ -4,9 +4,11 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo }
 import { loginRequest } from '../Auth/msalConfig';
 
 interface AuthenticatedUser {
-    name?: string;
-    username?: string;
-    tenantId?: string;
+    name: string;
+    username: string;
+    email: string;
+    tenantId: string;
+    objectId: string;
 }
 
 interface AuthContextValue {
@@ -26,15 +28,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const isLoadingAuth = useMemo(() => inProgress !== InteractionStatus.None, [inProgress]);
 
+    // To get more directory/tenant info (such as name), would need to make Graph call
     const user = useMemo<AuthenticatedUser | null>(() => {
         if (!account) {
             return null;
         }
 
+        const idTokenClaims = account.idTokenClaims as any;
+
         return {
             name: account.name ?? account.username,
             username: account.username,
+            email: idTokenClaims.email || "",
+            // Tenant/Directory ID
             tenantId: account.tenantId,
+            objectId: account.localAccountId || idTokenClaims.oid || "",
         };
     }, [account]);
 

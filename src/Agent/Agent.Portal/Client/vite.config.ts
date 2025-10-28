@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
         ],
         define: {
             'import.meta.env.SRE_AGENT_PORTAL_VERSION': JSON.stringify(VERSION),
-            'import.meta.env.BASE_ROUTE': JSON.stringify('/'),
+            'import.meta.env.BASE_ROUTE': JSON.stringify(`/${VERSION}/`),
         },
         build: {
             outDir: `dist/${VERSION}`,

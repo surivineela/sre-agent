@@ -1,6 +1,5 @@
 import { Button, Image, makeStyles, tokens } from '@fluentui/react-components';
 import { useIntl } from 'react-intl';
-import { useAssetUrl } from '../../Common/Hooks/useAssetUrl';
 import { PortalResources } from '../../Strings/Resources';
 
 const useStyles = makeStyles({
@@ -51,7 +50,6 @@ const useStyles = makeStyles({
 export const LandingPage = () => {
     const intl = useIntl();
     const styles = useStyles();
-    const assetUrl = useAssetUrl('SreAgent.svg');
 
     return (
         <div className={styles.container}>
@@ -68,7 +66,7 @@ export const LandingPage = () => {
                 </div>
             </div>
 
-            <Image src={assetUrl} width={256} height={256} alt={intl.formatMessage(PortalResources.azureSreAgent)} />
+            <Image src='SreAgent.svg' width={256} height={256} alt={intl.formatMessage(PortalResources.azureSreAgent)} />
         </div>
     );
 };

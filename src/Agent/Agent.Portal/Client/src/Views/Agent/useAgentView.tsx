@@ -1,49 +1,31 @@
-import { useEffect, useRef } from 'react';
+import { useMsal } from '@azure/msal-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
+import { getCloudEndpoints } from '../../Common/Auth/cloudConfig';
+import { AuthScopeIdentifier } from '../../Common/Auth/msalConfig';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
+import { useNotifications } from '../../Common/Contexts/NotificationContext';
+import { useUserPreferences } from '../../Common/Contexts/UserPreferencesContext';
+import { ILogEvent, LogLevel } from '../../Common/Contracts/Telemetry';
+import { useAuthTokenManager } from '../../Common/Hooks/useAuthTokenManager';
 import { useTelemetry } from '../../Common/Hooks/useTelemetry';
+import { PortalResources } from '../../Strings/Resources';
+import { AgentSiteToAzPortalVerbs, AzPortalToAgentSiteVerbs, IEnvironmentInfo, IFrameTelemetryInfo, IFrameUserInfo, INotificationInfo, TokenTypes } from './AgentIFrameContracts';
+import { resolveAgentSiteUrl } from './Utilities';
+import { useAuth } from '../../Common/Contexts/AuthContext';
 
 export const useAgentView = (resourceId: string, sreLink?: string) => {
-    const iframeRef = useRef<HTMLIFrameElement>(null);
+    const intl = useIntl();
+    const { instance } = useMsal();
+    const { user } = useAuth();
     const { logEvent } = useTelemetry(TelemetrySource.AgentIFrameView, resourceId);
-
-    console.log(sreLink);
-
-    useEffect(() => {
-        logEvent({
-            action: 'agent-view-initialized',
-            actionModifier: 'success',
-        });
-    }, [logEvent]);
-
-    return {
-        agentUxUrl: 'https://eastus2-agent-1--d7e3ef0a.60d80d9b.eastus2.azuresre.ai/static/',
-        isSiteRunning: true,
-        iframeRef,
-        iframeInitialized: true,
-        errorBannerMessage: '',
-    };
-};
-
-/*
-// TODO: Lots of cleanup and portal-conversion
-
-export interface PendingNotificationEntry {
-    title: string;
-    notification: PendingNotification;
-}
-
-export const useAgentView = (resourceId: string, sreLink?: string) => {
-    const { logNavigationEvent, logOperationEvent, logControlEvent } = useAmplitudeTelemetry();
-    const telemetry = useMemo(() => new Telemetry(TelemetrySource.AgentFrameBladeReactView, resourceId), [resourceId]);
+    const { resolvedTheme, locale } = useUserPreferences();
+    const { start, succeed, fail } = useNotifications();
 
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
     const initTimeoutId = useRef<ReturnType<typeof setTimeout>>();
-    const notificationMap = useRef<{ [key: string]: PendingNotificationEntry }>({}); // Use this to clean up notifications if user closes blade
-
-    const initialEndpointsPromise = useRef(getEndpoints());
-    const initialThemePromise = useRef(getTheme());
-    const initialUserInfoPromise = useRef(getUserInfo());
+    const notificationIdMap = useRef<{ [iframeNotificationId: string]: string }>({});
 
     const [agentUxUrl, setAgentUxUrl] = useState<string>();
     const [uxOrigin, setUxOrigin] = useState<string>();
@@ -55,11 +37,10 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
     const postMessage = useCallback(
         (verb: string, data: object) => {
             if (agentUxUrl && iframeRef.current?.contentWindow) {
-                telemetry.log({
-                    resourceId: resourceId,
+                logEvent({
                     action: 'send-host-to-iframe',
                     actionModifier: verb,
-                    data: {
+                    additionalData: {
                         message: `[send-host-to-iframe] ${verb}`,
                     },
                 });
@@ -73,12 +54,11 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                     agentUxUrl
                 );
             } else {
-                telemetry.log({
-                    resourceId: resourceId,
+                logEvent({
                     action: 'send-host-to-iframe',
                     actionModifier: 'failed',
                     logLevel: LogLevel.Error,
-                    data: {
+                    additionalData: {
                         message: `[send-host-to-iframe] Failed to send message because agentUxUrl is not set or iframeRef contentWindow is not available`,
                         uxUrlDefined: !!agentUxUrl,
                         iframeRefDefined: !!iframeRef.current,
@@ -87,117 +67,99 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                 });
             }
         },
-        [resourceId, telemetry, agentUxUrl]
+        [logEvent, agentUxUrl]
     );
 
     const authTokenManager = useAuthTokenManager({
-        telemetry,
+        instance,
+        telemetrySource: TelemetrySource.AgentIFrameView,
         resourceId,
         postMessage,
-        initialTokenTypes: ['arm', 'sreagent'],
+        initialTokenTypes: ['arm', 'sreAgent'],
     });
+
+    const sendThemeCallback = useCallback(() => {
+        const isDarkTheme = resolvedTheme === 'dark';
+        postMessage(AzPortalToAgentSiteVerbs.sendTheme, {
+            name: isDarkTheme ? 'dark' : 'light',
+            mode: isDarkTheme ? 1 : 0,
+        });
+    }, [postMessage, resolvedTheme]);
+
+    const sendUserInfoCallback = useCallback(() => {
+        if (!user) return;
+
+        const userInfo: IFrameUserInfo = {
+            email: user.email,
+            givenName: user.name,
+            directoryId: user.tenantId,
+            objectId: user.objectId, // Only actually use this one in agent site atm
+        };
+
+        postMessage(AzPortalToAgentSiteVerbs.sendUserInfo, { userInfo });
+    }, [postMessage, user]);
 
     const readyForDataCallback = useCallback(() => {
         window.clearTimeout(initTimeoutId.current);
 
-        initialEndpointsPromise.current.then(endpoints => {
-            const armUrl = new URL(endpoints.arm);
-            const environmentInfo: IEnvironmentInfo = {
-                effectiveLocale: displayLanguage,
-                resourceId: resourceId,
-                armEndpoint: armUrl.origin,
-                sreAgentEndpoint: agentUrl || '',
-            };
+        const armUrl = new URL(getCloudEndpoints().arm);
+        const environmentInfo: IEnvironmentInfo = {
+            effectiveLocale: locale,
+            resourceId,
+            armEndpoint: armUrl.origin,
+            sreAgentEndpoint: agentUrl || '',
+        };
 
-            postMessage(AzPortalToAgentSiteVerbs.sendEnvironmentInfo, environmentInfo);
-        });
+        postMessage(AzPortalToAgentSiteVerbs.sendEnvironmentInfo, environmentInfo);
 
         authTokenManager.handleInitialTokenSetup();
 
-        initialThemePromise.current.then(theme => {
-            postMessage(AzPortalToAgentSiteVerbs.sendTheme, theme);
-        });
+        sendThemeCallback();
 
-        initialUserInfoPromise.current.then(userInfo => {
-            postMessage(AzPortalToAgentSiteVerbs.sendUserInfo, { userInfo: userInfo });
-        });
+        sendUserInfoCallback();
 
         setIframeInitialized(true);
-        logOperationEvent({
-            targetType: 'load',
-            targetAction: 'loaded',
-            targetName: 'agentSite',
-            targetFriendlyName: 'Agent site',
-        });
-    }, [postMessage, authTokenManager, logOperationEvent, resourceId, agentUrl]);
+    }, [postMessage, authTokenManager, resourceId, agentUrl, locale, sendThemeCallback, sendUserInfoCallback]);
 
     const logCallback = useCallback(
-        (telemetryObj: TelemetryInfo) => {
+        (telemetryObj: IFrameTelemetryInfo) => {
             console.log('[SRE Agent iframe telemetry]', telemetryObj);
-            telemetry.log(telemetryObj);
-        },
-        [telemetry]
-    );
 
-    const logAmplitudeOperationCallback = useCallback(
-        (amplitudeEvent: AmplitudeOperationEvent & { errorInfo?: ILogBladeErrorInfo } & { metadata?: Record<string, unknown> }) => {
-            const { errorInfo, metadata, ...actualAmplitudeEvent } = amplitudeEvent;
-            logOperationEvent(actualAmplitudeEvent, errorInfo, metadata);
-        },
-        [logOperationEvent]
-    );
+            const logLevelMap: Record<string, LogLevel> = {
+                error: LogLevel.Error,
+                warning: LogLevel.Warning,
+                info: LogLevel.Info,
+                verbose: LogLevel.Verbose,
+            };
 
-    const logAmplitudeControlCallback = useCallback(
-        (amplitudeEvent: AmplitudeControlEvent & { metadata?: Record<string, unknown> }) => {
-            const { metadata, ...actualAmplitudeEvent } = amplitudeEvent;
-            logControlEvent(actualAmplitudeEvent, metadata);
-        },
-        [logControlEvent]
-    );
+            const formattedTelemetryEvent: ILogEvent = {
+                action: telemetryObj.action,
+                actionModifier: telemetryObj.actionModifier,
+                logLevel: telemetryObj.logLevel ? logLevelMap[telemetryObj.logLevel] : undefined,
+                additionalData: typeof telemetryObj.data === 'string' ? { message: telemetryObj.data } : telemetryObj.data,
 
-    const logAmplitudeNavigationCallback = useCallback(
-        (amplitudeEvent: AmplitudeNavigationEvent & { metadata?: Record<string, unknown> }) => {
-            const { metadata, ...actualAmplitudeEvent } = amplitudeEvent;
-            logNavigationEvent(actualAmplitudeEvent, metadata);
+            }
+            logEvent(formattedTelemetryEvent);
         },
-        [logNavigationEvent]
+        [logEvent]
     );
 
     const openBladeCallback = useCallback(
-        (info: IOpenBladeRequest) => {
-            const bladeReference: BladeReference = {
-                extensionName: info.extension,
-                bladeName: info.detailBlade,
-                parameters: info.detailBladeInputs,
-                onClosed: (r: BladeClosedReason, data: unknown) => {
-                    const dataToSend: IBladeClosedResult = {
-                        operationId: info.operationId,
-                        reason: r === BladeClosedReason.ChildClosedSelf ? 'childClosedSelf' : 'userNavigation',
-                        data: data,
-                    };
-
-                    postMessage(AzPortalToAgentSiteVerbs.bladeClosed, dataToSend);
-                },
-            };
-
-            if (info.asContextBlade) {
-                openContextPane(bladeReference);
-            } else {
-                openBlade(bladeReference, { asSubJourney: !!info.asSubJourney });
-            }
+        (info: unknown) => {
+            // TODO: Make links within agent site actual links if in SREA Portal ?
+            console.log('Opened blade:', info);
         },
-        [postMessage]
+        []
     );
 
     const updateNotificationCallback = useCallback(
         (info: INotificationInfo) => {
             if (!info.id) {
-                telemetry.log({
+                logEvent({
                     action: 'updateNotification',
                     actionModifier: 'failed',
-                    resourceId: resourceId,
                     logLevel: LogLevel.Error,
-                    data: {
+                    additionalData: {
                         message: 'Notification ID is required but not provided',
                     },
                 });
@@ -205,62 +167,62 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
             }
 
             if (info.state === 'start') {
-                const notification = publishPendingNotification({
-                    title: info.title,
-                    description: info.description,
-                });
-                notificationMap.current[info.id] = {
-                    notification,
-                    title: info.title,
-                };
+                // Start a new notification and track the mapping
+                const portalNotificationId = start(info.title, info.description);
+                notificationIdMap.current[info.id] = portalNotificationId;
                 return;
-            } else {
-                const { notification, title } = notificationMap.current[info.id];
-
-                if (!notification) {
-                    telemetry.log({
-                        action: 'updateNotification',
-                        actionModifier: 'failed',
-                        resourceId: resourceId,
-                        logLevel: LogLevel.Error,
-                        data: {
-                            message: 'Could not find cached notification object',
-                        },
-                    });
-
-                    return;
-                }
-
-                publishCompletePendingNotification(
-                    notification,
-                    {
-                        title,
-                        description: info.description,
-                    },
-                    info.state === 'success' ? NotificationStatus.Success : NotificationStatus.Error
-                );
-
-                delete notificationMap.current[info.id];
             }
+
+            // Get the portal notification ID for this iframe notification
+            const portalNotificationId = notificationIdMap.current[info.id];
+
+            if (!portalNotificationId) {
+                logEvent({
+                    action: 'updateNotification',
+                    actionModifier: 'failed',
+                    logLevel: LogLevel.Error,
+                    additionalData: {
+                        message: 'Could not find cached notification ID',
+                        iframeNotificationId: info.id,
+                    },
+                });
+                return;
+            }
+
+            // Complete the notification based on state
+            if (info.state === 'success') {
+                succeed(portalNotificationId, info.title, info.description);
+            } else {
+                fail(portalNotificationId, info.title, info.description);
+            }
+
+            // Clean up the mapping
+            delete notificationIdMap.current[info.id];
         },
-        [telemetry, resourceId]
+        [logEvent, start, succeed, fail]
     );
 
     const requestTokenCallback = useCallback(
         (tokenType: TokenTypes) => {
-            authTokenManager.handleTokenRequest(tokenType);
+            const tokenTypeToAuthScopeMap: Record<TokenTypes, AuthScopeIdentifier> = {
+                arm: 'arm',
+                sreagent: 'sreAgent',
+                applicationinsightapi: 'appInsights',
+            };
+
+            authTokenManager.handleTokenRequest(tokenTypeToAuthScopeMap[tokenType]);
         },
         [authTokenManager]
     );
 
     const receiveMessage = useCallback(
         (event: MessageEvent) => {
-            const messageCallbackMap: Record<string, (data: unknown) => void> = {
+            const messageCallbackMap: Record<string, (data: any) => void> = {
                 [AgentSiteToAzPortalVerbs.readyForData]: readyForDataCallback,
                 [AgentSiteToAzPortalVerbs.log]: logCallback,
-                [AgentSiteToAzPortalVerbs.logAmplitudeControlEvent]: logAmplitudeControlCallback,
-                [AgentSiteToAzPortalVerbs.logAmplitudeNavigationEvent]: logAmplitudeNavigationCallback,
-                [AgentSiteToAzPortalVerbs.logAmplitudeOperationEvent]: logAmplitudeOperationCallback,
+                [AgentSiteToAzPortalVerbs.logAmplitudeControlEvent]: () => undefined,
+                [AgentSiteToAzPortalVerbs.logAmplitudeNavigationEvent]: () => undefined,
+                [AgentSiteToAzPortalVerbs.logAmplitudeOperationEvent]: () => undefined,
                 [AgentSiteToAzPortalVerbs.openBlade]: openBladeCallback,
                 [AgentSiteToAzPortalVerbs.updateNotification]: updateNotificationCallback,
                 [AgentSiteToAzPortalVerbs.requestToken]: requestTokenCallback,
@@ -268,11 +230,11 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
 
             // Validate the origin and signature of the incoming message
             if (event.origin !== uxOrigin || event.data?.signature !== 'FxFrameBlade') {
-                telemetry.log({
+                logEvent({
                     action: 'received-host-from-iframe',
                     actionModifier: 'invalid-origin-or-signature',
                     logLevel: LogLevel.Verbose,
-                    data: {
+                    additionalData: {
                         message: 'Invalid origin or signature for message',
                         origin: event.origin,
                         signature: event.data?.signature,
@@ -283,12 +245,11 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
 
             const verb = event.data?.kind;
 
-            telemetry.log({
-                resourceId: resourceId,
+            logEvent({
                 action: 'received-host-from-iframe',
                 actionModifier: verb,
                 logLevel: LogLevel.Verbose,
-                data: {
+                additionalData: {
                     message: `[received-host-from-iframe] ${verb}`,
                 },
             });
@@ -299,26 +260,24 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
             if (callback) {
                 callback(incomingData);
             } else {
-                telemetry.log({
+                logEvent({
                     action: 'received-host-from-iframe',
                     actionModifier: 'failure',
                     logLevel: LogLevel.Error,
-                    data: `Could not find callback for ${verb}`,
+                    additionalData: {
+                        message: `Could not find callback for ${verb}`,
+                    },
                 });
             }
         },
         [
             uxOrigin,
-            telemetry,
-            resourceId,
+            logEvent,
             readyForDataCallback,
             logCallback,
             openBladeCallback,
             updateNotificationCallback,
             requestTokenCallback,
-            logAmplitudeControlCallback,
-            logAmplitudeNavigationCallback,
-            logAmplitudeOperationCallback,
         ]
     );
 
@@ -347,16 +306,15 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                         try {
                             const errorJson = await response.json();
                             if (errorJson?.error?.code === 'NoRegisteredProviderFound') {
-                                setErrorBannerMessage(SreAgentResources.whitelistErrorMessage);
-                                log([
-                                    {
-                                        area: TelemetrySource.AgentFrameBladeReactView,
-                                        args: [agentUxUrl],
-                                        level: LogEntryLevel.Warning,
-                                        message: `Subscription needs to be whitelisted - NoRegisteredProviderFound error`,
-                                        timestamp: Date.now(),
-                                    },
-                                ]);
+                                setErrorBannerMessage(intl.formatMessage(PortalResources.whitelistErrorMessage));
+                                logEvent({
+                                    action: 'Subscription needs to be whitelisted - NoRegisteredProviderFound error',
+                                    actionModifier: 'whitelist-error',
+                                    logLevel: LogLevel.Warning,
+                                    additionalData: {
+                                        agentUxUrl,
+                                    }
+                                });
                                 break;
                             }
                         } catch (_parseError) {
@@ -364,32 +322,32 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                         }
                     }
 
-                    //Check for iframe unauthorized error
+                    // Check for iframe unauthorized error
                     if (response.status === 403) {
                         const serverHeader = response.headers.get('Server');
                         if (serverHeader?.includes('Zscaler')) {
-                            telemetry.log({
+                            logEvent({
                                 action: 'iframe-unauthorized',
                                 actionModifier: 'zscaler',
                                 logLevel: LogLevel.Error,
-                                data: {
+                                additionalData: {
                                     message: `Zscaler detected for URL`,
                                     agentUxUrl,
                                 },
                             });
-                            setErrorBannerMessage(format(SreAgentResources.iframeZscalerUnauthorizedMessage, agentUxUrl));
+                            setErrorBannerMessage(intl.formatMessage(PortalResources.iframeZscalerUnauthorizedMessage, { agentUxUrl }));
                             break;
                         } else {
-                            telemetry.log({
+                            logEvent({
                                 action: 'iframe-unauthorized',
                                 actionModifier: 'forbidden',
                                 logLevel: LogLevel.Error,
-                                data: {
+                                additionalData: {
                                     message: `Forbidden access to URL ${agentUxUrl}`,
                                     agentUxUrl,
                                 },
                             });
-                            setErrorBannerMessage(format(SreAgentResources.iframeUnauthorizedMessage, agentUxUrl));
+                            setErrorBannerMessage(intl.formatMessage(PortalResources.iframeUnauthorizedMessage, { agentUxUrl }));
                             break;
                         }
                     }
@@ -407,24 +365,23 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                     pingIndex >= agentSitePingLimit
                         ? `Agent site failed to respond within ${agentSitePingLimit} pings. Blade timeout.`
                         : `Agent site failed to respond (${totalTime}ms). Blade timeout.`;
-                log([
-                    {
-                        area: TelemetrySource.AgentFrameBladeReactView,
-                        args: [agentUxUrl],
-                        level: LogEntryLevel.Error,
-                        message: errorMessage,
-                        timestamp: Date.now(),
+                logEvent({
+                    action: errorMessage,
+                    actionModifier: 'timeout',
+                    logLevel: LogLevel.Error,
+                    additionalData: {
+                        agentUxUrl,
                     },
-                ]);
+                });
             }
         };
 
         pingSite();
-    }, [agentUxUrl, telemetry, resourceId]);
+    }, [intl, agentUxUrl, logEvent, resourceId]);
 
     useEffect(() => {
         if (agentUxUrl && isSiteRunning && iframeRef.current) {
-            telemetry.log({
+            logEvent({
                 action: 'received-message-handler',
                 actionModifier: 'added',
                 logLevel: LogLevel.Verbose,
@@ -434,7 +391,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
             window.addEventListener('message', receiveMessage);
 
             return () => {
-                telemetry.log({
+                logEvent({
                     action: 'received-message-handler',
                     actionModifier: 'removed',
                     logLevel: LogLevel.Verbose,
@@ -444,13 +401,11 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                 window.removeEventListener('message', receiveMessage);
             };
         }
-    }, [receiveMessage, agentUxUrl, isSiteRunning, telemetry]);
+    }, [receiveMessage, agentUxUrl, isSiteRunning, logEvent]);
 
     useEffect(() => {
-        setOnThemeChange(theme => {
-            postMessage(AzPortalToAgentSiteVerbs.sendTheme, theme);
-        });
-    }, [postMessage]);
+        sendThemeCallback();
+    }, [sendThemeCallback]);
 
     useEffect(() => {
         return () => {
@@ -461,34 +416,23 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                 clearTimeout(currentInitTimeoutId);
             }
 
-            // Clean up notifications
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-            Object.values(notificationMap.current).forEach(notificationEntry => {
-                notificationEntry.notification.complete({
-                    status: NotificationStatus.Warning,
-                    description: SreAgentResources.operationCancelled,
-                });
+            // Clean up in-progress notifications by marking them as failed
+            // eslint-disable-next-line react-hooks/exhaustive-deps -- Need latest on unmount
+            Object.values(notificationIdMap.current).forEach(portalNotificationId => {
+                fail(portalNotificationId, undefined, intl.formatMessage(PortalResources.operationCancelled));
             });
         };
-    }, []);
-
-    useEffect(() => {
-        const armId = ArmId.parse(resourceId);
-        setTitle({
-            title: armId.resourceName,
-            subtitle: SreAgentResources.sreAgent,
-        });
-    }, [resourceId]);
+    }, [fail, intl]);
 
     useEffect(() => {
         let subscribed = true;
 
         if (resourceId) {
-            resolveAgentSiteUrl(resourceId, sreLink).then(resolvedUrl => {
+            resolveAgentSiteUrl(instance, resourceId, sreLink).then(resolvedUrl => {
                 if (!subscribed) {
                     return;
                 }
-                setAgentUxUrl(resolvedUrl.agentUxUrl);
+                setAgentUxUrl(resolvedUrl.uxUrl);
                 setUxOrigin(resolvedUrl.uxOrigin);
                 setAgentUrl(resolvedUrl.agentUrl);
             });
@@ -497,18 +441,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
         return () => {
             subscribed = false;
         };
-    }, [resourceId, sreLink]);
-
-    useEffect(() => {
-        // Logging nav event from link here so it has the resource info attached
-        logNavigationEvent({
-            targetType: 'link',
-            targetAction: 'openBlade',
-            targetName: 'AgentFrameBlade.ReactView',
-            targetFriendlyName: 'Agent name link',
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [instance, resourceId, sreLink]);
 
     return {
         agentUxUrl,
@@ -518,4 +451,3 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
         errorBannerMessage,
     };
 };
-*/

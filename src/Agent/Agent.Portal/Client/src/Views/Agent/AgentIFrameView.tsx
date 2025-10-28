@@ -6,8 +6,10 @@ import MockShimmeredUx from './MockShimmeredUx';
 import { useAgentView } from './useAgentView';
 
 export const AgentIFrameView = () => {
-    const { agentId } = useParams<{ agentId?: string }>();
+    const { agentId: encodedAgentId } = useParams<{ agentId: string }>();
     const location = useLocation();
+
+    const agentId = useMemo(() => decodeURIComponent(encodedAgentId ?? ''), [encodedAgentId]);
 
     // TODO: Figure out and refine deep link logic
     const sreLink = useMemo(() => {

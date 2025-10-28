@@ -58,18 +58,23 @@ const PortalLayout = () => {
     );
 };
 
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+    [
+        {
+            path: '/',
+            element: <PortalLayout />,
+            children: [
+                { index: true, element: <HomeBrowseView /> },
+                { path: 'welcome', element: <LandingPage /> },
+                { path: 'agents/:agentId', element: <AgentIFrameView /> },
+                { path: '*', element: <HomeBrowseView /> },
+            ],
+        },
+    ],
     {
-        path: '/',
-        element: <PortalLayout />,
-        children: [
-            { index: true, element: <HomeBrowseView /> },
-            { path: 'welcome', element: <LandingPage /> },
-            { path: 'agents/:agentId', element: <AgentIFrameView /> },
-            { path: '*', element: <HomeBrowseView /> },
-        ],
-    },
-]);
+        basename: import.meta.env.BASE_URL || '/',
+    }
+);
 
 export const SreAgentPortal = () => {
     const { logEvent } = useTelemetry(TelemetrySource.PortalLayout, undefined);
