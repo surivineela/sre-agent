@@ -1,0 +1,34 @@
+@Agent.Portal_HostAddress = http://localhost:5212
+
+GET {{Agent.Portal_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+POST {{Agent.Portal_HostAddress}}/log
+Content-Type: application/json
+
+{
+  "logLevel": 2,
+  "eventId": 0,
+  "eventName": null,
+  "exception": "This is an exception",
+  "message": "This is a test log message",
+  "args": null
+}
+
+###
+
+POST {{Agent.Portal_HostAddress}}/log
+Content-Type: application/json
+
+{
+  "logLevel": 3,
+  "eventId": 1001,
+  "eventName": "UserLogin",
+  "exception": null,
+  "message": "User {Username} logged in at {Time}",
+  "args": ["john.doe", "2025-10-27T10:30:00"]
+}
+
+###
