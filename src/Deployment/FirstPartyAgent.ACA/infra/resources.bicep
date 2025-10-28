@@ -206,7 +206,7 @@ module agentWeb 'br/public:avm/res/app/container-app:0.12.2' = {
             }
             {
               name: 'AppSettings__Core__Azure__OpenAI__LLMDeploymentName'
-              value: 'gpt-4o'
+              value: 'gpt-5-mini'
             }
             {
               name: 'AppSettings__Core__Azure__OpenAI__Endpoint'
@@ -388,14 +388,14 @@ resource openai 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
 // Use conditional expression as a workaround. A model deployment will fail if the model already exists with error message 'InvalidResourceProperties: The sku of model deployment is not provided.'
 resource gpt4o 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = if (!agentWebExists) {
   parent: openai
-  name: 'gpt-4o'
+  name: 'gpt-5-mini'
   sku: {
     name: 'GlobalStandard'
     capacity: 10
   }
   properties: {
     model: {
-      name: 'gpt-4o'
+      name: 'gpt-5-mini'
       format: 'OpenAI'
       version: '2024-11-20'
     }
