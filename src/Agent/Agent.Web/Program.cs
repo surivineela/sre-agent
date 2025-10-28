@@ -31,6 +31,7 @@ using Agent.Plugins.Implementation;
 using Agent.Plugins.Implementation.AzureApplicationInsightsPlugin;
 using Agent.Plugins.Implementation.AzureApplicationInsightsPlugin.Services;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
+using Agent.Plugins.Implementation.CdbSDKDiagnosePlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.Kusto.Tools;
@@ -412,6 +413,7 @@ public class Program
             .AddTransient<AzureActivityLogsPluginDefinition>()
             .AddTransient<AzureApplicationInsightsPluginDefinition>()
             .AddTransient<ArmPluginDefinition>()
+            .AddTransient<CdbSDKDiagnosePluginDefinition>()
             .AddTransient<TimePluginDefinition>()
             .AddTransient<OutlookConnectorPluginDefinition>()
             .AddTransient<CustomerLogsPluginDefinition>()
@@ -485,6 +487,7 @@ public class Program
             .AddTransient<IMdmMetricsPlugin, MdmMetricsPlugin>()
             .AddTransient<AgentHelperService>()
             .AddTransient<ILogicAppsPlugin, LogicAppsPlugin>()
+            .AddTransient<ICdbSDKDiagnosePlugin, CdbSDKDiagnosePlugin>()
 
             .AddTransient<IICMPlugin, ICMPlugin>()
             .AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>()
