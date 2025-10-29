@@ -2,20 +2,21 @@ using System.ComponentModel;
 using System.Text;
 using Agent.Core.Helpers;
 using Agent.Core.Services;
+using Agent.Framework;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
+using Microsoft.AzureAd.Icm.IcmV3OData.Models;
+using Microsoft.AzureAd.Icm.Types;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SREAgent.Incidents.IcM.Model;
 using Newtonsoft.Json;
-using Microsoft.AzureAd.Icm.Types;
+using Attachment = Microsoft.AzureAd.Icm.IcmV3OData.Models.Attachment;
 using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
 using TextContent = Microsoft.SemanticKernel.TextContent;
-using Microsoft.AzureAd.Icm.IcmV3OData.Models;
-using Attachment = Microsoft.AzureAd.Icm.IcmV3OData.Models.Attachment;
-using Agent.Framework;
 
 namespace Agent.Plugins.Implementation;
 
@@ -35,12 +36,13 @@ public class ICMPlugin : IICMPlugin
     private const string AgentProcessingTag = "SREAgent_Processing";
     private const string AgentMitigatedTag = "SREAgent_Mitigated";
     private const bool ProcessImages = true;
+    private readonly string AgentName = string.Empty;
 
-    public ICMPlugin(IICMAPIClient icmAPIClient, ILogger<ICMPlugin> logger, IChatClientProvider chatClientProvider)
+    public ICMPlugin(IICMAPIClient icmAPIClient, ILogger<ICMPlugin> logger, IChatClientProvider chatClientProvider, IHostEnvironment hostEnvironment)
     {
         _logger = logger;
         _icmApiClient = icmAPIClient;
-
+        AgentName = AgentNameHelper.GetCustomerAgentName(!hostEnvironment.IsDevelopment());
 
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         _chatCompletionService = chatClientProvider.DefaultModel.AsChatCompletionService();
@@ -434,7 +436,7 @@ Example structure:
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(TransferIncident)}][{DateTime.UtcNow}] Transferring Incident {incidentId} to the team {tenantName}/{owningTeam}.\n<b>Reason</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
-        discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName);
         var result = await _icmApiClient.TransferIncidentAsync(incidentId, discussionEntry, tenantName, owningTeam);
         await UpdateAgentStatus(incidentId, AgentStatus.Transferred);
         return result;
@@ -445,7 +447,7 @@ Example structure:
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(MitigateIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
-        discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName);
 
         var mitigationResult = await _icmApiClient.MitigateIncidentAsync(incidentId, discussionEntry);
         var addMitigationTagResult = await AddTagToIncident(incidentId, AgentMitigatedTag);
@@ -470,7 +472,7 @@ Example structure:
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(DowngradeSeverity)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
-        discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName);
         var result = await _icmApiClient.ChangeSeverityAsync(incidentId, 3, discussionEntry);
         await AddTagToIncident(incidentId, AgentProcessedTag);
         return result;
@@ -489,7 +491,7 @@ Example structure:
             throw new ArgumentException(errorMessage, nameof(severity));
         }
 
-        discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName);
         var result = await _icmApiClient.ChangeSeverityAsync(incidentId, severity, discussionEntry);
         await AddTagToIncident(incidentId, AgentProcessedTag);
         return result;
@@ -499,7 +501,7 @@ Example structure:
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(ResolveIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
-        discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName);
         var result = await _icmApiClient.ResolveIncidentAsync(incidentId, discussionEntry);
         await UpdateAgentStatus(incidentId, AgentStatus.Resolved);
         return result;
@@ -509,7 +511,7 @@ Example structure:
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(PostDiscussionEntry)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
-        discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName);
         var result = await _icmApiClient.PostDiscussionEntryAsync(incidentId, discussionEntry);
         await AddTagToIncident(incidentId, AgentProcessedTag);
         return result;
@@ -626,6 +628,7 @@ Example structure:
 
         // Add a tag to indicate the agent has started processing
         await AddTagToIncident(incidentId, AgentProcessingTag);
+        await AddTagToIncident(incidentId,$"SREAgentResource: {AgentName}");
 
         //ICMAlertConfig alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
 
