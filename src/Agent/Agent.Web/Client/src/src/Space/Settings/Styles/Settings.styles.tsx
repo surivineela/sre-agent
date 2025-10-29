@@ -68,13 +68,14 @@ const navContainerStyles: CSSProperties = {
 };
 
 const navPivotContainer: CSSProperties = {
-    flex: 'none',
+    flex: '1 1 auto',
     padding: '32px',
     backgroundColor: tokens.colorNeutralBackground1,
-    borderTopLeftRadius: tokens.borderRadiusXLarge,
+    borderRadius: tokens.borderRadiusXLarge,
     boxShadow: tokens.shadow4,
-    width: 'calc(-405px + 100vw)',
     overflowY: 'auto',
+    marginBottom: '5px',
+    marginRight: '10px',
 };
 
 const incidentManagementDescriptionStyle: CSSProperties = { marginTop: 20, marginBottom: 20 };

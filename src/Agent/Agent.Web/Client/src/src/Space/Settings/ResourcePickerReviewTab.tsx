@@ -24,6 +24,7 @@ import { getUserFriendlyLocation } from '../../Common/Helpers/LocationHelper';
 import { ManagedResourcesStringResources, ResourcePickerTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ResourceGroup } from './Hooks/useResourceGroups';
 import { ResourceGroupWithSelection } from './ResourceGroupPicker';
+import { ResourceGroupPickerSkeleton } from './ResourceGroupPickerSkeleton';
 import { useManagedResourcesStyles } from './Styles/ManagedResources.styles';
 
 const useLocalStyles = makeStyles({
@@ -51,11 +52,17 @@ const useLocalStyles = makeStyles({
     },
     resourceGroupLink: {
         userSelect: 'text',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        flexShrink: '5',
     },
     container: {
         display: 'flex',
         gap: '5px',
         flexDirection: 'column',
+        height: '100%',
+        overflow: 'hidden',
     },
     errorMessageContainer: {
         paddingTop: '5px',
@@ -64,6 +71,23 @@ const useLocalStyles = makeStyles({
     scrollableArea: {
         flex: '1',
         overflowY: 'auto',
+        minHeight: '0',
+    },
+    descriptionText: {
+        marginBottom: '10px',
+        fontSize: '14px',
+        color: tokens.colorNeutralForeground2,
+    },
+    tableScrollableArea: {
+        flex: '1',
+        overflowY: 'auto',
+        overflowX: 'auto',
+        minHeight: '0',
+    },
+    permissionText: {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
     },
 });
 
@@ -78,10 +102,18 @@ enum ResourceGroupListColumnKey {
 enum SreAgentPermissions {
     roleAssignmentWrite = 'Microsoft.Authorization/roleAssignments/write',
     identityWrite = 'Microsoft.ManagedIdentity/userAssignedIdentities/write',
+    deployWrite = 'Microsoft.Resources/deployments/write',
+}
+
+enum LockLevels {
+    readOnly = 'ReadOnly',
+    canNotDelete = 'CanNotDelete',
 }
 
 interface ManagedResourceGroupGridItem extends ResourceGroup {
     permissions: boolean;
+    hasReadOnlyLock: boolean;
+    hasDenyAssignment: boolean;
 }
 
 export type ReviewTabProps = {
@@ -94,7 +126,8 @@ export type ReviewTabProps = {
     onRenderSubscription: (item: ResourceGroupWithSelection) => JSX.Element;
 };
 
-const RESOURCE_GROUP_LIMIT = 20;
+const RESOURCE_GROUP_LIMIT = 100;
+const permissionClient = PermissionClient.getInstance();
 
 const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
     const {
@@ -113,32 +146,72 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
     const styles = useManagedResourcesStyles();
     const localStyles = useLocalStyles();
     const [managedResourceGroups, setManagedResourceGroups] = useState<ManagedResourceGroupGridItem[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const checkHasPermissionToCreateIdentities = useCallback(async (resourceGroup: string) => {
-        return PermissionClient.getInstance().hasPermission(resourceGroup, [
-            SreAgentPermissions.roleAssignmentWrite,
-            SreAgentPermissions.identityWrite,
-        ]);
+        return permissionClient.hasPermission(resourceGroup, [SreAgentPermissions.roleAssignmentWrite, SreAgentPermissions.identityWrite]);
+    }, []);
+
+    const checkResourceLocks = useCallback(async (resourceGroupId: string) => {
+        return permissionClient.getLocks(resourceGroupId);
+    }, []);
+
+    const checkResourceDenyAssignments = useCallback(async (resourceGroupId: string) => {
+        return permissionClient.getDenyAssignments(resourceGroupId);
     }, []);
 
     const runResourceGroupPermissionChecks = useCallback(async () => {
+        setIsLoading(true);
         const resourceGroupsWithPermissionChecks: ManagedResourceGroupGridItem[] = await Promise.all(
             selectedResourceGroups.map(async rg => {
-                const permissions = await checkHasPermissionToCreateIdentities(rg.id);
-                return { ...rg, permissions };
+                const [permissions, locks, denyAssignments] = await Promise.all([
+                    checkHasPermissionToCreateIdentities(rg.id),
+                    checkResourceLocks(rg.id),
+                    checkResourceDenyAssignments(rg.id),
+                ]);
+
+                const hasReadOnlyLock = locks?.some(lock => lock.level === LockLevels.readOnly) ?? false;
+
+                const hasDenyAssignment =
+                    denyAssignments?.some(
+                        denyAssignment =>
+                            denyAssignment.scope === rg.id &&
+                            denyAssignment.permissions.notActions?.includes(SreAgentPermissions.deployWrite)
+                    ) ?? false;
+
+                return {
+                    ...rg,
+                    permissions,
+                    hasReadOnlyLock,
+                    hasDenyAssignment,
+                };
             })
         );
 
-        const hasUnauthorized = resourceGroupsWithPermissionChecks.some(rg => !rg.permissions);
+        const hasUnauthorized = resourceGroupsWithPermissionChecks.some(
+            rg => !rg.permissions || rg.hasReadOnlyLock || rg.hasDenyAssignment
+        );
 
         setManagedResourceGroups(resourceGroupsWithPermissionChecks);
         setResourceGroupPermissionsError(hasUnauthorized);
-    }, [selectedResourceGroups, checkHasPermissionToCreateIdentities, setResourceGroupPermissionsError]);
+        setIsLoading(false);
+    }, [
+        selectedResourceGroups,
+        checkHasPermissionToCreateIdentities,
+        checkResourceLocks,
+        checkResourceDenyAssignments,
+        setResourceGroupPermissionsError,
+    ]);
 
     useEffect(() => {
         setResourceGroupMaxError(selectedResourceGroups.length > RESOURCE_GROUP_LIMIT);
-        runResourceGroupPermissionChecks();
-    }, [selectedResourceGroups, runResourceGroupPermissionChecks, setResourceGroupMaxError]);
+        if (
+            (selectedResourceGroups.length > 0 && managedResourceGroups.length === 0) ||
+            selectedResourceGroups.length > managedResourceGroups.length
+        ) {
+            runResourceGroupPermissionChecks();
+        }
+    }, [selectedResourceGroups, runResourceGroupPermissionChecks, setResourceGroupMaxError, managedResourceGroups.length]);
 
     const onDeleteClick = useCallback(
         (item: ManagedResourceGroupGridItem) => {
@@ -146,7 +219,7 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
 
             const newGridValues = managedResourceGroups.filter(rg => rg.id !== item.id);
             setManagedResourceGroups(newGridValues);
-            const hasUnauthorized = newGridValues.some(rg => !rg.permissions);
+            const hasUnauthorized = newGridValues.some(rg => !rg.permissions || rg.hasReadOnlyLock || rg.hasDenyAssignment);
             setResourceGroupPermissionsError(hasUnauthorized);
         },
         [managedResourceGroups, setResourceGroupPermissionsError, setManagedResourceGroups, toggleItemSelection]
@@ -160,7 +233,7 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
                     <span className={localStyles.headerText}>{intl.formatMessage(ManagedResourcesStringResources.resourceGroupName)}</span>
                 ),
                 renderCell: item => (
-                    <TableCellLayout>
+                    <TableCellLayout truncate>
                         <div className={styles.statusRow}>
                             <img src="./ResourceGroup.svg" alt="ResourceGroup" className={localStyles.resourceGroupIcon} />
                             <Link
@@ -206,18 +279,29 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
                         {intl.formatMessage(ResourcePickerTabResources.permissionsForRoleAssignment)}
                     </span>
                 ),
-                renderCell: item => (
-                    <TableCellLayout>
-                        <div className={styles.iconRow}>
-                            {item.permissions ? (
-                                <CheckmarkCircle16Filled primaryFill={'green'} />
-                            ) : (
-                                <DismissCircle16Filled primaryFill={'red'} />
-                            )}
-                            {item.permissions ? intl.formatMessage(SreAgentResources.yes) : intl.formatMessage(SreAgentResources.no)}
-                        </div>
-                    </TableCellLayout>
-                ),
+                renderCell: item => {
+                    const hasIssues = !item.permissions || item.hasReadOnlyLock || item.hasDenyAssignment;
+                    return (
+                        <TableCellLayout truncate>
+                            <div className={styles.iconRow}>
+                                {hasIssues ? (
+                                    <DismissCircle16Filled primaryFill={'red'} />
+                                ) : (
+                                    <CheckmarkCircle16Filled primaryFill={'green'} />
+                                )}
+                                <span className={localStyles.permissionText}>
+                                    {item.hasReadOnlyLock
+                                        ? intl.formatMessage(ResourcePickerTabResources.readOnlyLock)
+                                        : item.hasDenyAssignment
+                                          ? intl.formatMessage(ResourcePickerTabResources.denyAssignment)
+                                          : hasIssues
+                                            ? intl.formatMessage(SreAgentResources.no)
+                                            : intl.formatMessage(SreAgentResources.yes)}
+                                </span>
+                            </div>
+                        </TableCellLayout>
+                    );
+                },
             }),
             createTableColumn<ManagedResourceGroupGridItem>({
                 columnId: ResourceGroupListColumnKey.delete,
@@ -277,6 +361,7 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
 
     return (
         <div className={localStyles.container}>
+            <div className={localStyles.descriptionText}>{intl.formatMessage(ResourcePickerTabResources.reviewTabDescription)}</div>
             {errorMessage && (
                 <div className={localStyles.errorMessageContainer}>
                     <MessageBar intent="error">
@@ -285,27 +370,35 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
                 </div>
             )}
             <div className={localStyles.scrollableArea} data-is-scrollable="true">
-                <DataGrid
-                    items={managedResourceGroups}
-                    columns={columns}
-                    sortable
-                    resizableColumns
-                    columnSizingOptions={columnSizingOptions}
-                    getRowId={item => item.id}
-                    className={localStyles.dataGrid}
-                    size="small"
-                >
-                    <DataGridHeader className={localStyles.dataGridHeader}>
-                        <DataGridRow>{({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}</DataGridRow>
-                    </DataGridHeader>
-                    <DataGridBody<ManagedResourceGroupGridItem>>
-                        {({ item, rowId }) => (
-                            <DataGridRow<ManagedResourceGroupGridItem> key={rowId}>
-                                {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
-                            </DataGridRow>
-                        )}
-                    </DataGridBody>
-                </DataGrid>
+                {isLoading ? (
+                    <ResourceGroupPickerSkeleton />
+                ) : (
+                    <div className={localStyles.tableScrollableArea} data-is-scrollable="true">
+                        <DataGrid
+                            items={managedResourceGroups}
+                            columns={columns}
+                            sortable
+                            resizableColumns
+                            columnSizingOptions={columnSizingOptions}
+                            getRowId={item => item.id}
+                            className={localStyles.dataGrid}
+                            size="small"
+                        >
+                            <DataGridHeader className={localStyles.dataGridHeader}>
+                                <DataGridRow>
+                                    {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
+                                </DataGridRow>
+                            </DataGridHeader>
+                            <DataGridBody<ManagedResourceGroupGridItem>>
+                                {({ item, rowId }) => (
+                                    <DataGridRow<ManagedResourceGroupGridItem> key={rowId}>
+                                        {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
+                                    </DataGridRow>
+                                )}
+                            </DataGridBody>
+                        </DataGrid>
+                    </div>
+                )}
             </div>
         </div>
     );

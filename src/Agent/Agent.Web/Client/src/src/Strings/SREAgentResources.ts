@@ -548,7 +548,7 @@ export const ResourcePickerTabResources = defineMessages({
     kubernetesReader: { defaultMessage: 'Azure Kubernetes Service RBAC Reader', id: 'RrsyUh' },
     websiteContributor: { defaultMessage: 'Website Contributor/Operator', id: 'UV4Dx5' },
     writerOperator: { defaultMessage: 'Writer/Operator', id: 'oUbzA/' },
-    permissionsForRoleAssignment: { defaultMessage: 'Permissions to assign roles', id: 'ob9EPi' },
+    permissionsForRoleAssignment: { defaultMessage: 'User Permissions', id: 'F4a/f4' },
     resourceGroupPermissionError: {
         defaultMessage:
             'Some of the selected resource groups do not have the required roleAssignments/write and Microsoft.ManagedIdentity/userAssignedIdentities/write permissions.',
@@ -570,6 +570,13 @@ export const ResourcePickerTabResources = defineMessages({
             'This resource group is recommended for optimal agent performance. It includes one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, Virtual machines, or Storage accounts.',
         id: 'DasCIQ',
     },
+    reviewTabDescription: {
+        defaultMessage:
+            'To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions.',
+        id: 'sRU00i',
+    },
+    readOnlyLock: { defaultMessage: 'Read-only lock', id: '6yuD0y' },
+    denyAssignment: { defaultMessage: 'Deny assignment', id: 'ob6s4+' },
 });
 
 // Graph viewer (mermaid visualization & psql execution message) tooltips / labels

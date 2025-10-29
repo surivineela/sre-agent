@@ -42,6 +42,23 @@ export type RoleAssignment = {
     principalType?: string;
 };
 
+export type DenyAssignment = {
+    principalId: string;
+    permissions: {
+        actions: string[];
+        notActions: string[];
+        dataActions: string[];
+        notDataActions: string[];
+    };
+    scope: string;
+    isSystemProtected: boolean;
+};
+
+export type Lock = {
+    level: string;
+    notes: string;
+};
+
 const isAllowed = (requestedAction: string, permission: PermissionsAsRegExp): boolean => {
     const actionAllowed = permission.actions.some(action => {
         return action.test(requestedAction);
@@ -163,6 +180,26 @@ export class PermissionClient {
         const url = `${scope}/${MicrosoftAuthorization.RoleAssignmentsProvider}?api-version=${apiVersion}&$filter=${filter}`;
         const response = await MakeArmCall<{ value?: any[] }>({
             commandName: 'getRoleAssignmentsWithScope',
+            method: 'GET',
+            url,
+        });
+        return response.data?.value || [];
+    }
+
+    public async getDenyAssignments(resourceId: string, apiVersion = ApiVersions.rbacApiVersion): Promise<DenyAssignment[]> {
+        const url = `${resourceId}/providers/Microsoft.Authorization/denyAssignments?api-version=${apiVersion}`;
+        const response = await MakeArmCall<{ value?: DenyAssignment[] }>({
+            commandName: 'getDenyAssignments',
+            method: 'GET',
+            url,
+        });
+        return response.data?.value || [];
+    }
+
+    public async getLocks(resourceId: string, apiVersion = ApiVersions.rbacApiVersion): Promise<Lock[]> {
+        const url = `${resourceId}/providers/Microsoft.Authorization/locks?api-version=${apiVersion}`;
+        const response = await MakeArmCall<{ value?: Lock[] }>({
+            commandName: 'getLocks',
             method: 'GET',
             url,
         });

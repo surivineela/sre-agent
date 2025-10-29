@@ -206,6 +206,8 @@ export enum TabKeys {
     assign = 'assign',
 }
 
+const RESOURCE_GROUP_LIMIT = 100;
+
 const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupPickerProps) => {
     const {
         subscriptionId,
@@ -459,11 +461,11 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                                     <div className={localStyles.filterRow}>
                                         {selectedResourceGroups.length === 1
                                             ? intl.formatMessage(ResourcePickerTabResources.resourceGroupSelected, {
-                                                  max: 20 - existingResourceGroupIds.length,
+                                                  max: RESOURCE_GROUP_LIMIT - existingResourceGroupIds.length,
                                                   count: selectedResourceGroups.length,
                                               })
                                             : intl.formatMessage(ResourcePickerTabResources.resourceGroupsSelected, {
-                                                  max: 20 - existingResourceGroupIds.length,
+                                                  max: RESOURCE_GROUP_LIMIT - existingResourceGroupIds.length,
                                                   count: selectedResourceGroups.length,
                                               })}
                                     </div>
