@@ -181,9 +181,7 @@ function scanForRawJsxTextNodes(): string[] {
 }
 
 // MAIN TESTS
-
-// TODO: Un-skip once a little more finalized
-describe.skip('i18n enforcement', () => {
+describe('i18n enforcement', () => {
     const allDescriptors = collectAllMessageDescriptors();
 
     it('all message ids match hashing rule (first 6 chars of base64 sha512)', () => {

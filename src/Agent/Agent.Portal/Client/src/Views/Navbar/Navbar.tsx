@@ -1,10 +1,11 @@
 import { Image, makeStyles, Text, tokens, Tooltip } from '@fluentui/react-components';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { PortalResources } from '../../Strings/Resources';
 import { NotificationButton } from './NotificationButton';
 import { SettingsContent } from './SettingsContent';
 import { UserAuthContent } from './UserAuthContent';
+import { useMemo } from 'react';
 
 const useStyles = makeStyles({
     navbar: {
@@ -42,12 +43,23 @@ const useStyles = makeStyles({
             backgroundColor: tokens.colorNeutralBackground4Pressed,
         },
     },
+    breadcrumbSeparator: {
+        color: tokens.colorNeutralForeground3,
+    },
+    agentName: {
+        color: tokens.colorNeutralForeground1,
+    },
 });
 
 export const Navbar = () => {
     const intl = useIntl();
     const navigate = useNavigate();
+    const location = useLocation();
     const styles = useStyles();
+
+    // TODO: Use ArmId.parse for this?
+    // Parse agent name from the route if we're on an agent page
+    const agentName = useMemo(() => decodeURIComponent(location.pathname.match(/^\/agents\/(.+)/)?.[1] ?? '').split('/')?.pop()?.split('/')?.pop(), [location.pathname]);
 
     return (
         <div className={styles.navbar}>
@@ -55,6 +67,13 @@ export const Navbar = () => {
                 <div className={styles.logoSection} onClick={() => navigate('/')}>
                     <Image src='SreAgent.svg' width={18} height={18} alt={intl.formatMessage(PortalResources.azureSreAgents)} />
                     <Text weight="semibold">{intl.formatMessage(PortalResources.azureSreAgents)}</Text>
+                    {agentName && (
+                        <>
+                            {/* TODO: Fancy selector thingy */}
+                            <Text className={styles.breadcrumbSeparator}>/</Text>
+                            <Text weight="semibold" className={styles.agentName}>{decodeURIComponent(agentName)}</Text>
+                        </>
+                    )}
                 </div>
             </Tooltip>
 

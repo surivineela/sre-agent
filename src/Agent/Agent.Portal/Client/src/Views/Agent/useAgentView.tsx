@@ -8,6 +8,7 @@ import { useUserPreferences } from '../../Common/Contexts/UserPreferencesContext
 import { ILogEvent, LogLevel } from '../../Common/Contracts/Telemetry';
 import { AuthScopeIdentifier, useAuthTokenManager } from '../../Common/Hooks/useAuthTokenManager';
 import { useTelemetry } from '../../Common/Hooks/useTelemetry';
+import { buildBladeUrl, IOpenBladeInfo } from '../../Common/Utilities/Url';
 import { PortalResources } from '../../Strings/Resources';
 import {
     AgentSiteToAzPortalVerbs,
@@ -147,10 +148,23 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
         [logEvent]
     );
 
-    const openBladeCallback = useCallback((info: unknown) => {
-        // TODO: Make links within agent site actual links if in SREA Portal ?
-        console.log('Opened blade:', info);
-    }, []);
+    const openBladeCallback = useCallback(
+        (info: IOpenBladeInfo) => {
+            const bladeUrl = buildBladeUrl(info);
+
+            logEvent({
+                action: 'open-blade',
+                actionModifier: 'info',
+                additionalData: {
+                    extension: info.extension,
+                    blade: info.detailBlade,
+                },
+            });
+
+            window.open(bladeUrl, '_blank', 'noopener,noreferrer');
+        },
+        [logEvent]
+    );
 
     const updateNotificationCallback = useCallback(
         (info: INotificationInfo) => {

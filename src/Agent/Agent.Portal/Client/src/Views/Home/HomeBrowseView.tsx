@@ -9,12 +9,18 @@ import {
     DataGridRow,
     Dropdown,
     Link,
+    MessageBar,
+    MessageBarBody,
+    MessageBarTitle,
     SearchBox,
     Spinner,
+    Subtitle1,
     TableCellLayout,
     TableColumnDefinition,
     Text,
     createTableColumn,
+    useTableFeatures,
+    useTableSort,
 } from '@fluentui/react-components';
 import { Add16Regular } from '@fluentui/react-icons';
 import { useEffect, useMemo, useState } from 'react';
@@ -40,11 +46,13 @@ export const HomeBrowseView = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [agents, setAgents] = useState<SreAgentArgItem[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const columns: TableColumnDefinition<SreAgentArgItem>[] = [
         createTableColumn<SreAgentArgItem>({
             columnId: 'name',
-            renderHeaderCell: () => intl.formatMessage(PortalResources.name),
+            compare: (a, b) => a.name.localeCompare(b.name),
+            renderHeaderCell: () => <Text weight='semibold'>{intl.formatMessage(PortalResources.name)}</Text>,
             renderCell: item => (
                 <TableCellLayout>
                     <Link onClick={() => navigate(`/agents/${encodeURIComponent(item.id)}`)}>{item.name}</Link>
@@ -53,20 +61,60 @@ export const HomeBrowseView = () => {
         }),
         createTableColumn<SreAgentArgItem>({
             columnId: 'subscription',
-            renderHeaderCell: () => intl.formatMessage(PortalResources.subscription),
+            compare: (a, b) => a.subscriptionId.localeCompare(b.subscriptionId),
+            renderHeaderCell: () => <Text weight='semibold'>{intl.formatMessage(PortalResources.subscription)}</Text>,
+            // TODO: Subscription displayName
             renderCell: item => <TableCellLayout>{item.subscriptionId}</TableCellLayout>,
         }),
         createTableColumn<SreAgentArgItem>({
             columnId: 'resourceGroup',
-            renderHeaderCell: () => intl.formatMessage(PortalResources.resourceGroup),
+            compare: (a, b) => a.resourceGroup.localeCompare(b.resourceGroup),
+            renderHeaderCell: () => <Text weight='semibold'>{intl.formatMessage(PortalResources.resourceGroup)}</Text>,
             renderCell: item => <TableCellLayout>{item.resourceGroup}</TableCellLayout>,
         }),
         createTableColumn<SreAgentArgItem>({
             columnId: 'region',
-            renderHeaderCell: () => intl.formatMessage(PortalResources.region),
+            compare: (a, b) => a.location.localeCompare(b.location),
+            renderHeaderCell: () => <Text weight='semibold'>{intl.formatMessage(PortalResources.region)}</Text>,
             renderCell: item => <TableCellLayout>{item.location}</TableCellLayout>,
         }),
     ];
+
+    const filteredAgents = useMemo(() => {
+        if (!searchQuery) return agents;
+
+        const lowerQuery = searchQuery.toLowerCase();
+        return agents.filter(agent =>
+            agent.name.toLowerCase().includes(lowerQuery) ||
+            agent.subscriptionId.toLowerCase().includes(lowerQuery) ||
+            agent.resourceGroup.toLowerCase().includes(lowerQuery) ||
+            agent.location.toLowerCase().includes(lowerQuery)
+        );
+    }, [agents, searchQuery]);
+
+    const {
+        getRows,
+        sort: { getSortDirection, toggleColumnSort, sort },
+    } = useTableFeatures(
+        {
+            columns,
+            items: filteredAgents,
+        },
+        [
+            useTableSort({
+                defaultSortState: { sortColumn: 'name', sortDirection: 'ascending' },
+            }),
+        ]
+    );
+
+    const headerSortProps = (columnId: string | number) => ({
+        onClick: (e: React.MouseEvent) => {
+            toggleColumnSort(e, columnId);
+        },
+        sortDirection: getSortDirection(columnId),
+    });
+
+    const rows = sort(getRows());
 
     useEffect(() => {
         const fetchAgents = async () => {
@@ -102,27 +150,40 @@ export const HomeBrowseView = () => {
     }, [sreAgentClient, isAuthenticated, logEvent]);
 
     return (
-        <div>
-            <Text block>{intl.formatMessage(PortalResources.agents)}</Text>
-
+        <div style={{ display: 'flex', minHeight: 600, flex: 'auto', flexDirection: 'column', gap: 40, alignItems: 'center', padding: 32 }}>
             {isLoading && (
-                <div style={{ padding: '20px' }}>
-                    <Spinner />
+                <div>
+                    <Spinner size="extra-large" />
                 </div>
             )}
 
-            {error && <div style={{ padding: '20px', color: 'red' }}>Error: {error}</div>}
+            {!isLoading && error && (
+                <div style={{ maxWidth: 1000 }}>
+                    <MessageBar intent="error">
+                        <MessageBarBody>
+                            <MessageBarTitle>{intl.formatMessage(PortalResources.requestError)}</MessageBarTitle>
+                            <Text>{error}</Text>
+                        </MessageBarBody>
+                    </MessageBar>
+                </div>
+            )}
 
-            {agents.length === 0 ? (
+            {isLoading ? null : agents.length === 0 ? (
                 <CreateFirstAgent />
             ) : (
-                <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <div>
-                            <SearchBox placeholder="Search agents..." style={{ marginBottom: '10px', width: '300px' }} />
-                            <Dropdown placeholder="All subscriptions" />
-                            <Dropdown placeholder="All resource groups" />
-                            <Dropdown placeholder="All regions" />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%', maxWidth: 1200 }}>
+                    <Subtitle1 block>{intl.formatMessage(PortalResources.agents)}</Subtitle1>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                            <SearchBox
+                                placeholder={intl.formatMessage(PortalResources.search)}
+                                style={{ width: 250 }}
+                                value={searchQuery}
+                                onChange={(_, data) => setSearchQuery(data.value)}
+                            />
+                            <Dropdown placeholder={intl.formatMessage(PortalResources.allSubscriptions)} />
+                            <Dropdown placeholder={intl.formatMessage(PortalResources.allResourceGroups)} />
                         </div>
 
                         <div>
@@ -132,29 +193,33 @@ export const HomeBrowseView = () => {
                         </div>
                     </div>
 
-                    <Card>
+                    <Card style={{ padding: 20 }}>
                         <DataGrid
-                            items={agents}
+                            items={rows}
                             columns={columns}
                             sortable
-                            getRowId={item => item.id}
+                            getRowId={item => item.rowId}
                             style={{ height: '585px', overflowY: 'auto' }}
                         >
                             <DataGridHeader>
                                 <DataGridRow>
-                                    {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
+                                    {({ renderHeaderCell, columnId }) => (
+                                        <DataGridHeaderCell {...headerSortProps(columnId)}>
+                                            {renderHeaderCell()}
+                                        </DataGridHeaderCell>
+                                    )}
                                 </DataGridRow>
                             </DataGridHeader>
                             <DataGridBody<SreAgentArgItem>>
                                 {({ item, rowId }) => (
                                     <DataGridRow<SreAgentArgItem> key={rowId}>
-                                        {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
+                                        {({ renderCell }) => <DataGridCell>{renderCell((item as any).item)}</DataGridCell>}
                                     </DataGridRow>
                                 )}
                             </DataGridBody>
                         </DataGrid>
                     </Card>
-                </>
+                </div>
             )}
         </div>
     );

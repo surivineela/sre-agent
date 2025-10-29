@@ -11,6 +11,7 @@ import { HomeBrowseView } from './Views/Home/HomeBrowseView';
 import { LandingPage } from './Views/LandingPage/LandingPage';
 import { Navbar } from './Views/Navbar/Navbar';
 import { NotificationToastContainer } from './Views/Notifications/NotificationToastContainer';
+import { tokens } from '@fluentui/react-components';
 
 // Routing:
 // - Landing page for signed-out users
@@ -20,6 +21,7 @@ const PortalLayout = () => {
     const intl = useIntl();
     const { isAuthenticated, isLoading: isLoadingAuth } = useAuth();
     const location = useLocation();
+    const { logEvent } = useTelemetry(TelemetrySource.PortalLayout, undefined);
 
     const siteTitle = useMemo(() => intl.formatMessage(PortalResources.azureSreAgents), [intl]);
 
@@ -32,6 +34,21 @@ const PortalLayout = () => {
         [isAuthenticated, location.pathname]
     );
 
+    // Log route/view changes
+    useEffect(() => {
+        logEvent({
+            action: 'route-navigation',
+            actionModifier: 'view',
+            additionalData: {
+                hostname: window.location.hostname,
+                pathname: location.pathname,
+                referrer: document.referrer,
+                isAuthenticated,
+            },
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location, logEvent]);
+
     return (
         <>
             <Helmet>
@@ -41,10 +58,10 @@ const PortalLayout = () => {
 
             <NotificationToastContainer />
 
-            <main style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+            <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: tokens.colorNeutralBackground2 }}>
                 <Navbar />
 
-                <div style={{ flex: 1, overflow: 'auto' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', flex: 'auto', overflow: 'auto' }}>
                     {isLoadingAuth ? null : shouldRedirectUnauthenticated ? (
                         <Navigate to="/welcome" replace />
                     ) : shouldRedirectAuthenticated ? (
@@ -90,7 +107,7 @@ export const SreAgentPortal = () => {
                 `);
 
                 logEvent({
-                    action: 'AgentSiteVersion',
+                    action: 'AgentPortalVersion',
                     actionModifier: 'info',
                     additionalData: { version },
                 });

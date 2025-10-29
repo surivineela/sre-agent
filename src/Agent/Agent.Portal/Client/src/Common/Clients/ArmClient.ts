@@ -77,7 +77,7 @@ export class ArmClient extends Client {
                         method: 'POST',
                         resourceId: '/batch',
                         body: { requests: batchBody },
-                        apiVersion: ApiVersions.armBatchApiVersion20230501,
+                        apiVersion: ApiVersions.armBatchApiVersion20250301,
                         id: newGuid(),
                     })
                 ).pipe(
@@ -216,6 +216,10 @@ export class ArmClient extends Client {
 
         if (this.sessionId) {
             headers['x-ms-client-session-id'] = this.sessionId;
+        }
+
+        if (body) {
+            headers['Content-Type'] = 'application/json';
         }
 
         try {

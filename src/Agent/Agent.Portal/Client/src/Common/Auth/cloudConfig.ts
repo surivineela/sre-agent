@@ -7,6 +7,7 @@ interface CloudEndpoints {
     graph: string;
     sreAgent: string;
     appInsights: string;
+    portal: string;
 }
 
 const cloudEndpoints: Record<CloudEnvironment, CloudEndpoints> = {
@@ -15,18 +16,21 @@ const cloudEndpoints: Record<CloudEnvironment, CloudEndpoints> = {
         graph: 'https://graph.microsoft.com',
         sreAgent: 'https://azuresre.dev',
         appInsights: 'https://api.applicationinsights.io',
+        portal: 'https://portal.azure.com',
     },
     fairfax: {
         arm: 'https://management.usgovcloudapi.net',
         graph: 'https://graph.microsoft.us',
         sreAgent: 'https://azuresre.dev', // TODO: Update when gov cloud endpoint available
         appInsights: 'https://api.applicationinsights.us',
+        portal: 'https://portal.azure.us',
     },
     mooncake: {
         arm: 'https://management.chinacloudapi.cn',
         graph: 'https://microsoftgraph.chinacloudapi.cn',
         sreAgent: 'https://azuresre.dev', // TODO: Update when china endpoint available
         appInsights: 'https://api.applicationinsights.azure.cn',
+        portal: 'https://portal.azure.cn',
     },
 };
 

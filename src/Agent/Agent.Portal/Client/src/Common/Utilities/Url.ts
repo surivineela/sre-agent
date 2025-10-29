@@ -1,3 +1,5 @@
+import { getCloudEndpoints } from '../Auth/cloudConfig';
+
 /** `https://foo.com/` + `/path` -> `https://foo.com/path` */
 export const addPathToHostname = (origin: string, path: string): string => {
     const url = new URL(origin);
@@ -38,4 +40,42 @@ export const getParameterByName = (url: string | null, name: string): string | n
     }
 
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
+};
+
+export interface IOpenBladeInfo {
+    detailBlade: string;
+    detailBladeInputs: any;
+    extension: string;
+    asContextBlade?: boolean;
+    asSubJourney?: boolean;
+    operationId?: string;
+}
+
+/**
+ * Constructs an Azure Portal blade URL from the openBlade parameters
+ * Format: https://portal.azure.com#view/<extension>/<blade>/<param-name>/<param-value>/...
+ *
+ * @param bladeInfo - The blade information from the iframe message
+ * @returns The constructed portal URL
+ */
+export const buildBladeUrl = (bladeInfo: IOpenBladeInfo): string => {
+    const { portal } = getCloudEndpoints();
+    const { extension, detailBlade, detailBladeInputs } = bladeInfo;
+
+    // Start with the base portal URL and view path
+    let url = `${portal}#view/${extension}/${detailBlade}`;
+
+    // Add blade inputs as path segments
+    if (detailBladeInputs && typeof detailBladeInputs === 'object') {
+        for (const [key, value] of Object.entries(detailBladeInputs)) {
+            if (value !== undefined && value !== null) {
+                // Encode the parameter name and value for URL safety
+                const encodedKey = encodeURIComponent(key);
+                const encodedValue = encodeURIComponent(String(value));
+                url += `/${encodedKey}/${encodedValue}`;
+            }
+        }
+    }
+
+    return url;
 };

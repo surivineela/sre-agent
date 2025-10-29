@@ -1,4 +1,5 @@
 import { FluentProvider, webDarkTheme, webLightTheme } from '@fluentui/react-components';
+import { useEffect } from 'react';
 import { NotificationProvider } from './Common/Contexts/NotificationContext';
 import { useUserPreferences } from './Common/Contexts/UserPreferencesContext';
 import { SreAgentPortal } from './SreAgentPortal';
@@ -8,6 +9,11 @@ import { IntlProvider } from './Strings/Intl/IntlProvider';
 
 const App = () => {
     const { resolvedTheme, locale } = useUserPreferences();
+
+    // Set data-theme attribute on document for CSS theming
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', resolvedTheme);
+    }, [resolvedTheme]);
 
     return (
         <IntlProvider locale={locale}>

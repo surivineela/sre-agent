@@ -107,21 +107,21 @@ export const SettingsContent = () => {
     const themeOptions: ImageRadioOption<'system' | 'light' | 'dark'>[] = [
         {
             value: 'system',
-            image: '/SystemTheme.svg',
+            image: 'SystemTheme.svg',
             label: intl.formatMessage(PortalResources.system),
             imageWidth: '79px',
             imageHeight: '44px',
         },
         {
             value: 'light',
-            image: '/LightTheme.svg',
+            image: 'LightTheme.svg',
             label: intl.formatMessage(PortalResources.light),
             imageWidth: '79px',
             imageHeight: '44px',
         },
         {
             value: 'dark',
-            image: '/DarkTheme.svg',
+            image: 'DarkTheme.svg',
             label: intl.formatMessage(PortalResources.dark),
             imageWidth: '79px',
             imageHeight: '44px',

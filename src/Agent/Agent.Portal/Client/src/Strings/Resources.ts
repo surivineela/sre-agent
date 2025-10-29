@@ -75,4 +75,8 @@ export const PortalResources = defineMessages({
     iframeZscalerUnauthorizedMessage: { defaultMessage: "We were unable to load the URL {agentUxUrl}. We've detected that your organization has selected Zscaler to protect you from unknown domains. Please speak to your network administrator to remove the restriction on this domain in order to proceed with interacting with your agent.", id: 'GDEEBE' },
     operationCancelled: { defaultMessage: 'Operation cancelled', id: 'g82HU6' },
     directory: { defaultMessage: 'Directory', id: 'RDwKyy' },
+    search: { defaultMessage: 'Search', id: 'xmcVZ0' },
+    allSubscriptions: { defaultMessage: 'All subscriptions', id: '8yyU6n' },
+    allResourceGroups: { defaultMessage: 'All resource groups', id: 'jEU2gk' },
+    allRegions: { defaultMessage: 'All regions', id: '456ixe' },
 });
