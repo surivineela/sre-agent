@@ -16,6 +16,9 @@ RUN apt-get update && \
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
     rm kubectl
 
+RUN az extension add --name containerapp && \
+    az extension add --name vm-repair
+
 WORKDIR /app
 COPY . .
 
