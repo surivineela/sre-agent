@@ -5,11 +5,11 @@ import { TodoItem, TodoItemStatus, TodoPlan } from '../../../Common/Contracts/Da
 import { getSafeDateTime } from '../../../Common/Helpers/Date';
 import { useTodoPlanContentStyles } from '../../Styles/TodoPlan.styles';
 
-interface TodoPlanContentFixedProps {
+interface TodoPlanContentProps {
     plan: TodoPlan;
 }
 
-const TodoPlanContentFixed = ({ plan }: TodoPlanContentFixedProps) => {
+const TodoPlanContent = ({ plan }: TodoPlanContentProps) => {
     const styles = useTodoPlanContentStyles();
 
     return (
@@ -66,4 +66,4 @@ const Status = memo(({ item }: { item: TodoItem }) => {
     );
 });
 
-export default memo(TodoPlanContentFixed);
+export default memo(TodoPlanContent);

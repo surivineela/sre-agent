@@ -44,7 +44,6 @@ const DailyReports: FC = () => {
                     <ChatBox
                         addThread={() => {}}
                         updateThreadLastReadTime={() => {}}
-                        canOpenAgentTaskPanel={false}
                         threadId={selectedThread?.id}
                         threadSource={selectedThread?.source}
                         stylesProps={{

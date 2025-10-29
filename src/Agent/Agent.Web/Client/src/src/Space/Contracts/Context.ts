@@ -6,8 +6,8 @@ import { AgentTaskMetaData, InvestigationTreeNodeStatus } from '../../Common/Con
 import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
-import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
-import { ChatMessage } from './Activities';
+import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
+import { ChatBoxSidePanelData, ChatMessage } from './Activities';
 
 export type IncidentManagementConnectionState = 'connected' | 'notConnected' | 'waiting';
 
@@ -86,8 +86,12 @@ type StreamingContextProps = {
 
 type ChatBoxContextProps = {
     getGroupedChatMessages: (message: ChatMessage, isStreamingMessage?: boolean) => ChatMessage[];
+};
+
+type ChatBoxSidePanelProps = {
     openAgentTask: (agentTask: AgentTaskMetaData) => void;
     openTodoPlan: (todoPlan: TodoInfo) => void;
+    openMemorySearchResult: (result: MemorySearchResult) => void;
 };
 
 type ThreadAgentModeContextProps = {
@@ -107,6 +111,11 @@ type AgentTaskContextProps = {
 type AgentTaskGraphContextProps = {
     selectNode: (nodeId: string | null) => void;
     selectedNodeId: string | null;
+};
+
+type IncidentsOverviewContextProps = {
+    onInitialSidePanelDataChanged: (threadId: string, data: ChatBoxSidePanelData | undefined | null) => void;
+    initialSidePanelDataMap: Map<string, ChatBoxSidePanelData>;
 };
 
 export const SreAgentContext = createContext<SreAgentContextProps>({
@@ -186,8 +195,12 @@ export const StreamingContext = createContext<StreamingContextProps>({
 
 export const ChatBoxContext = createContext<ChatBoxContextProps>({
     getGroupedChatMessages: (_message: ChatMessage, _isStreamingMessage?: boolean) => [],
+});
+
+export const ChatBoxSidePanelContext = createContext<ChatBoxSidePanelProps>({
     openAgentTask: (_agentTask: AgentTaskMetaData) => {},
     openTodoPlan: (_todoPlan: TodoInfo) => {},
+    openMemorySearchResult: (_result: MemorySearchResult) => {},
 });
 
 export const ThreadAgentModeContext = createContext<ThreadAgentModeContextProps>({
@@ -209,14 +222,7 @@ export const AgentTaskGraphContext = createContext<AgentTaskGraphContextProps>({
     selectedNodeId: null,
 });
 
-type MemorySidePanelContextProps = {
-    memoryResult: MemorySearchResult | null;
-    openMemorySidePanel: (result: MemorySearchResult) => void;
-    closeMemorySidePanel: () => void;
-};
-
-export const MemorySidePanelContext = createContext<MemorySidePanelContextProps>({
-    memoryResult: null,
-    openMemorySidePanel: (_: MemorySearchResult) => {},
-    closeMemorySidePanel: () => {},
+export const IncidentsOverviewContext = createContext<IncidentsOverviewContextProps>({
+    onInitialSidePanelDataChanged: (_threadId: string, _data: ChatBoxSidePanelData | undefined | null) => {},
+    initialSidePanelDataMap: new Map<string, ChatBoxSidePanelData>(),
 });

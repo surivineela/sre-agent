@@ -1,51 +1,48 @@
-import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
+import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
+import { ChatBoxSidePanelData, ChatBoxSidePanelType } from '../Contracts/Activities';
 import { useTodoPlans } from './useTodoPlans';
 
 export const useTodoPlanDrawer = (
-    threadId: string | null,
-    setMenuCollapsed: Dispatch<SetStateAction<boolean>>,
-    isLoadingInitialChatHistory: boolean
+    currentThreadId: string | undefined,
+    userDefinedThreadId: string | undefined,
+    initialSidePanelData: ChatBoxSidePanelData | undefined | null,
+    setHasToDoPlan: Dispatch<SetStateAction<boolean>> | undefined,
+    openSidePanel: (panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => void,
+    closeSidePanel: (panelType: ChatBoxSidePanelType) => void,
+    initSidePanel: (initialSidePanelData: ChatBoxSidePanelData | undefined | null) => void
 ) => {
-    const [isTodoPlanDrawerCollapsed, setIsTodoPlanDrawerCollapsed] = useState<boolean>(true);
-    const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>(undefined);
-    const hasAutoOpenedRef = useRef(false);
+    const threadId = currentThreadId || userDefinedThreadId || null;
+
+    const [todoInfo, setToDoInfo] = useState<TodoInfo | null>(null);
 
     const { todoPlans, isLoading, error } = useTodoPlans(threadId);
 
-    const hasExistingPlans = todoPlans.length > 0;
-
-    useEffect(() => {
-        setIsTodoPlanDrawerCollapsed(true);
-        setSelectedPlanId(undefined);
-        hasAutoOpenedRef.current = false;
-    }, [threadId]);
-
-    // Auto-show when new todos are streamed
-    useEffect(() => {
-        const currentCount = todoPlans.length;
-
-        if (!hasAutoOpenedRef.current && currentCount > 0 && isTodoPlanDrawerCollapsed && !isLoadingInitialChatHistory) {
-            setIsTodoPlanDrawerCollapsed(false);
-            setMenuCollapsed(true);
-            hasAutoOpenedRef.current = true;
-        }
-    }, [todoPlans.length, isTodoPlanDrawerCollapsed, setMenuCollapsed, isLoadingInitialChatHistory]);
-
-    const openTodoPlanDrawer = useCallback(
-        (planId?: string) => {
-            if (isTodoPlanDrawerCollapsed) {
-                setIsTodoPlanDrawerCollapsed(false);
-                setMenuCollapsed(true);
-            }
-
-            if (planId) {
-                setSelectedPlanId(planId);
-            }
+    const openTodoPlan = useCallback(
+        (todoInfo: TodoInfo) => {
+            openSidePanel(ChatBoxSidePanelType.ToDoPlan, { todoInfo: todoInfo });
+            setToDoInfo(todoInfo);
         },
-        [isTodoPlanDrawerCollapsed, setMenuCollapsed]
+        [openSidePanel]
     );
 
-    const shouldShowDrawer = todoPlans.length > 0;
+    const closeTodoPlan = useCallback(() => {
+        closeSidePanel(ChatBoxSidePanelType.ToDoPlan);
+    }, [closeSidePanel]);
+
+    useEffect(() => {
+        if (setHasToDoPlan) {
+            setHasToDoPlan(todoPlans.length > 0);
+        }
+    }, [setHasToDoPlan, todoPlans.length]);
+
+    useEffect(() => {
+        initSidePanel(initialSidePanelData);
+
+        if (initialSidePanelData?.todoInfo) {
+            setToDoInfo(initialSidePanelData.todoInfo);
+        }
+    }, [initSidePanel, initialSidePanelData]);
 
     return {
         // Data
@@ -54,16 +51,10 @@ export const useTodoPlanDrawer = (
         error,
 
         // Plan selection
-        selectedPlanId,
-        setSelectedPlanId,
+        todoInfo,
 
-        // Drawer state
-        isTodoPlanDrawerCollapsed,
-        setIsTodoPlanDrawerCollapsed,
-        openTodoPlanDrawer,
-        shouldShowDrawer,
-
-        // Utilities
-        hasExistingPlans,
+        // Open/close drawer logic
+        openTodoPlan,
+        closeTodoPlan,
     };
 };

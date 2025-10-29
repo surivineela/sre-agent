@@ -398,39 +398,10 @@ const ChatBoxFooter = ({
                     chatInputHandleSendClick('/compact');
                     return;
                 case Shortcut.Agent:
-                    if (lockAgentSelection) {
+                case Shortcut.Incident:
+                    if (shortcut === Shortcut.Agent && lockAgentSelection) {
                         return;
                     }
-                    openShortcutResourcePopover(shortcut);
-                    editorRef.current?.update(() => {
-                        const selection = $getSelection();
-                        if (!$isRangeSelection(selection)) {
-                            return;
-                        }
-                        const { anchor } = selection;
-                        const node: ElementNode = anchor.getNode();
-
-                        if (!$isTextNode(node)) {
-                            return;
-                        }
-
-                        const text = node?.getTextContent() ?? '';
-                        const offset = anchor.offset ?? -1;
-                        const currentText = text.substring(0, offset);
-                        const lastSlashIndex = currentText.lastIndexOf('/');
-                        if (lastSlashIndex !== -1) {
-                            const rangeSelection = selection.clone();
-                            rangeSelection.setTextNodeRange(node, lastSlashIndex, node, offset);
-                            $setSelection(rangeSelection);
-
-                            const shortcutNode = $createShortcutNode(shortcut);
-                            const emptySpaceNode = $createTextNode('');
-                            rangeSelection.insertNodes([shortcutNode, emptySpaceNode]);
-                            emptySpaceNode.select(0, 0);
-                        }
-                    });
-                    return;
-                case Shortcut.Incident:
                     openShortcutResourcePopover(shortcut);
                     editorRef.current?.update(() => {
                         const selection = $getSelection();

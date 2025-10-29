@@ -1,5 +1,5 @@
 import {
-    InlineDrawer,
+    makeStyles,
     Menu,
     MenuButton,
     MenuCheckedValueChangeData,
@@ -13,7 +13,6 @@ import {
     tokens,
     Toolbar,
     ToolbarButton,
-    useRestoreFocusSource,
 } from '@fluentui/react-components';
 import {
     ArrowCounterclockwise24Regular,
@@ -23,16 +22,14 @@ import {
     DismissCircleFilled,
     SubtractCircleRegular,
 } from '@fluentui/react-icons';
-import { mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { ReactFlowProvider } from '@xyflow/react';
-import { Dispatch, memo, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Dispatch, forwardRef, memo, SetStateAction, useCallback, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { AgentTaskMetaData, AgentTaskStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
 import { GenericErrorResources } from '../../../Strings/SREAgentResources';
 import NodeStatusPill from '../../Components/AgentTask/NodeStatusPill';
 import { AgentTaskGraphHandle, TreeStateValue } from '../../Contracts/Activities';
 import { AgentTaskContext } from '../../Contracts/Context';
-import { AgentTaskStyleProps } from '../../Styles/Activities.styles';
 import AgentTaskGraph from './AgentTaskGraph';
 
 interface IAgentTaskProps {
@@ -45,87 +42,70 @@ interface IAgentTaskProps {
     isLoadingTreeState: boolean;
     toggleNode: (nodeId: string) => void;
     getNodeStatus: (nodeId: string) => string | null;
-    collapsed?: boolean;
     closeAgentTask: () => void;
-    stylesProps?: AgentTaskStyleProps;
 }
 
-const useAgentTaskStyles = (overrides?: AgentTaskStyleProps) =>
-    mergeStyleSets({
-        root: {
-            backgroundColor: tokens.colorNeutralBackground1,
-            height: '100%',
-            flex: '1 0 auto',
-            borderTopRightRadius: tokens.borderRadiusXLarge,
-            borderBottomRightRadius: tokens.borderRadiusXLarge,
-            position: 'relative',
-            ...overrides?.root,
-        },
-        header: {
-            width: '100%',
-            maxWidth: '100%',
-            padding: `${tokens.spacingVerticalXL} ${tokens.spacingHorizontalXXL} ${tokens.spacingVerticalS}`,
-            gap: tokens.spacingHorizontalS,
-            alignSelf: 'stretch',
-            display: 'flex',
-            justifyContent: 'space-between',
-            boxSizing: 'border-box',
-            position: 'relative',
-            zIndex: 2,
-            ...overrides?.header,
-        },
-        titleContainer: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            gap: tokens.spacingHorizontalS,
-            flex: '1 1 auto',
-            ...overrides?.titleContainer,
-        },
-        titleText: {
-            textOverflow: 'ellipsis',
-            overflow: 'hidden',
-            flex: '0 0 auto',
-            ...overrides?.titleText,
-        },
-        titleStatus: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: tokens.spacingHorizontalXS,
-            minWidth: '50px',
-            flex: '0 0 auto',
-            ...overrides?.titleStatus,
-        },
-        resizer: {
+const useAgentTaskStyles = makeStyles({
+    header: {
+        width: '100%',
+        maxWidth: '100%',
+        padding: `${tokens.spacingVerticalXL} ${tokens.spacingHorizontalXXL} ${tokens.spacingVerticalS}`,
+        gap: tokens.spacingHorizontalS,
+        alignSelf: 'stretch',
+        display: 'flex',
+        justifyContent: 'space-between',
+        boxSizing: 'border-box',
+        position: 'relative',
+        zIndex: 2,
+    },
+    titleContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        gap: tokens.spacingHorizontalS,
+        flex: '1 1 auto',
+    },
+    titleText: {
+        textOverflow: 'ellipsis',
+        overflow: 'hidden',
+        flex: '0 0 auto',
+    },
+    titleStatus: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalXS,
+        minWidth: '50px',
+        flex: '0 0 auto',
+    },
+    resizer: {
+        width: '2px',
+        height: '100%',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        cursor: 'col-resize',
+        border: 'none',
+        minWidth: '0px',
+
+        '&:before': {
             width: '2px',
-            height: '100%',
+            content: '""',
             position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            cursor: 'col-resize',
-            border: 'none',
-            minWidth: '0px',
-
-            '&:before': {
-                width: '2px',
-                content: '""',
-                position: 'absolute',
-                borderLeft: `1px solid ${tokens.colorNeutralBackground5}`,
-                height: '100%',
-            },
-            ':hover': {
-                cursor: 'col-resize',
-            },
-            ':hover:active': {
-                cursor: 'col-resize',
-                userSelect: 'none',
-            },
-            ...overrides?.resizer,
+            borderLeft: `1px solid ${tokens.colorNeutralBackground5}`,
+            height: '100%',
         },
-    });
+        ':hover': {
+            cursor: 'col-resize',
+        },
+        ':hover:active': {
+            cursor: 'col-resize',
+            userSelect: 'none',
+        },
+    },
+});
 
-const AgentTask = (props: IAgentTaskProps) => {
+const AgentTask = forwardRef<AgentTaskGraphHandle, IAgentTaskProps>((props, agentTaskGraphRef) => {
     const {
         taskDropdownOptions,
         setSelectedTaskId,
@@ -135,20 +115,11 @@ const AgentTask = (props: IAgentTaskProps) => {
         isLoadingTreeState,
         toggleNode,
         getNodeStatus,
-        collapsed,
         closeAgentTask,
-        stylesProps,
     } = props;
 
-    const styles = useAgentTaskStyles(stylesProps);
+    const styles = useAgentTaskStyles();
 
-    const restoreFocusSourceAttributes = useRestoreFocusSource();
-
-    const agentTaskGraphRef = useRef<AgentTaskGraphHandle | null>(null);
-    const animationFrame = useRef<number>(0);
-    const sidebarRef = useRef<HTMLDivElement>(null);
-    const [sideBarWidth, setSidebarWidth] = useState<number | null>(null);
-    const [isResizing, setIsResizing] = useState(false);
     const intl = useIntl();
 
     const selectedTaskMenuId: Record<string, string[]> = useMemo(() => {
@@ -175,103 +146,60 @@ const AgentTask = (props: IAgentTaskProps) => {
         }
     }, []);
 
-    const startResizing = useCallback(() => setIsResizing(true), []);
-    const stopResizing = useCallback(() => setIsResizing(false), []);
-
-    const resize = useCallback(
-        ({ clientX }: { clientX: number }) => {
-            animationFrame.current = requestAnimationFrame(() => {
-                if (isResizing && sidebarRef.current) {
-                    const newSidebarWidth = sidebarRef.current.getBoundingClientRect().right - clientX;
-                    setSidebarWidth(newSidebarWidth);
-                    agentTaskGraphRef.current?.centerGraph();
-                }
-            });
-        },
-        [isResizing]
-    );
-
-    useEffect(() => {
-        window.addEventListener('mousemove', resize);
-        window.addEventListener('mouseup', stopResizing);
-
-        return () => {
-            cancelAnimationFrame(animationFrame.current);
-            window.removeEventListener('mousemove', resize);
-            window.removeEventListener('mouseup', stopResizing);
-        };
-    }, [resize, stopResizing]);
-
     return (
         <AgentTaskContext.Provider value={{ toggleNode, getNodeStatus }}>
             <ReactFlowProvider>
-                <InlineDrawer
-                    {...restoreFocusSourceAttributes}
-                    position="end"
-                    open={!collapsed}
-                    ref={sidebarRef}
-                    className={styles.root}
-                    style={{ minWidth: '50%', width: sideBarWidth === null ? '60%' : `${sideBarWidth}px`, maxWidth: 'calc(100% - 400px)' }}
-                >
-                    <div className={styles.header}>
-                        <div className={styles.titleContainer}>
-                            <Subtitle2 wrap={false} block={true} className={styles.titleText}>
-                                {taskDropdownValue?.title}
-                            </Subtitle2>
-                            <div className={styles.titleStatus}>
-                                <NodeStatusPill status={taskDropdownValue?.status} showIcon={true} />
-                            </div>
+                <div className={styles.header}>
+                    <div className={styles.titleContainer}>
+                        <Subtitle2 wrap={false} block={true} className={styles.titleText}>
+                            {taskDropdownValue?.title}
+                        </Subtitle2>
+                        <div className={styles.titleStatus}>
+                            <NodeStatusPill status={taskDropdownValue?.status} showIcon={true} />
                         </div>
-                        <Toolbar>
-                            <Menu
-                                positioning={{ autoSize: true }}
-                                checkedValues={selectedTaskMenuId}
-                                onCheckedValueChange={onSelectedTaskChange}
-                            >
-                                <MenuTrigger disableButtonEnhancement>
-                                    <MenuButton aria-label={intl.formatMessage(GenericErrorResources.selectTask)} appearance="subtle">
-                                        <ArrowCounterclockwise24Regular />
-                                    </MenuButton>
-                                </MenuTrigger>
-                                <MenuPopover>
-                                    <MenuList>
-                                        {taskDropdownOptions.map(task => {
-                                            return (
-                                                <MenuItemRadio
-                                                    key={task.id}
-                                                    name={'taskId'}
-                                                    value={task.id}
-                                                    icon={getMenuItemIcon(task)}
-                                                    style={{ alignItems: 'center', gap: tokens.spacingHorizontalS }}
-                                                >
-                                                    <Text>{task.title || task.id}</Text>
-                                                </MenuItemRadio>
-                                            );
-                                        })}
-                                    </MenuList>
-                                </MenuPopover>
-                            </Menu>
-
-                            <ToolbarButton
-                                aria-label={intl.formatMessage(GenericErrorResources.closePanel)}
-                                appearance="subtle"
-                                icon={<Dismiss24Regular />}
-                                onClick={() => closeAgentTask()}
-                            />
-                        </Toolbar>
                     </div>
-                    <AgentTaskGraph treeStateValue={currentTreeStateValue} isLoading={isLoadingTreeState} ref={agentTaskGraphRef} />
-                    <div
-                        className={styles.resizer}
-                        onMouseDown={startResizing}
-                        aria-label={intl.formatMessage(GenericErrorResources.resizeDrawer)}
-                        role="separator"
-                        aria-orientation="vertical"
-                    />
-                </InlineDrawer>
+                    <Toolbar>
+                        <Menu
+                            positioning={{ autoSize: true }}
+                            checkedValues={selectedTaskMenuId}
+                            onCheckedValueChange={onSelectedTaskChange}
+                        >
+                            <MenuTrigger disableButtonEnhancement>
+                                <MenuButton aria-label={intl.formatMessage(GenericErrorResources.selectTask)} appearance="subtle">
+                                    <ArrowCounterclockwise24Regular />
+                                </MenuButton>
+                            </MenuTrigger>
+                            <MenuPopover>
+                                <MenuList>
+                                    {taskDropdownOptions.map(task => {
+                                        return (
+                                            <MenuItemRadio
+                                                key={task.id}
+                                                name={'taskId'}
+                                                value={task.id}
+                                                icon={getMenuItemIcon(task)}
+                                                style={{ alignItems: 'center', gap: tokens.spacingHorizontalS }}
+                                            >
+                                                <Text>{task.title || task.id}</Text>
+                                            </MenuItemRadio>
+                                        );
+                                    })}
+                                </MenuList>
+                            </MenuPopover>
+                        </Menu>
+
+                        <ToolbarButton
+                            aria-label={intl.formatMessage(GenericErrorResources.closePanel)}
+                            appearance="subtle"
+                            icon={<Dismiss24Regular />}
+                            onClick={() => closeAgentTask()}
+                        />
+                    </Toolbar>
+                </div>
+                <AgentTaskGraph treeStateValue={currentTreeStateValue} isLoading={isLoadingTreeState} ref={agentTaskGraphRef} />
             </ReactFlowProvider>
         </AgentTaskContext.Provider>
     );
-};
+});
 
 export default memo(AgentTask);

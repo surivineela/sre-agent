@@ -1,7 +1,7 @@
-import { Button, Tooltip, tokens } from '@fluentui/react-components';
+import { Button, Tooltip } from '@fluentui/react-components';
 import { Branch16Regular, TaskListLtr20Regular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
-import { memo, useCallback, useContext, useEffect, useState } from 'react';
+import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
@@ -16,19 +16,20 @@ import { isFinalStreamingMessage, parseThreadFromStreamingText } from './Utility
 const ThreadContentTitle = ({
     thread,
     deleteThread,
-    todoPlanDrawer,
+    hasToDoPlans,
+    isToDoPlanOpen,
+    openToDoPlan,
+    closeToDoPlan,
     showTraceButton,
     toggleTraceVisibility,
     traceFocusRestorationRef,
 }: {
     thread: Thread | null | undefined;
     deleteThread: (thread: Thread) => void;
-    todoPlanDrawer?: {
-        hasExistingPlans: boolean;
-        isTodoPlanDrawerCollapsed: boolean;
-        openTodoPlanDrawer: () => void;
-        setIsTodoPlanDrawerCollapsed: (collapsed: boolean) => void;
-    };
+    hasToDoPlans: boolean;
+    isToDoPlanOpen: boolean;
+    openToDoPlan: () => void;
+    closeToDoPlan: () => void;
     showTraceButton: boolean;
     toggleTraceVisibility: () => void;
     traceFocusRestorationRef: React.RefObject<HTMLButtonElement>;
@@ -40,6 +41,12 @@ const ThreadContentTitle = ({
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
+
+    const tooltip = useMemo(() => {
+        return isToDoPlanOpen
+            ? intl.formatMessage(ToDoPlanResources.todoPlanCloseTooltip)
+            : intl.formatMessage(ToDoPlanResources.todoPlanOpenTooltip);
+    }, [isToDoPlanOpen, intl]);
 
     const handleThreadDelete = useCallback(() => {
         if (thread) {
@@ -133,42 +140,19 @@ const ThreadContentTitle = ({
                         {intl.formatMessage(IncidentManagementResources.viewTrace)}
                     </Button>
                 )}
-                {threadId && todoPlanDrawer?.hasExistingPlans && (
-                    <HeaderTodoToggleButton
-                        isOpen={!todoPlanDrawer.isTodoPlanDrawerCollapsed}
-                        onToggle={() => {
-                            if (todoPlanDrawer.isTodoPlanDrawerCollapsed) {
-                                todoPlanDrawer.openTodoPlanDrawer();
-                            } else {
-                                todoPlanDrawer.setIsTodoPlanDrawerCollapsed(true);
-                            }
-                        }}
-                    />
+                {threadId && hasToDoPlans && (
+                    <Tooltip content={tooltip} relationship="label">
+                        <Button
+                            aria-label={tooltip}
+                            icon={<TaskListLtr20Regular />}
+                            appearance={'subtle'}
+                            shape="circular"
+                            onClick={() => (isToDoPlanOpen ? closeToDoPlan() : openToDoPlan())}
+                        />
+                    </Tooltip>
                 )}
             </div>
         </div>
-    );
-};
-
-const HeaderTodoToggleButton = ({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) => {
-    const intl = useIntl();
-
-    const tooltip = isOpen
-        ? intl.formatMessage(ToDoPlanResources.todoPlanCloseTooltip)
-        : intl.formatMessage(ToDoPlanResources.todoPlanOpenTooltip);
-
-    return (
-        <Tooltip content={tooltip} relationship="label">
-            <Button
-                aria-label={tooltip}
-                aria-pressed={isOpen}
-                icon={<TaskListLtr20Regular />}
-                appearance={'subtle'}
-                shape="circular"
-                onClick={onToggle}
-                style={{ color: tokens.colorNeutralForeground2 }}
-            />
-        </Tooltip>
     );
 };
 

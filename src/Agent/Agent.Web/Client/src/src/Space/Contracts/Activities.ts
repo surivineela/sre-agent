@@ -1,7 +1,7 @@
 import { Edge, Node } from '@xyflow/react';
 import { Dispatch, ReactNode, SetStateAction } from 'react';
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
-import { InvestigationTreeNode, InvestigationTreeState } from '../../Common/Contracts/DataPlane/AgentTask';
+import { AgentTaskMetaData, InvestigationTreeNode, InvestigationTreeState } from '../../Common/Contracts/DataPlane/AgentTask';
 import {
     Approval,
     AzCliExecution,
@@ -14,7 +14,8 @@ import {
     PsqlExecution,
 } from '../../Common/Contracts/DataPlane/Message';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
-import { AgentTaskStyleProps, ChatBoxV2StyleProps } from '../Styles/Activities.styles';
+import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
+import { ChatBoxSidePanelStyleProps, ChatBoxStyleProps } from '../Styles/Activities.styles';
 
 export interface IActivitiesProps {
     resourceId: string;
@@ -73,22 +74,39 @@ export interface ChatTelemetrySnapshot {
     messages: ChatTelemetryMessageSnapshot[];
 }
 
+export interface ChatBoxSidePanelData {
+    agentTask?: AgentTaskMetaData;
+    todoInfo?: TodoInfo;
+    memorySearchResult?: MemorySearchResult;
+}
+
 export interface IChatBoxProps {
     addThread: (threadId: string, newThreadToSelect?: Thread) => void;
     updateThreadLastReadTime: (threadId: string) => void;
-    canOpenAgentTaskPanel: boolean;
     threadId?: string;
     threadSource?: string;
-    stylesProps?: ChatBoxV2StyleProps;
-    agentTaskStyleProps?: AgentTaskStyleProps;
-    todoPlanDrawer?: any; // Using any for now - could be strongly typed later
+    stylesProps?: ChatBoxStyleProps;
+    sidePanelStylesProps?: ChatBoxSidePanelStyleProps;
+    initialSidePanelData?: ChatBoxSidePanelData | null;
+    onOpenSidePanel?: (panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => void; // Pass this callback to trigger the side effects when any side panel is opened
+    onCloseSidePanel?: (panelType: ChatBoxSidePanelType) => void; // Pass this callback to trigger the side effects when any side panel is closed
+    setMenuCollapsed?: Dispatch<SetStateAction<boolean>>;
+    setHasToDoPlans?: Dispatch<SetStateAction<boolean>>;
     forcedAgentName?: string;
     lockAgentSelection?: boolean;
     onTelemetryUpdate?: (snapshot: ChatTelemetrySnapshot) => void;
     renderEmptyState?: (options: { sendMessage: (message: string) => Promise<void>; forcedAgentName?: string }) => ReactNode;
-    onOpenAgentTaskPanel?: () => void; // Pass this callback to trigger the side effects when the Agent Task Panel is opened
-    onCloseAgentTaskPanel?: () => void; // Pass this callback to trigger the side effects when the Agent Task Panel is closed
-    setMenuCollapsed?: Dispatch<SetStateAction<boolean>>;
+}
+
+export enum ChatBoxSidePanelType {
+    AgentTask = 'agentTask',
+    ToDoPlan = 'todoPlan',
+    MemorySearchResult = 'memorySearchResult',
+}
+
+export interface ChatBoxHandleRef {
+    openTodoPlanFromOutside: () => any;
+    closeTodoPlanFromOutside: () => any;
 }
 
 export interface IChatMessageProps {

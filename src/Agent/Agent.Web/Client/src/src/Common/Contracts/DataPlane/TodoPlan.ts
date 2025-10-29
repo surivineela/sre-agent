@@ -1,3 +1,11 @@
+export interface TodoInfo {
+    id: string;
+    title: string;
+    status: TodoPlanStatus;
+    lastModified?: string;
+    triggerMessageId: string;
+}
+
 export interface TodoPlan {
     id: string;
     title: string;

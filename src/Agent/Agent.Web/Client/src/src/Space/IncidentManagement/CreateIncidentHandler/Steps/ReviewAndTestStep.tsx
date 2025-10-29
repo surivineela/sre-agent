@@ -3,6 +3,7 @@ import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
+import { ChatBoxSidePanelData, ChatBoxSidePanelType } from '../../../Contracts/Activities';
 import useWindowSize from '../../../Hooks/useWindowSize';
 import { ReviewAndTestContent, ReviewAndTestView } from '../Common/ReviewAndTestContent';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
@@ -19,6 +20,8 @@ export const ReviewAndTestStep: FC = () => {
     const [selectedTab, setSelectedTab] = useState<ReviewAndTestView>('review');
     // Set forceShowTabs to true when deep investigation or todo plan panel is open
     const [forceShowTabs, setForceShowTabs] = useState(false);
+    const [initialSidePanelData, setInitialSidePanelData] = useState<ChatBoxSidePanelData>();
+
     const intl = useIntl();
     const { width } = useWindowSize();
 
@@ -34,13 +37,15 @@ export const ReviewAndTestStep: FC = () => {
         return `calc(100% - ${nonPanelHeight}px)`;
     }, [showTabs]);
 
-    const onOpenSidePanel = () => {
+    const onOpenSidePanel = (_panelType: ChatBoxSidePanelType, data: ChatBoxSidePanelData) => {
         setForceShowTabs(true);
         setSelectedTab('test');
+        setInitialSidePanelData({ ...data });
     };
 
-    const onCloseSidePanel = () => {
+    const onCloseSidePanel = (_panelType: ChatBoxSidePanelType) => {
         setForceShowTabs(false);
+        setInitialSidePanelData(undefined);
     };
 
     return (
@@ -72,6 +77,7 @@ export const ReviewAndTestStep: FC = () => {
                     view={showTabs || forceShowTabs ? selectedTab : undefined}
                     onOpenSidePanel={onOpenSidePanel}
                     onCloseSidePanel={onCloseSidePanel}
+                    initialSidePanelData={initialSidePanelData}
                 />
             </div>
             <div

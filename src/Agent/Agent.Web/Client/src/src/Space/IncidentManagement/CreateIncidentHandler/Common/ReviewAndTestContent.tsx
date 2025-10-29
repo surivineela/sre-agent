@@ -10,6 +10,7 @@ import { ThreadSource } from '../../../../Common/Contracts/DataPlane/Thread';
 import { IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
 import ChatBox from '../../../Activities/ChatBox';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
+import { ChatBoxSidePanelData, ChatBoxSidePanelType } from '../../../Contracts/Activities';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { ToolTableFieldNames } from '../Contracts';
 import { IncidentHandlerConsolidatedCreateContext } from '../IncidentHandlerConsolidatedCreateContext';
@@ -20,11 +21,12 @@ import { ToolsToolbar } from '../ToolsToolbar';
 export type ReviewAndTestView = 'review' | 'test';
 export interface ReviewAndTestContentProps {
     view?: ReviewAndTestView;
-    onOpenSidePanel?: () => void;
-    onCloseSidePanel?: () => void;
+    onOpenSidePanel?: (panelType: ChatBoxSidePanelType, data: ChatBoxSidePanelData) => void;
+    onCloseSidePanel?: (panelType: ChatBoxSidePanelType) => void;
+    initialSidePanelData?: ChatBoxSidePanelData;
 }
 
-export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOpenSidePanel, onCloseSidePanel }) => {
+export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOpenSidePanel, onCloseSidePanel, initialSidePanelData }) => {
     const { errors, values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -269,9 +271,9 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                             addThread={() => {}}
                             updateThreadLastReadTime={() => {}}
                             threadSource={ThreadSource.incident}
-                            canOpenAgentTaskPanel={!!view}
-                            onOpenAgentTaskPanel={onOpenSidePanel}
-                            onCloseAgentTaskPanel={onCloseSidePanel}
+                            onOpenSidePanel={onOpenSidePanel}
+                            onCloseSidePanel={onCloseSidePanel}
+                            initialSidePanelData={view ? initialSidePanelData : undefined}
                             stylesProps={{
                                 rootStyle: {
                                     height: `0%`,
@@ -287,6 +289,12 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                                 },
                                 chatBoxInner: {
                                     borderRadius: 'unset',
+                                },
+                            }}
+                            sidePanelStylesProps={{
+                                root: {
+                                    height: '0%',
+                                    flex: '1 1 auto',
                                 },
                             }}
                         />

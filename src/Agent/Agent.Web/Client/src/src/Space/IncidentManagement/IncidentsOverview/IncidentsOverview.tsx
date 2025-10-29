@@ -46,7 +46,8 @@ import { InvestigationStatus, Thread } from '../../../Common/Contracts/DataPlane
 import Url from '../../../Common/Helpers/Url';
 import { ActivitiesThreadHeaderResources, IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
-import { SreAgentContext } from '../../Contracts/Context';
+import { ChatBoxSidePanelData } from '../../Contracts/Activities';
+import { IncidentsOverviewContext, SreAgentContext } from '../../Contracts/Context';
 import { TracePanel } from '../../Foundry/app/components/shell/playground/tracing/TracePanel';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import IncidentChatDrawer from '../Common/IncidentChatDrawer';
@@ -124,6 +125,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
         [azPortalContext, sreAgentEndpoint]
     );
     const [selectedIncidentDetails, setSelectedIncidentDetails] = useState<IncidentDocument>();
+    const [initialSidePanelDataMap, setInitialSidePanelDataMap] = useState<Map<string, ChatBoxSidePanelData>>(new Map());
 
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -142,6 +144,18 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const traceFocusRestorationRef = useRef<HTMLButtonElement>(null);
+
+    const onInitialSidePanelDataChanged = useCallback((threadId: string, data: ChatBoxSidePanelData | undefined | null) => {
+        setInitialSidePanelDataMap(prev => {
+            const newMap = new Map(prev);
+            if (!data) {
+                newMap.delete(threadId);
+            } else {
+                newMap.set(threadId, data);
+            }
+            return newMap;
+        });
+    }, []);
 
     const openThreadDrawer = useCallback((thread: Thread) => {
         setSelectedThreadInfo({ thread, fullScreen: false, showTrace: false });
@@ -727,7 +741,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     );
 
     return (
-        <>
+        <IncidentsOverviewContext.Provider value={{ initialSidePanelDataMap, onInitialSidePanelDataChanged }}>
             {selectedThreadInfo?.fullScreen ? (
                 <IncidentChat
                     selectedThread={selectedThreadInfo.thread}
@@ -914,7 +928,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                     focusRestorationRef={traceFocusRestorationRef}
                 />
             )}
-        </>
+        </IncidentsOverviewContext.Provider>
     );
 };
 

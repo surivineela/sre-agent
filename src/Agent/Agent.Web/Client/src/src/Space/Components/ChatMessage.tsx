@@ -13,7 +13,7 @@ import { IChatMessageProps } from '../Contracts/Activities';
 import { ThreadAgentModeContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { useScheduledTaskMessage } from '../Hooks/useScheduledTaskMessage';
-import { getChatBoxV2Styles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
+import { getChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentMessage from './AgentMessage';
 import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
 import ChatMessageFooter from './ChatMessageFooter';
@@ -80,7 +80,7 @@ const ChatMessage = ({
     updateSpecialMessageInStreamingMessage,
 }: IChatMessageProps) => {
     const chatStyles = useChatBoxStyles();
-    const chatBoxStyles = getChatBoxV2Styles();
+    const chatBoxStyles = getChatBoxStyles();
     const intl = useIntl();
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();

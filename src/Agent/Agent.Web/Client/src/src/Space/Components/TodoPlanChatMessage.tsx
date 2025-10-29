@@ -3,9 +3,9 @@ import { Link, makeStyles, Subtitle2, Text } from '@fluentui/react-components';
 import { TaskListAdd24Regular } from '@fluentui/react-icons';
 import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
-import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
+import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
 import { ToDoPlanResources } from '../../Strings/SREAgentResources';
-import { ChatBoxContext } from '../Contracts/Context';
+import { ChatBoxSidePanelContext } from '../Contracts/Context';
 
 const useStyles = makeStyles({
     root: {
@@ -20,7 +20,7 @@ const useStyles = makeStyles({
 });
 
 const TodoPlanChatMessage = ({ todoPlan }: { todoPlan: TodoInfo }) => {
-    const { openTodoPlan } = useContext(ChatBoxContext);
+    const { openTodoPlan } = useContext(ChatBoxSidePanelContext);
 
     const styles = useStyles();
 

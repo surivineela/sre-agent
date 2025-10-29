@@ -1,5 +1,5 @@
 import cloneDeep from 'lodash/cloneDeep';
-import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AgentTaskClient } from '../../Common/Clients/AgentTaskClient';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
@@ -7,23 +7,20 @@ import { AgentTask, AgentTaskMetaData } from '../../Common/Contracts/DataPlane/A
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
-import { TreeStateValue } from '../Contracts/Activities';
+import { ChatBoxSidePanelData, ChatBoxSidePanelType, TreeStateValue } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useAgentTaskStreamHandler } from './useAgentTaskStreamHandler';
 
 export const useAgentTask = (
     threadId: string | undefined,
     userDefinedThreadId: string,
-    isLoadingInitialChatHistory: boolean,
-    canOpenAgentTaskPanel: boolean,
-    onOpenAgentTaskPanel?: () => void,
-    onCloseAgentTaskPanel?: () => void,
-    setMenuCollapsed?: Dispatch<SetStateAction<boolean>>,
-    closeMemorySidePanel?: () => void
+    initialSidePanelData: ChatBoxSidePanelData | undefined | null,
+    openSidePanel: (panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => void,
+    closeSidePanel: (panelType: ChatBoxSidePanelType) => void,
+    initSidePanel: (initialSidePanelData: ChatBoxSidePanelData | undefined | null) => void
 ) => {
     const { updateTreeState } = useAgentTaskStreamHandler();
 
-    const [isAgentTaskCollapsed, setIsAgentTaskCollapsed] = useState<boolean>(true);
     const [task, setTask] = useState<AgentTaskMetaData | null>(null);
     const [taskDropdownOptions, setTaskDropdownOptions] = useState<AgentTaskMetaData[]>([]);
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
@@ -40,29 +37,21 @@ export const useAgentTask = (
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
     const agentTaskClient = AgentTaskClient.getInstance(sreAgentEndpoint);
-    const isMounted = useRef(true);
 
     threadIdRef.current = threadId || userDefinedThreadId || null;
     treeStatesRef.current = treeStates;
 
     const openAgentTask = useCallback(
         (task: AgentTaskMetaData) => {
-            if (isAgentTaskCollapsed) {
-                setIsAgentTaskCollapsed(false);
-                setMenuCollapsed?.(true);
-            }
+            openSidePanel(ChatBoxSidePanelType.AgentTask, { agentTask: task });
             setTask(task);
-            // Close memory side panel when opening agent task
-            closeMemorySidePanel?.();
-            onOpenAgentTaskPanel?.();
         },
-        [setMenuCollapsed, isAgentTaskCollapsed, closeMemorySidePanel, onOpenAgentTaskPanel]
+        [openSidePanel]
     );
 
     const closeAgentTask = useCallback(() => {
-        setIsAgentTaskCollapsed(true);
-        onCloseAgentTaskPanel?.();
-    }, [onCloseAgentTaskPanel]);
+        closeSidePanel(ChatBoxSidePanelType.AgentTask);
+    }, [closeSidePanel]);
 
     const updateTaskDropdownOption = (...tasks: AgentTaskMetaData[]) => {
         setTaskDropdownOptions(prev => {
@@ -289,25 +278,13 @@ export const useAgentTask = (
         };
     }, [subscribeTaskUpdateEvent]);
 
-    const hasExistingTasks = useMemo(() => taskDropdownOptions.length > 0, [taskDropdownOptions]);
-
     useEffect(() => {
-        isMounted.current = true;
+        initSidePanel(initialSidePanelData);
 
-        return () => {
-            isMounted.current = false;
-        };
-    }, []);
-    useEffect(() => {
-        // If the component is unmounted, do not call collapseResizables as it is on activities level which can accidentally open the thread menu when the thread is already navigted away.
-        if (!isLoadingInitialChatHistory && hasExistingTasks && isMounted.current && canOpenAgentTaskPanel) {
-            setIsAgentTaskCollapsed(false);
-            setMenuCollapsed?.(true);
-        } else {
-            setIsAgentTaskCollapsed(true);
-            setMenuCollapsed?.(false);
+        if (initialSidePanelData?.agentTask) {
+            setTask(initialSidePanelData.agentTask);
         }
-    }, [isLoadingInitialChatHistory, hasExistingTasks, setMenuCollapsed, canOpenAgentTaskPanel]);
+    }, [initSidePanel, initialSidePanelData]);
 
     return {
         taskDropdownOptions,
@@ -315,8 +292,6 @@ export const useAgentTask = (
         setSelectedTaskId,
         selectedTaskId,
         taskDropdownValue,
-        isAgentTaskCollapsed,
-        setIsAgentTaskCollapsed,
         openAgentTask,
         closeAgentTask,
 
@@ -324,6 +299,5 @@ export const useAgentTask = (
         isLoadingTreeState,
         toggleNode,
         getNodeStatus,
-        hasExistingTasks,
     };
 };

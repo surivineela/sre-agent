@@ -5,7 +5,7 @@ import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { MemorySearchCardResources } from '../../Strings/SREAgentResources';
-import { MemorySidePanelContext } from '../Contracts/Context';
+import { ChatBoxSidePanelContext } from '../Contracts/Context';
 
 const useStyles = makeStyles({
     root: {
@@ -20,7 +20,7 @@ const useStyles = makeStyles({
 });
 
 const MemoryChatMessage = ({ memorySearchResult }: { memorySearchResult: MemorySearchResult }) => {
-    const { openMemorySidePanel } = useContext(MemorySidePanelContext);
+    const { openMemorySearchResult } = useContext(ChatBoxSidePanelContext);
     const intl = useIntl();
 
     const styles = useStyles();
@@ -61,7 +61,7 @@ const MemoryChatMessage = ({ memorySearchResult }: { memorySearchResult: MemoryS
                                 appearance="subtle"
                                 onClick={e => {
                                     e.stopPropagation();
-                                    openMemorySidePanel(memorySearchResult);
+                                    openMemorySearchResult(memorySearchResult);
                                 }}
                             >
                                 <Subtitle2 wrap={true} block={true}>

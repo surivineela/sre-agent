@@ -1,29 +1,5 @@
 import { makeStyles, tokens } from '@fluentui/react-components';
 
-export const useTodoItemStatusPillStyles = makeStyles({
-    statusContainer: {
-        padding: '2px 6px',
-        borderRadius: '8px',
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '4px',
-        alignItems: 'center',
-        width: 'fit-content',
-        flex: '0 0 auto',
-        fontSize: '10px',
-        fontWeight: '500',
-        letterSpacing: '0.025em',
-        textTransform: 'uppercase',
-        transitionProperty: 'all',
-        transitionDuration: '0.15s',
-        transitionTimingFunction: 'ease',
-    },
-    icon: {
-        fontSize: '10px',
-        lineHeight: '1',
-    },
-});
-
 export const useTodoPlanDrawerStyles = makeStyles({
     root: {
         height: 'calc(100vh - 100px)',
@@ -53,11 +29,10 @@ export const useTodoPlanDrawerStyles = makeStyles({
         alignItems: 'flex-start',
         flex: '1 1 auto',
         minWidth: '0px',
+        gap: tokens.spacingVerticalXS,
     },
     headerText: {
         overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
         width: '100%',
     },
     headerButton: {

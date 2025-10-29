@@ -15,7 +15,7 @@ import {
     PsqlExecution,
 } from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
-import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
+import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { MessageCreateRequest } from '../../Common/Providers/StreamingProvider';

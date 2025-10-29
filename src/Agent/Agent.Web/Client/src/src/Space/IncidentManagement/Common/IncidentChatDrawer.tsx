@@ -108,7 +108,7 @@ const IncidentChatDrawer: React.FC<IncidentChatDrawerProps> = ({
                                     exitToHome={onClose}
                                     isExpandedView={false}
                                     handleThreadDelete={onDeleteThread || (() => {})}
-                                    openThreadFullScreen={onEnterFullScreen}
+                                    onEnterFullScreen={onEnterFullScreen}
                                 />
                             </div>
                         </div>

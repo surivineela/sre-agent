@@ -5,7 +5,7 @@ import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
 import { AgentTaskResources } from '../../Strings/SREAgentResources';
-import { ChatBoxContext } from '../Contracts/Context';
+import { ChatBoxSidePanelContext } from '../Contracts/Context';
 
 const useStyles = makeStyles({
     root: {
@@ -20,7 +20,7 @@ const useStyles = makeStyles({
 });
 
 const AgentTaskChatMessage = ({ agentTask }: { agentTask: AgentTaskMetaData }) => {
-    const { openAgentTask } = useContext(ChatBoxContext);
+    const { openAgentTask } = useContext(ChatBoxSidePanelContext);
 
     const styles = useStyles();
     const intl = useIntl();

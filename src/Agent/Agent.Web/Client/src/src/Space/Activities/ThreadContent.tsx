@@ -2,10 +2,10 @@ import { memo, useContext, useMemo, useRef, useState } from 'react';
 import AzPortalProxy from '../../Common/AzPortalProxy/AzPortalProxy';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import Url from '../../Common/Helpers/Url';
-import { IThreadContentProps } from '../Contracts/Activities';
+import { ChatBoxHandleRef, IThreadContentProps } from '../Contracts/Activities';
 import { AgentContext, SreAgentContext } from '../Contracts/Context';
 import { TracePanel } from '../Foundry/app/components/shell/playground/tracing/TracePanel';
-import { useTodoPlanDrawer } from '../Hooks/useTodoPlanDrawer';
+import { useThreadContentTitleToDoPlanButton } from '../Hooks/useThreadContentTitleToDoPlanButton';
 import { ThreadContentStyles } from '../Styles/Activities.styles';
 import ChatBox from './ChatBox';
 import ThreadContentTitle from './ThreadContentTitle';
@@ -14,9 +14,7 @@ const inStandaloneMode = AzPortalProxy.inStandaloneMode;
 const showThreadTraceUI = Url.getFeatureValue('showThreadTraceUI') === 'true';
 
 export const ThreadContent = memo(({ thread, addThread, deleteThread, updateThreadLastReadTime }: IThreadContentProps) => {
-    const { threadContentAndActionKey, activeThreadId, setMenuCollapsed } = useContext(AgentContext);
-
-    const todoPlanDrawer = useTodoPlanDrawer(activeThreadId, setMenuCollapsed, false);
+    const { threadContentAndActionKey, setMenuCollapsed } = useContext(AgentContext);
 
     const [showTrace, setShowTrace] = useState(false);
     const { isCrossTenantPortalMode } = useContext(EnvironmentContext);
@@ -28,13 +26,20 @@ export const ThreadContent = memo(({ thread, addThread, deleteThread, updateThre
         [agentObj]
     );
     const traceFocusRestorationRef = useRef<HTMLButtonElement>(null);
+    const chatboxHandleRef = useRef<ChatBoxHandleRef>(null);
+
+    const { hasToDoPlans, isToDoPlanOpen, openToDoPlan, closeToDoPlan, setHasToDoPlans, onOpenSidePanel, onCloseSidePanel } =
+        useThreadContentTitleToDoPlanButton(chatboxHandleRef);
 
     return (
         <div className={ThreadContentStyles.root} key={threadContentAndActionKey}>
             <ThreadContentTitle
                 thread={thread}
                 deleteThread={deleteThread}
-                todoPlanDrawer={todoPlanDrawer}
+                hasToDoPlans={hasToDoPlans}
+                isToDoPlanOpen={isToDoPlanOpen}
+                openToDoPlan={openToDoPlan}
+                closeToDoPlan={closeToDoPlan}
                 showTraceButton={showThreadTraceUI && showControlPlaneDependentFeatures && !!agentAppInsightsAppId}
                 toggleTraceVisibility={() => setShowTrace(!showTrace)}
                 traceFocusRestorationRef={traceFocusRestorationRef}
@@ -44,9 +49,11 @@ export const ThreadContent = memo(({ thread, addThread, deleteThread, updateThre
                 addThread={addThread}
                 updateThreadLastReadTime={updateThreadLastReadTime}
                 threadSource={thread?.source}
-                canOpenAgentTaskPanel={true}
-                todoPlanDrawer={todoPlanDrawer}
                 setMenuCollapsed={setMenuCollapsed}
+                setHasToDoPlans={setHasToDoPlans}
+                onOpenSidePanel={onOpenSidePanel}
+                onCloseSidePanel={onCloseSidePanel}
+                ref={chatboxHandleRef}
             />
             {!!thread && showTrace && agentAppInsightsAppId && (
                 <TracePanel

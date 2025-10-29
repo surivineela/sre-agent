@@ -71,7 +71,7 @@ import { KustoQueryTesterPanel } from '../Graph/ExtendedAgentCreationDialog/comp
 import { ToolDetailsStep } from '../Graph/ExtendedAgentCreationDialog/components/ToolDetailsStep';
 import { ToolTestState, ToolTestStatus } from '../Graph/ExtendedAgentCreationDialog/types';
 import { getKustoTestFingerprint } from '../Graph/ExtendedAgentCreationDialog/utils/toolUtils';
-import { ChatBoxV2StyleProps } from '../Styles/Activities.styles';
+import { ChatBoxStyleProps } from '../Styles/Activities.styles';
 import { buildAgentYaml, buildToolYaml, tryParseAgentYaml, tryParseToolYaml } from './PlaygroundYamlUtils';
 import {
     PlaygroundInsightEvidence,
@@ -1142,7 +1142,7 @@ const useStyles = makeStyles({
     },
 });
 
-const playgroundChatStyles: ChatBoxV2StyleProps = {
+const playgroundChatStyles: ChatBoxStyleProps = {
     chatBoxAndAgentTask: {
         width: '100%',
         boxShadow: 'none !important',
@@ -3128,7 +3128,6 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                     addThread={() => {}}
                     updateThreadLastReadTime={() => {}}
                     threadSource={ThreadSource.playground}
-                    canOpenAgentTaskPanel={false}
                     stylesProps={playgroundChatStyles}
                     forcedAgentName={forcedAgentName}
                     lockAgentSelection={!!forcedAgentName}

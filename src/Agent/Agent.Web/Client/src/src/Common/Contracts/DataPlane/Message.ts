@@ -1,5 +1,5 @@
 import { AgentTaskMetaData } from './AgentTask';
-import { TodoInfo } from './TodoInfo';
+import { TodoInfo } from './TodoPlan';
 
 export interface MessageMetaData {
     id: string;

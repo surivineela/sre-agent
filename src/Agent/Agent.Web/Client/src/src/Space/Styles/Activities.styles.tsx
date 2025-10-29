@@ -168,16 +168,50 @@ export const ChatBoxStyles = mergeStyleSets({
     },
 });
 
-export interface AgentTaskStyleProps {
+export interface ChatBoxSidePanelStyleProps {
     root?: GriffelStyle;
-    header?: GriffelStyle;
-    titleContainer?: GriffelStyle;
-    titleText?: GriffelStyle;
-    titleStatus?: GriffelStyle;
-    resizer?: GriffelStyle;
 }
 
-export interface ChatBoxV2StyleProps {
+export const getChatBoxSidePanelStyles = (override?: ChatBoxSidePanelStyleProps) =>
+    mergeStyleSets({
+        root: {
+            backgroundColor: tokens.colorNeutralBackground1,
+            height: '100%',
+            flex: '1 0 auto',
+            borderTopRightRadius: tokens.borderRadiusXLarge,
+            borderBottomRightRadius: tokens.borderRadiusXLarge,
+            position: 'relative',
+            ...override?.root,
+        },
+        resizer: {
+            width: '2px',
+            height: '100%',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            bottom: 0,
+            cursor: 'col-resize',
+            border: 'none',
+            minWidth: '0px',
+
+            '&:before': {
+                width: '2px',
+                content: '""',
+                position: 'absolute',
+                borderLeft: `1px solid ${tokens.colorNeutralBackground5}`,
+                height: '100%',
+            },
+            ':hover': {
+                cursor: 'col-resize',
+            },
+            ':hover:active': {
+                cursor: 'col-resize',
+                userSelect: 'none',
+            },
+        },
+    });
+
+export interface ChatBoxStyleProps {
     rootStyle?: CSSProperties;
     chatBoxAndAgentTask?: GriffelStyle;
     chatBox?: GriffelStyle;
@@ -189,7 +223,7 @@ export interface ChatBoxV2StyleProps {
     hideAgentMessageHeader?: GriffelStyle;
 }
 
-export const getChatBoxV2Styles = (agentTaskVisible?: boolean, overrides?: ChatBoxV2StyleProps) =>
+export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBoxStyleProps) =>
     mergeStyleSets({
         chatBoxAndAgentTask: {
             display: 'flex',
@@ -216,8 +250,8 @@ export const getChatBoxV2Styles = (agentTaskVisible?: boolean, overrides?: ChatB
             backgroundColor: `${tokens.colorNeutralForegroundInverted} !important`,
             borderTopLeftRadius: tokens.borderRadiusXLarge,
             borderBottomLeftRadius: tokens.borderRadiusXLarge,
-            borderTopRightRadius: agentTaskVisible ? 0 : tokens.borderRadiusXLarge,
-            borderBottomRightRadius: agentTaskVisible ? 0 : tokens.borderRadiusXLarge,
+            borderTopRightRadius: sidePanelVisible ? 0 : tokens.borderRadiusXLarge,
+            borderBottomRightRadius: sidePanelVisible ? 0 : tokens.borderRadiusXLarge,
             selectors: {
                 // Allegedly styles on the below get copied to anything that portals within it (Dialogs, etc)
                 '&[data-portal-node="true"]': {
