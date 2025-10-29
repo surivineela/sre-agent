@@ -70,6 +70,8 @@
     <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Reporting" Version="9.8.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
     <PackageVersion Include="Microsoft.Graph" Version="5.75.0" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="3.3.0" />
+    <PackageVersion Include="Microsoft.Identity.Web.UI" Version="3.3.0" />
     <PackageVersion Include="Microsoft.Identity.ServiceEssentials.Extensions.AspNetCoreMiddleware.S2S" Version="1.37.0" />
     <PackageVersion Include="Microsoft.IdentityModel" Version="7.0.0" />
     <PackageVersion Include="Microsoft.IdentityModel.S2S" Version="4.19.1" />
@@ -170,3 +172,4 @@
     <!-- keep these sorted plz so we don't accidentally overrwrite package versions  -->
   </ItemGroup>
 </Project>
+

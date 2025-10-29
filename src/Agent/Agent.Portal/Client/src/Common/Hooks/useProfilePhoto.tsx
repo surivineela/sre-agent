@@ -1,4 +1,3 @@
-import { useMsal } from '@azure/msal-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { GraphClient } from '../Clients/GraphClient';
 import { TelemetrySource } from '../Constants/Telemetry';
@@ -7,14 +6,13 @@ import { LogLevel } from '../Contracts/Telemetry';
 import { useTelemetry } from './useTelemetry';
 
 export const useProfilePhoto = (telemetrySource: TelemetrySource) => {
-    const { instance } = useMsal();
     const { isAuthenticated } = useAuth();
     const { logEvent } = useTelemetry(telemetrySource, undefined);
 
     const [photoUrl, setPhotoUrl] = useState<string>();
     const photoUrlRef = useRef<string>();
 
-    const graphClient = useMemo(() => GraphClient.getInstance(instance, telemetrySource), [instance, telemetrySource]);
+    const graphClient = useMemo(() => GraphClient.getInstance(telemetrySource), [telemetrySource]);
 
     useEffect(() => {
         return () => {

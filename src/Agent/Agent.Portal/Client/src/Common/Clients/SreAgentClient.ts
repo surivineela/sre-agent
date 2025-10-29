@@ -1,11 +1,10 @@
-import { IPublicClientApplication } from '@azure/msal-browser';
+import { getCloudEndpoints } from '../Auth/cloudConfig';
 import { ApiVersions } from '../Constants/ApiVersions';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { ArmObj } from '../Contracts/Arm';
 import { Response } from '../Contracts/Response';
 import { Agent, SreAgentArgItem } from '../Contracts/SreAgent';
 import { LogLevel } from '../Contracts/Telemetry';
-import { getCloudEndpoints } from '../Auth/cloudConfig';
 import { logTelemetryEvent } from '../Hooks/useTelemetry';
 import { ArmClient } from './ArmClient';
 import { Client } from './Client';
@@ -14,14 +13,14 @@ export class SreAgentClient extends Client {
     private static _instance: SreAgentClient | null = null;
     private armClient: ArmClient;
 
-    private constructor(instance: IPublicClientApplication, telemetrySource: TelemetrySource) {
-        super(instance, telemetrySource);
-        this.armClient = ArmClient.getInstance(instance, telemetrySource);
+    private constructor(telemetrySource: TelemetrySource) {
+        super(telemetrySource);
+        this.armClient = ArmClient.getInstance(telemetrySource);
     }
 
-    public static getInstance(instance: IPublicClientApplication, telemetrySource: TelemetrySource): SreAgentClient {
+    public static getInstance(telemetrySource: TelemetrySource): SreAgentClient {
         if (!SreAgentClient._instance) {
-            SreAgentClient._instance = new SreAgentClient(instance, telemetrySource);
+            SreAgentClient._instance = new SreAgentClient(telemetrySource);
         }
         return SreAgentClient._instance;
     }
@@ -36,7 +35,7 @@ export class SreAgentClient extends Client {
 
     /**
      * Fetches all SRE Agent resources across subscriptions using Azure Resource Graph (ARG).
-     * MSAL automatically handles token caching and refreshing.
+     * Backend handles token caching and refreshing.
      */
     public async getAgentsFromArg(): Promise<Response<SreAgentArgItem[]>> {
         const tokenResponse = await this.getAccessToken('arm');

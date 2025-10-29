@@ -1,14 +1,12 @@
-import { useMsal } from '@azure/msal-react';
 import { useEffect, useMemo, useState } from 'react';
 import { ArmClient } from '../Clients/ArmClient';
 import { TelemetrySource } from '../Constants/Telemetry';
-import { Tenant } from '../Contracts/Arm';
 import { useAuth } from '../Contexts/AuthContext';
+import { Tenant } from '../Contracts/Arm';
 import { LogLevel } from '../Contracts/Telemetry';
 import { useTelemetry } from './useTelemetry';
 
 export const useTenants = (telemetrySource: TelemetrySource) => {
-    const { instance } = useMsal();
     const { isAuthenticated } = useAuth();
     const { logEvent } = useTelemetry(telemetrySource, undefined);
 
@@ -16,7 +14,7 @@ export const useTenants = (telemetrySource: TelemetrySource) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string>();
 
-    const armClient = useMemo(() => ArmClient.getInstance(instance, telemetrySource), [instance, telemetrySource]);
+    const armClient = useMemo(() => ArmClient.getInstance(telemetrySource), [telemetrySource]);
 
     useEffect(() => {
         if (!isAuthenticated) {

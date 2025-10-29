@@ -1,11 +1,13 @@
-import { IPublicClientApplication } from '@azure/msal-browser';
-import { useAccount } from '@azure/msal-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getScopesForApi } from '../Auth/cloudConfig';
-import { AuthScopeIdentifier } from '../Auth/msalConfig';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { LogLevel } from '../Contracts/Telemetry';
 import { logTelemetryEvent } from './useTelemetry';
+
+/**
+ * Authentication scope identifiers for different Azure services.
+ * Used to map token requests to the appropriate backend endpoints.
+ */
+export type AuthScopeIdentifier = 'arm' | 'graph' | 'sreAgent' | 'appInsights';
 
 interface TokenState {
     currentAuthToken?: string;
@@ -14,7 +16,6 @@ interface TokenState {
 }
 
 interface AuthTokenManagerOptions {
-    instance: IPublicClientApplication;
     telemetrySource: TelemetrySource;
     resourceId?: string;
     postMessage: (verb: string, data: object) => void;
@@ -37,29 +38,46 @@ const prettyPrintDuration = (ms: number): string => {
 
 /**
  * Hook for managing authentication tokens in iframe scenarios where we need to proactively
- * send refreshed tokens to the iframe. For regular API calls, use client classes with
- * acquireTokenSilent which handles caching and refreshing automatically.
+ * send refreshed tokens to the iframe. Tokens are acquired from the backend API.
  */
-export const useAuthTokenManager = ({ instance, telemetrySource, resourceId, postMessage, initialTokenTypes }: AuthTokenManagerOptions) => {
-    const account = useAccount();
+export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, initialTokenTypes }: AuthTokenManagerOptions) => {
     const tokenStates = useRef<Map<AuthScopeIdentifier, TokenState>>(new Map());
     const [tokenNeedsRefreshMap, setTokenNeedsRefreshMap] = useState<Map<AuthScopeIdentifier, boolean>>(new Map());
 
+    const getTokenEndpoint = useCallback((tokenType: AuthScopeIdentifier): string => {
+        switch (tokenType) {
+            case 'arm':
+                return '/api/auth/arm-token';
+            case 'graph':
+                return '/api/auth/graph-token';
+            case 'sreAgent':
+                return '/api/auth/sre-agent-token';
+            case 'appInsights':
+                return '/api/auth/app-insights-token';
+            default:
+                throw new Error(`Unknown token type: ${tokenType}`);
+        }
+    }, []);
+
     const getAuthToken = useCallback(
         async (tokenType: AuthScopeIdentifier): Promise<string> => {
-            if (!account) {
-                throw new Error('No account available for token acquisition');
-            }
-
-            const scopes = getScopesForApi(tokenType);
-            const response = await instance.acquireTokenSilent({
-                scopes,
-                account,
+            const endpoint = getTokenEndpoint(tokenType);
+            const response = await fetch(endpoint, {
+                credentials: 'include',
             });
 
-            return response.accessToken;
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = '/api/auth/login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                    throw new Error('User not authenticated');
+                }
+                throw new Error(`Failed to acquire token: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data.accessToken;
         },
-        [account, instance]
+        [getTokenEndpoint]
     );
 
     const getOrInitTokenState = useCallback(
@@ -153,19 +171,22 @@ export const useAuthTokenManager = ({ instance, telemetrySource, resourceId, pos
             const currentTokenState = getOrInitTokenState(tokenType);
 
             try {
-                if (!account) {
-                    throw new Error('No account available for token acquisition');
-                }
-
-                const scopes = getScopesForApi(tokenType);
-                const response = await instance.acquireTokenSilent({
-                    scopes,
-                    account,
-                    forceRefresh: true,
+                const endpoint = getTokenEndpoint(tokenType);
+                const response = await fetch(`${endpoint}?forceRefresh=true`, {
+                    credentials: 'include',
                 });
 
-                const token = response.accessToken;
-                const expiresAt = response.expiresOn ?? new Date(Date.now() + 3600 * 1000);
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/api/auth/login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                        throw new Error('User not authenticated');
+                    }
+                    throw new Error(`Failed to refresh token: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const token = data.accessToken;
+                const expiresAt = data.expiresOn ? new Date(data.expiresOn) : new Date(Date.now() + 3600 * 1000);
 
                 const expirationString = expiresAt.toISOString();
                 const loggedTimeString = new Date().toISOString();
@@ -213,7 +234,7 @@ export const useAuthTokenManager = ({ instance, telemetrySource, resourceId, pos
                 });
             }
         },
-        [getOrInitTokenState, account, instance, resourceId, sendToken, setTimerToUpdateToken, telemetrySource]
+        [getOrInitTokenState, getTokenEndpoint, resourceId, sendToken, setTimerToUpdateToken, telemetrySource]
     );
 
     const getTokenNeedsRefresh = useCallback(

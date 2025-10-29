@@ -32,3 +32,20 @@ Content-Type: application/json
 }
 
 ###
+
+# Authentication endpoints
+GET {{Agent.Portal_HostAddress}}/api/auth/user
+Accept: application/json
+
+###
+
+GET {{Agent.Portal_HostAddress}}/api/auth/profile
+Accept: application/json
+
+###
+
+# Get Azure Resource Manager token (requires authentication)
+GET {{Agent.Portal_HostAddress}}/api/auth/arm-token
+Accept: application/json
+
+###

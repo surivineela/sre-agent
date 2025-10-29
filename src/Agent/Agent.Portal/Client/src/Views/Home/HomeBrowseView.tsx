@@ -1,4 +1,3 @@
-import { useMsal } from '@azure/msal-react';
 import {
     Button,
     Card,
@@ -32,12 +31,11 @@ import { CreateFirstAgent } from './CreateFirstAgent';
 
 export const HomeBrowseView = () => {
     const intl = useIntl();
-    const { instance } = useMsal();
     const { isAuthenticated } = useAuth();
     const { logEvent } = useTelemetry(TelemetrySource.HomeBrowseView, undefined);
     const navigate = useNavigate();
 
-    const sreAgentClient = useMemo(() => SreAgentClient.getInstance(instance, TelemetrySource.HomeBrowseView), [instance]);
+    const sreAgentClient = useMemo(() => SreAgentClient.getInstance(TelemetrySource.HomeBrowseView), []);
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -83,8 +81,7 @@ export const HomeBrowseView = () => {
             const response = await sreAgentClient.getAgentsFromArg();
 
             if (!response.isSuccessful) {
-                const errorMessage =
-                    response.error instanceof Error ? response.error.message : 'Unknown error occurred';
+                const errorMessage = response.error instanceof Error ? response.error.message : 'Unknown error occurred';
                 setError(errorMessage);
                 logEvent({
                     action: 'fetch-agents',

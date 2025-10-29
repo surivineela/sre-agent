@@ -1,16 +1,25 @@
-import { IPublicClientApplication } from '@azure/msal-browser';
-import { asyncScheduler, bufferTime, catchError, concatMap, filter, from, Observable, of, share, Subject, take } from "rxjs";
-import { getCloudEndpoints } from "../Auth/cloudConfig";
-import { ApiVersions } from "../Constants/ApiVersions";
-import { TelemetrySource } from "../Constants/Telemetry";
-import { ArmBatchObject, ArmBatchResponse, ArmRequestObject, AzureAsyncOperationStatus, InternalArmRequest, KeyValue, ProvisioningState, ResponseArray, Tenant } from "../Contracts/Arm";
-import { Response } from "../Contracts/Response";
-import { LogLevel } from "../Contracts/Telemetry";
-import { logTelemetryEvent } from "../Hooks/useTelemetry";
-import { delay, getHeader } from "../Utilities/Client";
-import { newGuid } from "../Utilities/Guid";
-import { appendQueryString, getParameterByName } from "../Utilities/Url";
-import { Client } from "./Client";
+import { asyncScheduler, bufferTime, catchError, concatMap, filter, from, Observable, of, share, Subject, take } from 'rxjs';
+import { getCloudEndpoints } from '../Auth/cloudConfig';
+import { ApiVersions } from '../Constants/ApiVersions';
+import { TelemetrySource } from '../Constants/Telemetry';
+import {
+    ArmBatchObject,
+    ArmBatchResponse,
+    ArmRequestObject,
+    AzureAsyncOperationStatus,
+    InternalArmRequest,
+    KeyValue,
+    ProvisioningState,
+    ResponseArray,
+    Tenant,
+} from '../Contracts/Arm';
+import { Response } from '../Contracts/Response';
+import { LogLevel } from '../Contracts/Telemetry';
+import { logTelemetryEvent } from '../Hooks/useTelemetry';
+import { delay, getHeader } from '../Utilities/Client';
+import { newGuid } from '../Utilities/Guid';
+import { appendQueryString, getParameterByName } from '../Utilities/Url';
+import { Client } from './Client';
 
 // Custom response interface to replace AxiosResponse
 interface FetchResponse<T> {
@@ -29,17 +38,17 @@ export class ArmClient extends Client {
     private armSubject$: Subject<InternalArmRequest>;
     private armObs$!: Observable<ArmBatchObject>;
 
-    private constructor(instance: IPublicClientApplication, telemetrySource: TelemetrySource) {
-        super(instance, telemetrySource);
+    private constructor(telemetrySource: TelemetrySource) {
+        super(telemetrySource);
         this.armEndpoint = getCloudEndpoints().arm;
         this.sessionId = getParameterByName(null, 'sessionId');
         this.armSubject$ = new Subject<InternalArmRequest>();
         this.initializeBatchingObservable();
     }
 
-    public static getInstance(instance: IPublicClientApplication, telemetrySource: TelemetrySource): ArmClient {
+    public static getInstance(telemetrySource: TelemetrySource): ArmClient {
         if (!ArmClient._instance) {
-            ArmClient._instance = new ArmClient(instance, telemetrySource);
+            ArmClient._instance = new ArmClient(telemetrySource);
         }
         return ArmClient._instance;
     }
@@ -107,7 +116,11 @@ export class ArmClient extends Client {
 
         const useDirectUrl = !!url;
         const effectiveResourceId = useDirectUrl ? url! : resourceId;
-        const effectiveApiVersion = useDirectUrl ? null : apiVersion !== null ? apiVersion || ApiVersions.appServiceApiVersion20250301 : null;
+        const effectiveApiVersion = useDirectUrl
+            ? null
+            : apiVersion !== null
+              ? apiVersion || ApiVersions.appServiceApiVersion20250301
+              : null;
         const effectiveSkipBatching = skipBatching || useDirectUrl;
 
         const id = newGuid();
@@ -230,7 +243,7 @@ export class ArmClient extends Client {
                 resourceId,
                 method,
                 sessionId: this.sessionId,
-                correlationId: armObj.id
+                correlationId: armObj.id,
             });
 
             return {
@@ -264,7 +277,11 @@ export class ArmClient extends Client {
         }
     }
 
-    private pollLocationForCompletion<T, U = T>(response: ArmBatchObject, previousLocation: string, request: ArmRequestObject<U>): Promise<Response<T>> {
+    private pollLocationForCompletion<T, U = T>(
+        response: ArmBatchObject,
+        previousLocation: string,
+        request: ArmRequestObject<U>
+    ): Promise<Response<T>> {
         const location = getHeader('location', response.headers) || previousLocation;
         const retryAfter = Math.max(Number(getHeader('Retry-After', response.headers)), 2000);
         const setTelemetryHeader = request.commandName ? request.commandName + '-polling' : 'PollingAsyncResponse';
@@ -403,4 +420,3 @@ export class ArmClient extends Client {
         };
     }
 }
-

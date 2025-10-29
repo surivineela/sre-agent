@@ -1,7 +1,4 @@
-import { InteractionStatus, RedirectRequest } from '@azure/msal-browser';
-import { useAccount, useIsAuthenticated, useMsal } from '@azure/msal-react';
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo } from 'react';
-import { loginRequest } from '../Auth/msalConfig';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 interface AuthenticatedUser {
     name: string;
@@ -15,68 +12,72 @@ interface AuthContextValue {
     isAuthenticated: boolean;
     isLoading: boolean;
     user: AuthenticatedUser | null;
-    signIn: (requestOverrides?: Partial<RedirectRequest>) => Promise<void>;
-    signOut: () => Promise<void>;
+    signIn: (returnUrl?: string) => void;
+    signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const { instance, inProgress } = useMsal();
-    const isAuthenticated = useIsAuthenticated();
-    const account = useAccount();
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [user, setUser] = useState<AuthenticatedUser | null>(null);
 
-    const isLoadingAuth = useMemo(() => inProgress !== InteractionStatus.None, [inProgress]);
+    // Check authentication status on mount
+    useEffect(() => {
+        const checkAuthStatus = async () => {
+            try {
+                const response = await fetch('/api/auth/user', {
+                    credentials: 'include',
+                });
 
-    // To get more directory/tenant info (such as name), would need to make Graph call
-    const user = useMemo<AuthenticatedUser | null>(() => {
-        if (!account) {
-            return null;
-        }
-
-        const idTokenClaims = account.idTokenClaims as any;
-
-        return {
-            name: account.name ?? account.username,
-            username: account.username,
-            email: idTokenClaims.email || "",
-            // Tenant/Directory ID
-            tenantId: account.tenantId,
-            objectId: account.localAccountId || idTokenClaims.oid || "",
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.isAuthenticated) {
+                        setIsAuthenticated(true);
+                        setUser({
+                            name: data.name || '',
+                            username: data.username || '',
+                            email: data.email || data.username || '',
+                            tenantId: data.tenantId || '',
+                            objectId: data.objectId || '',
+                        });
+                    } else {
+                        setIsAuthenticated(false);
+                        setUser(null);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to check auth status:', error);
+                setIsAuthenticated(false);
+                setUser(null);
+            } finally {
+                setIsLoading(false);
+            }
         };
-    }, [account]);
 
-    const signIn = useCallback(
-        async (requestOverrides?: Partial<RedirectRequest>) => {
-            await instance.loginRedirect({ ...loginRequest, ...requestOverrides });
-        },
-        [instance]
-    );
+        checkAuthStatus();
+    }, []);
 
-    const signOut = useCallback(async () => {
-        await instance.logoutRedirect({ account: account ?? undefined, logoutHint: account?.idTokenClaims?.login_hint });
-    }, [account, instance]);
+    const signIn = useCallback((returnUrl?: string) => {
+        const url = returnUrl ? `/api/auth/login?returnUrl=${encodeURIComponent(returnUrl)}` : '/api/auth/login';
+        window.location.href = url;
+    }, []);
+
+    const signOut = useCallback(() => {
+        window.location.href = '/api/auth/logout';
+    }, []);
 
     const value = useMemo<AuthContextValue>(
         () => ({
             isAuthenticated,
-            isLoading: isLoadingAuth,
+            isLoading,
             user,
             signIn,
             signOut,
         }),
-        [isAuthenticated, user, signIn, signOut, isLoadingAuth]
+        [isAuthenticated, isLoading, user, signIn, signOut]
     );
-
-    // If there are accounts but no active account, set one
-    useEffect(() => {
-        if (inProgress === InteractionStatus.None) {
-            const accounts = instance.getAllAccounts();
-            if (accounts.length > 0 && !instance.getActiveAccount()) {
-                instance.setActiveAccount(accounts[0]);
-            }
-        }
-    }, [inProgress, instance]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -1,4 +1,3 @@
-import { IPublicClientApplication } from '@azure/msal-browser';
 import { SreAgentClient } from '../../Common/Clients/SreAgentClient';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
 import { getFeatureFlag, SettingNames } from '../../Common/Hooks/useConfigSettings';
@@ -81,10 +80,10 @@ const getEndpointsFromFlags = () => {
     };
 };
 
-export const resolveAgentSiteUrl = (msalInstance: IPublicClientApplication,resourceId: string, sreDeepLink?: string) => {
+export const resolveAgentSiteUrl = (resourceId: string, sreDeepLink?: string) => {
     let { uxEndpoint, dataplaneEndpoint } = getEndpointsFromFlags();
 
-    return SreAgentClient.getInstance(msalInstance, TelemetrySource.AgentIFrameView)
+    return SreAgentClient.getInstance(TelemetrySource.AgentIFrameView)
         .getAgent(resourceId)
         .then(response => {
             if (response) {

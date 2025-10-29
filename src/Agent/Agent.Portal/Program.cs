@@ -1,10 +1,38 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Identity.Web;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+// Add Microsoft Identity authentication with token acquisition for downstream APIs
+var initialScopes = builder.Configuration["AzureAd:Scopes"]?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApp(options =>
+    {
+        builder.Configuration.Bind("AzureAd", options);
+        
+        options.Events = new OpenIdConnectEvents
+        {
+            OnRedirectToIdentityProvider = context =>
+            {
+                // Add prompt parameter if needed for consent
+                if (context.Properties.Items.TryGetValue("prompt", out var prompt))
+                {
+                    context.ProtocolMessage.Prompt = prompt;
+                }
+                return Task.CompletedTask;
+            }
+        };
+    })
+    .EnableTokenAcquisitionToCallDownstreamApi(initialScopes)
+    .AddInMemoryTokenCaches();
+
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
@@ -27,14 +55,15 @@ else
     app.Logger.LogWarning("Client dist folder not found at: {Path}. Run 'npm run build' in the Client folder.", clientDistPath);
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// Fallback to index.html for client-side routing
+// Fallback to index.html for client-side routing (but not for API routes)
 app.MapFallbackToFile("index.html", new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(clientDistPath)
-});
+}).AllowAnonymous();
 
 app.Run();

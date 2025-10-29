@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Identity.Web" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Include the Client folder in the project -->
     <Content Remove="$(ClientRoot)**" />
     <None Remove="$(ClientRoot)**" />
@@ -17,9 +22,9 @@
   <Target Name="BuildClient" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'">
     <Message Importance="high" Text="Restoring npm dependencies for Client..." />
     <Exec WorkingDirectory="$(ClientRoot)" Command="npm install" />
-    
+
     <Message Importance="high" Text="Building Client application..." />
-    <Exec WorkingDirectory="$(ClientRoot)" Command="npm run build" />
+    <Exec WorkingDirectory="$(ClientRoot)" Command="npm run dev" />
   </Target>
 
 </Project>

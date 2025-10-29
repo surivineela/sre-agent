@@ -1,22 +1,27 @@
-import { useMsal } from '@azure/msal-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { getCloudEndpoints } from '../../Common/Auth/cloudConfig';
-import { AuthScopeIdentifier } from '../../Common/Auth/msalConfig';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
+import { useAuth } from '../../Common/Contexts/AuthContext';
 import { useNotifications } from '../../Common/Contexts/NotificationContext';
 import { useUserPreferences } from '../../Common/Contexts/UserPreferencesContext';
 import { ILogEvent, LogLevel } from '../../Common/Contracts/Telemetry';
-import { useAuthTokenManager } from '../../Common/Hooks/useAuthTokenManager';
+import { AuthScopeIdentifier, useAuthTokenManager } from '../../Common/Hooks/useAuthTokenManager';
 import { useTelemetry } from '../../Common/Hooks/useTelemetry';
 import { PortalResources } from '../../Strings/Resources';
-import { AgentSiteToAzPortalVerbs, AzPortalToAgentSiteVerbs, IEnvironmentInfo, IFrameTelemetryInfo, IFrameUserInfo, INotificationInfo, TokenTypes } from './AgentIFrameContracts';
+import {
+    AgentSiteToAzPortalVerbs,
+    AzPortalToAgentSiteVerbs,
+    IEnvironmentInfo,
+    IFrameTelemetryInfo,
+    IFrameUserInfo,
+    INotificationInfo,
+    TokenTypes,
+} from './AgentIFrameContracts';
 import { resolveAgentSiteUrl } from './Utilities';
-import { useAuth } from '../../Common/Contexts/AuthContext';
 
 export const useAgentView = (resourceId: string, sreLink?: string) => {
     const intl = useIntl();
-    const { instance } = useMsal();
     const { user } = useAuth();
     const { logEvent } = useTelemetry(TelemetrySource.AgentIFrameView, resourceId);
     const { resolvedTheme, locale } = useUserPreferences();
@@ -71,7 +76,6 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
     );
 
     const authTokenManager = useAuthTokenManager({
-        instance,
         telemetrySource: TelemetrySource.AgentIFrameView,
         resourceId,
         postMessage,
@@ -137,20 +141,16 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                 actionModifier: telemetryObj.actionModifier,
                 logLevel: telemetryObj.logLevel ? logLevelMap[telemetryObj.logLevel] : undefined,
                 additionalData: typeof telemetryObj.data === 'string' ? { message: telemetryObj.data } : telemetryObj.data,
-
-            }
+            };
             logEvent(formattedTelemetryEvent);
         },
         [logEvent]
     );
 
-    const openBladeCallback = useCallback(
-        (info: unknown) => {
-            // TODO: Make links within agent site actual links if in SREA Portal ?
-            console.log('Opened blade:', info);
-        },
-        []
-    );
+    const openBladeCallback = useCallback((info: unknown) => {
+        // TODO: Make links within agent site actual links if in SREA Portal ?
+        console.log('Opened blade:', info);
+    }, []);
 
     const updateNotificationCallback = useCallback(
         (info: INotificationInfo) => {
@@ -270,15 +270,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                 });
             }
         },
-        [
-            uxOrigin,
-            logEvent,
-            readyForDataCallback,
-            logCallback,
-            openBladeCallback,
-            updateNotificationCallback,
-            requestTokenCallback,
-        ]
+        [uxOrigin, logEvent, readyForDataCallback, logCallback, openBladeCallback, updateNotificationCallback, requestTokenCallback]
     );
 
     useEffect(() => {
@@ -313,7 +305,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                                     logLevel: LogLevel.Warning,
                                     additionalData: {
                                         agentUxUrl,
-                                    }
+                                    },
                                 });
                                 break;
                             }
@@ -428,7 +420,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
         let subscribed = true;
 
         if (resourceId) {
-            resolveAgentSiteUrl(instance, resourceId, sreLink).then(resolvedUrl => {
+            resolveAgentSiteUrl(resourceId, sreLink).then(resolvedUrl => {
                 if (!subscribed) {
                     return;
                 }
@@ -441,7 +433,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
         return () => {
             subscribed = false;
         };
-    }, [instance, resourceId, sreLink]);
+    }, [resourceId, sreLink]);
 
     return {
         agentUxUrl,

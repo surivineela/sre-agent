@@ -21,8 +21,6 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-browser": "^3.30.0",
-    "@azure/msal-react": "^2.0.13",
     "@fluentui/react-components": "^9.68.3",
     "@fluentui/react-icons": "^2.0.307",
     "lodash": "^4.17.21",

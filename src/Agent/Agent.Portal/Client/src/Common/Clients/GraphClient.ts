@@ -1,4 +1,3 @@
-import { IPublicClientApplication } from '@azure/msal-browser';
 import { getCloudEndpoints } from '../Auth/cloudConfig';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { Response } from '../Contracts/Response';
@@ -9,13 +8,13 @@ import { Client } from './Client';
 export class GraphClient extends Client {
     private static _instance: GraphClient | null = null;
 
-    private constructor(instance: IPublicClientApplication, telemetrySource: TelemetrySource) {
-        super(instance, telemetrySource);
+    private constructor(telemetrySource: TelemetrySource) {
+        super(telemetrySource);
     }
 
-    public static getInstance(instance: IPublicClientApplication, telemetrySource: TelemetrySource): GraphClient {
+    public static getInstance(telemetrySource: TelemetrySource): GraphClient {
         if (!GraphClient._instance) {
-            GraphClient._instance = new GraphClient(instance, telemetrySource);
+            GraphClient._instance = new GraphClient(telemetrySource);
         }
         return GraphClient._instance;
     }
@@ -23,7 +22,7 @@ export class GraphClient extends Client {
     /**
      * Fetches the user's profile photo from Microsoft Graph.
      * Returns a blob URL that can be used in an img src, or undefined if no photo is set.
-     * MSAL automatically handles token caching and refreshing.
+     * Backend handles token caching and refreshing.
      */
     public async getProfilePhoto(): Promise<Response<string | undefined>> {
         const tokenResponse = await this.getAccessToken('graph');

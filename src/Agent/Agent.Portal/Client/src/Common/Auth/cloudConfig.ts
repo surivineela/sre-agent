@@ -1,4 +1,4 @@
-import { AuthScopeIdentifier } from './msalConfig';
+import { AuthScopeIdentifier } from '../Hooks/useAuthTokenManager';
 
 export type CloudEnvironment = 'public' | 'fairfax' | 'mooncake';
 
