@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Http" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" />
     <PackageReference Include="Microsoft.SemanticKernel" />
+    <PackageReference Include="Microsoft.SREAgent.Incidents.IcM" />
     <PackageReference Include="ScottPlot" />
     <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="Grpc.Net.Client" />

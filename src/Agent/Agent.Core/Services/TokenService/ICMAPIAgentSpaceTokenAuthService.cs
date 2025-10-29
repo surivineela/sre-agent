@@ -7,16 +7,15 @@ using System.Text.Json;
 using Agent.Core.Interfaces;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
-using Microsoft.SREAgent.Incidents.IcM.Interface;
 
 namespace Agent.Core.Services;
-public class ICMAPIAgentSpaceTokenAuthService : IICMTokenAuthService
+public class IcmApiAgentSpaceTokenAuthService : IIcmTokenAuthService
 {
     private readonly IAuthenticationService _authenticationService;
     private readonly ICMAgentSpaceAuthOptions _authOptions;
-    private readonly ILogger<ICMAPIAgentSpaceTokenAuthService> _logger;
+    private readonly ILogger<IcmApiAgentSpaceTokenAuthService> _logger;
 
-    public ICMAPIAgentSpaceTokenAuthService(IAuthenticationService authenticationService, ICMAgentSpaceAuthOptions authOptions, ILogger<ICMAPIAgentSpaceTokenAuthService> logger)
+    public IcmApiAgentSpaceTokenAuthService(IAuthenticationService authenticationService, ICMAgentSpaceAuthOptions authOptions, ILogger<IcmApiAgentSpaceTokenAuthService> logger)
     {
         _authenticationService = authenticationService;
         _authOptions = authOptions;

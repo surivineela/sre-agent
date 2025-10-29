@@ -14,6 +14,7 @@ using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents.Scanner;
+using Azure.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -153,32 +154,69 @@ public static class IncidentServiceCollectionExtensions
         // else use Managed Identity
         if (IsDevelopment)
         {
-            var authOptions = new ICMLocalAuthOptions()
+            if(string.IsNullOrWhiteSpace(icmAppsettings.UserToken))
             {
-                Token = icmAppsettings.UserToken,
-            };
-            services.AddICMAPIServicesWithTokenAuth(authOptions, icmAPISDKApiOptions);
+                throw new InvalidOperationException("ICM API UserToken is not configured for development environment.");
+            }
+            services.AddIcmApiClient(options =>
+            {
+                options.ApiEndpoint = apiEndpoint;
+                options.TokenProvider = sp =>
+                {
+                    return ValueTask.FromResult(new AccessToken(
+                        icmAppsettings.UserToken,
+                        DateTimeOffset.MaxValue
+                    ));
+                };
+            });
         }
-        else if (ICMAPIAgentSpaceTokenAuthService.IsAgentSpaceProxyConfigured(icmAgentSpaceAuthOptions))
+        else if (IcmApiAgentSpaceTokenAuthService.IsAgentSpaceProxyConfigured(icmAgentSpaceAuthOptions))
         {
             services.AddSingleton(icmAgentSpaceAuthOptions);
-            services.AddICMAPIServicesWithTokenAuth<ICMAPIAgentSpaceTokenAuthService>(icmAPISDKApiOptions);
+            services.AddSingleton<IIcmTokenAuthService, IcmApiAgentSpaceTokenAuthService>();
+            services.AddIcmApiClient(options =>
+            {
+                options.ApiEndpoint = apiEndpoint;
+                options.TokenProvider = async sp =>
+                {
+                    var agentSpaceTokenService = sp.GetRequiredService<IIcmTokenAuthService>();
+                    return await agentSpaceTokenService.GetAccessTokenAsync();
+                };
+            });
         }
-        else if (ICMAPICertAuthService.IsCertAuthConfigured(icmAppsettings))
+        else if (IcmApiCertAuthService.IsCertAuthConfigured(icmAppsettings))
         {
-            services.AddICMAPIServicesWithCertAuth<ICMAPICertAuthService>(icmAPISDKApiOptions);
+            services.AddSingleton<IIcmCertAuthService, IcmApiCertAuthService>();
+            services.AddIcmApiClient(options =>
+            {
+                options.ApiEndpoint = apiEndpoint;
+                options.CertificateProvider = sp =>
+                {
+                    var certAuthService = sp.GetRequiredService<IIcmCertAuthService>();
+                    return certAuthService.GetClientCertificate();
+                };
+            });
         }
         else
         {
             var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
-            var tokenAuthOptions = new ICMTokenAuthOptions()
+            if(string.IsNullOrWhiteSpace(scope))
             {
-                TokenCredential = authService.GetIcmApiCredential(),
-                Scope = scope,
-            };
-            services.AddICMAPIServicesWithTokenAuth(tokenAuthOptions, icmAPISDKApiOptions);
+                throw new InvalidOperationException("ICM API scope is not configured.");
+            }
+            services.AddIcmApiClient(options =>
+            {
+                options.ApiEndpoint = apiEndpoint;
+                options.TokenProvider = async sp =>
+                {
+                    var tokenCredential = authService.GetIcmApiCredential();
+                    var tokenRequestContext = new TokenRequestContext(new[] { scope });
+                    var accessToken = await tokenCredential.GetTokenAsync(tokenRequestContext, CancellationToken.None);
+                    return accessToken;
+                };
+            });
         }
-        services.AddHttpHandlerForICMClient<LoggingHttpMessageHandler>();
+        //services.AddHttpHandlerForICMClient<LoggingHttpMessageHandler>();
         services.AddSingleton<IICMAPIClient, ICMAPIClient>();
 
         return services;

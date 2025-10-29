@@ -9,16 +9,15 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SREAgent.Incidents.IcM.Interface;
 
 namespace Agent.Core.Services;
-public class ICMAPICertAuthService : IICMCertAuthService
+public class IcmApiCertAuthService : IIcmCertAuthService
 {
     private readonly IAuthenticationService _authService;
-    private readonly ILogger<ICMAPICertAuthService> _logger;
+    private readonly ILogger<IcmApiCertAuthService> _logger;
     private ICMAPISettings _icmApiSettings;
 
-    public ICMAPICertAuthService(IAuthenticationService authService, IOptionsMonitor<IncidentManagementSettings> monitor, ILogger<ICMAPICertAuthService> logger)
+    public IcmApiCertAuthService(IAuthenticationService authService, IOptionsMonitor<IncidentManagementSettings> monitor, ILogger<IcmApiCertAuthService> logger)
     {
         _authService = authService;
         _logger = logger;
