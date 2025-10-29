@@ -3722,6 +3722,883 @@ export const ExtendedAgentsGraphResources = defineMessages({
     },
 });
 
+export const PlaygroundResources = defineMessages({
+    dialogTitle: {
+        defaultMessage: 'Agent playground',
+        id: 'WsJuyI',
+    },
+    dialogSubtitle: {
+        defaultMessage: 'Design, test, and refine agents without touching production.',
+        id: 'yeL9WV',
+    },
+    headerTitle: {
+        defaultMessage: 'Playground',
+        id: 'XqRXu6',
+    },
+    viewTesterTooltip: {
+        defaultMessage: 'Test your agent in a simple chat interface',
+        id: '2ePVf6',
+    },
+    viewTesterAriaLabel: {
+        defaultMessage: 'Tester - Test your agent',
+        id: 'wjfh7Z',
+    },
+    viewAuthorTestTooltip: {
+        defaultMessage: 'Author agent configuration and test',
+        id: 'bs6oPY',
+    },
+    viewAuthorTestAriaLabel: {
+        defaultMessage: 'Author and Test - Configure and test',
+        id: 'h+sisx',
+    },
+    viewEvaluateTooltip: {
+        defaultMessage: 'Full workflow with quality evaluation',
+        id: 'EOt0+9',
+    },
+    viewEvaluateAriaLabel: {
+        defaultMessage: 'Author, Test & Evaluate - Full workflow',
+        id: 'wBgTQg',
+    },
+    collapsePanelAriaLabel: {
+        defaultMessage: 'Collapse panel',
+        id: 'BuziI2',
+    },
+    expandChatPreviewTitle: {
+        defaultMessage: 'Expand chat preview',
+        id: 'OrQ4EY',
+    },
+    expandConfigurationPanelTitle: {
+        defaultMessage: 'Expand configuration panel',
+        id: 'v3xWf6',
+    },
+    restartChatTitle: {
+        defaultMessage: 'Restart chat conversation',
+        id: 'SR33a/',
+    },
+    moreActionsAriaLabel: {
+        defaultMessage: 'More actions',
+        id: 'S8/4ZI',
+    },
+    closeButton: {
+        defaultMessage: 'Close',
+        id: 'rbrahO',
+    },
+    comingSoon: {
+        defaultMessage: 'Playground actions are coming soon.',
+        id: 'A4ZrJb',
+    },
+    noSelectionMessage: {
+        defaultMessage: 'Select an agent or tool to start a playground session.',
+        id: 'XDSe35',
+    },
+    agentSummary: {
+        defaultMessage: 'You are previewing {name}.',
+        id: 'y87pob',
+    },
+    toolSummary: {
+        defaultMessage: 'You are previewing {name}.',
+        id: 'y87pob',
+    },
+    summaryLastPublishedLabel: {
+        defaultMessage: 'Last published {time}',
+        id: '0eZALE',
+    },
+    summaryLastPublishedUnknown: {
+        defaultMessage: 'Not yet published',
+        id: 'iJCsVz',
+    },
+    summaryLastAppliedLabel: {
+        defaultMessage: 'Draft synced {time}',
+        id: 'Oc1AVw',
+    },
+    summaryLastAppliedNever: {
+        defaultMessage: 'Draft not yet synced',
+        id: 'SmFb5S',
+    },
+    evaluationBannerMessage: {
+        defaultMessage: 'Get AI-powered quality insights and improvement suggestions',
+        id: 'HMZIeG',
+    },
+    evaluationBannerCta: {
+        defaultMessage: 'Try Evaluation',
+        id: 'Jsy4yb',
+    },
+    autoApplyEnabledTooltip: {
+        defaultMessage: 'Configuration changes are auto-applied (disable auto-apply to use manual apply)',
+        id: 'Z5ntkd',
+    },
+    noPendingChangesTooltip: {
+        defaultMessage: 'No pending configuration changes to apply',
+        id: 'AYrXUB',
+    },
+    autoApplyEnabledLabel: {
+        defaultMessage: 'Auto-apply ON',
+        id: 'L7EoQf',
+    },
+    autoApplyDisabledLabel: {
+        defaultMessage: 'Auto-apply OFF',
+        id: 'WhuvJH',
+    },
+    summaryInsightsStatusLabel: {
+        defaultMessage: 'Insights: {status}',
+        id: 'fINN7t',
+    },
+    summarySwitchToYaml: {
+        defaultMessage: 'Switch to YAML',
+        id: 'LGZkPZ',
+    },
+    summarySwitchToForm: {
+        defaultMessage: 'Switch to form',
+        id: '4oK1Me',
+    },
+    applyChangesButton: {
+        defaultMessage: 'Apply changes',
+        id: '3n8o15',
+    },
+    applyChangesTooltip: {
+        defaultMessage: 'Apply your edits and refresh insights',
+        id: '6w0QQX',
+    },
+    applyChangesErrorTooltip: {
+        defaultMessage: 'Resolve YAML errors before applying changes',
+        id: 'dkt4ac',
+    },
+    openPlaygroundButton: {
+        defaultMessage: 'Open in playground',
+        id: 'c3TO1+',
+    },
+    setupTitle: {
+        defaultMessage: 'How do you want to get started?',
+        id: 'fE5E6W',
+    },
+    setupDescription: {
+        defaultMessage: 'You can edit this entity directly or spin up a copy once cloning is available.',
+        id: 'FeBVnC',
+    },
+    editExistingTooltip: {
+        defaultMessage: 'Begin editing the current configuration in the playground.',
+        id: 'wk6Nft',
+    },
+    editExistingButton: {
+        defaultMessage: 'Edit existing',
+        id: 'vZWQHk',
+    },
+    copyExistingButton: {
+        defaultMessage: 'Make a copy',
+        id: 'l5a3zV',
+    },
+    copyComingSoonTooltip: {
+        defaultMessage: 'Creates a draft agent and tool workspace for testing without touching production. Coming soon...',
+        id: 'CEdEmD',
+    },
+    configurationTargetLabel: {
+        defaultMessage: 'Configuration target',
+        id: '9SQWi9',
+    },
+    configurationAgentTabLabel: {
+        defaultMessage: 'Agent',
+        id: 'QGVI63',
+    },
+    configurationToolTabLabel: {
+        defaultMessage: 'Tool',
+        id: 'h6183G',
+    },
+    formTabLabel: {
+        defaultMessage: 'Form',
+        id: 'baRFiF',
+    },
+    yamlTabLabel: {
+        defaultMessage: 'YAML',
+        id: 'FvhvDO',
+    },
+    yamlEditorComingSoon: {
+        defaultMessage: 'YAML editing is coming soon for this entity.',
+        id: '9xBQKf',
+    },
+    formComingSoon: {
+        defaultMessage: 'Form editing is coming soon for this entity.',
+        id: 'ZPP6n7',
+    },
+    agentPreviewTabLabel: {
+        defaultMessage: 'Chat preview',
+        id: 'VIYXlx',
+    },
+    toolPreviewTabLabel: {
+        defaultMessage: 'Tool testing',
+        id: 'c1ECOO',
+    },
+    agentPreviewUnavailable: {
+        defaultMessage: 'Chat preview is only available for agents.',
+        id: 'l2Ni9H',
+    },
+    toolPreviewUnavailable: {
+        defaultMessage: 'Tool testing is unavailable for this entity.',
+        id: 'GCQn0j',
+    },
+    toolPreviewEmpty: {
+        defaultMessage: 'No tools are linked yet. Add tools on the left to enable testing.',
+        id: 'yYJHyl',
+    },
+    toolFormUnavailable: {
+        defaultMessage: 'Tool configuration is unavailable for this selection.',
+        id: 'Z+wlsh',
+    },
+    toolFormNoTools: {
+        defaultMessage: 'Link a tool or create a new one to configure it here.',
+        id: 'CGn7Yd',
+    },
+    toolFormSelectorLabel: {
+        defaultMessage: 'Select a tool',
+        id: 'GdgrWi',
+    },
+    toolFormSelectPrompt: {
+        defaultMessage: 'Select a linked tool to edit',
+        id: 'qquh75',
+    },
+    toolFormLoading: {
+        defaultMessage: 'Loading tool details...',
+        id: 'F8xMoD',
+    },
+    toolFormSystemToolReadOnly: {
+        defaultMessage: '{name} is read-only in the playground.',
+        id: '+TnQ2+',
+    },
+    toolFormCreateNewKusto: {
+        defaultMessage: 'Create new Kusto tool',
+        id: 'mhKk7c',
+    },
+    toolFormAgentToolsGroup: {
+        defaultMessage: 'Agent tools',
+        id: 'w87Yom',
+    },
+    toolFormAvailableToolsGroup: {
+        defaultMessage: 'More tools',
+        id: 'wI+r41',
+    },
+    toolFormSystemToolsGroup: {
+        defaultMessage: 'System tools',
+        id: '2kRPCZ',
+    },
+    toolFormNewToolPrompt: {
+        defaultMessage: 'Start filling in the fields above to define this tool.',
+        id: 'QzM+2e',
+    },
+    toolPreviewSelectorLabel: {
+        defaultMessage: 'Select a tool to test',
+        id: '+hOwpi',
+    },
+    toolPreviewSelectPlaceholder: {
+        defaultMessage: 'Choose a tool',
+        id: '+KyrhG',
+    },
+    toolPreviewComingSoon: {
+        defaultMessage: 'Interactive testing for {name} is coming soon.',
+        id: 'T+FE9b',
+    },
+    toolPreviewSystemToolNotice: {
+        defaultMessage: '{name} is a system tool and cannot be run from the playground yet.',
+        id: 'sIwc3/',
+    },
+    toolPreviewUnsupportedType: {
+        defaultMessage: 'Testing for {name} is coming soon. Only Kusto tools are supported right now.',
+        id: 'Ze5Ejt',
+    },
+    previewRequiresSetup: {
+        defaultMessage: 'Finish setup to enable previews.',
+        id: 'br2BTb',
+    },
+    playgroundEmptyStateSubtitle: {
+        defaultMessage: "Experiment with your agent's configuration and see real-time results",
+        id: 'tjklHQ',
+    },
+    yamlReadOnlyNotice: {
+        defaultMessage: 'System tools are read-only. View the YAML for reference.',
+        id: 'haOtj7',
+    },
+    previewUpdatedBadge: {
+        defaultMessage: 'Preview updated',
+        id: '5Lc8g/',
+    },
+    insightsRerunLink: {
+        defaultMessage: 'Re-run insights',
+        id: 'nx7y+W',
+    },
+    insightsCardTitle: {
+        defaultMessage: 'Agent Quality',
+        id: 'B7EJpi',
+    },
+    insightsRefreshButton: {
+        defaultMessage: 'Refresh insights',
+        id: 'NGhUmq',
+    },
+    insightsRefreshTooltip: {
+        defaultMessage: 'Analyse the current prompt, tools, and test runs to get tailored guidance.',
+        id: '2xE9ci',
+    },
+    insightsFetching: {
+        defaultMessage: 'Analysing configuration…',
+        id: 'Df+1hk',
+    },
+    insightsLastRun: {
+        defaultMessage: 'Analysed {time}',
+        id: 'LIm7q8',
+    },
+    insightsNotAnalysedYet: {
+        defaultMessage: 'Insights not yet analysed',
+        id: 'YuvMS0',
+    },
+    insightsNoData: {
+        defaultMessage: 'Run insights to see guidance for this configuration.',
+        id: 'u60c6a',
+    },
+    insightsConfidenceLabel: {
+        defaultMessage: '{score}% confidence',
+        id: 'egubDj',
+    },
+    insightsPromptHighlightsHeader: {
+        defaultMessage: 'Prompt highlights',
+        id: 'pCjcdM',
+    },
+    insightsToolSuggestionsHeader: {
+        defaultMessage: 'Tool recommendations',
+        id: 'VpVoQZ',
+    },
+    insightsChatDiagnosticsHeader: {
+        defaultMessage: 'Chat diagnostics',
+        id: 'FLN/px',
+    },
+    insightsActionItemsHeader: {
+        defaultMessage: 'Priority fixes',
+        id: 'Y2PFzA',
+    },
+    insightsNotesHeader: {
+        defaultMessage: 'Notes',
+        id: '7+Domh',
+    },
+    insightsError: {
+        defaultMessage: 'We could not generate insights right now. Try again in a moment.',
+        id: 'LXOsKd',
+    },
+    insightsStaleBadge: {
+        defaultMessage: 'Changes pending analysis',
+        id: 'Hh8It5',
+    },
+    insightsToolFailureFallback: {
+        defaultMessage: 'Tool test failed but no error details were provided.',
+        id: 'arE3XO',
+    },
+    insightsDetailsShow: {
+        defaultMessage: 'Show details',
+        id: 's2XIgr',
+    },
+    insightsDetailsHide: {
+        defaultMessage: 'Hide details',
+        id: 'X5Q310',
+    },
+    insightsCollapsedSummary: {
+        defaultMessage: 'Run insights to track confidence and recommended fixes.',
+        id: 'EEb00g',
+    },
+    toastChatRestartReminder: {
+        defaultMessage: 'Please restart the chat to see your changes.',
+        id: 'bjLeN1',
+    },
+    toastApplyFailedTitle: {
+        defaultMessage: 'Failed to apply changes',
+        id: 'Zq5BCQ',
+    },
+    toastApplyFailedBody: {
+        defaultMessage: 'Please try again or check the console for details.',
+        id: 'W5zi/x',
+    },
+    toastUndoLabel: {
+        defaultMessage: 'Undo (10s)',
+        id: 'mMgwbu',
+    },
+    toastChatRestarted: {
+        defaultMessage: 'Chat restarted with new configuration.',
+        id: 'ZBpAJ/',
+    },
+    playgroundResizeHandleLabel: {
+        defaultMessage: 'Resize configuration and preview panels',
+        id: 'QpCzB2',
+    },
+    relativeTimeMoments: {
+        defaultMessage: 'moments ago',
+        id: 'Cv2vtV',
+    },
+    relativeTimeMinutes: {
+        defaultMessage: '{count, plural, one {# minute ago} other {# minutes ago}}',
+        id: 'aLBTVj',
+    },
+    relativeTimeHours: {
+        defaultMessage: '{count, plural, one {# hour ago} other {# hours ago}}',
+        id: 'LupnQU',
+    },
+    relativeTimeDays: {
+        defaultMessage: '{count, plural, one {# day ago} other {# days ago}}',
+        id: '8OCpdQ',
+    },
+    chatFindingUserTitle: {
+        defaultMessage: 'User at {time}',
+        id: 'wGLrHW',
+    },
+    chatFindingAgentTitle: {
+        defaultMessage: 'Agent at {time}',
+        id: 't+IV9f',
+    },
+    chatFindingTimeFallback: {
+        defaultMessage: 'recent activity',
+        id: 'LFb8Ku',
+    },
+    // Improved UX strings
+    startTestingButton: {
+        defaultMessage: 'Start testing',
+        id: '42RAxK',
+    },
+    continueEditingButton: {
+        defaultMessage: 'Continue editing',
+        id: 'rVbKiP',
+    },
+    setupImprovedTitle: {
+        defaultMessage: 'Ready to test your agent?',
+        id: 'xf9BKi',
+    },
+    setupImprovedDescription: {
+        defaultMessage: 'Choose your approach below. You can always switch between editing and testing.',
+        id: 'Q2CgqG',
+    },
+    editExistingImprovedButton: {
+        defaultMessage: 'Edit & test live agent',
+        id: '6CxEZS',
+    },
+    editExistingImprovedTooltip: {
+        defaultMessage: 'Make changes to the current agent configuration and test immediately.',
+        id: 'dO3eHj',
+    },
+    confidenceGoal: {
+        defaultMessage: 'Goal: 85%+ confidence',
+        id: 'kNEmDU',
+    },
+    insightsCallToAction: {
+        defaultMessage: 'Get AI recommendations to improve your agent',
+        id: '/OUWsL',
+    },
+    insightsUsingLatestYaml: {
+        defaultMessage: 'Using latest YAML changes',
+        id: 'BbTpTJ',
+    },
+    insightsLevelLabelLegend: {
+        defaultMessage: 'Playbook Legend',
+        id: 'VWq2cH',
+    },
+    insightsLevelLabelPro: {
+        defaultMessage: 'Ops Pro',
+        id: 'DFQKku',
+    },
+    insightsLevelLabelRising: {
+        defaultMessage: 'Rising Specialist',
+        id: 'f9xN/g',
+    },
+    insightsLevelLabelRookie: {
+        defaultMessage: 'Rookie Analyst',
+        id: 'xXHSO2',
+    },
+    insightsLevelMessageLegend: {
+        defaultMessage: '{metric} at {score}%—you are outperforming the target confidence. Ship it! 🚀',
+        id: 'dkqYUR',
+    },
+    insightsLevelMessagePro: {
+        defaultMessage: '{metric} is at {score}%. Continue refining to move toward the next tier.',
+        id: 'wjEBlr',
+    },
+    insightsLevelMessageRising: {
+        defaultMessage: '{metric} lands at {score}%. Sharpen instructions and tools to climb faster.',
+        id: 'TQ0n+a',
+    },
+    insightsLevelMessageRookie: {
+        defaultMessage: '{metric} at {score}%. Start experimenting—your upgrade path awaits.',
+        id: '5xbHr/',
+    },
+    insightsScoreXpLabel: {
+        defaultMessage: '{score} XP',
+        id: '6B0Aua',
+    },
+    insightsDeltaPositive: {
+        defaultMessage: '+{delta} since last run',
+        id: 'y0KXuM',
+    },
+    insightsDeltaNegative: {
+        defaultMessage: '-{delta} since last run',
+        id: 'polqL7',
+    },
+    insightsDeltaNeutral: {
+        defaultMessage: 'No change since last run',
+        id: '6Y8rFa',
+    },
+    insightsNextTier: {
+        defaultMessage: '{delta, plural, one {# confidence point to reach {tier}.} other {# confidence points to reach {tier}.}}',
+        id: 'uNTENz',
+    },
+    insightsMaxTierMessage: {
+        defaultMessage: 'Max tier achieved—keep refining to stay ahead.',
+        id: 'methez',
+    },
+    initialConfidenceMessage: {
+        defaultMessage: 'Improve your agent prompt to increase confidence',
+        id: 'vG08m6',
+    },
+    confidenceInfoTooltip: {
+        defaultMessage:
+            'Confidence is calculated based on your agent prompt, available tools, and chat interactions. Click refresh to get AI-powered recommendations.',
+        id: '7sbcy0',
+    },
+    intentMetLabel: {
+        defaultMessage: 'Intent Met Score',
+        id: 'pA7W9m',
+    },
+    intentMetTooltip: {
+        defaultMessage: 'How well your agent is meeting user intents based on chat interactions. Updates after conversations.',
+        id: 'heMr0D',
+    },
+    quickStart: {
+        defaultMessage: 'Quick start',
+        id: 'OYKAqF',
+    },
+    advancedSettings: {
+        defaultMessage: 'Advanced settings',
+        id: 'zhoVUT',
+    },
+    playgroundChatEmptyBadge: {
+        defaultMessage: 'Playground mode',
+        id: 'S5UkvS',
+    },
+    playgroundChatEmptyTitle: {
+        defaultMessage: 'Welcome to the playground',
+        id: 'L7gQfJ',
+    },
+    playgroundChatEmptySubtitle: {
+        defaultMessage: 'Tune agent behavior in a safe space before you publish changes.',
+        id: 'ene/8x',
+    },
+    playgroundChatEmptyBenefitsHeading: {
+        defaultMessage: 'Playground highlights',
+        id: 'CMbKXm',
+    },
+    playgroundChatEmptyBenefitPrompt: {
+        defaultMessage: 'Iterate on instructions without impacting production threads.',
+        id: 'WsILsq',
+    },
+    playgroundChatEmptyBenefitTools: {
+        defaultMessage: 'Validate tool wiring and connector responses in context.',
+        id: '21vNrm',
+    },
+    playgroundChatEmptyBenefitInsights: {
+        defaultMessage: 'Capture AI-driven insights on confidence and next tweaks.',
+        id: 'eYClyG',
+    },
+    playgroundChatEmptyDescription: {
+        defaultMessage: 'Get started with the curated scenarios below or craft your own prompts.',
+        id: '2m6oj5',
+    },
+    playgroundChatEmptySyncing: {
+        defaultMessage: 'Auto-applying changes… latest draft will be used for new tests.',
+        id: 'KAYnaH',
+    },
+    playgroundChatEmptyRecentInsight: {
+        defaultMessage: 'Last confidence: {score}%',
+        id: '1jBkyH',
+    },
+    playgroundChatEmptyStreakLabel: {
+        defaultMessage: 'Insight streak: {count}',
+        id: 'WdmBr4',
+    },
+    playgroundChatSendPromptLabel: {
+        defaultMessage: 'Run scenario',
+        id: 'z0uI4M',
+    },
+    playgroundChatAgentFallback: {
+        defaultMessage: 'this agent',
+        id: '/9FZdx',
+    },
+    playgroundChatPromptWarmupTitle: {
+        defaultMessage: 'Warm-up scenario',
+        id: 'gGfQUL',
+    },
+    playgroundChatPromptWarmupDescription: {
+        defaultMessage: 'Check if the agent introduces itself properly and outlines its capabilities.',
+        id: 'ZBlAho',
+    },
+    playgroundChatPromptWarmupMessage: {
+        defaultMessage: '{name}, give me your mission briefing and how you partner with engineers.',
+        id: 'Y0BC+F',
+    },
+    playgroundChatPromptStressTitle: {
+        defaultMessage: 'Stress test',
+        id: 'YN1/XY',
+    },
+    playgroundChatPromptStressDescription: {
+        defaultMessage: 'Probe for multi-step diagnostics to see if the agent can orchestrate tools effectively.',
+        id: 'FeBneB',
+    },
+    playgroundChatPromptStressMessage: {
+        defaultMessage: '{name}, I need diagnostics for intermittent latency spikes across AKS clusters eastus & westeurope.',
+        id: '531otx',
+    },
+    playgroundChatPromptAuditTitle: {
+        defaultMessage: 'Audit check',
+        id: 'b0+PAq',
+    },
+    playgroundChatPromptAuditDescription: {
+        defaultMessage: 'Validate how the agent summarizes risk and next steps for leadership updates.',
+        id: 'tbxHpV',
+    },
+    playgroundChatPromptAuditMessage: {
+        defaultMessage: '{name}, audit today’s incidents and draft a leadership update with priority blockers.',
+        id: 'DWD03m',
+    },
+    qualityDrawerTitle: {
+        defaultMessage: 'Quality watcher',
+        id: 'VVy70J',
+    },
+    qualityDrawerCloseButton: {
+        defaultMessage: 'Close quality watcher',
+        id: '5M+Mu/',
+    },
+    qualityDrawerLoadingTitle: {
+        defaultMessage: 'Evaluating agent…',
+        id: 'r2cpCI',
+    },
+    qualityDrawerLoadingSubtitle: {
+        defaultMessage: 'Analyzing configuration for improvement recommendations.',
+        id: 'zHZdPM',
+    },
+    qualityDrawerHighlightsTitle: {
+        defaultMessage: 'Highlights',
+        id: 'KGmQjH',
+    },
+    qualityDrawerQuickFixesTitle: {
+        defaultMessage: 'Quick fixes',
+        id: '0Krg21',
+    },
+    qualityDrawerAutoLabel: {
+        defaultMessage: 'Auto apply',
+        id: 'vIBOch',
+    },
+    qualityDrawerQuickFixLabel: {
+        defaultMessage: 'Select fix',
+        id: '1eaczG',
+    },
+    qualityDrawerPreviewShow: {
+        defaultMessage: 'Preview diff',
+        id: 'MOhprT',
+    },
+    qualityDrawerPreviewHide: {
+        defaultMessage: 'Hide diff',
+        id: 'JiENoF',
+    },
+    qualityDrawerNoFindings: {
+        defaultMessage: 'No quick fixes needed.',
+        id: 'Qn5bey',
+    },
+    qualityDrawerEmpty: {
+        defaultMessage: 'Run an analysis to see tailored fixes.',
+        id: '5ukccA',
+    },
+    qualityDrawerUpdated: {
+        defaultMessage: 'Updated {time}',
+        id: '0aJxT2',
+    },
+    qualityDrawerUpdatedNever: {
+        defaultMessage: 'No recent analysis',
+        id: 'WolNVP',
+    },
+    qualitySummaryNotAnalyzed: {
+        defaultMessage: 'Agent quality not scored yet. Run a check to reveal opportunities.',
+        id: 'dGa0bG',
+    },
+    qualitySummaryRunning: {
+        defaultMessage: 'Scoring agent quality… fresh quick fixes will land here shortly.',
+        id: '/bWE45',
+    },
+    qualitySummaryStale: {
+        defaultMessage: 'Agent quality is {score}/100 but may be outdated. Refresh to keep guidance current.',
+        id: 'INiE0x',
+    },
+    qualitySummaryWithFindings: {
+        defaultMessage: 'Agent quality is {score}/100 with {count, plural, one {# quick fix ready} other {# quick fixes ready}}.',
+        id: '7Or82y',
+    },
+    qualitySummaryNoFindings: {
+        defaultMessage: 'Agent quality is {score}/100. No quick fixes right now.',
+        id: 'JbMs9l',
+    },
+    qualityFindingsButtonLabel: {
+        defaultMessage: 'Review {count, plural, =0 {findings} one {# quick fix} other {# quick fixes}}',
+        id: 'O+srpo',
+    },
+    qualityDrawerOpenButton: {
+        defaultMessage: 'View findings',
+        id: 'HUPaMQ',
+    },
+    qualityDrawerOpenTooltip: {
+        defaultMessage: 'Open watcher drawer',
+        id: 'zUNfOA',
+    },
+    qualityDrawerCloseTooltip: {
+        defaultMessage: 'Hide watcher panel',
+        id: 'Xmty/4',
+    },
+    qualityDrawerHideButton: {
+        defaultMessage: 'Hide findings',
+        id: 'xJLI97',
+    },
+    qualityRibbonSelection: {
+        defaultMessage: '{count, plural, one {# quick fix selected} other {# quick fixes selected}}',
+        id: 'r2ZGnB',
+    },
+    qualityRibbonProjected: {
+        defaultMessage: 'Projected +{lift} overall',
+        id: 'KaLLyk',
+    },
+    qualityRibbonProjectedScore: {
+        defaultMessage: 'Estimated total {score}% confidence',
+        id: '3sQV42',
+    },
+    qualityRibbonClearButton: {
+        defaultMessage: 'Clear',
+        id: '/GCoTA',
+    },
+    qualityRibbonApplyButton: {
+        defaultMessage: 'Apply fixes',
+        id: 'noxLT+',
+    },
+    qualityRibbonApplyingLabel: {
+        defaultMessage: 'Applying…',
+        id: 'isZXYe',
+    },
+    qualityScoreLabel: {
+        defaultMessage: 'Quality {score}/100',
+        id: 'BNH9Uy',
+    },
+    qualityStatusRunning: {
+        defaultMessage: 'Scoring…',
+        id: 'Ql/5RS',
+    },
+    qualityStatusFresh: {
+        defaultMessage: 'Fresh',
+        id: 'OBoUb6',
+    },
+    qualityStatusFreshWithTime: {
+        defaultMessage: 'Fresh • {time}',
+        id: 'vz94UY',
+    },
+    qualityStatusStale: {
+        defaultMessage: 'Out of date',
+        id: 'osuyeD',
+    },
+    qualityStatusNotAnalyzed: {
+        defaultMessage: 'Not analyzed',
+        id: 'W8LUUc',
+    },
+    qualityPanelTitle: {
+        defaultMessage: 'Quality Evaluation',
+        id: 'iihhVc',
+    },
+    qualityOverallLabel: {
+        defaultMessage: 'Overall Quality',
+        id: 'O0JI8M',
+    },
+    qualityIntentLabel: {
+        defaultMessage: 'Intent Match',
+        id: 'cYwv8P',
+    },
+    qualityIntentTooltip: {
+        defaultMessage: 'Intent Match (1-5)',
+        id: 's2GWth',
+    },
+    qualityRunButtonLabel: {
+        defaultMessage: 'Score agent quality',
+        id: 'dwkMC2',
+    },
+    qualityRunTooltip: {
+        defaultMessage: 'Score this agent and get tailored fixes.',
+        id: 'rrQX3M',
+    },
+    qualityAutoApplyLabel: {
+        defaultMessage: 'Auto-apply',
+        id: 'Ip7Gd3',
+    },
+    qualityAutoApplyTooltip: {
+        defaultMessage: 'Automatically push YAML edits to the agent during testing.',
+        id: 'mAinBm',
+    },
+    exportAnalysisLabel: {
+        defaultMessage: 'Export analysis',
+        id: 'ASLbZd',
+    },
+    playgroundApplyingChangesTitle: {
+        defaultMessage: 'Applying your changes',
+        id: 'CppiJ4',
+    },
+    playgroundApplyingChangesMessage: {
+        defaultMessage: 'Your changes are being processed and will appear in the chat preview momentarily.',
+        id: 'cJGGY4',
+    },
+    systemToolTesterExecute: {
+        defaultMessage: 'Execute Tool',
+        id: 'PQgsh+',
+    },
+    systemToolTesterExecuting: {
+        defaultMessage: 'Executing...',
+        id: 'g8ctzH',
+    },
+    systemToolTesterExecutingStatus: {
+        defaultMessage: 'Executing {name}...',
+        id: 'YXOz1v',
+    },
+    systemToolTesterEmptyState: {
+        defaultMessage: 'Click "Execute Tool" to test this system tool',
+        id: 'Jrrm2K',
+    },
+    systemToolTesterParametersHeading: {
+        defaultMessage: 'Test Parameters',
+        id: 'KNwLvk',
+    },
+    systemToolTesterNoParameters: {
+        defaultMessage: 'No parameters required for this tool.',
+        id: 'hkgUC5',
+    },
+    systemToolTesterToolNameLabel: {
+        defaultMessage: 'Tool Name',
+        id: 'INiSE2',
+    },
+    systemToolTesterDescriptionLabel: {
+        defaultMessage: 'Description',
+        id: 'Q8Qw5B',
+    },
+    systemToolTesterPluginLabel: {
+        defaultMessage: 'Plugin',
+        id: 'mVkTZZ',
+    },
+    systemToolTesterCategoryLabel: {
+        defaultMessage: 'Category',
+        id: 'ccXLVi',
+    },
+    systemToolTesterThreadHint: {
+        defaultMessage: 'Auto-generated if left empty',
+        id: 'Z4bt4u',
+    },
+    systemToolTesterThreadPlaceholder: {
+        defaultMessage: 'Auto-generated',
+        id: 'nFpcjX',
+    },
+    systemToolTesterParameterPlaceholder: {
+        defaultMessage: 'Enter {name}',
+        id: 'M+QCSD',
+    },
+});
+
 export const ThreadTraceResources = defineMessages({
     actionPlan: { defaultMessage: 'Action plan', id: 'Ec1M0J' },
     agentPrompt: { defaultMessage: 'Agent prompt', id: 'KsuM4D' },

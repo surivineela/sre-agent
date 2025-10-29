@@ -37,6 +37,7 @@ export enum ThreadSource {
     portal = 'Portal', // legacy
     dailyReport = 'DailyReport',
     bestPractices = 'BestPractices',
+    playground = 'Playground',
 }
 
 export enum InvestigationStatus {

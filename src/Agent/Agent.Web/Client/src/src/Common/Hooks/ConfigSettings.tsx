@@ -15,7 +15,7 @@ export enum SettingNames {
     ShowSubAgentsItemInSettings = 'showSubAgentsItemInSettings',
     DataKnowledgeSpace = 'dataKnowledgeSpace',
     McpServer = 'McpServer',
-    Usage = 'usage'
+    Usage = 'usage',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {

@@ -87,7 +87,7 @@ public class AzCliExecution
         if (_isDevelopment)
         {
             var exe = OperatingSystem.IsWindows() ? "cmd.exe" : "/bin/bash";
-            var args = OperatingSystem.IsWindows() ? $"/c az {string.Join(" ", commands)}" : $"-c \"az {string.Join(" ", commands)}\"";
+            var args = OperatingSystem.IsWindows() ? $"/c {string.Join(" ", commands)}" : $"-c \"az {string.Join(" ", commands)}\"";
             return (exe, args);
         }
         else

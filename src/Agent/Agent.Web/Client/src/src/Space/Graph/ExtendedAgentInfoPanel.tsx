@@ -11,11 +11,11 @@ import {
     Text,
     tokens,
 } from '@fluentui/react-components';
-import { Delete20Regular, Edit20Regular } from '@fluentui/react-icons';
+import { Beaker20Regular, Delete20Regular, Edit20Regular } from '@fluentui/react-icons';
 import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { ExtendedAgentsGraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, PlaygroundResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import {
     ExtendedAgent,
     ExtendedAgentGraphContext,
@@ -25,6 +25,7 @@ import {
     ExtendedTrigger,
     SystemTool,
 } from '../Contracts/ExtendedAgentGraph';
+import { PlaygroundTarget } from '../Playground/PlaygroundModal';
 import { useExtendedAgentInfoStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { ExtendedEntityYamlEditor } from './ExtendedAgentYamlEditor';
 import { ExtendedEntityType } from './ExtendedAgentYamlUtils';
@@ -42,6 +43,7 @@ type ExtendedAgentInfoPanelProps = {
     width?: number;
     minWidth?: number;
     maxWidth?: number;
+    onOpenPlayground?: (target: PlaygroundTarget) => void;
 };
 
 type YamlEditorContext = {
@@ -80,6 +82,7 @@ export const ExtendedAgentInfoPanel = memo(
         width,
         minWidth,
         maxWidth,
+        onOpenPlayground,
     }: ExtendedAgentInfoPanelProps) => {
         const styles = useExtendedAgentInfoStyles();
         const intl = useIntl();
@@ -488,6 +491,42 @@ export const ExtendedAgentInfoPanel = memo(
             return undefined;
         }, [selectedAgent, selectedConnector, selectedTool, selectedTrigger, selectedSystemTool]);
 
+        const playgroundTarget = useMemo<PlaygroundTarget | undefined>(() => {
+            if (selectedTool) {
+                const owningAgent = selectedAgent?.tools?.includes(selectedTool.name ?? '') ? selectedAgent : undefined;
+                return {
+                    type: 'tool',
+                    tool: selectedTool,
+                    agent: owningAgent,
+                };
+            }
+
+            if (selectedSystemTool) {
+                return {
+                    type: 'systemTool',
+                    tool: selectedSystemTool,
+                    agent: selectedAgent,
+                };
+            }
+
+            if (selectedAgent && isAgentContext) {
+                return {
+                    type: 'agent',
+                    agent: selectedAgent,
+                };
+            }
+
+            return undefined;
+        }, [isAgentContext, selectedAgent, selectedSystemTool, selectedTool]);
+
+        const handleOpenPlaygroundClick = useCallback(() => {
+            if (!playgroundTarget) {
+                return;
+            }
+
+            onOpenPlayground?.(playgroundTarget);
+        }, [onOpenPlayground, playgroundTarget]);
+
         const headerTitle =
             selectedTool?.name ??
             selectedConnector?.name ??
@@ -719,35 +758,52 @@ export const ExtendedAgentInfoPanel = memo(
                                     </Text>
                                 )}
                             </div>
-                            {headerEditContext && headerEditContext.type !== 'connector' && headerEditContext.type !== 'trigger' && (
+                            {(playgroundTarget ||
+                                (headerEditContext && headerEditContext.type !== 'connector' && headerEditContext.type !== 'trigger')) && (
                                 <div style={{ display: 'flex', gap: '4px' }}>
-                                    <Button
-                                        appearance="subtle"
-                                        size="small"
-                                        icon={<Edit20Regular />}
-                                        onClick={() => handleOpenYamlEditor(headerEditContext.entity, headerEditContext.type)}
-                                        title={intl.formatMessage(ExtendedAgentsGraphResources.yamlOpenButton)}
-                                    />
-                                    {headerEditContext.type === 'agent' && isAgentContext && selectedAgent && (
+                                    {playgroundTarget && (
                                         <Button
                                             appearance="subtle"
                                             size="small"
-                                            icon={<Delete20Regular />}
-                                            onClick={() => handleDeleteClick('agent', selectedAgent)}
-                                            disabled={isDeleting}
-                                            title={intl.formatMessage(SreAgentResources.deleteAgentTitle)}
+                                            icon={<Beaker20Regular />}
+                                            onClick={handleOpenPlaygroundClick}
+                                            title={intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
+                                            aria-label={intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
                                         />
                                     )}
-                                    {headerEditContext.type === 'tool' && selectedTool && (
-                                        <Button
-                                            appearance="subtle"
-                                            size="small"
-                                            icon={<Delete20Regular />}
-                                            onClick={() => handleDeleteClick('tool', selectedTool)}
-                                            disabled={isDeleting}
-                                            title={intl.formatMessage(SreAgentResources.deleteToolTitle)}
-                                        />
-                                    )}
+                                    {headerEditContext &&
+                                        headerEditContext.type !== 'connector' &&
+                                        headerEditContext.type !== 'trigger' && (
+                                            <>
+                                                <Button
+                                                    appearance="subtle"
+                                                    size="small"
+                                                    icon={<Edit20Regular />}
+                                                    onClick={() => handleOpenYamlEditor(headerEditContext.entity, headerEditContext.type)}
+                                                    title={intl.formatMessage(ExtendedAgentsGraphResources.yamlOpenButton)}
+                                                />
+                                                {headerEditContext.type === 'agent' && isAgentContext && selectedAgent && (
+                                                    <Button
+                                                        appearance="subtle"
+                                                        size="small"
+                                                        icon={<Delete20Regular />}
+                                                        onClick={() => handleDeleteClick('agent', selectedAgent)}
+                                                        disabled={isDeleting}
+                                                        title={intl.formatMessage(SreAgentResources.deleteAgentTitle)}
+                                                    />
+                                                )}
+                                                {headerEditContext.type === 'tool' && selectedTool && (
+                                                    <Button
+                                                        appearance="subtle"
+                                                        size="small"
+                                                        icon={<Delete20Regular />}
+                                                        onClick={() => handleDeleteClick('tool', selectedTool)}
+                                                        disabled={isDeleting}
+                                                        title={intl.formatMessage(SreAgentResources.deleteToolTitle)}
+                                                    />
+                                                )}
+                                            </>
+                                        )}
                                 </div>
                             )}
                         </div>

@@ -2,7 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers.ExtendedAgents;
@@ -711,12 +715,13 @@ User Prompt To Improve (between <<< and >>>):
     /// List all available system tools
     /// </summary>
     /// <param name="search">Search tools by name or description</param>
+    /// <param name="stableOnly">If true, exclude incident handler tools (platform-specific tools)</param>
     /// <returns>List of system tools</returns>
     [HttpGet("systemtools")]
     [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
     [ProducesResponseType(typeof(List<Agent.Framework.ToolInfo>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<List<Agent.Framework.ToolInfo>>> ListSystemTools([FromQuery] string? search = null)
+    public async Task<ActionResult<List<Agent.Framework.ToolInfo>>> ListSystemTools([FromQuery] string? search = null, [FromQuery] bool stableOnly = false)
     {
         try
         {
@@ -735,6 +740,62 @@ User Prompt To Improve (between <<< and >>>):
             var systemTools = allTools
                 .Where(tool => !extendedToolNames.Contains(tool.Name))
                 .ToList();
+
+            // Filter to stable/published tools if stableOnly is true
+            if (stableOnly)
+            {
+                // Load published tools from PublishedTools.json
+                var publishedToolNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                try
+                {
+                    var publishedToolsPath = Path.Combine(AppContext.BaseDirectory, "PublishedTools.json");
+                    if (System.IO.File.Exists(publishedToolsPath))
+                    {
+                        var publishedToolsJson = await System.IO.File.ReadAllTextAsync(publishedToolsPath);
+                        var publishedToolsDoc = JsonDocument.Parse(publishedToolsJson);
+
+                        if (publishedToolsDoc.RootElement.TryGetProperty("tools", out var toolsArray))
+                        {
+                            foreach (var toolElement in toolsArray.EnumerateArray())
+                            {
+                                if (toolElement.TryGetProperty("name", out var nameProperty))
+                                {
+                                    var toolName = nameProperty.GetString();
+                                    if (!string.IsNullOrEmpty(toolName))
+                                    {
+                                        publishedToolNames.Add(toolName);
+                                    }
+                                }
+                            }
+                        }
+
+                        _logger.LogInternalInformation("Loaded {Count} published tools from PublishedTools.json", publishedToolNames.Count);
+                    }
+                    else
+                    {
+                        _logger.LogInternalWarning("PublishedTools.json not found at {Path}, falling back to IsIncidentHandlerTool filter", publishedToolsPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, "Failed to load PublishedTools.json, falling back to IsIncidentHandlerTool filter");
+                }
+
+                // Filter: if we have published tools list, use it; otherwise fall back to IsIncidentHandlerTool flag
+                if (publishedToolNames.Count > 0)
+                {
+                    systemTools = systemTools
+                        .Where(tool => publishedToolNames.Contains(tool.Name))
+                        .ToList();
+                }
+                else
+                {
+                    // Fallback: exclude incident handler tools
+                    systemTools = systemTools
+                        .Where(tool => !tool.IsIncidentHandlerTool)
+                        .ToList();
+                }
+            }
 
             // Apply search filter if provided
             if (!string.IsNullOrWhiteSpace(search))
@@ -765,6 +826,523 @@ User Prompt To Improve (between <<< and >>>):
                 Details: null
             ));
         }
+    }
+
+        /// <summary>
+        /// Generates targeted insights for the playground experience including confidence scoring and recommended actions.
+        /// </summary>
+        [HttpPost("playground-insights")]
+        [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
+        [ProducesResponseType(typeof(PlaygroundInsightsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PlaygroundInsightsResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PlaygroundInsightsResponse>> GetPlaygroundInsights([FromBody] PlaygroundInsightsRequest request)
+        {
+            try
+            {
+                var systemPrompt = """
+You are an expert AI agent evaluator implementing a rigorous assessment framework with ACTIONABLE improvements via generated diffs.
+
+# EVALUATION PHILOSOPHY
+Effective agents balance autonomy with reliability. Your evaluation should provide both comprehensive assessment AND immediate, applicable fixes through code diffs.
+
+# ROOT-CAUSE TRIAGE (FIRST)
+Before proposing fixes, classify the primary gap using evidence from the chat, prompt, and available tools:
+• TOOL GAP: User intent required a capability the agent lacked → prioritize `toolAdd` with generic tools.
+• PROMPT GAP: Tools existed but the prompt didn’t instruct correct usage → prioritize `promptPatch` (or `promptRewrite` when severe).
+• SAFETY/POLICY GAP: Destructive paths lacked gates → add safety fixes.
+• ORCHESTRATION GAP: Task shape needs routing/chaining/guard loops → add minimal orchestration.
+Always state the root cause in each actionItem's "detail" and connect it to user intent.
+
+# PROMPT IMPROVEMENT STRATEGY
+When evaluating prompts, consider the scope and depth of changes needed:
+
+**CONTEXT-DRIVEN RECOMMENDATIONS (CRITICAL):**
+Always frame recommendations by connecting user intent to agent capabilities:
+1. **Identify what the user tried to do** — Extract from chat messages, transcript summary, and recent conversation.
+2. **Diagnose the mismatch** — What's missing in the prompt/tools that prevented success?
+3. **Explain conversationally** — "You chatted about [X] but your agent only has [Y], so we need to fix [Z]."
+Avoid trivial or generic remarks (e.g., “say hi to people”); keep suggestions domain-specific and actionable.
+
+**Example Framing:**
+- ❌ BAD: "Add success criteria to goal"
+- ✅ GOOD: "Your agent can't diagnose Container Apps because it only has greeting tools and no Azure CLI access"
+- ✅ GOOD: "You asked about pod failures but the prompt doesn't mention Kubernetes—it's focused on general greetings"
+
+**PREFER COMPLETE REWRITES when:**
+- Overall confidence score < 50 (Major Gaps or Requires Redesign)
+- Multiple critical dimensions score below 50
+- Fundamental structural issues exist (missing role, unclear goals, no success criteria)
+- Intent Match ≤ 2 (significant misalignment with purpose)
+- The chat conversation shows systemic failures or confusion patterns
+
+**Complete Rewrite Guidelines:**
+- If you believe prompt is poorly structured or misaligned, opt for a full rewrite.
+- Provide a full replacement prompt using the agent design principles below.
+- Include clear role definition, goals, success criteria, and tool policies.
+- Structure the rewrite with sections: Role, Goals, Success Criteria, Tool Usage, Process Flow.
+- Mark as "type": "promptRewrite" with "severity": "error".
+- Set impact level to "high" with scoreIncrease ≥ 30.
+- In the "detail" field, explain: "You tried to [user intent] but the agent is set up for [current capability]. This rewrite refocuses it on [domain] with the right tools and instructions."
+
+**Use Incremental Patches when:**
+- Confidence score ≥ 50 (Needs Refinement or better)
+- Issues are isolated to specific sections (missing stop conditions, unclear tool policy)
+- The core structure is sound but needs enhancement
+- Only 1–2 dimensions need significant improvement
+
+**Example Complete Rewrite Format:**
+```
+@@ -1,N +1,M @@
+-<entire old prompt>
++# ROLE
++You are a [specific role] specialized in [domain].
++
++# PRIMARY GOALS
++1. [Goal with measurable success criteria]
++2. [Goal with clear completion conditions]
++
++# SUCCESS CRITERIA
++- [Observable outcome]
++- [Time/quality SLA]
++
++# TOOL USAGE POLICY
++- Prefer read-only tools before writes
++- Use generic tools (`RunAzCli*`) over resource-specific
++- Require confirmation for destructive actions
++
++# PROCESS
++1. [Step-by-step workflow]
++2. [Decision points and stop conditions]
+```
+
+# AGENTIC DESIGN PRINCIPLES (PLAYGROUND)
+Prefer simple, composable patterns over heavyweight frameworks. Start with an augmented LLM (tools, retrieval, memory) and escalate complexity only if metrics show wins. Choose the workflow that fits the task shape:
+• Prompt chaining for crisp decomposition and gates
+• Routing for clean separation of concerns
+• Parallelization (sectioning/voting) for speed or confidence
+• Orchestrator→workers for unpredictable subtask graphs
+• Evaluator→optimizer when iterative refinement helps
+Design a great ACI (agent–computer interface): crystal-clear tool specs with examples, boundaries, and poka-yoke inputs. Expose planning steps via evidence and “notes,” not in the JSON payload fields.
+
+# PLAYGROUND DATA SOURCES (EVIDENCE)
+Ground judgments in the provided artifacts: Primary goal, Prompt, Available tools, Chat issues observed, Tool tester feedback, Transcript summary, Recent chat snippets. Never infer tools not in “Available tools.”
+When proposing fixes, explicitly assess: **Would adding a tool have solved the user’s ask? Would a prompt change have solved it?** Choose the smallest fix that closes the gap.
+
+# CRITICAL FORMATTING RULES
+1) When suggesting tools, ALWAYS wrap tool names in backticks: `ToolName`
+2) Return ONLY **minified JSON** (no Markdown, no commentary).
+3) **Prompt changes** must be unified diffs placed in `actionItems[i].patch` as a single string (no code fences; use `\n` inside the string). **Tool additions** use `type":"toolAdd"` with rationale; do **not** embed diffs for toolAdd.
+4) Only suggest tools from the "Available tools" list provided.
+5) `confidenceLabel` MUST be one of: "Production Ready","Pilot Ready","Needs Refinement","Major Gaps","Requires Redesign".
+6) Never include thinking/plans outside the schema; use "notes" for any brief rationale.
+7) Diffs must be programmatically applicable and minimal; preserve placeholders/variables.
+
+# GENERIC-OVER-SPECIFIC TOOL POLICY (MANDATORY)
+Always prefer generic tools over resource-specific tools when both can achieve the goal (e.g., prefer `RunAzCliReadCommands`/`RunAzCliWriteCommands`/`GetAzCliHelp` or other generic query tools over narrowly scoped resource tools). This improves reuse, reliability, and debuggability.
+• Ordering: suggest generic tools first; propose a resource-specific tool only when the generic option demonstrably cannot satisfy the requirement.
+• If recommending a specific tool, you MUST include: (a) a brief fallback policy using the generic tool, (b) why the specific tool is necessary (capability gap/latency), and (c) a safety note.
+• Include a user-facing explanation in "promptInsights" starting with **"Tooling rationale:"** that explains—in plain language—why generic tools are preferred in this case.
+
+# AZURE RESOURCE OPERATIONS POLICY (MANDATORY)
+For ANY Azure resource operations, diagnostics, or management tasks:
+• **Proactively recommend Azure CLI tools** when relevant: `RunAzCliReadCommands` (read/diagnostics), `RunAzCliWriteCommands` (writes), `GetAzCliHelp` (command discovery).
+• **MANDATORY toolAdd** when BOTH (i) Azure CLI tools are in "Available tools" but NOT in the agent's configured tools, AND (ii) goals/prompt/chat reference Azure resources (VirtualMachine, WebApp, ContainerApp, KeyVault, StorageAccount, SQL, CosmosDB, etc.). Prioritize adding `RunAzCliReadCommands` first.
+• **REPLACE resource-specific tools** with Azure CLI equivalents when CLI can satisfy the requirement.
+• **Tool hierarchy (STRICT ORDER):**
+  1. `RunAzCliReadCommands` for ALL read/query/diagnostic operations.
+  2. `RunAzCliWriteCommands` only for required modifications.
+  3. Resource-specific tools **only** if Azure CLI cannot achieve the goal.
+  4. Include `GetAzCliHelp` when the agent works with Azure and discovery is needed.
+• **Prompt policy patch** when Azure work is present: instruct to prefer `RunAzCliReadCommands` for read queries, `RunAzCliWriteCommands` for writes, pass `--subscription` for scope, and fall back to specific tools only if CLI cannot fulfill the need.
+
+**Example toolAdd actionItem (prioritize RunAzCliReadCommands):**
+```json
+{
+  "id": "add-azcli-read-001",
+  "type": "toolAdd",
+  "title": "Add `RunAzCliReadCommands` for Container Apps diagnostics",
+  "detail": "Your agent targets Container Apps but lacks `RunAzCliReadCommands`. Adding it enables: status checks (az containerapp show), logs (az containerapp logs), revision list, and config inspection—standard Azure diagnostics.",
+  "severity": "error",
+  "impact": {
+    "scoreIncrease": 25,
+    "dimension": "toolFit",
+    "description": "Enables Azure read operations via standard CLI interface",
+    "level": "high"
+  },
+  "patch": "Add tool: `RunAzCliReadCommands`",
+  "autoApplicable": true
+}
+```
+
+# TOOL FILTERING POLICY (CRITICAL)
+Do NOT suggest workflow/notification tools with no remediation value:
+• NEVER suggest: `NotifyUser`, `AskUserForInput`, `SendNotification`, `SendEmail`, `CreateIncident`, `UpdateIncident`, or similar.
+• ALWAYS prefer tools that remediate, diagnose, or query systems (`RunAzCliReadCommands`, `RunAzCliWriteCommands`, `RunKustoQuery`, etc.).
+• If only workflow tools are missing, recommend prompt improvements that reduce reliance on human interaction.
+
+# EVALUATION DIMENSIONS WITH SCORING
+
+## 1. COMPLETENESS (0–100)
+- Role definition and operational context
+- Explicit goals with success criteria
+- Comprehensive instruction coverage
+- Edge case handling
+
+Scoring:
+- 90–100: Production-ready with all elements
+- 70–89: Solid foundation, minor gaps
+- 50–69: Functional but missing key elements
+- 30–49: Major structural gaps
+- 0–29: Fundamentally incomplete
+
+## 2. INTENT MATCH (1–5) — BE STRICT
+How well execution aligns with stated goals.
+
+CRITICAL: Most agents score 2–3. Be harsh and realistic.
+- 5: Perfect alignment; zero waste; expert focus
+- 4: Strong alignment; ≤2 minor gaps
+- 3: Basic alignment; notable gaps or diffuse scope
+- 2: Significant misalignment; vague connection to goal
+- 1: Fundamental disconnect
+
+Evidence required:
+- Goal↔instruction alignment analysis
+- Chat behavior patterns: on-task vs off-task
+- Boundary clarity; success criteria explicitness
+- **HALLUCINATION DETECTION**: Compare chat/tool calls vs "Available tools" — list any hallucinated tools.
+- **NO ACTION DETECTION**: If goal requires action and no tools were used, cap at 2 and flag it.
+
+Scoring aids:
+- Compute `intent_alignment_ratio = on_goal_steps / max(1,total_steps)` with one concrete on-task and one off-task example.
+- Penalties:
+  - 1–2 hallucinated tools → cap at 2, create HIGH-priority fix
+  - 3+ hallucinated tools or systemic → cap at 1, require promptRewrite
+  - Missing success criteria → cap at 3 until patched
+  - No tool actions when required → cap at 2
+
+## 3. TOOL FIT (0–100)
+- Necessary vs available tools; redundancy/conflicts
+- Missing critical capabilities; orchestration patterns
+- Hallucination impact penalties:
+  - Resource-specific suggested when generic suffices → −10 to −20
+  - Hallucinated tools → −20 (1–2) or −40 (3+)
+
+## 4. PROMPT CLARITY (0–100)
+- Specific, actionable, logically ordered, LLM-friendly
+
+## 5. SAFETY (0–100)
+- Confirmation gates for destructive actions
+- Error handling, fallbacks, rate limits, guardrails
+
+## 6. ACTIONABILITY (0–100)
+- Clear triggers, decision criteria, response format, tool invocation patterns
+
+## METRICS TO CONSIDER (QUALITATIVE IF NEEDED)
+- Steps to first correct tool call; tool success/retry ratio
+- Wasted tool calls; latency to actionable output
+- Tokens/turn (rough)
+Put any metric notes in "notes" only.
+
+# SCORING METHODOLOGY
+Overall confidence (0–100) using weighted dimensions:
+- Completeness: 20%
+- Intent Match (scaled 1–5 → 0–100 by ×20): 25%
+- Tool Fit: 20%
+- Prompt Clarity: 15%
+- Safety: 15%
+- Actionability: 5%
+
+Confidence Labels:
+- 90–100: Production Ready
+- 75–89: Pilot Ready
+- 50–74: Needs Refinement
+- 25–49: Major Gaps
+- 0–24: Requires Redesign
+
+# PLAYGROUND-AWARE PRIORITIZATION
+For the TOP 5 actionItems:
+• Favor fixes that increase `intent_alignment_ratio`, add success criteria/stop conditions, and correct tool policy.
+• Prefer **minimal** diffs preserving variable names/placeholders.
+• Mark conflicts/dependencies (e.g., routing before optimizer loop).
+• Do NOT suggest tools outside "Available tools". If a critical tool is missing, propose the closest **generic** alternative from the list or a prompt patch to work without it.
+• Prefer generic tools; if a specific tool is chosen, add a "Tooling rationale:" entry in "promptInsights".
+
+# SAFETY BY DEFAULT
+Default to read-only/dry-run for destructive capability; require explicit confirmation gates; add fallback/rollback and rate-limits. If absent, include a HIGH-impact safety patch.
+
+# ACTIONABLE IMPROVEMENTS
+IMPORTANT: Limit to TOP 5 most impactful fixes, ordered by `impact.scoreIncrease` (descending).
+
+For EACH issue, provide structured fixes with diffs and impact levels:
+
+## Impact Classification
+- HIGH: Core functionality/safety (≥15 points)
+- MEDIUM: Clarity/completeness (8–14 points)
+- LOW: Minor enhancements (1–7 points)
+
+## Prompt Patch Format
+Generate unified diff-style changes (minimal, with 2–3 lines of context). Example:
+```
+@@ -10,3 +10,5 @@
+ Role definition: You are an extended SRE
+-Operations Agent answering or diagnosing Azure-
++Operations Agent specialized in diagnosing Azure
++Container Apps issues and providing resolution steps.
++Success: User receives actionable fix within 5 minutes.
+```
+
+## Tool Addition Format
+Specify exact tool and rationale (no diff required for toolAdd). Example:
+```
+Add `RunAzCliReadCommands` for Container Apps diagnostics
+Required for: resource investigation, health checks
+Impact: HIGH (+12 points to toolFit)
+```
+
+## STANDARD HIGH-IMPACT FIX TEMPLATES
+1) Add success criteria & stop conditions
+```
+@@ -5,2 +5,6 @@
+ Goal: <keep>
++Success criteria: <observable outcome, SLA, artifact>
++Stop conditions: maxIterations=5, maxCost=$X,
++checkpoint=ask-human on blocker
+```
+2) Clarify tool policy & invocation patterns
+```
+@@ -10,3 +10,7 @@
+ Tools:
++Use `RunAzCliReadCommands` for state inspection before any write.
++Require dry-run/confirmation for destructive tools.
++Prefer generic tools (`RunAzCli*`) before resource-specific tools.
+```
+3) Add routing or chaining when task shape warrants
+```
+@@ -3,2 +3,5 @@
+ If input intent ∈ {refund, tech, general} then route → specialized prompt;
++Else keep single-call baseline with retrieval and examples.
+```
+4) Add evaluator→optimizer guard
+```
+@@ -2,2 +2,5 @@
+ Draft → Evaluate against criteria → Patch or Approve;
++limit to 2 loops.
+```
+
+# RESPONSE SCHEMA
+Return ONLY this **minified JSON**:
+{
+  "confidenceScore": number,
+  "confidenceLabel": "Production Ready|Pilot Ready|Needs Refinement|Major Gaps|Requires Redesign",
+  "subScores": [
+    {"id":"completeness","label":"COMPLETENESS","score":number,"evidence":"...","improvements":["fix-ids"]},
+    {"id":"intentMatch","label":"INTENT MATCH","score":number,"evidence":"...","improvements":["fix-ids"]},
+    {"id":"toolFit","label":"TOOL FIT","score":number,"evidence":"...","improvements":["fix-ids"]},
+    {"id":"promptClarity","label":"PROMPT CLARITY","score":number,"evidence":"...","improvements":["fix-ids"]},
+    {"id":"safety","label":"SAFETY","score":number,"evidence":"...","improvements":["fix-ids"]},
+    {"id":"actionability","label":"ACTIONABILITY","score":number,"evidence":"...","improvements":["fix-ids"]}
+  ],
+  "promptInsights": ["Specific, actionable insight about the prompt"],
+  "toolSuggestions": ["Add `ToolName` for specific capability"],
+  "chatDiagnostics": ["Specific failure pattern with evidence. MUST include hallucination detection: Compare all tool references in chat against 'Available tools' and report 'Hallucinated tools: [`Tool1`,`Tool2`]' or 'No hallucinations detected'"],
+  "actionItems": [
+    {
+      "id":"fix-001",
+      "type":"promptPatch|promptRewrite|toolAdd|safety|clarity",
+      "title":"User-intent–anchored summary (e.g., 'Your agent can't diagnose Container Apps because it only has greeting tools')",
+      "detail":"1) What the user was trying to do, 2) Why current setup fails, 3) How this fix closes the gap.",
+      "severity":"error|warning|info",
+      "impact":{"scoreIncrease":number,"dimension":"completeness|intent|toolFit|clarity|safety|actionability","description":"...","level":"high|medium|low"},
+      "patch":"Unified diff string for prompt changes or 'Add tool: `Tool`' for toolAdd",
+      "autoApplicable":boolean,
+      "conflicts":["other-fix-ids"],
+      "requires":["prerequisite-fix-ids"]
+    }
+  ],
+  "notes": ["Important caveats or context"],
+  "suggestedSequence": ["fix-001","fix-003","fix-002"]
+}
+
+CRITICAL: Return ONLY the **top 5** highest-impact actionItems, ordered by `impact.scoreIncrease` (descending).
+
+# DIFF GENERATION RULES
+1) **Surgical Precision**: Minimal edits; do not churn whitespace or rename unrelated sections.
+2) **Context Preservation**: Include 2–3 lines of context around changes.
+3) **Applicability**: Patch must apply cleanly; escape newlines (`\n`) in JSON string; no code fences.
+4) **Conflict/Dependencies**: Mark mutually exclusive fixes and prerequisites.
+5) **Rewrite Guard**: Only replace the entire prompt when rewrite criteria are met; otherwise patch narrowly.
+
+# EXAMPLES
+## Good Prompt Diff
+@@ -5,2 +5,4 @@
+ Goal: Start each conversation with 'Hola' to
+-establish a friendly, consistent greeting for SRE
++establish a friendly greeting for SRE operations.
++Success criteria: User acknowledges positively and
++provides issue details within first 2 exchanges.
+
+## Good Tool Suggestion
+Add `RunAzCliReadCommands` to enable Azure CLI queries
+Required for: resource state inspection, configuration validation
+Impact: +15 points to toolFit, enables 80% of common diagnostics
+
+You MUST suggest tools ONLY from the "Available tools" list provided.
+Downrank suggestions that add complexity without measured benefit. Prefer a simple single-call + retrieval baseline before multi-agent orchestration.
+
+## Hallucination Fix Example (HIGH Priority)
+**chatDiagnostics entry:**
+"Agent attempted to use `GetContainerAppLogs` and `RestartContainerApp` which don't exist in Available tools. Hallucinated tools: [`GetContainerAppLogs`, `RestartContainerApp`]."
+
+**actionItem example:**
+{
+  "id":"fix-hallucination-001",
+  "type":"promptPatch",
+  "title":"Your agent tried to use Container App tools that don't exist—add Azure CLI tools instead",
+  "detail":"You asked about Container Apps diagnostics, but the agent attempted to call `GetContainerAppLogs` and `RestartContainerApp` which aren't in the available tool list (hallucination). This fix adds the actual available tools (`RunAzCliReadCommands` for diagnostics) and updates the prompt to use only real tools.",
+  "severity":"error",
+  "impact":{"scoreIncrease":25,"dimension":"intent","description":"Eliminates hallucinations and enables actual Container Apps diagnostics","level":"high"},
+  "patch":"@@ -1,5 +1,10 @@\n You are an Azure support agent.\n+\n+# AVAILABLE TOOLS\n+Use ONLY these tools: `RunAzCliReadCommands`, `RunKustoQuery`\n+NEVER attempt to call tools not in this list.\n+\n # DIAGNOSTICS\n-Use appropriate tools to investigate issues.\n+Use `RunAzCliReadCommands` with 'az containerapp logs show' for Container Apps diagnostics."
+}
+
+# EVALUATION CALIBRATION
+Real-world benchmarks for scoring:
+- GitHub Copilot Workspace agents: 75–85
+- Production Azure SRE agents: 75–85
+- Typical first iteration: 45–65
+- Untested prototypes: 30–50
+
+Your evaluation should reflect realistic expectations, not theoretical perfection. Prefer the smallest effective recommendation and request evidence-gathering via "notes" (not extra fields). All outputs MUST validate against the schema; if any field is unknown, omit it—do not invent placeholders. Always return **minified JSON** with exactly the fields in the schema.
+""";
+
+                var builder = new StringBuilder();
+                builder.AppendLine(systemPrompt);
+                builder.AppendLine("\n--- Agent Context ---");
+                builder.AppendLine($"Agent name: {request.AgentName ?? "(unspecified)"}");
+                if (!string.IsNullOrWhiteSpace(request.AgentGoal))
+                {
+                    builder.AppendLine($"Primary goal: {request.AgentGoal}");
+                }
+
+                builder.AppendLine("Prompt (<<< >>>):");
+                builder.AppendLine("<<<");
+                builder.AppendLine(request.Prompt ?? string.Empty);
+                builder.AppendLine(">>>");
+
+                if (request.Tools.Count > 0 || request.SystemTools.Count > 0)
+                {
+                    builder.AppendLine("\nLinked tools:");
+                    if (request.Tools.Count > 0)
+                    {
+                        builder.AppendLine("- Extended tools: " + string.Join(", ", request.Tools));
+                    }
+                    if (request.SystemTools.Count > 0)
+                    {
+                        builder.AppendLine("- System tools: " + string.Join(", ", request.SystemTools));
+                    }
+                }
+
+                // Add available tools context for accurate recommendations
+                if (request.AvailableTools?.Count > 0 || request.AvailableSystemTools?.Count > 0)
+                {
+                    builder.AppendLine("\nAvailable tools (use ONLY these in suggestions):");
+                    if (request.AvailableTools?.Count > 0)
+                    {
+                        builder.AppendLine("- Available extended tools: " + string.Join(", ", request.AvailableTools));
+                    }
+                    if (request.AvailableSystemTools?.Count > 0)
+                    {
+                        builder.AppendLine("- Available system tools: " + string.Join(", ", request.AvailableSystemTools));
+                    }
+                }
+
+                if (request.ChatFindings.Count > 0)
+                {
+                    builder.AppendLine("\nChat issues observed:");
+                    foreach (var finding in request.ChatFindings)
+                    {
+                        builder.AppendLine($"- [{finding.Severity}] {finding.Title}: {finding.Detail}");
+                    }
+                }
+
+                if (request.ToolFindings.Count > 0)
+                {
+                    builder.AppendLine("\nTool tester feedback:");
+                    foreach (var finding in request.ToolFindings)
+                    {
+                        builder.AppendLine($"- [{finding.Severity}] {finding.Title}: {finding.Detail}");
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.TranscriptSummary))
+                {
+                    builder.AppendLine("\nTranscript summary:");
+                    builder.AppendLine(request.TranscriptSummary);
+                }
+
+                if (request.RecentMessages.Count > 0)
+                {
+                    builder.AppendLine("\nRecent chat snippets:");
+                    foreach (var message in request.RecentMessages)
+                    {
+                        builder.AppendLine("- " + message);
+                    }
+                }
+
+                var chatOptions = new ChatOptions { Temperature = 0.2f };
+                var prompt = builder.ToString();
+                var chatResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
+                var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
+
+                _logger.LogInternalInformation("Playground insights raw content: {Content}", content);
+
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+
+                var insights = JsonSerializer.Deserialize<PlaygroundInsightsResponse>(content, jsonOptions);
+                if (insights == null)
+                {
+                    _logger.LogInternalWarning("Playground insights deserialization returned null.");
+                    return StatusCode(StatusCodes.Status500InternalServerError, BuildFallbackInsights("Failed to parse response"));
+                }
+
+                insights.ConfidenceScore = double.IsFinite(insights.ConfidenceScore)
+                    ? Math.Clamp(insights.ConfidenceScore, 0, 100)
+                    : 0;
+
+                if (string.IsNullOrWhiteSpace(insights.ConfidenceLabel))
+                {
+                    // Align fallback labels with the strict allowed set in the system prompt
+                    insights.ConfidenceLabel = insights.ConfidenceScore switch
+                    {
+                        >= 90 => "Production Ready",
+                        >= 75 => "Pilot Ready",
+                        >= 50 => "Needs Refinement",
+                        >= 25 => "Major Gaps",
+                        _ => "Requires Redesign"
+                    };
+                }
+
+                return Ok(insights);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error generating playground insights");
+                return StatusCode(StatusCodes.Status500InternalServerError, BuildFallbackInsights(ex.Message));
+            }
+        }
+
+    private static PlaygroundInsightsResponse BuildFallbackInsights(string message)
+    {
+        return new PlaygroundInsightsResponse
+        {
+            ConfidenceScore = 35,
+            ConfidenceLabel = "Needs attention",
+            ChatDiagnostics = new List<string> { "Insight service is temporarily unavailable." },
+            Notes = new List<string> { message }
+        };
     }
 
     /// <summary>
@@ -808,6 +1386,170 @@ User Prompt To Improve (between <<< and >>>):
                 Message: "Failed to list system tools",
                 Timestamp: DateTime.UtcNow,
                 Details: null
+            ));
+        }
+    }
+
+    /// <summary>
+    /// Execute a system tool with provided parameters
+    /// </summary>
+    /// <param name="request">The system tool execution request</param>
+    /// <returns>The result of the tool execution</returns>
+    [HttpPost("systemTool/execute")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<object>> ExecuteSystemTool([FromBody] SystemToolExecutionRequest request)
+    {
+        try
+        {
+            _logger.LogInternalInformation("ExecuteSystemTool: Executing tool {ToolName} from plugin {PluginName}",
+                request.ToolName, request.PluginName);
+
+            // Validate request
+            if (string.IsNullOrWhiteSpace(request.ToolName))
+            {
+                return BadRequest(new ExtendedAgentErrorResponse(
+                    Status: "error",
+                    ErrorCode: "INVALID_REQUEST",
+                    Message: "ToolName is required",
+                    Timestamp: DateTime.UtcNow,
+                    Details: null
+                ));
+            }
+
+            if (string.IsNullOrWhiteSpace(request.PluginName))
+            {
+                return BadRequest(new ExtendedAgentErrorResponse(
+                    Status: "error",
+                    ErrorCode: "INVALID_REQUEST",
+                    Message: "PluginName is required",
+                    Timestamp: DateTime.UtcNow,
+                    Details: null
+                ));
+            }
+
+            // Ensure the requested tool exists before attempting execution
+            if (!_toolFactory.TryFindTool(request.ToolName, out _))
+            {
+                _logger.LogInternalWarning("ExecuteSystemTool: Tool {ToolName} not found", request.ToolName);
+                return NotFound(new ExtendedAgentErrorResponse(
+                    Status: "error",
+                    ErrorCode: "TOOL_NOT_FOUND",
+                    Message: $"System tool '{request.ToolName}' not found in plugin '{request.PluginName}'",
+                    Timestamp: DateTime.UtcNow,
+                    Details: null
+                ));
+            }
+
+            // Convert and normalize the parameters dictionary
+            var arguments = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+            if (request.Parameters != null)
+            {
+                foreach (var param in request.Parameters)
+                {
+                    arguments[param.Key] = param.Value;
+                }
+            }
+
+            // Compute a thread identifier so context-aware tools can execute correctly
+            Guid threadId;
+            if (arguments.TryGetValue("ThreadId", out var providedThreadId) && providedThreadId != null)
+            {
+                if (providedThreadId is Guid guidValue)
+                {
+                    threadId = guidValue;
+                }
+                else if (!Guid.TryParse(Convert.ToString(providedThreadId, System.Globalization.CultureInfo.InvariantCulture), out threadId))
+                {
+                    threadId = Guid.NewGuid();
+                    arguments["ThreadId"] = threadId.ToString();
+                }
+            }
+            else
+            {
+                threadId = Guid.NewGuid();
+                arguments["ThreadId"] = threadId.ToString();
+                _logger.LogInternalInformation(
+                    "ExecuteSystemTool: Injected ThreadId {ThreadId} for tool {ToolName} in plugin {PluginName}",
+                    threadId,
+                    request.ToolName,
+                    request.PluginName);
+            }
+
+            // Obtain the tool with thread-specific wiring
+            var toolFunction = _toolFactory.GetTool(request.ToolName, threadId);
+
+            if (toolFunction is ContextAIFunction<AgentContext> contextTool)
+            {
+                // Provide a minimal AgentContext so plugins depending on ThreadId have it populated
+                var playgroundContext = new AgentContext(
+                    Id: Guid.NewGuid(),
+                    ThreadId: threadId,
+                    AgentType: AgentTypeEnum.Meta,
+                    ContextState: ContextStateEnum.Processing,
+                    WaitInformation: null,
+                    ApprovalInformation: null,
+                    AssignedInstanceId: null,
+                    AssignmentExpires: null,
+                    InputDataSerialized: null,
+                    HandoffToAgentContextId: null,
+                    HandoffFromAgentContextId: null,
+                    CurrentAgent: null,
+                    AgentHandoffChain: null,
+                    AllowedTools: new List<string> { request.ToolName },
+                    AgentMode: null);
+
+                contextTool.SetContext(playgroundContext);
+            }
+
+            // Execute the tool
+            var functionResult = await toolFunction.InvokeAsync(new AIFunctionArguments(arguments));
+
+            // Return the result
+            var result = new
+            {
+                Success = true,
+                Data = functionResult,
+                ToolName = request.ToolName,
+                PluginName = request.PluginName
+            };
+
+            _logger.LogInternalInformation("ExecuteSystemTool: Successfully executed tool {ToolName}", request.ToolName);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogInternalWarning(ex, "ExecuteSystemTool: Invalid parameters for tool {ToolName}", request.ToolName);
+            return BadRequest(new ExtendedAgentErrorResponse(
+                Status: "error",
+                ErrorCode: "INVALID_PARAMETERS",
+                Message: $"Invalid parameters: {ex.Message}",
+                Timestamp: DateTime.UtcNow,
+                Details: new ExtendedAgentErrorDetails(
+                    Errors: new List<ExtendedAgentErrorField>
+                    {
+                        new ExtendedAgentErrorField("parameters", ex.Message)
+                    }
+                )
+            ));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "ExecuteSystemTool: Error executing tool {ToolName}", request.ToolName);
+            return StatusCode(500, new ExtendedAgentErrorResponse(
+                Status: "error",
+                ErrorCode: "EXECUTION_FAILED",
+                Message: $"Tool execution failed: {ex.Message}",
+                Timestamp: DateTime.UtcNow,
+                Details: new ExtendedAgentErrorDetails(
+                    Errors: new List<ExtendedAgentErrorField>
+                    {
+                        new ExtendedAgentErrorField("execution", ex.Message)
+                    }
+                )
             ));
         }
     }

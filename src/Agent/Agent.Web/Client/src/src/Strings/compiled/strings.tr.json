@@ -117,6 +117,12 @@
       "value": "Olay silinsin mi?"
     }
   ],
+  "+hJd45": [
+    {
+      "type": 0,
+      "value": "Veri bağlayıcısını düzenle"
+    }
+  ],
   "+iCTRd": [
     {
       "type": 0,
@@ -141,6 +147,12 @@
       "value": "Çalışma kitaplarını okuyabilir."
     }
   ],
+  "+mtpY7": [
+    {
+      "type": 0,
+      "value": "Steps:"
+    }
+  ],
   "+nt4l9": [
     {
       "type": 0,
@@ -151,6 +163,12 @@
     {
       "type": 0,
       "value": "MCP server icon"
+    }
+  ],
+  "+pmvA0": [
+    {
+      "type": 0,
+      "value": "Enter a scheduled task name"
     }
   ],
   "+uAdUZ": [
@@ -205,10 +223,38 @@
       "value": "name"
     }
   ],
+  "/N0Usl": [
+    {
+      "type": 0,
+      "value": "Thread title cannot be empty"
+    }
+  ],
   "/RdF9w": [
     {
       "type": 0,
       "value": "Handoffs"
+    }
+  ],
+  "/TZk1G": [
+    {
+      "type": 0,
+      "value": "AAU allocation updated from "
+    },
+    {
+      "type": 1,
+      "value": "oldValue"
+    },
+    {
+      "type": 0,
+      "value": " to "
+    },
+    {
+      "type": 1,
+      "value": "newValue"
+    },
+    {
+      "type": 0,
+      "value": " successfully."
     }
   ],
   "/VnDMl": [
@@ -235,10 +281,22 @@
       "value": "Container Apps Operatörü"
     }
   ],
+  "/XIuIr": [
+    {
+      "type": 0,
+      "value": "Every minute"
+    }
+  ],
   "/Z1fHN": [
     {
       "type": 0,
       "value": "Tool and subagent activity sent to user"
+    }
+  ],
+  "/clOBU": [
+    {
+      "type": 0,
+      "value": "Weekly"
     }
   ],
   "/dxZCE": [
@@ -361,6 +419,12 @@
     {
       "type": 0,
       "value": "Bu harita, uygulama kaynaklarınızın birden çok kaynak grubunda, bölgede ve abonelikte nasıl bağlandığını gösterir. Aracı bu kaynakları analiz eder ve birincil kaynağa göre bunları bir çekirdek uygulama grubu halinde düzenler."
+    }
+  ],
+  "0ICwq5": [
+    {
+      "type": 0,
+      "value": "Last updated"
     }
   ],
   "0KB3lG": [
@@ -493,10 +557,22 @@
       "value": "Genişlet"
     }
   ],
+  "0pysPM": [
+    {
+      "type": 0,
+      "value": "Total insights"
+    }
+  ],
   "0q6E9l": [
     {
       "type": 0,
       "value": "Kimlik bilgilerini değiştir"
+    }
+  ],
+  "0sA1BF": [
+    {
+      "type": 0,
+      "value": "Maximum file size: 100MB"
     }
   ],
   "0sIUhe": [
@@ -553,10 +629,22 @@
       "value": "A unique identifier for your agent"
     }
   ],
+  "17sQau": [
+    {
+      "type": 0,
+      "value": "Use AI to enhance and validate your task instructions"
+    }
+  ],
   "18C/Jh": [
     {
       "type": 0,
       "value": "Override default meta agent"
+    }
+  ],
+  "1CcjQj": [
+    {
+      "type": 0,
+      "value": "Add a response plan to automate incident handling"
     }
   ],
   "1DDIYv": [
@@ -583,12 +671,6 @@
     {
       "type": 1,
       "value": "error"
-    }
-  ],
-  "1GbY5N": [
-    {
-      "type": 0,
-      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Connectors instead."
     }
   ],
   "1HLt0U": [
@@ -633,12 +715,6 @@
     {
       "type": 0,
       "value": "Vurgu Noktası"
-    }
-  ],
-  "1VSsQF": [
-    {
-      "type": 0,
-      "value": "Varsayılan olay yanıt planı oluşturulamadı"
     }
   ],
   "1YF+AW": [
@@ -751,6 +827,12 @@
       "value": "PagerDuty bağlı."
     }
   ],
+  "26Vq1R": [
+    {
+      "type": 0,
+      "value": "Leave the field blank if there's no limit"
+    }
+  ],
   "28HRcH": [
     {
       "type": 0,
@@ -843,6 +925,24 @@
     {
       "type": 0,
       "value": "Derin araştırma"
+    }
+  ],
+  "2ep4et": [
+    {
+      "type": 0,
+      "value": "Monthly on day "
+    },
+    {
+      "type": 1,
+      "value": "dayOfMonth"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "2hB9SP": [
@@ -945,6 +1045,12 @@
     {
       "type": 0,
       "value": "No agents available yet"
+    }
+  ],
+  "3HS12m": [
+    {
+      "type": 0,
+      "value": "Agent usage + limit"
     }
   ],
   "3JVa6k": [
@@ -1189,10 +1295,22 @@
       "value": "Kaynağım için en iyi uygulamaları denetleyebilir misin?"
     }
   ],
+  "4Orfd8": [
+    {
+      "type": 0,
+      "value": "Rename thread"
+    }
+  ],
   "4QLM52": [
     {
       "type": 0,
       "value": "New agents can take a few seconds to appear in the graph. If you do not see it right away, refresh the list after a brief moment."
+    }
+  ],
+  "4Qhg3L": [
+    {
+      "type": 0,
+      "value": "Keep the description brief and explain the task’s actions. Include necessary resource identifiers, specify time-sensitive information, and define success/failure signals or required output formats."
     }
   ],
   "4TnjxL": [
@@ -1379,6 +1497,24 @@
       "value": "Sahip olan takım kimliğini girin"
     }
   ],
+  "5SH2BD": [
+    {
+      "type": 0,
+      "value": "Weekly on "
+    },
+    {
+      "type": 1,
+      "value": "day"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "5Sc5rT": [
     {
       "type": 0,
@@ -1389,6 +1525,12 @@
     {
       "type": 0,
       "value": "Bu raporu silme izniniz yok"
+    }
+  ],
+  "5U04OG": [
+    {
+      "type": 0,
+      "value": "Data knowledge space"
     }
   ],
   "5UfRjw": [
@@ -1435,6 +1577,12 @@
     {
       "type": 0,
       "value": "Agent status"
+    }
+  ],
+  "5Y6lHe": [
+    {
+      "type": 0,
+      "value": "You can increase or decrease active flow AAUs as needed. If the agent reaches the active flow limit, it continues running only in the always-on flow but is unavailable for chat and actions."
     }
   ],
   "5cRddy": [
@@ -1603,12 +1751,6 @@
       "value": "Yönetilen bağlantı oluşturulamadı"
     }
   ],
-  "6HiPiX": [
-    {
-      "type": 0,
-      "value": "Yeni bir Yapılacak Plan oluşturuldu:"
-    }
-  ],
   "6IIC+D": [
     {
       "type": 0,
@@ -1625,6 +1767,12 @@
     {
       "type": 0,
       "value": "Bu olaylar filtre ölçütlerinizle eşleşiyor. Bir olay eksikse önceki adıma geri dönün ve filtre parametrelerini değiştirin."
+    }
+  ],
+  "6Lox/s": [
+    {
+      "type": 0,
+      "value": "recommendations"
     }
   ],
   "6OBtew": [
@@ -1691,6 +1839,12 @@
     {
       "type": 0,
       "value": "Zamanlanan görevi düzenle"
+    }
+  ],
+  "6aH1+U": [
+    {
+      "type": 0,
+      "value": "Create a scheduled task"
     }
   ],
   "6bkNTl": [
@@ -1761,6 +1915,16 @@
     {
       "type": 0,
       "value": "Bilişsel Hizmetler Özel Görüntü İşleme Katkıda Bulunanı"
+    }
+  ],
+  "726zma": [
+    {
+      "type": 0,
+      "value": "Daily at "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "74vgSJ": [
@@ -1847,6 +2011,12 @@
       "value": "Create task"
     }
   ],
+  "7bDMaW": [
+    {
+      "type": 0,
+      "value": "Delete file?"
+    }
+  ],
   "7cS956": [
     {
       "type": 0,
@@ -1863,12 +2033,6 @@
     {
       "type": 0,
       "value": "Proje ayrıntıları"
-    }
-  ],
-  "7kPmO3": [
-    {
-      "type": 0,
-      "value": "Edit connector"
     }
   ],
   "7nUCu9": [
@@ -1993,6 +2157,12 @@
       "value": "Azure Digital Twins verilerine tam erişim."
     }
   ],
+  "8AMq3a": [
+    {
+      "type": 0,
+      "value": "Daily active flow consumption"
+    }
+  ],
   "8BaLs0": [
     {
       "type": 0,
@@ -2053,6 +2223,12 @@
       "value": "Görev sürdürülemedi"
     }
   ],
+  "8Vd2Kv": [
+    {
+      "type": 0,
+      "value": "Update list"
+    }
+  ],
   "8Wiwkg": [
     {
       "type": 0,
@@ -2069,6 +2245,58 @@
     {
       "type": 0,
       "value": "Create a handoff sub-agent"
+    }
+  ],
+  "8dTxSy": [
+    {
+      "type": 0,
+      "value": "Learn more about how to calculate cost"
+    }
+  ],
+  "8eOoHt": [
+    {
+      "type": 0,
+      "value": "This will permanently "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
+    },
+    {
+      "type": 0,
+      "value": "s. Are you sure you want to "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " these "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
+    },
+    {
+      "type": 0,
+      "value": "s?"
     }
   ],
   "8fYK1J": [
@@ -2123,6 +2351,12 @@
       "value": " platformuna bağlanılamadı"
     }
   ],
+  "8wQLC0": [
+    {
+      "type": 0,
+      "value": "Close Todo Plans"
+    }
+  ],
   "8yyU6n": [
     {
       "type": 0,
@@ -2133,6 +2367,20 @@
     {
       "type": 0,
       "value": "İleri"
+    }
+  ],
+  "9+dRta": [
+    {
+      "type": 0,
+      "value": "This will permanently delete "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " files from the knowledge sources the agent uses. Are you sure you want to delete these files?"
     }
   ],
   "9/ucRx": [
@@ -2211,6 +2459,12 @@
       "value": "message"
     }
   ],
+  "9G+4ga": [
+    {
+      "type": 0,
+      "value": "Try different search terms or clear your search to see all data connectors."
+    }
+  ],
   "9GSKOR": [
     {
       "type": 0,
@@ -2241,6 +2495,18 @@
       "value": "Send"
     }
   ],
+  "9X3VEw": [
+    {
+      "type": 0,
+      "value": "The task will stop running after reaching this number"
+    }
+  ],
+  "9XASFm": [
+    {
+      "type": 0,
+      "value": "Selected files table"
+    }
+  ],
   "9ZIBMx": [
     {
       "type": 0,
@@ -2261,6 +2527,24 @@
     {
       "type": 1,
       "value": "count"
+    }
+  ],
+  "9sDoY5": [
+    {
+      "type": 1,
+      "value": "completed"
+    },
+    {
+      "type": 0,
+      "value": " of "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " completed"
     }
   ],
   "9uOFF3": [
@@ -2333,6 +2617,18 @@
       "value": "errorMessage"
     }
   ],
+  "AHQdRU": [
+    {
+      "type": 0,
+      "value": "Monthly AAU limit:"
+    }
+  ],
+  "ALkPTF": [
+    {
+      "type": 0,
+      "value": "Yapılandırılmış veri bağlayıcısı yok"
+    }
+  ],
   "ATXGa+": [
     {
       "type": 0,
@@ -2357,6 +2653,12 @@
       "value": "Oluşturma zamanı"
     }
   ],
+  "AbleKr": [
+    {
+      "type": 0,
+      "value": "data connector"
+    }
+  ],
   "AbpmRv": [
     {
       "type": 0,
@@ -2371,6 +2673,12 @@
     {
       "type": 1,
       "value": "cron"
+    }
+  ],
+  "AdnFH8": [
+    {
+      "type": 0,
+      "value": "The current consumption exceeds the new allocation, which will take effect next month. Until then, the agent will run only in the always-on flow. Chat and actions will be unavailable."
     }
   ],
   "AeWmvh": [
@@ -2465,6 +2773,12 @@
       "value": "Azure Center for SAP solutions okuyucusu"
     }
   ],
+  "BLU3k6": [
+    {
+      "type": 0,
+      "value": "Edit a scheduled task"
+    }
+  ],
   "BP3wUO": [
     {
       "type": 0,
@@ -2487,6 +2801,24 @@
     {
       "type": 0,
       "value": "Depoyu kaynağa bağlama"
+    }
+  ],
+  "BV7QgK": [
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "BWpuKl": [
@@ -2533,6 +2865,16 @@
       "value": "Incident response"
     }
   ],
+  "BhRlDa": [
+    {
+      "type": 0,
+      "value": "Deleting incidents "
+    },
+    {
+      "type": 1,
+      "value": "titles"
+    }
+  ],
   "BkOSF2": [
     {
       "type": 0,
@@ -2543,6 +2885,20 @@
     {
       "type": 0,
       "value": "Data type and requirement for validation"
+    }
+  ],
+  "BmEERa": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " data connectors..."
     }
   ],
   "BynA9c": [
@@ -2573,6 +2929,12 @@
     {
       "type": 0,
       "value": "Digital Twins veri düzlemi özelliklerine yönelik salt okunur rolü."
+    }
+  ],
+  "CJ6tzL": [
+    {
+      "type": 0,
+      "value": "File Source"
     }
   ],
   "CJEYfo": [
@@ -2635,10 +2997,32 @@
       "value": "Open scheduled tasks"
     }
   ],
+  "CbntSG": [
+    {
+      "type": 0,
+      "value": "Database query connector"
+    }
+  ],
+  "CeDXMM": [
+    {
+      "type": 0,
+      "value": "Here are the memory search results:"
+    }
+  ],
   "CfGC/2": [
     {
       "type": 0,
       "value": "İzlenecek kaynak gruplarını seçin"
+    }
+  ],
+  "ChQQJ0": [
+    {
+      "type": 0,
+      "value": "Selected "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
     }
   ],
   "CimbUb": [
@@ -2729,6 +3113,50 @@
     {
       "type": 0,
       "value": "Aracı tarafından risk azaltıldı"
+    }
+  ],
+  "D7U9Zo": [
+    {
+      "type": 0,
+      "value": "Custom instructions"
+    }
+  ],
+  "DDSwQB": [
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
+    },
+    {
+      "type": 0,
+      "value": "s?"
+    }
+  ],
+  "DF0TNm": [
+    {
+      "type": 0,
+      "value": "Code optimization insights"
+    }
+  ],
+  "DJN+DZ": [
+    {
+      "type": 0,
+      "value": "Choose whether to run deep investigations alongside regular investigations"
     }
   ],
   "DMEE1o": [
@@ -2975,6 +3403,12 @@
       "value": "Olay platformu"
     }
   ],
+  "EbNaDn": [
+    {
+      "type": 0,
+      "value": "Knowledge Base"
+    }
+  ],
   "Ec1M0J": [
     {
       "type": 0,
@@ -3013,12 +3447,6 @@
     {
       "type": 0,
       "value": "Trace data parsed with warnings."
-    }
-  ],
-  "EmN362": [
-    {
-      "type": 0,
-      "value": "Create connector"
     }
   ],
   "Ep74wA": [
@@ -3121,6 +3549,12 @@
       "value": "Yönetilen kaynak grupları başarıyla eklendi"
     }
   ],
+  "FGP0Kd": [
+    {
+      "type": 0,
+      "value": "CPU usage insights"
+    }
+  ],
   "FLm/x4": [
     {
       "type": 0,
@@ -3137,6 +3571,12 @@
     {
       "type": 0,
       "value": "Describe what this tool does..."
+    }
+  ],
+  "FPdoJ3": [
+    {
+      "type": 0,
+      "value": "Define how incidents are detected and reviewed, and the instructions for how the agent responds."
     }
   ],
   "FSYccN": [
@@ -3205,6 +3645,12 @@
       "value": "YAML"
     }
   ],
+  "FvtGBp": [
+    {
+      "type": 0,
+      "value": "browse for files"
+    }
+  ],
   "FyrC09": [
     {
       "type": 0,
@@ -3221,6 +3667,12 @@
     {
       "type": 0,
       "value": "Birincil kaynak adı eşittir"
+    }
+  ],
+  "G/YsSs": [
+    {
+      "type": 0,
+      "value": "Custom cron"
     }
   ],
   "G/yZLu": [
@@ -3263,16 +3715,24 @@
       "value": "- devam ediyor"
     }
   ],
+  "GCVZ4/": [
+    {
+      "type": 0,
+      "value": "Successfully deleted "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " data connectors"
+    }
+  ],
   "GCmxza": [
     {
       "type": 0,
       "value": "Back to commands"
-    }
-  ],
-  "GNJGHu": [
-    {
-      "type": 0,
-      "value": "Update the connector configuration."
     }
   ],
   "GUx4Ld": [
@@ -3291,6 +3751,12 @@
     {
       "type": 0,
       "value": "Start a new chat thread."
+    }
+  ],
+  "GkKcbX": [
+    {
+      "type": 0,
+      "value": "Add a response plan"
     }
   ],
   "Gl8fnJ": [
@@ -3359,6 +3825,12 @@
       "value": "Olay yanıt planı oluşturuluyor"
     }
   ],
+  "HADwwN": [
+    {
+      "type": 0,
+      "value": "Task details"
+    }
+  ],
   "HAlOn1": [
     {
       "type": 0,
@@ -3371,6 +3843,18 @@
       "value": "Araştırma Sonuçları"
     }
   ],
+  "HFuyFh": [
+    {
+      "type": 0,
+      "value": "No code optimization recommendations detected."
+    }
+  ],
+  "HKlw1J": [
+    {
+      "type": 0,
+      "value": "This will permanently disconnect this data connector from the agent. Are you sure you want to disconnect this data connector?"
+    }
+  ],
   "HNECLT": [
     {
       "type": 0,
@@ -3381,6 +3865,12 @@
     {
       "type": 0,
       "value": "Görevin ne zaman çalışmayı durdurması gerektiğini belirtin"
+    }
+  ],
+  "HQ4NJ3": [
+    {
+      "type": 0,
+      "value": "Learn more about response plans"
     }
   ],
   "HQhDfV": [
@@ -3441,6 +3931,12 @@
       "value": "Zaman dilimi"
     }
   ],
+  "Hs02Tq": [
+    {
+      "type": 0,
+      "value": "Loading daily reports"
+    }
+  ],
   "HtpD+z": [
     {
       "type": 0,
@@ -3475,6 +3971,12 @@
     {
       "type": 0,
       "value": "- tamamlandı"
+    }
+  ],
+  "I1tfGG": [
+    {
+      "type": 0,
+      "value": "View Memory Search Results"
     }
   ],
   "I5k4g/": [
@@ -3647,10 +4149,22 @@
       "value": "Gezinti bölmesini daralt"
     }
   ],
+  "IomdzL": [
+    {
+      "type": 0,
+      "value": "The agent uses predefined queries for structured logs, telemetry, and time series data."
+    }
+  ],
   "IrCHQG": [
     {
       "type": 0,
       "value": "Select an agent to view its configuration."
+    }
+  ],
+  "ItmLyp": [
+    {
+      "type": 0,
+      "value": "Connect an incident platform"
     }
   ],
   "IuFETn": [
@@ -3707,6 +4221,12 @@
     {
       "type": 0,
       "value": "Connect existing items"
+    }
+  ],
+  "J8u7Xg": [
+    {
+      "type": 0,
+      "value": "Last Modified"
     }
   ],
   "JAtEuU": [
@@ -4035,6 +4555,12 @@
       "value": ")"
     }
   ],
+  "KqwLPK": [
+    {
+      "type": 0,
+      "value": "Database indexing connector"
+    }
+  ],
   "KryvVM": [
     {
       "type": 0,
@@ -4117,20 +4643,36 @@
       "value": "Tool Type"
     }
   ],
+  "LQ2AtR": [
+    {
+      "type": 0,
+      "value": "Deleted "
+    },
+    {
+      "type": 1,
+      "value": "successCount"
+    },
+    {
+      "type": 0,
+      "value": " data connectors. Failed to delete "
+    },
+    {
+      "type": 1,
+      "value": "failedCount"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "failedItems"
+    }
+  ],
   "LRJHcs": [
     {
       "type": 0,
       "value": "İstem örnekleri"
-    }
-  ],
-  "LRTerU": [
-    {
-      "type": 0,
-      "value": "Adımlar: "
-    },
-    {
-      "type": 1,
-      "value": "steps"
     }
   ],
   "LSaaxU": [
@@ -4223,6 +4765,12 @@
     {
       "type": 0,
       "value": "Özel yanıt planını düzenle"
+    }
+  ],
+  "M+AZNX": [
+    {
+      "type": 0,
+      "value": "Delete scheduled tasks"
     }
   ],
   "M/3/kG": [
@@ -4325,10 +4873,22 @@
       "value": "Yürütme geçmişi"
     }
   ],
+  "MQNtQ+": [
+    {
+      "type": 0,
+      "value": "Data Connectors"
+    }
+  ],
   "MSWnaq": [
     {
       "type": 0,
       "value": "Cron ifadeleri kullanarak düzenli aralıklarla eylem izlemek veya gerçekleştirmek için yeni bir zamanlanmış görev oluşturun."
+    }
+  ],
+  "MUVpbF": [
+    {
+      "type": 0,
+      "value": "The agent generates queries by learning about your logs, telemetry, and time series data."
     }
   ],
   "MWaWoR": [
@@ -4423,6 +4983,12 @@
       "value": "Kılavuz görünümü"
     }
   ],
+  "N0d5pM": [
+    {
+      "type": 0,
+      "value": "AM"
+    }
+  ],
   "N0wOFf": [
     {
       "type": 0,
@@ -4487,6 +5053,12 @@
       "value": "Agent Type"
     }
   ],
+  "NIrBo5": [
+    {
+      "type": 0,
+      "value": "Files will be stored in the agent."
+    }
+  ],
   "NMSoXQ": [
     {
       "type": 0,
@@ -4497,6 +5069,12 @@
     {
       "type": 0,
       "value": "Olay yönetimini kullanmaya başlayın"
+    }
+  ],
+  "NSWNPa": [
+    {
+      "type": 0,
+      "value": "Try different search terms or clear your search to see all files."
     }
   ],
   "NV14yw": [
@@ -4545,6 +5123,54 @@
     {
       "type": 0,
       "value": "Geri bildiriminiz için teşekkür ederiz!"
+    }
+  ],
+  "NsLW3l": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " document selected"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " documents selected"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "NwAgjY": [
+    {
+      "type": 0,
+      "value": "Every "
+    },
+    {
+      "type": 1,
+      "value": "minutes"
+    },
+    {
+      "type": 0,
+      "value": " minutes"
     }
   ],
   "O3Ak71": [
@@ -4681,6 +5307,12 @@
     {
       "type": 0,
       "value": "Use standard cron syntax (UTC) to control when the agent runs."
+    }
+  ],
+  "OYAXyI": [
+    {
+      "type": 0,
+      "value": "Provide information the agent will reference when analyzing or answering questions."
     }
   ],
   "OeU7Xk": [
@@ -4875,6 +5507,12 @@
       "value": "t"
     }
   ],
+  "Pa1S0J": [
+    {
+      "type": 0,
+      "value": "Total active flow consumption"
+    }
+  ],
   "Pc+tM3": [
     {
       "type": 0,
@@ -4979,6 +5617,44 @@
       "value": "Depolama Blob Verileri Okuyucusu"
     }
   ],
+  "Q4f1wN": [
+    {
+      "type": 0,
+      "value": "This will permanently "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " this "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
+    },
+    {
+      "type": 0,
+      "value": ". Are you sure you want to "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " this "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "Q7/1w4": [
     {
       "type": 0,
@@ -5009,6 +5685,28 @@
       "value": "P1"
     }
   ],
+  "QChoto": [
+    {
+      "type": 0,
+      "value": "Updating AAU allocation from "
+    },
+    {
+      "type": 1,
+      "value": "oldValue"
+    },
+    {
+      "type": 0,
+      "value": " to "
+    },
+    {
+      "type": 1,
+      "value": "newValue"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "QEhO+z": [
     {
       "type": 0,
@@ -5027,6 +5725,12 @@
       "value": "Azure Digital Twins Veri Sahibi"
     }
   ],
+  "QOSRgI": [
+    {
+      "type": 0,
+      "value": "AAU Consumption"
+    }
+  ],
   "QQX4Pv": [
     {
       "type": 0,
@@ -5037,6 +5741,20 @@
     {
       "type": 0,
       "value": "Kullanımlar (Tetikleyici, Eylem)"
+    }
+  ],
+  "QWEHW2": [
+    {
+      "type": 0,
+      "value": "Every "
+    },
+    {
+      "type": 1,
+      "value": "hours"
+    },
+    {
+      "type": 0,
+      "value": " hours"
     }
   ],
   "QY3CEK": [
@@ -5129,6 +5847,12 @@
       "value": "e.g., 0 9 * * 1-5"
     }
   ],
+  "QrihTZ": [
+    {
+      "type": 0,
+      "value": "Friday"
+    }
+  ],
   "QwnGVY": [
     {
       "type": 0,
@@ -5161,6 +5885,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "R3mMmc": [
+    {
+      "type": 0,
+      "value": "Monthly AAU limit slider"
     }
   ],
   "R7DP3y": [
@@ -5203,6 +5933,20 @@
     {
       "type": 0,
       "value": "Orchestrator"
+    }
+  ],
+  "RK9Ag4": [
+    {
+      "type": 0,
+      "value": "Delete "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " files?"
     }
   ],
   "RR+13c": [
@@ -5649,6 +6393,12 @@
       "value": "Görev güncelleştirilemedi"
     }
   ],
+  "TO55dt": [
+    {
+      "type": 0,
+      "value": "Azure SRE Agent billing is measured in Azure agent units (AAU). Monthly AAU billing reflects both the fixed always-on flow and variable usage from active flow. You can increase or decrease the active flow AAU allocation at any time."
+    }
+  ],
   "TRceX/": [
     {
       "type": 0,
@@ -5671,6 +6421,12 @@
     {
       "type": 0,
       "value": "Kaynak eşlemesi"
+    }
+  ],
+  "Tg4Q8g": [
+    {
+      "type": 0,
+      "value": "Disconnect data connector?"
     }
   ],
   "ThSX0k": [
@@ -5765,12 +6521,6 @@
       "value": "Request error"
     }
   ],
-  "UU91f0": [
-    {
-      "type": 0,
-      "value": "Run once now"
-    }
-  ],
   "UV4Dx5": [
     {
       "type": 0,
@@ -5849,6 +6599,12 @@
       "value": "Depo"
     }
   ],
+  "V4yeoh": [
+    {
+      "type": 0,
+      "value": "Peak Usage"
+    }
+  ],
   "V52jNn": [
     {
       "type": 0,
@@ -5859,6 +6615,12 @@
     {
       "type": 0,
       "value": "Remove starter agent"
+    }
+  ],
+  "V5w7/I": [
+    {
+      "type": 0,
+      "value": "Optimize alert response with an incident platform"
     }
   ],
   "V9A1Xh": [
@@ -6089,12 +6851,6 @@
       "value": "Onayla"
     }
   ],
-  "WE9lZK": [
-    {
-      "type": 0,
-      "value": "No connectors configured"
-    }
-  ],
   "WHleoJ": [
     {
       "type": 0,
@@ -6111,6 +6867,12 @@
     {
       "type": 0,
       "value": "PostgreSQL Esnek Sunucusu Uzun Süreli Saklama Yedekleme Rolü"
+    }
+  ],
+  "WMNHPh": [
+    {
+      "type": 0,
+      "value": "Saturday"
     }
   ],
   "WTrOy3": [
@@ -6212,6 +6974,12 @@
     {
       "type": 0,
       "value": "Aracı ayrıntıları"
+    }
+  ],
+  "WfXPv6": [
+    {
+      "type": 0,
+      "value": "New thread for each run"
     }
   ],
   "Wkup5T": [
@@ -6358,10 +7126,26 @@
       "value": "Grafana panosunu bağlama"
     }
   ],
+  "XG++pU": [
+    {
+      "type": 0,
+      "value": "Delete resource group "
+    },
+    {
+      "type": 1,
+      "value": "resourceGroupName"
+    }
+  ],
   "XHc00z": [
     {
       "type": 0,
       "value": "Connector Type"
+    }
+  ],
+  "XHoPAJ": [
+    {
+      "type": 0,
+      "value": "Response plan details"
     }
   ],
   "XJ+Lww": [
@@ -6406,10 +7190,46 @@
       "value": "Connected tools"
     }
   ],
+  "XMUseu": [
+    {
+      "type": 0,
+      "value": "Failed to update AAU allocation. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "XPR3X/": [
+    {
+      "type": 0,
+      "value": "Thread title was renamed successfully to '"
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": "'"
+    }
+  ],
   "XRdOZL": [
     {
       "type": 0,
       "value": "Olay seçin veya arayın"
+    }
+  ],
+  "XV8dOu": [
+    {
+      "type": 0,
+      "value": "Message grouping for updates"
+    }
+  ],
+  "XVG+T1": [
+    {
+      "type": 0,
+      "value": "Refining details..."
     }
   ],
   "XYSJsS": [
@@ -6482,6 +7302,18 @@
     {
       "type": 0,
       "value": "Erişim anahtarı doğrulanamadı. Lütfen yeniden deneyin."
+    }
+  ],
+  "Y7RxDE": [
+    {
+      "type": 0,
+      "value": "Run task now"
+    }
+  ],
+  "YAgYL6": [
+    {
+      "type": 0,
+      "value": "Tuesday"
     }
   ],
   "YBXVNU": [
@@ -6604,10 +7436,22 @@
       "value": "Yönetilen kimlik"
     }
   ],
+  "YsFdGq": [
+    {
+      "type": 0,
+      "value": "Supported file formats: .md and .txt"
+    }
+  ],
   "Ysew65": [
     {
       "type": 0,
       "value": "Derin Araştırmaları açma izniniz yok."
+    }
+  ],
+  "Z+uDP9": [
+    {
+      "type": 0,
+      "value": "Add a file or connect an external data source, such as a service or repository, to help the agent generate more informed responses."
     }
   ],
   "Z1VHv1": [
@@ -6632,6 +7476,12 @@
     {
       "type": 0,
       "value": "Aracı Kimliği"
+    }
+  ],
+  "Z8Y6DE": [
+    {
+      "type": 0,
+      "value": "Last Synced"
     }
   ],
   "Z9TajN": [
@@ -6680,6 +7530,12 @@
       "value": "Logic Apps'i yönetin."
     }
   ],
+  "ZOO+kP": [
+    {
+      "type": 0,
+      "value": "Start on"
+    }
+  ],
   "ZOdb7N": [
     {
       "type": 0,
@@ -6714,6 +7570,12 @@
     {
       "type": 0,
       "value": "Yazışma bağlantısını kopyalayın"
+    }
+  ],
+  "ZjlBPk": [
+    {
+      "type": 0,
+      "value": "Conclusion"
     }
   ],
   "Zkjd9I": [
@@ -6790,6 +7652,27 @@
       "value": "Orta düzeyde risk"
     }
   ],
+  "a1UV+9": [
+    {
+      "type": 0,
+      "value": "Always-on flow + "
+    },
+    {
+      "style": null,
+      "type": 2,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " active flow AAUs"
+    }
+  ],
+  "a5dT17": [
+    {
+      "type": 0,
+      "value": "Search data connectors"
+    }
+  ],
   "a5msuh": [
     {
       "type": 0,
@@ -6806,6 +7689,12 @@
     {
       "type": 0,
       "value": "Gelişmiş: Cron biçimini (dakika saat gün ay haftanın günü) kullanın"
+    }
+  ],
+  "a8czK7": [
+    {
+      "type": 0,
+      "value": "Add a knowledge source"
     }
   ],
   "a8l/yJ": [
@@ -6896,6 +7785,12 @@
     {
       "type": 0,
       "value": "Yükseltme kanalı güncelleştirilemedi"
+    }
+  ],
+  "aSipXt": [
+    {
+      "type": 0,
+      "value": "Increase the agent's knowledge of your infrastructure"
     }
   ],
   "aTyEZH": [
@@ -6992,6 +7887,12 @@
     {
       "type": 0,
       "value": "Çıkış günlükleri"
+    }
+  ],
+  "azMsfM": [
+    {
+      "type": 0,
+      "value": "Monday"
     }
   ],
   "b2PyOl": [
@@ -7194,6 +8095,12 @@
       "value": "Az önce"
     }
   ],
+  "c/8Uhj": [
+    {
+      "type": 0,
+      "value": "Here is the To-Do plan:"
+    }
+  ],
   "c/KktL": [
     {
       "type": 0,
@@ -7236,6 +8143,12 @@
     {
       "type": 0,
       "value": "\" has been deleted successfully"
+    }
+  ],
+  "cBcrgh": [
+    {
+      "type": 0,
+      "value": "Enter task details"
     }
   ],
   "cDjhgm": [
@@ -7474,6 +8387,12 @@
       "value": "Bellek"
     }
   ],
+  "dWSIqT": [
+    {
+      "type": 0,
+      "value": "Consumption AAU usage"
+    }
+  ],
   "dYwe9B": [
     {
       "type": 0,
@@ -7558,6 +8477,12 @@
     {
       "type": 0,
       "value": "Projedeki salt okunur eylemler. Okuyucular projeyi oluşturamaz veya güncelleştiremez."
+    }
+  ],
+  "eCZ0j1": [
+    {
+      "type": 0,
+      "value": "Open Todo Plans"
     }
   ],
   "eEu4cm": [
@@ -7708,6 +8633,12 @@
       "value": "ServiceNow bağlı değil."
     }
   ],
+  "f0Sf6g": [
+    {
+      "type": 0,
+      "value": "Add a file"
+    }
+  ],
   "f0Y4Zr": [
     {
       "type": 0,
@@ -7742,6 +8673,12 @@
     {
       "type": 0,
       "value": "Bilişsel Hizmetler Konuşma Katkıda Bulunanı"
+    }
+  ],
+  "fHE7i7": [
+    {
+      "type": 0,
+      "value": "Code optimizations"
     }
   ],
   "fIQSsD": [
@@ -7804,6 +8741,12 @@
       "value": "Output"
     }
   ],
+  "fjOQVZ": [
+    {
+      "type": 0,
+      "value": "Learn more about incident platform integration"
+    }
+  ],
   "fjgqNG": [
     {
       "type": 0,
@@ -7818,6 +8761,12 @@
     {
       "type": 0,
       "value": "Bağıntı -1 (ters) ile 1 (doğrudan) arasında değişir"
+    }
+  ],
+  "fr6Gnj": [
+    {
+      "type": 0,
+      "value": "Change AAU allocation"
     }
   ],
   "fssuHC": [
@@ -7868,6 +8817,12 @@
       "value": "Hata ayrıntılarını kopyala"
     }
   ],
+  "g4II+z": [
+    {
+      "type": 0,
+      "value": "e.g. 0 0 * * *"
+    }
+  ],
   "g7HOVb": [
     {
       "type": 0,
@@ -7884,6 +8839,18 @@
     {
       "type": 0,
       "value": "Ad alanındaki çoğu nesneyi görmek için salt okunur erişime izin verir. Rollerin veya rol bağlamalarının görüntülenmesine izin vermez. Gizli Dizilere ait içeriğin okunması, ad alanındaki ServiceAccount kimlik bilgilerine erişimi etkinleştirdiğinden, bu rol Gizli Dizilerin görüntülenmesine izin vermez. Bu durum, ad alanındaki herhangi bir ServiceAccount olarak API erişimine izin verir (bir çeşit ayrıcalık yükseltme). Bu rolün küme kapsamında uygulanması tüm ad alanlarında erişim sağlar."
+    }
+  ],
+  "gD6r6x": [
+    {
+      "type": 0,
+      "value": "Day of week"
+    }
+  ],
+  "gDVRX+": [
+    {
+      "type": 0,
+      "value": "Drag files here or"
     }
   ],
   "gHCL4X": [
@@ -8034,6 +9001,12 @@
       "value": "Olay platformunu değiştirmek için ServiceNow bağlantısını kesmeniz gerekir. Aracı artık biletleri yönetmez. Bağlantıyı kesmek istediğinizden emin misiniz?"
     }
   ],
+  "h0W8DM": [
+    {
+      "type": 0,
+      "value": "Time of day"
+    }
+  ],
   "h4BqRo": [
     {
       "type": 1,
@@ -8042,6 +9015,12 @@
     {
       "type": 0,
       "value": " incident response plan"
+    }
+  ],
+  "h4XDJP": [
+    {
+      "type": 0,
+      "value": "Symptoms:"
     }
   ],
   "h6183G": [
@@ -8166,6 +9145,12 @@
       "value": "Aracı güncelleştirmelerini almak için kanalı seçin"
     }
   ],
+  "hgAzMV": [
+    {
+      "type": 0,
+      "value": "Remove file"
+    }
+  ],
   "hijOHm": [
     {
       "type": 0,
@@ -8196,6 +9181,12 @@
       "value": "Reddet"
     }
   ],
+  "hzElIu": [
+    {
+      "type": 0,
+      "value": "No files match your search"
+    }
+  ],
   "hzSNj4": [
     {
       "type": 0,
@@ -8218,6 +9209,12 @@
     {
       "type": 0,
       "value": "Azure Machine Learning'de veri bilimi görevlerini gerçekleştirin."
+    }
+  ],
+  "iDPKM0": [
+    {
+      "type": 0,
+      "value": "Filter tasks"
     }
   ],
   "iDSWYk": [
@@ -8250,6 +9247,12 @@
       "value": "Create a new trigger with custom settings"
     }
   ],
+  "iXNbPf": [
+    {
+      "type": 0,
+      "value": "Rename"
+    }
+  ],
   "iZDRGO": [
     {
       "type": 0,
@@ -8272,6 +9275,12 @@
     {
       "type": 0,
       "value": "Ya da"
+    }
+  ],
+  "icyjmd": [
+    {
+      "type": 0,
+      "value": "To-Do Plan"
     }
   ],
   "ielB5f": [
@@ -8552,6 +9561,16 @@
       "value": "Kaydet"
     }
   ],
+  "jw1Wpc": [
+    {
+      "type": 0,
+      "value": "Deleting incident "
+    },
+    {
+      "type": 1,
+      "value": "title"
+    }
+  ],
   "jxYyO2": [
     {
       "type": 0,
@@ -8598,6 +9617,12 @@
       "value": "Abonelik eşittir"
     }
   ],
+  "kLL6yL": [
+    {
+      "type": 0,
+      "value": "The maximum AAU limit is 20,000"
+    }
+  ],
   "kQAf2d": [
     {
       "type": 0,
@@ -8608,6 +9633,12 @@
     {
       "type": 0,
       "value": "Connector type"
+    }
+  ],
+  "kT9YDi": [
+    {
+      "type": 0,
+      "value": "You do not have permission to rename this thread."
     }
   ],
   "kWBrry": [
@@ -8650,6 +9681,12 @@
       "value": "Bağıntı Analizi"
     }
   ],
+  "ko0rr4": [
+    {
+      "type": 0,
+      "value": "Veri bağlayıcısı yapılandırmasını güncelleştirin."
+    }
+  ],
   "koWZK8": [
     {
       "type": 0,
@@ -8668,24 +9705,6 @@
     {
       "type": 1,
       "value": "toolName"
-    }
-  ],
-  "kqurtu": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " belge"
-    },
-    {
-      "type": 1,
-      "value": "plural"
-    },
-    {
-      "type": 0,
-      "value": " seçildi"
     }
   ],
   "krH81A": [
@@ -8854,6 +9873,12 @@
       "value": "IoT Hub Kayıt Defteri Katkıda Bulunanı"
     }
   ],
+  "lxblgl": [
+    {
+      "type": 0,
+      "value": "Wednesday"
+    }
+  ],
   "m+cdhC": [
     {
       "type": 0,
@@ -8920,6 +9945,12 @@
     {
       "type": 0,
       "value": "Last run"
+    }
+  ],
+  "mJR06P": [
+    {
+      "type": 0,
+      "value": "Sunday"
     }
   ],
   "mJXXeS": [
@@ -9178,6 +10209,12 @@
       "value": "Çalışıyor"
     }
   ],
+  "nEnDXd": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected scheduled tasks? This action cannot be undone."
+    }
+  ],
   "nFOo9o": [
     {
       "type": 0,
@@ -9232,6 +10269,20 @@
     {
       "type": 0,
       "value": "Agent invoked"
+    }
+  ],
+  "nkYx6+": [
+    {
+      "type": 0,
+      "value": "Disconnect "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " data connectors?"
     }
   ],
   "nmpevl": [
@@ -9300,6 +10351,12 @@
       "value": "No tools linked yet. Add tools so this agent can take action."
     }
   ],
+  "o3uElD": [
+    {
+      "type": 0,
+      "value": "Add data connector"
+    }
+  ],
   "o7TUwc": [
     {
       "type": 0,
@@ -9316,6 +10373,20 @@
     {
       "type": 0,
       "value": "İlgili Belgeler"
+    }
+  ],
+  "oBxxMY": [
+    {
+      "type": 0,
+      "value": "Failed to delete all "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " data connectors"
     }
   ],
   "oDI/Rp": [
@@ -9362,10 +10433,22 @@
       "value": "Select a node to see its details."
     }
   ],
+  "oMsZ4g": [
+    {
+      "type": 0,
+      "value": "Day of month"
+    }
+  ],
   "oQ/TUW": [
     {
       "type": 0,
       "value": "Maliyet Yönetimi Katkıda Bulunanı"
+    }
+  ],
+  "oQJEFn": [
+    {
+      "type": 0,
+      "value": "Performance Issue"
     }
   ],
   "oTNrPz": [
@@ -9516,6 +10599,12 @@
       "value": "Erişim olmadan yönetim. Güvenlik ilkeleri veya üst SQL sunucuları yönetilemiyor."
     }
   ],
+  "p8Ubox": [
+    {
+      "type": 0,
+      "value": "Connect an incident management platform so the agent will collect, analyze, and respond to alerts."
+    }
+  ],
   "pAFuFx": [
     {
       "type": 0,
@@ -9550,6 +10639,16 @@
     {
       "type": 0,
       "value": "Geçerli durum"
+    }
+  ],
+  "pFnETG": [
+    {
+      "type": 0,
+      "value": "Failed to rename thread with error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "pRvgsc": [
@@ -9588,12 +10687,6 @@
     {
       "type": 0,
       "value": "Anahtarı değiştir"
-    }
-  ],
-  "panI3e": [
-    {
-      "type": 0,
-      "value": "0 0 * * *"
     }
   ],
   "pbpjik": [
@@ -9678,6 +10771,12 @@
       "value": "Bu görevin en fazla kaç kez çalışması gerektiği"
     }
   ],
+  "puQ/kF": [
+    {
+      "type": 0,
+      "value": "Loading chat threads"
+    }
+  ],
   "pyXjlj": [
     {
       "type": 0,
@@ -9700,6 +10799,18 @@
     {
       "type": 0,
       "value": "Toplam:"
+    }
+  ],
+  "qAhUUO": [
+    {
+      "type": 0,
+      "value": "Thursday"
+    }
+  ],
+  "qQh4Xu": [
+    {
+      "type": 0,
+      "value": "The agent references documentation and files to understand your projects and processes."
     }
   ],
   "qavd9Y": [
@@ -9738,6 +10849,12 @@
       "value": "A connector with this name already exists"
     }
   ],
+  "qh9t2U": [
+    {
+      "type": 0,
+      "value": "Connect to agent"
+    }
+  ],
   "qhApmK": [
     {
       "type": 0,
@@ -9774,6 +10891,12 @@
       "value": "Arka Uç Uç Noktası"
     }
   ],
+  "qs5hhk": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected incident thread?"
+    }
+  ],
   "qvTohT": [
     {
       "type": 0,
@@ -9792,6 +10915,12 @@
     {
       "type": 0,
       "value": "Add handoff to existing agent"
+    }
+  ],
+  "qxlJil": [
+    {
+      "type": 0,
+      "value": "PM"
     }
   ],
   "qyJtWy": [
@@ -9828,6 +10957,12 @@
     {
       "type": 0,
       "value": "bu dönemde kullanılabilen kaynaklar"
+    }
+  ],
+  "rBhkvO": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the file from the knowledge sources the agent uses. Are you sure you want to delete this file?"
     }
   ],
   "rELDbB": [
@@ -9922,6 +11057,12 @@
       "value": "Service type: All"
     }
   ],
+  "rU0caB": [
+    {
+      "type": 0,
+      "value": "Update AAU allocation"
+    }
+  ],
   "rVtn/e": [
     {
       "type": 0,
@@ -10010,6 +11151,12 @@
       "value": "Çok çeşitli senaryoları desteklemek için olay yanıt planları ve özel yanıt planları ekleyerek aracının olayları araştırma ve yanıtlamasını iyileştirin."
     }
   ],
+  "rlwohK": [
+    {
+      "type": 0,
+      "value": "Documentation connector"
+    }
+  ],
   "rpG/Bn": [
     {
       "type": 0,
@@ -10066,14 +11213,24 @@
       "value": "Aracı tarafından desteklendi"
     }
   ],
-  "s5cLGN": [
+  "s00xPm": [
     {
       "type": 0,
-      "value": "Kök Neden: "
+      "value": "Learn more about knowledge sources"
+    }
+  ],
+  "s04Z5U": [
+    {
+      "type": 0,
+      "value": "This will permanently disconnect "
     },
     {
       "type": 1,
-      "value": "rootCause"
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " data connectors from the agent. Are you sure you want to disconnect these data connectors?"
     }
   ],
   "s6iZgz": [
@@ -10086,6 +11243,12 @@
     {
       "type": 0,
       "value": "Aracı uç noktası"
+    }
+  ],
+  "s7HLdg": [
+    {
+      "type": 0,
+      "value": "Run deep investigation autonomously"
     }
   ],
   "s8HBot": [
@@ -10132,6 +11295,18 @@
       "value": "Log Analytics Okuyucusu"
     }
   ],
+  "sI/fs2": [
+    {
+      "type": 0,
+      "value": "Use same thread"
+    }
+  ],
+  "sILeXv": [
+    {
+      "type": 0,
+      "value": "Root Cause:"
+    }
+  ],
   "sIMS7i": [
     {
       "type": 0,
@@ -10148,6 +11323,12 @@
     {
       "type": 0,
       "value": "Zaman damgaları"
+    }
+  ],
+  "sNuzQE": [
+    {
+      "type": 0,
+      "value": "No nodes found"
     }
   ],
   "sQZhm1": [
@@ -10212,6 +11393,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "sXiGbo": [
+    {
+      "type": 0,
+      "value": "Add file"
     }
   ],
   "sd1Vy+": [
@@ -10298,6 +11485,12 @@
       "value": "SQL Server Katkıda Bulunanı"
     }
   ],
+  "strvmG": [
+    {
+      "type": 0,
+      "value": "Every hour"
+    }
+  ],
   "swRudj": [
     {
       "type": 0,
@@ -10326,16 +11519,6 @@
     {
       "type": 0,
       "value": "Bilgi:"
-    }
-  ],
-  "t2u8dC": [
-    {
-      "type": 0,
-      "value": "Belirtiler: "
-    },
-    {
-      "type": 1,
-      "value": "symptoms"
     }
   ],
   "t323u5": [
@@ -10446,6 +11629,12 @@
       "value": "Kimlik"
     }
   ],
+  "tTVtNj": [
+    {
+      "type": 0,
+      "value": "Set a run limit"
+    }
+  ],
   "tU3A8E": [
     {
       "type": 0,
@@ -10464,6 +11653,12 @@
     {
       "type": 0,
       "value": "Sık kullanılanlara ekle"
+    }
+  ],
+  "tZmd+w": [
+    {
+      "type": 0,
+      "value": "Connect a data source"
     }
   ],
   "tb6uBb": [
@@ -10532,6 +11727,12 @@
       "value": "Zamanlanmış görev bulunamadı"
     }
   ],
+  "ts7YvN": [
+    {
+      "type": 0,
+      "value": "Repeat until"
+    }
+  ],
   "tshYzs": [
     {
       "type": 0,
@@ -10558,6 +11759,12 @@
     {
       "type": 0,
       "value": "Select existing tools or create new ones later"
+    }
+  ],
+  "txLniB": [
+    {
+      "type": 0,
+      "value": "Learn more about code optimizations"
     }
   ],
   "tyJNW5": [
@@ -10632,6 +11839,50 @@
       "value": "Tüm otonom düzeyleri"
     }
   ],
+  "uLmZLS": [
+    {
+      "type": 0,
+      "value": "Active flow AAUs reset in "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+            {
+              "type": 0,
+              "value": "today"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " day"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " days"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "days"
+    }
+  ],
   "uMF+CT": [
     {
       "type": 0,
@@ -10694,6 +11945,12 @@
       "value": "Saat"
     }
   ],
+  "ukQpDs": [
+    {
+      "type": 0,
+      "value": "Folder"
+    }
+  ],
   "uld/2m": [
     {
       "type": 0,
@@ -10716,6 +11973,30 @@
     {
       "type": 0,
       "value": "Olay yanıtı için seçilen araçlar"
+    }
+  ],
+  "us/IXr": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected incident threads?"
+    }
+  ],
+  "uudb6D": [
+    {
+      "type": 0,
+      "value": "Data Source"
+    }
+  ],
+  "uva2Xo": [
+    {
+      "type": 0,
+      "value": "Get more details about these insights"
+    }
+  ],
+  "uwY8Nf": [
+    {
+      "type": 0,
+      "value": "Refine with AI"
     }
   ],
   "uyO1AJ": [
@@ -10760,10 +12041,22 @@
       "value": "Sev3"
     }
   ],
+  "vAW30j": [
+    {
+      "type": 0,
+      "value": "Frequency"
+    }
+  ],
   "vAWzLN": [
     {
       "type": 0,
       "value": "ICM bağlantısı kesilsin mi?"
+    }
+  ],
+  "vB/Cv7": [
+    {
+      "type": 0,
+      "value": "Memory usage insights"
     }
   ],
   "vCAhII": [
@@ -10794,12 +12087,6 @@
     {
       "type": 0,
       "value": "Yanıt planlarını kapatmak için izniniz yok."
-    }
-  ],
-  "vR27zt": [
-    {
-      "type": 0,
-      "value": "Belge Adı"
     }
   ],
   "vVpzJQ": [
@@ -10860,6 +12147,12 @@
     {
       "type": 0,
       "value": "Olay yanıt planı etkinleştiriliyor"
+    }
+  ],
+  "vsQnBO": [
+    {
+      "type": 0,
+      "value": "Blocking usage insights"
     }
   ],
   "w+XRP2": [
@@ -10964,6 +12257,12 @@
       "value": "Eylem, aracı izinleriyle devam ediyor."
     }
   ],
+  "wYsv4Z": [
+    {
+      "type": 0,
+      "value": "Monthly"
+    }
+  ],
   "wb/AUH": [
     {
       "type": 0,
@@ -10974,6 +12273,12 @@
     {
       "type": 0,
       "value": "Azure'da SAP iş yüklerini yönetin."
+    }
+  ],
+  "wbwhbH": [
+    {
+      "type": 0,
+      "value": "Task name"
     }
   ],
   "we4Lby": [
@@ -11010,12 +12315,6 @@
     {
       "type": 0,
       "value": "Çıkış ve hata mevcut"
-    }
-  ],
-  "wwNLHo": [
-    {
-      "type": 0,
-      "value": "Dosyaları Karşıya Yükle"
     }
   ],
   "wxlJSs": [
@@ -11076,6 +12375,12 @@
     {
       "type": 0,
       "value": "HDInsight Küme İşleci"
+    }
+  ],
+  "xHpwlo": [
+    {
+      "type": 0,
+      "value": "File Name"
     }
   ],
   "xK7rmd": [
@@ -11234,6 +12539,12 @@
       "value": "Özel olay yanıt planı siliniyor"
     }
   ],
+  "y3Uu5i": [
+    {
+      "type": 0,
+      "value": "No data connectors match your search"
+    }
+  ],
   "y5oInX": [
     {
       "type": 0,
@@ -11366,6 +12677,16 @@
       "value": "Çekirdek uygulama grubu türü"
     }
   ],
+  "ysBuRt": [
+    {
+      "type": 0,
+      "value": "Failed to create default incident response plan. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "yxXhfZ": [
     {
       "type": 0,
@@ -11408,6 +12729,12 @@
       "value": "Trigger name"
     }
   ],
+  "zE+jtE": [
+    {
+      "type": 0,
+      "value": "Rename thread title"
+    }
+  ],
   "zEg90u": [
     {
       "type": 0,
@@ -11418,6 +12745,20 @@
     {
       "type": 0,
       "value": "Tüm önem derecesi"
+    }
+  ],
+  "zMX3td": [
+    {
+      "type": 0,
+      "value": "Renaming the thread title to '"
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": "'"
     }
   ],
   "zN87hN": [
@@ -11456,6 +12797,20 @@
       "value": "Kaynak gruplarını seçin"
     }
   ],
+  "zeJdWA": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " incidents"
+    }
+  ],
   "zfM/75": [
     {
       "type": 0,
@@ -11472,6 +12827,12 @@
     {
       "type": 0,
       "value": "ServiceNow"
+    }
+  ],
+  "zhoVUT": [
+    {
+      "type": 0,
+      "value": "Advanced settings"
     }
   ],
   "zpkKsD": [
@@ -11506,6 +12867,12 @@
     {
       "type": 0,
       "value": "İstem kitaplığı"
+    }
+  ],
+  "zxvhnE": [
+    {
+      "type": 0,
+      "value": "Daily"
     }
   ]
 }

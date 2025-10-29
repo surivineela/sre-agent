@@ -1,5 +1,5 @@
 import { Edge, Node } from '@xyflow/react';
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, ReactNode, SetStateAction } from 'react';
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import { InvestigationTreeNode, InvestigationTreeState } from '../../Common/Contracts/DataPlane/AgentTask';
 import {
@@ -61,6 +61,18 @@ export interface ThreadListsState {
     threadsThatHaveModifiedTimestampUpdated: Thread[];
 }
 
+export interface ChatTelemetryMessageSnapshot {
+    id: string;
+    authorRole: 'SREAgent' | 'User';
+    text: string;
+    timeStamp?: string;
+    hasError?: boolean;
+}
+
+export interface ChatTelemetrySnapshot {
+    messages: ChatTelemetryMessageSnapshot[];
+}
+
 export interface IChatBoxProps {
     addThread: (threadId: string, newThreadToSelect?: Thread) => void;
     updateThreadLastReadTime: (threadId: string) => void;
@@ -70,6 +82,10 @@ export interface IChatBoxProps {
     stylesProps?: ChatBoxV2StyleProps;
     agentTaskStyleProps?: AgentTaskStyleProps;
     todoPlanDrawer?: any; // Using any for now - could be strongly typed later
+    forcedAgentName?: string;
+    lockAgentSelection?: boolean;
+    onTelemetryUpdate?: (snapshot: ChatTelemetrySnapshot) => void;
+    renderEmptyState?: (options: { sendMessage: (message: string) => Promise<void>; forcedAgentName?: string }) => ReactNode;
     onOpenAgentTaskPanel?: () => void; // Pass this callback to trigger the side effects when the Agent Task Panel is opened
     onCloseAgentTaskPanel?: () => void; // Pass this callback to trigger the side effects when the Agent Task Panel is closed
     setMenuCollapsed?: Dispatch<SetStateAction<boolean>>;
@@ -154,6 +170,9 @@ export interface IChatBoxFooterProps {
     isDeepInvestigationButtonEnabled: boolean;
     isDeepInvestigationTurnedOn: boolean;
     onClickDeepInvestigationButton: () => void;
+    postSystemMessage?: (text: string) => void;
+    forcedAgentName?: string;
+    lockAgentSelection?: boolean;
 }
 
 export interface SendMessageOptions {

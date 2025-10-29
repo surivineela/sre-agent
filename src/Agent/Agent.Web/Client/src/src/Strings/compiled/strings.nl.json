@@ -2,7 +2,7 @@
   "++2B26": [
     {
       "type": 0,
-      "value": "Provide values for: "
+      "value": "Waarden opgeven voor: "
     },
     {
       "type": 1,
@@ -12,7 +12,7 @@
   "+/9vVV": [
     {
       "type": 0,
-      "value": "Describe it in natural language"
+      "value": "Beschrijven in natuurlijke taal"
     }
   ],
   "+/nU/s": [
@@ -72,13 +72,13 @@
   "+Hx789": [
     {
       "type": 0,
-      "value": "Filter by severity level"
+      "value": "Filteren op ernstniveau"
     }
   ],
   "+Pmftr": [
     {
       "type": 0,
-      "value": "Reset draft"
+      "value": "Concept opnieuw instellen"
     }
   ],
   "+S4WAz": [
@@ -90,7 +90,7 @@
   "+TFnQ/": [
     {
       "type": 0,
-      "value": "Extended Tools (Optional)"
+      "value": "Uitgebreide hulpprogramma's (optioneel)"
     }
   ],
   "+TlNdm": [
@@ -117,6 +117,12 @@
       "value": "Incident verwijderen?"
     }
   ],
+  "+hJd45": [
+    {
+      "type": 0,
+      "value": "Edit data connector"
+    }
+  ],
   "+iCTRd": [
     {
       "type": 0,
@@ -132,13 +138,19 @@
   "+kmL8g": [
     {
       "type": 0,
-      "value": "Provide instructions for what this scheduled task should do."
+      "value": "Geef instructies voor wat deze geplande taak moet doen."
     }
   ],
   "+l+XEu": [
     {
       "type": 0,
       "value": "Kan werkmappen lezen."
+    }
+  ],
+  "+mtpY7": [
+    {
+      "type": 0,
+      "value": "Steps:"
     }
   ],
   "+nt4l9": [
@@ -150,7 +162,13 @@
   "+p60ph": [
     {
       "type": 0,
-      "value": "MCP server icon"
+      "value": "Pictogram MCP-server"
+    }
+  ],
+  "+pmvA0": [
+    {
+      "type": 0,
+      "value": "Enter a scheduled task name"
     }
   ],
   "+uAdUZ": [
@@ -198,17 +216,49 @@
   "/F7sHX": [
     {
       "type": 0,
-      "value": "Failed to delete tool "
+      "value": "Hulpprogramma "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is niet verwijderd"
+    }
+  ],
+  "/N0Usl": [
+    {
+      "type": 0,
+      "value": "Thread title cannot be empty"
     }
   ],
   "/RdF9w": [
     {
       "type": 0,
       "value": "Handoffs"
+    }
+  ],
+  "/TZk1G": [
+    {
+      "type": 0,
+      "value": "AAU allocation updated from "
+    },
+    {
+      "type": 1,
+      "value": "oldValue"
+    },
+    {
+      "type": 0,
+      "value": " to "
+    },
+    {
+      "type": 1,
+      "value": "newValue"
+    },
+    {
+      "type": 0,
+      "value": " successfully."
     }
   ],
   "/VnDMl": [
@@ -226,7 +276,7 @@
   "/WgnYE": [
     {
       "type": 0,
-      "value": "We couldn't understand that description. Try a different phrasing."
+      "value": "We hebben die beschrijving niet begrepen. Probeer een andere formulering."
     }
   ],
   "/WrP/v": [
@@ -235,10 +285,22 @@
       "value": "Container Apps Operator"
     }
   ],
+  "/XIuIr": [
+    {
+      "type": 0,
+      "value": "Every minute"
+    }
+  ],
   "/Z1fHN": [
     {
       "type": 0,
-      "value": "Tool and subagent activity sent to user"
+      "value": "Activiteit van hulpprogramma en subagent naar gebruiker verzonden"
+    }
+  ],
+  "/clOBU": [
+    {
+      "type": 0,
+      "value": "Weekly"
     }
   ],
   "/dxZCE": [
@@ -256,7 +318,7 @@
   "/mHau5": [
     {
       "type": 0,
-      "value": "Failed to create connector"
+      "value": "Kan de connector niet maken"
     }
   ],
   "/rNkXe": [
@@ -268,7 +330,7 @@
   "/tauMV": [
     {
       "type": 0,
-      "value": "e.g., ProductionKusto"
+      "value": "bijvoorbeeld ProductionKusto"
     }
   ],
   "/wdD42": [
@@ -326,13 +388,13 @@
   "05Rzkx": [
     {
       "type": 0,
-      "value": "Test Agent"
+      "value": "Testagent"
     }
   ],
   "08bD52": [
     {
       "type": 0,
-      "value": "Tool created, but attaching to "
+      "value": "Hulpprogramma is gemaakt, maar koppelen aan "
     },
     {
       "type": 1,
@@ -340,13 +402,13 @@
     },
     {
       "type": 0,
-      "value": " failed. Retry link."
+      "value": " is mislukt. Opnieuw proberen."
     }
   ],
   "0BUTMv": [
     {
       "type": 0,
-      "value": "Search..."
+      "value": "Zoeken..."
     }
   ],
   "0D+7fr": [
@@ -367,6 +429,12 @@
       "value": "Deze kaart laat zien hoe de resources van je toepassing zijn verbonden tussen meerdere resourcegroepen, regio's en abonnementen. De agent analyseert deze resources en organiseert deze in een kerntoepassingsgroep op basis van de primaire resource."
     }
   ],
+  "0ICwq5": [
+    {
+      "type": 0,
+      "value": "Last updated"
+    }
+  ],
   "0KB3lG": [
     {
       "type": 0,
@@ -382,7 +450,7 @@
   "0TOEqZ": [
     {
       "type": 0,
-      "value": "Enter a valid cron expression."
+      "value": "Voer een geldige cron-expressie in."
     }
   ],
   "0TkVxX": [
@@ -420,7 +488,7 @@
   "0cEOKu": [
     {
       "type": 0,
-      "value": "Advanced options"
+      "value": "Geavanceerde opties"
     }
   ],
   "0fhwgp": [
@@ -432,19 +500,19 @@
   "0i3Qrd": [
     {
       "type": 0,
-      "value": "Agent Response"
+      "value": "Antwoord van agent"
     }
   ],
   "0iLXks": [
     {
       "type": 0,
-      "value": "No extended agents available"
+      "value": "Geen uitgebreide agents beschikbaar"
     }
   ],
   "0ltHAS": [
     {
       "type": 0,
-      "value": "e.g., Every weekday at 9am"
+      "value": "bijvoorbeeld elke werkdag om 9 uur"
     }
   ],
   "0mx8D9": [
@@ -461,7 +529,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Create scheduled tasks to run agents automatically."
+              "value": "Maak geplande taken om agents automatisch uit te voeren."
             }
           ]
         },
@@ -469,7 +537,7 @@
           "value": [
             {
               "type": 0,
-              "value": "1 scheduled task ready to run agents automatically."
+              "value": "1 geplande taak klaar om agents automatisch uit te voeren."
             }
           ]
         },
@@ -481,7 +549,7 @@
             },
             {
               "type": 0,
-              "value": " scheduled tasks ready to run agents automatically."
+              "value": " geplande taken klaar om agents automatisch uit te voeren."
             }
           ]
         }
@@ -497,10 +565,22 @@
       "value": "Uitvouwen"
     }
   ],
+  "0pysPM": [
+    {
+      "type": 0,
+      "value": "Total insights"
+    }
+  ],
   "0q6E9l": [
     {
       "type": 0,
       "value": "Referenties wijzigen"
+    }
+  ],
+  "0sA1BF": [
+    {
+      "type": 0,
+      "value": "Maximum file size: 100MB"
     }
   ],
   "0sIUhe": [
@@ -518,7 +598,7 @@
   "0w+w97": [
     {
       "type": 0,
-      "value": "Edit YAML"
+      "value": "YAML bewerken"
     }
   ],
   "0w0iFy": [
@@ -536,7 +616,7 @@
   "12GY0h": [
     {
       "type": 0,
-      "value": "Describe the schedule before generating a cron expression."
+      "value": "Beschrijf de planning voordat u een cron-expressie genereert."
     }
   ],
   "1389z+": [
@@ -554,13 +634,25 @@
   "15nhHh": [
     {
       "type": 0,
-      "value": "A unique identifier for your agent"
+      "value": "Een unieke id voor je MySQL-server"
+    }
+  ],
+  "17sQau": [
+    {
+      "type": 0,
+      "value": "Use AI to enhance and validate your task instructions"
     }
   ],
   "18C/Jh": [
     {
       "type": 0,
-      "value": "Override default meta agent"
+      "value": "Standaardmeta-agent overschrijven"
+    }
+  ],
+  "1CcjQj": [
+    {
+      "type": 0,
+      "value": "Add a response plan to automate incident handling"
     }
   ],
   "1DDIYv": [
@@ -572,7 +664,7 @@
   "1EnaNQ": [
     {
       "type": 0,
-      "value": "Next run: "
+      "value": "Volgende uitvoering: "
     },
     {
       "type": 1,
@@ -582,17 +674,11 @@
   "1FMpZj": [
     {
       "type": 0,
-      "value": "Error loading graph: "
+      "value": "Fout bij het laden van grafiek: "
     },
     {
       "type": 1,
       "value": "error"
-    }
-  ],
-  "1GbY5N": [
-    {
-      "type": 0,
-      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Connectors instead."
     }
   ],
   "1HLt0U": [
@@ -618,7 +704,7 @@
   "1OorZL": [
     {
       "type": 0,
-      "value": "Failed to update connector with error: "
+      "value": "Connector is niet bijgewerkt met fout: "
     },
     {
       "type": 1,
@@ -641,12 +727,6 @@
     {
       "type": 0,
       "value": "Punt markeren"
-    }
-  ],
-  "1VSsQF": [
-    {
-      "type": 0,
-      "value": "Het standaard incidentreactieplan is niet gemaakt"
     }
   ],
   "1YF+AW": [
@@ -676,7 +756,7 @@
   "1aNP56": [
     {
       "type": 0,
-      "value": "Connector \""
+      "value": "Connector "
     },
     {
       "type": 1,
@@ -684,7 +764,7 @@
     },
     {
       "type": 0,
-      "value": "\" has been updated successfully"
+      "value": " is bijgewerkt"
     }
   ],
   "1dOMiz": [
@@ -702,19 +782,19 @@
   "1hiiU/": [
     {
       "type": 0,
-      "value": "Review AI suggestions and warnings"
+      "value": "AI-suggesties en waarschuwingen bekijken"
     }
   ],
   "1hu8Uv": [
     {
       "type": 0,
-      "value": "Alert status"
+      "value": "Waarschuwingsstatus"
     }
   ],
   "1iEPTM": [
     {
       "type": 0,
-      "value": "General"
+      "value": "Algemeen"
     }
   ],
   "1rAiXS": [
@@ -732,7 +812,7 @@
   "2+TYMx": [
     {
       "type": 0,
-      "value": "Add a trigger"
+      "value": "Een trigger toevoegen"
     }
   ],
   "2+atxY": [
@@ -759,6 +839,12 @@
       "value": "PagerDuty is verbonden."
     }
   ],
+  "26Vq1R": [
+    {
+      "type": 0,
+      "value": "Leave the field blank if there's no limit"
+    }
+  ],
   "28HRcH": [
     {
       "type": 0,
@@ -782,13 +868,13 @@
   "2Bb4rY": [
     {
       "type": 0,
-      "value": "Failed to update connector"
+      "value": "Kan connector niet bijwerken"
     }
   ],
   "2CSEeq": [
     {
       "type": 0,
-      "value": "Describe the cadence—get the cron"
+      "value": "De frequentie beschrijven: de cron maken"
     }
   ],
   "2FLZrG": [
@@ -853,6 +939,24 @@
       "value": "Diepgaand onderzoek"
     }
   ],
+  "2ep4et": [
+    {
+      "type": 0,
+      "value": "Monthly on day "
+    },
+    {
+      "type": 1,
+      "value": "dayOfMonth"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "2hB9SP": [
     {
       "type": 0,
@@ -862,7 +966,7 @@
   "2kRPCZ": [
     {
       "type": 0,
-      "value": "System tools"
+      "value": "Systeemhulpprogramma's"
     }
   ],
   "2mMJRv": [
@@ -898,7 +1002,7 @@
   "3/wF0G": [
     {
       "type": 0,
-      "value": "Slash commands"
+      "value": "Slash-opdrachten"
     }
   ],
   "30Ap/Y": [
@@ -916,19 +1020,19 @@
   "33HEdR": [
     {
       "type": 0,
-      "value": "Tools this agent can call"
+      "value": "Tools die deze agent kan aanroepen"
     }
   ],
   "35Pxrz": [
     {
       "type": 0,
-      "value": "Enter a name and instructions before creating this agent."
+      "value": "Voer een naam en instructies in voordat je deze agent maakt."
     }
   ],
   "387FD2": [
     {
       "type": 0,
-      "value": "Extended agents"
+      "value": "Uitgebreide agents"
     }
   ],
   "3BubSI": [
@@ -946,13 +1050,19 @@
   "3GLH+d": [
     {
       "type": 0,
-      "value": "Examples"
+      "value": "Voorbeelden"
     }
   ],
   "3H77Ic": [
     {
       "type": 0,
-      "value": "No agents available yet"
+      "value": "Er zijn nog geen agents beschikbaar"
+    }
+  ],
+  "3HS12m": [
+    {
+      "type": 0,
+      "value": "Agent usage + limit"
     }
   ],
   "3JVa6k": [
@@ -970,7 +1080,7 @@
   "3Pq+hf": [
     {
       "type": 0,
-      "value": "Create and connect"
+      "value": "Maken en verbinding maken"
     }
   ],
   "3PxUNi": [
@@ -982,7 +1092,7 @@
   "3R3pgd": [
     {
       "type": 0,
-      "value": "No suggestions available"
+      "value": "Geen suggesties beschikbaar"
     }
   ],
   "3Rh7XU": [
@@ -1000,7 +1110,7 @@
   "3VI9mt": [
     {
       "type": 0,
-      "value": "Save Changes"
+      "value": "Wijzigingen opslaan"
     }
   ],
   "3Wq8aM": [
@@ -1054,7 +1164,7 @@
   "3yurtF": [
     {
       "type": 0,
-      "value": "Next run"
+      "value": "Volgende uitvoering"
     }
   ],
   "3zLsNR": [
@@ -1072,13 +1182,13 @@
   "4/aFfy": [
     {
       "type": 0,
-      "value": "Tree"
+      "value": "Structuur"
     }
   ],
   "4/nSt8": [
     {
       "type": 0,
-      "value": "Select an existing trigger"
+      "value": "Een bestaande trigger selecteren"
     }
   ],
   "40YXE1": [
@@ -1108,13 +1218,13 @@
   "44Y8wQ": [
     {
       "type": 0,
-      "value": "No common tools configured."
+      "value": "Er zijn geen algemene tools geconfigureerd."
     }
   ],
   "451B6Z": [
     {
       "type": 0,
-      "value": "No agents found"
+      "value": "Geen agents gevonden"
     }
   ],
   "477I0g": [
@@ -1132,19 +1242,19 @@
   "47Qksb": [
     {
       "type": 0,
-      "value": "This agent"
+      "value": "Deze agent"
     }
   ],
   "493R/T": [
     {
       "type": 0,
-      "value": "Share your draft instructions and we’ll tailor them for a scheduled agent run."
+      "value": "Deel uw conceptinstructies, zodat wij ze kunnen aanpassen voor een geplande agentuitvoering."
     }
   ],
   "498yM3": [
     {
       "type": 0,
-      "value": "Runs "
+      "value": "Voert "
     },
     {
       "type": 1,
@@ -1152,19 +1262,19 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " uit."
     }
   ],
   "4BVpFN": [
     {
       "type": 0,
-      "value": "YAML must include a spec object."
+      "value": "YAML moet een specificatie-object bevatten."
     }
   ],
   "4C44ie": [
     {
       "type": 0,
-      "value": "Trigger details"
+      "value": "Triggerdetails"
     }
   ],
   "4Ez7HI": [
@@ -1176,7 +1286,7 @@
   "4HV6SH": [
     {
       "type": 0,
-      "value": "Alert created"
+      "value": "Waarschuwing is gemaakt"
     }
   ],
   "4MeTpL": [
@@ -1188,7 +1298,7 @@
   "4OCLSf": [
     {
       "type": 0,
-      "value": "Response to user"
+      "value": "Reactie aan gebruiker"
     }
   ],
   "4OUjTL": [
@@ -1197,10 +1307,22 @@
       "value": "Kun je de aanbevolen procedures voor mijn resource controleren?"
     }
   ],
+  "4Orfd8": [
+    {
+      "type": 0,
+      "value": "Rename thread"
+    }
+  ],
   "4QLM52": [
     {
       "type": 0,
-      "value": "New agents can take a few seconds to appear in the graph. If you do not see it right away, refresh the list after a brief moment."
+      "value": "Nieuwe agents kunnen enkele seconden duren voordat ze in de grafiek verschijnen. Zie je ze niet meteen, vernieuw dan de lijst na een korte pauze."
+    }
+  ],
+  "4Qhg3L": [
+    {
+      "type": 0,
+      "value": "Keep the description brief and explain the task’s actions. Include necessary resource identifiers, specify time-sensitive information, and define success/failure signals or required output formats."
     }
   ],
   "4TnjxL": [
@@ -1212,7 +1334,7 @@
   "4XOvey": [
     {
       "type": 0,
-      "value": "AI Agents"
+      "value": "AI-agents"
     }
   ],
   "4ZoIgV": [
@@ -1230,7 +1352,7 @@
   "4fPELu": [
     {
       "type": 0,
-      "value": "Function"
+      "value": "Functie"
     }
   ],
   "4ii5zj": [
@@ -1266,13 +1388,13 @@
   "4pJVaS": [
     {
       "type": 0,
-      "value": "Select row"
+      "value": "Rij selecteren"
     }
   ],
   "4uiKBK": [
     {
       "type": 0,
-      "value": "Select a Kusto connector"
+      "value": "Selecteer een Kusto-connector"
     }
   ],
   "4upwsn": [
@@ -1284,7 +1406,7 @@
   "4z+NaY": [
     {
       "type": 0,
-      "value": "The type of data source"
+      "value": "Het type gegevensbron"
     }
   ],
   "5+bQr/": [
@@ -1314,7 +1436,7 @@
   "54UIcW": [
     {
       "type": 0,
-      "value": "We couldn’t polish the instructions. Try again shortly."
+      "value": "De instructies zijn niet verbeterd. Probeer het later opnieuw."
     }
   ],
   "59z+Aj": [
@@ -1336,7 +1458,7 @@
   "5DqOua": [
     {
       "type": 0,
-      "value": "Pick an extended agent to assist you with tasks."
+      "value": "Kies een uitgebreide agent om je te helpen met taken."
     }
   ],
   "5GUtRJ": [
@@ -1348,7 +1470,7 @@
   "5Imse3": [
     {
       "type": 0,
-      "value": "Failed to delete connector with error: "
+      "value": "Connector is niet verwijderd met fout: "
     },
     {
       "type": 1,
@@ -1358,7 +1480,7 @@
   "5MSxYS": [
     {
       "type": 0,
-      "value": "Will add as handoff to "
+      "value": "Wordt toegevoegd als overdracht aan "
     },
     {
       "type": 1,
@@ -1372,7 +1494,7 @@
   "5POweM": [
     {
       "type": 0,
-      "value": "Create New Entity"
+      "value": "Nieuwe entiteit maken"
     }
   ],
   "5QYdPU": [
@@ -1387,6 +1509,24 @@
       "value": "Id invoeren van team dat eigenaar is"
     }
   ],
+  "5SH2BD": [
+    {
+      "type": 0,
+      "value": "Weekly on "
+    },
+    {
+      "type": 1,
+      "value": "day"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "5Sc5rT": [
     {
       "type": 0,
@@ -1397,6 +1537,12 @@
     {
       "type": 0,
       "value": "U bent niet gemachtigd om dit rapport te verwijderen"
+    }
+  ],
+  "5U04OG": [
+    {
+      "type": 0,
+      "value": "Data knowledge space"
     }
   ],
   "5UfRjw": [
@@ -1442,7 +1588,13 @@
   "5XRsWa": [
     {
       "type": 0,
-      "value": "Agent status"
+      "value": "Agentstatus"
+    }
+  ],
+  "5Y6lHe": [
+    {
+      "type": 0,
+      "value": "You can increase or decrease active flow AAUs as needed. If the agent reaches the active flow limit, it continues running only in the always-on flow but is unavailable for chat and actions."
     }
   ],
   "5cRddy": [
@@ -1488,7 +1640,7 @@
   "5kK+j9": [
     {
       "type": 0,
-      "value": "Restart"
+      "value": "Opnieuw opstarten"
     }
   ],
   "5kp1Ie": [
@@ -1520,7 +1672,7 @@
   "5q8BxP": [
     {
       "type": 0,
-      "value": "What would you like to create?"
+      "value": "Wat wil je maken?"
     }
   ],
   "5sg7KC": [
@@ -1590,7 +1742,7 @@
   "67UmDz": [
     {
       "type": 0,
-      "value": "Parameter syntax:"
+      "value": "Parametersyntaxis:"
     }
   ],
   "69FfbB": [
@@ -1611,12 +1763,6 @@
       "value": "Kan geen beheerde verbinding maken"
     }
   ],
-  "6HiPiX": [
-    {
-      "type": 0,
-      "value": "Er is een nieuw takenplan gemaakt:"
-    }
-  ],
   "6IIC+D": [
     {
       "type": 0,
@@ -1626,13 +1772,19 @@
   "6KOA0x": [
     {
       "type": 0,
-      "value": "Cleared the composer. Type a new question to begin a fresh chat."
+      "value": "De composer is gewist. Typ een nieuwe vraag om een nieuwe chat te starten."
     }
   ],
   "6LZ2qn": [
     {
       "type": 0,
       "value": "Deze incidenten komen overeen met je filtercriteria. Als er een incident ontbreekt, ga je terug naar de vorige stap en wijzig je de filterparameters."
+    }
+  ],
+  "6Lox/s": [
+    {
+      "type": 0,
+      "value": "recommendations"
     }
   ],
   "6OBtew": [
@@ -1656,13 +1808,13 @@
   "6SKklv": [
     {
       "type": 0,
-      "value": "Remove attachment"
+      "value": "Bijlage verwijderen"
     }
   ],
   "6TO45V": [
     {
       "type": 0,
-      "value": "No parameters defined."
+      "value": "Er zijn geen parameters gedefinieerd."
     }
   ],
   "6UyZlH": [
@@ -1674,7 +1826,7 @@
   "6Vngei": [
     {
       "type": 0,
-      "value": "Trigger type"
+      "value": "Triggertype"
     }
   ],
   "6XFO/C": [
@@ -1701,6 +1853,12 @@
       "value": "Geplande taak bewerken"
     }
   ],
+  "6aH1+U": [
+    {
+      "type": 0,
+      "value": "Create a scheduled task"
+    }
+  ],
   "6bkNTl": [
     {
       "type": 0,
@@ -1710,7 +1868,7 @@
   "6dEJ43": [
     {
       "type": 0,
-      "value": "Cron draft"
+      "value": "Cron-concept"
     }
   ],
   "6dWeUs": [
@@ -1746,7 +1904,7 @@
   "6umiRw": [
     {
       "type": 0,
-      "value": "A clear, concise description that helps other agents understand when to delegate work to this specialist agent. This appears in agent handoff decisions and collaboration workflows."
+      "value": "Een duidelijke, beknopte beschrijving die andere agents helpt om te begrijpen wanneer ze werk aan deze specialistische agent moeten delegeren. Dit wordt weergegeven bij beslissingen over de overdracht van agenten en samenwerkingswerkstromen."
     }
   ],
   "6v8Uj+": [
@@ -1769,6 +1927,16 @@
     {
       "type": 0,
       "value": "Aangepaste visiebijdrager Cognitive Services"
+    }
+  ],
+  "726zma": [
+    {
+      "type": 0,
+      "value": "Daily at "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "74vgSJ": [
@@ -1798,7 +1966,7 @@
   "7Cy5xk": [
     {
       "type": 0,
-      "value": "Go to Incident management"
+      "value": "Ga naar Incidentbeheer"
     }
   ],
   "7Eq7I8": [
@@ -1810,7 +1978,7 @@
   "7Hg58U": [
     {
       "type": 0,
-      "value": "e.g., QueryKusto"
+      "value": "bijvoorbeeld QueryKusto"
     }
   ],
   "7M8VZy": [
@@ -1834,25 +2002,31 @@
   "7TVRcx": [
     {
       "type": 0,
-      "value": "Retry link"
+      "value": "Opnieuw proberen"
     }
   ],
   "7Uk/61": [
     {
       "type": 0,
-      "value": "Agent configuration"
+      "value": "Agentconfiguratie"
     }
   ],
   "7Vep/o": [
     {
       "type": 0,
-      "value": "A unique identifier for your connector"
+      "value": "Een unieke id voor je connector"
     }
   ],
   "7X1tNR": [
     {
       "type": 0,
-      "value": "Create task"
+      "value": "Taak maken"
+    }
+  ],
+  "7bDMaW": [
+    {
+      "type": 0,
+      "value": "Delete file?"
     }
   ],
   "7cS956": [
@@ -1873,16 +2047,10 @@
       "value": "Projectgegevens"
     }
   ],
-  "7kPmO3": [
-    {
-      "type": 0,
-      "value": "Edit connector"
-    }
-  ],
   "7nUCu9": [
     {
       "type": 0,
-      "value": "Timezone"
+      "value": "Tijdzone"
     }
   ],
   "7oBAcZ": [
@@ -1893,7 +2061,7 @@
           "value": [
             {
               "type": 0,
-              "value": "No incident response plans yet"
+              "value": "Nog geen plannen voor incidentreacties"
             }
           ]
         },
@@ -1901,7 +2069,7 @@
           "value": [
             {
               "type": 0,
-              "value": "1 incident response plan ready"
+              "value": "1 plan voor incidentreactie gereed"
             }
           ]
         },
@@ -1913,7 +2081,7 @@
             },
             {
               "type": 0,
-              "value": " incident response plans ready"
+              "value": " plannen voor incidentreacties gereed"
             }
           ]
         }
@@ -1938,13 +2106,13 @@
   "7smbCB": [
     {
       "type": 0,
-      "value": "Define autonomous agents with custom instructions and capabilities"
+      "value": "Definieer autonome agents met aangepaste instructies en mogelijkheden"
     }
   ],
   "7tqXmc": [
     {
       "type": 0,
-      "value": "Describe how "
+      "value": "Beschrijf hoe "
     },
     {
       "type": 1,
@@ -1952,7 +2120,7 @@
     },
     {
       "type": 0,
-      "value": " should handle new incidents."
+      "value": " nieuwe incidenten moet afhandelen."
     }
   ],
   "7vl63m": [
@@ -1982,7 +2150,7 @@
   "83YwiU": [
     {
       "type": 0,
-      "value": "Tool details · "
+      "value": "Details van hulpprogramma · "
     },
     {
       "type": 1,
@@ -1992,7 +2160,7 @@
   "86kOeb": [
     {
       "type": 0,
-      "value": "No matches for the current filters."
+      "value": "Geen resultaten voor de huidige filters."
     }
   ],
   "87v+WY": [
@@ -2001,10 +2169,16 @@
       "value": "Volledige toegang tot Azure Digital Twins-gegevens."
     }
   ],
+  "8AMq3a": [
+    {
+      "type": 0,
+      "value": "Daily active flow consumption"
+    }
+  ],
   "8BaLs0": [
     {
       "type": 0,
-      "value": "Select all rows"
+      "value": "Alle rijen selecteren"
     }
   ],
   "8F5cJQ": [
@@ -2016,7 +2190,7 @@
   "8LMIGa": [
     {
       "type": 0,
-      "value": "These will be replaced with actual values at runtime."
+      "value": "Deze worden tijdens runtime vervangen door werkelijke waarden."
     }
   ],
   "8NHZQV": [
@@ -2034,7 +2208,7 @@
   "8Q504V": [
     {
       "type": 0,
-      "value": "Metadata"
+      "value": "Metagegevens"
     }
   ],
   "8QX1EO": [
@@ -2046,7 +2220,7 @@
   "8RcpTO": [
     {
       "type": 0,
-      "value": "Describe this connector..."
+      "value": "Beschrijf deze connector..."
     }
   ],
   "8RdOD0": [
@@ -2059,6 +2233,12 @@
     {
       "type": 0,
       "value": "De taak is niet hervat"
+    }
+  ],
+  "8Vd2Kv": [
+    {
+      "type": 0,
+      "value": "Update list"
     }
   ],
   "8Wiwkg": [
@@ -2076,7 +2256,59 @@
   "8dASTJ": [
     {
       "type": 0,
-      "value": "Create a handoff sub-agent"
+      "value": "Maak een subagent voor handoff"
+    }
+  ],
+  "8dTxSy": [
+    {
+      "type": 0,
+      "value": "Learn more about how to calculate cost"
+    }
+  ],
+  "8eOoHt": [
+    {
+      "type": 0,
+      "value": "This will permanently "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
+    },
+    {
+      "type": 0,
+      "value": "s. Are you sure you want to "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " these "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
+    },
+    {
+      "type": 0,
+      "value": "s?"
     }
   ],
   "8fYK1J": [
@@ -2100,13 +2332,13 @@
   "8ojA9A": [
     {
       "type": 0,
-      "value": "Let AI polish the instructions"
+      "value": "De instructies laten verbeteren door AI"
     }
   ],
   "8oyl6b": [
     {
       "type": 0,
-      "value": "Line chart"
+      "value": "Lijndiagram"
     }
   ],
   "8quEg9": [
@@ -2118,7 +2350,7 @@
   "8rNTuV": [
     {
       "type": 0,
-      "value": "Select an agent to hand off to"
+      "value": "Selecteer een agent om aan over te dragen"
     }
   ],
   "8v0Pyn": [
@@ -2131,6 +2363,12 @@
       "value": "platformName"
     }
   ],
+  "8wQLC0": [
+    {
+      "type": 0,
+      "value": "Close Todo Plans"
+    }
+  ],
   "8yyU6n": [
     {
       "type": 0,
@@ -2141,6 +2379,20 @@
     {
       "type": 0,
       "value": "Volgende"
+    }
+  ],
+  "9+dRta": [
+    {
+      "type": 0,
+      "value": "This will permanently delete "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " files from the knowledge sources the agent uses. Are you sure you want to delete these files?"
     }
   ],
   "9/ucRx": [
@@ -2170,7 +2422,7 @@
   "94QRkK": [
     {
       "type": 0,
-      "value": "Follow-up questions"
+      "value": "Vervolgvragen"
     }
   ],
   "94zF5I": [
@@ -2194,13 +2446,13 @@
   "98A08r": [
     {
       "type": 0,
-      "value": "Learn more about MCP servers"
+      "value": "Meer informatie over MCP-servers"
     }
   ],
   "98TwgV": [
     {
       "type": 0,
-      "value": "Describe when and why other agents should hand off to this agent..."
+      "value": "Beschrijf wanneer en waarom andere agents het werk aan deze agent moeten overdragen..."
     }
   ],
   "99OdS3": [
@@ -2212,17 +2464,23 @@
   "9Dp2VU": [
     {
       "type": 0,
-      "value": "Save failed: "
+      "value": "Opslaan mislukt: "
     },
     {
       "type": 1,
       "value": "message"
     }
   ],
+  "9G+4ga": [
+    {
+      "type": 0,
+      "value": "Try different search terms or clear your search to see all data connectors."
+    }
+  ],
   "9GSKOR": [
     {
       "type": 0,
-      "value": "This overrides the default meta agent to remove general Azure knowledge and provide a more focused experience."
+      "value": "Dit overschrijft de standaardmetaagent om algemene Azure-kennis te verwijderen en een gerichtere ervaring te bieden."
     }
   ],
   "9MPGF8": [
@@ -2234,7 +2492,7 @@
   "9MwJ6v": [
     {
       "type": 0,
-      "value": "e.g., IncidentAnalyzer"
+      "value": "bijvoorbeeld IncidentAnalyzer"
     }
   ],
   "9VUlhV": [
@@ -2246,7 +2504,19 @@
   "9WRlF4": [
     {
       "type": 0,
-      "value": "Send"
+      "value": "Verzenden"
+    }
+  ],
+  "9X3VEw": [
+    {
+      "type": 0,
+      "value": "The task will stop running after reaching this number"
+    }
+  ],
+  "9XASFm": [
+    {
+      "type": 0,
+      "value": "Selected files table"
     }
   ],
   "9ZIBMx": [
@@ -2264,11 +2534,29 @@
   "9bH3e2": [
     {
       "type": 0,
-      "value": "Nodes: "
+      "value": "Knooppunten: "
     },
     {
       "type": 1,
       "value": "count"
+    }
+  ],
+  "9sDoY5": [
+    {
+      "type": 1,
+      "value": "completed"
+    },
+    {
+      "type": 0,
+      "value": " of "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " completed"
     }
   ],
   "9uOFF3": [
@@ -2304,7 +2592,7 @@
   "A3ptul": [
     {
       "type": 0,
-      "value": "Templates"
+      "value": "Sjablonen"
     }
   ],
   "AA/tRJ": [
@@ -2345,10 +2633,22 @@
       "value": "."
     }
   ],
+  "AHQdRU": [
+    {
+      "type": 0,
+      "value": "Monthly AAU limit:"
+    }
+  ],
+  "ALkPTF": [
+    {
+      "type": 0,
+      "value": "No data connectors configured"
+    }
+  ],
   "ATXGa+": [
     {
       "type": 0,
-      "value": "Agent Name"
+      "value": "Naam van agent"
     }
   ],
   "ATYp8z": [
@@ -2360,13 +2660,19 @@
   "AaJ/LU": [
     {
       "type": 0,
-      "value": "Polish the instructions"
+      "value": "De instructies verbeteren"
     }
   ],
   "AbXVP4": [
     {
       "type": 0,
       "value": "Gemaakt om"
+    }
+  ],
+  "AbleKr": [
+    {
+      "type": 0,
+      "value": "data connector"
     }
   ],
   "AbpmRv": [
@@ -2378,11 +2684,17 @@
   "AdRf7Y": [
     {
       "type": 0,
-      "value": "Detected cron: "
+      "value": "Gedetecteerde cron: "
     },
     {
       "type": 1,
       "value": "cron"
+    }
+  ],
+  "AdnFH8": [
+    {
+      "type": 0,
+      "value": "The current consumption exceeds the new allocation, which will take effect next month. Until then, the agent will run only in the always-on flow. Chat and actions will be unavailable."
     }
   ],
   "AeWmvh": [
@@ -2400,7 +2712,7 @@
   "Ai/0lk": [
     {
       "type": 0,
-      "value": "A function or capability for agents to use"
+      "value": "Een functie of mogelijkheid voor agents om te gebruiken"
     }
   ],
   "AmnkPD": [
@@ -2418,7 +2730,7 @@
   "AqVLXi": [
     {
       "type": 0,
-      "value": "Create reusable functions and actions for your agents"
+      "value": "Maak herbruikbare functies en acties voor je agents"
     }
   ],
   "AuFOi8": [
@@ -2436,7 +2748,7 @@
   "AzTehW": [
     {
       "type": 0,
-      "value": "Review and edit the full "
+      "value": "Bekijk en bewerk de volledige "
     },
     {
       "type": 1,
@@ -2477,16 +2789,22 @@
       "value": "Lezer van Azure Center voor SAP-oplossingen"
     }
   ],
+  "BLU3k6": [
+    {
+      "type": 0,
+      "value": "Edit a scheduled task"
+    }
+  ],
   "BP3wUO": [
     {
       "type": 0,
-      "value": "The type of tool functionality"
+      "value": "Het type hulpprogrammafunctionaliteit"
     }
   ],
   "BSQQkf": [
     {
       "type": 0,
-      "value": "Query returned no results"
+      "value": "De query heeft geen resultaten geretourneerd"
     }
   ],
   "BT9p8f": [
@@ -2499,6 +2817,24 @@
     {
       "type": 0,
       "value": "Opslagplaats koppelen aan resource"
+    }
+  ],
+  "BV7QgK": [
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "BWpuKl": [
@@ -2520,7 +2856,7 @@
     },
     {
       "type": 0,
-      "value": "s"
+      "value": " s"
     }
   ],
   "Bcgdb7": [
@@ -2542,7 +2878,17 @@
   "BgdyiU": [
     {
       "type": 0,
-      "value": "Incident response"
+      "value": "Incidentreactie"
+    }
+  ],
+  "BhRlDa": [
+    {
+      "type": 0,
+      "value": "Deleting incidents "
+    },
+    {
+      "type": 1,
+      "value": "titles"
     }
   ],
   "BkOSF2": [
@@ -2554,13 +2900,27 @@
   "Bluuk+": [
     {
       "type": 0,
-      "value": "Data type and requirement for validation"
+      "value": "Gegevenstype en vereiste voor validatie"
+    }
+  ],
+  "BmEERa": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " data connectors..."
     }
   ],
   "BynA9c": [
     {
       "type": 0,
-      "value": "Optional tweaks"
+      "value": "Optionele aanpassingen"
     }
   ],
   "C2PrxB": [
@@ -2587,6 +2947,12 @@
       "value": "Alleen-lezenrol voor eigenschappen van Digital Twins-gegevensvlak."
     }
   ],
+  "CJ6tzL": [
+    {
+      "type": 0,
+      "value": "File Source"
+    }
+  ],
   "CJEYfo": [
     {
       "type": 0,
@@ -2608,19 +2974,19 @@
   "CNd+KS": [
     {
       "type": 0,
-      "value": "Connect related agents and tools"
+      "value": "Verwante agents en tools verbinden"
     }
   ],
   "CPsPh7": [
     {
       "type": 0,
-      "value": "How would you like to define the schedule?"
+      "value": "Hoe wilt u de planning definiëren?"
     }
   ],
   "CTRqZs": [
     {
       "type": 0,
-      "value": "Test query"
+      "value": "Query testen"
     }
   ],
   "CVAKJE": [
@@ -2632,7 +2998,7 @@
   "CX0VFc": [
     {
       "type": 0,
-      "value": "Loading trigger status…"
+      "value": "Trigger-uitvoeringen laden"
     }
   ],
   "CZ6s9k": [
@@ -2644,13 +3010,35 @@
   "CaZAZZ": [
     {
       "type": 0,
-      "value": "Open scheduled tasks"
+      "value": "Geplande taken openen"
+    }
+  ],
+  "CbntSG": [
+    {
+      "type": 0,
+      "value": "Database query connector"
+    }
+  ],
+  "CeDXMM": [
+    {
+      "type": 0,
+      "value": "Here are the memory search results:"
     }
   ],
   "CfGC/2": [
     {
       "type": 0,
       "value": "Selecteer de resourcegroepen die je wilt bewaken"
+    }
+  ],
+  "ChQQJ0": [
+    {
+      "type": 0,
+      "value": "Selected "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
     }
   ],
   "CimbUb": [
@@ -2674,7 +3062,7 @@
   "CvGdox": [
     {
       "type": 0,
-      "value": "Add more tools for incident response"
+      "value": "Meer hulpprogramma's toevoegen voor incidentreactie"
     }
   ],
   "CvWvf+": [
@@ -2743,10 +3131,54 @@
       "value": "Verholpen door agent"
     }
   ],
+  "D7U9Zo": [
+    {
+      "type": 0,
+      "value": "Custom instructions"
+    }
+  ],
+  "DDSwQB": [
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
+    },
+    {
+      "type": 0,
+      "value": "s?"
+    }
+  ],
+  "DF0TNm": [
+    {
+      "type": 0,
+      "value": "Code optimization insights"
+    }
+  ],
+  "DJN+DZ": [
+    {
+      "type": 0,
+      "value": "Choose whether to run deep investigations alongside regular investigations"
+    }
+  ],
   "DMEE1o": [
     {
       "type": 0,
-      "value": "Select a tool to connect"
+      "value": "Selecteer een hulpprogramma om verbinding mee te maken"
     }
   ],
   "DMd1Ql": [
@@ -2764,7 +3196,7 @@
   "DQfSk8": [
     {
       "type": 0,
-      "value": "Output type"
+      "value": "Uitvoertype"
     }
   ],
   "DVVbGP": [
@@ -2806,13 +3238,13 @@
   "DhBWKr": [
     {
       "type": 0,
-      "value": "No instructions provided yet."
+      "value": "Er zijn nog geen instructies opgegeven."
     }
   ],
   "Dhy8jb": [
     {
       "type": 0,
-      "value": "A data source connection for tools (e.g., Kusto cluster for running queries)"
+      "value": "Een gegevensbronverbinding voor hulpprogramma's (bijvoorbeeld Kusto-cluster voor het uitvoeren van query's)"
     }
   ],
   "DlSXUR": [
@@ -2854,7 +3286,7 @@
   "Dw2xIY": [
     {
       "type": 0,
-      "value": "Create a new tool"
+      "value": "Een nieuw hulpprogramma maken"
     }
   ],
   "Dx3Xj3": [
@@ -2872,7 +3304,7 @@
   "E+jVAN": [
     {
       "type": 0,
-      "value": "No trace data found for this thread."
+      "value": "Geen traceringsgegevens gevonden voor deze thread."
     }
   ],
   "E396gv": [
@@ -2896,7 +3328,7 @@
   "EBpelF": [
     {
       "type": 0,
-      "value": "No warnings found"
+      "value": "Geen waarschuwingen gevonden"
     }
   ],
   "ED/jWk": [
@@ -2908,7 +3340,7 @@
   "EHyU+4": [
     {
       "type": 0,
-      "value": "Use "
+      "value": "Gebruik "
     },
     {
       "children": [
@@ -2922,7 +3354,7 @@
     },
     {
       "type": 0,
-      "value": " in your query to define parameter placeholders."
+      "value": " in je query om tijdelijke aanduidingen voor parameters te definiëren."
     }
   ],
   "EI/cfO": [
@@ -2954,7 +3386,7 @@
   "EN5iMk": [
     {
       "type": 0,
-      "value": "Service type"
+      "value": "Servicetype"
     }
   ],
   "ENnkRe": [
@@ -2987,10 +3419,16 @@
       "value": "Incidentplatform"
     }
   ],
+  "EbNaDn": [
+    {
+      "type": 0,
+      "value": "Knowledge Base"
+    }
+  ],
   "Ec1M0J": [
     {
       "type": 0,
-      "value": "Action plan"
+      "value": "Actieplan"
     }
   ],
   "EdEthU": [
@@ -3012,7 +3450,7 @@
   "EicA1w": [
     {
       "type": 0,
-      "value": "Test the query to continue."
+      "value": "Test de query om door te gaan."
     }
   ],
   "ElI1gd": [
@@ -3024,13 +3462,7 @@
   "ElqLuA": [
     {
       "type": 0,
-      "value": "Trace data parsed with warnings."
-    }
-  ],
-  "EmN362": [
-    {
-      "type": 0,
-      "value": "Create connector"
+      "value": "Traceringsgegevens geparseerd met waarschuwingen."
     }
   ],
   "Ep74wA": [
@@ -3054,7 +3486,7 @@
   "Euy+fB": [
     {
       "type": 0,
-      "value": "Connect MCP server"
+      "value": "MCP-server verbinden"
     }
   ],
   "EwRIOm": [
@@ -3065,24 +3497,24 @@
   ],
   "F5b1Mw": [
     {
-      "type": 0,
-      "value": "Currently showing "
-    },
-    {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " wordt momenteel weergegeven"
     }
   ],
   "F6qYbg": [
     {
       "type": 0,
-      "value": "Select tools this agent can use"
+      "value": "Selecteer hulpprogramma's die deze agent kan gebruiken"
     }
   ],
   "F8R5Bb": [
     {
       "type": 0,
-      "value": "Connections: "
+      "value": "Verbindingen: "
     },
     {
       "type": 1,
@@ -3092,7 +3524,7 @@
   "F8UOXS": [
     {
       "type": 0,
-      "value": "Relationship preview"
+      "value": "Relatievoorbeeld"
     }
   ],
   "F9LrJA": [
@@ -3110,17 +3542,21 @@
   "FE2ukR": [
     {
       "type": 0,
-      "value": "Remove handoff "
+      "value": "Handoff "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " verwijderen"
     }
   ],
   "FFFf74": [
     {
       "type": 0,
-      "value": "Last run: "
+      "value": "Laatste uitvoering: "
     },
     {
       "type": 1,
@@ -3133,6 +3569,12 @@
       "value": "Beheerde resourcegroepen zijn toegevoegd"
     }
   ],
+  "FGP0Kd": [
+    {
+      "type": 0,
+      "value": "CPU usage insights"
+    }
+  ],
   "FLm/x4": [
     {
       "type": 0,
@@ -3142,13 +3584,19 @@
   "FNQNS1": [
     {
       "type": 0,
-      "value": "Weekdays at 9am Pacific"
+      "value": "Weekdagen om 9:00 uur Pacific"
     }
   ],
   "FO/nez": [
     {
       "type": 0,
-      "value": "Describe what this tool does..."
+      "value": "Beschrijf wat dit hulpprogramma doet..."
+    }
+  ],
+  "FPdoJ3": [
+    {
+      "type": 0,
+      "value": "Define how incidents are detected and reviewed, and the instructions for how the agent responds."
     }
   ],
   "FSYccN": [
@@ -3160,7 +3608,7 @@
   "FTWkpv": [
     {
       "type": 0,
-      "value": "Create new entity"
+      "value": "Nieuwe entiteit maken"
     }
   ],
   "FUQvS0": [
@@ -3172,7 +3620,7 @@
   "FVOAIQ": [
     {
       "type": 0,
-      "value": "Handoff Agents (Optional)"
+      "value": "Handoff-agents (optioneel)"
     }
   ],
   "FZwBv0": [
@@ -3190,7 +3638,7 @@
   "FkvYGq": [
     {
       "type": 0,
-      "value": "System prompt that defines the agent's behavior"
+      "value": "Systeemprompt die het gedrag van de agent bepaalt"
     }
   ],
   "FnKIAW": [
@@ -3217,22 +3665,34 @@
       "value": "YAML"
     }
   ],
+  "FvtGBp": [
+    {
+      "type": 0,
+      "value": "browse for files"
+    }
+  ],
   "FyrC09": [
     {
       "type": 0,
-      "value": "Create trigger"
+      "value": "Trigger maken"
     }
   ],
   "FzjwEg": [
     {
       "type": 0,
-      "value": "Critic on handoff"
+      "value": "Criticus bij handoff"
     }
   ],
   "G+JlQs": [
     {
       "type": 0,
       "value": "Primaire resourcenaam is gelijk aan"
+    }
+  ],
+  "G/YsSs": [
+    {
+      "type": 0,
+      "value": "Custom cron"
     }
   ],
   "G/yZLu": [
@@ -3248,7 +3708,7 @@
     },
     {
       "type": 0,
-      "value": " subscriptions selected"
+      "value": " abonnementen geselecteerd"
     }
   ],
   "G6vaGg": [
@@ -3275,16 +3735,24 @@
       "value": "- wordt uitgevoerd"
     }
   ],
+  "GCVZ4/": [
+    {
+      "type": 0,
+      "value": "Successfully deleted "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " data connectors"
+    }
+  ],
   "GCmxza": [
     {
       "type": 0,
-      "value": "Back to commands"
-    }
-  ],
-  "GNJGHu": [
-    {
-      "type": 0,
-      "value": "Update the connector configuration."
+      "value": "Terug naar opdrachten"
     }
   ],
   "GUx4Ld": [
@@ -3296,13 +3764,19 @@
   "GaA28c": [
     {
       "type": 0,
-      "value": "Incident details"
+      "value": "Details van incident"
     }
   ],
   "GkJbiq": [
     {
       "type": 0,
-      "value": "Start a new chat thread."
+      "value": "Start een nieuw chatgesprek."
+    }
+  ],
+  "GkKcbX": [
+    {
+      "type": 0,
+      "value": "Add a response plan"
     }
   ],
   "Gl8fnJ": [
@@ -3320,7 +3794,7 @@
   "GpZr9J": [
     {
       "type": 0,
-      "value": "Automatically run "
+      "value": "Laat "
     },
     {
       "type": 1,
@@ -3328,7 +3802,7 @@
     },
     {
       "type": 0,
-      "value": " on a schedule to keep key systems healthy."
+      "value": " automatisch volgens een schema draaien om belangrijke systemen gezond te houden."
     }
   ],
   "GroBmn": [
@@ -3350,13 +3824,13 @@
     },
     {
       "type": 0,
-      "value": " params detected"
+      "value": " parameters gedetecteerd"
     }
   ],
   "H1OQZj": [
     {
       "type": 0,
-      "value": "YAML must include kind: {expectedKind}."
+      "value": "YAML moet soort bevatten: {expectedKind}."
     }
   ],
   "H3ooTI": [
@@ -3371,6 +3845,12 @@
       "value": "Plan voor incidentreactie maken"
     }
   ],
+  "HADwwN": [
+    {
+      "type": 0,
+      "value": "Task details"
+    }
+  ],
   "HAlOn1": [
     {
       "type": 0,
@@ -3383,16 +3863,34 @@
       "value": "Onderzoeksresultaten"
     }
   ],
+  "HFuyFh": [
+    {
+      "type": 0,
+      "value": "No code optimization recommendations detected."
+    }
+  ],
+  "HKlw1J": [
+    {
+      "type": 0,
+      "value": "This will permanently disconnect this data connector from the agent. Are you sure you want to disconnect this data connector?"
+    }
+  ],
   "HNECLT": [
     {
       "type": 0,
-      "value": "Build Your Agent Ecosystem"
+      "value": "Bouw je agentecosysteem"
     }
   ],
   "HOJNsf": [
     {
       "type": 0,
       "value": "Selecteren wanneer de taak niet meer moet worden uitgevoerd"
+    }
+  ],
+  "HQ4NJ3": [
+    {
+      "type": 0,
+      "value": "Learn more about response plans"
     }
   ],
   "HQhDfV": [
@@ -3422,7 +3920,7 @@
   "Hgs+WM": [
     {
       "type": 0,
-      "value": "View trace"
+      "value": "Tracering weergeven"
     }
   ],
   "Hh0q8u": [
@@ -3438,7 +3936,7 @@
   "HiBsED": [
     {
       "type": 0,
-      "value": "No handoffs added yet."
+      "value": "Er zijn nog geen handoffs toegevoegd."
     }
   ],
   "HjTHxo": [
@@ -3451,6 +3949,12 @@
     {
       "type": 0,
       "value": "Tijdsbestek"
+    }
+  ],
+  "Hs02Tq": [
+    {
+      "type": 0,
+      "value": "Loading daily reports"
     }
   ],
   "HtpD+z": [
@@ -3468,7 +3972,7 @@
   "Hv0XJn": [
     {
       "type": 0,
-      "value": "Suggestions"
+      "value": "Suggesties"
     }
   ],
   "Hv7pA2": [
@@ -3489,10 +3993,16 @@
       "value": "- voltooid"
     }
   ],
+  "I1tfGG": [
+    {
+      "type": 0,
+      "value": "View Memory Search Results"
+    }
+  ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "Bestaande gebruiken"
     }
   ],
   "I7aBF4": [
@@ -3528,7 +4038,7 @@
   "IEIivr": [
     {
       "type": 0,
-      "value": "Connected tool "
+      "value": "Verbonden hulpprogramma "
     },
     {
       "type": 1,
@@ -3536,7 +4046,7 @@
     },
     {
       "type": 0,
-      "value": " to "
+      "value": " met "
     },
     {
       "type": 1,
@@ -3556,13 +4066,13 @@
   "IJX2gV": [
     {
       "type": 0,
-      "value": "Connect handoffs and tools"
+      "value": "Handoffs en hulpprogramma's verbinden"
     }
   ],
   "INiSE2": [
     {
       "type": 0,
-      "value": "Tool Name"
+      "value": "Naam van hulpprogramma"
     }
   ],
   "IQaKwH": [
@@ -3618,19 +4128,19 @@
   "IbMKy+": [
     {
       "type": 0,
-      "value": "Use this version"
+      "value": "Deze versie gebruiken"
     }
   ],
   "IcB2fr": [
     {
       "type": 0,
-      "value": "Tool method argument that receives this value"
+      "value": "Argument van hulpprogrammamethode dat deze waarde ontvangt"
     }
   ],
   "IcUakl": [
     {
       "type": 0,
-      "value": "Time zone"
+      "value": "Tijdzone"
     }
   ],
   "IiNwpr": [
@@ -3650,7 +4160,7 @@
   "InWqys": [
     {
       "type": 0,
-      "value": "Optional"
+      "value": "Optioneel"
     }
   ],
   "IoApza": [
@@ -3659,10 +4169,22 @@
       "value": "Navigatie samenvouwen"
     }
   ],
+  "IomdzL": [
+    {
+      "type": 0,
+      "value": "The agent uses predefined queries for structured logs, telemetry, and time series data."
+    }
+  ],
   "IrCHQG": [
     {
       "type": 0,
-      "value": "Select an agent to view its configuration."
+      "value": "Selecteer een agent om de configuratie te bekijken."
+    }
+  ],
+  "ItmLyp": [
+    {
+      "type": 0,
+      "value": "Connect an incident platform"
     }
   ],
   "IuFETn": [
@@ -3674,7 +4196,7 @@
   "IvKdxU": [
     {
       "type": 0,
-      "value": "System tools · "
+      "value": "Systeemhulpmiddelen · "
     },
     {
       "type": 1,
@@ -3722,7 +4244,13 @@
   "J7FnS1": [
     {
       "type": 0,
-      "value": "Connect existing items"
+      "value": "Bestaande items verbinden"
+    }
+  ],
+  "J8u7Xg": [
+    {
+      "type": 0,
+      "value": "Last Modified"
     }
   ],
   "JAtEuU": [
@@ -3766,7 +4294,7 @@
   "JMdyE9": [
     {
       "type": 0,
-      "value": "Use AI to enhance and validate your agent instructions"
+      "value": "Gebruik AI om de instructies van je agent te verbeteren en te valideren"
     }
   ],
   "JRLN0D": [
@@ -3807,7 +4335,7 @@
           "value": [
             {
               "type": 0,
-              "value": "No scheduled tasks yet"
+              "value": "Nog geen geplande taken"
             }
           ]
         },
@@ -3815,7 +4343,7 @@
           "value": [
             {
               "type": 0,
-              "value": "1 scheduled task ready"
+              "value": "1 geplande taak gereed"
             }
           ]
         },
@@ -3827,7 +4355,7 @@
             },
             {
               "type": 0,
-              "value": " scheduled tasks ready"
+              "value": " geplande taken gereed"
             }
           ]
         }
@@ -3856,13 +4384,13 @@
     },
     {
       "type": 0,
-      "value": " locations selected"
+      "value": " locaties geselecteerd"
     }
   ],
   "JbmMWM": [
     {
       "type": 0,
-      "value": "Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatible connector was found)"
+      "value": "Beheerde identiteit (beheerde identiteit van agentruimte automatisch gekozen als agentruimte en compatibele connector gevonden)"
     }
   ],
   "JezZlU": [
@@ -3930,19 +4458,19 @@
   "Jz5GjX": [
     {
       "type": 0,
-      "value": "Review Your trigger"
+      "value": "Controleer je trigger"
     }
   ],
   "JzOvG/": [
     {
       "type": 0,
-      "value": "Assumptions we made"
+      "value": "Onze aannames"
     }
   ],
   "K1h5xo": [
     {
       "type": 0,
-      "value": "Scheduled tasks require an upgrade. Contact your administrator to enable them."
+      "value": "Geplande taken vereisen een upgrade. Neem contact op met je beheerder om ze in te schakelen."
     }
   ],
   "K3r6DQ": [
@@ -3954,13 +4482,13 @@
   "K7AkdL": [
     {
       "type": 0,
-      "value": "Show"
+      "value": "Weergeven"
     }
   ],
   "K9q4Xw": [
     {
       "type": 0,
-      "value": "MCP servers"
+      "value": "MCP-servers"
     }
   ],
   "KAYpG9": [
@@ -4002,7 +4530,7 @@
   "KR79he": [
     {
       "type": 0,
-      "value": "New agent"
+      "value": "Nieuwe agent"
     }
   ],
   "KS5JHs": [
@@ -4026,7 +4554,7 @@
   "KgcF6B": [
     {
       "type": 0,
-      "value": "Yes/No"
+      "value": "Ja/Nee"
     }
   ],
   "Kkc3/u": [
@@ -4038,7 +4566,7 @@
   "Km+WSh": [
     {
       "type": 0,
-      "value": "Map to argument"
+      "value": "Toewijzen aan argument"
     }
   ],
   "KoJ1C+": [
@@ -4055,10 +4583,16 @@
       "value": ")"
     }
   ],
+  "KqwLPK": [
+    {
+      "type": 0,
+      "value": "Database indexing connector"
+    }
+  ],
   "KryvVM": [
     {
       "type": 0,
-      "value": "Parameter values (for testing)"
+      "value": "Parameterwaarden (voor testen)"
     }
   ],
   "KsuM4D": [
@@ -4076,7 +4610,7 @@
   "Kxd0Vr": [
     {
       "type": 0,
-      "value": "Allow parallel tool calls"
+      "value": "Parallelle hulpprogramma-aanroepen toestaan"
     }
   ],
   "KyDsjH": [
@@ -4094,13 +4628,13 @@
   "L+ewYY": [
     {
       "type": 0,
-      "value": "AI suggestions discarded"
+      "value": "AI-suggesties verwijderd"
     }
   ],
   "L/i6dy": [
     {
       "type": 0,
-      "value": "We’ll mark this agent as Autonomous automatically so it can run on its own."
+      "value": "We markeren deze agent automatisch als autonoom zodat hij zelfstandig kan draaien."
     }
   ],
   "L0KVkI": [
@@ -4138,23 +4672,39 @@
   "LPz7Qc": [
     {
       "type": 0,
-      "value": "Tool Type"
+      "value": "Type hulpprogramma"
+    }
+  ],
+  "LQ2AtR": [
+    {
+      "type": 0,
+      "value": "Deleted "
+    },
+    {
+      "type": 1,
+      "value": "successCount"
+    },
+    {
+      "type": 0,
+      "value": " data connectors. Failed to delete "
+    },
+    {
+      "type": 1,
+      "value": "failedCount"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "failedItems"
     }
   ],
   "LRJHcs": [
     {
       "type": 0,
       "value": "Voorbeelden van prompts"
-    }
-  ],
-  "LRTerU": [
-    {
-      "type": 0,
-      "value": "Stappen: "
-    },
-    {
-      "type": 1,
-      "value": "steps"
     }
   ],
   "LSaaxU": [
@@ -4166,7 +4716,7 @@
   "LTDPn/": [
     {
       "type": 0,
-      "value": "You have unsaved changes."
+      "value": "U hebt niet-opgeslagen wijzigingen."
     }
   ],
   "LUSiug": [
@@ -4188,19 +4738,19 @@
   "LbkJp1": [
     {
       "type": 0,
-      "value": "MCP servers table"
+      "value": "Tabel met MCP-servers"
     }
   ],
   "LkUvu/": [
     {
       "type": 0,
-      "value": "Describe the schedule"
+      "value": "Beschrijf de planning"
     }
   ],
   "Lm9kBB": [
     {
       "type": 0,
-      "value": "Select an incident."
+      "value": "Selecteer een incident."
     }
   ],
   "LnglaU": [
@@ -4245,6 +4795,12 @@
       "value": "Aangepast reactieplan bewerken"
     }
   ],
+  "M+AZNX": [
+    {
+      "type": 0,
+      "value": "Delete scheduled tasks"
+    }
+  ],
   "M/3/kG": [
     {
       "type": 0,
@@ -4260,7 +4816,7 @@
   "M3159R": [
     {
       "type": 0,
-      "value": "Quick create"
+      "value": "Snel maken"
     }
   ],
   "M4emJP": [
@@ -4294,7 +4850,7 @@
     },
     {
       "type": 0,
-      "value": " completed"
+      "value": " voltooid"
     }
   ],
   "MI5gZ+": [
@@ -4312,19 +4868,19 @@
   "MJUuF5": [
     {
       "type": 0,
-      "value": "Failed to improve instructions. Please try again."
+      "value": "Instructies kunnen niet worden verbeterd. Probeer het opnieuw."
     }
   ],
   "MK8Q9z": [
     {
       "type": 0,
-      "value": "Creating connector"
+      "value": "Connector maken..."
     }
   ],
   "MLVVhB": [
     {
       "type": 0,
-      "value": "Dictionary key (map_to)"
+      "value": "Woordenlijstsleutel (map_to)"
     }
   ],
   "MOsoTa": [
@@ -4336,7 +4892,7 @@
   "MOttDA": [
     {
       "type": 0,
-      "value": "Yes, override with custom meta agent"
+      "value": "Ja, overschrijven met aangepaste meta-agent"
     }
   ],
   "MPzBut": [
@@ -4345,10 +4901,22 @@
       "value": "Uitvoeringsgeschiedenis"
     }
   ],
+  "MQNtQ+": [
+    {
+      "type": 0,
+      "value": "Data Connectors"
+    }
+  ],
   "MSWnaq": [
     {
       "type": 0,
       "value": "Maak een nieuwe geplande taak om met regelmatige intervallen acties te bewaken of uit te voeren met Cron-expressies."
+    }
+  ],
+  "MUVpbF": [
+    {
+      "type": 0,
+      "value": "The agent generates queries by learning about your logs, telemetry, and time series data."
     }
   ],
   "MWaWoR": [
@@ -4360,13 +4928,13 @@
   "MaaxCM": [
     {
       "type": 0,
-      "value": "Kusto Configuration"
+      "value": "Kusto-configuratie"
     }
   ],
   "MgdnPi": [
     {
       "type": 0,
-      "value": "Response"
+      "value": "Reactie"
     }
   ],
   "MhTfXm": [
@@ -4378,7 +4946,7 @@
   "MjxZUD": [
     {
       "type": 0,
-      "value": "Use natural language—we’ll translate it into a cron schedule."
+      "value": "Gebruik natuurlijke taal; wij vertalen het naar een cron-schema."
     }
   ],
   "MlX0aZ": [
@@ -4434,7 +5002,7 @@
   "N+XwM+": [
     {
       "type": 0,
-      "value": "Create Your First Entity"
+      "value": "Je eerste entiteit maken"
     }
   ],
   "N+sJfO": [
@@ -4443,18 +5011,20 @@
       "value": "Rasterweergave"
     }
   ],
-  "N0wOFf": [
+  "N0d5pM": [
     {
       "type": 0,
-      "value": "Created "
-    },
+      "value": "AM"
+    }
+  ],
+  "N0wOFf": [
     {
       "type": 1,
       "value": "toolName"
     },
     {
       "type": 0,
-      "value": " and connected it to "
+      "value": " is gemaakt en verbonden met "
     },
     {
       "type": 1,
@@ -4468,7 +5038,7 @@
   "N7lPfx": [
     {
       "type": 0,
-      "value": "Relationships"
+      "value": "Relaties"
     }
   ],
   "NAAdaF": [
@@ -4486,7 +5056,7 @@
   "NBiLYK": [
     {
       "type": 0,
-      "value": "Drafting…"
+      "value": "Opstellen…"
     }
   ],
   "NBxjGE": [
@@ -4504,7 +5074,13 @@
   "NDy5dO": [
     {
       "type": 0,
-      "value": "Agent Type"
+      "value": "Agenttype"
+    }
+  ],
+  "NIrBo5": [
+    {
+      "type": 0,
+      "value": "Files will be stored in the agent."
     }
   ],
   "NMSoXQ": [
@@ -4517,6 +5093,12 @@
     {
       "type": 0,
       "value": "Aan de slag met incidentbeheer"
+    }
+  ],
+  "NSWNPa": [
+    {
+      "type": 0,
+      "value": "Try different search terms or clear your search to see all files."
     }
   ],
   "NV14yw": [
@@ -4558,7 +5140,7 @@
   "NlBiTm": [
     {
       "type": 0,
-      "value": "Filtered agent"
+      "value": "Gefilterde agent"
     }
   ],
   "Nrc9ba": [
@@ -4567,10 +5149,58 @@
       "value": "Hartelijk dank voor uw feedback."
     }
   ],
+  "NsLW3l": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " document selected"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " documents selected"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "NwAgjY": [
+    {
+      "type": 0,
+      "value": "Every "
+    },
+    {
+      "type": 1,
+      "value": "minutes"
+    },
+    {
+      "type": 0,
+      "value": " minutes"
+    }
+  ],
   "O3Ak71": [
     {
       "type": 0,
-      "value": "You do not have permission to use this feature."
+      "value": "U bent niet gemachtigd om deze functie te gebruiken."
     }
   ],
   "O79Wpv": [
@@ -4588,7 +5218,7 @@
   "OIWzWF": [
     {
       "type": 0,
-      "value": "Filter by autonomy level"
+      "value": "Filteren op autonomieniveau"
     }
   ],
   "OJ2u8k": [
@@ -4606,7 +5236,7 @@
   "OLSbA3": [
     {
       "type": 0,
-      "value": "Create a plan that starts this agent when a new incident is detected."
+      "value": "Maak een plan dat deze agent start wanneer een nieuw incident wordt gedetecteerd."
     }
   ],
   "OMp9VI": [
@@ -4632,7 +5262,7 @@
   "OO5Y94": [
     {
       "type": 0,
-      "value": "We couldn't find tool "
+      "value": "Kan hulpprogramma "
     },
     {
       "type": 1,
@@ -4640,13 +5270,13 @@
     },
     {
       "type": 0,
-      "value": ". Refresh and try again."
+      "value": " niet vinden. Vernieuw en probeer het opnieuw."
     }
   ],
   "OPBqEN": [
     {
       "type": 0,
-      "value": "Trace data parsed with errors."
+      "value": "Traceringsgegevens geparseerd met fouten."
     }
   ],
   "ORGv1Q": [
@@ -4670,7 +5300,7 @@
   "OUJuir": [
     {
       "type": 0,
-      "value": "Model details"
+      "value": "Modelgegevens"
     }
   ],
   "OV0MpG": [
@@ -4700,13 +5330,19 @@
   "OXek0m": [
     {
       "type": 0,
-      "value": "Use standard cron syntax (UTC) to control when the agent runs."
+      "value": "Gebruik standaard cron-syntaxis (UTC) om te bepalen wanneer de agent draait."
+    }
+  ],
+  "OYAXyI": [
+    {
+      "type": 0,
+      "value": "Provide information the agent will reference when analyzing or answering questions."
     }
   ],
   "OeU7Xk": [
     {
       "type": 0,
-      "value": "Explain what this scheduled trigger does for "
+      "value": "Leg uit wat deze geplande trigger doet voor "
     },
     {
       "type": 1,
@@ -4738,7 +5374,7 @@
   "Oshix6": [
     {
       "type": 0,
-      "value": "Select an existing agent below to add as a handoff."
+      "value": "Selecteer hieronder een bestaande agent om toe te voegen als handoff."
     }
   ],
   "OvzONl": [
@@ -4768,7 +5404,7 @@
   "P0yf0W": [
     {
       "type": 0,
-      "value": "Search tools by name, category, or description"
+      "value": "Hulpprogramma's op naam, categorie of beschrijving doorzoeken"
     }
   ],
   "P3qxV2": [
@@ -4780,7 +5416,7 @@
   "P5X8Kw": [
     {
       "type": 0,
-      "value": "Review your trigger configuration before creating"
+      "value": "Controleer je triggerconfiguratie voordat je deze maakt"
     }
   ],
   "P7MNl8": [
@@ -4792,7 +5428,7 @@
   "P7PLVj": [
     {
       "type": 0,
-      "value": "Date"
+      "value": "Datum"
     }
   ],
   "P9odAr": [
@@ -4810,7 +5446,7 @@
   "PFUTWt": [
     {
       "type": 0,
-      "value": "AI improvements applied to instructions"
+      "value": "AI-verbeteringen toegepast op instructies"
     }
   ],
   "PFtMy9": [
@@ -4840,25 +5476,25 @@
   "PPrKNq": [
     {
       "type": 0,
-      "value": "Defines how the agent operates"
+      "value": "Hiermee wordt bepaald hoe de agent werkt"
     }
   ],
   "PS7hBo": [
     {
       "type": 0,
-      "value": "Choose the Kusto connector this tool will query"
+      "value": "Kies de Kusto-connector die dit hulpprogramma opvraagt"
     }
   ],
   "PSfARI": [
     {
       "type": 0,
-      "value": "Loading more rows..."
+      "value": "Meer rijen laden..."
     }
   ],
   "PU1wDo": [
     {
       "type": 0,
-      "value": "Common tools"
+      "value": "Algemene hulpprogramma's"
     }
   ],
   "PW+sL4": [
@@ -4892,7 +5528,13 @@
     },
     {
       "type": 0,
-      "value": "t"
+      "value": " t"
+    }
+  ],
+  "Pa1S0J": [
+    {
+      "type": 0,
+      "value": "Total active flow consumption"
     }
   ],
   "Pc+tM3": [
@@ -4954,7 +5596,7 @@
   "PvMAYc": [
     {
       "type": 0,
-      "value": "No system tools match your search."
+      "value": "Er zijn geen systeemhulpprogramma's die overeenkomen met uw zoekopdracht."
     }
   ],
   "Pwen/L": [
@@ -4972,7 +5614,7 @@
   "PysW/n": [
     {
       "type": 0,
-      "value": "Reset changes"
+      "value": "Wijzigingen herstellen"
     }
   ],
   "PzGaVI": [
@@ -4999,10 +5641,48 @@
       "value": "Lezer voor opslagblobgegevens"
     }
   ],
+  "Q4f1wN": [
+    {
+      "type": 0,
+      "value": "This will permanently "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " this "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
+    },
+    {
+      "type": 0,
+      "value": ". Are you sure you want to "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " this "
+    },
+    {
+      "type": 1,
+      "value": "itemType"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "Q7/1w4": [
     {
       "type": 0,
-      "value": "Required for testing"
+      "value": "Vereist voor testen"
     }
   ],
   "Q8Qw5B": [
@@ -5029,6 +5709,28 @@
       "value": "P1"
     }
   ],
+  "QChoto": [
+    {
+      "type": 0,
+      "value": "Updating AAU allocation from "
+    },
+    {
+      "type": 1,
+      "value": "oldValue"
+    },
+    {
+      "type": 0,
+      "value": " to "
+    },
+    {
+      "type": 1,
+      "value": "newValue"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "QEhO+z": [
     {
       "type": 0,
@@ -5047,6 +5749,12 @@
       "value": "Azure Digital Twins-gegevenseigenaar (preview-versie)"
     }
   ],
+  "QOSRgI": [
+    {
+      "type": 0,
+      "value": "AAU Consumption"
+    }
+  ],
   "QQX4Pv": [
     {
       "type": 0,
@@ -5059,16 +5767,30 @@
       "value": "Gebruik (trigger, actie)"
     }
   ],
+  "QWEHW2": [
+    {
+      "type": 0,
+      "value": "Every "
+    },
+    {
+      "type": 1,
+      "value": "hours"
+    },
+    {
+      "type": 0,
+      "value": " hours"
+    }
+  ],
   "QY3CEK": [
     {
       "type": 0,
-      "value": "Handoff Description"
+      "value": "Beschrijving van overdracht"
     }
   ],
   "Qc3Kdl": [
     {
       "type": 0,
-      "value": "Example: "
+      "value": "Voorbeeld: "
     },
     {
       "children": [
@@ -5108,7 +5830,7 @@
   "QlkL14": [
     {
       "type": 0,
-      "value": "Updating connector"
+      "value": "Connector bijwerken..."
     }
   ],
   "QlsDcr": [
@@ -5126,7 +5848,7 @@
   "QmOU5t": [
     {
       "type": 0,
-      "value": "Deleting connector \""
+      "value": "Connector "
     },
     {
       "type": 1,
@@ -5134,7 +5856,7 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": " verwijderen..."
     }
   ],
   "Qn8Bok": [
@@ -5146,7 +5868,13 @@
   "QomX1y": [
     {
       "type": 0,
-      "value": "e.g., 0 9 * * 1-5"
+      "value": "bijvoorbeeld 0 9 * * 1-5"
+    }
+  ],
+  "QrihTZ": [
+    {
+      "type": 0,
+      "value": "Friday"
     }
   ],
   "QwnGVY": [
@@ -5183,6 +5911,12 @@
       "value": "error"
     }
   ],
+  "R3mMmc": [
+    {
+      "type": 0,
+      "value": "Monthly AAU limit slider"
+    }
+  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -5198,7 +5932,7 @@
   "RA3fki": [
     {
       "type": 0,
-      "value": "Missing context"
+      "value": "Ontbrekende context"
     }
   ],
   "RAjqKb": [
@@ -5216,7 +5950,7 @@
   "RI59Ed": [
     {
       "type": 0,
-      "value": "Add existing tool"
+      "value": "Bestaand hulpprogramma toevoegen"
     }
   ],
   "RK2Ddg": [
@@ -5225,10 +5959,24 @@
       "value": "Orchestrator"
     }
   ],
+  "RK9Ag4": [
+    {
+      "type": 0,
+      "value": "Delete "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " files?"
+    }
+  ],
   "RR+13c": [
     {
       "type": 0,
-      "value": "Replace the default meta agent with a specialized version tailored for this extended agent"
+      "value": "Vervang de standaardmeta-agent door een gespecialiseerde versie die is afgestemd op deze uitgebreide agent"
     }
   ],
   "RSDnlS": [
@@ -5276,7 +6024,7 @@
   "Rk/SSB": [
     {
       "type": 0,
-      "value": "Server error occurred. Please try again in a few moments."
+      "value": "Er is een serverfout opgetreden. Probeer het over enkele minuten opnieuw."
     }
   ],
   "RpKuX5": [
@@ -5305,7 +6053,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Set up incident response plans to trigger agents automatically."
+              "value": "Stel plannen voor incidentreacties in om agents automatisch te activeren."
             }
           ]
         },
@@ -5313,7 +6061,7 @@
           "value": [
             {
               "type": 0,
-              "value": "1 incident response plan ready to trigger your agents."
+              "value": "1 incidentreactieplan klaar om je agents te activeren."
             }
           ]
         },
@@ -5325,7 +6073,7 @@
             },
             {
               "type": 0,
-              "value": " incident response plans ready to trigger your agents."
+              "value": " incidentreactieplannen klaar om je agents te activeren."
             }
           ]
         }
@@ -5338,7 +6086,7 @@
   "S0GneP": [
     {
       "type": 0,
-      "value": "Review Your agent"
+      "value": "Controleer je agent"
     }
   ],
   "S1VBUm": [
@@ -5356,7 +6104,7 @@
   "S2z35W": [
     {
       "type": 0,
-      "value": "Failed to create connector with error: "
+      "value": "Connector is niet gemaakt met de fout: "
     },
     {
       "type": 1,
@@ -5460,13 +6208,13 @@
   "SXcBLr": [
     {
       "type": 0,
-      "value": "No common prompts added."
+      "value": "Er zijn geen algemene prompts toegevoegd."
     }
   ],
   "SZMgCd": [
     {
       "type": 0,
-      "value": "Connect a Model Context Protocol (MCP) server to give the agent additional tools and actions for automating incident handling."
+      "value": "Verbind een MCP-server (Model Context Protocol) om de agent extra hulpprogramma's en acties te bieden voor het automatiseren van incidentafhandeling."
     }
   ],
   "Sdc+Dp": [
@@ -5478,7 +6226,7 @@
   "Seanpx": [
     {
       "type": 0,
-      "value": "Required"
+      "value": "Vereist"
     }
   ],
   "SezWLK": [
@@ -5514,7 +6262,7 @@
   "StVmtb": [
     {
       "type": 0,
-      "value": "Generate schedule"
+      "value": "Planning maken"
     }
   ],
   "SuVToZ": [
@@ -5531,16 +6279,12 @@
   ],
   "T/G3bv": [
     {
-      "type": 0,
-      "value": "Created "
-    },
-    {
       "type": 1,
       "value": "handoffName"
     },
     {
       "type": 0,
-      "value": " and added it as a handoff for "
+      "value": " is gemaakt en toegevoegd als overdracht voor "
     },
     {
       "type": 1,
@@ -5572,7 +6316,7 @@
   "T7fzjx": [
     {
       "type": 0,
-      "value": "Save YAML"
+      "value": "YAML opslaan"
     }
   ],
   "T8DCV7": [
@@ -5626,7 +6370,7 @@
   "THFIRB": [
     {
       "type": 0,
-      "value": "Incident trigger"
+      "value": "Incidenttrigger"
     }
   ],
   "TIDNOO": [
@@ -5654,7 +6398,7 @@
   "TKsgZu": [
     {
       "type": 0,
-      "value": "Key alerts"
+      "value": "Belangrijke waarschuwingen"
     }
   ],
   "TMZ2Rq": [
@@ -5669,10 +6413,16 @@
       "value": "De taak is niet bijgewerkt"
     }
   ],
+  "TO55dt": [
+    {
+      "type": 0,
+      "value": "Azure SRE Agent billing is measured in Azure agent units (AAU). Monthly AAU billing reflects both the fixed always-on flow and variable usage from active flow. You can increase or decrease the active flow AAU allocation at any time."
+    }
+  ],
   "TRceX/": [
     {
       "type": 0,
-      "value": "No agents-as-tools configured."
+      "value": "Er zijn geen agents als hulpprogramma's geconfigureerd."
     }
   ],
   "TZWmvi": [
@@ -5693,6 +6443,12 @@
       "value": "Resourcetoewijzing"
     }
   ],
+  "Tg4Q8g": [
+    {
+      "type": 0,
+      "value": "Disconnect data connector?"
+    }
+  ],
   "ThSX0k": [
     {
       "type": 0,
@@ -5708,13 +6464,13 @@
   "Tkn9dK": [
     {
       "type": 0,
-      "value": "Select an agent to manage its relationships."
+      "value": "Selecteer een agent om de bijbehorende relaties te beheren."
     }
   ],
   "TmQqXl": [
     {
       "type": 0,
-      "value": "Optional: choose when this schedule should begin running."
+      "value": "Optioneel: kies wanneer dit schema moet starten."
     }
   ],
   "Tq2F2Y": [
@@ -5726,7 +6482,7 @@
   "TwMqIK": [
     {
       "type": 0,
-      "value": "Review Your connector"
+      "value": "Geef een naam op voor je connector"
     }
   ],
   "TyvDrC": [
@@ -5744,7 +6500,7 @@
   "U914O/": [
     {
       "type": 0,
-      "value": "No params needed"
+      "value": "Geen parameters nodig"
     }
   ],
   "UCYFxr": [
@@ -5766,7 +6522,7 @@
   "UNXega": [
     {
       "type": 0,
-      "value": "From agent"
+      "value": "Van agent"
     }
   ],
   "UPybTw": [
@@ -5778,13 +6534,7 @@
   "UQUIP7": [
     {
       "type": 0,
-      "value": "Request error"
-    }
-  ],
-  "UU91f0": [
-    {
-      "type": 0,
-      "value": "Run once now"
+      "value": "Fout in aanvraag"
     }
   ],
   "UV4Dx5": [
@@ -5830,7 +6580,7 @@
     },
     {
       "type": 0,
-      "value": " is already a handoff for "
+      "value": " is al een overdracht voor "
     },
     {
       "type": 1,
@@ -5865,16 +6615,28 @@
       "value": "Opslagplaats"
     }
   ],
+  "V4yeoh": [
+    {
+      "type": 0,
+      "value": "Peak Usage"
+    }
+  ],
   "V52jNn": [
     {
       "type": 0,
-      "value": "Enabled"
+      "value": "Ingeschakeld"
     }
   ],
   "V5AOl5": [
     {
       "type": 0,
-      "value": "Remove starter agent"
+      "value": "Starteragent verwijderen"
+    }
+  ],
+  "V5w7/I": [
+    {
+      "type": 0,
+      "value": "Optimize alert response with an incident platform"
     }
   ],
   "V9A1Xh": [
@@ -5886,7 +6648,7 @@
   "VA/Z1S": [
     {
       "type": 0,
-      "value": "Hide"
+      "value": "Verbergen"
     }
   ],
   "VB+AjJ": [
@@ -5904,7 +6666,7 @@
   "VIcJZp": [
     {
       "type": 0,
-      "value": "List View"
+      "value": "Lijstweergave"
     }
   ],
   "VIgoaE": [
@@ -5940,25 +6702,25 @@
   "VQlvNn": [
     {
       "type": 0,
-      "value": "Overriding the meta agent is recommended because this extended agent doesn't need the default agent's world knowledge of Azure resources, providing a more focused experience."
+      "value": "Het overschrijven van de meta-agent wordt aanbevolen omdat deze uitgebreide agent de wereldkennis van Azure-resources van de standaardagent niet nodig heeft, wat zorgt voor een gerichtere ervaring."
     }
   ],
   "VQn8u+": [
     {
       "type": 0,
-      "value": "Select system tools this agent can use"
+      "value": "Selecteer hulpprogramma's die deze agent kan gebruiken"
     }
   ],
   "VSWkne": [
     {
       "type": 0,
-      "value": "Warnings"
+      "value": "Waarschuwingen"
     }
   ],
   "VTkRGg": [
     {
       "type": 0,
-      "value": "Connect relationships for "
+      "value": "Relaties verbinden voor "
     },
     {
       "type": 1,
@@ -6004,7 +6766,7 @@
   "VnySGb": [
     {
       "type": 0,
-      "value": "A meta agent override already exists in your system."
+      "value": "Er bestaat al een meta-agentoverschrijving in je systeem."
     }
   ],
   "VpsD7s": [
@@ -6032,7 +6794,7 @@
   "VvrxSY": [
     {
       "type": 0,
-      "value": "Common prompts"
+      "value": "Algemene prompts"
     }
   ],
   "VwHnVH": [
@@ -6044,7 +6806,7 @@
   "VzeCzD": [
     {
       "type": 0,
-      "value": "Type for dictionary values"
+      "value": "Type voor woordenlijstwaarden"
     }
   ],
   "VzzYJk": [
@@ -6068,7 +6830,7 @@
   "W1Qs5O": [
     {
       "type": 0,
-      "value": "Runs"
+      "value": "Uitvoeringen"
     }
   ],
   "W2JBdp": [
@@ -6101,12 +6863,6 @@
       "value": "Goedkeuren"
     }
   ],
-  "WE9lZK": [
-    {
-      "type": 0,
-      "value": "No connectors configured"
-    }
-  ],
   "WHleoJ": [
     {
       "type": 0,
@@ -6125,6 +6881,12 @@
       "value": "PostgreSQL Flexible Server-rol voor back-ups met langetermijnretentie"
     }
   ],
+  "WMNHPh": [
+    {
+      "type": 0,
+      "value": "Saturday"
+    }
+  ],
   "WTrOy3": [
     {
       "type": 0,
@@ -6134,7 +6896,7 @@
   "WUV28A": [
     {
       "type": 0,
-      "value": "Saving…"
+      "value": "Opslaan…"
     }
   ],
   "WVTzuw": [
@@ -6176,13 +6938,13 @@
   "WcnRC1": [
     {
       "type": 0,
-      "value": "Pick an agent to visualize its tools, connectors, and handoffs."
+      "value": "Kies een agent om de bijbehorende hulpprogramma's, connectors en overdrachten te visualiseren."
     }
   ],
   "Wekzzh": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete "
+      "value": "Weet je zeker dat je "
     },
     {
       "offset": 0,
@@ -6191,7 +6953,7 @@
           "value": [
             {
               "type": 0,
-              "value": "this item"
+              "value": "dit item"
             }
           ]
         },
@@ -6199,7 +6961,7 @@
           "value": [
             {
               "type": 0,
-              "value": "these "
+              "value": "deze "
             },
             {
               "type": 7
@@ -6217,7 +6979,7 @@
     },
     {
       "type": 0,
-      "value": "? This action cannot be undone."
+      "value": " wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
     }
   ],
   "Wf6bDe": [
@@ -6226,10 +6988,16 @@
       "value": "Agentgegevens"
     }
   ],
+  "WfXPv6": [
+    {
+      "type": 0,
+      "value": "New thread for each run"
+    }
+  ],
   "Wkup5T": [
     {
       "type": 0,
-      "value": "Pending user input"
+      "value": "Gebruikersinvoer in behandeling"
     }
   ],
   "Wn+PVy": [
@@ -6259,7 +7027,7 @@
   "WzNnqa": [
     {
       "type": 0,
-      "value": "Ready to start a new chat with extended agent “"
+      "value": "Klaar om een nieuwe chat te starten met de uitgebreide agent "
     },
     {
       "type": 1,
@@ -6267,7 +7035,7 @@
     },
     {
       "type": 0,
-      "value": "”. Your next message will launch it."
+      "value": ". Je volgende bericht start de chat."
     }
   ],
   "X192re": [
@@ -6289,7 +7057,7 @@
   "X3hl5x": [
     {
       "type": 0,
-      "value": "Assumptions"
+      "value": "Aannames"
     }
   ],
   "X4Y2nv": [
@@ -6323,7 +7091,7 @@
   "X7mXLW": [
     {
       "type": 0,
-      "value": "YAML error"
+      "value": "YAML-fout"
     }
   ],
   "X8SzJ6": [
@@ -6341,13 +7109,13 @@
   "XCfiZ2": [
     {
       "type": 0,
-      "value": "Draft the cron for me"
+      "value": "Een concept van de cron maken voor mij"
     }
   ],
   "XEB3Fn": [
     {
       "type": 0,
-      "value": "Will attach to "
+      "value": "Wordt als hulpprogramma gekoppeld aan "
     },
     {
       "type": 1,
@@ -6355,7 +7123,7 @@
     },
     {
       "type": 0,
-      "value": " as a tool."
+      "value": "."
     }
   ],
   "XEanEV": [
@@ -6370,10 +7138,26 @@
       "value": "Grafana-dashboard koppelen"
     }
   ],
+  "XG++pU": [
+    {
+      "type": 0,
+      "value": "Delete resource group "
+    },
+    {
+      "type": 1,
+      "value": "resourceGroupName"
+    }
+  ],
   "XHc00z": [
     {
       "type": 0,
-      "value": "Connector Type"
+      "value": "Connectortype"
+    }
+  ],
+  "XHoPAJ": [
+    {
+      "type": 0,
+      "value": "Response plan details"
     }
   ],
   "XJ+Lww": [
@@ -6391,7 +7175,7 @@
   "XKWCS3": [
     {
       "type": 0,
-      "value": "Removed the starter agent. Next messages will stay in this thread."
+      "value": "De starteragent is verwijderd. Volgende berichten blijven in deze thread."
     }
   ],
   "XKhlZF": [
@@ -6415,13 +7199,49 @@
   "XM+FCY": [
     {
       "type": 0,
-      "value": "Connected tools"
+      "value": "Verbonden hulpprogramma's"
+    }
+  ],
+  "XMUseu": [
+    {
+      "type": 0,
+      "value": "Failed to update AAU allocation. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "XPR3X/": [
+    {
+      "type": 0,
+      "value": "Thread title was renamed successfully to '"
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": "'"
     }
   ],
   "XRdOZL": [
     {
       "type": 0,
       "value": "Een incident selecteren of zoeken"
+    }
+  ],
+  "XV8dOu": [
+    {
+      "type": 0,
+      "value": "Message grouping for updates"
+    }
+  ],
+  "XVG+T1": [
+    {
+      "type": 0,
+      "value": "Refining details..."
     }
   ],
   "XYSJsS": [
@@ -6451,7 +7271,7 @@
   "Xb85sq": [
     {
       "type": 0,
-      "value": "Grid view is coming soon."
+      "value": "Rasterweergave is binnenkort beschikbaar."
     }
   ],
   "XbNTkN": [
@@ -6496,6 +7316,18 @@
       "value": "Kan de toegangssleutel niet valideren. Probeer het opnieuw."
     }
   ],
+  "Y7RxDE": [
+    {
+      "type": 0,
+      "value": "Run task now"
+    }
+  ],
+  "YAgYL6": [
+    {
+      "type": 0,
+      "value": "Tuesday"
+    }
+  ],
   "YBXVNU": [
     {
       "type": 0,
@@ -6511,7 +7343,7 @@
   "YCnSYw": [
     {
       "type": 0,
-      "value": "No description provided."
+      "value": "Er is geen beschrijving opgegeven."
     }
   ],
   "YE+vjH": [
@@ -6541,7 +7373,7 @@
   "YT6JU9": [
     {
       "type": 0,
-      "value": "Enter a name before creating this item."
+      "value": "Voer een naam in voordat je dit item maakt."
     }
   ],
   "YZIFAO": [
@@ -6559,7 +7391,7 @@
   "YeKWbP": [
     {
       "type": 0,
-      "value": "Authentication"
+      "value": "Verificatie"
     }
   ],
   "YgyuGj": [
@@ -6607,7 +7439,7 @@
   "YrlQBL": [
     {
       "type": 0,
-      "value": "tool"
+      "value": "hulpprogramma"
     }
   ],
   "Ys9AIu": [
@@ -6616,10 +7448,22 @@
       "value": "Beheerde identiteit"
     }
   ],
+  "YsFdGq": [
+    {
+      "type": 0,
+      "value": "Supported file formats: .md and .txt"
+    }
+  ],
   "Ysew65": [
     {
       "type": 0,
       "value": "U bent niet gemachtigd om diepgaand onderzoek in te schakelen."
+    }
+  ],
+  "Z+uDP9": [
+    {
+      "type": 0,
+      "value": "Add a file or connect an external data source, such as a service or repository, to help the agent generate more informed responses."
     }
   ],
   "Z1VHv1": [
@@ -6646,10 +7490,16 @@
       "value": "Agent-id"
     }
   ],
+  "Z8Y6DE": [
+    {
+      "type": 0,
+      "value": "Last Synced"
+    }
+  ],
   "Z9TajN": [
     {
       "type": 0,
-      "value": "Parsing…"
+      "value": "Parseren…"
     }
   ],
   "Z9pRs5": [
@@ -6661,7 +7511,7 @@
   "ZBKZDe": [
     {
       "type": 0,
-      "value": "Each "
+      "value": "Elke "
     },
     {
       "type": 1,
@@ -6669,7 +7519,7 @@
     },
     {
       "type": 0,
-      "value": " must include a name."
+      "value": " moet een naam bevatten."
     }
   ],
   "ZCA/Ga": [
@@ -6692,10 +7542,16 @@
       "value": "Beheer Logic Apps."
     }
   ],
+  "ZOO+kP": [
+    {
+      "type": 0,
+      "value": "Start on"
+    }
+  ],
   "ZOdb7N": [
     {
       "type": 0,
-      "value": "Visual View"
+      "value": "Visuele weergave"
     }
   ],
   "ZUXvHE": [
@@ -6728,6 +7584,12 @@
       "value": "Koppeling naar thread kopiëren"
     }
   ],
+  "ZjlBPk": [
+    {
+      "type": 0,
+      "value": "Conclusion"
+    }
+  ],
   "Zkjd9I": [
     {
       "type": 0,
@@ -6737,13 +7599,13 @@
   "ZmlNQ3": [
     {
       "type": 0,
-      "value": "Activity"
+      "value": "Activiteit"
     }
   ],
   "Zo9lK6": [
     {
       "type": 0,
-      "value": "Select an existing tool below to connect."
+      "value": "Selecteer hieronder een bestaand hulpprogramma om verbinding te maken."
     }
   ],
   "ZqVUb5": [
@@ -6753,7 +7615,7 @@
     },
     {
       "type": 0,
-      "value": " scheduled task"
+      "value": " heeft taak gepland"
     }
   ],
   "Zqa4dQ": [
@@ -6771,13 +7633,13 @@
   "Zt/L20": [
     {
       "type": 0,
-      "value": "No metadata provided."
+      "value": "Er zijn geen metagegevens opgegeven."
     }
   ],
   "Zu+xDc": [
     {
       "type": 0,
-      "value": "Fetching suggestions..."
+      "value": "Suggesties ophalen..."
     }
   ],
   "ZukeYV": [
@@ -6797,13 +7659,34 @@
   "Zve9uZ": [
     {
       "type": 0,
-      "value": "Test your Kusto query before saving"
+      "value": "Test je Kusto-query voordat je opslaat"
     }
   ],
   "ZwYyES": [
     {
       "type": 0,
       "value": "Gemiddeld risico"
+    }
+  ],
+  "a1UV+9": [
+    {
+      "type": 0,
+      "value": "Always-on flow + "
+    },
+    {
+      "style": null,
+      "type": 2,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " active flow AAUs"
+    }
+  ],
+  "a5dT17": [
+    {
+      "type": 0,
+      "value": "Search data connectors"
     }
   ],
   "a5msuh": [
@@ -6824,6 +7707,12 @@
       "value": "Geavanceerd: gebruik de Cron-indeling (minuut uur dag maand dag-van-de-week)"
     }
   ],
+  "a8czK7": [
+    {
+      "type": 0,
+      "value": "Add a knowledge source"
+    }
+  ],
   "a8l/yJ": [
     {
       "type": 0,
@@ -6839,7 +7728,7 @@
   "aA8bDw": [
     {
       "type": 0,
-      "value": "Text"
+      "value": "Tekst"
     }
   ],
   "aAADUG": [
@@ -6881,7 +7770,7 @@
   "aKNsTc": [
     {
       "type": 0,
-      "value": "Controls how this value is passed to the tool method"
+      "value": "Bepaalt hoe deze waarde wordt doorgegeven aan de hulpprogrammamethode"
     }
   ],
   "aORQjS": [
@@ -6912,6 +7801,12 @@
     {
       "type": 0,
       "value": "Het upgradekanaal is niet bijgewerkt"
+    }
+  ],
+  "aSipXt": [
+    {
+      "type": 0,
+      "value": "Increase the agent's knowledge of your infrastructure"
     }
   ],
   "aTyEZH": [
@@ -6983,13 +7878,13 @@
   "aprHig": [
     {
       "type": 0,
-      "value": "Max reflections"
+      "value": "Max. reflecties"
     }
   ],
   "aqGaRm": [
     {
       "type": 0,
-      "value": "Provide a short report about the latest signals and note any follow-up actions."
+      "value": "Geef een kort rapport over de laatste signalen en noteer eventuele vervolgacties."
     }
   ],
   "aqNZbD": [
@@ -7008,6 +7903,12 @@
     {
       "type": 0,
       "value": "Uitvoerlogboeken"
+    }
+  ],
+  "azMsfM": [
+    {
+      "type": 0,
+      "value": "Monday"
     }
   ],
   "b2PyOl": [
@@ -7033,7 +7934,7 @@
   "b5OEXm": [
     {
       "type": 0,
-      "value": "How often should it run?"
+      "value": "Hoe vaak moet dit worden uitgevoerd?"
     }
   ],
   "b7D4Lh": [
@@ -7051,19 +7952,19 @@
   "b8PngH": [
     {
       "type": 0,
-      "value": "Loading agents…"
+      "value": "Agents laden…"
     }
   ],
   "bCzUPd": [
     {
       "type": 0,
-      "value": "Cluster URI"
+      "value": "Cluster-URI"
     }
   ],
   "bK0VQe": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete this Extended Tool? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
+      "value": "Weet je zeker dat je dit uitgebreide hulpprogramma wilt verwijderen? De YAML-configuratie wordt definitief verwijderd en kan niet worden hersteld. Deze actie kan niet ongedaan worden gemaakt."
     }
   ],
   "bKgVBL": [
@@ -7087,13 +7988,13 @@
   "bdFY56": [
     {
       "type": 0,
-      "value": "Connector (Optional)"
+      "value": "Connector (optioneel)"
     }
   ],
   "bdhTWR": [
     {
       "type": 0,
-      "value": "Name can only contain letters, numbers, or hyphens and must be "
+      "value": "De naam mag alleen letters, cijfers of koppeltekens bevatten en mag maximaal "
     },
     {
       "type": 1,
@@ -7101,7 +8002,7 @@
     },
     {
       "type": 0,
-      "value": " characters or fewer."
+      "value": " tekens lang zijn."
     }
   ],
   "bect+9": [
@@ -7113,7 +8014,7 @@
   "bjOnWH": [
     {
       "type": 0,
-      "value": "Add your draft instructions before asking for polish."
+      "value": "Voeg uw conceptinstructies toe voordat u om verbetering vraagt."
     }
   ],
   "blSyDZ": [
@@ -7125,13 +8026,13 @@
   "blYlGH": [
     {
       "type": 0,
-      "value": "Invalid request. Please check your instructions and try again."
+      "value": "Ongeldige aanvraag. Controleer je instructies en probeer het opnieuw."
     }
   ],
   "bn84V+": [
     {
       "type": 0,
-      "value": "Delete tool"
+      "value": "Hulpprogramma verwijderen"
     }
   ],
   "boVrya": [
@@ -7155,7 +8056,7 @@
   "bquSks": [
     {
       "type": 0,
-      "value": "Collapse span with id: "
+      "value": "Bereik samenvouwen met id: "
     },
     {
       "type": 1,
@@ -7193,7 +8094,7 @@
   "bxSp6r": [
     {
       "type": 0,
-      "value": "No tools match your search."
+      "value": "Er zijn geen hulpprogramma's die overeenkomen met uw zoekopdracht."
     }
   ],
   "bxcc6L": [
@@ -7214,6 +8115,12 @@
       "value": "Zojuist"
     }
   ],
+  "c/8Uhj": [
+    {
+      "type": 0,
+      "value": "Here is the To-Do plan:"
+    }
+  ],
   "c/KktL": [
     {
       "type": 0,
@@ -7223,7 +8130,7 @@
   "c/bty0": [
     {
       "type": 0,
-      "value": "No system tools configured."
+      "value": "Er zijn geen systeemhulpprogramma's geconfigureerd."
     }
   ],
   "c1EiBR": [
@@ -7247,7 +8154,7 @@
   "c8Doeq": [
     {
       "type": 0,
-      "value": "Connector \""
+      "value": "Connector "
     },
     {
       "type": 1,
@@ -7255,7 +8162,13 @@
     },
     {
       "type": 0,
-      "value": "\" has been deleted successfully"
+      "value": " is verwijderd"
+    }
+  ],
+  "cBcrgh": [
+    {
+      "type": 0,
+      "value": "Enter task details"
     }
   ],
   "cDjhgm": [
@@ -7273,13 +8186,13 @@
   "cG0Q8M": [
     {
       "type": 0,
-      "value": "Temperature"
+      "value": "Temperatuur"
     }
   ],
   "cLC2fM": [
     {
       "type": 0,
-      "value": "AI chat service is currently unavailable. Please try again later."
+      "value": "AI-chatservice is momenteel niet beschikbaar. Probeer het later opnieuw."
     }
   ],
   "cRTR/A": [
@@ -7303,7 +8216,7 @@
   "cfbpDd": [
     {
       "type": 0,
-      "value": "Category: "
+      "value": "Categorie: "
     },
     {
       "type": 1,
@@ -7325,19 +8238,19 @@
   "coPQxN": [
     {
       "type": 0,
-      "value": "Filter by custom plan"
+      "value": "Filteren op aangepast plan"
     }
   ],
   "coy1iv": [
     {
       "type": 0,
-      "value": "Edit YAML configuration"
+      "value": "YAML-configuratie bewerken"
     }
   ],
   "cqx+Rd": [
     {
       "type": 0,
-      "value": "Manage connectors"
+      "value": "Connectors beheren"
     }
   ],
   "crWYMh": [
@@ -7365,7 +8278,7 @@
   "ctcA0c": [
     {
       "type": 0,
-      "value": "Agent name"
+      "value": "Naam van agent"
     }
   ],
   "cubQfQ": [
@@ -7461,7 +8374,7 @@
   "dLWTUk": [
     {
       "type": 0,
-      "value": "An AI sub-agent with instructions and tools"
+      "value": "Een AI-subagent met instructies en hulpprogramma's"
     }
   ],
   "dQ5/dh": [
@@ -7494,6 +8407,12 @@
       "value": "Geheugen"
     }
   ],
+  "dWSIqT": [
+    {
+      "type": 0,
+      "value": "Consumption AAU usage"
+    }
+  ],
   "dYwe9B": [
     {
       "type": 0,
@@ -7521,7 +8440,7 @@
   "djuhEG": [
     {
       "type": 0,
-      "value": "Enter "
+      "value": "Voer waarde van "
     },
     {
       "type": 1,
@@ -7529,13 +8448,13 @@
     },
     {
       "type": 0,
-      "value": " value"
+      "value": " in"
     }
   ],
   "dk4jPW": [
     {
       "type": 0,
-      "value": "Critic prompt"
+      "value": "Criticus prompt"
     }
   ],
   "dnXgff": [
@@ -7547,7 +8466,7 @@
   "dtQgfG": [
     {
       "type": 0,
-      "value": "Query Tester"
+      "value": "Querytester"
     }
   ],
   "du1laW": [
@@ -7559,7 +8478,7 @@
   "dw6Z3b": [
     {
       "type": 0,
-      "value": "What it means"
+      "value": "Wat het betekent"
     }
   ],
   "e0a3XV": [
@@ -7578,6 +8497,12 @@
     {
       "type": 0,
       "value": "Alleen-lezen acties in het project. Lezers kunnen het project niet maken of bijwerken."
+    }
+  ],
+  "eCZ0j1": [
+    {
+      "type": 0,
+      "value": "Open Todo Plans"
     }
   ],
   "eEu4cm": [
@@ -7619,13 +8544,13 @@
   "eVjPEQ": [
     {
       "type": 0,
-      "value": "Model Generation"
+      "value": "Modelgeneratie"
     }
   ],
   "eYEnNu": [
     {
       "type": 0,
-      "value": "Run this agent on a repeating schedule."
+      "value": "Voer deze agent uit volgens een herhalend schema."
     }
   ],
   "eZMksq": [
@@ -7655,7 +8580,7 @@
   "ehhpyJ": [
     {
       "type": 0,
-      "value": "Add All"
+      "value": "Alles toevoegen"
     }
   ],
   "emW/QQ": [
@@ -7679,7 +8604,7 @@
   "et3seW": [
     {
       "type": 0,
-      "value": "New handoff sub-agents start as Autonomous. You can connect tools and other details later."
+      "value": "Nieuwe subagenten voor handoff starten als autonoom. Je kunt later hulpprogramma's en andere details koppelen."
     }
   ],
   "euBSDU": [
@@ -7691,7 +8616,7 @@
   "euKVCa": [
     {
       "type": 0,
-      "value": "System tools are built-in tools provided by the platform"
+      "value": "Systeemhulpprogramma's zijn ingebouwde hulpprogramma's die door het platform worden geleverd"
     }
   ],
   "exofc7": [
@@ -7719,13 +8644,19 @@
   "f0LQra": [
     {
       "type": 0,
-      "value": "Improve with AI"
+      "value": "Verbeter met AI"
     }
   ],
   "f0Luxo": [
     {
       "type": 0,
       "value": "ServiceNow is niet verbonden."
+    }
+  ],
+  "f0Sf6g": [
+    {
+      "type": 0,
+      "value": "Add a file"
     }
   ],
   "f0Y4Zr": [
@@ -7764,10 +8695,16 @@
       "value": "Inzender voor Cognitive Services-spraak"
     }
   ],
+  "fHE7i7": [
+    {
+      "type": 0,
+      "value": "Code optimizations"
+    }
+  ],
   "fIQSsD": [
     {
       "type": 0,
-      "value": "Couldn’t draft the cron yet. Refine the description and try again."
+      "value": "De cron kan nog niet worden gemaakt. Verfijn de beschrijving en probeer het opnieuw."
     }
   ],
   "fLkL3F": [
@@ -7779,7 +8716,7 @@
   "fT73QI": [
     {
       "type": 0,
-      "value": "New tool"
+      "value": "Nieuw hulpprogramma"
     }
   ],
   "fUgypu": [
@@ -7797,7 +8734,7 @@
   "fbr20l": [
     {
       "type": 0,
-      "value": "Create & Link"
+      "value": "Maken en koppelen"
     }
   ],
   "fdCjVS": [
@@ -7821,13 +8758,19 @@
   "fio5op": [
     {
       "type": 0,
-      "value": "Output"
+      "value": "Uitvoer"
+    }
+  ],
+  "fjOQVZ": [
+    {
+      "type": 0,
+      "value": "Learn more about incident platform integration"
     }
   ],
   "fjgqNG": [
     {
       "type": 0,
-      "value": "Failed to load trace data: "
+      "value": "Kan traceringsgegevens niet laden: "
     },
     {
       "type": 1,
@@ -7840,10 +8783,16 @@
       "value": "Correlatie varieert van -1 (omgekeerd) tot 1 (rechtstreeks)"
     }
   ],
+  "fr6Gnj": [
+    {
+      "type": 0,
+      "value": "Change AAU allocation"
+    }
+  ],
   "fssuHC": [
     {
       "type": 0,
-      "value": "Connect an MCP server"
+      "value": "Een MCP-server verbinden"
     }
   ],
   "ftDEuE": [
@@ -7888,6 +8837,12 @@
       "value": "Foutdetails kopiëren"
     }
   ],
+  "g4II+z": [
+    {
+      "type": 0,
+      "value": "e.g. 0 0 * * *"
+    }
+  ],
   "g7HOVb": [
     {
       "type": 0,
@@ -7904,6 +8859,18 @@
     {
       "type": 0,
       "value": "Hiermee wordt alleen-lezen toegang gegeven om de meeste objecten in een naamruimte te bekijken. Het weergeven van rollen of rolbindingen is niet toegestaan. Deze rol staat geen weergave van geheimen toe, aangezien het lezen van de inhoud van geheimen toegang biedt tot ServiceAccount-referenties in de naamruimte, waardoor API-toegang kan worden verleend als ServiceAccount in de naamruimte (een vorm van bevoegdhedenescalatie). Als u deze rol clusterbreed toepast, krijgt u toegang tot alle naamruimten."
+    }
+  ],
+  "gD6r6x": [
+    {
+      "type": 0,
+      "value": "Day of week"
+    }
+  ],
+  "gDVRX+": [
+    {
+      "type": 0,
+      "value": "Drag files here or"
     }
   ],
   "gHCL4X": [
@@ -7933,7 +8900,7 @@
   "gP/k0J": [
     {
       "type": 0,
-      "value": "Optional description of what this connector accesses"
+      "value": "Optionele beschrijving van wat deze connector benadert"
     }
   ],
   "gUQeKV": [
@@ -7951,7 +8918,7 @@
   "gct+2s": [
     {
       "type": 0,
-      "value": "Incident response plan:"
+      "value": "Reactieplan voor incidenten:"
     }
   ],
   "gdUWAX": [
@@ -7993,7 +8960,7 @@
   "gvlNuI": [
     {
       "type": 0,
-      "value": "Start fresh or reuse an existing trigger configuration."
+      "value": "Begin opnieuw of gebruik een bestaande triggerconfiguratie opnieuw."
     }
   ],
   "gwSeXa": [
@@ -8054,14 +9021,26 @@
       "value": "Als je het incidentplatform wilt wijzigen, moet je de verbinding met ServiceNow verbreken. De agent beheert dan geen tickets meer. Weet je zeker dat je de verbinding wilt verbreken?"
     }
   ],
+  "h0W8DM": [
+    {
+      "type": 0,
+      "value": "Time of day"
+    }
+  ],
   "h4BqRo": [
+    {
+      "type": 0,
+      "value": "Incidentreactieplan "
+    },
     {
       "type": 1,
       "value": "agentName"
-    },
+    }
+  ],
+  "h4XDJP": [
     {
       "type": 0,
-      "value": " incident response plan"
+      "value": "Symptoms:"
     }
   ],
   "h6183G": [
@@ -8093,7 +9072,7 @@
   "hGMSK3": [
     {
       "type": 0,
-      "value": "Apply Suggestions"
+      "value": "Suggesties toepassen"
     }
   ],
   "hGQqkW": [
@@ -8117,7 +9096,7 @@
   "hNKm4/": [
     {
       "type": 0,
-      "value": "Sub-Agent"
+      "value": "Subagent"
     }
   ],
   "hO1Iog": [
@@ -8141,13 +9120,13 @@
   "hS+M7h": [
     {
       "type": 0,
-      "value": "Steps to resolution"
+      "value": "Stappen naar oplossing"
     }
   ],
   "hWVnHh": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete this Extended Agent? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
+      "value": "Weet je zeker dat je deze uitgebreide agent wilt verwijderen? De YAML-configuratie wordt definitief verwijderd en kan niet worden hersteld. Deze actie kan niet ongedaan worden gemaakt."
     }
   ],
   "hX5PAb": [
@@ -8186,10 +9165,16 @@
       "value": "Het kanaal kiezen voor het ontvangen van agent-updates"
     }
   ],
+  "hgAzMV": [
+    {
+      "type": 0,
+      "value": "Remove file"
+    }
+  ],
   "hijOHm": [
     {
       "type": 0,
-      "value": "Preview AI recommendations without changing your instructions"
+      "value": "Bekijk AI-aanbevelingen zonder je instructies te wijzigen"
     }
   ],
   "hlmkcL": [
@@ -8216,6 +9201,12 @@
       "value": "Weigeren"
     }
   ],
+  "hzElIu": [
+    {
+      "type": 0,
+      "value": "No files match your search"
+    }
+  ],
   "hzSNj4": [
     {
       "type": 0,
@@ -8240,6 +9231,12 @@
       "value": "Voer data science-taken uit in Azure Machine Learning."
     }
   ],
+  "iDPKM0": [
+    {
+      "type": 0,
+      "value": "Filter tasks"
+    }
+  ],
   "iDSWYk": [
     {
       "type": 0,
@@ -8255,7 +9252,7 @@
   "iMBgdL": [
     {
       "type": 0,
-      "value": "Kusto Tool"
+      "value": "Kusto-hulpprogramma"
     }
   ],
   "iNgloh": [
@@ -8267,13 +9264,19 @@
   "iV7LUx": [
     {
       "type": 0,
-      "value": "Create a new trigger with custom settings"
+      "value": "Een nieuwe trigger maken met aangepaste instellingen"
+    }
+  ],
+  "iXNbPf": [
+    {
+      "type": 0,
+      "value": "Rename"
     }
   ],
   "iZDRGO": [
     {
       "type": 0,
-      "value": "Assigned"
+      "value": "Toegewezen"
     }
   ],
   "iZuO+L": [
@@ -8294,6 +9297,12 @@
       "value": "Of"
     }
   ],
+  "icyjmd": [
+    {
+      "type": 0,
+      "value": "To-Do Plan"
+    }
+  ],
   "ielB5f": [
     {
       "type": 0,
@@ -8309,7 +9318,7 @@
   "ijOojL": [
     {
       "type": 0,
-      "value": "Agent created, but linking to "
+      "value": "Agent is gemaakt, maar verbinden met "
     },
     {
       "type": 1,
@@ -8317,13 +9326,13 @@
     },
     {
       "type": 0,
-      "value": " failed. Retry link."
+      "value": " is mislukt. Opnieuw proberen."
     }
   ],
   "ipsqxO": [
     {
       "type": 0,
-      "value": "Select an agent"
+      "value": "Een agent selecteren"
     }
   ],
   "iqdd9H": [
@@ -8341,7 +9350,7 @@
   "it6Lig": [
     {
       "type": 0,
-      "value": "Input"
+      "value": "Invoer"
     }
   ],
   "it8L1Q": [
@@ -8389,13 +9398,13 @@
   "iydbuT": [
     {
       "type": 0,
-      "value": "e.g., P1 incident response"
+      "value": "bijvoorbeeld PR-incidentreactie"
     }
   ],
   "izQgEq": [
     {
       "type": 0,
-      "value": "Creates a handoff for "
+      "value": "Hiermee wordt een overdracht voor "
     },
     {
       "type": 1,
@@ -8403,13 +9412,13 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " gemaakt."
     }
   ],
   "j1FyDL": [
     {
       "type": 0,
-      "value": "No extended tools available."
+      "value": "Er zijn geen uitgebreide hulpprogramma's beschikbaar."
     }
   ],
   "j2vvrh": [
@@ -8431,7 +9440,7 @@
   "j59lXr": [
     {
       "type": 0,
-      "value": "No matching items yet. Complete the quick create form to add one."
+      "value": "Nog geen overeenkomende items. Vul het formulier voor snel maken in om er een toe te voegen."
     }
   ],
   "j5QthH": [
@@ -8473,7 +9482,7 @@
   "jM/rXB": [
     {
       "type": 0,
-      "value": "Create and connect new items"
+      "value": "Nieuwe items maken en verbinden"
     }
   ],
   "jOkfJV": [
@@ -8547,19 +9556,19 @@
   "jqpolM": [
     {
       "type": 0,
-      "value": "No system tools available."
+      "value": "Er zijn geen systeemhulpprogramma's beschikbaar."
     }
   ],
   "ju7bLp": [
     {
       "type": 0,
-      "value": "No connectors available"
+      "value": "Er zijn geen connectors beschikbaar"
     }
   ],
   "jv8SuZ": [
     {
       "type": 0,
-      "value": "Start time (optional)"
+      "value": "Begintijd (optioneel)"
     }
   ],
   "jvo0vs": [
@@ -8568,16 +9577,26 @@
       "value": "Opslaan"
     }
   ],
+  "jw1Wpc": [
+    {
+      "type": 0,
+      "value": "Deleting incident "
+    },
+    {
+      "type": 1,
+      "value": "title"
+    }
+  ],
   "jxYyO2": [
     {
       "type": 0,
-      "value": "YAML must include {collectionName} with at least one entry."
+      "value": "YAML moet {collectionName} bevatten met ten minste één vermelding."
     }
   ],
   "k+3+Dy": [
     {
       "type": 0,
-      "value": "Bar chart"
+      "value": "Staafdiagram"
     }
   ],
   "k0VNHX": [
@@ -8587,13 +9606,13 @@
     },
     {
       "type": 0,
-      "value": "ms"
+      "value": " ms"
     }
   ],
   "k5T5VE": [
     {
       "type": 0,
-      "value": "Select a starting agent"
+      "value": "Selecteer een startende agent"
     }
   ],
   "k8ZNgH": [
@@ -8605,7 +9624,7 @@
   "kG0ZtT": [
     {
       "type": 0,
-      "value": "Other cron ideas"
+      "value": "Andere cron-ideeën"
     }
   ],
   "kHIJzq": [
@@ -8614,22 +9633,34 @@
       "value": "Abonnement is gelijk aan"
     }
   ],
+  "kLL6yL": [
+    {
+      "type": 0,
+      "value": "The maximum AAU limit is 20,000"
+    }
+  ],
   "kQAf2d": [
     {
       "type": 0,
-      "value": "Select"
+      "value": "Selecteren"
     }
   ],
   "kQSvkP": [
     {
       "type": 0,
-      "value": "Connector type"
+      "value": "Connectortype"
+    }
+  ],
+  "kT9YDi": [
+    {
+      "type": 0,
+      "value": "You do not have permission to rename this thread."
     }
   ],
   "kWBrry": [
     {
       "type": 0,
-      "value": "Starting agent"
+      "value": "Agent starten"
     }
   ],
   "kWs94j": [
@@ -8641,7 +9672,7 @@
   "kX8T8H": [
     {
       "type": 0,
-      "value": "Name of the dictionary this parameter contributes to"
+      "value": "Naam van de woordenlijst waaraan deze parameter bijdraagt"
     }
   ],
   "kbDtEK": [
@@ -8657,13 +9688,19 @@
   "khOzXi": [
     {
       "type": 0,
-      "value": "Custom schedule"
+      "value": "Aangepaste planning"
     }
   ],
   "kn+J82": [
     {
       "type": 0,
       "value": "Correlatieanalyse"
+    }
+  ],
+  "ko0rr4": [
+    {
+      "type": 0,
+      "value": "Update the data connector configuration."
     }
   ],
   "koWZK8": [
@@ -8679,29 +9716,11 @@
     },
     {
       "type": 0,
-      "value": " —uses→ "
+      "value": " —gebruikt→ "
     },
     {
       "type": 1,
       "value": "toolName"
-    }
-  ],
-  "kqurtu": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " documenten"
-    },
-    {
-      "type": 1,
-      "value": "plural"
-    },
-    {
-      "type": 0,
-      "value": " geselecteerd"
     }
   ],
   "krH81A": [
@@ -8725,7 +9744,7 @@
   "ks97gc": [
     {
       "type": 0,
-      "value": "Use an existing trigger configuration"
+      "value": "Een bestaande triggerconfiguratie gebruiken"
     }
   ],
   "ku+mDU": [
@@ -8765,7 +9784,7 @@
   "lCsNuL": [
     {
       "type": 0,
-      "value": "Trace data found, but could not parse into spans."
+      "value": "Traceringsgegevens gevonden, maar kunnen niet worden geparseerd in spans."
     }
   ],
   "lDMkTI": [
@@ -8781,7 +9800,7 @@
   "lDx7s5": [
     {
       "type": 0,
-      "value": "Agent responses are more concise in this mode."
+      "value": "Antwoorden van agents zijn beknopter in deze modus."
     }
   ],
   "lKv8ex": [
@@ -8805,7 +9824,7 @@
   "lUAfdH": [
     {
       "type": 0,
-      "value": "MCP server name"
+      "value": "MCP-servernaam"
     }
   ],
   "lawXja": [
@@ -8855,7 +9874,7 @@
   "lni1id": [
     {
       "type": 0,
-      "value": "Search system tools by name, category, or description"
+      "value": "Systeemhulpprogramma's op naam, categorie of beschrijving doorzoeken"
     }
   ],
   "lqgE72": [
@@ -8870,10 +9889,16 @@
       "value": "IoT Hub-registerbijdrager"
     }
   ],
+  "lxblgl": [
+    {
+      "type": 0,
+      "value": "Wednesday"
+    }
+  ],
   "m+cdhC": [
     {
       "type": 0,
-      "value": "Recently used"
+      "value": "Onlangs gebruikt"
     }
   ],
   "m0kcbz": [
@@ -8885,7 +9910,7 @@
   "m3Npit": [
     {
       "type": 0,
-      "value": "No tools available. Try creating one or clearing your filters."
+      "value": "Er zijn geen hulpprogramma's beschikbaar. Probeer er een te maken of verwijder de filters."
     }
   ],
   "m57OnF": [
@@ -8903,7 +9928,7 @@
   "m8grMF": [
     {
       "type": 0,
-      "value": "Connector \""
+      "value": "Connector "
     },
     {
       "type": 1,
@@ -8911,7 +9936,7 @@
     },
     {
       "type": 0,
-      "value": "\" has been created successfully"
+      "value": " is gemaakt"
     }
   ],
   "mAyw3x": [
@@ -8929,19 +9954,25 @@
   "mGh+K0": [
     {
       "type": 0,
-      "value": "Owning team ID is required when adding a default response plan."
+      "value": "De ID van het verantwoordelijke team is vereist wanneer je een standaardreactieplan toevoegt."
     }
   ],
   "mHep2R": [
     {
       "type": 0,
-      "value": "Last run"
+      "value": "Laatst uitgevoerd"
+    }
+  ],
+  "mJR06P": [
+    {
+      "type": 0,
+      "value": "Sunday"
     }
   ],
   "mJXXeS": [
     {
       "type": 0,
-      "value": "No tools connected yet."
+      "value": "Er zijn nog geen hulpprogramma's verbonden."
     }
   ],
   "mN2MCk": [
@@ -8959,7 +9990,7 @@
   "mRJIzw": [
     {
       "type": 0,
-      "value": "Results ("
+      "value": "Resultaten ("
     },
     {
       "type": 1,
@@ -8976,7 +10007,7 @@
           "value": [
             {
               "type": 0,
-              "value": "row"
+              "value": "rij"
             }
           ]
         },
@@ -8984,7 +10015,7 @@
           "value": [
             {
               "type": 0,
-              "value": "rows"
+              "value": "rijen"
             }
           ]
         }
@@ -9001,13 +10032,13 @@
   "mRL9Vh": [
     {
       "type": 0,
-      "value": "Creating..."
+      "value": "Maken..."
     }
   ],
   "mSoczp": [
     {
       "type": 0,
-      "value": "YAML spec must include a name for the "
+      "value": "De YAML-specificatie moet een naam voor de "
     },
     {
       "type": 1,
@@ -9015,7 +10046,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " bevatten."
     }
   ],
   "mV7WX3": [
@@ -9027,7 +10058,7 @@
   "mVkTZZ": [
     {
       "type": 0,
-      "value": "Plugin"
+      "value": "Invoegtoepassing"
     }
   ],
   "mZ0R9v": [
@@ -9039,7 +10070,7 @@
   "mZ3wu9": [
     {
       "type": 0,
-      "value": "Tool type"
+      "value": "Type hulpprogramma"
     }
   ],
   "makWrV": [
@@ -9051,13 +10082,13 @@
   "mbb8vl": [
     {
       "type": 0,
-      "value": "User prompt"
+      "value": "Gebruikersprompt"
     }
   ],
   "mbtoHb": [
     {
       "type": 0,
-      "value": "How should this trigger be set up?"
+      "value": "Hoe moet deze trigger worden ingesteld?"
     }
   ],
   "mgYBYo": [
@@ -9069,7 +10100,7 @@
   "mgZVf8": [
     {
       "type": 0,
-      "value": "No tools configured."
+      "value": "Er zijn geen hulpprogramma's ingesteld."
     }
   ],
   "mkhNnB": [
@@ -9087,21 +10118,17 @@
   "mm/uFP": [
     {
       "type": 0,
-      "value": "Filter by mitigated by"
+      "value": "Filteren op beperkt door"
     }
   ],
   "mopY52": [
-    {
-      "type": 0,
-      "value": "Created "
-    },
     {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": " and linked it as a handoff for "
+      "value": " is gemaakt en gekoppeld als handoff voor "
     },
     {
       "type": 1,
@@ -9109,7 +10136,7 @@
     },
     {
       "type": 0,
-      "value": ". Choose what you’d like to do next."
+      "value": ". Kies wat je hierna wilt doen."
     }
   ],
   "mq/sud": [
@@ -9121,7 +10148,7 @@
   "mrOnjM": [
     {
       "type": 0,
-      "value": "Mode"
+      "value": "Modus"
     }
   ],
   "mtr3R4": [
@@ -9151,7 +10178,7 @@
   "n2h/5e": [
     {
       "type": 0,
-      "value": "Dictionary value type"
+      "value": "Type woordenlijstwaarde"
     }
   ],
   "n5QvJy": [
@@ -9185,13 +10212,19 @@
   "nCowEs": [
     {
       "type": 0,
-      "value": "All agents"
+      "value": "Alle agents"
     }
   ],
   "nDyaq/": [
     {
       "type": 0,
       "value": "In uitvoering"
+    }
+  ],
+  "nEnDXd": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected scheduled tasks? This action cannot be undone."
     }
   ],
   "nFOo9o": [
@@ -9231,13 +10264,13 @@
   "nUT0Lv": [
     {
       "type": 0,
-      "value": "Tools"
+      "value": "Hulpprogramma's"
     }
   ],
   "nWJtZd": [
     {
       "type": 0,
-      "value": "Connector details · "
+      "value": "Connectorgegevens · "
     },
     {
       "type": 1,
@@ -9247,7 +10280,21 @@
   "ncB14A": [
     {
       "type": 0,
-      "value": "Agent invoked"
+      "value": "Agent aangeroepen"
+    }
+  ],
+  "nkYx6+": [
+    {
+      "type": 0,
+      "value": "Disconnect "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " data connectors?"
     }
   ],
   "nmpevl": [
@@ -9289,7 +10336,7 @@
   "nxmZHP": [
     {
       "type": 0,
-      "value": "Configuration saved successfully."
+      "value": "De configuratie is opgeslagen."
     }
   ],
   "nxvTtg": [
@@ -9301,19 +10348,25 @@
   "nySNrf": [
     {
       "type": 0,
-      "value": "A unique identifier for your tool"
+      "value": "Een unieke id voor je hulpprogramma"
     }
   ],
   "o0pkiK": [
     {
       "type": 0,
-      "value": "Describe what this agent does and how it should behave..."
+      "value": "Beschrijf wat deze agent doet en hoe deze zich moet gedragen..."
     }
   ],
   "o1g3JC": [
     {
       "type": 0,
-      "value": "No tools linked yet. Add tools so this agent can take action."
+      "value": "Er zijn nog geen hulpprogramma's gekoppeld. Voeg hulpprogramma's toe zodat deze agent actie kan ondernemen."
+    }
+  ],
+  "o3uElD": [
+    {
+      "type": 0,
+      "value": "Add data connector"
     }
   ],
   "o7TUwc": [
@@ -9334,6 +10387,20 @@
       "value": "Relevante documenten"
     }
   ],
+  "oBxxMY": [
+    {
+      "type": 0,
+      "value": "Failed to delete all "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " data connectors"
+    }
+  ],
   "oDI/Rp": [
     {
       "type": 0,
@@ -9347,7 +10414,7 @@
   "oDVFQr": [
     {
       "type": 0,
-      "value": "Ignore (use static value)"
+      "value": "Negeren (statische waarde gebruiken)"
     }
   ],
   "oDb8Xv": [
@@ -9365,19 +10432,31 @@
   "oKJ0fm": [
     {
       "type": 0,
-      "value": "Nothing to preview yet."
+      "value": "Er is nog geen voorbeeld beschikbaar."
     }
   ],
   "oM0lfe": [
     {
       "type": 0,
-      "value": "Select a node to see its details."
+      "value": "Selecteer een knooppunt om de details te zien."
+    }
+  ],
+  "oMsZ4g": [
+    {
+      "type": 0,
+      "value": "Day of month"
     }
   ],
   "oQ/TUW": [
     {
       "type": 0,
       "value": "Cost Management-inzender"
+    }
+  ],
+  "oQJEFn": [
+    {
+      "type": 0,
+      "value": "Performance Issue"
     }
   ],
   "oTNrPz": [
@@ -9441,7 +10520,7 @@
   "ocTBQX": [
     {
       "type": 0,
-      "value": "Failed to delete connector"
+      "value": "Kan de connector niet verwijderen"
     }
   ],
   "omHElC": [
@@ -9465,7 +10544,7 @@
   "owa0nd": [
     {
       "type": 0,
-      "value": "Expand span with id: "
+      "value": "Bereik uitbreiden met id: "
     },
     {
       "type": 1,
@@ -9481,7 +10560,7 @@
   "p/QlSI": [
     {
       "type": 0,
-      "value": "Updating connector \""
+      "value": "Connector "
     },
     {
       "type": 1,
@@ -9489,7 +10568,7 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": " bijwerken..."
     }
   ],
   "p/xAmY": [
@@ -9528,6 +10607,12 @@
       "value": "Beheren zonder toegang. Kan geen beveiligingsbeleid of bovenliggende SQL-servers beheren."
     }
   ],
+  "p8Ubox": [
+    {
+      "type": 0,
+      "value": "Connect an incident management platform so the agent will collect, analyze, and respond to alerts."
+    }
+  ],
   "pAFuFx": [
     {
       "type": 0,
@@ -9549,7 +10634,7 @@
   "pCRg92": [
     {
       "type": 0,
-      "value": "You do not have permission to add or delete connectors."
+      "value": "U bent niet gemachtigd om connectors toe te voegen of te verwijderen."
     }
   ],
   "pDUFq5": [
@@ -9562,6 +10647,16 @@
     {
       "type": 0,
       "value": "Huidige status"
+    }
+  ],
+  "pFnETG": [
+    {
+      "type": 0,
+      "value": "Failed to rename thread with error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "pRvgsc": [
@@ -9579,7 +10674,7 @@
   "pSeneB": [
     {
       "type": 0,
-      "value": "Each "
+      "value": "Elke "
     },
     {
       "type": 1,
@@ -9587,7 +10682,7 @@
     },
     {
       "type": 0,
-      "value": " must include a type."
+      "value": " moet een type bevatten."
     }
   ],
   "pSfQh6": [
@@ -9602,16 +10697,10 @@
       "value": "Sleutel wijzigen"
     }
   ],
-  "panI3e": [
-    {
-      "type": 0,
-      "value": "0 0 * * *"
-    }
-  ],
   "pbpjik": [
     {
       "type": 0,
-      "value": "When you finish creating this agent, we'll automatically add it as a handoff for "
+      "value": "Als je klaar bent met het maken van deze agent, voegen we deze automatisch toe als handoff voor "
     },
     {
       "type": 1,
@@ -9631,7 +10720,7 @@
   "peOEU7": [
     {
       "type": 0,
-      "value": "No connectors linked."
+      "value": "Er zijn geen connectors gekoppeld."
     }
   ],
   "pf5nil": [
@@ -9669,7 +10758,7 @@
   "ppzeDo": [
     {
       "type": 0,
-      "value": "Link Tool"
+      "value": "Hulpprogramma koppelen"
     }
   ],
   "pqgzm0": [
@@ -9681,13 +10770,19 @@
   "pr9fPP": [
     {
       "type": 0,
-      "value": "Alert title"
+      "value": "Titel van waarschuwing"
     }
   ],
   "psUT6S": [
     {
       "type": 0,
       "value": "Maximum aantal keren dat deze taak moet worden uitgevoerd"
+    }
+  ],
+  "puQ/kF": [
+    {
+      "type": 0,
+      "value": "Loading chat threads"
     }
   ],
   "pyXjlj": [
@@ -9714,10 +10809,22 @@
       "value": "Totaal:"
     }
   ],
+  "qAhUUO": [
+    {
+      "type": 0,
+      "value": "Thursday"
+    }
+  ],
+  "qQh4Xu": [
+    {
+      "type": 0,
+      "value": "The agent references documentation and files to understand your projects and processes."
+    }
+  ],
   "qavd9Y": [
     {
       "type": 0,
-      "value": "Tell us how often your agent should run and we’ll draft the cron expression for you."
+      "value": "Vertel ons hoe vaak uw agent moet worden uitgevoerd, zodat wij de cron-expressie voor u kunnen opstellen."
     }
   ],
   "qczspd": [
@@ -9747,7 +10854,13 @@
   "qf1aUJ": [
     {
       "type": 0,
-      "value": "A connector with this name already exists"
+      "value": "Er bestaat al een connector met deze naam"
+    }
+  ],
+  "qh9t2U": [
+    {
+      "type": 0,
+      "value": "Connect to agent"
     }
   ],
   "qhApmK": [
@@ -9759,7 +10872,7 @@
   "qiY3L8": [
     {
       "type": 0,
-      "value": "Connector Name"
+      "value": "Connectornaam"
     }
   ],
   "qj1uhz": [
@@ -9786,24 +10899,28 @@
       "value": "Back-endeindpunt"
     }
   ],
+  "qs5hhk": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected incident thread?"
+    }
+  ],
   "qvTohT": [
     {
       "type": 0,
-      "value": "No results for \""
-    },
-    {
-      "type": 1,
-      "value": "searchText"
-    },
-    {
-      "type": 0,
-      "value": "\""
+      "value": "Geen resultaten voor {searchText}"
     }
   ],
   "qvviEg": [
     {
       "type": 0,
-      "value": "Add handoff to existing agent"
+      "value": "Voeg handoff toe aan bestaande agent"
+    }
+  ],
+  "qxlJil": [
+    {
+      "type": 0,
+      "value": "PM"
     }
   ],
   "qyJtWy": [
@@ -9833,13 +10950,19 @@
   "rAbWbb": [
     {
       "type": 0,
-      "value": "No description available"
+      "value": "Geen beschrijving beschikbaar"
     }
   ],
   "rBPlLc": [
     {
       "type": 0,
       "value": "resources beschikbaar in deze periode"
+    }
+  ],
+  "rBhkvO": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the file from the knowledge sources the agent uses. Are you sure you want to delete this file?"
     }
   ],
   "rELDbB": [
@@ -9857,7 +10980,7 @@
   "rG1sas": [
     {
       "type": 0,
-      "value": "Attaches to "
+      "value": "Wordt gekoppeld aan "
     },
     {
       "type": 1,
@@ -9877,7 +11000,7 @@
   "rKdPkY": [
     {
       "type": 0,
-      "value": "Select a "
+      "value": "Selecteer een "
     },
     {
       "type": 1,
@@ -9885,7 +11008,7 @@
     },
     {
       "type": 0,
-      "value": " to edit its configuration YAML."
+      "value": " om de YAML-configuratie te bewerken."
     }
   ],
   "rKq4sw": [
@@ -9931,7 +11054,13 @@
   "rTBfGn": [
     {
       "type": 0,
-      "value": "Service type: All"
+      "value": "Servicetype: Alle"
+    }
+  ],
+  "rU0caB": [
+    {
+      "type": 0,
+      "value": "Update AAU allocation"
     }
   ],
   "rVtn/e": [
@@ -9943,7 +11072,7 @@
   "rXQSJp": [
     {
       "type": 0,
-      "value": "Query test failed: "
+      "value": "Querytest mislukt: "
     },
     {
       "type": 1,
@@ -9971,7 +11100,7 @@
   "rd+inb": [
     {
       "type": 0,
-      "value": "Create AI agents with custom tools and connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
+      "value": "AI-agents met aangepaste hulpprogramma's en connectors maken. Visualiseer hoe ze samenwerken in een interactieve grafiek. Ga aan de slag door uw eerste agent, hulpprogramma of connector te maken."
     }
   ],
   "rd6YZk": [
@@ -10022,6 +11151,12 @@
       "value": "Optimaliseer hoe de agent incidenten onderzoekt en hierop reageert door incidentreactieplannen en aangepaste reactieplannen toe te voegen ter ondersteuning van een breed scala aan scenario's."
     }
   ],
+  "rlwohK": [
+    {
+      "type": 0,
+      "value": "Documentation connector"
+    }
+  ],
   "rpG/Bn": [
     {
       "type": 0,
@@ -10043,7 +11178,7 @@
   "rrN9ke": [
     {
       "type": 0,
-      "value": "tools"
+      "value": "hulpprogramma's"
     }
   ],
   "rvirM2": [
@@ -10061,7 +11196,7 @@
   "rxcQLa": [
     {
       "type": 0,
-      "value": "Creating connector \""
+      "value": "Connector "
     },
     {
       "type": 1,
@@ -10069,7 +11204,7 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": " maken..."
     }
   ],
   "ryPHA8": [
@@ -10078,26 +11213,42 @@
       "value": "Ondersteund door de agent"
     }
   ],
-  "s5cLGN": [
+  "s00xPm": [
     {
       "type": 0,
-      "value": "Hoofdoorzaak: "
+      "value": "Learn more about knowledge sources"
+    }
+  ],
+  "s04Z5U": [
+    {
+      "type": 0,
+      "value": "This will permanently disconnect "
     },
     {
       "type": 1,
-      "value": "rootCause"
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " data connectors from the agent. Are you sure you want to disconnect these data connectors?"
     }
   ],
   "s6iZgz": [
     {
       "type": 0,
-      "value": "Description (Optional)"
+      "value": "Beschrijving (optioneel)"
     }
   ],
   "s7DlV0": [
     {
       "type": 0,
       "value": "Agenteindpunt"
+    }
+  ],
+  "s7HLdg": [
+    {
+      "type": 0,
+      "value": "Run deep investigation autonomously"
     }
   ],
   "s8HBot": [
@@ -10115,7 +11266,7 @@
   "sAireQ": [
     {
       "type": 0,
-      "value": "Select subscription"
+      "value": "Abonnement selecteren"
     }
   ],
   "sH0O5v": [
@@ -10126,16 +11277,12 @@
   ],
   "sHc8w5": [
     {
-      "type": 0,
-      "value": "Created "
-    },
-    {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": ". Pick a next step below to keep building."
+      "value": " gemaakt. Kies hieronder een volgende stap om verder te bouwen."
     }
   ],
   "sI+CCC": [
@@ -10144,16 +11291,28 @@
       "value": "Lezer van Log Analytics"
     }
   ],
+  "sI/fs2": [
+    {
+      "type": 0,
+      "value": "Use same thread"
+    }
+  ],
+  "sILeXv": [
+    {
+      "type": 0,
+      "value": "Root Cause:"
+    }
+  ],
   "sIMS7i": [
     {
       "type": 0,
-      "value": "Progress"
+      "value": "Voortgang"
     }
   ],
   "sNofwe": [
     {
       "type": 0,
-      "value": "No, keep default meta agent"
+      "value": "Nee, standaardmeta-agent behouden"
     }
   ],
   "sNutPl": [
@@ -10162,10 +11321,16 @@
       "value": "Tijdstempels"
     }
   ],
+  "sNuzQE": [
+    {
+      "type": 0,
+      "value": "No nodes found"
+    }
+  ],
   "sQZhm1": [
     {
       "type": 0,
-      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
+      "value": "In deze lijst worden uw uitgebreide agents, hulpprogramma's en connectors weergegeven die zijn ingedeeld per categorie. Subagents maken en beheren om uw mogelijkheden uit te breiden, aangepaste hulpprogramma's voor specifieke taken toe te voegen en connectors te configureren voor toegang tot externe resources."
     }
   ],
   "sQkhYk": [
@@ -10183,19 +11348,19 @@
   "sTodCB": [
     {
       "type": 0,
-      "value": "Link this agent to its handoffs and tools so the relationships are ready when it goes live."
+      "value": "Koppel deze agent aan de handoffs en hulpprogramma's zodat de relaties klaar zijn wanneer deze live gaat."
     }
   ],
   "sUfX4j": [
     {
       "type": 0,
-      "value": "It may take a few seconds for new agents or tools to appear in the graph after they are created."
+      "value": "Het kan een paar seconden duren voordat nieuwe agents of hulpprogramma's in de grafiek verschijnen nadat ze zijn gemaakt."
     }
   ],
   "sV2v5L": [
     {
       "type": 0,
-      "value": "Instructions"
+      "value": "Instructies"
     }
   ],
   "sVDrdr": [
@@ -10207,7 +11372,7 @@
   "sVJ+oz": [
     {
       "type": 0,
-      "value": "Added handoff to "
+      "value": "Handoff toegevoegd aan "
     },
     {
       "type": 1,
@@ -10215,7 +11380,7 @@
     },
     {
       "type": 0,
-      "value": " for "
+      "value": " voor "
     },
     {
       "type": 1,
@@ -10224,6 +11389,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "sXiGbo": [
+    {
+      "type": 0,
+      "value": "Add file"
     }
   ],
   "sd1Vy+": [
@@ -10235,7 +11406,7 @@
   "sdNNv5": [
     {
       "type": 0,
-      "value": "When an incident opens, have "
+      "value": "Laat "
     },
     {
       "type": 1,
@@ -10243,25 +11414,25 @@
     },
     {
       "type": 0,
-      "value": " investigate and summarize the latest state."
+      "value": " de meest recente status onderzoeken en samenvatten wanneer een incident wordt geopend."
     }
   ],
   "sdussP": [
     {
       "type": 0,
-      "value": "System Tools (Optional)"
+      "value": "Systeemhulpprogramma's (optioneel)"
     }
   ],
   "sf6hMj": [
     {
       "type": 0,
-      "value": "Heads-up"
+      "value": "Waarschuwing"
     }
   ],
   "sjlioi": [
     {
       "type": 0,
-      "value": "Subagent invoked"
+      "value": "Subagent aangeroepen"
     }
   ],
   "slxYbm": [
@@ -10295,7 +11466,7 @@
   "sqGM6w": [
     {
       "type": 0,
-      "value": "Delete Items"
+      "value": "Items verwijderen"
     }
   ],
   "srG8e2": [
@@ -10308,6 +11479,12 @@
     {
       "type": 0,
       "value": "Inzender voor SQL Server"
+    }
+  ],
+  "strvmG": [
+    {
+      "type": 0,
+      "value": "Every hour"
     }
   ],
   "swRudj": [
@@ -10340,16 +11517,6 @@
       "value": "Info:"
     }
   ],
-  "t2u8dC": [
-    {
-      "type": 0,
-      "value": "Symptomen: "
-    },
-    {
-      "type": 1,
-      "value": "symptoms"
-    }
-  ],
   "t323u5": [
     {
       "type": 0,
@@ -10365,7 +11532,7 @@
   "t3n6rd": [
     {
       "type": 0,
-      "value": "AI Suggestions"
+      "value": "AI-suggesties"
     }
   ],
   "t3wAiN": [
@@ -10377,7 +11544,7 @@
   "t6/9PU": [
     {
       "type": 0,
-      "value": "Relationships (optional)"
+      "value": "Relaties (optioneel)"
     }
   ],
   "t9I1dY": [
@@ -10389,7 +11556,7 @@
   "tB02Wz": [
     {
       "type": 0,
-      "value": "Generating…"
+      "value": "Genereren…"
     }
   ],
   "tCrMHt": [
@@ -10407,7 +11574,7 @@
   "tGHG7q": [
     {
       "type": 0,
-      "value": "Back to Edit"
+      "value": "Terug naar Bewerken"
     }
   ],
   "tHCvDB": [
@@ -10419,13 +11586,13 @@
   "tJuu1A": [
     {
       "type": 0,
-      "value": "✨ AI Suggested Handoff Description"
+      "value": "✨ Door AI voorgestelde overdrachtsbeschrijving"
     }
   ],
   "tLYOnZ": [
     {
       "type": 0,
-      "value": "Knowledge base"
+      "value": "Kennisdatabase"
     }
   ],
   "tLaLqo": [
@@ -10443,7 +11610,7 @@
   "tRaGqN": [
     {
       "type": 0,
-      "value": "Testing query…"
+      "value": "Query testen…"
     }
   ],
   "tSKi9q": [
@@ -10458,10 +11625,16 @@
       "value": "Identiteit"
     }
   ],
+  "tTVtNj": [
+    {
+      "type": 0,
+      "value": "Set a run limit"
+    }
+  ],
   "tU3A8E": [
     {
       "type": 0,
-      "value": "Your new "
+      "value": "Je nieuwe "
     },
     {
       "type": 1,
@@ -10469,13 +11642,19 @@
     },
     {
       "type": 0,
-      "value": " will be ready in a few seconds. Feel free to keep editing while we connect it."
+      "value": " is over een paar seconden klaar. Je kunt doorgaan met bewerken terwijl we het verbinden."
     }
   ],
   "tWX1j9": [
     {
       "type": 0,
       "value": "Toevoegen aan favorieten"
+    }
+  ],
+  "tZmd+w": [
+    {
+      "type": 0,
+      "value": "Connect a data source"
     }
   ],
   "tb6uBb": [
@@ -10485,7 +11664,7 @@
     },
     {
       "type": 0,
-      "value": " is already connected to "
+      "value": " is al verbonden met "
     },
     {
       "type": 1,
@@ -10529,19 +11708,25 @@
   "thOyk5": [
     {
       "type": 0,
-      "value": "Deleting connector"
+      "value": "Connector verwijderen"
     }
   ],
   "tjE5Cb": [
     {
       "type": 0,
-      "value": "No handoffs configured."
+      "value": "Er zijn geen handoffs ingesteld."
     }
   ],
   "trPabo": [
     {
       "type": 0,
       "value": "Geen geplande taken gevonden"
+    }
+  ],
+  "ts7YvN": [
+    {
+      "type": 0,
+      "value": "Repeat until"
     }
   ],
   "tshYzs": [
@@ -10553,7 +11738,7 @@
   "tthToS": [
     {
       "type": 0,
-      "value": "Disabled"
+      "value": "Uitgeschakeld"
     }
   ],
   "tujypD": [
@@ -10569,7 +11754,13 @@
   "tvw8DP": [
     {
       "type": 0,
-      "value": "Select existing tools or create new ones later"
+      "value": "Selecteer bestaande hulpprogramma's of maak later nieuwe"
+    }
+  ],
+  "txLniB": [
+    {
+      "type": 0,
+      "value": "Learn more about code optimizations"
     }
   ],
   "tyJNW5": [
@@ -10593,7 +11784,7 @@
   "u3AxgJ": [
     {
       "type": 0,
-      "value": "Incident status:"
+      "value": "Incidentstatus:"
     }
   ],
   "u4WKBH": [
@@ -10635,7 +11826,7 @@
   "uFaAgq": [
     {
       "type": 0,
-      "value": "Connect relationships"
+      "value": "Relaties verbinden"
     }
   ],
   "uI0Lmu": [
@@ -10644,10 +11835,54 @@
       "value": "Alle autonomieniveaus"
     }
   ],
+  "uLmZLS": [
+    {
+      "type": 0,
+      "value": "Active flow AAUs reset in "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+            {
+              "type": 0,
+              "value": "today"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " day"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " days"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "days"
+    }
+  ],
   "uMF+CT": [
     {
       "type": 0,
-      "value": "Remove extended agent: "
+      "value": "Verwijder uitgebreide agent: "
     },
     {
       "type": 1,
@@ -10657,7 +11892,7 @@
   "uMNRNl": [
     {
       "type": 0,
-      "value": "Agents as tools"
+      "value": "Agents als hulpprogramma's"
     }
   ],
   "uRMqBi": [
@@ -10679,25 +11914,25 @@
     },
     {
       "type": 0,
-      "value": " failed"
+      "value": " mislukt"
     }
   ],
   "uYb82D": [
     {
       "type": 0,
-      "value": "Pick from presets"
+      "value": "Kiezen uit voorinstellingen"
     }
   ],
   "ubULuu": [
     {
       "type": 0,
-      "value": "Clear description for agents to understand when to use this tool"
+      "value": "Duidelijke beschrijving zodat agents begrijpen wanneer ze dit hulpprogramma moeten gebruiken"
     }
   ],
   "udi5I/": [
     {
       "type": 0,
-      "value": "Create incident response plans or scheduled tasks to trigger agents automatically."
+      "value": "Maak plannen voor incidentreactie of geplande taken om agents automatisch te activeren."
     }
   ],
   "ug01Mk": [
@@ -10706,10 +11941,16 @@
       "value": "Tijd"
     }
   ],
+  "ukQpDs": [
+    {
+      "type": 0,
+      "value": "Folder"
+    }
+  ],
   "uld/2m": [
     {
       "type": 0,
-      "value": "Incident status"
+      "value": "Incidentstatus:"
     }
   ],
   "uln7eT": [
@@ -10721,13 +11962,37 @@
   "unj6JR": [
     {
       "type": 0,
-      "value": "Create from template"
+      "value": "Maken op basis van sjabloon"
     }
   ],
   "unxs9C": [
     {
       "type": 0,
       "value": "Hulpprogramma's geselecteerd voor incidentreactie"
+    }
+  ],
+  "us/IXr": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected incident threads?"
+    }
+  ],
+  "uudb6D": [
+    {
+      "type": 0,
+      "value": "Data Source"
+    }
+  ],
+  "uva2Xo": [
+    {
+      "type": 0,
+      "value": "Get more details about these insights"
+    }
+  ],
+  "uwY8Nf": [
+    {
+      "type": 0,
+      "value": "Refine with AI"
     }
   ],
   "uyO1AJ": [
@@ -10739,7 +12004,7 @@
   "v/3x6O": [
     {
       "type": 0,
-      "value": "Improving instructions..."
+      "value": "Instructies verbeteren..."
     }
   ],
   "v0CXYP": [
@@ -10772,10 +12037,22 @@
       "value": "Sev3"
     }
   ],
+  "vAW30j": [
+    {
+      "type": 0,
+      "value": "Frequency"
+    }
+  ],
   "vAWzLN": [
     {
       "type": 0,
       "value": "IcM verbreken?"
+    }
+  ],
+  "vB/Cv7": [
+    {
+      "type": 0,
+      "value": "Memory usage insights"
     }
   ],
   "vCAhII": [
@@ -10787,7 +12064,7 @@
   "vCsh17": [
     {
       "type": 0,
-      "value": "Connect to data sources like Kusto for rich agent capabilities"
+      "value": "Maak verbinding met gegevensbronnen zoals Kusto voor uitgebreide agentmogelijkheden"
     }
   ],
   "vDbj1h": [
@@ -10808,16 +12085,10 @@
       "value": "U bent niet gemachtigd om reactieplannen uit te schakelen."
     }
   ],
-  "vR27zt": [
-    {
-      "type": 0,
-      "value": "Documentnaam"
-    }
-  ],
   "vVpzJQ": [
     {
       "type": 0,
-      "value": "Suggested instructions"
+      "value": "Voorgestelde instructies"
     }
   ],
   "vXCeIi": [
@@ -10865,13 +12136,19 @@
   "vlv+Ch": [
     {
       "type": 0,
-      "value": "Scheduled trigger"
+      "value": "Geplande trigger"
     }
   ],
   "vs8s5B": [
     {
       "type": 0,
       "value": "Incidentreactieplan inschakelen"
+    }
+  ],
+  "vsQnBO": [
+    {
+      "type": 0,
+      "value": "Blocking usage insights"
     }
   ],
   "w+XRP2": [
@@ -10889,19 +12166,19 @@
   "w0xxAb": [
     {
       "type": 0,
-      "value": "Clear description"
+      "value": "Beschrijving wissen"
     }
   ],
   "w6nz4p": [
     {
       "type": 0,
-      "value": "Open incident triggers"
+      "value": "Incidenttrigger openen"
     }
   ],
   "w8UjdT": [
     {
       "type": 0,
-      "value": "Connect an Azure service MCP server to give the agent more tools to resolve an incident."
+      "value": "Een MCP-server van Azure-service verbinden om de agent meer hulpprogramma's te geven om een incident op te lossen."
     }
   ],
   "w9tk1A": [
@@ -10941,7 +12218,7 @@
   "wOHH3J": [
     {
       "type": 0,
-      "value": "Describe what "
+      "value": "Beschrijf wat "
     },
     {
       "type": 1,
@@ -10949,13 +12226,13 @@
     },
     {
       "type": 0,
-      "value": " should do each time it runs."
+      "value": " moet doen elke keer dat deze wordt uitgevoerd."
     }
   ],
   "wQdhYo": [
     {
       "type": 0,
-      "value": "Create a new handoff agent"
+      "value": "Maak een nieuwe handoff-agent"
     }
   ],
   "wSZR47": [
@@ -10976,16 +12253,28 @@
       "value": "De actie wordt uitgevoerd met agentmachtigingen."
     }
   ],
+  "wYsv4Z": [
+    {
+      "type": 0,
+      "value": "Monthly"
+    }
+  ],
   "wb/AUH": [
     {
       "type": 0,
-      "value": "Next run times"
+      "value": "Volgende uitvoeringstijden"
     }
   ],
   "wbigtI": [
     {
       "type": 0,
       "value": "SAP-workloads beheren in Azure."
+    }
+  ],
+  "wbwhbH": [
+    {
+      "type": 0,
+      "value": "Task name"
     }
   ],
   "we4Lby": [
@@ -11003,7 +12292,7 @@
   "wgyFIG": [
     {
       "type": 0,
-      "value": "Polishing…"
+      "value": "Verbeteren…"
     }
   ],
   "wkLkeE": [
@@ -11024,12 +12313,6 @@
       "value": "Uitvoer en fout beschikbaar"
     }
   ],
-  "wwNLHo": [
-    {
-      "type": 0,
-      "value": "Bestanden uploaden"
-    }
-  ],
   "wxlJSs": [
     {
       "type": 0,
@@ -11039,19 +12322,19 @@
   "x/7RC2": [
     {
       "type": 0,
-      "value": "Checking trigger setup…"
+      "value": "Triggerinstelling controleren…"
     }
   ],
   "x1YTqM": [
     {
       "type": 0,
-      "value": "Describe the cadence before we can help."
+      "value": "Beschrijf de frequentie voordat we kunnen helpen."
     }
   ],
   "x25AjF": [
     {
       "type": 0,
-      "value": "Tool usage ID"
+      "value": "ID van hulpprogrammagebruik"
     }
   ],
   "x3aQrV": [
@@ -11063,13 +12346,13 @@
   "x3qvaC": [
     {
       "type": 0,
-      "value": "No runs yet"
+      "value": "Nog geen uitvoeringen"
     }
   ],
   "x4OHX9": [
     {
       "type": 0,
-      "value": "Sub-Agent Builder"
+      "value": "Subagentopbouwfunctie"
     }
   ],
   "x7C8JZ": [
@@ -11090,6 +12373,12 @@
       "value": "HDInsight-clusteroperator"
     }
   ],
+  "xHpwlo": [
+    {
+      "type": 0,
+      "value": "File Name"
+    }
+  ],
   "xK7rmd": [
     {
       "type": 0,
@@ -11099,7 +12388,7 @@
   "xNC5hG": [
     {
       "type": 0,
-      "value": "Dictionary (group into args)"
+      "value": "Woordenlijst (groeperen in argumenten)"
     }
   ],
   "xSsto+": [
@@ -11209,7 +12498,7 @@
   "xsbZ+Q": [
     {
       "type": 0,
-      "value": "Add a tool"
+      "value": "Een hulpprogramma toevoegen"
     }
   ],
   "xtkizV": [
@@ -11221,7 +12510,7 @@
   "xvTDgy": [
     {
       "type": 0,
-      "value": "Search tools…"
+      "value": "Hulpprogramma's doorzoeken…"
     }
   ],
   "xxoHVE": [
@@ -11233,7 +12522,7 @@
   "xy47sz": [
     {
       "type": 0,
-      "value": "Unable to parse YAML: "
+      "value": "Kan YAML niet parseren: "
     },
     {
       "type": 1,
@@ -11246,10 +12535,16 @@
       "value": "Aangepast incidentreactieplan verwijderen"
     }
   ],
+  "y3Uu5i": [
+    {
+      "type": 0,
+      "value": "No data connectors match your search"
+    }
+  ],
   "y5oInX": [
     {
       "type": 0,
-      "value": "Incident priority"
+      "value": "Incidentprioriteit"
     }
   ],
   "yDh8i7": [
@@ -11261,7 +12556,7 @@
   "yFU6JN": [
     {
       "type": 0,
-      "value": "Chat input"
+      "value": "Chatinvoer"
     }
   ],
   "yJSwfQ": [
@@ -11273,7 +12568,7 @@
   "yLRKP5": [
     {
       "type": 0,
-      "value": "Handoff description"
+      "value": "Beschrijving van handoff"
     }
   ],
   "yNCGjc": [
@@ -11291,7 +12586,7 @@
   "yX3QcY": [
     {
       "type": 0,
-      "value": "Tool details"
+      "value": "Details van hulpprogramma"
     }
   ],
   "yYK6LR": [
@@ -11321,7 +12616,7 @@
   "yf9+0C": [
     {
       "type": 0,
-      "value": "Polished version"
+      "value": "Verbeterde versie"
     }
   ],
   "yh4G7g": [
@@ -11339,13 +12634,13 @@
   "yhZZjG": [
     {
       "type": 0,
-      "value": "To agent"
+      "value": "Naar agent"
     }
   ],
   "yhqGka": [
     {
       "type": 0,
-      "value": "Choose how this trigger should behave and which agent it starts."
+      "value": "Kies hoe deze trigger zich moet gedragen en welke agent deze start."
     }
   ],
   "yiAEBc": [
@@ -11363,7 +12658,7 @@
   "ynVolH": [
     {
       "type": 0,
-      "value": "Ask a question or enter a slash(/) to use a command"
+      "value": "Stel een vraag of typ een slash (/) om een opdracht te gebruiken"
     }
   ],
   "yo67XU": [
@@ -11376,6 +12671,16 @@
     {
       "type": 0,
       "value": "Type kerntoepassingsgroep"
+    }
+  ],
+  "ysBuRt": [
+    {
+      "type": 0,
+      "value": "Failed to create default incident response plan. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "yxXhfZ": [
@@ -11411,13 +12716,19 @@
   "zCp11f": [
     {
       "type": 0,
-      "value": "Query test succeeded."
+      "value": "Querytest geslaagd."
     }
   ],
   "zDcGyS": [
     {
       "type": 0,
-      "value": "Trigger name"
+      "value": "Triggernaam"
+    }
+  ],
+  "zE+jtE": [
+    {
+      "type": 0,
+      "value": "Rename thread title"
     }
   ],
   "zEg90u": [
@@ -11430,6 +12741,20 @@
     {
       "type": 0,
       "value": "Alle ernstniveaus"
+    }
+  ],
+  "zMX3td": [
+    {
+      "type": 0,
+      "value": "Renaming the thread title to '"
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": "'"
     }
   ],
   "zN87hN": [
@@ -11468,6 +12793,20 @@
       "value": "Resourcegroepen kiezen"
     }
   ],
+  "zeJdWA": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " incidents"
+    }
+  ],
   "zfM/75": [
     {
       "type": 0,
@@ -11486,6 +12825,12 @@
       "value": "ServiceNow"
     }
   ],
+  "zhoVUT": [
+    {
+      "type": 0,
+      "value": "Advanced settings"
+    }
+  ],
   "zpkKsD": [
     {
       "type": 0,
@@ -11495,17 +12840,21 @@
   "zr8jA6": [
     {
       "type": 0,
-      "value": "Remove tool "
+      "value": "Hulpprogramma "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " verwijderen"
     }
   ],
   "zuQF37": [
     {
       "type": 0,
-      "value": "Review Your tool"
+      "value": "Je hulpprogramma controleren"
     }
   ],
   "zvKOAu": [
@@ -11518,6 +12867,12 @@
     {
       "type": 0,
       "value": "Promptbibliotheek"
+    }
+  ],
+  "zxvhnE": [
+    {
+      "type": 0,
+      "value": "Daily"
     }
   ]
 }

@@ -144,8 +144,14 @@ const ChatBoxFooter = ({
     isDeepInvestigationButtonEnabled,
     isDeepInvestigationTurnedOn,
     onClickDeepInvestigationButton,
+    postSystemMessage = () => undefined,
+    forcedAgentName,
+    lockAgentSelection,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
+
+    // Preserve reference for shared interface until downstream usage is implemented in the playground.
+    void postSystemMessage;
 
     const [historyIndex, setHistoryIndex] = useState<number>(-1);
     const [originalInput, setOriginalInput] = useState<string>('');
@@ -157,7 +163,7 @@ const ChatBoxFooter = ({
     const [focusedExtendedAgent, setFocusedExtendedAgent] = useState<string | null>(null);
     const [searchText, setSearchText] = useState<string>('');
     const [matchedShortcutString, setMatchedShortcutString] = useState<string | null>(null);
-    const [selectedAgentName, setSelectedAgentName] = useState<string | null>(null);
+    const [selectedAgentName, setSelectedAgentName] = useState<string | null>(forcedAgentName ?? null);
     const [extendedAgents, setExtendedAgents] = useState<ExtendedAgent[]>([]);
 
     const showAgentModeSelector = useConfigSetting(SettingNames.ShowAgentModeForThread);
@@ -170,7 +176,6 @@ const ChatBoxFooter = ({
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const extendedAgentClient = ExtendedAgentClient.getInstance(sreAgentEndpoint);
-
     const imperativeControlPluginRef = useRef<ImperativeControlPluginRef>(null);
     const editorRef = useRef<LexicalEditor | null>(null);
     const chatInputRef = useRef<HTMLDivElement | null>(null);
@@ -194,10 +199,22 @@ const ChatBoxFooter = ({
     );
 
     const matchedShortcuts = useMemo(() => {
-        return Object.values(Shortcut).filter(
-            shortcut => !matchedShortcutString || shortcut.toLowerCase().startsWith(matchedShortcutString.toLowerCase())
-        );
-    }, [matchedShortcutString]);
+        return Object.values(Shortcut)
+            .filter(shortcut => !lockAgentSelection || shortcut !== Shortcut.Agent)
+            .filter(shortcut => !matchedShortcutString || shortcut.toLowerCase().startsWith(matchedShortcutString.toLowerCase()));
+    }, [lockAgentSelection, matchedShortcutString]);
+
+    useEffect(() => {
+        if (forcedAgentName) {
+            setSelectedAgentName(prev => (prev === forcedAgentName ? prev : forcedAgentName));
+        } else if (lockAgentSelection && selectedAgentName) {
+            setSelectedAgentName(null);
+        }
+
+        if (lockAgentSelection && selectedShortcut === Shortcut.Agent) {
+            setSelectedShortcut(null);
+        }
+    }, [forcedAgentName, lockAgentSelection, selectedAgentName, selectedShortcut]);
 
     const openShortcutList = (matchedString: string) => {
         setShowShortcutLists(true);
@@ -206,6 +223,11 @@ const ChatBoxFooter = ({
     };
 
     const openShortcutResourcePopover = (shortcut?: Shortcut | null) => {
+        if (lockAgentSelection && shortcut === Shortcut.Agent) {
+            closeShortcutList();
+            return;
+        }
+
         if (shortcut) {
             setSelectedShortcut(shortcut);
         }
@@ -290,31 +312,39 @@ const ChatBoxFooter = ({
         });
     }, []);
 
-    const onSelectExtendedAgent = useCallback((agentName: string) => {
-        setFocusedExtendedAgent(null);
-        setSelectedShortcut(null);
-        setSelectedAgentName(agentName);
-
-        editorRef.current?.update(() => {
-            const selection = $getSelection();
-            if ($isRangeSelection(selection)) {
-                const { anchor } = selection;
-                const offset = anchor.offset ?? -1;
-                const node = anchor.getNode();
-
-                const shortcutNode = $isElementNode(node)
-                    ? node.getChildAtIndex(anchor.offset - 1)
-                    : $isTextNode(node) && offset !== -1
-                      ? node.getPreviousSibling()
-                      : null;
-
-                if ($isShortcutNode(shortcutNode)) {
-                    removeShortcutNode();
-                    selection.insertNodes([$createTextNode('')]);
-                }
+    const onSelectExtendedAgent = useCallback(
+        (agentName: string) => {
+            if (lockAgentSelection) {
+                closeShortcutResourcePopover();
+                return;
             }
-        });
-    }, []);
+
+            setFocusedExtendedAgent(null);
+            setSelectedShortcut(null);
+            setSelectedAgentName(agentName);
+
+            editorRef.current?.update(() => {
+                const selection = $getSelection();
+                if ($isRangeSelection(selection)) {
+                    const { anchor } = selection;
+                    const offset = anchor.offset ?? -1;
+                    const node = anchor.getNode();
+
+                    const shortcutNode = $isElementNode(node)
+                        ? node.getChildAtIndex(anchor.offset - 1)
+                        : $isTextNode(node) && offset !== -1
+                          ? node.getPreviousSibling()
+                          : null;
+
+                    if ($isShortcutNode(shortcutNode)) {
+                        removeShortcutNode();
+                        selection.insertNodes([$createTextNode('')]);
+                    }
+                }
+            });
+        },
+        [closeShortcutResourcePopover, lockAgentSelection]
+    );
 
     const includedSourcesForQueryingIncidents = useMemo(() => [ThreadSource.incident], []);
 
@@ -368,6 +398,38 @@ const ChatBoxFooter = ({
                     chatInputHandleSendClick('/compact');
                     return;
                 case Shortcut.Agent:
+                    if (lockAgentSelection) {
+                        return;
+                    }
+                    openShortcutResourcePopover(shortcut);
+                    editorRef.current?.update(() => {
+                        const selection = $getSelection();
+                        if (!$isRangeSelection(selection)) {
+                            return;
+                        }
+                        const { anchor } = selection;
+                        const node: ElementNode = anchor.getNode();
+
+                        if (!$isTextNode(node)) {
+                            return;
+                        }
+
+                        const text = node?.getTextContent() ?? '';
+                        const offset = anchor.offset ?? -1;
+                        const currentText = text.substring(0, offset);
+                        const lastSlashIndex = currentText.lastIndexOf('/');
+                        if (lastSlashIndex !== -1) {
+                            const rangeSelection = selection.clone();
+                            rangeSelection.setTextNodeRange(node, lastSlashIndex, node, offset);
+                            $setSelection(rangeSelection);
+
+                            const shortcutNode = $createShortcutNode(shortcut);
+                            const emptySpaceNode = $createTextNode('');
+                            rangeSelection.insertNodes([shortcutNode, emptySpaceNode]);
+                            emptySpaceNode.select(0, 0);
+                        }
+                    });
+                    return;
                 case Shortcut.Incident:
                     openShortcutResourcePopover(shortcut);
                     editorRef.current?.update(() => {
@@ -400,7 +462,7 @@ const ChatBoxFooter = ({
                     return;
             }
         },
-        [chatInputHandleSendClick, selectThread]
+        [chatInputHandleSendClick, lockAgentSelection, selectThread]
     );
 
     //ToDo: replace this with server side filtering
@@ -556,8 +618,12 @@ const ChatBoxFooter = ({
     };
 
     const handleClearSelectedAgent = useCallback(() => {
+        if (lockAgentSelection) {
+            return;
+        }
+
         setSelectedAgentName(null);
-    }, []);
+    }, [lockAgentSelection]);
 
     useEffect(() => {
         extendedAgentClient.getExtendedAgents().then(response => {
@@ -838,7 +904,11 @@ const ChatBoxFooter = ({
                     }
                     attachments={
                         selectedAgentName ? (
-                            <Attachments selectedAgentName={selectedAgentName} handleClearSelectedAgent={handleClearSelectedAgent} />
+                            <Attachments
+                                selectedAgentName={selectedAgentName}
+                                handleClearSelectedAgent={handleClearSelectedAgent}
+                                lockAgentSelection={lockAgentSelection}
+                            />
                         ) : undefined
                     }
                     maxLength={1000000000}
@@ -940,7 +1010,7 @@ const ThreadRow = memo((props: { thread: Thread; onSelectIncident: (incident: Th
     );
 });
 
-const Attachments = memo((props: { selectedAgentName: string; handleClearSelectedAgent: () => void }) => {
+const Attachments = memo((props: { selectedAgentName: string; handleClearSelectedAgent: () => void; lockAgentSelection?: boolean }) => {
     const intl = useIntl();
 
     return (
@@ -953,12 +1023,16 @@ const Attachments = memo((props: { selectedAgentName: string; handleClearSelecte
             <Attachment
                 id={props.selectedAgentName}
                 key={props.selectedAgentName}
-                dismissButton={{
-                    'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
-                        agentName: props.selectedAgentName,
-                    }),
-                    onClick: () => props.handleClearSelectedAgent(),
-                }}
+                dismissButton={
+                    props.lockAgentSelection
+                        ? undefined
+                        : {
+                              'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
+                                  agentName: props.selectedAgentName,
+                              }),
+                              onClick: () => props.handleClearSelectedAgent(),
+                          }
+                }
             >
                 <Tooltip
                     content={

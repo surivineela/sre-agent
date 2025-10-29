@@ -40,9 +40,19 @@ interface AgentDetailsStepProps {
     systemTools: SystemTool[];
     onChange: (agent: Partial<ExtendedAgent>) => void;
     intl: IntlShape;
+    allowAgentNameEdit?: boolean;
+    showMetaAgentOverride?: boolean;
 }
-
-export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAgents, existingTools, systemTools, onChange, intl }) => {
+export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
+    agent,
+    existingAgents,
+    existingTools,
+    systemTools,
+    onChange,
+    intl,
+    allowAgentNameEdit = true,
+    showMetaAgentOverride = true,
+}) => {
     const styles = useCreationDialogStyles();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
@@ -300,25 +310,28 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
                                 *
                             </span>
                         </span>
-                        <div className={styles.fieldLabelMeta}>
-                            <Text size={200}>{intl.formatMessage(ExtendedAgentsGraphResources.metaAgentOverrideLabel)}</Text>
-                            <Switch
-                                checked={(agent as any).metaAgentOverride === true}
-                                onChange={(_, data) => onChange({ ...agent, metaAgentOverride: data.checked } as any)}
-                            />
-                            <Tooltip
-                                content={intl.formatMessage(ExtendedAgentsGraphResources.metaAgentOverrideReasonTooltip)}
-                                relationship="description"
-                            >
-                                <Info16Regular style={{ fontSize: '14px', color: '#6264A7', cursor: 'help' }} />
-                            </Tooltip>
-                        </div>
+                        {showMetaAgentOverride && (
+                            <div className={styles.fieldLabelMeta}>
+                                <Text size={200}>{intl.formatMessage(ExtendedAgentsGraphResources.metaAgentOverrideLabel)}</Text>
+                                <Switch
+                                    checked={(agent as any).metaAgentOverride === true}
+                                    onChange={(_, data) => onChange({ ...agent, metaAgentOverride: data.checked } as any)}
+                                />
+                                <Tooltip
+                                    content={intl.formatMessage(ExtendedAgentsGraphResources.metaAgentOverrideReasonTooltip)}
+                                    relationship="description"
+                                >
+                                    <Info16Regular style={{ fontSize: '14px', color: '#6264A7', cursor: 'help' }} />
+                                </Tooltip>
+                            </div>
+                        )}
                     </div>
                 }
                 validationState={agentNameValidationState}
                 validationMessage={agentNameValidationMessage}
             >
                 <Input
+                    disabled={!allowAgentNameEdit}
                     value={agent.name || ''}
                     onChange={handleAgentNameChange}
                     placeholder={intl.formatMessage(ExtendedAgentsGraphResources.agentNamePlaceholder)}
@@ -328,7 +341,7 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({ agent, existingAge
                     {intl.formatMessage(ExtendedAgentsGraphResources.agentNameHelp, {
                         maxLength: ENTITY_NAME_MAX_LENGTH,
                     })}
-                    {(agent as any).metaAgentOverride && (
+                    {showMetaAgentOverride && (agent as any).metaAgentOverride && (
                         <div className={styles.metaAgentInfo}>
                             <Info16Regular aria-hidden className={styles.metaAgentInfoIcon} />
                             <span>

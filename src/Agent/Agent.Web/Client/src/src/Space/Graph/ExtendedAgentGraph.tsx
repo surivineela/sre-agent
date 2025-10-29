@@ -28,6 +28,7 @@ import { useExtendedAgentGraph } from '../Hooks/useExtendedAgentGraph';
 import { useExtendedAgentGraphLayout } from '../Hooks/useExtendedAgentGraphLayout';
 import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
 import { useScheduledTasks } from '../Hooks/useScheduledTasks';
+import PlaygroundModal, { PlaygroundTarget } from '../Playground/PlaygroundModal';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { ConnectorCard } from './ConnectorCard';
 import CreateButton from './CreateButton';
@@ -159,6 +160,8 @@ const ExtendedAgentGraphContent = memo(() => {
     const [infoPanelPosition, setInfoPanelPosition] = useState({ x: 0, y: 0 });
     const [isInfoPanelDragging, setIsInfoPanelDragging] = useState(false);
     const [infoPanelWidth, setInfoPanelWidth] = useState(INFO_PANEL_DEFAULT_WIDTH);
+    const [isPlaygroundOpen, setIsPlaygroundOpen] = useState(false);
+    const [playgroundTarget, setPlaygroundTarget] = useState<PlaygroundTarget | undefined>(undefined);
 
     const layoutGraph = useExtendedAgentGraphLayout();
 
@@ -531,6 +534,16 @@ const ExtendedAgentGraphContent = memo(() => {
             targetType: creationDialogContext.targetType,
         } as const;
     }, [creationDialogContext]);
+
+    const handleOpenPlayground = useCallback((target: PlaygroundTarget) => {
+        setPlaygroundTarget(target);
+        setIsPlaygroundOpen(true);
+    }, []);
+
+    const handleDismissPlayground = useCallback(() => {
+        setIsPlaygroundOpen(false);
+        setPlaygroundTarget(undefined);
+    }, []);
 
     const incidentHandlersCount = incidentHandlersLoading ? null : (incidentHandlers?.length ?? 0);
     const scheduledTasksCount = features.scheduledTasks ? (scheduledTasksLoading ? null : scheduledTasks.length) : null;
@@ -1472,6 +1485,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                     width={infoPanelWidth}
                                     minWidth={INFO_PANEL_MIN_WIDTH}
                                     maxWidth={INFO_PANEL_MAX_WIDTH}
+                                    onOpenPlayground={handleOpenPlayground}
                                 />
                             </div>
                         )}
@@ -1506,6 +1520,16 @@ const ExtendedAgentGraphContent = memo(() => {
                     triggerConfig={triggerCardConfig}
                     onTriggerNavigate={handleTriggerNavigate}
                     onConnectorNavigate={handleConnectorNavigate}
+                />
+
+                <PlaygroundModal
+                    open={isPlaygroundOpen}
+                    target={playgroundTarget}
+                    agents={agents}
+                    tools={tools}
+                    connectors={connectors}
+                    systemTools={systemTools}
+                    onDismiss={handleDismissPlayground}
                 />
             </div>
         </ExtendedAgentGraphContext.Provider>

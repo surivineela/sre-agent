@@ -1,7 +1,7 @@
 import { CopilotChat, CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { mergeClasses, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { useTheme } from '@fluentui/react/lib/Theme';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
@@ -35,6 +35,10 @@ export const ChatBox = ({
     onCloseAgentTaskPanel,
     setMenuCollapsed,
     todoPlanDrawer,
+    forcedAgentName,
+    lockAgentSelection,
+    onTelemetryUpdate,
+    renderEmptyState,
 }: IChatBoxProps) => {
     const {
         messages,
@@ -105,6 +109,53 @@ export const ChatBox = ({
         [getGroupedChatMessages, openAgentTask, openTodoPlan]
     );
 
+    useEffect(() => {
+        if (!onTelemetryUpdate) {
+            return;
+        }
+
+        const combined = [...messages];
+
+        if (temporaryUserMessage) {
+            combined.push(temporaryUserMessage as any);
+        }
+
+        if (streamingMessage) {
+            combined.push(streamingMessage as any);
+        }
+
+        const snapshot = combined
+            .filter(message => !!message)
+            .slice(-12)
+            .map(message => {
+                const hasContentError = Array.isArray((message as any).contents)
+                    ? (message as any).contents.some((content: any) => !!content?.error)
+                    : false;
+
+                // Extract text from contents array if available, otherwise fall back to message.text
+                let messageText = '';
+                if (Array.isArray((message as any).contents) && (message as any).contents.length > 0) {
+                    // Concatenate text from all content items
+                    messageText = (message as any).contents
+                        .map((content: any) => content?.text ?? '')
+                        .filter((text: string) => text.length > 0)
+                        .join(' ');
+                } else if ((message as any).text) {
+                    messageText = (message as any).text;
+                }
+
+                return {
+                    id: message.id,
+                    authorRole: message.author?.role ?? 'User',
+                    text: messageText,
+                    timeStamp: message.timeStamp,
+                    hasError: Boolean((message as any).error || hasContentError),
+                };
+            });
+
+        onTelemetryUpdate({ messages: snapshot });
+    }, [messages, onTelemetryUpdate, streamingMessage, temporaryUserMessage]);
+
     const openMemorySidePanel = useCallback(
         (result: MemorySearchResult) => {
             setMemoryPanelResult(result);
@@ -144,7 +195,13 @@ export const ChatBox = ({
 
                                             {isLoading && !isWelcomeThread && <ChatLoading />}
 
-                                            {isNewAndCleanThread && !isWelcomeThread && <ChatSuggestions sendMessage={sendMessage} />}
+                                            {isNewAndCleanThread &&
+                                                !isWelcomeThread &&
+                                                (renderEmptyState ? (
+                                                    renderEmptyState({ sendMessage, forcedAgentName })
+                                                ) : (
+                                                    <ChatSuggestions sendMessage={sendMessage} />
+                                                ))}
 
                                             {/* Insert the richer welcome experience once at the top for welcome threads */}
                                             {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
@@ -158,7 +215,9 @@ export const ChatBox = ({
                                                     <ChatMessages
                                                         messages={messages}
                                                         threadId={currentThreadId || ''}
-                                                        nextMessageAfterTheLastMessage={temporaryUserMessage || streamingMessage || undefined}
+                                                        nextMessageAfterTheLastMessage={
+                                                            temporaryUserMessage || streamingMessage || undefined
+                                                        }
                                                     />
                                                     {temporaryUserMessage && (
                                                         <ChatMessage
@@ -203,6 +262,8 @@ export const ChatBox = ({
                                         isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
                                         isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
                                         onClickDeepInvestigationButton={onClickDeepInvestigationButton}
+                                        forcedAgentName={forcedAgentName}
+                                        lockAgentSelection={lockAgentSelection}
                                     />
                                 </div>
                             </div>

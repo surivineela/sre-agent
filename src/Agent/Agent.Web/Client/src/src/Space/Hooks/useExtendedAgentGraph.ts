@@ -183,7 +183,7 @@ export const useExtendedAgentGraph = () => {
     // Fetch system tools
     const fetchSystemTools = useCallback(async () => {
         try {
-            const response = await fetch(`${sreAgentEndpoint}/api/v1/extendedAgent/systemtools`, {
+            const response = await fetch(`${sreAgentEndpoint}/api/v1/extendedAgent/systemtools?stableOnly=true`, {
                 headers: getAgentHeaders(),
             });
 
