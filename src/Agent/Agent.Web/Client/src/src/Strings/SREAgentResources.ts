@@ -2950,9 +2950,6 @@ export const McpServerResources = defineMessages({
 });
 
 export const MemorySearchCardResources = defineMessages({
-    relevantMemoriesFound: { defaultMessage: 'Found {numMemories} relevant memories from past experiences', id: 'j2vvrh' },
-    relevantMemoriesNotFound: { defaultMessage: 'No relevant memories found for this query', id: 'x7C8JZ' },
-    memory: { defaultMessage: 'Memory', id: 'dVx3yz' },
     memorySearchResults: { defaultMessage: 'Memory Search Results', id: 'DuejfP' },
     pastIncidentsOnSameResource: { defaultMessage: 'Past Incidents on Same Resource', id: '/Vy71a' },
     similarSymptomIncidents: { defaultMessage: 'Similar Symptom Incidents', id: 'rI2aPZ' },
