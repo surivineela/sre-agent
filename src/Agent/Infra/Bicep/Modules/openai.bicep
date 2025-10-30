@@ -20,9 +20,10 @@ resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
   name: '${namePrefix}${consts.kvNameSuffix}'
 }
 
+// gpt-5-mini is not supported in all regions
 resource openai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   name: openAIName
-  location: resourceGroup().location
+  location: "eastus2"
   sku: {
     name: 'S0'
   }
