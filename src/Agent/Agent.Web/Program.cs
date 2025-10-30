@@ -1048,6 +1048,7 @@ public class Program
                     {
                         PopulateLogColumnsDelegate populate = (logRecord, logData) =>
                         {
+                            logData["ActivityId"] = Guid.NewGuid().ToString("D");
                             try
                             {
                                 var isProd = builder.Environment.IsProduction();
