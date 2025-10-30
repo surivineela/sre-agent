@@ -21,10 +21,17 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("login")]
-    public IActionResult Login([FromQuery] string? returnUrl = null)
+    public IActionResult Login([FromQuery] string? returnUrl = null, [FromQuery] string? prompt = null)
     {
         var redirectUrl = string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl;
         var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+        
+        // Support forcing consent with prompt=consent query parameter
+        if (!string.IsNullOrEmpty(prompt))
+        {
+            properties.Items["prompt"] = prompt;
+        }
+        
         return Challenge(properties, OpenIdConnectDefaults.AuthenticationScheme);
     }
 
@@ -92,14 +99,13 @@ public class AuthController : ControllerBase
                 scope = "https://management.azure.com/user_impersonation"
             });
         }
-        catch (MicrosoftIdentityWebChallengeUserException)
+        catch (MicrosoftIdentityWebChallengeUserException ex)
         {
-            // User needs to consent - trigger consent flow
-            _logger.LogWarning("User needs to consent to ARM scope. Triggering consent flow.");
+            _logger.LogWarning(ex, "User needs to consent to ARM scope. Redirecting to consent.");
             
-            // Redirect to consent endpoint with the required scope
-            var consentUrl = $"/api/auth/consent?scope=https://management.azure.com/user_impersonation&returnUrl={HttpContext.Request.Path}";
-            return Redirect(consentUrl);
+            // Redirect to login with consent prompt
+            var returnUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.Path}";
+            return Redirect($"/api/auth/login?prompt=consent&returnUrl={Uri.EscapeDataString(returnUrl)}");
         }
         catch (Exception ex)
         {
@@ -142,8 +148,11 @@ public class AuthController : ControllerBase
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
-            _logger.LogWarning(ex, "User needs to consent to Graph scope");
-            throw;
+            _logger.LogWarning(ex, "User needs to consent to Graph scope. Redirecting to consent.");
+            
+            // Redirect to login with consent prompt
+            var returnUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.Path}";
+            return Redirect($"/api/auth/login?prompt=consent&returnUrl={Uri.EscapeDataString(returnUrl)}");
         }
         catch (Exception ex)
         {
@@ -158,20 +167,23 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var scopes = new[] { "https://azuresre.dev/.default" };
+            var scopes = new[] { "https://azuresre.dev/Threads.ReadWrite.All" };
             var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes);
 
             return Ok(new
             {
                 accessToken,
                 tokenType = "Bearer",
-                scope = "https://azuresre.dev/.default"
+                scope = "https://azuresre.dev/Threads.ReadWrite.All"
             });
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
-            _logger.LogWarning(ex, "User needs to consent to SRE Agent scope");
-            throw;
+            _logger.LogWarning(ex, "User needs to consent to SRE Agent scope. Redirecting to consent.");
+            
+            // Redirect to login with consent prompt
+            var returnUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.Path}";
+            return Redirect($"/api/auth/login?prompt=consent&returnUrl={Uri.EscapeDataString(returnUrl)}");
         }
         catch (Exception ex)
         {
@@ -198,8 +210,11 @@ public class AuthController : ControllerBase
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
-            _logger.LogWarning(ex, "User needs to consent to App Insights scope");
-            throw;
+            _logger.LogWarning(ex, "User needs to consent to App Insights scope. Redirecting to consent.");
+            
+            // Redirect to login with consent prompt
+            var returnUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.Path}";
+            return Redirect($"/api/auth/login?prompt=consent&returnUrl={Uri.EscapeDataString(returnUrl)}");
         }
         catch (Exception ex)
         {

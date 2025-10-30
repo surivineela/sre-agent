@@ -11,8 +11,10 @@ export type AuthScopeIdentifier = 'arm' | 'graph' | 'sreAgent' | 'appInsights';
 
 interface TokenState {
     currentAuthToken?: string;
+    expiresAt?: Date;
     timeoutId?: ReturnType<typeof setTimeout>;
-    initialPromise?: Promise<string>;
+    initialPromise?: Promise<{ token: string; expiresAt: Date }>;
+    isRefreshing?: boolean;
 }
 
 interface AuthTokenManagerOptions {
@@ -44,6 +46,46 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
     const tokenStates = useRef<Map<AuthScopeIdentifier, TokenState>>(new Map());
     const [tokenNeedsRefreshMap, setTokenNeedsRefreshMap] = useState<Map<AuthScopeIdentifier, boolean>>(new Map());
 
+    /**
+     * Decode JWT token to extract expiration time from the 'exp' claim.
+     * The exp claim is a Unix timestamp (seconds since epoch).
+     */
+    const decodeTokenExpiration = useCallback(
+        (token: string): Date => {
+            try {
+                // JWT structure: header.payload.signature
+                const payload = token.split('.')[1];
+                if (!payload) {
+                    throw new Error('Invalid JWT token structure');
+                }
+
+                // Base64 decode the payload
+                const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+                const claims = JSON.parse(decodedPayload);
+
+                // Extract 'exp' claim (Unix timestamp in seconds)
+                if (claims.exp && typeof claims.exp === 'number') {
+                    return new Date(claims.exp * 1000); // Convert to milliseconds
+                }
+
+                throw new Error('Token does not contain exp claim');
+            } catch (error) {
+                // Default to 1 hour if we can't decode the token
+                logTelemetryEvent({
+                    action: 'decode-token',
+                    actionModifier: 'failed',
+                    logLevel: LogLevel.Warning,
+                    telemetrySource,
+                    additionalData: {
+                        error: error instanceof Error ? error.message : String(error),
+                    },
+                });
+                return new Date(Date.now() + 3600 * 1000); // 1 hour default
+            }
+        },
+        [telemetrySource]
+    );
+
     const getTokenEndpoint = useCallback((tokenType: AuthScopeIdentifier): string => {
         switch (tokenType) {
             case 'arm':
@@ -60,7 +102,7 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
     }, []);
 
     const getAuthToken = useCallback(
-        async (tokenType: AuthScopeIdentifier): Promise<string> => {
+        async (tokenType: AuthScopeIdentifier): Promise<{ token: string; expiresAt: Date }> => {
             const endpoint = getTokenEndpoint(tokenType);
             const response = await fetch(endpoint, {
                 credentials: 'include',
@@ -75,9 +117,12 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
             }
 
             const data = await response.json();
-            return data.accessToken;
+            const token = data.accessToken;
+            const expiresAt = decodeTokenExpiration(token);
+
+            return { token, expiresAt };
         },
-        [getTokenEndpoint]
+        [getTokenEndpoint, decodeTokenExpiration]
     );
 
     const getOrInitTokenState = useCallback(
@@ -105,9 +150,10 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
     }, []);
 
     const sendToken = useCallback(
-        (token: string, tokenType: AuthScopeIdentifier) => {
+        (token: string, tokenType: AuthScopeIdentifier, expiresAt: Date) => {
             const state = getOrInitTokenState(tokenType);
             state.currentAuthToken = token;
+            state.expiresAt = expiresAt;
 
             const tokenMessage = {
                 token,
@@ -138,8 +184,10 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
 
     const setTimerToUpdateToken = useCallback(
         (_token: string, expiresAt: Date, tokenType: AuthScopeIdentifier) => {
-            let timeout = expiresAt.getTime() - new Date().getTime();
-            timeout = Math.max(timeout, 0); // If token has already expired then poll immediately for new one
+            // Refresh token 5 minutes before expiration to avoid timing issues
+            const refreshBuffer = 5 * 60 * 1000; // 5 minutes in milliseconds
+            let timeout = expiresAt.getTime() - new Date().getTime() - refreshBuffer;
+            timeout = Math.max(timeout, 0); // If token is already near expiration, refresh immediately
 
             const expirationString = expiresAt.toISOString();
             const loggedTimeString = new Date().toISOString();
@@ -155,6 +203,7 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
                     timeoutFormatted: prettyPrintDuration(timeout),
                     expiration: expirationString,
                     loggedTime: loggedTimeString,
+                    refreshBufferMinutes: 5,
                 },
             });
 
@@ -167,26 +216,18 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
     );
 
     const updateTokenIfExpired = useCallback(
-        async (tokenType: AuthScopeIdentifier) => {
+        async (tokenType: AuthScopeIdentifier, retryCount: number = 0) => {
             const currentTokenState = getOrInitTokenState(tokenType);
 
+            // Prevent multiple simultaneous refresh attempts
+            if (currentTokenState.isRefreshing) {
+                return;
+            }
+
+            currentTokenState.isRefreshing = true;
+
             try {
-                const endpoint = getTokenEndpoint(tokenType);
-                const response = await fetch(`${endpoint}?forceRefresh=true`, {
-                    credentials: 'include',
-                });
-
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        window.location.href = '/api/auth/login?returnUrl=' + encodeURIComponent(window.location.pathname);
-                        throw new Error('User not authenticated');
-                    }
-                    throw new Error(`Failed to refresh token: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                const token = data.accessToken;
-                const expiresAt = data.expiresOn ? new Date(data.expiresOn) : new Date(Date.now() + 3600 * 1000);
+                const { token, expiresAt } = await getAuthToken(tokenType);
 
                 const expirationString = expiresAt.toISOString();
                 const loggedTimeString = new Date().toISOString();
@@ -204,7 +245,7 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
                         },
                     });
 
-                    sendToken(token, tokenType);
+                    sendToken(token, tokenType, expiresAt);
                     setTimerToUpdateToken(token, expiresAt, tokenType);
                 } else {
                     logTelemetryEvent({
@@ -220,21 +261,37 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
                     });
                     setTimerToUpdateToken(token, expiresAt, tokenType);
                 }
+
+                currentTokenState.isRefreshing = false;
             } catch (error) {
+                currentTokenState.isRefreshing = false;
+
+                const maxRetries = 3;
+                const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Exponential backoff, max 10s
+
                 logTelemetryEvent({
                     action: 'token-refresh',
-                    actionModifier: 'failed',
+                    actionModifier: retryCount < maxRetries ? 'failed-will-retry' : 'failed',
                     logLevel: LogLevel.Error,
                     telemetrySource,
                     additionalData: {
                         resourceId,
                         tokenType,
+                        retryCount,
+                        retryDelay,
                         error: error instanceof Error ? error.message : String(error),
                     },
                 });
+
+                if (retryCount < maxRetries) {
+                    // Schedule retry with exponential backoff
+                    setTimeout(() => {
+                        updateTokenIfExpired(tokenType, retryCount + 1);
+                    }, retryDelay);
+                }
             }
         },
-        [getOrInitTokenState, getTokenEndpoint, resourceId, sendToken, setTimerToUpdateToken, telemetrySource]
+        [getAuthToken, getOrInitTokenState, resourceId, sendToken, setTimerToUpdateToken, telemetrySource]
     );
 
     const getTokenNeedsRefresh = useCallback(
@@ -247,8 +304,8 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
     const handleInitialTokenSetup = useCallback(() => {
         initialTokenTypes.forEach(tokenType => {
             const state = getOrInitTokenState(tokenType);
-            state.initialPromise?.then(token => {
-                sendToken(token, tokenType);
+            state.initialPromise?.then(({ token, expiresAt }) => {
+                sendToken(token, tokenType, expiresAt);
                 updateTokenIfExpired(tokenType);
             });
         });
@@ -268,9 +325,9 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
                 });
 
                 getAuthToken(tokenType)
-                    .then(token => {
+                    .then(({ token, expiresAt }) => {
                         getOrInitTokenState(tokenType);
-                        sendToken(token, tokenType);
+                        sendToken(token, tokenType, expiresAt);
                         updateTokenIfExpired(tokenType);
                     })
                     .catch(error => {
