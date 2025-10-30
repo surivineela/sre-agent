@@ -38,12 +38,12 @@ using Agent.Plugins.Kusto.Tools;
 using Agent.Plugins.Link.Tools;
 using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
-using Agent.Plugins.Tools;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.AgentTasks;
-using Agent.Runtime.Heartbeat;
 using Agent.Runtime.Communication;
+using Agent.Runtime.Extensions;
+using Agent.Runtime.Heartbeat;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.Interfaces;
@@ -80,7 +80,6 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using Microsoft.Azure.Amqp.Framing;
 
 namespace Agent.Web;
 
@@ -344,6 +343,8 @@ public class Program
                 });
         builder.Services.AddScoped<IAuthorizationHandler, AuthorizeArmOperationHandler>();
         builder.Services.AddSingleton<IAuthorizationPolicyProvider, ArmOperationPolicyProvider>();
+
+        builder.RegisterDataConnectors();
 
         // Register plugins and their dependencies
         builder.Services
@@ -785,6 +786,9 @@ public class Program
         // Kick off MCP Server Initializer
         builder.Services.AddSingleton<MCPMetaAgent>();
         builder.Services.AddHostedService<MCPMetaAgentManagementService>();
+
+        // Add new MCP agent services
+        builder.Services.AddMcpAgentServices();
 
         builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
         builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
@@ -1330,8 +1334,6 @@ public class Program
                         "ExternalLogProcessor");
                 });
         });
-
-        builder.RegisterDataConnectors();
 
         builder.AddAgentTaskService();
 

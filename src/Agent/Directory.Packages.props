@@ -121,7 +121,7 @@
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.55.0-preview" />
     <PackageVersion Include="Microsoft.SREAgent.Incidents.IcM" Version="25.10.77" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
-    <PackageVersion Include="ModelContextProtocol" Version="0.3.0-preview.4" />
+    <PackageVersion Include="ModelContextProtocol" Version="0.4.0-preview.2" />
     <PackageVersion Include="Npgsql" Version="9.0.3" />
     <PackageVersion Include="OpenTelemetry" Version="1.12.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.9.0" />

@@ -582,6 +582,11 @@ export const ExtendedAgentInfoPanel = memo(
                                 })}
                             </Badge>
                             <Badge appearance="tint" size="small">
+                                {intl.formatMessage(ExtendedAgentsGraphResources.mcpToolsCountBadge, {
+                                    count: selectedAgent.mcpTools?.length ?? 0,
+                                })}
+                            </Badge>
+                            <Badge appearance="tint" size="small">
                                 {intl.formatMessage(ExtendedAgentsGraphResources.handoffCountBadge, {
                                     count: selectedAgent.handoffs?.length ?? 0,
                                 })}
@@ -651,6 +656,22 @@ export const ExtendedAgentInfoPanel = memo(
                             </div>
                         ) : (
                             <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.noSystemTools)}</Text>
+                        )}
+                    </div>
+
+                    {/* MCP Tools */}
+                    <div className={styles.section}>
+                        <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.mcpToolsSectionTitle)}</Text>
+                        {selectedAgent.mcpTools && selectedAgent.mcpTools.length > 0 ? (
+                            <div className={styles.list}>
+                                {selectedAgent.mcpTools.map(name => (
+                                    <div key={name} className={styles.listItem}>
+                                        <Text>{name}</Text>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.noMcpTools)}</Text>
                         )}
                     </div>
 

@@ -665,6 +665,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                             handoffs: state.agent?.handoffs || [],
                             tools: state.agent?.tools || [],
                             systemTools: state.agent?.systemTools || [],
+                            mcpTools: state.agent?.mcpTools || [],
                             metaAgentOverride,
                         };
                     }

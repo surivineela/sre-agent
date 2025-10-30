@@ -22,7 +22,7 @@ import {
     Wand24Regular,
     Warning16Regular,
 } from '@fluentui/react-icons';
-import { ChangeEventHandler, FC, KeyboardEvent, MouseEvent, useContext, useMemo, useState } from 'react';
+import { ChangeEventHandler, FC, KeyboardEvent, MouseEvent, useContext, useEffect, useMemo, useState } from 'react';
 import { IntlShape } from 'react-intl';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
@@ -70,6 +70,7 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
     };
 
     const agentNameValue = agent.name ?? '';
+    const metaAgentDisplayName = agent.name?.trim() || intl.formatMessage(ExtendedAgentsGraphResources.metaAgentOverridePlaceholderName);
     const agentNameValidationState = agentNameValue.length === 0 || isEntityNameValid(agentNameValue) ? 'none' : 'error';
     const agentNameValidationMessage =
         agentNameValidationState === 'error'
@@ -86,8 +87,16 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
         setSystemToolSearch(event.target.value);
     };
 
+    // MCP Tools state
+    const [mcpToolsByConnection, setMcpToolsByConnection] = useState<
+        Array<{ connectionName: string; connectionId: string; serviceType?: string; tools: Array<{ name: string; description?: string }> }>
+    >([]);
+    const [isFetchingMcpTools, setIsFetchingMcpTools] = useState(false);
+    const [mcpToolsError, setMcpToolsError] = useState<string | null>(null);
+
     const currentTools = useMemo(() => agent.tools ?? [], [agent.tools]);
     const currentSystemTools = useMemo(() => agent.systemTools ?? [], [agent.systemTools]);
+    const currentMcpTools = useMemo(() => agent.mcpTools ?? [], [agent.mcpTools]);
     const currentHandoffs = useMemo(() => agent.handoffs ?? [], [agent.handoffs]);
     const hasActiveSystemToolSearch = systemToolSearch.trim().length > 0;
 
@@ -299,6 +308,32 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
         }
     };
 
+    // Fetch MCP tools on component mount
+    useEffect(() => {
+        const fetchMcpTools = async () => {
+            setIsFetchingMcpTools(true);
+            setMcpToolsError(null);
+
+            try {
+                // Fetch tools grouped by connection for better UX
+                const { getMcpToolsByConnection } = await import('../api/mcpConnectionsApi');
+                const toolsByConn = await getMcpToolsByConnection(sreAgentEndpoint);
+                setMcpToolsByConnection(toolsByConn);
+            } catch (error) {
+                console.error('Failed to fetch MCP tools:', error);
+                setMcpToolsError(
+                    error instanceof Error && error.message
+                        ? error.message
+                        : intl.formatMessage(ExtendedAgentsGraphResources.mcpToolsLoadErrorFallback)
+                );
+            } finally {
+                setIsFetchingMcpTools(false);
+            }
+        };
+
+        fetchMcpTools();
+    }, [sreAgentEndpoint, intl]);
+
     return (
         <div className={styles.formSection}>
             <Field
@@ -345,8 +380,9 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
                         <div className={styles.metaAgentInfo}>
                             <Info16Regular aria-hidden className={styles.metaAgentInfoIcon} />
                             <span>
-                                This will create both your agent ("{agent.name || 'YourAgent'}") and a separate "meta_agent" for
-                                orchestration.
+                                {intl.formatMessage(ExtendedAgentsGraphResources.metaAgentOverrideInfo, {
+                                    agentName: metaAgentDisplayName,
+                                })}
                             </span>
                         </div>
                     )}
@@ -492,6 +528,107 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
                     />
                 </div>
                 <div className={styles.helpText}>{intl.formatMessage(ExtendedAgentsGraphResources.instructionsHelp)}</div>
+            </Field>
+
+            <Field
+                label={
+                    <div className={styles.fieldLabelRow}>
+                        <span className={styles.fieldLabelText}>{intl.formatMessage(ExtendedAgentsGraphResources.mcpToolsOptional)}</span>
+                    </div>
+                }
+            >
+                {isFetchingMcpTools ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px' }}>
+                        <Spinner size="tiny" />
+                        <Text size={200}>{intl.formatMessage(ExtendedAgentsGraphResources.mcpToolsLoading)}</Text>
+                    </div>
+                ) : mcpToolsError ? (
+                    <div style={{ padding: '8px' }}>
+                        <Text size={200} style={{ color: '#c53030' }}>
+                            {mcpToolsError}
+                        </Text>
+                    </div>
+                ) : (
+                    <div className={styles.systemToolPicker}>
+                        <Combobox
+                            multiselect
+                            freeform
+                            disabled={mcpToolsByConnection.length === 0}
+                            placeholder={
+                                mcpToolsByConnection.length === 0
+                                    ? intl.formatMessage(ExtendedAgentsGraphResources.mcpToolsPlaceholderEmpty)
+                                    : intl.formatMessage(ExtendedAgentsGraphResources.mcpToolsPlaceholder)
+                            }
+                            selectedOptions={currentMcpTools}
+                            onOptionSelect={(_, data) => {
+                                const selected = data.selectedOptions;
+                                onChange({ ...agent, mcpTools: selected } as any);
+                            }}
+                        >
+                            {mcpToolsByConnection.map(conn => {
+                                const connectionLabel = conn.serviceType || conn.connectionName;
+                                return (
+                                    <OptionGroup
+                                        key={conn.connectionId}
+                                        label={
+                                            <span className={styles.systemToolGroupHeader}>
+                                                <span className={styles.systemToolGroupLabel}>
+                                                    <span>{connectionLabel}</span>
+                                                </span>
+                                                <span className={styles.systemToolGroupCount}>{conn.tools.length}</span>
+                                            </span>
+                                        }
+                                    >
+                                        {conn.tools.map(tool => {
+                                            // tool.name from API is already prefixed: {connectionId}_{toolName}
+                                            // Extract the display name by removing the prefix
+                                            const displayName = tool.name.startsWith(`${conn.connectionId}_`)
+                                                ? tool.name.substring(`${conn.connectionId}_`.length)
+                                                : tool.name;
+                                            const truncatedDescription = tool.description
+                                                ? tool.description.length > MAX_TOOL_DESCRIPTION_LENGTH
+                                                    ? `${tool.description.slice(0, MAX_TOOL_DESCRIPTION_LENGTH)}…`
+                                                    : tool.description
+                                                : undefined;
+
+                                            return (
+                                                <Option key={tool.name} value={tool.name} text={`${displayName} (${connectionLabel})`}>
+                                                    <div className={styles.systemToolOption}>
+                                                        <div className={styles.systemToolOptionHeader}>
+                                                            <span className={styles.systemToolOptionTitle}>{displayName}</span>
+                                                            <span className={styles.systemToolCategoryPill}>{connectionLabel}</span>
+                                                        </div>
+                                                        {truncatedDescription && (
+                                                            <span className={styles.systemToolOptionDescription} title={tool.description}>
+                                                                {truncatedDescription}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </Option>
+                                            );
+                                        })}
+                                    </OptionGroup>
+                                );
+                            })}
+                        </Combobox>
+
+                        {currentMcpTools.length > 0 && (
+                            <Text className={styles.indicatorBadge} role="status">
+                                {intl.formatMessage(ExtendedAgentsGraphResources.mcpToolsSelectedCount, {
+                                    count: currentMcpTools.length,
+                                })}
+                            </Text>
+                        )}
+
+                        {mcpToolsByConnection.length === 0 && (
+                            <Text className={styles.systemToolEmpty}>
+                                {intl.formatMessage(ExtendedAgentsGraphResources.mcpToolsNoConnections)}
+                            </Text>
+                        )}
+
+                        <div className={styles.helpText}>{intl.formatMessage(ExtendedAgentsGraphResources.mcpToolsHelpText)}</div>
+                    </div>
+                )}
             </Field>
 
             <Field
@@ -716,7 +853,7 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
                     disabled={availableHandoffs.length === 0}
                     placeholder={
                         availableHandoffs.length === 0
-                            ? 'No handoff agents available'
+                            ? intl.formatMessage(ExtendedAgentsGraphResources.relationshipNoHandoffAgents)
                             : intl.formatMessage(ExtendedAgentsGraphResources.relationshipSelectAgent)
                     }
                     selectedOptions={currentHandoffs}

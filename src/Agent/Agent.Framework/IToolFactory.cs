@@ -62,6 +62,11 @@ public interface IToolFactory<TContext> : IAsyncInitializer
     public void RegisterExtendedToolFromModel(string extendedToolName, string extendedToolYaml);
 
     bool RegisterTool(YamlToolDefinitionBase tool, BehaviorOnNameConflict onNameConflict);
+
+    /// <summary>
+    /// Refreshes MCP tools from the MCP tools repository.
+    /// </summary>
+    Task RefreshMcpToolsAsync();
 }
 
 public class ToolInfo

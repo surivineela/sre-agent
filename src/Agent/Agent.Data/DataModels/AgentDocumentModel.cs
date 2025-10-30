@@ -1,7 +1,9 @@
+using System.ComponentModel;
 using Agent.Data;
 using Agent.Data.DataModels;
-using Agent.Framework.Models;
 using Agent.Framework;
+using Agent.Framework.Models;
+using Newtonsoft.Json;
 
 public record AgentDocumentModel(
     string Id,
@@ -10,6 +12,9 @@ public record AgentDocumentModel(
     string? HandoffDescription,
     List<string> Handoffs,
     List<string> Tools,
+    [property: JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+    [property: DefaultValue(null)]
+    List<string>? McpTools,
     List<string> Connectors,
     bool AllowParallelToolCalls,
     List<AgentsAsTools> AgentsAsTools,

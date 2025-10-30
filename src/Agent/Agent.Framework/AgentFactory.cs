@@ -32,6 +32,8 @@ public interface IAgentFactory<TContext> : IAsyncInitializer
 
     void UpdateHandoffs();
 
+    List<IAgentDescriptor> GetAllAgentDescriptors();
+
     IReadOnlyList<Experiment> Experiments { get; }
 }
 
@@ -112,7 +114,9 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
     protected override async Task InitializeAsyncCore()
     {
+        _logger.LogInternalInformation("Waiting for ToolFactory to initialize...");
         await _toolFactory.InitializeAsync();
+        _logger.LogInternalInformation("ToolFactory initialization completed. Registered tool count: {ToolCount}", _toolFactory.RegisteredToolCount);
         await InitializeAgents();
     }
 

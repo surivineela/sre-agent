@@ -7,6 +7,12 @@ namespace Agent.Core.Configuration
     public class MCPSettings
     {
         /// <summary>
+        /// Master switch to enable or disable all MCP operations.
+        /// When false, no MCP connections will be created or used.
+        /// </summary>
+        public bool Enabled { get; set; } = true;
+
+        /// <summary>
         /// The list of MCP servers that will be exposed as individual subagents
         /// </summary>
         public HashSet<string> IsolatedServers { get; set; } = [];

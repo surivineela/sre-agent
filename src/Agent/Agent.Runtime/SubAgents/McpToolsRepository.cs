@@ -6,7 +6,9 @@ using System.Collections.Concurrent;
 using Agent.Core.Configuration;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
+using Agent.Runtime.Services.Mcp;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ModelContextProtocol.Client;
@@ -16,22 +18,31 @@ namespace Agent.Runtime.SubAgents;
 // [Export]
 public class McpToolsRepository : IMcpConnectable
 {
-    private readonly ILoggerFactory _loggerFactory;
+    private readonly ILogger<McpToolsRepository> _logger;
     private readonly MCPSettings _mcpSettings;
+    private readonly IServiceProvider _serviceProvider;
 
     private readonly Dictionary<string, AIFunction> _aiFunctions = new();
     private ConcurrentDictionary<McpConnection, IReadOnlyList<string>> _connectionToToolSignatures = new();
 
     public McpToolsRepository(
-        ILoggerFactory loggerFactory,
-        IOptions<MCPSettings> mcpSettings)
+        ILogger<McpToolsRepository> logger,
+        IOptions<MCPSettings> mcpSettings,
+        IServiceProvider serviceProvider)
     {
-        _loggerFactory = loggerFactory;
+        _logger = logger;
         _mcpSettings = mcpSettings.Value;
+        _serviceProvider = serviceProvider;
     }
 
     public async Task InitializeAsync()
     {
+        if (!_mcpSettings.Enabled)
+        {
+            _logger.LogInternalInformation("MCP is disabled via settings. Skipping initialization.");
+            return;
+        }
+
         if (_connectionToToolSignatures.Count == 0)
         {
             // Initialize STDIO connections from configuration
@@ -44,9 +55,8 @@ public class McpToolsRepository : IMcpConnectable
                     Arguments = stdioConfig.Arguments
                 });
 
-                var connection = new McpConnection(transport)
+                var connection = new McpConnection(_logger, transport)
                 {
-                    McpLoggerFactory = _loggerFactory,
                     Backend = this
                 };
 
@@ -56,11 +66,13 @@ public class McpToolsRepository : IMcpConnectable
         }
     }
 
-    private string GetAIFunctionSignature(
+    private string GetMcpToolSignature(
         McpConnection connection,
         AITool tool)
     {
-        return $"{connection} {tool}";
+        // Always prefix MCP tools with connection ID for unique namespacing
+        // Format: {connectionId}_{toolName}
+        return $"{connection.Id}_{tool.Name}";
     }
 
     public void TryAddServer(McpConnection connection)
@@ -69,12 +81,27 @@ public class McpToolsRepository : IMcpConnectable
 
         if (connection.Tools != null)
         {
-            foreach (AIFunction tool in connection.Tools)
+            // Get the health service from DI container
+            var healthService = _serviceProvider.GetService<IMcpConnectionHealthService>();
+
+            // Agent Builder is responsible for selecting which tools each agent should use.
+            var toolsToAdd = connection.Tools.ToList();
+
+            foreach (AIFunction tool in toolsToAdd)
             {
-                string sig = GetAIFunctionSignature(connection, tool);
+                string sig = GetMcpToolSignature(connection, tool);
                 toolSignatures.Add(sig);
-                _aiFunctions.TryAdd(sig, tool);
+
+                // Wrap the tool with a renamed version that uses the prefixed signature
+                // but delegates to the original tool for execution with health checking
+                var mcpTool = new McpToolAIFunction(sig, tool, healthService);
+                _aiFunctions.TryAdd(sig, mcpTool);
             }
+
+            _logger.LogInternalInformation(
+                    "Added {Count} tools from MCP connection '{ConnectionId}'",
+                    toolsToAdd.Count,
+                    connection.Id);
         }
 
         _connectionToToolSignatures.TryAdd(connection, toolSignatures.AsReadOnly());

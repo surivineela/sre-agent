@@ -3228,6 +3228,23 @@ export const ExtendedAgentsGraphResources = defineMessages({
     systemToolsPlaceholder: { defaultMessage: 'Select system tools this agent can use', id: 'VQn8u+' },
     systemToolsHelp: { defaultMessage: 'System tools are built-in tools provided by the platform', id: 'euKVCa' },
 
+    // MCP Tools
+    mcpToolsOptional: { defaultMessage: 'MCP Tools (Optional)', id: 'CHt7dX' },
+    mcpToolsPlaceholder: { defaultMessage: 'Select MCP tools from connected servers', id: 'Da55kZ' },
+    mcpToolsPlaceholderEmpty: { defaultMessage: 'No MCP tools available', id: 'GCcYpN' },
+    mcpToolsNoConnections: { defaultMessage: 'No MCP connections available', id: 'LAHAJH' },
+    mcpToolsLoading: { defaultMessage: 'Loading MCP tools...', id: 'oTOgOq' },
+    mcpToolsSelectedCount: {
+        defaultMessage: '{count, plural, one {# tool selected} other {# tools selected}}',
+        id: '1o9eJ6',
+    },
+    mcpToolsHelpText: {
+        defaultMessage:
+            'Tools from Model Context Protocol (MCP) servers. These tools are grouped by connection and loaded from connected servers such.',
+        id: 'ssDQgc',
+    },
+    mcpToolsLoadErrorFallback: { defaultMessage: 'Failed to load MCP tools.', id: 'NPm9R5' },
+
     // Tool Form Fields
     toolName: { defaultMessage: 'Tool Name', id: 'INiSE2' },
     toolNamePlaceholder: { defaultMessage: 'e.g., QueryKusto', id: '7Hg58U' },
@@ -3345,6 +3362,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     graphEdgeCount: { defaultMessage: 'Connections: {count}', id: 'F8R5Bb' },
     toolsCountBadge: { defaultMessage: 'Tools · {count}', id: '5walLE' },
     systemToolsCountBadge: { defaultMessage: 'System tools · {count}', id: 'IvKdxU' },
+    mcpToolsCountBadge: { defaultMessage: 'MCP tools · {count}', id: '9jaWOF' },
     handoffCountBadge: { defaultMessage: 'Handoffs · {count}', id: 'MnlPLt' },
     agentAsToolCountBadge: { defaultMessage: 'Agents-as-tools · {count}', id: 'tujypD' },
     selectAgentPrompt: {
@@ -3391,6 +3409,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
     noTools: { defaultMessage: 'No tools configured.', id: 'mgZVf8' },
     systemToolsSectionTitle: { defaultMessage: 'System tools', id: '2kRPCZ' },
     noSystemTools: { defaultMessage: 'No system tools configured.', id: 'c/bty0' },
+    mcpToolsSectionTitle: { defaultMessage: 'MCP tools', id: 'GSCabm' },
+    noMcpTools: { defaultMessage: 'No MCP tools configured.', id: 'KptJSd' },
     systemToolPluginLabel: { defaultMessage: 'Plugin', id: 'mVkTZZ' },
     connectorsSectionTitle: { defaultMessage: 'Connectors', id: '2mMJRv' },
     noConnectors: { defaultMessage: 'No connectors linked.', id: 'peOEU7' },
@@ -3540,6 +3560,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     relationshipCreateAndConnect: { defaultMessage: 'Create and connect', id: '3Pq+hf' },
     relationshipCreateAgentTitle: { defaultMessage: 'Create a new handoff agent', id: 'wQdhYo' },
     relationshipCurrentHandoffs: { defaultMessage: 'Handoff Agents (Optional)', id: 'FVOAIQ' },
+    relationshipNoHandoffAgents: { defaultMessage: 'No handoff agents available', id: '9q75fe' },
     relationshipNoHandoffs: { defaultMessage: 'No handoffs added yet.', id: 'HiBsED' },
     relationshipRemoveHandoff: {
         defaultMessage: 'Remove handoff {name}',
@@ -3715,6 +3736,11 @@ export const ExtendedAgentsGraphResources = defineMessages({
             "Overriding the meta agent is recommended because this extended agent doesn't need the default agent's world knowledge of Azure resources, providing a more focused experience.",
         id: 'VQlvNn',
     },
+    metaAgentOverrideInfo: {
+        defaultMessage: 'This will create both your agent ("{agentName}") and a separate "meta_agent" for orchestration.',
+        id: 'k4dB65',
+    },
+    metaAgentOverridePlaceholderName: { defaultMessage: 'YourAgent', id: 'jEmOoh' },
     metaAgentAlreadyExistsMessage: {
         defaultMessage: 'A meta agent override already exists in your system.',
         id: 'VnySGb',

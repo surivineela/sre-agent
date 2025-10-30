@@ -27,8 +27,8 @@ namespace Agent.Plugins.Implementation
         private readonly IConnectorResolver _connectorResolver;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IAuthenticationService _authenticationService;
-        private readonly TeamsApiHubConnector _teamsApiHubConnector;
-        private string _apiHubRuntimeUrl;
+        private TeamsApiHubConnector? _teamsApiHubConnector;
+        private string? _apiHubRuntimeUrl;
 
         public TeamsPlugin(
             ILogger<TeamsPlugin> logger,
@@ -40,14 +40,26 @@ namespace Agent.Plugins.Implementation
             _connectorResolver = connectorResolver ?? throw new ArgumentNullException(nameof(connectorResolver));
             _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
             _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
-            _teamsApiHubConnector = _connectorResolver.GetConnectorFromSettings<TeamsApiHubConnector>(
-                connectorName: string.Empty,
-                connectorType: "Teams",
-                dataSource: string.Empty);
+        }
 
-            // Ensure the base URL ends with a slash, because HttpClient.BaseAddress requires it
-            _apiHubRuntimeUrl = _teamsApiHubConnector.ConnectionRuntimeUrl.EndsWith('/') ? _teamsApiHubConnector.ConnectionRuntimeUrl : _teamsApiHubConnector.ConnectionRuntimeUrl + '/';
+        /// <summary>
+        /// Ensure the TeamsApiHubConnector is initialized from the connector resolver
+        /// Tool is loaded only when connector is present but plugin gets loaded even when connector is absent.
+        /// </summary>
+        private void EnsureInitialized()
+        {
+            if (_teamsApiHubConnector == null)
+            {
+                _teamsApiHubConnector = _connectorResolver.GetConnectorFromSettings<TeamsApiHubConnector>(
+                    connectorName: string.Empty,
+                    connectorType: "Teams",
+                    dataSource: string.Empty);
 
+                // Ensure the base URL ends with a slash, because HttpClient.BaseAddress requires it
+                _apiHubRuntimeUrl = _teamsApiHubConnector.ConnectionRuntimeUrl.EndsWith('/')
+                    ? _teamsApiHubConnector.ConnectionRuntimeUrl
+                    : _teamsApiHubConnector.ConnectionRuntimeUrl + '/';
+            }
         }
 
         /// <summary>
@@ -56,7 +68,8 @@ namespace Agent.Plugins.Implementation
         /// <param name="message">message in html</param>
         public async Task<PostMessageResult> PostMessageToChannel(string subject, string message, CancellationToken cancellationToken = default)
         {
-            _logger.LogInternalInformation($"[PostMessageToChannel] Sending message to Teams channel. Url: {_teamsApiHubConnector.ConnectionRuntimeUrl}, GroupId: {_teamsApiHubConnector.GroupId}, ChannelId: {_teamsApiHubConnector.ChannelId}");
+            EnsureInitialized();
+            _logger.LogInternalInformation($"[PostMessageToChannel] Sending message to Teams channel. Url: {_teamsApiHubConnector!.ConnectionRuntimeUrl}, GroupId: {_teamsApiHubConnector.GroupId}, ChannelId: {_teamsApiHubConnector.ChannelId}");
             if (string.IsNullOrWhiteSpace(message))
             {
                 _logger.LogInternalWarning("[PostMessageToChannel] Message content is empty. Aborting send.");
@@ -65,7 +78,7 @@ namespace Agent.Plugins.Implementation
 
             var accessToken = await GetAccessTokenAsync(cancellationToken);
             var httpClient = _httpClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(_apiHubRuntimeUrl, UriKind.Absolute);
+            httpClient.BaseAddress = new Uri(_apiHubRuntimeUrl!, UriKind.Absolute);
             httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
             var payload = new
@@ -78,7 +91,7 @@ namespace Agent.Plugins.Implementation
                 }
             };
 
-            using var response = await httpClient.PostAsJsonAsync($"v3/beta/teams/{_teamsApiHubConnector.GroupId}/channels/{_teamsApiHubConnector.ChannelId}/messages", payload, _jsonOptions, cancellationToken);
+            using var response = await httpClient.PostAsJsonAsync($"v3/beta/teams/{_teamsApiHubConnector!.GroupId}/channels/{_teamsApiHubConnector.ChannelId}/messages", payload, _jsonOptions, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -106,16 +119,17 @@ namespace Agent.Plugins.Implementation
         /// <returns>The most recent message from the channel</returns>
         public async Task<List<TeamsChannelMessage>> GetMessagesFromChannel(CancellationToken cancellationToken = default)
         {
-            _logger.LogInternalInformation($"[GetMessagesFromChannel] Getting messages from Teams channel. Url: {_teamsApiHubConnector.ConnectionRuntimeUrl}, GroupId: {_teamsApiHubConnector.GroupId}, ChannelId: {_teamsApiHubConnector.ChannelId}");
+            EnsureInitialized();
+            _logger.LogInternalInformation($"[GetMessagesFromChannel] Getting messages from Teams channel. Url: {_teamsApiHubConnector!.ConnectionRuntimeUrl}, GroupId: {_teamsApiHubConnector.GroupId}, ChannelId: {_teamsApiHubConnector.ChannelId}");
 
             var accessToken = await GetAccessTokenAsync(cancellationToken);
             _logger.LogInternalInformation($"[GetMessagesFromChannel] Successfully obtained access token.");
             var httpClient = _httpClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(_apiHubRuntimeUrl, UriKind.Absolute);
+            httpClient.BaseAddress = new Uri(_apiHubRuntimeUrl!, UriKind.Absolute);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            using var response = await httpClient.GetAsync($"beta/teams/{_teamsApiHubConnector.GroupId}/channels/{_teamsApiHubConnector.ChannelId}/messages", cancellationToken);
+            using var response = await httpClient.GetAsync($"beta/teams/{_teamsApiHubConnector!.GroupId}/channels/{_teamsApiHubConnector.ChannelId}/messages", cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -143,7 +157,7 @@ namespace Agent.Plugins.Implementation
 
         private async Task<string> GetAccessTokenAsync(CancellationToken cancellationToken)
         {
-            var credential = _authenticationService.GetDataConnectorCredential(_teamsApiHubConnector.Auth);
+            var credential = _authenticationService.GetDataConnectorCredential(_teamsApiHubConnector!.Auth);
             var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/.default" });
             var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
             return accessToken.Token;

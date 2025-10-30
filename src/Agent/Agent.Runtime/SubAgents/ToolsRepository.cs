@@ -11,7 +11,9 @@ using Agent.Plugins.Definitions.Connector;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
+using Agent.Runtime.Services.Mcp;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Agent.Runtime.SubAgents;
 
@@ -230,11 +232,15 @@ public class ToolsRepository : IToolsRepository
         return ToolHelper.GetSignature(method);
     }
 
-    private string GetAIFunctionSignature(
+    private string GetMcpToolSignature(
         McpConnection connection,
         AITool tool)
     {
-        return $"{connection} {tool}";
+        // IMPORTANT: Always prefix MCP tools with connection ID for unique namespacing
+        // This prevents conflicts between different MCP servers with similar tool names
+        // Format: {connectionId}_{toolName}
+        // Example: "github_mcp_create_issue", "azure_mcp_list_resources"
+        return $"{connection.Id}_{tool.Name}";
     }
 
     /// <inheritdoc />
@@ -244,11 +250,18 @@ public class ToolsRepository : IToolsRepository
 
         if (connection.Tools != null)
         {
+            // Get the health service from DI container
+            var healthService = _serviceProvider.GetService<IMcpConnectionHealthService>();
+
             foreach (AIFunction tool in connection.Tools)
             {
-                string sig = GetAIFunctionSignature(connection, tool);
+                string sig = GetMcpToolSignature(connection, tool);
                 toolSignatures.Add(sig);
-                _aiFunctions.TryAdd(sig, new ToolFunction200(tool));
+
+                // Wrap the tool with a renamed version that uses the prefixed signature
+                // but delegates to the original tool for execution with health checking
+                var mcpTool = new McpToolAIFunction(sig, tool, healthService);
+                _aiFunctions.TryAdd(sig, new ToolFunction200(mcpTool));
             }
         }
 

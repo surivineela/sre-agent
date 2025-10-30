@@ -309,12 +309,22 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
 
         if (_mcpToolsRepository != null)
         {
+            _logger.LogInternalInformation("Initializing MCP tools repository...");
             await _mcpToolsRepository.InitializeAsync();
 
-            foreach (var aiFunction in _mcpToolsRepository.GetAllFunctions())
+            var mcpFunctions = _mcpToolsRepository.GetAllFunctions();
+            _logger.LogInternalInformation("MCP tools repository initialized. Found {Count} MCP tools", mcpFunctions.Count);
+
+            foreach (var aiFunction in mcpFunctions)
             {
                 RegisterTool(aiFunction, onNameConflict);
             }
+
+            _logger.LogInternalInformation("Registered {Count} MCP tools in ToolFactory", mcpFunctions.Count);
+        }
+        else
+        {
+            _logger.LogInternalInformation("MCP tools repository is null. No MCP tools will be loaded.");
         }
     }
 
@@ -433,6 +443,35 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     public bool HasTool(string name)
     {
         return _tools.ContainsKey(name);
+    }
+
+    public async Task RefreshMcpToolsAsync()
+    {
+        _logger.LogInternalInformation("Refreshing MCP tools from repository");
+
+        try
+        {
+            // Get all MCP tools from the repository
+            var mcpFunctions = _mcpToolsRepository.GetAllFunctions();
+
+            // Register each MCP tool using AIToolAdapter to wrap the AIFunction
+            foreach (var function in mcpFunctions)
+            {
+                var toolAdapter = new AIToolAdapter(function);
+                _tools[function.Name] = toolAdapter;
+
+                _logger.LogInternalDebug("Registered MCP tool: {ToolName}", function.Name);
+            }
+
+            _logger.LogInternalInformation("Refreshed {Count} MCP tools", mcpFunctions.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to refresh MCP tools");
+            throw;
+        }
+
+        await Task.CompletedTask;
     }
 
     public bool IsToolDisabled(string name)

@@ -10,6 +10,7 @@ using Agent.Runtime.Models;
 using Agent.Runtime.SubAgents;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ModelContextProtocol;
 using ModelContextProtocol.Client;
 
 /// <summary>
@@ -27,7 +28,6 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     private readonly SemaphoreSlim _connectionVerificationTimerLock = new(1, 1);
     private Timer? _reconnectTimer;
     private readonly SemaphoreSlim _reconnectTimerLock = new(1, 1);
-    private readonly ILoggerFactory _loggerFactory;
     private readonly IMcpConnectable _mcpToolsRepository;
 
     private static Regex _unsafeToolNameChars = new Regex("[^a-zA-Z0-9_\\.\\-]", RegexOptions.Compiled);
@@ -41,13 +41,11 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
         MCPMetaAgent mcpMetaAgent,
         MCPSettings mcpSettings,
         IMcpConnectable mcpToolsRepository,
-        ILogger<MCPMetaAgentManagementService> logger,
-        ILoggerFactory loggerFactory)
+        ILogger<MCPMetaAgentManagementService> logger)
     {
         _mcpMetaAgent = mcpMetaAgent;
         _mcpSettings = mcpSettings;
         _logger = logger;
-        _loggerFactory = loggerFactory;
         _mcpToolsRepository = mcpToolsRepository;
     }
 
@@ -76,7 +74,9 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     /// </summary>
     public void StartConnectionVerificationTimer(CancellationToken cancellationToken)
     {
-        _logger.LogInternalInformation("Starting connection verification timer");
+        _logger.LogInternalInformation("Starting connection verification timer with {Interval}s interval and {Timeout}s timeout", 
+            _mcpSettings.PingIntervalInSeconds, 
+            _mcpSettings.PingTimeoutInSeconds);
 
         _connectionVerificationTimer = new Timer(async _ =>
         {
@@ -85,8 +85,9 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
             try
             {
                 var connections = _activeConnections.Values;
-                var pingTasks = connections.Select(async connection => await RemoveConnectionIfFailsPing(connection));
-                await Task.WhenAll(pingTasks);
+                _logger.LogTrace("Verifying {Count} active MCP connections", connections.Count);
+                var verificationTasks = connections.Select(async connection => await VerifyConnectionHealth(connection));
+                await Task.WhenAll(verificationTasks);
             }
             finally
             {
@@ -95,44 +96,58 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
         }, null, TimeSpan.FromSeconds(_mcpSettings.PingIntervalInSeconds), TimeSpan.FromSeconds(_mcpSettings.PingIntervalInSeconds));
     }
 
-    private async Task RemoveConnectionIfFailsPing(McpConnection connection)
+    private async Task VerifyConnectionHealth(McpConnection connection)
     {
         try
         {
-            IMcpClient? client = connection.Client;
+            McpClient? client = connection.Client;
             if (client == null)
             {
-                throw new Exception($"MCP client is null for connection '{connection.Id}'. This should not happen.");
+                _logger.LogInternalWarning("MCP client is null for connection '{ConnectionId}', marking as failed", connection.Id);
+                connection.MarkAsFailed("MCP client is null");
+                return;
             }
 
             if (connection.ClientTransport is StdioClientTransport)
             {
-                _logger.LogInternalWarning("StdioClientTransport is not supported for pinging");
+                _logger.LogTrace("StdioClientTransport does not support ping protocol, updating heartbeat timestamp for '{ConnectionId}'", connection.Id);
+                // STDIO connections don't support ping, but we still track the heartbeat
+                // to indicate the connection verification was attempted
+                connection.UpdateHeartbeat();
+                connection.ResetPingFailures();
                 return;
             }
 
             bool completed = false;
             var pingTask = client.PingAsync().ContinueWith(t => completed = !t.IsFaulted);
 
-            // Wait for the ping task to complete or timeout after 10 seconds
+            // Wait for the ping task to complete or timeout
             await Task.WhenAny(pingTask, Task.Delay(TimeSpan.FromSeconds(_mcpSettings.PingTimeoutInSeconds)));
 
             if (!completed)
             {
-                _logger.LogInternalWarning("Ping timed out for '{connection}', removing associated agent", connection);
-                connection.Backend.TryRemoveServer(connection);
-                _activeConnections.TryRemove(connection.Id, out McpConnection? _);
+                _logger.LogInternalWarning("Ping timed out for '{ConnectionId}', marking as unhealthy (connection kept alive)", connection.Id);
+                connection.IncrementPingFailures();
+                connection.MarkAsFailed($"Ping timeout after {_mcpSettings.PingTimeoutInSeconds} seconds");
             }
             else
             {
-                _logger.LogTrace("Successfully pinged '{connection}'", connection);
+                _logger.LogTrace("Successfully pinged '{ConnectionId}'", connection.Id);
+                // Update the heartbeat timestamp to track connection health
+                connection.UpdateHeartbeat();
+                connection.ResetPingFailures();
+                // If connection was previously failed due to ping issues, mark it as healthy again
+                if (connection.Status == McpConnectionStatus.Failed)
+                {
+                    connection.MarkAsConnected();
+                }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogInternalWarning(ex, "Ping failed for MCP agent '{connection}', removing associated agent", connection);
-            connection.Backend.TryRemoveServer(connection);
-            _activeConnections.TryRemove(connection.Id, out McpConnection? _);
+            _logger.LogInternalWarning(ex, "Ping failed for MCP connection '{ConnectionId}', marking as unhealthy (connection kept alive)", connection.Id);
+            connection.IncrementPingFailures();
+            connection.MarkAsFailed($"Ping failed: {ex.Message}");
         }
     }
 
@@ -153,14 +168,14 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
         try
         {
             var disconnectedMcpMetaAgentUrls = _mcpSettings.IsolatedServers.Where(url => !_activeConnections.ContainsKey(url));
-            var mcpMetaAgentTasks = disconnectedMcpMetaAgentUrls.Select(async url => await AddConnectionIfSuccessful(CreateMcpClientSseTransport(url), _mcpMetaAgent));
+            var mcpMetaAgentTasks = disconnectedMcpMetaAgentUrls.Select(async url => await AddConnectionIfSuccessful(CreateMcpClientHttpTransport(url), _mcpMetaAgent));
 
             var disconnectedToolsRepositoryUrls = _mcpSettings.SharedServers.Where(url => !_activeConnections.ContainsKey(url));
 
             //  for now, collect a separate set of MCP tools to expose to the meta agent
             //  todo - figure out how we want MCP tools injected into subagents too.
             //var toolsRepositoryTasks = disconnectedToolsRepositoryUrls.Select(async url => await AddConnectionIfSuccessful(url, _toolsRepository));
-            var mcpToolsRepositoryTasks = disconnectedToolsRepositoryUrls.Select(async url => await AddConnectionIfSuccessful(CreateMcpClientSseTransport(url), _mcpToolsRepository));
+            var mcpToolsRepositoryTasks = disconnectedToolsRepositoryUrls.Select(async url => await AddConnectionIfSuccessful(CreateMcpClientHttpTransport(url), _mcpToolsRepository));
 
             await Task.WhenAll(mcpMetaAgentTasks.Concat(mcpToolsRepositoryTasks));
         }
@@ -170,12 +185,12 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
         }
     }
 
-    private IClientTransport CreateMcpClientSseTransport(string url)
-        => new SseClientTransport(new()
+    private IClientTransport CreateMcpClientHttpTransport(string url)
+        => new HttpClientTransport(new HttpClientTransportOptions
         {
             Name = _unsafeToolNameChars.Replace(url, string.Empty),
             Endpoint = new Uri(url),
-            TransportMode = HttpTransportMode.AutoDetect
+            TransportMode = HttpTransportMode.StreamableHttp
         });
 
     private IClientTransport CreateMcpClientStdioTransport(string name, string command, string[] arguments)
@@ -188,9 +203,8 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
 
     private async Task AddConnectionIfSuccessful(IClientTransport clientTransport, IMcpConnectable connectable)
     {
-        McpConnection connection = new McpConnection(clientTransport)
+        McpConnection connection = new McpConnection(_logger, clientTransport)
         {
-            McpLoggerFactory = _loggerFactory,
             Backend = connectable
         };
 

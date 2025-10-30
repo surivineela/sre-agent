@@ -73,6 +73,11 @@ export const buildAgentConfigurationYaml = (agent: Partial<ExtendedAgent>): stri
         spec.tools = allTools;
     }
 
+    // Add MCP tools if specified
+    if (agent.mcpTools && agent.mcpTools.length > 0) {
+        spec.mcp_tools = agent.mcpTools;
+    }
+
     if (agent.handoffs && agent.handoffs.length > 0) {
         spec.handoffs = agent.handoffs;
     }

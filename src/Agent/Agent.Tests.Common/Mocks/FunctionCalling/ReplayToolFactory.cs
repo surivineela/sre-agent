@@ -192,6 +192,12 @@ public sealed class ReplayToolFactory<TContext> : AsyncInitializerBase, IToolFac
         return true;
     }
 
+    public Task RefreshMcpToolsAsync()
+    {
+        // Delegate to inner factory
+        return _innerFactory.RefreshMcpToolsAsync();
+    }
+
     Task IToolFactory<TContext>.FindAndRegisterAllToolsAsync(BehaviorOnNameConflict onNameConflict)
     {
         throw new NotImplementedException();

@@ -93,6 +93,12 @@
       "value": "Extended Tools (Optional)"
     }
   ],
+  "+TFnQ/": [
+    {
+      "type": 0,
+      "value": "Extended Tools (Optional)"
+    }
+  ],
   "+TlNdm": [
     {
       "type": 0,
@@ -103,6 +109,12 @@
     {
       "type": 0,
       "value": "Typ"
+    }
+  ],
+  "+UcRHd": [
+    {
+      "type": 0,
+      "value": "Starter agent"
     }
   ],
   "+bJIWo": [
@@ -133,6 +145,12 @@
     {
       "type": 0,
       "value": "Mitwirkender"
+    }
+  ],
+  "+kmL8g": [
+    {
+      "type": 0,
+      "value": "Provide instructions for what this scheduled task should do."
     }
   ],
   "+kmL8g": [
@@ -329,13 +347,13 @@
       "value": "e.g., ProductionKusto"
     }
   ],
-  "/wdD42": [
+  "/rNkXe": [
     {
       "type": 0,
       "value": "Verbindungsfehler"
     }
   ],
-  "/ytgXm": [
+  "/tauMV": [
     {
       "type": 1,
       "value": "columnName"
@@ -593,6 +611,12 @@
       "value": "Edit YAML"
     }
   ],
+  "0w+w97": [
+    {
+      "type": 0,
+      "value": "Edit YAML"
+    }
+  ],
   "0w0iFy": [
     {
       "type": 0,
@@ -641,16 +665,48 @@
       "value": "Override default meta agent"
     }
   ],
-  "1CcjQj": [
+  "15nhHh": [
     {
       "type": 0,
-      "value": "Add a response plan to automate incident handling"
+      "value": "A unique identifier for your agent"
+    }
+  ],
+  "18C/Jh": [
+    {
+      "type": 0,
+      "value": "Override default meta agent"
     }
   ],
   "1DDIYv": [
     {
       "type": 0,
       "value": "Möchten Sie diese geplante Aufgabe wirklich fortsetzen?"
+    }
+  ],
+  "1EnaNQ": [
+    {
+      "type": 0,
+      "value": "Next run: "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
+  "1FMpZj": [
+    {
+      "type": 0,
+      "value": "Error loading graph: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "1GbY5N": [
+    {
+      "type": 0,
+      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Connectors instead."
     }
   ],
   "1EnaNQ": [
@@ -931,22 +987,10 @@
       "value": "Umfassende Untersuchung"
     }
   ],
-  "2ep4et": [
+  "2e3GZQ": [
     {
       "type": 0,
-      "value": "Monthly on day "
-    },
-    {
-      "type": 1,
-      "value": "dayOfMonth"
-    },
-    {
-      "type": 0,
-      "value": " at "
-    },
-    {
-      "type": 1,
-      "value": "time"
+      "value": "Create a handoff agent"
     }
   ],
   "2hB9SP": [
@@ -1183,6 +1227,12 @@
       "value": "Select an existing trigger"
     }
   ],
+  "4/nSt8": [
+    {
+      "type": 0,
+      "value": "Select an existing trigger"
+    }
+  ],
   "40YXE1": [
     {
       "type": 0,
@@ -1199,6 +1249,24 @@
     {
       "type": 0,
       "value": "Änderungen verwerfen?"
+    }
+  ],
+  "44QmgP": [
+    {
+      "type": 0,
+      "value": "connector"
+    }
+  ],
+  "44Y8wQ": [
+    {
+      "type": 0,
+      "value": "No common tools configured."
+    }
+  ],
+  "451B6Z": [
+    {
+      "type": 0,
+      "value": "No agents found"
     }
   ],
   "44QmgP": [
@@ -1311,16 +1379,22 @@
       "value": "New agents can take a few seconds to appear in the graph. If you do not see it right away, refresh the list after a brief moment."
     }
   ],
-  "4Qhg3L": [
+  "4QLM52": [
     {
       "type": 0,
-      "value": "Keep the description brief and explain the task’s actions. Include necessary resource identifiers, specify time-sensitive information, and define success/failure signals or required output formats."
+      "value": "New agents can take a few seconds to appear in the graph. If you do not see it right away, refresh the list after a brief moment."
     }
   ],
   "4TnjxL": [
     {
       "type": 0,
       "value": "Leserolle für API-Verwaltungsdienst"
+    }
+  ],
+  "4XOvey": [
+    {
+      "type": 0,
+      "value": "AI Agents"
     }
   ],
   "4XOvey": [
@@ -1339,6 +1413,12 @@
     {
       "type": 0,
       "value": "Zum Antwortplan wechseln"
+    }
+  ],
+  "4fPELu": [
+    {
+      "type": 0,
+      "value": "Function"
     }
   ],
   "4fPELu": [
@@ -1389,10 +1469,22 @@
       "value": "Select a Kusto connector"
     }
   ],
+  "4uiKBK": [
+    {
+      "type": 0,
+      "value": "Select a Kusto connector"
+    }
+  ],
   "4upwsn": [
     {
       "type": 0,
       "value": "Ausgewählte Dateien"
+    }
+  ],
+  "4z+NaY": [
+    {
+      "type": 0,
+      "value": "The type of data source"
     }
   ],
   "4z+NaY": [
@@ -3393,6 +3485,12 @@
       "value": "Filternamen eingeben"
     }
   ],
+  "EStH0G": [
+    {
+      "type": 0,
+      "value": "Agent Builder"
+    }
+  ],
   "EWrExf": [
     {
       "type": 0,
@@ -4277,6 +4375,12 @@
     {
       "type": 0,
       "value": "Zurück"
+    }
+  ],
+  "JMdyE9": [
+    {
+      "type": 0,
+      "value": "Use AI to enhance and validate your agent instructions"
     }
   ],
   "JMdyE9": [
@@ -5601,6 +5705,12 @@
     {
       "type": 0,
       "value": "P2"
+    }
+  ],
+  "PysW/n": [
+    {
+      "type": 0,
+      "value": "Reset changes"
     }
   ],
   "PysW/n": [
@@ -8145,6 +8255,12 @@
       "value": "No system tools configured."
     }
   ],
+  "c/bty0": [
+    {
+      "type": 0,
+      "value": "No system tools configured."
+    }
+  ],
   "c1EiBR": [
     {
       "type": 0,
@@ -8207,6 +8323,18 @@
       "value": "AI chat service is currently unavailable. Please try again later."
     }
   ],
+  "cG0Q8M": [
+    {
+      "type": 0,
+      "value": "Temperature"
+    }
+  ],
+  "cLC2fM": [
+    {
+      "type": 0,
+      "value": "AI chat service is currently unavailable. Please try again later."
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -8251,6 +8379,18 @@
     {
       "type": 0,
       "value": "Filter by custom plan"
+    }
+  ],
+  "coy1iv": [
+    {
+      "type": 0,
+      "value": "Edit YAML configuration"
+    }
+  ],
+  "cqx+Rd": [
+    {
+      "type": 0,
+      "value": "Manage connectors"
     }
   ],
   "coy1iv": [
@@ -8473,6 +8613,26 @@
       "value": "Critic prompt"
     }
   ],
+  "djuhEG": [
+    {
+      "type": 0,
+      "value": "Enter "
+    },
+    {
+      "type": 1,
+      "value": "type"
+    },
+    {
+      "type": 0,
+      "value": " value"
+    }
+  ],
+  "dk4jPW": [
+    {
+      "type": 0,
+      "value": "Critic prompt"
+    }
+  ],
   "dnXgff": [
     {
       "type": 0,
@@ -8569,6 +8729,12 @@
       "value": "Run this agent on a repeating schedule."
     }
   ],
+  "eYEnNu": [
+    {
+      "type": 0,
+      "value": "Run this agent on a repeating schedule."
+    }
+  ],
   "eZMksq": [
     {
       "type": 0,
@@ -8591,6 +8757,12 @@
     {
       "type": 0,
       "value": "ServiceNow verbunden. Ihr nächster Schritt ist das Einrichten von Incident Response-Plänen."
+    }
+  ],
+  "ehhpyJ": [
+    {
+      "type": 0,
+      "value": "Add All"
     }
   ],
   "ehhpyJ": [
@@ -8635,6 +8807,12 @@
       "value": "System tools are built-in tools provided by the platform"
     }
   ],
+  "euKVCa": [
+    {
+      "type": 0,
+      "value": "System tools are built-in tools provided by the platform"
+    }
+  ],
   "exofc7": [
     {
       "type": 0,
@@ -8659,6 +8837,12 @@
     {
       "type": 0,
       "value": "Verbindungszeichenfolge oder Endpunkt eingeben"
+    }
+  ],
+  "f0LQra": [
+    {
+      "type": 0,
+      "value": "Improve with AI"
     }
   ],
   "f0LQra": [
@@ -8739,6 +8923,12 @@
       "value": "New tool"
     }
   ],
+  "fT73QI": [
+    {
+      "type": 0,
+      "value": "New tool"
+    }
+  ],
   "fUgypu": [
     {
       "type": 0,
@@ -8749,6 +8939,12 @@
     {
       "type": 0,
       "value": "Instanzname"
+    }
+  ],
+  "fbr20l": [
+    {
+      "type": 0,
+      "value": "Create & Link"
     }
   ],
   "fbr20l": [
@@ -8857,10 +9053,10 @@
       "value": "Fehlerdetails kopieren"
     }
   ],
-  "g4II+z": [
+  "g3ngVx": [
     {
       "type": 0,
-      "value": "e.g. 0 0 * * *"
+      "value": "Create AI agents with custom tools and data connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
     }
   ],
   "g7HOVb": [
@@ -9748,6 +9944,16 @@
     },
     {
       "type": 0,
+      "value": "Benutzerdefinierte Antwortleitlinien hinzufügen (optional)"
+    }
+  ],
+  "kq7D3O": [
+    {
+      "type": 1,
+      "value": "sourceAgentName"
+    },
+    {
+      "type": 0,
       "value": " —uses→ "
     },
     {
@@ -9913,6 +10119,12 @@
     {
       "type": 0,
       "value": "Verbindung mit Azure Monitor wird hergestellt..."
+    }
+  ],
+  "ltBXTD": [
+    {
+      "type": 0,
+      "value": "Search agents, tools, or connectors"
     }
   ],
   "lvNWLS": [
@@ -10105,6 +10317,12 @@
       "value": "Tool type"
     }
   ],
+  "mZ3wu9": [
+    {
+      "type": 0,
+      "value": "Tool type"
+    }
+  ],
   "makWrV": [
     {
       "type": 0,
@@ -10123,10 +10341,22 @@
       "value": "How should this trigger be set up?"
     }
   ],
+  "mbtoHb": [
+    {
+      "type": 0,
+      "value": "How should this trigger be set up?"
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
       "value": "Letzte 90 Tage"
+    }
+  ],
+  "mgZVf8": [
+    {
+      "type": 0,
+      "value": "No tools configured."
     }
   ],
   "mgZVf8": [
@@ -10217,10 +10447,22 @@
       "value": "Dictionary value type"
     }
   ],
+  "n2h/5e": [
+    {
+      "type": 0,
+      "value": "Dictionary value type"
+    }
+  ],
   "n5QvJy": [
     {
       "type": 0,
       "value": "Startdatum"
+    }
+  ],
+  "n7yYXG": [
+    {
+      "type": 0,
+      "value": "Service"
     }
   ],
   "n7yYXG": [
@@ -10319,18 +10561,34 @@
       "value": "Agent invoked"
     }
   ],
-  "nkYx6+": [
+  "nUT0Lv": [
     {
       "type": 0,
-      "value": "Disconnect "
+      "value": "Tools"
+    }
+  ],
+  "nWJtZd": [
+    {
+      "type": 0,
+      "value": "Connector details · "
     },
     {
       "type": 1,
-      "value": "count"
+      "value": "name"
+    }
+  ],
+  "nh3LaL": [
+    {
+      "type": 0,
+      "value": "Created "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     },
     {
       "type": 0,
-      "value": " data connectors?"
+      "value": ". Finish the setup in Incident management."
     }
   ],
   "nmpevl": [
@@ -10399,10 +10657,22 @@
       "value": "No tools linked yet. Add tools so this agent can take action."
     }
   ],
-  "o3uElD": [
+  "nySNrf": [
     {
       "type": 0,
-      "value": "Add data connector"
+      "value": "A unique identifier for your tool"
+    }
+  ],
+  "o0pkiK": [
+    {
+      "type": 0,
+      "value": "Describe what this agent does and how it should behave..."
+    }
+  ],
+  "o1g3JC": [
+    {
+      "type": 0,
+      "value": "No tools linked yet. Add tools so this agent can take action."
     }
   ],
   "o7TUwc": [
@@ -11669,6 +11939,12 @@
       "value": "Testing query…"
     }
   ],
+  "tRaGqN": [
+    {
+      "type": 0,
+      "value": "Testing query…"
+    }
+  ],
   "tSKi9q": [
     {
       "type": 0,
@@ -11701,6 +11977,20 @@
       "value": " will be ready in a few seconds. Feel free to keep editing while we connect it."
     }
   ],
+  "tU3A8E": [
+    {
+      "type": 0,
+      "value": "Your new "
+    },
+    {
+      "type": 1,
+      "value": "entityType"
+    },
+    {
+      "type": 0,
+      "value": " will be ready in a few seconds. Feel free to keep editing while we connect it."
+    }
+  ],
   "tWX1j9": [
     {
       "type": 0,
@@ -11711,6 +12001,24 @@
     {
       "type": 0,
       "value": "Connect a data source"
+    }
+  ],
+  "tb6uBb": [
+    {
+      "type": 1,
+      "value": "toolName"
+    },
+    {
+      "type": 0,
+      "value": " is already connected to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "tb6uBb": [
@@ -11765,6 +12073,12 @@
     {
       "type": 0,
       "value": "Deleting connector"
+    }
+  ],
+  "tjE5Cb": [
+    {
+      "type": 0,
+      "value": "No handoffs configured."
     }
   ],
   "tjE5Cb": [
@@ -11885,6 +12199,12 @@
       "value": "Connect relationships"
     }
   ],
+  "uFaAgq": [
+    {
+      "type": 0,
+      "value": "Connect relationships"
+    }
+  ],
   "uI0Lmu": [
     {
       "type": 0,
@@ -11951,6 +12271,12 @@
       "value": "Agents as tools"
     }
   ],
+  "uMNRNl": [
+    {
+      "type": 0,
+      "value": "Agents as tools"
+    }
+  ],
   "uRMqBi": [
     {
       "type": 0,
@@ -11977,6 +12303,18 @@
     {
       "type": 0,
       "value": "Pick from presets"
+    }
+  ],
+  "ubULuu": [
+    {
+      "type": 0,
+      "value": "Clear description for agents to understand when to use this tool"
+    }
+  ],
+  "udi5I/": [
+    {
+      "type": 0,
+      "value": "Create incident response plans or scheduled tasks to trigger agents automatically."
     }
   ],
   "ubULuu": [

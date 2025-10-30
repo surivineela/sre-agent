@@ -23,7 +23,6 @@ public class ExtendedAgentService : IExtendedAgentService
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory<AgentContext> toolFactory,
         IExtendedAgentRepository extendedAgentRepository
-
         )
     {
         _logger = logger;
@@ -49,11 +48,13 @@ public class ExtendedAgentService : IExtendedAgentService
     {
         try
         {
-            var all = await _extendedAgentRepository.GetToolsAsync(); // remove limit from repository call
+            var all = await _extendedAgentRepository.GetToolsAsync();
+
             var filtered = all
                 .Where(t => string.IsNullOrEmpty(search) || t.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+
             var mapped = filtered
-                .Select(t => DocumentToRuntimeMapper.ToRuntimeTool(t));
+                .Select(c => DocumentToRuntimeMapper.ToRuntimeTool(c));
 
             return PaginatedList<YamlToolDefinitionBase>.Create(mapped, pageIndex, limit);
         }

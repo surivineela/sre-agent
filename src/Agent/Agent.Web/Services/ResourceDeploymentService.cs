@@ -121,6 +121,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
                 HandoffDescription: agentSpec.HandoffDescription,
                 Handoffs: agentSpec.Handoffs,
                 Tools: agentSpec.Tools,
+                McpTools: agentSpec.McpTools,
                 Connectors: agentSpec.Connectors,
                 AllowParallelToolCalls: agentSpec.AllowParallelToolCalls,
                 AgentsAsTools: agentSpec.AgentsAsTools,
