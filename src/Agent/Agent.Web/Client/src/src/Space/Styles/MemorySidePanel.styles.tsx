@@ -57,6 +57,8 @@ export const useMemorySidePanelStyles = makeStyles({
     content: {
         padding: '12px',
         height: '100%',
+        width: '100%',
+        boxSizing: 'border-box',
         overflowY: 'auto',
     },
 });

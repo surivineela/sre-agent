@@ -2966,7 +2966,6 @@ export const MemorySearchCardResources = defineMessages({
     viewMemorySearchResults: { defaultMessage: 'View Memory Search Results', id: 'I1tfGG' },
     symptomsLabel: { defaultMessage: 'Symptoms:', id: 'h4XDJP' },
     rootCauseLabel: { defaultMessage: 'Root Cause:', id: 'sILeXv' },
-    stepsLabel: { defaultMessage: 'Steps:', id: '+mtpY7' },
 });
 
 export const ExtendedAgentsGraphResources = defineMessages({

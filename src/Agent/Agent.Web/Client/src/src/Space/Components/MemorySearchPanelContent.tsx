@@ -31,6 +31,7 @@ const useStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         gap: tokens.spacingVerticalXS,
+        width: '100%',
     },
     documentItem: {
         backgroundColor: tokens.colorNeutralBackground2,
@@ -40,7 +41,8 @@ const useStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         gap: tokens.spacingVerticalS,
-        maxWidth: '100%',
+        width: '100%',
+        boxSizing: 'border-box',
         overflowWrap: 'break-word',
     },
     documentItemClickable: {
@@ -116,6 +118,8 @@ const useStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         gap: tokens.spacingVerticalXXS,
+        width: '100%',
+        boxSizing: 'border-box',
     },
     trajectoryTitle: {
         fontWeight: tokens.fontWeightSemibold,
@@ -141,6 +145,8 @@ const useStyles = makeStyles({
         lineHeight: tokens.lineHeightBase200,
         wordBreak: 'break-word',
         overflowWrap: 'break-word',
+        width: '100%',
+        boxSizing: 'border-box',
     },
 });
 
@@ -170,11 +176,6 @@ const MemorySearchPanelContent = ({ memoryResult }: MemorySearchPanelContentProp
             {trajectory.rootCause && (
                 <Text className={styles.trajectoryDetail}>
                     <strong>{intl.formatMessage(MemorySearchCardResources.rootCauseLabel)}</strong> {trajectory.rootCause}
-                </Text>
-            )}
-            {trajectory.stepsFollowed && (
-                <Text className={styles.trajectoryDetail}>
-                    <strong>{intl.formatMessage(MemorySearchCardResources.stepsLabel)}</strong> {trajectory.stepsFollowed}
                 </Text>
             )}
         </div>
