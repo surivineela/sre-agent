@@ -44,6 +44,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<RecordActionsPluginDefinition>();
         RegisterPlugin<AzureDevOpsWorkItemPluginDefinition>();
         RegisterPlugin<RepositoryPluginDefintion>();
+        RegisterPlugin<DGrepPluginDefinition>();
 
         // Not all tools were registered, so registering individually
         Register200<GrafanaPluginDefinition>(x => x.ModifyGrafanaDashboard);

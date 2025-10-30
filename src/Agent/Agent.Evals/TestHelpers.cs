@@ -421,6 +421,10 @@ public static class TestHelpers
         builder.Services.AddTransient<ArmPluginDefinition>();
         builder.Services.AddTransient<IArmPlugin, ArmPlugin>();
 
+        // Register DGrep plugin for tests
+        builder.Services.AddSingleton<Agent.Plugins.Interface.IDGrepPluginClient>(sp => Mock.Of<Agent.Plugins.Interface.IDGrepPluginClient>());
+        builder.Services.AddTransient<Agent.Plugins.DGrepPluginDefinition>();
+
         // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
 
         // Runtime–modifier for agent-mode switching

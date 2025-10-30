@@ -14,6 +14,8 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Agent.Framework;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
@@ -210,6 +212,10 @@ public class Program
         builder.Services.Configure<AppInsightsSettings>(
             builder.Configuration.GetSection("AppInsightsSettings"));
 
+        // Configure DGrep settings
+        builder.Services.Configure<Agent.Core.Configuration.DGrepSettings>(
+            builder.Configuration.GetSection("AppSettings:Core:External:DGrep"));
+
         //Configure Azure Storage settings
         builder.Services.Configure<StorageSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:Storage"));
@@ -278,7 +284,9 @@ public class Program
         // Register ApplensDetectorPlugin and its definition
         builder.Services.AddSingleton<Agent.Plugins.Interface.IApplensDetectorPlugin, Agent.Plugins.Implementation.ApplensDetectorPlugin>();
         builder.Services.AddTransient<Agent.Plugins.Definitions.ApplensDetectorPluginDefinition>();
-
+        // Register DGrepPlugin client and definition  
+        builder.Services.AddSingleton<Agent.Plugins.Interface.IDGrepPluginClient, Agent.Plugins.Implementation.DGrepPluginClient>();
+        builder.Services.AddTransient<Agent.Plugins.DGrepPluginDefinition>();
         // Add ExternalSettings registration after the other settings registrations
         builder.Services.AddSingleton<Agent.Core.Configuration.ExternalSettings>(sp =>
         {

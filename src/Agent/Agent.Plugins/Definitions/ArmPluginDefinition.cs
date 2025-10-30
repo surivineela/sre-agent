@@ -193,6 +193,7 @@ Execute az commands for Azure resource read operations. Commands run IMMEDIATELY
 USAGE: Provide complete az cli command string. ALWAYS specify --subscription parameter with valid subscriptionId/guid.
 ALLOWED: Read-only commands such as 'list', 'show', 'get'. (non-mutating only)
 FORBIDDEN: 'aks command invoke' NOT allowed.
+DO NOT USE for: DGrep queries, log analysis, diagnostic data, telemetry queries - use PerformDgrepSearch tool instead.
 EXAMPLES:
 - List: 'az containerapp list -g MyRG --subscription <subId>'
 - Show with query: 'az containerapp show -g MyRG -n MyApp --query properties.configuration.ingress --subscription <subId>'
@@ -201,6 +202,7 @@ BEST PRACTICES:
 - Always include --subscription parameter
 - Executes immediately - no approval needed
 - Use to understand current state before changes
+- For log/diagnostic queries, use PerformDgrepSearch tool instead
 
 # Pre-execution User Notification
   - Notify users concisely before executing any command (read, write, help):
@@ -249,6 +251,7 @@ Execute az commands for Azure resource write operations. Requires user approval 
 USAGE: Provide complete az cli command string. ALWAYS specify --subscription parameter with valid subscriptionId/guid.
 ALLOWED: 'create', 'update', 'set', 'scale', 'start', 'stop', 'restart', 'add'
 FORBIDDEN: 'delete', 'remove', 'aks command invoke' commands NOT allowed for safety.
+DO NOT USE for: DGrep queries, log analysis, diagnostic data, telemetry queries - use PerformDgrepSearch tool instead.
 EXAMPLES:
 - Create: 'az containerapp create -g MyRG -n MyApp --subscription <subId> --image myimage:latest'
 - Update: 'az webapp update -g MyRG -n MyApp --set httpsOnly=true --subscription <subId>'

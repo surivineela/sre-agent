@@ -13,6 +13,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -510,6 +511,30 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
                 .Any(dc => string.Equals(dc.DataConnectorType, expectedValue, StringComparison.OrdinalIgnoreCase));
 
             return hasConnector;
+        }
+
+        // Check if it's a DGrepSettings condition
+        if (conditionType.Equals("DGrepSettings", StringComparison.OrdinalIgnoreCase))
+        {
+            var coreSettings = _serviceProvider.GetService<CoreSettings>();
+            if (coreSettings == null)
+            {
+                _logger.LogInternalWarning("CoreSettings not found in service provider for DGrepSettings condition check");
+                return false;
+            }
+
+            var dgrepSettings = coreSettings.External?.DGrep;
+            if (dgrepSettings == null)
+            {
+                return false;
+            }
+
+            if (expectedValue.Equals("Enabled", StringComparison.OrdinalIgnoreCase))
+            {
+                return dgrepSettings.Enabled;
+            }
+
+            return false;
         }
 
         // Default: treat as environment variable check

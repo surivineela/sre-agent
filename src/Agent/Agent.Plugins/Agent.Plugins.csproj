@@ -32,6 +32,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Services.Search.Client" />
     <PackageReference Include="SharpZipLib" />
     <PackageReference Include="Microsoft.Azure.Management.Monitor.Fluent" />
+    <PackageReference Include="Microsoft.Azure.Monitoring.DGrep.SDK" />
     <PackageReference Include="Microsoft.Diagnostics.Runtime" />
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />
     <PackageReference Include="Microsoft.Graph" />

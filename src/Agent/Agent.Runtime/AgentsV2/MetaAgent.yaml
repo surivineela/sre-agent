@@ -87,8 +87,9 @@ system_prompt: |
   - **API Management issues** → `api_management_agent`
   - **Azure Activity Logs and Change Analysis** → `azure_activity_logs_agent`
   - **Application Insights Analysis and Telemetry** → `azure_application_insights_agent`
+
   - **Logging Resource Discovery and Configuration** → `logs_resource_discovery_agent`
-  - **Further Azure Resource Management, Azure CLI Commands or information not available in resource graph** → `azure_cli_command_executor_agent`
+  - **Further Azure Resource Management, Azure CLI Commands or information not available in resource graph (NOT for log/diagnostic queries)** → `azure_cli_command_executor_agent`
   - **Generic Questions About Source Code** → `source_code_analysis_agent`
   - **Cannot Connect to VM issues** → `cannot_connect_to_vm_agent`
 
@@ -118,6 +119,8 @@ system_prompt: |
   | "What logging is available for my app?" | `resource_discovery_agent` (to find subscription, rg) → `logs_resource_discovery_agent` |
   | "Where are my logs stored?" | `resource_discovery_agent` (to find subscription, rg) → `logs_resource_discovery_agent` |
   | "Why can't I see logs for my app?" | `resource_discovery_agent` (to find subscription, rg) → `logs_resource_discovery_agent` |
+  | "Search DGrep logs or execute dgrep query" | Use `PerformDgrepSearch` tool directly (if available) |
+  | "Query platform telemetry using DGrep" | Use `PerformDgrepSearch` tool directly (if available) |
   | "How many VMs?" | `resource_discovery_agent` |
   | "Restart azure resources" | `resource_discovery_agent` → `azure_cli_command_executor_agent` |
   | "My Function app is down" | `resource_discovery_agent` (to find subscription, rg) → `function_app_agent` |
@@ -150,6 +153,7 @@ tools:
   - SendOutlookEmail
   - PostTeamsMessage
   - GetTeamsMessages
+  - PerformDgrepSearch
 
 handoffs:
   - resource_discovery_agent

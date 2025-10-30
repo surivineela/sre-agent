@@ -59,6 +59,7 @@
     <PackageVersion Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageVersion Include="Microsoft.Azure.Kusto.Ingest" Version="13.0.2" />
     <PackageVersion Include="Microsoft.Azure.Management.Monitor.Fluent" Version="1.38.1" />
+    <PackageVersion Include="Microsoft.Azure.Monitoring.DGrep.SDK" Version="3.2.7" />
     <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.23.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
     <PackageVersion Include="Microsoft.Cloud.Metrics.Client" Version="2.2025.1002.2213" />
