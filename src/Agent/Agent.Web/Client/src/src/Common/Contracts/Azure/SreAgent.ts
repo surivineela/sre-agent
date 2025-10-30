@@ -23,6 +23,7 @@ export interface Agent {
     dashboardConfiguration: DashboardConfiguration;
     dataConnectors?: DataConnector[];
     upgradeChannel?: UpgradeChannel;
+    monthlyAgentUnitLimit?: number;
 }
 
 export enum ProvisioningState {
@@ -131,6 +132,24 @@ export interface KnowledgeGraphBuildStatus {
 export interface CrawlProgress {
     crawledCount: number;
     totalCount: number;
+}
+
+interface UsageName {
+    localizedValue: string;
+    value: 'TotalAgentUnits' | 'AgentUnits';
+}
+
+export interface MonthlyUsage {
+    currentValue: number;
+    limit: number;
+    name: UsageName;
+    unit: 'Count';
+}
+
+export interface DailyUsage {
+    date: Date | string;
+    name: UsageName;
+    value: number;
 }
 
 export const SREAgentUserId = 'agent-default';

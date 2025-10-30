@@ -50,7 +50,6 @@ const Settings: FC = () => {
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
     const showDataKnowledgeSpace = useConfigSetting(SettingNames.DataKnowledgeSpace);
     const showMcpServer = useConfigSetting(SettingNames.McpServer);
-    const showUsage = useConfigSetting(SettingNames.Usage);
 
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
 
@@ -124,15 +123,13 @@ const Settings: FC = () => {
             });
         }
 
-        if (showUsage) {
-            items.push({
-                name: intl.formatMessage(SettingsTabResources.usage),
-                key: SettingsKeys.Usage,
-            });
-        }
+        items.push({
+            name: intl.formatMessage(SettingsTabResources.usage),
+            key: SettingsKeys.Usage,
+        });
 
         return items;
-    }, [intl, showDataConnectors, showKnowledgeBase, showMcpServer, showSubAgents, showDataKnowledgeSpace, showUsage]);
+    }, [intl, showDataConnectors, showKnowledgeBase, showMcpServer, showSubAgents, showDataKnowledgeSpace]);
 
     const onNavigationClick = useCallback(
         (navKey: string) => {

@@ -60,6 +60,9 @@ const ICON_LOOKUP: Record<string, string> = {
     github: 'github-mark.svg',
     url: 'Url.svg',
 
+    //Usage
+    usagewarning: 'WarningSpotIllustration.svg',
+
     // Others Azure Resource Types
     'microsoft.documentdb/databaseaccounts': 'CosmosDB.svg',
     'microsoft.eventgrid/topics': 'EventGridTopic.svg',

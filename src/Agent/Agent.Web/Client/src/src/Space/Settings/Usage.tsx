@@ -20,16 +20,13 @@ import {
     DialogTrigger,
     Field,
     Input,
-    Label,
     Link,
     makeStyles,
-    mergeClasses,
     MessageBar,
     MessageBarBody,
     ProgressBar,
     Skeleton,
     SkeletonItem,
-    Slider,
     Text,
     Title2,
     tokens,
@@ -45,7 +42,12 @@ import { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } f
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { getErrorMessage } from '../../Common/Clients/ArmClient';
+import SreAgentClient from '../../Common/Clients/SreAgentClient';
+import { DailyUsage } from '../../Common/Contracts/Azure/SreAgent';
+import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
+import { resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { SettingsTabResources, SreAgentResources, UsageResources } from '../../Strings/SREAgentResources';
 import { useSettingsStyles } from './Styles/Settings.styles';
 
@@ -96,28 +98,17 @@ const useStyles = makeStyles({
     smallSpaceOnRight: {
         paddingRight: tokens.spacingHorizontalS,
     },
-    summaryLoader: {
-        width: '500px',
-    },
-    totalActiveFlowLoader: {
-        lineHeight: tokens.lineHeightHero700,
-        paddingTop: tokens.spacingVerticalXS,
-    },
     progressBar: {
         height: '13px',
         '& .fui-ProgressBar__bar': {
             backgroundColor: `${tokens.colorPaletteCornflowerBorderActive} !important`,
         },
     },
-    progressBarLabelLoader: {
-        width: '100%',
-        display: 'flex',
-        justifyContent: 'flex-end',
-        paddingBottom: tokens.spacingVerticalS,
+    totalConsumptionLoader: {
+        height: '240px',
     },
-    sliderContainer: {
-        display: 'flex',
-        alignItems: 'center',
+    dailyConsumptionLoader: {
+        height: '550px',
     },
     dialogDescription: {
         padding: `${tokens.spacingVerticalM} 0px`,
@@ -125,11 +116,28 @@ const useStyles = makeStyles({
     dialogAction: {
         marginTop: tokens.spacingVerticalL,
     },
+    noDataContainer: {
+        position: 'relative',
+        width: '100%',
+        minHeight: '100px',
+    },
+    noDataContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+    },
 });
 
 const getNumberLocale = (num: number) => {
     return num.toLocaleString();
 };
+
+const MAX_LIMIT = 200000;
 
 const Usage = () => {
     const theme = useTheme();
@@ -142,58 +150,113 @@ const Usage = () => {
     const settingStyles = useSettingsStyles();
     const styles = useStyles();
 
-    const [currentUsage, setCurrentUsage] = useState(1000);
-    const [totalLimit, setTotalLimit] = useState(5000);
+    const [currentUsage, setCurrentUsage] = useState<number>();
+    const [totalLimit, setTotalLimit] = useState<number>();
+    const [dailyUsagesDataPoint, setDailyUsagesDataPoint] = useState<VerticalBarChartDataPoint[]>([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingMonthlyUsage, setIsLoadingMonthlyUsage] = useState(false);
+    const [isLoadingDailyUsage, setIsLoadingDailyUsage] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [monthlyUsageError, setMonthlyUsageError] = useState<boolean>(false);
+    const [dailyUsageError, setDailyUsageError] = useState<boolean>(false);
+    const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
-    const totalLimitRef = useRef<number>(totalLimit);
+    const dailyUsageChartRef = useRef<HTMLDivElement>(null);
+    const totalLimitRef = useRef<number | undefined>(totalLimit);
     totalLimitRef.current = totalLimit;
 
-    const disableButtons = useMemo(() => isLoading || isUpdating, [isLoading, isUpdating]);
+    const disableButtons = useMemo(
+        () => isLoadingMonthlyUsage || isLoadingDailyUsage || isUpdating,
+        [isLoadingMonthlyUsage, isLoadingDailyUsage, isUpdating]
+    );
+    const disableChangeButton = useMemo(() => disableButtons || monthlyUsageError, [disableButtons, monthlyUsageError]);
+
+    const currentUsageDisplayData = useMemo(() => {
+        return currentUsage !== undefined ? getNumberLocale(currentUsage) : '';
+    }, [currentUsage]);
+
+    const totalLimitDisplayData = useMemo(() => {
+        return totalLimit !== undefined ? getNumberLocale(totalLimit) : '';
+    }, [totalLimit]);
 
     const daysLeftOfCurrentMonth = useMemo(() => {
-        const today = new Date();
-        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-        return endOfMonth.getDate() - today.getDate();
-    }, []);
+        const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        return endOfMonth.getDate() - currentDate.getDate();
+    }, [currentDate]);
 
-    // ToDo: add real data
-    const usageData = useMemo(() => {
-        const today = new Date();
-        const oneMonthAgo = new Date();
-        oneMonthAgo.setMonth(today.getMonth() - 1);
-        const currentDate = new Date(oneMonthAgo);
+    const fetchData = useCallback(async () => {
+        const getMonthlyUsage = async (resourceId: string) => {
+            setIsLoadingMonthlyUsage(true);
 
-        const dataPoints: VerticalBarChartDataPoint[] = [];
-        const dates: Date[] = [];
+            const response = await SreAgentClient.getMonthlyUsage(resourceId);
+            const result = response.data.value?.[0];
+            const usage = result?.currentValue || undefined;
+            const limit = result?.limit || undefined;
 
-        while (currentDate <= today) {
-            const date = new Date(currentDate);
-            dataPoints.push({
-                x: currentDate.toLocaleString(undefined, { month: 'numeric', day: 'numeric' }),
-                y: Math.floor(Math.random() * 5000), // Random usage between 0 and 5000
-                color: tokens.colorPaletteCornflowerBorderActive,
-                legend: intl.formatMessage(UsageResources.aauConsumptionLegendText),
+            if (response.metadata.success && usage !== undefined && limit !== undefined) {
+                setMonthlyUsageError(false);
+                setCurrentUsage(usage);
+                setTotalLimit(limit);
+            } else {
+                setMonthlyUsageError(true);
+                proxy.log({
+                    action: 'getMonthlyUsage',
+                    actionModifier: 'failed',
+                    resourceId,
+                    logLevel: 'error',
+                    data: {
+                        error: getErrorMessage(response.metadata.error),
+                    },
+                });
+            }
+
+            setIsLoadingMonthlyUsage(false);
+        };
+
+        const getDailyUsages = async (resourceId: string) => {
+            setIsLoadingDailyUsage(true);
+
+            const response = await SreAgentClient.getDailyUsages(resourceId);
+            const dailyUsages = response.data.value || [];
+
+            if (response.metadata.success) {
+                setDailyUsageError(false);
+                setDailyUsagesDataPoint(processDailyUsages(dailyUsages));
+            } else {
+                setDailyUsageError(true);
+                proxy.log({
+                    action: 'getDailyUsages',
+                    actionModifier: 'failed',
+                    resourceId,
+                    logLevel: 'error',
+                    data: {
+                        error: getErrorMessage(response.metadata.error),
+                    },
+                });
+            }
+
+            setIsLoadingDailyUsage(false);
+        };
+
+        const processDailyUsages = (dailyUsages: DailyUsage[]): VerticalBarChartDataPoint[] => {
+            const dataPoints: VerticalBarChartDataPoint[] = dailyUsages.map(usage => {
+                return {
+                    x: getSafeDateTime(usage.date).toLocaleString(undefined, { month: 'numeric', day: 'numeric' }),
+                    y: usage.value,
+                    color: tokens.colorPaletteCornflowerBorderActive,
+                    legend: intl.formatMessage(UsageResources.aauConsumptionLegendText),
+                };
             });
-            dates.push(date);
-            currentDate.setDate(currentDate.getDate() + 1);
+            return dataPoints;
+        };
+
+        setCurrentDate(new Date());
+
+        if (resourceId) {
+            getMonthlyUsage(resourceId);
+            getDailyUsages(resourceId);
         }
-
-        return dataPoints;
-    }, []);
-
-    const onRefresh = useCallback(() => {
-        setIsLoading(true);
-
-        //ToDo: add actual api request
-        setTimeout(() => {
-            setCurrentUsage(1000);
-            setTotalLimit(5000);
-            setIsLoading(false);
-        }, 3000);
-    }, []);
+    }, [resourceId, proxy, intl]);
 
     const onUpdate = useCallback(
         async (newValue: number) => {
@@ -209,42 +272,39 @@ const Usage = () => {
                 })
             );
 
-            try {
-                // ToDo: Add actual api request to update AAU allocation
-                setTimeout(() => {
-                    setIsUpdating(false);
-                    proxy.stopNotification(
-                        id,
-                        true,
-                        intl.formatMessage(UsageResources.updateAllocationSuccessDescription, { oldValue, newValue })
-                    );
-                    onRefresh();
-                }, 3000);
-            } catch (e: any) {
-                setIsUpdating(false);
+            const response = await SreAgentClient.patchAgent(resourceId, { properties: { monthlyAgentUnitLimit: newValue } });
+
+            setIsUpdating(false);
+
+            if (response.metadata.success) {
+                proxy.stopNotification(
+                    id,
+                    true,
+                    intl.formatMessage(UsageResources.updateAllocationSuccessDescription, { oldValue, newValue })
+                );
+                fetchData();
+            } else {
+                const errorMessage = getErrorMessage(response.metadata.error);
+
                 proxy.log({
                     action: 'deleteThread',
                     actionModifier: 'failure',
                     logLevel: 'error',
                     resourceId: resourceId,
                     data: {
-                        error: e?.message || e?.response?.data,
+                        error: errorMessage,
                     },
                 });
 
-                proxy.stopNotification(
-                    id,
-                    false,
-                    intl.formatMessage(UsageResources.updateAllocationFailedDescription, {
-                        errorMessage: e?.message || e?.response?.data,
-                    })
-                );
+                proxy.stopNotification(id, false, intl.formatMessage(UsageResources.updateAllocationFailedDescription, { errorMessage }));
             }
-
-            //ToDo: add actual api request
         },
-        [onRefresh, proxy, resourceId, intl]
+        [fetchData, proxy, resourceId, intl]
     );
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     // ToDo: Set CopilotProvider on the app root level to apply copilot them to all components
     return (
@@ -257,7 +317,6 @@ const Usage = () => {
                     <div>
                         <Body1>
                             <span className={styles.smallSpaceOnRight}>{intl.formatMessage(UsageResources.description)}</span>
-                            {/** Waiting on a go link from Vineela */}
                             <Link href="https://go.microsoft.com/fwlink/?linkid=2339567" target="_blank">
                                 {intl.formatMessage(UsageResources.descriptionLinkText)}
                             </Link>
@@ -270,7 +329,7 @@ const Usage = () => {
                         icon={<ArrowCounterclockwiseRegular />}
                         className={styles.toolbarButton}
                         disabled={disableButtons}
-                        onClick={onRefresh}
+                        onClick={() => fetchData()}
                     >
                         <Body1>{intl.formatMessage(SreAgentResources.refresh)}</Body1>
                     </ToolbarButton>
@@ -279,7 +338,7 @@ const Usage = () => {
                         appearance="transparent"
                         icon={<EditRegular />}
                         className={styles.toolbarButton}
-                        disabled={disableButtons}
+                        disabled={disableChangeButton}
                         onClick={() => setIsDialogOpen(true)}
                     >
                         <Body1>{intl.formatMessage(UsageResources.changeAAUAllocationText)}</Body1>
@@ -291,20 +350,16 @@ const Usage = () => {
                         entityTitle={
                             <EntityTitle
                                 primaryText={
-                                    isLoading ? (
-                                        <Skeleton className={styles.summaryLoader}>
-                                            <SkeletonItem size={32} className={styles.fullWidth} />
-                                        </Skeleton>
-                                    ) : (
-                                        <Body2>
-                                            <span className={styles.smallSpaceOnRight}>
-                                                {intl.formatMessage(UsageResources.monthlyAAULimitLabel)}
-                                            </span>
+                                    <Body2>
+                                        <span className={styles.smallSpaceOnRight}>
+                                            {intl.formatMessage(UsageResources.monthlyAAULimitLabel)}
+                                        </span>
+                                        {totalLimit !== undefined && !monthlyUsageError && (
                                             <Body3Strong>
                                                 {intl.formatMessage(UsageResources.billingDescription, { count: totalLimit })}
                                             </Body3Strong>
-                                        </Body2>
-                                    )
+                                        )}
+                                    </Body2>
                                 }
                             />
                         }
@@ -312,98 +367,91 @@ const Usage = () => {
                     />
                 </div>
                 <div className={styles.sectionTitle}>
-                    {isLoading ? (
-                        <Skeleton className={styles.summaryLoader}>
-                            <SkeletonItem size={48} />
+                    <Body2Strong block={true}>{currentDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</Body2Strong>
+                    <Caption1>{intl.formatMessage(UsageResources.activeFlowResetMessage, { days: daysLeftOfCurrentMonth })}</Caption1>
+                </div>
+                <div className={styles.section}>
+                    {isLoadingMonthlyUsage ? (
+                        <Skeleton>
+                            <SkeletonItem className={styles.totalConsumptionLoader} />
                         </Skeleton>
                     ) : (
-                        <>
-                            <Body2Strong block={true}>
-                                {new Date().toLocaleString(undefined, { month: 'long', year: 'numeric' })}
-                            </Body2Strong>
-                            <Caption1>
-                                {intl.formatMessage(UsageResources.activeFlowResetMessage, { days: daysLeftOfCurrentMonth })}
-                            </Caption1>
-                        </>
+                        <EntityCard
+                            role="group"
+                            entityTitle={<EntityTitle primaryText={intl.formatMessage(UsageResources.totalActiveFlowConsumptionTitle)} />}
+                            style={{ maxWidth: 'unset' }}
+                            content={{
+                                style: {
+                                    maxWidth: 'unset',
+                                    borderRadius: 'unset',
+                                    width: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'flex-start',
+                                    gap: tokens.spacingVerticalXXL,
+                                    padding: `${tokens.spacingVerticalXXL} 0px ${tokens.spacingVerticalS} 0px`,
+                                },
+                            }}
+                        >
+                            {monthlyUsageError ? (
+                                <NoDataMessage />
+                            ) : (
+                                <>
+                                    <div className={styles.totalUsageInfoLabel}>
+                                        <Caption1>{intl.formatMessage(UsageResources.consumptionAAUUsageLabel)}</Caption1>
+
+                                        <Title2>
+                                            <span style={{ color: tokens.colorPaletteCornflowerBorderActive }}>
+                                                {currentUsageDisplayData}
+                                            </span>
+                                            <span>{'/'}</span>
+                                            <span>{totalLimitDisplayData}</span>
+                                        </Title2>
+                                    </div>
+                                    <div className={styles.fullWidth}>
+                                        <Caption1 className={styles.progressBarField} block={true} align={'end'}>
+                                            <Caption1Strong>{currentUsageDisplayData}</Caption1Strong>
+                                            <span>{'/'}</span>
+                                            <span className={styles.extraSmallSpaceOnRight}>{totalLimitDisplayData}</span>
+                                            <span>{'AAUs'}</span>
+                                        </Caption1>
+                                        <ProgressBar value={1000} max={totalLimit} className={styles.progressBar}></ProgressBar>
+                                    </div>
+                                </>
+                            )}
+                        </EntityCard>
                     )}
                 </div>
                 <div className={styles.section}>
-                    <EntityCard
-                        role="group"
-                        entityTitle={<EntityTitle primaryText={intl.formatMessage(UsageResources.totalActiveFlowConsumptionTitle)} />}
-                        style={{ maxWidth: 'unset' }}
-                        content={{
-                            style: {
-                                maxWidth: 'unset',
-                                borderRadius: 'unset',
-                                width: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'flex-start',
-                                gap: tokens.spacingVerticalXXL,
-                                padding: `${tokens.spacingVerticalXXL} 0px ${tokens.spacingVerticalS} 0px`,
-                            },
-                        }}
-                    >
-                        <div className={styles.totalUsageInfoLabel}>
-                            <Caption1>{intl.formatMessage(UsageResources.consumptionAAUUsageLabel)}</Caption1>
-                            {isLoading ? (
-                                <Skeleton className={styles.totalActiveFlowLoader}>
-                                    <SkeletonItem size={32} style={{ width: '200px' }} />
-                                </Skeleton>
+                    {isLoadingDailyUsage ? (
+                        <Skeleton>
+                            <SkeletonItem className={styles.dailyConsumptionLoader} />
+                        </Skeleton>
+                    ) : (
+                        <EntityCard
+                            role="group"
+                            entityTitle={<EntityTitle primaryText={intl.formatMessage(UsageResources.dailyActiveFlowConsumptionTitle)} />}
+                            style={{ maxWidth: 'unset' }}
+                            content={{
+                                ref: dailyUsageChartRef,
+                                style: { maxWidth: 'unset', borderRadius: 'unset', width: '100%', minHeight: '450px' },
+                            }}
+                        >
+                            {dailyUsageError ? (
+                                <NoDataMessage />
                             ) : (
-                                <Title2>
-                                    <span style={{ color: tokens.colorPaletteCornflowerBorderActive }}>{getNumberLocale(1000)}</span>
-                                    <span>{'/'}</span>
-                                    <span>{getNumberLocale(5000)}</span>
-                                </Title2>
+                                <div className={styles.fullWidth}>
+                                    <VerticalBarChart
+                                        culture={typeof window !== 'undefined' ? window.navigator.language : 'en-us'}
+                                        data={dailyUsagesDataPoint}
+                                        lineLegendText={intl.formatMessage(UsageResources.aauConsumptionLegendText)}
+                                        useUTC={false}
+                                        parentRef={dailyUsageChartRef.current}
+                                    />
+                                </div>
                             )}
-                        </div>
-                        <div className={styles.fullWidth}>
-                            {isLoading ? (
-                                <Skeleton className={styles.progressBarLabelLoader}>
-                                    <SkeletonItem style={{ width: '95px' }} />
-                                </Skeleton>
-                            ) : (
-                                <Caption1 className={styles.progressBarField} block={true} align={'end'}>
-                                    <Caption1Strong>{getNumberLocale(1000)}</Caption1Strong>
-                                    <span>{'/'}</span>
-                                    <span className={styles.extraSmallSpaceOnRight}>{getNumberLocale(5000)}</span>
-                                    <span>{'AAUs'}</span>
-                                </Caption1>
-                            )}
-                            {isLoading ? (
-                                <Skeleton className={styles.fullWidth}>
-                                    <SkeletonItem />
-                                </Skeleton>
-                            ) : (
-                                <ProgressBar value={1000} max={5000} className={styles.progressBar}></ProgressBar>
-                            )}
-                        </div>
-                    </EntityCard>
-                </div>
-                <div className={styles.section}>
-                    <EntityCard
-                        role="group"
-                        entityTitle={<EntityTitle primaryText={intl.formatMessage(UsageResources.dailyActiveFlowConsumptionTitle)} />}
-                        style={{ maxWidth: 'unset' }}
-                        content={{ style: { maxWidth: 'unset', borderRadius: 'unset', width: '100%', minHeight: '450px' } }}
-                    >
-                        <div className={styles.fullWidth}>
-                            {isLoading ? (
-                                <Skeleton className={styles.fullHeight}>
-                                    <SkeletonItem className={styles.fullHeight} />
-                                </Skeleton>
-                            ) : (
-                                <VerticalBarChart
-                                    culture={typeof window !== 'undefined' ? window.navigator.language : 'en-us'}
-                                    data={usageData}
-                                    lineLegendText={intl.formatMessage(UsageResources.aauConsumptionLegendText)}
-                                    useUTC={false}
-                                />
-                            )}
-                        </div>
-                    </EntityCard>
+                        </EntityCard>
+                    )}
                 </div>
             </div>
             {/** Add a key to make sure each time the dialog is opened, it remounts with the initial values */}
@@ -411,13 +459,32 @@ const Usage = () => {
                 key={Guid.newGuid()}
                 isOpen={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
-                initialValue={totalLimit}
-                currentUsage={currentUsage}
+                initialValue={totalLimit || 0}
+                currentUsage={currentUsage || 0}
                 changeAAUAllocation={onUpdate}
             />
         </CopilotProvider>
     );
 };
+
+const NoDataMessage = memo(() => {
+    const styles = useStyles();
+    const intl = useIntl();
+
+    return (
+        <div className={styles.noDataContainer}>
+            <div className={styles.noDataContent}>
+                <img
+                    src={resolveResourceIcon('usagewarning')}
+                    style={{ width: '60px', height: '60px' }}
+                    alt={intl.formatMessage(SreAgentResources.warning)}
+                />
+                <Body2Strong>{intl.formatMessage(UsageResources.dataLoadErrorTitle)} </Body2Strong>
+                <Caption1>{intl.formatMessage(UsageResources.dataLoadErrorDescription)}</Caption1>
+            </div>
+        </div>
+    );
+});
 
 const AllocationChangeDialog = ({
     isOpen,
@@ -449,7 +516,7 @@ const AllocationChangeDialog = ({
     }, [initialValue, value]);
 
     useEffect(() => {
-        setErrorMessage(value > 20000 ? intl.formatMessage(UsageResources.usageLimitErrorMessage) : '');
+        setErrorMessage(value > MAX_LIMIT ? intl.formatMessage(UsageResources.usageLimitErrorMessage) : '');
     }, [value, intl]);
 
     return (
@@ -478,11 +545,12 @@ const AllocationChangeDialog = ({
                         required
                         validationState={errorMessage ? 'error' : undefined}
                         validationMessage={errorMessage}
+                        hint={'Maximum 200,000 AAUs'}
                     >
                         <Input
                             type={'number'}
                             min={0}
-                            max={20000}
+                            max={MAX_LIMIT}
                             value={value.toString()}
                             onChange={(_, data) => {
                                 if (!data.value) {
@@ -500,18 +568,6 @@ const AllocationChangeDialog = ({
                             }}
                         />
                     </Field>
-                </div>
-                <div className={mergeClasses(styles.section, styles.sliderContainer)}>
-                    <Label aria-hidden>{getNumberLocale(0)}</Label>
-                    <Slider
-                        min={0}
-                        max={20000}
-                        value={value}
-                        className={styles.fullWidth}
-                        aria-label={intl.formatMessage(UsageResources.usageLimitSliderAriaLabel)}
-                        onChange={(_, data) => setValue(data.value)}
-                    />
-                    <Label aria-hidden>{getNumberLocale(20000)}</Label>
                 </div>
                 <div className={styles.section}>
                     <Body1>

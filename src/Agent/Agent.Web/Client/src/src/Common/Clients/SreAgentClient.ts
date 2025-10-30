@@ -1,7 +1,7 @@
 import { ApiVersions } from '../ApiVersions';
 import { HttpResponseObject } from '../ArmHelper.types';
-import { ArmArray, ArmObj } from '../Contracts/Azure/ArmObj';
-import { Agent, DataConnector, ProvisioningState } from '../Contracts/Azure/SreAgent';
+import { ArmArray, ArmObj, ResponseArray } from '../Contracts/Azure/ArmObj';
+import { Agent, DailyUsage, DataConnector, MonthlyUsage, ProvisioningState } from '../Contracts/Azure/SreAgent';
 import MakeArmCall from './ArmClient';
 
 export default class SreAgentClient {
@@ -49,6 +49,24 @@ export default class SreAgentClient {
             commandName: 'deleteAgent',
             apiVersion,
             method: 'DELETE',
+        });
+    };
+
+    public static getMonthlyUsage = (resourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
+        return MakeArmCall<ResponseArray<MonthlyUsage>>({
+            resourceId: `${resourceId}/usages`,
+            commandName: 'getMonthlyUsage',
+            apiVersion,
+            method: 'GET',
+        });
+    };
+
+    public static getDailyUsages = (resourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
+        return MakeArmCall<ResponseArray<DailyUsage>>({
+            resourceId: `${resourceId}/dailyusages`,
+            commandName: 'getDailyUsages',
+            apiVersion,
+            method: 'GET',
         });
     };
 

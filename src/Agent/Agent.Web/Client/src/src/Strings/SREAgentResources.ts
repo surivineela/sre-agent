@@ -524,6 +524,7 @@ export const SreAgentResources = defineMessages({
     lineChart: { defaultMessage: 'Line chart', id: '8oyl6b' },
     barChart: { defaultMessage: 'Bar chart', id: 'k+3+Dy' },
     loadingMoreRows: { defaultMessage: 'Loading more rows...', id: 'PSfARI' },
+    warning: { defaultMessage: 'Warning', id: '3SVI5p' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -1818,7 +1819,7 @@ export const SettingsTabResources = defineMessages({
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
     dataKnowledgeSpace: { defaultMessage: 'Data knowledge space', id: '5U04OG' },
-    usage: { defaultMessage: 'Agent usage + limit', id: '3HS12m' },
+    usage: { defaultMessage: 'Agent consumption', id: 'p7xkho' },
     fileSource: { defaultMessage: 'File Source', id: 'CJ6tzL' },
     dataSource: { defaultMessage: 'Data Source', id: 'uudb6D' },
     subAgents: { defaultMessage: 'Sub-agents', id: 'VIn2J0' },
@@ -1981,13 +1982,21 @@ export const UsageResources = defineMessages({
         id: 'R3mMmc',
     },
     usageLimitErrorMessage: {
-        defaultMessage: 'The maximum AAU limit is 20,000',
-        id: 'kLL6yL',
+        defaultMessage: 'The maximum AAU limit is 200,000',
+        id: '/5UY6N',
     },
     usageLimitWarningMessage: {
         defaultMessage:
             'The current consumption exceeds the new allocation, which will take effect next month. Until then, the agent will run only in the always-on flow. Chat and actions will be unavailable.',
         id: 'AdnFH8',
+    },
+    dataLoadErrorTitle: {
+        defaultMessage: 'Failed to load data',
+        id: 'iJ+eDu',
+    },
+    dataLoadErrorDescription: {
+        defaultMessage: 'There was an error loading the usage data. Please try again later.',
+        id: 'u04DEJ',
     },
 });
 
