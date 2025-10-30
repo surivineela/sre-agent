@@ -1,5 +1,5 @@
-import { Badge, Card, mergeClasses, Text, tokens } from '@fluentui/react-components';
-import { MoreHorizontal16Regular, WrenchSettings24Regular } from '@fluentui/react-icons';
+import { Badge, Card, mergeClasses, Text } from '@fluentui/react-components';
+import { MoreHorizontal16Regular } from '@fluentui/react-icons';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext } from 'react';
 import {
@@ -10,6 +10,7 @@ import {
     SystemTool,
 } from '../Contracts/ExtendedAgentGraph';
 import { useToolNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
+import { EntityIcon } from './EntityIcon';
 import { getHandleId } from './Utility';
 
 type HandlePosition = 'T' | 'B' | 'L' | 'R';
@@ -52,7 +53,6 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
         cardSelected,
         cardContent,
         titleRow,
-        iconWrapper,
         nameBlock,
         nameText,
     } = useToolNodeStyles();
@@ -81,9 +81,7 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
             <Card onClick={() => setSelectedNode(data)} className={cardStyles}>
                 <div className={cardContent}>
                     <div className={titleRow}>
-                        <div className={iconWrapper} style={{ backgroundColor: tokens.colorPaletteLilacBackground2 }}>
-                            <WrenchSettings24Regular style={{ color: tokens.colorPaletteLilacForeground2 }} />
-                        </div>
+                        <EntityIcon type="tool" iconStyle={{ height: '24px', width: '24px' }} />
                         <div className={nameBlock}>
                             <Text className={nameText}>{data?.name}</Text>
                         </div>

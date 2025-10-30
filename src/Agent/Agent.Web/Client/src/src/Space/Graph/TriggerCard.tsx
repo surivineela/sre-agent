@@ -1,5 +1,5 @@
 import { Badge, Card, mergeClasses, Text, tokens } from '@fluentui/react-components';
-import { MoreHorizontal16Regular, Play24Regular, Timer24Regular, Warning24Regular } from '@fluentui/react-icons';
+import { MoreHorizontal16Regular } from '@fluentui/react-icons';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -7,6 +7,7 @@ import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgentGraphContext, ExtendedAgentGraphNode, ExtendedTrigger } from '../Contracts/ExtendedAgentGraph';
 import { getHumanReadableCronExpression } from '../ScheduledTasks/V2/ScheduledTasksUtilities';
 import { useTriggerNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
+import { EntityIcon, EntityIconProps } from './EntityIcon';
 import { getHandleId } from './Utility';
 
 type HandlePosition = 'T' | 'B' | 'L' | 'R';
@@ -49,7 +50,6 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
         cardSelected,
         cardContent,
         titleRow,
-        iconWrapper,
         nameBlock,
         nameText,
         subtitleText,
@@ -69,26 +69,14 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
         isSelectedNode ? cardSelected : undefined
     );
 
-    const triggerIcon = useMemo(() => {
+    const triggerIconType: EntityIconProps['type'] = useMemo(() => {
         switch (triggerType) {
             case 'incident':
-                return (
-                    <div className={iconWrapper} style={{ backgroundColor: tokens.colorPaletteCranberryBackground2 }}>
-                        <Warning24Regular style={{ color: tokens.colorPaletteCranberryForeground2 }} />
-                    </div>
-                );
+                return 'incidentTrigger';
             case 'scheduled':
-                return (
-                    <div className={iconWrapper} style={{ backgroundColor: tokens.colorPaletteForestBackground2 }}>
-                        <Timer24Regular style={{ color: tokens.colorPaletteForestForeground2 }} />
-                    </div>
-                );
+                return 'scheduledTrigger';
             default:
-                return (
-                    <div className={iconWrapper} style={{ backgroundColor: tokens.colorNeutralBackground3 }}>
-                        <Play24Regular style={{ color: tokens.colorNeutralForeground3 }} />
-                    </div>
-                );
+                return 'genericTrigger';
         }
     }, [triggerType]);
 
@@ -161,7 +149,7 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
             <Card onClick={() => setSelectedNode(data)} className={cardStyles}>
                 <div className={cardContent}>
                     <div className={titleRow}>
-                        {triggerIcon}
+                        <EntityIcon type={triggerIconType} iconStyle={{ height: '24px', width: '24px' }} />
                         <div className={nameBlock}>
                             <Text className={nameText}>{data?.name}</Text>
                             <Text className={subtitleText}>{triggerSubtitle}</Text>

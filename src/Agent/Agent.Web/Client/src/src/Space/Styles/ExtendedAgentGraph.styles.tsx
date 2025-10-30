@@ -12,6 +12,15 @@ const containerCommonStyles: GriffelStyle = {
     minHeight: 0,
 };
 
+const menuItemWithIcon: GriffelStyle = {
+    gap: '12px',
+    alignItems: 'center',
+    '& .fui-MenuItem__icon': {
+        height: 'unset',
+        width: 'unset',
+    },
+};
+
 export const useExtendedAgentGraphStyles = makeStyles({
     visualRoot: {
         display: 'flex',
@@ -92,13 +101,10 @@ export const useExtendedAgentGraphStyles = makeStyles({
         pointerEvents: 'auto',
         height: '100%',
     },
-    menuItemWithIcon: {
-        gap: '12px',
-        alignItems: 'center',
-        '& .fui-MenuItem__icon': {
-            height: 'unset',
-            width: 'unset',
-        },
+    menuItemWithIcon: menuItemWithIcon,
+    contextMenuItemWithIcon: {
+        ...menuItemWithIcon,
+        gap: '4px',
     },
     menuIconWrapper: {
         display: 'flex',
@@ -122,6 +128,13 @@ export const useExtendedAgentNodeStyles = makeStyles({
     handle: {
         opacity: 0,
         pointerEvents: 'none',
+    },
+    cardWrapper: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: '8px',
+        position: 'relative',
     },
     agentCard: {
         width: `${ExtendedAgentNodeSize.agentWidth}px`,
@@ -204,9 +217,9 @@ export const useExtendedAgentNodeStyles = makeStyles({
         flexWrap: 'wrap',
     },
     quickActionButton: {
-        position: 'absolute',
-        bottom: tokens.spacingVerticalS,
-        right: tokens.spacingHorizontalS,
+        height: '24px',
+        width: '24px',
+        minWidth: 'unset',
         boxShadow: tokens.shadow8,
         zIndex: 2,
     },

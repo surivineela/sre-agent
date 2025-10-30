@@ -3749,6 +3749,10 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'No nodes found',
         id: 'sNuzQE',
     },
+    quickCreateAddExistingTool: { defaultMessage: 'Add existing tool', id: 'RI59Ed' },
+    quickCreateCreateNewKustoTool: { defaultMessage: 'Create new Kusto tool', id: 'mhKk7c' },
+    quickCreateAddExistingSubagent: { defaultMessage: 'Add existing subagent', id: 'KJHRU/' },
+    quickCreateCreateNewSubagent: { defaultMessage: 'Create new subagent', id: '+h4pn9' },
 });
 
 export const PlaygroundResources = defineMessages({

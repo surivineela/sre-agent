@@ -545,8 +545,15 @@ const ExtendedAgentGraphContent = memo(() => {
         setPlaygroundTarget(undefined);
     }, []);
 
-    const incidentHandlersCount = incidentHandlersLoading ? null : (incidentHandlers?.length ?? 0);
-    const scheduledTasksCount = features.scheduledTasks ? (scheduledTasksLoading ? null : scheduledTasks.length) : null;
+    const incidentHandlersCount = useMemo(
+        () => (incidentHandlersLoading ? null : (incidentHandlers?.length ?? 0)),
+        [incidentHandlersLoading, incidentHandlers]
+    );
+
+    const scheduledTasksCount = useMemo(
+        () => (features.scheduledTasks ? (scheduledTasksLoading ? null : scheduledTasks.length) : null),
+        [features.scheduledTasks, scheduledTasksLoading, scheduledTasks]
+    );
 
     const triggerCardConfig = useMemo(
         () => ({
@@ -1246,15 +1253,18 @@ const ExtendedAgentGraphContent = memo(() => {
         setIsCreationDialogOpen,
     ]);
 
-    const isLoading = loading || isLayouting;
-    const hasAgents = agents.length > 0;
-    const hasTools = tools.length > 0;
-    const hasConnectors = connectors.length > 0;
-    const hasSystemTools = systemTools.length > 0;
-    const hasAnyResources = hasAgents || hasTools || hasConnectors || hasSystemTools;
-    const hasData = graphNodes.length > 0;
+    const isLoading = useMemo(() => loading || isLayouting, [loading, isLayouting]);
+    const hasAgents = useMemo(() => agents.length > 0, [agents.length]);
+    const hasTools = useMemo(() => tools.length > 0, [tools.length]);
+    const hasConnectors = useMemo(() => connectors.length > 0, [connectors.length]);
+    const hasSystemTools = useMemo(() => systemTools.length > 0, [systemTools.length]);
+    const hasAnyResources = useMemo(
+        () => hasAgents || hasTools || hasConnectors || hasSystemTools,
+        [hasAgents, hasTools, hasConnectors, hasSystemTools]
+    );
+    const hasData = useMemo(() => graphNodes.length > 0, [graphNodes.length]);
 
-    const renderGraphContent = () => {
+    const renderGraphContent = useCallback(() => {
         if (isLoading) {
             return <Spinner size={'large'} className={spinner} />;
         }
@@ -1319,20 +1329,41 @@ const ExtendedAgentGraphContent = memo(() => {
         return (
             <ExtendedAgentListView agents={agents} tools={tools} connectors={connectors} isLoading={loading} onRefresh={handleRefresh} />
         );
-    };
+    }, [
+        intl,
+        isLoading,
+        error,
+        filters.agentName,
+        hasData,
+        currentView,
+        nodes,
+        edges,
+        onNodesChange,
+        onEdgesChange,
+        theme,
+        agents,
+        tools,
+        connectors,
+        loading,
+        handleRefresh,
+    ]);
 
-    const showEmptyState = !isLoading && !hasAgents;
+    const showEmptyState = useMemo(() => !isLoading && !hasAgents, [isLoading, hasAgents]);
 
-    const infoPanelStyle: React.CSSProperties = {
-        width: `${infoPanelWidth}px`,
-    };
+    const infoPanelStyle: React.CSSProperties = useMemo(() => {
+        const style = {
+            width: `${infoPanelWidth}px`,
+        } as React.CSSProperties;
 
-    if (isInfoPanelFloating) {
-        infoPanelStyle.transform = `translate(${infoPanelPosition.x}px, ${infoPanelPosition.y}px)`;
-        if (isInfoPanelDragging) {
-            infoPanelStyle.cursor = 'grabbing';
+        if (isInfoPanelFloating) {
+            style.transform = `translate(${infoPanelPosition.x}px, ${infoPanelPosition.y}px)`;
+            if (isInfoPanelDragging) {
+                style.cursor = 'grabbing';
+            }
         }
-    }
+
+        return style;
+    }, [infoPanelWidth, isInfoPanelFloating, infoPanelPosition.x, infoPanelPosition.y, isInfoPanelDragging]);
 
     const handleCreateItemStandalone = useCallback(
         (itemType: EntityType) => {
