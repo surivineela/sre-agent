@@ -23,9 +23,10 @@
       "commandName": "Project",
       "commandLineArgs": "--session --legacy",
       "launchBrowser": true,
-      "launchUrl": "https://localhost:5173/latest/",
+      "launchUrl": "https://localhost:5173",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
+        "VITE_DEV_SERVER_URL": "https://localhost:5173"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7108"

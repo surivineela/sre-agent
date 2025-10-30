@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -11,6 +12,21 @@ var builder = WebApplication.CreateBuilder(args);
 // Add Microsoft Identity authentication with token acquisition for downstream APIs
 var initialScopes = builder.Configuration["AzureAd:Scopes"]?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
 
+// Check if we're using Vite dev server (set via VITE_DEV_SERVER_URL environment variable in launchSettings)
+var viteDevServerUrl = Environment.GetEnvironmentVariable("VITE_DEV_SERVER_URL");
+
+// Configure forwarded headers if using Vite dev server
+if (!string.IsNullOrEmpty(viteDevServerUrl))
+{
+    var viteUri = new Uri(viteDevServerUrl);
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+        options.KnownProxies.Clear();
+        options.KnownNetworks.Clear();
+    });
+}
+
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(options =>
     {
@@ -20,10 +36,31 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
         {
             OnRedirectToIdentityProvider = context =>
             {
+                // If using Vite dev server, override the redirect URI
+                // Needed because the auth redirect needs to go to the same URL as the original request.
+                // When we're using vite, the port is different than the backend.
+                if (!string.IsNullOrEmpty(viteDevServerUrl))
+                {
+                    var viteRedirectUri = new Uri(new Uri(viteDevServerUrl), "/signin-oidc").ToString();
+                    context.ProtocolMessage.RedirectUri = viteRedirectUri;
+                }
+                
                 // Add prompt parameter if needed for consent
                 if (context.Properties.Items.TryGetValue("prompt", out var prompt))
                 {
                     context.ProtocolMessage.Prompt = prompt;
+                }
+                return Task.CompletedTask;
+            },
+            OnRedirectToIdentityProviderForSignOut = context =>
+            {
+                // If using Vite dev server, override the redirect URI
+                // Needed because the auth redirect needs to go to the same URL as the original request.
+                // When we're using vite, the port is different than the backend.
+                if (!string.IsNullOrEmpty(viteDevServerUrl))
+                {
+                    var vitePostLogoutRedirectUri = new Uri(new Uri(viteDevServerUrl), "/signout-callback-oidc").ToString();
+                    context.ProtocolMessage.PostLogoutRedirectUri = vitePostLogoutRedirectUri;
                 }
                 return Task.CompletedTask;
             }
@@ -32,11 +69,20 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .EnableTokenAcquisitionToCallDownstreamApi(initialScopes)
     .AddInMemoryTokenCaches();
 
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+// Use forwarded headers if using Vite dev server (must be first!)
+// This is needed for authentication when using the vite server as the FE
+if (!string.IsNullOrEmpty(viteDevServerUrl))
+{
+    app.UseForwardedHeaders();
+}
+
 
 app.UseHttpsRedirection();
 

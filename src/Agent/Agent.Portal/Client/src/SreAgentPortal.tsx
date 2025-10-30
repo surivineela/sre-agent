@@ -1,3 +1,4 @@
+import { tokens } from '@fluentui/react-components';
 import { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useIntl } from 'react-intl';
@@ -11,7 +12,6 @@ import { HomeBrowseView } from './Views/Home/HomeBrowseView';
 import { LandingPage } from './Views/LandingPage/LandingPage';
 import { Navbar } from './Views/Navbar/Navbar';
 import { NotificationToastContainer } from './Views/Notifications/NotificationToastContainer';
-import { tokens } from '@fluentui/react-components';
 
 // Routing:
 // - Landing page for signed-out users
@@ -98,20 +98,18 @@ export const SreAgentPortal = () => {
 
     useEffect(() => {
         const logSiteVersion = () => {
-            const version = import.meta.env.SRE_AGENT_PORTAL_VERSION;
-            if (version) {
-                console.log(`
+            const version = import.meta.env.SRE_AGENT_PORTAL_VERSION || '(Local dev build)';
+            console.log(`
                     ╔═════════════════════════════════════════════╗
                        🤖🌀 SRE Agent Portal Version: ${version}
                     ╚═════════════════════════════════════════════╝
                 `);
 
-                logEvent({
-                    action: 'AgentPortalVersion',
-                    actionModifier: 'info',
-                    additionalData: { version },
-                });
-            }
+            logEvent({
+                action: 'AgentPortalVersion',
+                actionModifier: 'info',
+                additionalData: { version },
+            });
         };
 
         // Log initial and every 60 minutes (for long-running sessions)
