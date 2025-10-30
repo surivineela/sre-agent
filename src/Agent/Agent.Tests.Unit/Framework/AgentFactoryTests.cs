@@ -516,6 +516,124 @@ public class AgentFactoryTests
         Assert.NotEmpty(agentFactory.Experiments);
     }
 
+    [Fact]
+    public async Task RaisesAgentChangedEventWhenAgentIsAdded()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            assembliesToScan: [],
+            agentsYamlDirectory: null
+        );
+        await agentFactory.InitializeAsync();
+
+        AgentChangedEventArgs? receivedEventArgs = null;
+        agentFactory.AgentChanged += (sender, args) =>
+        {
+            receivedEventArgs = args;
+        };
+
+        var yamlContent = @"
+name: test_dynamic_agent
+system_prompt: Test dynamic agent instructions
+tools:
+  - TestAutoTool
+handoffs: []
+";
+
+        // Act
+        agentFactory.LoadAgentFromYamlContent(yamlContent, isCustomAgent: true);
+
+        // Assert
+        Assert.NotNull(receivedEventArgs);
+        Assert.Equal("test_dynamic_agent", receivedEventArgs.AgentName);
+        Assert.Equal(AgentChangeType.Added, receivedEventArgs.ChangeType);
+    }
+
+    [Fact]
+    public async Task RaisesAgentChangedEventWhenAgentIsUpdated()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            assembliesToScan: [],
+            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools")
+        );
+        await agentFactory.InitializeAsync();
+
+        var receivedEvents = new List<AgentChangedEventArgs>();
+        agentFactory.AgentChanged += (sender, args) =>
+        {
+            receivedEvents.Add(args);
+        };
+
+        // Act - Load agent with same name as existing agent with overwrite
+        agentFactory.LoadYamlAgentsFromFolder(
+            Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            overwriteExistingAgents: true,
+            recursive: false);
+
+        // Assert - Verify agent1 was updated (multiple agents may be loaded)
+        Assert.NotEmpty(receivedEvents);
+        var agent1Event = receivedEvents.FirstOrDefault(e => e.AgentName == "agent1");
+        Assert.NotNull(agent1Event);
+        Assert.Equal(AgentChangeType.Updated, agent1Event.ChangeType);
+    }
+
+    [Fact]
+    public async Task AgentChangedEventCanHaveMultipleSubscribers()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            assembliesToScan: [],
+            agentsYamlDirectory: null
+        );
+        await agentFactory.InitializeAsync();
+
+        var subscriber1Received = false;
+        var subscriber2Received = false;
+
+        agentFactory.AgentChanged += (sender, args) =>
+        {
+            subscriber1Received = true;
+        };
+
+        agentFactory.AgentChanged += (sender, args) =>
+        {
+            subscriber2Received = true;
+        };
+
+        var yamlContent = @"
+name: test_agent_multi_sub
+system_prompt: Test instructions
+tools:
+  - TestAutoTool
+handoffs: []
+";
+
+        // Act
+        agentFactory.LoadAgentFromYamlContent(yamlContent, isCustomAgent: true);
+
+        // Assert
+        Assert.True(subscriber1Received, "First subscriber should receive event");
+        Assert.True(subscriber2Received, "Second subscriber should receive event");
+    }
+
     private ToolFactory<AgentContext> CreateToolFactory()
     {
         var toolFactory = new ToolFactory<AgentContext>(

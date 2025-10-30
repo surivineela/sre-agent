@@ -10,6 +10,31 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Agent.Framework;
 
+/// <summary>
+/// Type of change that occurred to an agent
+/// </summary>
+public enum AgentChangeType
+{
+    Added,
+    Updated,
+    Removed
+}
+
+/// <summary>
+/// Event args for agent changes
+/// </summary>
+public class AgentChangedEventArgs : EventArgs
+{
+    public string AgentName { get; }
+    public AgentChangeType ChangeType { get; }
+
+    public AgentChangedEventArgs(string agentName, AgentChangeType changeType)
+    {
+        AgentName = agentName;
+        ChangeType = changeType;
+    }
+}
+
 public interface IAgentFactory<TContext> : IAsyncInitializer
     where TContext : class
 {
@@ -70,6 +95,11 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly bool _agentMemoryRetrievalEnabled;
     private readonly bool _scheduledTasksEnabled;
     private readonly List<Experiment> _experiments = [];
+
+    /// <summary>
+    /// Event raised when an agent is added, updated, or removed from the factory
+    /// </summary>
+    public event EventHandler<AgentChangedEventArgs>? AgentChanged;
 
     public int RegisteredAgentCount => _agents.Count;
 
@@ -247,6 +277,11 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
         _agents[agentDescriptor.Name] = agent;
         _agentDescriptors[agentDescriptor.Name] = agentDescriptor;
+
+        // Raise event to notify subscribers that an agent was added or updated
+        var changeType = overwrite ? AgentChangeType.Updated : AgentChangeType.Added;
+        OnAgentChanged(agentDescriptor.Name, changeType);
+
         return agent;
     }
 
@@ -1177,4 +1212,22 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     }
 
     public IReadOnlyList<Experiment> Experiments => _experiments.AsReadOnly();
+
+    /// <summary>
+    /// Raises the AgentChanged event to notify subscribers that an agent has been modified
+    /// </summary>
+    /// <param name="agentName">The name of the agent that changed</param>
+    /// <param name="changeType">The type of change that occurred</param>
+    private void OnAgentChanged(string agentName, AgentChangeType changeType)
+    {
+        try
+        {
+            AgentChanged?.Invoke(this, new AgentChangedEventArgs(agentName, changeType));
+            _logger.LogInternalDebug("AgentChanged event raised for agent '{AgentName}' with change type '{ChangeType}'", agentName, changeType);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error raising AgentChanged event for agent '{AgentName}'", agentName);
+        }
+    }
 }

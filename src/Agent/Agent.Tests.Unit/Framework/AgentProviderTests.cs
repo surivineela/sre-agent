@@ -889,4 +889,162 @@ public class AgentProviderTests
 
         Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
     }
+
+    [Fact]
+    public async Task CacheIsInvalidatedWhenDynamicAgentIsAdded()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+        var factory = new AgentFactory<AgentContext>(
+            logger: _mockFactoryLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
+        await factory.InitializeAsync();
+
+        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+
+        // Act - Get an agent to populate the cache
+        var agent1Before = provider.GetAgent("agent1");
+        Assert.NotNull(agent1Before);
+
+        // Add a dynamic agent (should trigger cache invalidation)
+        var yamlContent = @"
+name: dynamic_test_agent
+system_prompt: Test dynamic agent instructions
+tools:
+  - TestAutoTool
+handoffs: []
+";
+        factory.LoadAgentFromYamlContent(yamlContent, isCustomAgent: true);
+
+        // Assert - Verify we can now get the dynamic agent
+        var dynamicAgent = provider.GetAgent("dynamic_test_agent");
+        Assert.NotNull(dynamicAgent);
+        Assert.Equal("dynamic_test_agent", dynamicAgent.Name);
+        Assert.Contains("Test dynamic agent instructions", dynamicAgent.Instructions);
+    }
+
+    [Fact]
+    public async Task CacheIsInvalidatedWhenAgentIsUpdated()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+        var factory = new AgentFactory<AgentContext>(
+            logger: _mockFactoryLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
+        await factory.InitializeAsync();
+
+        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+
+        // Get agent1 to populate the cache
+        var agent1Before = provider.GetAgent("agent1");
+        var originalInstructions = agent1Before.Instructions.ToString();
+
+        // Act - Update agent1 with new instructions
+        factory.LoadYamlAgentsFromFolder(
+            Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            overwriteExistingAgents: true,
+            recursive: false);
+
+        // Assert - Get agent1 again, it should have fresh data from the rebuilt cache
+        var agent1After = provider.GetAgent("agent1");
+        Assert.NotNull(agent1After);
+        // Instructions should be the same as we loaded from the same folder
+        // but the important thing is the cache was invalidated and rebuilt
+        Assert.NotSame(agent1Before, agent1After);
+    }
+
+    [Fact]
+    public async Task MultipleDynamicAgentRegistrationsInvalidateCache()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+        var factory = new AgentFactory<AgentContext>(
+            logger: _mockFactoryLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            agentsYamlDirectory: null);
+        await factory.InitializeAsync();
+
+        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+
+        // Act - Add multiple dynamic agents
+        for (int i = 1; i <= 3; i++)
+        {
+            var yamlContent = $@"
+name: dynamic_agent_{i}
+system_prompt: Agent {i} instructions
+tools:
+  - TestAutoTool
+handoffs: []
+";
+            factory.LoadAgentFromYamlContent(yamlContent, isCustomAgent: true);
+        }
+
+        // Assert - Verify all dynamic agents are accessible
+        for (int i = 1; i <= 3; i++)
+        {
+            var agent = provider.GetAgent($"dynamic_agent_{i}");
+            Assert.NotNull(agent);
+            Assert.Equal($"dynamic_agent_{i}", agent.Name);
+            Assert.Contains($"Agent {i} instructions", agent.Instructions);
+        }
+    }
+
+    [Fact]
+    public async Task CacheInvalidationWorksAcrossMultipleThreads()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+        var factory = new AgentFactory<AgentContext>(
+            logger: _mockFactoryLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
+        await factory.InitializeAsync();
+
+        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+
+        // Populate cache for multiple threads
+        var agent1Thread1Before = provider.GetAgent("agent1", threadId: "thread-1");
+        var agent1Thread2Before = provider.GetAgent("agent1", threadId: "thread-2");
+        Assert.NotNull(agent1Thread1Before);
+        Assert.NotNull(agent1Thread2Before);
+
+        // Act - Add a dynamic agent (should invalidate ALL cached graphs)
+        var yamlContent = @"
+name: dynamic_cross_thread_agent
+system_prompt: Cross-thread dynamic agent
+tools:
+  - TestAutoTool
+handoffs: []
+";
+        factory.LoadAgentFromYamlContent(yamlContent, isCustomAgent: true);
+
+        // Assert - Both threads should be able to access the new agent
+        var dynamicAgentThread1 = provider.GetAgent("dynamic_cross_thread_agent", threadId: "thread-1");
+        var dynamicAgentThread2 = provider.GetAgent("dynamic_cross_thread_agent", threadId: "thread-2");
+
+        Assert.NotNull(dynamicAgentThread1);
+        Assert.NotNull(dynamicAgentThread2);
+        Assert.Equal("dynamic_cross_thread_agent", dynamicAgentThread1.Name);
+        Assert.Equal("dynamic_cross_thread_agent", dynamicAgentThread2.Name);
+    }
 }

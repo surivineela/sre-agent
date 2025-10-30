@@ -42,6 +42,17 @@ public sealed class AgentProvider<TContext> : IAgentProvider<TContext>
         _logger = logger;
         _instanceId = instanceId ?? "default";
 
+        // Subscribe to agent changes to automatically invalidate cache
+        if (_factory is AgentFactory<TContext> concreteFactory)
+        {
+            concreteFactory.AgentChanged += OnAgentChanged;
+            _logger.LogInternalInformation("AgentProvider subscribed to AgentFactory.AgentChanged event");
+        }
+        else
+        {
+            _logger.LogInternalWarning("AgentProvider could not subscribe to AgentChanged event - factory is not AgentFactory<TContext>");
+        }
+
         // Parse force-disabled experiments from environment variable
         // Format: "experiment1;experiment2;experiment3"
         var forceDisabledExperiments = Environment.GetEnvironmentVariable(FrameworkConstants.ForceDisableExperimentsEnvVar);
@@ -225,5 +236,35 @@ public sealed class AgentProvider<TContext> : IAgentProvider<TContext>
         _variantCache[key] = activeVariants.AsReadOnly();
 
         return clonedGraph;
+    }
+
+    /// <summary>
+    /// Event handler for agent changes from AgentFactory
+    /// </summary>
+    private void OnAgentChanged(object? sender, AgentChangedEventArgs e)
+    {
+        _logger.LogInternalInformation(
+            "Agent '{AgentName}' was {ChangeType} - invalidating agent graph cache",
+            e.AgentName,
+            e.ChangeType);
+
+        InvalidateCache();
+    }
+
+    /// <summary>
+    /// Invalidates all cached agent graphs, forcing them to be rebuilt on next access
+    /// </summary>
+    private void InvalidateCache()
+    {
+        var graphCount = _graphCache.Count;
+        var variantCount = _variantCache.Count;
+
+        _graphCache.Clear();
+        _variantCache.Clear();
+
+        _logger.LogInternalInformation(
+            "Agent graph cache invalidated - cleared {GraphCount} cached graphs and {VariantCount} variant entries",
+            graphCount,
+            variantCount);
     }
 }
