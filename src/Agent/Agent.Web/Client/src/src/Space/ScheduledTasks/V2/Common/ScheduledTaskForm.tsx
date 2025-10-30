@@ -11,13 +11,13 @@ import {
     Tooltip,
 } from '@fluentui/react-components';
 import { DatePicker } from '@fluentui/react-datepicker-compat';
-import { Wand24Regular } from '@fluentui/react-icons';
+import { ArrowUndo16Regular, PenSparkle16Regular } from '@fluentui/react-icons';
 import { formatDateToTimeString, TimePicker } from '@fluentui/react-timepicker-compat';
 import { useFormikContext } from 'formik';
-import { useContext, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { ScheduledTasksResources } from '../../../../Strings/SREAgentResources';
+import { ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { improvePrompt } from '../../../Graph/ExtendedAgentCreationDialog/services/promptImprovementService';
 import { useScheduledTasksStyles } from '../ScheduledTasks.styles';
 import { DayOfTheWeek, getDaysOfTheWeek, GroupMessageKey, ScheduledTaskFormProps, TaskFrequencyKey } from '../ScheduledTasksUtilities';
@@ -27,6 +27,7 @@ export const ScheduledTaskForm = () => {
     const styles = useScheduledTasksStyles();
     const { values, setFieldValue, errors, setFieldTouched, touched } = useFormikContext<ScheduledTaskFormProps>();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const [previousDetails, setPreviousDetails] = useState<string | null>();
     const [isApplyingImprovement, setIsApplyingImprovement] = useState<boolean>(false);
 
     const frequencyOptions = useMemo(
@@ -57,7 +58,8 @@ export const ScheduledTaskForm = () => {
         [intl]
     );
 
-    const onClickRefineWithAI = async () => {
+    const onClickRefineWithAI = useCallback(async () => {
+        setPreviousDetails(values.details);
         setIsApplyingImprovement(true);
         try {
             const result = await improvePrompt(sreAgentEndpoint, values.details);
@@ -69,7 +71,12 @@ export const ScheduledTaskForm = () => {
         } finally {
             setIsApplyingImprovement(false);
         }
-    };
+    }, [setFieldValue, sreAgentEndpoint, values.details]);
+
+    const onClickUndo = useCallback(() => {
+        setFieldValue('details', previousDetails);
+        setPreviousDetails(null);
+    }, [previousDetails, setFieldValue]);
 
     return (
         <div className={styles.taskForm}>
@@ -102,6 +109,18 @@ export const ScheduledTaskForm = () => {
                                 </span>
                             </span>
                             <div className={styles.fieldActionGroup}>
+                                <Button
+                                    appearance="subtle"
+                                    size="small"
+                                    disabled={isApplyingImprovement || !previousDetails}
+                                    onClick={onClickUndo}
+                                    className={styles.promptImprovementButton}
+                                >
+                                    <>
+                                        <ArrowUndo16Regular />
+                                        {intl.formatMessage(SreAgentResources.undo)}
+                                    </>
+                                </Button>
                                 <Tooltip
                                     content={intl.formatMessage(ScheduledTasksResources.refineWithAiTooltip)}
                                     relationship="description"
@@ -120,7 +139,7 @@ export const ScheduledTaskForm = () => {
                                             </>
                                         ) : (
                                             <>
-                                                <Wand24Regular />
+                                                <PenSparkle16Regular />
                                                 {intl.formatMessage(ScheduledTasksResources.refineWithAi)}
                                             </>
                                         )}

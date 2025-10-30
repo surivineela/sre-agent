@@ -20,6 +20,7 @@ import {
     TableCellLayout,
     TableColumnDefinition,
     TableColumnId,
+    Text,
 } from '@fluentui/react-components';
 import { DeleteRegular, MoreHorizontalRegular, PauseRegular, ReplayRegular } from '@fluentui/react-icons';
 import { Link } from '@fluentui/react/lib/Link';
@@ -40,6 +41,7 @@ enum ScheduledTaskDataGridColumns {
     actions = 'actions',
     status = 'status',
     schedule = 'schedule',
+    createdBy = 'createdBy',
     lastRun = 'lastRun',
     nextRun = 'nextRun',
     runs = 'runs',
@@ -271,6 +273,13 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
         [intl]
     );
 
+    const onRenderCreatedBy = useCallback(
+        (item: ScheduledTask) => {
+            return item.createdBy === 'Sub-Agent Builder' ? intl.formatMessage(SreAgentResources.agent) : item.createdBy;
+        },
+        [intl]
+    );
+
     const onRenderLastRun = useCallback(
         (item: ScheduledTask) => {
             return item.lastExecutionTime
@@ -301,7 +310,7 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
             createTableColumn<ScheduledTask>({
                 columnId: ScheduledTaskDataGridColumns.name,
                 compare: (a, b) => a.name.localeCompare(b.name),
-                renderHeaderCell: () => intl.formatMessage(ScheduledTasksResources.name),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ScheduledTasksResources.name)}</Text>,
                 renderCell: onRenderName,
             }),
             createTableColumn<ScheduledTask>({
@@ -312,13 +321,18 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
             createTableColumn<ScheduledTask>({
                 columnId: ScheduledTaskDataGridColumns.status,
                 compare: (a, b) => a.status.localeCompare(b.status),
-                renderHeaderCell: () => intl.formatMessage(ScheduledTasksResources.status),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ScheduledTasksResources.taskStatus)}</Text>,
                 renderCell: onRenderStatus,
             }),
             createTableColumn<ScheduledTask>({
                 columnId: ScheduledTaskDataGridColumns.schedule,
-                renderHeaderCell: () => intl.formatMessage(ScheduledTasksResources.schedule),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ScheduledTasksResources.schedule)}</Text>,
                 renderCell: onRenderSchedule,
+            }),
+            createTableColumn<ScheduledTask>({
+                columnId: ScheduledTaskDataGridColumns.createdBy,
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ScheduledTasksResources.createdBy)}</Text>,
+                renderCell: onRenderCreatedBy,
             }),
             createTableColumn<ScheduledTask>({
                 columnId: ScheduledTaskDataGridColumns.lastRun,
@@ -327,7 +341,7 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                     const bTime = b.lastExecutionTime ? new Date(b.lastExecutionTime).getTime() : 0;
                     return aTime - bTime;
                 },
-                renderHeaderCell: () => intl.formatMessage(ScheduledTasksResources.lastRun),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ScheduledTasksResources.lastRun)}</Text>,
                 renderCell: onRenderLastRun,
             }),
             createTableColumn<ScheduledTask>({
@@ -337,17 +351,27 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                     const bTime = b.nextExecutionTime ? new Date(b.nextExecutionTime).getTime() : 0;
                     return aTime - bTime;
                 },
-                renderHeaderCell: () => intl.formatMessage(ScheduledTasksResources.nextRun),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ScheduledTasksResources.nextRun)}</Text>,
                 renderCell: onRenderNextRun,
             }),
             createTableColumn<ScheduledTask>({
                 columnId: ScheduledTaskDataGridColumns.runs,
                 compare: (a, b) => a.executionCount - b.executionCount,
-                renderHeaderCell: () => intl.formatMessage(ScheduledTasksResources.runs),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ScheduledTasksResources.completedRuns)}</Text>,
                 renderCell: onRenderRuns,
             }),
         ],
-        [intl, onRenderActions, onRenderLastRun, onRenderName, onRenderNextRun, onRenderRuns, onRenderSchedule, onRenderStatus]
+        [
+            intl,
+            onRenderActions,
+            onRenderCreatedBy,
+            onRenderLastRun,
+            onRenderName,
+            onRenderNextRun,
+            onRenderRuns,
+            onRenderSchedule,
+            onRenderStatus,
+        ]
     );
 
     return (
@@ -393,8 +417,8 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
 
 const columnSizingOptions = {
     name: {
-        minWidth: 350,
-        defaultWidth: 450,
+        minWidth: 300,
+        defaultWidth: 350,
     },
     actions: {
         minWidth: 50,
@@ -405,6 +429,10 @@ const columnSizingOptions = {
         defaultWidth: 150,
     },
     schedule: {
+        minWidth: 200,
+        defaultWidth: 250,
+    },
+    createdBy: {
         minWidth: 200,
         defaultWidth: 250,
     },

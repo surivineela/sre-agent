@@ -525,6 +525,7 @@ export const SreAgentResources = defineMessages({
     barChart: { defaultMessage: 'Bar chart', id: 'k+3+Dy' },
     loadingMoreRows: { defaultMessage: 'Loading more rows...', id: 'PSfARI' },
     warning: { defaultMessage: 'Warning', id: '3SVI5p' },
+    undo: { defaultMessage: 'Undo', id: 'JkS37H' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -2649,6 +2650,7 @@ export const ScheduledTasksResources = defineMessages({
     name: { defaultMessage: 'Name', id: 'HAlOn1' },
     description: { defaultMessage: 'Description', id: 'Q8Qw5B' },
     status: { defaultMessage: 'Status', id: 'tzMNF3' },
+    taskStatus: { defaultMessage: 'Task status', id: 'CBHDb1' },
     schedule: { defaultMessage: 'Schedule', id: 'hGQqkW' },
     cronExpression: { defaultMessage: 'Cron expression', id: 'YmslQP' },
     agentPrompt: { defaultMessage: 'Agent prompt', id: 'KsuM4D' },
@@ -2658,7 +2660,7 @@ export const ScheduledTasksResources = defineMessages({
     nextExecution: { defaultMessage: 'Next execution', id: 'jlOO/9' },
     nextRun: { defaultMessage: 'Next run', id: '3yurtF' },
     executionCount: { defaultMessage: 'Execution count', id: 'KS5JHs' },
-    runs: { defaultMessage: 'Runs', id: 'W1Qs5O' },
+    completedRuns: { defaultMessage: 'Completed runs', id: 'I9W7ey' },
     maxExecutions: { defaultMessage: 'Max executions', id: 'oXd3cw' },
     placeholderMaxExecutions: { defaultMessage: 'Leave empty for unlimited executions', id: 'TFsGSl' },
     descriptionMaxExecutions: { defaultMessage: 'Maximum number of times this task should run', id: 'psUT6S' },
@@ -2924,6 +2926,9 @@ export const ScheduledTasksResources = defineMessages({
     refineWithAi: { defaultMessage: 'Refine with AI', id: 'uwY8Nf' },
     refiningDetails: { defaultMessage: 'Refining details...', id: 'XVG+T1' },
     refineWithAiTooltip: { defaultMessage: 'Use AI to enhance and validate your task instructions', id: '17sQau' },
+    activeTasks: { defaultMessage: 'Active tasks', id: 'wGcWbo' },
+    totalTasks: { defaultMessage: 'Total tasks', id: 'Px6I1N' },
+    totalRuns: { defaultMessage: 'Total runs', id: 'g4Dsk6' },
 });
 
 export const SubAgentsResources = defineMessages({
