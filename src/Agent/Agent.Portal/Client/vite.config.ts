@@ -45,6 +45,18 @@ export default defineConfig(({ mode }) => {
         },
         publicDir: './src/assets',
         server: {
+            cors: !isProduction
+                ? { origin: /^https?:\/\/(?:(?:[^:]+\.)?localhost|127\.0\.0\.1|\[::1\]|(?:[^:]+\.)?portal\.azure\.net)(?::\d+)?$/ }
+                : undefined,
+            proxy: !isProduction
+                ? {
+                      '/api': {
+                          target: 'https://localhost:7108',
+                          changeOrigin: true,
+                          secure: false,
+                      },
+                  }
+                : undefined,
             watch: {
                 usePolling: true,
             },

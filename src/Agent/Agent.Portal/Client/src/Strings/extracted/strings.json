@@ -2,7 +2,9 @@
   "+CwN9C": "System",
   "+uAdUZ": "Resource group",
   "3cc4Ct": "Light",
+  "456ixe": "All regions",
   "8OCpdQ": "{count, plural, one {# day ago} other {# days ago}}",
+  "8yyU6n": "All subscriptions",
   "Avsnjl": "Themes",
   "Ch3IdZ": "View popular skills",
   "D3idYv": "Settings",
@@ -33,6 +35,7 @@
   "fpexn2": "No notifications",
   "g82HU6": "Operation cancelled",
   "i50Kb0": "Explore agent skills",
+  "jEU2gk": "All resource groups",
   "kbQZUj": "We were unable to load the URL {agentUxUrl}. This may be due to the existence of a firewall or network restrictions placed on the domain of your agent. Please speak to your network administrator to remove this restriction in order to proceed with interacting with your agent.",
   "lnaWo/": "Region",
   "oHGFwy": "Sign in with a different account",
@@ -42,5 +45,6 @@
   "tOdNiY": "Dark",
   "wCtBb6": "Try Azure for free",
   "xXbJso": "Sign out",
+  "xmcVZ0": "Search",
   "y1Z3or": "Language"
 }
