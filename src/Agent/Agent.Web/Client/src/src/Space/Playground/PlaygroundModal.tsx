@@ -99,7 +99,8 @@ type QualityFindingPayload =
     | { type: 'instructions'; addition: string }
     | { type: 'tool'; toolName: string; action: 'add' | 'update'; description?: string }
     | { type: 'newTool'; toolName: string; description?: string }
-    | { type: 'prompt-rewrite'; fullPromptRewrite?: string };
+    | { type: 'prompt-rewrite'; fullPromptRewrite?: string }
+    | { type: 'promptPatch'; patch: string };
 
 type QualityFinding = {
     id: string;
@@ -235,6 +236,7 @@ const buildQualityResult = (
     insights.actionItems.forEach((actionItem, index) => {
         const isRewrite = actionItem.type === 'promptRewrite';
         const isToolAdd = actionItem.type === 'toolAdd';
+        const isPromptPatch = actionItem.type === 'promptPatch';
         const expectedLift = actionItem.impact?.scoreIncrease ?? 10;
         const impactDimension = actionItem.impact?.dimension ?? 'completeness';
 
@@ -244,6 +246,8 @@ const buildQualityResult = (
         } else if (isToolAdd) {
             const toolName = extractToolNameFromSuggestion(actionItem.patch ?? '') ?? 'UnknownTool';
             payload = { type: 'tool', toolName, action: 'add', description: actionItem.title };
+        } else if (isPromptPatch) {
+            payload = { type: 'promptPatch', patch: actionItem.patch ?? '' };
         } else {
             payload = { type: 'instructions', addition: actionItem.patch ?? '' };
         }
@@ -256,7 +260,7 @@ const buildQualityResult = (
             impactLabel: `+${expectedLift} ${impactDimension}`,
             autoApply: actionItem.autoApplicable ?? false,
             patch: actionItem.patch ?? '',
-            shortDiff: actionItem.patch?.split('\n').slice(0, 5).join('\n') ?? '',
+            shortDiff: actionItem.patch ?? '', // Show entire diff, not truncated
             payload: payload,
             toolHint: actionItem.impact?.description ?? '',
             safetyNote: actionItem.severity === 'error' ? 'Critical fix required' : 'Review before applying',
@@ -1061,6 +1065,23 @@ const useStyles = makeStyles({
         ...shorthands.padding(tokens.spacingVerticalXS, tokens.spacingHorizontalXS),
         fontSize: tokens.fontSizeBase200,
         whiteSpace: 'pre-wrap',
+        overflow: 'auto',
+    },
+    diffLineAdded: {
+        backgroundColor: 'rgba(46, 160, 67, 0.15)',
+        color: tokens.colorPaletteGreenForeground1,
+        display: 'block',
+        width: '100%',
+    },
+    diffLineRemoved: {
+        backgroundColor: 'rgba(229, 83, 75, 0.15)',
+        color: tokens.colorPaletteRedForeground1,
+        display: 'block',
+        width: '100%',
+    },
+    diffLineContext: {
+        display: 'block',
+        width: '100%',
     },
     watcherPanelFooter: {
         borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
@@ -1200,6 +1221,81 @@ const playgroundChatStyles: ChatBoxStyleProps = {
 };
 
 /**
+ * Helper function to apply a unified diff patch to text
+ */
+const applyUnifiedDiff = (originalText: string, patch: string): string => {
+    const lines = originalText.split('\n');
+    const patchLines = patch.split('\n');
+
+    let lineIndex = 0;
+    let i = 0;
+
+    while (i < patchLines.length) {
+        const line = patchLines[i];
+
+        // Parse hunk header: @@ -startLine,count +startLine,count @@
+        const hunkMatch = line.match(/^@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@/);
+        if (hunkMatch) {
+            const oldStart = parseInt(hunkMatch[1], 10) - 1; // Convert to 0-based
+            lineIndex = oldStart;
+            i++;
+            continue;
+        }
+
+        // Context line (starts with space or no prefix)
+        if (line.startsWith(' ') || (!line.startsWith('+') && !line.startsWith('-') && !line.startsWith('@'))) {
+            lineIndex++;
+            i++;
+            continue;
+        }
+
+        // Deletion (starts with -)
+        if (line.startsWith('-') && !line.startsWith('---')) {
+            lines.splice(lineIndex, 1);
+            i++;
+            continue;
+        }
+
+        // Addition (starts with +)
+        if (line.startsWith('+') && !line.startsWith('+++')) {
+            lines.splice(lineIndex, 0, line.substring(1));
+            lineIndex++;
+            i++;
+            continue;
+        }
+
+        i++;
+    }
+
+    return lines.join('\n');
+};
+
+/**
+ * Helper function to render a diff with GitHub-like color coding
+ */
+const renderColoredDiff = (diff: string, styles: ReturnType<typeof useStyles>) => {
+    const lines = diff.split('\n');
+    return (
+        <>
+            {lines.map((line, index) => {
+                let className = styles.diffLineContext;
+                if (line.startsWith('+') && !line.startsWith('+++')) {
+                    className = styles.diffLineAdded;
+                } else if (line.startsWith('-') && !line.startsWith('---')) {
+                    className = styles.diffLineRemoved;
+                }
+                return (
+                    <span key={index} className={className}>
+                        {line}
+                        {index < lines.length - 1 && '\n'}
+                    </span>
+                );
+            })}
+        </>
+    );
+};
+
+/**
  * PlaygroundModal - Streamlined agent testing and configuration interface
  *
  * Recent improvements:
@@ -1260,6 +1356,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
     const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
     const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
     const [chatKey, setChatKey] = useState(0); // Key to force chat remount on restart
+    const [formKey, setFormKey] = useState(0); // Key to force form remount on apply
     const [chatInitialized, setChatInitialized] = useState(false); // Track if initial message was sent
     const sendMessageRef = useRef<((message: string, agentName?: string) => void) | null>(null);
     const layoutRef = useRef<HTMLDivElement | null>(null);
@@ -1971,172 +2068,175 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
         setConfigTab(data.value as ConfigTabValue);
     }, []);
 
-    const handleInsightsRefresh = useCallback(async () => {
-        if (!sreAgentEndpoint) {
-            setInsightsError(intl.formatMessage(PlaygroundResources.insightsError));
-            return;
-        }
-
-        let currentAgentData = draftAgent;
-
-        if (configEntity === 'agent' && configTab === 'yaml' && yamlContent && !yamlError) {
-            const { agent } = tryParseAgentYaml(yamlContent, draftAgent);
-            if (agent) {
-                currentAgentData = agent;
-            }
-        }
-
-        const prompt = (currentAgentData?.instructions ?? target?.agent?.instructions ?? '').trim();
-        if (!prompt) {
-            setInsights(null);
-            setQualityResult(null);
-            setInsightsError(intl.formatMessage(PlaygroundResources.insightsNoData));
-            setInsightsStale(false);
-            setQualityStatus('notAnalyzed');
-            setQualityDrawerOpen(false);
-            return;
-        }
-
-        const toolsForRequest = Array.from(
-            new Set((currentAgentData?.tools ?? target?.agent?.tools ?? []).filter((name): name is string => !!name))
-        );
-        const systemToolsForRequest = Array.from(
-            new Set((currentAgentData?.systemTools ?? target?.agent?.systemTools ?? []).filter((name): name is string => !!name))
-        );
-
-        const failingToolFindings: PlaygroundInsightEvidence[] = Object.entries(toolTestStates)
-            .filter(([, state]) => state?.status === 'error')
-            .map(([key, state]) => ({
-                title:
-                    key === NEW_KUSTO_TOOL_OPTION || key === '__draft__'
-                        ? intl.formatMessage(PlaygroundResources.toolFormCreateNewKusto)
-                        : key,
-                detail: state?.errorMessage ?? intl.formatMessage(PlaygroundResources.insightsToolFailureFallback),
-                severity: 'error',
-            }));
-
-        const wasDrawerOpen = qualityDrawerOpen;
-        setQualityDrawerOpen(true);
-        setQualityStatus('running');
-        setInsightsLoading(true);
-        setInsightsError(undefined);
-
-        try {
-            // Debug: log the chat telemetry structure
-            if (chatTelemetry?.messages && chatTelemetry.messages.length > 0) {
-                console.log('Chat telemetry messages count:', chatTelemetry.messages.length);
-                chatTelemetry.messages.forEach((msg, idx) => {
-                    console.log(`Message ${idx}:`, {
-                        role: msg.authorRole,
-                        text: msg.text,
-                        hasText: !!msg.text,
-                        textLength: msg.text?.length ?? 0,
-                        timestamp: msg.timeStamp,
-                    });
-                });
-            } else {
-                console.log('No chat messages available for evaluation');
+    const handleInsightsRefresh = useCallback(
+        async (overrideAgent?: Partial<ExtendedAgent>) => {
+            if (!sreAgentEndpoint) {
+                setInsightsError(intl.formatMessage(PlaygroundResources.insightsError));
+                return;
             }
 
-            const chatFindings = (chatTelemetry?.messages ?? []).map(message => {
-                const chatSeverity: PlaygroundInsightSeverity = message.hasError ? 'error' : 'info';
-                return {
+            let currentAgentData = overrideAgent ?? draftAgent;
+
+            if (!overrideAgent && configEntity === 'agent' && configTab === 'yaml' && yamlContent && !yamlError) {
+                const { agent } = tryParseAgentYaml(yamlContent, draftAgent);
+                if (agent) {
+                    currentAgentData = agent;
+                }
+            }
+
+            const prompt = (currentAgentData?.instructions ?? target?.agent?.instructions ?? '').trim();
+            if (!prompt) {
+                setInsights(null);
+                setQualityResult(null);
+                setInsightsError(intl.formatMessage(PlaygroundResources.insightsNoData));
+                setInsightsStale(false);
+                setQualityStatus('notAnalyzed');
+                setQualityDrawerOpen(false);
+                return;
+            }
+
+            const toolsForRequest = Array.from(
+                new Set((currentAgentData?.tools ?? target?.agent?.tools ?? []).filter((name): name is string => !!name))
+            );
+            const systemToolsForRequest = Array.from(
+                new Set((currentAgentData?.systemTools ?? target?.agent?.systemTools ?? []).filter((name): name is string => !!name))
+            );
+
+            const failingToolFindings: PlaygroundInsightEvidence[] = Object.entries(toolTestStates)
+                .filter(([, state]) => state?.status === 'error')
+                .map(([key, state]) => ({
                     title:
-                        message.authorRole === 'SREAgent'
-                            ? intl.formatMessage(PlaygroundResources.chatFindingAgentTitle, {
-                                  time: message.timeStamp ?? intl.formatMessage(PlaygroundResources.chatFindingTimeFallback),
-                              })
-                            : intl.formatMessage(PlaygroundResources.chatFindingUserTitle, {
-                                  time: message.timeStamp ?? intl.formatMessage(PlaygroundResources.chatFindingTimeFallback),
-                              }),
-                    detail: message.text || '',
-                    severity: chatSeverity,
-                };
-            });
+                        key === NEW_KUSTO_TOOL_OPTION || key === '__draft__'
+                            ? intl.formatMessage(PlaygroundResources.toolFormCreateNewKusto)
+                            : key,
+                    detail: state?.errorMessage ?? intl.formatMessage(PlaygroundResources.insightsToolFailureFallback),
+                    severity: 'error',
+                }));
 
-            // Extract recent message content for context
-            const recentMessages = (chatTelemetry?.messages ?? [])
-                .slice(-10) // Last 10 messages
-                .map(msg => {
-                    const role = msg.authorRole === 'SREAgent' ? 'Agent' : 'User';
-                    const content = msg.text?.trim() || '';
-                    return content ? `${role}: ${content}` : '';
-                })
-                .filter(text => text.length > 0);
+            const wasDrawerOpen = qualityDrawerOpen;
+            setQualityDrawerOpen(true);
+            setQualityStatus('running');
+            setInsightsLoading(true);
+            setInsightsError(undefined);
 
-            console.log('Sending recentMessages to backend:', recentMessages);
+            try {
+                // Debug: log the chat telemetry structure
+                if (chatTelemetry?.messages && chatTelemetry.messages.length > 0) {
+                    console.log('Chat telemetry messages count:', chatTelemetry.messages.length);
+                    chatTelemetry.messages.forEach((msg, idx) => {
+                        console.log(`Message ${idx}:`, {
+                            role: msg.authorRole,
+                            text: msg.text,
+                            hasText: !!msg.text,
+                            textLength: msg.text?.length ?? 0,
+                            timestamp: msg.timeStamp,
+                        });
+                    });
+                } else {
+                    console.log('No chat messages available for evaluation');
+                }
 
-            // Create a transcript summary
-            const transcriptSummary =
-                recentMessages.length > 0
-                    ? `Conversation with ${recentMessages.length} exchanges:\n${recentMessages.join('\n')}`
-                    : undefined;
+                const chatFindings = (chatTelemetry?.messages ?? []).map(message => {
+                    const chatSeverity: PlaygroundInsightSeverity = message.hasError ? 'error' : 'info';
+                    return {
+                        title:
+                            message.authorRole === 'SREAgent'
+                                ? intl.formatMessage(PlaygroundResources.chatFindingAgentTitle, {
+                                      time: message.timeStamp ?? intl.formatMessage(PlaygroundResources.chatFindingTimeFallback),
+                                  })
+                                : intl.formatMessage(PlaygroundResources.chatFindingUserTitle, {
+                                      time: message.timeStamp ?? intl.formatMessage(PlaygroundResources.chatFindingTimeFallback),
+                                  }),
+                        detail: message.text || '',
+                        severity: chatSeverity,
+                    };
+                });
 
-            const response = await fetchPlaygroundInsights(sreAgentEndpoint, {
-                prompt,
-                agentName: currentAgentData?.name ?? target?.agent?.name,
-                agentGoal: currentAgentData?.metadata?.goal ?? (target?.agent?.metadata as any)?.goal,
-                tools: toolsForRequest,
-                systemTools: systemToolsForRequest,
-                availableTools: tools.map(t => t.name).filter((name): name is string => !!name),
-                availableSystemTools: systemTools.map(t => t.name).filter((name): name is string => !!name),
-                chatFindings,
-                toolFindings: failingToolFindings,
-                transcriptSummary,
-                recentMessages,
-            });
+                // Extract recent message content for context
+                const recentMessages = (chatTelemetry?.messages ?? [])
+                    .slice(-10) // Last 10 messages
+                    .map(msg => {
+                        const role = msg.authorRole === 'SREAgent' ? 'Agent' : 'User';
+                        const content = msg.text?.trim() || '';
+                        return content ? `${role}: ${content}` : '';
+                    })
+                    .filter(text => text.length > 0);
 
-            setInsights(response);
-            const quality = buildQualityResult(prompt, toolsForRequest, systemToolsForRequest, response);
-            setQualityResult(quality);
-            setQualityStatus('fresh');
-            setQualityLastAnalyzed(Date.now());
-            setQualitySelection([]);
-            setQualityExpandedPreviews({});
-            setQualityUndoSnapshot(null);
-            setInsightsStale(false);
+                console.log('Sending recentMessages to backend:', recentMessages);
 
-            if (!wasDrawerOpen && quality.findings.length > 0) {
-                const projected = quality.findings.reduce((sum, item) => sum + item.expectedLift, 0);
-                dispatchToast(
-                    <Toast>
-                        <ToastTitle>{`Found ${quality.findings.length} quick fixes`}</ToastTitle>
-                        <ToastBody>
-                            {`+${projected} projected — `}
-                            <Button appearance="subtle" size="small" onClick={() => setQualityDrawerOpen(true)}>
-                                View
-                            </Button>
-                        </ToastBody>
-                    </Toast>,
-                    { intent: 'info', timeout: 5000 }
-                );
+                // Create a transcript summary
+                const transcriptSummary =
+                    recentMessages.length > 0
+                        ? `Conversation with ${recentMessages.length} exchanges:\n${recentMessages.join('\n')}`
+                        : undefined;
+
+                const response = await fetchPlaygroundInsights(sreAgentEndpoint, {
+                    prompt,
+                    agentName: currentAgentData?.name ?? target?.agent?.name,
+                    agentGoal: currentAgentData?.metadata?.goal ?? (target?.agent?.metadata as any)?.goal,
+                    tools: toolsForRequest,
+                    systemTools: systemToolsForRequest,
+                    availableTools: tools.map(t => t.name).filter((name): name is string => !!name),
+                    availableSystemTools: systemTools.map(t => t.name).filter((name): name is string => !!name),
+                    chatFindings,
+                    toolFindings: failingToolFindings,
+                    transcriptSummary,
+                    recentMessages,
+                });
+
+                setInsights(response);
+                const quality = buildQualityResult(prompt, toolsForRequest, systemToolsForRequest, response);
+                setQualityResult(quality);
+                setQualityStatus('fresh');
+                setQualityLastAnalyzed(Date.now());
+                setQualitySelection([]);
+                setQualityExpandedPreviews({});
+                setQualityUndoSnapshot(null);
+                setInsightsStale(false);
+
+                if (!wasDrawerOpen && quality.findings.length > 0) {
+                    const projected = quality.findings.reduce((sum, item) => sum + item.expectedLift, 0);
+                    dispatchToast(
+                        <Toast>
+                            <ToastTitle>{`Found ${quality.findings.length} quick fixes`}</ToastTitle>
+                            <ToastBody>
+                                {`+${projected} projected — `}
+                                <Button appearance="subtle" size="small" onClick={() => setQualityDrawerOpen(true)}>
+                                    View
+                                </Button>
+                            </ToastBody>
+                        </Toast>,
+                        { intent: 'info', timeout: 5000 }
+                    );
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                setInsightsError(`${intl.formatMessage(PlaygroundResources.insightsError)} ${message}`.trim());
+                setQualityStatus(prev => (prev === 'running' && qualityResult ? 'stale' : prev === 'running' ? 'notAnalyzed' : prev));
+            } finally {
+                setInsightsLoading(false);
             }
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            setInsightsError(`${intl.formatMessage(PlaygroundResources.insightsError)} ${message}`.trim());
-            setQualityStatus(prev => (prev === 'running' && qualityResult ? 'stale' : prev === 'running' ? 'notAnalyzed' : prev));
-        } finally {
-            setInsightsLoading(false);
-        }
-    }, [
-        chatTelemetry,
-        configEntity,
-        configTab,
-        dispatchToast,
-        draftAgent,
-        intl,
-        qualityDrawerOpen,
-        qualityResult,
-        sreAgentEndpoint,
-        target?.agent?.instructions,
-        target?.agent?.metadata,
-        target?.agent?.name,
-        target?.agent?.systemTools,
-        target?.agent?.tools,
-        toolTestStates,
-        yamlContent,
-        yamlError,
-    ]);
+        },
+        [
+            chatTelemetry,
+            configEntity,
+            configTab,
+            dispatchToast,
+            draftAgent,
+            intl,
+            qualityDrawerOpen,
+            qualityResult,
+            sreAgentEndpoint,
+            target?.agent?.instructions,
+            target?.agent?.metadata,
+            target?.agent?.name,
+            target?.agent?.systemTools,
+            target?.agent?.tools,
+            toolTestStates,
+            yamlContent,
+            yamlError,
+        ]
+    );
 
     const qualityScore = qualityResult?.overallScore ?? 0;
 
@@ -2437,6 +2537,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                 : qualityUndoSnapshot.agent.systemTools,
         });
 
+        setFormKey(prev => prev + 1); // Force form to remount with undone values
         setQualityUndoSnapshot(null);
         setQualitySelection([]);
         setQualityStatus('stale');
@@ -2473,7 +2574,18 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                     return;
                 }
 
-                if (finding.payload.type === 'instructions') {
+                if (finding.payload.type === 'promptPatch') {
+                    // Apply unified diff patch
+                    const currentInstructions = nextAgent.instructions ?? '';
+                    try {
+                        nextAgent.instructions = applyUnifiedDiff(currentInstructions, finding.payload.patch);
+                    } catch (error) {
+                        console.error('Failed to apply patch:', error);
+                        // Fallback: treat as addition
+                        const trimmed = currentInstructions.trimEnd();
+                        nextAgent.instructions = trimmed ? `${trimmed}\n\n${finding.payload.patch}` : finding.payload.patch;
+                    }
+                } else if (finding.payload.type === 'instructions') {
                     const addition = finding.payload.addition.trim();
                     const existing = nextAgent.instructions ?? '';
                     if (!existing.includes(addition)) {
@@ -2523,7 +2635,31 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             handleAgentFormChange(nextAgent);
             setQualitySelection([]);
             setChatKey(prev => prev + 1);
+            setFormKey(prev => prev + 1); // Force form to remount with new values
             setChatInitialized(false);
+
+            // Persist changes to backend immediately
+            if (sreAgentEndpoint) {
+                try {
+                    const yamlContent = buildAgentYaml(nextAgent);
+                    const agentHeaders = getAgentHeaders();
+                    const { 'Content-Type': _, ...headersWithoutContentType } = agentHeaders;
+
+                    await fetch(`${sreAgentEndpoint}/api/v1/extendedAgent/apply`, {
+                        method: 'PUT',
+                        headers: {
+                            ...headersWithoutContentType,
+                            'Content-Type': 'application/x-yaml',
+                        },
+                        body: yamlContent,
+                    });
+
+                    setHasPendingChanges(false);
+                } catch (applyError) {
+                    console.error('Failed to persist changes to backend:', applyError);
+                    // Don't fail the whole operation if backend apply fails
+                }
+            }
 
             // Show success toast
             dispatchToast(
@@ -2541,9 +2677,10 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                 { intent: 'success', timeout: 10000 }
             );
 
-            // Wait a bit for UI to update, then refresh evaluation
-            await new Promise(resolve => setTimeout(resolve, 600));
-            await handleInsightsRefresh();
+            // Wait for backend to persist and UI to fully update before re-evaluating
+            // This gives the user time to see the applied changes and ensures evaluation runs on committed data
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            await handleInsightsRefresh(nextAgent);
         } catch (error) {
             console.error('Error applying findings:', error);
             dispatchToast(
@@ -2829,6 +2966,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
 
         return (
             <AgentDetailsStep
+                key={`agent-form-${formKey}`}
                 agent={agentToEdit}
                 existingAgents={agents}
                 existingTools={tools}
@@ -3269,7 +3407,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                         <MessageBar intent="error">
                             <MessageBarBody>
                                 {insightsError}{' '}
-                                <Button appearance="subtle" size="small" onClick={handleInsightsRefresh}>
+                                <Button appearance="subtle" size="small" onClick={() => handleInsightsRefresh()}>
                                     {intl.formatMessage(PlaygroundResources.insightsRefreshButton)}
                                 </Button>
                             </MessageBarBody>
@@ -3520,6 +3658,22 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                                         />
                                     )}
                                 </div>
+
+                                {/* Apply Selected Button */}
+                                {hasFindings && selectedFindings.length > 0 && (
+                                    <Button
+                                        appearance="primary"
+                                        size="medium"
+                                        disabled={isApplyingFindings}
+                                        onClick={handleApplySelectedFindings}
+                                        style={{ width: '100%' }}
+                                    >
+                                        {isApplyingFindings
+                                            ? `Applying ${selectedFindings.length} fix${selectedFindings.length === 1 ? '' : 'es'}...`
+                                            : `Apply ${selectedFindings.length} Selected Fix${selectedFindings.length === 1 ? '' : 'es'}`}
+                                    </Button>
+                                )}
+
                                 {hasFindings ? (
                                     <ul className={styles.watcherFindingsList}>
                                         {qualityResult.findings.map(finding => {
@@ -3588,7 +3742,9 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                                                         )}
                                                     </div>
                                                     {previewExpanded && finding.shortDiff && (
-                                                        <pre className={styles.watcherFindingPreview}>{finding.shortDiff}</pre>
+                                                        <pre className={styles.watcherFindingPreview}>
+                                                            {renderColoredDiff(finding.shortDiff, styles)}
+                                                        </pre>
                                                     )}
                                                 </li>
                                             );
@@ -3598,21 +3754,6 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                                     <div className={styles.watcherHint}>
                                         {intl.formatMessage(PlaygroundResources.qualityDrawerNoFindings)}
                                     </div>
-                                )}
-
-                                {/* Apply Selected Button */}
-                                {hasFindings && selectedFindings.length > 0 && (
-                                    <Button
-                                        appearance="primary"
-                                        size="medium"
-                                        disabled={isApplyingFindings}
-                                        onClick={handleApplySelectedFindings}
-                                        style={{ width: '100%', marginTop: tokens.spacingVerticalS }}
-                                    >
-                                        {isApplyingFindings
-                                            ? `Applying ${selectedFindings.length} fix${selectedFindings.length === 1 ? '' : 'es'}...`
-                                            : `Apply ${selectedFindings.length} Selected Fix${selectedFindings.length === 1 ? '' : 'es'}`}
-                                    </Button>
                                 )}
                             </div>
                         </>
@@ -3829,9 +3970,11 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                                                         !acknowledgedMode ||
                                                         configEntity !== 'agent'
                                                     }
-                                                    onClick={handleInsightsRefresh}
+                                                    onClick={() => handleInsightsRefresh()}
                                                     icon={<SparkleFilled style={{ color: '#FFB900' }} />}
-                                                />
+                                                >
+                                                    Evaluate
+                                                </Button>
                                             </Tooltip>
                                         )}
                                         <Tooltip
@@ -3967,7 +4110,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                                 <MessageBar intent="error" className={styles.dirtyBanner}>
                                     <MessageBarBody>
                                         {insightsError}{' '}
-                                        <Button appearance="subtle" size="small" onClick={handleInsightsRefresh}>
+                                        <Button appearance="subtle" size="small" onClick={() => handleInsightsRefresh()}>
                                             {intl.formatMessage(PlaygroundResources.insightsRefreshButton)}
                                         </Button>
                                     </MessageBarBody>

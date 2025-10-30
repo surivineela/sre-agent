@@ -5,6 +5,7 @@ import MonacoEditor from '@monaco-editor/react';
 import { FC, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { PlaygroundResources } from '../../Strings/SREAgentResources';
 import { SystemTool } from '../Contracts/ExtendedAgentGraph';
 
@@ -148,6 +149,7 @@ export const SystemToolTesterPanel: FC<SystemToolTesterPanelProps> = ({ tool }) 
             const response = await fetch(`${sreAgentEndpoint}/api/v1/extendedAgent/systemTool/execute`, {
                 method: 'POST',
                 headers: {
+                    ...getAgentHeaders(),
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({

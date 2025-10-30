@@ -1071,7 +1071,10 @@ For the TOP 5 actionItems:
 Default to read-only/dry-run for destructive capability; require explicit confirmation gates; add fallback/rollback and rate-limits. If absent, include a HIGH-impact safety patch.
 
 # ACTIONABLE IMPROVEMENTS
-IMPORTANT: Limit to TOP 5 most impactful fixes, ordered by `impact.scoreIncrease` (descending).
+IMPORTANT: Return 0–5 actionable fixes based on actual needs:
+- **If the agent is well-configured** (confidenceScore ≥ 75, no severity="error" issues, no hallucinations): Return an EMPTY actionItems array. Stop nitpicking after 2-3 rounds of fixes.
+- **If improvements exist**: Only suggest HIGH-impact fixes (scoreIncrease ≥ 10). Limit to TOP 5, ordered by impact (descending).
+- **Quality over quantity**: Don't suggest marginal improvements (scoreIncrease < 5) or stylistic preferences. Better to return 0 suggestions than to fabricate issues.
 
 For EACH issue, provide structured fixes with diffs and impact levels:
 
@@ -1081,14 +1084,21 @@ For EACH issue, provide structured fixes with diffs and impact levels:
 - LOW: Minor enhancements (1–7 points)
 
 ## Prompt Patch Format
-Generate unified diff-style changes (minimal, with 2–3 lines of context). Example:
+Generate unified diff-style changes with adequate context (5–7 lines) for clarity. Example:
 ```
-@@ -10,3 +10,5 @@
+@@ -8,7 +8,11 @@
+ # ROLE
+ You are an extended SRE Operations Agent.
+
  Role definition: You are an extended SRE
 -Operations Agent answering or diagnosing Azure-
+-related issues for engineering teams.
 +Operations Agent specialized in diagnosing Azure
 +Container Apps issues and providing resolution steps.
 +Success: User receives actionable fix within 5 minutes.
+
+ # PRIMARY GOALS
+ 1. Diagnose Azure service health issues
 ```
 
 ## Tool Addition Format
@@ -1102,19 +1112,29 @@ Impact: HIGH (+12 points to toolFit)
 ## STANDARD HIGH-IMPACT FIX TEMPLATES
 1) Add success criteria & stop conditions
 ```
-@@ -5,2 +5,6 @@
+@@ -3,6 +3,10 @@
+ You are an Azure SRE Operations Assistant.
+
+ # PRIMARY GOALS
  Goal: <keep>
 +Success criteria: <observable outcome, SLA, artifact>
 +Stop conditions: maxIterations=5, maxCost=$X,
 +checkpoint=ask-human on blocker
+
+ # TOOLS
 ```
 2) Clarify tool policy & invocation patterns
 ```
-@@ -10,3 +10,7 @@
+@@ -8,7 +8,11 @@
+ Success criteria: User receives actionable fix within 5 minutes.
+
+ # TOOLS
  Tools:
 +Use `RunAzCliReadCommands` for state inspection before any write.
 +Require dry-run/confirmation for destructive tools.
 +Prefer generic tools (`RunAzCli*`) before resource-specific tools.
+
+ # PROCESS
 ```
 3) Add routing or chaining when task shape warrants
 ```
@@ -1163,23 +1183,31 @@ Return ONLY this **minified JSON**:
   "suggestedSequence": ["fix-001","fix-003","fix-002"]
 }
 
-CRITICAL: Return ONLY the **top 5** highest-impact actionItems, ordered by `impact.scoreIncrease` (descending).
+CRITICAL: Return 0–5 highest-impact actionItems, ordered by `impact.scoreIncrease` (descending). An empty array is acceptable for well-configured agents.
 
 # DIFF GENERATION RULES
-1) **Surgical Precision**: Minimal edits; do not churn whitespace or rename unrelated sections.
-2) **Context Preservation**: Include 2–3 lines of context around changes.
+1) **Balanced Detail**: Provide enough context to understand the change clearly without being overly verbose. Include complete logical sections when appropriate.
+2) **Context Preservation**: Include 5–7 lines of context around changes to provide better understanding of the modification.
 3) **Applicability**: Patch must apply cleanly; escape newlines (`\n`) in JSON string; no code fences.
 4) **Conflict/Dependencies**: Mark mutually exclusive fixes and prerequisites.
 5) **Rewrite Guard**: Only replace the entire prompt when rewrite criteria are met; otherwise patch narrowly.
+6) **Comprehensive Patches**: When making changes, include related context that helps understand the full scope of the modification. Don't be afraid to include a few extra lines if it makes the change clearer.
 
 # EXAMPLES
-## Good Prompt Diff
-@@ -5,2 +5,4 @@
+## Good Prompt Diff (with adequate context)
+@@ -3,8 +3,12 @@
+ You are an Azure SRE Operations Assistant.
+
+ # PRIMARY GOALS
  Goal: Start each conversation with 'Hola' to
 -establish a friendly, consistent greeting for SRE
+-interactions with engineers.
 +establish a friendly greeting for SRE operations.
 +Success criteria: User acknowledges positively and
 +provides issue details within first 2 exchanges.
+
+ # TOOLS
+ Use the following tools to assist with diagnostics:
 
 ## Good Tool Suggestion
 Add `RunAzCliReadCommands` to enable Azure CLI queries
@@ -1212,6 +1240,52 @@ Real-world benchmarks for scoring:
 - Untested prototypes: 30–50
 
 Your evaluation should reflect realistic expectations, not theoretical perfection. Prefer the smallest effective recommendation and request evidence-gathering via "notes" (not extra fields). All outputs MUST validate against the schema; if any field is unknown, omit it—do not invent placeholders. Always return **minified JSON** with exactly the fields in the schema.
+
+# SELF-REFLECTION ON DIFF QUALITY (CRITICAL)
+Before returning your response, VALIDATE each diff in actionItems:
+
+**Diff Format Requirements:**
+1. **Additions ONLY (pure additions)**: If adding new text without removing anything, format as:
+   ```
+   @@ -X,Y +X,Y+N @@
+    <context line>
+    <context line>
+   +<new line being added>
+   +<new line being added>
+    <context line>
+   ```
+   ✅ Lines starting with `+` are NEW content being added
+   ❌ Do NOT include `-` lines if you're only adding text
+
+2. **Removals ONLY**: If removing text without adding:
+   ```
+   @@ -X,Y +X,Y-N @@
+    <context line>
+   -<line being removed>
+   -<line being removed>
+    <context line>
+   ```
+
+3. **Modifications (remove + add)**: If changing existing text:
+   ```
+   @@ -X,Y +X,Y @@
+    <context line>
+   -<old version of line>
+   +<new version of line>
+    <context line>
+   ```
+
+4. **Tool additions**: NEVER put tool additions in patch format. Use `type: "toolAdd"` with `patch: "Add tool: \`ToolName\`"`
+
+**Validation Checklist (review EVERY diff):**
+- [ ] Does the diff have both `-` and `+` lines when you're only adding content? → FIX IT (remove `-` lines)
+- [ ] Are you including tools in the diff instead of using toolAdd type? → FIX IT (separate tools from prompt patches)
+- [ ] Are line numbers in @@ header realistic? → Verify they match the actual prompt structure
+- [ ] Is context sufficient (5-7 lines)? → Add more context if needed
+- [ ] Can this diff be applied programmatically? → Test mental application
+
+**Self-Correction:**
+If ANY diff fails validation, REWRITE it before returning the response. Do not send malformed diffs.
 """;
 
                 var builder = new StringBuilder();
