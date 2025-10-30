@@ -1,0 +1,476 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LCX SchemaVersion="6.0" Name="D:\a\_work\1\s\src\Agent\Agent.Portal\Client\src\Strings\extracted\strings.json" PsrId="306" SrcCul="en-US" xmlns="http://schemas.microsoft.com/locstudio/2006/6/lcx" TgtCul="pl-PL">
+  <OwnedComments>
+    <Cmt Name="Dev" />
+    <Cmt Name="LcxAdmin" />
+    <Cmt Name="Rccx" />
+  </OwnedComments>
+  <Item ItemId=";String Table" ItemType="0" PsrId="306" Leaf="false">
+    <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
+    <Item ItemId=";Strings" ItemType="0" PsrId="306" Leaf="false">
+      <Disp Icon="Str" Disp="true" LocTbl="false" />
+      <Item ItemId=";+CwN9C" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[System]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";+uAdUZ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Resource group]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3cc4Ct" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Light]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";8OCpdQ#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# days ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'few'.]5D; (ICU){Locked=!ar,!be,!bs,!cs,!cy,!ga,!gd,!hr,!lt,!mt,!pl,!ro,!ru,!sk,!sl,!sr,!tt,!uk}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";8OCpdQ#ExpandedPlural.0.many" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# days ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'many'.]5D; (ICU){Locked=!ar,!be,!cs,!cy,!es,!fr,!ga,!he,!it,!lt,!mt,!pl,!pt,!quz,!ru,!sk,!tt,!uk}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";8OCpdQ#ExpandedPlural.0.two" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# days ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'two'.]5D; (ICU){Locked=!ar,!cy,!ga,!gd,!he,!iu,!sl}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";8OCpdQ#ExpandedPlural.0.zero" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# days ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'zero'.]5D; (ICU){Locked=!ar,!cy,!lv}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";8OCpdQ#Plural.one" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# day ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'one'.]5D; (ICU){Locked=qps-ploca,id,ig,ja,km,ko,lo,ms,th,vi,wo,yo,zh-Hans,zh-Hant}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";8OCpdQ#Plural.other" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# days ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'other'.]5D;]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";8OCpdQ.icu.content" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count, plural, one {# day ago} other {# days ago}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[{Locked} Parent string for ICU MessageFormat.]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";Avsnjl" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Themes]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Ch3IdZ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[View popular skills]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";D3idYv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Settings]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DdnNXo" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Privacy & cookies]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Erci0g" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure SRE Agent]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";GBnvl1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Agents]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";H/i1A+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create your first Azure SRE Agent]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";HAlOn1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Name]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";He4/qi" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure SRE Agents]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";I6cq17" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Trademarks]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";LupnQU#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# hours ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'few'.]5D; (ICU){Locked=!ar,!be,!bs,!cs,!cy,!ga,!gd,!hr,!lt,!mt,!pl,!ro,!ru,!sk,!sl,!sr,!tt,!uk}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";LupnQU#ExpandedPlural.0.many" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# hours ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'many'.]5D; (ICU){Locked=!ar,!be,!cs,!cy,!es,!fr,!ga,!he,!it,!lt,!mt,!pl,!pt,!quz,!ru,!sk,!tt,!uk}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";LupnQU#ExpandedPlural.0.two" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# hours ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'two'.]5D; (ICU){Locked=!ar,!cy,!ga,!gd,!he,!iu,!sl}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";LupnQU#ExpandedPlural.0.zero" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# hours ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'zero'.]5D; (ICU){Locked=!ar,!cy,!lv}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";LupnQU#Plural.one" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# hour ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'one'.]5D; (ICU){Locked=qps-ploca,id,ig,ja,km,ko,lo,ms,th,vi,wo,yo,zh-Hans,zh-Hant}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";LupnQU#Plural.other" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# hours ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'other'.]5D;]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";LupnQU.icu.content" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count, plural, one {# hour ago} other {# hours ago}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[{Locked} Parent string for ICU MessageFormat.]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";NAidKb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Notifications]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";P/DTRU" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Dismiss completed]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";R/6nsx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Subscription]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SQJto2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sign in]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";TDaF6J" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Dismiss]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";TleXgd" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure SRE Agents reduce site reliability costs by proactively identifying issues, automating tasks, and preventing downtime.]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";UQUIP7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Request error]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";UrGI9K" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create agent]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";W4H4Z9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Notifications will appear here when actions are performed]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";aLBTVj#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# minutes ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'few'.]5D; (ICU){Locked=!ar,!be,!bs,!cs,!cy,!ga,!gd,!hr,!lt,!mt,!pl,!ro,!ru,!sk,!sl,!sr,!tt,!uk}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";aLBTVj#ExpandedPlural.0.many" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# minutes ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'many'.]5D; (ICU){Locked=!ar,!be,!cs,!cy,!es,!fr,!ga,!he,!it,!lt,!mt,!pl,!pt,!quz,!ru,!sk,!tt,!uk}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";aLBTVj#ExpandedPlural.0.two" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# minutes ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'two'.]5D; (ICU){Locked=!ar,!cy,!ga,!gd,!he,!iu,!sl}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";aLBTVj#ExpandedPlural.0.zero" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# minutes ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'zero'.]5D; (ICU){Locked=!ar,!cy,!lv}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";aLBTVj#Plural.one" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# minute ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'one'.]5D; (ICU){Locked=qps-ploca,id,ig,ja,km,ko,lo,ms,th,vi,wo,yo,zh-Hans,zh-Hant}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";aLBTVj#Plural.other" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# minutes ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'other'.]5D;]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";aLBTVj.icu.content" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count, plural, one {# minute ago} other {# minutes ago}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[{Locked} Parent string for ICU MessageFormat.]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";bPyOFk" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Terms & conditions]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bxv59V" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Just now]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";eHNXXp" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Dismiss all]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";fpexn2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No notifications]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";i50Kb0" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Explore agent skills]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";lnaWo/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Region]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";oHGFwy" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sign in with a different account]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";rbrahO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Close]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";s7mQCK" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Reduce site reliability expenses with Azure SRE Agents]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";sYoT7W#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# seconds ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'few'.]5D; (ICU){Locked=!ar,!be,!bs,!cs,!cy,!ga,!gd,!hr,!lt,!mt,!pl,!ro,!ru,!sk,!sl,!sr,!tt,!uk}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";sYoT7W#ExpandedPlural.0.many" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# seconds ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'many'.]5D; (ICU){Locked=!ar,!be,!cs,!cy,!es,!fr,!ga,!he,!it,!lt,!mt,!pl,!pt,!quz,!ru,!sk,!tt,!uk}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";sYoT7W#ExpandedPlural.0.two" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# seconds ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'two'.]5D; (ICU){Locked=!ar,!cy,!ga,!gd,!he,!iu,!sl}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";sYoT7W#ExpandedPlural.0.zero" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# seconds ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'zero'.]5D; (ICU){Locked=!ar,!cy,!lv}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";sYoT7W#Plural.one" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# second ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'one'.]5D; (ICU){Locked=qps-ploca,id,ig,ja,km,ko,lo,ms,th,vi,wo,yo,zh-Hans,zh-Hant}]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";sYoT7W#Plural.other" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[# seconds ago]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[ (ICU){PlaceHolder="#"} [Add language specific translation for the plural selector 'other'.]5D;]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";sYoT7W.icu.content" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count, plural, one {# second ago} other {# seconds ago}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+        <Cmts>
+          <Cmt Name="Dev"><![CDATA[{Locked} Parent string for ICU MessageFormat.]]></Cmt>
+        </Cmts>
+      </Item>
+      <Item ItemId=";tOdNiY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Dark]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wCtBb6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Try Azure for free]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";xXbJso" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sign out]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";y1Z3or" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Language]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+    </Item>
+  </Item>
+</LCX>
