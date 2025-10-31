@@ -34,4 +34,10 @@ public interface ISessionPoolService
     /// Download a file from the active code interpreter session's /mnt/data directory.
     /// </summary>
     Task<byte[]> DownloadSessionFileAsync(string identifier, string filename);
+
+    /// <summary>
+    /// List all files in the active code interpreter session's /mnt/data directory.
+    /// Returns metadata for each file (name, size, etc.).
+    /// </summary>
+    Task<string> ListSessionFilesAsync(string identifier);
 }

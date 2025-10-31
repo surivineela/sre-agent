@@ -257,6 +257,7 @@ public static class ToolDescriptionHelper
             "transfer_to_aks_general_agent" => "Analyzing Kubernetes cluster configuration...",
             "transfer_to_github_issue_agent" => "Managing GitHub issues for incident tracking...",
             "transfer_to_azure_cli_command_executor_agent" => "Executing Azure CLI commands...",
+            "transfer_to_python_code_interpreter_agent" => "Running analysis using Python...",
             "HandoffBack" => "Continuing with the investigation...",
 
             // GitHub Issue Plugin functions (from GithubIssueAgent.yaml)
@@ -357,6 +358,12 @@ public static class ToolDescriptionHelper
 
             // Additional Complete functions
             "Complete" => "Completing the operation...",
+
+            // Code Interpreter Plugin tools
+            "ExecutePythonSnippetAsync" => "Running Python code and generating output files...",
+            "GeneratePdfReportAsync" => "Creating a PDF report using Python...",
+            "ListSessionFilesAsync" => "Listing files created by Python execution...",
+            "GetSessionFileAsync" => "Validating a generated file for you...",
 
             // Container Apps Aspire Agent tools
             "CheckContainerAppWorkloadProfileExists" => "Checking if the container app environment has a workload profile which determines if it's a V1 or V2 environment...",

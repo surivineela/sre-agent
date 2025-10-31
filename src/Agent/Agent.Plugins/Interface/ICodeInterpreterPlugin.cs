@@ -24,4 +24,18 @@ public interface ICodeInterpreterPlugin
     /// Returns a status message with a downloadable relative link (no base64 content is returned to the user).
     /// </summary>
     Task<string> GeneratePdfReportAsync(string pythonCode, string expectedOutputFilename, string saveAsFilename, int timeoutSeconds);
+
+    /// <summary>
+    /// List all files in the /mnt/data directory of the current code interpreter session.
+    /// Returns a JSON array of file metadata (name, size, modified timestamp).
+    /// </summary>
+    Task<string> ListSessionFilesAsync();
+
+    /// <summary>
+    /// Download a file from the session's /mnt/data directory and save it locally.
+    /// Supports multiple file types: images (PNG, JPG, GIF, SVG, WebP), data files (CSV, Excel, JSON, TXT),
+    /// documents (PDF, HTML, Markdown), and configuration files (YAML, XML).
+    /// Returns a download link and renders images inline when applicable.
+    /// </summary>
+    Task<string> GetSessionFileAsync(string filename, string saveAsFilename);
 }

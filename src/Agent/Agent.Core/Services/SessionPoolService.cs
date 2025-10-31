@@ -224,6 +224,33 @@ public class SessionPoolService : ISessionPoolService
         }
     }
 
+    public async Task<string> ListSessionFilesAsync(string identifier)
+    {
+        var baseEndpoint = !string.IsNullOrWhiteSpace(_sessionPoolSettings.CodeInterpreterPoolManagementEndpoint)
+            ? _sessionPoolSettings.CodeInterpreterPoolManagementEndpoint
+            : _sessionPoolSettings.PoolManagementEndpoint;
+
+        var url = $"{baseEndpoint.TrimEnd('/')}/files?identifier={identifier}&api-version=2024-02-02-preview";
+        _logger.LogInternalInformation($"Listing session files from session pool endpoint {url}");
+        try
+        {
+            var client = _httpClientFactory.CreateClient(Constants.HttpClientForSessionPool);
+            using var response = await client.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+            {
+                var err = await response.Content.ReadAsStringAsync();
+                _logger.LogInternalError($"List files failed {(int)response.StatusCode} {response.ReasonPhrase}: {err}");
+                response.EnsureSuccessStatusCode();
+            }
+            return await response.Content.ReadAsStringAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed listing session files");
+            throw;
+        }
+    }
+
     private async Task<TResp> SendRequestAsync<TReq, TResp>(HttpMethod method, string path, string identifier, TReq sessionRequest, bool useCodeInterpreterPool = false)
     {
         // Choose endpoint: prefer dedicated code interpreter pool if requested & configured

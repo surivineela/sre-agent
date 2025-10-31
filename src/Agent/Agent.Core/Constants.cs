@@ -137,6 +137,8 @@ public class Constants
 
         Tool results and user messages may include <system-reminder> tags. <system-reminder> tags contain useful information and reminders.
         They are NOT part of the user's provided input or the tool result.
+
+        FILE HANDLING: Code interpreter tools return markdown links in format [Link Text](/api/files/filename). Present these directly to users - they are ready-to-use download links.
         """;
 
     public const string ScheduledTaskInstructions =
@@ -149,6 +151,20 @@ public class Constants
         Include clear frequency, duration, trigger/stop conditions, and actions (notify, reopen incident, generate & send PDF report). Be very descriptive in Scheduled Task prompt when you create it.
 
         You have a python Code Interperter which can generate and post PDFs to the user, you just need to Handoff_Back until you find this agent. You don't need to worry about where the PDF would be posted, this agent takes care of it.
+
+        <auto-create-threshold>
+        - Only auto-create a Scheduled Task if:
+          1) The intended duration is >= 60 minutes, AND
+          2) The scenario needs periodic checks (not a single query), e.g., long runing post-incident guard, rollout verification, peak-hour watch, DNS/Cert propagation windows, or multi-signal health checks.
+        - If duration < 60 minutes: NEVER auto-create. Offer a proposal and wait for explicit user approval.
+        </auto-create-threshold>
+
+        <per-run-execution>
+        - Each timer fire (presence of <schedule-task> message in thread)= an atomic run, even in the SAME thread.
+        - State keys: Never skip steps due to prior thread context.
+        - Always complete the plan: prechecks → sequential checks → breach handling → actions → summary (+file generation if requested). Persist step_index after each step.
+        - Bypass chat dedupe/anti-loop heuristics for scheduled runs; do not short-circuit because the thread already has messages.
+        </per-run-execution>
 
         <scheduled-tasks-persistence>
         - While executing a scheduled task, please keep going until the user's query is completely resolved, before ending your turn and yielding back to the user. Thee automatically fire periodically you have to solve each turn's goal.

@@ -66,11 +66,12 @@ system_prompt: |
   - API Management: api_management_agent
   - Logs/Change Analysis: azure_activity_logs_agent
   - App Insights: azure_application_insights_agent
-  - Metrics/Charts: metrics_and_chart_visualization_agent
+  - Metrics/Charts (Azure resources, standard charts: bar/line/area/pie): metrics_and_chart_visualization_agent
   - Real-time management: azure_cli_command_executor_agent
   - Redis issue: redis_agent
   - Code questions: source_code_analysis_agent
   - VM connectivity issues: cannot_connect_to_vm_agent
+  - Python code execution (custom analysis, complex visualizations beyond bar/line/area/pie, file generation): python_code_interpreter_agent
 
   # Example Decision Flows
   - "How many VMs?" → resource_discovery_agent
@@ -91,6 +92,14 @@ system_prompt: |
   - "PostgreSQL performance" → resource_discovery_agent → postgresql_agent
   - "Redis issue"  →  resource_discovery_agent → redis_agent
   - "Cannot connect to VM" → resource_discovery_agent → cannot_connect_to_vm_agent
+  - "Show me a bar/line/area/pie chart" → metrics_and_chart_visualization_agent (for standard chart types)
+  - "Create a heatmap/scatter plot/box plot/custom visualization" → python_code_interpreter_agent (complex charts)
+  - "Generate a chart from my CSV data" → python_code_interpreter_agent (user-provided data, not Azure metrics)
+  - "Export data to CSV/Excel" → python_code_interpreter_agent
+  - "Create a PDF report" → python_code_interpreter_agent
+  - "Analyze this data with Python/pandas" → python_code_interpreter_agent
+
+  NOTE: Use metrics_and_chart_visualization_agent for standard Azure metric charts (bar/line/area/pie). Use python_code_interpreter_agent for complex visualizations (heatmaps, scatter, box plots, custom charts) or when processing arbitrary user data.
 
   # Validation Loop
   - After each tool call or subagent handoff, validate result in 1-2 lines and proceed or self-correct if validation fails.
@@ -165,7 +174,8 @@ handoffs:
   - self_manual_agent
   - logic_app_agent
   - cannot_connect_to_vm_agent
-  - redis_agent 
+  - redis_agent
+  - python_code_interpreter_agent
 
 common_prompts:
   - format_guidelines

@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text;
+using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -42,6 +43,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         if (validation != null) return validation;
         var identifier = BuildIdentifier();
         var execResp = await _sessionPoolService.ExecutePythonInlineAsync(pythonCode, identifier, timeoutSeconds);
+
         var sb = new StringBuilder();
         sb.AppendLine($"ExitCode: {execResp.ExitCode?.ToString() ?? "(n/a)"}");
         if (!string.IsNullOrWhiteSpace(execResp.Stdout))
@@ -54,11 +56,101 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
             sb.AppendLine("STDERR:");
             sb.AppendLine(Truncate(execResp.Stderr, 2000));
         }
+
+        // Automatically list and retrieve all generated files from the session
+        try
+        {
+            var filesJson = await _sessionPoolService.ListSessionFilesAsync(identifier);
+
+            // Parse the files list using proper JSON deserialization
+            if (!string.IsNullOrWhiteSpace(filesJson))
+            {
+                var filesResponse = JsonSerializer.Deserialize<FilesListResponse>(filesJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (filesResponse?.Files != null && filesResponse.Files.Count > 0)
+                {
+                    sb.AppendLine();
+                    sb.AppendLine("=== AUTO-RETRIEVED FILES ===");
+
+                    foreach (var file in filesResponse.Files)
+                    {
+                        // Skip if filename is empty or if it's a directory indicator
+                        if (string.IsNullOrWhiteSpace(file.Name) || file.Name.EndsWith('/'))
+                            continue;
+
+                        try
+                        {
+                            var fileBytes = await _sessionPoolService.DownloadSessionFileAsync(identifier, file.Name);
+
+                            var reportsDir = Path.Combine(AppContext.BaseDirectory, "reports");
+                            Directory.CreateDirectory(reportsDir);
+                            var targetPath = Path.Combine(reportsDir, Path.GetFileName(file.Name));
+                            await File.WriteAllBytesAsync(targetPath, fileBytes);
+
+                            var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+                            var relativeLink = $"/api/files/{Uri.EscapeDataString(Path.GetFileName(file.Name))}";
+
+                            // Check if it's an image file (matplotlib, seaborn, PIL outputs)
+                            if (extension is ".png" or ".jpg" or ".jpeg" or ".gif" or ".svg" or ".webp" or
+                                ".bmp" or ".tiff" or ".tif" or ".ico" or ".eps" or ".ps")
+                            {
+                                sb.AppendLine($"📊 Image: ![{Path.GetFileName(file.Name)}]({relativeLink})");
+                            }
+                            // Data files and spreadsheets
+                            else if (extension is ".csv" or ".tsv" or ".xlsx" or ".xls" or ".xlsm" or ".ods" or
+                                     ".json" or ".xml" or ".yaml" or ".yml")
+                            {
+                                sb.AppendLine($"📊 Data: [Download {Path.GetFileName(file.Name)}]({relativeLink})");
+                            }
+                            // Documents and reports
+                            else if (extension is ".pdf" or ".html" or ".htm" or ".md" or ".docx" or ".doc" or
+                                     ".pptx" or ".ppt" or ".txt" or ".rtf")
+                            {
+                                sb.AppendLine($"📄 Document: [Download {Path.GetFileName(file.Name)}]({relativeLink})");
+                            }
+                            // Code and notebooks
+                            else if (extension is ".py" or ".ipynb" or ".r" or ".sql" or ".sh")
+                            {
+                                sb.AppendLine($"� Code: [Download {Path.GetFileName(file.Name)}]({relativeLink})");
+                            }
+                            // Archives and scientific data
+                            else if (extension is ".zip" or ".tar" or ".gz" or ".h5" or ".hdf5" or ".nc" or
+                                     ".mat" or ".npz" or ".pkl" or ".pickle")
+                            {
+                                sb.AppendLine($"🗜️ Archive/Data: [Download {Path.GetFileName(file.Name)}]({relativeLink})");
+                            }
+                            else
+                            {
+                                sb.AppendLine($"📁 File: [Download {Path.GetFileName(file.Name)}]({relativeLink})");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalWarning($"Failed to auto-retrieve file '{file.Name}': {ex.Message}");
+                            // Don't fail the whole operation if one file fails
+                        }
+                    }
+
+                    sb.AppendLine("=== END AUTO-RETRIEVED FILES ===");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to auto-retrieve session files");
+            // Don't fail the whole operation if file retrieval fails
+        }
+
         return sb.ToString();
     }
 
     public async Task<string> GeneratePdfReportAsync(string pythonCode, string expectedOutputFilename, string saveAsFilename, int timeoutSeconds)
     {
+        // NOTE: This method MUST return a markdown link in the format [Link Text](/api/files/filename)
+        // for the agent to properly present download links to the user
         if (!expectedOutputFilename.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)) return "expectedOutputFilename must end with .pdf";
         if (!saveAsFilename.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)) return "saveAsFilename must end with .pdf";
         var validation = ValidatePython(pythonCode);
@@ -88,12 +180,71 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
             var targetPath = Path.Combine(reportsDir, Path.GetFileName(saveAsFilename));
             await File.WriteAllBytesAsync(targetPath, fileBytes);
             var relativeLink = $"/api/files/{Uri.EscapeDataString(Path.GetFileName(saveAsFilename))}"; // prefer /api/files (reports route still supported)
-            return $"Report generated successfully. Download: {relativeLink}. Present this link as [Click Here]({relativeLink})";
+            return $"✅ PDF report generated successfully. Download: [Download {saveAsFilename}]({relativeLink})";
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Failed to persist PDF report locally");
             return $"Failed to persist PDF report: {ex.Message}";
+        }
+    }
+
+    public async Task<string> ListSessionFilesAsync()
+    {
+        var identifier = BuildIdentifier();
+        try
+        {
+            var filesJson = await _sessionPoolService.ListSessionFilesAsync(identifier);
+            return $"Files in session /mnt/data directory:\n{filesJson}";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to list session files");
+            return $"Failed to list session files: {ex.Message}";
+        }
+    }
+
+    public async Task<string> GetSessionFileAsync(string filename, string saveAsFilename)
+    {
+        // NOTE: This method MUST return markdown links in the format [Link Text](/api/files/filename)
+        // for the agent to properly present download links to the user
+        var sanitizedFilename = filename.Replace("..", string.Empty).TrimStart('/');
+        var identifier = BuildIdentifier();
+
+        byte[] fileBytes;
+        try
+        {
+            fileBytes = await _sessionPoolService.DownloadSessionFileAsync(identifier, sanitizedFilename);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to download file from session");
+            return $"Failed to retrieve file '{filename}': {ex.Message}";
+        }
+
+        try
+        {
+            var reportsDir = Path.Combine(AppContext.BaseDirectory, "reports");
+            Directory.CreateDirectory(reportsDir);
+            var targetPath = Path.Combine(reportsDir, Path.GetFileName(saveAsFilename));
+            await File.WriteAllBytesAsync(targetPath, fileBytes);
+
+            var extension = Path.GetExtension(saveAsFilename).ToLowerInvariant();
+            var relativeLink = $"/api/files/{Uri.EscapeDataString(Path.GetFileName(saveAsFilename))}";
+
+            // Check if it's an image file (matplotlib, seaborn, PIL, and other graphics outputs)
+            if (extension is ".png" or ".jpg" or ".jpeg" or ".gif" or ".svg" or ".webp" or
+                ".bmp" or ".tiff" or ".tif" or ".ico")
+            {
+                return $"Image file retrieved successfully. To display the image inline, use: ![{saveAsFilename}]({relativeLink})\n\nDirect download link: [Download {saveAsFilename}]({relativeLink})";
+            }
+
+            return $"File retrieved successfully. Download: [Download {saveAsFilename}]({relativeLink})";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to persist file locally");
+            return $"Failed to persist file: {ex.Message}";
         }
     }
 
@@ -142,4 +293,17 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
 
     private static string Truncate(string value, int max)
         => value.Length <= max ? value : value.Substring(0, max) + "...<truncated>";
+
+    // Internal classes for JSON deserialization
+    private class FilesListResponse
+    {
+        public List<FileMetadata>? Files { get; set; }
+    }
+
+    private class FileMetadata
+    {
+        public string Name { get; set; } = string.Empty;
+        public long? Size { get; set; }
+        public DateTime? Modified { get; set; }
+    }
 }
