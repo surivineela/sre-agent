@@ -54,7 +54,7 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
     /// <param name="incident"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    protected abstract Task<TIncidentDocument> UpsertIncidentDocumentIfNeededAsync(TIncidentDocument? incidentDocument, TIncident incident, CancellationToken cancellationToken = default);
+    protected abstract Task<TIncidentDocument> UpsertIncidentDocumentIfNeededAsync(TIncidentDocument? incidentDocument, TIncident incident, TIncidentFilterDocument? filterDocument, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Calling API to get incidents based on the filter criteria.
@@ -185,9 +185,10 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
                 foreach (var incident in incidents)
                 {
                     string incidentId = GetIncidentId(incident);
+
                     var incidentDocument = await GetDocumentAsync<TIncidentDocument>(incidentId, incidentId);
 
-                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
+                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, filter);
 
                     var relatedResourceIds = await GetRelatedResourceIdsForNotifyingUser();
                     await NotifyUserIfNeededAsync(incidentDocument, incident, filter, relatedResourceIds);

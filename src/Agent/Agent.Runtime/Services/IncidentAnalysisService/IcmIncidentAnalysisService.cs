@@ -1,11 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -25,8 +20,6 @@ namespace Agent.Runtime.Services;
 
 public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, Incident>
 {
-    private readonly ILogger<IcmIncidentAnalysisService> _logger;
-    private readonly Container container;
     public IcmIncidentAnalysisService(
         IChatClientProvider chatClientProvider,
         CosmosClient cosmosClient,
@@ -39,111 +32,8 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
         CoreSettings coreSettings,
         ArmHelper armHelper,
         CustomerLogger appInsightsLogger,
-        ILogger<IcmIncidentAnalysisService> logger) : base(chatClientProvider, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
+        ILogger<IcmIncidentAnalysisService> logger): base(chatClientProvider, cosmosClient, cosmosDbSettings, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
     {
-        container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
-        _logger = logger;
-    }
-
-    protected override string GetIncidentPlatform()
-    {
-        return IncidentManagementType.Icm.ToString();
-    }
-
-    // need to overwrite method to ingest correct incident create time rather than incident document create time
-    public override async Task Ingest(IcmIncidentDocument incidentDoc, IcmIncidentFilterDocument? filterDoc = null)
-    {
-        try
-        {
-            if (filterDoc == null)
-            {
-                filterDoc = await QueryFilter(incidentDoc);
-            }
-
-            var handlers = await _incidentHandlerManagementService.ListIncidentHandlers();
-            var handlerDoc = handlers.Where(h => h.Id == filterDoc?.Id).FirstOrDefault();
-
-            string query = $@"
-                customEvents
-                | where name == ""IncidentActivitySnapshot""
-                | where tostring(customDimensions.IncidentId) == ""{incidentDoc.Id}""
-                | extend IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), 
-                    RunMode = tostring(customDimensions.AgentAutonomyLevel), InstructionType = tostring(customDimensions.ResponsePlanCustom), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn),
-                    HandledAt = todatetime(customDimensions.IncidentHandledOn), HandlerCreatedAt = todatetime(customDimensions.ResponsePlanCreatedOn), HandlerUpdatedAt = todatetime(customDimensions.ResponsePlanUpdatedOn)
-                | summarize arg_max(UpdatedAt, HandlerId, RunMode, InstructionType, HandledAt, HandlerCreatedAt, HandlerUpdatedAt) by IncidentId
-                | project IncidentId, HandlerId, RunMode, InstructionType, HandledAt, HandlerCreatedAt, HandlerUpdatedAt
-                | top 1 by IncidentId";
-
-            var dataTable = await Query(query);
-            DataRow? results = null;
-            string handlerId = filterDoc?.Id ?? handlerDoc?.Id ?? string.Empty;
-            DateTime? handlerCreatedOn = filterDoc?.CreatedAt;
-            DateTime? handlerUpdatedOn = filterDoc?.UpdatedAt;
-            string runMode = !string.IsNullOrWhiteSpace(filterDoc?.AgentMode) ? filterDoc.AgentMode : "review";
-            string instructionType = !string.IsNullOrWhiteSpace(handlerDoc?.CustomInstructions) ? "Custom" : "Default";
-
-            if (dataTable != null && dataTable.Rows.Count > 0)
-            {
-                results = dataTable.Rows[0];
-            }
-
-            var data = new IncidentAIData
-            {
-
-                HandlerId = !string.IsNullOrWhiteSpace(handlerId) ? handlerId : results?["HandlerId"]?.ToString() ?? "no-filter-found",
-                IncidentId = incidentDoc.Id,
-                IncidentTitle = incidentDoc.Title,
-                HandlerCreatedAt = (DateTime)(handlerCreatedOn != null ? handlerCreatedOn : DateTime.TryParse(results?["HandlerCreatedAt"]?.ToString(), out DateTime handlerCreatedAt) ? handlerCreatedAt : DateTime.UtcNow),
-                IncidentCreatedAt = incidentDoc.CreatedDate.UtcDateTime,
-                HandlerUpdatedAt = (DateTime)(handlerUpdatedOn != null ? handlerUpdatedOn : DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) ?
-                (handlerUpdatedAt <= DateTime.MinValue.AddDays(1) ? DateTime.UtcNow : handlerUpdatedAt) : DateTime.UtcNow),
-                IncidentUpdatedAt = incidentDoc.UpdatedAt,
-                IncidentHandledAt = DateTime.TryParse(results?["HandledAt"]?.ToString(), out DateTime incidentHandledTime) ?
-                    (incidentHandledTime <= DateTime.MinValue.AddDays(1) ? new DateTime(Math.Max(incidentDoc.CreatedAt.Ticks, handlerCreatedOn?.Ticks ?? 0)) : incidentHandledTime) : handlerCreatedOn ?? DateTime.UtcNow,
-                MitigatedAt = IncidentMitigatedAt(incidentDoc),
-                Status = incidentDoc.Status.ToString().ToLower(),
-                Priority = incidentDoc.Priority,
-                IsMitigatedByAgent = IsMitigatedByAgent(incidentDoc),
-                IsAssistedByAgent = incidentDoc.IsAssistedByAgent,
-                RootCause = incidentDoc.AIRootCause,
-                RootCauseDescription = incidentDoc.RootCauseDescription,
-                Summary = incidentDoc.GeneralSummary,
-                ImpactedService = incidentDoc.ImpactedServiceName,
-                RunMode = results?["RunMode"]?.ToString() ?? runMode,
-                InstructionType = results?["InstructionType"]?.ToString() ?? instructionType,
-                IncidentPlatform = GetIncidentPlatform()
-            };
-
-            Ingest(data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "[IncidentAnalysisService] Ingesting incident data into App Insights failed");
-            throw;
-        }
-    }
-
-    public override async Task<IcmIncidentDocument> AnalyzeIncident(IcmIncidentDocument incidentDocument, Incident incident, IcmIncidentFilterDocument? filterDocument)
-    {
-        string filterId;
-        if (filterDocument == null)
-        {
-            filterId = await FetchFilterFromIncident(incidentDocument);
-        }
-        else
-        {
-            filterId = filterDocument.Id;
-        }
-
-        var rootCauseResponse = await GetRootCauseCategory(filterId, incident);
-        var generalSummary = await GetGeneralSummary(incident);
-
-        // Extract just the category name for backwards compatibility
-        incidentDocument.AIRootCause = rootCauseResponse.RootCause;
-        incidentDocument.RootCauseDescription = rootCauseResponse.Description;
-        incidentDocument.GeneralSummary = generalSummary;
-
-        return incidentDocument;
     }
 
     protected override bool IsMitigatedByAgent(IcmIncidentDocument icmIncident)
@@ -165,7 +55,7 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
         return mitigatedAt;
     }
 
-    private async Task<AIRootCauseResponse> GetRootCauseCategory(string filterId, Incident incident, CancellationToken cancellationToken = default)
+    protected override async Task<AIRootCauseResponse> GetRootCauseCategory(string filterId, Incident incident, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -188,7 +78,7 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
                     RootCauses = new List<RootCauseCategory> { rootCauseCategory }
                 };
 
-                updatedDoc = await container.CreateItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
+                _ = await _container.CreateItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
             }
             else
             {
@@ -206,7 +96,7 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
                     RootCauses = updatedRootCauses
                 };
 
-                updatedDoc = await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
+                _ = await _container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
             }
 
             return aiRootCauseResponse;
@@ -218,41 +108,7 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
         }
     }
 
-    private async Task<AIRootCauseResponse> GetAIRootCause(Incident incident, List<RootCauseCategory> existingRootCauses)
-    {
-        var rootCausesForPrompt = existingRootCauses.Select(rc => new { Category = rc.Category, Description = rc.Description }).ToList();
-
-        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
-        {
-            new(ChatRole.System, "You are an expert in incident analysis."),
-            new(ChatRole.User, @$"{_incidentRootCausePrompt}:\n\n{await IncidentOverview(incident)}"),
-            new(ChatRole.User, $"Here are the existing root cause categories and their descriptions: {JsonConvert.SerializeObject(rootCausesForPrompt)}")
-        };
-
-        var options = new ChatOptions
-        {
-            ToolMode = ChatToolMode.None,
-            Temperature = 0.2f,
-        };
-
-        var (response, result) = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, typeof(AIRootCauseResponse), options);
-
-        if (result is AIRootCauseResponse rootCauseResponse)
-        {
-            return rootCauseResponse;
-        }
-
-        _logger.LogInternalWarning("Failed to get structured response, result was null or wrong type");
-        return new AIRootCauseResponse { RootCause = "Unknown", Description = "Unable to categorize incident" };
-    }
-
-    private async Task<string> GetGeneralSummary(Incident incident)
-    {
-        string summary = await GetAIResponse(_incidentGeneralSummaryPrompt, incident);
-        return summary;
-    }
-
-    private async Task<string> IncidentOverview(Incident incident)
+    protected override async Task<string> IncidentOverview(Incident incident)
     {
         IcmIncidentDocument? existingIncidentDocument = await _incidentManagementService.GetIncidentDetails(incident.Id.ToString());
         var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<DescriptionEntry>();
@@ -266,30 +122,54 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
         Notes: {JsonConvert.SerializeObject(notes)}";
     }
 
-    private async Task<string> GetAIResponse(string prompt, Incident incident)
+    protected override string GetIncidentPlatform()
     {
-        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
+        return IncidentManagementType.Icm.ToString();
+    }
+
+    protected override IncidentAIData ToIncidentActivitySnapshot(IcmIncidentFilterDocument? filterDoc, IncidentHandlerDocument? handlerDoc, IcmIncidentDocument incidentDoc, DataRow? results)
+    {
+
+        string handlerId = filterDoc?.Id ?? handlerDoc?.Id ?? string.Empty;
+        DateTime? handlerCreatedOn = filterDoc?.CreatedAt;
+        DateTime? handlerUpdatedOn = filterDoc?.UpdatedAt;
+        string runMode = !string.IsNullOrWhiteSpace(filterDoc?.AgentMode) ? filterDoc.AgentMode : "review";
+        bool isHandlerCustom = !string.IsNullOrWhiteSpace(handlerDoc?.CustomInstructions) ? true : false;
+
+        var snapshot = new IncidentAIData
         {
-            new(ChatRole.System, "You are an expert in incident analysis."),
-            new(ChatRole.User, @$"{prompt}:\n\n{await IncidentOverview(incident)}")
+            HandlerId = !string.IsNullOrWhiteSpace(handlerId) ? handlerId : results?["HandlerId"]?.ToString() ?? "no-filter-found",
+            IncidentId = incidentDoc.Id,
+            IncidentTitle = incidentDoc.Title,
+            HandlerCreatedAt = (DateTime)(handlerCreatedOn != null ? handlerCreatedOn : DateTime.TryParse(results?["HandlerCreatedAt"]?.ToString(), out DateTime handlerCreatedAt) ? handlerCreatedAt : DateTime.UtcNow),
+            IncidentCreatedAt = incidentDoc.CreatedDate.UtcDateTime,
+            HandlerUpdatedAt = (DateTime)(handlerUpdatedOn != null ? handlerUpdatedOn : DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) ?
+                (handlerUpdatedAt <= DateTime.MinValue.AddDays(1) ? DateTime.UtcNow : handlerUpdatedAt) : DateTime.UtcNow),
+            IncidentUpdatedAt = incidentDoc.UpdatedAt,
+            IncidentHandledAt = DateTime.TryParse(results?["HandledAt"]?.ToString(), out DateTime incidentHandledTime) ?
+                    (incidentHandledTime <= DateTime.MinValue.AddDays(1) ? new DateTime(Math.Max(incidentDoc.CreatedAt.Ticks, handlerCreatedOn?.Ticks ?? 0)) : incidentHandledTime) : handlerCreatedOn ?? DateTime.UtcNow,
+            MitigatedAt = IncidentMitigatedAt(incidentDoc),
+            Status = incidentDoc.Status.ToString().ToLower(),
+            Priority = incidentDoc.Priority,
+            IsMitigatedByAgent = IsMitigatedByAgent(incidentDoc),
+            IsAssistedByAgent = incidentDoc.IsAssistedByAgent,
+            RootCause = incidentDoc.AIRootCause,
+            RootCauseDescription = incidentDoc.RootCauseDescription,
+            Summary = incidentDoc.GeneralSummary,
+            ImpactedService = incidentDoc.ImpactedServiceName,
+            RunMode = !string.IsNullOrWhiteSpace(results?["RunMode"]?.ToString()) ? results?["RunMode"]?.ToString()! : runMode,
+            IsHandlerCustom = bool.TryParse(results?["IsHandlerCustom"]?.ToString(), out bool isCustom) ? isCustom : isHandlerCustom,
+            IncidentPlatform = GetIncidentPlatform()
         };
 
-        var options = new ChatOptions
-        {
-            ToolMode = ChatToolMode.None,
-            Temperature = 0.2f,
-            ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
-        };
-
-        var reply = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
-        return reply.Text;
+        return snapshot;
     }
 
     private async Task<IcmIncidentFilterAIRootCauseDocument?> GetDocumentAsync(string id, string partitionKey)
     {
         try
         {
-            ItemResponse<IcmIncidentFilterAIRootCauseDocument> response = await container.ReadItemAsync<IcmIncidentFilterAIRootCauseDocument>(
+            ItemResponse<IcmIncidentFilterAIRootCauseDocument> response = await _container.ReadItemAsync<IcmIncidentFilterAIRootCauseDocument>(
                 !string.IsNullOrWhiteSpace(id) ? id : "No-filterid-found",
                 new PartitionKey(partitionKey)
             );

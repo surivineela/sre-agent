@@ -95,7 +95,7 @@ public class ServiceNowPlugin : IServiceNowPlugin
                 {
                     var incidentDocument = new ServiceNowIncidentDocument(incident);
                     incidentDocument.Tags = new List<string>() { "SREAgent_Resolved" };
-                    incidentDocument = await _container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey));
+                    _ = await _container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey));
                 }
             }
             catch (Exception ex)

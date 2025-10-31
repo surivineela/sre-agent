@@ -8,6 +8,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.DataModels;
 using Agent.Framework;
+using Microsoft.AzureAd.Icm.IcmV3ODataModels.CorrelationGroup;
 using Microsoft.Extensions.Logging;
 using Microsoft.SREAgent.Incidents.IcM.Model;
 using OpenTelemetry.Trace;
@@ -87,30 +88,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
 
                 try
                 {
-                    var data = new IncidentAIData
-                    {
-                        HandlerId = matchingFilter.Id ?? matchingFilter.Name ?? incidentRequest.IncidentFilter?.Id ?? incidentRequest.IncidentFilter?.Name ?? $"no-handler",
-                        IncidentId = incidentRequest.IncidentId,
-                        IncidentTitle = incidentRequest.Title,
-                        IncidentCreatedAt = incidentDetails.CreatedDate.UtcDateTime,
-                        IncidentUpdatedAt = incidentDetails.UpdatedAt > DateTime.MinValue.AddDays(1) ? incidentDetails.UpdatedAt : incidentDetails.CreatedAt,
-                        HandlerCreatedAt = matchingFilter.CreatedAt,
-                        HandlerUpdatedAt = matchingFilter.UpdatedAt,
-                        IncidentHandledAt = DateTime.UtcNow,
-                        MitigatedAt = null,
-                        Status = incidentDetails.Status.ToString(),
-                        Priority = incidentRequest.Severity,
-                        IsMitigatedByAgent = false,
-                        IsAssistedByAgent = incidentDetails.IsAssistedByAgent,
-                        RootCause = incidentDetails.AIRootCause,
-                        RootCauseDescription = incidentDetails.RootCauseDescription,
-                        Summary = incidentDetails.GeneralSummary,
-                        ImpactedService = incidentDetails.ImpactedServiceName,
-                        RunMode = incidentRequest.IncidentFilter?.AgentMode ?? matchingFilter?.AgentMode ?? string.Empty,
-                        InstructionType = string.IsNullOrWhiteSpace(incidentRequest.IncidentHandler?.CustomInstructions) ? "Default" : "Custom",
-                        IncidentPlatform = GetIncidentPlatform()
-                    };
-                    // Can not yet ingest data for Azure Monitor
+                    var data = ToIncidentActivitySnapshot(matchingFilter, incidentDetails, incidentRequest, matchingHandler);
                     _incidentAnalysisService.Ingest(data);
                 }
                 catch (Exception ex)
@@ -143,32 +121,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
 
             try
             {
-                var data = new IncidentAIData
-                {
-                    HandlerId = matchingFilter.Id,
-                    IncidentId = incidentDetails.Id,
-                    IncidentTitle = incidentDetails.Title,
-                    HandlerCreatedAt = matchingFilter.CreatedAt,
-                    HandlerUpdatedAt = matchingFilter.UpdatedAt,
-                    IncidentCreatedAt = incidentDetails.CreatedDate.UtcDateTime,
-                    IncidentUpdatedAt = incidentDetails.UpdatedAt,
-                    IncidentHandledAt = DateTime.UtcNow,
-                    MitigatedAt = null,
-                    Status = incidentDetails.Status.ToString(),
-                    Priority = incidentDetails.Priority,
-                    IsMitigatedByAgent = false,
-                    IsAssistedByAgent = incidentDetails.IsAssistedByAgent,
-                    RootCause = incidentDetails.AIRootCause,
-                    RootCauseDescription = incidentDetails.RootCauseDescription,
-                    Summary = incidentDetails.GeneralSummary,
-                    ImpactedService = incidentDetails.ImpactedServiceName,
-                    RunMode = matchingFilter?.AgentMode ?? request.IncidentFilter?.AgentMode ?? string.Empty,
-                    InstructionType = string.IsNullOrWhiteSpace(matchingHandler.CustomInstructions) ? "Default" : "Custom",
-                    IncidentPlatform = GetIncidentPlatform()
-
-                };
-
-                // Can not yet ingest data for Azure Monitor
+                var data = ToIncidentActivitySnapshot(matchingFilter, incidentDetails, request, matchingHandler);
                 _incidentAnalysisService.Ingest(data);
             }
             catch (Exception ex)
@@ -267,5 +220,34 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
     protected override string GetIncidentPlatform()
     {
         return IncidentManagementType.Icm.ToString();
+    }
+
+    protected override IncidentAIData ToIncidentActivitySnapshot(IcmIncidentFilterDocument filter, IcmIncidentDocument incidentDetails, IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload> request, IncidentHandlerDocument? handler)
+    {
+        IncidentAIData snapShot = new IncidentAIData
+        {
+            HandlerId = filter.Id ?? filter.Name ?? request.IncidentFilter?.Id ?? request.IncidentFilter?.Name ?? "no-handler",
+            IncidentId = incidentDetails.Id,
+            IncidentTitle = incidentDetails.Title,
+            IncidentCreatedAt = incidentDetails.CreatedDate.UtcDateTime,
+            IncidentUpdatedAt = incidentDetails.UpdatedAt > DateTime.MinValue.AddDays(1) ? incidentDetails.UpdatedAt : incidentDetails.CreatedDate.UtcDateTime,
+            HandlerCreatedAt = filter.CreatedAt,
+            HandlerUpdatedAt = filter.UpdatedAt,
+            IncidentHandledAt = DateTime.UtcNow,
+            MitigatedAt = null,
+            Status = incidentDetails.Status.ToString(),
+            Priority = incidentDetails.Priority,
+            IsMitigatedByAgent = false,
+            IsAssistedByAgent = incidentDetails.IsAssistedByAgent,
+            RootCause = incidentDetails.AIRootCause,
+            RootCauseDescription = incidentDetails.RootCauseDescription,
+            Summary = incidentDetails.GeneralSummary,
+            ImpactedService = incidentDetails.ImpactedServiceName,
+            RunMode = !string.IsNullOrWhiteSpace(filter.AgentMode) ? filter.AgentMode : !string.IsNullOrWhiteSpace(request.IncidentFilter?.AgentMode) ? request.IncidentFilter?.AgentMode! : "review",
+            IsHandlerCustom = !string.IsNullOrWhiteSpace(handler?.CustomInstructions) ? true : false,
+            IncidentPlatform = GetIncidentPlatform()
+        };
+
+        return snapShot;
     }
 }

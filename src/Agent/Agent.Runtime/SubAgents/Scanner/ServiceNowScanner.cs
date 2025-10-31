@@ -197,7 +197,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                     // ServiceNowIncidentDocument constructor will now use Number instead of IncidentId as ID
                 };
 
-                incidentDocument = await container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
+                _ = await container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
 
                 logger.LogInternalInformation("Created new incident document for ServiceNow incident {incidentNumber}", incident.Number);
             }
@@ -259,7 +259,8 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 }
 
                 logger.LogInternalInformation("Upserting existing incident document for ServiceNow incident {incidentNumber}", incident.Number);
-                incidentDocument = await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
+                var response = await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
+                incidentDocument = response.Resource;
             }
 
             if (incidentDocument == null)

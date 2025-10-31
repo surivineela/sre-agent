@@ -57,3 +57,11 @@ public record PagerDutyIncidentNote(
     DateTime CreatedAt,
     PagerDutyAgent? CreatedBy // for notify_log_entry, there's no created_by field.
 );
+
+public enum PagerDutyIncidentStatus
+{
+    Triggered,
+    Acknowledged,
+    Resolved,
+    Closed
+}

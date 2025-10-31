@@ -29,6 +29,8 @@ public record AzMonitorAlertDocument : IIncidentDocument
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    public DateTime LastModifiedTime { get; set; } = DateTime.UtcNow;
+
     public string TargetResourceType { get; set; } = string.Empty;
 
     public string TargetResourceId { get; set; } = string.Empty;
@@ -63,12 +65,14 @@ public record AzMonitorAlertDocument : IIncidentDocument
 
     public bool IsAssistedByAgent { get; set; } = false;
 
-    public DateTime HandledAt { get; set; }
+    public DateTime? ResolvedAt { get; set; } = null;
 
     public AlertProperties Properties { get; set; } = new AlertProperties();
 
     // Adding an optional alert rule resource ID for deduplication purposes.
     public string? AlertRuleResourceId { get; set; } = string.Empty;
+
+    public List<string> Tags { get; set; } = new List<string>();
 
     public static AzMonitorAlertDocument FromIncident(AlertItem alert)
     {
@@ -82,7 +86,7 @@ public record AzMonitorAlertDocument : IIncidentDocument
             Title = alertRuleResourceId.Name ?? string.Empty, // only get the Alert Rule Name
             Properties = alert.Properties,
             Priority = essentials?.Severity ?? string.Empty,
-            Status = essentials?.AlertState ?? string.Empty,
+            Status = MapToIncidentStatus(essentials),
             IncidentType = alert.Properties?.Essentials?.SignalType ?? string.Empty,
             CreatedAt = DateTimeHelper.ParseDateTimeOffset(alert.Properties?.Essentials?.StartDateTime).UtcDateTime,
             TargetResourceId = essentials?.TargetResource ?? string.Empty,
@@ -91,7 +95,46 @@ public record AzMonitorAlertDocument : IIncidentDocument
             Description = essentials?.Description ?? string.Empty,
             AlertRuleResourceId = essentials?.AlertRule ?? string.Empty,
             UpdatedAt = DateTime.UtcNow,
+            LastModifiedTime = DateTimeHelper.ParseDateTimeOffset(alert.Properties?.Essentials?.LastModifiedDateTime).UtcDateTime,
             HitCount = 1,
+        };
+    }
+
+    /// <summary>
+    /// Maps Azure Monitor alert essentials to incident status following the escalation flow:
+    /// "new" → "acknowledged" → "resolved" → "closed"
+    /// 
+    /// MonitorCondition: "Fired" or "Resolved" (indicates if alert condition is active)
+    /// AlertState: "New", "Acknowledged", or "Closed" (manual state management by operators)
+    /// </summary>
+    private static string MapToIncidentStatus(AlertEssentials? essentials)
+    {
+        if (essentials == null)
+        {
+            return string.Empty;
+        }
+
+        var monitorCondition = essentials.MonitorCondition?.ToLowerInvariant();
+        var alertState = essentials.AlertState?.ToLowerInvariant();
+
+        // Use tuple pattern matching for cleaner logic
+        return (alertState, monitorCondition) switch
+        {
+            // Highest priority: AlertState = "closed" is the final terminal state
+            ("closed", _) => "closed",
+            
+            // Second priority: MonitorCondition = "resolved" means the condition has cleared
+            (_, "resolved") => "resolved",
+            
+            // Third priority: AlertState = "acknowledged" means operator has acknowledged
+            ("acknowledged", _) => "acknowledged",
+            
+            // Fourth priority: Either "new" AlertState or "fired" MonitorCondition means active/new
+            ("new", _) => "new",
+            (_, "fired") => "new",
+            
+            // Fallback: prefer AlertState over MonitorCondition, then empty string
+            _ => alertState ?? monitorCondition ?? string.Empty
         };
     }
 
@@ -105,4 +148,12 @@ public record AzMonitorAlertDocument : IIncidentDocument
             Type = "Microsoft.AlertsManagement/alerts"
         };
     }
+}
+
+public enum AzMonitorIncidentStatus
+{
+    New,
+    Acknowledged,
+    Resolved,
+    Closed
 }

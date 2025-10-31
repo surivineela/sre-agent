@@ -18,7 +18,8 @@ customDimensions includes:
 - IncidentId: "000000000"
 - IncidentStatus: "active"
 - ResponsePlanId: "watchtower-test1"
-- Misc: IncidentSummary, IncidentRootCauseCategory
+- IncidentPlatform: "Icm" | "AzMonitor" | "PagerDuty" | "ServiceNow"
+- Misc: IncidentSummary, IncidentRootCauseCategory, IncidentRootCauseDescription
 
 */
 

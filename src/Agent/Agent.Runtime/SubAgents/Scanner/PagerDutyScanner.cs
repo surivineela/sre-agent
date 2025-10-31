@@ -93,7 +93,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                logger.LogInternalInformation("Cancellation requested, stopping the ServiceNow scanner.");
+                logger.LogInternalInformation("Cancellation requested, stopping the PagerDuty scanner.");
                 return;
             }
 
@@ -158,7 +158,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                         }
                         catch (Exception ex)
                         {
-                            logger.LogInternalError(ex, "[ServiceNowScanner] Failed to ingest incident data into App Insights");
+                            logger.LogInternalError(ex, "[PagerDutyScanner] Failed to ingest incident data into App Insights");
                         }
                     }
 
@@ -441,6 +441,9 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                 // incidentDocument.TitleVector = titleEmbedding.Vector.ToArray();
                 // var descriptionEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(incident.Description, cancellationToken: cancellationToken);
                 // incidentDocument.DescriptionVector = descriptionEmbedding.Vector.ToArray();
+
+                _ = await container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
+                logger.LogInternalInformation("Created new incident document for ServiceNow incident {incidentNumber}", incident.IncidentId);
             }
             else
             {

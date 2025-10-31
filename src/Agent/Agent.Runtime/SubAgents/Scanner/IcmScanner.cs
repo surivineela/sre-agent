@@ -340,7 +340,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
                 incidentDocument = new IcmIncidentDocument(incident);
 
-                incidentDocument = await container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
+                await container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
                 logger.LogInternalInformation("[IcmScanner] Created new incident document for IcM incident {incidentId}", incident.Id);
             }
             else if (incidentDocument.Id == incident.Id.ToString())
@@ -423,7 +423,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 }
 
                 logger.LogInternalInformation("[IcmScanner] Upserting existing incident document for IcM incident {incidentId}", incident.Id.ToString());
-                incidentDocument = await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
+                var response = await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
+                incidentDocument = response.Resource;
             }
 
             if (incidentDocument == null)
@@ -438,7 +439,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         {
             logger.LogInternalWarning("[IcmScanner] Original IcM is too large, truncate incident details");
             incidentDocument = IcmIncidentDocument.TruncateIcmIncidentDocument(incident);
-            incidentDocument = await container.UpsertItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
+            await container.UpsertItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
             return incidentDocument;
         }
         catch (Exception ex)

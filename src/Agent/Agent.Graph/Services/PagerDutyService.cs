@@ -450,11 +450,6 @@ public class PagerDutyService : IPagerDutyService
         }
     }
 
-    public Task<IEnumerable<PagerDutyIncident>> GetIncidentsAsyncGetIncidentsAsync(uint limit, uint offset, DateTime? since, string? impactServiceId, string? priority, string? titleContains, string? urgency, IEnumerable<string>? statuses)
-    {
-        throw new NotImplementedException();
-    }
-
     private async Task<T?> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
     {
         try

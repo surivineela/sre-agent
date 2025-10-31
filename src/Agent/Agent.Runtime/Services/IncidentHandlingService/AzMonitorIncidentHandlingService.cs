@@ -20,11 +20,14 @@ using Agent.Runtime.Services;
 using Azure.Core;
 using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Azure.Cosmos;
+using Microsoft.AzureAd.Icm.IcmV3ODataModels;
+using Microsoft.AzureAd.Icm.IcmV3ODataModels.CorrelationGroup;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using Author = Agent.Core.Models.Api.v1.Author;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
+using IncidentDetails = Agent.Core.Models.Api.v1.IncidentDetails;
 using Message = Agent.Core.Models.Api.v1.Message;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
@@ -85,7 +88,8 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         _logger.LogInternalInformation("[AzMonitorIncidentHandlingService] GetIncidentAsync: Invoked for IncidentId: {IncidentId}", incidentId);
         try
         {
-            var incidentDoc = await _incidentManagementService.GetIncidentDetails(incidentId);
+            var incidentGUID = new ResourceIdentifier(incidentId).Name ?? incidentId;
+            var incidentDoc = await _incidentManagementService.GetIncidentDetails(incidentGUID);
             if (incidentDoc is null)
             {
                 _logger.LogInternalWarning("[AzMonitorIncidentHandlingService] GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
@@ -137,6 +141,16 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
 
                 await InitiateIncidentInvestigationAsync(incident, thread, agentContext, handler);
 
+                try
+                {
+                    var data = ToIncidentActivitySnapshot(filterPayload, incidentDoc, request, handler);
+                    _incidentAnalysisService.Ingest(data);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError($"[IncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
+                }
+
                 _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created test thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", thread.Id, incidentId);
 
                 return new IncidentHandlingResponseModel()
@@ -156,6 +170,17 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                 if (threadId.HasValue)
                 {
                     _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Processed incident with ThreadId: {ThreadId} for IncidentId: {IncidentId}", threadId.Value, incidentId);
+
+
+                    try
+                    {
+                        var data = ToIncidentActivitySnapshot(filterPayload, incidentDoc, request, handler);
+                        _incidentAnalysisService.Ingest(data);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalError($"[IncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
+                    }
 
                     return new IncidentHandlingResponseModel()
                     {
@@ -1058,6 +1083,35 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             CreatedAt = request?.IncidentFilter?.CreatedAt ?? DateTime.UtcNow,
             UpdatedAt = request?.IncidentFilter?.UpdatedAt ?? DateTime.UtcNow
         };
+    }
+
+    protected override IncidentAIData ToIncidentActivitySnapshot(AzMonitorIncidentFilterDocument? filter, AzMonitorAlertDocument incidentDetails, IncidentHandlingRequestModel<AzMonitorIncidentFilterDocumentPayload> request, IncidentHandlerDocument? handler)
+    {
+        IncidentAIData snapShot = new IncidentAIData
+        {
+            HandlerId = filter?.Id ?? filter?.Name ?? request.IncidentFilter?.Id ?? request.IncidentFilter?.Name ?? "no-handler",
+            IncidentId = incidentDetails.Id,
+            IncidentTitle = incidentDetails.Title,
+            IncidentCreatedAt = incidentDetails.CreatedAt,
+            IncidentUpdatedAt = incidentDetails.LastModifiedTime,
+            HandlerCreatedAt = filter?.CreatedAt ?? DateTime.UtcNow,
+            HandlerUpdatedAt = filter?.UpdatedAt ?? DateTime.UtcNow,
+            IncidentHandledAt = DateTime.UtcNow,
+            MitigatedAt = null,
+            Status = incidentDetails.Status.ToString(),
+            Priority = incidentDetails.Priority,
+            IsMitigatedByAgent = false,
+            IsAssistedByAgent = incidentDetails.IsAssistedByAgent,
+            RootCause = incidentDetails.AIRootCause,
+            RootCauseDescription = incidentDetails.RootCauseDescription,
+            Summary = incidentDetails.GeneralSummary,
+            ImpactedService = incidentDetails.ImpactedServiceName,
+            RunMode = !string.IsNullOrWhiteSpace(filter?.AgentMode) ? filter.AgentMode : !string.IsNullOrWhiteSpace(request.IncidentFilter?.AgentMode) ? request.IncidentFilter?.AgentMode! : "review",
+            IsHandlerCustom = !string.IsNullOrWhiteSpace(handler?.CustomInstructions) ? true : false,
+            IncidentPlatform = GetIncidentPlatform()
+        };
+
+        return snapShot;
     }
 
     #endregion

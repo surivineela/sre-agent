@@ -2,15 +2,20 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Net;
 using System.Text.Json;
 using Agent.Core;
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
+using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Data.DataModels.IncidentModel;
 using Agent.Data.Interface.IncidentAPI;
-using Azure.ResourceManager.AlertsManagement.Models;
-using Microsoft.Extensions.Logging;
+using Agent.Plugins.Implementation;
 using Azure.Core;
+using Azure.ResourceManager.AlertsManagement.Models;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
 
@@ -19,15 +24,19 @@ public class AzMonitorAlertService : IAzMonitorAlertService
     private readonly ILogger<AzMonitorAlertService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly CrawlerSettings _crawlerSettings;
+    private readonly Container _container;
 
     public AzMonitorAlertService(
         ILogger<AzMonitorAlertService> logger,
         CrawlerSettings crawlerSettings,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        CosmosClient cosmosClient,
+        CosmosDBSettings cosmosDbSettings)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _crawlerSettings = crawlerSettings;
+        _container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     }
 
     public async Task<bool> AcknowledgeAlert(string alertId)
@@ -39,7 +48,51 @@ public class AzMonitorAlertService : IAzMonitorAlertService
     public async Task<bool> ResolveAlert(string alertId)
     {
         _logger.LogInternalInformation($"Resolving alert {alertId}");
-        return await UpdateAlertStatus(alertId, ServiceAlertState.Closed);
+        var result = await UpdateAlertStatus(alertId, ServiceAlertState.Closed);
+        if (result)
+        {
+            try
+            {
+
+                // Update the document in CosmosDB to have a SREAgent_Resolved tag
+                var document = await GetDocumentAsync<AzMonitorAlertDocument>(alertId, alertId);
+                if (document != null)
+                {
+                    // do not update UpdatedAt value so that incident gets captured in next scanner iteration
+                    var updatedDoc = document;
+                    if (!updatedDoc.Tags.Contains("SREAgent_Resolved"))
+                    {
+                        updatedDoc.Tags.Add("SREAgent_Resolved");
+                    }
+                    updatedDoc = updatedDoc with {
+                        Status = "closed",
+                        ResolvedAt = DateTime.UtcNow
+                    };
+
+                    _logger.LogInternalInformation("Upserting existing incident document for AzMonitor incident {incidentNumber}", alertId);
+                    _ = await _container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey));
+                }
+                // if not within CosmosDB, add the record
+                else
+                {
+                    var incident = await GetIncidentAsync(alertId);
+                    var incidentDocument = AzMonitorAlertDocument.FromIncident(incident) with {
+                        ResolvedAt = DateTime.UtcNow,
+                        Tags = new List<string>() { "SREAgent_Resolved" },
+                        Status = "closed"
+                    };
+
+                    _ = await _container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey));
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"Error adding SREAgent_Resolved tag to AzMonitor incident document {alertId}: {ex.Message}";
+                _logger.LogInternalError(ex, errorMessage);
+            }
+        }
+
+        return result;
     }
 
     public async Task<bool> UpdateAlertStatus(string alertId, ServiceAlertState alertState)
@@ -242,11 +295,6 @@ public class AzMonitorAlertService : IAzMonitorAlertService
                 var conditions = string.Join(",", statuses);
                 apiUrl += $"&alertState={conditions}";
             }
-            else
-            {
-                // Default to New for newly fired alerts if no statuses specified
-                apiUrl += "&alertState=New";
-            }
 
             _logger.LogInternalInformation($"Calling Alert Management API with URL: {apiUrl}");
 
@@ -288,6 +336,22 @@ public class AzMonitorAlertService : IAzMonitorAlertService
         }
 
         return newAlerts;
+    }
+
+    protected async Task<X?> GetDocumentAsync<X>(string id, string partitionKey)
+    {
+        try
+        {
+            ItemResponse<X> response = await _container.ReadItemAsync<X>(
+                id,
+                new PartitionKey(partitionKey)
+            );
+            return response.Resource;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return default;
+        }
     }
 }
 
