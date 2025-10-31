@@ -198,14 +198,14 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var scopes = new[] { "https://api.applicationinsights.io/.default" };
+            var scopes = new[] { "https://api.applicationinsights.io/Data.Read" };
             var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes);
 
             return Ok(new
             {
                 accessToken,
                 tokenType = "Bearer",
-                scope = "https://api.applicationinsights.io/.default"
+                scope = "https://api.applicationinsights.io/Data.Read"
             });
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
