@@ -15,6 +15,12 @@ export enum ProvisioningState {
     Deleting = 'Deleting',
 }
 
+export enum AgentMode {
+    Autonomous = 'autonomous',
+    Review = 'review',
+    ReadOnly = 'readonly',
+}
+
 export enum AgentAccessLevel {
     low = 'Low',
     high = 'High',

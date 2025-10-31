@@ -1,4 +1,5 @@
 import { getCloudEndpoints } from '../Auth/cloudConfig';
+import { parseArmId } from './ArmId';
 
 /** `https://foo.com/` + `/path` -> `https://foo.com/path` */
 export const addPathToHostname = (origin: string, path: string): string => {
@@ -78,4 +79,20 @@ export const buildBladeUrl = (bladeInfo: IOpenBladeInfo): string => {
     }
 
     return url;
+};
+
+export const openResourceGroupOverviewInNewTab = (rscId: string) => {
+    const armId = parseArmId(rscId);
+    const portalUrl = `${window.location.origin}/#resource/subscriptions/${armId.subscription}/resourceGroups/${
+        armId.resourceGroup
+    }/overview`;
+    window.open(portalUrl, '_blank');
+};
+
+export const openSubscriptionOverviewInNewTab = (subscriptionId: string) => {
+    if (!subscriptionId) {
+        return;
+    }
+    const portalUrl = `${window.location.origin}/#resource/subscriptions/${subscriptionId}/overview`;
+    window.open(portalUrl, '_blank');
 };

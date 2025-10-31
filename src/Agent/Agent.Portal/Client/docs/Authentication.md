@@ -117,15 +117,6 @@ Override with environment variable: `VITE_AZURE_CLOUD=fairfax` or `VITE_AZURE_CL
 
 ## Configuration
 
-### MSAL Configuration
-
-Located in `src/Common/Auth/msalConfig.ts`:
-
-- **Client ID**: Set via `VITE_MSAL_CLIENT_ID` environment variable
-- **Authority**: Multi-tenant (`organizations`) by default
-- **Redirect URI**: `{origin}/auth/callback`
-- **Cache**: localStorage
-
 ### Cloud Endpoints
 
 Located in `src/Common/Auth/cloudConfig.ts`:

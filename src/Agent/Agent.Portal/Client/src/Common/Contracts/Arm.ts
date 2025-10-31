@@ -2,6 +2,30 @@ export interface KeyValue<T> {
     [key: string]: T;
 }
 
+export interface Subscription {
+    subscriptionId: string;
+    displayName: string;
+    /** Subscription state (Enabled, Disabled, etc.) */
+    state?: string;
+    tenantId?: string;
+    /** Additional properties from ARM API */
+    // [key: string]: unknown; // Commenting out as this leaves a huge gap in type safety
+}
+
+export interface ResourceGroup {
+    readonly id: string;
+    readonly location: string;
+    /**
+     * The ID of the resource that manages this resource group.
+     */
+    readonly managedBy?: string;
+    readonly name: string;
+    readonly properties?: {
+        readonly provisioningState: string;
+    };
+    readonly tags?: Record<string, string>;
+}
+
 export interface MsiIdentity {
     principalId: string;
     tenantId: string;

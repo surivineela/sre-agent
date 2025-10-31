@@ -1,6 +1,7 @@
 import {
     Button,
     Card,
+    createTableColumn,
     DataGrid,
     DataGridBody,
     DataGridCell,
@@ -9,6 +10,7 @@ import {
     DataGridRow,
     Dropdown,
     Link,
+    makeStyles,
     MessageBar,
     MessageBarBody,
     MessageBarTitle,
@@ -18,7 +20,6 @@ import {
     TableCellLayout,
     TableColumnDefinition,
     Text,
-    createTableColumn,
     useTableFeatures,
     useTableSort,
 } from '@fluentui/react-components';
@@ -33,10 +34,54 @@ import { SreAgentArgItem } from '../../Common/Contracts/SreAgent';
 import { LogLevel } from '../../Common/Contracts/Telemetry';
 import { useTelemetry } from '../../Common/Hooks/useTelemetry';
 import { PortalResources } from '../../Strings/Resources';
+import { CreateAgentDialog } from './Create/CreateAgentDialog';
 import { CreateFirstAgent } from './CreateFirstAgent';
+
+const useStyles = makeStyles({
+    container: {
+        display: 'flex',
+        minHeight: '600px',
+        flex: 'auto',
+        flexDirection: 'column',
+        gap: '40px',
+        alignItems: 'center',
+        padding: '32px',
+    },
+    errorContainer: {
+        maxWidth: '1000px',
+    },
+    agentListContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        width: '100%',
+        maxWidth: '1200px',
+    },
+    controlsRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    searchControls: {
+        display: 'flex',
+        gap: '12px',
+        alignItems: 'center',
+    },
+    searchBox: {
+        width: '250px',
+    },
+    card: {
+        padding: '20px',
+    },
+    dataGrid: {
+        height: '585px',
+        overflowY: 'auto',
+    },
+});
 
 export const HomeBrowseView = () => {
     const intl = useIntl();
+    const styles = useStyles();
     const { isAuthenticated } = useAuth();
     const { logEvent } = useTelemetry(TelemetrySource.HomeBrowseView, undefined);
     const navigate = useNavigate();
@@ -47,12 +92,13 @@ export const HomeBrowseView = () => {
     const [error, setError] = useState<string | null>(null);
     const [agents, setAgents] = useState<SreAgentArgItem[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     const columns: TableColumnDefinition<SreAgentArgItem>[] = [
         createTableColumn<SreAgentArgItem>({
             columnId: 'name',
             compare: (a, b) => a.name.localeCompare(b.name),
-            renderHeaderCell: () => <Text weight='semibold'>{intl.formatMessage(PortalResources.name)}</Text>,
+            renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.name)}</Text>,
             renderCell: item => (
                 <TableCellLayout>
                     <Link onClick={() => navigate(`/agents/${encodeURIComponent(item.id)}`)}>{item.name}</Link>
@@ -62,20 +108,20 @@ export const HomeBrowseView = () => {
         createTableColumn<SreAgentArgItem>({
             columnId: 'subscription',
             compare: (a, b) => a.subscriptionId.localeCompare(b.subscriptionId),
-            renderHeaderCell: () => <Text weight='semibold'>{intl.formatMessage(PortalResources.subscription)}</Text>,
+            renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.subscription)}</Text>,
             // TODO: Subscription displayName
             renderCell: item => <TableCellLayout>{item.subscriptionId}</TableCellLayout>,
         }),
         createTableColumn<SreAgentArgItem>({
             columnId: 'resourceGroup',
             compare: (a, b) => a.resourceGroup.localeCompare(b.resourceGroup),
-            renderHeaderCell: () => <Text weight='semibold'>{intl.formatMessage(PortalResources.resourceGroup)}</Text>,
+            renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.resourceGroup)}</Text>,
             renderCell: item => <TableCellLayout>{item.resourceGroup}</TableCellLayout>,
         }),
         createTableColumn<SreAgentArgItem>({
             columnId: 'region',
             compare: (a, b) => a.location.localeCompare(b.location),
-            renderHeaderCell: () => <Text weight='semibold'>{intl.formatMessage(PortalResources.region)}</Text>,
+            renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.region)}</Text>,
             renderCell: item => <TableCellLayout>{item.location}</TableCellLayout>,
         }),
     ];
@@ -84,11 +130,12 @@ export const HomeBrowseView = () => {
         if (!searchQuery) return agents;
 
         const lowerQuery = searchQuery.toLowerCase();
-        return agents.filter(agent =>
-            agent.name.toLowerCase().includes(lowerQuery) ||
-            agent.subscriptionId.toLowerCase().includes(lowerQuery) ||
-            agent.resourceGroup.toLowerCase().includes(lowerQuery) ||
-            agent.location.toLowerCase().includes(lowerQuery)
+        return agents.filter(
+            agent =>
+                agent.name.toLowerCase().includes(lowerQuery) ||
+                agent.subscriptionId.toLowerCase().includes(lowerQuery) ||
+                agent.resourceGroup.toLowerCase().includes(lowerQuery) ||
+                agent.location.toLowerCase().includes(lowerQuery)
         );
     }, [agents, searchQuery]);
 
@@ -150,15 +197,9 @@ export const HomeBrowseView = () => {
     }, [sreAgentClient, isAuthenticated, logEvent]);
 
     return (
-        <div style={{ display: 'flex', minHeight: 600, flex: 'auto', flexDirection: 'column', gap: 40, alignItems: 'center', padding: 32 }}>
-            {isLoading && (
-                <div>
-                    <Spinner size="extra-large" />
-                </div>
-            )}
-
+        <div className={styles.container}>
             {!isLoading && error && (
-                <div style={{ maxWidth: 1000 }}>
+                <div className={styles.errorContainer}>
                     <MessageBar intent="error">
                         <MessageBarBody>
                             <MessageBarTitle>{intl.formatMessage(PortalResources.requestError)}</MessageBarTitle>
@@ -168,17 +209,21 @@ export const HomeBrowseView = () => {
                 </div>
             )}
 
-            {isLoading ? null : agents.length === 0 ? (
-                <CreateFirstAgent />
+            {isLoading ? (
+                <div>
+                    <Spinner size="extra-large" />
+                </div>
+            ) : agents.length === 0 ? (
+                <CreateFirstAgent onClickCreate={() => setIsCreateDialogOpen(true)} />
             ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%', maxWidth: 1200 }}>
+                <div className={styles.agentListContainer}>
                     <Subtitle1 block>{intl.formatMessage(PortalResources.agents)}</Subtitle1>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div className={styles.controlsRow}>
+                        <div className={styles.searchControls}>
                             <SearchBox
                                 placeholder={intl.formatMessage(PortalResources.search)}
-                                style={{ width: 250 }}
+                                className={styles.searchBox}
                                 value={searchQuery}
                                 onChange={(_, data) => setSearchQuery(data.value)}
                             />
@@ -187,26 +232,18 @@ export const HomeBrowseView = () => {
                         </div>
 
                         <div>
-                            <Button icon={<Add16Regular />} appearance="primary">
+                            <Button icon={<Add16Regular />} appearance="primary" onClick={() => setIsCreateDialogOpen(true)}>
                                 {intl.formatMessage(PortalResources.createAgent)}
                             </Button>
                         </div>
                     </div>
 
-                    <Card style={{ padding: 20 }}>
-                        <DataGrid
-                            items={rows}
-                            columns={columns}
-                            sortable
-                            getRowId={item => item.rowId}
-                            style={{ height: '585px', overflowY: 'auto' }}
-                        >
+                    <Card className={styles.card}>
+                        <DataGrid items={rows} columns={columns} sortable getRowId={item => item.rowId} className={styles.dataGrid}>
                             <DataGridHeader>
                                 <DataGridRow>
                                     {({ renderHeaderCell, columnId }) => (
-                                        <DataGridHeaderCell {...headerSortProps(columnId)}>
-                                            {renderHeaderCell()}
-                                        </DataGridHeaderCell>
+                                        <DataGridHeaderCell {...headerSortProps(columnId)}>{renderHeaderCell()}</DataGridHeaderCell>
                                     )}
                                 </DataGridRow>
                             </DataGridHeader>
@@ -221,6 +258,8 @@ export const HomeBrowseView = () => {
                     </Card>
                 </div>
             )}
+
+            <CreateAgentDialog isDialogOpen={isCreateDialogOpen} setIsDialogOpen={setIsCreateDialogOpen} />
         </div>
     );
 };

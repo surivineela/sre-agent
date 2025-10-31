@@ -1,11 +1,12 @@
 import { Image, makeStyles, Text, tokens, Tooltip } from '@fluentui/react-components';
+import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { parseArmId } from '../../Common/Utilities/ArmId';
 import { PortalResources } from '../../Strings/Resources';
 import { NotificationButton } from './NotificationButton';
 import { SettingsContent } from './SettingsContent';
 import { UserAuthContent } from './UserAuthContent';
-import { useMemo } from 'react';
 
 const useStyles = makeStyles({
     navbar: {
@@ -14,6 +15,8 @@ const useStyles = makeStyles({
         justifyContent: 'space-between',
         gap: '20px',
         height: '44px',
+        minHeight: '44px',
+        maxHeight: '44px',
         paddingLeft: tokens.spacingHorizontalXL,
         paddingRight: tokens.spacingHorizontalXL,
         alignItems: 'center',
@@ -54,24 +57,30 @@ const useStyles = makeStyles({
 export const Navbar = () => {
     const intl = useIntl();
     const navigate = useNavigate();
-    const location = useLocation();
     const styles = useStyles();
+    const { agentId: encodedAgentId } = useParams<{ agentId: string }>();
 
-    // TODO: Use ArmId.parse for this?
     // Parse agent name from the route if we're on an agent page
-    const agentName = useMemo(() => decodeURIComponent(location.pathname.match(/^\/agents\/(.+)/)?.[1] ?? '').split('/')?.pop()?.split('/')?.pop(), [location.pathname]);
+    const agentName = useMemo(() => {
+        if (!encodedAgentId) return undefined;
+
+        const agentRscId = decodeURIComponent(encodedAgentId);
+        return parseArmId(agentRscId).resourceName;
+    }, [encodedAgentId]);
 
     return (
         <div className={styles.navbar}>
             <Tooltip content={intl.formatMessage(PortalResources.azureSreAgents)} relationship="label">
                 <div className={styles.logoSection} onClick={() => navigate('/')}>
-                    <Image src='SreAgent.svg' width={18} height={18} alt={intl.formatMessage(PortalResources.azureSreAgents)} />
+                    <Image src="SreAgent.svg" width={18} height={18} alt={intl.formatMessage(PortalResources.azureSreAgents)} />
                     <Text weight="semibold">{intl.formatMessage(PortalResources.azureSreAgents)}</Text>
                     {agentName && (
                         <>
                             {/* TODO: Fancy selector thingy */}
                             <Text className={styles.breadcrumbSeparator}>/</Text>
-                            <Text weight="semibold" className={styles.agentName}>{decodeURIComponent(agentName)}</Text>
+                            <Text weight="semibold" className={styles.agentName}>
+                                {decodeURIComponent(agentName)}
+                            </Text>
                         </>
                     )}
                 </div>

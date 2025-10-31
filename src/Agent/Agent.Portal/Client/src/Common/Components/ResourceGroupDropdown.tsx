@@ -1,0 +1,373 @@
+import {
+    Button,
+    Dropdown,
+    DropdownProps,
+    Field,
+    Input,
+    Link,
+    makeStyles,
+    mergeClasses,
+    OnOpenChangeData,
+    OpenPopoverEvents,
+    Option,
+    OptionOnSelectData,
+    Popover,
+    PopoverSurface,
+    PopoverTrigger,
+    SelectionEvents,
+    Skeleton,
+    SkeletonItem,
+} from '@fluentui/react-components';
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { useIntl } from 'react-intl';
+import { PortalResources } from '../../Strings/Resources';
+import { TelemetrySource } from '../Constants/Telemetry';
+import { ResourceGroup } from '../Contracts/Arm';
+import { usePermissions } from '../Hooks/usePermissions';
+import { useResourceGroups } from '../Hooks/useResourceGroups';
+
+type NewableResourceGroup = {
+    /** If true, this resource group doesn't exist yet */
+    new?: boolean;
+} & ResourceGroup;
+
+type ResourceGroupDropdownProps = {
+    /**
+     * The resource group id to be set as a value for the dropdown if it's a member of the values fetched from ARM.
+     */
+    readonly selectedResourceGroupId: string | undefined;
+    readonly subscriptionId: string | undefined;
+    readonly telemetrySource: TelemetrySource;
+    readonly 'aria-label'?: string;
+    readonly 'aria-labelledby'?: string;
+    readonly 'aria-required'?: boolean;
+    readonly className?: string;
+    /** Adds "Create new" callout under the dropdown. */
+    readonly createNew?: boolean;
+    /**
+     * Callback on resource group change.
+     * If selectedResourceGroupId is specified and invalid, this callback will be called with an empty string and null.
+     *
+     * @param resourceGroup - Selected resource group object with all available properties
+     */
+    readonly onResourceGroupChange: (resourceGroup?: NewableResourceGroup) => void;
+    /**
+     * ResourceGroups to be displayed.
+     * If provided, the internal 'useResourceGroups' hook will be disabled.
+     * The 'useResourceGroups' hook can be called separately to retrieve the resourceGroups from ARM.
+     */
+    readonly resourceGroups?: NewableResourceGroup[];
+    disabled?: boolean;
+    errorMessage?: string;
+};
+
+const useStyles = makeStyles({
+    combobox: {
+        minWidth: '250px',
+    },
+    filterInput: {
+        marginBottom: '8px',
+    },
+    createNewLink: {
+        marginTop: '4px',
+    },
+    popoverContentContainer: {
+        maxWidth: '420px',
+    },
+    popoverFieldContainer: {
+        minHeight: '104px',
+    },
+    popoverButtonGroup: {
+        display: 'flex',
+        gap: '20px',
+        justifyContent: 'flex-end',
+        marginTop: '20px',
+    },
+});
+
+export const ResourceGroupDropdown = (props: ResourceGroupDropdownProps) => {
+    const {
+        'aria-label': ariaLabel,
+        'aria-labelledby': ariaLabelledBy,
+        'aria-required': ariaRequired,
+        className,
+        createNew,
+        onResourceGroupChange,
+        resourceGroups: providedResourceGroups,
+        selectedResourceGroupId,
+        subscriptionId,
+        telemetrySource,
+        disabled,
+        errorMessage: explicitErrorMessage,
+    } = props;
+
+    const intl = useIntl();
+    const styles = useStyles();
+
+    const [filterValue, setFilterValue] = useState('');
+    const [newResourceGroup, setNewResourceGroup] = useState<NewableResourceGroup>();
+
+    const {
+        resourceGroups,
+        isLoading: isLoadingResourceGroups,
+        error: resourceGroupsError,
+    } = useResourceGroups({
+        disabled: !!providedResourceGroups,
+        subscriptionId,
+        telemetrySource,
+    });
+    const rscGrpsToUse = useMemo(() => providedResourceGroups ?? resourceGroups, [providedResourceGroups, resourceGroups]);
+
+    const armResourceGroups = useMemo(() => {
+        return (rscGrpsToUse ?? []).sort((rg1, rg2) => rg1.name.localeCompare(rg2.name));
+    }, [rscGrpsToUse]);
+
+    const errorMessage = resourceGroupsError
+        ? `${intl.formatMessage(PortalResources.requestError)}: ${resourceGroupsError.message}`
+        : undefined;
+
+    const allResourceGroups = useMemo<NewableResourceGroup[]>(
+        () => [...(newResourceGroup ? [newResourceGroup] : []), ...armResourceGroups],
+        [armResourceGroups, newResourceGroup]
+    );
+
+    // Filter resource groups based on filter value
+    const filteredResourceGroups = useMemo(() => {
+        if (!filterValue) {
+            return allResourceGroups;
+        }
+
+        const lowerFilter = filterValue.toLowerCase();
+        return allResourceGroups.filter(rg => {
+            const text = rg.name.toLowerCase();
+            return text.includes(lowerFilter);
+        });
+    }, [allResourceGroups, filterValue]);
+
+    const selectedResourceGroup = useMemo(
+        () => allResourceGroups.find(rg => rg.id === selectedResourceGroupId),
+        [allResourceGroups, selectedResourceGroupId]
+    );
+
+    const onOptionSelect = useCallback<NonNullable<DropdownProps['onOptionSelect']>>(
+        (_event: SelectionEvents, data: OptionOnSelectData) => {
+            const selectedRgId = data.optionValue;
+            const resourceGroup = allResourceGroups.find(rg => rg.id === selectedRgId);
+            onResourceGroupChange(resourceGroup);
+        },
+        [onResourceGroupChange, allResourceGroups]
+    );
+
+    const handleOpenChange = useCallback<NonNullable<DropdownProps['onOpenChange']>>(
+        (_event: OpenPopoverEvents, data: OnOpenChangeData) => {
+            // Clear filter when dropdown closes
+            if (!data.open) {
+                setFilterValue('');
+            }
+        },
+        []
+    );
+
+    const onPopoverClose = useCallback(
+        (validatedNewResourceGroupName?: string) => {
+            if (validatedNewResourceGroupName) {
+                const newResourceGroupId = `/subscriptions/${subscriptionId}/resourceGroups/${validatedNewResourceGroupName}`;
+                const newRg: NewableResourceGroup = {
+                    id: newResourceGroupId,
+                    location: '',
+                    name: validatedNewResourceGroupName,
+                    new: true,
+                };
+                setNewResourceGroup(newRg);
+                onResourceGroupChange(newRg);
+            }
+        },
+        [onResourceGroupChange, subscriptionId]
+    );
+
+    const renderOption = useCallback(
+        (resourceGroup: NewableResourceGroup) => {
+            const text = resourceGroup.new
+                ? intl.formatMessage(PortalResources.newItemFormat, { item: resourceGroup.name })
+                : resourceGroup.name;
+
+            const option = {
+                children: text,
+                disabled: false,
+                text,
+                value: resourceGroup.id,
+            };
+
+            return (
+                <Option disabled={option.disabled} key={resourceGroup.id} text={option.text} value={option.value}>
+                    {option.children}
+                </Option>
+            );
+        },
+        [intl]
+    );
+
+    // Auto-select first resource group on load if none is selected
+    useEffect(() => {
+        if (!isLoadingResourceGroups && allResourceGroups.length > 0 && !selectedResourceGroupId) {
+            onResourceGroupChange(allResourceGroups[0]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoadingResourceGroups, allResourceGroups.length, selectedResourceGroupId]);
+
+    // Discard the new resource group if subscriptionId changes
+    useEffect(() => {
+        setNewResourceGroup(undefined);
+    }, [subscriptionId]);
+
+    return (
+        <Field
+            label={intl.formatMessage(PortalResources.resourceGroup)}
+            validationMessage={explicitErrorMessage || errorMessage}
+            validationState={explicitErrorMessage || errorMessage ? 'error' : undefined}
+        >
+            {isLoadingResourceGroups ? (
+                <Skeleton aria-label={intl.formatMessage(PortalResources.loading)}>
+                    <SkeletonItem size={32} />
+                </Skeleton>
+            ) : (
+                <>
+                    <Dropdown
+                        aria-label={ariaLabel || intl.formatMessage(PortalResources.resourceGroup)}
+                        aria-labelledby={ariaLabelledBy}
+                        aria-required={ariaRequired}
+                        className={mergeClasses(styles.combobox, className)}
+                        onOptionSelect={onOptionSelect}
+                        onOpenChange={handleOpenChange}
+                        placeholder={intl.formatMessage(PortalResources.selectAnExistingResourceGroup)}
+                        value={
+                            selectedResourceGroup
+                                ? selectedResourceGroup.new
+                                    ? intl.formatMessage(PortalResources.newItemFormat, { item: selectedResourceGroup.name })
+                                    : selectedResourceGroup.name
+                                : ''
+                        }
+                        disabled={disabled}
+                    >
+                        <Input
+                            className={styles.filterInput}
+                            placeholder={intl.formatMessage(PortalResources.filterItems)}
+                            value={filterValue}
+                            onChange={(_e, data) => setFilterValue(data.value)}
+                        />
+                        {filteredResourceGroups.length === 0 ? (
+                            <Option disabled key="no-results" text={intl.formatMessage(PortalResources.noResultsFound)}>
+                                {intl.formatMessage(PortalResources.noResultsFound)}
+                            </Option>
+                        ) : (
+                            filteredResourceGroups.map(rg => renderOption(rg))
+                        )}
+                    </Dropdown>
+                    {createNew && subscriptionId && (
+                        <ResourceGroupDropdownPopover
+                            className={styles.createNewLink}
+                            existingResourceGroupNames={armResourceGroups.map(rg => rg.name)}
+                            onClose={onPopoverClose}
+                            subscriptionId={subscriptionId}
+                            disabled={disabled}
+                        />
+                    )}
+                </>
+            )}
+        </Field>
+    );
+};
+
+ResourceGroupDropdown.displayName = 'ResourceGroupDropdown';
+
+type ResourceGroupDropdownPopoverProps = {
+    existingResourceGroupNames: string[];
+    onClose: (validatedResourceGroupName?: string) => void;
+    subscriptionId: string;
+    className?: string;
+    disabled?: boolean;
+};
+
+const ResourceGroupDropdownPopover = (props: ResourceGroupDropdownPopoverProps) => {
+    const { className, existingResourceGroupNames, onClose, subscriptionId, disabled } = props;
+
+    const intl = useIntl();
+
+    const [open, setOpen] = useState(false);
+    const [resourceGroupName, setResourceGroupName] = useState('');
+    const styles = useStyles();
+
+    const { hasPermissions, isLoadingPermissions } = usePermissions({
+        entityId: `/subscriptions/${subscriptionId}`,
+        actions: ['Microsoft.Resources/subscriptions/resourcegroups/write'],
+        telemetrySource: TelemetrySource.SreAgentCreate,
+    });
+
+    const resourceGroupAlreadyExists = useMemo(() => {
+        return existingResourceGroupNames.includes(resourceGroupName);
+    }, [existingResourceGroupNames, resourceGroupName]);
+
+    const onInputChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+        setResourceGroupName(event.target.value);
+    }, []);
+
+    const onOpenChange = useCallback((_e: OpenPopoverEvents, data: OnOpenChangeData) => {
+        setOpen(data.open);
+    }, []);
+
+    const onCancelClicked = useCallback(() => {
+        setOpen(false);
+        setResourceGroupName('');
+        onClose();
+    }, [onClose]);
+
+    const onOkClicked = useCallback(() => {
+        setOpen(false);
+        onClose(resourceGroupName);
+        setResourceGroupName('');
+    }, [onClose, resourceGroupName]);
+
+    return (
+        <Popover onOpenChange={onOpenChange} open={open} positioning="below-start" trapFocus>
+            <PopoverTrigger disableButtonEnhancement>
+                <Link className={className} disabled={disabled}>
+                    {intl.formatMessage(PortalResources.createNew)}
+                </Link>
+            </PopoverTrigger>
+            <PopoverSurface>
+                <div className={styles.popoverContentContainer}>
+                    {!isLoadingPermissions && !hasPermissions && (
+                        <div style={{ marginTop: '12px', marginBottom: '12px' }}>
+                            {intl.formatMessage(PortalResources.noResourceGroupCreatePermission)}
+                        </div>
+                    )}
+                    <div className={styles.popoverFieldContainer}>
+                        <Field
+                            label={intl.formatMessage(PortalResources.name)}
+                            validationMessage={
+                                resourceGroupAlreadyExists
+                                    ? intl.formatMessage(PortalResources.resourceGroupAlreadyExistsInSubscription)
+                                    : undefined
+                            }
+                            validationState={resourceGroupAlreadyExists ? 'error' : undefined}
+                        >
+                            <Input disabled={!hasPermissions || isLoadingPermissions} onChange={onInputChange} value={resourceGroupName} />
+                        </Field>
+                    </div>
+                    <div className={styles.popoverButtonGroup}>
+                        <Button appearance="secondary" onClick={onCancelClicked}>
+                            {intl.formatMessage(PortalResources.cancel)}
+                        </Button>
+                        <Button
+                            appearance="primary"
+                            disabled={!resourceGroupName || resourceGroupAlreadyExists || !hasPermissions || isLoadingPermissions}
+                            onClick={onOkClicked}
+                        >
+                            {intl.formatMessage(PortalResources.create)}
+                        </Button>
+                    </div>
+                </div>
+            </PopoverSurface>
+        </Popover>
+    );
+};
