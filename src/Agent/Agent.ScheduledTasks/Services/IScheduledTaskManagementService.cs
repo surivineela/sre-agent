@@ -6,6 +6,12 @@ using Agent.Data.DataModels;
 
 namespace Agent.ScheduledTasks.Services;
 
+public record TaskExecutionSummary(
+    string TaskId,
+    string TaskName,
+    ScheduledTaskExecution Execution
+);
+
 public interface IScheduledTaskManagementService
 {
     Task<List<ScheduledTaskDocument>> ListScheduledTasks();
@@ -17,4 +23,6 @@ public interface IScheduledTaskManagementService
     Task<bool> ResumeScheduledTask(string taskId);
     Task<List<ScheduledTaskExecution>> GetTaskExecutionHistory(string taskId);
     Task<List<ScheduledTaskDocument>> GetTasksByThread(string threadId);
+    Task<ScheduledTaskExecution?> ExecuteTaskNow(string taskId);
+    Task<List<TaskExecutionSummary>> GetAllExecutions();
 }

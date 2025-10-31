@@ -523,5 +523,113 @@ Prompt to improve (between <<< and >>>):
                 return StatusCode(500, new { error = "Failed to retrieve scheduled tasks for thread" });
             }
         }
+
+        [HttpPost("{id}/execute")]
+        [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskWriteActionId)]
+        public async Task<IActionResult> ExecuteTaskNow(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return BadRequest(new { error = "Task ID is required" });
+            }
+
+            try
+            {
+                logger.LogInternalInformation("Manually executing task: {TaskId}", id);
+
+                var result = await scheduledTaskService.ExecuteTaskNow(id);
+
+                if (result == null)
+                {
+                    return NotFound(new { error = $"Scheduled task {id} not found" });
+                }
+
+                logger.LogInternalInformation("Task execution initiated: {TaskId}", id);
+                return Ok(new ExecuteTaskNowResponse
+                {
+                    Message = "Task execution initiated successfully",
+                    Execution = new ScheduledTaskExecutionResponse
+                    {
+                        ExecutionTime = result.ExecutionTime,
+                        ThreadId = result.ThreadId,
+                        Success = result.Success,
+                        ErrorMessage = result.ErrorMessage,
+                        ExecutionMetadata = result.ExecutionMetadata
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error executing task: {TaskId}", id);
+                return StatusCode(500, new { error = "Failed to execute task" });
+            }
+        }
+
+        [HttpGet("executions")]
+        [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskReadActionId)]
+        public async Task<IActionResult> GetAllExecutions(
+            [FromQuery] int? limit = null,
+            [FromQuery] bool? successOnly = null,
+            [FromQuery] DateTime? since = null)
+        {
+            // Validate limit parameter
+            if (limit.HasValue && limit.Value < 0)
+            {
+                return BadRequest(new { error = "Limit must be a non-negative integer" });
+            }
+
+            // Validate limit is not excessively large
+            if (limit.HasValue && limit.Value > 10000)
+            {
+                return BadRequest(new { error = "Limit cannot exceed 10000" });
+            }
+
+            try
+            {
+                logger.LogInternalInformation("Getting all executions across all scheduled tasks");
+
+                var executions = await scheduledTaskService.GetAllExecutions();
+
+                // Apply filters
+                var filtered = executions.AsEnumerable();
+
+                if (successOnly.HasValue)
+                {
+                    filtered = filtered.Where(e => e.Execution.Success == successOnly.Value);
+                }
+
+                if (since.HasValue)
+                {
+                    filtered = filtered.Where(e => e.Execution.ExecutionTime >= since.Value);
+                }
+
+                // Order by execution time descending
+                filtered = filtered.OrderByDescending(e => e.Execution.ExecutionTime);
+
+                // Apply limit
+                if (limit.HasValue && limit.Value > 0)
+                {
+                    filtered = filtered.Take(limit.Value);
+                }
+
+                var response = filtered.Select(e => new ScheduledTaskExecutionWithTaskInfoResponse
+                {
+                    TaskId = e.TaskId,
+                    TaskName = e.TaskName,
+                    ExecutionTime = e.Execution.ExecutionTime,
+                    ThreadId = e.Execution.ThreadId,
+                    Success = e.Execution.Success,
+                    ErrorMessage = e.Execution.ErrorMessage,
+                    ExecutionMetadata = e.Execution.ExecutionMetadata
+                }).ToList();
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error getting all executions");
+                return StatusCode(500, new { error = "Failed to retrieve all executions" });
+            }
+        }
     }
 }

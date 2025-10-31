@@ -239,6 +239,99 @@ public class ScheduledTaskManagementService : IScheduledTaskManagementService
         }
     }
 
+    public async Task<ScheduledTaskExecution?> ExecuteTaskNow(string taskId)
+    {
+        _logger.LogInternalInformation("Manually executing task: {TaskId}", taskId);
+
+        try
+        {
+            var task = await _repository.GetScheduledTaskAsync(taskId);
+            if (task == null)
+            {
+                _logger.LogInternalWarning("Task not found for manual execution: {TaskId}", taskId);
+                return null;
+            }
+
+            // Create a manual execution record
+            var executionTime = DateTime.UtcNow;
+            var execution = new ScheduledTaskExecution(
+                ExecutionTime: executionTime,
+                ThreadId: task.ThreadId,
+                Success: true,
+                ErrorMessage: null,
+                ExecutionMetadata: new Dictionary<string, object>
+                {
+                    ["ManualExecution"] = true,
+                    ["TaskId"] = task.Id,
+                    ["TaskName"] = task.Name,
+                    ["ExecutionTime"] = executionTime
+                }
+            );
+
+            // Update task with execution
+            if (task.ExecutionHistory == null)
+            {
+                task.ExecutionHistory = new List<ScheduledTaskExecution>();
+            }
+            task.ExecutionHistory.Add(execution);
+
+            // Keep only last 50 executions
+            if (task.ExecutionHistory.Count > 50)
+            {
+                task.ExecutionHistory = task.ExecutionHistory
+                    .OrderByDescending(e => e.ExecutionTime)
+                    .Take(50)
+                    .ToList();
+            }
+
+            task.ExecutionCount++;
+            task.LastExecutionTime = executionTime;
+
+            await _repository.UpdateScheduledTaskAsync(task);
+
+            _logger.LogInternalInformation("Task manually executed: {TaskId}", taskId);
+            return execution;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error manually executing task: {TaskId}", taskId);
+            throw;
+        }
+    }
+
+    public async Task<List<TaskExecutionSummary>> GetAllExecutions()
+    {
+        _logger.LogInternalInformation("Getting all executions across all scheduled tasks");
+
+        try
+        {
+            var tasks = await _repository.GetAllScheduledTasksAsync();
+            var executions = new List<TaskExecutionSummary>();
+
+            foreach (var task in tasks)
+            {
+                if (task.ExecutionHistory != null)
+                {
+                    foreach (var execution in task.ExecutionHistory)
+                    {
+                        executions.Add(new TaskExecutionSummary(
+                            TaskId: task.Id,
+                            TaskName: task.Name,
+                            Execution: execution
+                        ));
+                    }
+                }
+            }
+
+            return executions;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error getting all executions");
+            throw;
+        }
+    }
+
     private static bool IsValidCronExpression(string cronExpression)
     {
         try
