@@ -2,21 +2,35 @@ import { tokens } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormValues';
 import { FilterStep } from '../Steps/FilterStep';
 import { IncidentsAndGuidanceStep } from '../Steps/IncidentsAndGuidanceStep';
+import { IncidentTriggerStep } from '../Steps/IncidentTriggerStep';
 import { PreviewIncidentsStep } from '../Steps/PreviewIncidentsStep';
 import { ReviewAndTestStep } from '../Steps/ReviewAndTestStep';
 import { StepWizard } from '../StepWizard/StepWizard';
 
 export const FullEditIncidentHandlerConsolidated: FC = () => {
     const intl = useIntl();
-    const { currentStep, generateInstructionsStepSkipped } = useContext(IncidentHandlerConsolidatedCreateContext);
+    const { isSubagentTrigger, currentStep, generateInstructionsStepSkipped } = useContext(IncidentHandlerConsolidatedCreateContext);
     const { values } = useFormikContext<IncidentHandlerCreateFormValues>();
 
     const steps = useMemo(() => {
+        if (isSubagentTrigger) {
+            return [
+                {
+                    stepKey: IncidentHandlerCreateSteps.IncidentTriggerStep,
+                    stepTitle: intl.formatMessage(ExtendedAgentsGraphResources.incidentTriggerStep),
+                },
+                {
+                    stepKey: IncidentHandlerCreateSteps.PreviewIncidentsStep,
+                    stepTitle: intl.formatMessage(ExtendedAgentsGraphResources.incidentsPreviewStep),
+                },
+            ];
+        }
+
         if (values.useCustomHandler) {
             return [
                 {
@@ -79,6 +93,8 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
             >
                 {currentStep === IncidentHandlerCreateSteps.FilterStep ? (
                     <FilterStep />
+                ) : currentStep === IncidentHandlerCreateSteps.IncidentTriggerStep ? (
+                    <IncidentTriggerStep />
                 ) : currentStep === IncidentHandlerCreateSteps.IncidentsAndGuidanceStep ? (
                     <IncidentsAndGuidanceStep />
                 ) : currentStep === IncidentHandlerCreateSteps.PreviewIncidentsStep ? (

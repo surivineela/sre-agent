@@ -18,6 +18,7 @@ import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { useFeatureFlags } from '../../Common/Hooks/useFeatureFlags';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import {
+    AgentQuickAction,
     ExtendedAgent,
     ExtendedAgentGraphContext,
     ExtendedAgentNodeType,
@@ -28,6 +29,7 @@ import { useExtendedAgentGraph } from '../Hooks/useExtendedAgentGraph';
 import { useExtendedAgentGraphLayout } from '../Hooks/useExtendedAgentGraphLayout';
 import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
 import { useScheduledTasks } from '../Hooks/useScheduledTasks';
+import { HandlerCreateOrEditInfo } from '../IncidentManagement/CreateIncidentHandler/Contracts';
 import PlaygroundModal, { PlaygroundTarget } from '../Playground/PlaygroundModal';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { ConnectorCard } from './ConnectorCard';
@@ -49,6 +51,7 @@ import { ExtendedAgentInfoPanel } from './ExtendedAgentInfoPanel';
 import { ExtendedAgentRelationshipDialog } from './ExtendedAgentRelationshipDialog';
 import { ExtendedAgentSelector } from './ExtendedAgentSelector';
 import { buildMetaAgentYaml, convertExtendedEntityToYaml } from './ExtendedAgentYamlUtils';
+import { IncidentTriggerCreateDialog } from './IncidentTriggerCreateDialog/IncidentTriggerCreateDialog';
 import { ToolCard } from './ToolCard';
 import { TriggerCard } from './TriggerCard';
 
@@ -75,8 +78,6 @@ type OperationResult = {
     success: boolean;
     message: string;
 };
-
-type AgentQuickAction = 'addHandoff' | 'addTool' | 'createAgent' | 'createTool';
 
 type LinkRetryContext = {
     entityType: 'agent' | 'tool';
@@ -138,6 +139,8 @@ const ExtendedAgentGraphContent = memo(() => {
     const theme = useTheme();
     const intl = useIntl();
     const navigate = useNavigate();
+
+    const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo>();
 
     const [currentView, setCurrentView] = useState<ExtendedAgentGraphView>(ExtendedAgentGraphView.Visual);
     const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
@@ -1076,6 +1079,15 @@ const ExtendedAgentGraphContent = memo(() => {
     );
 
     const handleAgentQuickAction = useCallback((agentName: string, action: AgentQuickAction) => {
+        if (action === 'addIncidentTrigger') {
+            setHandlerCreateOrEditInfo({
+                subAgentTriggerInfo: {
+                    agents: agents.map(a => a.name),
+                    preSelectedAgent: agentName,
+                },
+            });
+            return;
+        }
         if (action === 'createAgent' || action === 'createTool') {
             setCreationDialogContext({
                 kind: 'linkFromAgent',
@@ -1367,6 +1379,16 @@ const ExtendedAgentGraphContent = memo(() => {
 
     const handleCreateItemStandalone = useCallback(
         (itemType: EntityType) => {
+            if (itemType === 'trigger') {
+                setHandlerCreateOrEditInfo({
+                    subAgentTriggerInfo: {
+                        agents: agents.map(a => a.name),
+                        preSelectedAgent: filters.agentName,
+                    },
+                });
+                return;
+            }
+
             setCreationDialogContext(undefined);
             setCreationDialogInitialTypeOverride(itemType);
             setCreationDialogTriggerAgentName(undefined);
@@ -1374,11 +1396,14 @@ const ExtendedAgentGraphContent = memo(() => {
             setIsCreationDialogOpen(true);
         },
         [
+            setHandlerCreateOrEditInfo,
             setCreationDialogContext,
             setCreationDialogInitialTypeOverride,
             setCreationDialogTriggerAgentName,
             setCreationSuccess,
             setIsCreationDialogOpen,
+            agents,
+            filters.agentName,
         ]
     );
 
@@ -1551,6 +1576,12 @@ const ExtendedAgentGraphContent = memo(() => {
                     triggerConfig={triggerCardConfig}
                     onTriggerNavigate={handleTriggerNavigate}
                     onConnectorNavigate={handleConnectorNavigate}
+                />
+
+                <IncidentTriggerCreateDialog
+                    onDismiss={() => setHandlerCreateOrEditInfo(undefined)}
+                    setHandlerOperationStatus={() => {}}
+                    handlerCreateOrEditInfo={handlerCreateOrEditInfo}
                 />
 
                 <PlaygroundModal

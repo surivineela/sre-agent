@@ -3766,10 +3766,21 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'No nodes found',
         id: 'sNuzQE',
     },
+    quickCreateAddIncidentTrigger: { defaultMessage: 'Add incident trigger', id: 'eq57j2' },
     quickCreateAddExistingTool: { defaultMessage: 'Add existing tool', id: 'RI59Ed' },
     quickCreateCreateNewKustoTool: { defaultMessage: 'Create new Kusto tool', id: 'mhKk7c' },
     quickCreateAddExistingSubagent: { defaultMessage: 'Add existing subagent', id: 'KJHRU/' },
     quickCreateCreateNewSubagent: { defaultMessage: 'Create new subagent', id: '+h4pn9' },
+    createIncidentTrigger: { defaultMessage: 'Create incident trigger', id: 'HQc/Lf' },
+    incidentTriggerStep: { defaultMessage: 'Incident trigger', id: 'THFIRB' },
+    incidentTriggerName: { defaultMessage: 'Trigger name', id: 'zDcGyS' },
+    triggerDetails: { defaultMessage: 'Trigger details', id: '4C44ie' },
+    incidentTriggerNamePlaceholder: { defaultMessage: 'Enter a descriptive name', id: 'UNQfKX' },
+    incidentsPreviewStep: { defaultMessage: 'Incidents preview', id: 'DD2Wjk' },
+    responseSubagent: { defaultMessage: 'Response subagent', id: 'GMhzu1' },
+    responseSubagentPlaceholder: { defaultMessage: 'Select a response subagent', id: 'D97db3' },
+    createIncidentTriggerNoPlatformMessage: { defaultMessage: 'You need an incident platform to add an incident trigger.', id: 'eRwVws' },
+    createIncidentTriggerNoPlatformButton: { defaultMessage: 'Connect an incident platform', id: 'ItmLyp' },
 });
 
 export const PlaygroundResources = defineMessages({

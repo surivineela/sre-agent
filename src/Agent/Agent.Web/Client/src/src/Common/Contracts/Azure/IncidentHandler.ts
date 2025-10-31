@@ -38,6 +38,8 @@ export interface IncidentFilterDocumentPayload {
     alertId?: string;
     titleContains?: string;
     agentMode?: AgentMode;
+    deepInvestigationEnabled?: boolean;
+    handlingAgent?: string;
     owningTeamId?: string; // only for IcM
     createdBy?: string; // only for IcM
     monitorId?: string; // only for IcM
@@ -94,6 +96,7 @@ export interface IncidentFilter {
     /** If no value, will be empty string */
     agentMode?: AgentMode;
     deepInvestigationEnabled?: boolean;
+    handlingAgent?: string;
     owningTeamId?: string; // only for IcM
     createdBy?: string; // only for IcM
     monitorId?: string; // only for IcM

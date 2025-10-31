@@ -138,22 +138,27 @@ export const useExtendedAgentGraph = () => {
                 }
 
                 if (Array.isArray(incidentHandlers)) {
-                    const incidentTriggers: ExtendedTrigger[] = incidentHandlers.map((handler: any) => ({
-                        name: handler.name || handler.id,
-                        description: handler.description || 'Incident response handler',
-                        type: 'incident' as const,
-                        agentName: filterAgentMap.get(handler.incidentFilterId) || handler.agentName, // Get agent from filter
-                        status: handler.enabled ? 'Active' : 'Disabled',
-                        priority: handler.priority || 'Sev2',
-                        incidentType: handler.incidentType || 'ServiceIssue',
-                        service: handler.service,
-                        severity: handler.severity,
-                        enabled: handler.enabled !== false,
-                        createdAt: handler.createdAt || new Date().toISOString(),
-                    }));
+                    const incidentTriggers: ExtendedTrigger[] = incidentHandlers.map((handler: any) => {
+                        const filter = filters.find(f => f.id === handler.incidentFilterId);
+                        return {
+                            name: handler.name || handler.id,
+                            description: handler.description || 'Incident response handler',
+                            type: 'incident' as const,
+                            agentName: filterAgentMap.get(handler.incidentFilterId) || handler.agentName, // Get agent from filter
+                            status: filter?.enabled ? 'Active' : 'Disabled',
+                            priority: filter?.priority || '-',
+                            incidentType: filter?.incidentType || 'ServiceIssue',
+                            service: filter?.impactedService || '-',
+                            severity: filter?.priority || '-',
+                            enabled: !!filter?.isEnabled,
+                            createdAt: handler.createdAt || new Date().toISOString(),
+                        };
+                    });
                     allTriggers.push(...incidentTriggers);
                 }
-            } // Process scheduled tasks
+            }
+
+            // Process scheduled tasks
             if (scheduledResponse.status === 'fulfilled' && scheduledResponse.value.ok) {
                 const scheduledTasks = await scheduledResponse.value.json();
                 if (Array.isArray(scheduledTasks)) {

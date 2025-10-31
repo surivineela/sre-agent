@@ -151,6 +151,8 @@ export type ExtendedAgentGraphEdge = {
     relationType: ExtendedAgentRelationType;
 };
 
+export type AgentQuickAction = 'addIncidentTrigger' | 'addHandoff' | 'addTool' | 'createAgent' | 'createTool';
+
 // Graph Context
 interface ExtendedAgentGraphContextProps {
     selectedNode?: ExtendedAgentGraphNode;
@@ -161,7 +163,7 @@ interface ExtendedAgentGraphContextProps {
     nodesToHighlight: string[];
     edgesToHighlight: string[];
     openRelationshipDialog?: (agentName: string) => void;
-    triggerAgentQuickAction?: (agentName: string, action: 'addHandoff' | 'addTool' | 'createAgent' | 'createTool') => void;
+    triggerAgentQuickAction?: (agentName: string, action: AgentQuickAction) => void;
 }
 
 export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContextProps>({

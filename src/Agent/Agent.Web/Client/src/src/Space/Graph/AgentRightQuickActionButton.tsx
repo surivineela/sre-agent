@@ -17,11 +17,11 @@ import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgent, ExtendedAgentGraphContext } from '../Contracts/ExtendedAgentGraph';
 import { useExtendedAgentGraphStyles, useExtendedAgentNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { EntityIcon } from './EntityIcon';
-export interface QuickActionButtonProps {
+export interface AgentRightQuickActionButtonProps {
     agent: ExtendedAgent;
 }
 
-export const QuickActionButton: React.FC<QuickActionButtonProps> = ({ agent }) => {
+export const AgentRightQuickActionButton: React.FC<AgentRightQuickActionButtonProps> = ({ agent }) => {
     const intl = useIntl();
     const { quickActionButton, menuPopover } = useExtendedAgentNodeStyles();
     const { contextMenuItemWithIcon } = useExtendedAgentGraphStyles();
@@ -37,7 +37,7 @@ export const QuickActionButton: React.FC<QuickActionButtonProps> = ({ agent }) =
     };
 
     return (
-        <Menu positioning="above-end">
+        <Menu positioning="after-top">
             <MenuTrigger disableButtonEnhancement>
                 <Tooltip
                     content={intl.formatMessage(ExtendedAgentsGraphResources.relationshipQuickActionTooltip)}
@@ -58,7 +58,6 @@ export const QuickActionButton: React.FC<QuickActionButtonProps> = ({ agent }) =
                     <MenuList>
                         <MenuGroup>
                             <MenuGroupHeader>{intl.formatMessage(ExtendedAgentsGraphResources.tool)}</MenuGroupHeader>
-
                             <MenuItem
                                 className={contextMenuItemWithIcon}
                                 icon={<EntityIcon type="tool" shorthandStyle={iconSizeProp} />}

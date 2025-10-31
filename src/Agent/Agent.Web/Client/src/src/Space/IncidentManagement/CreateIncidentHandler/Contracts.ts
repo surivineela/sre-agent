@@ -41,6 +41,10 @@ export interface HandlerCreateOrEditInfo {
     filter?: IncidentFilter;
     handlerId?: string;
     quickEdit?: boolean;
+    subAgentTriggerInfo?: {
+        preSelectedAgent?: string;
+        agents: string[];
+    };
 }
 
 export enum IncidentManagementMenuKeys {

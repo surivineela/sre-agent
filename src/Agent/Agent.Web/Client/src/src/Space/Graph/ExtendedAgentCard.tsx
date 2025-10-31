@@ -6,8 +6,9 @@ import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgent, ExtendedAgentGraphContext, ExtendedAgentGraphNode } from '../Contracts/ExtendedAgentGraph';
 import { useExtendedAgentNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
+import { AgentLeftQuickActionButton } from './AgentLeftQuickActionButton';
+import { AgentRightQuickActionButton } from './AgentRightQuickActionButton';
 import { EntityIcon } from './EntityIcon';
-import { QuickActionButton } from './QuickActionButton';
 import { getHandleId } from './Utility';
 
 type HandlePosition = 'T' | 'B' | 'L' | 'R';
@@ -76,6 +77,7 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
 
     return (
         <div className={cardWrapper}>
+            {agent?.name && <AgentLeftQuickActionButton agent={agent} />}
             <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
                 <Handles />
                 <Card onClick={() => setSelectedNode(data)} className={cardStyles}>
@@ -104,7 +106,7 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
                     </div>
                 </Card>
             </div>
-            {agent?.name && <QuickActionButton agent={agent} />}
+            {agent?.name && <AgentRightQuickActionButton agent={agent} />}
         </div>
     );
 };

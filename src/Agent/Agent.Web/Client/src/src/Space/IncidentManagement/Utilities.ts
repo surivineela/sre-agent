@@ -28,6 +28,7 @@ export const getFilterValues = (
         owningTeamId: values.owningTeamId,
         createdBy: values.createdBy,
         monitorId: values.monitorId,
+        handlingAgent: values.handlingAgent,
     };
 
     if (replaceAllKey) {

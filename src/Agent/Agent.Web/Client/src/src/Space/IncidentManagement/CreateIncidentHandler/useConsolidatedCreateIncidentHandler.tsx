@@ -17,7 +17,11 @@ import {
 import { AgentMode, IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
-import { IncidentHandlerCreateResources, IncidentManagementNotificationResources } from '../../../Strings/SREAgentResources';
+import {
+    ExtendedAgentsGraphResources,
+    IncidentHandlerCreateResources,
+    IncidentManagementNotificationResources,
+} from '../../../Strings/SREAgentResources';
 import { SreAgentContext } from '../../Contracts/Context';
 import { getFilterValues } from '../Utilities';
 import { FilterMode, HandlerCreateOrEditInfo, HandlerMode, OperationStatus, TimeDuration } from './Contracts';
@@ -114,11 +118,19 @@ export const useConsolidatedCreateIncidentHandler = (
     const [handlerLoading, setHandlerLoading] = useState<boolean>(true);
     const [handlerLoaded, setHandlerLoaded] = useState<boolean>(false);
 
+    const isSubagentTrigger = useMemo(() => !!handlerCreateOrEditInfo?.subAgentTriggerInfo, [handlerCreateOrEditInfo?.subAgentTriggerInfo]);
+    const subAgentNames = useMemo(
+        () => handlerCreateOrEditInfo?.subAgentTriggerInfo?.agents || [],
+        [handlerCreateOrEditInfo?.subAgentTriggerInfo?.agents]
+    );
+
     const filterMode = useMemo<FilterMode>(() => (handlerCreateOrEditInfo.filter ? 'edit' : 'create'), [handlerCreateOrEditInfo.filter]);
     const [handlerMode, setHandlerMode] = useState<HandlerMode>(
         !handlerCreateOrEditInfo.handlerId ? 'create' : handlerCreateOrEditInfo.quickEdit ? 'quickEdit' : 'edit'
     );
-    const [currentStep, setCurrentStep] = useState<IncidentHandlerCreateSteps>(IncidentHandlerCreateSteps.FilterStep);
+    const [currentStep, setCurrentStep] = useState<IncidentHandlerCreateSteps>(
+        isSubagentTrigger ? IncidentHandlerCreateSteps.IncidentTriggerStep : IncidentHandlerCreateSteps.FilterStep
+    );
 
     const { values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
 
@@ -454,7 +466,7 @@ export const useConsolidatedCreateIncidentHandler = (
         }
 
         const handlerPayload: IncidentHandler = {
-            id: handlerCreateOrEditInfo?.handlerId || `${values.filterName || ''}-custom-handler`,
+            id: handlerCreateOrEditInfo?.handlerId || values.filterName || Guid.newShortGuid(),
             name: '',
             description: '',
             incidentFilterId: values.filterName || '',
@@ -525,6 +537,7 @@ export const useConsolidatedCreateIncidentHandler = (
         setHandlerOperationStatus,
 
         handlerCreateOrEditInfo,
+        handlerCreateOrEditInfo?.filter,
         handler,
         incidentPlatformType,
         values.filterName,
@@ -536,6 +549,7 @@ export const useConsolidatedCreateIncidentHandler = (
         values.owningTeamId,
         values.createdBy,
         values.monitorId,
+        values.handlingAgent,
 
         values.incidentIds,
         values.customInstructions,
@@ -861,7 +875,7 @@ export const useConsolidatedCreateIncidentHandler = (
 
     useEffect(() => {
         setInitialValues(currentValue => {
-            return {
+            const newValue = {
                 ...currentValue,
                 filterName: handlerCreateOrEditInfo.filter?.id || '',
                 incidentType: handlerCreateOrEditInfo.filter?.incidentType,
@@ -873,11 +887,23 @@ export const useConsolidatedCreateIncidentHandler = (
                 owningTeamId: handlerCreateOrEditInfo.filter?.owningTeamId || '',
                 createdBy: handlerCreateOrEditInfo.filter?.createdBy || '',
                 monitorId: handlerCreateOrEditInfo.filter?.monitorId || '',
-                useCustomHandler: !!handlerCreateOrEditInfo.handlerId,
+                handlingAgent:
+                    handlerCreateOrEditInfo.filter?.handlingAgent || handlerCreateOrEditInfo.subAgentTriggerInfo?.preSelectedAgent,
+                useCustomHandler: !!handlerCreateOrEditInfo.handlerId || isSubagentTrigger,
             };
+
+            if (newValue.handlingAgent && !handlerCreateOrEditInfo.handlerId) {
+                newValue.incidentProcessingGuide = intl.formatMessage(ExtendedAgentsGraphResources.triggerIncidentDefaultInstructions, {
+                    agentName: newValue.handlingAgent,
+                });
+            }
+
+            return newValue;
         });
     }, [
+        intl,
         setInitialValues,
+        isSubagentTrigger,
         handlerCreateOrEditInfo.filter?.id,
         handlerCreateOrEditInfo.filter?.incidentType,
         handlerCreateOrEditInfo.filter?.impactedService,
@@ -887,7 +913,9 @@ export const useConsolidatedCreateIncidentHandler = (
         handlerCreateOrEditInfo.filter?.createdBy,
         handlerCreateOrEditInfo.filter?.monitorId,
         handlerCreateOrEditInfo.filter?.agentMode,
+        handlerCreateOrEditInfo.filter?.handlingAgent,
         handlerCreateOrEditInfo.handlerId,
+        handlerCreateOrEditInfo.subAgentTriggerInfo?.preSelectedAgent,
     ]);
 
     return {
@@ -899,6 +927,8 @@ export const useConsolidatedCreateIncidentHandler = (
         setCurrentStep,
         generateInstructionsStepSkipped,
         setGenerateInstructionsStepSkipped,
+        isSubagentTrigger,
+        subAgentNames,
         filterMode,
         handlerMode,
         loadingIncidents,

@@ -5,6 +5,7 @@ import { FilterMode, HandlerMode, TimeDuration } from './Contracts';
 
 export enum IncidentHandlerCreateSteps {
     FilterStep = 'FilterStep',
+    IncidentTriggerStep = 'IncidentTriggerStep',
     PreviewIncidentsStep = 'PreviewIncidentsStep',
     IncidentsAndGuidanceStep = 'IncidentsAndGuidanceStep',
     ReviewAndTestStep = 'ReviewAndTestStep',
@@ -59,6 +60,8 @@ export interface IncidentHandlerConsolidatedCreateMetadata {
     deleteHandler: () => void;
     exportHandler: () => void;
     saveHandler: () => Promise<void>;
+    isSubagentTrigger?: boolean;
+    subAgentNames?: string[];
     filterMode: FilterMode | undefined;
     handlerMode: HandlerMode | undefined;
     handlerLoaded: boolean;
@@ -98,6 +101,8 @@ export const IncidentHandlerConsolidatedCreateContext = React.createContext<Inci
     deleteHandler: () => {},
     exportHandler: () => {},
     saveHandler: () => Promise.resolve(),
+    isSubagentTrigger: undefined,
+    subAgentNames: undefined,
     filterMode: undefined,
     handlerMode: undefined,
     handlerLoaded: false,

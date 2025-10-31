@@ -2,7 +2,11 @@ import { Formik, FormikErrors, useFormikContext } from 'formik';
 import { FC, useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
-import { IncidentHandlerCreateResources, IncidentManagementResources } from '../../../Strings/SREAgentResources';
+import {
+    ExtendedAgentsGraphResources,
+    IncidentHandlerCreateResources,
+    IncidentManagementResources,
+} from '../../../Strings/SREAgentResources';
 import { useIncidentFilterFields } from '../../Hooks/useIncidentFilterFields';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import BreadcrumbNavigation from '../Common/BreadcrumbNavigation';
@@ -34,14 +38,22 @@ const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props 
         owningTeamId: handlerCreateOrEditInfo?.filter?.owningTeamId || undefined,
         createdBy: handlerCreateOrEditInfo?.filter?.createdBy || undefined,
         monitorId: handlerCreateOrEditInfo?.filter?.monitorId || undefined,
+        handlingAgent: handlerCreateOrEditInfo?.filter?.handlingAgent || handlerCreateOrEditInfo?.subAgentTriggerInfo?.preSelectedAgent,
 
         incidentIds: undefined,
         customInstructions: undefined,
         toolNames: undefined,
-        incidentProcessingGuide: undefined,
+        incidentProcessingGuide:
+            (handlerCreateOrEditInfo.filter?.handlingAgent || handlerCreateOrEditInfo.subAgentTriggerInfo?.preSelectedAgent) &&
+            !handlerCreateOrEditInfo?.handlerId
+                ? intl.formatMessage(ExtendedAgentsGraphResources.triggerIncidentDefaultInstructions, {
+                      agentName:
+                          handlerCreateOrEditInfo.filter?.handlingAgent || handlerCreateOrEditInfo.subAgentTriggerInfo?.preSelectedAgent,
+                  })
+                : undefined,
 
-        useCustomHandler: false,
-        deepInvestigationEnabled: false,
+        useCustomHandler: !!handlerCreateOrEditInfo.handlerId || !!handlerCreateOrEditInfo?.subAgentTriggerInfo,
+        deepInvestigationEnabled: handlerCreateOrEditInfo?.filter?.deepInvestigationEnabled || false,
         includePastIncidents: false,
     });
 
@@ -107,6 +119,10 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
             </div>
         );
     }, [dirty, incidentHandlerCreateMetadata, incidentTypeOptions, impactedServiceOptions, priorityOptions, handlerMode, styles]);
+
+    if (incidentHandlerCreateMetadata.isSubagentTrigger) {
+        return innerComponent;
+    }
 
     return filterMode === 'create' ? (
         <BreadcrumbNavigation
