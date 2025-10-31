@@ -4,6 +4,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Data.Json;
 using Agent.Data.Repositories;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
@@ -37,10 +38,7 @@ public static class AgentDataConfiguration
 
             var cosmosOptions = new CosmosClientOptions
             {
-                SerializerOptions = new CosmosSerializationOptions
-                {
-                    PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
-                }
+                Serializer = new CosmosSystemTextJsonSerializer(),
             };
 
             var authService = serviceProvider.GetRequiredService<IAuthenticationService>();

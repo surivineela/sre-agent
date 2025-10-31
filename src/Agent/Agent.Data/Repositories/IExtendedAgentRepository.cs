@@ -8,9 +8,7 @@ namespace Agent.Core.Interfaces;
 
 public interface IExtendedAgentRepository
 {
-    Task<AgentDocumentModel> CreateAgentAsync(AgentDocumentModel agent, string operationId);
-
-    Task<AgentDocumentModel> UpdateAgentAsync(AgentDocumentModel agent, string operationId);
+    Task<AgentDocumentModel> UpsertAgentAsync(AgentDocumentModel agent, string operationId);
 
     Task<AgentDocumentModel?> GetAgentByNameAsync(string name);
 
@@ -18,13 +16,11 @@ public interface IExtendedAgentRepository
 
     Task<bool> DeleteAgentAsync(string name);
 
-    Task<ToolDocumentModel> CreateToolAsync(ToolDocumentModel tool, string operationId);
+    Task<ToolDocumentModel> UpsertToolAsync(ToolDocumentModel tool, string operationId);
 
-    Task<ToolDocumentModel> UpdateToolAsync(ToolDocumentModel tool, string operationId);
+    Task<CommonPromptDocumentModel> UpsertCommonPromptAsync(CommonPromptDocumentModel prompt, string operationId);
 
-    Task<CommonPromptDocumentModel> UpdateCommonPromptAsync(CommonPromptDocumentModel prompt, string operationId);
-
-    Task<CommonToolsListDocumentModel> UpdateCommonToolsListAsync(CommonToolsListDocumentModel toolsList, string operationId);
+    Task<CommonToolsListDocumentModel> UpsertCommonToolsListAsync(CommonToolsListDocumentModel toolsList, string operationId);
 
     Task<ToolDocumentModel?> GetToolByNameAsync(string name);
 
@@ -32,11 +28,9 @@ public interface IExtendedAgentRepository
 
     Task<bool> DeleteToolAsync(string name);
 
-    Task<PlugInConfigDocumentModel> UpdatePluginConfigAsync(PlugInConfigDocumentModel config);
+    Task<PlugInConfigDocumentModel> UpsertPluginConfigAsync(PlugInConfigDocumentModel config);
 
-    Task<ConnectorDocumentModel> CreateConnectorAsync(ConnectorDocumentModel connector, string operationId);
-
-    Task<ConnectorDocumentModel> UpdateConnectorAsync(ConnectorDocumentModel connector, string operationId);
+    Task<ConnectorDocumentModel> UpsertConnectorAsync(ConnectorDocumentModel connector, string operationId);
 
     Task<ConnectorDocumentModel?> GetConnectorByNameAsync(string name);
 

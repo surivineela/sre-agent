@@ -35,8 +35,7 @@ public class ExtensibilityLoader : IExtensibilityLoader
             {
                 try
                 {
-                    var concreteToolsList = DocumentToRuntimeMapper.ToRuntimeToolsList(toolsList);
-                    loadedCommonToolsLists.Add(concreteToolsList);
+                    loadedCommonToolsLists.Add(toolsList.ToRuntimeToolsList());
                 }
                 catch (Exception ex)
                 {
@@ -64,8 +63,7 @@ public class ExtensibilityLoader : IExtensibilityLoader
             {
                 try
                 {
-                    var concretePrompt = DocumentToRuntimeMapper.ToRuntimePrompt(prompt);
-                    loadedCommonPrompts.Add(concretePrompt);
+                    loadedCommonPrompts.Add(prompt.ToYamlPromptDescriptor());
                 }
                 catch (Exception ex)
                 {
@@ -106,9 +104,7 @@ public class ExtensibilityLoader : IExtensibilityLoader
                 {
                     try
                     {
-                        var concretetool = DocumentToRuntimeMapper.ToRuntimeTool(extendedTool);
-
-                        loadedExtendedTools.Add(concretetool);
+                        loadedExtendedTools.Add(extendedTool.ToYamlToolDefinition());
                     }
                     catch (Exception ex)
                     {
@@ -144,8 +140,7 @@ public class ExtensibilityLoader : IExtensibilityLoader
             {
                 try
                 {
-                    var concreteAgent = DocumentToRuntimeMapper.ToRuntimeAgent(extendedAgent);
-                    loadedExtendedAgents.Add(concreteAgent);
+                    loadedExtendedAgents.Add(extendedAgent.ToYamlAgentDescriptor());
                 }
                 catch (Exception ex)
                 {

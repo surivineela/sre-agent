@@ -8,39 +8,36 @@ using Agent.Framework;
 namespace Agent.Data.DataModels;
 
 /// <summary>
-/// Cosmos DB document for Extended Agent Tool storage
+/// Cosmos DB document for storing a list of common tool names.
 /// </summary>
-[CustomizedJsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-[CustomizedJsonDerivedType(typeof(KustoConnectorDocumentModel), KustoConnectorType)]
-public record ConnectorDocumentModel(
+public record CommonToolsListDocumentModel(
     ResourceMetadata Metadata,
-    ConnectorSpec Spec
+    CommonToolListSpec Spec
 ) : ICosmosDocument
 {
-    public const string KustoConnectorType = "Kusto";
     public string Id => Metadata.Id ?? Spec.Name;
-    public string DocumentType => "ExtendedAgentConnector";
+    public string DocumentType => "CommonToolsList";
     public string PartitionKey => Spec.Name;
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
     [JsonIgnore]
     public string Name => Spec.Name;
 
-    public string Type => Spec.Type;
+    #region Conversion between runtime and data model
+    public YamlCommonToolsDescriptor ToRuntimeToolsList() => new YamlCommonToolsDescriptor
+    {
+        Name = Name,
+        Tools = Spec.CommonToolsList,
+    };
+    #endregion
 }
 
 /// <summary>
-/// Spec fields for connector documents
+/// Spec fields for common tool list documents
 /// </summary>
-public class ConnectorSpec
+public class CommonToolListSpec
 {
     public string Name { get; set; } = string.Empty;
 
-    public string Type { get; set; } = string.Empty;
-
-    public string Description { get; set; } = string.Empty;
-
-    public ConnectorAuthSettings? Auth { get; set; }
-
-    public bool Enabled { get; set; } = true;
+    public List<string> CommonToolsList { get; set; } = new();
 }

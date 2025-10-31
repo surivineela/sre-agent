@@ -4,6 +4,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
@@ -99,57 +100,61 @@ public class ResourceDeploymentService : IResourceDeploymentService
             var existingAgent = await _repository.GetAgentByNameAsync(agentName);
 
             // Update metadata with timestamps
-            var metadata = spec.Metadata ?? new YamlMetadata();
-            metadata.UpdatedAt = currentTime;
+            var yamlMetadata = spec.Metadata ?? new YamlMetadata();
+            yamlMetadata.UpdatedAt = currentTime;
 
             // Only set CreatedAt if this is a new agent
             if (existingAgent == null)
             {
-                metadata.CreatedAt = currentTime;
+                yamlMetadata.CreatedAt = currentTime;
             }
             else
             {
                 // Preserve existing CreatedAt timestamp
-                metadata.CreatedAt = existingAgent.Metadata?.CreatedAt ?? currentTime;
+                yamlMetadata.CreatedAt = existingAgent.Metadata?.CreatedAt ?? currentTime;
             }
 
             // Map agent
-            var agentDoc = new AgentDocumentModel(
-                Name: agentName,
-                Id: agentName,
-                Instructions: agentSpec.Instructions ?? string.Empty,
-                HandoffDescription: agentSpec.HandoffDescription,
-                Handoffs: agentSpec.Handoffs,
-                Tools: agentSpec.Tools,
-                McpTools: agentSpec.McpTools,
-                Connectors: agentSpec.Connectors,
-                AllowParallelToolCalls: agentSpec.AllowParallelToolCalls,
-                AgentsAsTools: agentSpec.AgentsAsTools,
-                MaxReflectionCount: agentSpec.MaxReflectionCount,
-                CriticPromptPath: agentSpec.CriticPromptPath,
-                CriticOnHandOff: agentSpec.CriticOnHandOff,
-                CustomReflectionNote: agentSpec.CustomReflectionNote,
-                CommonPrompts: agentSpec.CommonPrompts,
-                CommonTools: agentSpec.CommonTools,
-                DisableDocumentRetrieval: agentSpec.DisableDocumentRetrieval,
-                EnableHandoffPromptOverride: agentSpec.EnableHandoffPromptOverride,
-                HandoffPromptOverride: agentSpec.HandoffPromptOverride,
-                UserPromptOverride: agentSpec.UserPromptOverride,
-                InstructionsOverride: agentSpec.InstructionsOverride,
-                Temperature: agentSpec.Temperature,
+            var agentSpecModel = new AgentSpec
+            {
+                Name = agentName,
+                Instructions = agentSpec.Instructions ?? string.Empty,
+                HandoffDescription = agentSpec.HandoffDescription,
+                Handoffs = agentSpec.Handoffs,
+                Tools = agentSpec.Tools,
+                McpTools = agentSpec.McpTools,
+                Connectors = agentSpec.Connectors,
+                AllowParallelToolCalls = agentSpec.AllowParallelToolCalls,
+                AgentsAsTools = agentSpec.AgentsAsTools,
+                MaxReflectionCount = agentSpec.MaxReflectionCount,
+                CriticPromptPath = agentSpec.CriticPromptPath,
+                CriticOnHandOff = agentSpec.CriticOnHandOff,
+                CustomReflectionNote = agentSpec.CustomReflectionNote,
+                CommonPrompts = agentSpec.CommonPrompts,
+                CommonTools = agentSpec.CommonTools,
+                DisableDocumentRetrieval = agentSpec.DisableDocumentRetrieval,
+                EnableHandoffPromptOverride = agentSpec.EnableHandoffPromptOverride,
+                HandoffPromptOverride = agentSpec.HandoffPromptOverride,
+                UserPromptOverride = agentSpec.UserPromptOverride,
+                InstructionsOverride = agentSpec.InstructionsOverride,
+                Temperature = agentSpec.Temperature,
                 // Workflow agent properties
-                AgentType: agentSpec.AgentType,
-                ParameterExtractionAgent: agentSpec.ParameterExtractionAgent,
-                OrchestrationStartAgents: agentSpec.OrchestrationStartAgents,
-                ResultSummarizationPrompt: agentSpec.ResultSummarizationPrompt,
-                NextAgentMappings: agentSpec.NextAgentMappings,
-                OutputType: agentSpec.OutputType,
+                AgentType = agentSpec.AgentType,
+                ParameterExtractionAgent = agentSpec.ParameterExtractionAgent,
+                OrchestrationStartAgents = agentSpec.OrchestrationStartAgents,
+                ResultSummarizationPrompt = agentSpec.ResultSummarizationPrompt,
+                NextAgentMappings = agentSpec.NextAgentMappings,
+                OutputType = agentSpec.OutputType
+            };
+
+            var metadata = ResourceMetadata.FromYamlMetadata(yamlMetadata, agentName, operationId);
+            var agentDoc = new AgentDocumentModel(
                 Metadata: metadata,
-                OperationId: operationId
+                Spec: agentSpecModel
             );
 
             // Persist agent to Cosmos (tools and connectors are already referenced by name in the agent document)
-            await _repository.UpdateAgentAsync(agentDoc, operationId);
+            await _repository.UpsertAgentAsync(agentDoc, operationId);
             await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
             var result = new ExtendedAgentApply
             {
@@ -183,7 +188,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
 
 
         foreach (var connector in connectorDocs)
-            await _repository.UpdateConnectorAsync(connector, operationId);
+            await _repository.UpsertConnectorAsync(connector, operationId);
 
         await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
         var result = new ExtendedAgentApply
@@ -213,7 +218,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
             return new BadRequestObjectResult("No tools provided in the deployment model.");
         }
         foreach (var tool in toolDocs)
-            await _repository.UpdateToolAsync(tool, operationId);
+            await _repository.UpsertToolAsync(tool, operationId);
 
         await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
         var result = new ExtendedAgentApply
@@ -243,7 +248,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
             return new BadRequestObjectResult("No prompt provided in the deployment model.");
         }
         foreach (var toolList in commonTools)
-            await _repository.UpdateCommonToolsListAsync(toolList, operationId);
+            await _repository.UpsertCommonToolsListAsync(toolList, operationId);
 
         await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
         var result = new ExtendedAgentApply
@@ -273,7 +278,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
             return new BadRequestObjectResult("No prompt provided in the deployment model.");
         }
         foreach (var prompt in commonPrompt)
-            await _repository.UpdateCommonPromptAsync(prompt, operationId);
+            await _repository.UpsertCommonPromptAsync(prompt, operationId);
 
         await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
         var result = new ExtendedAgentApply
@@ -313,7 +318,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
 
             // Step 3: Convert to document and persist
             var document = ApiToRuntimeMapper.ToDocumentConfig(pluginConfig, operationId);
-            await _repository.UpdatePluginConfigAsync(document);
+            await _repository.UpsertPluginConfigAsync(document);
 
 
             return new OkObjectResult(new { message = $"Plugin configuration applied for '{pluginName}'." });

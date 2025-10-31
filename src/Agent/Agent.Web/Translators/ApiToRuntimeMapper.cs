@@ -6,8 +6,8 @@ using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Data.Tools;
 using Agent.Plugins.Connector;
-using Agent.Plugins.Tools;
 using Agent.Web.Models.ExtendedAgents;
+using Agent.Framework.Models;
 
 namespace Agent.Web.Services;
 
@@ -109,132 +109,187 @@ public static class ApiToRuntimeMapper
     public static ToolDocumentModel ToDocumentTool(ExtendedAgentToolApiModel tool, string operationId) => tool switch
     {
         KustoToolApiModel k => new KustoToolDocumentModel(
-            id: $"tool_{k.Name}",
-            name: k.Name,
-            type: k.Type,
-            connector: k.Connector,
-            description: k.Description,
-            parameters: k.Parameters,
-            attributes: k.Attributes,
-            metadata: k.Metadata,
-
-            operationId: operationId)
-        {
-            Mode = k.Mode,
-            Function = k.Function,
-            Query = k.Query,
-            File = k.File,
-            Database = k.Database,
-            ClusterHint = k.ClusterHint,
-            RegionalClusterGroups = k.RegionalClusterGroups
-        },
+            new ResourceMetadata
+            {
+                Id = $"tool_{k.Name}",
+                OperationId = operationId,
+                Owner = k.Metadata?.Owner,
+                Version = k.Metadata?.Version,
+                Tags = k.Metadata?.Tags,
+                UpdatedAt = k.Metadata?.UpdatedAt,
+                CreatedAt = k.Metadata?.CreatedAt
+            },
+            new KustoToolSpec
+            {
+                Name = k.Name,
+                Type = k.Type,
+                Connector = k.Connector,
+                Description = k.Description,
+                Parameters = k.Parameters,
+                Attributes = k.Attributes,
+                Mode = k.Mode,
+                Function = k.Function,
+                Query = k.Query,
+                File = k.File,
+                Database = k.Database,
+                ClusterHint = k.ClusterHint,
+                RegionalClusterGroups = k.RegionalClusterGroups
+            }),
         LinkToolApiModel link => new LinkToolDocumentModel(
-            id: $"tool_{link.Name}",
-            name: link.Name,
-            type: link.Type,
-            connector: link.Connector,
-            description: link.Description,
-            parameters: link.Parameters,
-            attributes: link.Attributes,
-            metadata: link.Metadata,
-
-            operationId: operationId)
-        {
-            Template = link.Template,
-        },
+            new ResourceMetadata
+            {
+                Id = $"tool_{link.Name}",
+                OperationId = operationId,
+                Owner = link.Metadata?.Owner,
+                Version = link.Metadata?.Version,
+                Tags = link.Metadata?.Tags,
+                UpdatedAt = link.Metadata?.UpdatedAt,
+                CreatedAt = link.Metadata?.CreatedAt
+            },
+            new LinkToolSpec
+            {
+                Name = link.Name,
+                Type = link.Type,
+                Connector = link.Connector,
+                Description = link.Description,
+                Parameters = link.Parameters,
+                Attributes = link.Attributes,
+                Template = link.Template
+            }),
         _ => throw new NotSupportedException($"Unknown tool type for document model: {tool.Type}")
     };
 
     public static CommonPromptDocumentModel ToCommonPromptTool(ExtendedAgentCommonPromptApiModel prompt, string operationId)
     {
-        {
-            return new CommonPromptDocumentModel(
-                  Id: $"commonprompt_{prompt.Name}",
-                  Name: prompt.Name,
-                  Prompt: prompt.Prompt,
-                  Metadata: prompt.Metadata,
-                  OperationId: operationId);
-        }
-        ;
+        return new CommonPromptDocumentModel(
+            new ResourceMetadata
+            {
+                Id = $"commonprompt_{prompt.Name}",
+                OperationId = operationId,
+                Owner = prompt.Metadata?.Owner,
+                Version = prompt.Metadata?.Version,
+                Tags = prompt.Metadata?.Tags,
+                UpdatedAt = prompt.Metadata?.UpdatedAt,
+                CreatedAt = prompt.Metadata?.CreatedAt
+            },
+            new CommonPromptSpec
+            {
+                Name = prompt.Name,
+                Prompt = prompt.Prompt
+            });
     }
 
     public static CommonToolsListDocumentModel ToCommonToolsList(ExtendedAgentCommonToolsListApiModel commonToolsList, string operationId)
     {
-        {
-            return new CommonToolsListDocumentModel(
-                  Id: $"commontoolslist_{commonToolsList.Name}",
-                  Name: commonToolsList.Name,
-                  CommonToolsList: commonToolsList.Tools,
-                  Metadata: commonToolsList.Metadata,
-                  OperationId: operationId);
-        }
-        ;
+        return new CommonToolsListDocumentModel(
+            new ResourceMetadata
+            {
+                Id = $"commontoolslist_{commonToolsList.Name}",
+                OperationId = operationId,
+                Owner = commonToolsList.Metadata?.Owner,
+                Version = commonToolsList.Metadata?.Version,
+                Tags = commonToolsList.Metadata?.Tags,
+                UpdatedAt = commonToolsList.Metadata?.UpdatedAt,
+                CreatedAt = commonToolsList.Metadata?.CreatedAt
+            },
+            new CommonToolListSpec
+            {
+                Name = commonToolsList.Name,
+                CommonToolsList = commonToolsList.Tools
+            });
     }
 
     public static ConnectorDocumentModel ToDocumentConnector(ExtendedAgentConnectorApiModel connector, string operationId) => connector switch
     {
         KustoConnectorApiModel k => new KustoConnectorDocumentModel(
-            id: $"connector_{k.Name}",
-            name: k.Name,
-            type: k.Type,
-            metadata: k.Metadata,
-            description: k.Description ?? string.Empty,
-            auth: k.Auth,
-            enabled: k.Enabled,
-            operationId: operationId)
-        {
-            ClusterUrl = k.ClusterUri,
-            Database = k.Database,
-            ClusterHint = k.ClusterHint,
-            RegionalClusterGroups = k.RegionalClusterGroups
-        },
+            new ResourceMetadata
+            {
+                Id = $"connector_{k.Name}",
+                OperationId = operationId,
+                Owner = k.Metadata?.Owner,
+                Version = k.Metadata?.Version,
+                Tags = k.Metadata?.Tags,
+                UpdatedAt = k.Metadata?.UpdatedAt,
+                CreatedAt = k.Metadata?.CreatedAt
+            },
+            new KustoConnectorSpec
+            {
+                Name = k.Name,
+                Type = k.Type,
+                Description = k.Description ?? string.Empty,
+                Auth = k.Auth,
+                Enabled = k.Enabled,
+                ClusterUrl = k.ClusterUri,
+                Database = k.Database,
+                ClusterHint = k.ClusterHint,
+                RegionalClusterGroups = k.RegionalClusterGroups
+            }),
         _ => throw new NotSupportedException($"Unknown connector type for document model: {connector.Type}")
     };
 
     public static AgentDocumentModel ToDocumentAgent(ExtendedAgentApiModel api, string operationId)
     {
-        return new AgentDocumentModel(
-            Id: $"agent_{api.Name}",
-            Name: api.Name,
-            Instructions: api.Instructions,
-            HandoffDescription: api.HandoffDescription,
-            Handoffs: api.Handoffs,
-            Tools: api.Tools,
-            McpTools: api.McpTools,
-            Connectors: api.Connectors,
-            AllowParallelToolCalls: api.AllowParallelToolCalls,
-            AgentsAsTools: api.AgentsAsTools,
-            MaxReflectionCount: api.MaxReflectionCount,
-            CriticPromptPath: api.CriticPromptPath,
-            CriticOnHandOff: api.CriticOnHandOff,
-            CustomReflectionNote: api.CustomReflectionNote,
-            CommonPrompts: api.CommonPrompts,
-
-            CommonTools: api.CommonTools,
-            DisableDocumentRetrieval: api.DisableDocumentRetrieval,
-            EnableHandoffPromptOverride: api.EnableHandoffPromptOverride,
-            UserPromptOverride: api.UserPromptOverride,
-            HandoffPromptOverride: api.HandoffPromptOverride,
-            InstructionsOverride: api.InstructionsOverride,
-            Temperature: api.Temperature,
+        var spec = new AgentSpec
+        {
+            Name = api.Name,
+            Instructions = api.Instructions,
+            HandoffDescription = api.HandoffDescription,
+            Handoffs = api.Handoffs,
+            Tools = api.Tools,
+            McpTools = api.McpTools,
+            Connectors = api.Connectors,
+            AllowParallelToolCalls = api.AllowParallelToolCalls,
+            AgentsAsTools = api.AgentsAsTools,
+            MaxReflectionCount = api.MaxReflectionCount,
+            CriticPromptPath = api.CriticPromptPath,
+            CriticOnHandOff = api.CriticOnHandOff,
+            CustomReflectionNote = api.CustomReflectionNote,
+            CommonPrompts = api.CommonPrompts,
+            CommonTools = api.CommonTools,
+            DisableDocumentRetrieval = api.DisableDocumentRetrieval,
+            EnableHandoffPromptOverride = api.EnableHandoffPromptOverride,
+            UserPromptOverride = api.UserPromptOverride,
+            HandoffPromptOverride = api.HandoffPromptOverride,
+            InstructionsOverride = api.InstructionsOverride,
+            Temperature = api.Temperature,
             // Workflow agent properties
-            AgentType: api.AgentType,
-            ParameterExtractionAgent: api.ParameterExtractionAgent,
-            OrchestrationStartAgents: api.OrchestrationStartAgents,
-            ResultSummarizationPrompt: api.ResultSummarizationPrompt,
-            NextAgentMappings: api.NextAgentMappings,
-            OutputType: api.OutputType,
-            Metadata: api.Metadata,
-            OperationId: operationId);
+            AgentType = api.AgentType,
+            ParameterExtractionAgent = api.ParameterExtractionAgent,
+            OrchestrationStartAgents = api.OrchestrationStartAgents,
+            ResultSummarizationPrompt = api.ResultSummarizationPrompt,
+            NextAgentMappings = api.NextAgentMappings,
+            OutputType = api.OutputType
+        };
+
+        var metadata = ResourceMetadata.FromYamlMetadata(api.Metadata, $"agent_{api.Name}", operationId);
+
+        return new AgentDocumentModel(
+            Metadata: metadata,
+            Spec: spec
+        );
     }
 
-    public static PlugInConfigDocumentModel ToDocumentConfig(PluginConfigDeploymentModel config, string operationId) => new
-      PlugInConfigDocumentModel(
-           Id: $"config_{config.Spec.PluginName}",
-           Name: $"config_{config.Spec.PluginName}",
-         Config: config.Spec.Config,
-           Metadata: config.Metadata,
-           OperationId: operationId);
+    public static PlugInConfigDocumentModel ToDocumentConfig(PluginConfigDeploymentModel config, string operationId)
+    {
+        var metadata = new ResourceMetadata
+        {
+            Id = $"config_{config.Spec.PluginName}",
+            OperationId = operationId,
+            Owner = config.Metadata.Owner,
+            Version = config.Metadata.Version,
+            Tags = config.Metadata.Tags,
+            UpdatedAt = config.Metadata.UpdatedAt,
+            CreatedAt = config.Metadata.CreatedAt
+        };
+
+        var spec = new PluginConfigSpec
+        {
+            Name = config.Spec.PluginName,
+            Config = config.Spec.Config
+        };
+
+        return new PlugInConfigDocumentModel(metadata, spec);
+    }
 
     public static ExtendedAgentToolApiModel ToApiTool(ToolDocumentModel tool) => tool switch
     {
@@ -242,27 +297,27 @@ public static class ApiToRuntimeMapper
         {
             Name = k.Name,
             Type = k.Type,
-            Connector = k.Connector,
-            Description = k.Description,
-            Parameters = k.Parameters,
-            Attributes = k.Attributes,
-            Metadata = k.Metadata,
-            Mode = k.Mode,
-            Function = k.Function,
-            Query = k.Query,
-            File = k.File,
-            Database = k.Database,
-            ClusterHint = k.ClusterHint
+            Connector = k.Spec.Connector ?? string.Empty,
+            Description = k.Spec.Description,
+            Parameters = k.Spec.Parameters ?? new List<YamlParameter>(),
+            Attributes = k.Spec.Attributes ?? new List<string>(),
+            Metadata = k.Metadata.ToYamlMetadata(),
+            Mode = k.Spec.Mode,
+            Function = k.Spec.Function,
+            Query = k.Spec.Query,
+            File = k.Spec.File,
+            Database = k.Spec.Database,
+            ClusterHint = k.Spec.ClusterHint
         },
         LinkToolDocumentModel linkToolDefinition => new LinkToolApiModel
         {
             Name = linkToolDefinition.Name,
             Type = linkToolDefinition.Type,
-            Description = linkToolDefinition.Description,
-            Parameters = linkToolDefinition.Parameters,
-            Attributes = linkToolDefinition.Attributes,
-            Metadata = linkToolDefinition.Metadata,
-            Template = linkToolDefinition.Template,
+            Description = linkToolDefinition.Spec.Description,
+            Parameters = linkToolDefinition.Spec.Parameters ?? new List<YamlParameter>(),
+            Attributes = linkToolDefinition.Spec.Attributes ?? new List<string>(),
+            Metadata = linkToolDefinition.Metadata.ToYamlMetadata(),
+            Template = linkToolDefinition.Spec.Template,
         },
         _ => throw new NotSupportedException($"Unknown tool document type: {tool.Type}")
     };
@@ -304,14 +359,14 @@ public static class ApiToRuntimeMapper
         {
             Name = k.Name,
             Type = k.Type,
-            Enabled = k.Enabled,
-            Description = k.Description,
-            Auth = k.Auth,
-            Metadata = k.Metadata,
-            ClusterUri = k.ClusterUrl,
-            Database = k.Database,
-            ClusterHint = k.ClusterHint,
-            //RegionalClusterGroups = k.RegionalClusterGroups
+            Enabled = k.Spec.Enabled,
+            Description = k.Spec.Description,
+            Auth = k.Spec.Auth ?? new ConnectorAuthSettings(),
+            Metadata = k.Metadata.ToYamlMetadata(),
+            ClusterUri = k.Spec.ClusterUrl,
+            Database = k.Spec.Database,
+            ClusterHint = k.Spec.ClusterHint,
+            //RegionalClusterGroups = k.Spec.RegionalClusterGroups
         },
         _ => throw new NotSupportedException($"Unknown connector document type: {connector.Type}")
     };
@@ -336,28 +391,28 @@ public static class ApiToRuntimeMapper
 
     public static ExtendedAgentApiModel ToApiAgent(AgentDocumentModel doc) => new ExtendedAgentApiModel
     {
-        Name = doc.Name,
-        Instructions = doc.Instructions,
-        HandoffDescription = doc.HandoffDescription,
-        Handoffs = doc.Handoffs,
-        Tools = doc.Tools,
-        McpTools = doc.McpTools ?? new List<string>(),
-        Connectors = doc.Connectors,
-        AllowParallelToolCalls = doc.AllowParallelToolCalls,
-        AgentsAsTools = doc.AgentsAsTools,
-        MaxReflectionCount = doc.MaxReflectionCount,
-        CriticPromptPath = doc.CriticPromptPath,
-        CriticOnHandOff = doc.CriticOnHandOff,
-        CustomReflectionNote = doc.CustomReflectionNote,
-        CommonPrompts = doc.CommonPrompts,
-        Temperature = doc.Temperature,
-        OutputType = doc.OutputType,
+        Name = doc.Spec.Name,
+        Instructions = doc.Spec.Instructions ?? string.Empty,
+        HandoffDescription = doc.Spec.HandoffDescription,
+        Handoffs = doc.Spec.Handoffs ?? new List<string>(),
+        Tools = doc.Spec.Tools ?? new List<string>(),
+        McpTools = doc.Spec.McpTools ?? new List<string>(),
+        Connectors = doc.Spec.Connectors ?? new List<string>(),
+        AllowParallelToolCalls = doc.Spec.AllowParallelToolCalls ?? false,
+        AgentsAsTools = doc.Spec.AgentsAsTools ?? new List<AgentsAsTools>(),
+        MaxReflectionCount = doc.Spec.MaxReflectionCount ?? 0,
+        CriticPromptPath = doc.Spec.CriticPromptPath ?? string.Empty,
+        CriticOnHandOff = doc.Spec.CriticOnHandOff ?? false,
+        CustomReflectionNote = doc.Spec.CustomReflectionNote ?? string.Empty,
+        CommonPrompts = doc.Spec.CommonPrompts ?? new List<string>(),
+        Temperature = doc.Spec.Temperature,
+        OutputType = doc.Spec.OutputType,
         // Workflow agent properties
-        AgentType = doc.AgentType,
-        ParameterExtractionAgent = doc.ParameterExtractionAgent,
-        OrchestrationStartAgents = doc.OrchestrationStartAgents,
-        ResultSummarizationPrompt = doc.ResultSummarizationPrompt,
-        NextAgentMappings = doc.NextAgentMappings
+        AgentType = doc.Spec.AgentType,
+        ParameterExtractionAgent = doc.Spec.ParameterExtractionAgent,
+        OrchestrationStartAgents = doc.Spec.OrchestrationStartAgents,
+        ResultSummarizationPrompt = doc.Spec.ResultSummarizationPrompt,
+        NextAgentMappings = doc.Spec.NextAgentMappings
     };
 
     public static ToolDocumentModel ToDocumentTool(YamlToolDefinitionBase runtime, string operationId)

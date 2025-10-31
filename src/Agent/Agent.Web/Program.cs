@@ -695,6 +695,7 @@ public class Program
         builder.Services.AddSingleton<IToolsRepository, ToolsRepository>();
         builder.RegisterFunctionsFirstPartyTypes();
         builder.Services.AddTransient<IExtendedAgentService, ExtendedAgentService>();
+        builder.Services.AddTransient<IExtendedAgentApiService, ExtendedAgentApiService>();
         builder.Services.AddSingleton<IConnectorResolver, DataConnectorResolverService>();
 
         builder.Services.AddScoped<IResourceDeploymentService, ResourceDeploymentService>();
@@ -814,7 +815,7 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddHttpContextAccessor();
-        builder.Services.AddControllersWithViews
+        builder.Services.AddControllers
             (options =>
             {
                 // Register YAML formatter

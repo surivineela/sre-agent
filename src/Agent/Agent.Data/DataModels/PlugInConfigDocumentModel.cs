@@ -2,26 +2,34 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json.Serialization;
+using Agent.Framework;
+
 namespace Agent.Data.DataModels;
 
 /// <summary>
 /// Cosmos DB document for Extended Agent Tool storage
 /// </summary>
-/// <summary>
-/// A factory for creating generic CosmosDocument wrappers from specific domain models.
-/// </summary>
-using System.Collections.Generic;
-using Agent.Framework;
-
 public record PlugInConfigDocumentModel(
-    string Id,
-    string Name,
-    IDictionary<string, object> Config,
-    YamlMetadata Metadata,
-    string OperationId
+    ResourceMetadata Metadata,
+    PluginConfigSpec Spec
 ) : ICosmosDocument
 {
+    public string Id => Metadata.Id ?? Spec.Name;
     public string DocumentType => "PluginConfig";
-    public string PartitionKey => Name; // Use tool name as partition key for easy querying
+    public string PartitionKey => Spec.Name;
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
+
+    [JsonIgnore]
+    public string Name => Spec.Name;
+}
+
+/// <summary>
+/// Spec fields for plugin config documents
+/// </summary>
+public class PluginConfigSpec
+{
+    public string Name { get; set; } = string.Empty;
+
+    public IDictionary<string, object>? Config { get; set; }
 }

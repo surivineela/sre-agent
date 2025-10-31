@@ -2,7 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-
+using System.Text.Json.Serialization;
+using Agent.Data.Tools;
 using Agent.Framework;
 
 namespace Agent.Data.DataModels;
@@ -10,29 +11,35 @@ namespace Agent.Data.DataModels;
 /// <summary>
 /// Cosmos DB document for Extended Agent Tool storage
 /// </summary>
-/// <summary>
-/// A factory for creating generic CosmosDocument wrappers from specific domain models.
-/// </summary>
-
-
 public record LinkToolDocumentModel : ToolDocumentModel
 {
-    public LinkToolDocumentModel(
-        string id,
-        string name,
-        string type,
-        string connector,
-        string description,
-        List<YamlParameter> parameters,
-        List<string> attributes,
-    YamlMetadata metadata,
-        string operationId
-    ) : base(id, name, type, connector, description, parameters, attributes, metadata, operationId)
+    public LinkToolDocumentModel(ResourceMetadata metadata, LinkToolSpec spec)
+        : base(metadata, spec)
     {
-
     }
 
+    public new LinkToolSpec Spec => (LinkToolSpec)base.Spec;
 
+    public override YamlToolDefinitionBase ToYamlToolDefinition()
+    {
+        return new LinkToolDefinition
+        {
+            Name = Name,
+            Type = Type,
+            Connector = Spec.Connector ?? string.Empty,
+            Description = Spec.Description ?? string.Empty,
+            Parameters = Spec.Parameters ?? new List<YamlParameter>(),
+            Attributes = Spec.Attributes ?? new List<string>(),
+            Metadata = Metadata.ToYamlMetadata(),
+            Template = Spec.Template
+        };
+    }
+}
+
+/// <summary>
+/// Link-specific tool spec
+/// </summary>
+public class LinkToolSpec : ToolSpec
+{
     public string Template { get; set; } = string.Empty;
-
 }

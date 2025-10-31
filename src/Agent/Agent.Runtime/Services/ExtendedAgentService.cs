@@ -5,6 +5,7 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data;
+using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Runtime.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -31,6 +32,11 @@ public class ExtendedAgentService : IExtendedAgentService
         _extendedAgentRepository = extendedAgentRepository;
     }
 
+    public async Task<AgentDocumentModel?> GetAgentAsync(string agentName)
+    {
+        return await _extendedAgentRepository.GetAgentByNameAsync(agentName);
+    }
+
     public async Task<PaginatedList<YamlAgentDescriptor>> GetAgentsAsync(int pageIndex, int limit, string? search)
     {
         var all = await _extendedAgentRepository.GetAgentsAsync();
@@ -39,7 +45,7 @@ public class ExtendedAgentService : IExtendedAgentService
             .Where(a => string.IsNullOrEmpty(search) || a.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
 
         var mapped = filtered
-            .Select(c => DocumentToRuntimeMapper.ToRuntimeAgent(c));
+            .Select(c => c.ToYamlAgentDescriptor());
 
         return PaginatedList<YamlAgentDescriptor>.Create(mapped, pageIndex, limit);
     }
@@ -54,7 +60,7 @@ public class ExtendedAgentService : IExtendedAgentService
                 .Where(t => string.IsNullOrEmpty(search) || t.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
 
             var mapped = filtered
-                .Select(c => DocumentToRuntimeMapper.ToRuntimeTool(c));
+                .Select(t => t.ToYamlToolDefinition());
 
             return PaginatedList<YamlToolDefinitionBase>.Create(mapped, pageIndex, limit);
         }
@@ -81,9 +87,7 @@ public class ExtendedAgentService : IExtendedAgentService
             {
                 try
                 {
-                    var concretetool = DocumentToRuntimeMapper.ToRuntimeTool(extendedTool);
-
-                    _toolFactory.RegisterTool(concretetool, BehaviorOnNameConflict.Overwrite);
+                    _toolFactory.RegisterTool(extendedTool.ToYamlToolDefinition(), BehaviorOnNameConflict.Overwrite);
                 }
                 catch (Exception ex)
                 {
@@ -105,8 +109,7 @@ public class ExtendedAgentService : IExtendedAgentService
             {
                 try
                 {
-                    var concreteToolsList = DocumentToRuntimeMapper.ToRuntimeToolsList(toolsList);
-                    _agentFactory.LoadCommonToolsListFromDescriptor(concreteToolsList);
+                    _agentFactory.LoadCommonToolsListFromDescriptor(toolsList.ToRuntimeToolsList());
                 }
                 catch (Exception ex)
                 {
@@ -119,8 +122,7 @@ public class ExtendedAgentService : IExtendedAgentService
             {
                 try
                 {
-                    var concretePrompt = DocumentToRuntimeMapper.ToRuntimePrompt(prompt);
-                    _agentFactory.LoadCommonPromptFromDescriptor(concretePrompt);
+                    _agentFactory.LoadCommonPromptFromDescriptor(prompt.ToYamlPromptDescriptor());
                 }
                 catch (Exception ex)
                 {
@@ -134,8 +136,7 @@ public class ExtendedAgentService : IExtendedAgentService
             {
                 try
                 {
-                    var concreteAgent = DocumentToRuntimeMapper.ToRuntimeAgent(extendedAgent);
-                    _agentFactory.LoadAgentFromDescriptor(concreteAgent, true);
+                    _agentFactory.LoadAgentFromDescriptor(extendedAgent.ToYamlAgentDescriptor(), true);
                     _logger.LogInternalInformation("Loaded extended agent from Cosmos: {AgentName}", extendedAgent.Name);
                     loadedAgentNames.Add(extendedAgent.Name);
                 }
@@ -240,8 +241,7 @@ public class ExtendedAgentService : IExtendedAgentService
             {
                 try
                 {
-                    var concreteToolsList = DocumentToRuntimeMapper.ToRuntimeToolsList(toolsList);
-                    _agentFactory.LoadCommonToolsListFromDescriptor(concreteToolsList);
+                    _agentFactory.LoadCommonToolsListFromDescriptor(toolsList.ToRuntimeToolsList());
                 }
                 catch (Exception ex)
                 {
@@ -265,8 +265,7 @@ public class ExtendedAgentService : IExtendedAgentService
             {
                 try
                 {
-                    var concretePrompt = DocumentToRuntimeMapper.ToRuntimePrompt(prompt);
-                    _agentFactory.LoadCommonPromptFromDescriptor(concretePrompt);
+                    _agentFactory.LoadCommonPromptFromDescriptor(prompt.ToYamlPromptDescriptor());
                 }
                 catch (Exception ex)
                 {
@@ -295,8 +294,7 @@ public class ExtendedAgentService : IExtendedAgentService
             {
                 try
                 {
-                    var concreteAgent = DocumentToRuntimeMapper.ToRuntimeAgent(extendedAgent);
-                    _agentFactory.LoadAgentFromDescriptor(concreteAgent, true);
+                    _agentFactory.LoadAgentFromDescriptor(extendedAgent.ToYamlAgentDescriptor(), true);
                     _logger.LogInternalInformation("Loaded extended agent from Cosmos: {AgentName}", extendedAgent.Name);
                     loadedAgentNames.Add(extendedAgent.Name);
                 }

@@ -2,32 +2,60 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json.Serialization;
+using Agent.Data.Tools;
+using Agent.Framework;
+using Azure.ResourceManager.AppService.Models;
+
 namespace Agent.Data.DataModels;
 
 /// <summary>
 /// Cosmos DB document for Extended Agent Tool storage
 /// </summary>
-/// <summary>
-/// A factory for creating generic CosmosDocument wrappers from specific domain models.
-/// </summary>
-using System.Collections.Generic;
-using Agent.Framework;
-
+[CustomizedJsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[CustomizedJsonDerivedType(typeof(KustoToolDocumentModel), KustoToolType)]
+[CustomizedJsonDerivedType(typeof(LinkToolDocumentModel), LinkToolType)]
 public record ToolDocumentModel(
-    string Id,
-    string Name,
-    string Type,
-    string Connector,
-    string Description,
-    List<YamlParameter> Parameters,
-    List<string> Attributes,
-
-YamlMetadata Metadata,
-    string OperationId
+    ResourceMetadata Metadata,
+    ToolSpec Spec
 ) : ICosmosDocument
 {
+    public const string KustoToolType = "KustoTool";
+    public const string LinkToolType = "LinkTool";
+    public string Id => Metadata.Id ?? Spec.Name;
     public string DocumentType => "ExtendedAgentTool";
-    public string PartitionKey => Name; // Use tool name as partition key for easy querying
+    public string PartitionKey => Spec.Name;
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
+    [JsonIgnore]
+    public string Name => Spec.Name;
+
+    public string Type => Spec.Type;
+
+    #region Conversion between runtime and data model
+
+    public virtual YamlToolDefinitionBase ToYamlToolDefinition() => this switch
+    {
+        KustoToolDocumentModel k => k.ToYamlToolDefinition(),
+        LinkToolDocumentModel l => l.ToYamlToolDefinition(),
+        _ => throw new NotSupportedException($"Unknown tool document type: {Type}")
+    };
+    #endregion
+}
+
+/// <summary>
+/// Spec fields for tool documents
+/// </summary>
+public class ToolSpec
+{
+    public string Name { get; set; } = string.Empty;
+
+    public string Type { get; set; } = string.Empty;
+
+    public string? Connector { get; set; }
+    public string Description { get; set; } = string.Empty;
+
+    public List<YamlParameter>? Parameters { get; set; }
+
+    public List<string>? Attributes { get; set; }
 }
