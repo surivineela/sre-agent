@@ -21,7 +21,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("login")]
-    public IActionResult Login([FromQuery] string? returnUrl = null, [FromQuery] string? prompt = null)
+    public IActionResult Login([FromQuery] string? returnUrl = null, [FromQuery] string? prompt = null, [FromQuery] string? tenantId = null)
     {
         var redirectUrl = string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl;
         var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
@@ -30,6 +30,17 @@ public class AuthController : ControllerBase
         if (!string.IsNullOrEmpty(prompt))
         {
             properties.Items["prompt"] = prompt;
+        }
+        
+        // Support tenant switching - force account selection when switching tenants
+        if (!string.IsNullOrEmpty(tenantId))
+        {
+            properties.Items["tenant_hint"] = tenantId;
+            // Force account picker when switching tenants
+            if (string.IsNullOrEmpty(prompt))
+            {
+                properties.Items["prompt"] = "select_account";
+            }
         }
         
         return Challenge(properties, OpenIdConnectDefaults.AuthenticationScheme);
@@ -43,6 +54,19 @@ public class AuthController : ControllerBase
             CookieAuthenticationDefaults.AuthenticationScheme,
             OpenIdConnectDefaults.AuthenticationScheme
         );
+    }
+
+    [HttpGet("switch-tenant")]
+    public async Task<IActionResult> SwitchTenant([FromQuery] string tenantId, [FromQuery] string? returnUrl = null)
+    {
+        // Clear the local authentication session (but don't sign out from Azure AD)
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        
+        // Redirect to login with the new tenant
+        var redirectUrl = string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl;
+        var loginUrl = $"/api/auth/login?tenantId={Uri.EscapeDataString(tenantId)}&returnUrl={Uri.EscapeDataString(redirectUrl)}";
+        
+        return Redirect(loginUrl);
     }
 
     [HttpGet("user")]

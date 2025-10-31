@@ -24,7 +24,7 @@
     <Exec WorkingDirectory="$(ClientRoot)" Command="npm install" />
 
     <Message Importance="high" Text="Building Client application..." />
-    <Exec WorkingDirectory="$(ClientRoot)" Command="npm run dev" />
+    <Exec WorkingDirectory="$(ClientRoot)" Command="npm run build" />
   </Target>
 
 </Project>

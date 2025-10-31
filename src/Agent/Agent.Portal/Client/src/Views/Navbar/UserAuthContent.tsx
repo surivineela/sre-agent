@@ -1,5 +1,5 @@
-import { Button, Combobox, Divider, Field, Option, Persona, Popover, PopoverSurface, PopoverTrigger } from '@fluentui/react-components';
-import { useCallback, useMemo } from 'react';
+import { Button, Divider, Dropdown, Field, Option, Persona, Popover, PopoverSurface, PopoverTrigger } from '@fluentui/react-components';
+import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
 import { useAuth } from '../../Common/Contexts/AuthContext';
@@ -9,7 +9,7 @@ import { PortalResources } from '../../Strings/Resources';
 
 export const UserAuthContent = () => {
     const intl = useIntl();
-    const { signIn, signOut, isAuthenticated, user } = useAuth();
+    const { signIn, signOut, switchTenant, isAuthenticated, user } = useAuth();
     const { photoUrl } = useProfilePhoto(TelemetrySource.PortalLayout);
     const { tenants, isLoading: isLoadingTenants } = useTenants(TelemetrySource.PortalLayout);
 
@@ -17,26 +17,16 @@ export const UserAuthContent = () => {
         signIn();
     }, [signIn]);
 
-    const currentTenantLabel = useMemo(() => {
-        const currentTenant = tenants.find(t => t.tenantId === user?.tenantId);
-        return currentTenant?.displayName || currentTenant?.defaultDomain || user?.tenantId || '';
-    }, [tenants, user?.tenantId]);
-
-    // TODO: Need more knowledge about how to handle this scenario (but AI Foundry and Portal both fully refresh)
     const handleTenantChange = useCallback(
         (_: any, data: any) => {
-            const selectedTenant = tenants.find(t => {
-                const label = t.displayName || t.defaultDomain || t.tenantId;
-                return label === data.optionText;
-            });
+            const selectedTenant = tenants.find(t => t.tenantId === data.optionValue);
 
             if (selectedTenant && selectedTenant.tenantId !== user?.tenantId) {
-                // Switch tenant by signing in again (backend authentication is tenant-specific)
-                // For now, just reload to refresh the session
-                window.location.reload();
+                // Switch tenant by signing out and signing back in with the new tenant
+                switchTenant(selectedTenant.tenantId, window.location.pathname);
             }
         },
-        [signIn, tenants, user?.tenantId]
+        [switchTenant, tenants, user?.tenantId]
     );
 
     return (
@@ -51,20 +41,26 @@ export const UserAuthContent = () => {
                         <Persona avatar={{ image: { src: photoUrl } }} name={user?.name} secondaryText={user?.username} />
 
                         <Field label={intl.formatMessage(PortalResources.directory)}>
-                            <Combobox
-                                value={currentTenantLabel}
+                            <Dropdown
+                                value={
+                                    tenants.find(t => t.tenantId === user?.tenantId)?.displayName ||
+                                    tenants.find(t => t.tenantId === user?.tenantId)?.defaultDomain ||
+                                    user?.tenantId ||
+                                    ''
+                                }
+                                selectedOptions={[user?.tenantId || '']}
                                 disabled={isLoadingTenants || tenants.length === 0}
                                 onOptionSelect={handleTenantChange}
                             >
                                 {tenants.map(tenant => {
                                     const label = tenant.displayName || tenant.defaultDomain || tenant.tenantId;
                                     return (
-                                        <Option key={tenant.tenantId} text={label}>
+                                        <Option key={tenant.tenantId} value={tenant.tenantId}>
                                             {label}
                                         </Option>
                                     );
                                 })}
-                            </Combobox>
+                            </Dropdown>
                         </Field>
 
                         <Divider />

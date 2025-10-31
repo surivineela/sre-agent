@@ -50,6 +50,25 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                 {
                     context.ProtocolMessage.Prompt = prompt;
                 }
+                
+                // Add tenant hint for tenant switching
+                if (context.Properties.Items.TryGetValue("tenant_hint", out var tenantHint))
+                {
+                    // Replace the tenant in the authority URL
+                    // The IssuerAddress format is: https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize
+                    var issuerUri = new Uri(context.ProtocolMessage.IssuerAddress);
+                    var pathSegments = issuerUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                    
+                    // Replace the tenant (second segment after domain) with the target tenant
+                    if (pathSegments.Length > 0)
+                    {
+                        pathSegments[0] = tenantHint;
+                        var newPath = "/" + string.Join("/", pathSegments);
+                        var newIssuerAddress = $"{issuerUri.Scheme}://{issuerUri.Host}{newPath}{issuerUri.Query}";
+                        context.ProtocolMessage.IssuerAddress = newIssuerAddress;
+                    }
+                }
+                
                 return Task.CompletedTask;
             },
             OnRedirectToIdentityProviderForSignOut = context =>

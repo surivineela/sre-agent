@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { LogLevel } from '../Contracts/Telemetry';
+import { JWTToken } from '../Utilities/JWTToken';
 import { logTelemetryEvent } from './useTelemetry';
 
 /**
@@ -46,46 +47,6 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
     const tokenStates = useRef<Map<AuthScopeIdentifier, TokenState>>(new Map());
     const [tokenNeedsRefreshMap, setTokenNeedsRefreshMap] = useState<Map<AuthScopeIdentifier, boolean>>(new Map());
 
-    /**
-     * Decode JWT token to extract expiration time from the 'exp' claim.
-     * The exp claim is a Unix timestamp (seconds since epoch).
-     */
-    const decodeTokenExpiration = useCallback(
-        (token: string): Date => {
-            try {
-                // JWT structure: header.payload.signature
-                const payload = token.split('.')[1];
-                if (!payload) {
-                    throw new Error('Invalid JWT token structure');
-                }
-
-                // Base64 decode the payload
-                const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-                const claims = JSON.parse(decodedPayload);
-
-                // Extract 'exp' claim (Unix timestamp in seconds)
-                if (claims.exp && typeof claims.exp === 'number') {
-                    return new Date(claims.exp * 1000); // Convert to milliseconds
-                }
-
-                throw new Error('Token does not contain exp claim');
-            } catch (error) {
-                // Default to 1 hour if we can't decode the token
-                logTelemetryEvent({
-                    action: 'decode-token',
-                    actionModifier: 'failed',
-                    logLevel: LogLevel.Warning,
-                    telemetrySource,
-                    additionalData: {
-                        error: error instanceof Error ? error.message : String(error),
-                    },
-                });
-                return new Date(Date.now() + 3600 * 1000); // 1 hour default
-            }
-        },
-        [telemetrySource]
-    );
-
     const getTokenEndpoint = useCallback((tokenType: AuthScopeIdentifier): string => {
         switch (tokenType) {
             case 'arm':
@@ -118,11 +79,26 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
 
             const data = await response.json();
             const token = data.accessToken;
-            const expiresAt = decodeTokenExpiration(token);
+            const jwtToken = new JWTToken(token);
+            const expiresAt = jwtToken.expiration;
+
+            if (!expiresAt) {
+                // Default to 1 hour if we can't decode the token
+                logTelemetryEvent({
+                    action: 'decode-token',
+                    actionModifier: 'failed',
+                    logLevel: LogLevel.Warning,
+                    telemetrySource,
+                    additionalData: {
+                        tokenType,
+                    },
+                });
+                return { token, expiresAt: new Date(Date.now() + 3600 * 1000) }; // 1 hour default
+            }
 
             return { token, expiresAt };
         },
-        [getTokenEndpoint, decodeTokenExpiration]
+        [getTokenEndpoint, telemetrySource]
     );
 
     const getOrInitTokenState = useCallback(

@@ -1,4 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { JWTToken } from '../Utilities/JWTToken';
 
 interface AuthenticatedUser {
     name: string;
@@ -14,6 +15,7 @@ interface AuthContextValue {
     user: AuthenticatedUser | null;
     signIn: (returnUrl?: string) => void;
     signOut: () => void;
+    switchTenant: (tenantId: string, returnUrl?: string) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -34,12 +36,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.isAuthenticated) {
+                        // Get tenant ID from ARM token if not provided by the user endpoint
+                        let tenantId = data.tenantId || '';
+
+                        if (!tenantId) {
+                            try {
+                                const armTokenResponse = await fetch('/api/auth/arm-token', {
+                                    credentials: 'include',
+                                });
+
+                                if (armTokenResponse.ok) {
+                                    const armTokenData = await armTokenResponse.json();
+                                    const jwtToken = new JWTToken(armTokenData.accessToken);
+                                    tenantId = jwtToken.tenantId ?? tenantId;
+                                }
+                            } catch (error) {
+                                console.warn('Failed to extract tenant ID from ARM token:', error);
+                            }
+                        }
+
                         setIsAuthenticated(true);
                         setUser({
                             name: data.name || '',
                             username: data.username || '',
                             email: data.email || data.username || '',
-                            tenantId: data.tenantId || '',
+                            tenantId,
                             objectId: data.objectId || '',
                         });
                     } else {
@@ -68,6 +89,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         window.location.href = '/api/auth/logout';
     }, []);
 
+    const switchTenant = useCallback((tenantId: string, returnUrl?: string) => {
+        const url = returnUrl
+            ? `/api/auth/switch-tenant?tenantId=${encodeURIComponent(tenantId)}&returnUrl=${encodeURIComponent(returnUrl)}`
+            : `/api/auth/switch-tenant?tenantId=${encodeURIComponent(tenantId)}`;
+        window.location.href = url;
+    }, []);
+
     const value = useMemo<AuthContextValue>(
         () => ({
             isAuthenticated,
@@ -75,8 +103,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             user,
             signIn,
             signOut,
+            switchTenant,
         }),
-        [isAuthenticated, isLoading, user, signIn, signOut]
+        [isAuthenticated, isLoading, user, signIn, signOut, switchTenant]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
