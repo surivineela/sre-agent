@@ -2,10 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Extensions;
@@ -16,7 +13,7 @@ using Agent.Core.Validation;
 using Agent.Framework;
 using Agent.Plugins.Connector;
 using Agent.Plugins.Kusto;
-using Agent.Plugins.Tools;
+using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
 using Agent.Runtime.Services;
@@ -742,7 +739,7 @@ User Prompt To Improve (between <<< and >>>):
                 .ToList();
 
             // Filter to stable/published tools if stableOnly is true
-            if (stableOnly)
+            if (!FirstPartyHelper.IsFirstPartyTenant() && stableOnly)
             {
                 // Load published tools from PublishedTools.json
                 var publishedToolNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -828,18 +825,18 @@ User Prompt To Improve (between <<< and >>>):
         }
     }
 
-        /// <summary>
-        /// Generates targeted insights for the playground experience including confidence scoring and recommended actions.
-        /// </summary>
-        [HttpPost("playground-insights")]
-        [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
-        [ProducesResponseType(typeof(PlaygroundInsightsResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(PlaygroundInsightsResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<PlaygroundInsightsResponse>> GetPlaygroundInsights([FromBody] PlaygroundInsightsRequest request)
+    /// <summary>
+    /// Generates targeted insights for the playground experience including confidence scoring and recommended actions.
+    /// </summary>
+    [HttpPost("playground-insights")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
+    [ProducesResponseType(typeof(PlaygroundInsightsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PlaygroundInsightsResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PlaygroundInsightsResponse>> GetPlaygroundInsights([FromBody] PlaygroundInsightsRequest request)
+    {
+        try
         {
-            try
-            {
-                var systemPrompt = """
+            var systemPrompt = """
 You are an expert AI agent evaluator implementing a rigorous assessment framework with ACTIONABLE improvements via generated diffs.
 
 # EVALUATION PHILOSOPHY
@@ -1288,125 +1285,125 @@ Before returning your response, VALIDATE each diff in actionItems:
 If ANY diff fails validation, REWRITE it before returning the response. Do not send malformed diffs.
 """;
 
-                var builder = new StringBuilder();
-                builder.AppendLine(systemPrompt);
-                builder.AppendLine("\n--- Agent Context ---");
-                builder.AppendLine($"Agent name: {request.AgentName ?? "(unspecified)"}");
-                if (!string.IsNullOrWhiteSpace(request.AgentGoal))
-                {
-                    builder.AppendLine($"Primary goal: {request.AgentGoal}");
-                }
-
-                builder.AppendLine("Prompt (<<< >>>):");
-                builder.AppendLine("<<<");
-                builder.AppendLine(request.Prompt ?? string.Empty);
-                builder.AppendLine(">>>");
-
-                if (request.Tools.Count > 0 || request.SystemTools.Count > 0)
-                {
-                    builder.AppendLine("\nLinked tools:");
-                    if (request.Tools.Count > 0)
-                    {
-                        builder.AppendLine("- Extended tools: " + string.Join(", ", request.Tools));
-                    }
-                    if (request.SystemTools.Count > 0)
-                    {
-                        builder.AppendLine("- System tools: " + string.Join(", ", request.SystemTools));
-                    }
-                }
-
-                // Add available tools context for accurate recommendations
-                if (request.AvailableTools?.Count > 0 || request.AvailableSystemTools?.Count > 0)
-                {
-                    builder.AppendLine("\nAvailable tools (use ONLY these in suggestions):");
-                    if (request.AvailableTools?.Count > 0)
-                    {
-                        builder.AppendLine("- Available extended tools: " + string.Join(", ", request.AvailableTools));
-                    }
-                    if (request.AvailableSystemTools?.Count > 0)
-                    {
-                        builder.AppendLine("- Available system tools: " + string.Join(", ", request.AvailableSystemTools));
-                    }
-                }
-
-                if (request.ChatFindings.Count > 0)
-                {
-                    builder.AppendLine("\nChat issues observed:");
-                    foreach (var finding in request.ChatFindings)
-                    {
-                        builder.AppendLine($"- [{finding.Severity}] {finding.Title}: {finding.Detail}");
-                    }
-                }
-
-                if (request.ToolFindings.Count > 0)
-                {
-                    builder.AppendLine("\nTool tester feedback:");
-                    foreach (var finding in request.ToolFindings)
-                    {
-                        builder.AppendLine($"- [{finding.Severity}] {finding.Title}: {finding.Detail}");
-                    }
-                }
-
-                if (!string.IsNullOrWhiteSpace(request.TranscriptSummary))
-                {
-                    builder.AppendLine("\nTranscript summary:");
-                    builder.AppendLine(request.TranscriptSummary);
-                }
-
-                if (request.RecentMessages.Count > 0)
-                {
-                    builder.AppendLine("\nRecent chat snippets:");
-                    foreach (var message in request.RecentMessages)
-                    {
-                        builder.AppendLine("- " + message);
-                    }
-                }
-
-                var chatOptions = new ChatOptions { Temperature = 0.2f };
-                var prompt = builder.ToString();
-                var chatResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
-                var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
-
-                _logger.LogInternalInformation("Playground insights raw content: {Content}", content);
-
-                var jsonOptions = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                };
-
-                var insights = JsonSerializer.Deserialize<PlaygroundInsightsResponse>(content, jsonOptions);
-                if (insights == null)
-                {
-                    _logger.LogInternalWarning("Playground insights deserialization returned null.");
-                    return StatusCode(StatusCodes.Status500InternalServerError, BuildFallbackInsights("Failed to parse response"));
-                }
-
-                insights.ConfidenceScore = double.IsFinite(insights.ConfidenceScore)
-                    ? Math.Clamp(insights.ConfidenceScore, 0, 100)
-                    : 0;
-
-                if (string.IsNullOrWhiteSpace(insights.ConfidenceLabel))
-                {
-                    // Align fallback labels with the strict allowed set in the system prompt
-                    insights.ConfidenceLabel = insights.ConfidenceScore switch
-                    {
-                        >= 90 => "Production Ready",
-                        >= 75 => "Pilot Ready",
-                        >= 50 => "Needs Refinement",
-                        >= 25 => "Major Gaps",
-                        _ => "Requires Redesign"
-                    };
-                }
-
-                return Ok(insights);
-            }
-            catch (Exception ex)
+            var builder = new StringBuilder();
+            builder.AppendLine(systemPrompt);
+            builder.AppendLine("\n--- Agent Context ---");
+            builder.AppendLine($"Agent name: {request.AgentName ?? "(unspecified)"}");
+            if (!string.IsNullOrWhiteSpace(request.AgentGoal))
             {
-                _logger.LogInternalError(ex, "Error generating playground insights");
-                return StatusCode(StatusCodes.Status500InternalServerError, BuildFallbackInsights(ex.Message));
+                builder.AppendLine($"Primary goal: {request.AgentGoal}");
             }
+
+            builder.AppendLine("Prompt (<<< >>>):");
+            builder.AppendLine("<<<");
+            builder.AppendLine(request.Prompt ?? string.Empty);
+            builder.AppendLine(">>>");
+
+            if (request.Tools.Count > 0 || request.SystemTools.Count > 0)
+            {
+                builder.AppendLine("\nLinked tools:");
+                if (request.Tools.Count > 0)
+                {
+                    builder.AppendLine("- Extended tools: " + string.Join(", ", request.Tools));
+                }
+                if (request.SystemTools.Count > 0)
+                {
+                    builder.AppendLine("- System tools: " + string.Join(", ", request.SystemTools));
+                }
+            }
+
+            // Add available tools context for accurate recommendations
+            if (request.AvailableTools?.Count > 0 || request.AvailableSystemTools?.Count > 0)
+            {
+                builder.AppendLine("\nAvailable tools (use ONLY these in suggestions):");
+                if (request.AvailableTools?.Count > 0)
+                {
+                    builder.AppendLine("- Available extended tools: " + string.Join(", ", request.AvailableTools));
+                }
+                if (request.AvailableSystemTools?.Count > 0)
+                {
+                    builder.AppendLine("- Available system tools: " + string.Join(", ", request.AvailableSystemTools));
+                }
+            }
+
+            if (request.ChatFindings.Count > 0)
+            {
+                builder.AppendLine("\nChat issues observed:");
+                foreach (var finding in request.ChatFindings)
+                {
+                    builder.AppendLine($"- [{finding.Severity}] {finding.Title}: {finding.Detail}");
+                }
+            }
+
+            if (request.ToolFindings.Count > 0)
+            {
+                builder.AppendLine("\nTool tester feedback:");
+                foreach (var finding in request.ToolFindings)
+                {
+                    builder.AppendLine($"- [{finding.Severity}] {finding.Title}: {finding.Detail}");
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.TranscriptSummary))
+            {
+                builder.AppendLine("\nTranscript summary:");
+                builder.AppendLine(request.TranscriptSummary);
+            }
+
+            if (request.RecentMessages.Count > 0)
+            {
+                builder.AppendLine("\nRecent chat snippets:");
+                foreach (var message in request.RecentMessages)
+                {
+                    builder.AppendLine("- " + message);
+                }
+            }
+
+            var chatOptions = new ChatOptions { Temperature = 0.2f };
+            var prompt = builder.ToString();
+            var chatResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
+            var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
+
+            _logger.LogInternalInformation("Playground insights raw content: {Content}", content);
+
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            var insights = JsonSerializer.Deserialize<PlaygroundInsightsResponse>(content, jsonOptions);
+            if (insights == null)
+            {
+                _logger.LogInternalWarning("Playground insights deserialization returned null.");
+                return StatusCode(StatusCodes.Status500InternalServerError, BuildFallbackInsights("Failed to parse response"));
+            }
+
+            insights.ConfidenceScore = double.IsFinite(insights.ConfidenceScore)
+                ? Math.Clamp(insights.ConfidenceScore, 0, 100)
+                : 0;
+
+            if (string.IsNullOrWhiteSpace(insights.ConfidenceLabel))
+            {
+                // Align fallback labels with the strict allowed set in the system prompt
+                insights.ConfidenceLabel = insights.ConfidenceScore switch
+                {
+                    >= 90 => "Production Ready",
+                    >= 75 => "Pilot Ready",
+                    >= 50 => "Needs Refinement",
+                    >= 25 => "Major Gaps",
+                    _ => "Requires Redesign"
+                };
+            }
+
+            return Ok(insights);
         }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error generating playground insights");
+            return StatusCode(StatusCodes.Status500InternalServerError, BuildFallbackInsights(ex.Message));
+        }
+    }
 
     private static PlaygroundInsightsResponse BuildFallbackInsights(string message)
     {
