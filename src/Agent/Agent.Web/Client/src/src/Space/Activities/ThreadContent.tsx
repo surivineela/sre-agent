@@ -1,7 +1,7 @@
 import { memo, useContext, useMemo, useRef, useState } from 'react';
 import AzPortalProxy from '../../Common/AzPortalProxy/AzPortalProxy';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import Url from '../../Common/Helpers/Url';
+import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { ChatBoxHandleRef, IThreadContentProps } from '../Contracts/Activities';
 import { AgentContext, SreAgentContext } from '../Contracts/Context';
 import { TracePanel } from '../Foundry/app/components/shell/playground/tracing/TracePanel';
@@ -11,9 +11,9 @@ import ChatBox from './ChatBox';
 import ThreadContentTitle from './ThreadContentTitle';
 
 const inStandaloneMode = AzPortalProxy.inStandaloneMode;
-const showThreadTraceUI = Url.getFeatureValue('showThreadTraceUI') === 'true';
 
 export const ThreadContent = memo(({ thread, addThread, deleteThread, updateThreadLastReadTime }: IThreadContentProps) => {
+    const showThreadTraceUI = useConfigSetting(SettingNames.ShowThreadTraceUI);
     const { threadContentAndActionKey, setMenuCollapsed } = useContext(AgentContext);
 
     const [showTrace, setShowTrace] = useState(false);

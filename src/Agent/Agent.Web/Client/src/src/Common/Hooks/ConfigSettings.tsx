@@ -15,6 +15,7 @@ export enum SettingNames {
     ShowSubAgentsItemInSettings = 'showSubAgentsItemInSettings',
     DataKnowledgeSpace = 'dataKnowledgeSpace',
     McpServer = 'McpServer',
+    ShowThreadTraceUI = 'showThreadTraceUI',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
@@ -26,12 +27,14 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     'portal.azure.com': {},
     'ms.portal.azure.com': {
         [SettingNames.ShowWatchtower]: true,
+        [SettingNames.ShowThreadTraceUI]: true,
     },
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.ShowWatchtower]: true,
         [SettingNames.ForUnitTests]: true,
         [SettingNames.DataKnowledgeSpace]: true,
+        [SettingNames.ShowThreadTraceUI]: true,
     },
 };
 

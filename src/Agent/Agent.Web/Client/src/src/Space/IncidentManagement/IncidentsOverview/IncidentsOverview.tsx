@@ -43,7 +43,7 @@ import { icmIncidentUrlTemplate } from '../../../Common/Constants/Links';
 import { IncidentDocument } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { InvestigationStatus, Thread } from '../../../Common/Contracts/DataPlane/Thread';
-import Url from '../../../Common/Helpers/Url';
+import { SettingNames, useConfigSetting } from '../../../Common/Hooks/ConfigSettings';
 import { ActivitiesThreadHeaderResources, IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
 import { ChatBoxSidePanelData } from '../../Contracts/Activities';
@@ -66,8 +66,6 @@ import { BulkDeleteDialog } from './BulkDeleteDialog';
 import { IncidentsSummary } from './IncidentsSummary';
 import { StatusLabel } from './StatusLabel';
 import { useIncidentThreadList } from './useIncidentThreadList';
-
-const showThreadTraceUI = Url.getFeatureValue('showThreadTraceUI') === 'true';
 
 interface SelectedThreadInfo {
     thread: Thread;
@@ -108,6 +106,8 @@ const IncidentsSkeletonLoader: FC<IncidentsSkeletonLoaderProps> = ({ showControl
 
 const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, showControlPlaneDependentFeatures }) => {
     const navigate = useNavigate();
+    const showThreadTraceUI = useConfigSetting(SettingNames.ShowThreadTraceUI);
+
     const {
         incidentManagement: { incidentPlatformType, hasFilters },
     } = useContext(SreAgentContext);
