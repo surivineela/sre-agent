@@ -1307,7 +1307,7 @@ public class ApiService : IDisposable
             };
 
             var jsonContent = JsonSerializer.Serialize(requestPayload);
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/generateInstructions?includeAllTools=true";
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/generateInstructions";
             var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
             {
                 Content = new StringContent(jsonContent, Encoding.UTF8, "application/json")

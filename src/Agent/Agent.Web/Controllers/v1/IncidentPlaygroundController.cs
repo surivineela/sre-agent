@@ -7,15 +7,15 @@ using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
 using Agent.Data;
 using Agent.Data.DataModels;
+using Agent.Framework;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
+using Agent.Runtime.SubAgents.IcmScanner;
 using Agent.Runtime.SubAgents.Scanner;
+using Agent.Web.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
-using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
-using Agent.Runtime.SubAgents.IcmScanner;
-using Agent.Framework;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -477,12 +477,12 @@ public class IncidentPlaygroundController : ControllerBase
 
     [HttpGet("listTools")]
     [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
-    public async Task<IActionResult> ListTools(string? searchString, [FromQuery] bool includeAllTools = false)
+    public async Task<IActionResult> ListTools(string? searchString)
     {
-        _logger.LogInternalInformation("ListTools: Invoked with SearchString: {SearchString}, IncludeAllTools: {IncludeAllTools}", searchString, includeAllTools);
+        _logger.LogInternalInformation("ListTools: Invoked with SearchString: {SearchString}", searchString);
         try
         {
-            var tools = await _instructionGenerationService.FilterTools(searchString, includeAllTools);
+            var tools = await _instructionGenerationService.FilterTools(searchString);
             _logger.LogInternalInformation("ListTools: Retrieved {Count} tools", tools?.Count ?? 0);
             return Ok(tools);
         }
@@ -498,16 +498,12 @@ public class IncidentPlaygroundController : ControllerBase
     /// </summary>
     [HttpPost("generateInstructions")]
     [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
-    public async Task<IActionResult> GenerateInstructions([FromBody] InstructionGenerationRequest instructionGenerationRequest, [FromQuery] bool includeAllTools = false)
+    public async Task<IActionResult> GenerateInstructions([FromBody] InstructionGenerationRequest instructionGenerationRequest)
     {
-        _logger.LogInternalInformation("GenerateInstructions: Invoked for AgentName: {AgentName}, IncludeAllTools: {IncludeAllTools}", instructionGenerationRequest.AgentName, includeAllTools);
+        _logger.LogInternalInformation("GenerateInstructions: Invoked for AgentName: {AgentName}", instructionGenerationRequest.AgentName);
         try
         {
-            var response = includeAllTools
-                ? await _instructionGenerationService.GenerateInstructionsFromIncidents(
-                    instructionGenerationRequest,
-                    toolFilter: (tools) => Task.FromResult(tools)) // Return all tools without incident handler filtering
-                : await _instructionGenerationService.GenerateInstructionsFromIncidents(instructionGenerationRequest);
+            var response = await _instructionGenerationService.GenerateInstructionsFromIncidents(instructionGenerationRequest);
             _logger.LogInternalInformation("GenerateInstructions: Successfully generated instructions for AgentName: {AgentName}", instructionGenerationRequest.AgentName);
             return Ok(response);
         }

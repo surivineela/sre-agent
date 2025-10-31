@@ -2,15 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Data.DataModels;
 using Agent.Framework;
+using Agent.Runtime.Helpers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Agent.Core.Configuration;
-using Agent.Core.Services;
-using Agent.Core.Interfaces;
 
 namespace Agent.Runtime.Services
 {
@@ -22,9 +22,9 @@ namespace Agent.Runtime.Services
 
     public interface IInstructionGenerationService
     {
-        Task<InstructionGenerationResponse> GenerateInstructionsFromIncidents(InstructionGenerationRequest request, Func<List<ToolInfo>, Task<List<ToolInfo>>>? toolFilter = null);
+        Task<InstructionGenerationResponse> GenerateInstructionsFromIncidents(InstructionGenerationRequest request);
 
-        Task<List<ToolInfo>> FilterTools(string? searchString, bool includeAllTools = false);
+        Task<List<ToolInfo>> FilterTools(string? searchString);
 
         Task<List<ToolInfo>> GetIncidentHandlerTools(string platform);
 
@@ -56,55 +56,14 @@ namespace Agent.Runtime.Services
             _publishedToolsService = publishedToolsService;
         }
 
-        public async Task<List<ToolInfo>> FilterTools(string? searchString, bool includeAllTools = false)
+        public async Task<List<ToolInfo>> FilterTools(string? searchString)
         {
-            _logger.LogInternalInformation("FilterTools: Invoked with searchString: {SearchString}, includeAllTools: {IncludeAllTools}", searchString, includeAllTools);
+            _logger.LogInternalInformation("FilterTools: Invoked with searchString: {SearchString}", searchString);
 
             var availableTools = _toolFactory.FetchAvailableToolInfo();
             _logger.LogInternalInformation("FilterTools: Fetched {ToolCount} available tools.", availableTools.Count);
 
-            if (!includeAllTools)
-            {
-                var configuredPlatform = _incidentManagementSettings?.Type.ToString() ?? string.Empty;
-
-                // Filter out incident handler tools from general tool selection, except for the configured platform
-                availableTools = [.. availableTools.Where(tool =>
-                    !tool.IsIncidentHandlerTool ||
-                    (tool.IsIncidentHandlerTool &&
-                     tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))];
-
-                _logger.LogInternalInformation("FilterTools: Filtered tools for platform {Platform}. Remaining: {FilteredCount}",
-                    configuredPlatform, availableTools.Count);
-
-                // Filter by published tools list and automatically include incident handler tools
-                var publishedToolNames = await _publishedToolsService.GetPublishedToolNamesAsync();
-                if (publishedToolNames.Count > 0)
-                {
-                    // Create a combined list: published tools + incident handler tools for the configured platform
-                    var allowedTools = availableTools.Where(tool =>
-                        publishedToolNames.Contains(tool.Name) ||
-                        (tool.IsIncidentHandlerTool &&
-                         tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))
-                        .ToList();
-
-                    var incidentHandlerToolsCount = allowedTools.Count(t => t.IsIncidentHandlerTool);
-                    var publishedToolsCount = allowedTools.Count - incidentHandlerToolsCount;
-
-                    _logger.LogInternalInformation("FilterTools: Filtered by published tools + incident handler tools. " +
-                        "Published: {PublishedCount}, Incident Handler: {IncidentHandlerCount}, Total: {TotalCount}",
-                        publishedToolsCount, incidentHandlerToolsCount, allowedTools.Count);
-
-                    availableTools = allowedTools;
-                }
-                else
-                {
-                    _logger.LogInternalWarning("FilterTools: No published tools configured. Returning all available tools.");
-                }
-            }
-            else
-            {
-                _logger.LogInternalInformation("FilterTools: includeAllTools is true. Skipping incident handler and published tools filtering. Returning all {Count} tools.", availableTools.Count);
-            }
+            availableTools = await ApplyToolFiltering(availableTools);
 
             if (string.IsNullOrWhiteSpace(searchString))
             {
@@ -137,7 +96,68 @@ namespace Agent.Runtime.Services
             return Task.FromResult(incidentHandlerTools);
         }
 
-        public async Task<InstructionGenerationResponse> GenerateInstructionsFromIncidents(InstructionGenerationRequest request, Func<List<ToolInfo>, Task<List<ToolInfo>>>? toolFilter = null)
+        private async Task<List<ToolInfo>> ApplyToolFiltering(List<ToolInfo> availableTools)
+        {
+            var configuredPlatform = _incidentManagementSettings?.Type.ToString() ?? string.Empty;
+
+            // Filter by platform: keep incident handler tools only for the configured platform
+            availableTools = FilterToolsByPlatform(availableTools, configuredPlatform);
+            _logger.LogInternalInformation("ApplyToolFiltering: Filtered tools for platform {Platform}. Remaining: {FilteredCount}",
+                configuredPlatform, availableTools.Count);
+
+            // Filter by published tools list (skip for first-party agents)
+            if (!FirstPartyHelper.IsFirstPartyTenant())
+            {
+                availableTools = await FilterToolsByPublishedList(availableTools, configuredPlatform);
+            }
+            else
+            {
+                _logger.LogInternalInformation("ApplyToolFiltering: First-party agent detected. Skipping published tools filtering.");
+            }
+
+            return availableTools;
+        }
+
+        private List<ToolInfo> FilterToolsByPlatform(List<ToolInfo> tools, string configuredPlatform)
+        {
+            // Filter out incident handler tools from general tool selection, except for the configured platform
+            return tools.Where(tool =>
+                !tool.IsIncidentHandlerTool ||
+                (tool.IsIncidentHandlerTool &&
+                 tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))
+                .ToList();
+        }
+
+        private async Task<List<ToolInfo>> FilterToolsByPublishedList(List<ToolInfo> availableTools, string configuredPlatform)
+        {
+            var publishedToolNames = await _publishedToolsService.GetPublishedToolNamesAsync();
+
+            if (publishedToolNames.Count > 0)
+            {
+                // Create a combined list: published tools + incident handler tools for the configured platform
+                var allowedTools = availableTools.Where(tool =>
+                    publishedToolNames.Contains(tool.Name) ||
+                    (tool.IsIncidentHandlerTool &&
+                     tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))
+                    .ToList();
+
+                var incidentHandlerToolsCount = allowedTools.Count(t => t.IsIncidentHandlerTool);
+                var publishedToolsCount = allowedTools.Count - incidentHandlerToolsCount;
+
+                _logger.LogInternalInformation("FilterToolsByPublishedList: Filtered by published tools + incident handler tools. " +
+                    "Published: {PublishedCount}, Incident Handler: {IncidentHandlerCount}, Total: {TotalCount}",
+                    publishedToolsCount, incidentHandlerToolsCount, allowedTools.Count);
+
+                return allowedTools;
+            }
+            else
+            {
+                _logger.LogInternalWarning("FilterToolsByPublishedList: No published tools configured. Returning all available tools.");
+                return availableTools;
+            }
+        }
+
+        public async Task<InstructionGenerationResponse> GenerateInstructionsFromIncidents(InstructionGenerationRequest request)
         {
             _logger.LogInternalInformation($"GenerateInstructionsFromIncidents: Invoked for AgentName: {request.AgentName}, Incidents: {JsonConvert.SerializeObject(request.Incidents)}, Tools: {JsonConvert.SerializeObject(request.Tools)}, CustomInstructions: {request.CustomInstructions}, ExistingInstructions: {request.ExistingInstructions}",
                 request.AgentName,
@@ -178,7 +198,7 @@ namespace Agent.Runtime.Services
                 ? "No incidents summaries available."
                 : string.Join("\n\n", incidentSummariesList);
 
-            var availableToolsPrompt = await GetAvailableToolsPrompt(request, toolFilter);
+            var availableToolsPrompt = GetAvailableToolsPrompt(request);
 
             try
             {
@@ -316,35 +336,25 @@ namespace Agent.Runtime.Services
             }
         }
 
-        private async Task<string> GetAvailableToolsPrompt(InstructionGenerationRequest request, Func<List<ToolInfo>, Task<List<ToolInfo>>>? toolFilter = null)
+        private string GetAvailableToolsPrompt(InstructionGenerationRequest request)
         {
             _logger.LogInternalInformation("GetAvailableToolsPrompt: Invoked for AgentName: {AgentName}", request.AgentName);
 
             var availableTools = _toolFactory.FetchAvailableToolInfo();
             _logger.LogInternalInformation("GetAvailableToolsPrompt: Fetched {ToolCount} available tools.", availableTools.Count);
 
-            // Apply custom tool filter if provided, otherwise use default incident handler filtering
-            if (toolFilter != null)
-            {
-                _logger.LogInternalInformation("GetAvailableToolsPrompt: Applying custom tool filter for AgentName: {AgentName}", request.AgentName);
-                availableTools = await toolFilter(availableTools);
-                _logger.LogInternalInformation("GetAvailableToolsPrompt: Custom filter applied. Remaining: {FilteredCount}", availableTools.Count);
-            }
-            else
-            {
-                // Default filtering for incident handlers
-                // Get the configured platform name
-                var configuredPlatform = _incidentManagementSettings?.Type.ToString() ?? string.Empty;
+            // Default filtering for incident handlers
+            // Get the configured platform name
+            var configuredPlatform = _incidentManagementSettings?.Type.ToString() ?? string.Empty;
 
-                // Filter out incident handler tools from general tool selection, except for the configured platform
-                availableTools = [.. availableTools.Where(tool =>
+            // Filter out incident handler tools from general tool selection, except for the configured platform
+            availableTools = [.. availableTools.Where(tool =>
                     !tool.IsIncidentHandlerTool ||
                     (tool.IsIncidentHandlerTool &&
                      tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))];
 
-                _logger.LogInternalInformation("GetAvailableToolsPrompt: Filtered tools for platform {Platform}. Remaining: {FilteredCount}",
-                    configuredPlatform, availableTools.Count);
-            }
+            _logger.LogInternalInformation("GetAvailableToolsPrompt: Filtered tools for platform {Platform}. Remaining: {FilteredCount}",
+                configuredPlatform, availableTools.Count);
 
             if (request.Tools != null && request.Tools.Count != 0)
             {

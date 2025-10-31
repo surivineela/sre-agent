@@ -155,7 +155,7 @@ public class ToolAvailabilityService
                 return (false, "Configuration not found. Please run 'srectl init' first.");
             }
 
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/listTools?includeAllTools=true";
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/listTools";
             DebugLogger.LogConfig("RegularToolsURL", requestUrl);
 
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
