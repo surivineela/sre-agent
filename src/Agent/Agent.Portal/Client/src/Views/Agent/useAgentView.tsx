@@ -55,7 +55,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                     {
                         kind: verb,
                         data: data,
-                        signature: 'FxFrameBlade',
+                        signature: 'SreAgentPortal',
                     },
                     agentUxUrl
                 );

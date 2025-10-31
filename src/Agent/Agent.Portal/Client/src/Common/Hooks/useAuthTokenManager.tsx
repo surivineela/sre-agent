@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AzPortalToAgentSiteVerbs } from '../../Views/Agent/AgentIFrameContracts';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { LogLevel } from '../Contracts/Telemetry';
 import { JWTToken } from '../Utilities/JWTToken';
@@ -131,12 +132,20 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
             state.currentAuthToken = token;
             state.expiresAt = expiresAt;
 
-            const tokenMessage = {
-                token,
-                type: tokenType,
+            // Map AuthScopeIdentifier to TokenTypes for Agent.Web compatibility
+            const tokenTypeMap: Record<AuthScopeIdentifier, string> = {
+                arm: 'arm',
+                sreAgent: 'sreagent',
+                graph: 'graph',
+                appInsights: 'applicationinsightapi',
             };
 
-            postMessage('sendToken', tokenMessage);
+            const tokenMessage = {
+                token,
+                type: tokenTypeMap[tokenType],
+            };
+
+            postMessage(AzPortalToAgentSiteVerbs.sendToken, tokenMessage);
         },
         [getOrInitTokenState, postMessage]
     );

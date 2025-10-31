@@ -47,9 +47,9 @@ export const AgentIFrameView = () => {
                     allow="clipboard-write"
                     style={{
                         position: 'absolute',
-                        top: errorBannerMessage ? '60px' : '0',
+                        top: errorBannerMessage ? '105px' : '45px',
                         left: 0,
-                        height: errorBannerMessage ? 'calc(100% - 60px)' : '100%',
+                        height: errorBannerMessage ? 'calc(90% - 60px)' : '90%', // TODO
                         width: '100%',
                         border: 'unset',
                     }}

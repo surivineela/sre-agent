@@ -18,13 +18,15 @@ export default class AzPortalProxy {
     public shellSrc: string = '';
 
     private readonly portalFrameBladeSignature = 'FxFrameBlade';
+    private readonly sreAgentPortalSignature = 'SreAgentPortal';
     private bladeClosedResolver?: { operationId: string; resolver: (result: IBladeClosed) => void };
+    private localhostConfirmed: boolean = false;
 
     private setEnvironmentInfo: React.Dispatch<React.SetStateAction<IEnvironmentInfo>> = {} as React.Dispatch<
         React.SetStateAction<IEnvironmentInfo>
     >;
 
-    private readonly acceptedSignatures = [this.portalFrameBladeSignature];
+    private readonly acceptedSignatures = [this.portalFrameBladeSignature, this.sreAgentPortalSignature];
 
     private acceptedOriginsSuffix = [
         'portal.azure.com',
@@ -34,7 +36,8 @@ export default class AzPortalProxy {
         'portal.azure.eaglex.ic.gov',
         'portal.azure.microsoft.scloud',
         'portal.azure.net',
-        'ms.sre.azure.com',
+        'sre.azure.com',
+        'int.sre.azure.com',
     ];
 
     public static envInfo: IEnvironmentInfo = {} as IEnvironmentInfo;
@@ -50,6 +53,8 @@ export default class AzPortalProxy {
         }
 
         const shellUrl = decodeURI(window.location.href);
+        // TODO: Can probably remove the need for this query param if we just use
+        // event.origin
         this.shellSrc = Url.getParameterByName(shellUrl, 'trustedAuthority') || '';
 
         this.setEnvironmentInfo = setEnvironmentInfo;
@@ -175,16 +180,39 @@ export default class AzPortalProxy {
         }
     };
 
+    private isLocalhostOrigin(origin: string): boolean {
+        return origin.includes('localhost');
+    }
+
     private messageReceived = (event: IEvent): void => {
         if (!event || !event.data) {
             return;
         }
 
-        if (!this.acceptedOriginsSuffix.find(o => event.origin.toLowerCase().endsWith(o.toLowerCase()))) {
+        if (!this.acceptedSignatures.find(s => event.data.signature === s)) {
             return;
         }
 
-        if (!this.acceptedSignatures.find(s => event.data.signature === s)) {
+        // Allow local-dev SREA portal to host prod agent site
+        // - notify user to mitigate slight security risk
+        if (this.isLocalhostOrigin(event.origin)) {
+            if (!this.localhostConfirmed) {
+                this.localhostConfirmed = confirm(
+                    `This application is being embedded from a local development environment (${event.origin}).\n\n` +
+                        `This should only happen during development. If you are not a developer testing this application, ` +
+                        `this may be a security concern.\n\n` +
+                        `Do you want to allow communication with this development environment?`
+                );
+
+                if (!this.localhostConfirmed) {
+                    console.error('User declined localhost communication. Closing page.');
+                    window.close();
+                    return;
+                }
+            }
+        }
+
+        if (!this.acceptedOriginsSuffix.find(o => event.origin.toLowerCase().endsWith(o.toLowerCase())) && !this.localhostConfirmed) {
             return;
         }
 

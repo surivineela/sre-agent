@@ -31,7 +31,7 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(options =>
     {
         builder.Configuration.Bind("AzureAd", options);
-        
+
         options.Events = new OpenIdConnectEvents
         {
             OnRedirectToIdentityProvider = context =>
@@ -44,13 +44,13 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                     var viteRedirectUri = new Uri(new Uri(viteDevServerUrl), "/signin-oidc").ToString();
                     context.ProtocolMessage.RedirectUri = viteRedirectUri;
                 }
-                
+
                 // Add prompt parameter if needed for consent
                 if (context.Properties.Items.TryGetValue("prompt", out var prompt))
                 {
                     context.ProtocolMessage.Prompt = prompt;
                 }
-                
+
                 // Add tenant hint for tenant switching
                 if (context.Properties.Items.TryGetValue("tenant_hint", out var tenantHint))
                 {
@@ -58,7 +58,7 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                     // The IssuerAddress format is: https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize
                     var issuerUri = new Uri(context.ProtocolMessage.IssuerAddress);
                     var pathSegments = issuerUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-                    
+
                     // Replace the tenant (second segment after domain) with the target tenant
                     if (pathSegments.Length > 0)
                     {
@@ -68,7 +68,7 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                         context.ProtocolMessage.IssuerAddress = newIssuerAddress;
                     }
                 }
-                
+
                 return Task.CompletedTask;
             },
             OnRedirectToIdentityProviderForSignOut = context =>
@@ -87,7 +87,6 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     })
     .EnableTokenAcquisitionToCallDownstreamApi(initialScopes)
     .AddInMemoryTokenCaches();
-
 
 builder.Services.AddControllersWithViews();
 
