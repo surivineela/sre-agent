@@ -53,6 +53,7 @@ export default defineConfig(({ mode }) => {
         },
         publicDir: './src/assets',
         server: {
+            port: 5174,
             cors: !isProduction
                 ? { origin: /^https?:\/\/(?:(?:[^:]+\.)?localhost|127\.0\.0\.1|\[::1\]|(?:[^:]+\.)?portal\.azure\.net)(?::\d+)?$/ }
                 : undefined,
@@ -66,7 +67,7 @@ export default defineConfig(({ mode }) => {
                           configure: (proxy: any, _options: any) => {
                               proxy.on('proxyReq', (proxyReq: any, req: any, _res: any) => {
                                   // Add forwarded headers so backend knows the original host
-                                  proxyReq.setHeader('X-Forwarded-Host', 'localhost:5173');
+                                  proxyReq.setHeader('X-Forwarded-Host', 'localhost:5174');
                                   proxyReq.setHeader('X-Forwarded-Proto', 'https');
                                   proxyReq.setHeader('X-Forwarded-For', req.socket.remoteAddress || '');
                               });
