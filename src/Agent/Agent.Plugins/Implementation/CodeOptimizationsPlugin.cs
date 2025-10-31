@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Plugins.Interface;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
 namespace Agent.Plugins.Implementation
@@ -14,13 +15,16 @@ namespace Agent.Plugins.Implementation
     {
         private readonly ArmHelper _armHelper;
         private readonly AppInsightsPlugin _appInsightsPlugin;
+        private readonly ILogger<CodeOptimizationsPlugin> _logger;
 
         public CodeOptimizationsPlugin(
             ArmHelper armHelper,
-            AppInsightsPlugin appInsightsPlugin)
+            AppInsightsPlugin appInsightsPlugin,
+            ILogger<CodeOptimizationsPlugin> logger)
         {
             _armHelper = armHelper;
             _appInsightsPlugin = appInsightsPlugin;
+            _logger = logger;
         }
 
         [Description("Get code optimization insights")]
@@ -57,23 +61,32 @@ namespace Agent.Plugins.Implementation
             // Gather all info for each resource
             foreach (var resourceId in resourceIds)
             {
-                var appSettings = await _armHelper.GetAppSettings(resourceId);
-                var jsonObject = JObject.Parse(appSettings);
-                var instrumentationKey = _appInsightsPlugin.GetInstrumentationKey(jsonObject["properties"]?["APPINSIGHTS_INSTRUMENTATIONKEY"]?.ToString())
-                    ?? _appInsightsPlugin.GetInstrumentationKey(jsonObject["properties"]?["APPLICATIONINSIGHTS_CONNECTION_STRING"]?.ToString());
-                var subId = resourceId.Split('/')[2];
-                var roleName = GetRoleName(resourceId, jsonObject);
-                var appId = await _armHelper.GetAppInsightsAppIdBySubscription(subId, instrumentationKey ?? string.Empty);
-                var appInsightsResource = await _armHelper.GetAppInsightsResourceByInstrumentationKeyAsync(subId, instrumentationKey ?? string.Empty);
-                apps.Add(new AppInfo
+                try
                 {
-                    ResourceId = resourceId,
-                    SubId = subId,
-                    RoleName = roleName,
-                    InstrumentationKey = instrumentationKey,
-                    AppId = appId,
-                    AppInsightsResource = appInsightsResource
-                });
+                    var appSettings = await _armHelper.GetAppSettings(resourceId);
+                    var jsonObject = JObject.Parse(appSettings);
+                    var instrumentationKey = _appInsightsPlugin.GetInstrumentationKey(jsonObject["properties"]?["APPINSIGHTS_INSTRUMENTATIONKEY"]?.ToString())
+                        ?? _appInsightsPlugin.GetInstrumentationKey(jsonObject["properties"]?["APPLICATIONINSIGHTS_CONNECTION_STRING"]?.ToString());
+                    var subId = resourceId.Split('/')[2];
+                    var roleName = GetRoleName(resourceId, jsonObject);
+                    var appId = await _armHelper.GetAppInsightsAppIdBySubscription(subId, instrumentationKey ?? string.Empty);
+                    var appInsightsResource = await _armHelper.GetAppInsightsResourceByInstrumentationKeyAsync(subId, instrumentationKey ?? string.Empty);
+                    apps.Add(new AppInfo
+                    {
+                        ResourceId = resourceId,
+                        SubId = subId,
+                        RoleName = roleName,
+                        InstrumentationKey = instrumentationKey,
+                        AppId = appId,
+                        AppInsightsResource = appInsightsResource
+                    });
+                }
+                catch (Exception ex)
+                {
+                    // Skip this resource and continue with others if fetching app settings fails
+                    _logger.LogInternalWarning(ex, $"Failed to get app settings for resource {resourceId}. Skipping this resource.");
+                    continue;
+                }
             }
 
             var appIds = apps
