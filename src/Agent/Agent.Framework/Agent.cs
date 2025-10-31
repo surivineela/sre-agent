@@ -62,6 +62,11 @@ public class Agent<TContext>(string name) where TContext : class
     /// </summary>
     public bool DisableCommonPrompts { get; set; } = false;
 
+    /// <summary>
+    /// Indicates whether this agent is an extended (custom) agent loaded from the extensibility system.
+    /// </summary>
+    public bool IsExtended { get; set; } = false;
+
     public virtual ChatToolMode ChatToolMode { get; set; } = ChatToolMode.Auto;
 
     public virtual float Temperature { get; set; } = 0.3f;
@@ -127,6 +132,7 @@ public class Agent<TContext>(string name) where TContext : class
             DisableDocumentRetrieval = DisableDocumentRetrieval,
             EnableHandoffPromptOverride = EnableHandoffPromptOverride,
             DisableCommonPrompts = DisableCommonPrompts,
+            IsExtended = IsExtended,
             ChatToolMode = ChatToolMode,
             Temperature = Temperature,
             ReasoningEffortLevel = ReasoningEffortLevel,

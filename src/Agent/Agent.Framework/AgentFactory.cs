@@ -220,6 +220,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             DisableDocumentRetrieval = agentDescriptor.DisableDocumentRetrieval,
             EnableHandoffPromptOverride = agentDescriptor.EnableHandoffPromptOverride,
             DisableCommonPrompts = agentDescriptor.DisableCommonPrompts,
+            IsExtended = isCustomAgent,
 
             // === Workflow Agent Properties ===
             AgentType = agentDescriptor.AgentType,

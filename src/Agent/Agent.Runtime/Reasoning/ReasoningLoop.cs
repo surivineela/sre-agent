@@ -1215,9 +1215,10 @@ public class ReasoningLoop : IDisposable
             _currentAgentSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
             _currentAgentSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.InvokeAgent);
 
+            var parameterObj = new { agentName = agent.Name, isExtended = agent.IsExtended };
             _logger.LogAgentAction(
                 action: AgentActionEvents.InvokeAgent,
-                parameter: agent.Name,
+                parameter: WebJsonSerializer.Serialize(parameterObj),
                 status: AgentActionStatus.Success,
                 duration: 0,
                 threadId: _context.ThreadId.ToString(),
