@@ -9,12 +9,14 @@ import { AppInsightsClient } from '../../../Common/Clients/AppInsightsClient';
 import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClient';
 import { TimeRangeKeyLabelPair, TimeRangeValue } from '../../../Common/Components/PillFilter/Contracts';
 import { PillFilter } from '../../../Common/Components/PillFilter/PillFilter';
+import { IncidentFilter } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { getLocalizedAgentMode } from '../../../Common/Helpers/AgentMode';
 import { getPercentChangeInArray } from '../../../Common/Helpers/Math';
 import { IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { IncidentHandlerItem, IncidentSummaryItem } from '../Analysis';
 import { ChartCard } from './Components/ChartCard';
 import { RcaCard } from './Components/RcaCard';
+import ResponsePlanDetailsDrawer from './Components/ResponsePlanDetailsDrawer';
 import { ResponsePlanIncidentsGrid } from './Components/ResponsePlanIncidentsGrid';
 import { StatCard, StatCardData } from './Components/StatCard';
 import { getHandlerIncidentOverviewQuery, getHandlerIncidentSummaryTrendQuery } from './Queries';
@@ -37,6 +39,7 @@ interface ResponsePlanViewProps {
     setSelectedTimeRange: (value: TimeRangeValue) => void;
     appInsightsId: string;
     appInsightsToken: string | null;
+    onEditHandler: (filter: IncidentFilter | undefined) => void;
 }
 
 export const ResponsePlanView = ({
@@ -47,13 +50,13 @@ export const ResponsePlanView = ({
     setSelectedTimeRange,
     appInsightsId,
     appInsightsToken,
+    onEditHandler,
 }: ResponsePlanViewProps) => {
     const intl = useIntl();
     const { resourceId } = useContext(EnvironmentContext);
     const { log } = useAzPortalContext();
 
-    // TODO: View response plan panel
-    const [_isViewResponsePlanPanelOpen, setIsViewResponsePlanPanelOpen] = useState(false);
+    const [isViewResponsePlanPanelOpen, setIsViewResponsePlanPanelOpen] = useState(false);
 
     const [isIncidentSummaryLoading, setIsIncidentSummaryLoading] = useState(true);
     const [isIncidentsLoading, setIsIncidentsLoading] = useState(true);
@@ -280,6 +283,14 @@ export const ResponsePlanView = ({
         fetchIncidentsData();
     }, [fetchResponsePlanIncidentSummaryData, fetchIncidentsData]);
 
+    const handleEditHandler = useCallback(
+        (filter: IncidentFilter | undefined) => {
+            onEditHandler(filter);
+            setIsViewResponsePlanPanelOpen(false);
+        },
+        [onEditHandler]
+    );
+
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -299,7 +310,7 @@ export const ResponsePlanView = ({
                     </div>
                 </div>
 
-                <Button onClick={() => setIsViewResponsePlanPanelOpen(true)} disabled={true}>
+                <Button onClick={() => setIsViewResponsePlanPanelOpen(true)}>
                     {intl.formatMessage(IncidentManagementResources.viewPlan)}
                 </Button>
             </div>
@@ -379,6 +390,13 @@ export const ResponsePlanView = ({
             <div style={{ display: 'flex', flex: '1 1 0', minHeight: 200 }}>
                 <ResponsePlanIncidentsGrid incidents={incidentsResponse ?? []} isLoading={isIncidentsLoading} />
             </div>
+
+            <ResponsePlanDetailsDrawer
+                isOpen={isViewResponsePlanPanelOpen}
+                onClose={() => setIsViewResponsePlanPanelOpen(false)}
+                responsePlan={openedResponsePlan}
+                onEditHandler={handleEditHandler}
+            />
         </div>
     );
 };

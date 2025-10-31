@@ -13,14 +13,19 @@ import {
 import { ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { debounce } from 'lodash';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useAzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { ThreadClient } from '../../../../Common/Clients/ThreadClient';
 import { ISortedDetailsListColumn } from '../../../../Common/Components/DetailsList/Constants';
+import { Thread } from '../../../../Common/Contracts/DataPlane/Thread';
 import { formatDateTimeWithShortYear } from '../../../../Common/Helpers/Date';
 import { getLocalizedMitigatedBy } from '../../../../Common/Helpers/IncidentManagement';
 import { useIsDarkMode } from '../../../../Common/Hooks/useIsDarkMode';
 import { IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
+import IncidentChatDrawer from '../../Common/IncidentChatDrawer';
 import { IncidentItem } from '../ResponsePlanView';
 
 // TODO: Pagination
@@ -47,15 +52,27 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: Re
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
     const isDarkMode = useIsDarkMode();
-
-    // TODO: Incident chat panel
-    const [_isIncidentChatPanelOpen, setIsIncidentChatPanelOpen] = useState(false);
+    const { sreAgentEndpoint, resourceId } = useContext(EnvironmentContext);
+    const { log } = useAzPortalContext();
 
     const [searchText, setSearchText] = useState<string>('');
     const [severityLevelFilter, setSeverityLevelFilter] = useState<string>(all);
     const [mitigatedByFilter, setMitigatedByFilter] = useState<string>(all);
     const [sortColumnKey, setSortColumnKey] = useState<keyof IncidentItem | undefined>();
     const [isSortedDescending, setIsSortedDescending] = useState<boolean>(false);
+
+    const [selectedThread, setSelectedThread] = useState<Thread | undefined>();
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+    const handleOpenDrawer = useCallback((thread: Thread) => {
+        setSelectedThread(thread);
+        setIsDrawerOpen(true);
+    }, []);
+
+    const handleCloseDrawer = useCallback(() => {
+        setIsDrawerOpen(false);
+        setSelectedThread(undefined);
+    }, []);
 
     // Filter by used values as more convenient, but also not sure if different platforms have different values
     const severityLevelFilterOptions = useMemo<{ label: string; value: string }[]>(() => {
@@ -108,20 +125,47 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: Re
         return <Text>{item.incidentId}</Text>;
     }, []);
 
-    const onRenderIncidentTitle = useCallback((item: IncidentItem) => {
-        const tempDisabled = true; // Disabled until context pane implemented
-        if (tempDisabled) return item.incidentTitle;
+    const handleIncidentTitleClick = useCallback(
+        async (incidentId: string) => {
+            const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
+            const response = await threadClient.getIncidentThreads({
+                skip: 0,
+                top: 1,
+                filter: `incidentId eq '${incidentId}'`,
+            });
 
-        return (
-            <Link
-                onClick={() => {
-                    setIsIncidentChatPanelOpen(true);
-                }}
-            >
-                {item.incidentTitle}
-            </Link>
-        );
-    }, []);
+            if (response.isSuccessful && response.content && response.content.length > 0) {
+                handleOpenDrawer(response.content[0]);
+            } else {
+                log({
+                    action: 'handleIncidentTitleClick',
+                    actionModifier: 'failed',
+                    resourceId,
+                    logLevel: 'error',
+                    data: {
+                        incidentId,
+                        error: response.error,
+                    },
+                });
+            }
+        },
+        [sreAgentEndpoint, handleOpenDrawer, log, resourceId]
+    );
+
+    const onRenderIncidentTitle = useCallback(
+        (item: IncidentItem) => {
+            return (
+                <Link
+                    onClick={() => {
+                        handleIncidentTitleClick(item.incidentId);
+                    }}
+                >
+                    {item.incidentTitle}
+                </Link>
+            );
+        },
+        [handleIncidentTitleClick]
+    );
 
     const onRenderSeverityLevel = useCallback((item: IncidentItem) => {
         return <Text>{item.severity}</Text>;
@@ -275,73 +319,77 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: Re
     }, [filteredGridItems, sortColumnKey, isSortedDescending]);
 
     return (
-        <Card style={{ width: '100%', height: '100%' }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
-            <Subtitle2>{intl.formatMessage(IncidentManagementResources.incidents)}</Subtitle2>
+        <>
+            <Card style={{ width: '100%', height: '100%' }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
+                <Subtitle2>{intl.formatMessage(IncidentManagementResources.incidents)}</Subtitle2>
 
-            <div className={styles.incidentFiltersContainer} style={{ marginBottom: 0 }}>
-                <SearchBox
-                    className={styles.searchBox}
-                    placeholder={intl.formatMessage(IncidentManagementResources.searchIncidents)}
-                    value={searchText}
-                    onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
-                    disabled={disabled}
-                />
-                <Dropdown
-                    onOptionSelect={(_e, data) => setSeverityLevelFilter(data.optionValue ?? all)}
-                    value={severityLevelFilter}
-                    selectedOptions={[severityLevelFilter]}
-                    button={severityLevelFilterLabel}
-                    aria-label={intl.formatMessage(IncidentManagementResources.filterBySeverityLevel)}
-                    className={styles.searchBox}
-                    disabled={disabled}
-                >
-                    {severityLevelFilterOptions.map(option => (
-                        <Option value={option.value} text={option.label}>
-                            {option.label}
-                        </Option>
-                    ))}
-                </Dropdown>
-                <Dropdown
-                    onOptionSelect={(_e, data) => setMitigatedByFilter(data.optionValue ?? all)}
-                    value={mitigatedByFilter}
-                    selectedOptions={[mitigatedByFilter]}
-                    button={mitigatedByFilterLabel}
-                    aria-label={intl.formatMessage(IncidentManagementResources.filterByMitigatedBy)}
-                    className={styles.searchBox}
-                    disabled={disabled}
-                >
-                    {mitigatedByFilterOptions.map(option => (
-                        <Option value={option.value} text={option.label}>
-                            {option.label}
-                        </Option>
-                    ))}
-                </Dropdown>
-            </div>
+                <div className={styles.incidentFiltersContainer} style={{ marginBottom: 0 }}>
+                    <SearchBox
+                        className={styles.searchBox}
+                        placeholder={intl.formatMessage(IncidentManagementResources.searchIncidents)}
+                        value={searchText}
+                        onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
+                        disabled={disabled}
+                    />
+                    <Dropdown
+                        onOptionSelect={(_e, data) => setSeverityLevelFilter(data.optionValue ?? all)}
+                        value={severityLevelFilter}
+                        selectedOptions={[severityLevelFilter]}
+                        button={severityLevelFilterLabel}
+                        aria-label={intl.formatMessage(IncidentManagementResources.filterBySeverityLevel)}
+                        className={styles.searchBox}
+                        disabled={disabled}
+                    >
+                        {severityLevelFilterOptions.map(option => (
+                            <Option value={option.value} text={option.label}>
+                                {option.label}
+                            </Option>
+                        ))}
+                    </Dropdown>
+                    <Dropdown
+                        onOptionSelect={(_e, data) => setMitigatedByFilter(data.optionValue ?? all)}
+                        value={mitigatedByFilter}
+                        selectedOptions={[mitigatedByFilter]}
+                        button={mitigatedByFilterLabel}
+                        aria-label={intl.formatMessage(IncidentManagementResources.filterByMitigatedBy)}
+                        className={styles.searchBox}
+                        disabled={disabled}
+                    >
+                        {mitigatedByFilterOptions.map(option => (
+                            <Option value={option.value} text={option.label}>
+                                {option.label}
+                            </Option>
+                        ))}
+                    </Dropdown>
+                </div>
 
-            <div data-is-scrollable="true" user-select="text" style={{ overflowY: 'auto' }}>
-                <ShimmeredDetailsList
-                    columns={columns}
-                    items={sortedItems}
-                    constrainMode={ConstrainMode.horizontalConstrained}
-                    layoutMode={DetailsListLayoutMode.justified}
-                    selectionMode={SelectionMode.none}
-                    enableShimmer={isLoading}
-                    className={mergeClasses(styles.detailsListBase, isDarkMode ? styles.detailsListDarkModeBackground : undefined)}
-                    styles={{
-                        root: {
-                            width: '100%',
-                            userSelect: 'text',
-                        },
-                    }}
-                    compact
-                />
+                <div data-is-scrollable="true" user-select="text" style={{ overflowY: 'auto' }}>
+                    <ShimmeredDetailsList
+                        columns={columns}
+                        items={sortedItems}
+                        constrainMode={ConstrainMode.horizontalConstrained}
+                        layoutMode={DetailsListLayoutMode.justified}
+                        selectionMode={SelectionMode.none}
+                        enableShimmer={isLoading}
+                        className={mergeClasses(styles.detailsListBase, isDarkMode ? styles.detailsListDarkModeBackground : undefined)}
+                        styles={{
+                            root: {
+                                width: '100%',
+                                userSelect: 'text',
+                            },
+                        }}
+                        compact
+                    />
 
-                {incidents.length === 0 && !isLoading && (
-                    <Text align="center" block>
-                        {intl.formatMessage(IncidentManagementResources.noIncidentsFound)}
-                    </Text>
-                )}
-            </div>
-        </Card>
+                    {incidents.length === 0 && !isLoading && (
+                        <Text align="center" block>
+                            {intl.formatMessage(IncidentManagementResources.noIncidentsFound)}
+                        </Text>
+                    )}
+                </div>
+            </Card>
+
+            <IncidentChatDrawer isOpen={isDrawerOpen} onClose={handleCloseDrawer} thread={selectedThread} size="large" />
+        </>
     );
 };

@@ -112,6 +112,31 @@ export class IncidentHandlerClient extends DataPlaneClient {
         }
     };
 
+    public getIncidentFilter = async (id: string): Promise<Response<IncidentFilter>> => {
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${id}`);
+        try {
+            const { data } = await axios.get<IncidentFilter>(url, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            this._log?.({
+                logLevel: 'error',
+                action: 'getIncidentFilter',
+                actionModifier: 'failed',
+                data: `Failed to get incident filter: ${errorMessage}`,
+            });
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
     public deleteIncidentFilter = async (id: string): Promise<Response<IncidentFilter[]>> => {
         const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${id}`);
         try {

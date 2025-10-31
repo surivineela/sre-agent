@@ -9,12 +9,15 @@ import { getDataPlaneErrorMessage } from '../../Common/Clients/DataPlaneClient';
 import { TimeRangeValue, TimespanKeys } from '../../Common/Components/PillFilter/Contracts';
 import { getDefaultTimeRangeOptions } from '../../Common/Components/PillFilter/Hooks/useTimeRangePillFilter';
 import { PillFilter } from '../../Common/Components/PillFilter/PillFilter';
+import { IncidentFilter } from '../../Common/Contracts/Azure/IncidentHandler';
 import { getLocalizedIncidentPlatformName } from '../../Common/Helpers/IncidentManagement';
 import { getPercentChangeInArray } from '../../Common/Helpers/Math';
 import { useAuthToken } from '../../Common/Hooks/useAuthToken';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
+import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
+import CreateIncidentHandlerConsolidated from './CreateIncidentHandler/CreateIncidentHandlerConsolidated';
 import { ChartCard } from './Watchtower/Components/ChartCard';
 import { IncidentResponsePlanGrid } from './Watchtower/Components/IncidentResponsePlanGrid';
 import { StatCard, StatCardData } from './Watchtower/Components/StatCard';
@@ -75,6 +78,8 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
 
     const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRangeValue>({ key: TimespanKeys.SevenDays });
     const [openedResponsePlan, setOpenedResponsePlan] = useState<IncidentHandlerItem | undefined>(undefined);
+    const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo | undefined>();
+    const [handlerOperationStatus, setHandlerOperationStatus] = useState<OperationStatus | undefined>(undefined);
 
     const [isIncidentCoverageLoading, setIsIncidentCoverageLoading] = useState(true);
     const [isIncidentSummaryLoading, setIsIncidentSummaryLoading] = useState(true);
@@ -361,10 +366,54 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
         fetchIncidentHandlersData();
     }, [fetchIncidentCoverageData, fetchIncidentSummaryData, fetchIncidentHandlersData]);
 
+    const handleEditHandler = useCallback((filter: IncidentFilter | undefined) => {
+        setHandlerCreateOrEditInfo({ filter });
+        setOpenedResponsePlan(undefined);
+    }, []);
+
+    useEffect(() => {
+        if (handlerOperationStatus) {
+            const timer = setTimeout(() => {
+                setHandlerOperationStatus(undefined);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [handlerOperationStatus]);
+
+    if (handlerCreateOrEditInfo) {
+        return (
+            <CreateIncidentHandlerConsolidated
+                exitToHome={() => setHandlerCreateOrEditInfo(undefined)}
+                setHandlerOperationStatus={setHandlerOperationStatus}
+                handlerCreateOrEditInfo={handlerCreateOrEditInfo}
+            />
+        );
+    }
+
     return (
         <div className={styles.navPanelWrapper}>
             <div className={styles.navPanelContent}>
                 <div className={styles.navPanelPadding}>
+                    {handlerOperationStatus === 'succeeded' && (
+                        <div style={{ marginBottom: 20 }}>
+                            <MessageBar intent="success">
+                                <MessageBarBody>
+                                    <MessageBarTitle>{intl.formatMessage(IncidentManagementResources.responsePlanSaved)}</MessageBarTitle>
+                                </MessageBarBody>
+                            </MessageBar>
+                        </div>
+                    )}
+                    {handlerOperationStatus === 'failed' && (
+                        <div style={{ marginBottom: 20 }}>
+                            <MessageBar intent="error">
+                                <MessageBarBody>
+                                    <MessageBarTitle>
+                                        {intl.formatMessage(IncidentManagementResources.responsePlanSaveFailed)}
+                                    </MessageBarTitle>
+                                </MessageBarBody>
+                            </MessageBar>
+                        </div>
+                    )}
                     {!openedResponsePlan ? (
                         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
                             <PillFilter
@@ -455,6 +504,7 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                             setSelectedTimeRange={setSelectedTimeRange}
                             appInsightsId={agentAppInsightsAppId}
                             appInsightsToken={appInsightsToken}
+                            onEditHandler={handleEditHandler}
                         />
                     )}
                 </div>
