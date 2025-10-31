@@ -9,7 +9,7 @@ export type InputNoFormikProps = InputProps &
 const InputNoFormik: React.FC<InputNoFormikProps> = ({ isLoading, label, ...props }) => {
     if (label) {
         return (
-            <FieldWrapper {...props}>
+            <FieldWrapper label={label} {...props}>
                 {isLoading ? (
                     <Skeleton>
                         <SkeletonItem size={32} animation={'wave'} />

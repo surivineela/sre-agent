@@ -11,8 +11,8 @@ import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import { useSharedNavDrawerStyles } from '../Styles/Navigation.styles';
 import AccessControl from './AccessControl.ReactView';
 import Basics from './Basics.ReactView';
+import { Connectors } from './Connectors/Connectors';
 import DataConnectors from './DataConnectors.ReactView';
-import DataKnowledgeSpace from './DataKnowledgeSpace';
 import KnowledgeBase from './DataKnowledgeSpaceComponents.tsx/KnowledgeBase.ReactView';
 import Identity from './Identity.ReactView';
 import ManagedResources from './ManagedResources.ReactView';
@@ -27,6 +27,7 @@ export enum SettingsKeys {
     GrafanaDashboard = 'grafanaDashboard',
     managedResources = 'managedResourcesGroups',
     DataConnectors = 'dataConnectors',
+    Connectors = 'connectors',
     Identity = 'identity',
     KnowledgeBase = 'knowledgeBase',
     SubAgents = 'subAgents',
@@ -46,9 +47,9 @@ const Settings: FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const showDataConnectors = useConfigSetting(SettingNames.DataConnectors);
+    const showConnectors = useConfigSetting(SettingNames.Connectors);
     const showKnowledgeBase = useKnowledgeBaseConfig();
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
-    const showDataKnowledgeSpace = useConfigSetting(SettingNames.DataKnowledgeSpace);
     const showMcpServer = useConfigSetting(SettingNames.McpServer);
 
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
@@ -84,6 +85,13 @@ const Settings: FC = () => {
             });
         }
 
+        if (showConnectors) {
+            items.push({
+                name: intl.formatMessage(SettingsTabResources.connectors),
+                key: SettingsKeys.Connectors,
+            });
+        }
+
         if (showKnowledgeBase) {
             items.push({
                 name: intl.formatMessage(SettingsTabResources.knowledgeBase),
@@ -116,20 +124,13 @@ const Settings: FC = () => {
             });
         }
 
-        if (showDataKnowledgeSpace) {
-            items.push({
-                name: intl.formatMessage(SettingsTabResources.dataKnowledgeSpace),
-                key: SettingsKeys.DataKnowledgeSpace,
-            });
-        }
-
         items.push({
             name: intl.formatMessage(SettingsTabResources.usage),
             key: SettingsKeys.Usage,
         });
 
         return items;
-    }, [intl, showDataConnectors, showKnowledgeBase, showMcpServer, showSubAgents, showDataKnowledgeSpace]);
+    }, [intl, showDataConnectors, showKnowledgeBase, showMcpServer, showSubAgents]);
 
     const onNavigationClick = useCallback(
         (navKey: string) => {
@@ -183,7 +184,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.GrafanaDashboard && <GrafanaDashboard />}
                     {selectedKey === SettingsKeys.DataConnectors && showDataConnectors && <DataConnectors />}
                     {selectedKey === SettingsKeys.KnowledgeBase && showKnowledgeBase && <KnowledgeBase />}
-                    {selectedKey === SettingsKeys.DataKnowledgeSpace && showDataKnowledgeSpace && <DataKnowledgeSpace />}
+                    {selectedKey === SettingsKeys.Connectors && showConnectors && <Connectors />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
                     {selectedKey === SettingsKeys.Identity && <Identity />}
                     {selectedKey === SettingsKeys.SubAgents && showSubAgents && <SubAgents />}

@@ -10,7 +10,7 @@ export enum StepStatus {
 }
 
 export interface WizardStep {
-    id: string;
+    id: number;
     title: string;
     status: StepStatus;
 }

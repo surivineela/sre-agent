@@ -55,6 +55,7 @@ const ICON_LOOKUP: Record<string, string> = {
     knowledgebase: 'KnowledgeBase.svg',
     folder: 'folder.svg',
     dataconnectors: 'DataConnectors.svg',
+    connectors: 'Connectors.svg',
     azuredataexplorer: 'AzureDataExplorer.svg',
     azuredevops: 'AzureDevOps.svg',
     github: 'github-mark.svg',
@@ -62,6 +63,10 @@ const ICON_LOOKUP: Record<string, string> = {
 
     //Usage
     usagewarning: 'WarningSpotIllustration.svg',
+    
+    // Office
+    outlook: 'Outlook.svg',
+    teams: 'Teams.svg',
 
     // Others Azure Resource Types
     'microsoft.documentdb/databaseaccounts': 'CosmosDB.svg',

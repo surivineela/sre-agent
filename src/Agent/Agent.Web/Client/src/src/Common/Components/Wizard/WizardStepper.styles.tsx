@@ -40,9 +40,8 @@ export const useWizardStepperStyles = makeStyles({
         border: `2px solid ${tokens.colorBrandBackground}`,
     },
     completedIcon: {
-        backgroundColor: tokens.colorPaletteGreenBackground3,
-        color: tokens.colorNeutralForegroundInverted,
-        border: `2px solid ${tokens.colorPaletteGreenBackground3}`,
+        backgroundColor: tokens.colorNeutralForegroundInverted,
+        color: tokens.colorPaletteGreenBackground3,
     },
     stepTitle: {
         fontSize: tokens.fontSizeBase400,

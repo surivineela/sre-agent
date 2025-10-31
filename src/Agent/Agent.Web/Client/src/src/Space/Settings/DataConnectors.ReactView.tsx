@@ -6,13 +6,13 @@ import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalPr
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { SecretValue } from '../../Common/Components/SecretValue';
 import ShimmeredDetailsListWithSelection, { OnUpdateSelectionArgs } from '../../Common/Components/ShimmeredDetailsListWithSelection';
-import { DataConnector } from '../../Common/Contracts/Azure/SreAgent';
+import { Connector } from '../../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { DataConnectorsResources, SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IdentityKeys } from '../Contracts/Identity';
 import { CreateOrUpdateDataConnectorDialog, DataConnectorFormProps } from './AddEditDataConnectors';
 import DataConnectionsToolbar from './DataConnectorsToolbar';
-import { useAgentDataConnectors } from './Hooks/useAgentDataConnectors';
+import { useAgentConnectors } from './Hooks/useAgentConnectors';
 import { useSreAgent } from './Hooks/useSreAgent';
 import { useSettingsStyles } from './Styles/Settings.styles';
 
@@ -31,17 +31,22 @@ const DataConnectors: FC = () => {
     const { resourceId } = useContext(EnvironmentContext);
     const portalContext = useContext(AzPortalContext);
     const { agent, refresh: refreshAgent } = useSreAgent(resourceId);
-    const { dataConnectors, isDataConnectorsLoading, putDataConnector, deleteDataConnector, refreshDataConnectors } =
-        useAgentDataConnectors(resourceId);
+    const {
+        connectors: dataConnectors,
+        isConnectorsLoading: isDataConnectorsLoading,
+        putConnector: putDataConnector,
+        deleteConnector: deleteDataConnector,
+        refreshConnectors: refreshDataConnectors,
+    } = useAgentConnectors(resourceId);
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [selectedDataConnection, setSelectedDataConnection] = useState<DataConnector | undefined>();
+    const [selectedDataConnection, setSelectedDataConnection] = useState<Connector | undefined>();
     const [isEditMode, setIsEditMode] = useState(false);
     const [isOperationInProgress, setIsOperationInProgress] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
-    const onUpdateSelection = useCallback(({ selectedItems, selectedKeys }: OnUpdateSelectionArgs<DataConnector>) => {
+    const onUpdateSelection = useCallback(({ selectedItems, selectedKeys }: OnUpdateSelectionArgs<Connector>) => {
         setSelectedDataConnection(selectedItems.length > 0 ? selectedItems[0] : undefined);
         setSelectedKeys(selectedKeys);
     }, []);
@@ -52,7 +57,7 @@ const DataConnectors: FC = () => {
         setIsRefreshing(false);
     }, [refreshAgent, refreshDataConnectors]);
 
-    const handleEditDataConnection = useCallback((dataConnector: DataConnector) => {
+    const handleEditDataConnection = useCallback((dataConnector: Connector) => {
         setSelectedDataConnection(dataConnector);
         setIsEditMode(true);
         setIsDialogOpen(true);
@@ -121,7 +126,7 @@ const DataConnectors: FC = () => {
         setIsOperationInProgress(false);
     }, [selectedDataConnection, deleteDataConnector, resourceId, handleRefresh, portalContext, intl]);
 
-    const getFormValuesFromDataConnector = useCallback((dataConnector: DataConnector): DataConnectorFormProps => {
+    const getFormValuesFromDataConnector = useCallback((dataConnector: Connector): DataConnectorFormProps => {
         return {
             name: dataConnector.name,
             dataConnectorType: dataConnector.dataConnectorType,
@@ -135,7 +140,7 @@ const DataConnectors: FC = () => {
     }, [selectedDataConnection, getFormValuesFromDataConnector]);
 
     const createDataConnection = useCallback(
-        async (dataConnector: DataConnector) => {
+        async (dataConnector: Connector) => {
             setIsOperationInProgress(true);
             const notificationId = portalContext.startNotification(
                 intl.formatMessage(DataConnectorsResources.creatingDataConnector),
@@ -176,7 +181,7 @@ const DataConnectors: FC = () => {
     );
 
     const updateDataConnection = useCallback(
-        async (dataConnector: DataConnector) => {
+        async (dataConnector: Connector) => {
             setIsOperationInProgress(true);
             const notificationId = portalContext.startNotification(
                 intl.formatMessage(DataConnectorsResources.updatingDataConnector),
@@ -224,7 +229,7 @@ const DataConnectors: FC = () => {
                 minWidth: 150,
                 maxWidth: 200,
                 isResizable: true,
-                onRender: (item: DataConnector) => (
+                onRender: (item: Connector) => (
                     <span data-selection-disabled={true} data-is-focusable={true}>
                         <Link disabled={isOperationInProgress} onClick={() => handleEditDataConnection(item)}>
                             {item.name}
@@ -238,7 +243,7 @@ const DataConnectors: FC = () => {
                 minWidth: 120,
                 maxWidth: 150,
                 isResizable: true,
-                onRender: (item: DataConnector) => item.dataConnectorType,
+                onRender: (item: Connector) => item.dataConnectorType,
             },
             {
                 key: DataConnectorColumnKey.dataSource,
@@ -246,7 +251,7 @@ const DataConnectors: FC = () => {
                 minWidth: 200,
                 maxWidth: 300,
                 isResizable: true,
-                onRender: (item: DataConnector) =>
+                onRender: (item: Connector) =>
                     item.dataSource ? (
                         <span data-selection-disabled={true} data-is-focusable={true}>
                             <SecretValue value={item.dataSource} />
@@ -261,7 +266,7 @@ const DataConnectors: FC = () => {
                 minWidth: 150,
                 maxWidth: 250,
                 isResizable: true,
-                onRender: (item: DataConnector) => {
+                onRender: (item: Connector) => {
                     if (typeof item.identity === 'string') {
                         if (item.identity.toLowerCase() === IdentityKeys.system) {
                             return intl.formatMessage(SreAgentResources.systemAssigned);
@@ -280,7 +285,7 @@ const DataConnectors: FC = () => {
                 minWidth: 100,
                 maxWidth: 150,
                 isResizable: true,
-                onRender: (item: DataConnector) => item.source ?? '-',
+                onRender: (item: Connector) => item.source ?? '-',
             },
         ];
     }, [intl, openManagedIdentity, handleEditDataConnection, isOperationInProgress]);
@@ -297,7 +302,7 @@ const DataConnectors: FC = () => {
                     isOperationInProgress={isOperationInProgress || isRefreshing}
                 />
                 <div data-is-scrollable="true">
-                    <ShimmeredDetailsListWithSelection<DataConnector>
+                    <ShimmeredDetailsListWithSelection<Connector>
                         items={dataConnectors}
                         getKey={dc => dc.name}
                         columns={columns}

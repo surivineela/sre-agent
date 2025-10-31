@@ -1,7 +1,7 @@
 import { ApiVersions } from '../ApiVersions';
 import { HttpResponseObject } from '../ArmHelper.types';
 import { ArmArray, ArmObj, ResponseArray } from '../Contracts/Azure/ArmObj';
-import { Agent, DailyUsage, DataConnector, MonthlyUsage, ProvisioningState } from '../Contracts/Azure/SreAgent';
+import { Agent, Connector, DailyUsage, MonthlyUsage, ProvisioningState } from '../Contracts/Azure/SreAgent';
 import MakeArmCall from './ArmClient';
 
 export default class SreAgentClient {
@@ -72,9 +72,9 @@ export default class SreAgentClient {
 
     /** subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.App/agents/{agentName}/DataConnectors */
     public static listDataConnectors = (agentResourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
-        return MakeArmCall<ArmArray<DataConnector>>({
+        return MakeArmCall<ArmArray<Connector>>({
             resourceId: `${agentResourceId}/DataConnectors`,
-            commandName: 'listDataConnectors',
+            commandName: 'listConnectors',
             apiVersion,
         });
     };
@@ -82,20 +82,20 @@ export default class SreAgentClient {
     /** subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.App/agents/{agentName}/DataConnectors/{dataConnectorName} */
     public static putDataConnector = async (
         resourceId: string,
-        dataConnector: DataConnector,
+        dataConnector: Connector,
         apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview
     ) => {
-        return MakeArmCall<ArmObj<DataConnector>>({
+        return MakeArmCall<ArmObj<Connector>>({
             resourceId,
             commandName: 'putDataConnector',
             method: 'PUT',
-            body: { properties: dataConnector } as ArmObj<DataConnector>,
+            body: { properties: dataConnector } as ArmObj<Connector>,
             apiVersion,
         });
     };
 
     public static deleteDataConnector = (resourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
-        return MakeArmCall<ArmObj<DataConnector>>({
+        return MakeArmCall<ArmObj<Connector>>({
             resourceId,
             commandName: 'deleteDataConnector',
             method: 'DELETE',
@@ -108,11 +108,11 @@ export default class SreAgentClient {
      *
      * Currently just returns the entire data connector object but with the dataSource present/defined
      */
-    public static listDataConnectorsSecrets = (agentResourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
-        return MakeArmCall<ArmArray<DataConnector>>({
+    public static listConnectorsSecrets = (agentResourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
+        return MakeArmCall<ArmArray<Connector>>({
             method: 'POST',
             resourceId: `${agentResourceId}/DataConnectors/ListSecrets`,
-            commandName: 'listDataConnectorsSecrets',
+            commandName: 'listConnectorsSecrets',
             apiVersion,
         });
     };

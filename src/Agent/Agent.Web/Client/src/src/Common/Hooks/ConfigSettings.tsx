@@ -6,6 +6,7 @@ export enum SettingNames {
     ShowAgentModeForThread = 'showAgentModeForThread',
     ConsolidatedCreate = 'consolidatedCreate',
     DataConnectors = 'dataConnectors',
+    Connectors = 'connectors',
     ShowScheduledTasksTab = 'showScheduledTasksTab',
     ShowWatchtower = 'showWatchtower',
     KnowledgeBase = 'knowledgeBase',
@@ -13,7 +14,6 @@ export enum SettingNames {
     /** Only used by unit tests */
     ForUnitTests = 'forUnitTests',
     ShowSubAgentsItemInSettings = 'showSubAgentsItemInSettings',
-    DataKnowledgeSpace = 'dataKnowledgeSpace',
     McpServer = 'McpServer',
     ShowThreadTraceUI = 'showThreadTraceUI',
 }
@@ -33,8 +33,8 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.ShowWatchtower]: true,
         [SettingNames.ForUnitTests]: true,
-        [SettingNames.DataKnowledgeSpace]: true,
         [SettingNames.ShowThreadTraceUI]: true,
+        [SettingNames.Connectors]: true,
     },
 };
 

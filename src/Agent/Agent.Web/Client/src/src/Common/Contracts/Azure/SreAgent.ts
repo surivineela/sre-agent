@@ -1,4 +1,4 @@
-export interface DataConnector {
+export interface Connector {
     name: string;
     dataConnectorType: string;
     /** Secret value - must be fetched through ListSecrets endpoints */
@@ -21,7 +21,7 @@ export interface Agent {
     logConfiguration?: LogConfiguration;
     incidentManagementConfiguration?: IncidentManagementConfiguration | null;
     dashboardConfiguration: DashboardConfiguration;
-    dataConnectors?: DataConnector[];
+    dataConnectors?: Connector[];
     upgradeChannel?: UpgradeChannel;
     monthlyAgentUnitLimit?: number;
 }

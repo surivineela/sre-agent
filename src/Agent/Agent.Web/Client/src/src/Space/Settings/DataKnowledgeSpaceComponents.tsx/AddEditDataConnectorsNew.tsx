@@ -25,7 +25,7 @@ import { ApiVersions } from '../../../Common/ApiVersions';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MsiIdentity } from '../../../Common/Contracts/Azure/ArmObj';
-import { DataConnector } from '../../../Common/Contracts/Azure/SreAgent';
+import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 import { resolveResourceIcon } from '../../../Common/Helpers/Resources';
 import { DataConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { IdentityKeys, IdentityType } from '../../Contracts/Identity';
@@ -83,12 +83,12 @@ const kustoDataSourceExample = 'https://cluster-url/database-name';
 interface CreateDataConnectorProps {
     isDialogOpen: boolean;
     setIsDialogOpen: Dispatch<React.SetStateAction<boolean>>;
-    onSubmit: (dataConnector: DataConnector) => void;
+    onSubmit: (dataConnector: Connector) => void;
     agentIdentity?: MsiIdentity;
     isEditMode: boolean;
     initialValues?: DataConnectorFormProps;
     isOperationInProgress?: boolean;
-    existingDataConnectors?: DataConnector[];
+    existingDataConnectors?: Connector[];
     refreshAgent: () => void;
 }
 
@@ -98,7 +98,7 @@ interface CreateOrUpdateDataConnectorFormProps {
     isEditMode: boolean;
     agentIdentity?: MsiIdentity;
     isOperationInProgress?: boolean;
-    existingDataConnectors?: DataConnector[];
+    existingDataConnectors?: Connector[];
     refreshAgent: () => void;
     selectedConnectorType?: ConnectorTypeOption | null;
     onBackToSelection?: () => void;
@@ -162,7 +162,7 @@ export const CreateOrUpdateDataConnectorDialog: FC<CreateDataConnectorProps> = (
     }, [isEditMode, initialValues]);
     const handleSubmit = useCallback(
         async (values: DataConnectorFormProps, formikHelpers: FormikHelpers<DataConnectorFormProps>) => {
-            const dataConnector: DataConnector = {
+            const dataConnector: Connector = {
                 name: values.name,
                 dataConnectorType: values.dataConnectorType.toString(),
                 dataSource: values.dataSource,
