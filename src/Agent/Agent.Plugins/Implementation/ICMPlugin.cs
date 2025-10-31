@@ -36,13 +36,15 @@ public class ICMPlugin : IICMPlugin
     private const string AgentProcessingTag = "SREAgent_Processing";
     private const string AgentMitigatedTag = "SREAgent_Mitigated";
     private const bool ProcessImages = true;
-    private readonly string AgentName = string.Empty;
+
+    //Use agent unique name  (agent name + unique suffix) since customer's may use the same name  under different subscription/resource group
+    private string AgentName = string.Empty;
 
     public ICMPlugin(IICMAPIClient icmAPIClient, ILogger<ICMPlugin> logger, IChatClientProvider chatClientProvider, IHostEnvironment hostEnvironment)
     {
         _logger = logger;
         _icmApiClient = icmAPIClient;
-        AgentName = AgentNameHelper.GetCustomerAgentName(!hostEnvironment.IsDevelopment());
+        AgentName = AgentNameHelper.GetAgentName(!hostEnvironment.IsDevelopment());
 
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         _chatCompletionService = chatClientProvider.DefaultModel.AsChatCompletionService();
