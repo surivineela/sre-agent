@@ -413,6 +413,9 @@ public class Program
             .AddTransient<IRedisPlugin, RedisPlugin>()
             .AddTransient<RedisPluginDefinition>()
 
+            .AddSingleton<IMetricProviderHandler, GenevaMetricProviderHandler>()
+            .AddSingleton<MetricsAnalysisPluginDefinition>()
+            .AddSingleton<IMetricsAnalysisPlugin, MetricsAnalysisPlugin>()
             .AddTransient<MetricsPluginDefinition>()
             .AddTransient<AzureMonitorMetricsPluginDefinition>()
             .AddTransient<ChartPluginDefinition>()

@@ -2,7 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Linq;
 using System.ComponentModel;
+using System.Text.Json;
 using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
@@ -29,21 +31,22 @@ public class MdmMetricsPluginDefinition
 
     [AgentTool(ToolMode.Auto)]
     [Description("Gets the list of MDM metric names for a monitoring account and namespace from Microsoft Diagnostics Metrics (MDM).")]
-    public Task<string> GetMetricNamesAsync(
+    public async Task<string> GetMetricNamesAsync(
         [Description("MDM monitoring account identifier.")] string monitoringAccount,
         [Description("MDM metric namespace identifier.")] string metricNamespace)
     {
-        return _mdmMetricsPlugin.GetMetricNamesAsync(monitoringAccount, metricNamespace);
+        var metrics = await _mdmMetricsPlugin.GetMetricAsync(monitoringAccount, metricNamespace);
+        return JsonSerializer.Serialize(metrics.Select(m => m.Name));
     }
 
     [AgentTool(ToolMode.Auto)]
     [Description("Gets the dimension names for the specified MDM metric in Microsoft Diagnostics Metrics (MDM).")]
-    public Task<string> GetDimensionNamesAsync(
+    public async Task<string> GetDimensionNamesAsync(
         [Description("MDM monitoring account identifier.")] string monitoringAccount,
         [Description("MDM metric namespace identifier.")] string metricNamespace,
         [Description("MDM metric name identifier.")] string metricName)
     {
-        return _mdmMetricsPlugin.GetDimensionNamesAsync(monitoringAccount, metricNamespace, metricName);
+        return JsonSerializer.Serialize(await _mdmMetricsPlugin.GetDimensionNamesAsync(monitoringAccount, metricNamespace, metricName));
     }
 
     [AgentTool(ToolMode.Auto)]
@@ -80,7 +83,7 @@ public class MdmMetricsPluginDefinition
 
     [AgentTool(ToolMode.Auto)]
     [Description("Retrieves MDM metric time series from Microsoft Diagnostics Metrics (MDM) using MetricReader with advanced options including dimension filters and selection clauses.")]
-    public Task<string> GetTimeSeriesAsync(
+    public async Task<string> GetTimeSeriesAsync(
         [Description("MDM monitoring account identifier.")] string monitoringAccount,
         [Description("MDM metric namespace identifier.")] string metricNamespace,
         [Description("MDM metric name identifier.")] string metricName,
@@ -90,7 +93,7 @@ public class MdmMetricsPluginDefinition
         [Description("Optional JSON payload describing additional MDM query parameters (sampling types, aggregation, dimensions, etc.). Example: { 'samplingTypes': ['Average'], 'aggregationType': 'Automatic', 'dimensionFilters': [{'dimension': 'Region', 'values': ['NA']}], 'outputDimensionNames': ['Region'], 'lastValueMode': false }")] 
             string requestJson = "{ \"samplingTypes\": [\"Average\"], \"aggregationType\": \"Automatic\", \"lastValueMode\": false }")
     {
-        return _mdmMetricsPlugin.GetTimeSeriesAsync(
+        var result = await _mdmMetricsPlugin.GetTimeSeriesAsync(
             monitoringAccount,
             metricNamespace,
             metricName,
@@ -98,6 +101,7 @@ public class MdmMetricsPluginDefinition
             endTimeUtc,
             seriesResolutionInMinutes,
             requestJson);
+        return MdmMetricsPlugin.SerializeQueryResult(result);
     }
 
     [AgentTool(ToolMode.Auto)]

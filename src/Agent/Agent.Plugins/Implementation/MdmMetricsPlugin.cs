@@ -2,24 +2,23 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Plugins.Interface;
-using Azure.Core;
+using Agent.Plugins.Models;
 using Microsoft.Cloud.Metrics.Client;
 using Microsoft.Cloud.Metrics.Client.Configuration;
 using Microsoft.Cloud.Metrics.Client.Metrics;
 using Microsoft.Cloud.Metrics.Client.Query;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
 using Agent.Framework;
+using DimensionFilter = Microsoft.Cloud.Metrics.Client.Metrics.DimensionFilter;
 
 namespace Agent.Plugins;
 
@@ -29,7 +28,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
 
     private readonly MdmMetricsSettings _settings;
     private readonly ILogger<MdmMetricsPlugin> _logger;
-    private readonly MdmMetricsAccessTokenProvider _tokenProvider;
+    private readonly IAccessTokenProvider? _tokenProvider;
     private readonly IChatClientProvider _chatClientProvider;
 
     public MdmMetricsPlugin(
@@ -41,7 +40,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _tokenProvider = new MdmMetricsAccessTokenProvider(settings, logger, authenticationService, hostEnvironment);
+        _tokenProvider = hostEnvironment.IsDevelopment() ? null : new MdmMetricsAccessTokenProvider(settings, logger, authenticationService, hostEnvironment);
         _chatClientProvider = chatClientProvider ?? throw new ArgumentNullException(nameof(chatClientProvider));
     }
 
@@ -60,24 +59,23 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
         }
 
         var connectionInfo = new ConnectionInfo(_tokenProvider);
-        var endpoint = connectionInfo.GetEndpoint(monitoringAccount);
+        var reader = new MetricReader(connectionInfo);
 
-        var url = $"{endpoint}/user-api/v1/hint/monitoringAccount/{EscapeTwice(monitoringAccount)}/metricNamespace";
-        var result = await SendAsync(url, CancellationToken.None).ConfigureAwait(false);
+        var namespaces = await reader.GetNamespacesAsync(monitoringAccount);
 
         _logger.LogInternalInformation($"[MdmMetricsPlugin] [GetNamespacesAsync] - Result retrieved successfully");
-        return result;
+        return System.Text.Json.JsonSerializer.Serialize(namespaces);
     }
 
     /// <summary>
-    /// Gets the list of MDM metric names for a monitoring account and namespace from Microsoft Diagnostics Metrics (MDM).
+    /// Gets the list of MDM metric for a monitoring account and namespace from Microsoft Diagnostics Metrics (MDM).
     /// </summary>
     /// <param name="monitoringAccount">MDM monitoring account identifier.</param>
     /// <param name="metricNamespace">MDM metric namespace identifier.</param>
     /// <returns>A JSON payload containing the metric names.</returns>
-    public async Task<string> GetMetricNamesAsync(string monitoringAccount, string metricNamespace)
+    public async Task<MetricDefinition[]> GetMetricAsync(string monitoringAccount, string metricNamespace)
     {
-        _logger.LogInternalInformation($"[MdmMetricsPlugin] [GetMetricNamesAsync] - monitoringAccount: {monitoringAccount}, metricNamespace: {metricNamespace}");
+        _logger.LogInternalInformation($"[MdmMetricsPlugin] [GetMetricAsync] - monitoringAccount: {monitoringAccount}, metricNamespace: {metricNamespace}");
 
         if (string.IsNullOrWhiteSpace(monitoringAccount))
         {
@@ -99,19 +97,14 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
         // Get all metric configurations in the namespace
         var metricManager = new MetricConfigurationManager(connectionInfo);
         var metricConfigs = await metricManager.GetMultipleAsync(account, metricNamespace, returnEmptyConfig: false).ConfigureAwait(false);
+        var metrics = metricConfigs.Select(c => new MetricDefinition
+        (
+            c.Name,
+            c.Description
+        )).ToArray();
 
-        // Extract metric names from the configurations
-        var metricNames = new List<string>();
-        foreach (var config in metricConfigs)
-        {
-            if (!string.IsNullOrWhiteSpace(config.Name))
-            {
-                metricNames.Add(config.Name);
-            }
-        }
-
-        _logger.LogInternalInformation($"[MdmMetricsPlugin] [GetMetricNamesAsync] - Result retrieved successfully");
-        return System.Text.Json.JsonSerializer.Serialize(metricNames);
+        _logger.LogInternalInformation($"[MdmMetricsPlugin] [GetMetricAsync] - Result retrieved successfully");
+        return metrics;
     }
 
     /// <summary>
@@ -121,7 +114,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
     /// <param name="metricNamespace">MDM metric namespace identifier.</param>
     /// <param name="metricName">MDM metric name identifier.</param>
     /// <returns>A JSON payload containing the dimension names.</returns>
-    public async Task<string> GetDimensionNamesAsync(string monitoringAccount, string metricNamespace, string metricName)
+    public async Task<string[]> GetDimensionNamesAsync(string monitoringAccount, string metricNamespace, string metricName)
     {
         _logger.LogInternalInformation($"[MdmMetricsPlugin] [GetDimensionNamesAsync] - monitoringAccount: {monitoringAccount}, metricNamespace: {metricNamespace}, metricName: {metricName}");
 
@@ -151,21 +144,16 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
         var metricManager = new MetricConfigurationManager(connectionInfo);
         var metricConfig = await metricManager.GetAsync(account, metricNamespace, metricName).ConfigureAwait(false);
 
-        // Serialize and parse to get dimensions
-        var configJson = JsonConvert.SerializeObject(metricConfig);
-        dynamic parsedConfig = JsonConvert.DeserializeObject(configJson)!;
-
-        var dimensionNames = new List<string>();
-        if (parsedConfig?.Dimensions != null)
+        var rawConfig = metricConfig as RawMetricConfiguration;
+        if (rawConfig != null && !string.IsNullOrWhiteSpace(rawConfig.Name))
         {
-            foreach (var dimension in parsedConfig.Dimensions)
-            {
-                dimensionNames.Add(dimension.ToString());
-            }
+            _logger.LogInternalInformation($"[MdmMetricsPlugin] [GetDimensionNamesAsync] - Result retrieved successfully");
+            return rawConfig.Preaggregations.SelectMany(agg => agg.Dimensions).ToArray();
         }
-
-        _logger.LogInternalInformation($"[MdmMetricsPlugin] [GetDimensionNamesAsync] - Result retrieved successfully");
-        return System.Text.Json.JsonSerializer.Serialize(dimensionNames);
+        else
+        {
+            return [];
+        }
     }
 
     /// <summary>
@@ -213,7 +201,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
             metricName);
 
         // Build dimension filters following the sample pattern
-        var dimensionFilters = new List<Microsoft.Cloud.Metrics.Client.Metrics.DimensionFilter>();
+        var dimensionFilters = new List<DimensionFilter>();
 
         // Add existing filters from the request
         foreach (var filter in filterPayloads)
@@ -400,7 +388,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
     /// <param name="seriesResolutionInMinutes">Resolution of the returned series in minutes.</param>
     /// <param name="requestJson">JSON payload describing the MDM query (sampling types, aggregation, dimensions, etc.). Example: { 'monitoringAccount': 'account', 'metricNamespace': 'namespace', 'metricName': 'metric', 'samplingTypes': ['Average'], 'aggregationType': 'Automatic', 'dimensionFilters': [{'dimension': 'Region', 'values': ['NA']}], 'outputDimensionNames': ['Region'], 'lastValueMode': false }.</param>
     /// <returns>A JSON payload containing the requested time series.</returns>
-    public async Task<string> GetTimeSeriesAsync(
+    public async Task<IQueryResultListV3> GetTimeSeriesAsync(
         string monitoringAccount,
         string metricNamespace,
         string metricName,
@@ -421,7 +409,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
             requestJson).ConfigureAwait(false);
 
         _logger.LogInternalInformation("[MdmMetricsPlugin] [GetTimeSeriesAsync] - Result retrieved successfully");
-        return SerializeQueryResult(context.Result);
+        return context.Result;
     }
 
     public async Task<string> GetTimeSeriesAnalysisAsync(
@@ -701,36 +689,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
         string Name,
         IReadOnlyList<string> Values);
 
-    private async Task<string> SendAsync(string url, CancellationToken cancellationToken, bool acceptJson = false)
-    {
-        using var client = new HttpClient();
-        var token = await _tokenProvider.AcquireTokenAsync("https://microsoftmetrics.com").ConfigureAwait(false);
-
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Add("Authorization", $"Bearer {token}");
-        request.Headers.Add("ClientId", "SREAgent");
-        request.Headers.Add("TraceGuid", Guid.NewGuid().ToString("B"));
-        request.Headers.Add("SourceIdentity", Environment.MachineName);
-        request.Headers.Add("User-Agent", "MdmMetricsPlugin/1.0");
-
-        if (acceptJson)
-        {
-            request.Headers.Accept.Clear();
-            request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-        }
-
-        using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var errorText = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            throw new HttpRequestException($"MDM request failed: {response.StatusCode} - {errorText}");
-        }
-
-        return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-    }
-
-    private string SerializeQueryResult(Microsoft.Cloud.Metrics.Client.Query.IQueryResultListV3 result)
+    public static string SerializeQueryResult(IQueryResultListV3 result)
     {
         // Serialize IQueryResultListV3 result using Newtonsoft.Json (what the SDK uses)
         var json = JsonConvert.SerializeObject(result, Formatting.Indented);

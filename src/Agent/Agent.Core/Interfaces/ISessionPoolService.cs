@@ -40,4 +40,13 @@ public interface ISessionPoolService
     /// Returns metadata for each file (name, size, etc.).
     /// </summary>
     Task<string> ListSessionFilesAsync(string identifier);
+
+    /// <summary>
+    /// Upload a file to the active code interpreter session.
+    /// </summary>
+    /// <param name="identifier">Session identifier</param>
+    /// <param name="filename">Name of the file to upload</param>
+    /// <param name="fileContent">Binary content of the file</param>
+    /// <param name="destinationPath">Optional destination path within the session</param>
+    Task UploadSessionFileAsync(string identifier, string filename, byte[] fileContent, string? destinationPath = null);
 }

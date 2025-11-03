@@ -10,8 +10,6 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Session;
-using Azure.Core;
-using Azure.Identity;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Services;
@@ -247,6 +245,49 @@ public class SessionPoolService : ISessionPoolService
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Failed listing session files");
+            throw;
+        }
+    }
+
+    public async Task UploadSessionFileAsync(string identifier, string filename, byte[] fileContent, string? destinationPath = null)
+    {
+        if (string.IsNullOrWhiteSpace(filename)) throw new ArgumentException("filename required", nameof(filename));
+        if (fileContent == null || fileContent.Length == 0) throw new ArgumentException("fileContent required", nameof(fileContent));
+        if (filename.Contains("..")) throw new InvalidOperationException("path traversal not allowed");
+
+        var baseEndpoint = !string.IsNullOrWhiteSpace(_sessionPoolSettings.CodeInterpreterPoolManagementEndpoint)
+            ? _sessionPoolSettings.CodeInterpreterPoolManagementEndpoint
+            : _sessionPoolSettings.PoolManagementEndpoint;
+
+        var urlBuilder = new StringBuilder($"{baseEndpoint.TrimEnd('/')}/files?identifier={identifier}&api-version={_defaultApiVersion}");
+        if (!string.IsNullOrWhiteSpace(destinationPath))
+        {
+            urlBuilder.Append($"&path={Uri.EscapeDataString(destinationPath)}");
+        }
+        var url = urlBuilder.ToString();
+
+        _logger.LogInternalInformation($"Uploading session file '{filename}' (identifier={identifier}, size={fileContent.Length} bytes)");
+        try
+        {
+            var client = _httpClientFactory.CreateClient(Constants.HttpClientForSessionPool);
+            using var content = new MultipartFormDataContent();
+            using var fileStreamContent = new ByteArrayContent(fileContent);
+            fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            content.Add(fileStreamContent, "file", filename);
+
+            using var response = await client.PostAsync(url, content);
+            if (!response.IsSuccessStatusCode)
+            {
+                var err = await response.Content.ReadAsStringAsync();
+                _logger.LogInternalError($"Upload failed {(int)response.StatusCode} {response.ReasonPhrase}: {err}");
+                response.EnsureSuccessStatusCode();
+            }
+
+            _logger.LogInternalInformation($"File uploaded successfully: {filename} ({fileContent.Length} bytes)");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed uploading session file");
             throw;
         }
     }

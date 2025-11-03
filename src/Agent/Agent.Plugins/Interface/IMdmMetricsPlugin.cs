@@ -3,15 +3,18 @@
 // ------------------------------------------------------------
 
 
+using Agent.Plugins.Models;
+using Microsoft.Cloud.Metrics.Client.Query;
+
 namespace Agent.Plugins.Interface
 {
     public interface IMdmMetricsPlugin
     {
         Task<string> GetNamespacesAsync(string monitoringAccount);
 
-        Task<string> GetMetricNamesAsync(string monitoringAccount, string metricNamespace);
+        Task<MetricDefinition[]> GetMetricAsync(string monitoringAccount, string metricNamespace);
 
-        Task<string> GetDimensionNamesAsync(string monitoringAccount, string metricNamespace, string metricName);
+        Task<string[]> GetDimensionNamesAsync(string monitoringAccount, string metricNamespace, string metricName);
 
         Task<string> GetDimensionValuesAsync(
             string monitoringAccount,
@@ -28,7 +31,7 @@ namespace Agent.Plugins.Interface
             int seriesResolutionInMinutes,
             string requestJson);
 
-        Task<string> GetTimeSeriesAsync(
+        Task<IQueryResultListV3> GetTimeSeriesAsync(
             string monitoringAccount,
             string metricNamespace,
             string metricName,
