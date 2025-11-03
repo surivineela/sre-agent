@@ -5,17 +5,17 @@ import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { EntityIcon } from './EntityIcon';
-import { EntityType } from './ExtendedAgentCreationDialog/types';
+import { EntityTypeExt } from './ExtendedAgentCreationDialog/types';
 
 interface MenuOption {
     label: string;
     description: string | undefined;
     icon: React.ReactNode;
-    entityType: EntityType;
+    entityType: EntityTypeExt;
 }
 
 export interface CreateButtonProps {
-    handleCreateItemStandalone: (targetType: EntityType) => void;
+    handleCreateItemStandalone: (targetType: EntityTypeExt) => void;
     disabled?: boolean;
 }
 
@@ -28,25 +28,25 @@ const CreateButton = memo(({ handleCreateItemStandalone, disabled }: CreateButto
             label: intl.formatMessage(ExtendedAgentsGraphResources.subagent),
             description: undefined,
             icon: <EntityIcon type="agent" />,
-            entityType: 'agent' as EntityType,
+            entityType: 'agent' as EntityTypeExt,
         },
         {
             label: intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeIncident),
             description: undefined,
             icon: <EntityIcon type="incidentTrigger" />,
-            entityType: 'trigger' as EntityType,
+            entityType: 'incidentTrigger' as EntityTypeExt,
         },
         {
             label: intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeScheduled),
             description: undefined,
             icon: <EntityIcon type="scheduledTrigger" />,
-            entityType: 'trigger' as EntityType,
+            entityType: 'scheduledTrigger' as EntityTypeExt,
         },
         {
             label: intl.formatMessage(ExtendedAgentsGraphResources.kustoTool),
             description: undefined,
             icon: <EntityIcon type="toolWithGear" />,
-            entityType: 'tool' as EntityType,
+            entityType: 'tool' as EntityTypeExt,
         },
     ];
 

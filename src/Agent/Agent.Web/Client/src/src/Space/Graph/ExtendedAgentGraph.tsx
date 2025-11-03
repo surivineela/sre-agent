@@ -35,7 +35,7 @@ import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles
 import { ConnectorCard } from './ConnectorCard';
 import CreateButton from './CreateButton';
 import { ExtendedAgentCard } from './ExtendedAgentCard';
-import { EntityType } from './ExtendedAgentCreationDialog/types';
+import { EntityType, EntityTypeExt } from './ExtendedAgentCreationDialog/types';
 import { ExtendedAgentCreationDialog } from './ExtendedAgentCreationDialogNew';
 import { ExtendedAgentEdge } from './ExtendedAgentEdge';
 import { ExtendedAgentEmptyState } from './ExtendedAgentEmptyState';
@@ -1358,6 +1358,7 @@ const ExtendedAgentGraphContent = memo(() => {
         connectors,
         loading,
         handleRefresh,
+        spinner,
     ]);
 
     const showEmptyState = useMemo(() => !isLoading && !hasAgents, [isLoading, hasAgents]);
@@ -1378,8 +1379,8 @@ const ExtendedAgentGraphContent = memo(() => {
     }, [infoPanelWidth, isInfoPanelFloating, infoPanelPosition.x, infoPanelPosition.y, isInfoPanelDragging]);
 
     const handleCreateItemStandalone = useCallback(
-        (itemType: EntityType) => {
-            if (itemType === 'trigger') {
+        (itemType: EntityTypeExt) => {
+            if (itemType === 'incidentTrigger') {
                 setHandlerCreateOrEditInfo({
                     subAgentTriggerInfo: {
                         agents: agents.map(a => a.name),
@@ -1389,8 +1390,10 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
+            const adjustedItemType: EntityType = itemType === 'scheduledTrigger' ? 'trigger' : itemType;
+
             setCreationDialogContext(undefined);
-            setCreationDialogInitialTypeOverride(itemType);
+            setCreationDialogInitialTypeOverride(adjustedItemType);
             setCreationDialogTriggerAgentName(undefined);
             setCreationSuccess(undefined);
             setIsCreationDialogOpen(true);
