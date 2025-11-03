@@ -61,7 +61,7 @@ const ConnectorsToolbar: FC<ConnectorsToolbarProps> = ({
             <Button
                 icon={<ArrowClockwise16Regular />}
                 appearance="transparent"
-                className={styles.toolbarRefresh}
+                //className={styles.toolbarRefresh}
                 onClick={() => {
                     onRefreshClick();
                 }}

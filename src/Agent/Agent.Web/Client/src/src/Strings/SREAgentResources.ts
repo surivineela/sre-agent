@@ -4773,7 +4773,7 @@ export const ConnectorsResources = defineMessages({
     chooseAConnector: { defaultMessage: 'Choose a connector', id: 'GpHWFC' },
     setUpConnector: { defaultMessage: 'Set up connector', id: 'yVe+kY' },
     reviewAndCreate: { defaultMessage: 'Review and create', id: '/ImSqA' },
-    service: { defaultMessage: 'Service', id: '+U6ozc' },
+    service: { defaultMessage: 'Service', id: 'n7yYXG' },
     databaseQueryConnector: { defaultMessage: 'Database query connector', id: 'CbntSG' },
     databaseIndexingConnector: { defaultMessage: 'Database indexing connector', id: 'KqwLPK' },
     documentationConnector: { defaultMessage: 'Documentation connector', id: 'rlwohK' },

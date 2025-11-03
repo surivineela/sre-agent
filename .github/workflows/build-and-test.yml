@@ -43,17 +43,15 @@ jobs:
       uses: serverless-paas-balam/actions-paths-filter@v3
       id: check
       with:
-        predicate-quantifier: 'every'
         filters: |
           backend:
             - 'src/Agent/**'
             - '!src/Agent/Agent.Web/Client/**'
+            - '!src/Agent/Agent.Portal/Client/**'
           frontend_agent:
             - 'src/Agent/Agent.Web/Client/**'
           frontend_portal:
             - 'src/Agent/Agent.Portal/Client/**'
-        paths-ignore: |
-          .github/workflows/**
 
   build-npm:
     name: build-npm

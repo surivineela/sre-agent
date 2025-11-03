@@ -38,6 +38,8 @@ export default class AzPortalProxy {
         'portal.azure.net',
         'sre.azure.com',
         'int.sre.azure.com',
+        'stage.sre.azure.com',
+        'ms.sre.azure.com',
     ];
 
     public static envInfo: IEnvironmentInfo = {} as IEnvironmentInfo;
