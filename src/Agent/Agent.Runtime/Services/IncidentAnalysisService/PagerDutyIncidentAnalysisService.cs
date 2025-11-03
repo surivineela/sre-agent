@@ -148,7 +148,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
 
         return $@"Title: {incident.Title}\n
         Description: {incident.Description}\n
-        Details: {incident.Body?.Details ?? "N/A"}\n
+        Details: {incident.Body?.Details.ToString() ?? "N/A"}\n
         Notes: {JsonConvert.SerializeObject(notesContent)}\n
         Channel Summary: {incident.FirstTriggerLogEntry.Channel!.Summary}\n
         Channel Details: {incident.FirstTriggerLogEntry.Channel!.Details}";

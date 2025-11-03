@@ -417,7 +417,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                 {
                     Title = incident.Title,
                     // Well done PagerDuty. Took me hours to figure out where to find the real description.
-                    Description = incident.FirstTriggerLogEntry.Channel?.Details ?? incident.Description,
+                    Description = incident.FirstTriggerLogEntry.Channel?.Details.ToString() ?? incident.Description,
                     UpdatedAt = incident.UpdatedAt
                 };
 

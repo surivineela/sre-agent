@@ -62,7 +62,7 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
                 ImpactedServiceName: lastedIncidentData.ImpactedService?.Summary ?? string.Empty,
                 CreatedAt: lastedIncidentData.CreatedAt);
                 incidentData.Title = lastedIncidentData.Title;
-                incidentData.Description = lastedIncidentData.Body?.Details ?? string.Empty;
+                incidentData.Description = lastedIncidentData.Body?.Details.ToString() ?? string.Empty;
             }
             _logger.LogInternalInformation("[PagerDutyIncidentHandlingService] GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
             return incidentData;

@@ -142,7 +142,7 @@ public class PagerDutyIncidentManagementService : IncidentManagementServiceBase<
                     Urgency: incident.Urgency ?? "Not set")
                 {
                     Title = incident.Title,
-                    Description = incident.FirstTriggerLogEntry.Channel?.Details ?? incident.Description,
+                    Description = incident.FirstTriggerLogEntry.Channel?.Details.ToString() ?? incident.Description,
                     UpdatedAt = DateTime.UtcNow
                 }).ToList();
 

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Data.DataModels;
 
@@ -12,7 +13,8 @@ public record LogEntryChannel(
     [property: JsonPropertyName("summary")] string Summary,
     [property: JsonPropertyName("subject")] string Subject,
     // This is the real description of the incident.
-    [property: JsonPropertyName("details")] string Details
+    // details could be string or object, use JsonElement for further deserilization
+    [property: JsonPropertyName("details")] JsonElement Details
 );
 public record FirstTriggerLogEntry(
     [property: JsonPropertyName("id")] string Id,
@@ -69,7 +71,8 @@ public record PDPrioritiesResponse(
 );
 
 public record IncidentBody(
-    [property: JsonPropertyName("details")] string Details
+    // details could be string or object, use JsonElement for further deserilization
+    [property: JsonPropertyName("details")] JsonElement Details
 );
 
 public record PagerDutyIncidentApiResult(

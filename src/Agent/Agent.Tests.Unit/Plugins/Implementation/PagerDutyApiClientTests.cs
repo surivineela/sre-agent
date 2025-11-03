@@ -48,9 +48,18 @@ public class PagerDutyApiClientTests
     [Fact]
     public async Task TestGetIncidentAsync()
     {
-        var stringRes = await ReadJsonFromFileAsync("GetIncident.json");
+        string stringRes;
+        PagerDutyIncident result;
+
+        stringRes = await ReadJsonFromFileAsync("GetIncident.json");
         MockHttpResponse(stringRes);
-        var result = await _pagerDutyService.GetPagerDutyIncidentAsync("TestId");
+        result = await _pagerDutyService.GetPagerDutyIncidentAsync("TestId");
+        Assert.NotNull(result);
+        Assert.NotEqual(result?.IncidentId, string.Empty);
+
+        stringRes = await ReadJsonFromFileAsync("GetIncident_Body_Detail_Object.json");
+        MockHttpResponse(stringRes);
+        result = await _pagerDutyService.GetPagerDutyIncidentAsync("TestId");
         Assert.NotNull(result);
         Assert.NotEqual(result?.IncidentId, string.Empty);
     }
