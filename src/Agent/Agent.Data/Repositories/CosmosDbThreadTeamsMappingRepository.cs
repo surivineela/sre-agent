@@ -177,8 +177,18 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
                 FeedResponse<dynamic> messageResponse = await messageIterator.ReadNextAsync();
                 foreach (var item in messageResponse)
                 {
-                    string threadId = item.threadId.ToString();
-                    threadsWithUnpostedMessages.Add(threadId);
+                    try
+                    {
+                        string? threadId = item.threadId?.ToString();
+                        if (!string.IsNullOrEmpty(threadId))
+                        {
+                            threadsWithUnpostedMessages.Add(threadId);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Skip items where threadId cannot be accessed
+                    }
                 }
             }
 
@@ -318,7 +328,18 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
                 FeedResponse<dynamic> response = await resultSet.ReadNextAsync();
                 foreach (var item in response)
                 {
-                    postedMessageIds.Add(item.id.ToString());
+                    try
+                    {
+                        string? messageId = item.id?.ToString();
+                        if (!string.IsNullOrEmpty(messageId))
+                        {
+                            postedMessageIds.Add(messageId);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Skip items where id cannot be accessed
+                    }
                 }
             }
 
