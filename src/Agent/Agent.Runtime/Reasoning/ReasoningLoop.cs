@@ -1457,6 +1457,8 @@ public class ReasoningLoop : IDisposable
                 subAgentName: agent?.Name ?? "Unknown",
                 inputToken: response?.Usage?.InputTokenCount ?? 0,
                 outputToken: response?.Usage?.OutputTokenCount ?? 0,
+                cachedToken: cachedTokenCount,
+                reasoningToken: reasoningTokenCount,
                 featureConfig: WebJsonSerializer.Serialize(_featureConfig),
                 actionMetadata: WebJsonSerializer.Serialize(tokenUsageObj));
 

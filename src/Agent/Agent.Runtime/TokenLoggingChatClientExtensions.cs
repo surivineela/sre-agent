@@ -48,6 +48,34 @@ namespace Agent.Runtime
                 var modelId = response?.ModelId?.ToString() ?? string.Empty;
                 var inputTokens = response?.Usage?.InputTokenCount ?? 0L;
                 var outputTokens = response?.Usage?.OutputTokenCount ?? 0L;
+                
+                // Extract cached token count from AdditionalCounts (same pattern as ReasoningLoop.cs)
+                var cachedTokens = 0L;
+                try
+                {
+                    if (response?.Usage?.AdditionalCounts is not null)
+                    {
+                        response.Usage.AdditionalCounts.TryGetValue("InputTokenDetails.CachedTokenCount", out cachedTokens);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalDebug("Failed to parse cached token count from AdditionalCounts: {Exception}", ex);
+                }
+
+                // Extract reasoning token count from AdditionalCounts (same pattern as ReasoningLoop.cs)
+                var reasoningTokens = 0L;
+                try
+                {
+                    if (response?.Usage?.AdditionalCounts is not null)
+                    {
+                        response.Usage.AdditionalCounts.TryGetValue("OutputTokenDetails.ReasoningTokenCount", out reasoningTokens);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalDebug("Failed to parse reasoning token count from AdditionalCounts: {Exception}", ex);
+                }
 
                 // Split modelId into Model and ModelVersion when in format "model-modelVersion" (modelVersion is a date like 2025-04-14)
                 // Prefer parsing the trailing date first because model names can contain hyphens (e.g. gpt-4.1-2025-04-14).
@@ -72,7 +100,7 @@ namespace Agent.Runtime
                 }
 
                 // Log token consumption (structured record with model and modelVersion)
-                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens);
+                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, reasoningTokens);
             }
             catch (Exception ex)
             {

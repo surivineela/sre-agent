@@ -191,10 +191,12 @@ public static partial class LoggerExtensions
     /// <param name="threadSource">Thread source</param>
     /// <param name="featureConfig">Features enabled for the thread</param>
     /// <param name="actionMetadata">Any additional properties we wanna log for the action</param>
+    /// <param name="cachedToken">Cached token count</param>
+    /// <param name="reasoningToken">Reasoning token count</param>
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Information,
-        Message = "Agent Action: {Action} with parameters {Parameter} completed with status {Status} in {Duration}ms for thread {ThreadId}, subAgent: {SubAgentName}, inputTokens: {InputToken}, outputTokens: {OutputToken}, threadSource: {ThreadSource}, featureConfig: {FeatureConfig}, actionMetadata: {ActionMetadata}")]
+        Message = "Agent Action: {Action} with parameters {Parameter} completed with status {Status} in {Duration}ms for thread {ThreadId}, subAgent: {SubAgentName}, inputTokens: {InputToken}, outputTokens: {OutputToken}, threadSource: {ThreadSource}, featureConfig: {FeatureConfig}, actionMetadata: {ActionMetadata}, cachedTokens: {CachedToken}, reasoningTokens: {ReasoningToken}")]
     public static partial void LogAgentAction(
         this ILogger logger,
         string action,
@@ -207,7 +209,9 @@ public static partial class LoggerExtensions
         long outputToken = 0,
         string threadSource = "",
         string featureConfig = "",
-        string actionMetadata = "");
+        string actionMetadata = "",
+        long cachedToken = 0,
+        long reasoningToken = 0);
 
     /// <summary>
     /// Logs an agent action with exception information using LoggerMessage source generation
@@ -233,16 +237,18 @@ public static partial class LoggerExtensions
         string threadId);
 
     /// <summary>
-    /// Logs token consumption information (model, model version, input and output tokens used)
+    /// Logs token consumption information (model, model version, input, output, cached, and reasoning tokens used)
     /// </summary>
     [LoggerMessage(
         EventId = 2001,
         Level = LogLevel.Information,
-        Message = "LLM Token Consumption: model: {Model}, modelVersion: {ModelVersion}, inputTokenUsed: {InputTokenUsed}, outputTokenUsed: {OutputTokenUsed}")]
+        Message = "LLM Token Consumption: model: {Model}, modelVersion: {ModelVersion}, inputTokenUsed: {InputTokenUsed}, outputTokenUsed: {OutputTokenUsed}, cachedTokenUsed: {CachedTokenUsed}, reasoningTokenUsed: {ReasoningTokenUsed}")]
     public static partial void LogTokenConsumption(
         this ILogger logger,
         string model,
         string modelVersion,
         long inputTokenUsed,
-        long outputTokenUsed);
+        long outputTokenUsed,
+        long cachedTokenUsed,
+        long reasoningTokenUsed);
 }

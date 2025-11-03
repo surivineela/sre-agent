@@ -95,7 +95,9 @@ public static class DocumentRetrieval
                         model,
                         modelVersion,
                         generated.Usage.InputTokenCount ?? 0,
-                        generated.Usage.OutputTokenCount ?? 0);
+                        generated.Usage.OutputTokenCount ?? 0,
+                        0, // CachedTokenCount not available on this Usage type
+                        0); // ReasoningTokenCount not available on this Usage type
                 }
                 catch
                 {
