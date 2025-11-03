@@ -15,13 +15,13 @@ const NodeStatusPill = ({ status, showIcon }: { status?: string | null; showIcon
         }
     }, [status]);
 
-    return (
+    return status ? (
         <div>
             <Badge color={statusProps?.color || 'brand'} icon={statusProps?.icon && showIcon ? <statusProps.icon /> : undefined}>
                 {statusProps?.text}
             </Badge>
         </div>
-    );
+    ) : null;
 };
 
 export default memo(NodeStatusPill);

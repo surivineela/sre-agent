@@ -3,10 +3,11 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AgentTaskClient } from '../../Common/Clients/AgentTaskClient';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
-import { AgentTask, AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
+import { AgentTask, AgentTaskMetaData, AgentTaskStreamingData } from '../../Common/Contracts/DataPlane/AgentTask';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
+import { getSpecialMessageContentFromStreamingMessage } from '../Activities/Utility';
 import { ChatBoxSidePanelData, ChatBoxSidePanelType, TreeStateValue } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useAgentTaskStreamHandler } from './useAgentTaskStreamHandler';
@@ -32,7 +33,7 @@ export const useAgentTask = (
     const threadIdRef = useRef<string | null>(threadId || userDefinedThreadId || null);
     const treeStatesRef = useRef<Map<string, TreeStateValue>>(treeStates);
 
-    const { subscribeTaskUpdateEvent } = useContext(StreamingContext);
+    const { subscribeTaskUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
@@ -277,6 +278,38 @@ export const useAgentTask = (
             isSubscribed = false;
         };
     }, [subscribeTaskUpdateEvent]);
+
+    useEffect(() => {
+        let isSubscribed = true;
+
+        // Use this to get the task's metadata when the task update streaming is paused due to approval pending
+        const unsubscribe = subscribeMessageUpdateEvent({
+            threadId: threadIdRef.current || undefined,
+            handler: (message?: StreamingMessage) => {
+                if (message) {
+                    const threadId = message?.additionalProperties?.threadId;
+                    if (isSubscribed && threadId && threadId === threadIdRef.current) {
+                        const agentTaskData = getSpecialMessageContentFromStreamingMessage<AgentTaskStreamingData>(
+                            message,
+                            'deepinvestigation'
+                        );
+                        if (agentTaskData && agentTaskData.agentTaskInfo) {
+                            updateTaskDropdownOption(agentTaskData.agentTaskInfo);
+                            setSelectedTaskId(prev => {
+                                if (prev) return prev;
+                                return agentTaskData.agentTaskInfo.id;
+                            });
+                        }
+                    }
+                }
+            },
+        });
+
+        return () => {
+            unsubscribe();
+            isSubscribed = false;
+        };
+    }, [subscribeMessageUpdateEvent]);
 
     useEffect(() => {
         initSidePanel(initialSidePanelData);

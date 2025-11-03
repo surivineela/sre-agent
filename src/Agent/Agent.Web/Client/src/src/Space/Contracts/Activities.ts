@@ -119,12 +119,11 @@ export interface IChatMessageProps {
     isStreamingMessage?: boolean;
     toolCallText?: string | null;
     isWaitingForStreamingMessages?: boolean;
-    updateSpecialMessageInStreamingMessage?: (specialMessageProperties: {
+    updateApprovalOrCliMessageInStreamingMessage?: (approvalOrCliMessageProperties: {
         approval?: Approval;
         azCliExecution?: AzCliExecution;
         kubectlExecution?: KubectlExecution;
         psqlExecution?: PsqlExecution;
-        memorySearchResult?: MemorySearchResult;
     }) => void;
 }
 
@@ -156,11 +155,10 @@ export interface IAgentMessageProps {
     timeStamp: string;
     isTyping?: boolean;
     threadId: string;
-    updateSpecialMessageInStreamingMessage?: (specialMessageProperties: {
+    updateApprovalOrCliMessageInStreamingMessage?: (approvalOrCliMessageProperties: {
         approval?: Approval;
         azCliExecution?: AzCliExecution;
         kubectlExecution?: KubectlExecution;
-        memorySearchResult?: MemorySearchResult;
         psqlExecution?: PsqlExecution;
     }) => void;
 }

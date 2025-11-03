@@ -874,13 +874,14 @@ const ChatBoxFooter = ({
                         />
                     }
                     attachments={
-                        selectedAgentName ? (
-                            <Attachments
-                                selectedAgentName={selectedAgentName}
-                                handleClearSelectedAgent={handleClearSelectedAgent}
-                                lockAgentSelection={lockAgentSelection}
-                            />
-                        ) : undefined
+                        <Attachments
+                            selectedAgentName={selectedAgentName}
+                            isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                            isDeepInvestigationEnabled={isDeepInvestigationButtonEnabled}
+                            handleClearSelectedAgent={handleClearSelectedAgent}
+                            handleDisableDeepInvestigation={onClickDeepInvestigationButton}
+                            lockAgentSelection={lockAgentSelection}
+                        />
                     }
                     maxLength={1000000000}
                     charactersRemainingMessage={undefined}
@@ -981,50 +982,85 @@ const ThreadRow = memo((props: { thread: Thread; onSelectIncident: (incident: Th
     );
 });
 
-const Attachments = memo((props: { selectedAgentName: string; handleClearSelectedAgent: () => void; lockAgentSelection?: boolean }) => {
-    const intl = useIntl();
+const Attachments = memo(
+    (props: {
+        selectedAgentName?: string | null;
+        lockAgentSelection?: boolean;
+        isDeepInvestigationTurnedOn: boolean;
+        isDeepInvestigationEnabled: boolean;
+        handleClearSelectedAgent: () => void;
+        handleDisableDeepInvestigation: () => void;
+    }) => {
+        const intl = useIntl();
 
-    return (
-        <AttachmentList
-            maxVisibleAttachments={3}
-            overflowMenuButton={
-                <AttachmentOverflowMenuButton aria-label={intl.formatMessage(ActivitiesResources.removeAttachmentButtonAriaLabel)} />
-            }
-        >
-            <Attachment
-                id={props.selectedAgentName}
-                key={props.selectedAgentName}
-                dismissButton={
-                    props.lockAgentSelection
-                        ? undefined
-                        : {
-                              'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
-                                  agentName: props.selectedAgentName,
-                              }),
-                              onClick: () => props.handleClearSelectedAgent(),
-                          }
+        const showAttachmentList = !!props.selectedAgentName || props.isDeepInvestigationTurnedOn;
+
+        return showAttachmentList ? (
+            <AttachmentList
+                maxVisibleAttachments={3}
+                overflowMenuButton={
+                    <AttachmentOverflowMenuButton aria-label={intl.formatMessage(ActivitiesResources.removeAttachmentButtonAriaLabel)} />
                 }
             >
-                <Tooltip
-                    content={
-                        <FormattedMessage
-                            {...ActivitiesResources.slashCommandExtendedAgentTagLabel}
-                            values={{ agentName: props.selectedAgentName }}
-                        />
-                    }
-                    relationship="label"
-                >
-                    <Text weight="semibold" wrap={false}>
-                        <FormattedMessage
-                            {...ActivitiesResources.slashCommandExtendedAgentTagLabel}
-                            values={{ agentName: props.selectedAgentName }}
-                        />
-                    </Text>
-                </Tooltip>
-            </Attachment>
-        </AttachmentList>
-    );
-});
+                {props.selectedAgentName && (
+                    <Attachment
+                        id={props.selectedAgentName}
+                        key={props.selectedAgentName}
+                        dismissButton={
+                            props.lockAgentSelection
+                                ? undefined
+                                : {
+                                      'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
+                                          agentName: props.selectedAgentName,
+                                      }),
+                                      onClick: () => props.handleClearSelectedAgent(),
+                                  }
+                        }
+                    >
+                        <Tooltip
+                            content={
+                                <FormattedMessage
+                                    {...ActivitiesResources.slashCommandExtendedAgentTagLabel}
+                                    values={{ agentName: props.selectedAgentName }}
+                                />
+                            }
+                            relationship="label"
+                        >
+                            <Text weight="semibold" wrap={false}>
+                                <FormattedMessage
+                                    {...ActivitiesResources.slashCommandExtendedAgentTagLabel}
+                                    values={{ agentName: props.selectedAgentName }}
+                                />
+                            </Text>
+                        </Tooltip>
+                    </Attachment>
+                )}
+                {props.isDeepInvestigationTurnedOn && (
+                    <Attachment
+                        id={'deep-investigation-attachment'}
+                        key={'deep-investigation-attachment'}
+                        dismissButton={{
+                            disabled: !props.isDeepInvestigationEnabled,
+                            'aria-label': intl.formatMessage(AgentTaskResources.deepInvestigationNoPermissionTurnedOffMessage),
+                            onClick: () => {
+                                if (props.isDeepInvestigationEnabled) {
+                                    props.handleDisableDeepInvestigation();
+                                }
+                            },
+                            style: props.isDeepInvestigationEnabled ? undefined : { cursor: 'not-allowed', opacity: 0.5 },
+                        }}
+                    >
+                        <Tooltip content={<FormattedMessage {...AgentTaskResources.deepInvestigation} />} relationship="label">
+                            <Text weight="semibold" wrap={false}>
+                                <FormattedMessage {...AgentTaskResources.deepInvestigation} />
+                            </Text>
+                        </Tooltip>
+                    </Attachment>
+                )}
+            </AttachmentList>
+        ) : null;
+    }
+);
 
 const ContentBefore = (props: {
     isDeepInvestigationButtonEnabled: boolean;
@@ -1089,7 +1125,7 @@ const DeepInvestigationButton = memo(
                 allowedTooltip={stateTooltip}
                 icon={<SearchSparkle32Regular />}
                 disabledReason={!isDeepInvestigationButtonEnabled}
-                appearance={isDeepInvestigationTurnedOn ? 'primary' : 'subtle'}
+                appearance={'subtle'}
                 shape={'rounded'}
                 onClick={() => onClickDeepInvestigationButton()}
                 style={{ marginRight: tokens.spacingHorizontalS, height: '100%' }}

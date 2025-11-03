@@ -20,7 +20,7 @@ const AgentMessage = ({
     timeStamp,
     isTyping,
     threadId,
-    updateSpecialMessageInStreamingMessage,
+    updateApprovalOrCliMessageInStreamingMessage,
 }: IAgentMessageProps) => {
     // Check if this is a scheduled task execution message
     const scheduledTaskData = useScheduledTaskMessage(messageContent.text || '');
@@ -28,12 +28,12 @@ const AgentMessage = ({
     return (
         <>
             {/* For messages with approval - text content may be empty, so we may only need to render approval UI */}
-            {messageContent.approval ? (
+            {messageContent.approval && !messageContent.agentTaskInfo ? (
                 <ApprovalMessage
                     approval={messageContent.approval}
                     messageId={messageId}
                     threadId={threadId}
-                    updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
+                    updateApprovalOrCliMessageInStreamingMessage={updateApprovalOrCliMessageInStreamingMessage}
                 />
             ) : messageContent.changeDiff ? (
                 <ChangeDiffMessage changeDiffData={messageContent.changeDiff} />
@@ -60,23 +60,29 @@ const AgentMessage = ({
                     type={ExecutionMessageType.AzCli}
                     execution={messageContent.azCliExecution}
                     threadId={threadId}
-                    updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
+                    updateApprovalOrCliMessageInStreamingMessage={updateApprovalOrCliMessageInStreamingMessage}
                 />
             ) : messageContent.kubectlExecution ? (
                 <ExecutionMessage
                     type={ExecutionMessageType.Kubectl}
                     execution={messageContent.kubectlExecution}
                     threadId={threadId}
-                    updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
+                    updateApprovalOrCliMessageInStreamingMessage={updateApprovalOrCliMessageInStreamingMessage}
                 />
             ) : messageContent.psqlExecution ? (
                 <PsqlExecutionMessage
                     execution={messageContent.psqlExecution}
                     threadId={threadId}
-                    updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
+                    updateApprovalOrCliMessageInStreamingMessage={updateApprovalOrCliMessageInStreamingMessage}
                 />
             ) : messageContent.agentTaskInfo ? (
-                <AgentTaskChatMessage agentTask={messageContent.agentTaskInfo} />
+                <AgentTaskChatMessage
+                    agentTask={messageContent.agentTaskInfo}
+                    approval={messageContent.approval}
+                    messageId={messageId}
+                    threadId={threadId}
+                    updateApprovalOrCliMessageInStreamingMessage={updateApprovalOrCliMessageInStreamingMessage}
+                />
             ) : messageContent.todoInfo ? (
                 <TodoPlanChatMessage todoPlan={messageContent.todoInfo} />
             ) : messageContent.error ? (

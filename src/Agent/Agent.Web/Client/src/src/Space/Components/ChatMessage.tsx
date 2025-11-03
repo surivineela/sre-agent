@@ -77,7 +77,7 @@ const ChatMessage = ({
     isStreamingMessage,
     toolCallText,
     isWaitingForStreamingMessages,
-    updateSpecialMessageInStreamingMessage,
+    updateApprovalOrCliMessageInStreamingMessage,
 }: IChatMessageProps) => {
     const chatStyles = useChatBoxStyles();
     const chatBoxStyles = getChatBoxStyles();
@@ -202,8 +202,8 @@ const ChatMessage = ({
                                     timeStamp={message.timeStamp}
                                     isTyping={isTyping}
                                     threadId={threadId}
-                                    updateSpecialMessageInStreamingMessage={
-                                        isStreamingMessage ? updateSpecialMessageInStreamingMessage : undefined
+                                    updateApprovalOrCliMessageInStreamingMessage={
+                                        isStreamingMessage ? updateApprovalOrCliMessageInStreamingMessage : undefined
                                     }
                                 />
                             );

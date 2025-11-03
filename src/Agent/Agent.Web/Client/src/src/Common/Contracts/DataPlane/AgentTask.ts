@@ -1,9 +1,16 @@
+import { Approval } from './Message';
+
 export interface AgentTaskMetaData {
     id: string;
     status: AgentTaskStatus;
     title?: string;
     type: AgentTaskType;
     lastModified?: string;
+}
+
+export interface AgentTaskStreamingData {
+    agentTaskInfo: AgentTaskMetaData;
+    approval: Approval | null | undefined;
 }
 
 export interface AgentTaskStepCommon {

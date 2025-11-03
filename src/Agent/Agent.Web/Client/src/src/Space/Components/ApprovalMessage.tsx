@@ -17,7 +17,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { Approval, ApprovalDecision, AzCliExecution, KubectlExecution } from '../../Common/Contracts/DataPlane/Message';
+import { Approval, ApprovalDecision, AzCliExecution, KubectlExecution, PsqlExecution } from '../../Common/Contracts/DataPlane/Message';
 // headers handled by ThreadClient
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
@@ -50,21 +50,24 @@ const useStyles = makeStyles({
     },
 });
 
+export interface IApprovalMessageProps {
+    approval?: Approval;
+    messageId: string;
+    threadId: string;
+    updateApprovalOrCliMessageInStreamingMessage?: (approvalOrCliMessageProperties: {
+        approval?: Approval;
+        azCliExecution?: AzCliExecution;
+        kubectlExecution?: KubectlExecution;
+        psqlExecution?: PsqlExecution;
+    }) => void;
+}
+
 const ApprovalMessage = ({
     approval: approvalInput,
     messageId,
     threadId,
-    updateSpecialMessageInStreamingMessage,
-}: {
-    approval?: Approval;
-    messageId: string;
-    threadId: string;
-    updateSpecialMessageInStreamingMessage?: (specialMessageProperties: {
-        approval?: Approval;
-        azCliExecution?: AzCliExecution;
-        kubectlExecution?: KubectlExecution;
-    }) => void;
-}) => {
+    updateApprovalOrCliMessageInStreamingMessage,
+}: IApprovalMessageProps) => {
     const [approval, setApproval] = useState<Approval | undefined>(approvalInput);
     const [isApprovalLoading, setIsApprovalLoading] = useState(false);
     const [loadingButton, setLoadingButton] = useState<'approve' | 'deny' | null>(null);
@@ -168,7 +171,7 @@ const ApprovalMessage = ({
             };
 
             setApproval(updatedApproval);
-            updateSpecialMessageInStreamingMessage?.({
+            updateApprovalOrCliMessageInStreamingMessage?.({
                 approval: updatedApproval,
             });
         } else {
@@ -199,7 +202,7 @@ const ApprovalMessage = ({
                 };
 
                 setApproval(updatedApproval);
-                updateSpecialMessageInStreamingMessage?.({
+                updateApprovalOrCliMessageInStreamingMessage?.({
                     approval: updatedApproval,
                 });
             }

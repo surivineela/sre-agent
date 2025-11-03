@@ -1,5 +1,6 @@
 import { createIntl, createIntlCache } from 'react-intl';
 import { SREAgentUserId } from '../../Common/Contracts/Azure/SreAgent';
+import { AgentTaskStreamingData } from '../../Common/Contracts/DataPlane/AgentTask';
 import {
     Approval,
     ApprovalDecision,
@@ -8,9 +9,11 @@ import {
     Message,
     MessageAuthor,
     MessageMetaData,
+    PsqlExecution,
 } from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage, StreamingMessageType } from '../../Common/Contracts/DataPlane/Streaming';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
+import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
@@ -529,6 +532,56 @@ export const getSpecialMessageContentFromStreamingMessage = <T,>(
     }
 };
 
+export const createChatMessageContentFromStreamingMessage = (streamingMessage: StreamingMessage): ChatMessageContent => {
+    const messageContent = streamingMessage.contents?.[0];
+
+    const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
+    const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
+    const memorySearchResult = getSpecialMessageContentFromStreamingMessage<MemorySearchResult>(streamingMessage, 'memorysearch');
+    const todoInfo = getSpecialMessageContentFromStreamingMessage<TodoInfo>(streamingMessage, 'todoplan');
+    const psqlExecution = getSpecialMessageContentFromStreamingMessage<PsqlExecution>(streamingMessage, 'psql');
+
+    let approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
+    const agentTaskData = getSpecialMessageContentFromStreamingMessage<AgentTaskStreamingData>(streamingMessage, 'deepinvestigation');
+    // Agent task sometimes contains approval data as well
+    approval = approval || agentTaskData?.approval || undefined;
+    if (approval) {
+        approval = {
+            ...approval,
+            status: processApprovalStreamingMessageStatus(approval.status),
+        };
+    }
+
+    const text =
+        messageContent?.text &&
+        !approval &&
+        !azCliExecution &&
+        !kubectlExecution &&
+        !memorySearchResult &&
+        !psqlExecution &&
+        !todoInfo &&
+        !agentTaskData
+            ? messageContent.text
+            : '';
+
+    const isImage = isImageStreamingMessageType(streamingMessage);
+
+    const chatMessageContent: ChatMessageContent = {
+        text,
+        isImage,
+        approval,
+        azCliExecution,
+        kubectlExecution,
+        psqlExecution,
+        memorySearchResult,
+        agentTaskInfo: agentTaskData?.agentTaskInfo,
+        todoInfo,
+        isDailyReport: false,
+    };
+
+    return chatMessageContent;
+};
+
 export const isDefaultStreamingMessageType = (streamingMessage: StreamingMessage): boolean => {
     return !streamingMessage.additionalProperties?.streamMessageType;
 };
@@ -577,15 +630,23 @@ export const isInitialState = (status: string | null | undefined): boolean => {
     );
 };
 
-export const isUpdatedSpecialStreamingMessage = (streamingMessage: StreamingMessage): boolean => {
+export const isUpdatedCliOrApprovalStreamingMessage = (streamingMessage: StreamingMessage): boolean => {
     const approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
     const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
     const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
     const psqlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'psql');
-    const memorySearchResult = getSpecialMessageContentFromStreamingMessage<MemorySearchResult>(streamingMessage, 'memorysearch');
     const status = approval?.status || azCliExecution?.status || kubectlExecution?.status || psqlExecution?.status;
 
-    return (!!approval || !!azCliExecution || !!psqlExecution || !!kubectlExecution || !!memorySearchResult) && !isInitialState(status);
+    return (!!approval || !!azCliExecution || !!psqlExecution || !!kubectlExecution) && !isInitialState(status);
+};
+
+export const getCliOrApprovalContentFromChatMessageContent = (chatMessageContent: ChatMessageContent) => {
+    return (
+        chatMessageContent.approval ||
+        chatMessageContent.azCliExecution ||
+        chatMessageContent.kubectlExecution ||
+        chatMessageContent.psqlExecution
+    );
 };
 
 export const processApprovalStreamingMessageStatus = (status: ApprovalDecision | number): ApprovalDecision => {
@@ -774,7 +835,10 @@ export const isChatMessageEmpty = (message?: ChatMessage | null): boolean => {
     });
 };
 
-export const isChatMessageContentASpecialMessageContent = (content: ChatMessageContent, specialMessageId: string | undefined): boolean => {
+export const isChatMessageContentAnApprovalOrCliMessageContent = (
+    content: ChatMessageContent,
+    specialMessageId: string | undefined
+): boolean => {
     return (
         !!specialMessageId &&
         (content.approval?.id === specialMessageId ||
@@ -782,6 +846,13 @@ export const isChatMessageContentASpecialMessageContent = (content: ChatMessageC
             content.kubectlExecution?.id === specialMessageId ||
             content.psqlExecution?.id === specialMessageId)
     );
+};
+
+export const isChatMessageContentAnAgentTaskMessageContent = (
+    content: ChatMessageContent,
+    specialMessageId: string | undefined
+): boolean => {
+    return !!specialMessageId && content.agentTaskInfo?.id === specialMessageId;
 };
 
 export const convertMessageToChatMessage = (message: Message): ChatMessage => {

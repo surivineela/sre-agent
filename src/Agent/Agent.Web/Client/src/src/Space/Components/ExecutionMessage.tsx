@@ -30,7 +30,7 @@ import { getDataPlaneErrorMessage } from '../../Common/Clients/DataPlaneClient';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import CopyButton from '../../Common/Components/CopyButton';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
-import { Approval, AzCliExecution, ExecutionStatus, KubectlExecution } from '../../Common/Contracts/DataPlane/Message';
+import { Approval, AzCliExecution, ExecutionStatus, KubectlExecution, PsqlExecution } from '../../Common/Contracts/DataPlane/Message';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { usePermissionContext } from '../Contracts/PermissionContext';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
@@ -60,10 +60,11 @@ type ExecutionMessageProps = {
     execution: ExecutionLike;
     threadId: string;
     type: ExecutionMessageType;
-    updateSpecialMessageInStreamingMessage?: (specialMessageProperties: {
+    updateApprovalOrCliMessageInStreamingMessage?: (approvalOrCliMessageProperties: {
         approval?: Approval;
         azCliExecution?: AzCliExecution;
         kubectlExecution?: KubectlExecution;
+        psqlExecution?: PsqlExecution;
     }) => void;
 };
 
@@ -125,7 +126,7 @@ const useStyles = makeStyles({
     },
 });
 
-const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStreamingMessage }: ExecutionMessageProps) => {
+const ExecutionMessage = ({ execution, threadId, type, updateApprovalOrCliMessageInStreamingMessage }: ExecutionMessageProps) => {
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
     const classes = useStyles();
     const intl = useIntl();
@@ -249,11 +250,11 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                         executedBy: data.executedBy ?? currentExecution.executedBy,
                     };
 
-                    if (updateSpecialMessageInStreamingMessage) {
+                    if (updateApprovalOrCliMessageInStreamingMessage) {
                         if (type === ExecutionMessageType.AzCli) {
-                            updateSpecialMessageInStreamingMessage({ azCliExecution: updatedExecution as AzCliExecution });
+                            updateApprovalOrCliMessageInStreamingMessage({ azCliExecution: updatedExecution as AzCliExecution });
                         } else {
-                            updateSpecialMessageInStreamingMessage({ kubectlExecution: updatedExecution as KubectlExecution });
+                            updateApprovalOrCliMessageInStreamingMessage({ kubectlExecution: updatedExecution as KubectlExecution });
                         }
                     } else {
                         setCurrentExecution(updatedExecution);
@@ -286,7 +287,7 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
         execution.id,
         threadId,
         basePath,
-        updateSpecialMessageInStreamingMessage,
+        updateApprovalOrCliMessageInStreamingMessage,
         type,
         azPortalProxy,
         resourceId,
@@ -343,11 +344,11 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                             : currentExecution.executedBy,
                 };
 
-                if (updateSpecialMessageInStreamingMessage) {
+                if (updateApprovalOrCliMessageInStreamingMessage) {
                     if (type === ExecutionMessageType.AzCli) {
-                        updateSpecialMessageInStreamingMessage({ azCliExecution: updatedExecution as AzCliExecution });
+                        updateApprovalOrCliMessageInStreamingMessage({ azCliExecution: updatedExecution as AzCliExecution });
                     } else {
-                        updateSpecialMessageInStreamingMessage({ kubectlExecution: updatedExecution as KubectlExecution });
+                        updateApprovalOrCliMessageInStreamingMessage({ kubectlExecution: updatedExecution as KubectlExecution });
                     }
                 } else {
                     setCurrentExecution(updatedExecution);

@@ -4,18 +4,15 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
 import {
     Approval,
     ApprovalDecision,
     AzCliExecution,
     ExecutionStatus,
     KubectlExecution,
-    MemorySearchResult,
     PsqlExecution,
 } from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
-import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { MessageCreateRequest } from '../../Common/Providers/StreamingProvider';
@@ -24,29 +21,22 @@ import {
     composeDefaultAgentMessage,
     composeUserMessage,
     constructUserMessageFromStreamingMessage,
+    createChatMessageContentFromStreamingMessage,
     getDefaultDeepInvestigationStatusChatMessage,
-    getSpecialMessageContentFromStreamingMessage,
     getStreamingMessageText,
     getToolCallText,
-    isChatMessageContentASpecialMessageContent,
+    isChatMessageContentAnAgentTaskMessageContent,
+    isChatMessageContentAnApprovalOrCliMessageContent,
     isChatMessageContentNonImageText,
     isChatMessageEmpty,
     isDefaultStreamingMessageType,
     isFinalStreamingMessage,
-    isImageStreamingMessageType,
     isInitialState,
-    isUpdatedSpecialStreamingMessage,
+    isUpdatedCliOrApprovalStreamingMessage,
     isUserStreamingMessage,
-    processApprovalStreamingMessageStatus,
     shouldGroupWithPreviousMessage,
 } from '../Activities/Utility';
-import {
-    ChatMessage,
-    ChatMessageContent,
-    MessageTypingCharactersPer10Ms,
-    MessageTypingSpeedInMilliseconds,
-    SendMessageOptions,
-} from '../Contracts/Activities';
+import { ChatMessage, MessageTypingCharactersPer10Ms, MessageTypingSpeedInMilliseconds, SendMessageOptions } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 import { useChatHistory } from './useChatHistory';
@@ -279,18 +269,31 @@ export const useChatBox = (
         streamingMessageRef.current = streamingMessage;
     }, [streamingMessage]);
 
-    const getMessageIndexInStreamingMessage = (streamingMessage: ChatMessage | undefined | null, specialMessageId: string | undefined) => {
+    const getApprovalOrCliMessageIndexInStreamingMessage = (
+        streamingMessage: ChatMessage | undefined | null,
+        specialMessageId: string | undefined
+    ) => {
         const result = streamingMessage?.contents.findIndex(content => {
-            return isChatMessageContentASpecialMessageContent(content, specialMessageId);
+            return isChatMessageContentAnApprovalOrCliMessageContent(content, specialMessageId);
         });
         return result === -1 ? undefined : result;
     };
 
-    const getMessageIndexInExistingMessages = (messages: ChatMessage[], specialMessageId: string | undefined) => {
+    const getAgentTaskMessageIndexInStreamingMessage = (
+        streamingMessage: ChatMessage | undefined | null,
+        specialMessageId: string | undefined
+    ) => {
+        const result = streamingMessage?.contents.findIndex(content => {
+            return isChatMessageContentAnAgentTaskMessageContent(content, specialMessageId);
+        });
+        return result === -1 ? undefined : result;
+    };
+
+    const getApprovalOrCliMessageIndexInExistingMessages = (messages: ChatMessage[], specialMessageId: string | undefined) => {
         for (let i = messages.length - 1; i >= 0; i--) {
             for (let j = messages[i].contents.length - 1; j >= 0; j--) {
                 const content = messages[i].contents[j];
-                if (isChatMessageContentASpecialMessageContent(content, specialMessageId)) {
+                if (isChatMessageContentAnApprovalOrCliMessageContent(content, specialMessageId)) {
                     return [i, j];
                 }
             }
@@ -298,20 +301,31 @@ export const useChatBox = (
         return undefined;
     };
 
-    const updateSpecialMessageInStreamingMessage = useCallback(
-        (specialMessageProperties: {
+    const getAgentTaskMessageIndexInExistingMessages = (messages: ChatMessage[], specialMessageId: string | undefined) => {
+        for (let i = messages.length - 1; i >= 0; i--) {
+            for (let j = messages[i].contents.length - 1; j >= 0; j--) {
+                const content = messages[i].contents[j];
+                if (isChatMessageContentAnAgentTaskMessageContent(content, specialMessageId)) {
+                    return [i, j];
+                }
+            }
+        }
+        return undefined;
+    };
+
+    const updateApprovalOrCliMessageInStreamingMessage = useCallback(
+        (approvalOrCliMessageProperties: {
             approval?: Approval;
             azCliExecution?: AzCliExecution;
             kubectlExecution?: KubectlExecution;
             psqlExecution?: PsqlExecution;
-            memorySearchResult?: MemorySearchResult;
         }) => {
-            const { approval, azCliExecution, kubectlExecution, psqlExecution, memorySearchResult } = specialMessageProperties;
+            const { approval, azCliExecution, kubectlExecution, psqlExecution } = approvalOrCliMessageProperties;
 
             setStreamingMessage(prev => {
                 if (!prev) return prev;
                 const specialMessageId = approval?.id || azCliExecution?.id || kubectlExecution?.id || psqlExecution?.id;
-                const index = getMessageIndexInStreamingMessage(prev, specialMessageId);
+                const index = getApprovalOrCliMessageIndexInStreamingMessage(prev, specialMessageId);
                 if (index !== undefined) {
                     prev.contents[index] = {
                         ...prev.contents[index],
@@ -319,7 +333,6 @@ export const useChatBox = (
                         azCliExecution,
                         kubectlExecution,
                         psqlExecution,
-                        memorySearchResult,
                     };
                     return cloneDeep(prev);
                 } else {
@@ -331,66 +344,23 @@ export const useChatBox = (
     );
 
     const processChatMessageContents = (streamingMessage: StreamingMessage) => {
-        const messageContent = streamingMessage.contents?.[0];
+        const chatMessageContent = createChatMessageContentFromStreamingMessage(streamingMessage);
 
-        let approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
-        const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
-        const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
-        const memorySearchResult = getSpecialMessageContentFromStreamingMessage<MemorySearchResult>(streamingMessage, 'memorysearch');
-        const todoInfo = getSpecialMessageContentFromStreamingMessage<TodoInfo>(streamingMessage, 'todoplan');
-        const psqlExecution = getSpecialMessageContentFromStreamingMessage<PsqlExecution>(streamingMessage, 'psql');
-        const agentTaskInfo = getSpecialMessageContentFromStreamingMessage<AgentTaskMetaData>(streamingMessage, 'deepinvestigation');
-
-        const text =
-            messageContent?.text &&
-            !approval &&
-            !azCliExecution &&
-            !kubectlExecution &&
-            !memorySearchResult &&
-            !psqlExecution &&
-            !todoInfo &&
-            !agentTaskInfo
-                ? messageContent.text
-                : '';
-
-        const isImage = isImageStreamingMessageType(streamingMessage);
-
-        if (approval) {
-            approval = {
-                ...approval,
-                status: processApprovalStreamingMessageStatus(approval.status),
-            };
-        }
-
-        const chatMessageContent: ChatMessageContent = {
-            text,
-            isImage,
-            approval,
-            azCliExecution,
-            kubectlExecution,
-            psqlExecution,
-            memorySearchResult,
-            agentTaskInfo,
-            todoInfo,
-            isDailyReport: false,
-        };
-
-        const specialMessage =
+        const cliOrApproval =
             chatMessageContent.approval ||
             chatMessageContent.azCliExecution ||
             chatMessageContent.kubectlExecution ||
             chatMessageContent.psqlExecution;
-        const specialMessageId = specialMessage?.id;
-        const isSpecialMessageInInitialState = isInitialState(specialMessage?.status);
-        const hasMemorySearchResult = !!chatMessageContent.memorySearchResult;
+        const isCliOrApprovalMessageInInitialState = isInitialState(cliOrApproval?.status);
+        const agentTaskInfo = chatMessageContent.agentTaskInfo;
 
         // Log telemetry for pending approval/execution messages (once per message)
-        if (specialMessage) {
+        if (cliOrApproval) {
             const isPending =
-                specialMessage.status === ApprovalDecision.Pending ||
-                specialMessage.status === ApprovalDecision.PendingAuthorization ||
-                specialMessage.status === ExecutionStatus.Pending ||
-                specialMessage.status === ExecutionStatus.PendingAuthorization;
+                cliOrApproval.status === ApprovalDecision.Pending ||
+                cliOrApproval.status === ApprovalDecision.PendingAuthorization ||
+                cliOrApproval.status === ExecutionStatus.Pending ||
+                cliOrApproval.status === ExecutionStatus.PendingAuthorization;
 
             if (isPending) {
                 const isApproval = !!chatMessageContent.approval;
@@ -402,16 +372,16 @@ export const useChatBox = (
                         threadId ||
                         userDefinedThreadIdRef.current,
                     threadType: threadSource ?? 'unknown',
-                    messageId: specialMessage.id,
-                    status: specialMessage.status,
+                    messageId: cliOrApproval.id,
+                    status: cliOrApproval.status,
                 };
 
                 if (!isApproval) {
                     metadata.executionType = chatMessageContent.azCliExecution
                         ? 'azCli'
                         : chatMessageContent.kubectlExecution
-                          ? 'kubectl'
-                          : 'psql';
+                            ? 'kubectl'
+                            : 'psql';
                 }
 
                 proxy.logAmplitudeOperationEvent({
@@ -424,7 +394,7 @@ export const useChatBox = (
             }
         }
 
-        if (!specialMessage || isSpecialMessageInInitialState || hasMemorySearchResult) {
+        const appendMessageInTheStreamingMessage = () => {
             setStreamingMessage(prev => {
                 const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
                 return {
@@ -432,31 +402,52 @@ export const useChatBox = (
                     contents: [...newStreamingMessage.contents, chatMessageContent],
                 };
             });
-            return;
+        };
+
+        const updateSpecialMessage = (type: 'approvalOrCli' | 'agentTask', id: string) => {
+            setStreamingMessage(prev => {
+                const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
+                const index =
+                    type === 'approvalOrCli'
+                        ? getApprovalOrCliMessageIndexInStreamingMessage(newStreamingMessage, id)
+                        : getAgentTaskMessageIndexInStreamingMessage(newStreamingMessage, id);
+                if (index !== undefined) {
+                    newStreamingMessage.contents[index] = chatMessageContent;
+                    return cloneDeep(newStreamingMessage);
+                } else {
+                    return prev;
+                }
+            });
+
+            setMessages(prev => {
+                const messages = [...prev];
+                const index =
+                    type === 'approvalOrCli'
+                        ? getApprovalOrCliMessageIndexInExistingMessages(messages, id)
+                        : getAgentTaskMessageIndexInExistingMessages(messages, id);
+                if (index !== undefined) {
+                    const [messageIndex, contentIndex] = index;
+                    messages[messageIndex].contents[contentIndex] = chatMessageContent;
+                    return cloneDeep(messages);
+                } else {
+                    return prev;
+                }
+            });
+        };
+
+        if (cliOrApproval) {
+            if (isCliOrApprovalMessageInInitialState) {
+                appendMessageInTheStreamingMessage();
+            } else {
+                const id = cliOrApproval.id;
+                updateSpecialMessage('approvalOrCli', id);
+            }
+        } else if (agentTaskInfo) {
+            const id = agentTaskInfo.id;
+            updateSpecialMessage('agentTask', id);
+        } else {
+            appendMessageInTheStreamingMessage();
         }
-
-        setStreamingMessage(prev => {
-            const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
-            const index = getMessageIndexInStreamingMessage(newStreamingMessage, specialMessageId);
-            if (index !== undefined) {
-                newStreamingMessage.contents[index] = chatMessageContent;
-                return cloneDeep(newStreamingMessage);
-            } else {
-                return prev;
-            }
-        });
-
-        setMessages(prev => {
-            const messages = [...prev];
-            const index = getMessageIndexInExistingMessages(messages, specialMessageId);
-            if (index !== undefined) {
-                const [messageIndex, contentIndex] = index;
-                messages[messageIndex].contents[contentIndex] = chatMessageContent;
-                return cloneDeep(messages);
-            } else {
-                return prev;
-            }
-        });
     };
 
     const handleMessageTyping = () => {
@@ -519,7 +510,7 @@ export const useChatBox = (
             setMessages(prev => [...prev, userMessage]);
 
             handleCompletedMessageChunk(currentMessageChunk);
-        } else if (isUpdatedSpecialStreamingMessage(currentMessageChunk)) {
+        } else if (isUpdatedCliOrApprovalStreamingMessage(currentMessageChunk)) {
             processChatMessageContents(currentMessageChunk);
             handleCompletedMessageChunk(currentMessageChunk);
         } else {
@@ -594,7 +585,7 @@ export const useChatBox = (
         const id = currentThreadIdRef.current || userDefinedThreadIdRef.current;
 
         const latestStreamingMessageHandler = (messageChunk?: StreamingMessage | null) => {
-            if (messageChunk && !isFinalStreamingMessage(messageChunk) && !isUpdatedSpecialStreamingMessage(messageChunk)) {
+            if (messageChunk && !isFinalStreamingMessage(messageChunk) && !isUpdatedCliOrApprovalStreamingMessage(messageChunk)) {
                 setStreamingMessage(prev => {
                     return prev === undefined ? composeDefaultAgentMessage() : prev;
                 });
@@ -766,7 +757,7 @@ export const useChatBox = (
         downButtonState,
         onClickDownButton,
         getGroupedChatMessages,
-        updateSpecialMessageInStreamingMessage,
+        updateApprovalOrCliMessageInStreamingMessage,
         userDefinedThreadIdRef,
         isDeepInvestigationButtonEnabled,
         isDeepInvestigationTurnedOn,

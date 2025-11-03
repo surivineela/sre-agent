@@ -10,7 +10,7 @@ import {
 } from 'react-icons/ai';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { Approval, KubectlExecution, PsqlExecution } from '../../Common/Contracts/DataPlane/Message';
+import { Approval, AzCliExecution, KubectlExecution, PsqlExecution } from '../../Common/Contracts/DataPlane/Message';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { ExecutionOutputResources, GraphViewerResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
@@ -20,13 +20,13 @@ import { getRiskLevel } from './Utility';
 const PsqlExecutionMessage: FC<{
     execution: PsqlExecution;
     threadId: string;
-    updateSpecialMessageInStreamingMessage?: (specialMessageProperties: {
+    updateApprovalOrCliMessageInStreamingMessage?: (approvalOrCliMessageProperties: {
         approval?: Approval;
-        azCliExecution?: any;
+        azCliExecution?: AzCliExecution;
         kubectlExecution?: KubectlExecution;
         psqlExecution?: PsqlExecution;
     }) => void;
-}> = ({ execution, threadId, updateSpecialMessageInStreamingMessage }) => {
+}> = ({ execution, threadId, updateApprovalOrCliMessageInStreamingMessage }) => {
     const [currentExecution, setCurrentExecution] = useState<PsqlExecution>(execution);
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [loadingAction, setLoadingAction] = useState<'run' | 'cancel' | null>(null);
@@ -147,8 +147,8 @@ const PsqlExecutionMessage: FC<{
                         completedTimestamp: data.completedTimestamp || currentExecution.completedTimestamp,
                     };
 
-                    if (updateSpecialMessageInStreamingMessage) {
-                        updateSpecialMessageInStreamingMessage({
+                    if (updateApprovalOrCliMessageInStreamingMessage) {
+                        updateApprovalOrCliMessageInStreamingMessage({
                             psqlExecution: updatedExecution,
                         });
                     } else {
@@ -169,7 +169,7 @@ const PsqlExecutionMessage: FC<{
             isPolling = false;
             clearInterval(pollInterval);
         };
-    }, [currentExecution, execution.id, threadId, updateSpecialMessageInStreamingMessage]);
+    }, [currentExecution, execution.id, threadId, updateApprovalOrCliMessageInStreamingMessage]);
 
     // Auto-collapse output when execution completes
     useEffect(() => {
@@ -210,8 +210,8 @@ const PsqlExecutionMessage: FC<{
                             : currentExecution.executedBy,
                     };
 
-                    if (updateSpecialMessageInStreamingMessage) {
-                        updateSpecialMessageInStreamingMessage({
+                    if (updateApprovalOrCliMessageInStreamingMessage) {
+                        updateApprovalOrCliMessageInStreamingMessage({
                             psqlExecution: updatedExecution,
                         });
                     } else {
