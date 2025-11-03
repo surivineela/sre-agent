@@ -33,8 +33,6 @@ import { ResponsePlanView } from './Watchtower/ResponsePlanView';
 // NOTE: RCA impacted service(s) not hooked up
 
 // TODO: Empty data state
-// TODO: Context panes in ResponsePlanView
-// TODO: Bar charts (see comment in ChartCard)
 
 interface IncidentCoverageItem {
     handledAt: Date;

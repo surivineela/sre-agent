@@ -27,7 +27,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
     return (
         <Card style={{ flex: '1 1 550px', minWidth: 550, height: 310 }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
             <div>
-                <Subtitle2>{title}</Subtitle2>
+                <Subtitle2 as='h3'>{title}</Subtitle2>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'end', alignItems: 'center', gap: 6 }}>
@@ -38,6 +38,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
                             setChartType('line');
                         }}
                         style={chartType === 'line' ? chartTypeButtonSelectedStyle : {}}
+                        aria-label={`${intl.formatMessage(SreAgentResources.lineChart)} - ${chartType === 'line' ? intl.formatMessage(SreAgentResources.selected) : intl.formatMessage(SreAgentResources.unselected)}`}
                     />
                 </Tooltip>
                 <Tooltip content={intl.formatMessage(SreAgentResources.barChart)} relationship="label">
@@ -47,6 +48,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
                             setChartType('bar');
                         }}
                         style={chartType === 'bar' ? chartTypeButtonSelectedStyle : {}}
+                        aria-label={`${intl.formatMessage(SreAgentResources.barChart)} - ${chartType === 'bar' ? intl.formatMessage(SreAgentResources.selected) : intl.formatMessage(SreAgentResources.unselected)}`}
                     />
                 </Tooltip>
             </div>

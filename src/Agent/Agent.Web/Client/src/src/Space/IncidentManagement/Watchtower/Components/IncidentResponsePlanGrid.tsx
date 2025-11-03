@@ -329,7 +329,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
 
     return (
         <Card style={{ width: '100%', height: '100%' }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
-            <Subtitle2>{intl.formatMessage(IncidentManagementResources.incidentResponsePlan)}</Subtitle2>
+            <Subtitle2 as='h3' style={{ margin: 0 }}>{intl.formatMessage(IncidentManagementResources.incidentResponsePlan)}</Subtitle2>
 
             <div className={styles.incidentFiltersContainer} style={{ marginBottom: 0 }}>
                 <SearchBox

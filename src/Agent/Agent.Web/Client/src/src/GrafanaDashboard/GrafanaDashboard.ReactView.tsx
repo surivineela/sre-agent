@@ -16,7 +16,7 @@ import {
     PopoverSurface,
     PopoverTrigger,
     Spinner,
-    Tooltip,
+    Tooltip
 } from '@fluentui/react-components';
 import { Info16Regular } from '@fluentui/react-icons';
 import { FC, useContext } from 'react';
@@ -73,7 +73,7 @@ const GrafanaDashboard: FC = () => {
 
     return (
         <div className={styles.container}>
-            <div className={styles.titleGrafanaDashboardHeader}>{intl.formatMessage(SettingsTabResources.grafanaDashboard)}</div>
+            <h2 className={styles.titleGrafanaDashboardHeader}>{intl.formatMessage(SettingsTabResources.grafanaDashboard)}</h2>
             {!hasRbacWritePermission && permissionsLoaded && agentLoaded && !grafanaEndpoint && (
                 <MessageBar intent="warning" className={styles.messageBar}>
                     <MessageBarBody>{intl.formatMessage(GrafanaDashboardResources.insufficientPermissions)}</MessageBarBody>
@@ -81,7 +81,7 @@ const GrafanaDashboard: FC = () => {
             )}
             <div className={styles.grafanaLogo}>
                 <img src="./GrafanaBlueLogo.svg" alt="Grafana" style={{ height: 35 }} />
-                <div className={styles.titleText}>{intl.formatMessage(SreAgentResources.azureManagedGrafana)}</div>
+                <h2 className={styles.titleText}>{intl.formatMessage(SreAgentResources.azureManagedGrafana)}</h2>
             </div>
             <div className={styles.rowCenterAlign}>{intl.formatMessage(GrafanaDashboardResources.description)}</div>
             {grafanaEndpoint ? (

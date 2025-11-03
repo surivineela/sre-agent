@@ -395,6 +395,8 @@ export const SreAgentResources = defineMessages({
     incident: { defaultMessage: 'Incident', id: 'zaYxwd' },
     idLabel: { defaultMessage: 'ID', id: 'qlcuNQ' },
     started: { defaultMessage: 'Started', id: 'TDUfVk' },
+    selected: { defaultMessage: 'Selected', id: 'byP6IC' },
+    unselected: { defaultMessage: 'Unselected', id: 'N/CtWu' },
     duration: { defaultMessage: 'Duration', id: 'IuFETn' },
     standardInput: { defaultMessage: 'Standard input', id: 'LyHqqV' },
     error: { defaultMessage: 'Error', id: 'KN7zKn' },
