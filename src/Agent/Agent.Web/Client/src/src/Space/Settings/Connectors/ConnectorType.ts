@@ -55,7 +55,7 @@ export const connectorTypeOptions = (intl: any): ConnectorTypeOption[] => [
     },
 ];
 
-export const getConnectionName = (connectorType: ConnectorType, intl: any): string => {
+export const getConnectorName = (connectorType: ConnectorType, intl: any): string => {
     const option = connectorTypeOptions(intl).find(opt => opt.id === connectorType);
     return option ? option.name : connectorType;
 };
@@ -63,4 +63,9 @@ export const getConnectionName = (connectorType: ConnectorType, intl: any): stri
 export const getConnectorService = (connectorType: ConnectorType, intl: any): string => {
     const option = connectorTypeOptions(intl).find(opt => opt.id === connectorType);
     return option ? option.service : '';
+};
+
+export const getConnectorIcon = (connectorType: ConnectorType, intl: any): string => {
+    const option = connectorTypeOptions(intl).find(opt => opt.id === connectorType);
+    return option ? option.img : '';
 };

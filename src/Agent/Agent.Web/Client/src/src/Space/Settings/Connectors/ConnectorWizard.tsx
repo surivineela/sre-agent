@@ -129,6 +129,7 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
                     <ConnectorWithManagedIdentity
                         isOperationInProgress={isOperationInProgress}
                         userAssignedIdentities={userAssignedIdentityOptions}
+                        agentIdentity={agentIdentity}
                         existingConnectors={existingConnectors}
                         selectedConnector={selectedConnector}
                         refreshAgent={refreshAgent}

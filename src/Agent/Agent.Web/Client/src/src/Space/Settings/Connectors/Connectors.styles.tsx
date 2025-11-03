@@ -80,10 +80,6 @@ export const useConnectorsStyles = makeStyles({
         fontSize: '14px',
         color: tokens.colorNeutralForeground2,
     },
-
-    toolbarRefresh: {
-        minWidth: '20px',
-    },
     dataGrid: {
         marginTop: '12px',
     },
@@ -110,18 +106,11 @@ export const useConnectorsStyles = makeStyles({
     nameMenuContainer: {
         flexShrink: 0,
     },
-    connectorTypeContainer: {
-        marginTop: '14px',
-        marginBottom: '14px',
+    connectorIcon: {
+        width: '20px',
+        height: '20px',
     },
-    connectorTypeName: {
-        fontSize: '14px',
-    },
-    connectorTypeService: {
-        fontSize: '12px',
-        color: tokens.colorNeutralForeground2,
-    },
-    statusContainer: {
+    iconAndTextContainer: {
         display: 'flex',
         alignItems: 'center',
         gap: '6px',

@@ -25,8 +25,10 @@ import { useIntl } from 'react-intl';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { useConnectorsStyles } from './Connectors.styles';
-import { ConnectorType, getConnectionName, getConnectorService } from './ConnectorType';
+import { ConnectorType, getConnectorIcon, getConnectorName, getConnectorService } from './ConnectorType';
 import EmptyState, { EmptyStateType } from './EmptyState';
+
+type ConnectorWithService = Connector & { service: string };
 
 export interface ConnectorsDataGridProps {
     connectors: Connector[];
@@ -71,7 +73,15 @@ export const ConnectorsDataGrid = ({
         });
     };
 
-    const connectorsToDisplay = isLoading || isRefreshing ? createShimmerData(SHIMMER_ITEMS_COUNT) : connectors;
+    const connectorsToDisplay = useMemo(() => {
+        if (isLoading || isRefreshing) {
+            return createShimmerData(SHIMMER_ITEMS_COUNT);
+        }
+        return connectors.map(connector => ({
+            ...connector,
+            service: getConnectorService(connector.dataConnectorType as ConnectorType, intl),
+        }));
+    }, [isLoading, isRefreshing, connectors, intl]);
 
     const createShimmerCell = useCallback(
         (skeletonItems: { width: string; height: string; marginBottom?: string }[]) => (
@@ -97,11 +107,11 @@ export const ConnectorsDataGrid = ({
 
     const renderCellWithShimmer = useCallback(
         (
-            item: Connector,
+            item: ConnectorWithService,
             shimmerConfig: { width: string; height: string; marginBottom?: string }[],
-            renderContent: (item: Connector) => React.ReactNode
+            renderContent: (item: ConnectorWithService) => React.ReactNode
         ) => {
-            const shimmerItem = item as Connector & { isShimmer?: boolean };
+            const shimmerItem = item as ConnectorWithService & { isShimmer?: boolean };
             if (shimmerItem.isShimmer) {
                 return createShimmerCell(shimmerConfig);
             }
@@ -110,9 +120,9 @@ export const ConnectorsDataGrid = ({
         [createShimmerCell]
     );
 
-    const columns: TableColumnDefinition<Connector>[] = useMemo(
+    const columns: TableColumnDefinition<ConnectorWithService>[] = useMemo(
         () => [
-            createTableColumn<Connector>({
+            createTableColumn<ConnectorWithService>({
                 columnId: 'name',
                 compare: (a, b) => a.name.localeCompare(b.name),
                 renderHeaderCell: () => intl.formatMessage(SreAgentResources.name),
@@ -132,55 +142,38 @@ export const ConnectorsDataGrid = ({
                         </TableCellLayout>
                     )),
             }),
-            createTableColumn<Connector>({
-                columnId: 'dataConnectorType',
-                compare: (a, b) => a.dataConnectorType.localeCompare(b.dataConnectorType),
-                renderHeaderCell: () => intl.formatMessage(ConnectorsResources.type),
+            createTableColumn<ConnectorWithService>({
+                columnId: 'service',
+                compare: (a, b) => a.service.localeCompare(b.service),
+                renderHeaderCell: () => intl.formatMessage(ConnectorsResources.service),
                 renderCell: item =>
-                    renderCellWithShimmer(
-                        item,
-                        [
-                            { width: '100px', height: '14px', marginBottom: '4px' },
-                            { width: '80px', height: '12px' },
-                        ],
-                        item => {
-                            const connectorType = item.dataConnectorType as ConnectorType;
-                            if (connectorType) {
-                                return (
-                                    <TableCellLayout>
-                                        <div className={styles.connectorTypeContainer}>
-                                            <div className={styles.connectorTypeName}>{getConnectionName(connectorType, intl)}</div>
-                                            <div className={styles.connectorTypeService}>{getConnectorService(connectorType, intl)}</div>
-                                        </div>
-                                    </TableCellLayout>
-                                );
-                            }
-                            return <TableCellLayout>{item.dataConnectorType}</TableCellLayout>;
+                    renderCellWithShimmer(item, [{ width: '100px', height: '14px' }], item => {
+                        const connectorType = item.dataConnectorType as ConnectorType;
+                        if (connectorType) {
+                            return (
+                                <TableCellLayout>
+                                    <div className={styles.iconAndTextContainer}>
+                                        <img
+                                            className={styles.connectorIcon}
+                                            src={getConnectorIcon(connectorType, intl)}
+                                            alt={getConnectorName(connectorType, intl)}
+                                        />
+                                        <Text>{getConnectorService(connectorType, intl)}</Text>
+                                    </div>
+                                </TableCellLayout>
+                            );
                         }
-                    ),
+                        return <TableCellLayout>{item.dataConnectorType}</TableCellLayout>;
+                    }),
             }),
-            createTableColumn<Connector>({
-                columnId: 'lastModified',
-                compare: (_a, _b) => 0, // No sorting for now since data not available
-                renderHeaderCell: () => intl.formatMessage(ConnectorsResources.lastModified),
-                renderCell: item =>
-                    renderCellWithShimmer(item, [{ width: '80px', height: '16px' }], () => <TableCellLayout>-</TableCellLayout>),
-            }),
-            createTableColumn<Connector>({
-                columnId: 'lastSynced',
-                compare: (_a, _b) => 0, // No sorting for now since data not available
-                renderHeaderCell: () => intl.formatMessage(ConnectorsResources.lastSynced),
-                renderCell: item =>
-                    renderCellWithShimmer(item, [{ width: '80px', height: '16px' }], () => <TableCellLayout>-</TableCellLayout>),
-            }),
-            createTableColumn<Connector>({
+            createTableColumn<ConnectorWithService>({
                 columnId: 'status',
                 compare: (_a, _b) => 0, // No sorting for now since data not available
                 renderHeaderCell: () => intl.formatMessage(ConnectorsResources.status),
                 renderCell: item =>
                     renderCellWithShimmer(item, [{ width: '90px', height: '16px' }], () => (
                         <TableCellLayout>
-                            <div className={styles.statusContainer}>
+                            <div className={styles.iconAndTextContainer}>
                                 <CheckmarkCircle16Regular className={styles.statusIcon} />
                                 <Text>{intl.formatMessage(ConnectorsResources.connected)}</Text>
                             </div>
