@@ -539,6 +539,7 @@ export const SreAgentTabResources = defineMessages({
     logs: { defaultMessage: 'Logs', id: 'SNuQo7' },
     feedback: { defaultMessage: 'Give us feedback', id: 'aQPexO' },
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
+    scheduledTasks: { defaultMessage: 'Scheduled tasks', id: 'sy7vzf' },
 });
 
 export const ResourcePickerTabResources = defineMessages({

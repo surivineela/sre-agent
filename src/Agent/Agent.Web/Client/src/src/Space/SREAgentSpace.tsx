@@ -23,7 +23,6 @@ import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import WarningBanner from '../Common/Components/WarningBanner';
 import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
-import { SettingNames, useConfigSetting } from '../Common/Hooks/ConfigSettings';
 import { useFeatureFlags } from '../Common/Hooks/useFeatureFlags';
 import { LocalStorageFlags, useLocalStorage } from '../Common/Hooks/useLocalStorage';
 import {
@@ -163,10 +162,10 @@ const TabsListWrapper: FC = () => {
         return isIncidentManagementTeachingPopoverDismissed !== 'true';
     }, [isIncidentManagementTeachingPopoverDismissed]);
 
-    const showScheduledTasksTab = useConfigSetting(SettingNames.ShowScheduledTasksTab);
-
-    // Show extended agents graph tab based on backend feature flag only
+    // Show scheduled tasks tab and extended agents graph tab based on backend feature flag only
     const { features } = useFeatureFlags();
+
+    const showScheduledTasksTab = features.scheduledTasks;
     const showExtendedAgentsGraphTab = features.extendedAgentsGraph;
 
     const { controlPlaneTabsVisible, incidentManagementTabVisible, incidentManagementTabDisabled, logsTabDisabled, onLogsClick } =
@@ -302,7 +301,7 @@ const TabsListWrapper: FC = () => {
                     </Tab>
                     {showScheduledTasksTab && (
                         <Tab id="ScheduledTasks" value={TabValues.ScheduledTasks}>
-                            {'Scheduled Tasks'}
+                            {intl.formatMessage(SreAgentTabResources.scheduledTasks)}
                         </Tab>
                     )}
                     {showExtendedAgentsGraphTab && (

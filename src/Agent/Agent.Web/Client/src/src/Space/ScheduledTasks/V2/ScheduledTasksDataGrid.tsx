@@ -273,12 +273,13 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
         [intl]
     );
 
-    const onRenderCreatedBy = useCallback(
-        (item: ScheduledTask) => {
-            return item.createdBy === 'Sub-Agent Builder' ? intl.formatMessage(SreAgentResources.agent) : item.createdBy;
-        },
-        [intl]
-    );
+    // TODO: Unhide when createdBy API bug is fixed
+    // const onRenderCreatedBy = useCallback(
+    //     (item: ScheduledTask) => {
+    //         return item.createdBy === 'Sub-Agent Builder' ? intl.formatMessage(SreAgentResources.agent) : item.createdBy;
+    //     },
+    //     [intl]
+    // );
 
     const onRenderLastRun = useCallback(
         (item: ScheduledTask) => {
@@ -329,11 +330,12 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ScheduledTasksResources.schedule)}</Text>,
                 renderCell: onRenderSchedule,
             }),
-            createTableColumn<ScheduledTask>({
-                columnId: ScheduledTaskDataGridColumns.createdBy,
-                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ScheduledTasksResources.createdBy)}</Text>,
-                renderCell: onRenderCreatedBy,
-            }),
+            // TODO: Unhide when createdBy API bug is fixed
+            // createTableColumn<ScheduledTask>({
+            //     columnId: ScheduledTaskDataGridColumns.createdBy,
+            //     renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ScheduledTasksResources.createdBy)}</Text>,
+            //     renderCell: onRenderCreatedBy,
+            // }),
             createTableColumn<ScheduledTask>({
                 columnId: ScheduledTaskDataGridColumns.lastRun,
                 compare: (a, b) => {
@@ -361,17 +363,7 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                 renderCell: onRenderRuns,
             }),
         ],
-        [
-            intl,
-            onRenderActions,
-            onRenderCreatedBy,
-            onRenderLastRun,
-            onRenderName,
-            onRenderNextRun,
-            onRenderRuns,
-            onRenderSchedule,
-            onRenderStatus,
-        ]
+        [intl, onRenderActions, onRenderLastRun, onRenderName, onRenderNextRun, onRenderRuns, onRenderSchedule, onRenderStatus]
     );
 
     return (
@@ -432,10 +424,11 @@ const columnSizingOptions = {
         minWidth: 200,
         defaultWidth: 250,
     },
-    createdBy: {
-        minWidth: 200,
-        defaultWidth: 250,
-    },
+    // TODO: Unhide when createdBy API bug is fixed
+    // createdBy: {
+    //     minWidth: 200,
+    //     defaultWidth: 250,
+    // },
     lastRun: {
         minWidth: 150,
         defaultWidth: 200,
