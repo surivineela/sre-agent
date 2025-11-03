@@ -4,7 +4,6 @@
 
 using System.ComponentModel;
 using System.Text;
-using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Agent.Core.Extensions;
@@ -574,7 +573,6 @@ Summary:")
 
             var response = await chatClient.FastModel.GetResponseAsync(messages, new ChatOptions
             {
-                MaxOutputTokens = 100, // ~200 chars, plus some buffer
                 Temperature = (float?)0.3 // Lower temperature for more consistent summaries
             });
 

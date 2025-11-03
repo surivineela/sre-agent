@@ -24,7 +24,7 @@ type LLMVerificationResponse struct {
 func NewLLMVerifier(apiKey, endpoint string) *LLMVerifier {
     // Extract deployment ID from endpoint if it's an Azure OpenAI endpoint
     deploymentID := extractDeploymentID(endpoint)
-    
+
     return &LLMVerifier{
         apiKey:       apiKey,
         endpoint:     endpoint,
@@ -76,7 +76,7 @@ Respond with a JSON object in this exact format:
             },
         },
         "temperature": 0.0, // Use 0 for consistent evaluation
-        "max_tokens":  10000,
+        "max_completion_tokens":  10000,
     }
 
     jsonData, err := json.Marshal(requestBody)

@@ -47,7 +47,7 @@ def CommentsOfGitHubIssueForTagging_json_encoder(obj):
     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 class GitHubIssueForTagging:
-    def __init__(self, id=None, issueId=None, issueUrl=None, owner=None, repository=None, title=None, body=None, comments=None, labels=None, 
+    def __init__(self, id=None, issueId=None, issueUrl=None, owner=None, repository=None, title=None, body=None, comments=None, labels=None,
                  state=None, descriptiveSummary=None, createdTimestamp = None, lastUpdatedTimestamp=None, summaryVector=None):
         self.id = str(id)
         self.issueId = str(issueId)
@@ -245,7 +245,7 @@ def call_azure_openai_vision_api(imageMimeType:str, base64Image:str) -> str:
     response = client.chat.completions.create(
         model=OPENAI_VISION_MODEL,
         messages=messages,
-        max_tokens=1000,
+        max_completion_tokens=1000,
         temperature=0.3
     )
 
@@ -287,7 +287,7 @@ def call_azure_openai(systemPrompt, chat_history):
     completion = client.chat.completions.create(
         model=OPENAI_VISION_MODEL,
         messages=messages,
-        max_tokens=4096,
+        max_completion_tokens=4096,
         temperature=0.1,
         top_p=0.95,
         frequency_penalty=0,
