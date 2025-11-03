@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { MessageDescriptor } from 'react-intl';
 import { ChatMessageError } from '../../Common/Contracts/DataPlane/Message';
-import { ActivitiesResources } from '../../Strings/SREAgentResources';
+import { RbacWarningBannerResources } from '../../Strings/SREAgentResources';
 import ErrorMessageBar from './ErrorMessageBar';
 
 /**
@@ -17,7 +17,7 @@ const ErrorMessage = ({ error }: { error: ChatMessageError }) => {
             case 'PermissionDenied':
                 result = {
                     errorTitle: undefined,
-                    errorMessage: ActivitiesResources.insufficientChatPermissions,
+                    errorMessage: RbacWarningBannerResources.rbacWarningMessage,
                 };
         }
 

@@ -936,8 +936,9 @@ export const RbacWarningBannerResources = defineMessages({
             'Starting September 25th, 2025, users without one of the required Azure role-based access control (RBAC) roles will lose access to Azure SRE Agent.',
         id: 'MWaWoR',
     },
-    clickHereToAssignRole: { defaultMessage: 'Click here to assign yourself the SRE Agent Admin role.', id: 'C2PrxB' },
-    or: { defaultMessage: ' Or', id: 'ic8SAj' },
+    assignRole: { defaultMessage: 'Assign yourself the SRE Agent Admin role.', id: 'y79eIb' },
+    genericWarningText: { defaultMessage: 'You have warnings regarding your agent.', id: 'spEwRf' },
+    learnMore: { defaultMessage: 'Click here to learn more', id: 'xEjqoV' },
     learnMoreAboutRbac: { defaultMessage: 'Click here to learn more about SRE Agent RBAC', id: 'qhApmK' },
     dismissBanner: { defaultMessage: 'Dismiss', id: 'TDaF6J' },
     addAdminNotificationTitle: { defaultMessage: 'Add SRE Agent Administrator role', id: 'MxYLKu' },
@@ -957,6 +958,28 @@ export const RbacWarningBannerResources = defineMessages({
         defaultMessage: 'Failed to add SRE Agent Administrator role to your agent {name}. Error: {error}',
         id: 'krH81A',
     },
+    muteWarnings: {
+        defaultMessage: 'Mute all warnings',
+        id: 'pqedsA',
+    },
+    muteThisWarning: {
+        defaultMessage: 'Mute this warning',
+        id: 'yJJ/jv',
+    },
+    goToAgentConsumption: {
+        defaultMessage: 'Go to Agent Consumption',
+        id: 'j1pB0w',
+    },
+    usageReachedLimitMessage: {
+        defaultMessage:
+            'The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and acrtions.',
+        id: 'rdsirP',
+    },
+    usageApproachingLimitMessage: {
+        defaultMessage:
+            'The agent has used 90% of the active flow AAUs. If the limit is reached, the agent will run only in always-on flow and be unavailable for chat and actions.',
+        id: 'Cfvmd0',
+    },
 });
 
 export const IdentityResources = defineMessages({
@@ -968,11 +991,6 @@ export const IdentityResources = defineMessages({
 });
 
 export const ActivitiesResources = defineMessages({
-    insufficientChatPermissions: {
-        defaultMessage:
-            'Make sure you have Contributor or Owner access to the resource group where the agent is hosted. If you still have access issues, assign the role directly to your account instead of relying on group-based role assignments.',
-        id: 'CimbUb',
-    },
     createThreadButtonText: { defaultMessage: 'New chat thread', id: 'TkWiD5' },
     createThreadNoPermissionTooltip: {
         defaultMessage: 'You do not have permission to create new chat threads.',

@@ -1,7 +1,7 @@
 import { createContext, Dispatch, SetStateAction } from 'react';
 import { HttpResponseObject } from '../../Common/ArmHelper.types';
 import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
-import { Agent, AgentAccessLevel, IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
+import { Agent, AgentAccessLevel, IncidentManagementType, MonthlyUsage } from '../../Common/Contracts/Azure/SreAgent';
 import { AgentTaskMetaData, InvestigationTreeNodeStatus } from '../../Common/Contracts/DataPlane/AgentTask';
 import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
@@ -118,6 +118,22 @@ type IncidentsOverviewContextProps = {
     initialSidePanelDataMap: Map<string, ChatBoxSidePanelData>;
 };
 
+type AgentWarningContextProps = {
+    // Rbac context
+    showRbacWarning: boolean;
+    handleAddAdminClick: () => void;
+    handleDismissRbacWarning: () => void;
+    isCheckingRbac: boolean;
+
+    // Usage context
+    showUsageWarning: boolean;
+    approachingLimit: boolean;
+    reachedLimit: boolean;
+    handleDismissUsageWarning: () => void;
+    onUsageUpdate: (newUsages: MonthlyUsage | null | undefined) => void;
+    isCheckingUsage: boolean;
+};
+
 export const SreAgentContext = createContext<SreAgentContextProps>({
     activities: {
         lastVisitedThreadId: undefined,
@@ -225,4 +241,20 @@ export const AgentTaskGraphContext = createContext<AgentTaskGraphContextProps>({
 export const IncidentsOverviewContext = createContext<IncidentsOverviewContextProps>({
     onInitialSidePanelDataChanged: (_threadId: string, _data: ChatBoxSidePanelData | undefined | null) => {},
     initialSidePanelDataMap: new Map<string, ChatBoxSidePanelData>(),
+});
+
+export const AgentWarningContext = createContext<AgentWarningContextProps>({
+    // Rbac context
+    showRbacWarning: false,
+    handleAddAdminClick: () => {},
+    handleDismissRbacWarning: () => {},
+    isCheckingRbac: true,
+
+    // Usage context
+    showUsageWarning: false,
+    approachingLimit: false,
+    reachedLimit: false,
+    handleDismissUsageWarning: () => {},
+    onUsageUpdate: (_newUsages: MonthlyUsage | null | undefined) => {},
+    isCheckingUsage: true,
 });

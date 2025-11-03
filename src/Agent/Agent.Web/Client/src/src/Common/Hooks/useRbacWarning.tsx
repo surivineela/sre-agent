@@ -1,20 +1,15 @@
-import { Button, Link } from '@fluentui/react-components';
-import { Dismiss12Regular } from '@fluentui/react-icons';
-import { MessageBar, MessageBarBody } from '@fluentui/react-message-bar';
-import { memo, useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { RbacWarningBannerResources } from '../../Strings/SREAgentResources';
-import AzPortalProxy from '../AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessage } from '../Clients/ArmClient';
 import { PermissionClient } from '../Clients/PermissionsClient';
-import { SreAgentFwLinks } from '../Constants/FwLinks';
 import { RBACRoleIds } from '../Contracts/Azure/Permission';
 
 const RBAC_BANNER_DISMISSED_KEY = 'sreagent.rbacWarningBannerDismissed';
 
-const RbacWarningBanner = () => {
+export const useRbacWarning = () => {
     const intl = useIntl();
     const { resourceId, userInfo, isCrossTenantPortalMode } = useContext(EnvironmentContext);
     const azPortalContext = useContext(AzPortalContext);
@@ -123,44 +118,14 @@ const RbacWarningBanner = () => {
         setIsDismissed(true);
     }, []);
 
-    if (checking || isDismissed || alreadyHasAgentRole || isCrossTenantPortalMode || AzPortalProxy.inStandaloneMode) {
-        return null;
-    }
+    const showRbacWarning = useMemo(() => {
+        return !checking && !isDismissed && !alreadyHasAgentRole && !isCrossTenantPortalMode;
+    }, [checking, isDismissed, alreadyHasAgentRole, isCrossTenantPortalMode]);
 
-    return (
-        <MessageBar
-            intent={'warning'}
-            shape={'rounded'}
-            layout={'multiline'}
-            style={{
-                margin: '4px',
-            }}
-        >
-            <MessageBarBody>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <div style={{ flex: 1, wordBreak: 'break-word', overflowWrap: 'break-word' }}>
-                        {`${intl.formatMessage(RbacWarningBannerResources.rbacWarningMessage)} `}
-                        <Link onClick={handleAddAdminClick} aria-disabled={checking}>
-                            {intl.formatMessage(RbacWarningBannerResources.clickHereToAssignRole)}
-                        </Link>
-                        {`${intl.formatMessage(RbacWarningBannerResources.or)} `}
-                        <Link href={SreAgentFwLinks.sreAgentRbacInfo} target="_blank" rel="noopener noreferrer">
-                            {intl.formatMessage(RbacWarningBannerResources.learnMoreAboutRbac)}
-                        </Link>
-                        .
-                    </div>
-                    <div></div>
-                    <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<Dismiss12Regular />}
-                        onClick={handleDismiss}
-                        aria-label={intl.formatMessage(RbacWarningBannerResources.dismissBanner)}
-                    />
-                </div>
-            </MessageBarBody>
-        </MessageBar>
-    );
+    return {
+        showRbacWarning,
+        handleAddAdminClick,
+        handleDismiss,
+        isCheckingRbac: checking,
+    };
 };
-
-export default memo(RbacWarningBanner);

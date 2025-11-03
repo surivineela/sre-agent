@@ -20,7 +20,7 @@ import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext, useAzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
-import RbacWarningBanner from '../Common/Components/RbacWarningBanner';
+import WarningBanner from '../Common/Components/WarningBanner';
 import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
 import { SettingNames, useConfigSetting } from '../Common/Hooks/ConfigSettings';
@@ -245,7 +245,7 @@ const TabsListWrapper: FC = () => {
 
     return (
         <div>
-            <RbacWarningBanner />
+            <WarningBanner />
             <div
                 style={{
                     display: 'flex',

@@ -8,6 +8,7 @@ import { IEnvironmentInfo } from './src/Common/AzPortalProxy/Models/IEnvironment
 import { ThemeMode } from './src/Common/AzPortalProxy/Models/ITheme';
 import { AzPortalContext } from './src/Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from './src/Common/AzPortalProxy/Providers/StartupInfoContext';
+import { AgentWarningProvider } from './src/Common/Providers/AgentWarningProvider';
 import { KnowledgeGraphBuildStatusProvider } from './src/Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { ReactQueryClientProvider } from './src/Common/Providers/ReactQueryClientProvider';
 import { StreamingProvider } from './src/Common/Providers/StreamingProvider';
@@ -43,7 +44,9 @@ const App: React.FC = () => {
                             <StreamingProvider>
                                 <ReactQueryClientProvider>
                                     <KnowledgeGraphBuildStatusProvider>
-                                        <SREAgentSpace />
+                                        <AgentWarningProvider>
+                                            <SREAgentSpace />
+                                        </AgentWarningProvider>
                                     </KnowledgeGraphBuildStatusProvider>
                                 </ReactQueryClientProvider>
                             </StreamingProvider>

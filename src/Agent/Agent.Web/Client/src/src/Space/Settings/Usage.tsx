@@ -49,6 +49,7 @@ import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { SettingsTabResources, SreAgentResources, UsageResources } from '../../Strings/SREAgentResources';
+import { AgentWarningContext } from '../Contracts/Context';
 import { useSettingsStyles } from './Styles/Settings.styles';
 
 const useStyles = makeStyles({
@@ -146,6 +147,7 @@ const Usage = () => {
 
     const proxy = useContext(AzPortalContext);
     const { resourceId } = useContext(EnvironmentContext);
+    const { onUsageUpdate } = useContext(AgentWarningContext);
 
     const settingStyles = useSettingsStyles();
     const styles = useStyles();
@@ -188,26 +190,36 @@ const Usage = () => {
         const getMonthlyUsage = async (resourceId: string) => {
             setIsLoadingMonthlyUsage(true);
 
-            const response = await SreAgentClient.getMonthlyUsage(resourceId);
-            const result = response.data.value?.[0];
-            const usage = result?.currentValue || undefined;
-            const limit = result?.limit || undefined;
-
-            if (response.metadata.success && usage !== undefined && limit !== undefined) {
-                setMonthlyUsageError(false);
-                setCurrentUsage(usage);
-                setTotalLimit(limit);
-            } else {
+            const handleError = (error: any) => {
                 setMonthlyUsageError(true);
+                onUsageUpdate(null);
                 proxy.log({
                     action: 'getMonthlyUsage',
                     actionModifier: 'failed',
                     resourceId,
                     logLevel: 'error',
                     data: {
-                        error: getErrorMessage(response.metadata.error),
+                        error: getErrorMessage(error),
                     },
                 });
+            };
+
+            try {
+                const response = await SreAgentClient.getMonthlyUsage(resourceId);
+                const result = response.data.value?.[0];
+                const usage = result?.currentValue || undefined;
+                const limit = result?.limit || undefined;
+
+                if (response.metadata.success && usage !== undefined && limit !== undefined) {
+                    setMonthlyUsageError(false);
+                    setCurrentUsage(usage);
+                    setTotalLimit(limit);
+                    onUsageUpdate(result);
+                } else {
+                    handleError(response.metadata.error);
+                }
+            } catch (error) {
+                handleError(error);
             }
 
             setIsLoadingMonthlyUsage(false);
@@ -216,13 +228,7 @@ const Usage = () => {
         const getDailyUsages = async (resourceId: string) => {
             setIsLoadingDailyUsage(true);
 
-            const response = await SreAgentClient.getDailyUsages(resourceId);
-            const dailyUsages = response.data.value || [];
-
-            if (response.metadata.success) {
-                setDailyUsageError(false);
-                setDailyUsagesDataPoint(processDailyUsages(dailyUsages));
-            } else {
+            const handleError = (error: any) => {
                 setDailyUsageError(true);
                 proxy.log({
                     action: 'getDailyUsages',
@@ -230,9 +236,23 @@ const Usage = () => {
                     resourceId,
                     logLevel: 'error',
                     data: {
-                        error: getErrorMessage(response.metadata.error),
+                        error: getErrorMessage(error),
                     },
                 });
+            };
+
+            try {
+                const response = await SreAgentClient.getDailyUsages(resourceId);
+                const dailyUsages = response.data.value || [];
+
+                if (response.metadata.success) {
+                    setDailyUsageError(false);
+                    setDailyUsagesDataPoint(processDailyUsages(dailyUsages));
+                } else {
+                    handleError(response.metadata.error);
+                }
+            } catch (error) {
+                handleError(error);
             }
 
             setIsLoadingDailyUsage(false);
