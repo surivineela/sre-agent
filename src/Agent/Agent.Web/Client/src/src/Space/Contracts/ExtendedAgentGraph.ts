@@ -22,6 +22,7 @@ export type ExtendedAgent = {
     agentType?: 'Autonomous' | 'Orchestrator' | 'Activity';
     outputType?: string;
     metaAgentOverride?: boolean;
+    enableMemory?: boolean;
     metadata?: Record<string, any>;
 };
 

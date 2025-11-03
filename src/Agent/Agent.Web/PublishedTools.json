@@ -253,6 +253,10 @@
     {
       "name": "QueryLogAnalyticsByWorkspaceId",
       "version": "latest"
+    },
+    {
+      "name": "SearchMemory",
+      "version": "latest"
     }
   ]
 }

@@ -5,6 +5,7 @@ import {
     Field,
     Input,
     InputProps,
+    Link,
     Option,
     OptionGroup,
     Spinner,
@@ -17,6 +18,7 @@ import {
 import {
     ChevronDown12Regular,
     ChevronRight12Regular,
+    Database20Regular,
     Info16Regular,
     Lightbulb24Regular,
     Wand24Regular,
@@ -24,7 +26,9 @@ import {
 } from '@fluentui/react-icons';
 import { ChangeEventHandler, FC, KeyboardEvent, MouseEvent, useContext, useEffect, useMemo, useState } from 'react';
 import { IntlShape } from 'react-intl';
+import { useNavigate } from 'react-router-dom';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { getAgentHeaders } from '../../../../Common/Helpers/headers';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgent, ExtendedTool, SystemTool } from '../../../Contracts/ExtendedAgentGraph';
 import { improvePrompt, PromptImprovementResponse } from '../services/promptImprovementService';
@@ -55,6 +59,7 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
 }) => {
     const styles = useCreationDialogStyles();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const navigate = useNavigate();
 
     const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
     const [isApplyingImprovement, setIsApplyingImprovement] = useState(false);
@@ -63,6 +68,29 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
     const [promptImprovementError, setPromptImprovementError] = useState<string | null>(null);
     const [systemToolSearch, setSystemToolSearch] = useState('');
     const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
+    const [documentCount, setDocumentCount] = useState<number | null>(null);
+
+    // Fetch document count when memory is enabled
+    useEffect(() => {
+        if (agent.enableMemory) {
+            const fetchDocumentCount = async () => {
+                try {
+                    const response = await fetch(`${sreAgentEndpoint}/api/v1/AgentMemory/files/count`, {
+                        headers: getAgentHeaders(),
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setDocumentCount(data.count ?? 0);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch document count:', error);
+                }
+            };
+            fetchDocumentCount();
+        } else {
+            setDocumentCount(null);
+        }
+    }, [agent.enableMemory, sreAgentEndpoint]);
 
     const handleAgentNameChange: NonNullable<InputProps['onChange']> = (_event, data) => {
         const sanitized = sanitizeEntityName(data.value ?? '');
@@ -868,6 +896,41 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
                         </Option>
                     ))}
                 </Dropdown>
+            </Field>
+
+            <Field>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Switch
+                        checked={agent.enableMemory === true}
+                        onChange={(_, data) => onChange({ ...agent, enableMemory: data.checked })}
+                    />
+                    <span>{intl.formatMessage(ExtendedAgentsGraphResources.agentMemoryLabel)}</span>
+                    <Tooltip content={intl.formatMessage(ExtendedAgentsGraphResources.agentMemoryHelp)} relationship="description">
+                        <Info16Regular style={{ fontSize: '14px', color: '#6264A7', cursor: 'help' }} />
+                    </Tooltip>
+                </div>
+                {agent.enableMemory && (
+                    <div style={{ marginTop: '8px', marginLeft: '48px' }}>
+                        <Link
+                            onClick={() => navigate('/views/settings/dataKnowledgeSpace')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                cursor: 'pointer',
+                                color: '#0078D4',
+                                textDecoration: 'underline',
+                            }}
+                        >
+                            <Database20Regular />
+                            {documentCount !== null && documentCount > 0
+                                ? intl.formatMessage(ExtendedAgentsGraphResources.memoryKnowledgeBasePrompt, {
+                                      count: documentCount,
+                                  })
+                                : intl.formatMessage(ExtendedAgentsGraphResources.memoryNoDocuments)}
+                        </Link>
+                    </div>
+                )}
             </Field>
         </div>
     );

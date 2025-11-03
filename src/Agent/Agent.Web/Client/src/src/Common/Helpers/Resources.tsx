@@ -63,7 +63,7 @@ const ICON_LOOKUP: Record<string, string> = {
 
     //Usage
     usagewarning: 'WarningSpotIllustration.svg',
-    
+
     // Office
     outlook: 'Outlook.svg',
     teams: 'Teams.svg',

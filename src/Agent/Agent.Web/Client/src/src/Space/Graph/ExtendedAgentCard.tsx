@@ -66,6 +66,12 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
     const agent = data?.data as ExtendedAgent | undefined;
     const agentType = agent?.agentType || 'Autonomous';
 
+    // Memory is enabled if the SearchMemory tool is available in the agent's tools
+    const memoryEnabled =
+        agent?.tools?.some(t => t.toLowerCase() === 'searchmemory') ||
+        agent?.systemTools?.some(t => t.toLowerCase() === 'searchmemory') ||
+        false;
+
     const cardStyles = mergeClasses(
         agentCard,
         !isHovered && nodesToHighlight.includes(id) ? cardHighlighted : undefined,
@@ -102,6 +108,11 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
                             <Badge appearance="outline" size="small" className={badge}>
                                 {intl.formatMessage(ExtendedAgentsGraphResources.toolsCountBadge, { count: toolCount })}
                             </Badge>
+                            {memoryEnabled && (
+                                <Badge appearance="outline" size="small" className={badge}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.memoryEnabledBadge)}
+                                </Badge>
+                            )}
                         </div>
                     </div>
                 </Card>

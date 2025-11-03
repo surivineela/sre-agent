@@ -53,7 +53,45 @@ export const useExtendedAgentGraph = () => {
             }
 
             const data: PaginatedResponse<ExtendedAgent> = await response.json();
-            setAgents(data.data);
+
+            // Fetch document counts for agents with memory enabled
+            const agentsWithDocumentCounts = await Promise.all(
+                data.data.map(async agent => {
+                    // Memory is enabled if the SearchMemory tool is available in the agent's tools
+                    const memoryEnabled =
+                        agent.tools?.some(t => t.toLowerCase() === 'searchmemory') ||
+                        agent.systemTools?.some(t => t.toLowerCase() === 'searchmemory') ||
+                        false;
+
+                    if (memoryEnabled) {
+                        try {
+                            const filesResponse = await fetch(`${sreAgentEndpoint}/api/v1/agentmemory/files`, {
+                                headers: getAgentHeaders(),
+                            });
+
+                            if (filesResponse.ok) {
+                                const filesData = await filesResponse.json();
+                                const documentCount = Array.isArray(filesData.files) ? filesData.files.length : 0;
+
+                                return {
+                                    ...agent,
+                                    metadata: {
+                                        ...(agent.metadata || {}),
+                                        documentCount,
+                                    },
+                                };
+                            } else {
+                                console.warn(`[fetchAgents] Failed to fetch files for ${agent.name}: ${filesResponse.status}`);
+                            }
+                        } catch (err) {
+                            console.warn(`Failed to fetch document count for agent ${agent.name}:`, err);
+                        }
+                    }
+                    return agent;
+                })
+            );
+
+            setAgents(agentsWithDocumentCounts);
         } catch (err) {
             console.error('Error fetching agents:', err);
             setError('Failed to load agents');

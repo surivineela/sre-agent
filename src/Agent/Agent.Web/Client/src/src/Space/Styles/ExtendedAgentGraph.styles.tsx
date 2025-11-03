@@ -207,6 +207,8 @@ export const useExtendedAgentNodeStyles = makeStyles({
     badgeRow: {
         display: 'flex',
         gap: '8px',
+        flexWrap: 'wrap',
+        alignItems: 'center',
     },
     emptyText: {
         color: tokens.colorNeutralForeground3,

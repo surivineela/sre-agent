@@ -7,6 +7,7 @@ import {
     DialogContent,
     DialogSurface,
     DialogTitle,
+    Link,
     mergeClasses,
     Text,
     tokens,
@@ -14,6 +15,7 @@ import {
 import { Beaker20Regular, Delete20Regular, Edit20Regular } from '@fluentui/react-icons';
 import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useNavigate } from 'react-router-dom';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { ExtendedAgentsGraphResources, PlaygroundResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import {
@@ -86,15 +88,52 @@ export const ExtendedAgentInfoPanel = memo(
     }: ExtendedAgentInfoPanelProps) => {
         const styles = useExtendedAgentInfoStyles();
         const intl = useIntl();
+        const navigate = useNavigate();
         const { selectedNode } = useContext(ExtendedAgentGraphContext);
         const [yamlEditorContext, setYamlEditorContext] = useState<YamlEditorContext>();
         const [isResizeHandleHovered, setIsResizeHandleHovered] = useState(false);
         const [isDeleting, setIsDeleting] = useState(false);
         const [deleteContext, setDeleteContext] = useState<DeleteContext>();
+        const [documentCount, setDocumentCount] = useState<number | null>(null);
 
         const panelWidth = width ?? 350;
         const panelMinWidth = minWidth ?? 280;
         const panelMaxWidth = maxWidth ?? 720;
+
+        // Memory is enabled if the SearchMemory tool is available in the agent's tools
+        const memoryEnabled =
+            selectedAgent?.tools?.some(t => t.toLowerCase() === 'searchmemory') ||
+            selectedAgent?.systemTools?.some(t => t.toLowerCase() === 'searchmemory') ||
+            false;
+
+        // Fetch document count when memory is enabled
+        useEffect(() => {
+            if (memoryEnabled) {
+                const fetchDocumentCount = async () => {
+                    try {
+                        const url = `${sreAgentEndpoint}/api/v1/AgentMemory/files/count`;
+                        console.log('[DocumentCount] Fetching from:', url);
+                        const response = await fetch(url, {
+                            headers: getAgentHeaders(),
+                        });
+                        console.log('[DocumentCount] Response status:', response.status);
+                        if (response.ok) {
+                            const data = await response.json();
+                            console.log('[DocumentCount] Response data:', data);
+                            setDocumentCount(data.count ?? 0);
+                        } else {
+                            const errorText = await response.text();
+                            console.error('[DocumentCount] Error response:', errorText);
+                        }
+                    } catch (error) {
+                        console.error('[DocumentCount] Failed to fetch document count:', error);
+                    }
+                };
+                fetchDocumentCount();
+            } else {
+                setDocumentCount(null);
+            }
+        }, [memoryEnabled, sreAgentEndpoint]);
 
         // Keep a tool map so we can validate tool names referenced by the agent.
         const toolMap = useMemo(() => new Map(tools.map(tool => [tool.name, tool])), [tools]);
@@ -117,6 +156,7 @@ export const ExtendedAgentInfoPanel = memo(
 
             const explicit = selectedAgent.systemTools ?? [];
             const fallback = selectedAgent.tools?.filter(toolName => systemToolMap.has(toolName)) ?? [];
+
             return Array.from(new Set<string>([...explicit, ...fallback].filter(Boolean)));
         }, [selectedAgent, systemToolMap]);
 
@@ -564,12 +604,39 @@ export const ExtendedAgentInfoPanel = memo(
                                     {getAgentTypeLabel(selectedAgent.agentType, intl)}
                                 </Badge>
                             )}
+                            {memoryEnabled && (
+                                <Badge appearance="outline" size="small">
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.memoryEnabledBadge)}
+                                </Badge>
+                            )}
                             {selectedAgent.outputType && (
                                 <Badge appearance="outline" size="small">
                                     {intl.formatMessage(ExtendedAgentsGraphResources.outputTypeLabel)}: {selectedAgent.outputType}
                                 </Badge>
                             )}
                         </div>
+                        {memoryEnabled && documentCount !== null && (
+                            <div style={{ marginTop: '8px', marginLeft: '8px' }}>
+                                <Link
+                                    onClick={() => navigate('/views/settings/dataKnowledgeSpace')}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        cursor: 'pointer',
+                                        fontSize: '12px',
+                                        color: '#0078D4',
+                                        textDecoration: 'underline',
+                                    }}
+                                >
+                                    {documentCount > 0
+                                        ? intl.formatMessage(ExtendedAgentsGraphResources.memoryKnowledgeBasePrompt, {
+                                              count: documentCount,
+                                          })
+                                        : intl.formatMessage(ExtendedAgentsGraphResources.memoryNoDocuments)}
+                                </Link>
+                            </div>
+                        )}
                         <div className={styles.badgeRow}>
                             <Badge appearance="tint" size="small">
                                 {intl.formatMessage(ExtendedAgentsGraphResources.toolsCountBadge, {
@@ -717,6 +784,39 @@ export const ExtendedAgentInfoPanel = memo(
                     <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.systemToolPluginLabel)}</Text>
                     <Text className={styles.subtitle}>{selectedSystemTool.pluginName}</Text>
                 </div>
+
+                {/* Connects To (for SearchMemory tool) */}
+                {selectedSystemTool.name?.toLowerCase() === 'searchmemory' && (
+                    <div className={styles.section}>
+                        <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.connectsTo)}</Text>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                            <Link
+                                appearance="subtle"
+                                onClick={() => navigate('/views/settings/dataKnowledgeSpace')}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                Knowledge Base
+                            </Link>
+                            <Link
+                                appearance="subtle"
+                                onClick={() => navigate('/views/settings/data-connectors')}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                Data Connectors
+                            </Link>
+                        </div>
+                    </div>
+                )}
 
                 {/* Parameters */}
                 {selectedSystemTool.parameters && selectedSystemTool.parameters.length > 0 && (

@@ -285,6 +285,12 @@ export const ReviewStep: FC<ReviewStepProps> = ({
                 </MessageBar>
             )}
 
+            {state.entityType === 'agent' && state.agent?.enableMemory === true && (
+                <MessageBar intent="success" role="status">
+                    <MessageBarBody>{intl.formatMessage((SreAgentResources as any).agentMemoryEnabled)}</MessageBarBody>
+                </MessageBar>
+            )}
+
             <div className={styles.previewSection}>
                 <div className={styles.previewHeader}>
                     <div className={styles.previewTitle}>{reviewTitle}</div>

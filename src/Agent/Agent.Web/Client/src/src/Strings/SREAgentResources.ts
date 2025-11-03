@@ -3382,6 +3382,17 @@ export const ExtendedAgentsGraphResources = defineMessages({
     mcpToolsCountBadge: { defaultMessage: 'MCP tools · {count}', id: '9jaWOF' },
     handoffCountBadge: { defaultMessage: 'Handoffs · {count}', id: 'MnlPLt' },
     agentAsToolCountBadge: { defaultMessage: 'Agents-as-tools · {count}', id: 'tujypD' },
+    memoryEnabledBadge: { defaultMessage: 'Knowledge Base Enabled', id: 'ketkP5' },
+    memoryDocumentsCount: { defaultMessage: '{count} {count, plural, one {document} other {documents}}', id: 'GBLVEV' },
+    memoryAddDocuments: { defaultMessage: 'Add Documents', id: 'ja85pV' },
+    memoryViewKnowledgeBase: { defaultMessage: 'View Knowledge Base', id: 'z43sTn' },
+    memoryKnowledgeBasePrompt: {
+        defaultMessage: 'Your knowledge base has {count} {count, plural, one {document} other {documents}}. Add more?',
+        id: 'jSgRib',
+    },
+    memoryNoDocuments: { defaultMessage: 'No documents in knowledge base. Add some?', id: 'UBbDNy' },
+    connectsTo: { defaultMessage: 'Connects to', id: 'gO/IxZ' },
+    filesTab: { defaultMessage: 'Files', id: 'm4vqJl' },
     selectAgentPrompt: {
         defaultMessage: 'Pick an agent to visualize its tools, connectors, and handoffs.',
         id: 'WcnRC1',
@@ -3758,6 +3769,23 @@ export const ExtendedAgentsGraphResources = defineMessages({
         id: 'k4dB65',
     },
     metaAgentOverridePlaceholderName: { defaultMessage: 'YourAgent', id: 'jEmOoh' },
+
+    // Agent Memory
+    agentMemoryLabel: { defaultMessage: 'Enable Knowledge Base', id: 'GP/BbQ' },
+    agentMemoryHelp: {
+        defaultMessage: 'Knowledge Base Enabled',
+        id: 'ketkP5',
+    },
+    agentMemoryTooltip: {
+        defaultMessage: 'When enabled, the SearchMemory tool and knowledge base prompts will be automatically added',
+        id: 'WjqsyE',
+    },
+    agentMemoryEnabled: {
+        defaultMessage:
+            'Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included.',
+        id: 'FsIud6',
+    },
+
     metaAgentAlreadyExistsMessage: {
         defaultMessage: 'A meta agent override already exists in your system.',
         id: 'VnySGb',

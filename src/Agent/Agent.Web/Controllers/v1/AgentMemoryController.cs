@@ -534,5 +534,38 @@ namespace Agent.Web.Controllers.v1
                 return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to list files." });
             }
         }
+
+        [HttpGet("files/count")]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetFilesCount(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                int totalCount = 0;
+                string? continuationToken = null;
+
+                do
+                {
+                    var page = await dataConnectorStorage.ListFilesAsync(
+                        prefix: null,
+                        pageSize: 1000,
+                        continuationToken: continuationToken,
+                        cancellationToken: cancellationToken);
+
+                    totalCount += page.Items.Count;
+                    continuationToken = page.ContinuationToken;
+                }
+                while (!string.IsNullOrEmpty(continuationToken));
+
+                return Ok(new { count = totalCount });
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Failed to get files count.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to get files count." });
+            }
+        }
     }
 }

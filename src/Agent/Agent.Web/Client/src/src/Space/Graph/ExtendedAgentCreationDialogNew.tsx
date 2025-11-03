@@ -150,6 +150,7 @@ const mapAgentSpecToState = (
         max_reflection_count: createNumberHandler('maxReflectionCount'),
         critic_on_hand_off: createBooleanHandler('criticOnHandOff'),
         allow_parallel_tool_calls: createBooleanHandler('allowParallelToolCalls'),
+        enable_memory: createBooleanHandler('enableMemory'),
         handoffs: createStringArrayHandler(values => {
             next.handoffs = values;
         }),
@@ -656,14 +657,32 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                 case 'agent':
                     {
                         const metaAgentOverride = (state.agent as any)?.metaAgentOverride === true;
+                        const enableMemory = state.agent?.enableMemory === true;
+
+                        // Prepare tools list
+                        let tools = state.agent?.tools || [];
+
+                        // Add SearchMemory tool if memory is enabled and not already present
+                        if (enableMemory && !tools.some(t => t.toLowerCase() === 'searchmemory')) {
+                            tools = [...tools, 'SearchMemory'];
+                        }
+
+                        // Prepare instructions
+                        let instructions = state.agent?.instructions?.trim() || '';
+                        const memoryPrompt = '\n\nUse the search tools to incorporate memory in the final result.';
+
+                        // Add memory instruction if memory is enabled and not already present
+                        if (enableMemory && !instructions.toLowerCase().includes('incorporate memory')) {
+                            instructions += memoryPrompt;
+                        }
 
                         payload = {
                             name: state.agent?.name?.trim(),
                             description: (state.agent as any)?.description,
-                            instructions: state.agent?.instructions?.trim(),
+                            instructions: instructions,
                             handoffDescription: state.agent?.handoffDescription?.trim(),
                             handoffs: state.agent?.handoffs || [],
-                            tools: state.agent?.tools || [],
+                            tools: tools,
                             systemTools: state.agent?.systemTools || [],
                             mcpTools: state.agent?.mcpTools || [],
                             metaAgentOverride,
