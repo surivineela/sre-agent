@@ -7,6 +7,7 @@ import { Response } from '../Contracts/Response';
 import { parseArmId } from '../Utilities/ArmId';
 import { ArmClient } from './ArmClient';
 import { Client } from './Client';
+import { tokenCache } from './TokenCache';
 
 export interface ResourceGroup {
     readonly id: string;
@@ -44,11 +45,7 @@ export class ResourceGroupClient extends Client {
         commandName: string,
         apiVersion = ApiVersions.argQueryApiVersion20240401
     ): Promise<ARGResponse[]> {
-        const tokenResponse = await this.getAccessToken('arm');
-
-        if (!tokenResponse.isSuccessful) {
-            throw new Error('Failed to acquire ARM token for ARG query');
-        }
+        const tokenResponse = await tokenCache.getAccessToken('arm');
 
         const endpoints = getCloudEndpoints();
         const argUrl = `${endpoints.arm}/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`;
@@ -56,7 +53,7 @@ export class ResourceGroupClient extends Client {
         const response = await fetch(argUrl, {
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${tokenResponse.content}`,
+                Authorization: `Bearer ${tokenResponse.raw}`,
                 'Content-Type': 'application/json',
                 'x-ms-command-name': commandName,
             },

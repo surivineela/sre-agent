@@ -8,6 +8,7 @@ import { LogLevel } from '../Contracts/Telemetry';
 import { logTelemetryEvent } from '../Hooks/useTelemetry';
 import { ArmClient } from './ArmClient';
 import { Client } from './Client';
+import { tokenCache } from './TokenCache';
 
 export class SreAgentClient extends Client {
     private static _instance: SreAgentClient | null = null;
@@ -38,14 +39,7 @@ export class SreAgentClient extends Client {
      * Backend handles token caching and refreshing.
      */
     public async getAgentsFromArg(): Promise<Response<SreAgentArgItem[]>> {
-        const tokenResponse = await this.getAccessToken('arm');
-
-        if (!tokenResponse.isSuccessful) {
-            return {
-                isSuccessful: false,
-                error: tokenResponse.error,
-            };
-        }
+        const token = await tokenCache.getAccessToken('arm');
 
         try {
             const endpoints = getCloudEndpoints();
@@ -62,7 +56,7 @@ export class SreAgentClient extends Client {
             const response = await fetch(argUrl, {
                 method: 'POST',
                 headers: {
-                    Authorization: `Bearer ${tokenResponse.content}`,
+                    Authorization: `Bearer ${token.raw}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(query),

@@ -4,4 +4,5 @@ export enum TelemetrySource {
     AgentIFrameView = 'AgentIFrameView',
     SubscriptionsManager = 'SubscriptionsManager',
     SreAgentCreate = 'SreAgentCreate',
+    AuthTokenCache = 'AuthTokenCache',
 }

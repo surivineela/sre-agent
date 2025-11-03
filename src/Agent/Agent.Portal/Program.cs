@@ -52,7 +52,7 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                 }
 
                 // Add tenant hint for tenant switching
-                if (context.Properties.Items.TryGetValue("tenant_hint", out var tenantHint))
+                if (context.Properties.Items.TryGetValue("tenant_hint", out var tenantHint) && !string.IsNullOrEmpty(tenantHint))
                 {
                     // Replace the tenant in the authority URL
                     // The IssuerAddress format is: https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize
@@ -87,6 +87,13 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     })
     .EnableTokenAcquisitionToCallDownstreamApi(initialScopes)
     .AddInMemoryTokenCaches();
+
+// Register token providers
+builder.Services.AddScoped<Agent.Portal.Services.ITokenProvider, Agent.Portal.Services.ArmTokenProvider>();
+builder.Services.AddScoped<Agent.Portal.Services.ITokenProvider, Agent.Portal.Services.GraphTokenProvider>();
+builder.Services.AddScoped<Agent.Portal.Services.ITokenProvider, Agent.Portal.Services.SreAgentTokenProvider>();
+builder.Services.AddScoped<Agent.Portal.Services.ITokenProvider, Agent.Portal.Services.AppInsightsTokenProvider>();
+builder.Services.AddScoped<Agent.Portal.Services.ITokenProviderFactory, Agent.Portal.Services.TokenProviderFactory>();
 
 builder.Services.AddControllersWithViews();
 

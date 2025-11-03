@@ -4,6 +4,7 @@ import { Response } from '../Contracts/Response';
 import { LogLevel } from '../Contracts/Telemetry';
 import { logTelemetryEvent } from '../Hooks/useTelemetry';
 import { Client } from './Client';
+import { tokenCache } from './TokenCache';
 
 export class GraphClient extends Client {
     private static _instance: GraphClient | null = null;
@@ -25,20 +26,14 @@ export class GraphClient extends Client {
      * Backend handles token caching and refreshing.
      */
     public async getProfilePhoto(): Promise<Response<string | undefined>> {
-        const tokenResponse = await this.getAccessToken('graph');
-
-        if (!tokenResponse.isSuccessful) {
-            return {
-                isSuccessful: false,
-                error: tokenResponse.error,
-            };
-        }
+        // const tokenResponse = await this.getAccessToken('graph');
+        const token = await tokenCache.getAccessToken('graph');
 
         try {
             const endpoints = getCloudEndpoints();
             const photoResponse = await fetch(`${endpoints.graph}/v1.0/me/photos/96x96/$value`, {
                 headers: {
-                    Authorization: `Bearer ${tokenResponse.content}`,
+                    Authorization: `Bearer ${token.raw}`,
                 },
             });
 

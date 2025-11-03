@@ -14,12 +14,11 @@ import {
     Tenant,
 } from '../Contracts/Arm';
 import { Response } from '../Contracts/Response';
-import { LogLevel } from '../Contracts/Telemetry';
-import { logTelemetryEvent } from '../Hooks/useTelemetry';
 import { delay, getHeader } from '../Utilities/Client';
 import { newGuid } from '../Utilities/Guid';
 import { appendQueryString, getParameterByName } from '../Utilities/Url';
 import { Client } from './Client';
+import { tokenCache } from './TokenCache';
 
 // Custom response interface to replace AxiosResponse
 interface FetchResponse<T> {
@@ -188,20 +187,7 @@ export class ArmClient extends Client {
 
     private async makeArmRequest<T>(armObj: InternalArmRequest, _retry = 0): Promise<FetchResponse<T>> {
         // Get ARM token
-        const tokenResponse = await this.getAccessToken('arm');
-        if (!tokenResponse.isSuccessful) {
-            logTelemetryEvent({
-                action: 'arm-token-acquisition',
-                actionModifier: 'failed',
-                logLevel: LogLevel.Error,
-                telemetrySource: this.telemetrySource,
-                additionalData: {
-                    resourceId: armObj.resourceId,
-                    error: tokenResponse.error instanceof Error ? tokenResponse.error.message : String(tokenResponse.error),
-                },
-            });
-            throw tokenResponse.error;
-        }
+        const token = await tokenCache.getAccessToken('arm');
 
         const { method, resourceId, body, apiVersion, queryString } = armObj;
         let url = `${this.armEndpoint}${resourceId}${queryString || ''}`;
@@ -209,7 +195,7 @@ export class ArmClient extends Client {
             url = appendQueryString(url, `api-version=${apiVersion}`);
         }
         const headers: KeyValue<string> = {
-            Authorization: `Bearer ${tokenResponse.content}`,
+            Authorization: `Bearer ${token.raw}`,
             'x-ms-client-request-id': armObj.id,
             ...armObj.headers,
         };

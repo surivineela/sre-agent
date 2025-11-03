@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { JWTToken } from '../Utilities/JWTToken';
+import { tokenCache } from '../Clients/TokenCache';
 
 interface AuthenticatedUser {
     name: string;
@@ -41,15 +41,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
                         if (!tenantId) {
                             try {
-                                const armTokenResponse = await fetch('/api/auth/arm-token', {
-                                    credentials: 'include',
-                                });
-
-                                if (armTokenResponse.ok) {
-                                    const armTokenData = await armTokenResponse.json();
-                                    const jwtToken = new JWTToken(armTokenData.accessToken);
-                                    tenantId = jwtToken.tenantId ?? tenantId;
-                                }
+                                const token = await tokenCache.getAccessToken('arm');
+                                tenantId = token.tenantId ?? tenantId;
                             } catch (error) {
                                 console.warn('Failed to extract tenant ID from ARM token:', error);
                             }

@@ -1,3 +1,4 @@
+using Agent.Portal.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -12,12 +13,12 @@ namespace Agent.Portal.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly ILogger<AuthController> _logger;
-    private readonly ITokenAcquisition _tokenAcquisition;
+    private readonly ITokenProviderFactory _tokenProviderFactory;
 
-    public AuthController(ILogger<AuthController> logger, ITokenAcquisition tokenAcquisition)
+    public AuthController(ILogger<AuthController> logger, ITokenProviderFactory tokenProviderFactory)
     {
         _logger = logger;
-        _tokenAcquisition = tokenAcquisition;
+        _tokenProviderFactory = tokenProviderFactory;
     }
 
     [HttpGet("login")]
@@ -108,142 +109,43 @@ public class AuthController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("arm-token")]
-    public async Task<IActionResult> GetArmToken()
+    [HttpGet("get-token")]
+    public async Task<IActionResult> GetToken([FromQuery] string type)
     {
+        if (string.IsNullOrWhiteSpace(type))
+        {
+            return BadRequest(new { error = "Token type parameter is required" });
+        }
+
         try
         {
-            var scopes = new[] { "https://management.azure.com/user_impersonation" };
-            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes);
+            var provider = _tokenProviderFactory.GetProvider(type);
+            var tokenResponse = await provider.GetTokenAsync();
 
             return Ok(new
             {
-                accessToken,
-                tokenType = "Bearer",
-                scope = "https://management.azure.com/user_impersonation"
+                accessToken = tokenResponse.AccessToken,
+                tokenType = tokenResponse.TokenType,
+                scope = tokenResponse.Scope
             });
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid token type requested: {Type}", type);
+            return BadRequest(new { error = ex.Message });
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
-            _logger.LogWarning(ex, "User needs to consent to ARM scope. Redirecting to consent.");
+            _logger.LogWarning(ex, "User needs to consent to {Type} scope.", type);
             
             // Redirect to login with consent prompt
-            var returnUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.Path}";
+            var returnUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.Path}?type={Uri.EscapeDataString(type)}";
             return Redirect($"/api/auth/login?prompt=consent&returnUrl={Uri.EscapeDataString(returnUrl)}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to acquire ARM token");
-            return StatusCode(500, new { error = "Failed to acquire token for Azure Resource Manager", details = ex.Message });
-        }
-    }
-
-    [HttpGet("consent")]
-    public IActionResult Consent([FromQuery] string? scope = null, [FromQuery] string? returnUrl = null)
-    {
-        var redirectUrl = string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl;
-        
-        var properties = new AuthenticationProperties
-        {
-            RedirectUri = redirectUrl
-        };
-        
-        // Force user to consent by using the "consent" prompt
-        properties.Items["prompt"] = "consent";
-        
-        return Challenge(properties, OpenIdConnectDefaults.AuthenticationScheme);
-    }
-
-    [Authorize]
-    [HttpGet("graph-token")]
-    public async Task<IActionResult> GetGraphToken()
-    {
-        try
-        {
-            var scopes = new[] { "https://graph.microsoft.com/.default" };
-            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes);
-
-            return Ok(new
-            {
-                accessToken,
-                tokenType = "Bearer",
-                scope = "https://graph.microsoft.com/.default"
-            });
-        }
-        catch (MicrosoftIdentityWebChallengeUserException ex)
-        {
-            _logger.LogWarning(ex, "User needs to consent to Graph scope. Redirecting to consent.");
-            
-            // Redirect to login with consent prompt
-            var returnUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.Path}";
-            return Redirect($"/api/auth/login?prompt=consent&returnUrl={Uri.EscapeDataString(returnUrl)}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to acquire Graph token");
-            return StatusCode(500, new { error = "Failed to acquire token for Microsoft Graph" });
-        }
-    }
-
-    [Authorize]
-    [HttpGet("sre-agent-token")]
-    public async Task<IActionResult> GetSreAgentToken()
-    {
-        try
-        {
-            var scopes = new[] { "https://azuresre.dev/Threads.ReadWrite.All" };
-            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes);
-
-            return Ok(new
-            {
-                accessToken,
-                tokenType = "Bearer",
-                scope = "https://azuresre.dev/Threads.ReadWrite.All"
-            });
-        }
-        catch (MicrosoftIdentityWebChallengeUserException ex)
-        {
-            _logger.LogWarning(ex, "User needs to consent to SRE Agent scope. Redirecting to consent.");
-            
-            // Redirect to login with consent prompt
-            var returnUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.Path}";
-            return Redirect($"/api/auth/login?prompt=consent&returnUrl={Uri.EscapeDataString(returnUrl)}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to acquire SRE Agent token");
-            return StatusCode(500, new { error = "Failed to acquire token for SRE Agent" });
-        }
-    }
-
-    [Authorize]
-    [HttpGet("app-insights-token")]
-    public async Task<IActionResult> GetAppInsightsToken()
-    {
-        try
-        {
-            var scopes = new[] { "https://api.applicationinsights.io/Data.Read" };
-            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes);
-
-            return Ok(new
-            {
-                accessToken,
-                tokenType = "Bearer",
-                scope = "https://api.applicationinsights.io/Data.Read"
-            });
-        }
-        catch (MicrosoftIdentityWebChallengeUserException ex)
-        {
-            _logger.LogWarning(ex, "User needs to consent to App Insights scope. Redirecting to consent.");
-            
-            // Redirect to login with consent prompt
-            var returnUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.Path}";
-            return Redirect($"/api/auth/login?prompt=consent&returnUrl={Uri.EscapeDataString(returnUrl)}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to acquire App Insights token");
-            return StatusCode(500, new { error = "Failed to acquire token for Application Insights" });
+            _logger.LogError(ex, "Failed to acquire {Type} token", type);
+            return StatusCode(500, new { error = $"Failed to acquire token for {type}", details = ex.Message });
         }
     }
 }
