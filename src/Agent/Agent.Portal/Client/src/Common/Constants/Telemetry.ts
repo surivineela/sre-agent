@@ -5,4 +5,5 @@ export enum TelemetrySource {
     SubscriptionsManager = 'SubscriptionsManager',
     SreAgentCreate = 'SreAgentCreate',
     AuthTokenCache = 'AuthTokenCache',
+    PortalFeedback = 'PortalFeedback',
 }

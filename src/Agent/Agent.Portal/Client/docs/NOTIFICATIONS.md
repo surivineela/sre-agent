@@ -2,18 +2,18 @@
 
 The Agent Portal includes a comprehensive notification system for tracking operations and displaying user feedback.
 
-## Basic Usage
+## Quick Reference
 
-### Import the Hook
+Four API patterns available (detailed examples below):
 
-```typescript
-import { useNotifications } from '../../Common/Contexts/NotificationContext';
+1. **Explicit API** (recommended) - `start()` → `succeed()` / `fail()` for clear control
+2. **One-off notifications** - `info()`, `warning()`, `error()` for immediate feedback  
+3. **Promise tracking** - `trackPromise()` for async/await operations
+4. **Polling** - `startWithPolling()` for long-running external jobs
 
-const MyComponent = () => {
-    const notifications = useNotifications();
-    // ...
-};
-```
+**Import:** `const notifications = useNotifications();`
+
+---
 
 ## API Patterns
 

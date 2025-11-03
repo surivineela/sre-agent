@@ -4,6 +4,18 @@
 
 The portal uses MSAL (Microsoft Authentication Library) for Entra ID authentication with redirect-based sign-in flow.
 
+## Quick Reference
+
+**Common patterns:**
+
+1. **Check auth status:** `const { isAuthenticated, user } = useAuth();`
+2. **Make API calls:** Use client classes (`SreAgentClient`, `GraphClient`) - they handle tokens automatically
+3. **IFrame token management:** Use `useAuthTokenManager` hook for proactive token pushing to iframes
+
+**Important:** Regular components should use client classes (pattern #2), NOT `useAuthTokenManager`. The token manager is specifically for iframe communication scenarios.
+
+---
+
 ## Basic Setup
 
 ### Using Auth Context
@@ -52,7 +64,7 @@ const MyComponent = () => {
 
 ## Token Acquisition
 
-### For Regular API Calls
+### For Regular API Calls (Most Common)
 
 Use client classes (documented in `AgentContext.md`):
 
@@ -65,7 +77,9 @@ Clients handle token acquisition automatically via MSAL's `acquireTokenSilent()`
 - Automatically refreshes if expired/about to expire
 - Uses refresh token for silent renewal
 
-### For IFrame Token Management
+**Error handling:** Client methods return `Response<T>` objects - check `isSuccessful` instead of using try/catch.
+
+### For IFrame Token Management (Rare)
 
 When you need to proactively push tokens to an iframe, use `useAuthTokenManager`:
 

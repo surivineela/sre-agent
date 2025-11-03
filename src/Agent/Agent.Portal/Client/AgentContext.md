@@ -4,19 +4,31 @@
 
 ## Overview
 
-- **Project**: `Agent.Portal/Client` – forthcoming Vite/React SPA parallel to `Agent.Web/Client`, delivered as a static build output.
+- **Project**: `Agent.Portal/Client` – Vite/React SPA parallel to `Agent.Web/Client`, delivered as a static build output.
 - **Purpose**: Power the SRE Agent portal experience with Fluent UI v9 components, shared localization patterns, and common utilities.
-- **Status**: Initial scaffolding in progress; localization directories mirror the web client structure to enable string extraction.
+- **Tech Stack**: React 18, Vite, Fluent UI v9, React Router v7, React Intl, MSAL, Vitest
 
-## Key Directories
+## Project Structure
 
-- `src/Strings` – Localization resources, extraction targets, enforcement tests, and React Intl helpers.
-- `src/Strings/__test__` – Vitest-based string and localization guardrails.
-- `src/Strings/Intl` – Shared Intl provider and helper utilities.
-- `src/Strings/extracted` – Generated `strings.json` source for localization (empty placeholder committed).
-- `src/Strings/compiled` – Placeholder for compiled translation bundles produced by localization tooling.
-- `src/Common/Hooks` – Reusable React hooks (localStorage persistence, user preferences, etc.).
-- `src/Common/Contexts` – React context providers (Auth, UserPreferences, etc.).
+```plaintext
+src/
+├── Views/              # Page-level components and routes
+│   ├── Home/          # Agent browse/list view + Create wizard
+│   ├── Agent/         # IFrame view for embedding agent UX
+│   ├── Navbar/        # Top navigation (feedback, notifications, settings, auth)
+│   ├── Notifications/ # Toast container and drawer UI
+│   └── LandingPage/   # Signed-out welcome page
+├── Common/
+│   ├── Auth/          # MSAL config and cloud endpoints
+│   ├── Clients/       # API clients (ARM, Graph, SreAgent, Subscriptions, etc.)
+│   ├── Components/    # Reusable UI (Wizard, pickers, dropdowns, etc.)
+│   ├── Contexts/      # React contexts (Auth, Notifications, UserPreferences, Subscriptions)
+│   ├── Hooks/         # Custom hooks (telemetry, localStorage, auth tokens, etc.)
+│   ├── Contracts/     # TypeScript interfaces (ARM, SreAgent, Telemetry, etc.)
+│   ├── Constants/     # API versions, telemetry sources, links
+│   └── Utilities/     # Pure functions (ARM parsing, GUID, JWT, sanitization, etc.)
+└── Strings/           # Localization (Resources.ts, extracted/, compiled/, Intl/)
+```
 
 ## Architecture & Patterns
 
@@ -35,10 +47,28 @@
 
 ### API Clients
 
-- **Client classes** (`SreAgentClient`, `GraphClient`) handle API requests with MSAL token acquisition.
-- Clients accept MSAL `instance` and `account` in constructor; use singleton pattern via `getInstance()`.
-- MSAL's `acquireTokenSilent()` **automatically handles token caching and refresh** - no manual token management needed for regular API calls.
-- For iframe scenarios requiring proactive token pushing, use `useAuthTokenManager` hook instead.
+All client classes use singleton pattern via `getInstance()`, handle MSAL token acquisition automatically, and return `Response<T>` objects (see Error Handling below).
+
+**Available Clients:**
+
+- `ArmClient` - Generic ARM resource operations
+- `SreAgentClient` - SRE Agent-specific APIs (extends ArmClient)
+- `GraphClient` - Microsoft Graph API (users, photos, etc.)
+- `SubscriptionClient` - List/filter Azure subscriptions
+- `ResourceGroupClient` - Resource group operations and queries
+- `LocationClient` - Azure regions and location metadata
+- `DeploymentClient` - ARM template deployments
+- `PermissionsClient` - RBAC permission checks
+- `TelemetryClient` - Telemetry logging (use `useTelemetry` hook instead in components)
+
+**Usage:** `const client = SreAgentClient.getInstance(TelemetrySource.MyView);`
+
+### Error Handling
+
+- Client methods return `Response<T>` with `isSuccessful` flag and optional `error` field
+- **Do NOT wrap client calls in try/catch** - errors are already captured in the response object
+- Check `response.isSuccessful` before accessing `response.data`
+- Example: `if (!response.isSuccessful) { /* handle response.error */ }`
 
 ### No Barrel Exports
 
@@ -58,27 +88,77 @@
 - **Iframe token manager** (`useAuthTokenManager`) handles proactive token refresh for iframe communication scenarios.
 - **Full documentation**: See `docs/Authentication.md` for usage patterns and examples.
 
-## User Preferences
+## Core Contexts
 
-- **`useLocalStorage`** – Generic hook for type-safe localStorage persistence with cross-tab sync.
-- **`useUserPreferences`** – Domain-specific hook built on `useLocalStorage` for managing theme, locale, tenant, subscriptions, resource groups, and last accessed agent.
-- **`UserPreferencesContext`** – Context provider wrapping `useUserPreferences` for app-wide access.
+### UserPreferencesContext
+
+- **`useUserPreferences()`** – Manages theme, locale, tenant, subscriptions, resource groups, and last accessed agent
+- Built on `useLocalStorage` hook for type-safe persistence with cross-tab sync
 - Storage key: `sre-agent-portal-preferences`
 
-## Notifications
+### SubscriptionsContext
 
-- **`NotificationContext`** – Global notification system with support for in-progress, success, error, warning, and info states.
-- **`useNotifications()`** – Hook providing explicit API (`start/succeed/fail`), one-off notifications (`info/warning/error`), Promise tracking, and polling support.
-- **UI Components** – Navbar bell icon with badge/spinner, slide-out drawer with history, and auto-dismissing toasts at top-right.
-- **Full documentation**: See `docs/Notifications.md` for usage patterns and examples.
+- **`useSubscriptions()`** – App-wide subscription management with filtering, selection, and search
+- Key methods: `setSelectedSubscriptions`, `toggleSubscription`, `filterSubscriptions`, `refresh`
+- Handles multi-select with max 100 subscriptions, persists selection to user preferences
+- Provides `isLoading`, `error`, `selectedSubscriptions`, `totalCount`, `isAllSelected` state
 
-## Related Artifacts
+### NotificationContext
 
-- Shared localization config lives in `Agent.Web/Client/src/Strings/LocProject.json` (includes portal extraction paths).
-- UX patterns, component guidance, and Fluent usage are documented in `docs/UX/`.
-- Agent Web client serves as the canonical reference for project layout, tooling, and testing strategy.
+- **`useNotifications()`** – Global notification system with explicit API (`start/succeed/fail`), one-off notifications, Promise tracking, and polling
+- **UI Components** – Navbar bell icon with badge/spinner, slide-out drawer with history, auto-dismissing toasts
+- **Full documentation**: See `docs/Notifications.md` for usage patterns and examples
 
-## Future Additions
+## Reusable Components
 
-- Token acquisition helpers and authenticated API clients planned for a follow-on milestone.
-- Add concise sub-docs in this directory (e.g., `Tooling.md`, `Testing.md`) when topics grow beyond a few bullets. Link them here and keep summaries tight.
+See `docs/Components.md` for detailed usage. Key components:
+
+- **Wizard** - Multi-step dialog with stepper UI (see Create Agent flow)
+- **ResourceGroupPicker** - Multi-select resource group picker with search/filter across subscriptions
+- **SubscriptionDropdown** - Dropdown for subscription selection with Formik integration
+- **ResourceGroupDropdown** - Dropdown for single resource group selection
+- **ImageRadioGroup** - Radio group with image icons (used for permission templates)
+- **PillFilter** - Filter UI with pill-based selection
+- **TextWithLink** - Inline text with embedded links
+
+## Common Utilities
+
+Located in `src/Common/Utilities/`:
+
+- **ArmId** - Parse ARM resource IDs into components (subscription, resource group, provider, etc.)
+- **Guid** - Generate short GUIDs for UI element IDs
+- **JWTToken** - Decode and validate JWT tokens
+- **Url** - URL manipulation and query string helpers
+- **Sanitization** - Sanitize data for telemetry logging
+- **String** - String formatting helpers
+- **Deployment** - ARM template building utilities (in `ArmTemplateBuilder/`)
+- **Client** - Shared client error handling utilities
+
+## Localization
+
+- **All user-facing strings** must use `react-intl` via `PortalResources` (defined in `src/Strings/Resources.ts`)
+- Add new strings to `Resources.ts` using `defineMessages` format
+- **ESLint enforces** localization rules (enforce-id, enforce-default-message, etc.)
+- String extraction happens automatically on commit via husky (`npm run extract:loc`)
+- Usage: `const intl = useIntl(); intl.formatMessage(PortalResources.myString)`
+
+## Common Pitfalls
+
+Avoid these mistakes when working in this codebase:
+
+1. **No barrel exports** - Don't create `index.ts` files; use direct imports
+2. **Arrow functions only** - Use `export const MyComponent = () => {}` not `export function MyComponent()`
+3. **Telemetry source from caller** - Pass `TelemetrySource.MyView` representing WHERE it's used, not what it is
+4. **No console.log** - Use `useTelemetry` hook or `logTelemetryEvent` for all logging
+5. **Window is always available** - Static hosting assumption; no need for `typeof window !== 'undefined'` checks
+6. **Don't try/catch client responses** - Client methods return `Response<T>` with `isSuccessful` flag; check that instead
+7. **Localize all strings** - ESLint will error if you use string literals in JSX
+
+## Related Documentation
+
+- `docs/Authentication.md` - Auth patterns, MSAL usage, token management
+- `docs/Notifications.md` - Notification system API and examples
+- `docs/Components.md` - Reusable component reference
+- `docs/Routing.md` - Route structure and deep linking
+- `docs/UX/` - UX patterns and Fluent UI guidance (in main repo)
+- `Agent.Web/Client/` - Canonical reference for tooling and testing strategy

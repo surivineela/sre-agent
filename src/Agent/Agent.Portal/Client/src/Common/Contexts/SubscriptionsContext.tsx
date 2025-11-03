@@ -61,9 +61,9 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
 
     const subscriptionClient = useMemo(() => SubscriptionClient.getInstance(TelemetrySource.SubscriptionsManager), []);
 
-    const fetchSubscriptions = useCallback(async (): Promise<Subscription[]> => {
+    const fetchSubscriptions = useCallback(async (): Promise<{ subscriptions?: Subscription[]; error?: string }> => {
         if (!isAuthenticated) {
-            throw new Error('User is not authenticated');
+            return { error: 'User is not authenticated' };
         }
 
         logEvent({
@@ -76,7 +76,15 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
 
         if (!response.isSuccessful || !response.content) {
             const errorMessage = getArmErrorMessage(response.error);
-            throw new Error(errorMessage);
+
+            logEvent({
+                action: 'fetch-subscriptions',
+                actionModifier: 'failed',
+                logLevel: LogLevel.Error,
+                additionalData: { error: errorMessage },
+            });
+
+            return { error: errorMessage };
         }
 
         logEvent({
@@ -86,7 +94,7 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
             additionalData: { count: response.content.length },
         });
 
-        return response.content;
+        return { subscriptions: response.content };
     }, [isAuthenticated, subscriptionClient, logEvent]);
 
     // Initialize subscriptions on mount
@@ -99,51 +107,46 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
             setIsLoading(true);
             setError(null);
 
-            try {
-                const subs = await fetchSubscriptions();
+            const result = await fetchSubscriptions();
 
-                // Sort by display name
-                subs.sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-                setSubscriptions(subs);
-
-                // Restore selected subscriptions from UserPreferences
-                const storedIds = selectedIds || [];
-                const validIds = storedIds.filter(id => subs.some(sub => sub.subscriptionId === id));
-
-                // If no valid stored selections, select first N subscriptions
-                if (validIds.length === 0 && subs.length > 0) {
-                    const defaultCount = Math.min(MAX_SELECTED_SUBSCRIPTIONS, subs.length);
-                    for (let i = 0; i < defaultCount; i++) {
-                        validIds.push(subs[i].subscriptionId);
-                    }
-                }
-
-                setSelectedSubscriptionIds(new Set(validIds));
-
-                // Persist initial selection if it changed
-                if (validIds.length !== storedIds.length || !validIds.every(id => storedIds.includes(id))) {
-                    persistSelectedIds(validIds);
-                }
-            } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : 'Failed to load subscriptions';
-                setError(errorMessage);
-
-                logEvent({
-                    action: 'fetch-subscriptions',
-                    actionModifier: 'failed',
-                    logLevel: LogLevel.Error,
-                    additionalData: { error: errorMessage },
-                });
-
-                notifyError('Failed to load subscriptions', errorMessage);
-            } finally {
+            if (result.error) {
+                setError(result.error);
+                notifyError('Failed to load subscriptions', result.error);
                 setIsLoading(false);
+                return;
             }
+
+            const subs = result.subscriptions!;
+
+            // Sort by display name
+            subs.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+            setSubscriptions(subs);
+
+            // Restore selected subscriptions from UserPreferences
+            const storedIds = selectedIds || [];
+            const validIds = storedIds.filter(id => subs.some(sub => sub.subscriptionId === id));
+
+            // If no valid stored selections, select first N subscriptions
+            if (validIds.length === 0 && subs.length > 0) {
+                const defaultCount = Math.min(MAX_SELECTED_SUBSCRIPTIONS, subs.length);
+                for (let i = 0; i < defaultCount; i++) {
+                    validIds.push(subs[i].subscriptionId);
+                }
+            }
+
+            setSelectedSubscriptionIds(new Set(validIds));
+
+            // Persist initial selection if it changed
+            if (validIds.length !== storedIds.length || !validIds.every(id => storedIds.includes(id))) {
+                persistSelectedIds(validIds);
+            }
+
+            setIsLoading(false);
         };
 
         loadSubscriptions();
-    }, [isAuthenticated, fetchSubscriptions, selectedIds, persistSelectedIds, logEvent, notifyError]);
+    }, [isAuthenticated, fetchSubscriptions, selectedIds, persistSelectedIds, notifyError]);
 
     // Get selected subscription objects
     const selectedSubscriptions = useMemo(
@@ -221,41 +224,36 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
         setIsLoading(true);
         setError(null);
 
-        try {
-            const subs = await fetchSubscriptions();
-            subs.sort((a, b) => a.displayName.localeCompare(b.displayName));
-            setSubscriptions(subs);
+        const result = await fetchSubscriptions();
 
-            // Validate current selection against new subscription list
-            const currentIds = Array.from(selectedSubscriptionIds);
-            const validIds = currentIds.filter(id => subs.some(sub => sub.subscriptionId === id));
-
-            if (validIds.length !== currentIds.length) {
-                setSelectedSubscriptionIds(new Set(validIds));
-                persistSelectedIds(validIds);
-            }
-
-            logEvent({
-                action: 'refresh-subscriptions',
-                actionModifier: 'success',
-                logLevel: LogLevel.Info,
-                additionalData: { count: subs.length },
-            });
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Failed to refresh subscriptions';
-            setError(errorMessage);
-
-            logEvent({
-                action: 'refresh-subscriptions',
-                actionModifier: 'failed',
-                logLevel: LogLevel.Error,
-                additionalData: { error: errorMessage },
-            });
-
-            notifyError('Failed to refresh subscriptions', errorMessage);
-        } finally {
+        if (result.error) {
+            setError(result.error);
+            notifyError('Failed to refresh subscriptions', result.error);
             setIsLoading(false);
+            return;
         }
+
+        const subs = result.subscriptions!;
+        subs.sort((a, b) => a.displayName.localeCompare(b.displayName));
+        setSubscriptions(subs);
+
+        // Validate current selection against new subscription list
+        const currentIds = Array.from(selectedSubscriptionIds);
+        const validIds = currentIds.filter(id => subs.some(sub => sub.subscriptionId === id));
+
+        if (validIds.length !== currentIds.length) {
+            setSelectedSubscriptionIds(new Set(validIds));
+            persistSelectedIds(validIds);
+        }
+
+        logEvent({
+            action: 'refresh-subscriptions',
+            actionModifier: 'success',
+            logLevel: LogLevel.Info,
+            additionalData: { count: subs.length },
+        });
+
+        setIsLoading(false);
     }, [isAuthenticated, fetchSubscriptions, selectedSubscriptionIds, persistSelectedIds, logEvent, notifyError]);
 
     const filterSubscriptions = useCallback(

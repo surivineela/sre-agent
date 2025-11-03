@@ -4,6 +4,7 @@ import { useIntl } from 'react-intl';
 import { useNavigate, useParams } from 'react-router-dom';
 import { parseArmId } from '../../Common/Utilities/ArmId';
 import { PortalResources } from '../../Strings/Resources';
+import { FeedbackButton } from './FeedbackButton';
 import { NotificationButton } from './NotificationButton';
 import { SettingsContent } from './SettingsContent';
 import { UserAuthContent } from './UserAuthContent';
@@ -88,6 +89,8 @@ export const Navbar = () => {
 
             <div className={styles.section}>
                 <NotificationButton />
+
+                <FeedbackButton />
 
                 <SettingsContent />
 
