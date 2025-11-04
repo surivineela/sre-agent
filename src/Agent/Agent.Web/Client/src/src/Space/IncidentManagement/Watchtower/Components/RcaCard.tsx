@@ -14,6 +14,7 @@ import { IncidentManagementResources, SreAgentResources } from '../../../../Stri
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { IncidentHandlerItem } from '../../Analysis';
 import { getIncidentRootCauseOverviewQuery } from '../Queries';
+import RcaCategoryDrawer from './RcaCategoryDrawer';
 
 enum ResponsePlanIncidentsGridColumnKey {
     category = 'category',
@@ -24,6 +25,7 @@ enum ResponsePlanIncidentsGridColumnKey {
 interface RcaItem {
     category: string;
     incidentCount: number;
+    rootCauseDescription: string;
     // impactedServices: string[]; // No data yet
 }
 
@@ -41,8 +43,8 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
     const { resourceId } = useContext(EnvironmentContext);
     const { log } = useAzPortalContext();
 
-    // TODO: RCA category panel
-    const [_isRcaCategoryPanelOpen, setIsRcaCategoryPanelOpen] = useState(false);
+    const [selectedRcaItem, setSelectedRcaItem] = useState<RcaItem | undefined>();
+    const [isRcaCategoryPanelOpen, setIsRcaCategoryPanelOpen] = useState(false);
 
     const [sortColumnKey, setSortColumnKey] = useState<keyof RcaItem | undefined>();
     const [isSortedDescending, setIsSortedDescending] = useState<boolean>(false);
@@ -61,8 +63,8 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
             const queryResultRows = response.content?.tables[0]?.rows ?? [];
             const data: RcaItem[] = queryResultRows.map(row => ({
                 category: row[0] as string,
-                // impactedServices: [row[1] as string],
                 incidentCount: row[1] as number,
+                rootCauseDescription: (row[2] as string) || '',
             }));
             setRcaOverviewItems(data);
             setIsRcaOverviewLoading(false);
@@ -92,12 +94,10 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
         (item: RcaItem) => {
             if (!item.category) return intl.formatMessage(SreAgentResources.other);
 
-            const tempDisabled = true; // Disabled until context pane implemented
-            if (tempDisabled) return item.category;
-
             return (
                 <Link
                     onClick={() => {
+                        setSelectedRcaItem(item);
                         setIsRcaCategoryPanelOpen(true);
                     }}
                 >
@@ -179,42 +179,63 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
         fetchResponsePlanRcaData();
     }, [fetchResponsePlanRcaData]);
 
+    const handleCloseDrawer = useCallback(() => {
+        setIsRcaCategoryPanelOpen(false);
+        setSelectedRcaItem(undefined);
+    }, []);
+
     return (
-        <Card style={{ flex: '1 1 650px', minWidth: 650, height: 310 }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
-            <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <Subtitle2 as='h3' style={{ margin: 0 }}>{intl.formatMessage(IncidentManagementResources.rootCauseAnalysis)}</Subtitle2>
-                    <AiGeneratedBadge />
-                </div>
-                <Text style={{ color: tokens.colorNeutralForeground4 }}>
-                    {intl.formatMessage(IncidentManagementResources.rootCauseAnalysisDescription)}
-                </Text>
-            </div>
-
-            <div data-is-scrollable="true" user-select="text" style={{ overflowY: 'auto' }}>
-                <ShimmeredDetailsList
-                    columns={columns}
-                    items={sortedItems}
-                    constrainMode={ConstrainMode.horizontalConstrained}
-                    layoutMode={DetailsListLayoutMode.justified}
-                    selectionMode={SelectionMode.none}
-                    enableShimmer={isRcaOverviewLoading}
-                    className={mergeClasses(styles.detailsListBase, isDarkMode ? styles.detailsListDarkModeBackground : undefined)}
-                    styles={{
-                        root: {
-                            width: '100%',
-                            userSelect: 'text',
-                        },
-                    }}
-                    compact
-                />
-
-                {rcaOverviewItems?.length === 0 && !isRcaOverviewLoading && (
-                    <Text align="center" block>
-                        {intl.formatMessage(IncidentManagementResources.noRcaCategoriesFound)}
+        <>
+            <Card style={{ flex: '1 1 650px', minWidth: 650, height: 310 }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
+                <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                        <Subtitle2>{intl.formatMessage(IncidentManagementResources.rootCauseAnalysis)}</Subtitle2>
+                        <AiGeneratedBadge />
+                    </div>
+                    <Text style={{ color: tokens.colorNeutralForeground4 }}>
+                        {intl.formatMessage(IncidentManagementResources.rootCauseAnalysisDescription)}
                     </Text>
-                )}
-            </div>
-        </Card>
+                </div>
+
+                <div data-is-scrollable="true" user-select="text" style={{ overflowY: 'auto' }}>
+                    <ShimmeredDetailsList
+                        columns={columns}
+                        items={sortedItems}
+                        constrainMode={ConstrainMode.horizontalConstrained}
+                        layoutMode={DetailsListLayoutMode.justified}
+                        selectionMode={SelectionMode.none}
+                        enableShimmer={isRcaOverviewLoading}
+                        className={mergeClasses(styles.detailsListBase, isDarkMode ? styles.detailsListDarkModeBackground : undefined)}
+                        styles={{
+                            root: {
+                                width: '100%',
+                                userSelect: 'text',
+                            },
+                        }}
+                        compact
+                    />
+
+                    {rcaOverviewItems?.length === 0 && !isRcaOverviewLoading && (
+                        <Text align="center" block>
+                            {intl.formatMessage(IncidentManagementResources.noRcaCategoriesFound)}
+                        </Text>
+                    )}
+                </div>
+            </Card>
+
+            {selectedRcaItem && (
+                <RcaCategoryDrawer
+                    isOpen={isRcaCategoryPanelOpen}
+                    onClose={handleCloseDrawer}
+                    category={selectedRcaItem.category}
+                    incidentCount={selectedRcaItem.incidentCount}
+                    rootCauseDescription={selectedRcaItem.rootCauseDescription}
+                    responsePlanName={openedResponsePlan.responsePlanName}
+                    timeRange={selectedTimeRange}
+                    appInsightsId={appInsightsId}
+                    appInsightsToken={appInsightsToken}
+                />
+            )}
+        </>
     );
 };

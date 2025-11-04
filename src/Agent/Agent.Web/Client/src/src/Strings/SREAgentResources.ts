@@ -1553,6 +1553,11 @@ export const IncidentManagementResources = defineMessages({
     },
     handlersEmptyStateLearnMore: { defaultMessage: 'Learn more about response plans', id: 'HQ4NJ3' },
     handlersEmptyStateButtonText: { defaultMessage: 'Add a response plan', id: 'GkKcbX' },
+    rcaCategory: { defaultMessage: 'RCA category', id: 'hqWr3L' },
+    rcaCategoryLabel: { defaultMessage: 'Category', id: 'ccXLVi' },
+    relatedIncidents: { defaultMessage: 'Related incidents', id: '+Kcoxv' },
+    close: { defaultMessage: 'Close', id: 'rbrahO' },
+    whatHappened: { defaultMessage: 'What happened', id: 'Xup5P8' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

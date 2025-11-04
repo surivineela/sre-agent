@@ -113,14 +113,34 @@ export const getIncidentRootCauseOverviewQuery = (handlerId: string, timeRange: 
     let handlerId = '${handlerId}';
     customEvents
     | where name == 'IncidentActivitySnapshot'
-    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), RootCause= tostring(customDimensions.IncidentRootCauseCategory), Summary = tostring(customDimensions.IncidentSummary), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn), Status = tostring(customDimensions.IncidentStatus)
-    | project IncidentId, IncidentHandledOn, HandlerId, RootCause, Summary, UpdatedOn, Status
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), RootCause= tostring(customDimensions.IncidentRootCauseCategory), RootCauseDescription = tostring(customDimensions.IncidentRootCauseDescription), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn), Status = tostring(customDimensions.IncidentStatus)
+    | project IncidentId, IncidentHandledOn, HandlerId, RootCause, RootCauseDescription, UpdatedOn, Status
     | where IncidentHandledOn ${kustoTimespan}
     | where tolower(Status) != 'active'
     | where HandlerId == handlerId
-    | summarize arg_max(UpdatedOn, IncidentHandledOn, HandlerId, RootCause, Summary) by IncidentId
-    | summarize dcount(IncidentId) by RootCause
-    | order by dcount_IncidentId desc
+    | summarize arg_max(UpdatedOn, IncidentHandledOn, HandlerId, RootCause, RootCauseDescription) by IncidentId
+    | summarize IncidentCount = dcount(IncidentId), RootCauseDescription = any(RootCauseDescription) by RootCause
+    | order by IncidentCount desc
+    `;
+};
+
+export const getIncidentsByRootCauseQuery = (handlerId: string, rootCause: string, timeRange: TimeRangeValue) => {
+    const kustoTimespan = getKustoTimespan(timeRange);
+    return `
+    let handlerId = '${handlerId}';
+    let rootCause = '${rootCause}';
+    customEvents
+    | where name == 'IncidentActivitySnapshot'
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentCreatedOn = todatetime(customDimensions.IncidentCreatedOn), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), RootCause = tostring(customDimensions.IncidentRootCauseCategory), Status = tostring(customDimensions.IncidentStatus), Priority = tostring(customDimensions.IncidentSeverity), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn), IncidentTitle = tostring(customDimensions.IncidentTitle), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), IsAssistedByAgent = tostring(customDimensions.IncidentAssistedByAgent)
+    | project IncidentId, IncidentTitle, IncidentHandledOn, IncidentCreatedOn, HandlerId, RootCause, Status, Priority, UpdatedOn, IsMitigatedByAgent, IsAssistedByAgent
+    | where IncidentHandledOn ${kustoTimespan}
+    | where tolower(Status) != 'active'
+    | where HandlerId == handlerId
+    | where RootCause == rootCause
+    | summarize arg_max(UpdatedOn, IncidentHandledOn, IncidentCreatedOn, IncidentTitle, HandlerId, Status, Priority, IsMitigatedByAgent, IsAssistedByAgent) by IncidentId
+    | extend MitigatedBy = case(IsMitigatedByAgent == 'True', 'agent', tolower(Status) == 'active', 'inProgress', 'user')
+    | project IncidentId, IncidentTitle, Priority, IncidentCreatedOn, Status, MitigatedBy
+    | order by Priority desc, Status desc
     `;
 };
 
