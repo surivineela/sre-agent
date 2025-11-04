@@ -207,7 +207,7 @@ export class ResourceGroupClient extends Client {
         });
     }
 
-    public async getAllResourceGroupsFromSubscriptions(subscriptionIds: string[]): Promise<Response<ResourceGroup[]>> {
+    public async getAllResourceGroupsFromSubscriptions(subscriptionIds: string[], searchText?: string): Promise<Response<ResourceGroup[]>> {
         if (subscriptionIds.length === 0) {
             return {
                 isSuccessful: true,
@@ -216,10 +216,19 @@ export class ResourceGroupClient extends Client {
         }
 
         const cleanedSubscriptionIds = subscriptionIds.filter(str => str !== '');
+
+        // Build WHERE clause with search filter
+        const whereConditions = ['type == "microsoft.resources/subscriptions/resourcegroups"'];
+        if (searchText && searchText.trim()) {
+            whereConditions.push(`name contains "${searchText.trim()}"`);
+        }
+        const whereClause = whereConditions.join(' and ');
+
         const query = `
             resourcecontainers
-            | where type == "microsoft.resources/subscriptions/resourcegroups"
+            | where ${whereClause}
             | project id, name, type, location, subscriptionId, properties, tags, managedBy
+            | take 100
         `;
 
         const content: ARGRequestContent = {

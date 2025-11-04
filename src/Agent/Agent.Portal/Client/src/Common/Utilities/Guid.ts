@@ -1,4 +1,4 @@
-import { repeat } from 'lodash';
+import repeat from 'lodash/repeat';
 
 const replaceGuidTemplate = (template: string): string =>
     template.replace(/[xy]/g, character => {

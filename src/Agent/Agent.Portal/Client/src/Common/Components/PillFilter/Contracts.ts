@@ -43,6 +43,7 @@ export interface UseComboboxPillFilterProps {
     allOptionLabel?: string;
     showValueAs?: 'list' | 'count';
     disabled?: boolean;
+    onSearchChange?: (searchText: string) => void;
 }
 
 export type FilterProps = { filterType: 'combobox' } & CommonFilterProps & Omit<UseComboboxPillFilterProps, 'label'>;

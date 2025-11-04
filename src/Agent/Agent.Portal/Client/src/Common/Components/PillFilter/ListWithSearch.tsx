@@ -94,6 +94,7 @@ export interface ListWithFilterProps {
     allOptionLabel?: string;
     ariaLabel?: string;
     disabled?: boolean;
+    onSearchChange?: (searchText: string) => void;
 }
 
 export const ListWithSearch: FC<ListWithFilterProps> = ({
@@ -105,6 +106,7 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
     allOptionLabel,
     ariaLabel,
     disabled,
+    onSearchChange,
 }) => {
     const intl = useIntl();
     const styles = useStyles();
@@ -113,12 +115,29 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
 
     const [allOptionSelected, setAllOptionSelected] = useState<boolean>(false);
 
+    // Handle search text change - call callback if provided (for server-side filtering)
+    // or filter locally if no callback (for client-side filtering)
+    const handleSearchChange = useCallback(
+        (newSearchText: string) => {
+            setSearchText(newSearchText);
+            if (onSearchChange) {
+                onSearchChange(newSearchText);
+            }
+        },
+        [onSearchChange]
+    );
+
     const filteredOptions = useMemo(() => {
+        // If onSearchChange is provided, don't filter locally (server-side filtering)
+        if (onSearchChange) {
+            return options;
+        }
+        // Otherwise, filter locally (client-side filtering)
         if (!searchText) {
             return options;
         }
         return options.filter(option => option.label.toLowerCase().includes(searchText.toLowerCase()));
-    }, [options, searchText]);
+    }, [options, searchText, onSearchChange]);
 
     const selectedKeysPlusAll = useMemo(() => {
         if (multiSelect && addAllOption && allOptionSelected) {
@@ -144,14 +163,22 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
                         setAllOptionSelected(false);
                         setSelectedKeys(adjustedValues);
                     } else {
-                        // The "All" option was not already selected, and now it is. This means we should select all filtered options.
-                        filteredOptions.forEach(option => {
-                            if (!adjustedValues.includes(option.key)) {
-                                adjustedValues.push(option.key);
-                            }
-                        });
+                        // The "All" option was not already selected, and now it is.
+                        // If there's a search term, select only filtered items.
+                        // Otherwise, pass empty array to signal "All" conceptually.
                         setAllOptionSelected(true);
-                        setSelectedKeys(adjustedValues);
+                        if (searchText.trim()) {
+                            // Search active - select all filtered options
+                            filteredOptions.forEach(option => {
+                                if (!adjustedValues.includes(option.key)) {
+                                    adjustedValues.push(option.key);
+                                }
+                            });
+                            setSelectedKeys(adjustedValues);
+                        } else {
+                            // No search - select "All" conceptually (empty array)
+                            setSelectedKeys([]);
+                        }
                     }
                 } else {
                     // The "All" option is not selected.
@@ -162,8 +189,9 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
                         setSelectedKeys(adjustedValues.filter(value => !filteredOptions.some(option => option.key === value)));
                     } else {
                         // The "All" option was not already selected, and still isn't selected.
-                        // If all filtered options are selected, we should select the "ALL" option as well.
-                        setAllOptionSelected(filteredOptions.every(option => values.includes(option.key)));
+                        // If all options (not just filtered) are selected, we should select the "ALL" option as well.
+                        const allOptionsSelected = options.every(option => values.includes(option.key));
+                        setAllOptionSelected(allOptionsSelected);
                         setSelectedKeys(adjustedValues);
                     }
                 }
@@ -171,21 +199,25 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
                 setSelectedKeys(values);
             }
         },
-        [multiSelect, addAllOption, allOptionSelected, filteredOptions, setSelectedKeys]
+        [multiSelect, addAllOption, allOptionSelected, filteredOptions, options, setSelectedKeys, searchText]
     );
 
     useEffect(() => {
         if (multiSelect && addAllOption) {
-            setAllOptionSelected(filteredOptions.every(option => selectedKeys.includes(option.key)));
+            // Empty array with no search means "All" is selected conceptually
+            // Otherwise check if all options are selected
+            const isAllSelected =
+                (selectedKeys.length === 0 && !searchText.trim()) || options.every(option => selectedKeys.includes(option.key));
+            setAllOptionSelected(isAllSelected);
         }
-    }, [filteredOptions, multiSelect, addAllOption, selectedKeys]);
+    }, [options, multiSelect, addAllOption, selectedKeys, searchText]);
 
     return (
         <div className={styles.root}>
             <SearchBox
                 placeholder={intl.formatMessage(PortalResources.search)}
                 value={searchText}
-                onChange={(_, data) => setSearchText(data.value)}
+                onChange={(_, data) => handleSearchChange(data.value)}
                 className={styles.searchBox}
             />
             <div className={styles.listWrapper}>

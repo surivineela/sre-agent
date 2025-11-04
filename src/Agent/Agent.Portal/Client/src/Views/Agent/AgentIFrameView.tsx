@@ -11,19 +11,38 @@ export const AgentIFrameView = () => {
 
     const agentId = useMemo(() => decodeURIComponent(encodedAgentId ?? ''), [encodedAgentId]);
 
-    // TODO: Figure out and refine deep link logic
+    /**
+     * Deep link extraction for Agent.Web iframe navigation
+     *
+     * Agent.Web uses hash-based routing (e.g., #/views/activities/threads/123)
+     * This extracts everything after /agents/{agentId} and passes it to the iframe
+     * as a URL hash parameter via buildAgentUxUrl()
+     *
+     * Example flow:
+     * - Portal URL: /agents/subscriptions%2F...%2Fagent/views/activities/threads/t-1
+     * - Extracted sreLink: "views/activities/threads/t-1"
+     * - Iframe URL: https://agent-site/static/?trustedAuthority=...#/views/activities/threads/t-1
+     *
+     * Note: This only handles initial page load. Dynamic navigation after iframe load
+     * is intentionally not implemented - users navigate within the iframe directly.
+     */
     const sreLink = useMemo(() => {
-        if (!agentId) {
+        if (!encodedAgentId) {
             return undefined;
         }
 
-        const baseSegment = `/agents/${agentId}`;
-        let remainder = location.pathname.startsWith(baseSegment) ? location.pathname.slice(baseSegment.length) : '';
-        remainder = remainder.replace(/^\/+/, '');
+        const baseSegment = `/agents/${encodedAgentId}`;
 
-        const suffix = `${remainder}${location.search}${location.hash}`;
-        return suffix.length > 0 ? suffix : undefined;
-    }, [agentId, location.hash, location.pathname, location.search]);
+        if (!location.pathname.startsWith(baseSegment)) {
+            return undefined;
+        }
+
+        // Extract everything after /agents/{encodedAgentId}
+        const pathAfterAgent = location.pathname.slice(baseSegment.length).replace(/^\/+/, '');
+        const fullDeepLink = `${pathAfterAgent}${location.search}${location.hash}`;
+
+        return fullDeepLink || undefined;
+    }, [encodedAgentId, location.pathname, location.search, location.hash]);
 
     const { agentUxUrl, isSiteRunning, iframeRef, iframeInitialized, errorBannerMessage } = useAgentView(agentId ?? '', sreLink);
 

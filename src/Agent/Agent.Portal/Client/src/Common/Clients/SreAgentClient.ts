@@ -37,18 +37,35 @@ export class SreAgentClient extends Client {
     /**
      * Fetches all SRE Agent resources across subscriptions using Azure Resource Graph (ARG).
      * Backend handles token caching and refreshing.
+     * @param subscriptionIds - Optional array of subscription IDs to filter by. Empty or undefined means all subscriptions.
+     * @param resourceGroupNames - Optional array of resource group names to filter by. Empty or undefined means all resource groups.
      */
-    public async getAgentsFromArg(): Promise<Response<SreAgentArgItem[]>> {
+    public async getAgentsFromArg(subscriptionIds?: string[], resourceGroupNames?: string[]): Promise<Response<SreAgentArgItem[]>> {
         const token = await tokenCache.getAccessToken('arm');
 
         try {
             const endpoints = getCloudEndpoints();
             const argUrl = `${endpoints.arm}/providers/Microsoft.ResourceGraph/resources?api-version=2021-03-01`;
 
+            // Build WHERE clause with filters
+            const whereConditions: string[] = ["type =~ 'microsoft.app/agents'"];
+
+            if (subscriptionIds && subscriptionIds.length > 0) {
+                const subIdsList = subscriptionIds.map(id => `'${id}'`).join(', ');
+                whereConditions.push(`subscriptionId in~ (${subIdsList})`);
+            }
+
+            if (resourceGroupNames && resourceGroupNames.length > 0) {
+                const rgNamesList = resourceGroupNames.map(name => `'${name}'`).join(', ');
+                whereConditions.push(`resourceGroup in~ (${rgNamesList})`);
+            }
+
+            const whereClause = whereConditions.join(' and ');
+
             const query = {
                 query: `
                     Resources
-                    | where type =~ 'microsoft.app/agents'
+                    | where ${whereClause}
                     | project id, name, location, type, subscriptionId, resourceGroup
                 `,
             };

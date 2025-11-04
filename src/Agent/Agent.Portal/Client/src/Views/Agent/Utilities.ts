@@ -19,6 +19,11 @@ const getQueryStringForIFrame = () => {
     return '';
 };
 
+/**
+ * Converts a path segment into a hash route for Agent.Web's hash-based router
+ * @param sreLink - Path extracted from Portal URL (e.g., "views/activities/threads/123")
+ * @returns Hash fragment for iframe URL (e.g., "#/views/activities/threads/123")
+ */
 const getDeeplinkHash = (sreLink?: string): string => {
     const deepLink = sreLink || getFeatureFlag(SettingNames.SreLink);
     if (!deepLink || typeof deepLink !== 'string') {
@@ -36,6 +41,22 @@ const getOrigin = (url: string): string | undefined => {
     }
 };
 
+/**
+ * Builds the complete iframe URL for Agent.Web with deep linking support
+ *
+ * Agent.Web expects:
+ * - Base path: /static/
+ * - Required query param: trustedAuthority (for postMessage validation)
+ * - Optional: Hash-based route for deep linking
+ *
+ * @param uxEndpoint - Agent site endpoint (e.g., "https://agent.contoso.com")
+ * @param deepLink - Optional deep link path (e.g., "views/activities/threads/123")
+ * @returns Complete iframe URL with query params and hash route
+ *
+ * @example
+ * buildAgentUxUrl("https://agent.com", "views/settings")
+ * // Returns: "https://agent.com/static/?trustedAuthority=https://portal.azure.com#/views/settings"
+ */
 export const buildAgentUxUrl = (uxEndpoint: string, deepLink?: string): string => {
     const queryString = getQueryStringForIFrame();
     const deepLinkHash = getDeeplinkHash(deepLink);

@@ -8,14 +8,13 @@ import {
     DataGridHeader,
     DataGridHeaderCell,
     DataGridRow,
-    Dropdown,
+    Image,
     Link,
     makeStyles,
     MessageBar,
     MessageBarBody,
     MessageBarTitle,
     SearchBox,
-    Spinner,
     Subtitle1,
     TableCellLayout,
     TableColumnDefinition,
@@ -28,12 +27,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router-dom';
 import { SreAgentClient } from '../../Common/Clients/SreAgentClient';
+import { ResourceGroupPill } from '../../Common/Components/ResourceGroupPill/ResourceGroupPill';
+import { SubscriptionPill } from '../../Common/Components/SubscriptionPill/SubscriptionPill';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
 import { useAuth } from '../../Common/Contexts/AuthContext';
+import { useSubscriptions } from '../../Common/Contexts/SubscriptionsContext';
 import { SreAgentArgItem } from '../../Common/Contracts/SreAgent';
 import { LogLevel } from '../../Common/Contracts/Telemetry';
 import { useTelemetry } from '../../Common/Hooks/useTelemetry';
 import { PortalResources } from '../../Strings/Resources';
+import { AgentListSkeleton } from './AgentListSkeleton';
 import { CreateAgentDialog } from './Create/CreateAgentDialog';
 import { CreateFirstAgent } from './CreateFirstAgent';
 
@@ -46,6 +49,9 @@ const useStyles = makeStyles({
         gap: '40px',
         alignItems: 'center',
         padding: '32px',
+    },
+    title: {
+        margin: 0,
     },
     errorContainer: {
         maxWidth: '1000px',
@@ -85,6 +91,7 @@ export const HomeBrowseView = () => {
     const { isAuthenticated } = useAuth();
     const { logEvent } = useTelemetry(TelemetrySource.HomeBrowseView, undefined);
     const navigate = useNavigate();
+    const { selectedSubscriptions } = useSubscriptions();
 
     const sreAgentClient = useMemo(() => SreAgentClient.getInstance(TelemetrySource.HomeBrowseView), []);
 
@@ -94,13 +101,19 @@ export const HomeBrowseView = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
+    // Initialize selected subscriptions from context, default to empty array (meaning "All")
+    const [selectedSubscriptionIds, setSelectedSubscriptionIds] = useState<string[]>(selectedSubscriptions.map(sub => sub.subscriptionId));
+    const [selectedResourceGroupNames, setSelectedResourceGroupNames] = useState<string[]>([]);
+
     const columns: TableColumnDefinition<SreAgentArgItem>[] = [
         createTableColumn<SreAgentArgItem>({
             columnId: 'name',
             compare: (a, b) => a.name.localeCompare(b.name),
             renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.name)}</Text>,
             renderCell: item => (
-                <TableCellLayout>
+                <TableCellLayout
+                    media={<Image src="SreAgent.svg" width={16} height={16} alt={intl.formatMessage(PortalResources.azureSreAgent)} />}
+                >
                     <Link onClick={() => navigate(`/agents/${encodeURIComponent(item.id)}`)}>{item.name}</Link>
                 </TableCellLayout>
             ),
@@ -173,7 +186,11 @@ export const HomeBrowseView = () => {
             setIsLoading(true);
             setError(null);
 
-            const response = await sreAgentClient.getAgentsFromArg();
+            // Pass filters to ARG query. Empty arrays mean "All"
+            const subIds = selectedSubscriptionIds.length > 0 ? selectedSubscriptionIds : undefined;
+            const rgNames = selectedResourceGroupNames.length > 0 ? selectedResourceGroupNames : undefined;
+
+            const response = await sreAgentClient.getAgentsFromArg(subIds, rgNames);
 
             if (!response.isSuccessful) {
                 const errorMessage = response.error instanceof Error ? response.error.message : 'Unknown error occurred';
@@ -194,7 +211,7 @@ export const HomeBrowseView = () => {
         };
 
         fetchAgents();
-    }, [sreAgentClient, isAuthenticated, logEvent]);
+    }, [sreAgentClient, isAuthenticated, logEvent, selectedSubscriptionIds, selectedResourceGroupNames]);
 
     return (
         <div className={styles.container}>
@@ -209,36 +226,53 @@ export const HomeBrowseView = () => {
                 </div>
             )}
 
-            {isLoading ? (
-                <div>
-                    <Spinner size="extra-large" />
-                </div>
-            ) : agents.length === 0 ? (
-                <CreateFirstAgent onClickCreate={() => setIsCreateDialogOpen(true)} />
-            ) : (
-                <div className={styles.agentListContainer}>
-                    <Subtitle1 block>{intl.formatMessage(PortalResources.agents)}</Subtitle1>
+            <div className={styles.agentListContainer}>
+                <Subtitle1 as="h1" block className={styles.title}>
+                    {intl.formatMessage(PortalResources.agents)}
+                </Subtitle1>
 
-                    <div className={styles.controlsRow}>
-                        <div className={styles.searchControls}>
-                            <SearchBox
-                                placeholder={intl.formatMessage(PortalResources.search)}
-                                className={styles.searchBox}
-                                value={searchQuery}
-                                onChange={(_, data) => setSearchQuery(data.value)}
-                            />
-                            <Dropdown placeholder={intl.formatMessage(PortalResources.allSubscriptions)} />
-                            <Dropdown placeholder={intl.formatMessage(PortalResources.allResourceGroups)} />
-                        </div>
-
-                        <div>
-                            <Button icon={<Add16Regular />} appearance="primary" onClick={() => setIsCreateDialogOpen(true)}>
-                                {intl.formatMessage(PortalResources.createAgent)}
-                            </Button>
-                        </div>
+                <div className={styles.controlsRow}>
+                    <div className={styles.searchControls}>
+                        <SearchBox
+                            placeholder={intl.formatMessage(PortalResources.search)}
+                            className={styles.searchBox}
+                            value={searchQuery}
+                            onChange={(_, data) => setSearchQuery(data.value)}
+                            disabled={isLoading}
+                        />
+                        <SubscriptionPill
+                            selectedSubscriptionIds={selectedSubscriptionIds}
+                            onSelectedSubscriptionIdsChange={setSelectedSubscriptionIds}
+                            disabled={isLoading}
+                        />
+                        <ResourceGroupPill
+                            selectedSubscriptionIds={selectedSubscriptionIds}
+                            selectedResourceGroupNames={selectedResourceGroupNames}
+                            onSelectedResourceGroupNamesChange={setSelectedResourceGroupNames}
+                            disabled={isLoading}
+                        />
                     </div>
 
-                    <Card className={styles.card}>
+                    <div>
+                        <Button
+                            icon={<Add16Regular />}
+                            appearance="primary"
+                            onClick={() => setIsCreateDialogOpen(true)}
+                            disabled={isLoading}
+                        >
+                            {intl.formatMessage(PortalResources.createAgent)}
+                        </Button>
+                    </div>
+                </div>
+
+                <Card className={styles.card}>
+                    {!isLoading && agents.length === 0 ? (
+                        <CreateFirstAgent onClickCreate={() => setIsCreateDialogOpen(true)} />
+                    ) : isLoading ? (
+                        <div className={styles.dataGrid}>
+                            <AgentListSkeleton rowCount={6} />
+                        </div>
+                    ) : (
                         <DataGrid items={rows} columns={columns} sortable getRowId={item => item.rowId} className={styles.dataGrid}>
                             <DataGridHeader>
                                 <DataGridRow>
@@ -255,9 +289,9 @@ export const HomeBrowseView = () => {
                                 )}
                             </DataGridBody>
                         </DataGrid>
-                    </Card>
-                </div>
-            )}
+                    )}
+                </Card>
+            </div>
 
             <CreateAgentDialog isDialogOpen={isCreateDialogOpen} setIsDialogOpen={setIsCreateDialogOpen} />
         </div>

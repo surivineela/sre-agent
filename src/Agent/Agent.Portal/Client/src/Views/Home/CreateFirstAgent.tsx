@@ -1,12 +1,11 @@
-import { Body2, Button, Card, Image, makeStyles, Title1 } from '@fluentui/react-components';
+import { Body2, Button, Image, makeStyles, Title1 } from '@fluentui/react-components';
 import { Add16Regular, Library16Regular } from '@fluentui/react-icons';
 import { useIntl } from 'react-intl';
 import { PortalResources } from '../../Strings/Resources';
 
 const useStyles = makeStyles({
-    card: {
+    container: {
         height: '575px',
-        width: '1000px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -32,7 +31,7 @@ export const CreateFirstAgent = ({ onClickCreate }: CreateFirstAgentProps) => {
     const styles = useStyles();
 
     return (
-        <Card className={styles.card}>
+        <div className={styles.container}>
             <Image src="SreAgent.svg" width={192} height={192} alt={intl.formatMessage(PortalResources.azureSreAgent)} />
 
             <Title1>{intl.formatMessage(PortalResources.createYourFirstAgent)}</Title1>
@@ -45,6 +44,6 @@ export const CreateFirstAgent = ({ onClickCreate }: CreateFirstAgentProps) => {
                 </Button>
                 <Button icon={<Library16Regular />}>{intl.formatMessage(PortalResources.viewPopularSkills)}</Button>
             </div>
-        </Card>
+        </div>
     );
 };
