@@ -88,8 +88,8 @@ const IncidentManagement: FC = () => {
 
         if (showControlPlaneDependentFeatures && showWatchtower) {
             items.push({
-                key: IncidentManagementMenuKeys.Analysis,
-                label: intl.formatMessage(IncidentManagementResources.analysis),
+                key: IncidentManagementMenuKeys.Metrics,
+                label: intl.formatMessage(IncidentManagementResources.metrics),
                 disabled: disableAnalysis || !agentAppInsightsAppId,
             });
         }
@@ -127,7 +127,7 @@ const IncidentManagement: FC = () => {
                     ) : (
                         <ClipboardTaskList16Regular className={navigationStyles.itemIcon} />
                     );
-                case IncidentManagementMenuKeys.Analysis:
+                case IncidentManagementMenuKeys.Metrics:
                     return isSelected ? (
                         <ChartMultiple24Filled className={navigationStyles.itemIcon} />
                     ) : (
@@ -258,7 +258,7 @@ const IncidentManagement: FC = () => {
                         {selectedKey === IncidentManagementMenuKeys.HandlerConfiguration && (
                             <HandlersOverview setNavigationHidden={setNavigationHidden} />
                         )}
-                        {showWatchtower && agentAppInsightsAppId && selectedKey === IncidentManagementMenuKeys.Analysis && (
+                        {showWatchtower && agentAppInsightsAppId && selectedKey === IncidentManagementMenuKeys.Metrics && (
                             <Analysis agentAppInsightsAppId={agentAppInsightsAppId} />
                         )}
                         {selectedKey === IncidentManagementMenuKeys.IncidentPlatform && <IncidentManagementSettings />}

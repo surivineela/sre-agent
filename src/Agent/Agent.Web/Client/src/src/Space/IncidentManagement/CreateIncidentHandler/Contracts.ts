@@ -50,7 +50,7 @@ export interface HandlerCreateOrEditInfo {
 export enum IncidentManagementMenuKeys {
     IncidentOverview = 'incidents',
     HandlerConfiguration = 'handlers',
-    Analysis = 'analysis',
+    Metrics = 'metrics',
     IncidentPlatform = 'setup',
 }
 

@@ -1508,7 +1508,7 @@ export const IncidentManagementResources = defineMessages({
         id: 'z8ZYoc',
     },
     selectedOutOfTotal: { defaultMessage: '{selectedCount} of {totalCount}', id: '01sZoP' },
-    analysis: { defaultMessage: 'Analysis', id: 'VMIM8/' },
+    metrics: { defaultMessage: 'Metrics', id: 'HNBpJ4' },
     responsePlans: { defaultMessage: 'Response plans', id: 'DeP+ZM' },
     totalIncidents: { defaultMessage: 'Total incidents', id: '2FLZrG' },
     incidentsReviewed: { defaultMessage: 'Incidents reviewed', id: 'KJuQJ3' },
