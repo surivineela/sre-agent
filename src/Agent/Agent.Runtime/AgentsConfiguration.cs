@@ -64,7 +64,12 @@ namespace Agent.Runtime
                     var logger = loggerFactory.CreateLogger<AzureOpenAILoggingPolicy>();
 
                     // create options with a custom retry policy that logs 429 responses
-                    var options = new AzureOpenAIClientOptions();
+                    var options = new AzureOpenAIClientOptions()
+                    {
+                        NetworkTimeout = TimeSpan.FromMinutes(5),
+                        RetryPolicy = new ClientRetryPolicy(2)
+                    };
+
                     // register a pipeline policy that logs 429 responses
                     options.AddPolicy(new AzureOpenAILoggingPolicy(logger), PipelinePosition.PerCall);
 
