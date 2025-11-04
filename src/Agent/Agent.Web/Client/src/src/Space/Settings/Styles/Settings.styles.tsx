@@ -115,6 +115,38 @@ const plainTextFieldStyles = {
     fontFamily: 'monospace',
 };
 
+const basicsCardStyle: CSSProperties = {
+    padding: '24px',
+    marginBottom: '16px',
+    maxWidth: '700px',
+    backgroundColor: tokens.colorNeutralBackground1,
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    borderRadius: tokens.borderRadiusXLarge,
+    boxShadow: tokens.shadow4,
+};
+
+const sectionTitleStyle: CSSProperties = {
+    fontSize: '18px',
+    fontWeight: 600,
+    marginBottom: '8px',
+};
+
+const sectionDescriptionStyle: CSSProperties = {
+    color: tokens.colorNeutralForeground4,
+    marginBottom: '16px',
+};
+
+const actionSectionStyle: CSSProperties = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+};
+
+const actionTextContainerStyle: CSSProperties = {
+    flex: 1,
+};
+
 export const useSettingsStyles = () => {
     return {
         noMcpServersContainer,
@@ -147,6 +179,11 @@ export const useSettingsStyles = () => {
         dropdownStyles,
         secureTextFieldStyles,
         plainTextFieldStyles,
+        basicsCardStyle,
+        sectionTitleStyle,
+        sectionDescriptionStyle,
+        actionSectionStyle,
+        actionTextContainerStyle,
     };
 };
 

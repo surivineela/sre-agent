@@ -52,6 +52,24 @@ export default class SreAgentClient {
         });
     };
 
+    public static startAgent = (resourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
+        return MakeArmCall<ArmObj<Agent>>({
+            resourceId: `${resourceId}/start`,
+            commandName: 'startAgent',
+            apiVersion,
+            method: 'POST',
+        });
+    };
+
+    public static stopAgent = (resourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
+        return MakeArmCall<ArmObj<Agent>>({
+            resourceId: `${resourceId}/stop`,
+            commandName: 'stopAgent',
+            apiVersion,
+            method: 'POST',
+        });
+    };
+
     public static getMonthlyUsage = (resourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
         return MakeArmCall<ResponseArray<MonthlyUsage>>({
             resourceId: `${resourceId}/usages`,

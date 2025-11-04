@@ -13,6 +13,7 @@ export interface Agent {
     agentEndpoint: string;
     agentSpaceId?: string;
     runningState: string;
+    powerState?: 'Running' | 'Stopped';
     vnetConfiguration?: VnetConfiguration;
     knowledgeGraphConfiguration?: KnowledgeGraphConfiguration;
     actionConfiguration?: ActionConfiguration;
