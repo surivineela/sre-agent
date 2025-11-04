@@ -75,6 +75,12 @@
       "value": "Filteren op ernstniveau"
     }
   ],
+  "+KyrhG": [
+    {
+      "type": 0,
+      "value": "Choose a tool"
+    }
+  ],
   "+Pmftr": [
     {
       "type": 0,
@@ -99,10 +105,26 @@
       "value": "Container Apps"
     }
   ],
+  "+TnQ2+": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is read-only in the playground."
+    }
+  ],
   "+U6ozc": [
     {
       "type": 0,
-      "value": "Type"
+      "value": "Service"
+    }
+  ],
+  "+ZdOJt": [
+    {
+      "type": 0,
+      "value": "Turning off scheduled task(s)"
     }
   ],
   "+bJIWo": [
@@ -117,10 +139,22 @@
       "value": "Incident verwijderen?"
     }
   ],
+  "+h4pn9": [
+    {
+      "type": 0,
+      "value": "Create new subagent"
+    }
+  ],
   "+hJd45": [
     {
       "type": 0,
       "value": "Edit data connector"
+    }
+  ],
+  "+hOwpi": [
+    {
+      "type": 0,
+      "value": "Select a tool to test"
     }
   ],
   "+iCTRd": [
@@ -145,12 +179,6 @@
     {
       "type": 0,
       "value": "Kan werkmappen lezen."
-    }
-  ],
-  "+mtpY7": [
-    {
-      "type": 0,
-      "value": "Steps:"
     }
   ],
   "+nt4l9": [
@@ -201,10 +229,22 @@
       "value": "Overslaan"
     }
   ],
+  "/5UY6N": [
+    {
+      "type": 0,
+      "value": "The maximum AAU limit is 200,000"
+    }
+  ],
   "/8MshI": [
     {
       "type": 0,
       "value": "Beheerde SQL-exemplaren beheren."
+    }
+  ],
+  "/9FZdx": [
+    {
+      "type": 0,
+      "value": "this agent"
     }
   ],
   "/Br0/Z": [
@@ -227,10 +267,28 @@
       "value": " is niet verwijderd"
     }
   ],
+  "/GCoTA": [
+    {
+      "type": 0,
+      "value": "Clear"
+    }
+  ],
+  "/ImSqA": [
+    {
+      "type": 0,
+      "value": "Review and create"
+    }
+  ],
   "/N0Usl": [
     {
       "type": 0,
       "value": "Thread title cannot be empty"
+    }
+  ],
+  "/OUWsL": [
+    {
+      "type": 0,
+      "value": "Get AI recommendations to improve your agent"
     }
   ],
   "/RdF9w": [
@@ -295,6 +353,12 @@
     {
       "type": 0,
       "value": "Activiteit van hulpprogramma en subagent naar gebruiker verzonden"
+    }
+  ],
+  "/bWE45": [
+    {
+      "type": 0,
+      "value": "Scoring agent quality… fresh quick fixes will land here shortly."
     }
   ],
   "/clOBU": [
@@ -441,6 +505,26 @@
       "value": "Ik heb de resources van je toepassing geanalyseerd in meerdere resourcegroepen, regio's en abonnementen. Daarna heb ik een resourcemap gemaakt van de verbindingen die ik op basis van de primaire resource heb gevonden. Op basis van wat ik heb ontdekt, heb ik ook een aantal voorgestelde prompts samengesteld die zich richten op jouw resources."
     }
   ],
+  "0Krg21": [
+    {
+      "type": 0,
+      "value": "Quick fixes"
+    }
+  ],
+  "0MhOuN": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete task "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "? This action cannot be undone."
+    }
+  ],
   "0R+Pet": [
     {
       "type": 0,
@@ -479,6 +563,16 @@
       "value": "Hiermee worden de selecties van je hulpprogramma's overschreven. Weet je zeker dat je wilt doorgaan?"
     }
   ],
+  "0aJxT2": [
+    {
+      "type": 0,
+      "value": "Updated "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "0aN6iW": [
     {
       "type": 0,
@@ -489,6 +583,16 @@
     {
       "type": 0,
       "value": "Geavanceerde opties"
+    }
+  ],
+  "0eZALE": [
+    {
+      "type": 0,
+      "value": "Last published "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "0fhwgp": [
@@ -773,6 +877,12 @@
       "value": "Grafana-dashboard-URL"
     }
   ],
+  "1eaczG": [
+    {
+      "type": 0,
+      "value": "Select fix"
+    }
+  ],
   "1fNFGt": [
     {
       "type": 0,
@@ -795,6 +905,52 @@
     {
       "type": 0,
       "value": "Algemeen"
+    }
+  ],
+  "1jBkyH": [
+    {
+      "type": 0,
+      "value": "Last confidence: "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "%"
+    }
+  ],
+  "1o9eJ6": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tool selected"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tools selected"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "1rAiXS": [
@@ -825,6 +981,12 @@
     {
       "type": 0,
       "value": "Toevoegen"
+    }
+  ],
+  "21vNrm": [
+    {
+      "type": 0,
+      "value": "Validate tool wiring and connector responses in context."
     }
   ],
   "235+J4": [
@@ -895,6 +1057,12 @@
       "value": "Beheer App Configuration-winkels."
     }
   ],
+  "2Mm/ie": [
+    {
+      "type": 0,
+      "value": "Failed to save response plan"
+    }
+  ],
   "2OQ6yB": [
     {
       "type": 0,
@@ -933,10 +1101,22 @@
       "value": "Incidentenoverzicht"
     }
   ],
+  "2YgmBr": [
+    {
+      "type": 0,
+      "value": "Scheduled task turned off successfully"
+    }
+  ],
   "2a+ttj": [
     {
       "type": 0,
       "value": "Diepgaand onderzoek"
+    }
+  ],
+  "2ePVf6": [
+    {
+      "type": 0,
+      "value": "Test your agent in a simple chat interface"
     }
   ],
   "2ep4et": [
@@ -969,6 +1149,12 @@
       "value": "Systeemhulpprogramma's"
     }
   ],
+  "2m6oj5": [
+    {
+      "type": 0,
+      "value": "Get started with the curated scenarios below or craft your own prompts."
+    }
+  ],
   "2mMJRv": [
     {
       "type": 0,
@@ -991,6 +1177,12 @@
     {
       "type": 0,
       "value": "Bevat"
+    }
+  ],
+  "2xE9ci": [
+    {
+      "type": 0,
+      "value": "Analyse the current prompt, tools, and test runs to get tailored guidance."
     }
   ],
   "2zi2Yj": [
@@ -1059,12 +1251,6 @@
       "value": "Er zijn nog geen agents beschikbaar"
     }
   ],
-  "3HS12m": [
-    {
-      "type": 0,
-      "value": "Agent usage + limit"
-    }
-  ],
   "3JVa6k": [
     {
       "type": 0,
@@ -1107,6 +1293,12 @@
       "value": "Voorgestelde prompts voor je resources"
     }
   ],
+  "3SVI5p": [
+    {
+      "type": 0,
+      "value": "Warning"
+    }
+  ],
   "3VI9mt": [
     {
       "type": 0,
@@ -1131,10 +1323,40 @@
       "value": "Meer toevoegen"
     }
   ],
+  "3n8o15": [
+    {
+      "type": 0,
+      "value": "Apply changes"
+    }
+  ],
   "3nhWFW": [
     {
       "type": 0,
       "value": "Lezer"
+    }
+  ],
+  "3sNyAo": [
+    {
+      "type": 0,
+      "value": "The url must be in the format: "
+    },
+    {
+      "type": 1,
+      "value": "format"
+    }
+  ],
+  "3sQV42": [
+    {
+      "type": 0,
+      "value": "Estimated total "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "% confidence"
     }
   ],
   "3sjbqq": [
@@ -1207,6 +1429,12 @@
     {
       "type": 0,
       "value": "Wijzigingen negeren?"
+    }
+  ],
+  "42RAxK": [
+    {
+      "type": 0,
+      "value": "Start testing"
     }
   ],
   "44QmgP": [
@@ -1385,6 +1613,12 @@
       "value": "Een incidentreactieplan definieert welke incidenten de agent moet afhandelen door je filtercriteria toe te passen, zodat reacties op de vereiste set incidenten worden gegarandeerd."
     }
   ],
+  "4oK1Me": [
+    {
+      "type": 0,
+      "value": "Switch to form"
+    }
+  ],
   "4pJVaS": [
     {
       "type": 0,
@@ -1421,10 +1655,26 @@
       "value": "Azure Monitor is niet verbonden."
     }
   ],
+  "531otx": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", I need diagnostics for intermittent latency spikes across AKS clusters eastus & westeurope."
+    }
+  ],
   "53O1/Z": [
     {
       "type": 0,
       "value": "Incidentdekking"
+    }
+  ],
+  "53qjcm": [
+    {
+      "type": 0,
+      "value": "Updating scheduled task"
     }
   ],
   "543Ygw": [
@@ -1475,6 +1725,18 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "5Lc8g/": [
+    {
+      "type": 0,
+      "value": "Preview updated"
+    }
+  ],
+  "5M+Mu/": [
+    {
+      "type": 0,
+      "value": "Close quality watcher"
     }
   ],
   "5MSxYS": [
@@ -1681,6 +1943,12 @@
       "value": "Wachtwoord"
     }
   ],
+  "5ukccA": [
+    {
+      "type": 0,
+      "value": "Run an analysis to see tailored fixes."
+    }
+  ],
   "5w4pim": [
     {
       "type": 0,
@@ -1707,6 +1975,24 @@
     {
       "type": 1,
       "value": "count"
+    }
+  ],
+  "5xbHr/": [
+    {
+      "type": 1,
+      "value": "metric"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "%. Start experimenting—your upgrade path awaits."
     }
   ],
   "5y2qWO": [
@@ -1755,6 +2041,22 @@
     {
       "type": 0,
       "value": "Voer de sleutelkluis-URI in"
+    }
+  ],
+  "6B0Aua": [
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": " XP"
+    }
+  ],
+  "6CxEZS": [
+    {
+      "type": 0,
+      "value": "Edit & test live agent"
     }
   ],
   "6ENgmY": [
@@ -1833,6 +2135,12 @@
     {
       "type": 0,
       "value": "Goedgekeurd"
+    }
+  ],
+  "6Y8rFa": [
+    {
+      "type": 0,
+      "value": "No change since last run"
     }
   ],
   "6YHhH+": [
@@ -1917,10 +2225,28 @@
       "value": "error"
     }
   ],
+  "6w0QQX": [
+    {
+      "type": 0,
+      "value": "Apply your edits and refresh insights"
+    }
+  ],
+  "6yuD0y": [
+    {
+      "type": 0,
+      "value": "Read-only lock"
+    }
+  ],
   "6zUWZ/": [
     {
       "type": 0,
       "value": "Alle bewakingsgegevens lezen en bewakingsinstellingen bewerken."
+    }
+  ],
+  "7+Domh": [
+    {
+      "type": 0,
+      "value": "Notes"
     }
   ],
   "7+b0J0": [
@@ -1937,6 +2263,12 @@
     {
       "type": 1,
       "value": "time"
+    }
+  ],
+  "73c47a": [
+    {
+      "type": 0,
+      "value": "Turn on scheduled task"
     }
   ],
   "74vgSJ": [
@@ -1997,6 +2329,54 @@
     {
       "type": 0,
       "value": "Azure Monitor"
+    }
+  ],
+  "7Or82y": [
+    {
+      "type": 0,
+      "value": "Agent quality is "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "/100 with "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fix ready"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fixes ready"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "7TVRcx": [
@@ -2103,6 +2483,12 @@
       "value": "Azure Managed Grafana is een volledig beheerde service voor analyse en bewaking. Om de service en een Grafana-dashboard toe te voegen, moet je een Azure Managed Grafana-resource aanmaken. De benodigde machtigingen worden automatisch toegewezen, zodat het dashboard bewakingsgegevens kan weergeven. Voor Azure Managed Grafana worden kosten in rekening gebracht in je abonnement."
     }
   ],
+  "7sbcy0": [
+    {
+      "type": 0,
+      "value": "Confidence is calculated based on your agent prompt, available tools, and chat interactions. Click refresh to get AI-powered recommendations."
+    }
+  ],
   "7smbCB": [
     {
       "type": 0,
@@ -2205,6 +2591,38 @@
       "value": "Afgelopen 24 uur"
     }
   ],
+  "8OCpdQ": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " day ago"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " days ago"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "8Q504V": [
     {
       "type": 0,
@@ -2227,12 +2645,6 @@
     {
       "type": 0,
       "value": "Identiteit selecteren"
-    }
-  ],
-  "8UznIt": [
-    {
-      "type": 0,
-      "value": "De taak is niet hervat"
     }
   ],
   "8Vd2Kv": [
@@ -2495,6 +2907,12 @@
       "value": "bijvoorbeeld IncidentAnalyzer"
     }
   ],
+  "9SQWi9": [
+    {
+      "type": 0,
+      "value": "Configuration target"
+    }
+  ],
   "9VUlhV": [
     {
       "type": 0,
@@ -2541,6 +2959,22 @@
       "value": "count"
     }
   ],
+  "9jaWOF": [
+    {
+      "type": 0,
+      "value": "MCP tools · "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    }
+  ],
+  "9q75fe": [
+    {
+      "type": 0,
+      "value": "No handoff agents available"
+    }
+  ],
   "9sDoY5": [
     {
       "type": 1,
@@ -2563,6 +2997,12 @@
     {
       "type": 0,
       "value": "Overzicht"
+    }
+  ],
+  "9xBQKf": [
+    {
+      "type": 0,
+      "value": "YAML editing is coming soon for this entity."
     }
   ],
   "A/xTHO": [
@@ -2593,6 +3033,12 @@
     {
       "type": 0,
       "value": "Sjablonen"
+    }
+  ],
+  "A4ZrJb": [
+    {
+      "type": 0,
+      "value": "Playground actions are coming soon."
     }
   ],
   "AA/tRJ": [
@@ -2645,6 +3091,12 @@
       "value": "No data connectors configured"
     }
   ],
+  "ASLbZd": [
+    {
+      "type": 0,
+      "value": "Export analysis"
+    }
+  ],
   "ATXGa+": [
     {
       "type": 0,
@@ -2655,6 +3107,12 @@
     {
       "type": 0,
       "value": "Alleen aanbevolen resourcegroepen weergeven"
+    }
+  ],
+  "AYrXUB": [
+    {
+      "type": 0,
+      "value": "No pending configuration changes to apply"
     }
   ],
   "AaJ/LU": [
@@ -2679,6 +3137,16 @@
     {
       "type": 0,
       "value": "Instructies invoeren"
+    }
+  ],
+  "Ad7J7h": [
+    {
+      "type": 0,
+      "value": "Failed to delete task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "AdRf7Y": [
@@ -2771,6 +3239,12 @@
       "value": "connectors"
     }
   ],
+  "B7EJpi": [
+    {
+      "type": 0,
+      "value": "Agent Quality"
+    }
+  ],
   "BEck3n": [
     {
       "type": 0,
@@ -2793,6 +3267,20 @@
     {
       "type": 0,
       "value": "Edit a scheduled task"
+    }
+  ],
+  "BNH9Uy": [
+    {
+      "type": 0,
+      "value": "Quality "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "/100"
     }
   ],
   "BP3wUO": [
@@ -2847,6 +3335,12 @@
     {
       "type": 0,
       "value": "Binding"
+    }
+  ],
+  "BbTpTJ": [
+    {
+      "type": 0,
+      "value": "Using latest YAML changes"
     }
   ],
   "BcEbxp": [
@@ -2917,6 +3411,12 @@
       "value": " data connectors..."
     }
   ],
+  "BuziI2": [
+    {
+      "type": 0,
+      "value": "Collapse panel"
+    }
+  ],
   "BynA9c": [
     {
       "type": 0,
@@ -2941,10 +3441,34 @@
       "value": "Bijdrager voor logische apps"
     }
   ],
+  "CBHDb1": [
+    {
+      "type": 0,
+      "value": "Task status"
+    }
+  ],
+  "CEdEmD": [
+    {
+      "type": 0,
+      "value": "Creates a draft agent and tool workspace for testing without touching production. Coming soon..."
+    }
+  ],
   "CFJ1OD": [
     {
       "type": 0,
       "value": "Alleen-lezenrol voor eigenschappen van Digital Twins-gegevensvlak."
+    }
+  ],
+  "CGn7Yd": [
+    {
+      "type": 0,
+      "value": "Link a tool or create a new one to configure it here."
+    }
+  ],
+  "CHt7dX": [
+    {
+      "type": 0,
+      "value": "MCP Tools (Optional)"
     }
   ],
   "CJ6tzL": [
@@ -2969,6 +3493,12 @@
     {
       "type": 0,
       "value": "Schrijftoegang tot Language-servicebronnen."
+    }
+  ],
+  "CMbKXm": [
+    {
+      "type": 0,
+      "value": "Playground highlights"
     }
   ],
   "CNd+KS": [
@@ -3059,6 +3589,18 @@
       "value": "Als je het incidentplatform wilt wijzigen, moet je de verbinding met PagerDuty verbreken. De agent beheert dan geen tickets meer. Weet je zeker dat je de verbinding wilt verbreken?"
     }
   ],
+  "CppiJ4": [
+    {
+      "type": 0,
+      "value": "Applying your changes"
+    }
+  ],
+  "Cv2vtV": [
+    {
+      "type": 0,
+      "value": "moments ago"
+    }
+  ],
   "CvGdox": [
     {
       "type": 0,
@@ -3075,20 +3617,6 @@
     {
       "type": 0,
       "value": "De verbinding met ServiceNow is mislukt. Controleer je configuratie en probeer het opnieuw."
-    }
-  ],
-  "CzglId": [
-    {
-      "type": 0,
-      "value": "Weet u zeker dat u de geplande taak "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
     }
   ],
   "D/TfIH": [
@@ -3137,6 +3665,18 @@
       "value": "Custom instructions"
     }
   ],
+  "D97db3": [
+    {
+      "type": 0,
+      "value": "Select a response subagent"
+    }
+  ],
+  "DD2Wjk": [
+    {
+      "type": 0,
+      "value": "Incidents preview"
+    }
+  ],
   "DDSwQB": [
     {
       "type": 1,
@@ -3167,6 +3707,12 @@
     {
       "type": 0,
       "value": "Code optimization insights"
+    }
+  ],
+  "DFQKku": [
+    {
+      "type": 0,
+      "value": "Ops Pro"
     }
   ],
   "DJN+DZ": [
@@ -3205,10 +3751,26 @@
       "value": "Als je opnieuw genereert, worden alle wijzigingen in de gegenereerde codesectie overschreven."
     }
   ],
+  "DWD03m": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", audit today’s incidents and draft a leadership update with priority blockers."
+    }
+  ],
   "DX7w9O": [
     {
       "type": 0,
       "value": "Geselecteerde incidenten"
+    }
+  ],
+  "Da55kZ": [
+    {
+      "type": 0,
+      "value": "Select MCP tools from connected servers"
     }
   ],
   "DasCIQ": [
@@ -3221,6 +3783,12 @@
     {
       "type": 0,
       "value": "Reactieplannen"
+    }
+  ],
+  "Df+1hk": [
+    {
+      "type": 0,
+      "value": "Analysing configuration…"
     }
   ],
   "Dff3ms": [
@@ -3337,6 +3905,12 @@
       "value": "Transacties voor de afgelopen 30 minuten"
     }
   ],
+  "EEb00g": [
+    {
+      "type": 0,
+      "value": "Run insights to track confidence and recommended fixes."
+    }
+  ],
   "EHyU+4": [
     {
       "type": 0,
@@ -3395,6 +3969,12 @@
       "value": "Verleent toestemming voor leesbewerkingen voor App Configuration-resources."
     }
   ],
+  "EOt0+9": [
+    {
+      "type": 0,
+      "value": "Full workflow with quality evaluation"
+    }
+  ],
   "ESChST": [
     {
       "type": 0,
@@ -3423,6 +4003,12 @@
     {
       "type": 0,
       "value": "Knowledge Base"
+    }
+  ],
+  "Ebd6gR": [
+    {
+      "type": 0,
+      "value": "The agent sends email messages."
     }
   ],
   "Ec1M0J": [
@@ -3495,6 +4081,12 @@
       "value": "Gebruiker"
     }
   ],
+  "F4a/f4": [
+    {
+      "type": 0,
+      "value": "User Permissions"
+    }
+  ],
   "F5b1Mw": [
     {
       "type": 1,
@@ -3525,6 +4117,12 @@
     {
       "type": 0,
       "value": "Relatievoorbeeld"
+    }
+  ],
+  "F8xMoD": [
+    {
+      "type": 0,
+      "value": "Loading tool details..."
     }
   ],
   "F9LrJA": [
@@ -3575,6 +4173,12 @@
       "value": "CPU usage insights"
     }
   ],
+  "FLN/px": [
+    {
+      "type": 0,
+      "value": "Chat diagnostics"
+    }
+  ],
   "FLm/x4": [
     {
       "type": 0,
@@ -3605,6 +4209,16 @@
       "value": "Wanneer moet deze taak worden uitgevoerd?"
     }
   ],
+  "FSZ5F/": [
+    {
+      "type": 0,
+      "value": "Deleting scheduled task "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "FTWkpv": [
     {
       "type": 0,
@@ -3627,6 +4241,18 @@
     {
       "type": 0,
       "value": "Uitvoeringsdetails"
+    }
+  ],
+  "FeBVnC": [
+    {
+      "type": 0,
+      "value": "You can edit this entity directly or spin up a copy once cloning is available."
+    }
+  ],
+  "FeBneB": [
+    {
+      "type": 0,
+      "value": "Probe for multi-step diagnostics to see if the agent can orchestrate tools effectively."
     }
   ],
   "FitglU": [
@@ -3729,6 +4355,12 @@
       "value": "Agents"
     }
   ],
+  "GCQn0j": [
+    {
+      "type": 0,
+      "value": "Tool testing is unavailable for this entity."
+    }
+  ],
   "GCVHNV": [
     {
       "type": 0,
@@ -3749,10 +4381,28 @@
       "value": " data connectors"
     }
   ],
+  "GCcYpN": [
+    {
+      "type": 0,
+      "value": "No MCP tools available"
+    }
+  ],
   "GCmxza": [
     {
       "type": 0,
       "value": "Terug naar opdrachten"
+    }
+  ],
+  "GMhzu1": [
+    {
+      "type": 0,
+      "value": "Response subagent"
+    }
+  ],
+  "GSCabm": [
+    {
+      "type": 0,
+      "value": "MCP tools"
     }
   ],
   "GUx4Ld": [
@@ -3765,6 +4415,12 @@
     {
       "type": 0,
       "value": "Details van incident"
+    }
+  ],
+  "GdgrWi": [
+    {
+      "type": 0,
+      "value": "Select a tool"
     }
   ],
   "GkJbiq": [
@@ -3789,6 +4445,12 @@
     {
       "type": 0,
       "value": "Minimale machtiging om Cognitive Services-gebruiksgegevens weer te geven."
+    }
+  ],
+  "GpHWFC": [
+    {
+      "type": 0,
+      "value": "Choose a connector"
     }
   ],
   "GpZr9J": [
@@ -3875,6 +4537,12 @@
       "value": "This will permanently disconnect this data connector from the agent. Are you sure you want to disconnect this data connector?"
     }
   ],
+  "HMZIeG": [
+    {
+      "type": 0,
+      "value": "Get AI-powered quality insights and improvement suggestions"
+    }
+  ],
   "HNECLT": [
     {
       "type": 0,
@@ -3893,6 +4561,12 @@
       "value": "Learn more about response plans"
     }
   ],
+  "HQc/Lf": [
+    {
+      "type": 0,
+      "value": "Create incident trigger"
+    }
+  ],
   "HQhDfV": [
     {
       "type": 0,
@@ -3903,6 +4577,12 @@
     {
       "type": 0,
       "value": "U bent niet gemachtigd om diepgaand onderzoek uit te schakelen."
+    }
+  ],
+  "HUPaMQ": [
+    {
+      "type": 0,
+      "value": "View findings"
     }
   ],
   "HWMrXF": [
@@ -3931,6 +4611,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "Hh8It5": [
+    {
+      "type": 0,
+      "value": "Changes pending analysis"
     }
   ],
   "HiBsED": [
@@ -4023,6 +4709,12 @@
       "value": "Kerntoepassingsgroepen"
     }
   ],
+  "I9W7ey": [
+    {
+      "type": 0,
+      "value": "Completed runs"
+    }
+  ],
   "IAwPyV": [
     {
       "type": 0,
@@ -4063,10 +4755,30 @@
       "value": "Azure Managed Grafana"
     }
   ],
+  "IIfj4G": [
+    {
+      "type": 0,
+      "value": "Microsoft Teams"
+    }
+  ],
   "IJX2gV": [
     {
       "type": 0,
       "value": "Handoffs en hulpprogramma's verbinden"
+    }
+  ],
+  "INiE0x": [
+    {
+      "type": 0,
+      "value": "Agent quality is "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "/100 but may be outdated. Refresh to keep guidance current."
     }
   ],
   "INiSE2": [
@@ -4173,6 +4885,12 @@
     {
       "type": 0,
       "value": "The agent uses predefined queries for structured logs, telemetry, and time series data."
+    }
+  ],
+  "Ip7Gd3": [
+    {
+      "type": 0,
+      "value": "Auto-apply"
     }
   ],
   "IrCHQG": [
@@ -4387,6 +5105,20 @@
       "value": " locaties geselecteerd"
     }
   ],
+  "JbMs9l": [
+    {
+      "type": 0,
+      "value": "Agent quality is "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "/100. No quick fixes right now."
+    }
+  ],
   "JbmMWM": [
     {
       "type": 0,
@@ -4405,6 +5137,12 @@
       "value": "Alle incidenten ophalen"
     }
   ],
+  "JiENoF": [
+    {
+      "type": 0,
+      "value": "Hide diff"
+    }
+  ],
   "JjKcCj": [
     {
       "type": 0,
@@ -4415,6 +5153,12 @@
     {
       "type": 0,
       "value": "Incidentonderzoek"
+    }
+  ],
+  "JkS37H": [
+    {
+      "type": 0,
+      "value": "Undo"
     }
   ],
   "JkbJ/T": [
@@ -4441,6 +5185,18 @@
     {
       "type": 0,
       "value": "Verbinding met ServiceNow verbreken?"
+    }
+  ],
+  "Jrrm2K": [
+    {
+      "type": 0,
+      "value": "Click \"Execute Tool\" to test this system tool"
+    }
+  ],
+  "Jsy4yb": [
+    {
+      "type": 0,
+      "value": "Try Evaluation"
     }
   ],
   "JwHSD6": [
@@ -4491,16 +5247,34 @@
       "value": "MCP-servers"
     }
   ],
+  "KAYnaH": [
+    {
+      "type": 0,
+      "value": "Auto-applying changes… latest draft will be used for new tests."
+    }
+  ],
   "KAYpG9": [
     {
       "type": 0,
       "value": "Hiermee heb je volledige leestoegang tot IoT Hub-eigenschappen van het gegevensvlak."
     }
   ],
+  "KGmQjH": [
+    {
+      "type": 0,
+      "value": "Highlights"
+    }
+  ],
   "KI/Heo": [
     {
       "type": 0,
       "value": "Belangrijke bevindingen"
+    }
+  ],
+  "KJHRU/": [
+    {
+      "type": 0,
+      "value": "Add existing subagent"
     }
   ],
   "KJuQJ3": [
@@ -4519,6 +5293,12 @@
     {
       "type": 0,
       "value": "Fout"
+    }
+  ],
+  "KNwLvk": [
+    {
+      "type": 0,
+      "value": "Test Parameters"
     }
   ],
   "KQ9L9d": [
@@ -4545,6 +5325,20 @@
       "value": "Urgentie"
     }
   ],
+  "KaLLyk": [
+    {
+      "type": 0,
+      "value": "Projected +"
+    },
+    {
+      "type": 1,
+      "value": "lift"
+    },
+    {
+      "type": 0,
+      "value": " overall"
+    }
+  ],
   "KbCGsK": [
     {
       "type": 0,
@@ -4555,6 +5349,12 @@
     {
       "type": 0,
       "value": "Ja/Nee"
+    }
+  ],
+  "KiANnA": [
+    {
+      "type": 0,
+      "value": "Turn on scheduled task(s)"
     }
   ],
   "Kkc3/u": [
@@ -4581,6 +5381,12 @@
     {
       "type": 0,
       "value": ")"
+    }
+  ],
+  "KptJSd": [
+    {
+      "type": 0,
+      "value": "No MCP tools configured."
     }
   ],
   "KqwLPK": [
@@ -4651,10 +5457,50 @@
       "value": " is in behandeling"
     }
   ],
+  "L7EoQf": [
+    {
+      "type": 0,
+      "value": "Auto-apply ON"
+    }
+  ],
+  "L7gQfJ": [
+    {
+      "type": 0,
+      "value": "Welcome to the playground"
+    }
+  ],
+  "LAHAJH": [
+    {
+      "type": 0,
+      "value": "No MCP connections available"
+    }
+  ],
+  "LFb8Ku": [
+    {
+      "type": 0,
+      "value": "recent activity"
+    }
+  ],
   "LFn7Ak": [
     {
       "type": 0,
       "value": "Geplande taak is gemaakt"
+    }
+  ],
+  "LGZkPZ": [
+    {
+      "type": 0,
+      "value": "Switch to YAML"
+    }
+  ],
+  "LIm7q8": [
+    {
+      "type": 0,
+      "value": "Analysed "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "LLt8Ve": [
@@ -4729,6 +5575,12 @@
       "value": "name"
     }
   ],
+  "LXOsKd": [
+    {
+      "type": 0,
+      "value": "We could not generate insights right now. Try again in a moment."
+    }
+  ],
   "LZyV4T": [
     {
       "type": 0,
@@ -4771,6 +5623,38 @@
       "value": "Direct argument"
     }
   ],
+  "LupnQU": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hour ago"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours ago"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "Lv0zJu": [
     {
       "type": 0,
@@ -4795,10 +5679,14 @@
       "value": "Aangepast reactieplan bewerken"
     }
   ],
-  "M+AZNX": [
+  "M+QCSD": [
     {
       "type": 0,
-      "value": "Delete scheduled tasks"
+      "value": "Enter "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "M/3/kG": [
@@ -4883,6 +5771,12 @@
       "value": "Woordenlijstsleutel (map_to)"
     }
   ],
+  "MOhprT": [
+    {
+      "type": 0,
+      "value": "Preview diff"
+    }
+  ],
   "MOsoTa": [
     {
       "type": 0,
@@ -4965,6 +5859,12 @@
       "value": "count"
     }
   ],
+  "MnpUD7": [
+    {
+      "type": 0,
+      "value": "View details"
+    }
+  ],
   "Mnvpbx": [
     {
       "type": 0,
@@ -4985,6 +5885,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "Mx6yYf": [
+    {
+      "type": 0,
+      "value": "Scheduled task(s) turned off successfully"
     }
   ],
   "MxYLKu": [
@@ -5035,6 +5941,16 @@
       "value": "."
     }
   ],
+  "N7cqYp": [
+    {
+      "type": 0,
+      "value": "Turning off scheduled task "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "N7lPfx": [
     {
       "type": 0,
@@ -5077,6 +5993,12 @@
       "value": "Agenttype"
     }
   ],
+  "NGhUmq": [
+    {
+      "type": 0,
+      "value": "Refresh insights"
+    }
+  ],
   "NIrBo5": [
     {
       "type": 0,
@@ -5093,6 +6015,12 @@
     {
       "type": 0,
       "value": "Aan de slag met incidentbeheer"
+    }
+  ],
+  "NPm9R5": [
+    {
+      "type": 0,
+      "value": "Failed to load MCP tools."
     }
   ],
   "NSWNPa": [
@@ -5197,6 +6125,56 @@
       "value": " minutes"
     }
   ],
+  "O+srpo": [
+    {
+      "type": 0,
+      "value": "Review "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+            {
+              "type": 0,
+              "value": "findings"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fix"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fixes"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "O0JI8M": [
+    {
+      "type": 0,
+      "value": "Overall Quality"
+    }
+  ],
   "O3Ak71": [
     {
       "type": 0,
@@ -5213,6 +6191,12 @@
     {
       "type": 0,
       "value": "Weet je zeker dat je deze SRE-agent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+    }
+  ],
+  "OBoUb6": [
+    {
+      "type": 0,
+      "value": "Fresh"
     }
   ],
   "OIWzWF": [
@@ -5339,6 +6323,22 @@
       "value": "Provide information the agent will reference when analyzing or answering questions."
     }
   ],
+  "OYKAqF": [
+    {
+      "type": 0,
+      "value": "Quick start"
+    }
+  ],
+  "Oc1AVw": [
+    {
+      "type": 0,
+      "value": "Draft synced "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "OeU7Xk": [
     {
       "type": 0,
@@ -5363,6 +6363,12 @@
     {
       "type": 0,
       "value": "Bekijk en doorzoek alle controlegegevens en bekijk de controle-instellingen, inclusief de configuratie van Azure Diagnostics op alle Azure-resources."
+    }
+  ],
+  "OrQ4EY": [
+    {
+      "type": 0,
+      "value": "Expand chat preview"
     }
   ],
   "OsIQyM": [
@@ -5437,6 +6443,20 @@
       "value": "Je agent staat in de alleen-lezen modus. De volgende machtigingen zijn nodig zodat de agent kennis kan opbouwen over je resources. De rollen voor bijdrager voor specifieke services worden niet gebruikt voor schrijfbewerkingen."
     }
   ],
+  "PBKSeP": [
+    {
+      "type": 0,
+      "value": "Set up "
+    },
+    {
+      "type": 1,
+      "value": "service"
+    },
+    {
+      "type": 0,
+      "value": " connector"
+    }
+  ],
   "PCrXDG": [
     {
       "type": 0,
@@ -5477,6 +6497,12 @@
     {
       "type": 0,
       "value": "Hiermee wordt bepaald hoe de agent werkt"
+    }
+  ],
+  "PQgsh+": [
+    {
+      "type": 0,
+      "value": "Execute Tool"
     }
   ],
   "PS7hBo": [
@@ -5611,6 +6637,18 @@
       "value": "P2"
     }
   ],
+  "Px6I1N": [
+    {
+      "type": 0,
+      "value": "Total tasks"
+    }
+  ],
+  "PxsPJt": [
+    {
+      "type": 0,
+      "value": "Turning on scheduled task(s)"
+    }
+  ],
   "PysW/n": [
     {
       "type": 0,
@@ -5633,6 +6671,12 @@
     {
       "type": 0,
       "value": "Beslissingstijd"
+    }
+  ],
+  "Q2CgqG": [
+    {
+      "type": 0,
+      "value": "Choose your approach below. You can always switch between editing and testing."
     }
   ],
   "Q3p3sz": [
@@ -5827,6 +6871,12 @@
       "value": "Web Apps"
     }
   ],
+  "Ql/5RS": [
+    {
+      "type": 0,
+      "value": "Scoring…"
+    }
+  ],
   "QlkL14": [
     {
       "type": 0,
@@ -5859,6 +6909,12 @@
       "value": " verwijderen..."
     }
   ],
+  "Qn5bey": [
+    {
+      "type": 0,
+      "value": "No quick fixes needed."
+    }
+  ],
   "Qn8Bok": [
     {
       "type": 0,
@@ -5871,6 +6927,12 @@
       "value": "bijvoorbeeld 0 9 * * 1-5"
     }
   ],
+  "QpCzB2": [
+    {
+      "type": 0,
+      "value": "Resize configuration and preview panels"
+    }
+  ],
   "QrihTZ": [
     {
       "type": 0,
@@ -5881,6 +6943,12 @@
     {
       "type": 0,
       "value": "Autoriseren"
+    }
+  ],
+  "QzM+2e": [
+    {
+      "type": 0,
+      "value": "Start filling in the fields above to define this tool."
     }
   ],
   "R+J5ox": [
@@ -5909,6 +6977,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "R3eMOe": [
+    {
+      "type": 0,
+      "value": "Outlook account"
     }
   ],
   "R3mMmc": [
@@ -6117,6 +7191,18 @@
       "value": "Filteren op"
     }
   ],
+  "S5UkvS": [
+    {
+      "type": 0,
+      "value": "Playground mode"
+    }
+  ],
+  "S8/4ZI": [
+    {
+      "type": 0,
+      "value": "More actions"
+    }
+  ],
   "SAINuE": [
     {
       "type": 0,
@@ -6167,6 +7253,12 @@
     {
       "type": 0,
       "value": "Status en prestaties van kerntoepassingsgroep"
+    }
+  ],
+  "SR33a/": [
+    {
+      "type": 0,
+      "value": "Restart chat conversation"
     }
   ],
   "SRf69j": [
@@ -6247,6 +7339,12 @@
       "value": "Klik om in volledig scherm te openen"
     }
   ],
+  "SmFb5S": [
+    {
+      "type": 0,
+      "value": "Draft not yet synced"
+    }
+  ],
   "Sr4IbA": [
     {
       "type": 0,
@@ -6275,6 +7373,20 @@
     {
       "type": 0,
       "value": "Incidenten ondersteund door agent"
+    }
+  ],
+  "T+FE9b": [
+    {
+      "type": 0,
+      "value": "Interactive testing for "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is coming soon."
     }
   ],
   "T/G3bv": [
@@ -6407,16 +7519,28 @@
       "value": "Grafana-beheerder"
     }
   ],
-  "TN/U9d": [
-    {
-      "type": 0,
-      "value": "De taak is niet bijgewerkt"
-    }
-  ],
   "TO55dt": [
     {
       "type": 0,
       "value": "Azure SRE Agent billing is measured in Azure agent units (AAU). Monthly AAU billing reflects both the fixed always-on flow and variable usage from active flow. You can increase or decrease the active flow AAU allocation at any time."
+    }
+  ],
+  "TQ0n+a": [
+    {
+      "type": 1,
+      "value": "metric"
+    },
+    {
+      "type": 0,
+      "value": " lands at "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "%. Sharpen instructions and tools to climb faster."
     }
   ],
   "TRceX/": [
@@ -6517,6 +7641,12 @@
     {
       "type": 1,
       "value": "mode"
+    }
+  ],
+  "UNQfKX": [
+    {
+      "type": 0,
+      "value": "Enter a descriptive name"
     }
   ],
   "UNXega": [
@@ -6663,6 +7793,12 @@
       "value": "Door gebruiker toegewezen"
     }
   ],
+  "VIYXlx": [
+    {
+      "type": 0,
+      "value": "Chat preview"
+    }
+  ],
   "VIcJZp": [
     {
       "type": 0,
@@ -6739,6 +7875,18 @@
       "value": "Gebruik (actie)"
     }
   ],
+  "VVy70J": [
+    {
+      "type": 0,
+      "value": "Quality watcher"
+    }
+  ],
+  "VWq2cH": [
+    {
+      "type": 0,
+      "value": "Playbook Legend"
+    }
+  ],
   "VYjDXQ": [
     {
       "type": 0,
@@ -6767,6 +7915,12 @@
     {
       "type": 0,
       "value": "Er bestaat al een meta-agentoverschrijving in je systeem."
+    }
+  ],
+  "VpVoQZ": [
+    {
+      "type": 0,
+      "value": "Tool recommendations"
     }
   ],
   "VpsD7s": [
@@ -6827,16 +7981,16 @@
       "value": "Geen reactieplannen gevonden"
     }
   ],
-  "W1Qs5O": [
-    {
-      "type": 0,
-      "value": "Uitvoeringen"
-    }
-  ],
   "W2JBdp": [
     {
       "type": 0,
       "value": "Impact"
+    }
+  ],
+  "W5zi/x": [
+    {
+      "type": 0,
+      "value": "Please try again or check the console for details."
     }
   ],
   "W6NO8g": [
@@ -6849,6 +8003,12 @@
     {
       "type": 0,
       "value": "Opgelost"
+    }
+  ],
+  "W8LUUc": [
+    {
+      "type": 0,
+      "value": "Not analyzed"
     }
   ],
   "W99XAG": [
@@ -6941,6 +8101,16 @@
       "value": "Kies een agent om de bijbehorende hulpprogramma's, connectors en overdrachten te visualiseren."
     }
   ],
+  "WdmBr4": [
+    {
+      "type": 0,
+      "value": "Insight streak: "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    }
+  ],
   "Wekzzh": [
     {
       "type": 0,
@@ -6994,6 +8164,12 @@
       "value": "New thread for each run"
     }
   ],
+  "WhuvJH": [
+    {
+      "type": 0,
+      "value": "Auto-apply OFF"
+    }
+  ],
   "Wkup5T": [
     {
       "type": 0,
@@ -7004,6 +8180,24 @@
     {
       "type": 0,
       "value": "Primair resourcetype is gelijk aan"
+    }
+  ],
+  "WolNVP": [
+    {
+      "type": 0,
+      "value": "No recent analysis"
+    }
+  ],
+  "WsILsq": [
+    {
+      "type": 0,
+      "value": "Iterate on instructions without impacting production threads."
+    }
+  ],
+  "WsJuyI": [
+    {
+      "type": 0,
+      "value": "Agent playground"
     }
   ],
   "Wtf3vL": [
@@ -7076,6 +8270,12 @@
       "value": "platformName"
     }
   ],
+  "X5Q310": [
+    {
+      "type": 0,
+      "value": "Hide details"
+    }
+  ],
   "X5UCWb": [
     {
       "type": 0,
@@ -7110,6 +8310,12 @@
     {
       "type": 0,
       "value": "Een concept van de cron maken voor mij"
+    }
+  ],
+  "XDSe35": [
+    {
+      "type": 0,
+      "value": "Select an agent or tool to start a playground session."
     }
   ],
   "XEB3Fn": [
@@ -7292,6 +8498,18 @@
       "value": "Er is een onverwachte fout opgetreden."
     }
   ],
+  "Xmty/4": [
+    {
+      "type": 0,
+      "value": "Hide watcher panel"
+    }
+  ],
+  "XqRXu6": [
+    {
+      "type": 0,
+      "value": "Playground"
+    }
+  ],
   "XtnlO8": [
     {
       "type": 0,
@@ -7304,10 +8522,36 @@
       "value": "Uitgever van metrische bewakingsgegevens"
     }
   ],
+  "Y0BC+F": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", give me your mission briefing and how you partner with engineers."
+    }
+  ],
+  "Y2PFzA": [
+    {
+      "type": 0,
+      "value": "Priority fixes"
+    }
+  ],
   "Y2QRpS": [
     {
       "type": 0,
       "value": "is gelijk aan"
+    }
+  ],
+  "Y3qQB0": [
+    {
+      "type": 0,
+      "value": "Turning on scheduled task "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "Y7Lbpf": [
@@ -7364,6 +8608,18 @@
       "value": "Actief houden"
     }
   ],
+  "YMjUWP": [
+    {
+      "type": 0,
+      "value": "Turn off scheduled task"
+    }
+  ],
+  "YN1/XY": [
+    {
+      "type": 0,
+      "value": "Stress test"
+    }
+  ],
   "YP06jq": [
     {
       "type": 0,
@@ -7374,6 +8630,20 @@
     {
       "type": 0,
       "value": "Voer een naam in voordat je dit item maakt."
+    }
+  ],
+  "YXOz1v": [
+    {
+      "type": 0,
+      "value": "Executing "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "..."
     }
   ],
   "YZIFAO": [
@@ -7460,16 +8730,40 @@
       "value": "U bent niet gemachtigd om diepgaand onderzoek in te schakelen."
     }
   ],
+  "YuvMS0": [
+    {
+      "type": 0,
+      "value": "Insights not yet analysed"
+    }
+  ],
   "Z+uDP9": [
     {
       "type": 0,
       "value": "Add a file or connect an external data source, such as a service or repository, to help the agent generate more informed responses."
     }
   ],
+  "Z+wlsh": [
+    {
+      "type": 0,
+      "value": "Tool configuration is unavailable for this selection."
+    }
+  ],
   "Z1VHv1": [
     {
       "type": 0,
       "value": "Rol voor lezer van bewakingsgegevens"
+    }
+  ],
+  "Z4bt4u": [
+    {
+      "type": 0,
+      "value": "Auto-generated if left empty"
+    }
+  ],
+  "Z5ntkd": [
+    {
+      "type": 0,
+      "value": "Configuration changes are auto-applied (disable auto-apply to use manual apply)"
     }
   ],
   "Z6rVz/": [
@@ -7508,6 +8802,16 @@
       "value": "Incidentreactieplan maken"
     }
   ],
+  "ZA4OiK": [
+    {
+      "type": 0,
+      "value": "Failed to create scheduled task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "ZBKZDe": [
     {
       "type": 0,
@@ -7522,6 +8826,18 @@
       "value": " moet een naam bevatten."
     }
   ],
+  "ZBlAho": [
+    {
+      "type": 0,
+      "value": "Check if the agent introduces itself properly and outlines its capabilities."
+    }
+  ],
+  "ZBpAJ/": [
+    {
+      "type": 0,
+      "value": "Chat restarted with new configuration."
+    }
+  ],
   "ZCA/Ga": [
     {
       "type": 0,
@@ -7534,6 +8850,12 @@
     {
       "type": 0,
       "value": "..."
+    }
+  ],
+  "ZMa6Rh": [
+    {
+      "type": 0,
+      "value": "Deleting scheduled task(s)"
     }
   ],
   "ZNMCbm": [
@@ -7554,6 +8876,12 @@
       "value": "Visuele weergave"
     }
   ],
+  "ZPP6n7": [
+    {
+      "type": 0,
+      "value": "Form editing is coming soon for this entity."
+    }
+  ],
   "ZUXvHE": [
     {
       "type": 0,
@@ -7570,6 +8898,20 @@
     {
       "type": 0,
       "value": "Resourcegroep"
+    }
+  ],
+  "Ze5Ejt": [
+    {
+      "type": 0,
+      "value": "Testing for "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is coming soon. Only Kusto tools are supported right now."
     }
   ],
   "Zh+5A6": [
@@ -7606,6 +8948,12 @@
     {
       "type": 0,
       "value": "Selecteer hieronder een bestaand hulpprogramma om verbinding te maken."
+    }
+  ],
+  "Zq5BCQ": [
+    {
+      "type": 0,
+      "value": "Failed to apply changes"
     }
   ],
   "ZqVUb5": [
@@ -7773,6 +9121,38 @@
       "value": "Bepaalt hoe deze waarde wordt doorgegeven aan de hulpprogrammamethode"
     }
   ],
+  "aLBTVj": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minute ago"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes ago"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "aORQjS": [
     {
       "type": 0,
@@ -7863,12 +9243,6 @@
       "value": "Houd de beschrijving kort; plaats hier gedetailleerde uitvoeringslogica."
     }
   ],
-  "ak4FqD": [
-    {
-      "type": 0,
-      "value": "Geplande taak is hervat"
-    }
-  ],
   "anSi7M": [
     {
       "type": 0,
@@ -7893,6 +9267,12 @@
       "value": "Taalschrijver voor Cognitive Services"
     }
   ],
+  "arE3XO": [
+    {
+      "type": 0,
+      "value": "Tool test failed but no error details were provided."
+    }
+  ],
   "auFFJa": [
     {
       "type": 0,
@@ -7909,6 +9289,12 @@
     {
       "type": 0,
       "value": "Monday"
+    }
+  ],
+  "b0+PAq": [
+    {
+      "type": 0,
+      "value": "Audit check"
     }
   ],
   "b2PyOl": [
@@ -7929,6 +9315,16 @@
     {
       "type": 0,
       "value": "Aangepast incidentreactieplan verwijderen"
+    }
+  ],
+  "b3sNCU": [
+    {
+      "type": 0,
+      "value": "Failed to turn off task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "b5OEXm": [
@@ -7985,6 +9381,12 @@
       "value": "Nieuw"
     }
   ],
+  "baRFiF": [
+    {
+      "type": 0,
+      "value": "Form"
+    }
+  ],
   "bdFY56": [
     {
       "type": 0,
@@ -8009,6 +9411,12 @@
     {
       "type": 0,
       "value": "Stabiel - Ontvangt eenmaal per maand updates"
+    }
+  ],
+  "bjLeN1": [
+    {
+      "type": 0,
+      "value": "Please restart the chat to see your changes."
     }
   ],
   "bjOnWH": [
@@ -8063,6 +9471,12 @@
       "value": "id"
     }
   ],
+  "br2BTb": [
+    {
+      "type": 0,
+      "value": "Finish setup to enable previews."
+    }
+  ],
   "bri0SI": [
     {
       "type": 0,
@@ -8073,6 +9487,12 @@
     {
       "type": 0,
       "value": "Titel bevat"
+    }
+  ],
+  "bs6oPY": [
+    {
+      "type": 0,
+      "value": "Author agent configuration and test"
     }
   ],
   "bswtOq": [
@@ -8133,6 +9553,12 @@
       "value": "Er zijn geen systeemhulpprogramma's geconfigureerd."
     }
   ],
+  "c1ECOO": [
+    {
+      "type": 0,
+      "value": "Tool testing"
+    }
+  ],
   "c1EiBR": [
     {
       "type": 0,
@@ -8149,6 +9575,12 @@
     {
       "type": 0,
       "value": "Rollen"
+    }
+  ],
+  "c3TO1+": [
+    {
+      "type": 0,
+      "value": "Open in playground"
     }
   ],
   "c8Doeq": [
@@ -8189,6 +9621,12 @@
       "value": "Temperatuur"
     }
   ],
+  "cJGGY4": [
+    {
+      "type": 0,
+      "value": "Your changes are being processed and will appear in the chat preview momentarily."
+    }
+  ],
   "cLC2fM": [
     {
       "type": 0,
@@ -8211,6 +9649,18 @@
     {
       "type": 0,
       "value": "Inzender voor opslagaccounts"
+    }
+  ],
+  "cYwv8P": [
+    {
+      "type": 0,
+      "value": "Intent Match"
+    }
+  ],
+  "ccXLVi": [
+    {
+      "type": 0,
+      "value": "Category"
     }
   ],
   "cfbpDd": [
@@ -8359,6 +9809,12 @@
       "value": "Geplande taak"
     }
   ],
+  "dGa0bG": [
+    {
+      "type": 0,
+      "value": "Agent quality not scored yet. Run a check to reveal opportunities."
+    }
+  ],
   "dI9gP+": [
     {
       "type": 0,
@@ -8375,6 +9831,12 @@
     {
       "type": 0,
       "value": "Een AI-subagent met instructies en hulpprogramma's"
+    }
+  ],
+  "dO3eHj": [
+    {
+      "type": 0,
+      "value": "Make changes to the current agent configuration and test immediately."
     }
   ],
   "dQ5/dh": [
@@ -8419,10 +9881,22 @@
       "value": "De URL van de opslagplaats moet er als volgt uitzien voor GitHub: https://github.com/owner/repo-name of voor Azure DevOps: https://dev.azure.com/organization/project/_git/repository-name of https://organization.visualstudio.com/project/_git/repository-name"
     }
   ],
+  "daUwAL": [
+    {
+      "type": 0,
+      "value": "Creating scheduled task"
+    }
+  ],
   "dd6gV2": [
     {
       "type": 0,
       "value": "Preview plannen"
+    }
+  ],
+  "dhmpfi": [
+    {
+      "type": 0,
+      "value": "Delete scheduled task(s)"
     }
   ],
   "dhqlRa": [
@@ -8457,6 +9931,30 @@
       "value": "Criticus prompt"
     }
   ],
+  "dkqYUR": [
+    {
+      "type": 1,
+      "value": "metric"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "%—you are outperforming the target confidence. Ship it! 🚀"
+    }
+  ],
+  "dkt4ac": [
+    {
+      "type": 0,
+      "value": "Resolve YAML errors before applying changes"
+    }
+  ],
   "dnXgff": [
     {
       "type": 0,
@@ -8479,6 +9977,12 @@
     {
       "type": 0,
       "value": "Wat het betekent"
+    }
+  ],
+  "dwkMC2": [
+    {
+      "type": 0,
+      "value": "Score agent quality"
     }
   ],
   "e0a3XV": [
@@ -8535,6 +10039,12 @@
       "value": "Alleen-lezenmodus"
     }
   ],
+  "eRwVws": [
+    {
+      "type": 0,
+      "value": "You need an incident platform to add an incident trigger."
+    }
+  ],
   "eUEjcm": [
     {
       "type": 0,
@@ -8545,6 +10055,12 @@
     {
       "type": 0,
       "value": "Modelgeneratie"
+    }
+  ],
+  "eYClyG": [
+    {
+      "type": 0,
+      "value": "Capture AI-driven insights on confidence and next tweaks."
     }
   ],
   "eYEnNu": [
@@ -8571,6 +10087,22 @@
       "value": "Beheer Azure Search-services."
     }
   ],
+  "ee4AUg": [
+    {
+      "type": 0,
+      "value": "Scheduled task turned on successfully"
+    }
+  ],
+  "egubDj": [
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "% confidence"
+    }
+  ],
   "ehbsXg": [
     {
       "type": 0,
@@ -8587,6 +10119,18 @@
     {
       "type": 0,
       "value": "Sev0"
+    }
+  ],
+  "ene/8x": [
+    {
+      "type": 0,
+      "value": "Tune agent behavior in a safe space before you publish changes."
+    }
+  ],
+  "eq57j2": [
+    {
+      "type": 0,
+      "value": "Add incident trigger"
     }
   ],
   "eqYdSS": [
@@ -8671,10 +10215,28 @@
       "value": "Sev1"
     }
   ],
+  "f6xT1Y": [
+    {
+      "type": 0,
+      "value": "Scheduled task(s) turned on successfully"
+    }
+  ],
   "f7Zx3L": [
     {
       "type": 0,
       "value": "Tips voor prompts"
+    }
+  ],
+  "f9xN/g": [
+    {
+      "type": 0,
+      "value": "Rising Specialist"
+    }
+  ],
+  "fE5E6W": [
+    {
+      "type": 0,
+      "value": "How do you want to get started?"
     }
   ],
   "fEYQWU": [
@@ -8699,6 +10261,16 @@
     {
       "type": 0,
       "value": "Code optimizations"
+    }
+  ],
+  "fINN7t": [
+    {
+      "type": 0,
+      "value": "Insights: "
+    },
+    {
+      "type": 1,
+      "value": "status"
     }
   ],
   "fIQSsD": [
@@ -8837,6 +10409,12 @@
       "value": "Foutdetails kopiëren"
     }
   ],
+  "g4Dsk6": [
+    {
+      "type": 0,
+      "value": "Total runs"
+    }
+  ],
   "g4II+z": [
     {
       "type": 0,
@@ -8871,6 +10449,12 @@
     {
       "type": 0,
       "value": "Drag files here or"
+    }
+  ],
+  "gGfQUL": [
+    {
+      "type": 0,
+      "value": "Warm-up scenario"
     }
   ],
   "gHCL4X": [
@@ -8957,6 +10541,16 @@
       "value": "Je hebt machtigingen nodig om een Grafana-dashboard in te stellen."
     }
   ],
+  "grgDhd": [
+    {
+      "type": 0,
+      "value": "Failed to load scheduled tasks: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "gvlNuI": [
     {
       "type": 0,
@@ -9019,6 +10613,12 @@
     {
       "type": 0,
       "value": "Als je het incidentplatform wilt wijzigen, moet je de verbinding met ServiceNow verbreken. De agent beheert dan geen tickets meer. Weet je zeker dat je de verbinding wilt verbreken?"
+    }
+  ],
+  "h+sisx": [
+    {
+      "type": 0,
+      "value": "Author and Test - Configure and test"
     }
   ],
   "h0W8DM": [
@@ -9147,6 +10747,18 @@
       "value": "Belangrijkste categorieën"
     }
   ],
+  "haOtj7": [
+    {
+      "type": 0,
+      "value": "System tools are read-only. View the YAML for reference."
+    }
+  ],
+  "heMr0D": [
+    {
+      "type": 0,
+      "value": "How well your agent is meeting user intents based on chat interactions. Updates after conversations."
+    }
+  ],
   "hfACn+": [
     {
       "type": 0,
@@ -9175,6 +10787,12 @@
     {
       "type": 0,
       "value": "Bekijk AI-aanbevelingen zonder je instructies te wijzigen"
+    }
+  ],
+  "hkgUC5": [
+    {
+      "type": 0,
+      "value": "No parameters required for this tool."
     }
   ],
   "hlmkcL": [
@@ -9249,6 +10867,18 @@
       "value": "Resource-id"
     }
   ],
+  "iJ+eDu": [
+    {
+      "type": 0,
+      "value": "Failed to load data"
+    }
+  ],
+  "iJCsVz": [
+    {
+      "type": 0,
+      "value": "Not yet published"
+    }
+  ],
   "iMBgdL": [
     {
       "type": 0,
@@ -9315,6 +10945,12 @@
       "value": "Opdracht kopiëren"
     }
   ],
+  "iihhVc": [
+    {
+      "type": 0,
+      "value": "Quality Evaluation"
+    }
+  ],
   "ijOojL": [
     {
       "type": 0,
@@ -9345,6 +10981,12 @@
     {
       "type": 0,
       "value": "Afgelopen 7 dagen"
+    }
+  ],
+  "isZXYe": [
+    {
+      "type": 0,
+      "value": "Applying…"
     }
   ],
   "it6Lig": [
@@ -9421,16 +11063,6 @@
       "value": "Er zijn geen uitgebreide hulpprogramma's beschikbaar."
     }
   ],
-  "j2vvrh": [
-    {
-      "type": 1,
-      "value": "numMemories"
-    },
-    {
-      "type": 0,
-      "value": " relevante herinneringen uit eerdere ervaringen gevonden"
-    }
-  ],
   "j3bwJQ": [
     {
       "type": 0,
@@ -9459,6 +11091,12 @@
     {
       "type": 0,
       "value": "Prioriteit kiezen"
+    }
+  ],
+  "jEmOoh": [
+    {
+      "type": 0,
+      "value": "YourAgent"
     }
   ],
   "jHJmjf": [
@@ -9609,6 +11247,20 @@
       "value": " ms"
     }
   ],
+  "k4dB65": [
+    {
+      "type": 0,
+      "value": "This will create both your agent (\""
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "\") and a separate \"meta_agent\" for orchestration."
+    }
+  ],
   "k5T5VE": [
     {
       "type": 0,
@@ -9633,10 +11285,10 @@
       "value": "Abonnement is gelijk aan"
     }
   ],
-  "kLL6yL": [
+  "kNEmDU": [
     {
       "type": 0,
-      "value": "The maximum AAU limit is 20,000"
+      "value": "Goal: 85%+ confidence"
     }
   ],
   "kQAf2d": [
@@ -9753,6 +11405,18 @@
       "value": "Status"
     }
   ],
+  "kvKWEJ": [
+    {
+      "type": 0,
+      "value": "Response plan saved successfully"
+    }
+  ],
+  "l+e8nZ": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected scheduled task(s)? This action cannot be undone."
+    }
+  ],
   "l0TtPi": [
     {
       "type": 0,
@@ -9773,6 +11437,18 @@
     {
       "type": 0,
       "value": " resourcegroep geselecteerd."
+    }
+  ],
+  "l2Ni9H": [
+    {
+      "type": 0,
+      "value": "Chat preview is only available for agents."
+    }
+  ],
+  "l5a3zV": [
+    {
+      "type": 0,
+      "value": "Make a copy"
     }
   ],
   "l5sNim": [
@@ -9939,6 +11615,12 @@
       "value": " is gemaakt"
     }
   ],
+  "mAinBm": [
+    {
+      "type": 0,
+      "value": "Automatically push YAML edits to the agent during testing."
+    }
+  ],
   "mAyw3x": [
     {
       "type": 0,
@@ -9975,10 +11657,10 @@
       "value": "Er zijn nog geen hulpprogramma's verbonden."
     }
   ],
-  "mN2MCk": [
+  "mMgwbu": [
     {
       "type": 0,
-      "value": "Kan de taak niet verwijderen"
+      "value": "Undo (10s)"
     }
   ],
   "mOFG3K": [
@@ -10091,6 +11773,12 @@
       "value": "Hoe moet deze trigger worden ingesteld?"
     }
   ],
+  "methez": [
+    {
+      "type": 0,
+      "value": "Max tier achieved—keep refining to stay ahead."
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
@@ -10101,6 +11789,12 @@
     {
       "type": 0,
       "value": "Er zijn geen hulpprogramma's ingesteld."
+    }
+  ],
+  "mhKk7c": [
+    {
+      "type": 0,
+      "value": "Create new Kusto tool"
     }
   ],
   "mkhNnB": [
@@ -10221,16 +11915,22 @@
       "value": "In uitvoering"
     }
   ],
-  "nEnDXd": [
-    {
-      "type": 0,
-      "value": "Are you sure you want to delete the selected scheduled tasks? This action cannot be undone."
-    }
-  ],
   "nFOo9o": [
     {
       "type": 0,
       "value": "Beoordelen en bewerken"
+    }
+  ],
+  "nFpcjX": [
+    {
+      "type": 0,
+      "value": "Auto-generated"
+    }
+  ],
+  "nL/Owh": [
+    {
+      "type": 0,
+      "value": "Send notification"
     }
   ],
   "nNwFuy": [
@@ -10309,6 +12009,12 @@
       "value": "Verwijderen..."
     }
   ],
+  "noxLT+": [
+    {
+      "type": 0,
+      "value": "Apply fixes"
+    }
+  ],
   "npvxpr": [
     {
       "type": 0,
@@ -10331,6 +12037,12 @@
     {
       "type": 0,
       "value": "Bereik"
+    }
+  ],
+  "nx7y+W": [
+    {
+      "type": 0,
+      "value": "Re-run insights"
     }
   ],
   "nxmZHP": [
@@ -10465,10 +12177,10 @@
       "value": "Acceptatielijst onder Beheerde identiteit in je ICM-serviceteam."
     }
   ],
-  "oTzitk": [
+  "oTOgOq": [
     {
       "type": 0,
-      "value": "De taak is niet onderbroken"
+      "value": "Loading MCP tools..."
     }
   ],
   "oUWADl": [
@@ -10495,10 +12207,10 @@
       "value": "Inzichten in opslagplaats"
     }
   ],
-  "ob9EPi": [
+  "ob6s4+": [
     {
       "type": 0,
-      "value": "Machtigingen om rollen toe te wijzen"
+      "value": "Deny assignment"
     }
   ],
   "obRqDQ": [
@@ -10533,6 +12245,12 @@
     {
       "type": 0,
       "value": "Incidenten zoeken"
+    }
+  ],
+  "osuyeD": [
+    {
+      "type": 0,
+      "value": "Out of date"
     }
   ],
   "ovJ26C": [
@@ -10607,10 +12325,22 @@
       "value": "Beheren zonder toegang. Kan geen beveiligingsbeleid of bovenliggende SQL-servers beheren."
     }
   ],
+  "p7xkho": [
+    {
+      "type": 0,
+      "value": "Agent consumption"
+    }
+  ],
   "p8Ubox": [
     {
       "type": 0,
       "value": "Connect an incident management platform so the agent will collect, analyze, and respond to alerts."
+    }
+  ],
+  "pA7W9m": [
+    {
+      "type": 0,
+      "value": "Intent Met Score"
     }
   ],
   "pAFuFx": [
@@ -10637,6 +12367,12 @@
       "value": "U bent niet gemachtigd om connectors toe te voegen of te verwijderen."
     }
   ],
+  "pCjcdM": [
+    {
+      "type": 0,
+      "value": "Prompt highlights"
+    }
+  ],
   "pDUFq5": [
     {
       "type": 0,
@@ -10657,6 +12393,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "pPwNx4": [
+    {
+      "type": 0,
+      "value": "Office 365 Outlook"
     }
   ],
   "pRvgsc": [
@@ -10749,6 +12491,20 @@
       "value": " verwijderen..."
     }
   ],
+  "polqL7": [
+    {
+      "type": 0,
+      "value": "-"
+    },
+    {
+      "type": 1,
+      "value": "delta"
+    },
+    {
+      "type": 0,
+      "value": " since last run"
+    }
+  ],
   "ppARxn": [
     {
       "type": 0,
@@ -10827,12 +12583,6 @@
       "value": "Vertel ons hoe vaak uw agent moet worden uitgevoerd, zodat wij de cron-expressie voor u kunnen opstellen."
     }
   ],
-  "qczspd": [
-    {
-      "type": 0,
-      "value": "Plan weergeven"
-    }
-  ],
   "qdAlfY": [
     {
       "type": 0,
@@ -10899,6 +12649,12 @@
       "value": "Back-endeindpunt"
     }
   ],
+  "qquh75": [
+    {
+      "type": 0,
+      "value": "Select a linked tool to edit"
+    }
+  ],
   "qs5hhk": [
     {
       "type": 0,
@@ -10933,6 +12689,44 @@
     {
       "type": 0,
       "value": "Het aangepaste incidentreactieplan is verwijderd"
+    }
+  ],
+  "r2ZGnB": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fix selected"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fixes selected"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "r2cpCI": [
+    {
+      "type": 0,
+      "value": "Evaluating agent…"
     }
   ],
   "r2x5ZI": [
@@ -11063,6 +12857,12 @@
       "value": "Update AAU allocation"
     }
   ],
+  "rVbKiP": [
+    {
+      "type": 0,
+      "value": "Continue editing"
+    }
+  ],
   "rVtn/e": [
     {
       "type": 0,
@@ -11181,6 +12981,12 @@
       "value": "hulpprogramma's"
     }
   ],
+  "rrQX3M": [
+    {
+      "type": 0,
+      "value": "Score this agent and get tailored fixes."
+    }
+  ],
   "rvirM2": [
     {
       "type": 0,
@@ -11213,6 +13019,12 @@
       "value": "Ondersteund door de agent"
     }
   ],
+  "rzC0Xo": [
+    {
+      "type": 0,
+      "value": "The agent posts notifications to the activity feed linking to a chat or team."
+    }
+  ],
   "s00xPm": [
     {
       "type": 0,
@@ -11231,6 +13043,18 @@
     {
       "type": 0,
       "value": " data connectors from the agent. Are you sure you want to disconnect these data connectors?"
+    }
+  ],
+  "s2GWth": [
+    {
+      "type": 0,
+      "value": "Intent Match (1-5)"
+    }
+  ],
+  "s2XIgr": [
+    {
+      "type": 0,
+      "value": "Show details"
     }
   ],
   "s6iZgz": [
@@ -11309,6 +13133,16 @@
       "value": "Voortgang"
     }
   ],
+  "sIwc3/": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is a system tool and cannot be run from the playground yet."
+    }
+  ],
   "sNofwe": [
     {
       "type": 0,
@@ -11337,6 +13171,12 @@
     {
       "type": 0,
       "value": "Geaccepteerde bestandstypen: .md, .txt"
+    }
+  ],
+  "sRU00i": [
+    {
+      "type": 0,
+      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
     }
   ],
   "sRb5P9": [
@@ -11395,6 +13235,12 @@
     {
       "type": 0,
       "value": "Add file"
+    }
+  ],
+  "sZIoMy": [
+    {
+      "type": 0,
+      "value": "Send email"
     }
   ],
   "sd1Vy+": [
@@ -11481,6 +13327,12 @@
       "value": "Inzender voor SQL Server"
     }
   ],
+  "ssDQgc": [
+    {
+      "type": 0,
+      "value": "Tools from Model Context Protocol (MCP) servers. These tools are grouped by connection and loaded from connected servers such."
+    }
+  ],
   "strvmG": [
     {
       "type": 0,
@@ -11503,6 +13355,16 @@
     {
       "type": 0,
       "value": "Geplande taken"
+    }
+  ],
+  "t+IV9f": [
+    {
+      "type": 0,
+      "value": "Agent at "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "t/atZW": [
@@ -11691,6 +13553,12 @@
       "value": "errorMessage"
     }
   ],
+  "tbxHpV": [
+    {
+      "type": 0,
+      "value": "Validate how the agent summarizes risk and next steps for leadership updates."
+    }
+  ],
   "tfuXMw": [
     {
       "type": 0,
@@ -11715,6 +13583,18 @@
     {
       "type": 0,
       "value": "Er zijn geen handoffs ingesteld."
+    }
+  ],
+  "tjklHQ": [
+    {
+      "type": 0,
+      "value": "Experiment with your agent's configuration and see real-time results"
+    }
+  ],
+  "tkr5bn": [
+    {
+      "type": 0,
+      "value": "Turn off scheduled task(s)"
     }
   ],
   "trPabo": [
@@ -11775,6 +13655,12 @@
       "value": "Status"
     }
   ],
+  "u04DEJ": [
+    {
+      "type": 0,
+      "value": "There was an error loading the usage data. Please try again later."
+    }
+  ],
   "u0xiAh": [
     {
       "type": 0,
@@ -11803,6 +13689,12 @@
     {
       "type": 0,
       "value": "Hiermee worden de chat en alle acties in deze thread definitief verwijderd. Weet je zeker dat je deze wilt verwijderen?"
+    }
+  ],
+  "u60c6a": [
+    {
+      "type": 0,
+      "value": "Run insights to see guidance for this configuration."
     }
   ],
   "u64mw7": [
@@ -11893,6 +13785,54 @@
     {
       "type": 0,
       "value": "Agents als hulpprogramma's"
+    }
+  ],
+  "uNTENz": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " confidence point to reach "
+            },
+            {
+              "type": 1,
+              "value": "tier"
+            },
+            {
+              "type": 0,
+              "value": "."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " confidence points to reach "
+            },
+            {
+              "type": 1,
+              "value": "tier"
+            },
+            {
+              "type": 0,
+              "value": "."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "delta"
     }
   ],
   "uRMqBi": [
@@ -12019,6 +13959,12 @@
       "value": "Alles samenvouwen"
     }
   ],
+  "v3xWf6": [
+    {
+      "type": 0,
+      "value": "Expand configuration panel"
+    }
+  ],
   "v8cTK0": [
     {
       "type": 0,
@@ -12073,16 +14019,42 @@
       "value": "Geautoriseerd door"
     }
   ],
-  "vEHhXK": [
+  "vG08m6": [
     {
       "type": 0,
-      "value": "Geplande taak is onderbroken"
+      "value": "Improve your agent prompt to increase confidence"
+    }
+  ],
+  "vIBOch": [
+    {
+      "type": 0,
+      "value": "Auto apply"
     }
   ],
   "vPX3R3": [
     {
       "type": 0,
       "value": "U bent niet gemachtigd om reactieplannen uit te schakelen."
+    }
+  ],
+  "vSW3OF": [
+    {
+      "type": 0,
+      "value": "Failed to update task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "vV67Wm": [
+    {
+      "type": 0,
+      "value": "Failed to turn on task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "vVpzJQ": [
@@ -12101,6 +14073,12 @@
     {
       "type": 0,
       "value": "Waarschuwingsacties aanwezig"
+    }
+  ],
+  "vZWQHk": [
+    {
+      "type": 0,
+      "value": "Edit existing"
     }
   ],
   "vao/Lv": [
@@ -12151,6 +14129,16 @@
       "value": "Blocking usage insights"
     }
   ],
+  "vz94UY": [
+    {
+      "type": 0,
+      "value": "Fresh • "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "w+XRP2": [
     {
       "type": 0,
@@ -12169,10 +14157,22 @@
       "value": "Beschrijving wissen"
     }
   ],
+  "w5FDGY": [
+    {
+      "type": 0,
+      "value": "Update scheduled task"
+    }
+  ],
   "w6nz4p": [
     {
       "type": 0,
       "value": "Incidenttrigger openen"
+    }
+  ],
+  "w87Yom": [
+    {
+      "type": 0,
+      "value": "Agent tools"
     }
   ],
   "w8UjdT": [
@@ -12187,6 +14187,12 @@
       "value": "Onbekende agentmodus"
     }
   ],
+  "wBgTQg": [
+    {
+      "type": 0,
+      "value": "Author, Test & Evaluate - Full workflow"
+    }
+  ],
   "wEQDC6": [
     {
       "type": 0,
@@ -12197,6 +14203,28 @@
     {
       "type": 0,
       "value": "Kostenberekening in behandeling"
+    }
+  ],
+  "wGLrHW": [
+    {
+      "type": 0,
+      "value": "User at "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
+  "wGcWbo": [
+    {
+      "type": 0,
+      "value": "Active tasks"
+    }
+  ],
+  "wI+r41": [
+    {
+      "type": 0,
+      "value": "More tools"
     }
   ],
   "wL7VAE": [
@@ -12295,6 +14323,36 @@
       "value": "Verbeteren…"
     }
   ],
+  "wjEBlr": [
+    {
+      "type": 1,
+      "value": "metric"
+    },
+    {
+      "type": 0,
+      "value": " is at "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "%. Continue refining to move toward the next tier."
+    }
+  ],
+  "wjfh7Z": [
+    {
+      "type": 0,
+      "value": "Tester - Test your agent"
+    }
+  ],
+  "wk6Nft": [
+    {
+      "type": 0,
+      "value": "Begin editing the current configuration in the playground."
+    }
+  ],
   "wkLkeE": [
     {
       "type": 0,
@@ -12355,12 +14413,6 @@
       "value": "Subagentopbouwfunctie"
     }
   ],
-  "x7C8JZ": [
-    {
-      "type": 0,
-      "value": "Geen relevante herinneringen gevonden voor deze query"
-    }
-  ],
   "xDYr9m": [
     {
       "type": 0,
@@ -12377,6 +14429,12 @@
     {
       "type": 0,
       "value": "File Name"
+    }
+  ],
+  "xJLI97": [
+    {
+      "type": 0,
+      "value": "Hide findings"
     }
   ],
   "xK7rmd": [
@@ -12425,6 +14483,12 @@
       "value": "U bent niet gemachtigd om reactieplannen in te schakelen."
     }
   ],
+  "xXHSO2": [
+    {
+      "type": 0,
+      "value": "Rookie Analyst"
+    }
+  ],
   "xXhn+h": [
     {
       "type": 0,
@@ -12463,6 +14527,12 @@
     {
       "type": 0,
       "value": "Onvoldoende gegevenspunten voor grafiek"
+    }
+  ],
+  "xf9BKi": [
+    {
+      "type": 0,
+      "value": "Ready to test your agent?"
     }
   ],
   "xmcVZ0": [
@@ -12535,6 +14605,20 @@
       "value": "Aangepast incidentreactieplan verwijderen"
     }
   ],
+  "y0KXuM": [
+    {
+      "type": 0,
+      "value": "+"
+    },
+    {
+      "type": 1,
+      "value": "delta"
+    },
+    {
+      "type": 0,
+      "value": " since last run"
+    }
+  ],
   "y3Uu5i": [
     {
       "type": 0,
@@ -12545,6 +14629,20 @@
     {
       "type": 0,
       "value": "Incidentprioriteit"
+    }
+  ],
+  "y87pob": [
+    {
+      "type": 0,
+      "value": "You are previewing "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "yDh8i7": [
@@ -12583,10 +14681,22 @@
       "value": "Deze bewerking wordt uitgevoerd met de referenties voor de agentidentiteit."
     }
   ],
+  "yVe+kY": [
+    {
+      "type": 0,
+      "value": "Set up connector"
+    }
+  ],
   "yX3QcY": [
     {
       "type": 0,
       "value": "Details van hulpprogramma"
+    }
+  ],
+  "yYJHyl": [
+    {
+      "type": 0,
+      "value": "No tools are linked yet. Add tools on the left to enable testing."
     }
   ],
   "yYK6LR": [
@@ -12611,6 +14721,12 @@
     {
       "type": 0,
       "value": "De geheugenstatus van de agent is niet gecontroleerd, teruggevallen op uitgeschakeld:"
+    }
+  ],
+  "yeL9WV": [
+    {
+      "type": 0,
+      "value": "Design, test, and refine agents without touching production."
     }
   ],
   "yf9+0C": [
@@ -12695,10 +14811,22 @@
       "value": "Korte samenvatting in één regel (<=140 tekens)"
     }
   ],
+  "z0uI4M": [
+    {
+      "type": 0,
+      "value": "Run scenario"
+    }
+  ],
   "z5cF/O": [
     {
       "type": 0,
       "value": "De beschrijving moet een samenvatting in één regel zijn."
+    }
+  ],
+  "z7SGAU": [
+    {
+      "type": 0,
+      "value": "Scheduled task(s) deleted successfully"
     }
   ],
   "z8ZYoc": [
@@ -12743,6 +14871,12 @@
       "value": "Alle ernstniveaus"
     }
   ],
+  "zHZdPM": [
+    {
+      "type": 0,
+      "value": "Analyzing configuration for improvement recommendations."
+    }
+  ],
   "zMX3td": [
     {
       "type": 0,
@@ -12773,6 +14907,12 @@
     {
       "type": 0,
       "value": "Alle"
+    }
+  ],
+  "zUNfOA": [
+    {
+      "type": 0,
+      "value": "Open watcher drawer"
     }
   ],
   "zZsxcQ": [

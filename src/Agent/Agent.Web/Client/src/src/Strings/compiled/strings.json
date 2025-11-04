@@ -139,6 +139,12 @@
       "value": "Delete incident?"
     }
   ],
+  "+h4pn9": [
+    {
+      "type": 0,
+      "value": "Create new subagent"
+    }
+  ],
   "+hJd45": [
     {
       "type": 0,
@@ -173,12 +179,6 @@
     {
       "type": 0,
       "value": "Can read workbooks."
-    }
-  ],
-  "+mtpY7": [
-    {
-      "type": 0,
-      "value": "Steps:"
     }
   ],
   "+nt4l9": [
@@ -229,6 +229,12 @@
       "value": "Skip"
     }
   ],
+  "/5UY6N": [
+    {
+      "type": 0,
+      "value": "The maximum AAU limit is 200,000"
+    }
+  ],
   "/8MshI": [
     {
       "type": 0,
@@ -261,6 +267,12 @@
     {
       "type": 0,
       "value": "Clear"
+    }
+  ],
+  "/ImSqA": [
+    {
+      "type": 0,
+      "value": "Review and create"
     }
   ],
   "/N0Usl": [
@@ -909,6 +921,38 @@
       "value": "%"
     }
   ],
+  "1o9eJ6": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tool selected"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tools selected"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "1rAiXS": [
     {
       "type": 0,
@@ -1013,6 +1057,12 @@
       "value": "Manage App Configuration stores."
     }
   ],
+  "2Mm/ie": [
+    {
+      "type": 0,
+      "value": "Failed to save response plan"
+    }
+  ],
   "2OQ6yB": [
     {
       "type": 0,
@@ -1061,6 +1111,12 @@
     {
       "type": 0,
       "value": "Deep investigation"
+    }
+  ],
+  "2ePVf6": [
+    {
+      "type": 0,
+      "value": "Test your agent in a simple chat interface"
     }
   ],
   "2ep4et": [
@@ -1195,12 +1251,6 @@
       "value": "No agents available yet"
     }
   ],
-  "3HS12m": [
-    {
-      "type": 0,
-      "value": "Agent usage + limit"
-    }
-  ],
   "3JVa6k": [
     {
       "type": 0,
@@ -1243,6 +1293,12 @@
       "value": "Suggested prompts for your resources"
     }
   ],
+  "3SVI5p": [
+    {
+      "type": 0,
+      "value": "Warning"
+    }
+  ],
   "3VI9mt": [
     {
       "type": 0,
@@ -1277,6 +1333,16 @@
     {
       "type": 0,
       "value": "Reader"
+    }
+  ],
+  "3sNyAo": [
+    {
+      "type": 0,
+      "value": "The url must be in the format: "
+    },
+    {
+      "type": 1,
+      "value": "format"
     }
   ],
   "3sQV42": [
@@ -1765,6 +1831,20 @@
       "value": "Error loading investigation"
     }
   ],
+  "5WfpGl": [
+    {
+      "type": 0,
+      "value": "This will permanently disconnect "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " connectors from the agent. Are you sure you want to disconnect these connectors?"
+    }
+  ],
   "5Wtjeo": [
     {
       "type": 0,
@@ -2163,6 +2243,12 @@
     {
       "type": 0,
       "value": "Apply your edits and refresh insights"
+    }
+  ],
+  "6yuD0y": [
+    {
+      "type": 0,
+      "value": "Read-only lock"
     }
   ],
   "6zUWZ/": [
@@ -2657,6 +2743,12 @@
       "value": "Execution Time"
     }
   ],
+  "8fw5Cz": [
+    {
+      "type": 0,
+      "value": "Try different search terms or clear your search to see all connectors."
+    }
+  ],
   "8lCjAM": [
     {
       "type": 0,
@@ -2887,6 +2979,22 @@
       "value": "count"
     }
   ],
+  "9jaWOF": [
+    {
+      "type": 0,
+      "value": "MCP tools · "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    }
+  ],
+  "9q75fe": [
+    {
+      "type": 0,
+      "value": "No handoff agents available"
+    }
+  ],
   "9sDoY5": [
     {
       "type": 1,
@@ -2999,6 +3107,12 @@
       "value": "No data connectors configured"
     }
   ],
+  "ASLbZd": [
+    {
+      "type": 0,
+      "value": "Export analysis"
+    }
+  ],
   "ATXGa+": [
     {
       "type": 0,
@@ -3009,6 +3123,12 @@
     {
       "type": 0,
       "value": "Show only recommended resource groups"
+    }
+  ],
+  "AYrXUB": [
+    {
+      "type": 0,
+      "value": "No pending configuration changes to apply"
     }
   ],
   "AaJ/LU": [
@@ -3311,16 +3431,16 @@
       "value": " data connectors..."
     }
   ],
+  "BuziI2": [
+    {
+      "type": 0,
+      "value": "Collapse panel"
+    }
+  ],
   "BynA9c": [
     {
       "type": 0,
       "value": "Optional tweaks"
-    }
-  ],
-  "C2PrxB": [
-    {
-      "type": 0,
-      "value": "Click here to assign yourself the SRE Agent Admin role."
     }
   ],
   "C2iTEH": [
@@ -3333,6 +3453,12 @@
     {
       "type": 0,
       "value": "Logic App Contributor"
+    }
+  ],
+  "CBHDb1": [
+    {
+      "type": 0,
+      "value": "Task status"
     }
   ],
   "CEdEmD": [
@@ -3351,6 +3477,12 @@
     {
       "type": 0,
       "value": "Link a tool or create a new one to configure it here."
+    }
+  ],
+  "CHt7dX": [
+    {
+      "type": 0,
+      "value": "MCP Tools (Optional)"
     }
   ],
   "CJ6tzL": [
@@ -3443,6 +3575,12 @@
       "value": "Select resource groups to monitor"
     }
   ],
+  "Cfvmd0": [
+    {
+      "type": 0,
+      "value": "The agent has used 90% of the active flow AAUs. If the limit is reached, the agent will run only in always-on flow and be unavailable for chat and actions."
+    }
+  ],
   "ChQQJ0": [
     {
       "type": 0,
@@ -3451,12 +3589,6 @@
     {
       "type": 1,
       "value": "itemType"
-    }
-  ],
-  "CimbUb": [
-    {
-      "type": 0,
-      "value": "Make sure you have Contributor or Owner access to the resource group where the agent is hosted. If you still have access issues, assign the role directly to your account instead of relying on group-based role assignments."
     }
   ],
   "Ck8Kax": [
@@ -3513,6 +3645,12 @@
       "value": "Settings"
     }
   ],
+  "D3rb1K": [
+    {
+      "type": 0,
+      "value": "Azure DevOps"
+    }
+  ],
   "D473QI": [
     {
       "type": 0,
@@ -3545,6 +3683,18 @@
     {
       "type": 0,
       "value": "Custom instructions"
+    }
+  ],
+  "D97db3": [
+    {
+      "type": 0,
+      "value": "Select a response subagent"
+    }
+  ],
+  "DD2Wjk": [
+    {
+      "type": 0,
+      "value": "Incidents preview"
     }
   ],
   "DDSwQB": [
@@ -3635,6 +3785,12 @@
     {
       "type": 0,
       "value": "Selected incidents"
+    }
+  ],
+  "Da55kZ": [
+    {
+      "type": 0,
+      "value": "Select MCP tools from connected servers"
     }
   ],
   "DasCIQ": [
@@ -3833,6 +3989,12 @@
       "value": "Grants permission for read operations for App Configuration resources."
     }
   ],
+  "EOt0+9": [
+    {
+      "type": 0,
+      "value": "Full workflow with quality evaluation"
+    }
+  ],
   "ESChST": [
     {
       "type": 0,
@@ -3861,6 +4023,12 @@
     {
       "type": 0,
       "value": "Knowledge Base"
+    }
+  ],
+  "Ebd6gR": [
+    {
+      "type": 0,
+      "value": "The agent sends email messages."
     }
   ],
   "Ec1M0J": [
@@ -3931,6 +4099,12 @@
     {
       "type": 0,
       "value": "User"
+    }
+  ],
+  "F4a/f4": [
+    {
+      "type": 0,
+      "value": "User Permissions"
     }
   ],
   "F5b1Mw": [
@@ -4121,6 +4295,12 @@
       "value": "Safe"
     }
   ],
+  "FsIud6": [
+    {
+      "type": 0,
+      "value": "Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included."
+    }
+  ],
   "Fv1ZSz": [
     {
       "type": 0,
@@ -4191,6 +4371,40 @@
       "value": "All incident types"
     }
   ],
+  "GBLVEV": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "document"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "documents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "GBnvl1": [
     {
       "type": 0,
@@ -4223,10 +4437,34 @@
       "value": " data connectors"
     }
   ],
+  "GCcYpN": [
+    {
+      "type": 0,
+      "value": "No MCP tools available"
+    }
+  ],
   "GCmxza": [
     {
       "type": 0,
       "value": "Back to commands"
+    }
+  ],
+  "GMhzu1": [
+    {
+      "type": 0,
+      "value": "Response subagent"
+    }
+  ],
+  "GP/BbQ": [
+    {
+      "type": 0,
+      "value": "Enable Knowledge Base"
+    }
+  ],
+  "GSCabm": [
+    {
+      "type": 0,
+      "value": "MCP tools"
     }
   ],
   "GUx4Ld": [
@@ -4269,6 +4507,12 @@
     {
       "type": 0,
       "value": "Minimal permission to view Cognitive Services usages."
+    }
+  ],
+  "GpHWFC": [
+    {
+      "type": 0,
+      "value": "Choose a connector"
     }
   ],
   "GpZr9J": [
@@ -4355,6 +4599,12 @@
       "value": "This will permanently disconnect this data connector from the agent. Are you sure you want to disconnect this data connector?"
     }
   ],
+  "HMZIeG": [
+    {
+      "type": 0,
+      "value": "Get AI-powered quality insights and improvement suggestions"
+    }
+  ],
   "HNECLT": [
     {
       "type": 0,
@@ -4371,6 +4621,12 @@
     {
       "type": 0,
       "value": "Learn more about response plans"
+    }
+  ],
+  "HQc/Lf": [
+    {
+      "type": 0,
+      "value": "Create incident trigger"
     }
   ],
   "HQhDfV": [
@@ -4515,6 +4771,12 @@
       "value": "Core application groups"
     }
   ],
+  "I9W7ey": [
+    {
+      "type": 0,
+      "value": "Completed runs"
+    }
+  ],
   "IAwPyV": [
     {
       "type": 0,
@@ -4553,6 +4815,12 @@
     {
       "type": 0,
       "value": "Azure Managed Grafana"
+    }
+  ],
+  "IIfj4G": [
+    {
+      "type": 0,
+      "value": "Microsoft Teams"
     }
   ],
   "IJX2gV": [
@@ -4661,6 +4929,20 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "ImMx2v": [
+    {
+      "type": 0,
+      "value": "Disconnect "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " connectors?"
     }
   ],
   "InWqys": [
@@ -4941,6 +5223,12 @@
       "value": "Incident research"
     }
   ],
+  "JkS37H": [
+    {
+      "type": 0,
+      "value": "Undo"
+    }
+  ],
   "JkbJ/T": [
     {
       "type": 0,
@@ -4965,6 +5253,18 @@
     {
       "type": 0,
       "value": "Disconnect ServiceNow?"
+    }
+  ],
+  "Jrrm2K": [
+    {
+      "type": 0,
+      "value": "Click \"Execute Tool\" to test this system tool"
+    }
+  ],
+  "Jsy4yb": [
+    {
+      "type": 0,
+      "value": "Try Evaluation"
     }
   ],
   "JwHSD6": [
@@ -5039,6 +5339,12 @@
       "value": "Key findings"
     }
   ],
+  "KJHRU/": [
+    {
+      "type": 0,
+      "value": "Add existing subagent"
+    }
+  ],
   "KJuQJ3": [
     {
       "type": 0,
@@ -5055,6 +5361,12 @@
     {
       "type": 0,
       "value": "Error"
+    }
+  ],
+  "KNwLvk": [
+    {
+      "type": 0,
+      "value": "Test Parameters"
     }
   ],
   "KQ9L9d": [
@@ -5101,6 +5413,12 @@
       "value": "If you click 'Authorize', this operation will be executed on your behalf using your credentials."
     }
   ],
+  "Kfaepo": [
+    {
+      "type": 0,
+      "value": "Learn more about connectors"
+    }
+  ],
   "KgcF6B": [
     {
       "type": 0,
@@ -5137,6 +5455,12 @@
     {
       "type": 0,
       "value": ")"
+    }
+  ],
+  "KptJSd": [
+    {
+      "type": 0,
+      "value": "No MCP tools configured."
     }
   ],
   "KqwLPK": [
@@ -5207,10 +5531,22 @@
       "value": " in progress"
     }
   ],
+  "L7EoQf": [
+    {
+      "type": 0,
+      "value": "Auto-apply ON"
+    }
+  ],
   "L7gQfJ": [
     {
       "type": 0,
       "value": "Welcome to the playground"
+    }
+  ],
+  "LAHAJH": [
+    {
+      "type": 0,
+      "value": "No MCP connections available"
     }
   ],
   "LFb8Ku": [
@@ -5417,6 +5753,16 @@
       "value": "Edit custom response plan"
     }
   ],
+  "M+QCSD": [
+    {
+      "type": 0,
+      "value": "Enter "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "M/3/kG": [
     {
       "type": 0,
@@ -5587,6 +5933,12 @@
       "value": "count"
     }
   ],
+  "MnpUD7": [
+    {
+      "type": 0,
+      "value": "View details"
+    }
+  ],
   "Mnvpbx": [
     {
       "type": 0,
@@ -5743,6 +6095,12 @@
       "value": "Get started with incident management"
     }
   ],
+  "NPm9R5": [
+    {
+      "type": 0,
+      "value": "Failed to load MCP tools."
+    }
+  ],
   "NSWNPa": [
     {
       "type": 0,
@@ -5887,6 +6245,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "O0JI8M": [
+    {
+      "type": 0,
+      "value": "Overall Quality"
     }
   ],
   "O3Ak71": [
@@ -6079,6 +6443,12 @@
       "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
     }
   ],
+  "OrQ4EY": [
+    {
+      "type": 0,
+      "value": "Expand chat preview"
+    }
+  ],
   "OsIQyM": [
     {
       "type": 0,
@@ -6151,6 +6521,20 @@
       "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
     }
   ],
+  "PBKSeP": [
+    {
+      "type": 0,
+      "value": "Set up "
+    },
+    {
+      "type": 1,
+      "value": "service"
+    },
+    {
+      "type": 0,
+      "value": " connector"
+    }
+  ],
   "PCrXDG": [
     {
       "type": 0,
@@ -6187,10 +6571,28 @@
       "value": "Filter incidents"
     }
   ],
+  "PKvAvF": [
+    {
+      "type": 0,
+      "value": "Extend your agent’s capabilities with connectors"
+    }
+  ],
+  "PMgJpH": [
+    {
+      "type": 0,
+      "value": "This will permanently disconnect this connector from the agent. Are you sure you want to disconnect this connector?"
+    }
+  ],
   "PPrKNq": [
     {
       "type": 0,
       "value": "Defines how the agent operates"
+    }
+  ],
+  "PQgsh+": [
+    {
+      "type": 0,
+      "value": "Execute Tool"
     }
   ],
   "PS7hBo": [
@@ -6325,6 +6727,12 @@
       "value": "P2"
     }
   ],
+  "Px6I1N": [
+    {
+      "type": 0,
+      "value": "Total tasks"
+    }
+  ],
   "PxsPJt": [
     {
       "type": 0,
@@ -6455,6 +6863,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "QDa8Q+": [
+    {
+      "type": 0,
+      "value": "Add connector"
     }
   ],
   "QEhO+z": [
@@ -6661,6 +7075,12 @@
       "value": "error"
     }
   ],
+  "R3eMOe": [
+    {
+      "type": 0,
+      "value": "Outlook account"
+    }
+  ],
   "R3mMmc": [
     {
       "type": 0,
@@ -6689,6 +7109,12 @@
     {
       "type": 0,
       "value": "Close panel"
+    }
+  ],
+  "REOGTJ": [
+    {
+      "type": 0,
+      "value": "Add a connector to give the agent additional tools for automating incident handling."
     }
   ],
   "RH8rNM": [
@@ -6873,6 +7299,12 @@
       "value": "Playground mode"
     }
   ],
+  "S8/4ZI": [
+    {
+      "type": 0,
+      "value": "More actions"
+    }
+  ],
   "SAINuE": [
     {
       "type": 0,
@@ -6923,6 +7355,12 @@
     {
       "type": 0,
       "value": "Core application group health + performance"
+    }
+  ],
+  "SR33a/": [
+    {
+      "type": 0,
+      "value": "Restart chat conversation"
     }
   ],
   "SRf69j": [
@@ -7295,6 +7733,12 @@
       "value": "No params needed"
     }
   ],
+  "UBbDNy": [
+    {
+      "type": 0,
+      "value": "No documents in knowledge base. Add some?"
+    }
+  ],
   "UCYFxr": [
     {
       "type": 0,
@@ -7309,6 +7753,12 @@
     {
       "type": 1,
       "value": "mode"
+    }
+  ],
+  "UNQfKX": [
+    {
+      "type": 0,
+      "value": "Enter a descriptive name"
     }
   ],
   "UNXega": [
@@ -7647,16 +8097,16 @@
       "value": "No response plans found"
     }
   ],
-  "W1Qs5O": [
-    {
-      "type": 0,
-      "value": "Runs"
-    }
-  ],
   "W2JBdp": [
     {
       "type": 0,
       "value": "Impact"
+    }
+  ],
+  "W5zi/x": [
+    {
+      "type": 0,
+      "value": "Please try again or check the console for details."
     }
   ],
   "W6NO8g": [
@@ -7828,6 +8278,18 @@
     {
       "type": 0,
       "value": "New thread for each run"
+    }
+  ],
+  "WhuvJH": [
+    {
+      "type": 0,
+      "value": "Auto-apply OFF"
+    }
+  ],
+  "WjqsyE": [
+    {
+      "type": 0,
+      "value": "When enabled, the SearchMemory tool and knowledge base prompts will be automatically added"
     }
   ],
   "Wkup5T": [
@@ -8152,6 +8614,20 @@
       "value": "Highlighted Point"
     }
   ],
+  "XfAFyQ": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " connectors..."
+    }
+  ],
   "Xkdnen": [
     {
       "type": 0,
@@ -8162,6 +8638,12 @@
     {
       "type": 0,
       "value": "Hide watcher panel"
+    }
+  ],
+  "XqRXu6": [
+    {
+      "type": 0,
+      "value": "Playground"
     }
   ],
   "XtnlO8": [
@@ -8286,6 +8768,20 @@
       "value": "Enter a name before creating this item."
     }
   ],
+  "YXOz1v": [
+    {
+      "type": 0,
+      "value": "Executing "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "..."
+    }
+  ],
   "YZIFAO": [
     {
       "type": 0,
@@ -8394,6 +8890,18 @@
       "value": "Monitoring Data Reader Role"
     }
   ],
+  "Z4bt4u": [
+    {
+      "type": 0,
+      "value": "Auto-generated if left empty"
+    }
+  ],
+  "Z5ntkd": [
+    {
+      "type": 0,
+      "value": "Configuration changes are auto-applied (disable auto-apply to use manual apply)"
+    }
+  ],
   "Z6rVz/": [
     {
       "type": 0,
@@ -8458,6 +8966,12 @@
     {
       "type": 0,
       "value": "Check if the agent introduces itself properly and outlines its capabilities."
+    }
+  ],
+  "ZBpAJ/": [
+    {
+      "type": 0,
+      "value": "Chat restarted with new configuration."
     }
   ],
   "ZCA/Ga": [
@@ -8568,6 +9082,12 @@
       "value": "Select an existing tool below to connect."
     }
   ],
+  "Zq5BCQ": [
+    {
+      "type": 0,
+      "value": "Failed to apply changes"
+    }
+  ],
   "ZqVUb5": [
     {
       "type": 1,
@@ -8628,14 +9148,25 @@
       "value": "Medium risk"
     }
   ],
-  "Zx9mK3": [
+  "a1UV+9": [
     {
       "type": 0,
-      "value": "MCP tools · "
+      "value": "Always-on flow + "
     },
     {
-      "type": 1,
+      "style": null,
+      "type": 2,
       "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " active flow AAUs"
+    }
+  ],
+  "a5dT17": [
+    {
+      "type": 0,
+      "value": "Search data connectors"
     }
   ],
   "a5msuh": [
@@ -9014,6 +9545,12 @@
       "value": "Stable - Receives updates once a month"
     }
   ],
+  "bjLeN1": [
+    {
+      "type": 0,
+      "value": "Please restart the chat to see your changes."
+    }
+  ],
   "bjOnWH": [
     {
       "type": 0,
@@ -9082,6 +9619,12 @@
     {
       "type": 0,
       "value": "Title contains"
+    }
+  ],
+  "bs6oPY": [
+    {
+      "type": 0,
+      "value": "Author agent configuration and test"
     }
   ],
   "bswtOq": [
@@ -9238,6 +9781,18 @@
     {
       "type": 0,
       "value": "Storage Account Contributor"
+    }
+  ],
+  "cYwv8P": [
+    {
+      "type": 0,
+      "value": "Intent Match"
+    }
+  ],
+  "ccXLVi": [
+    {
+      "type": 0,
+      "value": "Category"
     }
   ],
   "cfbpDd": [
@@ -9568,6 +10123,12 @@
       "value": "Log Analytics Contributor"
     }
   ],
+  "e3iUbz": [
+    {
+      "type": 0,
+      "value": "Disconnect connector?"
+    }
+  ],
   "e3itcX": [
     {
       "type": 0,
@@ -9614,6 +10175,12 @@
     {
       "type": 0,
       "value": "Read-only mode"
+    }
+  ],
+  "eRwVws": [
+    {
+      "type": 0,
+      "value": "You need an incident platform to add an incident trigger."
     }
   ],
   "eUEjcm": [
@@ -9686,6 +10253,12 @@
       "value": "Add All"
     }
   ],
+  "ekSxhn": [
+    {
+      "type": 0,
+      "value": "Connectors give the agent more tools to take action."
+    }
+  ],
   "emW/QQ": [
     {
       "type": 0,
@@ -9696,6 +10269,12 @@
     {
       "type": 0,
       "value": "Tune agent behavior in a safe space before you publish changes."
+    }
+  ],
+  "eq57j2": [
+    {
+      "type": 0,
+      "value": "Add incident trigger"
     }
   ],
   "eqYdSS": [
@@ -9974,6 +10553,12 @@
       "value": "Copy error details"
     }
   ],
+  "g4Dsk6": [
+    {
+      "type": 0,
+      "value": "Total runs"
+    }
+  ],
   "g4II+z": [
     {
       "type": 0,
@@ -10182,6 +10767,12 @@
       "value": "To change the incident platform, you need to disconnect from ServiceNow. The agent will no longer manage tickets. Are you sure you want to disconnect?"
     }
   ],
+  "h+sisx": [
+    {
+      "type": 0,
+      "value": "Author and Test - Configure and test"
+    }
+  ],
   "h0W8DM": [
     {
       "type": 0,
@@ -10350,6 +10941,12 @@
       "value": "Preview AI recommendations without changing your instructions"
     }
   ],
+  "hkgUC5": [
+    {
+      "type": 0,
+      "value": "No parameters required for this tool."
+    }
+  ],
   "hlmkcL": [
     {
       "type": 0,
@@ -10422,6 +11019,12 @@
       "value": "Resource ID"
     }
   ],
+  "iJ+eDu": [
+    {
+      "type": 0,
+      "value": "Failed to load data"
+    }
+  ],
   "iJCsVz": [
     {
       "type": 0,
@@ -10470,12 +11073,6 @@
       "value": "Core application group resource name"
     }
   ],
-  "ic8SAj": [
-    {
-      "type": 0,
-      "value": "Or"
-    }
-  ],
   "icyjmd": [
     {
       "type": 0,
@@ -10492,6 +11089,12 @@
     {
       "type": 0,
       "value": "Copy command"
+    }
+  ],
+  "iihhVc": [
+    {
+      "type": 0,
+      "value": "Quality Evaluation"
     }
   ],
   "ijOojL": [
@@ -10606,18 +11209,10 @@
       "value": "No extended tools available."
     }
   ],
-  "j2vvrh": [
+  "j1pB0w": [
     {
       "type": 0,
-      "value": "Found "
-    },
-    {
-      "type": 1,
-      "value": "numMemories"
-    },
-    {
-      "type": 0,
-      "value": " relevant memories from past experiences"
+      "value": "Go to Agent Consumption"
     }
   ],
   "j3bwJQ": [
@@ -10648,6 +11243,12 @@
     {
       "type": 0,
       "value": "Choose priority"
+    }
+  ],
+  "jEmOoh": [
+    {
+      "type": 0,
+      "value": "YourAgent"
     }
   ],
   "jHJmjf": [
@@ -10686,6 +11287,48 @@
       "value": "No root cause analysis categories found"
     }
   ],
+  "jSgRib": [
+    {
+      "type": 0,
+      "value": "Your knowledge base has "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "document"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "documents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ". Add more?"
+    }
+  ],
   "jTQZpk": [
     {
       "type": 0,
@@ -10702,6 +11345,12 @@
     {
       "type": 0,
       "value": "You do not have permission to edit response plans."
+    }
+  ],
+  "ja85pV": [
+    {
+      "type": 0,
+      "value": "Add Documents"
     }
   ],
   "jabB4C": [
@@ -10794,6 +11443,20 @@
       "value": "ms"
     }
   ],
+  "k4dB65": [
+    {
+      "type": 0,
+      "value": "This will create both your agent (\""
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "\") and a separate \"meta_agent\" for orchestration."
+    }
+  ],
   "k5T5VE": [
     {
       "type": 0,
@@ -10816,12 +11479,6 @@
     {
       "type": 0,
       "value": "Subscription equals"
-    }
-  ],
-  "kLL6yL": [
-    {
-      "type": 0,
-      "value": "The maximum AAU limit is 20,000"
     }
   ],
   "kNEmDU": [
@@ -10874,6 +11531,12 @@
     {
       "type": 1,
       "value": "failedFiles"
+    }
+  ],
+  "ketkP5": [
+    {
+      "type": 0,
+      "value": "Knowledge Base Enabled"
     }
   ],
   "khOzXi": [
@@ -10944,6 +11607,12 @@
       "value": "State"
     }
   ],
+  "kvKWEJ": [
+    {
+      "type": 0,
+      "value": "Response plan saved successfully"
+    }
+  ],
   "l+e8nZ": [
     {
       "type": 0,
@@ -10970,6 +11639,12 @@
     {
       "type": 0,
       "value": " resource group selected."
+    }
+  ],
+  "l0UKyP": [
+    {
+      "type": 0,
+      "value": "Azure Data Explorer"
     }
   ],
   "l2Ni9H": [
@@ -11122,6 +11797,12 @@
       "value": "No tools available. Try creating one or clearing your filters."
     }
   ],
+  "m4vqJl": [
+    {
+      "type": 0,
+      "value": "Files"
+    }
+  ],
   "m57OnF": [
     {
       "type": 0,
@@ -11188,6 +11869,12 @@
     {
       "type": 0,
       "value": "No tools connected yet."
+    }
+  ],
+  "mMgwbu": [
+    {
+      "type": 0,
+      "value": "Undo (10s)"
     }
   ],
   "mOFG3K": [
@@ -11452,6 +12139,18 @@
       "value": "Review + edit"
     }
   ],
+  "nFpcjX": [
+    {
+      "type": 0,
+      "value": "Auto-generated"
+    }
+  ],
+  "nL/Owh": [
+    {
+      "type": 0,
+      "value": "Send notification"
+    }
+  ],
   "nNwFuy": [
     {
       "type": 0,
@@ -11700,6 +12399,12 @@
       "value": "Allowlist below Managed Identity on your ICM Service Team."
     }
   ],
+  "oTOgOq": [
+    {
+      "type": 0,
+      "value": "Loading MCP tools..."
+    }
+  ],
   "oUWADl": [
     {
       "type": 0,
@@ -11724,10 +12429,10 @@
       "value": "Repository insights"
     }
   ],
-  "ob9EPi": [
+  "ob6s4+": [
     {
       "type": 0,
-      "value": "Permissions to assign roles"
+      "value": "Deny assignment"
     }
   ],
   "obRqDQ": [
@@ -11842,6 +12547,12 @@
       "value": "Manage without access. Can't manage security policies or parent SQL servers."
     }
   ],
+  "p7xkho": [
+    {
+      "type": 0,
+      "value": "Agent consumption"
+    }
+  ],
   "p8Ubox": [
     {
       "type": 0,
@@ -11904,6 +12615,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "pPwNx4": [
+    {
+      "type": 0,
+      "value": "Office 365 Outlook"
     }
   ],
   "pRvgsc": [
@@ -12022,6 +12739,12 @@
       "value": "Link Tool"
     }
   ],
+  "pqedsA": [
+    {
+      "type": 0,
+      "value": "Mute all warnings"
+    }
+  ],
   "pqgzm0": [
     {
       "type": 0,
@@ -12086,12 +12809,6 @@
     {
       "type": 0,
       "value": "Tell us how often your agent should run and we’ll draft the cron expression for you."
-    }
-  ],
-  "qczspd": [
-    {
-      "type": 0,
-      "value": "View plan"
     }
   ],
   "qdAlfY": [
@@ -12428,10 +13145,22 @@
       "value": "Agent can propose actions but requires approval before execution"
     }
   ],
+  "rdsirP": [
+    {
+      "type": 0,
+      "value": "The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and acrtions."
+    }
+  ],
   "rhSI1/": [
     {
       "type": 0,
       "value": "Model"
+    }
+  ],
+  "ri3YXY": [
+    {
+      "type": 0,
+      "value": "Add a connector"
     }
   ],
   "riEsC7": [
@@ -12538,6 +13267,12 @@
       "value": "Assisted by agent"
     }
   ],
+  "rzC0Xo": [
+    {
+      "type": 0,
+      "value": "The agent posts notifications to the activity feed linking to a chat or team."
+    }
+  ],
   "s00xPm": [
     {
       "type": 0,
@@ -12556,6 +13291,12 @@
     {
       "type": 0,
       "value": " data connectors from the agent. Are you sure you want to disconnect these data connectors?"
+    }
+  ],
+  "s2GWth": [
+    {
+      "type": 0,
+      "value": "Intent Match (1-5)"
     }
   ],
   "s2XIgr": [
@@ -12684,6 +13425,12 @@
       "value": "Accepted file types: .md, .txt"
     }
   ],
+  "sRU00i": [
+    {
+      "type": 0,
+      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
+    }
+  ],
   "sRb5P9": [
     {
       "type": 0,
@@ -12740,6 +13487,12 @@
     {
       "type": 0,
       "value": "Add file"
+    }
+  ],
+  "sZIoMy": [
+    {
+      "type": 0,
+      "value": "Send email"
     }
   ],
   "sd1Vy+": [
@@ -12808,6 +13561,12 @@
       "value": "agent"
     }
   ],
+  "spEwRf": [
+    {
+      "type": 0,
+      "value": "You have warnings regarding your agent."
+    }
+  ],
   "sqGM6w": [
     {
       "type": 0,
@@ -12824,6 +13583,12 @@
     {
       "type": 0,
       "value": "SQL Server Contributor"
+    }
+  ],
+  "ssDQgc": [
+    {
+      "type": 0,
+      "value": "Tools from Model Context Protocol (MCP) servers. These tools are grouped by connection and loaded from connected servers such."
     }
   ],
   "strvmG": [
@@ -13078,6 +13843,12 @@
       "value": "No handoffs configured."
     }
   ],
+  "tjklHQ": [
+    {
+      "type": 0,
+      "value": "Experiment with your agent's configuration and see real-time results"
+    }
+  ],
   "tkr5bn": [
     {
       "type": 0,
@@ -13140,6 +13911,12 @@
     {
       "type": 0,
       "value": "Status"
+    }
+  ],
+  "u04DEJ": [
+    {
+      "type": 0,
+      "value": "There was an error loading the usage data. Please try again later."
     }
   ],
   "u0xiAh": [
@@ -13440,6 +14217,12 @@
       "value": "Collapse all"
     }
   ],
+  "v3xWf6": [
+    {
+      "type": 0,
+      "value": "Expand configuration panel"
+    }
+  ],
   "v8cTK0": [
     {
       "type": 0,
@@ -13662,6 +14445,12 @@
       "value": "Unknown agent mode"
     }
   ],
+  "wBgTQg": [
+    {
+      "type": 0,
+      "value": "Author, Test & Evaluate - Full workflow"
+    }
+  ],
   "wEQDC6": [
     {
       "type": 0,
@@ -13682,6 +14471,12 @@
     {
       "type": 1,
       "value": "time"
+    }
+  ],
+  "wGcWbo": [
+    {
+      "type": 0,
+      "value": "Active tasks"
     }
   ],
   "wI+r41": [
@@ -13804,6 +14599,12 @@
       "value": "%. Continue refining to move toward the next tier."
     }
   ],
+  "wjfh7Z": [
+    {
+      "type": 0,
+      "value": "Tester - Test your agent"
+    }
+  ],
   "wk6Nft": [
     {
       "type": 0,
@@ -13870,16 +14671,16 @@
       "value": "Sub-Agent Builder"
     }
   ],
-  "x7C8JZ": [
-    {
-      "type": 0,
-      "value": "No relevant memories found for this query"
-    }
-  ],
   "xDYr9m": [
     {
       "type": 0,
       "value": "incidents reported"
+    }
+  ],
+  "xEjqoV": [
+    {
+      "type": 0,
+      "value": "Click here to learn more"
     }
   ],
   "xGPsyJ": [
@@ -13910,6 +14711,12 @@
     {
       "type": 0,
       "value": "Dictionary (group into args)"
+    }
+  ],
+  "xPuGYM": [
+    {
+      "type": 0,
+      "value": "No connectors match your search"
     }
   ],
   "xSsto+": [
@@ -14094,6 +14901,12 @@
       "value": "Incident priority"
     }
   ],
+  "y79eIb": [
+    {
+      "type": 0,
+      "value": "Assign yourself the SRE Agent Admin role."
+    }
+  ],
   "y87pob": [
     {
       "type": 0,
@@ -14120,6 +14933,12 @@
       "value": "Chat input"
     }
   ],
+  "yJJ/jv": [
+    {
+      "type": 0,
+      "value": "Mute this warning"
+    }
+  ],
   "yJSwfQ": [
     {
       "type": 0,
@@ -14142,6 +14961,12 @@
     {
       "type": 0,
       "value": "This operation is being executed using the agent identity credentials."
+    }
+  ],
+  "yVe+kY": [
+    {
+      "type": 0,
+      "value": "Set up connector"
     }
   ],
   "yX3QcY": [
@@ -14272,6 +15097,12 @@
     {
       "type": 0,
       "value": "Run scenario"
+    }
+  ],
+  "z43sTn": [
+    {
+      "type": 0,
+      "value": "View Knowledge Base"
     }
   ],
   "z5cF/O": [

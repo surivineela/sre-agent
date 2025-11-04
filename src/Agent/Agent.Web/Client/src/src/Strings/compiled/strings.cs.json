@@ -75,6 +75,12 @@
       "value": "Filter by severity level"
     }
   ],
+  "+KyrhG": [
+    {
+      "type": 0,
+      "value": "Choose a tool"
+    }
+  ],
   "+Pmftr": [
     {
       "type": 0,
@@ -99,16 +105,26 @@
       "value": "Container Apps"
     }
   ],
+  "+TnQ2+": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is read-only in the playground."
+    }
+  ],
   "+U6ozc": [
     {
       "type": 0,
-      "value": "Typ"
+      "value": "Service"
     }
   ],
-  "+UcRHd": [
+  "+ZdOJt": [
     {
       "type": 0,
-      "value": "Starter agent"
+      "value": "Turning off scheduled task(s)"
     }
   ],
   "+bJIWo": [
@@ -123,10 +139,22 @@
       "value": "Chcete incident odstranit?"
     }
   ],
+  "+h4pn9": [
+    {
+      "type": 0,
+      "value": "Create new subagent"
+    }
+  ],
   "+hJd45": [
     {
       "type": 0,
       "value": "Upravit datový konektor"
+    }
+  ],
+  "+hOwpi": [
+    {
+      "type": 0,
+      "value": "Select a tool to test"
     }
   ],
   "+iCTRd": [
@@ -147,22 +175,10 @@
       "value": "Provide instructions for what this scheduled task should do."
     }
   ],
-  "+kmL8g": [
-    {
-      "type": 0,
-      "value": "Provide instructions for what this scheduled task should do."
-    }
-  ],
   "+l+XEu": [
     {
       "type": 0,
       "value": "Může číst sešity."
-    }
-  ],
-  "+mtpY7": [
-    {
-      "type": 0,
-      "value": "Steps:"
     }
   ],
   "+nt4l9": [
@@ -213,10 +229,22 @@
       "value": "Přeskočit"
     }
   ],
+  "/5UY6N": [
+    {
+      "type": 0,
+      "value": "The maximum AAU limit is 200,000"
+    }
+  ],
   "/8MshI": [
     {
       "type": 0,
       "value": "Spravujte spravované instance Azure SQL."
+    }
+  ],
+  "/9FZdx": [
+    {
+      "type": 0,
+      "value": "this agent"
     }
   ],
   "/Br0/Z": [
@@ -235,32 +263,56 @@
       "value": "name"
     }
   ],
+  "/GCoTA": [
+    {
+      "type": 0,
+      "value": "Clear"
+    }
+  ],
+  "/ImSqA": [
+    {
+      "type": 0,
+      "value": "Review and create"
+    }
+  ],
   "/N0Usl": [
     {
       "type": 0,
       "value": "Thread title cannot be empty"
     }
   ],
+  "/OUWsL": [
+    {
+      "type": 0,
+      "value": "Get AI recommendations to improve your agent"
+    }
+  ],
   "/RdF9w": [
     {
       "type": 0,
       "value": "Handoffs"
     }
   ],
-  "/F7sHX": [
+  "/TZk1G": [
     {
       "type": 0,
-      "value": "Failed to delete tool "
+      "value": "AAU allocation updated from "
     },
     {
       "type": 1,
-      "value": "name"
-    }
-  ],
-  "/RdF9w": [
+      "value": "oldValue"
+    },
     {
       "type": 0,
-      "value": "Handoffs"
+      "value": " to "
+    },
+    {
+      "type": 1,
+      "value": "newValue"
+    },
+    {
+      "type": 0,
+      "value": " successfully."
     }
   ],
   "/VnDMl": [
@@ -297,6 +349,12 @@
     {
       "type": 0,
       "value": "Tool and subagent activity sent to user"
+    }
+  ],
+  "/bWE45": [
+    {
+      "type": 0,
+      "value": "Scoring agent quality… fresh quick fixes will land here shortly."
     }
   ],
   "/clOBU": [
@@ -439,6 +497,26 @@
       "value": "Analyzoval jsem prostředky vaší aplikace napříč více skupinami prostředků, oblastmi a předplatnými. Poté jsem vytvořil mapu prostředků a jejich propojení, která vychází z primárního prostředku. Na základě získaných poznatků jsem také sestavil několik navrhovaných výzev zaměřených na vaše prostředky."
     }
   ],
+  "0Krg21": [
+    {
+      "type": 0,
+      "value": "Quick fixes"
+    }
+  ],
+  "0MhOuN": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete task "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "? This action cannot be undone."
+    }
+  ],
   "0R+Pet": [
     {
       "type": 0,
@@ -481,6 +559,16 @@
       "value": "Tím dojde k přepsání vašich výběrů nástrojů. Opravdu chcete pokračovat?"
     }
   ],
+  "0aJxT2": [
+    {
+      "type": 0,
+      "value": "Updated "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "0aN6iW": [
     {
       "type": 0,
@@ -491,6 +579,16 @@
     {
       "type": 0,
       "value": "Advanced options"
+    }
+  ],
+  "0eZALE": [
+    {
+      "type": 0,
+      "value": "Last published "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "0fhwgp": [
@@ -517,78 +615,10 @@
       "value": "e.g., Every weekday at 9am"
     }
   ],
-  "0ltHAS": [
-    {
-      "type": 0,
-      "value": "e.g., Every weekday at 9am"
-    }
-  ],
   "0mx8D9": [
     {
       "type": 0,
       "value": "Seznam nástrojů se generuje z pokynů k vlastní odpovědi. Pokud pokyny upravíte, výběrem možnosti „Znovu vygenerovat“ seznam nástrojů aktualizujte. Po opětovném vygenerování nelze předchozí seznam obnovit. Pokud chcete přidat nebo odebrat nástroje, vyberte „Spravovat nástroje“."
-    }
-  ],
-  "0nrwMu": [
-    {
-      "offset": 0,
-      "options": {
-        "=0": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Create scheduled tasks to run agents automatically."
-            }
-          ]
-        },
-        "few": {
-          "value": [
-            {
-              "type": 1,
-              "value": "count"
-            },
-            {
-              "type": 0,
-              "value": " scheduled tasks ready to run agents automatically."
-            }
-          ]
-        },
-        "many": {
-          "value": [
-            {
-              "type": 1,
-              "value": "count"
-            },
-            {
-              "type": 0,
-              "value": " scheduled tasks ready to run agents automatically."
-            }
-          ]
-        },
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "1 scheduled task ready to run agents automatically."
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 1,
-              "value": "count"
-            },
-            {
-              "type": 0,
-              "value": " scheduled tasks ready to run agents automatically."
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
     }
   ],
   "0nrwMu": [
@@ -695,12 +725,6 @@
       "value": "Edit YAML"
     }
   ],
-  "0w+w97": [
-    {
-      "type": 0,
-      "value": "Edit YAML"
-    }
-  ],
   "0w0iFy": [
     {
       "type": 0,
@@ -759,32 +783,6 @@
     {
       "type": 0,
       "value": "Opravdu chcete tuto naplánovanou úlohu obnovit?"
-    }
-  ],
-  "1EnaNQ": [
-    {
-      "type": 0,
-      "value": "Next run: "
-    },
-    {
-      "type": 1,
-      "value": "value"
-    }
-  ],
-  "1FMpZj": [
-    {
-      "type": 0,
-      "value": "Error loading graph: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
-  "1GbY5N": [
-    {
-      "type": 0,
-      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Connectors instead."
     }
   ],
   "1EnaNQ": [
@@ -899,6 +897,12 @@
       "value": "Adresa URL řídicího panelu Grafana"
     }
   ],
+  "1eaczG": [
+    {
+      "type": 0,
+      "value": "Select fix"
+    }
+  ],
   "1fNFGt": [
     {
       "type": 0,
@@ -921,6 +925,74 @@
     {
       "type": 0,
       "value": "General"
+    }
+  ],
+  "1jBkyH": [
+    {
+      "type": 0,
+      "value": "Last confidence: "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "%"
+    }
+  ],
+  "1o9eJ6": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tools selected"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tools selected"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tool selected"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tools selected"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "1rAiXS": [
@@ -951,6 +1023,12 @@
     {
       "type": 0,
       "value": "Přidat"
+    }
+  ],
+  "21vNrm": [
+    {
+      "type": 0,
+      "value": "Validate tool wiring and connector responses in context."
     }
   ],
   "235+J4": [
@@ -1021,6 +1099,12 @@
       "value": "Spravovat úložiště App Configuration."
     }
   ],
+  "2Mm/ie": [
+    {
+      "type": 0,
+      "value": "Failed to save response plan"
+    }
+  ],
   "2OQ6yB": [
     {
       "type": 0,
@@ -1059,16 +1143,40 @@
       "value": "Souhrn incidentu"
     }
   ],
+  "2YgmBr": [
+    {
+      "type": 0,
+      "value": "Scheduled task turned off successfully"
+    }
+  ],
   "2a+ttj": [
     {
       "type": 0,
       "value": "Hloubkové prověřování"
     }
   ],
-  "2e3GZQ": [
+  "2ePVf6": [
     {
       "type": 0,
-      "value": "Create a handoff agent"
+      "value": "Test your agent in a simple chat interface"
+    }
+  ],
+  "2ep4et": [
+    {
+      "type": 0,
+      "value": "Monthly on day "
+    },
+    {
+      "type": 1,
+      "value": "dayOfMonth"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "2hB9SP": [
@@ -1083,16 +1191,10 @@
       "value": "System tools"
     }
   ],
-  "2mMJRv": [
+  "2m6oj5": [
     {
       "type": 0,
-      "value": "Connectors"
-    }
-  ],
-  "2kRPCZ": [
-    {
-      "type": 0,
-      "value": "System tools"
+      "value": "Get started with the curated scenarios below or craft your own prompts."
     }
   ],
   "2mMJRv": [
@@ -1119,16 +1221,16 @@
       "value": "Obsahuje"
     }
   ],
+  "2xE9ci": [
+    {
+      "type": 0,
+      "value": "Analyse the current prompt, tools, and test runs to get tailored guidance."
+    }
+  ],
   "2zi2Yj": [
     {
       "type": 0,
       "value": "Řídicí panel Grafana"
-    }
-  ],
-  "3/wF0G": [
-    {
-      "type": 0,
-      "value": "Slash commands"
     }
   ],
   "3/wF0G": [
@@ -1147,24 +1249,6 @@
     {
       "type": 0,
       "value": "Nenašly se žádné incidenty"
-    }
-  ],
-  "33HEdR": [
-    {
-      "type": 0,
-      "value": "Tools this agent can call"
-    }
-  ],
-  "35Pxrz": [
-    {
-      "type": 0,
-      "value": "Enter a name and instructions before creating this agent."
-    }
-  ],
-  "387FD2": [
-    {
-      "type": 0,
-      "value": "Extended agents"
     }
   ],
   "33HEdR": [
@@ -1209,12 +1293,6 @@
       "value": "No agents available yet"
     }
   ],
-  "3H77Ic": [
-    {
-      "type": 0,
-      "value": "No agents available yet"
-    }
-  ],
   "3JVa6k": [
     {
       "type": 0,
@@ -1245,12 +1323,6 @@
       "value": "No suggestions available"
     }
   ],
-  "3R3pgd": [
-    {
-      "type": 0,
-      "value": "No suggestions available"
-    }
-  ],
   "3Rh7XU": [
     {
       "type": 0,
@@ -1261,6 +1333,12 @@
     {
       "type": 0,
       "value": "Navrhované výzvy k vašim prostředkům"
+    }
+  ],
+  "3SVI5p": [
+    {
+      "type": 0,
+      "value": "Warning"
     }
   ],
   "3VI9mt": [
@@ -1275,12 +1353,6 @@
       "value": "Cron"
     }
   ],
-  "3VI9mt": [
-    {
-      "type": 0,
-      "value": "Save Changes"
-    }
-  ],
   "3a5wL8": [
     {
       "type": 0,
@@ -1293,10 +1365,40 @@
       "value": "Přidat další"
     }
   ],
+  "3n8o15": [
+    {
+      "type": 0,
+      "value": "Apply changes"
+    }
+  ],
   "3nhWFW": [
     {
       "type": 0,
       "value": "Čtenář"
+    }
+  ],
+  "3sNyAo": [
+    {
+      "type": 0,
+      "value": "The url must be in the format: "
+    },
+    {
+      "type": 1,
+      "value": "format"
+    }
+  ],
+  "3sQV42": [
+    {
+      "type": 0,
+      "value": "Estimated total "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "% confidence"
     }
   ],
   "3sjbqq": [
@@ -1353,12 +1455,6 @@
       "value": "Select an existing trigger"
     }
   ],
-  "4/nSt8": [
-    {
-      "type": 0,
-      "value": "Select an existing trigger"
-    }
-  ],
   "40YXE1": [
     {
       "type": 0,
@@ -1375,6 +1471,12 @@
     {
       "type": 0,
       "value": "Chcete zahodit změny?"
+    }
+  ],
+  "42RAxK": [
+    {
+      "type": 0,
+      "value": "Start testing"
     }
   ],
   "44QmgP": [
@@ -1487,10 +1589,10 @@
       "value": "New agents can take a few seconds to appear in the graph. If you do not see it right away, refresh the list after a brief moment."
     }
   ],
-  "4QLM52": [
+  "4Qhg3L": [
     {
       "type": 0,
-      "value": "New agents can take a few seconds to appear in the graph. If you do not see it right away, refresh the list after a brief moment."
+      "value": "Keep the description brief and explain the task’s actions. Include necessary resource identifiers, specify time-sensitive information, and define success/failure signals or required output formats."
     }
   ],
   "4TnjxL": [
@@ -1515,12 +1617,6 @@
     {
       "type": 0,
       "value": "Přejít na plán reakcí"
-    }
-  ],
-  "4fPELu": [
-    {
-      "type": 0,
-      "value": "Function"
     }
   ],
   "4fPELu": [
@@ -1559,16 +1655,16 @@
       "value": "Plán reakcí na incidenty definuje, které incidenty má agent zpracovávat na základě vašich kritérií filtrování, a zajišťuje tak reakce na požadovanou sadu incidentů."
     }
   ],
+  "4oK1Me": [
+    {
+      "type": 0,
+      "value": "Switch to form"
+    }
+  ],
   "4pJVaS": [
     {
       "type": 0,
       "value": "Select row"
-    }
-  ],
-  "4uiKBK": [
-    {
-      "type": 0,
-      "value": "Select a Kusto connector"
     }
   ],
   "4uiKBK": [
@@ -1589,12 +1685,6 @@
       "value": "The type of data source"
     }
   ],
-  "4z+NaY": [
-    {
-      "type": 0,
-      "value": "The type of data source"
-    }
-  ],
   "5+bQr/": [
     {
       "type": 0,
@@ -1607,10 +1697,26 @@
       "value": "Azure Monitor není připojen."
     }
   ],
+  "531otx": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", I need diagnostics for intermittent latency spikes across AKS clusters eastus & westeurope."
+    }
+  ],
   "53O1/Z": [
     {
       "type": 0,
       "value": "Pokrytí incidentu"
+    }
+  ],
+  "53qjcm": [
+    {
+      "type": 0,
+      "value": "Updating scheduled task"
     }
   ],
   "543Ygw": [
@@ -1661,6 +1767,18 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "5Lc8g/": [
+    {
+      "type": 0,
+      "value": "Preview updated"
+    }
+  ],
+  "5M+Mu/": [
+    {
+      "type": 0,
+      "value": "Close quality watcher"
     }
   ],
   "5MSxYS": [
@@ -1867,6 +1985,12 @@
       "value": "Heslo"
     }
   ],
+  "5ukccA": [
+    {
+      "type": 0,
+      "value": "Run an analysis to see tailored fixes."
+    }
+  ],
   "5w4pim": [
     {
       "type": 0,
@@ -1893,6 +2017,24 @@
     {
       "type": 1,
       "value": "count"
+    }
+  ],
+  "5xbHr/": [
+    {
+      "type": 1,
+      "value": "metric"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "%. Start experimenting—your upgrade path awaits."
     }
   ],
   "5y2qWO": [
@@ -1941,6 +2083,22 @@
     {
       "type": 0,
       "value": "Zadejte URI služby Key Vault"
+    }
+  ],
+  "6B0Aua": [
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": " XP"
+    }
+  ],
+  "6CxEZS": [
+    {
+      "type": 0,
+      "value": "Edit & test live agent"
     }
   ],
   "6ENgmY": [
@@ -2019,6 +2177,12 @@
     {
       "type": 0,
       "value": "Schváleno"
+    }
+  ],
+  "6Y8rFa": [
+    {
+      "type": 0,
+      "value": "No change since last run"
     }
   ],
   "6YHhH+": [
@@ -2103,10 +2267,28 @@
       "value": "error"
     }
   ],
+  "6w0QQX": [
+    {
+      "type": 0,
+      "value": "Apply your edits and refresh insights"
+    }
+  ],
+  "6yuD0y": [
+    {
+      "type": 0,
+      "value": "Read-only lock"
+    }
+  ],
   "6zUWZ/": [
     {
       "type": 0,
       "value": "Umožňuje číst všechna data monitorování a upravovat nastavení monitorování."
+    }
+  ],
+  "7+Domh": [
+    {
+      "type": 0,
+      "value": "Notes"
     }
   ],
   "7+b0J0": [
@@ -2123,6 +2305,12 @@
     {
       "type": 1,
       "value": "time"
+    }
+  ],
+  "73c47a": [
+    {
+      "type": 0,
+      "value": "Turn on scheduled task"
     }
   ],
   "74vgSJ": [
@@ -2183,6 +2371,54 @@
     {
       "type": 0,
       "value": "Azure Monitor"
+    }
+  ],
+  "7Or82y": [
+    {
+      "type": 0,
+      "value": "Agent quality is "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "/100 with "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fix ready"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fixes ready"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "7TVRcx": [
@@ -2313,24 +2549,10 @@
       "value": "Azure Managed Grafana je plně spravovaná služba pro analýzy a monitorování. Pokud chcete přidat službu a řídicí panel Grafany, musíte vytvořit prostředek Azure Managed Grafana. Potřebná oprávnění se automaticky přiřadí, aby řídicí panel mohl zobrazit data monitorování. Za službu Azure Managed Grafana se ve vašem předplatném účtují poplatky."
     }
   ],
-  "7smbCB": [
+  "7sbcy0": [
     {
       "type": 0,
-      "value": "Define autonomous agents with custom instructions and capabilities"
-    }
-  ],
-  "7tqXmc": [
-    {
-      "type": 0,
-      "value": "Describe how "
-    },
-    {
-      "type": 1,
-      "value": "agentName"
-    },
-    {
-      "type": 0,
-      "value": " should handle new incidents."
+      "value": "Confidence is calculated based on your agent prompt, available tools, and chat interactions. Click refresh to get AI-powered recommendations."
     }
   ],
   "7smbCB": [
@@ -2393,22 +2615,6 @@
       "value": "No matches for the current filters."
     }
   ],
-  "83YwiU": [
-    {
-      "type": 0,
-      "value": "Tool details · "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    }
-  ],
-  "86kOeb": [
-    {
-      "type": 0,
-      "value": "No matches for the current filters."
-    }
-  ],
   "87v+WY": [
     {
       "type": 0,
@@ -2439,12 +2645,6 @@
       "value": "These will be replaced with actual values at runtime."
     }
   ],
-  "8LMIGa": [
-    {
-      "type": 0,
-      "value": "These will be replaced with actual values at runtime."
-    }
-  ],
   "8NHZQV": [
     {
       "type": 0,
@@ -2457,10 +2657,58 @@
       "value": "Posledních 24 hodin"
     }
   ],
-  "8Q504V": [
+  "8OCpdQ": [
     {
-      "type": 0,
-      "value": "Metadata"
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " days ago"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " days ago"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " day ago"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " days ago"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "8Q504V": [
@@ -2481,22 +2729,10 @@
       "value": "Describe this connector..."
     }
   ],
-  "8RcpTO": [
-    {
-      "type": 0,
-      "value": "Describe this connector..."
-    }
-  ],
   "8RdOD0": [
     {
       "type": 0,
       "value": "Vybrat identitu"
-    }
-  ],
-  "8UznIt": [
-    {
-      "type": 0,
-      "value": "Úlohu se nepovedlo obnovit"
     }
   ],
   "8Vd2Kv": [
@@ -2759,10 +2995,10 @@
       "value": "e.g., IncidentAnalyzer"
     }
   ],
-  "9MwJ6v": [
+  "9SQWi9": [
     {
       "type": 0,
-      "value": "e.g., IncidentAnalyzer"
+      "value": "Configuration target"
     }
   ],
   "9VUlhV": [
@@ -2777,10 +3013,16 @@
       "value": "Send"
     }
   ],
-  "9WRlF4": [
+  "9X3VEw": [
     {
       "type": 0,
-      "value": "Send"
+      "value": "The task will stop running after reaching this number"
+    }
+  ],
+  "9XASFm": [
+    {
+      "type": 0,
+      "value": "Selected files table"
     }
   ],
   "9ZIBMx": [
@@ -2805,20 +3047,50 @@
       "value": "count"
     }
   ],
-  "9bH3e2": [
+  "9jaWOF": [
     {
       "type": 0,
-      "value": "Nodes: "
+      "value": "MCP tools · "
     },
     {
       "type": 1,
       "value": "count"
     }
   ],
+  "9q75fe": [
+    {
+      "type": 0,
+      "value": "No handoff agents available"
+    }
+  ],
+  "9sDoY5": [
+    {
+      "type": 1,
+      "value": "completed"
+    },
+    {
+      "type": 0,
+      "value": " of "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " completed"
+    }
+  ],
   "9uOFF3": [
     {
       "type": 0,
       "value": "Přehled"
+    }
+  ],
+  "9xBQKf": [
+    {
+      "type": 0,
+      "value": "YAML editing is coming soon for this entity."
     }
   ],
   "A/xTHO": [
@@ -2849,6 +3121,12 @@
     {
       "type": 0,
       "value": "Templates"
+    }
+  ],
+  "A4ZrJb": [
+    {
+      "type": 0,
+      "value": "Playground actions are coming soon."
     }
   ],
   "AA/tRJ": [
@@ -2897,10 +3175,10 @@
       "value": "Nejsou nakonfigurované žádné datové konektory"
     }
   ],
-  "ATXGa+": [
+  "ASLbZd": [
     {
       "type": 0,
-      "value": "Agent Name"
+      "value": "Export analysis"
     }
   ],
   "ATXGa+": [
@@ -2913,6 +3191,12 @@
     {
       "type": 0,
       "value": "Zobrazit pouze doporučené skupiny prostředků"
+    }
+  ],
+  "AYrXUB": [
+    {
+      "type": 0,
+      "value": "No pending configuration changes to apply"
     }
   ],
   "AaJ/LU": [
@@ -2939,14 +3223,14 @@
       "value": "Zadejte pokyny."
     }
   ],
-  "AdRf7Y": [
+  "Ad7J7h": [
     {
       "type": 0,
-      "value": "Detected cron: "
+      "value": "Failed to delete task: "
     },
     {
       "type": 1,
-      "value": "cron"
+      "value": "errorMessage"
     }
   ],
   "AdRf7Y": [
@@ -2957,6 +3241,12 @@
     {
       "type": 1,
       "value": "cron"
+    }
+  ],
+  "AdnFH8": [
+    {
+      "type": 0,
+      "value": "The current consumption exceeds the new allocation, which will take effect next month. Until then, the agent will run only in the always-on flow. Chat and actions will be unavailable."
     }
   ],
   "AeWmvh": [
@@ -3033,30 +3323,10 @@
       "value": "connectors"
     }
   ],
-  "AzTehW": [
+  "B7EJpi": [
     {
       "type": 0,
-      "value": "Review and edit the full "
-    },
-    {
-      "type": 1,
-      "value": "entityLabel"
-    },
-    {
-      "type": 0,
-      "value": " YAML."
-    }
-  ],
-  "B3Q5mz": [
-    {
-      "type": 0,
-      "value": "Trigger"
-    }
-  ],
-  "B5kyn8": [
-    {
-      "type": 0,
-      "value": "connectors"
+      "value": "Agent Quality"
     }
   ],
   "BEck3n": [
@@ -3081,6 +3351,20 @@
     {
       "type": 0,
       "value": "Edit a scheduled task"
+    }
+  ],
+  "BNH9Uy": [
+    {
+      "type": 0,
+      "value": "Quality "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "/100"
     }
   ],
   "BP3wUO": [
@@ -3137,6 +3421,12 @@
       "value": "Binding"
     }
   ],
+  "BbTpTJ": [
+    {
+      "type": 0,
+      "value": "Using latest YAML changes"
+    }
+  ],
   "BcEbxp": [
     {
       "type": 1,
@@ -3145,12 +3435,6 @@
     {
       "type": 0,
       "value": "s"
-    }
-  ],
-  "BWt4Jj": [
-    {
-      "type": 0,
-      "value": "Binding"
     }
   ],
   "Bcgdb7": [
@@ -3215,6 +3499,12 @@
       "value": " data connectors..."
     }
   ],
+  "BuziI2": [
+    {
+      "type": 0,
+      "value": "Collapse panel"
+    }
+  ],
   "BynA9c": [
     {
       "type": 0,
@@ -3239,10 +3529,34 @@
       "value": "Přispěvatel aplikace logiky"
     }
   ],
+  "CBHDb1": [
+    {
+      "type": 0,
+      "value": "Task status"
+    }
+  ],
+  "CEdEmD": [
+    {
+      "type": 0,
+      "value": "Creates a draft agent and tool workspace for testing without touching production. Coming soon..."
+    }
+  ],
   "CFJ1OD": [
     {
       "type": 0,
       "value": "Role s oprávněním jen pro čtení pro vlastnosti roviny dat Digital Twins."
+    }
+  ],
+  "CGn7Yd": [
+    {
+      "type": 0,
+      "value": "Link a tool or create a new one to configure it here."
+    }
+  ],
+  "CHt7dX": [
+    {
+      "type": 0,
+      "value": "MCP Tools (Optional)"
     }
   ],
   "CJ6tzL": [
@@ -3269,6 +3583,12 @@
       "value": "Přístup pro zápis k prostředkům jazykové služby."
     }
   ],
+  "CMbKXm": [
+    {
+      "type": 0,
+      "value": "Playground highlights"
+    }
+  ],
   "CNd+KS": [
     {
       "type": 0,
@@ -3279,18 +3599,6 @@
     {
       "type": 0,
       "value": "How would you like to define the schedule?"
-    }
-  ],
-  "CTRqZs": [
-    {
-      "type": 0,
-      "value": "Test query"
-    }
-  ],
-  "CNd+KS": [
-    {
-      "type": 0,
-      "value": "Connect related agents and tools"
     }
   ],
   "CTRqZs": [
@@ -3369,6 +3677,18 @@
       "value": "Pokud chcete změnit platformu incidentu, musíte se odpojit od PagerDuty. Agent už nebude spravovat lístky. Opravdu se chcete odpojit?"
     }
   ],
+  "CppiJ4": [
+    {
+      "type": 0,
+      "value": "Applying your changes"
+    }
+  ],
+  "Cv2vtV": [
+    {
+      "type": 0,
+      "value": "moments ago"
+    }
+  ],
   "CvGdox": [
     {
       "type": 0,
@@ -3385,20 +3705,6 @@
     {
       "type": 0,
       "value": "Připojení k platformě ServiceNow se nezdařilo. Zkontrolujte konfiguraci a zkuste to znovu."
-    }
-  ],
-  "CzglId": [
-    {
-      "type": 0,
-      "value": "Opravdu chcete naplánovanou úlohu "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " odstranit? Tato akce je nevratná."
     }
   ],
   "D/TfIH": [
@@ -3447,6 +3753,18 @@
       "value": "Custom instructions"
     }
   ],
+  "D97db3": [
+    {
+      "type": 0,
+      "value": "Select a response subagent"
+    }
+  ],
+  "DD2Wjk": [
+    {
+      "type": 0,
+      "value": "Incidents preview"
+    }
+  ],
   "DDSwQB": [
     {
       "type": 1,
@@ -3479,16 +3797,16 @@
       "value": "Code optimization insights"
     }
   ],
+  "DFQKku": [
+    {
+      "type": 0,
+      "value": "Ops Pro"
+    }
+  ],
   "DJN+DZ": [
     {
       "type": 0,
       "value": "Choose whether to run deep investigations alongside regular investigations"
-    }
-  ],
-  "DMEE1o": [
-    {
-      "type": 0,
-      "value": "Select a tool to connect"
     }
   ],
   "DMEE1o": [
@@ -3521,10 +3839,26 @@
       "value": "Při opětovném vygenerování se přepíšou všechny úpravy provedené ve vygenerované části kódu."
     }
   ],
+  "DWD03m": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", audit today’s incidents and draft a leadership update with priority blockers."
+    }
+  ],
   "DX7w9O": [
     {
       "type": 0,
       "value": "Vybrané incidenty"
+    }
+  ],
+  "Da55kZ": [
+    {
+      "type": 0,
+      "value": "Select MCP tools from connected servers"
     }
   ],
   "DasCIQ": [
@@ -3537,6 +3871,12 @@
     {
       "type": 0,
       "value": "Plány reakcí"
+    }
+  ],
+  "Df+1hk": [
+    {
+      "type": 0,
+      "value": "Analysing configuration…"
     }
   ],
   "Dff3ms": [
@@ -3561,12 +3901,6 @@
     {
       "type": 0,
       "value": "A data source connection for tools (e.g., Kusto cluster for running queries)"
-    }
-  ],
-  "DhBWKr": [
-    {
-      "type": 0,
-      "value": "No instructions provided yet."
     }
   ],
   "DlSXUR": [
@@ -3659,6 +3993,12 @@
       "value": "Transakce za posledních 30 minut"
     }
   ],
+  "EEb00g": [
+    {
+      "type": 0,
+      "value": "Run insights to track confidence and recommended fixes."
+    }
+  ],
   "EHyU+4": [
     {
       "type": 0,
@@ -3713,6 +4053,12 @@
       "value": "Uděluje oprávnění pro operace čtení u prostředků App Configuration."
     }
   ],
+  "EOt0+9": [
+    {
+      "type": 0,
+      "value": "Full workflow with quality evaluation"
+    }
+  ],
   "ESChST": [
     {
       "type": 0,
@@ -3741,6 +4087,12 @@
     {
       "type": 0,
       "value": "Knowledge Base"
+    }
+  ],
+  "Ebd6gR": [
+    {
+      "type": 0,
+      "value": "The agent sends email messages."
     }
   ],
   "Ec1M0J": [
@@ -3813,6 +4165,12 @@
       "value": "Uživatel"
     }
   ],
+  "F4a/f4": [
+    {
+      "type": 0,
+      "value": "User Permissions"
+    }
+  ],
   "F5b1Mw": [
     {
       "type": 0,
@@ -3843,6 +4201,12 @@
     {
       "type": 0,
       "value": "Relationship preview"
+    }
+  ],
+  "F8xMoD": [
+    {
+      "type": 0,
+      "value": "Loading tool details..."
     }
   ],
   "F9LrJA": [
@@ -3889,6 +4253,12 @@
       "value": "CPU usage insights"
     }
   ],
+  "FLN/px": [
+    {
+      "type": 0,
+      "value": "Chat diagnostics"
+    }
+  ],
   "FLm/x4": [
     {
       "type": 0,
@@ -3919,6 +4289,16 @@
       "value": "Kdy by se měla tato úloha spustit?"
     }
   ],
+  "FSZ5F/": [
+    {
+      "type": 0,
+      "value": "Deleting scheduled task "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "FTWkpv": [
     {
       "type": 0,
@@ -3941,6 +4321,18 @@
     {
       "type": 0,
       "value": "Podrobnosti spuštění"
+    }
+  ],
+  "FeBVnC": [
+    {
+      "type": 0,
+      "value": "You can edit this entity directly or spin up a copy once cloning is available."
+    }
+  ],
+  "FeBneB": [
+    {
+      "type": 0,
+      "value": "Probe for multi-step diagnostics to see if the agent can orchestrate tools effectively."
     }
   ],
   "FitglU": [
@@ -4043,6 +4435,12 @@
       "value": "Agenti"
     }
   ],
+  "GCQn0j": [
+    {
+      "type": 0,
+      "value": "Tool testing is unavailable for this entity."
+    }
+  ],
   "GCVHNV": [
     {
       "type": 0,
@@ -4063,10 +4461,28 @@
       "value": " data connectors"
     }
   ],
+  "GCcYpN": [
+    {
+      "type": 0,
+      "value": "No MCP tools available"
+    }
+  ],
   "GCmxza": [
     {
       "type": 0,
       "value": "Back to commands"
+    }
+  ],
+  "GMhzu1": [
+    {
+      "type": 0,
+      "value": "Response subagent"
+    }
+  ],
+  "GSCabm": [
+    {
+      "type": 0,
+      "value": "MCP tools"
     }
   ],
   "GUx4Ld": [
@@ -4079,6 +4495,12 @@
     {
       "type": 0,
       "value": "Incident details"
+    }
+  ],
+  "GdgrWi": [
+    {
+      "type": 0,
+      "value": "Select a tool"
     }
   ],
   "GkJbiq": [
@@ -4103,6 +4525,12 @@
     {
       "type": 0,
       "value": "Minimální oprávnění pro zobrazení využití Cognitive Services."
+    }
+  ],
+  "GpHWFC": [
+    {
+      "type": 0,
+      "value": "Choose a connector"
     }
   ],
   "GpZr9J": [
@@ -4189,6 +4617,12 @@
       "value": "This will permanently disconnect this data connector from the agent. Are you sure you want to disconnect this data connector?"
     }
   ],
+  "HMZIeG": [
+    {
+      "type": 0,
+      "value": "Get AI-powered quality insights and improvement suggestions"
+    }
+  ],
   "HNECLT": [
     {
       "type": 0,
@@ -4207,6 +4641,12 @@
       "value": "Learn more about response plans"
     }
   ],
+  "HQc/Lf": [
+    {
+      "type": 0,
+      "value": "Create incident trigger"
+    }
+  ],
   "HQhDfV": [
     {
       "type": 0,
@@ -4217,6 +4657,12 @@
     {
       "type": 0,
       "value": "K vypnutí hloubkového prověřování nemáte oprávnění."
+    }
+  ],
+  "HUPaMQ": [
+    {
+      "type": 0,
+      "value": "View findings"
     }
   ],
   "HWMrXF": [
@@ -4245,6 +4691,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "Hh8It5": [
+    {
+      "type": 0,
+      "value": "Changes pending analysis"
     }
   ],
   "HiBsED": [
@@ -4337,6 +4789,12 @@
       "value": "Základní skupiny aplikací"
     }
   ],
+  "I9W7ey": [
+    {
+      "type": 0,
+      "value": "Completed runs"
+    }
+  ],
   "IAwPyV": [
     {
       "type": 0,
@@ -4377,10 +4835,30 @@
       "value": "Azure Managed Grafana"
     }
   ],
+  "IIfj4G": [
+    {
+      "type": 0,
+      "value": "Microsoft Teams"
+    }
+  ],
   "IJX2gV": [
     {
       "type": 0,
       "value": "Connect handoffs and tools"
+    }
+  ],
+  "INiE0x": [
+    {
+      "type": 0,
+      "value": "Agent quality is "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "/100 but may be outdated. Refresh to keep guidance current."
     }
   ],
   "INiSE2": [
@@ -4487,6 +4965,12 @@
     {
       "type": 0,
       "value": "The agent uses predefined queries for structured logs, telemetry, and time series data."
+    }
+  ],
+  "Ip7Gd3": [
+    {
+      "type": 0,
+      "value": "Auto-apply"
     }
   ],
   "IrCHQG": [
@@ -4725,6 +5209,20 @@
       "value": " locations selected"
     }
   ],
+  "JbMs9l": [
+    {
+      "type": 0,
+      "value": "Agent quality is "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "/100. No quick fixes right now."
+    }
+  ],
   "JbmMWM": [
     {
       "type": 0,
@@ -4743,6 +5241,12 @@
       "value": "Získat všechny incidenty"
     }
   ],
+  "JiENoF": [
+    {
+      "type": 0,
+      "value": "Hide diff"
+    }
+  ],
   "JjKcCj": [
     {
       "type": 0,
@@ -4753,6 +5257,12 @@
     {
       "type": 0,
       "value": "Průzkum incidentu"
+    }
+  ],
+  "JkS37H": [
+    {
+      "type": 0,
+      "value": "Undo"
     }
   ],
   "JkbJ/T": [
@@ -4779,6 +5289,18 @@
     {
       "type": 0,
       "value": "Odpojit ServiceNow?"
+    }
+  ],
+  "Jrrm2K": [
+    {
+      "type": 0,
+      "value": "Click \"Execute Tool\" to test this system tool"
+    }
+  ],
+  "Jsy4yb": [
+    {
+      "type": 0,
+      "value": "Try Evaluation"
     }
   ],
   "JwHSD6": [
@@ -4829,16 +5351,34 @@
       "value": "MCP servers"
     }
   ],
+  "KAYnaH": [
+    {
+      "type": 0,
+      "value": "Auto-applying changes… latest draft will be used for new tests."
+    }
+  ],
   "KAYpG9": [
     {
       "type": 0,
       "value": "Poskytuje úplné oprávnění ke čtení vlastností roviny dat IoT Hub."
     }
   ],
+  "KGmQjH": [
+    {
+      "type": 0,
+      "value": "Highlights"
+    }
+  ],
   "KI/Heo": [
     {
       "type": 0,
       "value": "Stěžejní závěry"
+    }
+  ],
+  "KJHRU/": [
+    {
+      "type": 0,
+      "value": "Add existing subagent"
     }
   ],
   "KJuQJ3": [
@@ -4857,6 +5397,12 @@
     {
       "type": 0,
       "value": "Chyba"
+    }
+  ],
+  "KNwLvk": [
+    {
+      "type": 0,
+      "value": "Test Parameters"
     }
   ],
   "KQ9L9d": [
@@ -4883,6 +5429,20 @@
       "value": "Naléhavost"
     }
   ],
+  "KaLLyk": [
+    {
+      "type": 0,
+      "value": "Projected +"
+    },
+    {
+      "type": 1,
+      "value": "lift"
+    },
+    {
+      "type": 0,
+      "value": " overall"
+    }
+  ],
   "KbCGsK": [
     {
       "type": 0,
@@ -4893,6 +5453,12 @@
     {
       "type": 0,
       "value": "Yes/No"
+    }
+  ],
+  "KiANnA": [
+    {
+      "type": 0,
+      "value": "Turn on scheduled task(s)"
     }
   ],
   "Kkc3/u": [
@@ -4919,6 +5485,12 @@
     {
       "type": 0,
       "value": ")"
+    }
+  ],
+  "KptJSd": [
+    {
+      "type": 0,
+      "value": "No MCP tools configured."
     }
   ],
   "KqwLPK": [
@@ -4989,10 +5561,50 @@
       "value": "."
     }
   ],
+  "L7EoQf": [
+    {
+      "type": 0,
+      "value": "Auto-apply ON"
+    }
+  ],
+  "L7gQfJ": [
+    {
+      "type": 0,
+      "value": "Welcome to the playground"
+    }
+  ],
+  "LAHAJH": [
+    {
+      "type": 0,
+      "value": "No MCP connections available"
+    }
+  ],
+  "LFb8Ku": [
+    {
+      "type": 0,
+      "value": "recent activity"
+    }
+  ],
   "LFn7Ak": [
     {
       "type": 0,
       "value": "Naplánovaná úloha se úspěšně vytvořila."
+    }
+  ],
+  "LGZkPZ": [
+    {
+      "type": 0,
+      "value": "Switch to YAML"
+    }
+  ],
+  "LIm7q8": [
+    {
+      "type": 0,
+      "value": "Analysed "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "LLt8Ve": [
@@ -5071,6 +5683,12 @@
       "value": " se nepovedlo přidat roli správce SRE Agenta"
     }
   ],
+  "LXOsKd": [
+    {
+      "type": 0,
+      "value": "We could not generate insights right now. Try again in a moment."
+    }
+  ],
   "LZyV4T": [
     {
       "type": 0,
@@ -5113,6 +5731,60 @@
       "value": "Direct argument"
     }
   ],
+  "LupnQU": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours ago"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours ago"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hour ago"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours ago"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "Lv0zJu": [
     {
       "type": 0,
@@ -5137,10 +5809,14 @@
       "value": "Upravit vlastní plán reakcí"
     }
   ],
-  "M+AZNX": [
+  "M+QCSD": [
     {
       "type": 0,
-      "value": "Delete scheduled tasks"
+      "value": "Enter "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "M/3/kG": [
@@ -5225,6 +5901,12 @@
       "value": "Dictionary key (map_to)"
     }
   ],
+  "MOhprT": [
+    {
+      "type": 0,
+      "value": "Preview diff"
+    }
+  ],
   "MOsoTa": [
     {
       "type": 0,
@@ -5307,6 +5989,12 @@
       "value": "count"
     }
   ],
+  "MnpUD7": [
+    {
+      "type": 0,
+      "value": "View details"
+    }
+  ],
   "Mnvpbx": [
     {
       "type": 0,
@@ -5327,6 +6015,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "Mx6yYf": [
+    {
+      "type": 0,
+      "value": "Scheduled task(s) turned off successfully"
     }
   ],
   "MxYLKu": [
@@ -5381,6 +6075,16 @@
       "value": "."
     }
   ],
+  "N7cqYp": [
+    {
+      "type": 0,
+      "value": "Turning off scheduled task "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "N7lPfx": [
     {
       "type": 0,
@@ -5423,6 +6127,12 @@
       "value": "Agent Type"
     }
   ],
+  "NGhUmq": [
+    {
+      "type": 0,
+      "value": "Refresh insights"
+    }
+  ],
   "NIrBo5": [
     {
       "type": 0,
@@ -5439,6 +6149,12 @@
     {
       "type": 0,
       "value": "Začínáme se správou incidentů"
+    }
+  ],
+  "NPm9R5": [
+    {
+      "type": 0,
+      "value": "Failed to load MCP tools."
     }
   ],
   "NSWNPa": [
@@ -5567,6 +6283,56 @@
       "value": " minutes"
     }
   ],
+  "O+srpo": [
+    {
+      "type": 0,
+      "value": "Review "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+            {
+              "type": 0,
+              "value": "findings"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fix"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fixes"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "O0JI8M": [
+    {
+      "type": 0,
+      "value": "Overall Quality"
+    }
+  ],
   "O3Ak71": [
     {
       "type": 0,
@@ -5583,6 +6349,12 @@
     {
       "type": 0,
       "value": "Opravdu chcete odstranit tohoto agenta SRE Agent? Tato akce je nevratná."
+    }
+  ],
+  "OBoUb6": [
+    {
+      "type": 0,
+      "value": "Fresh"
     }
   ],
   "OIWzWF": [
@@ -5705,6 +6477,22 @@
       "value": "Provide information the agent will reference when analyzing or answering questions."
     }
   ],
+  "OYKAqF": [
+    {
+      "type": 0,
+      "value": "Quick start"
+    }
+  ],
+  "Oc1AVw": [
+    {
+      "type": 0,
+      "value": "Draft synced "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "OeU7Xk": [
     {
       "type": 0,
@@ -5729,6 +6517,12 @@
     {
       "type": 0,
       "value": "Umožňuje zobrazit a prohledávat všechna data monitorování a zobrazit nastavení monitorování, včetně zobrazení konfigurace diagnostiky Azure ve všech prostředcích Azure."
+    }
+  ],
+  "OrQ4EY": [
+    {
+      "type": 0,
+      "value": "Expand chat preview"
     }
   ],
   "OsIQyM": [
@@ -5803,6 +6597,20 @@
       "value": "Váš agent je v režimu jen pro čtení. Pro to, aby agent mohl vytvářet znalosti o vašich prostředcích, jsou vyžadována následující oprávnění. Role přispěvatele pro konkrétní služby nebudou použity k provádění žádných operací zápisu."
     }
   ],
+  "PBKSeP": [
+    {
+      "type": 0,
+      "value": "Set up "
+    },
+    {
+      "type": 1,
+      "value": "service"
+    },
+    {
+      "type": 0,
+      "value": " connector"
+    }
+  ],
   "PCrXDG": [
     {
       "type": 0,
@@ -5843,6 +6651,12 @@
     {
       "type": 0,
       "value": "Defines how the agent operates"
+    }
+  ],
+  "PQgsh+": [
+    {
+      "type": 0,
+      "value": "Execute Tool"
     }
   ],
   "PS7hBo": [
@@ -5973,10 +6787,16 @@
       "value": "P2"
     }
   ],
-  "PysW/n": [
+  "Px6I1N": [
     {
       "type": 0,
-      "value": "Reset changes"
+      "value": "Total tasks"
+    }
+  ],
+  "PxsPJt": [
+    {
+      "type": 0,
+      "value": "Turning on scheduled task(s)"
     }
   ],
   "PysW/n": [
@@ -6001,6 +6821,12 @@
     {
       "type": 0,
       "value": "Čas rozhodnutí"
+    }
+  ],
+  "Q2CgqG": [
+    {
+      "type": 0,
+      "value": "Choose your approach below. You can always switch between editing and testing."
     }
   ],
   "Q3p3sz": [
@@ -6195,6 +7021,12 @@
       "value": "Webové aplikace"
     }
   ],
+  "Ql/5RS": [
+    {
+      "type": 0,
+      "value": "Scoring…"
+    }
+  ],
   "QlkL14": [
     {
       "type": 0,
@@ -6227,6 +7059,12 @@
       "value": "\""
     }
   ],
+  "Qn5bey": [
+    {
+      "type": 0,
+      "value": "No quick fixes needed."
+    }
+  ],
   "Qn8Bok": [
     {
       "type": 0,
@@ -6239,6 +7077,12 @@
       "value": "e.g., 0 9 * * 1-5"
     }
   ],
+  "QpCzB2": [
+    {
+      "type": 0,
+      "value": "Resize configuration and preview panels"
+    }
+  ],
   "QrihTZ": [
     {
       "type": 0,
@@ -6249,6 +7093,12 @@
     {
       "type": 0,
       "value": "Autorizovat"
+    }
+  ],
+  "QzM+2e": [
+    {
+      "type": 0,
+      "value": "Start filling in the fields above to define this tool."
     }
   ],
   "R+J5ox": [
@@ -6277,6 +7127,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "R3eMOe": [
+    {
+      "type": 0,
+      "value": "Outlook account"
     }
   ],
   "R3mMmc": [
@@ -6339,24 +7195,6 @@
     {
       "type": 0,
       "value": " files?"
-    }
-  ],
-  "RR+13c": [
-    {
-      "type": 0,
-      "value": "Replace the default meta agent with a specialized version tailored for this extended agent"
-    }
-  ],
-  "RI59Ed": [
-    {
-      "type": 0,
-      "value": "Add existing tool"
-    }
-  ],
-  "RK2Ddg": [
-    {
-      "type": 0,
-      "value": "Orchestrator"
     }
   ],
   "RR+13c": [
@@ -6527,6 +7365,18 @@
       "value": "Filtrovat podle"
     }
   ],
+  "S5UkvS": [
+    {
+      "type": 0,
+      "value": "Playground mode"
+    }
+  ],
+  "S8/4ZI": [
+    {
+      "type": 0,
+      "value": "More actions"
+    }
+  ],
   "SAINuE": [
     {
       "type": 0,
@@ -6577,6 +7427,12 @@
     {
       "type": 0,
       "value": "Stav a výkon základní skupiny aplikací"
+    }
+  ],
+  "SR33a/": [
+    {
+      "type": 0,
+      "value": "Restart chat conversation"
     }
   ],
   "SRf69j": [
@@ -6661,6 +7517,12 @@
       "value": "Kliknutím otevřete režim celé obrazovky."
     }
   ],
+  "SmFb5S": [
+    {
+      "type": 0,
+      "value": "Draft not yet synced"
+    }
+  ],
   "Sr4IbA": [
     {
       "type": 0,
@@ -6689,6 +7551,20 @@
     {
       "type": 0,
       "value": "Incidenty s asistencí agenta"
+    }
+  ],
+  "T+FE9b": [
+    {
+      "type": 0,
+      "value": "Interactive testing for "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is coming soon."
     }
   ],
   "T/G3bv": [
@@ -6825,16 +7701,28 @@
       "value": "Správce Grafany"
     }
   ],
-  "TN/U9d": [
-    {
-      "type": 0,
-      "value": "Úlohu se nepovedlo aktualizovat."
-    }
-  ],
   "TO55dt": [
     {
       "type": 0,
       "value": "Azure SRE Agent billing is measured in Azure agent units (AAU). Monthly AAU billing reflects both the fixed always-on flow and variable usage from active flow. You can increase or decrease the active flow AAU allocation at any time."
+    }
+  ],
+  "TQ0n+a": [
+    {
+      "type": 1,
+      "value": "metric"
+    },
+    {
+      "type": 0,
+      "value": " lands at "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "%. Sharpen instructions and tools to climb faster."
     }
   ],
   "TRceX/": [
@@ -6939,6 +7827,12 @@
     {
       "type": 0,
       "value": " nemáte oprávnění."
+    }
+  ],
+  "UNQfKX": [
+    {
+      "type": 0,
+      "value": "Enter a descriptive name"
     }
   ],
   "UNXega": [
@@ -7085,6 +7979,12 @@
       "value": "Přiřazeno uživatelem"
     }
   ],
+  "VIYXlx": [
+    {
+      "type": 0,
+      "value": "Chat preview"
+    }
+  ],
   "VIcJZp": [
     {
       "type": 0,
@@ -7161,6 +8061,18 @@
       "value": "Použití (akce)"
     }
   ],
+  "VVy70J": [
+    {
+      "type": 0,
+      "value": "Quality watcher"
+    }
+  ],
+  "VWq2cH": [
+    {
+      "type": 0,
+      "value": "Playbook Legend"
+    }
+  ],
   "VYjDXQ": [
     {
       "type": 0,
@@ -7189,6 +8101,12 @@
     {
       "type": 0,
       "value": "A meta agent override already exists in your system."
+    }
+  ],
+  "VpVoQZ": [
+    {
+      "type": 0,
+      "value": "Tool recommendations"
     }
   ],
   "VpsD7s": [
@@ -7253,16 +8171,16 @@
       "value": "Nenašly se žádné plány reakcí."
     }
   ],
-  "W1Qs5O": [
-    {
-      "type": 0,
-      "value": "Runs"
-    }
-  ],
   "W2JBdp": [
     {
       "type": 0,
       "value": "Dopad"
+    }
+  ],
+  "W5zi/x": [
+    {
+      "type": 0,
+      "value": "Please try again or check the console for details."
     }
   ],
   "W6NO8g": [
@@ -7275,6 +8193,12 @@
     {
       "type": 0,
       "value": "Vyřešeno"
+    }
+  ],
+  "W8LUUc": [
+    {
+      "type": 0,
+      "value": "Not analyzed"
     }
   ],
   "W99XAG": [
@@ -7367,6 +8291,16 @@
       "value": "Pick an agent to visualize its tools, connectors, and handoffs."
     }
   ],
+  "WdmBr4": [
+    {
+      "type": 0,
+      "value": "Insight streak: "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    }
+  ],
   "Wekzzh": [
     {
       "type": 0,
@@ -7420,6 +8354,12 @@
       "value": "New thread for each run"
     }
   ],
+  "WhuvJH": [
+    {
+      "type": 0,
+      "value": "Auto-apply OFF"
+    }
+  ],
   "Wkup5T": [
     {
       "type": 0,
@@ -7430,6 +8370,24 @@
     {
       "type": 0,
       "value": "Typ primárního prostředku se rovná:"
+    }
+  ],
+  "WolNVP": [
+    {
+      "type": 0,
+      "value": "No recent analysis"
+    }
+  ],
+  "WsILsq": [
+    {
+      "type": 0,
+      "value": "Iterate on instructions without impacting production threads."
+    }
+  ],
+  "WsJuyI": [
+    {
+      "type": 0,
+      "value": "Agent playground"
     }
   ],
   "Wtf3vL": [
@@ -7502,6 +8460,12 @@
       "value": "platformName"
     }
   ],
+  "X5Q310": [
+    {
+      "type": 0,
+      "value": "Hide details"
+    }
+  ],
   "X5UCWb": [
     {
       "type": 0,
@@ -7538,18 +8502,10 @@
       "value": "Draft the cron for me"
     }
   ],
-  "XEB3Fn": [
+  "XDSe35": [
     {
       "type": 0,
-      "value": "Will attach to "
-    },
-    {
-      "type": 1,
-      "value": "agentName"
-    },
-    {
-      "type": 0,
-      "value": " as a tool."
+      "value": "Select an agent or tool to start a playground session."
     }
   ],
   "XEB3Fn": [
@@ -7618,12 +8574,6 @@
       "value": "Removed the starter agent. Next messages will stay in this thread."
     }
   ],
-  "XKWCS3": [
-    {
-      "type": 0,
-      "value": "Removed the starter agent. Next messages will stay in this thread."
-    }
-  ],
   "XKhlZF": [
     {
       "type": 0,
@@ -7648,10 +8598,28 @@
       "value": "Connected tools"
     }
   ],
-  "XM+FCY": [
+  "XMUseu": [
     {
       "type": 0,
-      "value": "Connected tools"
+      "value": "Failed to update AAU allocation. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "XPR3X/": [
+    {
+      "type": 0,
+      "value": "Thread title was renamed successfully to '"
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": "'"
     }
   ],
   "XRdOZL": [
@@ -7702,12 +8670,6 @@
       "value": "Grid view is coming soon."
     }
   ],
-  "Xb85sq": [
-    {
-      "type": 0,
-      "value": "Grid view is coming soon."
-    }
-  ],
   "XbNTkN": [
     {
       "type": 0,
@@ -7726,6 +8688,18 @@
       "value": "Došlo k neočekávané chybě."
     }
   ],
+  "Xmty/4": [
+    {
+      "type": 0,
+      "value": "Hide watcher panel"
+    }
+  ],
+  "XqRXu6": [
+    {
+      "type": 0,
+      "value": "Playground"
+    }
+  ],
   "XtnlO8": [
     {
       "type": 0,
@@ -7738,10 +8712,36 @@
       "value": "Vydavatel metrik monitorování"
     }
   ],
+  "Y0BC+F": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", give me your mission briefing and how you partner with engineers."
+    }
+  ],
+  "Y2PFzA": [
+    {
+      "type": 0,
+      "value": "Priority fixes"
+    }
+  ],
   "Y2QRpS": [
     {
       "type": 0,
       "value": "rovná se"
+    }
+  ],
+  "Y3qQB0": [
+    {
+      "type": 0,
+      "value": "Turning on scheduled task "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "Y7Lbpf": [
@@ -7780,12 +8780,6 @@
       "value": "No description provided."
     }
   ],
-  "YCnSYw": [
-    {
-      "type": 0,
-      "value": "No description provided."
-    }
-  ],
   "YE+vjH": [
     {
       "type": 0,
@@ -7804,6 +8798,18 @@
       "value": "Pokračovat v práci"
     }
   ],
+  "YMjUWP": [
+    {
+      "type": 0,
+      "value": "Turn off scheduled task"
+    }
+  ],
+  "YN1/XY": [
+    {
+      "type": 0,
+      "value": "Stress test"
+    }
+  ],
   "YP06jq": [
     {
       "type": 0,
@@ -7816,10 +8822,18 @@
       "value": "Enter a name before creating this item."
     }
   ],
-  "YT6JU9": [
+  "YXOz1v": [
     {
       "type": 0,
-      "value": "Enter a name before creating this item."
+      "value": "Executing "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "..."
     }
   ],
   "YZIFAO": [
@@ -7888,12 +8902,6 @@
       "value": "tool"
     }
   ],
-  "YrlQBL": [
-    {
-      "type": 0,
-      "value": "tool"
-    }
-  ],
   "Ys9AIu": [
     {
       "type": 0,
@@ -7912,16 +8920,40 @@
       "value": "K zapnutí hloubkového prověřování nemáte oprávnění."
     }
   ],
+  "YuvMS0": [
+    {
+      "type": 0,
+      "value": "Insights not yet analysed"
+    }
+  ],
   "Z+uDP9": [
     {
       "type": 0,
       "value": "Add a file or connect an external data source, such as a service or repository, to help the agent generate more informed responses."
     }
   ],
+  "Z+wlsh": [
+    {
+      "type": 0,
+      "value": "Tool configuration is unavailable for this selection."
+    }
+  ],
   "Z1VHv1": [
     {
       "type": 0,
       "value": "Role Čtenář dat monitorování"
+    }
+  ],
+  "Z4bt4u": [
+    {
+      "type": 0,
+      "value": "Auto-generated if left empty"
+    }
+  ],
+  "Z5ntkd": [
+    {
+      "type": 0,
+      "value": "Configuration changes are auto-applied (disable auto-apply to use manual apply)"
     }
   ],
   "Z6rVz/": [
@@ -7954,30 +8986,20 @@
       "value": "Parsing…"
     }
   ],
-  "Z9TajN": [
-    {
-      "type": 0,
-      "value": "Parsing…"
-    }
-  ],
   "Z9pRs5": [
     {
       "type": 0,
       "value": "Vytvořit plán reakcí na incidenty"
     }
   ],
-  "ZBKZDe": [
+  "ZA4OiK": [
     {
       "type": 0,
-      "value": "Each "
+      "value": "Failed to create scheduled task: "
     },
     {
       "type": 1,
-      "value": "entityLabel"
-    },
-    {
-      "type": 0,
-      "value": " must include a name."
+      "value": "errorMessage"
     }
   ],
   "ZBKZDe": [
@@ -7992,6 +9014,18 @@
     {
       "type": 0,
       "value": " must include a name."
+    }
+  ],
+  "ZBlAho": [
+    {
+      "type": 0,
+      "value": "Check if the agent introduces itself properly and outlines its capabilities."
+    }
+  ],
+  "ZBpAJ/": [
+    {
+      "type": 0,
+      "value": "Chat restarted with new configuration."
     }
   ],
   "ZCA/Ga": [
@@ -8002,6 +9036,12 @@
     {
       "type": 1,
       "value": "channel"
+    }
+  ],
+  "ZMa6Rh": [
+    {
+      "type": 0,
+      "value": "Deleting scheduled task(s)"
     }
   ],
   "ZNMCbm": [
@@ -8022,6 +9062,12 @@
       "value": "Visual View"
     }
   ],
+  "ZPP6n7": [
+    {
+      "type": 0,
+      "value": "Form editing is coming soon for this entity."
+    }
+  ],
   "ZUXvHE": [
     {
       "type": 0,
@@ -8038,6 +9084,20 @@
     {
       "type": 0,
       "value": "Skupina prostředků"
+    }
+  ],
+  "Ze5Ejt": [
+    {
+      "type": 0,
+      "value": "Testing for "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is coming soon. Only Kusto tools are supported right now."
     }
   ],
   "Zh+5A6": [
@@ -8074,6 +9134,12 @@
     {
       "type": 0,
       "value": "Select an existing tool below to connect."
+    }
+  ],
+  "Zq5BCQ": [
+    {
+      "type": 0,
+      "value": "Failed to apply changes"
     }
   ],
   "ZqVUb5": [
@@ -8241,6 +9307,60 @@
       "value": "Controls how this value is passed to the tool method"
     }
   ],
+  "aLBTVj": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes ago"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes ago"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minute ago"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes ago"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "aORQjS": [
     {
       "type": 0,
@@ -8331,12 +9451,6 @@
       "value": "Popis musí být krátký. Sem zadejte podrobnou logiku spuštění."
     }
   ],
-  "ak4FqD": [
-    {
-      "type": 0,
-      "value": "Naplánovaná úloha se úspěšně obnovila."
-    }
-  ],
   "anSi7M": [
     {
       "type": 0,
@@ -8361,6 +9475,12 @@
       "value": "Zapisovač jazyka Cognitive Services"
     }
   ],
+  "arE3XO": [
+    {
+      "type": 0,
+      "value": "Tool test failed but no error details were provided."
+    }
+  ],
   "auFFJa": [
     {
       "type": 0,
@@ -8377,6 +9497,12 @@
     {
       "type": 0,
       "value": "Monday"
+    }
+  ],
+  "b0+PAq": [
+    {
+      "type": 0,
+      "value": "Audit check"
     }
   ],
   "b2PyOl": [
@@ -8397,6 +9523,16 @@
     {
       "type": 0,
       "value": "Odstranit vlastní plán reakcí na incidenty"
+    }
+  ],
+  "b3sNCU": [
+    {
+      "type": 0,
+      "value": "Failed to turn off task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "b5OEXm": [
@@ -8435,18 +9571,6 @@
       "value": "Are you sure you want to delete this Extended Tool? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
     }
   ],
-  "bCzUPd": [
-    {
-      "type": 0,
-      "value": "Cluster URI"
-    }
-  ],
-  "bK0VQe": [
-    {
-      "type": 0,
-      "value": "Are you sure you want to delete this Extended Tool? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
-    }
-  ],
   "bKgVBL": [
     {
       "type": 0,
@@ -8463,6 +9587,12 @@
     {
       "type": 0,
       "value": "Nové"
+    }
+  ],
+  "baRFiF": [
+    {
+      "type": 0,
+      "value": "Form"
     }
   ],
   "bdFY56": [
@@ -8489,6 +9619,12 @@
     {
       "type": 0,
       "value": "Stabilní: Aktualizace e doručují jednou za měsíc."
+    }
+  ],
+  "bjLeN1": [
+    {
+      "type": 0,
+      "value": "Please restart the chat to see your changes."
     }
   ],
   "bjOnWH": [
@@ -8543,6 +9679,12 @@
       "value": "id"
     }
   ],
+  "br2BTb": [
+    {
+      "type": 0,
+      "value": "Finish setup to enable previews."
+    }
+  ],
   "bri0SI": [
     {
       "type": 0,
@@ -8553,6 +9695,12 @@
     {
       "type": 0,
       "value": "Název obsahuje"
+    }
+  ],
+  "bs6oPY": [
+    {
+      "type": 0,
+      "value": "Author agent configuration and test"
     }
   ],
   "bswtOq": [
@@ -8613,6 +9761,12 @@
       "value": "No system tools configured."
     }
   ],
+  "c1ECOO": [
+    {
+      "type": 0,
+      "value": "Tool testing"
+    }
+  ],
   "c1EiBR": [
     {
       "type": 0,
@@ -8629,6 +9783,12 @@
     {
       "type": 0,
       "value": "Role"
+    }
+  ],
+  "c3TO1+": [
+    {
+      "type": 0,
+      "value": "Open in playground"
     }
   ],
   "c8Doeq": [
@@ -8669,6 +9829,12 @@
       "value": "Temperature"
     }
   ],
+  "cJGGY4": [
+    {
+      "type": 0,
+      "value": "Your changes are being processed and will appear in the chat preview momentarily."
+    }
+  ],
   "cLC2fM": [
     {
       "type": 0,
@@ -8691,6 +9857,18 @@
     {
       "type": 0,
       "value": "Přispěvatel účtů úložiště"
+    }
+  ],
+  "cYwv8P": [
+    {
+      "type": 0,
+      "value": "Intent Match"
+    }
+  ],
+  "ccXLVi": [
+    {
+      "type": 0,
+      "value": "Category"
     }
   ],
   "cfbpDd": [
@@ -8719,18 +9897,6 @@
     {
       "type": 0,
       "value": "Filter by custom plan"
-    }
-  ],
-  "coy1iv": [
-    {
-      "type": 0,
-      "value": "Edit YAML configuration"
-    }
-  ],
-  "cqx+Rd": [
-    {
-      "type": 0,
-      "value": "Manage connectors"
     }
   ],
   "coy1iv": [
@@ -8851,6 +10017,12 @@
       "value": "Plánovaná úloha"
     }
   ],
+  "dGa0bG": [
+    {
+      "type": 0,
+      "value": "Agent quality not scored yet. Run a check to reveal opportunities."
+    }
+  ],
   "dI9gP+": [
     {
       "type": 0,
@@ -8867,6 +10039,12 @@
     {
       "type": 0,
       "value": "An AI sub-agent with instructions and tools"
+    }
+  ],
+  "dO3eHj": [
+    {
+      "type": 0,
+      "value": "Make changes to the current agent configuration and test immediately."
     }
   ],
   "dQ5/dh": [
@@ -8911,10 +10089,22 @@
       "value": "Adresa URL úložiště musí být pro GitHub ve tvaru https://github.com/owner/repo-name nebo pro Azure DevOps https://dev.azure.com/organization/project/_git/repository-name či https://organization.visualstudio.com/project/_git/repository-name"
     }
   ],
+  "daUwAL": [
+    {
+      "type": 0,
+      "value": "Creating scheduled task"
+    }
+  ],
   "dd6gV2": [
     {
       "type": 0,
       "value": "Naplánovat verzi Preview"
+    }
+  ],
+  "dhmpfi": [
+    {
+      "type": 0,
+      "value": "Delete scheduled task(s)"
     }
   ],
   "dhqlRa": [
@@ -8949,6 +10139,30 @@
       "value": "Critic prompt"
     }
   ],
+  "dkqYUR": [
+    {
+      "type": 1,
+      "value": "metric"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "%—you are outperforming the target confidence. Ship it! 🚀"
+    }
+  ],
+  "dkt4ac": [
+    {
+      "type": 0,
+      "value": "Resolve YAML errors before applying changes"
+    }
+  ],
   "dnXgff": [
     {
       "type": 0,
@@ -8971,6 +10185,12 @@
     {
       "type": 0,
       "value": "What it means"
+    }
+  ],
+  "dwkMC2": [
+    {
+      "type": 0,
+      "value": "Score agent quality"
     }
   ],
   "e0a3XV": [
@@ -9027,6 +10247,12 @@
       "value": "Režim jen pro čtení"
     }
   ],
+  "eRwVws": [
+    {
+      "type": 0,
+      "value": "You need an incident platform to add an incident trigger."
+    }
+  ],
   "eUEjcm": [
     {
       "type": 0,
@@ -9037,6 +10263,12 @@
     {
       "type": 0,
       "value": "Model Generation"
+    }
+  ],
+  "eYClyG": [
+    {
+      "type": 0,
+      "value": "Capture AI-driven insights on confidence and next tweaks."
     }
   ],
   "eYEnNu": [
@@ -9063,6 +10295,22 @@
       "value": "Spravujte služby Azure Search."
     }
   ],
+  "ee4AUg": [
+    {
+      "type": 0,
+      "value": "Scheduled task turned on successfully"
+    }
+  ],
+  "egubDj": [
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "% confidence"
+    }
+  ],
   "ehbsXg": [
     {
       "type": 0,
@@ -9079,6 +10327,18 @@
     {
       "type": 0,
       "value": "Sev0"
+    }
+  ],
+  "ene/8x": [
+    {
+      "type": 0,
+      "value": "Tune agent behavior in a safe space before you publish changes."
+    }
+  ],
+  "eq57j2": [
+    {
+      "type": 0,
+      "value": "Add incident trigger"
     }
   ],
   "eqYdSS": [
@@ -9139,12 +10399,6 @@
       "value": "Improve with AI"
     }
   ],
-  "f0LQra": [
-    {
-      "type": 0,
-      "value": "Improve with AI"
-    }
-  ],
   "f0Luxo": [
     {
       "type": 0,
@@ -9169,10 +10423,28 @@
       "value": "Sev1"
     }
   ],
+  "f6xT1Y": [
+    {
+      "type": 0,
+      "value": "Scheduled task(s) turned on successfully"
+    }
+  ],
   "f7Zx3L": [
     {
       "type": 0,
       "value": "Tipy k výzvám"
+    }
+  ],
+  "f9xN/g": [
+    {
+      "type": 0,
+      "value": "Rising Specialist"
+    }
+  ],
+  "fE5E6W": [
+    {
+      "type": 0,
+      "value": "How do you want to get started?"
     }
   ],
   "fEYQWU": [
@@ -9199,6 +10471,16 @@
       "value": "Code optimizations"
     }
   ],
+  "fINN7t": [
+    {
+      "type": 0,
+      "value": "Insights: "
+    },
+    {
+      "type": 1,
+      "value": "status"
+    }
+  ],
   "fIQSsD": [
     {
       "type": 0,
@@ -9217,12 +10499,6 @@
       "value": "New tool"
     }
   ],
-  "fT73QI": [
-    {
-      "type": 0,
-      "value": "New tool"
-    }
-  ],
   "fUgypu": [
     {
       "type": 0,
@@ -9233,12 +10509,6 @@
     {
       "type": 0,
       "value": "Název instance"
-    }
-  ],
-  "fbr20l": [
-    {
-      "type": 0,
-      "value": "Create & Link"
     }
   ],
   "fbr20l": [
@@ -9347,10 +10617,16 @@
       "value": "Kopírovat podrobnosti o chybě"
     }
   ],
-  "g3ngVx": [
+  "g4Dsk6": [
     {
       "type": 0,
-      "value": "Create AI agents with custom tools and data connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
+      "value": "Total runs"
+    }
+  ],
+  "g4II+z": [
+    {
+      "type": 0,
+      "value": "e.g. 0 0 * * *"
     }
   ],
   "g7HOVb": [
@@ -9381,6 +10657,12 @@
     {
       "type": 0,
       "value": "Drag files here or"
+    }
+  ],
+  "gGfQUL": [
+    {
+      "type": 0,
+      "value": "Warm-up scenario"
     }
   ],
   "gHCL4X": [
@@ -9467,6 +10749,16 @@
       "value": "K nastavení řídicího panelu Grafana potřebujete oprávnění."
     }
   ],
+  "grgDhd": [
+    {
+      "type": 0,
+      "value": "Failed to load scheduled tasks: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "gvlNuI": [
     {
       "type": 0,
@@ -9540,6 +10832,12 @@
     {
       "type": 0,
       "value": "Pokud chcete změnit platformu incidentu, musíte se odpojit od ServiceNow. Agent už nebude spravovat lístky. Opravdu se chcete odpojit?"
+    }
+  ],
+  "h+sisx": [
+    {
+      "type": 0,
+      "value": "Author and Test - Configure and test"
     }
   ],
   "h0W8DM": [
@@ -9668,6 +10966,18 @@
       "value": "Hlavní kategorie"
     }
   ],
+  "haOtj7": [
+    {
+      "type": 0,
+      "value": "System tools are read-only. View the YAML for reference."
+    }
+  ],
+  "heMr0D": [
+    {
+      "type": 0,
+      "value": "How well your agent is meeting user intents based on chat interactions. Updates after conversations."
+    }
+  ],
   "hfACn+": [
     {
       "type": 0,
@@ -9696,6 +11006,12 @@
     {
       "type": 0,
       "value": "Preview AI recommendations without changing your instructions"
+    }
+  ],
+  "hkgUC5": [
+    {
+      "type": 0,
+      "value": "No parameters required for this tool."
     }
   ],
   "hlmkcL": [
@@ -9770,6 +11086,18 @@
       "value": "ID prostředku"
     }
   ],
+  "iJ+eDu": [
+    {
+      "type": 0,
+      "value": "Failed to load data"
+    }
+  ],
+  "iJCsVz": [
+    {
+      "type": 0,
+      "value": "Not yet published"
+    }
+  ],
   "iMBgdL": [
     {
       "type": 0,
@@ -9836,6 +11164,12 @@
       "value": "Příkaz Kopírovat"
     }
   ],
+  "iihhVc": [
+    {
+      "type": 0,
+      "value": "Quality Evaluation"
+    }
+  ],
   "ijOojL": [
     {
       "type": 0,
@@ -9866,6 +11200,12 @@
     {
       "type": 0,
       "value": "Posledních 7 dnů"
+    }
+  ],
+  "isZXYe": [
+    {
+      "type": 0,
+      "value": "Applying…"
     }
   ],
   "it6Lig": [
@@ -9942,16 +11282,6 @@
       "value": "No extended tools available."
     }
   ],
-  "j2vvrh": [
-    {
-      "type": 0,
-      "value": "Našel se tento počet relevantních paměťových záznamů z minulých interakcí: "
-    },
-    {
-      "type": 1,
-      "value": "numMemories"
-    }
-  ],
   "j3bwJQ": [
     {
       "type": 0,
@@ -9980,6 +11310,12 @@
     {
       "type": 0,
       "value": "Zvolit prioritu"
+    }
+  ],
+  "jEmOoh": [
+    {
+      "type": 0,
+      "value": "YourAgent"
     }
   ],
   "jHJmjf": [
@@ -10130,6 +11466,20 @@
       "value": "ms"
     }
   ],
+  "k4dB65": [
+    {
+      "type": 0,
+      "value": "This will create both your agent (\""
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "\") and a separate \"meta_agent\" for orchestration."
+    }
+  ],
   "k5T5VE": [
     {
       "type": 0,
@@ -10154,10 +11504,10 @@
       "value": "Předplatné se rovná:"
     }
   ],
-  "kLL6yL": [
+  "kNEmDU": [
     {
       "type": 0,
-      "value": "The maximum AAU limit is 20,000"
+      "value": "Goal: 85%+ confidence"
     }
   ],
   "kQAf2d": [
@@ -10274,6 +11624,18 @@
       "value": "Stav"
     }
   ],
+  "kvKWEJ": [
+    {
+      "type": 0,
+      "value": "Response plan saved successfully"
+    }
+  ],
+  "l+e8nZ": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected scheduled task(s)? This action cannot be undone."
+    }
+  ],
   "l0TtPi": [
     {
       "type": 0,
@@ -10294,6 +11656,18 @@
     {
       "type": 0,
       "value": " skupina prostředků."
+    }
+  ],
+  "l2Ni9H": [
+    {
+      "type": 0,
+      "value": "Chat preview is only available for agents."
+    }
+  ],
+  "l5a3zV": [
+    {
+      "type": 0,
+      "value": "Make a copy"
     }
   ],
   "l5sNim": [
@@ -10404,12 +11778,6 @@
       "value": "Připojování k Azure Monitor..."
     }
   ],
-  "ltBXTD": [
-    {
-      "type": 0,
-      "value": "Search agents, tools, or connectors"
-    }
-  ],
   "lvNWLS": [
     {
       "type": 0,
@@ -10466,6 +11834,12 @@
       "value": "\" has been created successfully"
     }
   ],
+  "mAinBm": [
+    {
+      "type": 0,
+      "value": "Automatically push YAML edits to the agent during testing."
+    }
+  ],
   "mAyw3x": [
     {
       "type": 0,
@@ -10502,10 +11876,10 @@
       "value": "No tools connected yet."
     }
   ],
-  "mN2MCk": [
+  "mMgwbu": [
     {
       "type": 0,
-      "value": "Nepovedlo se odstranit úlohu."
+      "value": "Undo (10s)"
     }
   ],
   "mOFG3K": [
@@ -10618,6 +11992,12 @@
       "value": "How should this trigger be set up?"
     }
   ],
+  "methez": [
+    {
+      "type": 0,
+      "value": "Max tier achieved—keep refining to stay ahead."
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
@@ -10628,6 +12008,12 @@
     {
       "type": 0,
       "value": "No tools configured."
+    }
+  ],
+  "mhKk7c": [
+    {
+      "type": 0,
+      "value": "Create new Kusto tool"
     }
   ],
   "mkhNnB": [
@@ -10752,16 +12138,22 @@
       "value": "Spuštěno"
     }
   ],
-  "nEnDXd": [
-    {
-      "type": 0,
-      "value": "Are you sure you want to delete the selected scheduled tasks? This action cannot be undone."
-    }
-  ],
   "nFOo9o": [
     {
       "type": 0,
       "value": "Zkontrolovat a upravit"
+    }
+  ],
+  "nFpcjX": [
+    {
+      "type": 0,
+      "value": "Auto-generated"
+    }
+  ],
+  "nL/Owh": [
+    {
+      "type": 0,
+      "value": "Send notification"
     }
   ],
   "nNwFuy": [
@@ -10840,6 +12232,12 @@
       "value": "Odstraňování…"
     }
   ],
+  "noxLT+": [
+    {
+      "type": 0,
+      "value": "Apply fixes"
+    }
+  ],
   "npvxpr": [
     {
       "type": 0,
@@ -10862,6 +12260,12 @@
     {
       "type": 0,
       "value": "Obor"
+    }
+  ],
+  "nx7y+W": [
+    {
+      "type": 0,
+      "value": "Re-run insights"
     }
   ],
   "nxmZHP": [
@@ -11000,10 +12404,10 @@
       "value": "Seznam povolených pod spravovanou identitou ve vašem týmu služby ICM."
     }
   ],
-  "oTzitk": [
+  "oTOgOq": [
     {
       "type": 0,
-      "value": "Úlohu se nepovedlo pozastavit."
+      "value": "Loading MCP tools..."
     }
   ],
   "oUWADl": [
@@ -11030,10 +12434,10 @@
       "value": "Přehledy úložiště"
     }
   ],
-  "ob9EPi": [
+  "ob6s4+": [
     {
       "type": 0,
-      "value": "Oprávnění k přiřazení rolí"
+      "value": "Deny assignment"
     }
   ],
   "obRqDQ": [
@@ -11068,6 +12472,12 @@
     {
       "type": 0,
       "value": "Hledat incidenty"
+    }
+  ],
+  "osuyeD": [
+    {
+      "type": 0,
+      "value": "Out of date"
     }
   ],
   "ovJ26C": [
@@ -11142,10 +12552,22 @@
       "value": "Provádějte správu bez přístupu. Nelze spravovat zásady zabezpečení ani nadřazené servery SQL."
     }
   ],
+  "p7xkho": [
+    {
+      "type": 0,
+      "value": "Agent consumption"
+    }
+  ],
   "p8Ubox": [
     {
       "type": 0,
       "value": "Connect an incident management platform so the agent will collect, analyze, and respond to alerts."
+    }
+  ],
+  "pA7W9m": [
+    {
+      "type": 0,
+      "value": "Intent Met Score"
     }
   ],
   "pAFuFx": [
@@ -11172,6 +12594,12 @@
       "value": "You do not have permission to add or delete connectors."
     }
   ],
+  "pCjcdM": [
+    {
+      "type": 0,
+      "value": "Prompt highlights"
+    }
+  ],
   "pDUFq5": [
     {
       "type": 0,
@@ -11192,6 +12620,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "pPwNx4": [
+    {
+      "type": 0,
+      "value": "Office 365 Outlook"
     }
   ],
   "pRvgsc": [
@@ -11280,6 +12714,20 @@
       "value": "title"
     }
   ],
+  "polqL7": [
+    {
+      "type": 0,
+      "value": "-"
+    },
+    {
+      "type": 1,
+      "value": "delta"
+    },
+    {
+      "type": 0,
+      "value": " since last run"
+    }
+  ],
   "ppARxn": [
     {
       "type": 0,
@@ -11358,12 +12806,6 @@
       "value": "Tell us how often your agent should run and we’ll draft the cron expression for you."
     }
   ],
-  "qczspd": [
-    {
-      "type": 0,
-      "value": "Zobrazit plán"
-    }
-  ],
   "qdAlfY": [
     {
       "type": 0,
@@ -11430,6 +12872,12 @@
       "value": "Koncový bod back-endu"
     }
   ],
+  "qquh75": [
+    {
+      "type": 0,
+      "value": "Select a linked tool to edit"
+    }
+  ],
   "qs5hhk": [
     {
       "type": 0,
@@ -11472,6 +12920,66 @@
     {
       "type": 0,
       "value": "Vlastní plán reakcí na incidenty se úspěšně odstranil."
+    }
+  ],
+  "r2ZGnB": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fixes selected"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fixes selected"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fix selected"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " quick fixes selected"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "r2cpCI": [
+    {
+      "type": 0,
+      "value": "Evaluating agent…"
     }
   ],
   "r2x5ZI": [
@@ -11602,6 +13110,12 @@
       "value": "Update AAU allocation"
     }
   ],
+  "rVbKiP": [
+    {
+      "type": 0,
+      "value": "Continue editing"
+    }
+  ],
   "rVtn/e": [
     {
       "type": 0,
@@ -11720,6 +13234,12 @@
       "value": "tools"
     }
   ],
+  "rrQX3M": [
+    {
+      "type": 0,
+      "value": "Score this agent and get tailored fixes."
+    }
+  ],
   "rvirM2": [
     {
       "type": 0,
@@ -11752,6 +13272,12 @@
       "value": "S asistencí agenta"
     }
   ],
+  "rzC0Xo": [
+    {
+      "type": 0,
+      "value": "The agent posts notifications to the activity feed linking to a chat or team."
+    }
+  ],
   "s00xPm": [
     {
       "type": 0,
@@ -11770,6 +13296,18 @@
     {
       "type": 0,
       "value": " data connectors from the agent. Are you sure you want to disconnect these data connectors?"
+    }
+  ],
+  "s2GWth": [
+    {
+      "type": 0,
+      "value": "Intent Match (1-5)"
+    }
+  ],
+  "s2XIgr": [
+    {
+      "type": 0,
+      "value": "Show details"
     }
   ],
   "s6iZgz": [
@@ -11852,6 +13390,16 @@
       "value": "Progress"
     }
   ],
+  "sIwc3/": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is a system tool and cannot be run from the playground yet."
+    }
+  ],
   "sNofwe": [
     {
       "type": 0,
@@ -11880,6 +13428,12 @@
     {
       "type": 0,
       "value": "Akceptované typy souborů: .md a .txt"
+    }
+  ],
+  "sRU00i": [
+    {
+      "type": 0,
+      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
     }
   ],
   "sRb5P9": [
@@ -11938,6 +13492,12 @@
     {
       "type": 0,
       "value": "Add file"
+    }
+  ],
+  "sZIoMy": [
+    {
+      "type": 0,
+      "value": "Send email"
     }
   ],
   "sd1Vy+": [
@@ -12024,6 +13584,12 @@
       "value": "Přispěvatel SQL Serveru"
     }
   ],
+  "ssDQgc": [
+    {
+      "type": 0,
+      "value": "Tools from Model Context Protocol (MCP) servers. These tools are grouped by connection and loaded from connected servers such."
+    }
+  ],
   "strvmG": [
     {
       "type": 0,
@@ -12046,6 +13612,16 @@
     {
       "type": 0,
       "value": "Plánované úlohy"
+    }
+  ],
+  "t+IV9f": [
+    {
+      "type": 0,
+      "value": "Agent at "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "t/atZW": [
@@ -12234,6 +13810,12 @@
       "value": "errorMessage"
     }
   ],
+  "tbxHpV": [
+    {
+      "type": 0,
+      "value": "Validate how the agent summarizes risk and next steps for leadership updates."
+    }
+  ],
   "tfuXMw": [
     {
       "type": 0,
@@ -12258,6 +13840,18 @@
     {
       "type": 0,
       "value": "No handoffs configured."
+    }
+  ],
+  "tjklHQ": [
+    {
+      "type": 0,
+      "value": "Experiment with your agent's configuration and see real-time results"
+    }
+  ],
+  "tkr5bn": [
+    {
+      "type": 0,
+      "value": "Turn off scheduled task(s)"
     }
   ],
   "trPabo": [
@@ -12318,6 +13912,12 @@
       "value": "Stav"
     }
   ],
+  "u04DEJ": [
+    {
+      "type": 0,
+      "value": "There was an error loading the usage data. Please try again later."
+    }
+  ],
   "u0xiAh": [
     {
       "type": 0,
@@ -12346,6 +13946,12 @@
     {
       "type": 0,
       "value": "Tato akce trvale odstraní chat a všechny akce v tomto vlákně. Opravdu ho chcete odstranit?"
+    }
+  ],
+  "u60c6a": [
+    {
+      "type": 0,
+      "value": "Run insights to see guidance for this configuration."
     }
   ],
   "u64mw7": [
@@ -12436,6 +14042,92 @@
     {
       "type": 0,
       "value": "Agents as tools"
+    }
+  ],
+  "uNTENz": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " confidence points to reach "
+            },
+            {
+              "type": 1,
+              "value": "tier"
+            },
+            {
+              "type": 0,
+              "value": "."
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " confidence points to reach "
+            },
+            {
+              "type": 1,
+              "value": "tier"
+            },
+            {
+              "type": 0,
+              "value": "."
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " confidence point to reach "
+            },
+            {
+              "type": 1,
+              "value": "tier"
+            },
+            {
+              "type": 0,
+              "value": "."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " confidence points to reach "
+            },
+            {
+              "type": 1,
+              "value": "tier"
+            },
+            {
+              "type": 0,
+              "value": "."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "delta"
     }
   ],
   "uRMqBi": [
@@ -12562,6 +14254,12 @@
       "value": "Sbalit vše"
     }
   ],
+  "v3xWf6": [
+    {
+      "type": 0,
+      "value": "Expand configuration panel"
+    }
+  ],
   "v8cTK0": [
     {
       "type": 0,
@@ -12616,16 +14314,42 @@
       "value": "Autorizoval(a)"
     }
   ],
-  "vEHhXK": [
+  "vG08m6": [
     {
       "type": 0,
-      "value": "Naplánovaná úloha se úspěšně pozastavila."
+      "value": "Improve your agent prompt to increase confidence"
+    }
+  ],
+  "vIBOch": [
+    {
+      "type": 0,
+      "value": "Auto apply"
     }
   ],
   "vPX3R3": [
     {
       "type": 0,
       "value": "K vypínání plánů reakcí nemáte oprávnění."
+    }
+  ],
+  "vSW3OF": [
+    {
+      "type": 0,
+      "value": "Failed to update task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "vV67Wm": [
+    {
+      "type": 0,
+      "value": "Failed to turn on task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "vVpzJQ": [
@@ -12644,6 +14368,12 @@
     {
       "type": 0,
       "value": "Byly zjištěny akce upozornění."
+    }
+  ],
+  "vZWQHk": [
+    {
+      "type": 0,
+      "value": "Edit existing"
     }
   ],
   "vao/Lv": [
@@ -12694,6 +14424,16 @@
       "value": "Blocking usage insights"
     }
   ],
+  "vz94UY": [
+    {
+      "type": 0,
+      "value": "Fresh • "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "w+XRP2": [
     {
       "type": 0,
@@ -12712,10 +14452,22 @@
       "value": "Clear description"
     }
   ],
+  "w5FDGY": [
+    {
+      "type": 0,
+      "value": "Update scheduled task"
+    }
+  ],
   "w6nz4p": [
     {
       "type": 0,
       "value": "Open incident triggers"
+    }
+  ],
+  "w87Yom": [
+    {
+      "type": 0,
+      "value": "Agent tools"
     }
   ],
   "w8UjdT": [
@@ -12730,6 +14482,12 @@
       "value": "Neznámý režim agenta"
     }
   ],
+  "wBgTQg": [
+    {
+      "type": 0,
+      "value": "Author, Test & Evaluate - Full workflow"
+    }
+  ],
   "wEQDC6": [
     {
       "type": 0,
@@ -12740,6 +14498,28 @@
     {
       "type": 0,
       "value": "Čeká se na výpočet nákladů."
+    }
+  ],
+  "wGLrHW": [
+    {
+      "type": 0,
+      "value": "User at "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
+  "wGcWbo": [
+    {
+      "type": 0,
+      "value": "Active tasks"
+    }
+  ],
+  "wI+r41": [
+    {
+      "type": 0,
+      "value": "More tools"
     }
   ],
   "wL7VAE": [
@@ -12838,6 +14618,36 @@
       "value": "Polishing…"
     }
   ],
+  "wjEBlr": [
+    {
+      "type": 1,
+      "value": "metric"
+    },
+    {
+      "type": 0,
+      "value": " is at "
+    },
+    {
+      "type": 1,
+      "value": "score"
+    },
+    {
+      "type": 0,
+      "value": "%. Continue refining to move toward the next tier."
+    }
+  ],
+  "wjfh7Z": [
+    {
+      "type": 0,
+      "value": "Tester - Test your agent"
+    }
+  ],
+  "wk6Nft": [
+    {
+      "type": 0,
+      "value": "Begin editing the current configuration in the playground."
+    }
+  ],
   "wkLkeE": [
     {
       "type": 0,
@@ -12898,12 +14708,6 @@
       "value": "Sub-Agent Builder"
     }
   ],
-  "x7C8JZ": [
-    {
-      "type": 0,
-      "value": "Pro tento dotaz se nenašly žádné relevantní paměťové záznamy"
-    }
-  ],
   "xDYr9m": [
     {
       "type": 0,
@@ -12920,6 +14724,12 @@
     {
       "type": 0,
       "value": "File Name"
+    }
+  ],
+  "xJLI97": [
+    {
+      "type": 0,
+      "value": "Hide findings"
     }
   ],
   "xK7rmd": [
@@ -12972,6 +14782,12 @@
       "value": "K zapínání plánů reakcí nemáte oprávnění."
     }
   ],
+  "xXHSO2": [
+    {
+      "type": 0,
+      "value": "Rookie Analyst"
+    }
+  ],
   "xXhn+h": [
     {
       "type": 0,
@@ -13010,6 +14826,12 @@
     {
       "type": 0,
       "value": "Nedostatečný počet datových bodů pro graf"
+    }
+  ],
+  "xf9BKi": [
+    {
+      "type": 0,
+      "value": "Ready to test your agent?"
     }
   ],
   "xmcVZ0": [
@@ -13082,6 +14904,20 @@
       "value": "Odstraňuje se vlastní plán reakcí na incidenty."
     }
   ],
+  "y0KXuM": [
+    {
+      "type": 0,
+      "value": "+"
+    },
+    {
+      "type": 1,
+      "value": "delta"
+    },
+    {
+      "type": 0,
+      "value": " since last run"
+    }
+  ],
   "y3Uu5i": [
     {
       "type": 0,
@@ -13092,6 +14928,20 @@
     {
       "type": 0,
       "value": "Incident priority"
+    }
+  ],
+  "y87pob": [
+    {
+      "type": 0,
+      "value": "You are previewing "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "yDh8i7": [
@@ -13130,10 +14980,22 @@
       "value": "Tato operace se provádí pomocí přihlašovacích údajů identity agenta."
     }
   ],
+  "yVe+kY": [
+    {
+      "type": 0,
+      "value": "Set up connector"
+    }
+  ],
   "yX3QcY": [
     {
       "type": 0,
       "value": "Tool details"
+    }
+  ],
+  "yYJHyl": [
+    {
+      "type": 0,
+      "value": "No tools are linked yet. Add tools on the left to enable testing."
     }
   ],
   "yYK6LR": [
@@ -13158,6 +15020,12 @@
     {
       "type": 0,
       "value": "Nepovedlo se zkontrolovat stav paměti agenta, takže probíhá návrat do stavu deaktivace:"
+    }
+  ],
+  "yeL9WV": [
+    {
+      "type": 0,
+      "value": "Design, test, and refine agents without touching production."
     }
   ],
   "yf9+0C": [
@@ -13242,10 +15110,22 @@
       "value": "Krátký jednořádkový souhrn (<= 140 znaků)"
     }
   ],
+  "z0uI4M": [
+    {
+      "type": 0,
+      "value": "Run scenario"
+    }
+  ],
   "z5cF/O": [
     {
       "type": 0,
       "value": "Popis musí tvořit jednořádkový souhrn."
+    }
+  ],
+  "z7SGAU": [
+    {
+      "type": 0,
+      "value": "Scheduled task(s) deleted successfully"
     }
   ],
   "z8ZYoc": [
@@ -13290,6 +15170,12 @@
       "value": "Všechny závažnosti"
     }
   ],
+  "zHZdPM": [
+    {
+      "type": 0,
+      "value": "Analyzing configuration for improvement recommendations."
+    }
+  ],
   "zMX3td": [
     {
       "type": 0,
@@ -13320,6 +15206,12 @@
     {
       "type": 0,
       "value": "Vše"
+    }
+  ],
+  "zUNfOA": [
+    {
+      "type": 0,
+      "value": "Open watcher drawer"
     }
   ],
   "zZsxcQ": [

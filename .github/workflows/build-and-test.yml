@@ -24,6 +24,7 @@ permissions:
 env:
   DOTNET_VERSION: '9.x'
   NODE_VERSION: '22.x'
+  NODE_OPTIONS: '--max-old-space-size=4096'
   BUILD_CONFIGURATION: 'Release'
   BUILD_SOLUTION: './src/Agent/Agent.sln'
   BUILD_NUGET_CONFIG_PATH: './src/nuget.config'
@@ -234,12 +235,6 @@ jobs:
       working-directory: ./src/Agent/Agent.Web/Client
       run: npm run build
 
-    - name: 🌐 Compile localization strings for Agent.Web
-      if: ${{ needs.changes.outputs.frontend_agent == 'true' }}
-      working-directory: ./src/Agent/Agent.Web/Client
-      run: npm run compile:loc
-      continue-on-error: true
-
     - name: 🧪 Run UX unit tests
       if: ${{ needs.changes.outputs.frontend_agent == 'true' }}
       working-directory: ./src/Agent/Agent.Web/Client
@@ -308,12 +303,6 @@ jobs:
       if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
       working-directory: ./src/Agent/Agent.Portal/Client
       run: npm run build
-
-    - name: 🌐 Compile localization strings for Agent.Portal
-      if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
-      working-directory: ./src/Agent/Agent.Portal/Client
-      run: npm run compile:loc
-      continue-on-error: true
 
     - name: 🧪 Run Agent.Portal unit tests
       if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
