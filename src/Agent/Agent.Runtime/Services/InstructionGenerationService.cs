@@ -7,6 +7,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.DataModels;
 using Agent.Framework;
+using Agent.Runtime.Helpers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -104,8 +105,15 @@ namespace Agent.Runtime.Services
             _logger.LogInternalInformation("ApplyToolFiltering: Filtered tools for platform {Platform}. Remaining: {FilteredCount}",
                 configuredPlatform, availableTools.Count);
 
-            // Filter by published tools list (since LLM cannot handle all tools)
-            availableTools = await FilterToolsByPublishedList(availableTools, configuredPlatform);
+            // Filter by published tools list (skip for first-party agents)
+            if (!FirstPartyHelper.IsFirstPartyTenant())
+            {
+                availableTools = await FilterToolsByPublishedList(availableTools, configuredPlatform);
+            }
+            else
+            {
+                _logger.LogInternalInformation("ApplyToolFiltering: First-party agent detected. Skipping published tools filtering.");
+            }
 
             return availableTools;
         }
