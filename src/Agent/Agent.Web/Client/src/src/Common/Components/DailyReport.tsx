@@ -356,6 +356,21 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
         });
     };
 
+    // Helper function to create keyboard-accessible props for expand/collapse elements
+    const getAccessibleToggleProps = (onClick: () => void, isExpanded: boolean, ariaLabel: string) => ({
+        onClick,
+        onKeyDown: (e: React.KeyboardEvent) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+            }
+        },
+        role: 'button' as const,
+        tabIndex: 0,
+        'aria-expanded': isExpanded,
+        'aria-label': ariaLabel,
+    });
+
     // Function to render resource cards
     const renderResourceCards = (resources: AppGroupResourceInfo[]) => {
         return resources.map((resource, resIndex) => (
@@ -868,7 +883,11 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                 {/* Repository Insights Section */}
                 <div style={{ marginBottom: '16px' }} data-section="security">
                     <Card
-                        onClick={() => toggleSection('security')}
+                        {...getAccessibleToggleProps(
+                            () => toggleSection('security'),
+                            openSections.security,
+                            intl.formatMessage(DailyReportResources.repositoryInsights)
+                        )}
                         style={{
                             backgroundColor: tokens.colorNeutralBackground2,
                             padding: '12px 16px',
@@ -1020,7 +1039,11 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                 {/* Incidents Section */}
                 <div style={{ marginBottom: '16px' }} data-section="incidents">
                     <Card
-                        onClick={() => toggleSection('incidents')}
+                        {...getAccessibleToggleProps(
+                            () => toggleSection('incidents'),
+                            openSections.incidents,
+                            intl.formatMessage(DailyReportResources.incidentsSummary)
+                        )}
                         style={{
                             backgroundColor: tokens.colorNeutralBackground2,
                             padding: '12px 16px',
@@ -1092,7 +1115,11 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                             }}
                                         >
                                             <div
-                                                onClick={() => toggleIncident(incident.IncidentId)}
+                                                {...getAccessibleToggleProps(
+                                                    () => toggleIncident(incident.IncidentId),
+                                                    expandedIncidents[incident.IncidentId],
+                                                    incident.Name
+                                                )}
                                                 style={{
                                                     padding: '16px',
                                                     cursor: 'pointer',
@@ -1245,7 +1272,11 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                             }}
                                         >
                                             <div
-                                                onClick={() => toggleIncident(incident.IncidentId)}
+                                                {...getAccessibleToggleProps(
+                                                    () => toggleIncident(incident.IncidentId),
+                                                    expandedIncidents[incident.IncidentId],
+                                                    incident.Name
+                                                )}
                                                 style={{
                                                     padding: '16px',
                                                     cursor: 'pointer',
@@ -1398,7 +1429,11 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                 {/* Resources Section */}
                 <div style={{ marginBottom: '16px' }} data-section="resources">
                     <Card
-                        onClick={() => toggleSection('resources')}
+                        {...getAccessibleToggleProps(
+                            () => toggleSection('resources'),
+                            openSections.resources,
+                            intl.formatMessage(DailyReportResources.coreAppGroupHealthPerformance)
+                        )}
                         style={{
                             backgroundColor: tokens.colorNeutralBackground2,
                             padding: '12px 16px',
@@ -1464,9 +1499,11 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                     {/* Unhealthy App Groups Subfolder */}
                                     <div style={{ marginBottom: '16px' }}>
                                         <Card
-                                            onClick={() => {
-                                                setOpenSections(prev => ({ ...prev, unhealthyResources: !prev.unhealthyResources }));
-                                            }}
+                                            {...getAccessibleToggleProps(
+                                                () => setOpenSections(prev => ({ ...prev, unhealthyResources: !prev.unhealthyResources })),
+                                                openSections.unhealthyResources,
+                                                intl.formatMessage(DailyReportResources.unhealthyCoreAppGroups)
+                                            )}
                                             style={{
                                                 backgroundColor: tokens.colorNeutralBackground2,
                                                 padding: '12px 16px 12px 36px',
@@ -1540,9 +1577,11 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                     {/* Degraded App Groups Subfolder */}
                                     <div style={{ marginBottom: '16px' }}>
                                         <Card
-                                            onClick={() => {
-                                                setOpenSections(prev => ({ ...prev, degradedResources: !prev.degradedResources }));
-                                            }}
+                                            {...getAccessibleToggleProps(
+                                                () => setOpenSections(prev => ({ ...prev, degradedResources: !prev.degradedResources })),
+                                                openSections.degradedResources,
+                                                intl.formatMessage(DailyReportResources.degradedCoreAppGroups)
+                                            )}
                                             style={{
                                                 backgroundColor: tokens.colorNeutralBackground2,
                                                 padding: '12px 16px 12px 36px',
@@ -1618,9 +1657,11 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                     {/* Healthy App Groups Subfolder */}
                                     <div style={{ marginBottom: '16px' }}>
                                         <Card
-                                            onClick={() => {
-                                                setOpenSections(prev => ({ ...prev, healthyResources: !prev.healthyResources }));
-                                            }}
+                                            {...getAccessibleToggleProps(
+                                                () => setOpenSections(prev => ({ ...prev, healthyResources: !prev.healthyResources })),
+                                                openSections.healthyResources,
+                                                intl.formatMessage(DailyReportResources.healthyCoreAppGroups)
+                                            )}
                                             style={{
                                                 backgroundColor: tokens.colorNeutralBackground2,
                                                 padding: '12px 16px 12px 36px',
@@ -1701,7 +1742,11 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                 {/* Code Optimizations Section */}
                 <div style={{ marginBottom: '16px' }} data-section="code-optimizations">
                     <Card
-                        onClick={() => toggleSection('codeOptimizations')}
+                        {...getAccessibleToggleProps(
+                            () => toggleSection('codeOptimizations'),
+                            openSections.codeOptimizations,
+                            intl.formatMessage(DailyReportResources.codeOptimizationInsights)
+                        )}
                         style={{
                             backgroundColor: tokens.colorNeutralBackground2,
                             padding: '12px 16px',
@@ -1950,7 +1995,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                 {/* Actions Section */}
                 <div style={{ marginBottom: '16px' }} data-section="actions">
                     <Card
-                        onClick={() => toggleSection('actions')}
+                        {...getAccessibleToggleProps(() => toggleSection('actions'), openSections.actions, 'Actions')}
                         style={{
                             backgroundColor: tokens.colorNeutralBackground2,
                             padding: '12px 16px',
