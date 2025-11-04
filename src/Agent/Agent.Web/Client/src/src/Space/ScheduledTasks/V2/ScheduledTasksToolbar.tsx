@@ -15,8 +15,8 @@ import { PillFilter } from '../../../Common/Components/PillFilter/PillFilter';
 import { getLocaleTimeHHMM } from '../../../Common/Helpers/Date';
 import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
-import { CreateOrEditScheduledTaskDialog, ScheduledTaskDialogMode } from './Common/CreateOrEditScheduledTaskDialog';
-import { DeleteScheduledTaskDialog } from './Common/DeleteScheduledTaskDialog';
+import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from './Common/ScheduledTaskCreateOrEditDialog';
+import { ScheduledTaskDeleteDialog } from './Common/ScheduledTaskDeleteDialog';
 import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
 import { useScheduledTasksStyles } from './ScheduledTasks.styles';
 import { TaskStatusFilterKey } from './ScheduledTasksUtilities';
@@ -44,6 +44,7 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
     const { refreshTasks, pauseTask, resumeTask, deleteTask, isOperationInProgress, setIsOperationInProgress } =
         useContext(ScheduledTasksContext);
     const [lastUpdated, setLastUpdated] = useState<string>();
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
 
     const isPauseButtonDisabled = useMemo(() => {
         const hasActiveTaskSelected = selectedTasks?.some(task => task.status === ScheduledTaskStatus.Active);
@@ -182,12 +183,14 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
         <div className={styles.toolbar}>
             <div className={styles.toolbarButtons}>
                 <Toolbar style={{ padding: 0 }}>
-                    <CreateOrEditScheduledTaskDialog
+                    <ScheduledTaskCreateOrEditDialog
                         dialogTrigger={
                             <ToolbarButton className={styles.toolbarButton} icon={<AddRegular />}>
                                 {intl.formatMessage(ScheduledTasksResources.createTask)}
                             </ToolbarButton>
                         }
+                        isDialogOpen={isCreateDialogOpen}
+                        setIsDialogOpen={setIsCreateDialogOpen}
                         mode={ScheduledTaskDialogMode.Create}
                     />
                     <ToolbarButton className={styles.toolbarButton} icon={<ArrowClockwiseRegular />} onClick={onRefresh}>
@@ -210,7 +213,7 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
                     >
                         {intl.formatMessage(ScheduledTasksResources.turnOn)}
                     </ToolbarButton>
-                    <DeleteScheduledTaskDialog
+                    <ScheduledTaskDeleteDialog
                         dialogTrigger={
                             <ToolbarButton className={styles.toolbarButton} icon={<DeleteRegular />} disabled={isDeleteButtonDisabled}>
                                 {intl.formatMessage(SreAgentResources.delete)}

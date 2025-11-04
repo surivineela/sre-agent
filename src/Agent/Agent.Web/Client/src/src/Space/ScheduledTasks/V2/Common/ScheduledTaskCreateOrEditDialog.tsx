@@ -7,21 +7,28 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
+    ToolbarButton,
 } from '@fluentui/react-components';
+import { Dismiss24Regular } from '@fluentui/react-icons';
 import { Formik } from 'formik';
-import { FC, useContext, useState } from 'react';
+import { FC, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
+import { ExtendedAgent } from '../../../Contracts/ExtendedAgentGraph';
 import { ScheduledTask } from '../../../Contracts/ScheduledTasks';
 import { ScheduledTasksContext } from '../Hooks/ScheduledTasksContext';
 import { useScheduledTaskSettings } from '../Hooks/useScheduledTaskSettings';
 import { ScheduledTaskFormProps } from '../ScheduledTasksUtilities';
 import { ScheduledTaskForm } from './ScheduledTaskForm';
 
-interface CreateOrEditScheduledTaskDialog {
-    dialogTrigger: React.ReactElement;
+interface ScheduledTaskCreateOrEditDialog {
+    dialogTrigger?: React.ReactElement;
+    isDialogOpen: boolean;
+    setIsDialogOpen: (open: boolean) => void;
     mode: ScheduledTaskDialogMode;
     scheduledTask?: ScheduledTask;
+    agents?: ExtendedAgent[];
+    startingAgent?: string;
 }
 
 export enum ScheduledTaskDialogMode {
@@ -29,19 +36,26 @@ export enum ScheduledTaskDialogMode {
     Edit,
 }
 
-export const CreateOrEditScheduledTaskDialog: FC<CreateOrEditScheduledTaskDialog> = ({ dialogTrigger, mode, scheduledTask }) => {
+export const ScheduledTaskCreateOrEditDialog: FC<ScheduledTaskCreateOrEditDialog> = ({
+    dialogTrigger,
+    isDialogOpen,
+    setIsDialogOpen,
+    mode,
+    scheduledTask,
+    agents,
+    startingAgent,
+}) => {
     const intl = useIntl();
     const { refreshTasks, isOperationInProgress } = useContext(ScheduledTasksContext);
     const {
         initialValues,
         validationSchema,
         save: saveScheduledTaskSettings,
-    } = useScheduledTaskSettings(mode, mode === ScheduledTaskDialogMode.Edit ? scheduledTask : undefined);
-    const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+    } = useScheduledTaskSettings(mode, mode === ScheduledTaskDialogMode.Edit ? scheduledTask : undefined, startingAgent);
 
     return (
         <Dialog open={isDialogOpen} onOpenChange={(_, data) => setIsDialogOpen(data.open)} modalType="alert">
-            <DialogTrigger disableButtonEnhancement>{dialogTrigger}</DialogTrigger>
+            {dialogTrigger ? <DialogTrigger disableButtonEnhancement>{dialogTrigger}</DialogTrigger> : <></>}
 
             <Formik<ScheduledTaskFormProps>
                 initialValues={initialValues}
@@ -63,13 +77,23 @@ export const CreateOrEditScheduledTaskDialog: FC<CreateOrEditScheduledTaskDialog
                             aria-describedby="task-dialog-content"
                         >
                             <DialogBody>
-                                <DialogTitle id="task-dialog-title">
+                                <DialogTitle
+                                    id="task-dialog-title"
+                                    action={
+                                        <ToolbarButton
+                                            aria-label={intl.formatMessage(SreAgentResources.close)}
+                                            appearance="transparent"
+                                            icon={<Dismiss24Regular />}
+                                            onClick={() => setIsDialogOpen(false)}
+                                        />
+                                    }
+                                >
                                     {mode === ScheduledTaskDialogMode.Create
                                         ? intl.formatMessage(ScheduledTasksResources.createAScheduledTask)
                                         : intl.formatMessage(ScheduledTasksResources.editAScheduledTask)}
                                 </DialogTitle>
                                 <DialogContent id="task-dialog-content">
-                                    <ScheduledTaskForm />
+                                    <ScheduledTaskForm agents={agents} />
                                 </DialogContent>
                                 <DialogActions>
                                     <DialogTrigger disableButtonEnhancement>

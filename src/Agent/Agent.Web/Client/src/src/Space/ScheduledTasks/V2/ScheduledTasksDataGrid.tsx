@@ -24,15 +24,15 @@ import {
 } from '@fluentui/react-components';
 import { DeleteRegular, MoreHorizontalRegular, PauseRegular, ReplayRegular } from '@fluentui/react-icons';
 import { Link } from '@fluentui/react/lib/Link';
-import { FC, useCallback, useContext, useMemo } from 'react';
+import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { getErrorMessageOrStringify } from '../../../Common/Clients/ArmClient';
 import { getLocaleDateTimeHHMM } from '../../../Common/Helpers/Date';
 import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
-import { CreateOrEditScheduledTaskDialog, ScheduledTaskDialogMode } from './Common/CreateOrEditScheduledTaskDialog';
-import { DeleteScheduledTaskDialog } from './Common/DeleteScheduledTaskDialog';
+import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from './Common/ScheduledTaskCreateOrEditDialog';
+import { ScheduledTaskDeleteDialog } from './Common/ScheduledTaskDeleteDialog';
 import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
 import { getHumanReadableCronExpression } from './ScheduledTasksUtilities';
 
@@ -59,6 +59,7 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
     const azPortalContext = useContext(AzPortalContext);
     const { refreshTasks, pauseTask, resumeTask, deleteTask, isOperationInProgress, setIsOperationInProgress } =
         useContext(ScheduledTasksContext);
+    const [editDialogTaskId, setEditDialogTaskId] = useState<string | null>(null);
 
     const onSelectionChange: DataGridProps['onSelectionChange'] = useCallback(
         (_: any, data: OnSelectionChangeData) => {
@@ -184,15 +185,25 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
         [azPortalContext, intl, setIsOperationInProgress, deleteTask, refreshTasks]
     );
 
-    const onRenderName = useCallback((item: ScheduledTask) => {
-        return (
-            <CreateOrEditScheduledTaskDialog
-                dialogTrigger={<Link>{item.name}</Link>}
-                mode={ScheduledTaskDialogMode.Edit}
-                scheduledTask={item}
-            />
-        );
-    }, []);
+    const onRenderName = useCallback(
+        (item: ScheduledTask) => {
+            const isDialogOpen = editDialogTaskId === item.id;
+            const setIsDialogOpen = (open: boolean) => {
+                setEditDialogTaskId(open ? item.id : null);
+            };
+
+            return (
+                <ScheduledTaskCreateOrEditDialog
+                    dialogTrigger={<Link>{item.name}</Link>}
+                    isDialogOpen={isDialogOpen}
+                    setIsDialogOpen={setIsDialogOpen}
+                    mode={ScheduledTaskDialogMode.Edit}
+                    scheduledTask={item}
+                />
+            );
+        },
+        [editDialogTaskId]
+    );
 
     const onRenderActions = useCallback(
         (item: ScheduledTask) => {
@@ -222,7 +233,7 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                         </MenuPopover>
                     </Menu>
 
-                    <DeleteScheduledTaskDialog
+                    <ScheduledTaskDeleteDialog
                         deleteTasks={() => onDeleteTask(item)}
                         title={intl.formatMessage(ScheduledTasksResources.deleteTaskConfirmationTitle)}
                         content={intl.formatMessage(ScheduledTasksResources.deleteTaskConfirmationMessage, { name: item.name ?? item.id })}

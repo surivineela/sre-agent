@@ -104,7 +104,7 @@ export const useScheduledTasksStyles = makeStyles({
     taskFormDivider: {
         backgroundColor: '#D1D1D1',
         width: '1px',
-        height: '328px',
+        alignSelf: 'stretch',
     },
     taskFormLeft: {
         display: 'flex',

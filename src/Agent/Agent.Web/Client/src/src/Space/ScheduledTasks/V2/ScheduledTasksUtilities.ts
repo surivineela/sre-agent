@@ -34,6 +34,7 @@ export enum GroupMessageKey {
 
 export interface ScheduledTaskFormProps {
     name: string;
+    subAgent?: string;
     details: string;
     frequency: TaskFrequencyKey;
     timeOfDay: Date;

@@ -2973,6 +2973,8 @@ export const ScheduledTasksResources = defineMessages({
     activeTasks: { defaultMessage: 'Active tasks', id: 'wGcWbo' },
     totalTasks: { defaultMessage: 'Total tasks', id: 'Px6I1N' },
     totalRuns: { defaultMessage: 'Total runs', id: 'g4Dsk6' },
+    responseSubAgent: { defaultMessage: 'Response subagent', id: 'GMhzu1' },
+    responseSubAgentPlaceholder: { defaultMessage: 'Select an agent', id: 'ipsqxO' },
 });
 
 export const SubAgentsResources = defineMessages({
@@ -3836,6 +3838,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
         id: 'sNuzQE',
     },
     quickCreateAddIncidentTrigger: { defaultMessage: 'Add incident trigger', id: 'eq57j2' },
+    quickCreateAddScheduledTask: { defaultMessage: 'Add scheduled task', id: 'fCiXKq' },
     quickCreateAddExistingTool: { defaultMessage: 'Add existing tool', id: 'RI59Ed' },
     quickCreateCreateNewKustoTool: { defaultMessage: 'Create new Kusto tool', id: 'mhKk7c' },
     quickCreateAddExistingSubagent: { defaultMessage: 'Add existing subagent', id: 'KJHRU/' },

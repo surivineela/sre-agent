@@ -63,6 +63,12 @@ export const AgentLeftQuickActionButton: React.FC<AgentLeftQuickActionButtonProp
                                 onClick={() => triggerAgentQuickAction(agent.name, 'addIncidentTrigger')}
                                 content={intl.formatMessage(ExtendedAgentsGraphResources.quickCreateAddIncidentTrigger)}
                             />
+                            <MenuItem
+                                className={contextMenuItemWithIcon}
+                                icon={<EntityIcon type="scheduledTask" shorthandStyle={iconSizeProp} />}
+                                onClick={() => triggerAgentQuickAction(agent.name, 'addScheduledTask')}
+                                content={intl.formatMessage(ExtendedAgentsGraphResources.quickCreateAddScheduledTask)}
+                            />
                         </MenuGroup>
                         <MenuGroup>
                             <MenuGroupHeader>{intl.formatMessage(ExtendedAgentsGraphResources.subagent)}</MenuGroupHeader>

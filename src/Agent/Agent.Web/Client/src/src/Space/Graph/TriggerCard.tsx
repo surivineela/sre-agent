@@ -74,7 +74,7 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
             case 'incident':
                 return 'incidentTrigger';
             case 'scheduled':
-                return 'scheduledTrigger';
+                return 'scheduledTask';
             default:
                 return 'genericTrigger';
         }
@@ -119,7 +119,7 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
                 {triggerStatus}
             </Badge>
         );
-    }, [trigger?.status]);
+    }, [badge, trigger?.status]);
 
     const chronBadgeElement = useMemo(() => {
         if (triggerType !== 'scheduled' || !trigger?.cronExpression) {
@@ -131,7 +131,7 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
                 {getHumanReadableCronExpression(trigger.cronExpression, intl)}
             </Badge>
         );
-    }, [triggerType, trigger?.cronExpression]);
+    }, [triggerType, trigger.cronExpression, badge, intl]);
 
     const triggerSubtitle = useMemo(
         () =>

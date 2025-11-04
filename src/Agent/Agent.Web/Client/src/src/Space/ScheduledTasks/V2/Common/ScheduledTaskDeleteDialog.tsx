@@ -13,14 +13,14 @@ import { FC, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { SreAgentResources } from '../../../../Strings/SREAgentResources';
 
-interface DeleteScheduledTaskDialogProps {
+interface ScheduledTaskDeleteDialogProps {
     dialogTrigger?: React.ReactElement;
     deleteTasks: () => void;
     title: string;
     content: string;
 }
 
-export const DeleteScheduledTaskDialog: FC<DeleteScheduledTaskDialogProps> = ({ dialogTrigger, deleteTasks, title, content }) => {
+export const ScheduledTaskDeleteDialog: FC<ScheduledTaskDeleteDialogProps> = ({ dialogTrigger, deleteTasks, title, content }) => {
     const intl = useIntl();
 
     const dialogSurface = useMemo(() => {

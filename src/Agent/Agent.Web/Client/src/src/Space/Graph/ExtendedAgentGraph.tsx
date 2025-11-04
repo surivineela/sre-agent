@@ -28,9 +28,11 @@ import {
 import { useExtendedAgentGraph } from '../Hooks/useExtendedAgentGraph';
 import { useExtendedAgentGraphLayout } from '../Hooks/useExtendedAgentGraphLayout';
 import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
-import { useScheduledTasks } from '../Hooks/useScheduledTasks';
 import { HandlerCreateOrEditInfo } from '../IncidentManagement/CreateIncidentHandler/Contracts';
 import PlaygroundModal, { PlaygroundTarget } from '../Playground/PlaygroundModal';
+import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from '../ScheduledTasks/V2/Common/ScheduledTaskCreateOrEditDialog';
+import { ScheduledTasksContext } from '../ScheduledTasks/V2/Hooks/ScheduledTasksContext';
+import { useScheduledTasksV2 } from '../ScheduledTasks/V2/Hooks/useScheduledTasksV2';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import {
     AddExistingAggentHandoffDialog,
@@ -123,7 +125,16 @@ const ExtendedAgentGraphContent = memo(() => {
 
     const { features } = useFeatureFlags();
     const { incidentHandlers, incidentHandlersLoading } = useIncidentHandlers();
-    const { scheduledTasks, loading: scheduledTasksLoading } = useScheduledTasks({ enabled: features.scheduledTasks });
+    const {
+        // TODO: scheduledTasks and isLoading is not being used by new create dialog, so remove old logic later
+        scheduledTasks,
+        loading: isScheduledTasksLoading,
+        createTask,
+        updateTask,
+        deleteTask,
+        pauseTask,
+        resumeTask,
+    } = useScheduledTasksV2();
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
@@ -146,6 +157,10 @@ const ExtendedAgentGraphContent = memo(() => {
 
     const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo>();
     const [agentHandoffPickerInfo, setAgentHandoffPickerInfo] = useState<AddExistingAggentHandoffDialogProps['handoffInfo'] | undefined>();
+
+    const [isOperationInProgress, setIsOperationInProgress] = useState<boolean>(false);
+    const [isScheduledTaskDialogOpen, setIsScheduledTaskDialogOpen] = useState(false);
+    const [startingAgent, setStartingAgent] = useState<string>();
 
     const [currentView, setCurrentView] = useState<ExtendedAgentGraphView>(ExtendedAgentGraphView.Visual);
     const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
@@ -559,18 +574,18 @@ const ExtendedAgentGraphContent = memo(() => {
     );
 
     const scheduledTasksCount = useMemo(
-        () => (features.scheduledTasks ? (scheduledTasksLoading ? null : scheduledTasks.length) : null),
-        [features.scheduledTasks, scheduledTasksLoading, scheduledTasks]
+        () => (features.scheduledTasks ? (isScheduledTasksLoading ? null : scheduledTasks.length) : null),
+        [features.scheduledTasks, isScheduledTasksLoading, scheduledTasks]
     );
 
     const triggerCardConfig = useMemo(
         () => ({
-            isLoading: incidentHandlersLoading || (features.scheduledTasks && scheduledTasksLoading),
+            isLoading: incidentHandlersLoading || (features.scheduledTasks && isScheduledTasksLoading),
             incidentHandlersCount,
             scheduledTasksCount,
             hasScheduledTasksFeature: features.scheduledTasks,
         }),
-        [features.scheduledTasks, incidentHandlersCount, incidentHandlersLoading, scheduledTasksCount, scheduledTasksLoading]
+        [features.scheduledTasks, incidentHandlersCount, incidentHandlersLoading, scheduledTasksCount, isScheduledTasksLoading]
     );
 
     const creationSuccessMessage = useMemo(() => {
@@ -1095,12 +1110,17 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
+            if (action === 'addScheduledTask') {
+                setIsScheduledTaskDialogOpen(true);
+                setStartingAgent(agentName);
+                return;
+            }
+
             if (action === 'addHandoffSourceExistingAgent' || action === 'addHandoffTargetExistingAgent') {
                 setAgentHandoffPickerInfo({
                     mode: action === 'addHandoffSourceExistingAgent' ? 'sourcePicker' : 'targetPicker',
                     currentAgent: agents.find(a => a.name === agentName)!,
                 });
-                return;
             }
 
             if (action === 'createAgent' || action === 'createTool') {
@@ -1407,10 +1427,14 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
-            const adjustedItemType: EntityType = itemType === 'scheduledTrigger' ? 'trigger' : itemType;
+            if (itemType === 'scheduledTask') {
+                setIsScheduledTaskDialogOpen(true);
+                setStartingAgent(undefined);
+                return;
+            }
 
             setCreationDialogContext(undefined);
-            setCreationDialogInitialTypeOverride(adjustedItemType);
+            setCreationDialogInitialTypeOverride(itemType);
             setCreationDialogTriggerAgentName(undefined);
             setCreationSuccess(undefined);
             setIsCreationDialogOpen(true);
@@ -1603,6 +1627,27 @@ const ExtendedAgentGraphContent = memo(() => {
                     setHandlerOperationStatus={() => {}}
                     handlerCreateOrEditInfo={handlerCreateOrEditInfo}
                 />
+
+                <ScheduledTasksContext.Provider
+                    value={{
+                        createTask,
+                        updateTask,
+                        refreshTasks: () => Promise.resolve(handleRefresh()),
+                        pauseTask,
+                        resumeTask,
+                        deleteTask,
+                        isOperationInProgress,
+                        setIsOperationInProgress,
+                    }}
+                >
+                    <ScheduledTaskCreateOrEditDialog
+                        isDialogOpen={isScheduledTaskDialogOpen}
+                        setIsDialogOpen={setIsScheduledTaskDialogOpen}
+                        mode={ScheduledTaskDialogMode.Create}
+                        agents={agents}
+                        startingAgent={startingAgent}
+                    />
+                </ScheduledTasksContext.Provider>
 
                 <AddExistingAggentHandoffDialog
                     onDismiss={() => setAgentHandoffPickerInfo(undefined)}

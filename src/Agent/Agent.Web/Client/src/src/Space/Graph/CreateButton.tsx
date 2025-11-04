@@ -2,7 +2,7 @@ import { Menu, MenuButtonProps, MenuItem, MenuList, MenuPopover, MenuTrigger, Sp
 import { AddRegular } from '@fluentui/react-icons';
 import { memo, useRef } from 'react';
 import { useIntl } from 'react-intl';
-import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, ScheduledTasksResources } from '../../Strings/SREAgentResources';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { EntityIcon } from './EntityIcon';
 import { EntityTypeExt } from './ExtendedAgentCreationDialog/types';
@@ -37,10 +37,10 @@ const CreateButton = memo(({ handleCreateItemStandalone, disabled }: CreateButto
             entityType: 'incidentTrigger' as EntityTypeExt,
         },
         {
-            label: intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeScheduled),
+            label: intl.formatMessage(ScheduledTasksResources.scheduledTask),
             description: undefined,
-            icon: <EntityIcon type="scheduledTrigger" />,
-            entityType: 'scheduledTrigger' as EntityTypeExt,
+            icon: <EntityIcon type="scheduledTask" />,
+            entityType: 'scheduledTask' as EntityTypeExt,
         },
         {
             label: intl.formatMessage(ExtendedAgentsGraphResources.kustoTool),

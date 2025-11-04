@@ -154,6 +154,7 @@ export type ExtendedAgentGraphEdge = {
 
 export type AgentQuickAction =
     | 'addIncidentTrigger'
+    | 'addScheduledTask'
     | 'addHandoffSourceExistingAgent'
     | 'addHandoffTargetExistingAgent'
     | 'addHandoff'

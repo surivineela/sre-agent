@@ -3,7 +3,7 @@ import { AgentsRegular, PlayRegular, TimerRegular, WarningRegular, WrenchRegular
 import { FC, useMemo } from 'react';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 export interface EntityIconProps {
-    type: 'agent' | 'scheduledTrigger' | 'incidentTrigger' | 'genericTrigger' | 'tool' | 'toolWithGear';
+    type: 'agent' | 'scheduledTask' | 'incidentTrigger' | 'genericTrigger' | 'tool' | 'toolWithGear';
     shorthandStyle?: {
         wrapperSize: number;
         iconSize: number;
@@ -23,7 +23,7 @@ export const EntityIcon: FC<EntityIconProps> = ({ type, shorthandStyle: size, wr
                     foregroundColor: tokens.colorPaletteLavenderForeground2,
                     Icon: AgentsRegular,
                 };
-            case 'scheduledTrigger':
+            case 'scheduledTask':
                 return {
                     backgroundColor: tokens.colorPaletteForestBackground2,
                     foregroundColor: tokens.colorPaletteForestForeground2,

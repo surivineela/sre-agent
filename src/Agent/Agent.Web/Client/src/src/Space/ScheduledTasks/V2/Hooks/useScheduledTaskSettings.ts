@@ -6,10 +6,10 @@ import { getErrorMessageOrStringify } from '../../../../Common/Clients/ArmClient
 import { roundTimeToNearestMinuteInterval } from '../../../../Common/Helpers/Date';
 import { Guid } from '../../../../Common/Helpers/Guid';
 import { ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
-import { ScheduledTask } from '../../../Contracts/ScheduledTasks';
+import { CreateScheduledTaskRequest, ScheduledTask } from '../../../Contracts/ScheduledTasks';
 import { normalizeCronExpression } from '../../../Graph/ExtendedAgentCreationDialog/utils/schedule';
 import { useAuthenticatedUserInfo } from '../../../Hooks/useAuthenticatedUserInfo';
-import { ScheduledTaskDialogMode } from '../Common/CreateOrEditScheduledTaskDialog';
+import { ScheduledTaskDialogMode } from '../Common/ScheduledTaskCreateOrEditDialog';
 import {
     DayOfTheWeek,
     getCronExpression,
@@ -20,7 +20,7 @@ import {
 } from '../ScheduledTasksUtilities';
 import { ScheduledTasksContext } from './ScheduledTasksContext';
 
-export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, scheduledTask?: ScheduledTask) => {
+export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, scheduledTask?: ScheduledTask, startingAgent?: string) => {
     const intl = useIntl();
     const date = useRef<Date>(new Date());
     const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -40,6 +40,7 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
 
         return {
             name: scheduledTask?.name ?? '',
+            subAgent: startingAgent,
             details: scheduledTask?.agentPrompt ?? '',
             frequency: scheduledTaskFrequency ?? TaskFrequencyKey.Daily,
             timeOfDay: scheduledTaskTimeOfDay ?? roundTimeToNearestMinuteInterval(date.current, 15),
@@ -51,7 +52,7 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
             groupMessages: scheduledTask?.threadId === null ? GroupMessageKey.NewThread : GroupMessageKey.SameThread,
             runLimit: scheduledTask?.maxExecutions?.toString() ?? undefined,
         };
-    }, [scheduledTask]);
+    }, [scheduledTask, startingAgent]);
 
     const validationSchema = useMemo(
         () =>
@@ -67,8 +68,9 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
             setIsSaving(true);
             setIsOperationInProgress(true);
 
-            const body = {
+            const body: CreateScheduledTaskRequest = {
                 name: values.name,
+                agent: values.subAgent,
                 description: values.name,
                 agentPrompt: values.details,
                 createdBy: displayName ?? 'Sub-Agent Builder',

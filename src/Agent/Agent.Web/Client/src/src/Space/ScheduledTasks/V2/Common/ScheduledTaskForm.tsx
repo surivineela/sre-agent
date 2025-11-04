@@ -14,15 +14,20 @@ import { DatePicker } from '@fluentui/react-datepicker-compat';
 import { ArrowUndo16Regular, PenSparkle16Regular } from '@fluentui/react-icons';
 import { formatDateToTimeString, TimePicker } from '@fluentui/react-timepicker-compat';
 import { useFormikContext } from 'formik';
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
+import { ExtendedAgent } from '../../../Contracts/ExtendedAgentGraph';
 import { improvePrompt } from '../../../Graph/ExtendedAgentCreationDialog/services/promptImprovementService';
 import { useScheduledTasksStyles } from '../ScheduledTasks.styles';
 import { DayOfTheWeek, getDaysOfTheWeek, GroupMessageKey, ScheduledTaskFormProps, TaskFrequencyKey } from '../ScheduledTasksUtilities';
 
-export const ScheduledTaskForm = () => {
+interface FormProps {
+    agents?: ExtendedAgent[];
+}
+
+export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
     const intl = useIntl();
     const styles = useScheduledTasksStyles();
     const { values, setFieldValue, errors, setFieldTouched, touched } = useFormikContext<ScheduledTaskFormProps>();
@@ -98,6 +103,24 @@ export const ScheduledTaskForm = () => {
                         }}
                     />
                 </Field>
+                {agents && (
+                    <Field label={intl.formatMessage(ScheduledTasksResources.responseSubAgent)}>
+                        <Dropdown
+                            value={values.subAgent || ''}
+                            selectedOptions={values.subAgent ? [values.subAgent] : []}
+                            onOptionSelect={(_, data: OptionOnSelectData) => {
+                                setFieldValue('subAgent', data.selectedOptions[0] || '');
+                            }}
+                            placeholder={intl.formatMessage(ScheduledTasksResources.responseSubAgentPlaceholder)}
+                        >
+                            {agents.map(agent => (
+                                <Option key={agent.name} value={agent.name}>
+                                    {agent.name}
+                                </Option>
+                            ))}
+                        </Dropdown>
+                    </Field>
+                )}
                 <Field
                     label={
                         <div className={styles.fieldLabelRow}>
