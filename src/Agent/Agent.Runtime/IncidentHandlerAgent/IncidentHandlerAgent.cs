@@ -268,11 +268,11 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         }
         catch (System.ClientModel.ClientResultException ex) when (ex.Message.Contains("HTTP 400 (content_filter)"))
         {
-            _logger.LogInternalError(
+            _logger.LogInternalWarning(
                 ex,
-                "[IncidentHandlerAgent] ProcessIncidentAsync: Content filter error occurred while processing user message for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
+                "[IncidentHandlerAgent] ProcessIncidentAsync: Content filter triggered while processing user message for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
                 agentContext.Id, threadGuid);
-            return ex.Message;
+            return Agent.Core.Constants.ErrorMessages.ContentFilterTriggered;
         }
         catch (Exception ex)
         {

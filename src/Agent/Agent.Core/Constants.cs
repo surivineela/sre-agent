@@ -238,5 +238,17 @@ public class Constants
         // Azure Search document key field name
         public const string SearchIndexKeyFieldName = "id";
     }
+
+    public static class ErrorMessages
+    {
+        public const string ContentFilterTriggered =
+            "I apologize, but I cannot process your request as it triggered our content safety filters. Please rephrase your question or try a different approach, and I'll be happy to help.";
+
+        public const string RateLimitExceeded =
+            "This conversation has reached its maximum length. Please start a new conversation to continue, and I'll be happy to help.";
+
+        public const string GenericInternalError =
+            "I am unable to fully address your request due to an internal error. Please retry to continue the conversation!";
+    }
 }
 

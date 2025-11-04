@@ -1057,8 +1057,27 @@ public class ReasoningLoop : IDisposable
             errorSpan.End();
 
             _logger.LogInternalWarning(ex, "[{threadId}]Rate limit encountered during reasoning loop.", _context.ThreadId);
-            // Add a 'wait a moment' message to differentiate with the normal unknown internal error.
-            var message = new ChatMessage(ChatRole.Assistant, "I am unable to fully address your request due to an internal error. Please wait a moment and continue the conversation.");
+            var message = new ChatMessage(ChatRole.Assistant, Agent.Core.Constants.ErrorMessages.RateLimitExceeded);
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                _context,
+                message
+            );
+        }
+        catch (System.ClientModel.ClientResultException ex)
+            when (ex.Status == 400
+                && (ex.Message?.Contains("content_filter", StringComparison.OrdinalIgnoreCase) ?? false))
+        {
+            _currentException = ex;
+            var parentSpan = _currentAgentSpan ?? _rootSpan;
+            var errorSpan = _tracer.StartActiveSpan("error", SpanKind.Internal, parentSpan);
+            errorSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            errorSpan.SetAttribute(TraceAttribute.OperationName, "error");
+            errorSpan.SetAttribute("error.message", $"Content filter triggered: {ex.GetType()}: {ex.Message}");
+            errorSpan.SetAttribute("error.stacktrace", ex.StackTrace);
+            errorSpan.End();
+
+            _logger.LogInternalWarning(ex, "[{threadId}]Content filter triggered during reasoning loop.", _context.ThreadId);
+            var message = new ChatMessage(ChatRole.Assistant, Agent.Core.Constants.ErrorMessages.ContentFilterTriggered);
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                 _context,
                 message
