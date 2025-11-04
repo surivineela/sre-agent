@@ -254,9 +254,9 @@ export const ResponsePlanView = ({
                 severity: row[2] as string,
                 createdOn: new Date(row[3] ?? Date.now()),
                 mitigatedBy:
-                    (row[5] as string).toLowerCase() === 'active'
+                    (row[4] as string).toLowerCase() === 'active'
                         ? 'inProgress'
-                        : (row[4] as string).toLowerCase() === 'true'
+                        : (row[5] as string).toLowerCase() === 'true'
                           ? 'agent'
                           : 'user',
                 assistedByAgent: (row[6] as string).toLowerCase() === 'true',

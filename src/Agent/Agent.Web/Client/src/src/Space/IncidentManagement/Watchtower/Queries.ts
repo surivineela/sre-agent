@@ -65,7 +65,8 @@ export const getHandlersOverviewQuery = (timeRange: TimeRangeValue) => {
     | project IncidentId, IncidentHandledOn, HandlerId, IsMitigatedByAgent, IsAssistedByAgent, RunMode, ResponsePlanCustom, Status, UpdatedOn
     | where IncidentHandledOn ${kustoTimespan}
     | summarize arg_max(UpdatedOn, HandlerId, IncidentId, IsMitigatedByAgent, IsAssistedByAgent, RunMode, ResponsePlanCustom, Status) by IncidentId
-    | summarize Incidents = dcount(IncidentId), AgentAssisted = dcountif(IncidentId, IsAssistedByAgent == True), UserMitigated = dcountif(IncidentId, IsMitigatedByAgent == False and tolower(Status) != 'active'), AgentMitigated = dcountif(IncidentId, IsMitigatedByAgent == True), InProgress = dcountif(IncidentId, tolower(Status) == 'active') by HandlerId, RunMode, ResponsePlanCustom
+    | summarize arg_max(UpdatedOn, RunMode, ResponsePlanCustom), Incidents = dcount(IncidentId), AgentAssisted = dcountif(IncidentId, IsAssistedByAgent == True), UserMitigated = dcountif(IncidentId, IsMitigatedByAgent == False and tolower(Status) != 'active'), AgentMitigated = dcountif(IncidentId, IsMitigatedByAgent == True), InProgress = dcountif(IncidentId, tolower(Status) == 'active') by HandlerId
+    | project HandlerId, RunMode, ResponsePlanCustom, Incidents, AgentAssisted, UserMitigated, AgentMitigated, InProgress
     | order by Incidents desc
     `;
 };

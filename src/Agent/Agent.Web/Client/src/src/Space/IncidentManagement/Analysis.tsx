@@ -52,7 +52,7 @@ export interface IncidentHandlerItem {
     responsePlanName: string;
     autonomyLevel: string;
     /** `"Default"` for default handler */
-    planType: string;
+    planType: string; // False for Default, True for Custom
     distinctIncidentCount: number;
     agentAssisted: number;
     userMitigated: number;

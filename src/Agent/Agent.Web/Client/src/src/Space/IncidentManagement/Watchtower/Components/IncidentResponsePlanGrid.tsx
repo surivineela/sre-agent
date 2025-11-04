@@ -132,7 +132,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
         (item: IncidentHandlerItem) => {
             return (
                 <Text>
-                    {item.planType === 'Default' ? intl.formatMessage(SreAgentResources.no) : intl.formatMessage(SreAgentResources.yes)}
+                    {item.planType === 'True' ? intl.formatMessage(SreAgentResources.yes) : intl.formatMessage(SreAgentResources.no)}
                 </Text>
             );
         },
@@ -308,7 +308,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
 
         if (customPlanFilter !== all) {
             filteredGridItems = filteredGridItems.filter(item =>
-                customPlanFilter === 'yes' ? item.planType !== 'Default' : item.planType === 'Default'
+                customPlanFilter === 'yes' ? item.planType === 'True' : item.planType === 'False'
             );
         }
 
@@ -329,7 +329,9 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
 
     return (
         <Card style={{ width: '100%', height: '100%' }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
-            <Subtitle2 as='h3' style={{ margin: 0 }}>{intl.formatMessage(IncidentManagementResources.incidentResponsePlan)}</Subtitle2>
+            <Subtitle2 as="h3" style={{ margin: 0 }}>
+                {intl.formatMessage(IncidentManagementResources.incidentResponsePlan)}
+            </Subtitle2>
 
             <div className={styles.incidentFiltersContainer} style={{ marginBottom: 0 }}>
                 <SearchBox
