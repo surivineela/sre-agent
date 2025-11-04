@@ -15,6 +15,8 @@ interface DeleteConfirmationDialogProps {
     actionVerb: string;
     title?: string;
     message?: string;
+    actionPositive?: string;
+    actionNegative?: string;
     isOperationInProgress?: boolean;
     selectedItems?: string[];
     connectorTypes?: string[];
@@ -28,6 +30,8 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
     isOperationInProgress = false,
     title,
     message,
+    actionPositive,
+    actionNegative,
     itemType,
     actionVerb,
     selectedItems = [],
@@ -46,11 +50,11 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
             ? intl.formatMessage(DeleteConfirmationDialogResources.titleMultiple, {
                   count: itemCount,
                   itemType: itemType,
-                  actionVerb: actionVerb.toLowerCase(),
+                  actionVerb: actionVerb,
               })
             : intl.formatMessage(DeleteConfirmationDialogResources.titleSingle, {
                   itemType: itemType,
-                  actionVerb: actionVerb.toLowerCase(),
+                  actionVerb: actionVerb,
               }));
 
     const confirmationMessage =
@@ -120,10 +124,10 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
                             disabled={isOperationInProgress}
                             className={styles.dangerButton}
                         >
-                            {actionVerb}
+                            {actionPositive || actionVerb}
                         </Button>
                         <Button appearance="secondary" onClick={onCancelDelete}>
-                            {intl.formatMessage(DeleteConfirmationDialogResources.cancel)}
+                            {actionNegative || intl.formatMessage(DeleteConfirmationDialogResources.cancel)}
                         </Button>
                     </DialogActions>
                 </DialogBody>

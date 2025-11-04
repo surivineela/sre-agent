@@ -2,6 +2,7 @@ import { useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { TextWithLink } from '../../../Common/Components/TextWithLink';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
@@ -61,17 +62,18 @@ export const Connectors = () => {
                 refresh();
                 stopNotification(notificationId, true, intl.formatMessage(ConnectorsResources.connectorCreated, { name: connector.name }));
             } else {
+                const errorMessage = getErrorMessage(response.metadata.error);
+
                 log({
                     action: 'createDataConnector',
                     actionModifier: 'failed',
                     resourceId,
                     logLevel: 'error',
                     data: {
-                        message: `Failed to create data connector: ${response.metadata.error?.error?.message}`,
+                        message: `Failed to create data connector: ${errorMessage}`,
                     },
                 });
 
-                const errorMessage = response.metadata.error?.error?.message;
                 stopNotification(
                     notificationId,
                     false,
@@ -98,17 +100,18 @@ export const Connectors = () => {
                 refresh();
                 stopNotification(notificationId, true, intl.formatMessage(ConnectorsResources.connectorUpdated, { name: connector.name }));
             } else {
+                const errorMessage = getErrorMessage(response.metadata.error);
+
                 log({
                     action: 'updateConnector',
                     actionModifier: 'failed',
                     resourceId,
                     logLevel: 'error',
                     data: {
-                        message: `Failed to update connector: ${response.metadata.error?.error?.message}`,
+                        message: `Failed to update connector: ${errorMessage}`,
                     },
                 });
 
-                const errorMessage = response.metadata.error?.error?.message;
                 stopNotification(
                     notificationId,
                     false,
@@ -169,7 +172,7 @@ export const Connectors = () => {
                         resourceId,
                         logLevel: 'error',
                         data: {
-                            message: `Failed to delete connector ${name}: ${response.metadata.error?.error?.message}`,
+                            message: `Failed to delete connector ${name}: ${getErrorMessage(response.metadata.error)}`,
                         },
                     });
                 }
@@ -301,22 +304,10 @@ export const Connectors = () => {
                 onCancelDelete={onCancelDelete}
                 isOperationInProgress={isOperationInProgress}
                 itemType={intl.formatMessage(ConnectorsResources.connector)}
-                actionVerb={intl.formatMessage(SreAgentResources.disconnect)}
+                actionVerb={intl.formatMessage(ConnectorsResources.remove)}
+                actionPositive={intl.formatMessage(SreAgentResources.yes)}
+                actionNegative={intl.formatMessage(SreAgentResources.no)}
                 selectedItems={Array.from(selectedKeys)}
-                title={
-                    selectedKeys.size > 1
-                        ? intl.formatMessage(ConnectorsResources.disconnectMultipleConnectorsTitle, {
-                              count: selectedKeys.size,
-                          })
-                        : intl.formatMessage(ConnectorsResources.disconnectConnectorTitle)
-                }
-                message={
-                    selectedKeys.size > 1
-                        ? intl.formatMessage(ConnectorsResources.disconnectMultipleConnectorsMessage, {
-                              count: selectedKeys.size,
-                          })
-                        : intl.formatMessage(ConnectorsResources.disconnectConnectorMessage)
-                }
                 connectorTypes={selectedConnectorTypes}
             />
             <ConnectorWizardFormik

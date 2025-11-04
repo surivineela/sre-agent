@@ -4859,18 +4859,7 @@ export const ConnectorsResources = defineMessages({
         defaultMessage: 'Connectors give the agent more tools to take action.',
         id: 'ekSxhn',
     },
-    disconnectConnectorTitle: { defaultMessage: 'Disconnect connector?', id: 'e3iUbz' },
-    disconnectMultipleConnectorsTitle: { defaultMessage: 'Disconnect {count} connectors?', id: 'ImMx2v' },
-    disconnectConnectorMessage: {
-        defaultMessage:
-            'This will permanently disconnect this connector from the agent. Are you sure you want to disconnect this connector?',
-        id: 'PMgJpH',
-    },
-    disconnectMultipleConnectorsMessage: {
-        defaultMessage:
-            'This will permanently disconnect {count} connectors from the agent. Are you sure you want to disconnect these connectors?',
-        id: '5WfpGl',
-    },
+    remove: { defaultMessage: 'Remove', id: 'J2b1Y/' },
     connectorsDescriptionLearnMore: { defaultMessage: 'Learn more about connectors', id: 'Kfaepo' },
     duplicateNameError: { defaultMessage: 'A connector with this name already exists', id: 'qf1aUJ' },
     urlKustoFormatError: { defaultMessage: 'The url must be in the format: {format}', id: '3sNyAo' },
