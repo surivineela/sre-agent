@@ -1,1 +1,2338 @@
-{}
+{
+  "+/nU/s": [
+    {
+      "type": 0,
+      "value": "Gives you read access to management and content operations, but does not allow making changes."
+    }
+  ],
+  "+CwN9C": [
+    {
+      "type": 0,
+      "value": "System"
+    }
+  ],
+  "+Ov1f1": [
+    {
+      "type": 0,
+      "value": "Some of the selected resource groups have policies that will cause the deployment to fail."
+    }
+  ],
+  "+TlNdm": [
+    {
+      "type": 0,
+      "value": "Container Apps"
+    }
+  ],
+  "+YDzOd": [
+    {
+      "type": 0,
+      "value": "Name must be between 2 and 32 characters"
+    }
+  ],
+  "+bJIWo": [
+    {
+      "type": 0,
+      "value": "Agent permissions level"
+    }
+  ],
+  "+k5t/y": [
+    {
+      "type": 0,
+      "value": "Contributor"
+    }
+  ],
+  "+l+XEu": [
+    {
+      "type": 0,
+      "value": "Can read workbooks."
+    }
+  ],
+  "+uAdUZ": [
+    {
+      "type": 0,
+      "value": "Resource group"
+    }
+  ],
+  "+zgzmq": [
+    {
+      "type": 0,
+      "value": "Cosmos DB Accounts"
+    }
+  ],
+  "/6Fckw": [
+    {
+      "type": 0,
+      "value": "Provisioning SRE Agent"
+    }
+  ],
+  "/8MshI": [
+    {
+      "type": 0,
+      "value": "Manage SQL Managed Instances."
+    }
+  ],
+  "/WrP/v": [
+    {
+      "type": 0,
+      "value": "Container Apps Operator"
+    }
+  ],
+  "/dxZCE": [
+    {
+      "type": 0,
+      "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
+    }
+  ],
+  "/gCtdO": [
+    {
+      "type": 0,
+      "value": "Manage Custom Vision projects."
+    }
+  ],
+  "/wY7pG": [
+    {
+      "type": 0,
+      "value": "PostgreSQL Servers"
+    }
+  ],
+  "/ytgXm": [
+    {
+      "type": 0,
+      "value": "Remove "
+    },
+    {
+      "type": 1,
+      "value": "columnName"
+    },
+    {
+      "type": 0,
+      "value": " filter"
+    }
+  ],
+  "01lT1B": [
+    {
+      "type": 0,
+      "value": "Lets you read, enable and disable logic app."
+    }
+  ],
+  "01sZoP": [
+    {
+      "type": 1,
+      "value": "selectedCount"
+    },
+    {
+      "type": 0,
+      "value": " of "
+    },
+    {
+      "type": 1,
+      "value": "totalCount"
+    }
+  ],
+  "0Dhe75": [
+    {
+      "type": 0,
+      "value": "Manage SQL servers and their security policies."
+    }
+  ],
+  "0te2Ra": [
+    {
+      "type": 0,
+      "value": "Manage Azure Data Factory instances."
+    }
+  ],
+  "1YPTmM": [
+    {
+      "type": 0,
+      "value": "Web Plan Contributor"
+    }
+  ],
+  "1ZgrhW": [
+    {
+      "type": 0,
+      "value": "Role"
+    }
+  ],
+  "1myzs4": [
+    {
+      "type": 0,
+      "value": "PostgreSQL Flexible Servers"
+    }
+  ],
+  "1t2BaF": [
+    {
+      "type": 0,
+      "value": "Geneva actions configuration"
+    }
+  ],
+  "2/2yg+": [
+    {
+      "type": 0,
+      "value": "Add"
+    }
+  ],
+  "2LQx4N": [
+    {
+      "type": 0,
+      "value": "Manage App Configuration stores."
+    }
+  ],
+  "2PnnDB": [
+    {
+      "type": 0,
+      "value": "Manage IoT Hub device registry."
+    }
+  ],
+  "2do8JC": [
+    {
+      "type": 0,
+      "value": "Digital Twins"
+    }
+  ],
+  "2xRon3": [
+    {
+      "type": 0,
+      "value": "Select resource groups dialog"
+    }
+  ],
+  "3cc4Ct": [
+    {
+      "type": 0,
+      "value": "Light"
+    }
+  ],
+  "3nhWFW": [
+    {
+      "type": 0,
+      "value": "Reader"
+    }
+  ],
+  "3t/IhV": [
+    {
+      "type": 0,
+      "value": "Can view cost data and configuration (e.g. budgets, exports)."
+    }
+  ],
+  "3tJfza": [
+    {
+      "type": 0,
+      "value": "The agent has permissions to take approved actions on resources and resource types detected in its assigned resource groups."
+    }
+  ],
+  "3zLsNR": [
+    {
+      "type": 0,
+      "value": "Manage websites, but not web plans. Does not allow you to assign roles."
+    }
+  ],
+  "43mD/Y": [
+    {
+      "type": 0,
+      "value": "Storage Blob Containers"
+    }
+  ],
+  "450Fty": [
+    {
+      "type": 0,
+      "value": "None"
+    }
+  ],
+  "456ixe": [
+    {
+      "type": 0,
+      "value": "All regions"
+    }
+  ],
+  "47FYwb": [
+    {
+      "type": 0,
+      "value": "Cancel"
+    }
+  ],
+  "4MeTpL": [
+    {
+      "type": 0,
+      "value": "Workbook Contributor"
+    }
+  ],
+  "4TnjxL": [
+    {
+      "type": 0,
+      "value": "API Management Service Reader Role"
+    }
+  ],
+  "4ii5zj": [
+    {
+      "type": 0,
+      "value": "Allows for read access to Azure Storage blob containers and data."
+    }
+  ],
+  "4kCXiz": [
+    {
+      "type": 0,
+      "value": "List cluster admin credential action."
+    }
+  ],
+  "5M+hLZ": [
+    {
+      "type": 0,
+      "value": "User permissions"
+    }
+  ],
+  "5Sc5rT": [
+    {
+      "type": 0,
+      "value": "IoT Hub Twin Contributor"
+    }
+  ],
+  "5UUKxL": [
+    {
+      "type": 0,
+      "value": "Storage Accounts"
+    }
+  ],
+  "5UfRjw": [
+    {
+      "type": 0,
+      "value": "Device Provisioning Service Data Contributor"
+    }
+  ],
+  "5V+Txp": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service Cluster User Role"
+    }
+  ],
+  "5WK7jL": [
+    {
+      "type": 0,
+      "value": "Create new"
+    }
+  ],
+  "5j5HnL": [
+    {
+      "type": 0,
+      "value": "Editor to filter the results by column value. "
+    },
+    {
+      "type": 1,
+      "value": "columnName"
+    },
+    {
+      "type": 1,
+      "value": "delimiter"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "filterValue"
+    }
+  ],
+  "5wGcN7": [
+    {
+      "type": 0,
+      "value": "Cost Management Reader"
+    }
+  ],
+  "64zSh3": [
+    {
+      "type": 0,
+      "value": "Cognitive Services LUIS Writer"
+    }
+  ],
+  "69g7If": [
+    {
+      "type": 0,
+      "value": "Cost Management"
+    }
+  ],
+  "6B5Jtu": [
+    {
+      "type": 0,
+      "value": "This field is required."
+    }
+  ],
+  "6YXj/s": [
+    {
+      "type": 0,
+      "value": "Contribute to Speech service resources."
+    }
+  ],
+  "6zUWZ/": [
+    {
+      "type": 0,
+      "value": "Read all monitoring data and edit monitoring settings."
+    }
+  ],
+  "7+b0J0": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Custom Vision Contributor"
+    }
+  ],
+  "75IWbW": [
+    {
+      "type": 0,
+      "value": "Deployment to this resource group will be blocked by policy: {field} not allowed. Policy Assignment ID: "
+    },
+    {
+      "type": 1,
+      "value": "id"
+    }
+  ],
+  "7N87nD": [
+    {
+      "type": 0,
+      "value": "Manage Device Provisioning Service data."
+    }
+  ],
+  "87v+WY": [
+    {
+      "type": 0,
+      "value": "Full access to Azure Digital Twins data."
+    }
+  ],
+  "8NHZQV": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Language Reader"
+    }
+  ],
+  "8OCpdQ": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " day ago"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " days ago"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "8aHHLj": [
+    {
+      "type": 0,
+      "value": "Read-only access to service and APIs."
+    }
+  ],
+  "8nBFW4": [
+    {
+      "type": 0,
+      "value": "Redis Cache Contributor"
+    }
+  ],
+  "8yyU6n": [
+    {
+      "type": 0,
+      "value": "All subscriptions"
+    }
+  ],
+  "9+Ddtu": [
+    {
+      "type": 0,
+      "value": "Next"
+    }
+  ],
+  "94Fg25": [
+    {
+      "type": 0,
+      "value": "Select all"
+    }
+  ],
+  "ABo5XY": [
+    {
+      "type": 0,
+      "value": "DocumentDB Account Contributor"
+    }
+  ],
+  "ASEuj4": [
+    {
+      "type": 0,
+      "value": "Denied by policy"
+    }
+  ],
+  "AVMCsG": [
+    {
+      "type": 0,
+      "value": "Machine Learning Workspaces"
+    }
+  ],
+  "Ab4TgE": [
+    {
+      "type": 0,
+      "value": "Agent permissions and roles table"
+    }
+  ],
+  "AeWmvh": [
+    {
+      "type": 0,
+      "value": "Lets you manage virtual machines, but not access to them, and not the virtual network or storage account they are connected to."
+    }
+  ],
+  "AhdXRl": [
+    {
+      "type": 0,
+      "value": "Max agent count"
+    }
+  ],
+  "Avsnjl": [
+    {
+      "type": 0,
+      "value": "Themes"
+    }
+  ],
+  "B6aNdQ": [
+    {
+      "type": 0,
+      "value": "The name must begin and end with a lowercase letter, and contain only lowercase letters, numbers, and hyphens. It cannot contain consecutive hyphens."
+    }
+  ],
+  "BKSv0l": [
+    {
+      "type": 0,
+      "value": "Azure Center for SAP solutions reader"
+    }
+  ],
+  "Bcx/Gz": [
+    {
+      "type": 0,
+      "value": "List cluster user credential action."
+    }
+  ],
+  "C0ZRdE": [
+    {
+      "type": 0,
+      "value": "The agent has read-only permissions on the resource groups it manages. It takes the user's permissions temporarily for approved actions."
+    }
+  ],
+  "C3PGqj": [
+    {
+      "type": 0,
+      "value": "Logic App Contributor"
+    }
+  ],
+  "C8z3QQ": [
+    {
+      "type": 0,
+      "value": "Data Factories"
+    }
+  ],
+  "CFJ1OD": [
+    {
+      "type": 0,
+      "value": "Read-only role for Digital Twins data-plane properties."
+    }
+  ],
+  "CMaDRa": [
+    {
+      "type": 0,
+      "value": "Write access to Language service resources."
+    }
+  ],
+  "CfGC/2": [
+    {
+      "type": 0,
+      "value": "Select resource groups to monitor"
+    }
+  ],
+  "Ch3IdZ": [
+    {
+      "type": 0,
+      "value": "View popular skills"
+    }
+  ],
+  "CrmeG3": [
+    {
+      "type": 0,
+      "value": "This resource group contains resources supported by SRE Agent"
+    }
+  ],
+  "D3idYv": [
+    {
+      "type": 0,
+      "value": "Settings"
+    }
+  ],
+  "DdD2hE": [
+    {
+      "type": 0,
+      "value": "Filter items..."
+    }
+  ],
+  "DdnNXo": [
+    {
+      "type": 0,
+      "value": "Privacy & cookies"
+    }
+  ],
+  "Dff3ms": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Contributor"
+    }
+  ],
+  "Dx3Xj3": [
+    {
+      "type": 0,
+      "value": "Let's you read and test a KB only."
+    }
+  ],
+  "ENnkRe": [
+    {
+      "type": 0,
+      "value": "Grants permission for read operations for App Configuration resources."
+    }
+  ],
+  "EWw/tK": [
+    {
+      "type": 0,
+      "value": "Apply"
+    }
+  ],
+  "EdEthU": [
+    {
+      "type": 0,
+      "value": "API Management Workspace Contributor"
+    }
+  ],
+  "Erci0g": [
+    {
+      "type": 0,
+      "value": "Azure SRE Agent"
+    }
+  ],
+  "FqRdvb": [
+    {
+      "type": 0,
+      "value": "AKS Clusters"
+    }
+  ],
+  "G1xeUt": [
+    {
+      "type": 0,
+      "value": "Approval Required"
+    }
+  ],
+  "G7yB8N": [
+    {
+      "type": 0,
+      "value": "Registration failed"
+    }
+  ],
+  "GBnvl1": [
+    {
+      "type": 0,
+      "value": "Agents"
+    }
+  ],
+  "GDEEBE": [
+    {
+      "type": 0,
+      "value": "We were unable to load the URL "
+    },
+    {
+      "type": 1,
+      "value": "agentUxUrl"
+    },
+    {
+      "type": 0,
+      "value": ". We've detected that your organization has selected Zscaler to protect you from unknown domains. Please speak to your network administrator to remove the restriction on this domain in order to proceed with interacting with your agent."
+    }
+  ],
+  "GWson9": [
+    {
+      "type": 0,
+      "value": "Some of the selected resource groups have deny assignments that prevent deployments."
+    }
+  ],
+  "GmzN3r": [
+    {
+      "type": 0,
+      "value": "We were unable to register the Microsoft.App RP due to a lack of permissions which may cause your deployment to fail. Ensure that you have Contributor permissions to this subscription or have your subscription administrator register the RP for you."
+    }
+  ],
+  "GoSIa4": [
+    {
+      "type": 0,
+      "value": "Minimal permission to view Cognitive Services usages."
+    }
+  ],
+  "H/i1A+": [
+    {
+      "type": 0,
+      "value": "Create your first Azure SRE Agent"
+    }
+  ],
+  "H3ooTI": [
+    {
+      "type": 0,
+      "value": "Azure Service Bus Data Owner"
+    }
+  ],
+  "HAlOn1": [
+    {
+      "type": 0,
+      "value": "Name"
+    }
+  ],
+  "HCDcpW": [
+    {
+      "type": 0,
+      "value": "Workbooks"
+    }
+  ],
+  "HQhDfV": [
+    {
+      "type": 0,
+      "value": "Cognitive Services OpenAI Contributor"
+    }
+  ],
+  "He4/qi": [
+    {
+      "type": 0,
+      "value": "Azure SRE Agents"
+    }
+  ],
+  "I6cq17": [
+    {
+      "type": 0,
+      "value": "Trademarks"
+    }
+  ],
+  "IEFW3Y": [
+    {
+      "type": 0,
+      "value": "App Configuration Contributor"
+    }
+  ],
+  "IQaKwH": [
+    {
+      "type": 0,
+      "value": "Lets you read Cognitive Services data."
+    }
+  ],
+  "If+Q1B": [
+    {
+      "type": 0,
+      "value": "A resource group with this name already exists in the selected subscription."
+    }
+  ],
+  "J1ADxz": [
+    {
+      "type": 0,
+      "value": "Delete resource group"
+    }
+  ],
+  "KAYpG9": [
+    {
+      "type": 0,
+      "value": "Allows for full read access to IoT Hub data-plane properties."
+    }
+  ],
+  "KJGQ1f": [
+    {
+      "type": 0,
+      "value": "App Configuration"
+    }
+  ],
+  "Kbdzt3": [
+    {
+      "type": 0,
+      "value": "This subscription is not currently whitelisted to use SRE Agent. Please contact your administrator or support team to request access."
+    }
+  ],
+  "Kg6ebk": [
+    {
+      "type": 0,
+      "value": "Toggle to show only recommended resource groups"
+    }
+  ],
+  "KzMCPo": [
+    {
+      "type": 0,
+      "value": "Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries."
+    }
+  ],
+  "L31yBb": [
+    {
+      "type": 0,
+      "value": "Function Apps"
+    }
+  ],
+  "LPprqA": [
+    {
+      "type": 0,
+      "value": "Review resource groups"
+    }
+  ],
+  "LSaaxU": [
+    {
+      "type": 0,
+      "value": "View all resources, but does not allow you to make any changes."
+    }
+  ],
+  "LkSPVW": [
+    {
+      "type": 0,
+      "value": "Select an existing resource group"
+    }
+  ],
+  "LrnSHG": [
+    {
+      "type": 0,
+      "value": "Select a subscription"
+    }
+  ],
+  "LupnQU": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hour ago"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours ago"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "Mnvpbx": [
+    {
+      "type": 0,
+      "value": "Full management of Container Apps, including creation, deletion, and updates."
+    }
+  ],
+  "NAAdaF": [
+    {
+      "type": 0,
+      "value": "This role provides read access to all capabilities of Azure Center for SAP solutions."
+    }
+  ],
+  "NAidKb": [
+    {
+      "type": 0,
+      "value": "Notifications"
+    }
+  ],
+  "NCTGGm": [
+    {
+      "type": 0,
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " creation validation succeeded"
+    }
+  ],
+  "ND2EUR": [
+    {
+      "type": 0,
+      "value": "Storage Blob Data Contributor"
+    }
+  ],
+  "NcxGiD": [
+    {
+      "type": 0,
+      "value": "HDInsight on AKS Cluster Admin"
+    }
+  ],
+  "Ngsqgf": [
+    {
+      "type": 0,
+      "value": "Resource groups list"
+    }
+  ],
+  "OJ2u8k": [
+    {
+      "type": 0,
+      "value": "Enter name"
+    }
+  ],
+  "OTGHHm": [
+    {
+      "type": 0,
+      "value": "The resources you picked have permissions for these roles."
+    }
+  ],
+  "OVAsQ8": [
+    {
+      "type": 0,
+      "value": "Roles and permissions"
+    }
+  ],
+  "Oom2N7": [
+    {
+      "type": 0,
+      "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
+    }
+  ],
+  "OsTw6c": [
+    {
+      "type": 0,
+      "value": "Validating SRE Agent creation"
+    }
+  ],
+  "P/DTRU": [
+    {
+      "type": 0,
+      "value": "Dismiss completed"
+    }
+  ],
+  "P3qxV2": [
+    {
+      "type": 0,
+      "value": "Search Service Contributor"
+    }
+  ],
+  "P9odAr": [
+    {
+      "type": 0,
+      "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
+    }
+  ],
+  "PXg8+x": [
+    {
+      "type": 0,
+      "value": "Virtual Machine Contributor"
+    }
+  ],
+  "Phji5P": [
+    {
+      "type": 0,
+      "value": "Edit Healthcare APIs agent configurations."
+    }
+  ],
+  "PrFU82": [
+    {
+      "type": 0,
+      "value": "Can read all monitoring data and update monitoring settings."
+    }
+  ],
+  "Pwen/L": [
+    {
+      "type": 0,
+      "value": "Cognitive Services LUIS Reader"
+    }
+  ],
+  "Q3p3sz": [
+    {
+      "type": 0,
+      "value": "Storage Blob Data Reader"
+    }
+  ],
+  "Q8Qw5B": [
+    {
+      "type": 0,
+      "value": "Description"
+    }
+  ],
+  "QIY3dQ": [
+    {
+      "type": 0,
+      "value": "Azure Digital Twins Data Owner"
+    }
+  ],
+  "Qly58H": [
+    {
+      "type": 0,
+      "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+    }
+  ],
+  "QwVQbw": [
+    {
+      "type": 0,
+      "value": "Failed to register Microsoft.App RP for SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " creation. Please ensure you have Contributor permissions on the subscription or contact your subscription administrator to register the RP for you."
+    }
+  ],
+  "R+J5ox": [
+    {
+      "type": 0,
+      "value": "Review"
+    }
+  ],
+  "R/6nsx": [
+    {
+      "type": 0,
+      "value": "Subscription"
+    }
+  ],
+  "R1RX2a": [
+    {
+      "type": 0,
+      "value": "Full access to IoT Hub data."
+    }
+  ],
+  "RDwKyy": [
+    {
+      "type": 0,
+      "value": "Directory"
+    }
+  ],
+  "RStTJp": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service Cluster Admin"
+    }
+  ],
+  "RVf7gC": [
+    {
+      "type": 0,
+      "value": "TODO"
+    }
+  ],
+  "RrsyUh": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service RBAC Reader"
+    }
+  ],
+  "SCjiXP": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Data Reader"
+    }
+  ],
+  "SQJto2": [
+    {
+      "type": 0,
+      "value": "Sign in"
+    }
+  ],
+  "Sr4IbA": [
+    {
+      "type": 0,
+      "value": "Monitoring Reader"
+    }
+  ],
+  "SuVToZ": [
+    {
+      "type": 0,
+      "value": "SQL Managed Instance Contributor"
+    }
+  ],
+  "T5+AEf": [
+    {
+      "type": 0,
+      "value": "Logic App Operator"
+    }
+  ],
+  "TAm7bB": [
+    {
+      "type": 0,
+      "value": "Monitoring Contributor"
+    }
+  ],
+  "TB6bkn": [
+    {
+      "type": 0,
+      "value": "Get more info"
+    }
+  ],
+  "TDaF6J": [
+    {
+      "type": 0,
+      "value": "Dismiss"
+    }
+  ],
+  "TDoBlx": [
+    {
+      "type": 0,
+      "value": "Privileged"
+    }
+  ],
+  "TleXgd": [
+    {
+      "type": 0,
+      "value": "Azure SRE Agents reduce site reliability costs by proactively identifying issues, automating tasks, and preventing downtime."
+    }
+  ],
+  "TzxmIN": [
+    {
+      "type": 0,
+      "value": "Logic Apps"
+    }
+  ],
+  "U5+MBC": [
+    {
+      "type": 0,
+      "value": "Client ID"
+    }
+  ],
+  "UQUIP7": [
+    {
+      "type": 0,
+      "value": "Request error"
+    }
+  ],
+  "UVD6yh": [
+    {
+      "type": 0,
+      "value": "App Services"
+    }
+  ],
+  "UZS12+": [
+    {
+      "type": 0,
+      "value": "Has read-only access to entities in the workspace. This role should be assigned on the workspace scope."
+    }
+  ],
+  "UoL653": [
+    {
+      "type": 0,
+      "value": "Show only recommended"
+    }
+  ],
+  "UrGI9K": [
+    {
+      "type": 0,
+      "value": "Create agent"
+    }
+  ],
+  "UuzObe": [
+    {
+      "type": 0,
+      "value": "Failed to setup Managed Identity with the error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "V/rQci": [
+    {
+      "type": 0,
+      "value": "Managed resource groups table"
+    }
+  ],
+  "VlBNux": [
+    {
+      "type": 0,
+      "value": "Application Insights Component Contributor"
+    }
+  ],
+  "VssvTa": [
+    {
+      "type": 0,
+      "value": "Invalid template or unable to fetch the template."
+    }
+  ],
+  "VzzYJk": [
+    {
+      "type": 0,
+      "value": "Create"
+    }
+  ],
+  "W4H4Z9": [
+    {
+      "type": 0,
+      "value": "Notifications will appear here when actions are performed"
+    }
+  ],
+  "WE+M5j": [
+    {
+      "type": 0,
+      "value": "Failed to load SRE Agent locations. Please try again later."
+    }
+  ],
+  "WFo96A": [
+    {
+      "type": 0,
+      "value": "Application Insights"
+    }
+  ],
+  "WLw9E7": [
+    {
+      "type": 0,
+      "value": "PostgreSQL Flexible Server Long Term Retention Backup Role"
+    }
+  ],
+  "WODKUB": [
+    {
+      "type": 0,
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " creation succeeded"
+    }
+  ],
+  "Wc5b/J": [
+    {
+      "type": 0,
+      "value": "AzureML Compute Operator"
+    }
+  ],
+  "Wf6bDe": [
+    {
+      "type": 0,
+      "value": "Agent details"
+    }
+  ],
+  "WlHVBb": [
+    {
+      "type": 0,
+      "value": "Log Analytics Workspaces"
+    }
+  ],
+  "Wtf3vL": [
+    {
+      "type": 0,
+      "value": "Data Factory Contributor"
+    }
+  ],
+  "WygVDv": [
+    {
+      "type": 0,
+      "value": "Administer HDInsight cluster pools."
+    }
+  ],
+  "X0e0bZ": [
+    {
+      "type": 0,
+      "value": "SQL Managed Instances"
+    }
+  ],
+  "XG++pU": [
+    {
+      "type": 0,
+      "value": "Delete resource group "
+    },
+    {
+      "type": 1,
+      "value": "resourceGroupName"
+    }
+  ],
+  "XJ+Lww": [
+    {
+      "type": 0,
+      "value": "Lets you read and modify HDInsight cluster configurations."
+    }
+  ],
+  "XYSJsS": [
+    {
+      "type": 0,
+      "value": "API Management Workspace Reader"
+    }
+  ],
+  "Xh85Ml": [
+    {
+      "type": 0,
+      "value": "Current agent count"
+    }
+  ],
+  "XtnlO8": [
+    {
+      "type": 0,
+      "value": "Manage long-term retention backups for PostgreSQL Flexible Server."
+    }
+  ],
+  "Y2QRpS": [
+    {
+      "type": 0,
+      "value": "equals"
+    }
+  ],
+  "YYWhEp": [
+    {
+      "type": 0,
+      "value": "Failed to create the SRE agent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " with the error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "YYx7ap": [
+    {
+      "type": 0,
+      "value": "Some of the selected resource groups have a read only lock on the resource group."
+    }
+  ],
+  "YZIFAO": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service RBAC Cluster Admin"
+    }
+  ],
+  "Yk6Co7": [
+    {
+      "type": 0,
+      "value": "Cognitive Services QnA Maker Reader"
+    }
+  ],
+  "Yp7NCi": [
+    {
+      "type": 0,
+      "value": "Azure Center for SAP solutions administrator"
+    }
+  ],
+  "Z2WgoK": [
+    {
+      "type": 0,
+      "value": "Authentication mode"
+    }
+  ],
+  "Z7Aj91": [
+    {
+      "type": 0,
+      "value": "Manage Azure Monitor workbooks."
+    }
+  ],
+  "ZNMCbm": [
+    {
+      "type": 0,
+      "value": "Manage Logic Apps."
+    }
+  ],
+  "ZsLOg3": [
+    {
+      "type": 0,
+      "value": "Manage Azure OpenAI resources."
+    }
+  ],
+  "a5msuh": [
+    {
+      "type": 0,
+      "value": "Yes"
+    }
+  ],
+  "aGL+Qo": [
+    {
+      "type": 0,
+      "value": "Has access to Read and Test functions under LUIS."
+    }
+  ],
+  "aLBTVj": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minute ago"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes ago"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "aqNZbD": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Language Writer"
+    }
+  ],
+  "arLfuy": [
+    {
+      "type": 0,
+      "value": "Chat with agent"
+    }
+  ],
+  "axbDHG": [
+    {
+      "type": 0,
+      "value": "You can choose a maximum of 100 resource groups that the agent will manage."
+    }
+  ],
+  "b43a5F": [
+    {
+      "type": 0,
+      "value": "SAP Virtual Instances"
+    }
+  ],
+  "bN0x+w": [
+    {
+      "type": 0,
+      "value": "Device Provisioning Service Data Reader"
+    }
+  ],
+  "bPyOFk": [
+    {
+      "type": 0,
+      "value": "Terms & conditions"
+    }
+  ],
+  "bXkiU5": [
+    {
+      "type": 0,
+      "value": "SQL Databases"
+    }
+  ],
+  "bxv59V": [
+    {
+      "type": 0,
+      "value": "Just now"
+    }
+  ],
+  "c1EiBR": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Usages Reader"
+    }
+  ],
+  "cRTR/A": [
+    {
+      "type": 0,
+      "value": "Write access to LUIS applications."
+    }
+  ],
+  "cTzjJg": [
+    {
+      "type": 0,
+      "value": "Storage Account Contributor"
+    }
+  ],
+  "ceCESY": [
+    {
+      "type": 0,
+      "value": "An agent with this name already exists in the selected resource group."
+    }
+  ],
+  "ciB+oy": [
+    {
+      "type": 0,
+      "value": "Operate Azure Machine Learning compute resources."
+    }
+  ],
+  "cmUVb9": [
+    {
+      "type": 0,
+      "value": "Redis Cache"
+    }
+  ],
+  "ctcA0c": [
+    {
+      "type": 0,
+      "value": "Agent name"
+    }
+  ],
+  "cyR7Kh": [
+    {
+      "type": 0,
+      "value": "Back"
+    }
+  ],
+  "d2GmfJ": [
+    {
+      "type": 0,
+      "value": "Manage API Management workspaces."
+    }
+  ],
+  "d8dECB": [
+    {
+      "type": 0,
+      "value": "IoT Hub Data Reader"
+    }
+  ],
+  "dDk23i": [
+    {
+      "type": 1,
+      "value": "fieldName"
+    },
+    {
+      "type": 0,
+      "value": " options"
+    }
+  ],
+  "dKhdkO": [
+    {
+      "type": 0,
+      "value": "Select up to 100 resource groups to monitor"
+    }
+  ],
+  "dQ5/dh": [
+    {
+      "type": 0,
+      "value": "Allows for full read access to Device Provisioning Service data-plane properties."
+    }
+  ],
+  "dR8VUW": [
+    {
+      "type": 0,
+      "value": "Manage API Management services."
+    }
+  ],
+  "e0a3XV": [
+    {
+      "type": 0,
+      "value": "Log Analytics Contributor"
+    }
+  ],
+  "e3itcX": [
+    {
+      "type": 0,
+      "value": "Device Update Administrator"
+    }
+  ],
+  "eBvTo6": [
+    {
+      "type": 0,
+      "value": "Read-only actions in the project. Readers can't create or update the project."
+    }
+  ],
+  "eHNXXp": [
+    {
+      "type": 0,
+      "value": "Dismiss all"
+    }
+  ],
+  "eKpamp": [
+    {
+      "type": 0,
+      "value": "Template error"
+    }
+  ],
+  "ecG+OD": [
+    {
+      "type": 0,
+      "value": "Manage Azure Search services."
+    }
+  ],
+  "egr0Oj": [
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " resource groups selected"
+    }
+  ],
+  "fFyuVF": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Speech Contributor"
+    }
+  ],
+  "fIp46f": [
+    {
+      "type": 0,
+      "value": "Read only lock"
+    }
+  ],
+  "fSFDgd": [
+    {
+      "type": 0,
+      "value": "Cognitive Services"
+    }
+  ],
+  "fpexn2": [
+    {
+      "type": 0,
+      "value": "No notifications"
+    }
+  ],
+  "ftfFhS": [
+    {
+      "type": 0,
+      "value": "Select resource groups"
+    }
+  ],
+  "g82HU6": [
+    {
+      "type": 0,
+      "value": "Operation cancelled"
+    }
+  ],
+  "gC4xMY": [
+    {
+      "type": 0,
+      "value": "Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces."
+    }
+  ],
+  "gZ5fZs": [
+    {
+      "type": 0,
+      "value": "Manage IoT Hub device twins."
+    }
+  ],
+  "gn/nvJ": [
+    {
+      "type": 0,
+      "value": "Read, logstream and exec into Container Apps."
+    }
+  ],
+  "gzx/k1": [
+    {
+      "type": 0,
+      "value": "PostgreSQL Contributor"
+    }
+  ],
+  "hF5T80": [
+    {
+      "type": 0,
+      "value": "Administer Device Update accounts."
+    }
+  ],
+  "hGmeVK": [
+    {
+      "type": 0,
+      "value": "App Insights"
+    }
+  ],
+  "hO1Iog": [
+    {
+      "type": 0,
+      "value": "Manage without access."
+    }
+  ],
+  "hPj49L": [
+    {
+      "type": 0,
+      "value": "Workbook Reader"
+    }
+  ],
+  "hX5PAb": [
+    {
+      "type": 0,
+      "value": "No results found"
+    }
+  ],
+  "hfIdUs": [
+    {
+      "type": 0,
+      "value": "SQL DB Contributor"
+    }
+  ],
+  "hrdmcd": [
+    {
+      "type": 0,
+      "value": "Azure Digital Twins Data Reader"
+    }
+  ],
+  "hswM/b": [
+    {
+      "type": 0,
+      "value": "Assign the agent a level of permissions for the resource groups it manages. The agent can still manage its assigned resources with Reader permissions."
+    }
+  ],
+  "i50Kb0": [
+    {
+      "type": 0,
+      "value": "Explore agent skills"
+    }
+  ],
+  "i5OUQE": [
+    {
+      "type": 0,
+      "value": "Container Apps Contributor"
+    }
+  ],
+  "i6cLLM": [
+    {
+      "type": 0,
+      "value": "Perform data science tasks in Azure Machine Learning."
+    }
+  ],
+  "iFsDVR": [
+    {
+      "type": 0,
+      "value": "Loading"
+    }
+  ],
+  "iM9JZL": [
+    {
+      "type": 0,
+      "value": "Deny assignments"
+    }
+  ],
+  "itC9lG": [
+    {
+      "type": 0,
+      "value": "Basics"
+    }
+  ],
+  "iv5NrP": [
+    {
+      "type": 0,
+      "value": "API Management"
+    }
+  ],
+  "ixb1SP": [
+    {
+      "type": 0,
+      "value": "Administer HDInsight clusters on AKS."
+    }
+  ],
+  "j5Yfyr": [
+    {
+      "type": 0,
+      "value": "Search Index Data Reader"
+    }
+  ],
+  "jEU2gk": [
+    {
+      "type": 0,
+      "value": "All resource groups"
+    }
+  ],
+  "jHJmjf": [
+    {
+      "type": 0,
+      "value": "No results"
+    }
+  ],
+  "jJE3xY": [
+    {
+      "type": 0,
+      "value": "Lets you manage the web plans for websites, but not access to them."
+    }
+  ],
+  "jjUD0v": [
+    {
+      "type": 0,
+      "value": "Resource group creation failed."
+    }
+  ],
+  "jvo0vs": [
+    {
+      "type": 0,
+      "value": "Save"
+    }
+  ],
+  "kbQZUj": [
+    {
+      "type": 0,
+      "value": "We were unable to load the URL "
+    },
+    {
+      "type": 1,
+      "value": "agentUxUrl"
+    },
+    {
+      "type": 0,
+      "value": ". This may be due to the existence of a firewall or network restrictions placed on the domain of your agent. Please speak to your network administrator to remove this restriction in order to proceed with interacting with your agent."
+    }
+  ],
+  "kyVg+J": [
+    {
+      "type": 0,
+      "value": "Choose at least 1 resource group that you have Owner or User Access Administrator permissions on."
+    }
+  ],
+  "l5sNim": [
+    {
+      "type": 0,
+      "value": "AzureML Data Scientist"
+    }
+  ],
+  "lNehTG": [
+    {
+      "type": 0,
+      "value": "Failed to validate SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " creation with the error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "lcvC4k": [
+    {
+      "type": 0,
+      "value": "Validating SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " creation in progress"
+    }
+  ],
+  "lnaWo/": [
+    {
+      "type": 0,
+      "value": "Region"
+    }
+  ],
+  "lvNWLS": [
+    {
+      "type": 0,
+      "value": "IoT Hub Registry Contributor"
+    }
+  ],
+  "mAyw3x": [
+    {
+      "type": 0,
+      "value": "Edit QnA Maker knowledge bases."
+    }
+  ],
+  "mkhNnB": [
+    {
+      "type": 0,
+      "value": "Read and write Azure Monitor monitoring settings and data."
+    }
+  ],
+  "n/e5Mg": [
+    {
+      "type": 0,
+      "value": "Allowed Actions"
+    }
+  ],
+  "nBPow3": [
+    {
+      "type": 0,
+      "value": "Lets you manage all resources in the cluster."
+    }
+  ],
+  "nlPgO8": [
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " resource group selected"
+    }
+  ],
+  "nrAnZy": [
+    {
+      "type": 0,
+      "value": "Full access to Azure Service Bus data."
+    }
+  ],
+  "oHGFwy": [
+    {
+      "type": 0,
+      "value": "Sign in with a different account"
+    }
+  ],
+  "oIiHqo": [
+    {
+      "type": 0,
+      "value": "Extension name"
+    }
+  ],
+  "oQ/TUW": [
+    {
+      "type": 0,
+      "value": "Cost Management Contributor"
+    }
+  ],
+  "oThNc4": [
+    {
+      "type": 0,
+      "value": "Failed to setup Log Analytics Workspace with the error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "oUWADl": [
+    {
+      "type": 0,
+      "value": "No"
+    }
+  ],
+  "ob9EPi": [
+    {
+      "type": 0,
+      "value": "Permissions to assign roles"
+    }
+  ],
+  "p/xAmY": [
+    {
+      "type": 0,
+      "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
+    }
+  ],
+  "p5T+zv": [
+    {
+      "type": 0,
+      "value": "Manage without access. Can't manage security policies or parent SQL servers."
+    }
+  ],
+  "pAFuFx": [
+    {
+      "type": 0,
+      "value": "HDInsight on AKS Cluster Pool Admin"
+    }
+  ],
+  "pDUFq5": [
+    {
+      "type": 0,
+      "value": "App Configuration Reader"
+    }
+  ],
+  "pM3DKw": [
+    {
+      "type": 0,
+      "value": "ACIS endpoint"
+    }
+  ],
+  "pMlVvA": [
+    {
+      "type": 0,
+      "value": "Search resource groups"
+    }
+  ],
+  "pSfQh6": [
+    {
+      "type": 0,
+      "value": "Grants read access to Azure Cognitive Search index data."
+    }
+  ],
+  "pVF2EE": [
+    {
+      "type": 0,
+      "value": "We've started provisioning your SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " to manage your selected resource groups."
+    }
+  ],
+  "pW5vuU": [
+    {
+      "type": 0,
+      "value": "Resource group creation"
+    }
+  ],
+  "pqgzm0": [
+    {
+      "type": 0,
+      "value": "Manage Application Insights components."
+    }
+  ],
+  "q7CVBv": [
+    {
+      "type": 0,
+      "value": "Loading resource types..."
+    }
+  ],
+  "qGXY+e": [
+    {
+      "type": 0,
+      "value": "Agent permissions"
+    }
+  ],
+  "r0gBch": [
+    {
+      "type": 0,
+      "value": "The subscription you have selected has not been registered to use SRE Agent. Please email us with your subscription ID on sreagentteam@microsoft.com for getting registered."
+    }
+  ],
+  "rZaqtB": [
+    {
+      "type": 0,
+      "value": "API Management Service Contributor"
+    }
+  ],
+  "rbrahO": [
+    {
+      "type": 0,
+      "value": "Close"
+    }
+  ],
+  "rjgOC5": [
+    {
+      "type": 0,
+      "value": "Cognitive Services QnA Maker Editor"
+    }
+  ],
+  "ru0BPw": [
+    {
+      "type": 0,
+      "value": "Learn more about permissions for managed resource groups"
+    }
+  ],
+  "s0xRD+": [
+    {
+      "type": 0,
+      "value": "Service Bus"
+    }
+  ],
+  "s2jhon": [
+    {
+      "type": 0,
+      "value": "Certificate SAN"
+    }
+  ],
+  "s7mQCK": [
+    {
+      "type": 0,
+      "value": "Reduce site reliability expenses with Azure SRE Agents"
+    }
+  ],
+  "sI+CCC": [
+    {
+      "type": 0,
+      "value": "Log Analytics Reader"
+    }
+  ],
+  "sRU00i": [
+    {
+      "type": 0,
+      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
+    }
+  ],
+  "sRb5P9": [
+    {
+      "type": 0,
+      "value": "Manage cost analysis and budgets."
+    }
+  ],
+  "sYoT7W": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " second ago"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " seconds ago"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "ss/NWY": [
+    {
+      "type": 0,
+      "value": "SQL Server Contributor"
+    }
+  ],
+  "t3D4PH": [
+    {
+      "type": 0,
+      "value": "Device Update Reader"
+    }
+  ],
+  "t9I1dY": [
+    {
+      "type": 0,
+      "value": "Healthcare Agent Editor"
+    }
+  ],
+  "tOdNiY": [
+    {
+      "type": 0,
+      "value": "Dark"
+    }
+  ],
+  "tffS9r": [
+    {
+      "type": 0,
+      "value": "Open resource group"
+    }
+  ],
+  "tshYzs": [
+    {
+      "type": 0,
+      "value": "Select region"
+    }
+  ],
+  "u0xiAh": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Custom Vision Reader"
+    }
+  ],
+  "uRMqBi": [
+    {
+      "type": 0,
+      "value": "Read, write, and delete Azure Storage containers and blobs."
+    }
+  ],
+  "ufonOZ": [
+    {
+      "type": 0,
+      "value": "Search Services"
+    }
+  ],
+  "uh732n": [
+    {
+      "type": 0,
+      "value": "IoT Hubs"
+    }
+  ],
+  "uqyJPP": [
+    {
+      "type": 0,
+      "value": "You do not have permission to create resource groups under the currently selected subscription."
+    }
+  ],
+  "vbdOl/": [
+    {
+      "type": 0,
+      "value": "Has access to Read and Test functions under Language portal."
+    }
+  ],
+  "vfndow": [
+    {
+      "type": 0,
+      "value": "Can read Azure Cosmos DB account data."
+    }
+  ],
+  "vu2LMl": [
+    {
+      "type": 0,
+      "value": "Learn more about Reader and Privileged permissions"
+    }
+  ],
+  "wCtBb6": [
+    {
+      "type": 0,
+      "value": "Try Azure for free"
+    }
+  ],
+  "wbigtI": [
+    {
+      "type": 0,
+      "value": "Administer SAP workloads on Azure."
+    }
+  ],
+  "wxlJSs": [
+    {
+      "type": 0,
+      "value": "Manage Cognitive Services accounts."
+    }
+  ],
+  "x2Qj1F": [
+    {
+      "type": 0,
+      "value": "Geneva Actions Certificate Name"
+    }
+  ],
+  "xGPsyJ": [
+    {
+      "type": 0,
+      "value": "HDInsight Cluster Operator"
+    }
+  ],
+  "xHDoP8": [
+    {
+      "type": 0,
+      "value": "Do you want to continue?"
+    }
+  ],
+  "xVPoso": [
+    {
+      "type": 0,
+      "value": "Resource group name"
+    }
+  ],
+  "xXbJso": [
+    {
+      "type": 0,
+      "value": "Sign out"
+    }
+  ],
+  "xXhn+h": [
+    {
+      "type": 0,
+      "value": "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data."
+    }
+  ],
+  "xdMkcg": [
+    {
+      "type": 0,
+      "value": "Can read all monitoring data."
+    }
+  ],
+  "xmcVZ0": [
+    {
+      "type": 0,
+      "value": "Search"
+    }
+  ],
+  "xmsrBu": [
+    {
+      "type": 0,
+      "value": "Operate API Management services."
+    }
+  ],
+  "xqwf/7": [
+    {
+      "type": 0,
+      "value": "IoT Hub Data Contributor"
+    }
+  ],
+  "xtkizV": [
+    {
+      "type": 0,
+      "value": "Website Contributor"
+    }
+  ],
+  "y1Z3or": [
+    {
+      "type": 0,
+      "value": "Language"
+    }
+  ],
+  "yV5oYe": [
+    {
+      "type": 0,
+      "value": "Policies"
+    }
+  ],
+  "yilQrD": [
+    {
+      "type": 0,
+      "value": "Managed resource groups"
+    }
+  ],
+  "yo67XU": [
+    {
+      "type": 0,
+      "value": "API Management Service Operator Role"
+    }
+  ],
+  "zEk9h3": [
+    {
+      "type": 0,
+      "value": "Virtual Machines"
+    }
+  ],
+  "zJ+8HW": [
+    {
+      "type": 0,
+      "value": "(new) "
+    },
+    {
+      "type": 1,
+      "value": "item"
+    }
+  ],
+  "zQvVDJ": [
+    {
+      "type": 0,
+      "value": "All"
+    }
+  ],
+  "zacv31": [
+    {
+      "type": 0,
+      "value": "Detected resource types"
+    }
+  ],
+  "zcyAwy": [
+    {
+      "type": 0,
+      "value": "Choose resource groups"
+    }
+  ],
+  "zhHihn": [
+    {
+      "type": 0,
+      "value": "SQL Servers"
+    }
+  ]
+}
