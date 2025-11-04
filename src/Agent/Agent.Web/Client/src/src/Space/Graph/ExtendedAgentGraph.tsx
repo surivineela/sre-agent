@@ -32,6 +32,10 @@ import { useScheduledTasks } from '../Hooks/useScheduledTasks';
 import { HandlerCreateOrEditInfo } from '../IncidentManagement/CreateIncidentHandler/Contracts';
 import PlaygroundModal, { PlaygroundTarget } from '../Playground/PlaygroundModal';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
+import {
+    AddExistingAggentHandoffDialog,
+    AddExistingAggentHandoffDialogProps,
+} from './AddExistingAggentHandoffDialog/AddExistingAggentHandoffDialog';
 import { ConnectorCard } from './ConnectorCard';
 import CreateButton from './CreateButton';
 import { ExtendedAgentCard } from './ExtendedAgentCard';
@@ -141,6 +145,7 @@ const ExtendedAgentGraphContent = memo(() => {
     const navigate = useNavigate();
 
     const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo>();
+    const [agentHandoffPickerInfo, setAgentHandoffPickerInfo] = useState<AddExistingAggentHandoffDialogProps['handoffInfo'] | undefined>();
 
     const [currentView, setCurrentView] = useState<ExtendedAgentGraphView>(ExtendedAgentGraphView.Visual);
     const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
@@ -1078,30 +1083,42 @@ const ExtendedAgentGraphContent = memo(() => {
         ]
     );
 
-    const handleAgentQuickAction = useCallback((agentName: string, action: AgentQuickAction) => {
-        if (action === 'addIncidentTrigger') {
-            setHandlerCreateOrEditInfo({
-                subAgentTriggerInfo: {
-                    agents: agents.map(a => a.name),
-                    preSelectedAgent: agentName,
-                },
-            });
-            return;
-        }
-        if (action === 'createAgent' || action === 'createTool') {
-            setCreationDialogContext({
-                kind: 'linkFromAgent',
-                sourceAgentName: agentName,
-                targetType: action === 'createAgent' ? 'agent' : 'tool',
-            });
-            setIsCreationDialogOpen(true);
-            return;
-        }
+    const handleAgentQuickAction = useCallback(
+        (agentName: string, action: AgentQuickAction) => {
+            if (action === 'addIncidentTrigger') {
+                setHandlerCreateOrEditInfo({
+                    subAgentTriggerInfo: {
+                        agents: agents.map(a => a.name),
+                        preSelectedAgent: agentName,
+                    },
+                });
+                return;
+            }
 
-        setRelationshipAgentName(agentName);
-        setRelationshipInitialAction(action === 'addHandoff' ? 'handoff' : 'tool');
-        setIsRelationshipDialogOpen(true);
-    }, []);
+            if (action === 'addHandoffSourceExistingAgent' || action === 'addHandoffTargetExistingAgent') {
+                setAgentHandoffPickerInfo({
+                    mode: action === 'addHandoffSourceExistingAgent' ? 'sourcePicker' : 'targetPicker',
+                    currentAgent: agents.find(a => a.name === agentName)!,
+                });
+                return;
+            }
+
+            if (action === 'createAgent' || action === 'createTool') {
+                setCreationDialogContext({
+                    kind: 'linkFromAgent',
+                    sourceAgentName: agentName,
+                    targetType: action === 'createAgent' ? 'agent' : 'tool',
+                });
+                setIsCreationDialogOpen(true);
+                return;
+            }
+
+            setRelationshipAgentName(agentName);
+            setRelationshipInitialAction(action === 'addHandoff' ? 'handoff' : 'tool');
+            setIsRelationshipDialogOpen(true);
+        },
+        [agents]
+    );
 
     const handleLaunchLinkedCreation = useCallback((targetType: 'agent' | 'tool', sourceAgentName: string) => {
         setCreationDialogContext({
@@ -1585,6 +1602,13 @@ const ExtendedAgentGraphContent = memo(() => {
                     onDismiss={() => setHandlerCreateOrEditInfo(undefined)}
                     setHandlerOperationStatus={() => {}}
                     handlerCreateOrEditInfo={handlerCreateOrEditInfo}
+                />
+
+                <AddExistingAggentHandoffDialog
+                    onDismiss={() => setAgentHandoffPickerInfo(undefined)}
+                    agents={agents}
+                    addHandoffToAgent={addHandoffToAgent}
+                    handoffInfo={agentHandoffPickerInfo}
                 />
 
                 <PlaygroundModal

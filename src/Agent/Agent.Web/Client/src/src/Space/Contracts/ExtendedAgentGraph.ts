@@ -152,7 +152,14 @@ export type ExtendedAgentGraphEdge = {
     relationType: ExtendedAgentRelationType;
 };
 
-export type AgentQuickAction = 'addIncidentTrigger' | 'addHandoff' | 'addTool' | 'createAgent' | 'createTool';
+export type AgentQuickAction =
+    | 'addIncidentTrigger'
+    | 'addHandoffSourceExistingAgent'
+    | 'addHandoffTargetExistingAgent'
+    | 'addHandoff'
+    | 'addTool'
+    | 'createAgent'
+    | 'createTool';
 
 // Graph Context
 interface ExtendedAgentGraphContextProps {

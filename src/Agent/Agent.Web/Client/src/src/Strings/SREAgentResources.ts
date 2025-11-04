@@ -3831,6 +3831,14 @@ export const ExtendedAgentsGraphResources = defineMessages({
     responseSubagentPlaceholder: { defaultMessage: 'Select a response subagent', id: 'D97db3' },
     createIncidentTriggerNoPlatformMessage: { defaultMessage: 'You need an incident platform to add an incident trigger.', id: 'eRwVws' },
     createIncidentTriggerNoPlatformButton: { defaultMessage: 'Connect an incident platform', id: 'ItmLyp' },
+    addHandoffToExistingAgent: { defaultMessage: 'Add handoff to existing agent', id: 'qvviEg' },
+    addHandoffFromExistingAgent: { defaultMessage: 'Add handoff from existing agent', id: '4RwjwU' },
+    noAgentsAvailableForHandoff: { defaultMessage: 'No agents available for handoff', id: '79kwlH' },
+    noTargetAgentSpecified: { defaultMessage: 'No target agent specified', id: 'PXJi2R' },
+    noSourceAgentSpecified: { defaultMessage: 'No source agent specified', id: 'FS0tWa' },
+    subagentName: { defaultMessage: 'Subagent name', id: '2reUcp' },
+    noAgentsFoundForHandoff: { defaultMessage: 'No agents found', id: '451B6Z' },
+    addSubagent: { defaultMessage: 'Add subagent', id: 'PbaaPs' },
 });
 
 export const PlaygroundResources = defineMessages({
