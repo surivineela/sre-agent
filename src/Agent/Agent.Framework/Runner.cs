@@ -639,7 +639,16 @@ public static class Runner
 
         if (agent.HasStructuredOutput)
         {
-            (response, structuredOutput) = await chatClient.GetResponseAsync(modelInput, agent.OutputType, chatOptions);
+            // deserialize sometimes fail with missing field, falls back to non-structured response path
+            try
+            {
+                (response, structuredOutput) = await chatClient.GetResponseAsync(modelInput, agent.OutputType, chatOptions);
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Failed to deserialize the response"))
+            {
+                logger.LogWarning(ex, "Failed to deserialize structured output for agent {AgentName}. Falling back to non-structured response.", agent.Name);
+                response = await chatClient.GetResponseAsync(modelInput, chatOptions);
+            }
         }
         else
         {
