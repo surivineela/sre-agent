@@ -41,6 +41,7 @@ public static partial class ChatClientExtensions
         IEnumerable<ChatMessage> messages,
         Type outputType,
         ChatOptions? options = null,
+        IStreamContentHandler? streamHandler = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -87,7 +88,7 @@ public static partial class ChatClientExtensions
 
         for (var i = 0; i <= retryCount; i++)
         {
-            var chatResponse = await GetResponseWithRateLimitRetriesAsync(client, messages, options, cancellationToken);
+            var chatResponse = await GetResponseWithRateLimitRetriesAsync(client, messages, options, streamHandler, cancellationToken);
 
             var firstTextContent = chatResponse.Messages.FirstOrDefault()?.Contents.OfType<TextContent>().FirstOrDefault();
 
@@ -144,6 +145,7 @@ public static partial class ChatClientExtensions
         IChatClient client,
         IEnumerable<ChatMessage> messages,
         ChatOptions? options,
+        IStreamContentHandler? streamHandler,
         CancellationToken cancellationToken)
     {
         var start = DateTime.UtcNow;
@@ -158,7 +160,31 @@ public static partial class ChatClientExtensions
             attempt++;
             try
             {
-                return await client.GetResponseAsync(messages, options, cancellationToken);
+                List<ChatResponseUpdate> chatResponseUpdates = [];
+                string modelId = string.Empty;
+
+                await foreach (var update in client.GetStreamingResponseAsync(messages, options, cancellationToken))
+                {
+                    // Capture model ID from updates
+                    var tempModelId = (update.RawRepresentation as OpenAI.Chat.StreamingChatCompletionUpdate)?.Model;
+                    if (!string.IsNullOrEmpty(tempModelId))
+                    {
+                        modelId = tempModelId;
+                    }
+
+                    chatResponseUpdates.Add(update);
+                    if (!string.IsNullOrEmpty(update.Text))
+                    {
+                        // Use IStreamContentHandler to process streaming content
+                        streamHandler?.Append(update.Text);
+                    }
+                }
+
+                streamHandler?.Complete();
+
+                var response = chatResponseUpdates.ToChatResponse();
+                response.ModelId = modelId;
+                return response;
             }
             catch (System.ClientModel.ClientResultException ex) when (IsRateLimit(ex))
             {
