@@ -36,7 +36,7 @@ export const ManagedResourceGroups = () => {
 
             <ResourceGroupPicker
                 subscriptionId={values.subscriptionId}
-                existingResourceGroupIds={values.managedResourceGroups?.map(rg => rg.id) || []}
+                existingResourceGroupIds={[]}
                 onChangeSelection={(selectedResourceGroups: ResourceGroup[]) => {
                     setFieldValue('managedResourceGroups', selectedResourceGroups);
                 }}

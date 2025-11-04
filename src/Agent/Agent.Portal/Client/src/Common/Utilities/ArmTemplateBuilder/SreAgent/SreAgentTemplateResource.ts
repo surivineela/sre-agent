@@ -88,8 +88,8 @@ export class SreAgentTemplateResource extends ArmTemplateResource<object> {
                 mcpServers: [],
                 logConfiguration: {
                     applicationInsightsConfiguration: {
-                        appId: `[reference(resourceId('${ResourceTypes.AppInsightsResourceType}', parameters('${AppInsightsParameterName.AppInsightsName}')), '${ApiVersions.appInsightsApiVersion20220615}').AppId]`,
-                        connectionString: `[reference(resourceId('${ResourceTypes.AppInsightsResourceType}', parameters('${AppInsightsParameterName.AppInsightsName}')), '${ApiVersions.appInsightsApiVersion20220615}').ConnectionString]`,
+                        appId: `[reference(resourceId('${ResourceTypes.AppInsightsResourceType}', parameters('${AppInsightsParameterName.AppInsightsName}')), '${ApiVersions.appInsightsApiVersion20200202}').AppId]`,
+                        connectionString: `[reference(resourceId('${ResourceTypes.AppInsightsResourceType}', parameters('${AppInsightsParameterName.AppInsightsName}')), '${ApiVersions.appInsightsApiVersion20200202}').ConnectionString]`,
                     },
                 },
             },

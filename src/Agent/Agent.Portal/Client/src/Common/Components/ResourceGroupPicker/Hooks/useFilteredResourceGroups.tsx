@@ -39,11 +39,10 @@ export const useFilteredResourceGroups = (params: UseFilteredResourceGroupsParam
             setResourceGroupsLoading(true);
             setResourceGroupsLoadFailure('');
 
-            try {
-                const resourceGroupSet = await resourceGroupClient.getResourceGroupsInSubscriptionWithSreAgentKinds(subscriptionIds);
-                setFilteredResourceGroupsSet(resourceGroupSet);
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : String(error);
+            const response = await resourceGroupClient.getResourceGroupsInSubscriptionWithSreAgentKinds(subscriptionIds);
+
+            if (!response.isSuccessful) {
+                const errorMessage = response.error instanceof Error ? response.error.message : String(response.error);
                 setResourceGroupsLoadFailure('Failed to load filtered resource groups.');
                 logEvent({
                     action: 'fetch-filtered-resource-groups',
@@ -55,6 +54,8 @@ export const useFilteredResourceGroups = (params: UseFilteredResourceGroupsParam
                     },
                 });
                 setFilteredResourceGroupsSet(undefined);
+            } else {
+                setFilteredResourceGroupsSet(response.content);
             }
 
             setResourceGroupsLoading(false);

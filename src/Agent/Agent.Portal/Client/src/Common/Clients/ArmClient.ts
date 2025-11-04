@@ -76,7 +76,7 @@ export class ArmClient extends Client {
                         method: 'POST',
                         resourceId: '/batch',
                         body: { requests: batchBody },
-                        apiVersion: ApiVersions.armBatchApiVersion20250301,
+                        apiVersion: ApiVersions.armApiVersion20250301,
                         id: newGuid(),
                     })
                 ).pipe(
@@ -388,7 +388,7 @@ export class ArmClient extends Client {
         });
     }
 
-    public async getTenants(apiVersion = ApiVersions.tenantsApiVersion20221201): Promise<Response<Tenant[]>> {
+    public async getTenants(apiVersion = ApiVersions.armApiVersion20250301): Promise<Response<Tenant[]>> {
         const response = await this.makeArmCall<ResponseArray<Tenant>>({
             resourceId: '/tenants',
             commandName: 'getTenants',

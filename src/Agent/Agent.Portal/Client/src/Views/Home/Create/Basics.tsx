@@ -1,8 +1,10 @@
-import { Dropdown, Field, Input, MessageBar, MessageBarBody, Option, Skeleton, SkeletonItem, Text } from '@fluentui/react-components';
+import { MessageBar, MessageBarBody, Option, Text } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { PermissionsClient } from '../../../Common/Clients/PermissionsClient';
+import { DropdownFormik } from '../../../Common/Components/Formik/DropdownFormik';
+import { InputFormik } from '../../../Common/Components/Formik/InputFormik';
 import { ResourceGroupDropdown } from '../../../Common/Components/ResourceGroupDropdown';
 import { SubscriptionDropdown } from '../../../Common/Components/SubscriptionDropdown';
 import { ApiVersions } from '../../../Common/Constants/ApiVersions';
@@ -90,21 +92,21 @@ export const Basics = (props: BasicsProps) => {
             ArmServiceType.Deployments,
             `${values.name}-deployment`,
             values.location,
-            ApiVersions.armApiVersion20230301
+            ApiVersions.armApiVersion20250301
         );
         const userIdentityContent = getContentDetailsForPolicyCheck(
             values.resourceGroupId,
             ArmServiceType.UserIdentity,
             `${values.name}-identity`,
             values.location,
-            ApiVersions.userIdentityApiVersion20181130
+            ApiVersions.identityApiVersion20241130
         );
         const workspaceContent = getContentDetailsForPolicyCheck(
             values.resourceGroupId,
             ArmServiceType.Workspace,
             `${values.name}-workspace`,
             values.location,
-            ApiVersions.workspacesApiVersion20200801
+            ApiVersions.workspacesApiVersion20250201
         );
         const agentContent = getContentDetailsForPolicyCheck(
             values.resourceGroupId,
@@ -182,46 +184,32 @@ export const Basics = (props: BasicsProps) => {
                 createNew
             />
 
-            <Field
+            <InputFormik
+                name="name"
                 label={intl.formatMessage(PortalResources.agentName)}
                 required
-                validationMessage={errors.name}
-                validationState={errors.name ? 'error' : undefined}
-            >
-                <Input
-                    value={values.name}
-                    onChange={(_, data) => setFieldValue('name', data.value)}
-                    placeholder={intl.formatMessage(PortalResources.enterName)}
-                    disabled={isDeploying}
-                />
-            </Field>
+                placeholder={intl.formatMessage(PortalResources.enterName)}
+                disabled={isDeploying}
+                orientation="vertical"
+            />
 
-            <Field
+            <DropdownFormik
+                name="location"
                 label={intl.formatMessage(PortalResources.region)}
                 required
-                validationMessage={errors.location}
-                validationState={errors.location ? 'error' : undefined}
+                value={locationDropdownOptions.find(opt => opt.data === values.location)?.text ?? ''}
+                selectedOptions={values.location ? [values.location] : []}
+                placeholder={intl.formatMessage(PortalResources.selectRegion)}
+                disabled={locationsLoading || isDeploying || isLocationDisabled}
+                isLoading={locationsLoading}
+                orientation="vertical"
             >
-                {locationsLoading ? (
-                    <Skeleton>
-                        <SkeletonItem />
-                    </Skeleton>
-                ) : (
-                    <Dropdown
-                        value={locationDropdownOptions.find(opt => opt.data === values.location)?.text ?? ''}
-                        selectedOptions={values.location ? [values.location] : []}
-                        onOptionSelect={(_e, data) => setFieldValue('location', data.optionValue ?? '')}
-                        placeholder={intl.formatMessage(PortalResources.selectRegion)}
-                        disabled={locationsLoading || isDeploying || isLocationDisabled}
-                    >
-                        {locationDropdownOptions.map(option => (
-                            <Option key={option.key} value={option.data} text={option.text}>
-                                {option.text}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                )}
-            </Field>
+                {locationDropdownOptions.map(option => (
+                    <Option key={option.key} value={option.data} text={option.text}>
+                        {option.text}
+                    </Option>
+                ))}
+            </DropdownFormik>
 
             {/* TODO: Create new / use existing App Insights */}
         </div>

@@ -70,7 +70,7 @@ export class UserRoleAssignmentTemplateResource extends ArmTemplateResource<obje
     _getTemplateFragmentHelper(): ArmTemplateResourceFragment<DeploymentFragment> {
         return {
             type: ResourceTypes.ResourceDeploymentType,
-            apiVersion: ApiVersions.armApiVersion20230301,
+            apiVersion: ApiVersions.armApiVersion20250301,
             name: `[concat('UserRoleAssignment-', '${this._options.deploymentGuid}')]`,
             dependsOn: this.dependsOn,
             properties: {

@@ -30,9 +30,7 @@ import { useFilteredResourceGroups } from './Hooks/useFilteredResourceGroups';
 import { ResourceGroupWithSelection, useResourceGroupsFromMultipleSubscriptions } from './Hooks/useResourceGroupsFromMultipleSubscriptions';
 import { ResourceGroupPickerSkeleton } from './ResourceGroupPickerSkeleton';
 
-// TODO: Left off figuring out why an item disappears and then crashes the page after selecting
-
-// const MAX_RESOURCE_GROUPS = 100;
+export const MAX_RESOURCE_GROUPS = 100;
 
 const useStyles = makeStyles({
     filtersRow: {
@@ -302,6 +300,7 @@ export const ResourceGroupPicker: FC<ResourceGroupPickerProps> = ({
                         selectedKeys={selectedSubscriptionIds}
                         multiSelect
                         addAllOption
+                        useInDialog
                     />
                 </div>
                 <div>
@@ -313,6 +312,7 @@ export const ResourceGroupPicker: FC<ResourceGroupPickerProps> = ({
                         selectedKeys={selectedLocationKeys}
                         multiSelect
                         addAllOption
+                        useInDialog
                     />
                 </div>
             </div>

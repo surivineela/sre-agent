@@ -51,36 +51,38 @@ const PermissionsGrid = () => {
 
     const getResourceTypesForResourceGroups = useCallback(
         async (resourceGroupIds: string[]) => {
-            try {
-                const resourceTypes = await resourceGroupClient.listAllResourcesInResourceGroups(resourceGroupIds);
-                return resourceTypes;
-            } catch (error) {
+            const response = await resourceGroupClient.listAllResourcesInResourceGroups(resourceGroupIds);
+
+            if (!response.isSuccessful) {
                 logEvent({
                     action: `Failed to get resource types for resource groups: ${resourceGroupIds.join(', ')}`,
                     actionModifier: 'failed',
                     logLevel: LogLevel.Error,
-                    additionalData: { resourceGroupIds, error },
+                    additionalData: { resourceGroupIds, error: response.error },
                 });
                 return [];
             }
+
+            return response.content ?? [];
         },
         [logEvent, resourceGroupClient]
     );
 
     const getResourceTypeAndKindsForResourceGroups = useCallback(
         async (resourceGroupIds: string[]) => {
-            try {
-                const resourceTypes = await resourceGroupClient.listResourceTypeAndKindsInResourceGroups(resourceGroupIds);
-                return resourceTypes;
-            } catch (error) {
+            const response = await resourceGroupClient.listResourceTypeAndKindsInResourceGroups(resourceGroupIds);
+
+            if (!response.isSuccessful) {
                 logEvent({
                     action: `Failed to get resource type and kinds for resource groups: ${resourceGroupIds.join(', ')}`,
                     actionModifier: 'failed',
                     logLevel: LogLevel.Error,
-                    additionalData: { resourceGroupIds, error },
+                    additionalData: { resourceGroupIds, error: response.error },
                 });
                 return [];
             }
+
+            return response.content ?? [];
         },
         [logEvent, resourceGroupClient]
     );

@@ -1,7 +1,7 @@
 import { getCloudEndpoints } from '../Auth/cloudConfig';
 import { ApiVersions } from '../Constants/ApiVersions';
 import { TelemetrySource } from '../Constants/Telemetry';
-import { ARGRequestContent, ARGResponse } from '../Contracts/Arg';
+import { ARGRequestContent, ARGResponseObjectArray } from '../Contracts/Arg';
 import { ArmObj, ResponseArray } from '../Contracts/Arm';
 import { Response } from '../Contracts/Response';
 import { parseArmId } from '../Utilities/ArmId';
@@ -39,33 +39,60 @@ export class ResourceGroupClient extends Client {
 
     /**
      * Execute an Azure Resource Graph (ARG) query
+     * Note: Uses default 'objectArray' format for simpler, more readable code
+     * Returns Response<T[]> format consistent with ARM calls
      */
-    private async executeArg(
+    private async executeArg<T = any>(
         content: ARGRequestContent,
         commandName: string,
         apiVersion = ApiVersions.argQueryApiVersion20240401
-    ): Promise<ARGResponse[]> {
-        const tokenResponse = await tokenCache.getAccessToken('arm');
+    ): Promise<Response<T[]>> {
+        try {
+            const tokenResponse = await tokenCache.getAccessToken('arm');
 
-        const endpoints = getCloudEndpoints();
-        const argUrl = `${endpoints.arm}/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`;
+            const endpoints = getCloudEndpoints();
+            const argUrl = `${endpoints.arm}/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`;
 
-        const response = await fetch(argUrl, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${tokenResponse.raw}`,
-                'Content-Type': 'application/json',
-                'x-ms-command-name': commandName,
-            },
-            body: JSON.stringify(content),
-        });
+            // Use default objectArray format (simpler to work with than table format)
+            // Can be overridden via content.options.resultFormat if needed
+            const requestContent: ARGRequestContent = {
+                ...content,
+                options: {
+                    ...content.options,
+                    resultFormat: content.options?.resultFormat ?? 'objectArray',
+                },
+            };
 
-        if (!response.ok) {
-            throw new Error(`ARG query failed: ${response.status} ${response.statusText}`);
+            const response = await fetch(argUrl, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${tokenResponse.raw}`,
+                    'Content-Type': 'application/json',
+                    'x-ms-command-name': commandName,
+                },
+                body: JSON.stringify(requestContent),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                return {
+                    isSuccessful: false,
+                    error: new Error(`ARG query failed: ${response.status} ${response.statusText}. ${errorText}`),
+                };
+            }
+
+            const data = (await response.json()) as ARGResponseObjectArray<T>;
+
+            return {
+                isSuccessful: true,
+                content: data.data,
+            };
+        } catch (error) {
+            return {
+                isSuccessful: false,
+                error: error instanceof Error ? error : new Error(String(error)),
+            };
         }
-
-        const data: ARGResponse = await response.json();
-        return [data]; // Return as array to match old executeArg behavior
     }
 
     private extractResourceGroupNamesAndSubscriptionIds(resourceGroupIds: string[]): {
@@ -96,7 +123,7 @@ export class ResourceGroupClient extends Client {
         resourceGroupName: string,
         location: string,
         tags = {},
-        apiVersion = ApiVersions.resourceGroupApiVersion20200601
+        apiVersion = ApiVersions.armApiVersion20250301
     ): Promise<Response<ArmObj<ResourceGroup>>> {
         return this.armClient.makeArmCall<ArmObj<ResourceGroup>>({
             method: 'PUT',
@@ -113,7 +140,7 @@ export class ResourceGroupClient extends Client {
     public async updateResourceGroup(
         resourceId: string,
         updatedProps: any,
-        apiVersion = ApiVersions.resourceGroupApiVersion20200601
+        apiVersion = ApiVersions.armApiVersion20250301
     ): Promise<Response<ArmObj<ResourceGroup>>> {
         return this.armClient.makeArmCall<ArmObj<ResourceGroup>>({
             method: 'PATCH',
@@ -127,7 +154,7 @@ export class ResourceGroupClient extends Client {
     public async getResourceGroup(
         subscriptionId: string,
         resourceGroupName: string,
-        apiVersion = ApiVersions.resourceGroupApiVersion20200601
+        apiVersion = ApiVersions.armApiVersion20250301
     ): Promise<Response<ArmObj<ResourceGroup>>> {
         return this.armClient.makeArmCall<ArmObj<ResourceGroup>>({
             method: 'GET',
@@ -140,7 +167,7 @@ export class ResourceGroupClient extends Client {
     public async deleteResourceGroup(
         subscriptionId: string,
         resourceGroupName: string,
-        apiVersion = ApiVersions.resourceGroupApiVersion20200601
+        apiVersion = ApiVersions.armApiVersion20250301
     ): Promise<Response<void>> {
         return this.armClient.makeArmCall<void>({
             method: 'DELETE',
@@ -152,7 +179,7 @@ export class ResourceGroupClient extends Client {
 
     public async getResourceGroups(
         subscriptionId: string,
-        apiVersion = ApiVersions.resourceGroupApiVersion20200601
+        apiVersion = ApiVersions.armApiVersion20250301
     ): Promise<Response<ResourceGroup[]>> {
         const response = await this.armClient.makeArmCall<ResponseArray<ResourceGroup>>({
             method: 'GET',
@@ -178,7 +205,7 @@ export class ResourceGroupClient extends Client {
         subscriptions: string[],
         resourceGroupName: string,
         showProperties = false
-    ): Promise<ARGResponse[]> {
+    ): Promise<Response<any[]>> {
         const content: ARGRequestContent = {
             query: `where resourceGroup =~ '${resourceGroupName}' | project id, type, kind, location, sku${
                 showProperties ? ', identity, properties, tags' : ''
@@ -189,7 +216,7 @@ export class ResourceGroupClient extends Client {
         return this.executeArg(content, 'getResourcesUsingTypeAndKind');
     }
 
-    public async getResourcesInSubscriptionsByTypeAndKind(subscriptions: string[], type: string, kind?: string): Promise<ARGResponse[]> {
+    public async getResourcesInSubscriptionsByTypeAndKind(subscriptions: string[], type: string, kind?: string): Promise<Response<any[]>> {
         const content: ARGRequestContent = {
             query: `where type =~ '${type}'${kind ? ` and kind has '${kind}'` : ''} | project id, name, sku`,
             subscriptions,
@@ -236,40 +263,30 @@ export class ResourceGroupClient extends Client {
             subscriptions: cleanedSubscriptionIds,
         };
 
-        try {
-            const response = await this.executeArg(content, 'getAllResourceGroupsFromSubscriptions');
-            const resourceGroups: ResourceGroup[] = [];
+        const response = await this.executeArg<ResourceGroup>(content, 'getAllResourceGroupsFromSubscriptions');
 
-            if (response && response.length > 0) {
-                // TODO: Add proper type - may differ because againt resourcecontainers table ?? or cause I'm using new API version?
-                response.forEach((argResponse: any) => {
-                    argResponse.data.forEach((item: any) => {
-                        resourceGroups.push({
-                            id: item.id,
-                            name: item.name,
-                            type: item.type,
-                            location: item.location,
-                            properties: item.properties,
-                            tags: item.tags,
-                            managedBy: item.managedBy,
-                        });
-                    });
-                });
-            }
-
-            return {
-                isSuccessful: true,
-                content: resourceGroups,
-            };
-        } catch (error) {
-            return {
-                isSuccessful: false,
-                error: error instanceof Error ? error : new Error(String(error)),
-            };
+        if (!response.isSuccessful) {
+            return response;
         }
+
+        const resourceGroups: ResourceGroup[] =
+            response.content?.map(item => ({
+                id: item.id,
+                name: item.name,
+                type: item.type,
+                location: item.location,
+                properties: item.properties,
+                tags: item.tags,
+                managedBy: item.managedBy,
+            })) ?? [];
+
+        return {
+            isSuccessful: true,
+            content: resourceGroups,
+        };
     }
 
-    public async getResourceGroupsInSubscriptionWithSreAgentKinds(subscriptionIds: string[]): Promise<Set<string>> {
+    public async getResourceGroupsInSubscriptionWithSreAgentKinds(subscriptionIds: string[]): Promise<Response<Set<string>>> {
         const cleanedSubscriptionIds = subscriptionIds.filter(str => str !== '');
         const query = `
             where type in~ ('microsoft.web/sites', 'microsoft.app/containerapps', 'microsoft.compute/virtualmachines', 'microsoft.containerservice/managedclusters', 'microsoft.cache/redis', 'microsoft.dbforpostgresql/flexibleservers', 'microsoft.dbforpostgresql/servers', 'microsoft.documentdb/databaseaccounts', 'microsoft.sql/servers', 'microsoft.sql/servers/databases', 'microsoft.storage/storageaccounts')
@@ -280,19 +297,27 @@ export class ResourceGroupClient extends Client {
             subscriptions: cleanedSubscriptionIds,
         };
 
-        const response = await this.executeArg(content, 'getSreAgentFilteredResourceGroups');
-        const resourceGroupsWithApps = new Set<string>();
-        if (response && response.length > 0) {
-            response.forEach((argResponse: any) => {
-                argResponse.data.forEach((item: any) => {
-                    resourceGroupsWithApps.add(item.resourceGroup);
-                });
-            });
+        const response = await this.executeArg<{ resourceGroup: string }>(content, 'getSreAgentFilteredResourceGroups');
+
+        if (!response.isSuccessful) {
+            return {
+                isSuccessful: false,
+                error: response.error,
+            };
         }
-        return resourceGroupsWithApps;
+
+        const resourceGroupsWithApps = new Set<string>();
+        response.content?.forEach(item => {
+            resourceGroupsWithApps.add(item.resourceGroup);
+        });
+
+        return {
+            isSuccessful: true,
+            content: resourceGroupsWithApps,
+        };
     }
 
-    public async listResourceKindsInResourceGroups(resourceGroupIds: string[]): Promise<Record<string, string[]>> {
+    public async listResourceKindsInResourceGroups(resourceGroupIds: string[]): Promise<Response<Record<string, string[]>>> {
         const { resourceGroupNames, subscriptionIds } = this.extractResourceGroupNamesAndSubscriptionIds(resourceGroupIds);
 
         const resourceGroupNamesLower = resourceGroupNames.map(name => `'${name.toLowerCase()}'`).join(', ');
@@ -308,25 +333,30 @@ export class ResourceGroupClient extends Client {
             subscriptions: subscriptionIds,
         };
 
-        const response = await this.executeArg(content, 'listResourceKindsInResourceGroups');
-        const results: Record<string, string[]> = {};
-        if (response && response.length > 0) {
-            response.forEach((argResponse: ARGResponse) => {
-                argResponse.data.rows.forEach((row: any[]) => {
-                    const resourceGroupId = row[0];
-                    const type = row[1];
+        const response = await this.executeArg<{ resourceGroupId: string; type: string }>(content, 'listResourceKindsInResourceGroups');
 
-                    if (!results[resourceGroupId]) {
-                        results[resourceGroupId] = [];
-                    }
-                    results[resourceGroupId].push(type);
-                });
-            });
+        if (!response.isSuccessful) {
+            return {
+                isSuccessful: false,
+                error: response.error,
+            };
         }
-        return results;
+
+        const results: Record<string, string[]> = {};
+        response.content?.forEach(item => {
+            if (!results[item.resourceGroupId]) {
+                results[item.resourceGroupId] = [];
+            }
+            results[item.resourceGroupId].push(item.type);
+        });
+
+        return {
+            isSuccessful: true,
+            content: results,
+        };
     }
 
-    public async listResourceTypeAndKindsInResourceGroups(resourceGroupIds: string[]): Promise<string[]> {
+    public async listResourceTypeAndKindsInResourceGroups(resourceGroupIds: string[]): Promise<Response<string[]>> {
         const { resourceGroupNames, subscriptionIds } = this.extractResourceGroupNamesAndSubscriptionIds(resourceGroupIds);
 
         const resourceGroupNamesLower = resourceGroupNames.map(name => `'${name.toLowerCase()}'`).join(', ');
@@ -341,29 +371,37 @@ export class ResourceGroupClient extends Client {
             subscriptions: subscriptionIds,
         };
 
-        const response = await this.executeArg(content, 'listResourceKindsInResourceGroups');
-        const results: Record<string, string> = {};
-        if (response && response.length > 0) {
-            response.forEach((argResponse: ARGResponse) => {
-                argResponse.data.rows.forEach((row: any[]) => {
-                    let type = row[0];
-                    const kind = row[1];
+        const response = await this.executeArg<{ type: string; kind: string }>(content, 'listResourceKindsInResourceGroups');
 
-                    if (type === 'microsoft.web/sites' && kind === 'functionapp') {
-                        type = 'microsoft.web/functionapp';
-                    }
-
-                    if (!results[type]) {
-                        results[type] = '';
-                    }
-                    results[type] = type;
-                });
-            });
+        if (!response.isSuccessful) {
+            return {
+                isSuccessful: false,
+                error: response.error,
+            };
         }
-        return Object.keys(results);
+
+        const results: Record<string, string> = {};
+        response.content?.forEach(item => {
+            let type = item.type;
+            const kind = item.kind;
+
+            if (type === 'microsoft.web/sites' && kind === 'functionapp') {
+                type = 'microsoft.web/functionapp';
+            }
+
+            if (!results[type]) {
+                results[type] = '';
+            }
+            results[type] = type;
+        });
+
+        return {
+            isSuccessful: true,
+            content: Object.keys(results),
+        };
     }
 
-    public async listAllResourcesInResourceGroups(resourceGroupIds: string[]): Promise<string[]> {
+    public async listAllResourcesInResourceGroups(resourceGroupIds: string[]): Promise<Response<string[]>> {
         const { resourceGroupNames, subscriptionIds } = this.extractResourceGroupNamesAndSubscriptionIds(resourceGroupIds);
 
         const resourceGroupNamesLower = resourceGroupNames.map(name => `'${name.toLowerCase()}'`).join(', ');
@@ -376,15 +414,20 @@ export class ResourceGroupClient extends Client {
             subscriptions: subscriptionIds,
         };
 
-        const response = await this.executeArg(content, 'listResourceKindsInResourceGroups');
-        const resourceTypes: string[] = [];
-        if (response && response.length > 0) {
-            response.forEach((argResponse: ARGResponse) => {
-                argResponse.data.rows.forEach((row: any[]) => {
-                    resourceTypes.push(row[0]);
-                });
-            });
+        const response = await this.executeArg<{ type: string }>(content, 'listResourceKindsInResourceGroups');
+
+        if (!response.isSuccessful) {
+            return {
+                isSuccessful: false,
+                error: response.error,
+            };
         }
-        return resourceTypes;
+
+        const resourceTypes: string[] = response.content?.map(item => item.type) ?? [];
+
+        return {
+            isSuccessful: true,
+            content: resourceTypes,
+        };
     }
 }

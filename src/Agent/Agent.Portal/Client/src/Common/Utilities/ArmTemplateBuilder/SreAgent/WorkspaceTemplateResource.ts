@@ -47,7 +47,7 @@ export class WorkspaceTemplateResource extends ArmTemplateResource<WorkspaceFrag
 
     _getTemplateFragmentHelper(): ArmTemplateResourceFragment<WorkspaceFragment> {
         return {
-            apiVersion: ApiVersions.workspacesApiVersion20200801,
+            apiVersion: ApiVersions.workspacesApiVersion20250201,
             name: `[parameters('${SreAgentParameterName.WorkspaceName}')]`,
             type: ArmServiceType.Workspace,
             location: this._location,

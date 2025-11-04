@@ -15,10 +15,11 @@ import {
     TableCellLayout,
     TableColumnDefinition,
     Text,
+    Tooltip,
 } from '@fluentui/react-components';
 import {
     CheckmarkCircle16Regular,
-    Dismiss16Regular,
+    Delete16Regular,
     ErrorCircle16Regular,
     LockClosed16Regular,
     ShieldError16Regular,
@@ -27,6 +28,7 @@ import { useFormikContext } from 'formik';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { PermissionsClient } from '../../../Common/Clients/PermissionsClient';
+import { MAX_RESOURCE_GROUPS } from '../../../Common/Components/ResourceGroupPicker/ResourceGroupPicker';
 import { ApiVersions } from '../../../Common/Constants/ApiVersions';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
 import { ResourceGroup } from '../../../Common/Contracts/Arm';
@@ -36,8 +38,6 @@ import { getUserFriendlyLocation } from '../../../Common/Utilities/Location';
 import { openResourceGroupOverviewInNewTab } from '../../../Common/Utilities/Url';
 import { PortalResources } from '../../../Strings/Resources';
 import { SreAgentCreateFormProps } from './CreateAgentDialog';
-
-const MAX_RESOURCE_GROUPS = 100;
 
 enum ResourceGroupListColumnKey {
     name = 'name',
@@ -110,7 +110,7 @@ const ManagedResourceGroupsGrid = ({ isDeploying }: ManagedResourceGroupsGridPro
             const content = {
                 resourceDetails: {
                     scope: resourceGroupId,
-                    apiVersion: ApiVersions.armApiVersion20230301,
+                    apiVersion: ApiVersions.armApiVersion20250301,
                     resourceContent: {
                         type: ArmServiceType.Deployments,
                     },
@@ -254,7 +254,7 @@ const ManagedResourceGroupsGrid = ({ isDeploying }: ManagedResourceGroupsGridPro
             } else if (!item.permissions) {
                 return (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <ErrorCircle16Regular />
+                        <ErrorCircle16Regular primaryFill="red" />
                         <Text>{intl.formatMessage(PortalResources.no)}</Text>
                     </div>
                 );
@@ -268,21 +268,21 @@ const ManagedResourceGroupsGrid = ({ isDeploying }: ManagedResourceGroupsGridPro
             } else if (item.denyAssignments) {
                 return (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <ShieldError16Regular />
+                        <ShieldError16Regular primaryFill="red" />
                         <Text>{intl.formatMessage(PortalResources.denyAssignments)}</Text>
                     </div>
                 );
             } else if (item.policyErrors) {
                 return (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <ErrorCircle16Regular />
+                        <ErrorCircle16Regular primaryFill="red" />
                         <Text>{intl.formatMessage(PortalResources.policyErrors)}</Text>
                     </div>
                 );
             }
             return (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CheckmarkCircle16Regular />
+                    <CheckmarkCircle16Regular primaryFill="green" />
                     <Text>{intl.formatMessage(PortalResources.yes)}</Text>
                 </div>
             );
@@ -322,13 +322,15 @@ const ManagedResourceGroupsGrid = ({ isDeploying }: ManagedResourceGroupsGridPro
                 renderHeaderCell: () => null,
                 renderCell: item => (
                     <TableCellLayout>
-                        <Button
-                            icon={<Dismiss16Regular />}
-                            appearance="subtle"
-                            onClick={() => handleDelete(item)}
-                            disabled={isDeploying}
-                            aria-label={`${intl.formatMessage(PortalResources.deleteResourceGroup)} ${item.name}`}
-                        />
+                        <Tooltip relationship="label" content={intl.formatMessage(PortalResources.removeResourceGroup)}>
+                            <Button
+                                icon={<Delete16Regular />}
+                                appearance="subtle"
+                                onClick={() => handleDelete(item)}
+                                disabled={isDeploying}
+                                aria-label={`${intl.formatMessage(PortalResources.removeResourceGroup)} ${item.name}`}
+                            />
+                        </Tooltip>
                     </TableCellLayout>
                 ),
             }),
@@ -385,7 +387,7 @@ const ManagedResourceGroupsGrid = ({ isDeploying }: ManagedResourceGroupsGridPro
                     <DataGridBody<ManagedResourceGroupGridItem>>
                         {({ item, rowId }) => (
                             <DataGridRow<ManagedResourceGroupGridItem> key={rowId}>
-                                {({ renderCell }) => <DataGridCell>{renderCell((item as any).item)}</DataGridCell>}
+                                {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
                             </DataGridRow>
                         )}
                     </DataGridBody>

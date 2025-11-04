@@ -52,7 +52,7 @@ export class RoleAssignmentTemplateResource extends ArmTemplateResource<object> 
     _getTemplateFragmentHelper(): ArmTemplateResourceFragment<DeploymentFragment> {
         return {
             type: ResourceTypes.ResourceDeploymentType,
-            apiVersion: ApiVersions.armApiVersion20230301,
+            apiVersion: ApiVersions.armApiVersion20250301,
             name: `[concat(substring('${this._options.resourceGroupName}', 0, min(34, length('${this._options.resourceGroupName}'))), '-roleAssignments-', '${this._options.deploymentGuid}')]`,
             dependsOn: this.dependsOn,
             subscriptionId: this._options.subscriptionId,

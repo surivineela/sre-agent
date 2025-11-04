@@ -252,7 +252,7 @@ export class PermissionsClient extends Client {
         });
     }
 
-    public async getLocks(resourceId: string, apiVersion = ApiVersions.armApiVersion20230301): Promise<Response<ArmArray<Lock>>> {
+    public async getLocks(resourceId: string, apiVersion = ApiVersions.permissionsApiVersion20220401): Promise<Response<ArmArray<Lock>>> {
         return this.armClient.makeArmCall<ArmArray<Lock>>({
             method: 'GET',
             resourceId: `${resourceId}/providers/Microsoft.Authorization/locks`,
@@ -276,7 +276,7 @@ export class PermissionsClient extends Client {
     public async checkPolicies(
         resourceId: string,
         content: unknown,
-        apiVersion = ApiVersions.armApiVersion20230301
+        apiVersion = ApiVersions.policyInsightsApiVersion20230301
     ): Promise<Response<PolicyAssignment>> {
         return this.armClient.makeArmCall<PolicyAssignment>({
             method: 'POST',

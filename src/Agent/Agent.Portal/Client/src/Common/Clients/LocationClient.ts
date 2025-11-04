@@ -44,8 +44,8 @@ export class LocationClient extends Client {
         resourceProvider: string,
         resourceType: string,
         telemetrySource: TelemetrySource,
-        getProviderArmApiVersion = ApiVersions.providerApiVersion20231101,
-        registerProviderArmApiVersion = ApiVersions.providerApiVersion20231101
+        getProviderArmApiVersion = ApiVersions.armApiVersion20250301,
+        registerProviderArmApiVersion = ApiVersions.armApiVersion20250301
     ): Promise<string[]> {
         // First try a GET call on the provider.
         const resourceClient = ResourceClient.getInstance(telemetrySource);
@@ -70,7 +70,7 @@ export class LocationClient extends Client {
 
     public async listLocations(
         subscriptionId: string,
-        apiVersion = ApiVersions.listLocationApiVersion20200101
+        apiVersion = ApiVersions.armApiVersion20250301
     ): Promise<Response<ResponseArray<AzureLocation>>> {
         return this.armClient.makeArmCall<ResponseArray<AzureLocation>>({
             method: 'GET',

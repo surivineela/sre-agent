@@ -57,7 +57,7 @@ export class ResourceClient extends Client {
         });
     }
 
-    public async getSubscriptions(apiVersion = ApiVersions.resourceApiVersion20200101): Promise<Response<ResponseArray<Subscription>>> {
+    public async getSubscriptions(apiVersion = ApiVersions.armApiVersion20250301): Promise<Response<ResponseArray<Subscription>>> {
         return this.armClient.makeArmCall<ResponseArray<Subscription>>({
             method: 'GET',
             resourceId: '/subscriptions',
@@ -69,7 +69,7 @@ export class ResourceClient extends Client {
     public async getProvider(
         subscriptionId: string,
         resourceProvider: string,
-        apiVersion = ApiVersions.resourceProviderApiVersion20220901
+        apiVersion = ApiVersions.armApiVersion20250301
     ): Promise<Response<ResourceProvider>> {
         return this.armClient.makeArmCall<ResourceProvider>({
             method: 'GET',
@@ -82,7 +82,7 @@ export class ResourceClient extends Client {
     public async registerProvider(
         subscriptionId: string,
         resourceProvider: string,
-        apiVersion = ApiVersions.resourceProviderApiVersion20220901
+        apiVersion = ApiVersions.armApiVersion20250301
     ): Promise<Response<ResourceProvider>> {
         return this.armClient.makeArmCall<ResourceProvider>({
             method: 'POST',

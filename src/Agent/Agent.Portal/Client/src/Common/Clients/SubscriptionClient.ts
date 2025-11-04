@@ -21,7 +21,7 @@ export class SubscriptionClient extends Client {
         return SubscriptionClient._instance;
     }
 
-    public async getSubscriptions(apiVersion = ApiVersions.subscriptionsApiVersion20200101): Promise<Response<Subscription[]>> {
+    public async getSubscriptions(apiVersion = ApiVersions.armApiVersion20250301): Promise<Response<Subscription[]>> {
         const response = await this.armClient.makeArmCall<ResponseArray<Subscription>>({
             method: 'GET',
             resourceId: '/subscriptions',

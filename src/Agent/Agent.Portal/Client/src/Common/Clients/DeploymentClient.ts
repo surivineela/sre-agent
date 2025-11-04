@@ -29,7 +29,7 @@ export class DeploymentClient extends Client {
         parameters: Record<string, any>,
         primaryResourceId?: string,
         skipPolling = false,
-        apiVersion = ApiVersions.armApiVersion20230301
+        apiVersion = ApiVersions.armApiVersion20250301
     ): Promise<Response<ArmObj<DeploymentExtended>>> {
         return this.armClient.makeArmCall<ArmObj<DeploymentExtended>>({
             method: 'PUT',
@@ -54,7 +54,7 @@ export class DeploymentClient extends Client {
 
     public async getDeployments(
         resourceId: string,
-        apiVersion = ApiVersions.armApiVersion20230301
+        apiVersion = ApiVersions.armApiVersion20250301
     ): Promise<Response<ResponseArray<ArmObj<DeploymentExtended>>>> {
         return this.armClient.makeArmCall<ResponseArray<ArmObj<DeploymentExtended>>>({
             method: 'GET',
@@ -64,7 +64,7 @@ export class DeploymentClient extends Client {
         });
     }
 
-    public async getDeployment(resourceId: string, apiVersion = ApiVersions.armApiVersion20230301): Promise<Response<DeploymentExtended>> {
+    public async getDeployment(resourceId: string, apiVersion = ApiVersions.armApiVersion20250301): Promise<Response<DeploymentExtended>> {
         return this.armClient.makeArmCall<DeploymentExtended>({
             method: 'GET',
             resourceId,
@@ -75,7 +75,7 @@ export class DeploymentClient extends Client {
 
     public async getTerminalDeploymentWithPolling(
         resourceId: string,
-        apiVersion = ApiVersions.armApiVersion20230301
+        apiVersion = ApiVersions.armApiVersion20250301
     ): Promise<Response<DeploymentExtended>> {
         const response = await this.getDeployment(resourceId, apiVersion);
 
@@ -93,7 +93,7 @@ export class DeploymentClient extends Client {
 
     public async getDeploymentOperations(
         resourceId: string,
-        apiVersion = ApiVersions.armApiVersion20230301
+        apiVersion = ApiVersions.armApiVersion20250301
     ): Promise<Response<ArmDeploymentOperationResponse>> {
         return this.armClient.makeArmCall<ArmDeploymentOperationResponse>({
             method: 'GET',

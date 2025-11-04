@@ -58,7 +58,6 @@ export const useSreAgentCreate = ({
     agentSpaceId: string;
     agentSpaceLocation?: string;
 }) => {
-    // const { setIsContextPaneOpen, refreshAgents } = useContext(HomeContext);
     const { user } = useAuth();
     const { logEvent } = useTelemetry(TelemetrySource.SreAgentCreate, undefined);
     const notifications = useNotifications();
@@ -326,28 +325,32 @@ export const useSreAgentCreate = ({
         async (resourceGroupIds: string[], permissionsLevel: AgentAccessLevel) => {
             const resourceGroupIdToRoleIds: Record<string, string[]> = {};
 
-            try {
-                const resourceGroupIdToResourceTypes = await resourceGroupClient.listResourceKindsInResourceGroups(resourceGroupIds);
-                for (const resourceGroupId of resourceGroupIds) {
-                    const resourceTypes = resourceGroupIdToResourceTypes[resourceGroupId] ?? [];
-                    const roleIds = getRoleIdsForResourceGroup(resourceTypes, permissionsLevel);
-                    resourceGroupIdToRoleIds[resourceGroupId] = roleIds;
-                }
-            } catch (error) {
+            const response = await resourceGroupClient.listResourceKindsInResourceGroups(resourceGroupIds);
+
+            if (!response.isSuccessful) {
                 logEvent({
                     action: `Failed to get resource types for resource groups: ${resourceGroupIds.join(', ')}`,
                     actionModifier: 'failed',
                     logLevel: LogLevel.Warning,
                     additionalData: {
                         resourceGroupIds,
-                        error,
+                        error: response.error,
                     },
                 });
 
                 for (const resourceGroupId of resourceGroupIds) {
                     resourceGroupIdToRoleIds[resourceGroupId] = [...CoreRBACRoleIds];
                 }
+                return resourceGroupIdToRoleIds;
             }
+
+            const resourceGroupIdToResourceTypes = response.content ?? {};
+            for (const resourceGroupId of resourceGroupIds) {
+                const resourceTypes = resourceGroupIdToResourceTypes[resourceGroupId] ?? [];
+                const roleIds = getRoleIdsForResourceGroup(resourceTypes, permissionsLevel);
+                resourceGroupIdToRoleIds[resourceGroupId] = roleIds;
+            }
+
             return resourceGroupIdToRoleIds;
         },
         [logEvent, resourceGroupClient]
@@ -628,19 +631,16 @@ export const useSreAgentCreate = ({
                     if (!value || !resourceGroupId) {
                         return true;
                     }
-                    try {
-                        // Call getAgent to check if it exists
-                        // If we get a 404 (or other error), the agent doesn't exist, so validation passes
-                        const agentResourceId = `${resourceGroupId}/providers/Microsoft.App/agents/${value}`;
-                        const response = await agentClient.getAgent(agentResourceId);
 
-                        if (response.isSuccessful) {
-                            return false;
-                        }
-                        return true;
-                    } catch (_error) {
-                        return true;
+                    // Call getAgent to check if it exists
+                    // If we get a 404 (or other error), the agent doesn't exist, so validation passes
+                    const agentResourceId = `${resourceGroupId}/providers/Microsoft.App/agents/${value}`;
+                    const response = await agentClient.getAgent(agentResourceId);
+
+                    if (response.isSuccessful) {
+                        return false;
                     }
+                    return true;
                 }),
             location: Yup.string().required(intl.formatMessage(PortalResources.fieldRequired)),
             managedResourceGroups: Yup.array().notRequired(),

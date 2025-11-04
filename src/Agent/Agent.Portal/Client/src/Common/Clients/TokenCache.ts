@@ -31,7 +31,7 @@ export class TokenCache {
         // Check cache first
         const cached = this.cache.get(scopeIdentifier);
 
-        console.log(`type: ${scopeIdentifier}, cached == ${!!cached}, inFlightPromise == ${!!cached?.inFlightPromise}`);
+        console.log(`[getAccessToken] type: ${scopeIdentifier}, cached == ${!!cached}, inFlightPromise == ${!!cached?.inFlightPromise}`);
 
         // If there's an in-flight request, wait for it (check this FIRST to catch concurrent requests)
         if (cached?.inFlightPromise) {
