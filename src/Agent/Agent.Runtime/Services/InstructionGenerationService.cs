@@ -198,7 +198,7 @@ namespace Agent.Runtime.Services
 
                 _logger.LogInternalInformation("GenerateInstructionsFromIncidents: Sending system prompt to chat client for instruction generation. AgentName: {AgentName}", request.AgentName);
 
-                var instructionGenerationResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(
+                var instructionGenerationResponse = await _chatClientProvider.FastModel.GetResponseAsync(
                     new ChatMessage(ChatRole.System, systemMessage),
                     new ChatOptions
                     {

@@ -13,7 +13,6 @@ using Agent.Framework;
 using Agent.Plugins.Connector;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
-using Agent.Plugins.Tools;
 using Kusto.Data.Exceptions;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -520,7 +519,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                         userMessage
                     };
 
-                    ChatResponse response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, _chatOptions, cancellationToken);
+                    ChatResponse response = await _chatClientProvider.LargeContextModel.GetResponseAsync(messages, _chatOptions, cancellationToken);
 
                     return response.Messages.Last().Text;
                 }

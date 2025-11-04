@@ -2,10 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.AI;
-using Agent.Core.Interfaces;
 using Agent.Core.Extensions;
+using Agent.Core.Interfaces;
 using Agent.Framework;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Core.Helpers;
 
@@ -46,7 +46,7 @@ public class TitleGenerationService : ITitleGenerationService
                 new ChatMessage(ChatRole.User, message)
             };
 
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(chats);
+            var response = await _chatClientProvider.FastModel.GetResponseAsync(chats);
             string title = response.GetMessage().Text?.Trim() ?? "";
 
             // Validate the response
