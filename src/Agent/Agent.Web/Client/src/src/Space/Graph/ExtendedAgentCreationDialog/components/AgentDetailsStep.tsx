@@ -902,17 +902,33 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Switch
                         checked={agent.enableMemory === true}
-                        onChange={(_, data) => onChange({ ...agent, enableMemory: data.checked })}
+                        onChange={(_, data) => {
+                            const updatedAgent = { ...agent, enableMemory: data.checked };
+                            const currentSystemTools = updatedAgent.systemTools ?? [];
+
+                            // Add or remove SearchMemory based on enableMemory state
+                            if (data.checked) {
+                                // Add SearchMemory if not already present
+                                if (!currentSystemTools.some(tool => tool.toLowerCase() === 'searchmemory')) {
+                                    updatedAgent.systemTools = [...currentSystemTools, 'SearchMemory'];
+                                }
+                            } else {
+                                // Remove SearchMemory if present
+                                updatedAgent.systemTools = currentSystemTools.filter(tool => tool.toLowerCase() !== 'searchmemory');
+                            }
+
+                            onChange(updatedAgent);
+                        }}
                     />
                     <span>{intl.formatMessage(ExtendedAgentsGraphResources.agentMemoryLabel)}</span>
-                    <Tooltip content={intl.formatMessage(ExtendedAgentsGraphResources.agentMemoryHelp)} relationship="description">
+                    <Tooltip content={intl.formatMessage(ExtendedAgentsGraphResources.agentMemoryTooltip)} relationship="description">
                         <Info16Regular style={{ fontSize: '14px', color: '#6264A7', cursor: 'help' }} />
                     </Tooltip>
                 </div>
                 {agent.enableMemory && (
                     <div style={{ marginTop: '8px', marginLeft: '48px' }}>
                         <Link
-                            onClick={() => navigate('/views/settings/dataKnowledgeSpace')}
+                            onClick={() => navigate('/views/settings/knowledgeBase')}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

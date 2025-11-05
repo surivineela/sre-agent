@@ -287,7 +287,7 @@ export const ReviewStep: FC<ReviewStepProps> = ({
 
             {state.entityType === 'agent' && state.agent?.enableMemory === true && (
                 <MessageBar intent="success" role="status">
-                    <MessageBarBody>{intl.formatMessage((SreAgentResources as any).agentMemoryEnabled)}</MessageBarBody>
+                    <MessageBarBody>{intl.formatMessage(ExtendedAgentsGraphResources.agentMemoryEnabled)}</MessageBarBody>
                 </MessageBar>
             )}
 

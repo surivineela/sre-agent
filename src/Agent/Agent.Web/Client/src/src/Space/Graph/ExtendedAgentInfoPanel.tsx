@@ -618,7 +618,7 @@ export const ExtendedAgentInfoPanel = memo(
                         {memoryEnabled && documentCount !== null && (
                             <div style={{ marginTop: '8px', marginLeft: '8px' }}>
                                 <Link
-                                    onClick={() => navigate('/views/settings/dataKnowledgeSpace')}
+                                    onClick={() => navigate('/views/settings/knowledgeBase')}
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',

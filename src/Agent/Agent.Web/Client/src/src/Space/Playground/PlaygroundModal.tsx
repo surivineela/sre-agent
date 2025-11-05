@@ -1577,6 +1577,32 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             setInsightsLoading(false);
             setInsightsStale(false);
             const copy = { ...target.agent };
+
+            // Check if SearchMemory is in tools or systemTools (case-insensitive)
+            const hasSearchMemoryInTools = copy.tools?.some(tool => tool.toLowerCase() === 'searchmemory') ?? false;
+            const hasSearchMemoryInSystemTools = copy.systemTools?.some(tool => tool.toLowerCase() === 'searchmemory') ?? false;
+            const hasSearchMemory = hasSearchMemoryInTools || hasSearchMemoryInSystemTools;
+
+            // If SearchMemory is found, automatically enable knowledge base
+            if (hasSearchMemory && !copy.enableMemory) {
+                copy.enableMemory = true;
+            }
+
+            // Ensure SearchMemory is in systemTools if enableMemory is true
+            if (copy.enableMemory) {
+                const currentSystemTools = copy.systemTools ?? [];
+                if (!currentSystemTools.some(tool => tool.toLowerCase() === 'searchmemory')) {
+                    copy.systemTools = [...currentSystemTools, 'SearchMemory'];
+                }
+
+                // Add memory prompt to instructions if not already present
+                const memoryPrompt = 'Use the search tools to incorporate memory in the final result.';
+                const currentInstructions = copy.instructions || '';
+                if (!currentInstructions.includes(memoryPrompt)) {
+                    copy.instructions = currentInstructions ? `${currentInstructions}\n\n${memoryPrompt}` : memoryPrompt;
+                }
+            }
+
             setDraftAgent(copy);
             setDraftTool(undefined);
             setDraftSystemTool(undefined);
@@ -1592,7 +1618,35 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             setInsightsLoading(false);
             setInsightsStale(false);
             const copy = { ...target.tool };
-            setDraftAgent(target.agent ? { ...target.agent } : undefined);
+
+            // Handle agent tools for tool targets
+            const draftAgentCopy = target.agent ? { ...target.agent } : undefined;
+            if (draftAgentCopy) {
+                const hasSearchMemoryInTools = draftAgentCopy.tools?.some(tool => tool.toLowerCase() === 'searchmemory') ?? false;
+                const hasSearchMemoryInSystemTools =
+                    draftAgentCopy.systemTools?.some(tool => tool.toLowerCase() === 'searchmemory') ?? false;
+                const hasSearchMemory = hasSearchMemoryInTools || hasSearchMemoryInSystemTools;
+
+                if (hasSearchMemory && !draftAgentCopy.enableMemory) {
+                    draftAgentCopy.enableMemory = true;
+                }
+
+                if (draftAgentCopy.enableMemory) {
+                    const currentSystemTools = draftAgentCopy.systemTools ?? [];
+                    if (!currentSystemTools.some(tool => tool.toLowerCase() === 'searchmemory')) {
+                        draftAgentCopy.systemTools = [...currentSystemTools, 'SearchMemory'];
+                    }
+
+                    // Add memory prompt to instructions if not already present
+                    const memoryPrompt = 'Use the search tools to incorporate memory in the final result.';
+                    const currentInstructions = draftAgentCopy.instructions || '';
+                    if (!currentInstructions.includes(memoryPrompt)) {
+                        draftAgentCopy.instructions = currentInstructions ? `${currentInstructions}\n\n${memoryPrompt}` : memoryPrompt;
+                    }
+                }
+            }
+
+            setDraftAgent(draftAgentCopy);
             setDraftTool(copy);
             setDraftSystemTool(undefined);
             setYamlContent(buildToolYaml(copy));
@@ -1607,7 +1661,35 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             setInsightsLoading(false);
             setInsightsStale(false);
             const copy = { ...target.tool };
-            setDraftAgent(target.agent ? { ...target.agent } : undefined);
+
+            // Handle agent tools for systemTool targets
+            const draftAgentCopy = target.agent ? { ...target.agent } : undefined;
+            if (draftAgentCopy) {
+                const hasSearchMemoryInTools = draftAgentCopy.tools?.some(tool => tool.toLowerCase() === 'searchmemory') ?? false;
+                const hasSearchMemoryInSystemTools =
+                    draftAgentCopy.systemTools?.some(tool => tool.toLowerCase() === 'searchmemory') ?? false;
+                const hasSearchMemory = hasSearchMemoryInTools || hasSearchMemoryInSystemTools;
+
+                if (hasSearchMemory && !draftAgentCopy.enableMemory) {
+                    draftAgentCopy.enableMemory = true;
+                }
+
+                if (draftAgentCopy.enableMemory) {
+                    const currentSystemTools = draftAgentCopy.systemTools ?? [];
+                    if (!currentSystemTools.some(tool => tool.toLowerCase() === 'searchmemory')) {
+                        draftAgentCopy.systemTools = [...currentSystemTools, 'SearchMemory'];
+                    }
+
+                    // Add memory prompt to instructions if not already present
+                    const memoryPrompt = 'Use the search tools to incorporate memory in the final result.';
+                    const currentInstructions = draftAgentCopy.instructions || '';
+                    if (!currentInstructions.includes(memoryPrompt)) {
+                        draftAgentCopy.instructions = currentInstructions ? `${currentInstructions}\n\n${memoryPrompt}` : memoryPrompt;
+                    }
+                }
+            }
+
+            setDraftAgent(draftAgentCopy);
             setDraftTool(undefined);
             setDraftSystemTool(copy);
             setYamlContent('# System tools are read-only and do not have YAML configuration');
@@ -1722,68 +1804,49 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
 
         // If a tool is already selected, don't override it
         if (selectedToolName) {
-            console.log('[PlaygroundModal] Tool already selected, skipping auto-selection:', selectedToolName);
             return;
         }
-
-        console.log('[PlaygroundModal] Auto-selecting tool:', {
-            isExtendedToolTarget,
-            isSystemToolTarget,
-            draftToolName: draftTool?.name,
-            draftSystemToolName: draftSystemTool?.name,
-            linkedCount: linkedExtendedToolNames.length,
-            availableCount: availableExtendedToolNames.length,
-            systemCount: availableSystemToolNames.length,
-        });
 
         // Only use target-based selection if we're switching FROM agent mode
         // Don't use it if we're already in tool mode (user is switching between tools)
         if (isExtendedToolTarget && draftTool?.name) {
-            console.log('[PlaygroundModal] Auto-selecting extended tool from target:', draftTool.name);
             setSelectedToolName(draftTool.name);
             return;
         }
 
         if (isSystemToolTarget && draftSystemTool?.name) {
-            console.log('[PlaygroundModal] Auto-selecting system tool from target:', draftSystemTool.name);
             setSelectedToolName(draftSystemTool.name);
             return;
         }
 
         // If we have a draft system tool, don't fall through to auto-selection
         if (draftSystemTool?.name) {
-            console.log('[PlaygroundModal] Draft system tool exists, not auto-selecting:', draftSystemTool.name);
             return;
         }
 
         // If we have a draft extended tool, don't fall through to auto-selection
         if (draftTool?.name) {
-            console.log('[PlaygroundModal] Draft extended tool exists, not auto-selecting:', draftTool.name);
             return;
         }
 
         const firstLinked = linkedExtendedToolNames[0];
         if (firstLinked) {
-            console.log('[PlaygroundModal] Auto-selecting first linked tool:', firstLinked);
             setSelectedToolName(firstLinked);
             return;
         }
 
         const firstAvailable = availableExtendedToolNames[0];
         if (firstAvailable) {
-            console.log('[PlaygroundModal] Auto-selecting first available tool:', firstAvailable);
             setSelectedToolName(firstAvailable);
             return;
         }
 
         const firstSystem = availableSystemToolNames[0];
         if (firstSystem) {
-            console.log('[PlaygroundModal] Auto-selecting first system tool:', firstSystem);
             setSelectedToolName(firstSystem);
             return;
         }
 
-        console.log('[PlaygroundModal] Auto-selecting new Kusto tool option');
         setSelectedToolName(NEW_KUSTO_TOOL_OPTION);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
@@ -1806,13 +1869,11 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
         }
 
         if (draftSystemTool?.name && selectedToolName === draftSystemTool.name) {
-            console.log('[PlaygroundModal] selectedTool: returning draftSystemTool', draftSystemTool.name);
             return draftSystemTool;
         }
 
         if (selectedToolName) {
             const tool = toolLookup.get(selectedToolName);
-            console.log('[PlaygroundModal] selectedTool: lookup result for', selectedToolName, ':', tool ? 'found' : 'not found');
             return tool;
         }
 
@@ -1831,12 +1892,6 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
 
     const selectedToolIsSystemTool = useMemo(() => {
         const isSystemTool = !!selectedTool && !('type' in selectedTool);
-        console.log('[PlaygroundModal] selectedToolIsSystemTool:', {
-            isSystemTool,
-            selectedToolName,
-            hasSelectedTool: !!selectedTool,
-            hasTypeProperty: selectedTool ? 'type' in selectedTool : 'no tool',
-        });
         return isSystemTool;
     }, [selectedTool, selectedToolName]);
 
@@ -2326,6 +2381,15 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
 
     const handleAgentFormChange = useCallback(
         (updatedAgent: Partial<ExtendedAgent>) => {
+            // Add memory prompt to instructions if enableMemory is true and prompt not already present
+            if (updatedAgent.enableMemory) {
+                const memoryPrompt = 'Use the search tools to incorporate memory in the final result.';
+                const currentInstructions = updatedAgent.instructions || '';
+                if (!currentInstructions.includes(memoryPrompt)) {
+                    updatedAgent.instructions = currentInstructions ? `${currentInstructions}\n\n${memoryPrompt}` : memoryPrompt;
+                }
+            }
+
             setDraftAgent(updatedAgent);
             if (configEntity === 'agent') {
                 setYamlContent(buildAgentYaml(updatedAgent));
@@ -2986,7 +3050,6 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
 
         const handleToolSelection = (_: unknown, data: { optionValue?: string | number | null }) => {
             const value = typeof data.optionValue === 'string' ? data.optionValue : undefined;
-            console.log('[PlaygroundModal] Tool selection:', { value, availableSystemTools: availableSystemToolNames });
 
             if (!value) {
                 return;
@@ -3009,21 +3072,14 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             }
 
             const systemToolMatch = systemTools.find(tool => tool.name === value);
-            console.log('[PlaygroundModal] System tool match:', { value, found: !!systemToolMatch, systemToolsCount: systemTools.length });
 
             if (systemToolMatch) {
-                console.log('[PlaygroundModal] Setting system tool state:', {
-                    toolName: systemToolMatch.name,
-                    clearingDraftTool: true,
-                    settingDraftSystemTool: true,
-                });
                 setDraftTool(undefined);
                 setDraftSystemTool({ ...systemToolMatch });
                 setSelectedToolName(value);
                 setConfigEntity('tool');
                 setAcknowledgedMode(true);
                 markPreviewUpdated();
-                console.log('[PlaygroundModal] System tool state set complete');
                 return;
             }
 
@@ -3294,7 +3350,6 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
         }
 
         if (selectedToolIsSystemTool) {
-            console.log('[PlaygroundModal] Rendering SystemToolTesterPanel for:', selectedTool);
             return (
                 <div className={styles.toolTesterContainer}>
                     <SystemToolTesterPanel tool={selectedTool as SystemTool} />
