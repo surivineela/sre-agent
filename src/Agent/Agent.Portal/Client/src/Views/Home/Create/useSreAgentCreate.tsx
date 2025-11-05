@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import { DeploymentClient } from '../../../Common/Clients/DeploymentClient';
@@ -53,10 +53,12 @@ export const useSreAgentCreate = ({
     showRegistrationDialog,
     agentSpaceId,
     agentSpaceLocation,
+    onDeploymentStarted,
 }: {
     showRegistrationDialog: () => Promise<boolean>;
     agentSpaceId: string;
     agentSpaceLocation?: string;
+    onDeploymentStarted?: () => void;
 }) => {
     const { user } = useAuth();
     const { logEvent } = useTelemetry(TelemetrySource.SreAgentCreate, undefined);
@@ -68,8 +70,6 @@ export const useSreAgentCreate = ({
     const [deploymentId, setDeploymentId] = useState<string>('');
     const [agentResourceId, setAgentResourceId] = useState<string>('');
     const [agentName, setAgentName] = useState<string>('');
-    const [deploymentSucceeded, setDeploymentSucceeded] = useState<boolean>(false);
-    const createStartTimeRef = useRef<number | undefined>(undefined);
 
     const permissionsClient = useMemo(() => PermissionsClient.getInstance(TelemetrySource.SreAgentCreate), []);
     const resourceClient = useMemo(() => ResourceClient.getInstance(TelemetrySource.SreAgentCreate), []);
@@ -209,6 +209,11 @@ export const useSreAgentCreate = ({
                     })
                 );
 
+                // Trigger step transition to deployment tracking
+                if (onDeploymentStarted) {
+                    onDeploymentStarted();
+                }
+
                 // Start deployment polling notification
                 notifications.startWithPolling(intl.formatMessage(AgentCreateDeploymentNotificationResources.agentCreationTitle), {
                     pollFn: async () => {
@@ -216,6 +221,7 @@ export const useSreAgentCreate = ({
                         const provisioningState = deploymentResponse?.content?.properties?.provisioningState;
 
                         if (provisioningState === DeploymentProvisioningStates.succeeded) {
+                            setIsDeploying(false);
                             return {
                                 complete: true,
                                 success: true,
@@ -227,6 +233,7 @@ export const useSreAgentCreate = ({
                         }
 
                         if (provisioningState === DeploymentProvisioningStates.Failed) {
+                            setIsDeploying(false);
                             const errorMessage = getArmErrorMessage(deploymentResponse?.content?.properties?.error);
                             return {
                                 complete: true,
@@ -249,6 +256,7 @@ export const useSreAgentCreate = ({
 
                 waitForAgentSiteLoad(agentResourceId);
             } else {
+                setIsDeploying(false);
                 const errorMessage = getArmErrorMessage(response.error);
                 handleFailedDeployment(
                     deploymentResourceId,
@@ -262,7 +270,7 @@ export const useSreAgentCreate = ({
                 );
             }
         },
-        [handleFailedDeployment, waitForAgentSiteLoad, deploymentClient, notifications, intl]
+        [handleFailedDeployment, waitForAgentSiteLoad, deploymentClient, notifications, intl, onDeploymentStarted]
     );
 
     const deployTemplate = useCallback(
@@ -482,7 +490,7 @@ export const useSreAgentCreate = ({
                     };
 
                     return resourceGroupClient.updateResourceGroup(
-                        `subscriptions/${subscriptionId}/resourceGroups/${resourceGroupName}`,
+                        `/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupName}`,
                         updatedResourceGroup
                     );
                 } else {
@@ -517,8 +525,6 @@ export const useSreAgentCreate = ({
                 },
             });
 
-            createStartTimeRef.current = Date.now();
-
             const notificationId = notifications.start(
                 intl.formatMessage(AgentCreateDeploymentNotificationResources.agentCreationValidationTitle),
                 intl.formatMessage(AgentCreateDeploymentNotificationResources.agentCreationValidationInProgress, {
@@ -530,8 +536,6 @@ export const useSreAgentCreate = ({
             setDeploymentId(deploymentResourceId);
             setAgentResourceId(agentResourceId);
             setIsDeploying(true);
-            setDeploymentSucceeded(false);
-            //setIsContextPaneOpen(false);
 
             generateTemplate(values, dateTime).then((template: ArmTemplate) => {
                 if (template) {
@@ -673,17 +677,15 @@ export const useSreAgentCreate = ({
         };
     }, [agentSpaceId, agentSpaceLocation]);
 
-    // Note: Polling is now handled by the notification system via startWithPolling
-
     return {
         initialValues,
         validationSchema,
         isDeploying,
         onSubmit,
         setIsDeploying,
-        deploymentSucceeded,
-        setDeploymentSucceeded,
         permissionsLoading,
         setPermissionsLoading,
+        deploymentResourceId: deploymentId,
+        agentResourceId,
     };
 };

@@ -28,13 +28,14 @@ export interface DeploymentExtended {
     location: string;
     name: string;
     properties?: {
+        correlationId?: string;
         provisioningState?: ProvisioningState;
         error?: DeploymentError;
         outputResources?: DeploymentOutputResource[];
         timestamp?: string;
         parameters?: Record<string, any>;
         template?: any;
-        mode?: any;
+        mode?: 'Incremental' | string;
     };
     tags?: Record<string, any>;
     type?: string;

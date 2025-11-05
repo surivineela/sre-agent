@@ -20,6 +20,8 @@ interface WizardProps {
     onNext?: () => void;
     onBack?: () => void;
     isNextDisabled?: boolean;
+    isBackDisabled?: boolean;
+    isCancelDisabled?: boolean;
     nextButtonText?: string;
     reviewButtonText?: string;
     backButtonText?: string;
@@ -39,6 +41,8 @@ export const WizardDialog: FC<WizardProps> = props => {
         onNext,
         onBack,
         isNextDisabled = false,
+        isBackDisabled = false,
+        isCancelDisabled = false,
         nextButtonText,
         reviewButtonText,
         backButtonText,
@@ -74,6 +78,8 @@ export const WizardDialog: FC<WizardProps> = props => {
             onNext={onNext}
             onCancel={onClose}
             isNextDisabled={isNextDisabled}
+            isBackDisabled={isBackDisabled}
+            isCancelDisabled={isCancelDisabled}
             nextButtonText={nextButtonText}
             reviewButtonText={reviewButtonText}
             backButtonText={backButtonText}
@@ -93,6 +99,7 @@ export const WizardDialog: FC<WizardProps> = props => {
                                 icon={<Dismiss24Regular />}
                                 onClick={onClose}
                                 aria-label={intl.formatMessage(PortalResources.close)}
+                                disabled={isCancelDisabled}
                             />
                         ) : undefined}
                     </div>
@@ -124,6 +131,8 @@ interface DefaultActionsProps {
     reviewButtonText?: string;
     backButtonText?: string;
     cancelButtonText?: string;
+    isBackDisabled?: boolean;
+    isCancelDisabled?: boolean;
 }
 
 const DefaultActions: FC<DefaultActionsProps> = ({
@@ -137,6 +146,8 @@ const DefaultActions: FC<DefaultActionsProps> = ({
     reviewButtonText,
     backButtonText,
     cancelButtonText,
+    isBackDisabled,
+    isCancelDisabled,
 }) => {
     const intl = useIntl();
     const styles = useWizardStyles();
@@ -146,7 +157,7 @@ const DefaultActions: FC<DefaultActionsProps> = ({
     return (
         <div className={styles.defaultActionsContainer}>
             <div className={styles.leftActions}>
-                <Button appearance="secondary" onClick={onBack} disabled={isFirstStep || !onBack}>
+                <Button appearance="secondary" onClick={onBack} disabled={isFirstStep || isBackDisabled || !onBack}>
                     {backButtonText || intl.formatMessage(PortalResources.back)}
                 </Button>
                 <Button appearance="primary" onClick={onNext} disabled={isNextDisabled || !onNext}>
@@ -156,7 +167,7 @@ const DefaultActions: FC<DefaultActionsProps> = ({
                 </Button>
             </div>
             <div className={styles.rightActions}>
-                <Button appearance="secondary" onClick={onCancel}>
+                <Button appearance="secondary" onClick={onCancel} disabled={isCancelDisabled}>
                     {cancelButtonText || intl.formatMessage(PortalResources.cancel)}
                 </Button>
             </div>

@@ -125,6 +125,8 @@ export const PortalResources = defineMessages({
             'The name must begin and end with a lowercase letter, and contain only lowercase letters, numbers, and hyphens. It cannot contain consecutive hyphens.',
         id: 'B6aNdQ',
     },
+    expand: { defaultMessage: 'Expand', id: '0oLj/t' },
+    collapse: { defaultMessage: 'Collapse', id: 'W/V6+Y' },
     sreAgentLocationsLoadFailure: { defaultMessage: 'Failed to load SRE Agent locations. Please try again later.', id: 'WE+M5j' },
     yes: { defaultMessage: 'Yes', id: 'a5msuh' },
     no: { defaultMessage: 'No', id: 'oUWADl' },
@@ -307,6 +309,25 @@ export const AgentCreateDeploymentNotificationResources = defineMessages({
     templateBuilderFailedTitle: { defaultMessage: 'Template error', id: 'eKpamp' },
     resourceGroupFailedDescription: { defaultMessage: 'Resource group creation failed.', id: 'jjUD0v' },
     resourceGroupFailedTitle: { defaultMessage: 'Resource group creation', id: 'pW5vuU' },
+});
+
+export const DeployResources = defineMessages({
+    deploy: { defaultMessage: 'Deploy', id: '556JQK' },
+    deploymentName: { defaultMessage: 'Deployment name', id: 'OjYIuI' },
+    correlationId: { defaultMessage: 'Correlation ID', id: 'p849eW' },
+    startTime: { defaultMessage: 'Start time', id: '/zFP1/' },
+    deploymentInProgress: { defaultMessage: 'Deployment in progress...', id: 'gty4jJ' },
+    deploymentSucceeded: { defaultMessage: 'Deployment succeeded', id: 'v90qT8' },
+    deploymentFailed: { defaultMessage: 'Deployment failed', id: '9M3sYh' },
+    resourceOperations: { defaultMessage: 'Resource operations', id: 'czVHN2' },
+    creating: { defaultMessage: 'Creating', id: 'xhfdqv' },
+    created: { defaultMessage: 'Created', id: 'ORGv1Q' },
+    failed: { defaultMessage: 'Failed', id: 'vXCeIi' },
+    updating: { defaultMessage: 'Updating', id: 'S8snIe' },
+    running: { defaultMessage: 'Running', id: 'nDyaq/' },
+    succeeded: { defaultMessage: 'Succeeded', id: 'LOghU6' },
+    noOperations: { defaultMessage: 'No operations found', id: 'vxVGav' },
+    loadingOperations: { defaultMessage: 'Loading operations...', id: '1Lx9q5' },
 });
 
 export const RolesAndPermissions = defineMessages({

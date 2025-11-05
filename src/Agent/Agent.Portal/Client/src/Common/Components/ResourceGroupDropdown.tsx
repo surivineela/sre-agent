@@ -1,7 +1,7 @@
 import {
     Button,
-    Dropdown,
-    DropdownProps,
+    Combobox,
+    ComboboxProps,
     Field,
     Input,
     Link,
@@ -9,7 +9,6 @@ import {
     mergeClasses,
     OnOpenChangeData,
     OpenPopoverEvents,
-    Option,
     OptionOnSelectData,
     Popover,
     PopoverSurface,
@@ -17,6 +16,7 @@ import {
     SelectionEvents,
     Skeleton,
     SkeletonItem,
+    useComboboxFilter,
 } from '@fluentui/react-components';
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -65,9 +65,6 @@ const useStyles = makeStyles({
     combobox: {
         minWidth: '250px',
     },
-    filterInput: {
-        marginBottom: '8px',
-    },
     createNewLink: {
         marginTop: '4px',
     },
@@ -104,7 +101,7 @@ export const ResourceGroupDropdown = (props: ResourceGroupDropdownProps) => {
     const intl = useIntl();
     const styles = useStyles();
 
-    const [filterValue, setFilterValue] = useState('');
+    const [query, setQuery] = useState('');
     const [newResourceGroup, setNewResourceGroup] = useState<NewableResourceGroup>();
 
     const {
@@ -131,41 +128,28 @@ export const ResourceGroupDropdown = (props: ResourceGroupDropdownProps) => {
         [armResourceGroups, newResourceGroup]
     );
 
-    // Filter resource groups based on filter value
-    const filteredResourceGroups = useMemo(() => {
-        if (!filterValue) {
-            return allResourceGroups;
-        }
-
-        const lowerFilter = filterValue.toLowerCase();
-        return allResourceGroups.filter(rg => {
-            const text = rg.name.toLowerCase();
-            return text.includes(lowerFilter);
-        });
-    }, [allResourceGroups, filterValue]);
-
-    const selectedResourceGroup = useMemo(
-        () => allResourceGroups.find(rg => rg.id === selectedResourceGroupId),
-        [allResourceGroups, selectedResourceGroupId]
+    const resourceGroupOptions = useMemo(
+        () =>
+            allResourceGroups.map(rg => ({
+                children: rg.new ? intl.formatMessage(PortalResources.newItemFormat, { item: rg.name }) : rg.name,
+                value: rg.id,
+            })),
+        [allResourceGroups, intl]
     );
 
-    const onOptionSelect = useCallback<NonNullable<DropdownProps['onOptionSelect']>>(
+    const children = useComboboxFilter(query, resourceGroupOptions, {
+        optionToText: option => option.children as string,
+        noOptionsMessage: intl.formatMessage(PortalResources.noResultsFound),
+    });
+
+    const onOptionSelect = useCallback<NonNullable<ComboboxProps['onOptionSelect']>>(
         (_event: SelectionEvents, data: OptionOnSelectData) => {
             const selectedRgId = data.optionValue;
             const resourceGroup = allResourceGroups.find(rg => rg.id === selectedRgId);
             onResourceGroupChange(resourceGroup);
+            setQuery(data.optionText ?? '');
         },
         [onResourceGroupChange, allResourceGroups]
-    );
-
-    const handleOpenChange = useCallback<NonNullable<DropdownProps['onOpenChange']>>(
-        (_event: OpenPopoverEvents, data: OnOpenChangeData) => {
-            // Clear filter when dropdown closes
-            if (!data.open) {
-                setFilterValue('');
-            }
-        },
-        []
     );
 
     const onPopoverClose = useCallback(
@@ -185,32 +169,13 @@ export const ResourceGroupDropdown = (props: ResourceGroupDropdownProps) => {
         [onResourceGroupChange, subscriptionId]
     );
 
-    const renderOption = useCallback(
-        (resourceGroup: NewableResourceGroup) => {
-            const text = resourceGroup.new
-                ? intl.formatMessage(PortalResources.newItemFormat, { item: resourceGroup.name })
-                : resourceGroup.name;
-
-            const option = {
-                children: text,
-                disabled: false,
-                text,
-                value: resourceGroup.id,
-            };
-
-            return (
-                <Option disabled={option.disabled} key={resourceGroup.id} text={option.text} value={option.value}>
-                    {option.children}
-                </Option>
-            );
-        },
-        [intl]
-    );
-
     // Auto-select first resource group on load if none is selected
     useEffect(() => {
         if (!isLoadingResourceGroups && allResourceGroups.length > 0 && !selectedResourceGroupId) {
-            onResourceGroupChange(allResourceGroups[0]);
+            const firstRg = allResourceGroups[0];
+            onResourceGroupChange(firstRg);
+            const text = firstRg.new ? intl.formatMessage(PortalResources.newItemFormat, { item: firstRg.name }) : firstRg.name;
+            setQuery(text);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingResourceGroups, allResourceGroups.length, selectedResourceGroupId]);
@@ -232,37 +197,19 @@ export const ResourceGroupDropdown = (props: ResourceGroupDropdownProps) => {
                 </Skeleton>
             ) : (
                 <>
-                    <Dropdown
+                    <Combobox
                         aria-label={ariaLabel || intl.formatMessage(PortalResources.resourceGroup)}
                         aria-labelledby={ariaLabelledBy}
                         aria-required={ariaRequired}
                         className={mergeClasses(styles.combobox, className)}
                         onOptionSelect={onOptionSelect}
-                        onOpenChange={handleOpenChange}
                         placeholder={intl.formatMessage(PortalResources.selectAnExistingResourceGroup)}
-                        value={
-                            selectedResourceGroup
-                                ? selectedResourceGroup.new
-                                    ? intl.formatMessage(PortalResources.newItemFormat, { item: selectedResourceGroup.name })
-                                    : selectedResourceGroup.name
-                                : ''
-                        }
+                        value={query}
+                        onChange={ev => setQuery(ev.target.value)}
                         disabled={disabled}
                     >
-                        <Input
-                            className={styles.filterInput}
-                            placeholder={intl.formatMessage(PortalResources.filterItems)}
-                            value={filterValue}
-                            onChange={(_e, data) => setFilterValue(data.value)}
-                        />
-                        {filteredResourceGroups.length === 0 ? (
-                            <Option disabled key="no-results" text={intl.formatMessage(PortalResources.noResultsFound)}>
-                                {intl.formatMessage(PortalResources.noResultsFound)}
-                            </Option>
-                        ) : (
-                            filteredResourceGroups.map(rg => renderOption(rg))
-                        )}
-                    </Dropdown>
+                        {children}
+                    </Combobox>
                     {createNew && subscriptionId && (
                         <ResourceGroupDropdownPopover
                             className={styles.createNewLink}

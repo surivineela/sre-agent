@@ -32,7 +32,7 @@ export const CreateFirstAgent = ({ onClickCreate }: CreateFirstAgentProps) => {
 
     return (
         <div className={styles.container}>
-            <Image src="SreAgent.svg" width={192} height={192} alt={intl.formatMessage(PortalResources.azureSreAgent)} />
+            <Image src="SreAgent.svg" width={144} height={144} alt={intl.formatMessage(PortalResources.azureSreAgent)} />
 
             <Title1>{intl.formatMessage(PortalResources.createYourFirstAgent)}</Title1>
 

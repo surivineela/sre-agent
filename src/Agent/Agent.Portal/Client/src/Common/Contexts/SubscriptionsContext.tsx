@@ -109,18 +109,15 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
 
             const result = await fetchSubscriptions();
 
-            if (result.error) {
-                setError(result.error);
+            if (result.error || !result.subscriptions) {
+                setError(result.error ?? '');
                 notifyError('Failed to load subscriptions', result.error);
                 setIsLoading(false);
                 return;
             }
 
-            const subs = result.subscriptions!;
-
-            // Sort by display name
+            const subs = result.subscriptions;
             subs.sort((a, b) => a.displayName.localeCompare(b.displayName));
-
             setSubscriptions(subs);
 
             // Restore selected subscriptions from UserPreferences

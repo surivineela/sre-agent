@@ -165,6 +165,10 @@ export class ArmClient extends Client {
                         isSuccessful: resSuccess,
                         content: resSuccess ? res.content : undefined,
                         error: resSuccess ? undefined : res.content,
+                        metadata: {
+                            status: res.httpStatusCode,
+                            headers: res.headers,
+                        },
                     };
                 }
             } catch (err) {
@@ -182,6 +186,10 @@ export class ArmClient extends Client {
             isSuccessful: responseSuccess,
             content: responseSuccess ? response.data : undefined,
             error: responseSuccess ? undefined : response.data,
+            metadata: {
+                status: response.status,
+                headers: response.headers,
+            },
         };
     }
 
@@ -263,6 +271,10 @@ export class ArmClient extends Client {
                 isSuccessful: responseSuccess,
                 content: responseSuccess ? response.content : undefined,
                 error: responseSuccess ? undefined : response.content,
+                metadata: {
+                    status: response.httpStatusCode,
+                    headers: response.headers,
+                },
             });
         }
     }
@@ -349,6 +361,7 @@ export class ArmClient extends Client {
                 apiVersion: request.apiVersion,
             });
         }, retryAfter).then(r => {
+            console.log('POLLED', r);
             if (!r || !r.isSuccessful) {
                 // Return error if no response or failed
                 return {
@@ -357,12 +370,12 @@ export class ArmClient extends Client {
                 };
             }
 
-            if (r.content?.httpStatusCode === 200) {
+            if (r.metadata?.status === 200) {
                 return {
                     isSuccessful: true,
                     content: r.content,
                 };
-            } else if (r.content?.httpStatusCode === 201 || r.content?.httpStatusCode === 202) {
+            } else if (r.metadata?.status === 201 || r.metadata?.status === 202) {
                 const provisioningState = (<any>r.content)?.properties?.provisioningState;
                 if (provisioningState === ProvisioningState.Succeeded) {
                     return {
@@ -379,7 +392,7 @@ export class ArmClient extends Client {
                     return this.pollProvisioningStateForCompletion(request);
                 }
             } else {
-                const error = r.content || { code: r.content?.httpStatusCode, message: null };
+                const error = r.content || { code: r.metadata?.status, message: null };
                 return {
                     isSuccessful: false,
                     error: error,

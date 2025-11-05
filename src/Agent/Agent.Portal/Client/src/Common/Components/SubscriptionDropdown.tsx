@@ -1,17 +1,14 @@
 import {
-    Dropdown,
-    DropdownProps,
+    Combobox,
+    ComboboxProps,
     Field,
-    Input,
     makeStyles,
     mergeClasses,
-    OnOpenChangeData,
-    OpenPopoverEvents,
-    Option,
     OptionOnSelectData,
     SelectionEvents,
     Skeleton,
     SkeletonItem,
+    useComboboxFilter,
 } from '@fluentui/react-components';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -44,9 +41,6 @@ const useStyles = makeStyles({
     combobox: {
         minWidth: '250px',
     },
-    filterInput: {
-        marginBottom: '8px',
-    },
 });
 
 export const SubscriptionDropdown = (props: SubscriptionDropdownProps) => {
@@ -62,45 +56,36 @@ export const SubscriptionDropdown = (props: SubscriptionDropdownProps) => {
 
     const intl = useIntl();
 
-    // TODO: bypassDefaultFilter: true ??
     const { subscriptions, selectedSubscriptions, error, isLoading } = useSubscriptions();
 
     const styles = useStyles();
-    const [filterValue, setFilterValue] = useState('');
+    const [query, setQuery] = useState('');
 
     const errorMessage = error ? `${intl.formatMessage(PortalResources.requestError)}: ${error}` : undefined;
 
-    const selectedSubscription = useMemo(
-        () => subscriptions.find(subscription => subscription.subscriptionId === selectedSubscriptionId),
-        [subscriptions, selectedSubscriptionId]
+    const subscriptionOptions = useMemo(
+        () =>
+            subscriptions.map(subscription => ({
+                children: subscription.displayName,
+                value: subscription.subscriptionId,
+                disabled: subscription.state?.toLowerCase() !== 'enabled',
+            })),
+        [subscriptions]
     );
 
-    // Filter subscriptions based on filter input
-    const filteredSubscriptions = useMemo(() => {
-        if (!filterValue) {
-            return subscriptions;
-        }
-        const lowerFilter = filterValue.toLowerCase();
-        return subscriptions.filter(sub => sub.displayName.toLowerCase().includes(lowerFilter));
-    }, [subscriptions, filterValue]);
+    const children = useComboboxFilter(query, subscriptionOptions, {
+        optionToText: option => option.children as string,
+        noOptionsMessage: intl.formatMessage(PortalResources.noResultsFound),
+    });
 
-    const onOptionSelect = useCallback<NonNullable<DropdownProps['onOptionSelect']>>(
+    const onOptionSelect = useCallback<NonNullable<ComboboxProps['onOptionSelect']>>(
         (_event: SelectionEvents, data: OptionOnSelectData) => {
             const subscriptionId = data.optionValue;
             const subscription = subscriptions.find(sub => sub.subscriptionId === subscriptionId);
             onSubscriptionChange(subscription);
+            setQuery(data.optionText ?? '');
         },
         [subscriptions, onSubscriptionChange]
-    );
-
-    const handleOpenChange = useCallback<NonNullable<DropdownProps['onOpenChange']>>(
-        (_event: OpenPopoverEvents, data: OnOpenChangeData) => {
-            // Clear filter when dropdown closes
-            if (!data.open) {
-                setFilterValue('');
-            }
-        },
-        []
     );
 
     // Auto-select first subscription on load if none is selected
@@ -109,24 +94,11 @@ export const SubscriptionDropdown = (props: SubscriptionDropdownProps) => {
             const subscriptionToSelect = selectedSubscriptions[0] ?? subscriptions[0];
             if (subscriptionToSelect) {
                 onSubscriptionChange(subscriptionToSelect);
+                setQuery(subscriptionToSelect.displayName);
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoading, subscriptions.length, selectedSubscriptionId]);
-
-    const renderOption = useCallback((subscription: Subscription) => {
-        return (
-            <Option
-                aria-label={`${subscription.displayName}: ${subscription.subscriptionId}`}
-                disabled={subscription.state?.toLowerCase() !== 'enabled'}
-                key={subscription.subscriptionId}
-                text={subscription.displayName}
-                value={subscription.subscriptionId}
-            >
-                {subscription.displayName}
-            </Option>
-        );
-    }, []);
 
     return (
         <Field
@@ -139,31 +111,19 @@ export const SubscriptionDropdown = (props: SubscriptionDropdownProps) => {
                     <SkeletonItem size={32} />
                 </Skeleton>
             ) : (
-                <Dropdown
+                <Combobox
                     aria-label={ariaLabel || intl.formatMessage(PortalResources.subscription)}
                     aria-labelledby={ariaLabelledBy}
                     aria-required={ariaRequired}
                     className={mergeClasses(styles.combobox, className)}
                     onOptionSelect={onOptionSelect}
-                    onOpenChange={handleOpenChange}
                     placeholder={intl.formatMessage(PortalResources.selectASubscription)}
-                    value={selectedSubscription?.displayName ?? ''}
+                    value={query}
+                    onChange={ev => setQuery(ev.target.value)}
                     disabled={disabled}
                 >
-                    <Input
-                        className={styles.filterInput}
-                        placeholder={intl.formatMessage(PortalResources.filterItems)}
-                        value={filterValue}
-                        onChange={(_e, data) => setFilterValue(data.value)}
-                    />
-                    {filteredSubscriptions.length === 0 ? (
-                        <Option disabled key="no-results" text={intl.formatMessage(PortalResources.noResultsFound)}>
-                            {intl.formatMessage(PortalResources.noResultsFound)}
-                        </Option>
-                    ) : (
-                        filteredSubscriptions.map(subscription => renderOption(subscription))
-                    )}
-                </Dropdown>
+                    {children}
+                </Combobox>
             )}
         </Field>
     );
