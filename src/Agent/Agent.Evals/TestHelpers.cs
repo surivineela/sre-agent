@@ -122,7 +122,7 @@ public static class TestHelpers
             .ConfigureAzureOpenAIClient()
             .ConfigureIChatCompletionService()
             .ConfigureIChatClient(builder.Configuration)
-            .ConfigureIEmbeddingGenerator();
+            .ConfigureIEmbeddingGenerator(builder.Configuration);
 
         builder.Services.AddLogging(builder =>
         {

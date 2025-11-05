@@ -259,7 +259,7 @@ class Program
             .ConfigureIChatCompletionService()
             .ConfigureAzureOpenAIClient()
             .ConfigureIChatClient(builder.Configuration)
-            .ConfigureIEmbeddingGenerator();
+            .ConfigureIEmbeddingGenerator(builder.Configuration);
 
         var commandLineApplication = new CommandLineApplication(throwOnUnexpectedArg: true);
         commandLineApplication.HelpOption("-?|-h|--help");

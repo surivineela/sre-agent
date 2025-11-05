@@ -212,16 +212,24 @@ namespace Agent.Runtime
                 .UseLogging(loggerFactory);
         }
 
-        public static IServiceCollection ConfigureIEmbeddingGenerator(this IServiceCollection services)
+        public static IServiceCollection ConfigureIEmbeddingGenerator(this IServiceCollection services, IConfiguration configuration)
         {
-            return services
-                .AddSingleton(sp =>
-                {
-                    var openAISettings = sp.GetRequiredService<OpenAISettings>();
-                    var client = sp.GetRequiredService<AzureOpenAIClient>();
+            var chatClientProviderSettings = configuration.GetSection("AppSettings:Core:ChatClientProvider").Get<ChatClientProviderSettings>();
+            // backward compatibility
+            var openAISettings = configuration.GetSection("AppSettings:Core:Azure:OpenAI").Get<OpenAISettings>();
+            var embeddingModelName = chatClientProviderSettings?.EmbeddingModelName ?? openAISettings?.EmbeddingGeneratorDeploymentName;
+            if (string.IsNullOrEmpty(embeddingModelName))
+            {
+                return services;
+            }
 
-                    return client.GetEmbeddingClient(openAISettings.EmbeddingGeneratorDeploymentName).AsIEmbeddingGenerator();
-                });
+            return services.AddKeyedSingleton(embeddingModelName, (sp, _) =>
+            {
+                var openAISettings = sp.GetRequiredService<OpenAISettings>();
+                var client = sp.GetRequiredService<AzureOpenAIClient>();
+
+                return client.GetEmbeddingClient(embeddingModelName).AsIEmbeddingGenerator();
+            });
         }
 
         public static IServiceCollection ConfigureAsyncInitializers(this IServiceCollection services)

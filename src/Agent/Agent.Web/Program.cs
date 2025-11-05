@@ -762,7 +762,7 @@ public class Program
             .ConfigureIChatCompletionService()
             .ConfigureAzureOpenAIClient()
             .ConfigureIChatClient(builder.Configuration)
-            .ConfigureIEmbeddingGenerator();
+            .ConfigureIEmbeddingGenerator(builder.Configuration);
 
         // Register TSG Plugin - Always enabled since it uses DataConnector (not Azure Search)
         builder.Services.AddTransient<ITsgPlugin>(sp =>

@@ -413,8 +413,10 @@ public class ReasoningLoop : IDisposable
                 {
                     case ReasoningLoopChatMessage chatMessage:
                         {
-                            if (_context.ApprovalInformation != null &&
-                                _context.ApprovalInformation.PendingApprovals.Count > 0)
+                            var (azCliExecution, kubectlExecution, psqlExecution) = await ListPendingExecutions(_context.ThreadId);
+                            if ((_context.ApprovalInformation != null &&
+                                _context.ApprovalInformation.PendingApprovals.Count > 0) ||
+                                azCliExecution != null || kubectlExecution != null || psqlExecution != null)
                             {
                                 await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                                     _context.ThreadId,
@@ -802,9 +804,7 @@ public class ReasoningLoop : IDisposable
                             {
                                 var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
 
-                                var azCliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
-                                var kubectlExecution = await _threadRepository.ListPendingKubectlExecutionAsync(_context.ThreadId);
-                                var psqlExecution = await _threadRepository.ListPendingPsqlExecutionAsync(_context.ThreadId);
+                                var (azCliExecution, kubectlExecution, psqlExecution) = await ListPendingExecutions(_context.ThreadId);
 
                                 if (azCliExecution == null && kubectlExecution == null && psqlExecution == null)
                                 {
@@ -2773,6 +2773,17 @@ public class ReasoningLoop : IDisposable
         {
             _logger.LogInternalError(ex, "Failed to process todo plan persistence and streaming for thread {ThreadId}", threadId);
         }
+    }
+
+    private async Task<(Core.Models.Api.v1.AzCliExecution?, Core.Models.Api.v1.KubectlExecution?, Core.Models.Api.v1.PsqlExecution?)> ListPendingExecutions(Guid threadId)
+    {
+        var azCliExecutionTask = _threadRepository.ListPendingAzCliExecutionAsync(threadId);
+        var kubectlExecutionTask = _threadRepository.ListPendingKubectlExecutionAsync(threadId);
+        var psqlExecutionTask = _threadRepository.ListPendingPsqlExecutionAsync(threadId);
+
+        await Task.WhenAll(azCliExecutionTask, kubectlExecutionTask, psqlExecutionTask);
+
+        return (await azCliExecutionTask, await kubectlExecutionTask, await psqlExecutionTask);
     }
 
     private static async Task<TodoPlan?> FindTodoPlanWithSameContentAsync(List<TodoItem> newTodoItems, Guid threadId, IThreadRepository threadRepository)
