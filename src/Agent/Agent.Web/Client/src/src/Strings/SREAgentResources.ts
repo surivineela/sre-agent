@@ -3396,11 +3396,14 @@ export const ExtendedAgentsGraphResources = defineMessages({
 
     // Empty State
     buildYourAgentEcosystem: { defaultMessage: 'Build Your Agent Ecosystem', id: 'HNECLT' },
+    buildSubagentWorkflows: { defaultMessage: 'Build subagent workflows', id: 'aH3ak4' },
     emptyStateDescription: {
         defaultMessage:
             'Create AI agents with custom tools and connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector.',
         id: 'rd+inb',
     },
+    createSubagent: { defaultMessage: 'Create subagent', id: 'O9C6j/' },
+    subagent: { defaultMessage: 'Subagent', id: 'Q++yMM' },
     aiAgents: { defaultMessage: 'AI Agents', id: '4XOvey' },
     aiAgentsFeature: { defaultMessage: 'Define autonomous agents with custom instructions and capabilities', id: '7smbCB' },
     toolsFeature: { defaultMessage: 'Create reusable functions and actions for your agents', id: 'AqVLXi' },
@@ -3833,7 +3836,6 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'A meta agent override already exists in your system.',
         id: 'VnySGb',
     },
-    subagent: { defaultMessage: 'Subagent', id: 'Q++yMM' },
     noNodesFound: {
         defaultMessage: 'No nodes found',
         id: 'sNuzQE',

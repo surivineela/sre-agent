@@ -1532,7 +1532,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 <div className={container}>
                     <div className={visualRoot} ref={visualRootRef}>
                         <div className={reactFlow}>
-                            {currentView === ExtendedAgentGraphView.Visual && hasAnyResources && (
+                            {currentView === ExtendedAgentGraphView.Visual && hasAnyResources && !showEmptyState && (
                                 <div className={selectorOverlay}>
                                     <ExtendedAgentSelector
                                         agents={agents}
