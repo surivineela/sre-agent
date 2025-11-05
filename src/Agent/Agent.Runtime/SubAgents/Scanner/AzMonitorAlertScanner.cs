@@ -165,7 +165,10 @@ public class AzMonitorScanner(
                     GeneralSummary = incidentDocument.GeneralSummary,
                     IsAssistedByAgent = incidentDocument.IsAssistedByAgent,
                     Tags = incidentDocument.Tags,
-                    ResolvedAt = incidentDocument.ResolvedAt
+                    ResolvedAt = incidentDocument.ResolvedAt,
+                    HitCount = incidentDocument.HitCount,
+                    UserInputRequested = incidentDocument.UserInputRequested,
+                    TargetResourceInputRequested = incidentDocument.TargetResourceInputRequested,
                 };
 
                 // Once incident is mitigated or resolved, do AI analysis
@@ -202,7 +205,7 @@ public class AzMonitorScanner(
                         logger.LogInternalError(ex, "[AzMonitorAlertScanner] Error during ingestion of AzMonitor incident {incidentId} data into App Insights", incident.Id);
                     }
                 }
-                
+
                 logger.LogInternalInformation("[AzMonitorAlertScanner] Upserting existing incident document for AzMonitor incident {incidentId}", incident.Id.ToString());
                 var response = await _container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
                 incidentDocument = response.Resource;
