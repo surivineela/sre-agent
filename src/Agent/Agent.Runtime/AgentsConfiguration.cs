@@ -217,8 +217,10 @@ namespace Agent.Runtime
             var chatClientProviderSettings = configuration.GetSection("AppSettings:Core:ChatClientProvider").Get<ChatClientProviderSettings>();
             // backward compatibility
             var openAISettings = configuration.GetSection("AppSettings:Core:Azure:OpenAI").Get<OpenAISettings>();
-            var embeddingModelName = chatClientProviderSettings?.EmbeddingModelName ?? openAISettings?.EmbeddingGeneratorDeploymentName;
-            if (string.IsNullOrEmpty(embeddingModelName))
+            var embeddingModelName = !string.IsNullOrWhiteSpace(chatClientProviderSettings?.EmbeddingModelName)
+                ? chatClientProviderSettings.EmbeddingModelName
+                : openAISettings?.EmbeddingGeneratorDeploymentName;
+            if (string.IsNullOrWhiteSpace(embeddingModelName))
             {
                 return services;
             }

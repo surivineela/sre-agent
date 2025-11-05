@@ -88,6 +88,7 @@ public class ReasoningLoop : IDisposable
     private const int MaxIterations = 10;
     private readonly IAgentMemoryClient _agentMemoryClient;
     private readonly ISearchIndexService _searchIndexService;
+    private readonly AgentMemorySettings _agentMemorySettings;
     private static readonly TimeSpan[] RetryDelays = [TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1)];
 
     private static readonly JsonSerializerOptions _toolArgumentsJsonOptions = new()
@@ -126,6 +127,7 @@ public class ReasoningLoop : IDisposable
         SearchHelper searchHelper,
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
+        AgentMemorySettings agentMemorySettings,
         FeatureConfigModel featureConfig,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
         bool modeSwitchEnabled = false)
@@ -153,6 +155,7 @@ public class ReasoningLoop : IDisposable
         _searchHelper = searchHelper ?? throw new ArgumentNullException(nameof(searchHelper));
         _agentMemoryClient = agentMemoryClient;
         _searchIndexService = searchIndexService;
+        _agentMemorySettings = agentMemorySettings;
         _featureConfig = featureConfig;
         _autoHandOffEnabled = featureConfig.AutoHandoffEnabled;
         _enableDocumentRetrieval = featureConfig.RegionalSearchEnabled;
@@ -2125,7 +2128,12 @@ public class ReasoningLoop : IDisposable
             }
 
             var memories = await _agentMemoryClient.SearchUserMemoriesAsync(
-                new SearchParams(Query: query, K: 1, EnableHybridSearch: true),
+                new SearchParams(
+                    Query: query,
+                    K: 1,
+                    EnableHybridSearch: true,
+                    EnableSemanticSearch: true,
+                    VectorSimilarityThreshold: _agentMemorySettings.UserMemoryVectorSimilarityThreshold),
                 cancellationToken: cancellationToken);
 
             if (memories.Count == 0)
@@ -2196,9 +2204,12 @@ public class ReasoningLoop : IDisposable
                 return;
             }
 
-            var memories = await _agentMemoryClient.SearchUserMemoriesAsync(
-                new SearchParams(Query: query, K: 5, EnableHybridSearch: true),
-                cancellationToken: cancellationToken);
+            var memories = await _agentMemoryClient.SearchUserMemoriesAsync(new SearchParams(
+                Query: query,
+                K: 5,
+                EnableHybridSearch: true,
+                EnableSemanticSearch: true,
+                VectorSimilarityThreshold: _agentMemorySettings.UserMemoryVectorSimilarityThreshold));
 
             if (memories.Count == 0)
             {

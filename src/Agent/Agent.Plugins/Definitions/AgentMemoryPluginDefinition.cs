@@ -312,7 +312,7 @@ public class AgentMemoryPluginDefinition(
         }
 
         var memories = await agentMemoryClient.SearchUserMemoriesAsync(new SearchParams(
-            Query: symptoms, K: 5, EnableHybridSearch: true, EnableSemanticSearch: true, ExhaustiveKnn: true, VectorSimilarityThreshold: agentMemorySettings.UserMemoryVectorSimilarityThreshold));
+            Query: symptoms, K: 5, EnableHybridSearch: true, EnableSemanticSearch: true, VectorSimilarityThreshold: agentMemorySettings.UserMemoryVectorSimilarityThreshold));
         if (memories.Count == 0)
         {
             return [];

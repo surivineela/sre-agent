@@ -206,6 +206,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     searchHelper: _searchHelper,
                     agentMemoryClient: _agentMemoryClient,
                     searchIndexService: _searchIndexService,
+                    agentMemorySettings: _coreSettings.AgentMemory,
                     featureConfig: _featureConfig,
                     agentRuntimeModifier: _agentRuntimeModifier,
                     incidentManagementSettings: _incidentManagementSettings,
@@ -238,6 +239,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             searchHelper: _searchHelper,
             agentMemoryClient: _agentMemoryClient,
             searchIndexService: _searchIndexService,
+            agentMemorySettings: _coreSettings.AgentMemory,
             featureConfig: _featureConfig,
             agentRuntimeModifier: _agentRuntimeModifier,
             modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings));

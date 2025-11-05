@@ -46,6 +46,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
         SearchHelper searchHelper,
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
+        AgentMemorySettings agentMemorySettings,
         FeatureConfigModel featureConfig,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
     IncidentManagementSettings incidentManagementSettings,
@@ -69,6 +70,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
             searchHelper: searchHelper,
             agentMemoryClient: agentMemoryClient,
             searchIndexService: searchIndexService,
+            agentMemorySettings: agentMemorySettings,
             featureConfig: featureConfig,
             agentRuntimeModifier: agentRuntimeModifier,
             modeSwitchEnabled: modeSwitchEnabled)
