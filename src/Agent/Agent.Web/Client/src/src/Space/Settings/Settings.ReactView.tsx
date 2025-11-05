@@ -5,7 +5,6 @@ import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
-import { useKnowledgeBaseConfig } from '../../Common/Hooks/UseKnowledgeBaseConfig';
 import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
 import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import { useSharedNavDrawerStyles } from '../Styles/Navigation.styles';
@@ -48,7 +47,6 @@ const Settings: FC = () => {
     const navigate = useNavigate();
     const showDataConnectors = useConfigSetting(SettingNames.DataConnectors);
     const showConnectors = useConfigSetting(SettingNames.Connectors);
-    const showKnowledgeBase = useKnowledgeBaseConfig();
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
     const showMcpServer = useConfigSetting(SettingNames.McpServer);
 
@@ -92,12 +90,10 @@ const Settings: FC = () => {
             });
         }
 
-        if (showKnowledgeBase) {
-            items.push({
-                name: intl.formatMessage(SettingsTabResources.knowledgeBase),
-                key: SettingsKeys.KnowledgeBase,
-            });
-        }
+        items.push({
+            name: intl.formatMessage(SettingsTabResources.knowledgeBase),
+            key: SettingsKeys.KnowledgeBase,
+        });
 
         items.push(
             {
@@ -130,7 +126,7 @@ const Settings: FC = () => {
         });
 
         return items;
-    }, [intl, showDataConnectors, showKnowledgeBase, showMcpServer, showSubAgents]);
+    }, [intl, showConnectors, showDataConnectors, showMcpServer, showSubAgents]);
 
     const onNavigationClick = useCallback(
         (navKey: string) => {
@@ -183,8 +179,8 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
                     {selectedKey === SettingsKeys.GrafanaDashboard && <GrafanaDashboard />}
                     {selectedKey === SettingsKeys.DataConnectors && showDataConnectors && <DataConnectors />}
-                    {selectedKey === SettingsKeys.KnowledgeBase && showKnowledgeBase && <KnowledgeBase />}
                     {selectedKey === SettingsKeys.Connectors && showConnectors && <Connectors />}
+                    {selectedKey === SettingsKeys.KnowledgeBase && <KnowledgeBase />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
                     {selectedKey === SettingsKeys.Identity && <Identity />}
                     {selectedKey === SettingsKeys.SubAgents && showSubAgents && <SubAgents />}

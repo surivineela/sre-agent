@@ -8,7 +8,6 @@ export enum SettingNames {
     DataConnectors = 'dataConnectors',
     Connectors = 'connectors',
     ShowScheduledTasksTab = 'showScheduledTasksTab',
-    KnowledgeBase = 'knowledgeBase',
     EnablePermissionChecking = 'enablePermissionChecking',
     /** Only used by unit tests */
     ForUnitTests = 'forUnitTests',
@@ -21,7 +20,6 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     default: {
         [SettingNames.ConsolidatedCreate]: true,
         [SettingNames.DataConnectors]: true,
-        [SettingNames.KnowledgeBase]: true,
     },
     'portal.azure.com': {},
     'ms.portal.azure.com': {

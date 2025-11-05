@@ -76,6 +76,7 @@ const navPivotContainer: CSSProperties = {
     overflowY: 'auto',
     marginBottom: '5px',
     marginRight: '10px',
+    width: '0%',
 };
 
 const incidentManagementDescriptionStyle: CSSProperties = { marginTop: 20, marginBottom: 20 };
