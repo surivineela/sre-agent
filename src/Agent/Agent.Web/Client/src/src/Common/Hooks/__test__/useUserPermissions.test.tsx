@@ -33,7 +33,6 @@ vi.mock('../ConfigSettings', () => ({
         ConsolidatedCreate: 'consolidatedCreate',
         DataConnectors: 'dataConnectors',
         ShowScheduledTasksTab: 'showScheduledTasksTab',
-        ShowWatchtower: 'showWatchtower',
         KnowledgeBase: 'knowledgeBase',
         ForUnitTests: 'forUnitTests',
         ShowSubAgentsItemInSettings: 'showSubAgentsItemInSettings',

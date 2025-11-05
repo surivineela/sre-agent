@@ -8,7 +8,6 @@ export enum SettingNames {
     DataConnectors = 'dataConnectors',
     Connectors = 'connectors',
     ShowScheduledTasksTab = 'showScheduledTasksTab',
-    ShowWatchtower = 'showWatchtower',
     KnowledgeBase = 'knowledgeBase',
     EnablePermissionChecking = 'enablePermissionChecking',
     /** Only used by unit tests */
@@ -26,12 +25,10 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     },
     'portal.azure.com': {},
     'ms.portal.azure.com': {
-        [SettingNames.ShowWatchtower]: true,
         [SettingNames.ShowThreadTraceUI]: true,
     },
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
-        [SettingNames.ShowWatchtower]: true,
         [SettingNames.ForUnitTests]: true,
         [SettingNames.ShowThreadTraceUI]: true,
         [SettingNames.Connectors]: true,

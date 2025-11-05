@@ -21,7 +21,6 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import { NoAccessError } from '../../Common/Components/NoAccessError';
 import { PermissionActions } from '../../Common/Contracts/Azure/Permission';
 import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
-import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { useUserPermissions } from '../../Common/Hooks/useUserPermissions';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
@@ -57,8 +56,6 @@ const IncidentManagement: FC = () => {
     const styles = useIncidentManagementStyles();
     const navigationStyles = useNavStyles();
 
-    const showWatchtower = useConfigSetting(SettingNames.ShowWatchtower);
-
     const [disableAnalysis, setDisableAnalysis] = useState(false);
     const [iconsInitialized, setIconsInitialized] = useState(false);
     const [navigationHidden, setNavigationHidden] = useState<boolean>(false);
@@ -86,7 +83,7 @@ const IncidentManagement: FC = () => {
             },
         ];
 
-        if (showControlPlaneDependentFeatures && showWatchtower) {
+        if (showControlPlaneDependentFeatures) {
             items.push({
                 key: IncidentManagementMenuKeys.Metrics,
                 label: intl.formatMessage(IncidentManagementResources.metrics),
@@ -109,7 +106,7 @@ const IncidentManagement: FC = () => {
         }
 
         return items;
-    }, [intl, disableAnalysis, showWatchtower, agentAppInsightsAppId, showControlPlaneDependentFeatures]);
+    }, [intl, disableAnalysis, agentAppInsightsAppId, showControlPlaneDependentFeatures]);
 
     const renderNavIcon = useCallback(
         (key: IncidentManagementMenuKeys) => {
@@ -258,7 +255,7 @@ const IncidentManagement: FC = () => {
                         {selectedKey === IncidentManagementMenuKeys.HandlerConfiguration && (
                             <HandlersOverview setNavigationHidden={setNavigationHidden} />
                         )}
-                        {showWatchtower && agentAppInsightsAppId && selectedKey === IncidentManagementMenuKeys.Metrics && (
+                        {agentAppInsightsAppId && selectedKey === IncidentManagementMenuKeys.Metrics && (
                             <Analysis agentAppInsightsAppId={agentAppInsightsAppId} />
                         )}
                         {selectedKey === IncidentManagementMenuKeys.IncidentPlatform && <IncidentManagementSettings />}
