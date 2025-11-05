@@ -35,9 +35,10 @@ import { ScheduledTasksContext } from '../ScheduledTasks/V2/Hooks/ScheduledTasks
 import { useScheduledTasksV2 } from '../ScheduledTasks/V2/Hooks/useScheduledTasksV2';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import {
-    AddExistingAggentHandoffDialog,
-    AddExistingAggentHandoffDialogProps,
+    AddExistingAgentHandoffDialog,
+    AddExistingAgentHandoffDialogProps,
 } from './AddExistingAggentHandoffDialog/AddExistingAggentHandoffDialog';
+import { AddExistingToolDialog, AddExistingToolDialogProps } from './AddExistingToolDialog/AddExistingToolDialog';
 import { ConnectorCard } from './ConnectorCard';
 import CreateButton from './CreateButton';
 import { ExtendedAgentCard } from './ExtendedAgentCard';
@@ -157,7 +158,8 @@ const ExtendedAgentGraphContent = memo(() => {
     const navigate = useNavigate();
 
     const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo>();
-    const [agentHandoffPickerInfo, setAgentHandoffPickerInfo] = useState<AddExistingAggentHandoffDialogProps['handoffInfo'] | undefined>();
+    const [agentHandoffPickerInfo, setAgentHandoffPickerInfo] = useState<AddExistingAgentHandoffDialogProps['handoffInfo'] | undefined>();
+    const [toolPickerInfo, setToolPickerInfo] = useState<AddExistingToolDialogProps['toolPickerInfo'] | undefined>();
 
     const [isOperationInProgress, setIsOperationInProgress] = useState<boolean>(false);
     const [isScheduledTaskDialogOpen, setIsScheduledTaskDialogOpen] = useState(false);
@@ -967,6 +969,47 @@ const ExtendedAgentGraphContent = memo(() => {
         [agents, applyEntity, intl, systemTools, tools]
     );
 
+    const addToolsToAgent = useCallback(
+        async (targetAgentName: string, toolNames: string[]): Promise<OperationResult> => {
+            const currentAgent = agents.find(agent => agent.name === targetAgentName);
+
+            if (!currentAgent) {
+                return {
+                    success: false,
+                    message: intl.formatMessage(ExtendedAgentsGraphResources.relationshipQuickNoAgentSelected),
+                };
+            }
+
+            const filteredToolNames = toolNames.filter(
+                name => !currentAgent.tools?.includes(name) && !currentAgent.systemTools?.includes(name)
+            );
+
+            const updatedAgent: ExtendedAgent = {
+                ...currentAgent,
+                tools: [...(currentAgent.tools ?? []), ...filteredToolNames],
+            };
+
+            try {
+                await applyEntity(updatedAgent, 'agent', {
+                    refreshMode: 'refetch',
+                    suppressAlert: true,
+                    refetchDelayMs: 2000,
+                });
+
+                return {
+                    success: true,
+                    message: intl.formatMessage(ExtendedAgentsGraphResources.relationshipQuickAddToolsSuccess, {
+                        agentName: currentAgent.name,
+                    }),
+                };
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                return { success: false, message };
+            }
+        },
+        [agents, applyEntity, intl]
+    );
+
     const handleAddExistingTool = useCallback(
         async (toolName: string): Promise<OperationResult> => {
             if (!relationshipAgentName) {
@@ -1124,6 +1167,12 @@ const ExtendedAgentGraphContent = memo(() => {
                     mode: action === 'addHandoffSourceExistingAgent' ? 'sourcePicker' : 'targetPicker',
                     currentAgent: agents.find(a => a.name === agentName)!,
                 });
+            }
+
+            if (action === 'addTool') {
+                const agent = agents.find(a => a.name === agentName)!;
+                setToolPickerInfo({ agent });
+                return;
             }
 
             if (action === 'createAgent' || action === 'createTool') {
@@ -1654,11 +1703,19 @@ const ExtendedAgentGraphContent = memo(() => {
 
                 <KustoToolCreateDialog isDialogOpen={isToolDialogOpen} setIsDialogOpen={setIsToolDialogOpen} connectors={connectors} />
 
-                <AddExistingAggentHandoffDialog
+                <AddExistingAgentHandoffDialog
                     onDismiss={() => setAgentHandoffPickerInfo(undefined)}
                     agents={agents}
                     addHandoffToAgent={addHandoffToAgent}
                     handoffInfo={agentHandoffPickerInfo}
+                />
+
+                <AddExistingToolDialog
+                    onDismiss={() => setToolPickerInfo(undefined)}
+                    addToolsToAgent={addToolsToAgent}
+                    existingTools={tools}
+                    systemTools={systemTools}
+                    toolPickerInfo={toolPickerInfo}
                 />
 
                 <PlaygroundModal

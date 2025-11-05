@@ -3721,6 +3721,10 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'Connected tool {toolName} to {agentName}.',
         id: 'IEIivr',
     },
+    relationshipQuickAddToolsSuccess: {
+        defaultMessage: 'Added tools to {agentName}.',
+        id: 'YKwGp6',
+    },
     relationshipQuickCreateToolSuccess: {
         defaultMessage: 'Created {toolName} and connected it to {agentName}.',
         id: 'N0wOFf',
@@ -3857,7 +3861,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     },
     quickCreateAddIncidentTrigger: { defaultMessage: 'Add incident trigger', id: 'eq57j2' },
     quickCreateAddScheduledTask: { defaultMessage: 'Add scheduled task', id: 'fCiXKq' },
-    quickCreateAddExistingTool: { defaultMessage: 'Add existing tool', id: 'RI59Ed' },
+    quickCreateAddExistingTools: { defaultMessage: 'Add existing tools', id: 'SDsdCi' },
     quickCreateCreateNewKustoTool: { defaultMessage: 'Create new Kusto tool', id: 'mhKk7c' },
     quickCreateAddExistingSubagent: { defaultMessage: 'Add existing subagent', id: 'KJHRU/' },
     quickCreateCreateNewSubagent: { defaultMessage: 'Create new subagent', id: '+h4pn9' },
@@ -3879,6 +3883,12 @@ export const ExtendedAgentsGraphResources = defineMessages({
     subagentName: { defaultMessage: 'Subagent name', id: '2reUcp' },
     noAgentsFoundForHandoff: { defaultMessage: 'No agents found', id: '451B6Z' },
     addSubagent: { defaultMessage: 'Add subagent', id: 'PbaaPs' },
+    allTools: { defaultMessage: 'All tools', id: '0Qocmw' },
+    selectTool: { defaultMessage: 'Select tool', id: 'BakoFg' },
+    selectToolWithName: { defaultMessage: 'Select tool {toolName}', id: 'FWou/7' },
+    removeToolWithName: { defaultMessage: 'Remove tool {toolName}', id: 'ZF9lPS' },
+    clearAll: { defaultMessage: 'Clear all', id: 'QW+Q5N' },
+    addTools: { defaultMessage: 'Add tools', id: '5fVEet' },
 });
 
 export const PlaygroundResources = defineMessages({

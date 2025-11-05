@@ -62,7 +62,7 @@ export const AgentRightQuickActionButton: React.FC<AgentRightQuickActionButtonPr
                                 className={contextMenuItemWithIcon}
                                 icon={<EntityIcon type="tool" shorthandStyle={iconSizeProp} />}
                                 onClick={() => triggerAgentQuickAction(agent.name, 'addTool')}
-                                content={intl.formatMessage(ExtendedAgentsGraphResources.quickCreateAddExistingTool)}
+                                content={intl.formatMessage(ExtendedAgentsGraphResources.quickCreateAddExistingTools)}
                             />
                             <MenuItem
                                 className={contextMenuItemWithIcon}

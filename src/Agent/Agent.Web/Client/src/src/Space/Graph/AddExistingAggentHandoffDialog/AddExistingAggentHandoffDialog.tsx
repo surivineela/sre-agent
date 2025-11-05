@@ -18,7 +18,7 @@ import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../String
 import { ExtendedAgent } from '../../Contracts/ExtendedAgentGraph';
 import { useAddAggentHandoffDialogStyles } from './AddExistingAggentHandoffDialog.Styles';
 
-export interface AddExistingAggentHandoffDialogProps {
+export interface AddExistingAgentHandoffDialogProps {
     onDismiss: () => void;
     agents: ExtendedAgent[];
     addHandoffToAgent: (sourceAgentName: string, targetAgentName: string) => void;
@@ -28,7 +28,7 @@ export interface AddExistingAggentHandoffDialogProps {
     };
 }
 
-export const AddExistingAggentHandoffDialog: FC<AddExistingAggentHandoffDialogProps> = ({
+export const AddExistingAgentHandoffDialog: FC<AddExistingAgentHandoffDialogProps> = ({
     onDismiss,
     agents,
     addHandoffToAgent,
