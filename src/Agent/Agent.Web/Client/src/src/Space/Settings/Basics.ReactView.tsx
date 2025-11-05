@@ -10,9 +10,11 @@ import {
     DialogTitle,
     DialogTrigger,
     Link,
+    Switch,
     Text,
+    Tooltip,
 } from '@fluentui/react-components';
-import { Delete16Regular, Play16Regular, RecordStop16Regular } from '@fluentui/react-icons';
+import { Delete16Regular, Info16Regular, Play16Regular, RecordStop16Regular } from '@fluentui/react-icons';
 import { Label } from '@fluentui/react/lib/Label';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -21,6 +23,7 @@ import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalPr
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import SreAgentClient from '../../Common/Clients/SreAgentClient';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
+import { UpgradeChannel } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentAccessLevelDisplayName } from '../../Common/Helpers/AgentMode';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
@@ -42,6 +45,7 @@ const Basics: FC = () => {
     const region = useMemo(() => agent?.location, [agent?.location]);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [isUpdatingUpgradeChannel, setIsUpdatingUpgradeChannel] = useState(false);
 
     const {
         resourceGroup,
@@ -64,6 +68,18 @@ const Basics: FC = () => {
     );
 
     const isAgentStopped = useMemo(() => agent?.properties?.powerState === 'Stopped', [agent?.properties?.powerState]);
+
+    const { agentSpaceId, agentSpaceName } = useMemo(() => {
+        const agentSpaceId = agent?.properties?.agentSpaceId;
+        const agentSpaceDescriptor = agentSpaceId ? new ArmResourceDescriptor(agentSpaceId) : undefined;
+        const agentSpaceName = agentSpaceDescriptor?.resourceName || '';
+        return { agentSpaceId, agentSpaceName };
+    }, [agent?.properties?.agentSpaceId]);
+
+    const isPreviewChannel = useMemo(() => {
+        const channel = agent?.properties?.upgradeChannel ?? UpgradeChannel.Stable;
+        return channel === UpgradeChannel.Preview;
+    }, [agent?.properties?.upgradeChannel]);
 
     const openSubscription = useCallback(() => {
         az.openBlade({
@@ -155,6 +171,79 @@ const Basics: FC = () => {
         }
     }, [az, intl, resourceId, resourceName]);
 
+    const openAgentSpace = useCallback(() => {
+        if (!agentSpaceId) return;
+        az.openBlade({
+            extension: 'Microsoft_Azure_PaasServerless',
+            detailBlade: 'SreAgentSpaceOverview.ReactView',
+            detailBladeInputs: { id: agentSpaceId },
+        });
+    }, [az, agentSpaceId]);
+
+    const onUpgradeChannelToggle = useCallback(async () => {
+        if (isUpdatingUpgradeChannel) return;
+
+        setIsUpdatingUpgradeChannel(true);
+        const newUpgradeChannel = isPreviewChannel ? UpgradeChannel.Stable : UpgradeChannel.Preview;
+
+        const notificationId = az.startNotification(
+            intl.formatMessage(SettingsTabResources.upgradeChannelUpdatingTitle),
+            intl.formatMessage(SettingsTabResources.upgradeChannelUpdatingDescription, { channel: newUpgradeChannel })
+        );
+
+        try {
+            const updatePayload = {
+                properties: {
+                    upgradeChannel: newUpgradeChannel,
+                },
+            };
+
+            const response = await SreAgentClient.patchAgent(resourceId, updatePayload);
+
+            if (response.metadata.success) {
+                az.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(SettingsTabResources.upgradeChannelUpdateSuccess, { channel: newUpgradeChannel })
+                );
+                az.log({
+                    action: 'updateUpgradeChannel',
+                    actionModifier: 'succeeded',
+                    resourceId,
+                    logLevel: 'info',
+                    data: {
+                        upgradeChannel: newUpgradeChannel,
+                    },
+                });
+                refresh();
+            } else {
+                az.stopNotification(notificationId, false, intl.formatMessage(SettingsTabResources.upgradeChannelUpdateFailed));
+                az.log({
+                    action: 'updateUpgradeChannel',
+                    actionModifier: 'failed',
+                    resourceId,
+                    logLevel: 'error',
+                    data: {
+                        error: response.metadata.error,
+                    },
+                });
+            }
+        } catch (error) {
+            az.stopNotification(notificationId, false, intl.formatMessage(SettingsTabResources.upgradeChannelUpdateFailed));
+            az.log({
+                action: 'updateUpgradeChannel',
+                actionModifier: 'failed',
+                resourceId,
+                logLevel: 'error',
+                data: {
+                    error: error,
+                },
+            });
+        } finally {
+            setIsUpdatingUpgradeChannel(false);
+        }
+    }, [isUpdatingUpgradeChannel, isPreviewChannel, az, intl, resourceId, refresh]);
+
     return (
         <>
             <div style={styles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.basics)}</div>
@@ -173,12 +262,63 @@ const Basics: FC = () => {
                     <Link onClick={openResourceGroup}>{resourceGroup}</Link>
                     <Label>{intl.formatMessage(SreAgentResources.region)}</Label>
                     <Shimmer isDataLoaded={!agentLoading || !!region}>{region ?? '-'}</Shimmer>
+                    <Label>{intl.formatMessage(SreAgentResources.agentEndpoint)}</Label>
+                    <Shimmer isDataLoaded={!agentLoading || !!agent?.properties?.agentEndpoint}>
+                        {agent?.properties?.agentEndpoint ?? '-'}
+                    </Shimmer>
                     <Label>{intl.formatMessage(SreAgentResources.managedIdentity)}</Label>
                     <Shimmer isDataLoaded={!agentLoading || (!!identityId && !!identityName)}>
                         {identityId && identityName ? <Link onClick={openManagedIdentity}>{identityName}</Link> : '-'}
                     </Shimmer>
                     <Label>{intl.formatMessage(SreAgentResources.agentPermissionsLevel)}</Label>
                     <Shimmer isDataLoaded={!agentLoading || !!agentAccessLevelValue}>{agentAccessLevelValue}</Shimmer>
+                    <Label>{intl.formatMessage(SreAgentResources.agentSpace)}</Label>
+                    <Shimmer isDataLoaded={!agentLoading || !!agentSpaceId}>
+                        {agentSpaceName ? <Link onClick={openAgentSpace}>{agentSpaceName}</Link> : '-'}
+                    </Shimmer>
+                    <Label
+                        id="upgrade-channel-switch-label"
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, margin: 0, whiteSpace: 'nowrap' }}
+                    >
+                        {intl.formatMessage(SettingsTabResources.upgradeChannel)}
+                        <Tooltip
+                            content={
+                                intl.formatMessage(SettingsTabResources.upgradeChannelCurrentStatus) +
+                                ': ' +
+                                (isPreviewChannel
+                                    ? intl.formatMessage(SettingsTabResources.upgradeChannelPreview)
+                                    : intl.formatMessage(SettingsTabResources.upgradeChannelStable))
+                            }
+                            relationship="description"
+                        >
+                            <button
+                                type="button"
+                                aria-label={intl.formatMessage(SettingsTabResources.upgradeChannelCurrentStatus)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    padding: 0,
+                                    lineHeight: 0,
+                                    cursor: 'pointer',
+                                    color: '#616161',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <Info16Regular />
+                            </button>
+                        </Tooltip>
+                    </Label>
+                    <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-5px' }}>
+                        <Shimmer isDataLoaded={!agentLoading}>
+                            <Switch
+                                aria-labelledby="upgrade-channel-switch-label"
+                                checked={isPreviewChannel}
+                                onChange={onUpgradeChannelToggle}
+                                disabled={agentLoading || isUpdatingUpgradeChannel}
+                            />
+                        </Shimmer>
+                    </div>
                 </div>
             </Card>
 
