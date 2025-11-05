@@ -85,11 +85,28 @@ namespace Agent.Web.Controllers.v1
                     { "User", request.User ?? string.Empty },
                     { "Error", "Attempted execution not found" }
                 });
+                _customerLogger.LogToolEvents("AzCliExecution", executionId, output: "Attempt execution not found", isExecutionFailed: true, properties: new Dictionary<string, string>
+                {
+                    { "ChatThreadId", threadId },
+                    { "ExecutionId", executionId },
+                    { "Action", request.Action },
+                    { "User", request.User ?? string.Empty },
+                    { "Error", "Attempted execution not found" }
+                });
                 return NotFound(new { error = "Execution not found" });
             }
 
             _customerLogger.LogMessage($"[ChatThreadId {threadId}] AzCLI execution action: {request.Action}");
             _customerLogger.LogCustomEvent("AzCliExecution", new Dictionary<string, string>
+            {
+                { "ChatThreadId", threadId },
+                { "ExecutionId", executionId },
+                { "Action", request.Action },
+                { "User", request.User ?? string.Empty },
+                { "Command", execution.Command ?? string.Empty },
+                { "Status", execution.Status.ToString() }
+            });
+            _customerLogger.LogToolEvents("AzCliExecution", new Dictionary<string, string>
             {
                 { "ChatThreadId", threadId },
                 { "ExecutionId", executionId },

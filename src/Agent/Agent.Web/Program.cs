@@ -69,6 +69,7 @@ using Agent.Runtime.TrajectoryEvaluator;
 using Agent.ScheduledTasks.Services;
 using Agent.Web.Authorization;
 using Agent.Web.Services;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
@@ -845,6 +846,7 @@ public class Program
         builder.Services.AddOpenTelemetry().WithTracing(tracingBuilder =>
         {
             tracingBuilder.AddSource("SREAgent")
+                .AddSource("Agent.Customer")  // Add CustomerTracer ActivitySource
                 .SetResourceBuilder(ResourceBuilder.CreateDefault()
                     .AddService(serviceName: "SREAgent", serviceVersion: "1.1.0"));
 
@@ -1462,6 +1464,7 @@ public class Program
 
         // ConfigureKustoLoggers(builder);
         ConfigureApplicationInsightsLoggers(builder);
+        // ConfigureCustomerTracer(builder);
     }
 
     private static void ConfigureKustoLoggers(WebApplicationBuilder builder)
@@ -1526,6 +1529,13 @@ public class Program
         var customerLogger = new CustomerLogger(appInsightsConnectionString);
         var customerAuditLogger = new CustomerAuditLogger(appInsightsConnectionString);
 
+        var processorOptions = new CustomerTraceProcessorOptions
+        {
+            LogFilteringActions = false, // Set to true for debugging
+            MinimumDurationThreshold = TimeSpan.FromMilliseconds(100), // Filter short operations
+            IncludeSystemSpans = false // Exclude system-level spans
+        };
+
         builder.Services.AddSingleton<CustomerLogger>(customerLogger);
         builder.Services.AddSingleton<CustomerAuditLogger>(customerAuditLogger);
 
@@ -1535,6 +1545,8 @@ public class Program
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("AgentService"))
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
+                .AddSource("Agent.Customer")
+                .AddProcessor(customerLogger.InitializeCustomerTracing(processorOptions))
                 .AddProcessor(new CustomerAuditTraceFilteringProcessor(customerAuditLogger));
 
             if (builder.Environment.IsDevelopment())

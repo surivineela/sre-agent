@@ -35,6 +35,7 @@ public abstract class ApplicationInsightsLogger
     {
         if (_isConfigured && _telemetryClient != null)
         {
+            AlignOperationIdWithTraceId(properties);
             _telemetryClient.TrackTrace(message, severityLevel, properties);
         }
     }
@@ -73,7 +74,17 @@ public abstract class ApplicationInsightsLogger
     {
         if (_isConfigured && _telemetryClient != null)
         {
+            AlignOperationIdWithTraceId(properties);
             _telemetryClient.TrackEvent(eventName, properties);
+        }
+    }
+
+    protected void LogDependency(DependencyTelemetry dependency, bool isStartOfTrace = false)
+    {
+        if (_isConfigured && _telemetryClient != null)
+        {
+            AlignOperationIdWithTraceId(dependency.Properties, isStartOfTrace);
+            _telemetryClient.TrackDependency(dependency);
         }
     }
 
@@ -82,6 +93,33 @@ public abstract class ApplicationInsightsLogger
         if (_isConfigured && _telemetryClient != null)
         {
             await _telemetryClient.FlushAsync(cancellationToken);
+        }
+    }
+
+    private void AlignOperationIdWithTraceId(IDictionary<string, string>? properties, bool isStartOfTrace = false)
+    {
+        // FCP UI uses operation id to group logs. This requires customer logger to have same operation id across single trace.
+        // Currently this gets regenerated every time a new System.Diagnostics.Activity is created.
+        // This means a new operation id is created even if an internal activity is started.
+        // For now, we manually set the operation id back to the current customer activity operation id
+        if (properties != null && properties.TryGetValue("TraceId", out var traceId))
+        {
+            var context = _telemetryClient!.Context.Operation;
+            if (!string.IsNullOrEmpty(traceId) && traceId != context.Id)
+            {
+                context.Id = traceId;
+            }
+
+            if (isStartOfTrace)
+            {
+                context.ParentId = traceId;
+            }
+            else
+            {
+                // parent id will be auto set to trace id if not set.
+                properties.TryGetValue("SpanId", out var spanId);
+                context.ParentId = spanId;
+            }
         }
     }
 }

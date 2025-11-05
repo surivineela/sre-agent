@@ -4299,7 +4299,11 @@ public class ArmHelper
         _customerLogger.LogMessage($"Agent executing AzCLI command: {command}");
         _customerLogger.LogCustomEvent("AgentAzCliExecution", new Dictionary<string, string>
         {
-            { "Command", command }
+            { "Command", command },
+        });
+        _customerLogger.LogToolEvents("AgentAzCliExecution", properties: new Dictionary<string, string>
+        {
+            { "Command", command },
         });
 
         // Trim any leading/trailing whitespace

@@ -147,7 +147,35 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
     public async Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage threadMessage)
     {
-        _customerLogger.LogMessage($"[ChatThreadId {threadMessage.ThreadId} Processing user message: {threadMessage.Message}",
+        // Start customer trace scope that will span the entire request lifecycle
+        using var traceScope = CustomerTraceManager.StartScope();
+        
+        // Start customer activity for message processing
+        using var customerActivity = _customerLogger.StartMessageProcessing(
+            threadMessage.Message, 
+            threadMessage.ThreadId, 
+            threadMessage.UserId);
+
+        if (customerActivity != null)
+        {
+            // Associate the customer activity with the trace scope so it's available throughout the request
+            traceScope.SetActivity(customerActivity);
+            
+            customerActivity.AddAttribute("display_name", threadMessage.DisplayName);
+            customerActivity.RecordEvent("message_received", "User message received for processing");
+            
+            // Add request-level metadata to the trace scope
+            //traceScope.AddMetadata("request_type", "user_message");
+            traceScope.AddMetadata("thread_id", threadMessage.ThreadId.ToString());
+            //traceScope.AddMetadata("user_name", threadMessage.DisplayName ?? "unknown");
+            traceScope.AddMetadata("gen_ai.provider.name", "Microsoft.SREAgent");
+        }
+        _customerLogger.LogUserInputEvents("UserMessageInput", threadMessage.Message, isStartOfTrace: true, properties: new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadMessage.ThreadId.ToString() },
+            { "UserDisplayName", threadMessage.DisplayName }
+        });
+        _customerLogger.LogMessage($"[ChatThreadId {threadMessage.ThreadId}] Processing user message: {threadMessage.Message}",
             properties: new Dictionary<string, string>
         {
             { "UserId", threadMessage.UserId ?? "" },
@@ -160,24 +188,72 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             { "UserId", threadMessage.UserId ?? "" },
             { "DisplayName", threadMessage.DisplayName }
         });
-
-        return await ProcessMessageWithAgentFrameworkAsync(threadMessage);
+        
+        try
+        {
+            var result = await ProcessMessageWithAgentFrameworkAsync(threadMessage);
+            
+            return result;
+        }
+        catch (Exception ex)
+        {
+            customerActivity?.SetError($"Failed to process user message: {ex.Message}", ex.GetType().Name);
+            throw;
+        }
     }
 
     public async Task<InboundServiceResponse> ProcessIncidentMessageAsync(ThreadMessage threadMessage, bool defaultHandler = true)
     {
+        // Start customer trace scope that will span the entire request lifecycle
+        using var traceScope = CustomerTraceManager.StartScope();
+        
+        // Start customer activity for incident processing
+        using var customerActivity = _customerLogger.StartIncidentHandling(
+            threadMessage.ThreadId.ToString(),
+            "general_incident");
+
+        if (customerActivity != null)
+        {
+            // Associate the customer activity with the trace scope so it's available throughout the request
+            traceScope.SetActivity(customerActivity);
+            
+            customerActivity.AddAttribute("message_length", threadMessage.Message.Length.ToString());
+            customerActivity.RecordEvent("incident_received", "Incident message received for processing");
+            
+            // Add request-level metadata to the trace scope
+            traceScope.AddMetadata("request_type", "incident_message");
+            traceScope.AddMetadata("thread_id", threadMessage.ThreadId.ToString());
+        }
+
         _logger.LogInternalInformation($"ProcessIncidentMessageAsync: Started processing incident message: {threadMessage.Message}. ThreadId: {threadMessage.ThreadId}");
+        _customerLogger.LogUserInputEvents("IncidentMessageInput", threadMessage.Message, isStartOfTrace: true, properties: new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadMessage.ThreadId.ToString() },
+            { "Message", threadMessage.Message }
+        });
+
         _customerLogger.LogMessage($"[ChatThreadId {threadMessage.ThreadId}] Processing incident message: {threadMessage.Message}");
         _customerLogger.LogCustomEvent("MetaAgent", new Dictionary<string, string>
         {
             { "ChatThreadId", threadMessage.ThreadId.ToString() },
             { "Message", threadMessage.Message }
         });
+
         // TODO Remove this line
         defaultHandler = true; // route to the path we want.
         if (_useAgentFramework && defaultHandler)
         {
-            return await ProcessMessageWithAgentFrameworkAsync(threadMessage);
+            try
+            {
+                var result = await ProcessMessageWithAgentFrameworkAsync(threadMessage);
+                customerActivity?.SetSuccess("Incident processed via agent framework");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                customerActivity?.SetError($"Failed to process incident via agent framework: {ex.Message}", ex.GetType().Name);
+                throw;
+            }
         }
 
         try

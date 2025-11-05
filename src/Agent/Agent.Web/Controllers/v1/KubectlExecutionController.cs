@@ -78,6 +78,12 @@ namespace Agent.Web.Controllers.v1
                     { "User", request.User ?? string.Empty },
                     { "Error", "Attempted execution not found" }
                 });
+                _customerLogger.LogToolEvents("KubectlExecution", executionGuid.ToString(), "Attempted execution not found", isExecutionFailed: true, properties: new Dictionary<string, string>
+                {
+                    { "ChatThreadId", threadId },
+                    { "Action", request.Action },
+                    { "User", request.User ?? string.Empty }
+                });
                 return NotFound(new { error = "Execution not found" });
             }            // Validate current status
             if (execution.Status != KubectlExecutionStatus.Pending && execution.Status != KubectlExecutionStatus.PendingAuthorization)

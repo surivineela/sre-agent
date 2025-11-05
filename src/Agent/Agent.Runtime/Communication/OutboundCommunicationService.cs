@@ -86,6 +86,10 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             { "ChatThreadId", threadId?.ToString() ?? string.Empty },
             { "Message", message.Text ?? string.Empty }
         });
+        _customerLogger.LogAgentResponseEvents("AgentResponse", message.Text ?? string.Empty, properties: new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadId?.ToString() ?? string.Empty },
+        });
 
         Guid resolvedMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
@@ -109,6 +113,10 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         {
             { "ChatThreadId", threadId?.ToString() ?? string.Empty },
             { "Message", message.Text ?? string.Empty }
+        });
+        _customerLogger.LogAgentResponseEvents("AgentResponse", message.Text ?? string.Empty, properties: new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadId?.ToString() ?? string.Empty },
         });
 
         Guid resolvedMessageId = messageId ?? Guid.NewGuid();
@@ -134,6 +142,10 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             { "ChatThreadId", threadId?.ToString() ?? string.Empty },
             { "Message", message.Text ?? string.Empty }
         });
+        _customerLogger.LogAgentResponseEvents("AgentResponse", message.Text ?? string.Empty, properties: new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadId?.ToString() ?? string.Empty },
+        });
 
         Guid resolvedMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
@@ -153,6 +165,10 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         {
             { "ChatThreadId", context.ThreadId.ToString() ?? string.Empty },
             { "Message", message.Text ?? string.Empty }
+        });
+        _customerLogger.LogAgentResponseEvents("AgentResponse", message.Text ?? string.Empty, properties: new Dictionary<string, string>
+        {
+            { "ChatThreadId", context.ThreadId.ToString() ?? string.Empty },
         });
 
         Guid agentMessageId = messageId ?? Guid.NewGuid();
@@ -930,6 +946,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             };
 
             await _streamingService.StreamChatResponseUpdateAsync(threadId, stopMessage, cancellationToken);
+            CustomerTraceManager.GetCurrentActivity()?.SetSuccess("Message processed successfully.");
         }
         catch (OperationCanceledException)
         {
