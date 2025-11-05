@@ -86,12 +86,12 @@ export const SreAgentResources = defineMessages({
         defaultMessage: 'Parameter syntax:',
     },
     kustoQueryTesterParameterUsage: {
-        id: 'EHyU+4',
-        defaultMessage: 'Use <code>##ParamName##</code> in your query to define parameter placeholders.',
+        id: 'h/OQTK',
+        defaultMessage: 'Use ##ParamName## in your query to define parameter placeholders.',
     },
     kustoQueryTesterParameterExample: {
-        id: 'Qc3Kdl',
-        defaultMessage: 'Example: <code>where SubscriptionId == "##SubscriptionId##"</code>',
+        id: 'E9CWuE',
+        defaultMessage: 'Example: where SubscriptionId == "##SubscriptionId##"',
     },
     kustoQueryTesterParameterNote: {
         id: '8LMIGa',
@@ -3306,18 +3306,28 @@ export const ExtendedAgentsGraphResources = defineMessages({
     mcpToolsLoadErrorFallback: { defaultMessage: 'Failed to load MCP tools.', id: 'NPm9R5' },
 
     // Tool Form Fields
+    createKustoTool: { defaultMessage: 'Create a Kusto tool', id: 'gclDgn' },
+    toolNoConnectorsMessage: { defaultMessage: 'To create a Kusto tool, first add a connector.', id: '5S9Ify' },
+    goToConnectors: { defaultMessage: 'Go to Connectors', id: 'QK0vxq' },
     toolName: { defaultMessage: 'Tool Name', id: 'INiSE2' },
-    toolNamePlaceholder: { defaultMessage: 'e.g., QueryKusto', id: '7Hg58U' },
+    toolNamePlaceholder: { defaultMessage: 'Enter a descriptive name', id: 'UNQfKX' },
     toolNameHelp: { defaultMessage: 'A unique identifier for your tool', id: 'nySNrf' },
     toolType: { defaultMessage: 'Tool Type', id: 'LPz7Qc' },
     toolTypeHelp: { defaultMessage: 'The type of tool functionality', id: 'BP3wUO' },
     kustoTool: { defaultMessage: 'Kusto Tool', id: 'iMBgdL' },
     linkTool: { defaultMessage: 'Link Tool', id: 'ppzeDo' },
     description: { defaultMessage: 'Description', id: 'Q8Qw5B' },
-    descriptionPlaceholder: { defaultMessage: 'Describe what this tool does...', id: 'FO/nez' },
+    descriptionPlaceholder: { defaultMessage: 'Enter instructions for the agents to understand when to use this tool', id: '5kKlGN' },
     descriptionHelp: { defaultMessage: 'Clear description for agents to understand when to use this tool', id: 'ubULuu' },
     connectorOptional: { defaultMessage: 'Connector (Optional)', id: 'bdFY56' },
-    connectorPlaceholder: { defaultMessage: 'Select a Kusto connector', id: '4uiKBK' },
+    connectorPlaceholder: { defaultMessage: 'Select a connector', id: 'Gnbr9F' },
+    databasePlaceholder: { defaultMessage: 'Enter the database name', id: 'gox4oK' },
+    queryPlaceholder: { defaultMessage: 'Enter the query for the tool to run', id: '8SCDv/' },
+    queryHint: {
+        defaultMessage:
+            'Use ##ParamName## in your query to define parameter placeholders.\nExample: where SubscriptionId == "##SubscriptionId##"\nThese will be replaced with actual values at runtime.',
+        id: '6BTCPo',
+    },
 
     toolsSearchPlaceholder: {
         defaultMessage: 'Search tools by name, category, or description',
@@ -3373,6 +3383,11 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'Data type and requirement for validation',
         id: 'Bluuk+',
     },
+    createTool: { defaultMessage: 'Create tool', id: 'l0VCdV' },
+    createToolTitle: { defaultMessage: 'Create Kusto Tool', id: 'OpUvSu' },
+    createToolInProgress: { defaultMessage: 'Creating Kusto Tool', id: 'LaIt/v' },
+    failedToCreateTool: { defaultMessage: 'Failed to create tool', id: 'Dvly6A' },
+    toolCreatedSuccessfully: { defaultMessage: 'Tool created successfully', id: 'f04POI' },
 
     // Connector Form Fields
     connectorName: { defaultMessage: 'Connector Name', id: 'qiY3L8' },

@@ -1,0 +1,55 @@
+import { makeStyles, tokens } from '@fluentui/react-components';
+
+export const useKustoToolCreateDialogStyles = makeStyles({
+    dialogSurface: {
+        minWidth: 'fit-content',
+        maxWidth: '1200px',
+        padding: '0px',
+    },
+    dialogBody: {
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        gap: '0px',
+    },
+    dialogTitleWrapper: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '24px 24px',
+        borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    },
+    dialogTitle: {
+        margin: '0px',
+    },
+    toolForm: {
+        display: 'flex',
+        gap: '24px',
+        padding: tokens.spacingVerticalXL,
+    },
+    toolFormLeft: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingHorizontalXL,
+        minWidth: '600px',
+    },
+    toolFormDivider: {
+        backgroundColor: '#D1D1D1',
+        width: '1px',
+        alignSelf: 'stretch',
+        padding: '0px',
+    },
+    toolFormRight: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'stretch',
+        gap: '24px',
+        maxWidth: '600px',
+    },
+    dialogActions: {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        padding: tokens.spacingHorizontalL,
+        borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
+    },
+});

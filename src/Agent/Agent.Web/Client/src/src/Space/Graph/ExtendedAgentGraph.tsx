@@ -58,6 +58,7 @@ import { ExtendedAgentRelationshipDialog } from './ExtendedAgentRelationshipDial
 import { ExtendedAgentSelector } from './ExtendedAgentSelector';
 import { buildMetaAgentYaml, convertExtendedEntityToYaml } from './ExtendedAgentYamlUtils';
 import { IncidentTriggerCreateDialog } from './IncidentTriggerCreateDialog/IncidentTriggerCreateDialog';
+import { KustoToolCreateDialog } from './KustoToolCreateDialog/KustoToolCreateDialog';
 import { ToolCard } from './ToolCard';
 import { TriggerCard } from './TriggerCard';
 
@@ -161,6 +162,8 @@ const ExtendedAgentGraphContent = memo(() => {
     const [isOperationInProgress, setIsOperationInProgress] = useState<boolean>(false);
     const [isScheduledTaskDialogOpen, setIsScheduledTaskDialogOpen] = useState(false);
     const [startingAgent, setStartingAgent] = useState<string>();
+
+    const [isToolDialogOpen, setIsToolDialogOpen] = useState<boolean>(false);
 
     const [currentView, setCurrentView] = useState<ExtendedAgentGraphView>(ExtendedAgentGraphView.Visual);
     const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
@@ -1648,6 +1651,8 @@ const ExtendedAgentGraphContent = memo(() => {
                         startingAgent={startingAgent}
                     />
                 </ScheduledTasksContext.Provider>
+
+                <KustoToolCreateDialog isDialogOpen={isToolDialogOpen} setIsDialogOpen={setIsToolDialogOpen} connectors={connectors} />
 
                 <AddExistingAggentHandoffDialog
                     onDismiss={() => setAgentHandoffPickerInfo(undefined)}
