@@ -328,6 +328,15 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         {
             return default;
         }
+        catch (JsonException ex) when (ex.Message.StartsWith("The JSON value could not be converted to") && typeof(T) == typeof(IcmIncidentDocument))
+        {
+            logger.LogInternalWarning("[IcmScanner] JSON deserialization error for document Id: {id} PartitionKey: {partitionKey}, Prepare to delete Document.Message: {message}", id, partitionKey, ex.Message);
+            await container.DeleteItemAsync<T>(
+                id,
+                new PartitionKey(partitionKey)
+            );
+            return default;
+        }
     }
 
     private async Task<IcmIncidentDocument> UpsertIncidentDocumentIfNeededAsync(IcmIncidentDocument? incidentDocument, ICMIncident incident, IcmIncidentFilterDocument? filterDocument, CancellationToken cancellationToken = default)

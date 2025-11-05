@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Net;
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
@@ -119,11 +120,11 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
         }
     }
 
-    protected async Task<X?> GetDocumentAsync<X>(string id, string partitionKey)
+    protected async Task<T?> GetDocumentAsync<T>(string id, string partitionKey)
     {
         try
         {
-            ItemResponse<X> response = await _container.ReadItemAsync<X>(
+            ItemResponse<T> response = await _container.ReadItemAsync<T>(
                 id,
                 new PartitionKey(partitionKey)
             );
