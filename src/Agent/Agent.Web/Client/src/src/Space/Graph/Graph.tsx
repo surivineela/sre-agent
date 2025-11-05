@@ -169,8 +169,8 @@ const GraphContent = () => {
                                         </ReactFlow>
                                     )}
                                 </div>
-                                {currentView === GraphView.Visual && <ResourceInfo />}
                             </div>
+                            {currentView === GraphView.Visual && <ResourceInfo />}
                         </div>
                     </>
                 ) : (

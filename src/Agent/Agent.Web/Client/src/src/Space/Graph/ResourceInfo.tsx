@@ -8,6 +8,10 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
+    Drawer,
+    DrawerBody,
+    DrawerHeader,
+    DrawerHeaderTitle,
     Field,
     Image,
     Label,
@@ -21,6 +25,7 @@ import {
     Toaster,
     tokens,
 } from '@fluentui/react-components';
+import { Dismiss24Regular } from '@fluentui/react-icons';
 import { memo, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -46,15 +51,18 @@ const isNullOrUndefined = (input?: unknown): boolean => {
 };
 
 const useStyles = makeStyles({
-    root: {
+    fullWidthDrawer: {
+        width: '100vw !important',
+        maxWidth: '100vw !important',
+        position: 'fixed',
+        left: '0',
+        top: '0',
+        height: '100vh',
+        zIndex: 1000,
+    },
+    mediumDrawer: {
+        width: '350px',
         maxWidth: '350px',
-        minWidth: '300px',
-        padding: '20px',
-        height: 'calc(100% - 40px)',
-        flex: '1 0 auto',
-        overflowY: 'auto',
-        position: 'relative',
-        borderLeft: `1px solid ${tokens.colorNeutralBackground3}`,
     },
     infoContent: {
         width: '100%',
@@ -129,14 +137,54 @@ const useStyles = makeStyles({
 });
 
 const ResourceInfo = () => {
-    const { selectedNode } = useContext(GraphContext);
+    const { selectedNode, setSelectedNode } = useContext(GraphContext);
+    const styles = useStyles();
+    const [isNarrow, setIsNarrow] = useState(window.innerWidth <= 500);
+    const intl = useIntl();
 
-    const { root } = useStyles();
+    useEffect(() => {
+        const handleResize = () => {
+            setIsNarrow(window.innerWidth <= 500);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const isOpen = !!selectedNode;
 
     return (
-        <div className={root}>
-            <ResourceInfoContent selectedNode={selectedNode} />
-        </div>
+        <Drawer
+            type={isNarrow ? 'overlay' : 'inline'}
+            position="end"
+            size={isNarrow ? 'full' : 'medium'}
+            open={isOpen}
+            onOpenChange={(_, { open }) => {
+                if (!open) {
+                    setSelectedNode?.(undefined);
+                }
+            }}
+            className={isNarrow ? styles.fullWidthDrawer : styles.mediumDrawer}
+        >
+            <DrawerHeader>
+                <DrawerHeaderTitle
+                    action={
+                        <Button
+                            appearance="subtle"
+                            aria-label={intl.formatMessage(ResourceInfoResources.close)}
+                            icon={<Dismiss24Regular />}
+                            onClick={() => setSelectedNode?.(undefined)}
+                        />
+                    }
+                >
+                    {selectedNode?.name ?? ''}
+                </DrawerHeaderTitle>
+            </DrawerHeader>
+
+            <DrawerBody>
+                <ResourceInfoContent selectedNode={selectedNode} />
+            </DrawerBody>
+        </Drawer>
     );
 };
 

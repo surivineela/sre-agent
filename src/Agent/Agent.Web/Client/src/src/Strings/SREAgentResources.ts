@@ -2099,6 +2099,7 @@ export const GraphEdgeLabel = defineMessages({
 export const ResourceInfoResources = defineMessages({
     name: { defaultMessage: 'Name', id: 'HAlOn1' },
     type: { defaultMessage: 'Type', id: '+U6ozc' },
+    close: { defaultMessage: 'Close', id: 'rbrahO' },
     dashboard: { defaultMessage: 'Dashboard', id: 'hzSNj4' },
     dashboardLinkText: { defaultMessage: 'Go to Azure Managed Grafana', id: 'SAINuE' },
     grafanaLogo: { defaultMessage: 'Grafana logo', id: 'mzRg+7' },

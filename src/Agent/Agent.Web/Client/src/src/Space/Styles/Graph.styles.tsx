@@ -4,12 +4,13 @@ import { NodeSize } from '../Contracts/Graph';
 export const useGraphStyles = makeStyles({
     visualRoot: {
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: 'column',
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
         width: '100%',
-        height: 'calc(100% - 2rem)',
+        height: '100%',
         overflow: 'hidden',
+        flex: 1,
     },
     reactFlow: {
         width: '100%',
@@ -35,8 +36,9 @@ export const useGraphStyles = makeStyles({
         borderTopLeftRadius: tokens.borderRadiusXLarge,
         boxShadow: tokens.shadow4,
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'row',
         overflow: 'hidden',
+        position: 'relative',
     },
     rootContainer: {
         display: 'flex',
@@ -63,6 +65,7 @@ export const useIntegratedSelectorStyles = makeStyles({
         zIndex: 1000,
         display: 'flex',
         flexDirection: 'row',
+        flexWrap: 'wrap',
         gap: '16px',
         backgroundColor: tokens.colorNeutralBackground1,
         padding: '16px',
