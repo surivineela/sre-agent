@@ -197,7 +197,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         }
         catch (Exception ex)
         {
-            customerActivity?.SetError($"Failed to process user message: {ex.Message}", ex.GetType().Name);
+            customerActivity?.SetError("Failed to process user message.", ex.GetType().Name);
             throw;
         }
     }
@@ -251,7 +251,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             }
             catch (Exception ex)
             {
-                customerActivity?.SetError($"Failed to process incident via agent framework: {ex.Message}", ex.GetType().Name);
+                customerActivity?.SetError("Failed to process incident via agent framework.", ex.GetType().Name);
                 throw;
             }
         }

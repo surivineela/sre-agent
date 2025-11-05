@@ -483,7 +483,7 @@ public class CustomerLogger : ApplicationInsightsLogger, IDisposable
             agentName = agentName.LastIndexOf("--") > 0 
                 ? agentName[..agentName.LastIndexOf("--")] 
                 : agentName;
-            var agentArmId = $"/subscriptions/{agentSubId}/resourceGroups/{agentResourceGroup}/providers/Microsoft.Agents/agents/{agentName}";
+            var agentArmId = $"/subscriptions/{agentSubId}/resourceGroups/{agentResourceGroup}/providers/Microsoft.App/agents/{agentName}";
             enriched["gen_ai.agent.id"] = agentArmId;
             enriched["gen_ai.agent.name"] = agentName;
         }
