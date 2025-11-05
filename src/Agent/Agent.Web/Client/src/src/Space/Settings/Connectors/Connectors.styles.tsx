@@ -28,8 +28,6 @@ export const useConnectorsStyles = makeStyles({
         gap: tokens.spacingHorizontalM,
     },
     toolbarRefresh: {
-        fontWeight: tokens.fontWeightRegular,
-        padding: 0,
         minWidth: '20px',
     },
     button: {

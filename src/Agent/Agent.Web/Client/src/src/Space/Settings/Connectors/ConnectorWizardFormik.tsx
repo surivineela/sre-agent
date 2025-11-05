@@ -5,12 +5,13 @@ import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 import { ConnectorWizard, StepKey } from './ConnectorWizard';
 
 interface ConnectorsWizardFormikProps {
-    isOperationInProgress: boolean;
     isDialogOpen: boolean;
     setIsDialogOpen: (isOpen: boolean) => void;
     onSubmit: (dataConnector: Connector) => void;
     refreshAgent: () => void;
     selectedConnector?: Connector;
+    agentName?: string;
+    agentLocation?: string;
     agentIdentity?: MsiIdentity;
     existingDataConnectors?: Connector[];
 }
@@ -20,6 +21,7 @@ export interface ConnectorFormProps {
     name: string;
     url: string;
     identity: string;
+    email?: string;
 }
 
 export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = props => {

@@ -18,19 +18,17 @@ import { ConnectorType, getConnectorService } from './ConnectorType';
 import { useConnectorWizardStyles } from './ConnectorWizard.styles';
 import { ConnectorFormProps } from './ConnectorWizardFormik';
 
-interface ConnectorWithManagedIdentityProps {
-    isOperationInProgress: boolean;
+export interface ConnectorWithManagedIdentityFormBaseProps {
     userAssignedIdentities: { id: string; name: string }[];
     refreshAgent: () => void;
     selectedConnector?: Connector;
     agentIdentity?: MsiIdentity;
     existingConnectors?: Connector[];
+    children?: React.ReactNode;
 }
 
-const kustoDataSourceExample = 'https://cluster-url/database-name';
-
-export const ConnectorWithManagedIdentity: React.FC<ConnectorWithManagedIdentityProps> = props => {
-    const { isOperationInProgress, userAssignedIdentities, selectedConnector, agentIdentity, existingConnectors, refreshAgent } = props;
+export const ConnectorWithManagedIdentityFormBase: React.FC<ConnectorWithManagedIdentityFormBaseProps> = props => {
+    const { userAssignedIdentities, selectedConnector, agentIdentity, existingConnectors, children, refreshAgent } = props;
 
     const intl = useIntl();
     const styles = useConnectorWizardStyles();
@@ -53,39 +51,6 @@ export const ConnectorWithManagedIdentity: React.FC<ConnectorWithManagedIdentity
             return isDuplicate ? intl.formatMessage(ConnectorsResources.duplicateNameError) : undefined;
         },
         [existingConnectors, intl]
-    );
-
-    const validateUrl = useCallback(
-        (url: string, dataConnectorType: ConnectorType | undefined) => {
-            if (!url || dataConnectorType !== ConnectorType.AzureDataExplorerQuery) {
-                return undefined;
-            }
-
-            let isValidUri = false;
-            try {
-                const urlFormat = new URL(url);
-                isValidUri =
-                    urlFormat.protocol === 'https:' && !!urlFormat.host.trim() && !!urlFormat.pathname && urlFormat.pathname.trim() !== '/';
-            } catch {
-                isValidUri = false;
-            }
-
-            return !isValidUri
-                ? intl.formatMessage(ConnectorsResources.urlKustoFormatError, { format: kustoDataSourceExample })
-                : undefined;
-        },
-        [intl]
-    );
-
-    const getDataSourcePlaceholder = useCallback(
-        (dataConnectorType: ConnectorType | undefined) => {
-            if (dataConnectorType === ConnectorType.AzureDataExplorerQuery) {
-                return kustoDataSourceExample;
-            }
-
-            return intl.formatMessage(ConnectorsResources.urlPlaceholder);
-        },
-        [intl]
     );
 
     const isSystemAssignedIdentityEnabled = useMemo(() => {
@@ -158,22 +123,10 @@ export const ConnectorWithManagedIdentity: React.FC<ConnectorWithManagedIdentity
                 required
                 orientation="vertical"
                 placeholder={intl.formatMessage(ConnectorsResources.namePlaceholder)}
-                disabled={isOperationInProgress || !!selectedConnector}
+                disabled={!!selectedConnector}
                 validate={validateName}
             />
-            <InputFormik
-                name="url"
-                label={
-                    connectorType
-                        ? `${getConnectorService(connectorType, intl)} ${intl.formatMessage(ConnectorsResources.repositoryUrl)}`
-                        : intl.formatMessage(ConnectorsResources.repositoryUrl)
-                }
-                required
-                orientation="vertical"
-                placeholder={getDataSourcePlaceholder(connectorType)}
-                disabled={isOperationInProgress}
-                validate={url => validateUrl(url, connectorType)}
-            />
+            {children}
             <DropdownFormik
                 name="identity"
                 label={intl.formatMessage(ConnectorsResources.managedIdentity)}
@@ -186,7 +139,6 @@ export const ConnectorWithManagedIdentity: React.FC<ConnectorWithManagedIdentity
                 orientation="vertical"
                 options={identityOptions}
                 placeholder={intl.formatMessage(ConnectorsResources.identityPlaceholder)}
-                disabled={isOperationInProgress}
                 sublabel={
                     <Link onClick={openIdentityBlade} className={styles.identityLink}>
                         {intl.formatMessage(SreAgentResources.addIdentity)}

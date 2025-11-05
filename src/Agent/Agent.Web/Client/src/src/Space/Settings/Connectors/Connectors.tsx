@@ -311,13 +311,14 @@ export const Connectors = () => {
                 connectorTypes={selectedConnectorTypes}
             />
             <ConnectorWizardFormik
+                agentName={agent?.name}
+                agentLocation={agent?.location}
                 agentIdentity={agent?.identity}
                 isDialogOpen={isDialogOpen}
                 setIsDialogOpen={setIsDialogOpen}
                 onSubmit={onSubmit}
                 refreshAgent={refreshAgent}
                 selectedConnector={selectedConnector}
-                isOperationInProgress={isOperationInProgress}
                 existingDataConnectors={connectors}
             />
         </div>

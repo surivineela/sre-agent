@@ -73,4 +73,39 @@ export const useConnectorWizardStyles = makeStyles({
         fontSize: tokens.fontSizeBase300,
         fontWeight: tokens.fontWeightRegular,
     },
+    outlookTeamsButton: {
+        maxWidth: 'fit-content',
+    },
+    accountCard: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: `${tokens.spacingVerticalM} ${tokens.spacingHorizontalM}`,
+    },
+    accountInfo: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalM,
+    },
+    accountText: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalXXS,
+    },
+    connectedLabel: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground2,
+    },
+    accountEmail: {
+        fontSize: tokens.fontSizeBase300,
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground1,
+    },
+    checkmark: {
+        color: tokens.colorPaletteGreenBackground3,
+    },
+    signInDifferent: {
+        marginTop: tokens.spacingVerticalS,
+    },
 });

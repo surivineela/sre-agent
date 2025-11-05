@@ -6,20 +6,23 @@ import { StepStatus } from '../../../Common/Components/Wizard/WizardStepper';
 import { MsiIdentity } from '../../../Common/Contracts/Azure/ArmObj';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 import { ConnectorsResources } from '../../../Strings/SREAgentResources';
+import { AzureConnectorForm } from './AzureConnectorForm';
 import { ConnectorPicker } from './ConnectorPicker';
-import { ConnectorWithManagedIdentity } from './ConnectorWithManagedIdentity';
+import { ConnectorType } from './ConnectorType';
 import { useConnectorWizardStyles } from './ConnectorWizard.styles';
 import { ConnectorFormProps } from './ConnectorWizardFormik';
+import { OutlookTeamsConnectorForm } from './OutlookTeamsConnectorForm';
 import { ReviewAndAdd } from './ReviewAndAdd';
 
 interface ConnectorsWizardProps {
-    isOperationInProgress: boolean;
     isDialogOpen: boolean;
     setIsDialogOpen: (isOpen: boolean) => void;
     currentStep: StepKey;
     setCurrentStep: (step: StepKey) => void;
     refreshAgent: () => void;
+    agentName?: string;
     agentIdentity?: MsiIdentity;
+    agentLocation?: string;
     existingConnectors?: Connector[];
     selectedConnector?: Connector;
 }
@@ -32,10 +35,11 @@ export enum StepKey {
 
 export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
     const {
-        isOperationInProgress,
         isDialogOpen,
         setIsDialogOpen,
+        agentName,
         agentIdentity,
+        agentLocation,
         existingConnectors,
         selectedConnector,
         currentStep,
@@ -70,7 +74,11 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
                 title: intl.formatMessage(ConnectorsResources.chooseAConnector),
                 status: getStatus(StepKey.ConnectorPicker),
             },
-            { id: StepKey.Setup, title: intl.formatMessage(ConnectorsResources.setUpConnector), status: getStatus(StepKey.Setup) },
+            {
+                id: StepKey.Setup,
+                title: intl.formatMessage(ConnectorsResources.setUpConnector),
+                status: getStatus(StepKey.Setup),
+            },
             {
                 id: StepKey.ReviewAndAdd,
                 title: intl.formatMessage(ConnectorsResources.reviewAndCreate),
@@ -111,6 +119,47 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
         return userAssignedOptions;
     }, [agentIdentity]);
 
+    const setupForm = useMemo(() => {
+        switch (values.connectorType) {
+            case ConnectorType.AzureDataExplorerQuery:
+            case ConnectorType.AzureDataExplorerIndexing:
+            case ConnectorType.AzureDevOpsDocumentation:
+                return (
+                    <AzureConnectorForm
+                        userAssignedIdentities={userAssignedIdentityOptions}
+                        agentIdentity={agentIdentity}
+                        existingConnectors={existingConnectors}
+                        selectedConnector={selectedConnector}
+                        refreshAgent={refreshAgent}
+                    />
+                );
+            case ConnectorType.OutlookSendEmail:
+            case ConnectorType.TeamsSendNotificaton:
+                return (
+                    <OutlookTeamsConnectorForm
+                        userAssignedIdentities={userAssignedIdentityOptions}
+                        agentName={agentName}
+                        agentLocation={agentLocation}
+                        agentIdentity={agentIdentity}
+                        existingConnectors={existingConnectors}
+                        selectedConnector={selectedConnector}
+                        refreshAgent={refreshAgent}
+                    />
+                );
+            default:
+                return null;
+        }
+    }, [
+        values.connectorType,
+        userAssignedIdentityOptions,
+        agentIdentity,
+        existingConnectors,
+        selectedConnector,
+        refreshAgent,
+        agentName,
+        agentLocation,
+    ]);
+
     return (
         <WizardDialog
             title={title}
@@ -125,16 +174,7 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
         >
             <div className={styles.wizardContentContainer}>
                 {currentStep === StepKey.ConnectorPicker && <ConnectorPicker />}
-                {currentStep === StepKey.Setup && (
-                    <ConnectorWithManagedIdentity
-                        isOperationInProgress={isOperationInProgress}
-                        userAssignedIdentities={userAssignedIdentityOptions}
-                        agentIdentity={agentIdentity}
-                        existingConnectors={existingConnectors}
-                        selectedConnector={selectedConnector}
-                        refreshAgent={refreshAgent}
-                    />
-                )}
+                {currentStep === StepKey.Setup && setupForm}
                 {currentStep === StepKey.ReviewAndAdd && <ReviewAndAdd userAssignedIdentities={userAssignedIdentityOptions} />}
             </div>
         </WizardDialog>

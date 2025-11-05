@@ -1,10 +1,10 @@
-import { Card, CardHeader, Text } from '@fluentui/react-components';
+import { Card, CardHeader, Label, Text } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { IdentityKeys } from '../../Contracts/Identity';
-import { ConnectorType, connectorTypeOptions } from './ConnectorType';
+import { connectorTypeOptions } from './ConnectorType';
 import { useConnectorWizardStyles } from './ConnectorWizard.styles';
 import { ConnectorFormProps } from './ConnectorWizardFormik';
 
@@ -23,9 +23,8 @@ export const ReviewAndAdd: React.FC<ReviewAndAddProps> = ({ userAssignedIdentiti
 
     return (
         <div className={styles.reviewAndAddContainer}>
-            <Text className={styles.title}>{intl.formatMessage(ConnectorsResources.reviewAndCreate)}</Text>
-            <div className={styles.reviewAndAddSection}>
-                <Text className={styles.reviewAndAddSectionTitle}>{intl.formatMessage(ConnectorsResources.connectorCapital)}</Text>
+            <Label className={styles.title}>{intl.formatMessage(ConnectorsResources.reviewAndCreate)}</Label>
+            <VerticalLabelWithContent label={intl.formatMessage(ConnectorsResources.connectorCapital)}>
                 {selectedConnector && (
                     <Card>
                         <CardHeader
@@ -39,27 +38,37 @@ export const ReviewAndAdd: React.FC<ReviewAndAddProps> = ({ userAssignedIdentiti
                         />
                     </Card>
                 )}
-            </div>
-            <div className={styles.reviewAndAddSection}>
-                <Text className={styles.reviewAndAddSectionTitle}>{intl.formatMessage(SreAgentResources.name)}</Text>
+            </VerticalLabelWithContent>
+            <VerticalLabelWithContent label={intl.formatMessage(SreAgentResources.name)}>
                 <Text className={styles.reviewAndAddSectionValue}>{values.name || '-'}</Text>
-            </div>
-            <div className={styles.reviewAndAddSection}>
-                <Text className={styles.reviewAndAddSectionTitle}>
-                    {values.connectorType === ConnectorType.OutlookSendEmail
-                        ? intl.formatMessage(ConnectorsResources.outlookAccount)
-                        : intl.formatMessage(ConnectorsResources.repositoryUrl)}
-                </Text>
-                <Text className={styles.reviewAndAddSectionValue}>{values.url}</Text>
-            </div>
-            <div className={styles.reviewAndAddSection}>
-                <Text className={styles.reviewAndAddSectionTitle}>{intl.formatMessage(ConnectorsResources.managedIdentity)}</Text>
+            </VerticalLabelWithContent>
+            {values.email ? (
+                <VerticalLabelWithContent label={intl.formatMessage(ConnectorsResources.outlookAccount)}>
+                    <Text className={styles.reviewAndAddSectionValue}>{values.email}</Text>
+                </VerticalLabelWithContent>
+            ) : values.url ? (
+                <VerticalLabelWithContent label={intl.formatMessage(ConnectorsResources.repositoryUrl)}>
+                    <Text className={styles.reviewAndAddSectionValue}>{values.url}</Text>
+                </VerticalLabelWithContent>
+            ) : undefined}
+            <VerticalLabelWithContent label={intl.formatMessage(ConnectorsResources.managedIdentity)}>
                 <Text className={styles.reviewAndAddSectionValue}>
                     {values.identity === IdentityKeys.system
                         ? intl.formatMessage(SreAgentResources.systemAssigned)
                         : userAssignedIdentities.find(option => option.id === values.identity)?.name || ''}
                 </Text>
-            </div>
+            </VerticalLabelWithContent>
+        </div>
+    );
+};
+
+export const VerticalLabelWithContent: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => {
+    const styles = useConnectorWizardStyles();
+
+    return (
+        <div className={styles.reviewAndAddSection}>
+            <Label className={styles.reviewAndAddSectionTitle}>{label}</Label>
+            {children}
         </div>
     );
 };

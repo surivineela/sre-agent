@@ -4842,8 +4842,7 @@ export const ConnectorsResources = defineMessages({
     },
     azureDataExplorer: { defaultMessage: 'Azure Data Explorer', id: 'l0UKyP' },
     azureDevops: { defaultMessage: 'Azure DevOps', id: 'D3rb1K' },
-    lastModified: { defaultMessage: 'Last Modified', id: 'J8u7Xg' },
-    lastSynced: { defaultMessage: 'Last Synced', id: 'Z8Y6DE' },
+    authentication: { defaultMessage: 'Authentication', id: 'YeKWbP' },
     status: { defaultMessage: 'Status', id: 'tzMNF3' },
     connected: { defaultMessage: 'Connected', id: 'IvjoDS' },
     noSearchResults: {
@@ -4878,6 +4877,11 @@ export const ConnectorsResources = defineMessages({
     sendEmailDescription: { defaultMessage: 'The agent sends email messages.', id: 'Ebd6gR' },
     sendNotification: { defaultMessage: 'Send notification', id: 'nL/Owh' },
     microsoftTeams: { defaultMessage: 'Microsoft Teams', id: 'IIfj4G' },
+    signInToService: { defaultMessage: 'Sign in to {service}', id: 'yBnHns' },
+    outlook: { defaultMessage: 'Outlook', id: 'moOg2N' },
+    serviceAccount: { defaultMessage: '{service} account', id: 'Y5IFiT' },
+    connectedAs: { defaultMessage: 'Connected as', id: '0VVX+G' },
+    signInWithDifferentAccount: { defaultMessage: 'Sign in with a different account', id: 'oHGFwy' },
     sendNotificationDescription: {
         defaultMessage: 'The agent posts notifications to the activity feed linking to a chat or team.',
         id: 'rzC0Xo',
