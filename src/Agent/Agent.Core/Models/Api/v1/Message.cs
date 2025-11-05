@@ -8,7 +8,9 @@ public record AgentTaskInfo(
     Guid Id,
     string Title,
     AgentTaskStatus Status,
-    DateTime? lastModified
+    DateTime? lastModified,
+    string? Phase = null,
+    string? StatusMessage = null
 );
 
 public record TodoInfo(

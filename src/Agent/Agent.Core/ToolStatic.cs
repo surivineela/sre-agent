@@ -22,7 +22,7 @@ public static class ToolStatic
     /// Holds the approval context for the current Durable task. Set by GenericExecuteActionActivity
     /// AsyncLocal because we want to keep the conversation thread ID for the current async context.
     /// </summary>
-    public static readonly AsyncLocal<ApprovalContext> AsyncLocalApprovalContext = new();
+    public static readonly AsyncLocal<ApprovalContext?> AsyncLocalApprovalContext = new();
 
     /// <summary>
     /// Holds the cancellation token for the current operation. Set by reasoning loop during tool execution.

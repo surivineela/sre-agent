@@ -32,6 +32,8 @@ public sealed record AgentTask
     public required Guid ThreadId { get; set; }
     public DateTime? LastModified { get; set; }
 
+    public Guid? DeepInvestigationApprovalId { get; set; }
+
     // Input data is not returned to the client, it is only used by the task handler
     [NJ.JsonIgnore]
     [SJ.JsonIgnore]

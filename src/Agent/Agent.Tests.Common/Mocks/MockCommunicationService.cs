@@ -203,6 +203,13 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
+        public Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, AgentTaskInfo? agentTaskInfo, Approval? approval, Guid? messageId = null, StreamMessageType? type = null)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, OrchestrationInstanceId: {orchestrationInstanceId}, Message: {message.Text}, Approval: {approval?.Id}");
+            Messages.Add(message.Text);
+            return Task.CompletedTask;
+        }
+
         public Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null)
         {
             _logger?.LogInternalInformation($"ThreadId: {context.ThreadId}, Message: {message.Text}");

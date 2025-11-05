@@ -12,6 +12,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.Repositories;
@@ -21,6 +22,8 @@ using Agent.Runtime.AgentTasks.Agents;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
+using Agent.Runtime.Services;
+using Azure.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
@@ -42,7 +45,8 @@ public sealed class IncidentInvestigationTaskHandler(
     CustomerLogger customerLogger,
     OpenAISettings openAISettings,
     AgentTaskToolResultHelper agentTaskToolResultHelper,
-    IAgentFactory<AgentContext> agentFactory
+    IAgentFactory<AgentContext> agentFactory,
+    IApprovalService approvalService
 ) : IAgentTaskHandler
 {
     private readonly SemaphoreSlim _stateLock = new(1, 1);
@@ -85,12 +89,99 @@ public sealed class IncidentInvestigationTaskHandler(
                 "Executing incident investigation task {TaskId} for thread {ThreadId}",
                 agentTask.Id, context.ThreadId);
 
-            // Send deep investigation notification immediately when investigation starts
-            await SendDeepInvestigationNotificationAsync(agentTask.ThreadId, agentTask.Id);
+            // Check if this is a chat-triggered investigation that needs approval
+            Approval? deepInvestigationApproval = null;
+            bool isChatTriggered = await IsChatTriggeredInvestigationAsync();
+
+            if (isChatTriggered)
+            {
+                logger.LogInternalInformation("Chat-triggered deep investigation detected for task {TaskId}, creating approval request", agentTask.Id);
+
+                try
+                {
+                    deepInvestigationApproval = await CreateDeepInvestigationApprovalAsync(agentTask.ThreadId, agentTask.Id, context.Id);
+
+                    _currentAgentTask = _currentAgentTask with { DeepInvestigationApprovalId = deepInvestigationApproval.Id };
+                    await agentTaskRepository.UpdateAgentTaskAsync(_currentAgentTask);
+
+                    await SendDeepInvestigationNotificationAsync(agentTask.ThreadId, agentTask.Id, deepInvestigationApproval);
+                    bool approvalGranted = await WaitForApprovalAsync(deepInvestigationApproval.Id, CancellationToken.None);
+                    var updatedApproval = await approvalService.GetApproval(_currentAgentTask.ThreadId, deepInvestigationApproval.Id.ToString());
+
+                    if (!approvalGranted)
+                    {
+                        logger.LogInternalWarning("Deep investigation approval {ApprovalId} was denied or timed out for task {TaskId}, falling back to investigation without elevated tokens",
+                            deepInvestigationApproval.Id, agentTask.Id);
+                        await SendDeepInvestigationNotificationAsync(agentTask.ThreadId, agentTask.Id, updatedApproval);
+
+                        // Fall back to regular investigation flow without elevated tokens
+                        // Clear the approval reference since we're proceeding without approval
+                        _currentAgentTask = _currentAgentTask with { DeepInvestigationApprovalId = null };
+                        await agentTaskRepository.UpdateAgentTaskAsync(_currentAgentTask);
+
+                        logger.LogInternalInformation("Continuing investigation for task {TaskId} without elevated permissions", agentTask.Id);
+                    }
+                    else
+                    {
+                        logger.LogInternalInformation("Deep investigation approval {ApprovalId} granted for task {TaskId}",
+                            deepInvestigationApproval.Id, agentTask.Id);
+                        await SendDeepInvestigationNotificationAsync(agentTask.ThreadId, agentTask.Id, updatedApproval);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInternalError(ex, "Failed to create or process approval for deep investigation task {TaskId}", agentTask.Id);
+
+                    // If we have a pending approval, try to update it to cancelled and notify user
+                    if (deepInvestigationApproval != null)
+                    {
+                        try
+                        {
+                            await approvalService.SubmitApprovalDecision(
+                                deepInvestigationApproval.Id.ToString(),
+                                "system",
+                                ApprovalDecision.Cancelled,
+                                agentTask.ThreadId,
+                                null,
+                                deepInvestigationApproval.OboTokenScope
+                            );
+
+                            var failedApproval = await approvalService.GetApproval(agentTask.ThreadId, deepInvestigationApproval.Id.ToString());
+                            await SendDeepInvestigationNotificationAsync(agentTask.ThreadId, agentTask.Id, failedApproval);
+                        }
+                        catch (Exception notificationEx)
+                        {
+                            logger.LogInternalError(notificationEx, "Failed to notify user about approval failure for task {TaskId}", agentTask.Id);
+                        }
+                    }
+
+                    agentTask = agentTask with { Status = AgentTaskStatus.Failed, LastModified = DateTime.UtcNow };
+                    await agentTaskRepository.UpdateAgentTaskAsync(agentTask);
+
+                    return;
+                }
+            }
+            else
+            {
+                logger.LogInternalInformation("Incident handler triggered investigation for task {TaskId}, no approval required", agentTask.Id);
+                await SendDeepInvestigationNotificationAsync(agentTask.ThreadId, agentTask.Id);
+            }
 
             // Save the agent task to the thread document immediately when investigation starts
             await threadRepository.UpdateTaskOnThreadAsync(agentTask.ThreadId, agentTask.ToShortForm());
             logger.LogInternalInformation("Agent task {TaskId} saved to thread {ThreadId}", agentTask.Id, agentTask.ThreadId);
+
+            // set approval context, tools will use token from this context
+            var usingOboToken = await SetupApprovalContextAsync(agentTask.ThreadId, agentTask.Id);
+
+            if (usingOboToken)
+            {
+                logger.LogInternalInformation("Deep investigation will use elevated OBO permissions for all tools");
+            }
+            else
+            {
+                logger.LogInternalInformation("Deep investigation will use standard managed identity permissions");
+            }
 
             if (_is1PAgent)
             {
@@ -314,7 +405,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
                     logger.LogInternalInformation("Initial investigation agent completed with summary: {Summary}", initialInvestigationResult.Summary);
 
-                    state.InitialInvestigation.StatusMessage = "Initial investigation complete.";
+                    state.InitialInvestigation.StatusMessage = "Incident research complete.";
 
                     // 3. Replaying memories
                     // retrieve past trajectories
@@ -351,6 +442,7 @@ public sealed class IncidentInvestigationTaskHandler(
             if (state.FormingHypothesis.Status != FormingHypothesisStatus.Complete)
             {
                 // Generate initial hypotheses
+                state.FormingHypothesis.Status = FormingHypothesisStatus.InProgress;
                 state.FormingHypothesis.StatusMessage = "Generating hypotheses...";
                 state = await SaveStateAndStreamUpdateAsync(cancellationToken: cancellationToken);
 
@@ -376,6 +468,8 @@ public sealed class IncidentInvestigationTaskHandler(
 
                 // 3. Validating Hypotheses with Parallel Processing
                 logger.LogInternalInformation("Starting parallel hypothesis validation for task: {TaskId}", agentTask.Id);
+                state.FormingHypothesis.StatusMessage = "Validating hypotheses...";
+                state = await SaveStateAndStreamUpdateAsync(cancellationToken: cancellationToken);
 
                 await ProcessHypothesesInParallel(
                     state.FormingHypothesis.Hypotheses,
@@ -457,6 +551,8 @@ public sealed class IncidentInvestigationTaskHandler(
         }
         finally
         {
+            // Clear approval context to prevent OBO token leakage to other operations
+            Core.ToolStatic.AsyncLocalApprovalContext.Value = null;
             // Clear investigation step context
             Core.ToolStatic.AsyncLocalInvestigationStepContext.Value = null;
             // Clear agent task context
@@ -691,41 +787,87 @@ public sealed class IncidentInvestigationTaskHandler(
     /// <param name="threadId">The thread ID</param>
     /// <param name="agentTaskId">The agent task ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    private async Task SendDeepInvestigationNotificationAsync(Guid threadId, Guid agentTaskId)
+    private async Task SendDeepInvestigationNotificationAsync(Guid threadId, Guid agentTaskId, Approval? approval = null)
     {
         try
         {
-            logger.LogInternalInformation("Sending deep investigation notification for thread {ThreadId}, task {TaskId}", threadId, agentTaskId);
+            logger.LogInternalInformation("Sending deep investigation notification for thread {ThreadId}, task {TaskId}, with approval: {HasApproval}",
+                threadId, agentTaskId, approval != null);
 
-            // Create AgentTaskInfo with proper data from the current agent task
+            var statusMessage = await GetCurrentStatusMessageAsync();
+            var currentPhase = await GetCurrentPhaseAsync();
             var agentTaskInfo = _currentAgentTask != null
-                ? new AgentTaskInfo(_currentAgentTask.Id, _currentAgentTask.Title, _currentAgentTask.Status, _currentAgentTask.LastModified)
-                : new AgentTaskInfo(agentTaskId, "Deep Investigation", AgentTaskStatus.InProgress, DateTime.UtcNow);
+                ? new AgentTaskInfo(_currentAgentTask.Id, _currentAgentTask.Title, _currentAgentTask.Status, _currentAgentTask.LastModified, Phase: currentPhase, StatusMessage: statusMessage)
+                : new AgentTaskInfo(agentTaskId, "Deep Investigation", AgentTaskStatus.InProgress, DateTime.UtcNow, Phase: currentPhase, StatusMessage: statusMessage);
 
-            // Generate a specific message ID for this notification
-            var notificationMessageId = Guid.NewGuid();
+            logger.LogInternalInformation("Creating agentTaskInfo: _currentAgentTask is {IsNull}, agentTaskId: {AgentTaskId}, created agentTaskInfo: {AgentTaskInfoId}",
+                _currentAgentTask == null ? "null" : "not null", agentTaskId, agentTaskInfo.Id);
 
-            // Serialize AgentTaskCardInfo to JSON string for the message text
-            // add enum convertor so AgentTaskStatus is serialized as string
+            var sanitizedApproval = approval != null
+                ? new Approval(
+                    Id: approval.Id,
+                    ThreadId: approval.ThreadId,
+                    Title: approval.Title,
+                    Description: approval.Description,
+                    Status: approval.Status,
+                    CreatedTimestamp: approval.CreatedTimestamp,
+                    DecisionTimestamp: approval.DecisionTimestamp,
+                    OrchestrationId: approval.OrchestrationId,
+                    AgentContextId: approval.AgentContextId,
+                    OboToken: null, // Exclude token for security
+                    OboTokenScope: approval.OboTokenScope,
+                    DecisionUser: approval.DecisionUser
+                )
+                : null;
+
             var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
             {
                 Converters = { new JsonStringEnumConverter() }
             };
-            var agentTaskInfoJson = JsonSerializer.Serialize(agentTaskInfo, options);
-            ChatMessage message = new ChatMessage(ChatRole.User, agentTaskInfoJson);
 
-            await outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                threadId,
-                string.Empty,
-                message: message,
-                agentTaskInfo: agentTaskInfo,
-                messageId: notificationMessageId,
-                type: StreamMessageType.DeepInvestigation
-               );
+            var messageContent = new
+            {
+                AgentTaskInfo = agentTaskInfo,
+                Approval = sanitizedApproval
+            };
 
-            _deepInvestigationNotificationMessageId = notificationMessageId;
+            var messageJson = JsonSerializer.Serialize(messageContent, options);
 
-            logger.LogInternalInformation("Successfully sent deep investigation notification for thread {ThreadId}, task {TaskId}", threadId, agentTaskId);
+            // Check if this is an update to existing notification or a new one
+            if (_deepInvestigationNotificationMessageId != null && approval?.Status != ApprovalDecision.Pending)
+            {
+                // Update existing notification message with approval result
+                logger.LogInternalInformation("Updating existing message {MessageId} with agentTaskInfo: {AgentTaskInfo}",
+                    _deepInvestigationNotificationMessageId.Value, agentTaskInfo);
+                await threadRepository.UpdateMessageAsync(threadId, _deepInvestigationNotificationMessageId.Value, messageJson, agentTaskInfo);
+                await outboundCommunicationService.NotifyApprovalUpdate(threadId, sanitizedApproval!, _deepInvestigationNotificationMessageId.Value);
+
+                logger.LogInternalInformation("Updated existing deep investigation notification message {MessageId} with approval status {ApprovalStatus}",
+                    _deepInvestigationNotificationMessageId.Value, approval!.Status);
+            }
+            else
+            {
+                var notificationMessageId = Guid.NewGuid();
+                ChatMessage message = new ChatMessage(ChatRole.User, messageJson);
+
+                await outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                    threadId,
+                    string.Empty,
+                    message: message,
+                    agentTaskInfo: agentTaskInfo,
+                    approval: sanitizedApproval,
+                    messageId: notificationMessageId,
+                    type: StreamMessageType.DeepInvestigation
+                   );
+
+                _deepInvestigationNotificationMessageId = notificationMessageId;
+
+                logger.LogInternalInformation("Created new deep investigation notification message {MessageId}",
+                    notificationMessageId);
+            }
+
+            logger.LogInternalInformation("Successfully sent deep investigation notification for thread {ThreadId}, task {TaskId}, approval: {ApprovalId}",
+                threadId, agentTaskId, approval?.Id);
         }
         catch (Exception ex)
         {
@@ -783,6 +925,202 @@ public sealed class IncidentInvestigationTaskHandler(
             ?? throw new InvalidOperationException("No current agent task set");
     }
 
+    private async Task<string?> GetCurrentStatusMessageAsync()
+    {
+        if (_currentAgentTask?.Properties is not IncidentInvestigationTaskProperties state)
+        {
+            return null;
+        }
+
+        if (_currentAgentTask.DeepInvestigationApprovalId != null)
+        {
+            try
+            {
+                var approval = await approvalService.GetApproval(_currentAgentTask.ThreadId, _currentAgentTask.DeepInvestigationApprovalId.Value.ToString());
+                if (approval?.Status == ApprovalDecision.Pending)
+                {
+                    return "Pending approval";
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalWarning(ex, "Failed to get approval status for task {TaskId}", _currentAgentTask.Id);
+            }
+        }
+        
+        if (_currentAgentTask.Status == AgentTaskStatus.Complete)
+        {
+            return "Investigation complete";
+        }
+        
+        if (state.FormingHypothesis.Status == FormingHypothesisStatus.InProgress)
+        {
+            return state.FormingHypothesis.StatusMessage ?? "Forming hypotheses...";
+        }
+        
+        if (state.InitialInvestigation.Status == InitialInvestigationStatus.InProgress)
+        {
+            return state.InitialInvestigation.StatusMessage ?? "Performing incident research...";
+        }
+        
+        if (state.FormingHypothesis.Status == FormingHypothesisStatus.Complete)
+        {
+            return state.FormingHypothesis.StatusMessage ?? "Hypothesis analysis complete";
+        }
+        
+        if (state.InitialInvestigation.Status == InitialInvestigationStatus.Complete)
+        {
+            return "Initial research complete, preparing to form hypotheses...";
+        }
+        
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the current investigation phase from the current agent task
+    /// </summary>
+    private async Task<string?> GetCurrentPhaseAsync()
+    {
+        if (_currentAgentTask?.Properties is not IncidentInvestigationTaskProperties state)
+        {
+            return null; 
+        }
+
+        if (_currentAgentTask.DeepInvestigationApprovalId != null)
+        {
+            try
+            {
+                var approval = await approvalService.GetApproval(_currentAgentTask.ThreadId, _currentAgentTask.DeepInvestigationApprovalId.Value.ToString());
+                if (approval?.Status == ApprovalDecision.Pending)
+                {
+                    return "Pending Approval";
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalWarning(ex, "Failed to get approval status for phase determination, task {TaskId}", _currentAgentTask.Id);
+            }
+        }
+
+        if (_currentAgentTask.Status == AgentTaskStatus.Complete)
+        {
+            return "Conclusion";
+        }
+        
+        if (state.FormingHypothesis.Status == FormingHypothesisStatus.InProgress)
+        {
+            if (state.FormingHypothesis.StatusMessage?.Contains("Validating") == true)
+            {
+                return "Validating Hypotheses";
+            }
+        }
+        
+        if (state.FormingHypothesis.Status == FormingHypothesisStatus.InProgress || 
+            state.FormingHypothesis.Status == FormingHypothesisStatus.Complete)
+        {
+            return "Forming Hypotheses";
+        }
+        
+        if (state.InitialInvestigation.Status == InitialInvestigationStatus.InProgress || 
+            state.InitialInvestigation.Status == InitialInvestigationStatus.Complete)
+        {
+            return "Incident Research";
+        }
+        
+        return null;
+    }
+
+    /// <summary>
+    /// Updates the deep investigation notification message with current status and streams to frontend
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    private async Task UpdateDeepInvestigationNotificationAsync(CancellationToken cancellationToken = default)
+    {
+        if (_deepInvestigationNotificationMessageId == null || _currentAgentTask == null)
+        {
+            return;
+        }
+
+        var currentStatusMessage = await GetCurrentStatusMessageAsync();
+        var currentPhase = await GetCurrentPhaseAsync();
+        var updatedAgentTaskInfo = new AgentTaskInfo(
+            _currentAgentTask.Id, 
+            _currentAgentTask.Title, 
+            _currentAgentTask.Status, 
+            _currentAgentTask.LastModified, 
+            Phase: currentPhase,
+            StatusMessage: currentStatusMessage);
+
+        Approval? currentApproval = null;
+        if (_currentAgentTask.DeepInvestigationApprovalId != null)
+        {
+            try
+            {
+                currentApproval = await approvalService.GetApproval(_currentAgentTask.ThreadId, _currentAgentTask.DeepInvestigationApprovalId.Value.ToString());
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalWarning(ex, "Failed to get approval {ApprovalId} for task {TaskId}", 
+                    _currentAgentTask.DeepInvestigationApprovalId, _currentAgentTask.Id);
+            }
+        }
+
+        var sanitizedApproval = currentApproval != null
+            ? new Approval(
+                Id: currentApproval.Id,
+                ThreadId: currentApproval.ThreadId,
+                Title: currentApproval.Title,
+                Description: currentApproval.Description,
+                Status: currentApproval.Status,
+                CreatedTimestamp: currentApproval.CreatedTimestamp,
+                DecisionTimestamp: currentApproval.DecisionTimestamp,
+                OrchestrationId: currentApproval.OrchestrationId,
+                AgentContextId: currentApproval.AgentContextId,
+                OboToken: null, // Exclude token for security
+                OboTokenScope: currentApproval.OboTokenScope,
+                DecisionUser: currentApproval.DecisionUser
+            )
+            : null;
+
+        var messageContent = new
+        {
+            AgentTaskInfo = updatedAgentTaskInfo,
+            Approval = sanitizedApproval
+        };
+
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+        {
+            Converters = { new JsonStringEnumConverter() }
+        };
+        var updatedMessageJson = JsonSerializer.Serialize(messageContent, options);
+
+        try
+        {
+            await threadRepository.UpdateMessageAsync(
+                _currentAgentTask.ThreadId, 
+                (Guid)_deepInvestigationNotificationMessageId, 
+                updatedMessageJson, 
+                updatedAgentTaskInfo);
+            
+            await outboundCommunicationService.AppendAgentStreamMessage(
+                _currentAgentTask.ThreadId, 
+                updatedMessageJson, 
+                StreamMessageType.DeepInvestigation, 
+                _deepInvestigationNotificationMessageId, 
+                _currentAgentTask.LastModified, 
+                cancellationToken);
+
+            logger.LogInternalInformation(
+                "Updated deep investigation notification {MessageId} with status: {StatusMessage}",
+                _deepInvestigationNotificationMessageId.Value, currentStatusMessage);
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalWarning(ex, 
+                "Failed to update deep investigation notification {MessageId} - investigation will continue", 
+                _deepInvestigationNotificationMessageId.Value);
+        }
+    }
 
     /// <summary>
     /// Saves the current state of the agent task and streams an update to the client.
@@ -819,21 +1157,8 @@ public sealed class IncidentInvestigationTaskHandler(
             // save the state before streaming to prevent sync issues on frontend
             _currentAgentTask = await agentTaskRepository.UpdateAgentTaskAsync(_currentAgentTask);
 
-            // Update the notification message status when the overall task status change, need to do after db save of task to have accurate lastModified time
-            if (_deepInvestigationNotificationMessageId != null && newStatus != null)
-            {
-                var updatedAgentTaskInfo = new AgentTaskInfo(_currentAgentTask.Id, _currentAgentTask.Title, _currentAgentTask.Status, _currentAgentTask.LastModified);
-
-                // Serialize AgentTaskCardInfo to JSON string for the message text
-                // add enum convertor so AgentTaskStatus is serialized as string
-                var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
-                {
-                    Converters = { new JsonStringEnumConverter() }
-                };
-                var updatedAgentTaskInfoJson = JsonSerializer.Serialize(updatedAgentTaskInfo, options);
-
-                await threadRepository.UpdateMessageAsync(_currentAgentTask.ThreadId, (Guid)_deepInvestigationNotificationMessageId, updatedAgentTaskInfoJson, updatedAgentTaskInfo);
-            }
+            // Update the deep investigation notification with current status
+            await UpdateDeepInvestigationNotificationAsync(cancellationToken);
 
             await StreamTaskUpdateAsync(_currentAgentTask.ThreadId, _currentAgentTask, cancellationToken);
 
@@ -1881,6 +2206,206 @@ public sealed class IncidentInvestigationTaskHandler(
         {
             logger.LogInternalWarning(ex, "Failed to extract tool parameter {ParameterName} of type {Type}", parameterName, typeof(T).Name);
             return default;
+        }
+    }
+
+    /// <summary>
+    /// Creates a deep investigation approval with required scopes (tokens exchanged at infra layer)
+    /// </summary>
+    /// <param name="threadId">The thread ID for the approval</param>
+    /// <param name="agentTaskId">The agent task ID requiring approval</param>
+    /// <param name="agentContextId">The agent context ID for the approval</param>
+    /// <returns>The created approval object</returns>
+    private async Task<Approval> CreateDeepInvestigationApprovalAsync(Guid threadId, Guid agentTaskId, Guid agentContextId)
+    {
+        try
+        {
+            // gather all scopes needed for deep investigation
+            var deepInvestigationScopes = string.Join(",", new[]
+            {
+                Constants.ArmOboTokenScope,
+                Constants.AksOboTokenScope,
+                Constants.AkvOboTokenScope,
+                Constants.StorageOboTokenScope,
+                Constants.SynapseOboTokenScope,
+                Constants.AppInsightsTokenScope
+            });
+
+            var approval = new Approval(
+                Id: Guid.NewGuid(),
+                ThreadId: threadId.ToString(),
+                Title: "Deep Investigation Authorization",
+                Description: "Grant elevated permissions to enable comprehensive analysis. If not approved within 10 minutes or declined, the investigation continues with limited permissions only.",
+                Status: ApprovalDecision.Pending,
+                CreatedTimestamp: DateTime.UtcNow,
+                DecisionTimestamp: null,
+                OrchestrationId: null,
+                AgentContextId: agentContextId,
+                DecisionUser: null,
+                OboToken: null,
+                OboTokenScope: deepInvestigationScopes
+            );
+
+            await threadRepository.CreateApprovalAsync(approval);
+
+            logger.LogInternalInformation("Created deep investigation approval {ApprovalId} for agent task {AgentTaskId} with scopes {Scopes}",
+                approval.Id, agentTaskId, deepInvestigationScopes);
+
+            return approval;
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Failed to create deep investigation approval for agent task {AgentTaskId}", agentTaskId);
+            throw; // Re-throw since this is critical for the approval flow
+        }
+    }
+
+    /// <param name="approvalId">The approval ID to wait for</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if approved, false if cancelled or timeout</returns>
+    private async Task<bool> WaitForApprovalAsync(Guid approvalId, CancellationToken cancellationToken)
+    {
+        if (_currentAgentTask == null)
+        {
+            logger.LogInternalWarning("Cannot wait for approval: no current agent task");
+            return false;
+        }
+
+        var timeout = TimeSpan.FromMinutes(10); // 10-minute timeout for user approval
+        var startTime = DateTime.UtcNow;
+
+        while (DateTime.UtcNow - startTime < timeout && !cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                var approval = await approvalService.GetApproval(_currentAgentTask.ThreadId, approvalId.ToString());
+
+                if (approval?.Status == ApprovalDecision.Approved)
+                {
+                    logger.LogInternalInformation("Deep investigation approval {ApprovalId} approved by {User}",
+                        approvalId, approval.DecisionUser?.DisplayName ?? "Unknown");
+                    return true;
+                }
+                else if (approval?.Status == ApprovalDecision.Cancelled)
+                {
+                    logger.LogInternalInformation("Deep investigation approval {ApprovalId} cancelled by {User}",
+                        approvalId, approval.DecisionUser?.DisplayName ?? "Unknown");
+                    return false;
+                }
+
+                // Poll every 2 seconds
+                await Task.Delay(2000, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalWarning(ex, "Error checking approval status for {ApprovalId}", approvalId);
+                await Task.Delay(5000, cancellationToken); // Wait longer on error
+            }
+        }
+
+        logger.LogInternalWarning("Deep investigation approval {ApprovalId} timed out after {TimeoutMinutes} minutes",
+            approvalId, timeout.TotalMinutes);
+
+        // Mark approval as cancelled due to timeout
+        try
+        {
+            var approvalForTimeout = await approvalService.GetApproval(_currentAgentTask.ThreadId, approvalId.ToString());
+
+            await approvalService.SubmitApprovalDecision(
+                approvalId.ToString(),
+                "system",
+                ApprovalDecision.Cancelled,
+                _currentAgentTask.ThreadId,
+                null, // No OBO token for timeout
+                approvalForTimeout?.OboTokenScope  // Use the original scope from the approval
+            );
+            logger.LogInternalInformation("Marked approval {ApprovalId} as cancelled due to timeout", approvalId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Failed to update approval {ApprovalId} status to cancelled after timeout", approvalId);
+        }
+
+        return false; 
+    }
+
+    /// <summary>
+    /// Checks if the current investigation was triggered from chat vs incident handler.
+    /// </summary>
+    /// <returns>True if triggered from chat, false if from incident handler</returns>
+    private async Task<bool> IsChatTriggeredInvestigationAsync()
+    {
+        if (_currentAgentTask == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            var thread = await threadRepository.GetThreadAsync(_currentAgentTask.ThreadId);
+
+            // Determine if this investigation was triggered from chat vs incident handler
+            return thread?.Source != ThreadSource.Alert;
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalWarning(ex, "Failed to determine investigation trigger source for thread {ThreadId}", _currentAgentTask.ThreadId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Sets up the approval context for OBO token usage if we have an approved deep investigation.
+    /// When set, all subsequent tool calls will automatically use the user's OBO tokens instead of managed identity.
+    /// </summary>
+    /// <param name="threadId">The thread ID</param>
+    /// <param name="agentTaskId">The agent task ID</param>
+    /// <returns>True if OBO token context was set up successfully, false if using managed identity</returns>
+    private async Task<bool> SetupApprovalContextAsync(Guid threadId, Guid agentTaskId)
+    {
+        try
+        {
+            if (_currentAgentTask?.DeepInvestigationApprovalId != null)
+            {
+                var approval = await approvalService.GetApproval(threadId, _currentAgentTask.DeepInvestigationApprovalId.Value.ToString());
+
+                if (approval?.Status == ApprovalDecision.Authorized && !string.IsNullOrEmpty(approval.OboToken))
+                {
+                    logger.LogInternalInformation("Setting up OBO token context for deep investigation. Approval: {ApprovalId}, Scopes: {Scopes}",
+                        approval.Id, approval.OboTokenScope);
+
+                    var approvalContext = new ApprovalContext(
+                        ThreadId: threadId,
+                        ApprovalId: approval.Id,
+                        UseOboToken: true
+                    );
+                    Core.ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
+                    return true;
+                }
+                else if (approval?.Status == ApprovalDecision.Pending)
+                {
+                    logger.LogInternalInformation("Deep investigation approval is still pending - using managed identity for now");
+                }
+                else if (approval?.Status == ApprovalDecision.Cancelled)
+                {
+                    logger.LogInternalInformation("Deep investigation approval was cancelled - using managed identity");
+                }
+                else
+                {
+                    logger.LogInternalInformation("Deep investigation approval not yet approved or scope not available - using managed identity");
+                }
+            }
+            else
+            {
+                logger.LogInternalInformation("No deep investigation approval found - using managed identity for investigation");
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalWarning(ex, "Failed to setup approval context - continuing with managed identity");
+            return false;
         }
     }
 

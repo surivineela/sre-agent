@@ -35,6 +35,11 @@ public interface IAgentOutboundCommunicationService
     Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, AgentTaskInfo? agentTaskInfo, TodoInfo? todoInfo, Guid? messageId = null, StreamMessageType? type = null);
 
     /// <summary>
+    /// Updates a thread with a message with agent task info and approval info
+    /// </summary>
+    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, AgentTaskInfo? agentTaskInfo, Approval? approval, Guid? messageId = null, StreamMessageType? type = null);
+
+    /// <summary>
     /// Notifies about agent task completion
     /// </summary>
     Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null);

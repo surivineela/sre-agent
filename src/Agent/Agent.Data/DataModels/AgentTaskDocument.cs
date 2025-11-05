@@ -15,7 +15,8 @@ public record AgentTaskDocument(
     AgentTaskStatus Status,
     AgentTaskType Type,
     AgentTaskInputData? InputData,
-    DateTime? LastModified
+    DateTime? LastModified,
+    string? DeepInvestigationApprovalId
 ) : ICosmosDocument
 {
     public string DocumentType => "AgentTask";
@@ -32,7 +33,8 @@ public record AgentTaskDocument(
             Status: agentTask.Status,
             Type: agentTask.Type,
             InputData: agentTask.InputData,
-            LastModified: agentTask.LastModified
+            LastModified: agentTask.LastModified,
+            DeepInvestigationApprovalId: agentTask.DeepInvestigationApprovalId?.ToString()
         );
 
     public AgentTask ToDomainModel() =>
@@ -46,6 +48,7 @@ public record AgentTaskDocument(
             Type = Type,
             ThreadId = Guid.Parse(ThreadId),
             InputData = InputData,
-            LastModified = LastModified
+            LastModified = LastModified,
+            DeepInvestigationApprovalId = Guid.TryParse(DeepInvestigationApprovalId, out var approvalId) ? approvalId : null
         };
 }

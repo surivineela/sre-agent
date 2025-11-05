@@ -154,6 +154,31 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: resolvedMessageId, recordedDateTime: recordedDateTime, agentTaskInfo: agentTaskInfo, todoInfo: todoInfo);
     }
 
+    // overload method that takes both AgentTaskInfo and Approval
+    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, AgentTaskInfo? agentTaskInfo, Approval? approval, Guid? messageId = null, StreamMessageType? type = null)
+    {
+        if (!string.IsNullOrEmpty(orchestrationInstanceId))
+        {
+            await _mappingManager.AddMappingAsync(threadId?.ToString() ?? Guid.Empty.ToString(), orchestrationInstanceId);
+        }
+        _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}, with approval: {HasApproval}",
+            orchestrationInstanceId, threadId, message.Text, approval != null);
+
+        _customerLogger.LogMessage($"[ChatThreadId {threadId}] Agent responding: {message.Text}");
+        _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadId?.ToString() ?? string.Empty },
+            { "Message", message.Text ?? string.Empty },
+            { "HasApproval", (approval != null).ToString() }
+        });
+
+        Guid resolvedMessageId = messageId ?? Guid.NewGuid();
+        DateTime recordedDateTime = DateTime.UtcNow;
+
+        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, type, resolvedMessageId, recordedDateTime);
+        await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, isImageContent: false, agentResponseMessageId: resolvedMessageId, recordedDateTime: recordedDateTime, agentTaskInfo: agentTaskInfo, approval: approval);
+    }
+
     // over load method that also takes agent context
     public async Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null)
     {
