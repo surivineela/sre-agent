@@ -78,14 +78,25 @@ public class AuthController : ControllerBase
             return Ok(new { isAuthenticated = false });
         }
 
+        // Try multiple claim types for object ID
+        var objectId = User.FindFirst("oid")?.Value 
+            ?? User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value
+            ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? string.Empty;
+
+        // Try multiple claim types for tenant ID
+        var tenantId = User.FindFirst("tid")?.Value
+            ?? User.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid")?.Value
+            ?? string.Empty;
+
         var userInfo = new
         {
             isAuthenticated = true,
             name = User.Identity.Name ?? string.Empty,
             username = User.FindFirst("preferred_username")?.Value ?? User.Identity.Name ?? string.Empty,
             email = User.FindFirst("email")?.Value ?? User.FindFirst("preferred_username")?.Value ?? string.Empty,
-            tenantId = User.FindFirst("tid")?.Value ?? string.Empty,
-            objectId = User.FindFirst("oid")?.Value ?? string.Empty,
+            tenantId = tenantId,
+            objectId = objectId,
             claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList()
         };
 
@@ -96,12 +107,21 @@ public class AuthController : ControllerBase
     [HttpGet("profile")]
     public IActionResult GetProfile()
     {
+        // Try multiple claim types for object ID
+        var objectId = User.FindFirst("oid")?.Value 
+            ?? User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value
+            ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        // Try multiple claim types for tenant ID
+        var tenantId = User.FindFirst("tid")?.Value
+            ?? User.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid")?.Value;
+
         var profile = new
         {
             name = User.Identity?.Name,
             email = User.FindFirst("email")?.Value ?? User.FindFirst("preferred_username")?.Value,
-            tenantId = User.FindFirst("tid")?.Value,
-            objectId = User.FindFirst("oid")?.Value,
+            tenantId = tenantId,
+            objectId = objectId,
             claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList()
         };
 
