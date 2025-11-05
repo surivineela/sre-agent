@@ -173,10 +173,6 @@ jobs:
           name: e2e-release-metadata
           path: release-metadata.json
 
-      - name: 🐳 Docker version
-        run: docker version
-
-
       - name: ▶️ Run container tests script
         id: run
         shell: pwsh
@@ -200,6 +196,7 @@ jobs:
           
 
       - name: 📢 Publish E2E test results
+        id: publish-e2e-results
         uses: serverless-paas-balam/actions-test-reporter@main
         if: always()
         with:
@@ -219,9 +216,15 @@ jobs:
           name: e2e-container-test-results
           path: container-test-results/
           retention-days: 14
+        continue-on-error: true
 
       - name: ❌ Fail if tests failed
-        if: ${{ steps.run.outcome == 'failure' && env.FAILED_ON_TEST_FAILURE == 'true' }}
+        if: ${{ steps.publish-e2e-results.outputs.conclusion == 'failure'  && env.FAILED_ON_TEST_FAILURE == 'true' }}
         run: |
-          echo "E2E container tests failed" >&2
+          echo "E2E container tests failed per test reporter output" >&2
+          echo "Passed: ${{ steps.publish-e2e-results.outputs.passed }}" >&2
+          echo "Failed: ${{ steps.publish-e2e-results.outputs.failed }}" >&2
+          echo "Skipped: ${{ steps.publish-e2e-results.outputs.skipped }}" >&2
+          echo "Report URL: ${{ steps.publish-e2e-results.outputs.url }}" >&2
+          echo "Urgent bypass: set FAILED_ON_TEST_FAILURE=false in e2e-tests.yml" >&2
           exit 1
