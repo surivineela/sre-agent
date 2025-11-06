@@ -1,16 +1,19 @@
 import { Shimmer } from '@fluentui/react';
-import { Spinner } from '@fluentui/react-components';
+import { Link, MessageBar, Spinner, Text } from '@fluentui/react-components';
 import { CheckmarkCircle16Filled, Warning16Filled } from '@fluentui/react-icons';
 import { tokens } from '@fluentui/react-theme';
 import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
+import { LearnMoreLinks } from '../../../Common/Constants/Links';
 import { IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
+import useUserPermissions from '../../../Common/Hooks/useUserPermissions';
 import {
     AzMonitorResources,
     IcMResources,
     IncidentManagementResources,
     PagerDutyResources,
     ServiceNowResources,
+    SreAgentResources,
 } from '../../../Strings/SREAgentResources';
 import { SreAgentContext } from '../../Contracts/Context';
 
@@ -32,6 +35,7 @@ export interface PlatformConnectionIndicatorProps {
 
 export const PlatformConnectionIndicator: FC<PlatformConnectionIndicatorProps> = ({ style, includeHandlersMessage }) => {
     const intl = useIntl();
+    const { canReadIncidentManagement } = useUserPermissions();
     const {
         incidentManagement: { incidentPlatformType, incidentManagementConnectionState, checkingConnectivity, hasFilters },
     } = useContext(SreAgentContext);
@@ -85,6 +89,19 @@ export const PlatformConnectionIndicator: FC<PlatformConnectionIndicatorProps> =
 
     if (!incidentManagementConnectionState || !notConnectedMessage || !waitingForConnectivityMessage || !connectedMessage) {
         return null;
+    }
+
+    if (!canReadIncidentManagement) {
+        return (
+            <MessageBar intent="error" style={{ marginBottom: 20, minWidth: 0, ...style }}>
+                <span>
+                    <Text>{intl.formatMessage(SreAgentResources.noPermissionCheckIncidentManagementConnection)} </Text>
+                    <Link href={LearnMoreLinks.sreAgentAgentPermissions} target="_blank">
+                        {intl.formatMessage(SreAgentResources.learnMoreAboutPermissions)}
+                    </Link>
+                </span>
+            </MessageBar>
+        );
     }
 
     return (

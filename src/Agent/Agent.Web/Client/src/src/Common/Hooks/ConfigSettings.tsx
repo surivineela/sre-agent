@@ -8,7 +8,6 @@ export enum SettingNames {
     DataConnectors = 'dataConnectors',
     Connectors = 'connectors',
     ShowScheduledTasksTab = 'showScheduledTasksTab',
-    EnablePermissionChecking = 'enablePermissionChecking',
     /** Only used by unit tests */
     ForUnitTests = 'forUnitTests',
     ShowSubAgentsItemInSettings = 'showSubAgentsItemInSettings',

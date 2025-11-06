@@ -1,9 +1,8 @@
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AzPortalProxy from '../AzPortalProxy/AzPortalProxy';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 import { PermissionClient } from '../Clients/PermissionsClient';
 import { PermissionActions } from '../Contracts/Azure/Permission';
-import { SettingNames, getConfigSetting } from './ConfigSettings';
 
 interface UserPermissionsState {
     canWriteAgent: boolean;
@@ -75,7 +74,6 @@ const createPermissionObject = (value: boolean) => ({
 export const useUserPermissions = (): UserPermissions => {
     const { resourceId: agentResourceId, isCrossTenantPortalMode } = useContext(EnvironmentContext);
     const allPermissions = useMemo(() => createPermissionObject(true), []);
-    const enablePermissionChecking = getConfigSetting(SettingNames.EnablePermissionChecking);
 
     const [state, setState] = useState<UserPermissionsState>({
         ...allPermissions,
@@ -84,19 +82,10 @@ export const useUserPermissions = (): UserPermissions => {
     });
     const [refreshToken, setRefreshToken] = useState(0);
 
-    const prevEnablePermissionCheckingRef = useRef(enablePermissionChecking);
-
     const emptyPermissions = useMemo(() => createPermissionObject(false), []);
 
     useEffect(() => {
-        // Invalidate cache if permission checking toggled (single agent context)
-        if (enablePermissionChecking && prevEnablePermissionCheckingRef.current !== enablePermissionChecking) {
-            permissionCache = undefined;
-            setState(prev => ({ ...prev, loading: true, error: false }));
-        }
-        prevEnablePermissionCheckingRef.current = enablePermissionChecking;
-
-        if (!enablePermissionChecking || isCrossTenantPortalMode || AzPortalProxy.inStandaloneMode) {
+        if (isCrossTenantPortalMode || AzPortalProxy.inStandaloneMode) {
             setState({
                 ...allPermissions,
                 loading: false,
@@ -219,7 +208,7 @@ export const useUserPermissions = (): UserPermissions => {
         return () => {
             isSubscribed = false;
         };
-    }, [agentResourceId, refreshToken, emptyPermissions, allPermissions, isCrossTenantPortalMode, enablePermissionChecking]);
+    }, [agentResourceId, refreshToken, emptyPermissions, allPermissions, isCrossTenantPortalMode]);
 
     const refresh = useCallback(() => {
         if (agentResourceId) {

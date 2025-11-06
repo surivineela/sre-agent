@@ -384,6 +384,14 @@ export const SreAgentResources = defineMessages({
         defaultMessage: 'You do not have permission to connect/disconnect incident management',
         id: 'PGJzE0',
     },
+    noPermissionCheckIncidentManagementConnection: {
+        defaultMessage: 'You do not have permission to check incident management connection.',
+        id: 'WJj+TP',
+    },
+    learnMoreAboutPermissions: {
+        defaultMessage: 'To learn more about permissions, click here.',
+        id: 'Q6Lw7i',
+    },
     noPermissionManagedResources: {
         defaultMessage: 'You do not have permission to add or delete managed resources',
         id: 'g+9csc',
