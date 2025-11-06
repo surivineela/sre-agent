@@ -77,12 +77,19 @@ export type ExtendedTrigger = {
     description?: string;
     type: 'incident' | 'scheduled';
     agentName?: string;
+    subAgent?: string;
     status?: 'Active' | 'Paused' | 'Disabled';
     priority?: string;
     incidentType?: string;
+    severity?: string;
+    service?: string;
+    impactedService?: string;
     cronExpression?: string;
+    schedule?: string;
     timezone?: string;
     createdAt?: string;
+    enabled?: boolean;
+    data?: any;
     [key: string]: any;
 };
 

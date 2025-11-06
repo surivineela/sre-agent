@@ -380,8 +380,8 @@ export const useChatBox = (
                     metadata.executionType = chatMessageContent.azCliExecution
                         ? 'azCli'
                         : chatMessageContent.kubectlExecution
-                            ? 'kubectl'
-                            : 'psql';
+                          ? 'kubectl'
+                          : 'psql';
                 }
 
                 proxy.logAmplitudeOperationEvent({

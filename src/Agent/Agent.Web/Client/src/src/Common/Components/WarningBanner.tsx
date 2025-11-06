@@ -228,8 +228,8 @@ const UsageWarningMessageBarContent = memo(
                 {reachedLimit
                     ? intl.formatMessage(RbacWarningBannerResources.usageReachedLimitMessage)
                     : approachingLimit
-                        ? intl.formatMessage(RbacWarningBannerResources.usageApproachingLimitMessage)
-                        : ''}
+                      ? intl.formatMessage(RbacWarningBannerResources.usageApproachingLimitMessage)
+                      : ''}
             </>
         );
 
@@ -306,7 +306,12 @@ const SidePanel = ({
             <DrawerHeader>
                 <DrawerHeaderTitle
                     action={
-                        <Button appearance="subtle" aria-label={intl.formatMessage(SreAgentResources.close)} icon={<Dismiss24Regular />} onClick={() => onOpenChange(false)} />
+                        <Button
+                            appearance="subtle"
+                            aria-label={intl.formatMessage(SreAgentResources.close)}
+                            icon={<Dismiss24Regular />}
+                            onClick={() => onOpenChange(false)}
+                        />
                     }
                 >
                     {intl.formatMessage(SreAgentResources.warning)}

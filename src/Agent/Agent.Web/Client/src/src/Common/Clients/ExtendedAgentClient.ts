@@ -35,6 +35,22 @@ export class ExtendedAgentClient extends DataPlaneClient {
         }
     };
 
+    public deleteExtendedAgent = async (agentName: string): Promise<Response<void>> => {
+        try {
+            await axios.delete(this.getRequestUrl(`/api/v1/extendedAgent/agents/${encodeURIComponent(agentName)}`), {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: undefined,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
     public applyEntity = async (
         data: Partial<ExtendedAgent> | Partial<ExtendedTool> | Partial<ExtendedConnector>,
         type: 'agent' | 'tool' | 'connector'

@@ -1428,7 +1428,15 @@ const ExtendedAgentGraphContent = memo(() => {
         }
 
         return (
-            <ExtendedAgentListView agents={agents} tools={tools} connectors={connectors} isLoading={loading} onRefresh={handleRefresh} />
+            <ExtendedAgentListView
+                agents={agents}
+                tools={tools}
+                systemTools={systemTools}
+                connectors={connectors}
+                triggers={triggers}
+                isLoading={loading}
+                onRefresh={handleRefresh}
+            />
         );
     }, [
         intl,

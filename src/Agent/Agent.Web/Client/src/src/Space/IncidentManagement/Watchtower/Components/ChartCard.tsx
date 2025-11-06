@@ -27,7 +27,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
     return (
         <Card style={{ flex: '1 1 550px', minWidth: 550, height: 310 }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
             <div>
-                <Subtitle2 as='h3'>{title}</Subtitle2>
+                <Subtitle2 as="h3">{title}</Subtitle2>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'end', alignItems: 'center', gap: 6 }}>

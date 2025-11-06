@@ -648,7 +648,6 @@ export const useExtendedAgentInfoStyles = makeStyles({
     },
     header: {
         padding: '16px',
-        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
@@ -667,7 +666,7 @@ export const useExtendedAgentInfoStyles = makeStyles({
     content: {
         flex: 1,
         overflowY: 'auto',
-        padding: '16px',
+        padding: '0 16px 16px 16px',
         display: 'flex',
         flexDirection: 'column',
         gap: tokens.spacingVerticalM,
@@ -686,6 +685,7 @@ export const useExtendedAgentInfoStyles = makeStyles({
     },
     sectionTitle: {
         fontWeight: tokens.fontWeightSemibold,
+        fontSize: tokens.fontSizeBase400,
         marginBottom: tokens.spacingVerticalXS,
     },
     subSection: {
@@ -694,13 +694,33 @@ export const useExtendedAgentInfoStyles = makeStyles({
         gap: tokens.spacingVerticalXS,
         marginTop: tokens.spacingVerticalS,
     },
+    handoffSection: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalXS,
+        marginTop: tokens.spacingVerticalS,
+        paddingTop: '10px',
+        paddingBottom: '10px',
+    },
+    instructionsSection: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalXS,
+        marginTop: tokens.spacingVerticalS,
+        paddingTop: '10px',
+        paddingBottom: '10px',
+    },
     subtitle: {
         color: tokens.colorNeutralForeground2,
+    },
+    actionButton: {
+        alignSelf: 'flex-start',
+        marginTop: tokens.spacingVerticalS,
     },
     instructions: {
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',
-        color: tokens.colorNeutralForeground2,
+        color: tokens.colorNeutralForeground3,
     },
     list: {
         display: 'flex',
@@ -743,15 +763,46 @@ export const useExtendedAgentInfoStyles = makeStyles({
         gap: tokens.spacingHorizontalS,
         flexWrap: 'wrap',
     },
+    neutralBadge: {
+        color: tokens.colorNeutralForeground3,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    tableCellTruncate: {
+        maxWidth: '0',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        position: 'relative',
+        '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: '0',
+            right: '0',
+            width: '20px',
+            height: '100%',
+            background: `linear-gradient(to right, transparent, ${tokens.colorNeutralBackground1})`,
+            pointerEvents: 'none',
+        },
+    },
     metadataRow: {
         display: 'flex',
-        justifyContent: 'space-between',
         gap: tokens.spacingHorizontalS,
         color: tokens.colorNeutralForeground2,
         wordBreak: 'break-word',
+        minWidth: '0',
+        width: '100%',
+        '& > *:first-child': {
+            minWidth: '150px',
+            flexShrink: 0,
+        },
+        '& > *:last-child': {
+            flex: '1 1 auto',
+            minWidth: '0',
+            paddingLeft: '50px',
+        },
     },
     metadataKey: {
-        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground3,
+        fontSize: tokens.fontSizeBase300,
     },
     emptyState: {
         color: tokens.colorNeutralForeground3,
@@ -832,5 +883,105 @@ export const useExtendedAgentInfoStyles = makeStyles({
     },
     yamlDescription: {
         color: tokens.colorNeutralForeground3,
+    },
+    textArea: {
+        width: '100%',
+        minHeight: '200px',
+        padding: '8px',
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderRadius: tokens.borderRadiusSmall,
+        color: tokens.colorNeutralForeground3,
+        fontFamily: 'inherit',
+        fontSize: tokens.fontSizeBase300,
+        resize: 'vertical',
+        outline: 'none',
+        boxSizing: 'border-box',
+    },
+    textAreaSmall: {
+        width: '100%',
+        minHeight: '100px',
+        padding: '8px',
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderRadius: tokens.borderRadiusSmall,
+        color: tokens.colorNeutralForeground3,
+        fontFamily: 'inherit',
+        fontSize: tokens.fontSizeBase300,
+        boxSizing: 'border-box',
+        resize: 'vertical',
+        outline: 'none',
+    },
+    subText: {
+        color: tokens.colorNeutralForeground3,
+    },
+    flexRowCenter: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+    },
+    flexRowCenter8: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+    },
+    flexRowCenter4: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+    },
+    flexRow12: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+    },
+    flexColumnGap4: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+        minWidth: 0,
+    },
+    flexColumnGap8: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        marginTop: '8px',
+    },
+    flexShrinkNone: {
+        flexShrink: 0,
+    },
+    paddingVertical10: {
+        paddingTop: '10px',
+        paddingBottom: '10px',
+    },
+    paddingBottom10: {
+        paddingBottom: '10px',
+    },
+    marginBottom8: {
+        marginBottom: '8px',
+    },
+    marginBottom10: {
+        marginBottom: '10px',
+    },
+    marginTopLeft: {
+        marginTop: '8px',
+        marginLeft: '8px',
+    },
+    smallIcon: {
+        width: '16px',
+        height: '16px',
+    },
+    successIcon: {
+        color: tokens.colorPaletteGreenForeground1,
+    },
+    errorIcon: {
+        color: tokens.colorPaletteRedForeground1,
+    },
+    knowledgeBaseLink: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        cursor: 'pointer',
+        fontSize: '12px',
+        color: '#0078D4',
+        textDecoration: 'underline',
     },
 });

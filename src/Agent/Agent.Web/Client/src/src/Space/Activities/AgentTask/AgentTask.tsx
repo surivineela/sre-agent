@@ -165,7 +165,11 @@ const AgentTask = forwardRef<AgentTaskGraphHandle, IAgentTaskProps>((props, agen
                             onCheckedValueChange={onSelectedTaskChange}
                         >
                             <MenuTrigger disableButtonEnhancement>
-                                <MenuButton aria-label={intl.formatMessage(GenericErrorResources.selectTask)} disabled={taskDropdownOptions.length === 0} appearance="subtle">
+                                <MenuButton
+                                    aria-label={intl.formatMessage(GenericErrorResources.selectTask)}
+                                    disabled={taskDropdownOptions.length === 0}
+                                    appearance="subtle"
+                                >
                                     <ArrowCounterclockwise24Regular />
                                 </MenuButton>
                             </MenuTrigger>

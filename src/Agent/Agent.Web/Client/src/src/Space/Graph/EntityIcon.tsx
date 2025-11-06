@@ -1,9 +1,17 @@
 import { tokens } from '@fluentui/react-components';
-import { AgentsRegular, PlayRegular, TimerRegular, WarningRegular, WrenchRegular, WrenchSettingsRegular } from '@fluentui/react-icons';
+import {
+    AgentsRegular,
+    PlayRegular,
+    PlugConnectedRegular,
+    TimerRegular,
+    WarningRegular,
+    WrenchRegular,
+    WrenchSettingsRegular,
+} from '@fluentui/react-icons';
 import { FC, useMemo } from 'react';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 export interface EntityIconProps {
-    type: 'agent' | 'scheduledTask' | 'incidentTrigger' | 'genericTrigger' | 'tool' | 'toolWithGear';
+    type: 'agent' | 'scheduledTask' | 'incidentTrigger' | 'genericTrigger' | 'tool' | 'toolWithGear' | 'connector';
     shorthandStyle?: {
         wrapperSize: number;
         iconSize: number;
@@ -52,6 +60,12 @@ export const EntityIcon: FC<EntityIconProps> = ({ type, shorthandStyle: size, wr
                     backgroundColor: tokens.colorPaletteLilacBackground2,
                     foregroundColor: tokens.colorPaletteLilacForeground2,
                     Icon: WrenchSettingsRegular,
+                };
+            case 'connector':
+                return {
+                    backgroundColor: tokens.colorPaletteGreenBackground2,
+                    foregroundColor: tokens.colorPaletteGreenForeground2,
+                    Icon: PlugConnectedRegular,
                 };
         }
     }, [type]);

@@ -1,6 +1,7 @@
 import {
     Badge,
     Button,
+    Caption1,
     Dialog,
     DialogActions,
     DialogBody,
@@ -8,16 +9,44 @@ import {
     DialogSurface,
     DialogTitle,
     Link,
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
     mergeClasses,
+    Table,
+    TableBody,
+    TableCell,
+    TableHeader,
+    TableHeaderCell,
+    TableRow,
     Text,
     tokens,
 } from '@fluentui/react-components';
-import { Beaker20Regular, Delete20Regular, Edit20Regular } from '@fluentui/react-icons';
+import {
+    ArrowRightRegular,
+    Beaker20Regular,
+    CheckmarkCircle20Regular,
+    Delete20Regular,
+    Dismiss20Regular,
+    Edit20Regular,
+    ErrorCircle20Regular,
+    MoreHorizontal20Regular,
+} from '@fluentui/react-icons';
 import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { ExtendedAgentsGraphResources, PlaygroundResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { resolveResourceIcon } from '../../Common/Helpers/Resources';
+import {
+    ConnectorsResources,
+    ExtendedAgentsGraphResources,
+    PlaygroundResources,
+    SettingsTabResources,
+    SreAgentResources,
+} from '../../Strings/SREAgentResources';
 import {
     ExtendedAgent,
     ExtendedAgentGraphContext,
@@ -29,10 +58,13 @@ import {
 } from '../Contracts/ExtendedAgentGraph';
 import { PlaygroundTarget } from '../Playground/PlaygroundModal';
 import { useExtendedAgentInfoStyles } from '../Styles/ExtendedAgentGraph.styles';
+import { EntityIcon } from './EntityIcon';
 import { ExtendedEntityYamlEditor } from './ExtendedAgentYamlEditor';
 import { ExtendedEntityType } from './ExtendedAgentYamlUtils';
+import { parseCronExpression } from './Utility';
 
 type ExtendedAgentInfoPanelProps = {
+    agents?: ExtendedAgent[];
     selectedAgent?: ExtendedAgent;
     tools: ExtendedTool[];
     connectors: ExtendedConnector[];
@@ -46,6 +78,7 @@ type ExtendedAgentInfoPanelProps = {
     minWidth?: number;
     maxWidth?: number;
     onOpenPlayground?: (target: PlaygroundTarget) => void;
+    onClose?: () => void;
 };
 
 type YamlEditorContext = {
@@ -58,20 +91,16 @@ type DeleteContext = {
     entity: ExtendedAgent | ExtendedTool;
 };
 
-const getAgentTypeLabel = (agentType: ExtendedAgent['agentType'], intl: ReturnType<typeof useIntl>) => {
-    switch (agentType) {
-        case 'Orchestrator':
-            return intl.formatMessage(ExtendedAgentsGraphResources.orchestrator);
-        case 'Activity':
-            return intl.formatMessage(ExtendedAgentsGraphResources.activity);
-        case 'Autonomous':
-        default:
-            return intl.formatMessage(ExtendedAgentsGraphResources.autonomous);
-    }
-};
+const EMPTY_DISPLAY = '-' as const;
+
+const SERVICE_TYPE = {
+    AZURE_DATA_EXPLORER: 'Azure Data Explorer (Kusto)',
+    CUSTOM_TOOL: 'Custom Tool',
+} as const;
 
 export const ExtendedAgentInfoPanel = memo(
     ({
+        agents = [],
         selectedAgent,
         tools,
         connectors,
@@ -85,10 +114,12 @@ export const ExtendedAgentInfoPanel = memo(
         minWidth,
         maxWidth,
         onOpenPlayground,
+        onClose,
     }: ExtendedAgentInfoPanelProps) => {
         const styles = useExtendedAgentInfoStyles();
         const intl = useIntl();
         const navigate = useNavigate();
+        const location = useLocation();
         const { selectedNode } = useContext(ExtendedAgentGraphContext);
         const [yamlEditorContext, setYamlEditorContext] = useState<YamlEditorContext>();
         const [isResizeHandleHovered, setIsResizeHandleHovered] = useState(false);
@@ -100,13 +131,28 @@ export const ExtendedAgentInfoPanel = memo(
         const panelMinWidth = minWidth ?? 280;
         const panelMaxWidth = maxWidth ?? 720;
 
-        // Memory is enabled if the SearchMemory tool is available in the agent's tools
         const memoryEnabled =
             selectedAgent?.tools?.some(t => t.toLowerCase() === 'searchmemory') ||
             selectedAgent?.systemTools?.some(t => t.toLowerCase() === 'searchmemory') ||
             false;
 
-        // Fetch document count when memory is enabled
+        const connectorMap = useMemo(() => new Map(connectors.map(connector => [connector.name, connector])), [connectors]);
+        const triggerMap = useMemo(() => new Map(triggers.map(trigger => [trigger.name, trigger])), [triggers]);
+        const systemToolMap = useMemo(() => new Map(systemTools.map(tool => [tool.name, tool])), [systemTools]);
+        const toolMap = useMemo(() => new Map(tools.map(tool => [tool.name, tool])), [tools]);
+
+        const agentToolNames = useMemo(() => {
+            if (!selectedAgent?.tools?.length) {
+                return [] as string[];
+            }
+
+            return selectedAgent.tools;
+        }, [selectedAgent?.tools]);
+
+        useEffect(() => {
+            setYamlEditorContext(undefined);
+        }, [selectedAgent?.name, selectedNode?.id, triggerMap]);
+
         useEffect(() => {
             if (memoryEnabled) {
                 const fetchDocumentCount = async () => {
@@ -135,35 +181,6 @@ export const ExtendedAgentInfoPanel = memo(
             }
         }, [memoryEnabled, sreAgentEndpoint]);
 
-        // Keep a tool map so we can validate tool names referenced by the agent.
-        const toolMap = useMemo(() => new Map(tools.map(tool => [tool.name, tool])), [tools]);
-        const connectorMap = useMemo(() => new Map(connectors.map(connector => [connector.name, connector])), [connectors]);
-        const triggerMap = useMemo(() => new Map(triggers.map(trigger => [trigger.name, trigger])), [triggers]);
-        const systemToolMap = useMemo(() => new Map(systemTools.map(tool => [tool.name, tool])), [systemTools]);
-
-        const agentToolNames = useMemo(() => {
-            if (!selectedAgent?.tools?.length) {
-                return [] as string[];
-            }
-
-            return selectedAgent.tools.filter(toolName => toolMap.has(toolName));
-        }, [selectedAgent?.tools, toolMap]);
-
-        const agentSystemToolNames = useMemo(() => {
-            if (!selectedAgent) {
-                return [] as string[];
-            }
-
-            const explicit = selectedAgent.systemTools ?? [];
-            const fallback = selectedAgent.tools?.filter(toolName => systemToolMap.has(toolName)) ?? [];
-
-            return Array.from(new Set<string>([...explicit, ...fallback].filter(Boolean)));
-        }, [selectedAgent, systemToolMap]);
-
-        useEffect(() => {
-            setYamlEditorContext(undefined);
-        }, [selectedAgent?.name, selectedNode?.id, triggerMap]);
-
         const handleOpenYamlEditor = useCallback(
             (entity: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger | undefined, type: ExtendedEntityType) => {
                 if (!entity) return;
@@ -172,210 +189,270 @@ export const ExtendedAgentInfoPanel = memo(
             []
         );
 
-        const renderStringList = useCallback(
-            (items: string[] | undefined, emptyMessage: string) => {
-                if (!items || items.length === 0) {
-                    return <Text className={styles.emptyState}>{emptyMessage}</Text>;
-                }
-                return (
-                    <div className={styles.list}>
-                        {items.map(item => (
-                            <div key={item} className={styles.listItem}>
-                                <Text>{item}</Text>
-                            </div>
-                        ))}
-                    </div>
-                );
-            },
-            [styles.emptyState, styles.list, styles.listItem]
-        );
-
         const renderToolDetails = useCallback(
             (tool: ExtendedTool) => {
                 const connector = tool.connector ? connectorMap.get(tool.connector) : undefined;
 
                 return (
                     <>
-                        <div className={styles.subSection}>
-                            <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.toolTypeLabel)}</Text>
-                            <Text>{tool.type}</Text>
+                        <div className={styles.metadataRow}>
+                            <Text className={styles.metadataKey}>{intl.formatMessage(ExtendedAgentsGraphResources.connector)}</Text>
+                            <Text>{tool.connector || EMPTY_DISPLAY}</Text>
                         </div>
-                        <div className={styles.subSection}>
-                            <Text className={styles.sectionTitle}>
-                                {intl.formatMessage(ExtendedAgentsGraphResources.toolDescriptionLabel)}
-                            </Text>
-                            <Text>{tool.description ?? intl.formatMessage(ExtendedAgentsGraphResources.noDescription)}</Text>
-                        </div>
-                        <div className={styles.subSection}>
-                            <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.connectorLabel)}</Text>
-                            <Text>{tool.connector ?? intl.formatMessage(SreAgentResources.NA)}</Text>
-                        </div>
-                        <div className={styles.subSection}>
-                            <Text className={styles.sectionTitle}>
-                                {intl.formatMessage(ExtendedAgentsGraphResources.parametersSectionTitle)}
-                            </Text>
-                            {tool.parameters && tool.parameters.length > 0 ? (
-                                <div className={styles.list}>
-                                    {tool.parameters.map(parameter => {
-                                        const paramName = parameter.name || intl.formatMessage(SreAgentResources.NA);
-                                        const paramType = (parameter.type || 'string').toUpperCase();
-                                        const isRequired = parameter.required !== false;
 
-                                        return (
-                                            <div key={paramName} className={styles.listItem}>
-                                                <div className={styles.listItemHeader}>
-                                                    <Text weight="semibold" className={styles.metadataKey}>
-                                                        {paramName}
-                                                    </Text>
-                                                    <Badge size="small" appearance="tint" color="informative">
-                                                        {paramType}
-                                                    </Badge>
-                                                </div>
-                                                {!isRequired && (
-                                                    <div className={styles.listItemBadges}>
-                                                        <Badge size="tiny" appearance="ghost" color="informative">
-                                                            {intl.formatMessage(ExtendedAgentsGraphResources.optional)}
-                                                        </Badge>
-                                                    </div>
-                                                )}
-                                                {parameter.description && (
-                                                    <Text size={200} className={styles.subtitle}>
-                                                        {parameter.description}
-                                                    </Text>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.noParameters)}</Text>
-                            )}
-                        </div>
-                        {connector && (
-                            <div className={styles.subSection}>
-                                <Text className={styles.sectionTitle}>
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.connectorDetailsTitle, {
-                                        name: connector.name,
-                                    })}
+                        <div className={styles.metadataRow}>
+                            <Text className={styles.metadataKey}>{intl.formatMessage(ExtendedAgentsGraphResources.service)}</Text>
+                            <div className={styles.flexRowCenter}>
+                                {tool.type === 'KustoTool' ? (
+                                    <img
+                                        src={resolveResourceIcon('AzureDataExplorer')}
+                                        alt={intl.formatMessage(ConnectorsResources.azureDataExplorer)}
+                                        className={styles.smallIcon}
+                                    />
+                                ) : (
+                                    <EntityIcon type="tool" shorthandStyle={{ wrapperSize: 16, iconSize: 12, borderRadius: 3 }} />
+                                )}
+                                <Text>
+                                    {tool.type === 'KustoTool' ? SERVICE_TYPE.AZURE_DATA_EXPLORER : tool.type || SERVICE_TYPE.CUSTOM_TOOL}
                                 </Text>
-                                <div className={styles.list}>
-                                    <div className={styles.listItem}>
-                                        <div className={styles.listItemHeader}>
-                                            <Text className={styles.metadataKey}>
-                                                {intl.formatMessage(ExtendedAgentsGraphResources.connectorTypeLabel)}
-                                            </Text>
-                                            <Text size={200} className={styles.subtitle}>
-                                                {connector.type}
-                                            </Text>
-                                        </div>
-                                    </div>
-                                    <div className={styles.listItem}>
-                                        <div className={styles.listItemHeader}>
-                                            <Text className={styles.metadataKey}>
-                                                {intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusLabel)}
-                                            </Text>
-                                            <Badge
-                                                size="small"
-                                                appearance={(connector.enabled ?? true) ? 'tint' : 'filled'}
-                                                color={(connector.enabled ?? true) ? 'success' : 'danger'}
-                                                className={styles.statusBadge}
-                                            >
-                                                {(connector.enabled ?? true)
-                                                    ? intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusEnabled)
-                                                    : intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusDisabled)}
-                                            </Badge>
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+
+                        {tool.type === 'KustoTool' && (
+                            <div className={styles.metadataRow}>
+                                <Text className={styles.metadataKey}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.kustoDatabaseLabel)}
+                                </Text>
+                                <Text>{tool.database || EMPTY_DISPLAY}</Text>
+                            </div>
+                        )}
+
+                        {tool.connector && (
+                            <div className={styles.metadataRow}>
+                                <Text className={styles.metadataKey}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.connectorStatus)}
+                                </Text>
+                                <div className={styles.flexRowCenter}>
+                                    {(() => {
+                                        const connectorEnabled = connector?.enabled !== false;
+                                        return connectorEnabled ? (
+                                            <>
+                                                <CheckmarkCircle20Regular className={styles.successIcon} />
+                                                <Text>{intl.formatMessage(ExtendedAgentsGraphResources.connectedStatus)}</Text>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ErrorCircle20Regular className={styles.errorIcon} />
+                                                <Text>{intl.formatMessage(ExtendedAgentsGraphResources.disconnectedStatus)}</Text>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         )}
-                        {tool.type === 'KustoTool' && (
+
+                        <div className={styles.paddingVertical10}>
                             <div className={styles.subSection}>
-                                <Text className={styles.sectionTitle}>
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.kustoConfigurationTitle)}
+                                <Text className={mergeClasses(styles.sectionTitle, styles.marginBottom8)}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.instructions)}
                                 </Text>
-                                <div className={styles.list}>
-                                    {tool.mode && (
-                                        <div className={styles.listItem}>
-                                            <div className={styles.listItemHeader}>
-                                                <Text weight="semibold" className={styles.metadataKey}>
-                                                    {intl.formatMessage(ExtendedAgentsGraphResources.kustoModeLabel)}
-                                                </Text>
-                                                <Badge size="small" appearance="tint" color="informative">
-                                                    {tool.mode.toUpperCase()}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {tool.database && (
-                                        <div className={styles.listItem}>
-                                            <div className={styles.listItemHeader}>
-                                                <Text weight="semibold" className={styles.metadataKey}>
-                                                    {intl.formatMessage(ExtendedAgentsGraphResources.kustoDatabaseLabel)}
-                                                </Text>
-                                            </div>
-                                            <Text size={200} className={styles.subtitle}>
-                                                {tool.database}
-                                            </Text>
-                                        </div>
-                                    )}
-                                    {tool.query && (
-                                        <div className={styles.listItem}>
-                                            <div className={styles.listItemHeader}>
-                                                <Text weight="semibold" className={styles.metadataKey}>
-                                                    {intl.formatMessage(ExtendedAgentsGraphResources.kustoQueryLabel)}
-                                                </Text>
-                                            </div>
-                                            <pre
-                                                style={{
-                                                    fontSize: tokens.fontSizeBase200,
-                                                    background: tokens.colorNeutralBackground2,
-                                                    color: tokens.colorNeutralForeground1,
-                                                    padding: tokens.spacingHorizontalS,
-                                                    borderRadius: tokens.borderRadiusSmall,
-                                                    border: `1px solid ${tokens.colorNeutralStroke2}`,
-                                                    whiteSpace: 'pre-wrap',
-                                                    wordWrap: 'break-word',
-                                                    maxHeight: '200px',
-                                                    overflow: 'auto',
-                                                    fontFamily: tokens.fontFamilyMonospace,
-                                                }}
-                                            >
-                                                {tool.query}
-                                            </pre>
-                                        </div>
-                                    )}
-                                    {tool.function && (
-                                        <div className={styles.listItem}>
-                                            <div className={styles.listItemHeader}>
-                                                <Text weight="semibold" className={styles.metadataKey}>
-                                                    {intl.formatMessage(ExtendedAgentsGraphResources.kustoFunctionLabel)}
-                                                </Text>
-                                            </div>
-                                            <Text size={200} className={styles.subtitle}>
-                                                {tool.function}
-                                            </Text>
-                                        </div>
-                                    )}
-                                    {tool.clusterUri && (
-                                        <div className={styles.listItem}>
-                                            <div className={styles.listItemHeader}>
-                                                <Text weight="semibold" className={styles.metadataKey}>
-                                                    {intl.formatMessage(ExtendedAgentsGraphResources.kustoClusterUriLabel)}
-                                                </Text>
-                                            </div>
-                                            <Text size={200} className={styles.subtitle}>
-                                                {tool.clusterUri}
-                                            </Text>
-                                        </div>
-                                    )}
+                                <Text className={styles.subText}>
+                                    {tool.description || intl.formatMessage(ExtendedAgentsGraphResources.listViewDescriptionFallback)}
+                                </Text>
+                            </div>
+                        </div>
+
+                        {tool.type === 'KustoTool' && tool.query && (
+                            <div className={styles.paddingBottom10}>
+                                <div className={styles.subSection}>
+                                    <Text className={mergeClasses(styles.sectionTitle, styles.marginBottom8)}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.kustoQueryLabel)}
+                                    </Text>
+                                    <div className={styles.subText}>{tool.query}</div>
                                 </div>
+                            </div>
+                        )}
+
+                        <div className={styles.subSection}>
+                            <Text className={mergeClasses(styles.sectionTitle, styles.marginBottom8)}>
+                                {intl.formatMessage(ExtendedAgentsGraphResources.parametersSectionTitle)}
+                            </Text>
+                            {tool.parameters && tool.parameters.length > 0 ? (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHeaderCell>
+                                                <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.parameter)}</Text>
+                                            </TableHeaderCell>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {tool.parameters.map((param, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell>
+                                                    <Text>{param}</Text>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            ) : (
+                                <Text className={styles.emptyState}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.noParametersConfigured)}
+                                </Text>
+                            )}
+                        </div>
+                    </>
+                );
+            },
+            [
+                connectorMap,
+                intl,
+                styles.metadataRow,
+                styles.metadataKey,
+                styles.sectionTitle,
+                styles.subtitle,
+                styles.emptyState,
+                styles.subSection,
+            ]
+        );
+
+        const renderTriggerDetails = useCallback(
+            (trigger: ExtendedTrigger) => {
+                return (
+                    <>
+                        <div className={styles.metadataRow}>
+                            <Text className={styles.metadataKey}>{intl.formatMessage(ExtendedAgentsGraphResources.statusLabel)}</Text>
+                            <div className={styles.badgeRow}>
+                                <Badge
+                                    appearance={trigger.status === 'Active' ? 'tint' : 'outline'}
+                                    size="medium"
+                                    color={trigger.status === 'Active' ? 'success' : 'danger'}
+                                >
+                                    {trigger.status === 'Active'
+                                        ? intl.formatMessage(ExtendedAgentsGraphResources.onLabel)
+                                        : intl.formatMessage(ExtendedAgentsGraphResources.offLabel)}
+                                </Badge>
+                            </div>
+                        </div>
+
+                        <div className={styles.metadataRow}>
+                            <Text className={styles.metadataKey}>{intl.formatMessage(ExtendedAgentsGraphResources.subagent)}</Text>
+                            <Text>{trigger?.subAgent || trigger?.data?.agentName}</Text>
+                        </div>
+                        {trigger.type === 'incident' && (
+                            <>
+                                <div className={styles.metadataRow}>
+                                    <Text className={styles.metadataKey}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.severityLabel)}
+                                    </Text>
+                                    <Text>{trigger.severity ?? EMPTY_DISPLAY}</Text>
+                                </div>
+
+                                <div className={styles.metadataRow}>
+                                    <Text className={styles.metadataKey}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.triggerIncidentTypeLabel)}
+                                    </Text>
+                                    <Text>{trigger.incidentType ?? EMPTY_DISPLAY}</Text>
+                                </div>
+
+                                <div className={styles.metadataRow}>
+                                    <Text className={styles.metadataKey}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.incidentImpactedService)}
+                                    </Text>
+                                    <Text>{trigger.impactedService ?? EMPTY_DISPLAY}</Text>
+                                </div>
+                                <div className={styles.metadataRow}>
+                                    <Text className={styles.metadataKey}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.agentAutonomy)}
+                                    </Text>
+                                    <Text>{intl.formatMessage(SreAgentResources.reviewWord)}</Text>
+                                </div>
+                            </>
+                        )}
+
+                        {trigger.type === 'scheduled' && (
+                            <>
+                                <div className={styles.metadataRow}>
+                                    <Text className={styles.metadataKey}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.scheduleTitle)}
+                                    </Text>
+                                    <Text>
+                                        {parseCronExpression(
+                                            trigger.schedule || trigger.cronExpression || intl.formatMessage(SreAgentResources.NA)
+                                        )}
+                                    </Text>
+                                </div>
+                                <div className={styles.metadataRow}>
+                                    <Text className={styles.metadataKey}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.agentAutonomy)}
+                                    </Text>
+                                    <Text>{intl.formatMessage(SreAgentResources.autonomousWord)}</Text>
+                                </div>
+                            </>
+                        )}
+
+                        <div className={styles.instructionsSection}>
+                            <Text className={styles.sectionTitle}>
+                                {intl.formatMessage(ExtendedAgentsGraphResources.instructionsTitle)}
+                            </Text>
+                            <Text className={styles.instructions}>
+                                {trigger?.data?.description ||
+                                    trigger?.description ||
+                                    intl.formatMessage(ExtendedAgentsGraphResources.listViewDescriptionFallback)}
+                            </Text>
+                        </div>
+
+                        {trigger.type === 'incident' && (
+                            <div className={styles.subSection}>
+                                <Text className={mergeClasses(styles.sectionTitle, styles.marginBottom8)}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.incidents)}
+                                </Text>
+                                <Text color={tokens.colorNeutralForeground3}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.incidentDescription)}
+                                </Text>
+                                <Button
+                                    appearance="outline"
+                                    icon={<ArrowRightRegular />}
+                                    className={styles.actionButton}
+                                    onClick={handleGoToIncidents}
+                                >
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.goToIncidents)}
+                                </Button>
+                            </div>
+                        )}
+
+                        {trigger.type === 'scheduled' && (
+                            <div className={styles.subSection}>
+                                <Text className={mergeClasses(styles.sectionTitle, styles.marginBottom8)}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.runs)}
+                                </Text>
+                                <Text>{intl.formatMessage(ExtendedAgentsGraphResources.runDescription)}</Text>
+                                <Button
+                                    appearance="outline"
+                                    icon={<ArrowRightRegular />}
+                                    className={styles.actionButton}
+                                    onClick={handleGoToScheduled}
+                                >
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.goToScheduledTasks)}
+                                </Button>
                             </div>
                         )}
                     </>
                 );
             },
-            [connectorMap, intl, styles.list, styles.listItem, styles.sectionTitle, styles.subtitle, styles.emptyState, styles.subSection]
+            [
+                intl,
+                styles.badgeRow,
+                styles.sectionTitle,
+                styles.subSection,
+                styles.metadataRow,
+                styles.metadataKey,
+                styles.neutralBadge,
+                styles.textArea,
+                styles.subtitle,
+                styles.actionButton,
+            ]
         );
 
         const renderConnectorDetails = useCallback(
@@ -401,66 +478,6 @@ export const ExtendedAgentInfoPanel = memo(
                     <div className={styles.subSection}>
                         <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.connectorAuthLabel)}</Text>
                         <Text>{connector.auth?.type ?? intl.formatMessage(SreAgentResources.NA)}</Text>
-                    </div>
-                </>
-            ),
-            [intl, styles.badgeRow, styles.sectionTitle, styles.subSection]
-        );
-
-        const renderTriggerDetails = useCallback(
-            (trigger: ExtendedTrigger) => (
-                <>
-                    <div className={styles.badgeRow}>
-                        <Badge
-                            appearance={trigger.enabled ? 'tint' : 'outline'}
-                            size="small"
-                            color={trigger.type === 'incident' ? 'danger' : 'informative'}
-                        >
-                            {intl.formatMessage(
-                                trigger.type === 'incident'
-                                    ? ExtendedAgentsGraphResources.triggerBadgeIncident
-                                    : ExtendedAgentsGraphResources.triggerBadgeScheduled
-                            )}
-                        </Badge>
-                        <Badge appearance={trigger.enabled ? 'tint' : 'outline'} size="small">
-                            {trigger.enabled
-                                ? intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusEnabled)
-                                : intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusDisabled)}
-                        </Badge>
-                    </div>
-                    <div className={styles.subSection}>
-                        <Text className={styles.sectionTitle}>
-                            {intl.formatMessage(ExtendedAgentsGraphResources.triggerDescriptionLabel)}
-                        </Text>
-                        <Text>{trigger.description ?? intl.formatMessage(ExtendedAgentsGraphResources.noDescription)}</Text>
-                    </div>
-                    {trigger.type === 'incident' && (
-                        <>
-                            <div className={styles.subSection}>
-                                <Text className={styles.sectionTitle}>
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.triggerSeverityLabel)}
-                                </Text>
-                                <Text>{trigger.severity ?? intl.formatMessage(SreAgentResources.NA)}</Text>
-                            </div>
-                            <div className={styles.subSection}>
-                                <Text className={styles.sectionTitle}>
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.triggerServiceLabel)}
-                                </Text>
-                                <Text>{trigger.service ?? intl.formatMessage(SreAgentResources.NA)}</Text>
-                            </div>
-                        </>
-                    )}
-                    {trigger.type === 'scheduled' && (
-                        <div className={styles.subSection}>
-                            <Text className={styles.sectionTitle}>
-                                {intl.formatMessage(ExtendedAgentsGraphResources.triggerSchedulePresetLabel)}
-                            </Text>
-                            <Text>{trigger.schedule ?? intl.formatMessage(SreAgentResources.NA)}</Text>
-                        </div>
-                    )}
-                    <div className={styles.subSection}>
-                        <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.triggerAgentLabel)}</Text>
-                        <Text>{trigger.agentName ?? intl.formatMessage(SreAgentResources.NA)}</Text>
                     </div>
                 </>
             ),
@@ -514,6 +531,14 @@ export const ExtendedAgentInfoPanel = memo(
             setDeleteContext(undefined);
         }, []);
 
+        const handleGoToIncidents = useCallback(() => {
+            navigate({ ...location, pathname: '/views/incidentmanagement' });
+        }, [navigate, location]);
+
+        const handleGoToScheduled = useCallback(() => {
+            navigate({ ...location, pathname: '/views/scheduledtasks' });
+        }, [navigate, location]);
+
         const selectedTool = selectedNode?.type === ExtendedAgentNodeType.Tool ? (selectedNode.data as ExtendedTool) : undefined;
         const selectedConnector =
             selectedNode?.type === ExtendedAgentNodeType.Connector ? (selectedNode.data as ExtendedConnector) : undefined;
@@ -526,7 +551,7 @@ export const ExtendedAgentInfoPanel = memo(
             if (selectedTool) return { entity: selectedTool, type: 'tool' as const };
             if (selectedConnector) return { entity: selectedConnector, type: 'connector' as const };
             if (selectedTrigger) return { entity: selectedTrigger, type: 'trigger' as const };
-            if (selectedSystemTool) return undefined; // System tools are read-only
+            if (selectedSystemTool) return undefined;
             if (selectedAgent) return { entity: selectedAgent, type: 'agent' as const };
             return undefined;
         }, [selectedAgent, selectedConnector, selectedTool, selectedTrigger, selectedSystemTool]);
@@ -567,6 +592,16 @@ export const ExtendedAgentInfoPanel = memo(
             onOpenPlayground?.(playgroundTarget);
         }, [onOpenPlayground, playgroundTarget]);
 
+        const getHeaderIconType = () => {
+            if (selectedTool) return 'toolWithGear';
+            if (selectedConnector) return 'connector';
+            if (selectedTrigger) return selectedTrigger.type === 'incident' ? 'incidentTrigger' : 'scheduledTask';
+            if (selectedSystemTool) return 'tool';
+            return 'agent';
+        };
+
+        const headerIcon = <EntityIcon type={getHeaderIconType()} shorthandStyle={{ wrapperSize: 40, iconSize: 28, borderRadius: 8 }} />;
+
         const headerTitle =
             selectedTool?.name ??
             selectedConnector?.name ??
@@ -575,203 +610,215 @@ export const ExtendedAgentInfoPanel = memo(
             selectedAgent?.name ??
             intl.formatMessage(ExtendedAgentsGraphResources.agentSummaryTitle);
 
-        const headerSubtitle = selectedTool
-            ? `${intl.formatMessage(ExtendedAgentsGraphResources.toolTypeLabel)}: ${
-                  selectedTool.type ?? intl.formatMessage(SreAgentResources.NA)
-              }`
-            : selectedConnector
-              ? `${intl.formatMessage(ExtendedAgentsGraphResources.connectorTypeLabel)}: ${
-                    selectedConnector.type ?? intl.formatMessage(SreAgentResources.NA)
-                }`
-              : selectedTrigger
-                ? `Trigger Type: ${selectedTrigger.type === 'incident' ? 'Incident' : 'Scheduled'}`
-                : selectedSystemTool
-                  ? `System Tool - Category: ${selectedSystemTool.category}`
-                  : selectedAgent
-                    ? intl.formatMessage(ExtendedAgentsGraphResources.filteredAgentLabel, { name: selectedAgent.name })
-                    : intl.formatMessage(ExtendedAgentsGraphResources.noAgentSelected);
-
         const agentDetails =
             selectedAgent && !selectedTool && !selectedConnector && !selectedTrigger && !selectedSystemTool ? (
                 <>
-                    <div className={styles.summary}>
-                        <Text size={400} weight="semibold">
-                            {selectedAgent.name}
-                        </Text>
+                    <div className={styles.paddingVertical10}>
                         <div className={styles.badgeRow}>
-                            {selectedAgent.agentType && (
-                                <Badge appearance="outline" size="small">
-                                    {getAgentTypeLabel(selectedAgent.agentType, intl)}
-                                </Badge>
-                            )}
-                            {memoryEnabled && (
-                                <Badge appearance="outline" size="small">
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.memoryEnabledBadge)}
-                                </Badge>
-                            )}
-                            {selectedAgent.outputType && (
-                                <Badge appearance="outline" size="small">
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.outputTypeLabel)}: {selectedAgent.outputType}
-                                </Badge>
-                            )}
-                        </div>
-                        {memoryEnabled && documentCount !== null && (
-                            <div style={{ marginTop: '8px', marginLeft: '8px' }}>
-                                <Link
-                                    onClick={() => navigate('/views/settings/knowledgeBase')}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        cursor: 'pointer',
-                                        fontSize: '12px',
-                                        color: '#0078D4',
-                                        textDecoration: 'underline',
-                                    }}
-                                >
-                                    {documentCount > 0
-                                        ? intl.formatMessage(ExtendedAgentsGraphResources.memoryKnowledgeBasePrompt, {
-                                              count: documentCount,
-                                          })
-                                        : intl.formatMessage(ExtendedAgentsGraphResources.memoryNoDocuments)}
-                                </Link>
-                            </div>
-                        )}
-                        <div className={styles.badgeRow}>
-                            <Badge appearance="tint" size="small">
+                            <Badge appearance="outline" size="medium" className={styles.neutralBadge}>
                                 {intl.formatMessage(ExtendedAgentsGraphResources.toolsCountBadge, {
                                     count: agentToolNames.length,
                                 })}
                             </Badge>
-                            <Badge appearance="tint" size="small">
-                                {intl.formatMessage(ExtendedAgentsGraphResources.systemToolsCountBadge, {
-                                    count: agentSystemToolNames.length,
-                                })}
-                            </Badge>
-                            <Badge appearance="tint" size="small">
-                                {intl.formatMessage(ExtendedAgentsGraphResources.mcpToolsCountBadge, {
-                                    count: selectedAgent.mcpTools?.length ?? 0,
-                                })}
-                            </Badge>
-                            <Badge appearance="tint" size="small">
+                            <Badge appearance="outline" size="medium" className={styles.neutralBadge}>
                                 {intl.formatMessage(ExtendedAgentsGraphResources.handoffCountBadge, {
                                     count: selectedAgent.handoffs?.length ?? 0,
                                 })}
                             </Badge>
-                            <Badge appearance="tint" size="small">
-                                {intl.formatMessage(ExtendedAgentsGraphResources.agentAsToolCountBadge, {
-                                    count: selectedAgent.agentsAsTools?.length ?? 0,
-                                })}
-                            </Badge>
+                            {memoryEnabled && (
+                                <Badge appearance="outline" size="medium" className={styles.neutralBadge}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.memoryEnabledBadge)}
+                                </Badge>
+                            )}
                         </div>
+                        {memoryEnabled && documentCount !== null && (
+                            <div className={styles.marginTopLeft}>
+                                <Link onClick={() => navigate('/views/settings/knowledgeBase')} className={styles.knowledgeBaseLink}>
+                                    {documentCount > 0
+                                        ? `View ${documentCount} documents in Knowledge Base`
+                                        : 'No documents in Knowledge Base - Add documents'}
+                                </Link>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Instructions / Handoff Description */}
                     <div className={styles.section}>
                         <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.instructionsTitle)}</Text>
                         {selectedAgent.instructions && selectedAgent.instructions.trim().length > 0 ? (
-                            <Text className={styles.instructions}>{selectedAgent.instructions}</Text>
+                            <textarea readOnly value={selectedAgent.instructions} className={styles.textArea} />
                         ) : (
                             <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.noInstructions)}</Text>
                         )}
                         {selectedAgent.handoffDescription && (
-                            <div className={styles.subSection}>
-                                <Text className={styles.sectionTitle}>
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.handoffDescriptionTitle)}
+                            <div className={styles.handoffSection}>
+                                <Text className={mergeClasses(styles.sectionTitle, styles.marginBottom10)}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.handoffInstructions)}
                                 </Text>
-                                <Text className={styles.instructions}>{selectedAgent.handoffDescription}</Text>
+                                <textarea readOnly value={selectedAgent.handoffDescription} className={styles.textAreaSmall} />
                             </div>
                         )}
                     </div>
 
-                    {/* Tools: simple, uncluttered list of names (validated against known tools) */}
                     <div className={styles.section}>
-                        <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.toolsSectionTitle)}</Text>
+                        <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.tools)}</Text>
                         {agentToolNames.length > 0 ? (
-                            <div className={styles.list}>
-                                {agentToolNames.map(name => (
-                                    <div key={name} className={styles.listItem}>
-                                        <Text>{name}</Text>
-                                    </div>
-                                ))}
-                            </div>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHeaderCell>
+                                            <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.toolName)}</Text>
+                                        </TableHeaderCell>
+                                        <TableHeaderCell>
+                                            <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.category)}</Text>
+                                        </TableHeaderCell>
+                                        <TableHeaderCell>
+                                            <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.description)}</Text>
+                                        </TableHeaderCell>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {agentToolNames.map(name => {
+                                        const tool = toolMap.get(name);
+                                        const systemTool = systemToolMap.get(name);
+
+                                        let iconType: 'tool' | 'toolWithGear' = 'tool';
+                                        let category: string = '';
+                                        let description = tool?.description || EMPTY_DISPLAY;
+
+                                        if (systemTool) {
+                                            iconType = 'tool';
+                                            category = intl.formatMessage(ExtendedAgentsGraphResources.builtInTools);
+                                            description =
+                                                systemTool.description ||
+                                                intl.formatMessage(ExtendedAgentsGraphResources.listViewDescriptionFallback);
+                                        } else if (tool?.type === 'KustoTool') {
+                                            iconType = 'toolWithGear';
+                                            category = intl.formatMessage(ExtendedAgentsGraphResources.kustoTools);
+                                        }
+
+                                        return (
+                                            <TableRow key={`tool-${name}`}>
+                                                <TableCell className={styles.tableCellTruncate}>
+                                                    <div className={styles.flexRowCenter8}>
+                                                        <EntityIcon
+                                                            type={iconType}
+                                                            shorthandStyle={{ wrapperSize: 20, iconSize: 16, borderRadius: 4 }}
+                                                        />
+                                                        <Text title={name}>{name}</Text>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Text>{category}</Text>
+                                                </TableCell>
+                                                <TableCell className={styles.tableCellTruncate}>
+                                                    <Text title={description}>{description}</Text>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
                         ) : (
                             <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.noTools)}</Text>
                         )}
                     </div>
 
                     <div className={styles.section}>
-                        <Text className={styles.sectionTitle}>
-                            {intl.formatMessage(ExtendedAgentsGraphResources.systemToolsSectionTitle)}
-                        </Text>
-                        {agentSystemToolNames.length > 0 ? (
-                            <div className={styles.list}>
-                                {agentSystemToolNames.map(name => {
-                                    const systemTool = systemToolMap.get(name);
-                                    return (
-                                        <div key={name} className={styles.listItem}>
-                                            <Text weight="semibold">{name}</Text>
-                                            {systemTool?.pluginName && (
-                                                <Text size={200} className={styles.subtitle}>
-                                                    {intl.formatMessage(ExtendedAgentsGraphResources.systemToolPluginLabel)}:{' '}
-                                                    {systemTool.pluginName}
-                                                </Text>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.noSystemTools)}</Text>
-                        )}
-                    </div>
-
-                    {/* MCP Tools */}
-                    <div className={styles.section}>
-                        <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.mcpToolsSectionTitle)}</Text>
-                        {selectedAgent.mcpTools && selectedAgent.mcpTools.length > 0 ? (
-                            <div className={styles.list}>
-                                {selectedAgent.mcpTools.map(name => (
-                                    <div key={name} className={styles.listItem}>
-                                        <Text>{name}</Text>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.noMcpTools)}</Text>
-                        )}
-                    </div>
-
-                    {/* Handoffs */}
-                    <div className={styles.section}>
                         <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.handoffsSectionTitle)}</Text>
-                        {renderStringList(selectedAgent.handoffs, intl.formatMessage(ExtendedAgentsGraphResources.noHandoffs))}
+                        {selectedAgent.handoffs && selectedAgent.handoffs.length > 0 ? (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHeaderCell>
+                                            <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.agentName)}</Text>
+                                        </TableHeaderCell>
+                                        <TableHeaderCell>
+                                            <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.tools)}</Text>
+                                        </TableHeaderCell>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {selectedAgent.handoffs.map(handoffAgentName => {
+                                        const handoffAgent = agents.find(agent => agent.name === handoffAgentName);
+
+                                        const explicitSystemTools = handoffAgent?.systemTools ?? [];
+                                        const implicitSystemTools =
+                                            handoffAgent?.tools?.filter(toolName => systemToolMap.has(toolName)) ?? [];
+                                        const systemToolCount = Array.from(
+                                            new Set([...explicitSystemTools, ...implicitSystemTools])
+                                        ).length;
+
+                                        const kustoToolCount =
+                                            handoffAgent?.tools?.filter(toolName => {
+                                                const tool = toolMap.get(toolName);
+                                                return tool?.type === 'KustoTool';
+                                            })?.length ?? 0;
+
+                                        return (
+                                            <TableRow key={handoffAgentName}>
+                                                <TableCell className={styles.tableCellTruncate}>
+                                                    <Text title={handoffAgentName}>{handoffAgentName}</Text>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className={styles.flexRowCenter8}>
+                                                        {systemToolCount === 0 && kustoToolCount === 0 ? (
+                                                            <Text>{EMPTY_DISPLAY}</Text>
+                                                        ) : (
+                                                            <>
+                                                                {systemToolCount > 0 && (
+                                                                    <div className={styles.flexRowCenter4}>
+                                                                        <EntityIcon
+                                                                            type="tool"
+                                                                            shorthandStyle={{
+                                                                                wrapperSize: 20,
+                                                                                iconSize: 16,
+                                                                                borderRadius: 3,
+                                                                            }}
+                                                                        />
+                                                                        <Text>{systemToolCount}</Text>
+                                                                    </div>
+                                                                )}
+
+                                                                {kustoToolCount > 0 && (
+                                                                    <div className={styles.flexRowCenter4}>
+                                                                        <EntityIcon
+                                                                            type="toolWithGear"
+                                                                            shorthandStyle={{
+                                                                                wrapperSize: 20,
+                                                                                iconSize: 16,
+                                                                                borderRadius: 3,
+                                                                            }}
+                                                                        />
+                                                                        <Text>{kustoToolCount}</Text>
+                                                                    </div>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        ) : (
+                            <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.noHandoffs)}</Text>
+                        )}
                     </div>
                 </>
             ) : !selectedAgent ? (
                 <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.noAgentSelected)}</Text>
             ) : null;
 
-        // Simple info panel for system tools
         const systemToolDetails = selectedSystemTool ? (
             <>
-                <div className={styles.summary}>
-                    <Text size={400} weight="semibold">
-                        {selectedSystemTool.name}
-                    </Text>
-                    <div className={styles.badgeRow}>
-                        <Badge appearance="outline" size="small">
-                            {selectedSystemTool.category}
-                        </Badge>
-                        {selectedSystemTool.resourceType && (
-                            <Badge appearance="tint" size="small">
-                                {selectedSystemTool.resourceType}
-                            </Badge>
-                        )}
+                <div className={styles.paddingVertical10}>
+                    <div className={styles.metadataRow}>
+                        <Text className={styles.metadataKey}>{intl.formatMessage(ExtendedAgentsGraphResources.category)}</Text>
+                        <Text>{selectedSystemTool.category}</Text>
                     </div>
                 </div>
 
-                {/* Description */}
                 {selectedSystemTool.description && (
                     <div className={styles.section}>
                         <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.toolDescriptionLabel)}</Text>
@@ -779,58 +826,51 @@ export const ExtendedAgentInfoPanel = memo(
                     </div>
                 )}
 
-                {/* Plugin Name */}
-                <div className={styles.section}>
-                    <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.systemToolPluginLabel)}</Text>
-                    <Text className={styles.subtitle}>{selectedSystemTool.pluginName}</Text>
-                </div>
-
-                {/* Connects To (for SearchMemory tool) */}
                 {selectedSystemTool.name?.toLowerCase() === 'searchmemory' && (
                     <div className={styles.section}>
                         <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.connectsTo)}</Text>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                        <div className={styles.flexColumnGap8}>
                             <Link
                                 appearance="subtle"
                                 onClick={() => navigate('/views/settings/dataKnowledgeSpace')}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    cursor: 'pointer',
-                                }}
+                                className={styles.flexRowCenter}
                             >
-                                Knowledge Base
+                                {intl.formatMessage(SettingsTabResources.knowledgeBase)}
                             </Link>
                             <Link
                                 appearance="subtle"
                                 onClick={() => navigate('/views/settings/data-connectors')}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    cursor: 'pointer',
-                                }}
+                                className={styles.flexRowCenter}
                             >
-                                Data Connectors
+                                {intl.formatMessage(SettingsTabResources.dataConnectors)}
                             </Link>
                         </div>
                     </div>
                 )}
 
-                {/* Parameters */}
                 {selectedSystemTool.parameters && selectedSystemTool.parameters.length > 0 && (
                     <div className={styles.section}>
                         <Text className={styles.sectionTitle}>
                             {intl.formatMessage(ExtendedAgentsGraphResources.parametersSectionTitle)}
                         </Text>
-                        <div className={styles.list}>
-                            {selectedSystemTool.parameters.map((param, index) => (
-                                <div key={index} className={styles.listItem}>
-                                    <Text>{param}</Text>
-                                </div>
-                            ))}
-                        </div>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHeaderCell>
+                                        <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.parameter)}</Text>
+                                    </TableHeaderCell>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {selectedSystemTool.parameters.map((param: string, index: number) => (
+                                    <TableRow key={index}>
+                                        <TableCell>
+                                            <Text>{param}</Text>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     </div>
                 )}
             </>
@@ -872,91 +912,84 @@ export const ExtendedAgentInfoPanel = memo(
                                     onDragHandlePointerDown?.(event);
                                 }}
                             >
-                                <Text weight="semibold">{headerTitle}</Text>
-                                {headerSubtitle && (
-                                    <Text size={200} className={styles.subtitle}>
-                                        {headerSubtitle}
-                                    </Text>
-                                )}
+                                <div className={styles.flexRow12}>
+                                    <div className={styles.flexShrinkNone}>{headerIcon}</div>
+                                    <div className={styles.flexColumnGap4}>
+                                        <Text weight="semibold" size={500}>
+                                            {headerTitle}
+                                        </Text>
+                                        {(selectedTrigger || selectedTool) && (
+                                            <Caption1>{intl.formatMessage(ExtendedAgentsGraphResources.customTool)}</Caption1>
+                                        )}
+                                        {selectedSystemTool && (
+                                            <Caption1>{intl.formatMessage(ExtendedAgentsGraphResources.builtInTool)}</Caption1>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
-                            {(playgroundTarget ||
-                                (headerEditContext && headerEditContext.type !== 'connector' && headerEditContext.type !== 'trigger')) && (
-                                <div style={{ display: 'flex', gap: '4px' }}>
-                                    {playgroundTarget && (
-                                        <Button
-                                            appearance="subtle"
-                                            size="small"
-                                            icon={<Beaker20Regular />}
-                                            onClick={handleOpenPlaygroundClick}
-                                            title={intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
-                                            aria-label={intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
-                                        />
-                                    )}
-                                    {headerEditContext &&
-                                        headerEditContext.type !== 'connector' &&
-                                        headerEditContext.type !== 'trigger' && (
-                                            <>
-                                                <Button
-                                                    appearance="subtle"
-                                                    size="small"
-                                                    icon={<Edit20Regular />}
-                                                    onClick={() => handleOpenYamlEditor(headerEditContext.entity, headerEditContext.type)}
-                                                    title={intl.formatMessage(ExtendedAgentsGraphResources.yamlOpenButton)}
-                                                />
-                                                {headerEditContext.type === 'agent' && isAgentContext && selectedAgent && (
-                                                    <Button
-                                                        appearance="subtle"
-                                                        size="small"
+                            <div className={styles.flexRowCenter4}>
+                                {headerEditContext && headerEditContext.type !== 'connector' && headerEditContext.type !== 'trigger' && (
+                                    <Button
+                                        appearance="subtle"
+                                        size="small"
+                                        icon={<Edit20Regular />}
+                                        onClick={() => handleOpenYamlEditor(headerEditContext.entity, headerEditContext.type)}
+                                        title={intl.formatMessage(ExtendedAgentsGraphResources.yamlOpenButton)}
+                                    />
+                                )}
+                                {(playgroundTarget ||
+                                    (headerEditContext?.type === 'agent' && isAgentContext && selectedAgent) ||
+                                    (headerEditContext?.type === 'tool' && selectedTool)) && (
+                                    <Menu>
+                                        <MenuTrigger disableButtonEnhancement>
+                                            <MenuButton appearance="subtle" size="small" icon={<MoreHorizontal20Regular />} />
+                                        </MenuTrigger>
+                                        <MenuPopover>
+                                            <MenuList>
+                                                {playgroundTarget && (
+                                                    <MenuItem icon={<Beaker20Regular />} onClick={handleOpenPlaygroundClick}>
+                                                        {intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
+                                                    </MenuItem>
+                                                )}
+                                                {headerEditContext?.type === 'agent' && isAgentContext && selectedAgent && (
+                                                    <MenuItem
                                                         icon={<Delete20Regular />}
                                                         onClick={() => handleDeleteClick('agent', selectedAgent)}
                                                         disabled={isDeleting}
-                                                        title={intl.formatMessage(SreAgentResources.deleteAgentTitle)}
-                                                    />
+                                                    >
+                                                        {intl.formatMessage(SreAgentResources.deleteAgentTitle)}
+                                                    </MenuItem>
                                                 )}
-                                                {headerEditContext.type === 'tool' && selectedTool && (
-                                                    <Button
-                                                        appearance="subtle"
-                                                        size="small"
+                                                {headerEditContext?.type === 'tool' && selectedTool && (
+                                                    <MenuItem
                                                         icon={<Delete20Regular />}
                                                         onClick={() => handleDeleteClick('tool', selectedTool)}
                                                         disabled={isDeleting}
-                                                        title={intl.formatMessage(SreAgentResources.deleteToolTitle)}
-                                                    />
+                                                    >
+                                                        {intl.formatMessage(SreAgentResources.deleteToolTitle)}
+                                                    </MenuItem>
                                                 )}
-                                            </>
-                                        )}
-                                </div>
-                            )}
+                                            </MenuList>
+                                        </MenuPopover>
+                                    </Menu>
+                                )}
+                                {onClose && (
+                                    <Button
+                                        appearance="subtle"
+                                        size="small"
+                                        icon={<Dismiss20Regular />}
+                                        onClick={onClose}
+                                        title={intl.formatMessage(SreAgentResources.closePanel)}
+                                        aria-label={intl.formatMessage(SreAgentResources.closePanel)}
+                                    />
+                                )}
+                            </div>
                         </div>
 
                         <div className={styles.content}>
-                            {selectedTool && (
-                                <div className={styles.section}>
-                                    <Text className={styles.sectionTitle}>
-                                        {intl.formatMessage(ExtendedAgentsGraphResources.toolDetailsTitle, { name: selectedTool.name })}
-                                    </Text>
-                                    {renderToolDetails(selectedTool)}
-                                </div>
-                            )}
-
-                            {selectedConnector && (
-                                <div className={styles.section}>
-                                    <Text className={styles.sectionTitle}>
-                                        {intl.formatMessage(ExtendedAgentsGraphResources.connectorDetailsTitle, {
-                                            name: selectedConnector.name,
-                                        })}
-                                    </Text>
-                                    {renderConnectorDetails(selectedConnector)}
-                                </div>
-                            )}
-
-                            {selectedTrigger && (
-                                <div className={styles.section}>
-                                    <Text className={styles.sectionTitle}>Trigger Details: {selectedTrigger.name}</Text>
-                                    {renderTriggerDetails(selectedTrigger)}
-                                </div>
-                            )}
-
+                            {selectedTool && <div className={styles.section}>{renderToolDetails(selectedTool)}</div>}
+                            {selectedConnector && <div className={styles.section}>{renderConnectorDetails(selectedConnector)}</div>}
+                            {selectedTrigger && <div className={styles.section}>{renderTriggerDetails(selectedTrigger)}</div>}
                             {agentDetails}
                             {systemToolDetails}
                         </div>
