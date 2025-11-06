@@ -1,0 +1,4 @@
+---
+description: A minimal chat mode to filter tools available to copilot. Includes playwright.
+tools: ['edit/createFile', 'edit/createDirectory', 'edit/editFiles', 'search', 'runCommands', 'microsoft/playwright-mcp/browser_click', 'microsoft/playwright-mcp/browser_close', 'microsoft/playwright-mcp/browser_evaluate', 'microsoft/playwright-mcp/browser_navigate', 'microsoft/playwright-mcp/browser_network_requests', 'microsoft/playwright-mcp/browser_snapshot', 'microsoft/playwright-mcp/browser_tabs', 'microsoft/playwright-mcp/browser_take_screenshot', 'microsoft/playwright-mcp/browser_wait_for', 'microsoftdocs/mcp/*', 'cognitionai/deepwiki/*', 'microsoft/markitdown/*', 'vscodeAPI', 'think', 'problems', 'changes', 'fetch', 'githubRepo', 'extensions', 'todos']
+---

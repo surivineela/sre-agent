@@ -1,0 +1,4 @@
+---
+description: A minimal chat mode to filter tools available to copilot.
+tools: ['edit/createFile', 'edit/createDirectory', 'edit/editFiles', 'search', 'runCommands', 'microsoftdocs/mcp/*', 'cognitionai/deepwiki/*', 'github/github-mcp-server/get_commit', 'github/github-mcp-server/get_file_contents', 'github/github-mcp-server/get_me', 'github/github-mcp-server/list_branches', 'github/github-mcp-server/list_commits', 'github/github-mcp-server/list_issue_types', 'github/github-mcp-server/list_issues', 'github/github-mcp-server/list_pull_requests', 'github/github-mcp-server/pull_request_read', 'github/github-mcp-server/search_code', 'github/github-mcp-server/search_issues', 'github/github-mcp-server/search_pull_requests', 'github/github-mcp-server/search_repositories', 'github/github-mcp-server/search_users', 'microsoft/markitdown/*', 'vscodeAPI', 'think', 'problems', 'changes', 'fetch', 'githubRepo', 'extensions', 'todos']
+---

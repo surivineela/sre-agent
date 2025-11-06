@@ -14,13 +14,13 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Agent.Runtime;
-using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using OpenAI;
 
 namespace Agent.Cmd
 {
@@ -68,7 +68,7 @@ namespace Agent.Cmd
             builder.Services.ConfigureAzureOpenAIClient();
 
             builder.Services.AddKeyedChatClient("function-invocation-enabled",
-                serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient(),
+                serviceProvider => serviceProvider.GetRequiredService<OpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient(),
                 ServiceLifetime.Singleton)
                 .Use(next => new ReasoningChatClient(next))
                 .UseFunctionInvocation();

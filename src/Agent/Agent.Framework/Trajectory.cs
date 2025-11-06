@@ -4,6 +4,7 @@
 
 using System.Text;
 using System.Text.Json;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
@@ -186,16 +187,10 @@ public sealed class Trajectory
             }
             else if (content is FunctionCallContent functionCallContent)
             {
-                var parameters = "";
-                if (functionCallContent.RawRepresentation is not null)
-                {
-                    parameters = (functionCallContent.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString();
-                }
-                else if (functionCallContent.Arguments is not null)
-                {
-                    parameters = JsonSerializer.Serialize(functionCallContent.Arguments);
-                }
-                _trajectoryItems.Add(new FunctionCallTrajectoryItem(message.Role, functionCallContent.Name, parameters));
+                _trajectoryItems.Add(new FunctionCallTrajectoryItem(
+                    role: message.Role,
+                    functionName: functionCallContent.Name,
+                    parameters: functionCallContent.GetSerializedArguments()));
             }
             // don't expect this in general as tool calls are handled manually
             // however for parallel tool call we use functionInvokingChatClient, which will inline the results
@@ -242,8 +237,10 @@ public sealed class Trajectory
                     }
                     else if (content is FunctionCallContent functionCallContent)
                     {
-                        var parameters = (functionCallContent.RawRepresentation as OpenAI.Chat.ChatToolCall)?.FunctionArguments.ToString() ?? "{}";
-                        trajectory._trajectoryItems.Add(new FunctionCallTrajectoryItem(message.Role, functionCallContent.Name, parameters));
+                        trajectory._trajectoryItems.Add(new FunctionCallTrajectoryItem(
+                            role: message.Role,
+                            functionName: functionCallContent.Name,
+                            parameters: functionCallContent.GetSerializedArguments()));
                     }
                     else if (content is FunctionResultContent functionResultContent)
                     {

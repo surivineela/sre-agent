@@ -21,6 +21,8 @@ namespace Agent.Core.Configuration
         public string EmbeddingGeneratorDeploymentName { get; set; } = string.Empty;
 
         public string EmbeddingGeneratorModelName { get; set; } = string.Empty;
+
+        public string GhcpEndpoint { get; set; } = string.Empty;
     }
 }
 

@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.Azure.Kusto.Ingest" />
     <PackageReference Include="Microsoft.Extensions.AI" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="OpenAI" />
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
   </ItemGroup>

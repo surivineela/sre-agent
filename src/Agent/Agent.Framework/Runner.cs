@@ -4,6 +4,7 @@
 
 using System.Text;
 using System.Text.Json;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -309,7 +310,7 @@ public static class Runner
                                 {
                                     await displayModelOutput($"[DEBUG]\n\nAgent: {currentAgent.Name}"
                                         + $"\n\nFunction Call: {f.Name}"
-                                        + $"\n\nParameters: {(f.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString()}");
+                                        + $"\n\nParameters: {f.GetSerializedArguments()}");
                                 }
                             }
                         }
@@ -617,6 +618,10 @@ public static class Runner
             chatOptions.AdditionalProperties["reasoning_effort"] = agent.ReasoningEffortLevel;
         }
 
+        // Anthropic models don't support structured outputs
+        var isAnthropicModel = chatClientMetaData?.DefaultModelId?.Contains("claude") ?? false;
+        var modelSupportsStructuredOutput = !isAnthropicModel;
+
         List<ChatMessage> modelInput = [new ChatMessage(ChatRole.System, systemPrompt)];
         modelInput.AddRange(ParseCompactedInput(originalInput, generatedMessages));
 
@@ -637,7 +642,8 @@ public static class Runner
         ChatResponse response;
         object? structuredOutput = null;
 
-        if (agent.HasStructuredOutput)
+        if (agent.HasStructuredOutput
+            && modelSupportsStructuredOutput)
         {
             // deserialize sometimes fail with missing field, falls back to non-structured response path
             try
@@ -1047,29 +1053,23 @@ public static class Runner
         }
 
         // if we reach here, there were no tool calls in the response
-        if (agent.HasStructuredOutput)
+        if (agent.HasStructuredOutput
+            && structuredOutput is not null
+            && structuredOutput.GetType() == agent.OutputType)
         {
-            if (structuredOutput is not null && structuredOutput.GetType() == agent.OutputType)
+            // model produced output in the expected format
+            return new SingleStepResult<TContext>
             {
-                // model produced output in the expected format
-                return new SingleStepResult<TContext>
+                OriginalInput = originalInput,
+                ModelResponse = modelResponse,
+                PreStepItems = preStepItems,
+                NewStepItems = newStepItems,
+                NextStep = new NextStep<TContext>
                 {
-                    OriginalInput = originalInput,
-                    ModelResponse = modelResponse,
-                    PreStepItems = preStepItems,
-                    NewStepItems = newStepItems,
-                    NextStep = new NextStep<TContext>
-                    {
-                        Type = NextStepType.FinalOutput,
-                        Output = structuredOutput
-                    }
-                };
-            }
-            else
-            {
-                // model produced output in an unexpected format
-                throw new Exception("Model produced output in an unexpected format");
-            }
+                    Type = NextStepType.FinalOutput,
+                    Output = structuredOutput
+                }
+            };
         }
         else
         {

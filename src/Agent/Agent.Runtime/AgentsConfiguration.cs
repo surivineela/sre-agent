@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ClientModel;
 using System.ClientModel.Primitives;
 using Agent.Core;
 using Agent.Core.Clients.Chat;
@@ -19,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
+using OpenAI;
 
 namespace Agent.Runtime
 {
@@ -56,6 +58,13 @@ namespace Agent.Runtime
         public static IServiceCollection ConfigureAzureOpenAIClient(this IServiceCollection services)
         {
             return services
+                .ConfigureAOAIClient()
+                .ConfigureOAIClient();
+        }
+
+        private static IServiceCollection ConfigureAOAIClient(this IServiceCollection services)
+        {
+            return services
                 .AddSingleton(sp =>
                 {
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
@@ -77,8 +86,8 @@ namespace Agent.Runtime
                     if (!string.IsNullOrEmpty(openAISettings.ApiKey))
                     {
                         return new AzureOpenAIClient(
-                            endpoint: new Uri(openAISettings.Endpoint),
-                            credential: new System.ClientModel.ApiKeyCredential(openAISettings.ApiKey),
+                            endpoint: new(openAISettings.Endpoint),
+                            credential: new ApiKeyCredential(openAISettings.ApiKey),
                             options: options
                         );
                     }
@@ -87,7 +96,7 @@ namespace Agent.Runtime
                         var authService = sp.GetRequiredService<IAuthenticationService>();
                         var cred = authService.GetAzureOpenAICredential();
                         return new AzureOpenAIClient(
-                            endpoint: new Uri(openAISettings.Endpoint),
+                            endpoint: new(openAISettings.Endpoint),
                             credential: cred,
                             options: options
                         );
@@ -95,8 +104,45 @@ namespace Agent.Runtime
                 });
         }
 
+        private static IServiceCollection ConfigureOAIClient(this IServiceCollection services)
+        {
+            return services
+                .AddSingleton(sp =>
+                {
+                    var openAISettings = sp.GetRequiredService<OpenAISettings>();
+                    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+                    // use a typed logger so logs are categorized under the policy type
+                    var logger = loggerFactory.CreateLogger<AzureOpenAILoggingPolicy>();
+
+                    // use OAI Client is using GHCP Endpoint
+                    if (!string.IsNullOrEmpty(openAISettings.GhcpEndpoint))
+                    {
+                        // create options with a custom retry policy that logs 429 responses
+                        var options = new OpenAIClientOptions()
+                        {
+                            Endpoint = new(openAISettings.GhcpEndpoint),
+                            NetworkTimeout = TimeSpan.FromMinutes(5),
+                            RetryPolicy = new ClientRetryPolicy(2)
+                        };
+
+                        // register a pipeline policy that logs 429 responses
+                        options.AddPolicy(new AzureOpenAILoggingPolicy(logger), PipelinePosition.PerCall);
+
+                        return new OpenAIClient(
+                            credential: new ApiKeyCredential("doesnotmatter"),
+                            options: options
+                        );
+                    }
+                    // use AOAI Client otherwise
+                    else
+                    {
+                        return sp.GetRequiredService<AzureOpenAIClient>();
+                    }
+                });
+        }
+
         // Pipeline policy that logs 429 responses using the project's structured logging helper
-        internal class AzureOpenAILoggingPolicy : System.ClientModel.Primitives.PipelinePolicy
+        internal class AzureOpenAILoggingPolicy : PipelinePolicy
         {
             private readonly ILogger _logger;
 
@@ -180,7 +226,7 @@ namespace Agent.Runtime
             services
                 .AddKeyedSingleton(Constants.FunctionInvocationChatClient, (sp, _) =>
                 {
-                    var client = sp.GetRequiredService<AzureOpenAIClient>();
+                    var client = sp.GetRequiredService<OpenAIClient>();
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
@@ -203,7 +249,7 @@ namespace Agent.Runtime
             // default to openai settings deployment if not provided
             openAiDeploymentName ??= serviceProvider.GetRequiredService<OpenAISettings>().LLMDeploymentName;
 
-            var client = serviceProvider.GetRequiredService<AzureOpenAIClient>();
+            var client = serviceProvider.GetRequiredService<OpenAIClient>();
             var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
             return new ChatClientBuilder(client.GetChatClient(openAiDeploymentName).AsIChatClient())

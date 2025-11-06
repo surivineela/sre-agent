@@ -4,6 +4,7 @@
 
 using System.Text;
 using System.Text.Json;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
@@ -155,18 +156,12 @@ public sealed class AgentTrajectory
             }
             else if (content is FunctionCallContent functionCallContent)
             {
-                var parameters = "";
-                if (functionCallContent.RawRepresentation is not null)
-                {
-                    parameters = (functionCallContent.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString();
-                }
-                else if (functionCallContent.Arguments is not null)
-                {
-                    parameters = JsonSerializer.Serialize(functionCallContent.Arguments);
-                }
                 var activeAgent = _agentStack[^1];
 
-                _trajectoryItems.Add(new AgentFunctionCallTrajectoryItem(activeAgent, functionCallContent.Name, parameters));
+                _trajectoryItems.Add(new AgentFunctionCallTrajectoryItem(
+                    roleDisplayName: activeAgent,
+                    functionName: functionCallContent.Name,
+                    parameters: functionCallContent.GetSerializedArguments()));
 
                 // save the last attempted handoff
                 if (functionCallContent.Name.StartsWith(TransferToolStart, StringComparison.OrdinalIgnoreCase))
