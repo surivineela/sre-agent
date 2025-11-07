@@ -1,10 +1,5 @@
 @Agent.Portal_HostAddress = http://localhost:5212
 
-GET {{Agent.Portal_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
-
 POST {{Agent.Portal_HostAddress}}/log
 Content-Type: application/json
 

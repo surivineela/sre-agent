@@ -127,7 +127,6 @@ Located in `src/Common/Utilities/`:
 
 - **ArmId** - Parse ARM resource IDs into components (subscription, resource group, provider, etc.)
 - **Guid** - Generate short GUIDs for UI element IDs
-- **JWTToken** - Decode and validate JWT tokens
 - **Url** - URL manipulation and query string helpers
 - **Sanitization** - Sanitize data for telemetry logging
 - **String** - String formatting helpers

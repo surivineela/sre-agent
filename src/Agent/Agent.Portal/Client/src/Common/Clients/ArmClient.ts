@@ -14,11 +14,10 @@ import {
     Tenant,
 } from '../Contracts/Arm';
 import { Response } from '../Contracts/Response';
-import { delay, getHeader } from '../Utilities/Client';
+import { acquireAccessToken, delay, getHeader } from '../Utilities/Client';
 import { newGuid } from '../Utilities/Guid';
 import { appendQueryString, getParameterByName } from '../Utilities/Url';
 import { Client } from './Client';
-import { tokenCache } from './TokenCache';
 
 // Custom response interface to replace AxiosResponse
 interface FetchResponse<T> {
@@ -194,8 +193,7 @@ export class ArmClient extends Client {
     }
 
     private async makeArmRequest<T>(armObj: InternalArmRequest, _retry = 0): Promise<FetchResponse<T>> {
-        // Get ARM token
-        const token = await tokenCache.getAccessToken('arm');
+        const { accessToken: token } = await acquireAccessToken('arm', this.telemetrySource);
 
         const { method, resourceId, body, apiVersion, queryString } = armObj;
         let url = `${this.armEndpoint}${resourceId}${queryString || ''}`;
@@ -203,7 +201,7 @@ export class ArmClient extends Client {
             url = appendQueryString(url, `api-version=${apiVersion}`);
         }
         const headers: KeyValue<string> = {
-            Authorization: `Bearer ${token.raw}`,
+            Authorization: `Bearer ${token}`,
             'x-ms-client-request-id': armObj.id,
             ...armObj.headers,
         };

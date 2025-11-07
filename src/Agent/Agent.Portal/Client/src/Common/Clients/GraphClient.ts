@@ -3,8 +3,8 @@ import { TelemetrySource } from '../Constants/Telemetry';
 import { Response } from '../Contracts/Response';
 import { LogLevel } from '../Contracts/Telemetry';
 import { logTelemetryEvent } from '../Hooks/useTelemetry';
+import { acquireAccessToken } from '../Utilities/Client';
 import { Client } from './Client';
-import { tokenCache } from './TokenCache';
 
 export class GraphClient extends Client {
     private static _instance: GraphClient | null = null;
@@ -23,17 +23,15 @@ export class GraphClient extends Client {
     /**
      * Fetches the user's profile photo from Microsoft Graph.
      * Returns a blob URL that can be used in an img src, or undefined if no photo is set.
-     * Backend handles token caching and refreshing.
      */
     public async getProfilePhoto(): Promise<Response<string | undefined>> {
-        // const tokenResponse = await this.getAccessToken('graph');
-        const token = await tokenCache.getAccessToken('graph');
+        const { accessToken: token } = await acquireAccessToken('graph', this.telemetrySource);
 
         try {
             const endpoints = getCloudEndpoints();
             const photoResponse = await fetch(`${endpoints.graph}/v1.0/me/photos/96x96/$value`, {
                 headers: {
-                    Authorization: `Bearer ${token.raw}`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
 

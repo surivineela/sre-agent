@@ -85,13 +85,9 @@ When you need to proactively push tokens to an iframe, use `useAuthTokenManager`
 
 ```typescript
 import { useAuthTokenManager } from '../Hooks/useAuthTokenManager';
-import { useMsal } from '@azure/msal-react';
 
 const IFrameComponent = () => {
-    const { instance } = useMsal();
-
     const { handleInitialTokenSetup, handleTokenRequest } = useAuthTokenManager({
-        instance,
         telemetrySource: TelemetrySource.AgentIFrameView,
         resourceId: 'resource-id',
         postMessage: (verb, data) => {
@@ -106,7 +102,14 @@ const IFrameComponent = () => {
 };
 ```
 
-**Why this exists**: Iframes can't call `acquireTokenSilent()` themselves, so the parent needs to proactively send refreshed tokens with timer-based refresh logic.
+**How it works:**
+
+- Uses MSAL's `acquireTokenSilent()` to get tokens with cloud-specific scopes
+- Automatically refreshes tokens 5 minutes before expiry using `forceRefresh: true`
+- Sends raw token strings to iframe via postMessage
+- MSAL handles all caching and refresh logic internally
+
+**Why this exists**: Iframes can't call `acquireTokenSilent()` themselves, so the parent proactively sends refreshed tokens.
 
 **Regular components should NOT use this** - use client classes instead.
 

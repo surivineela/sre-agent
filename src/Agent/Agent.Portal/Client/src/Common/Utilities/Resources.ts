@@ -1,8 +1,8 @@
-import ApplicationInsightsIcon from '../../assets/ApplicationInsights.svg';
-import DeploymentIcon from '../../assets/Deployment.svg';
-import LogAnalyticsWorkspaceIcon from '../../assets/LogAnalyticsWorkspace.svg';
-import ManagedIdentityIcon from '../../assets/ManagedIdentity.svg';
-import SreAgentIcon from '../../assets/SreAgent.svg';
+import ApplicationInsightsIcon from '../../assets/ApplicationInsights.svg?url';
+import DeploymentIcon from '../../assets/Deployment.svg?url';
+import LogAnalyticsWorkspaceIcon from '../../assets/LogAnalyticsWorkspace.svg?url';
+import ManagedIdentityIcon from '../../assets/ManagedIdentity.svg?url';
+import SreAgentIcon from '../../assets/SreAgent.svg?url';
 
 const RESOURCE_ICONS: Record<string, string> = {
     'microsoft.resources/deployments': DeploymentIcon,

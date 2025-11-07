@@ -1,5 +1,7 @@
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { tokenCache } from '../Clients/TokenCache';
+import { InteractionStatus, RedirectRequest } from '@azure/msal-browser';
+import { useAccount, useIsAuthenticated, useMsal } from '@azure/msal-react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo } from 'react';
+import { loginRequest } from '../Auth/msalConfig';
 
 interface AuthenticatedUser {
     name: string;
@@ -13,92 +15,79 @@ interface AuthContextValue {
     isAuthenticated: boolean;
     isLoading: boolean;
     user: AuthenticatedUser | null;
-    signIn: (returnUrl?: string) => void;
+    signIn: (requestOverrides?: Partial<RedirectRequest>) => void;
     signOut: () => void;
-    switchTenant: (tenantId: string, returnUrl?: string) => void;
+    switchTenant: (tenantId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [user, setUser] = useState<AuthenticatedUser | null>(null);
+    const { instance, inProgress } = useMsal();
+    const isAuthenticated = useIsAuthenticated();
+    const account = useAccount();
 
-    // Check authentication status on mount
-    useEffect(() => {
-        const checkAuthStatus = async () => {
-            try {
-                const response = await fetch('/api/auth/user', {
-                    credentials: 'include',
-                });
+    const isLoadingAuth = useMemo(() => inProgress !== InteractionStatus.None, [inProgress]);
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.isAuthenticated) {
-                        // Get tenant ID from ARM token if not provided by the user endpoint
-                        let tenantId = data.tenantId || '';
+    const user = useMemo<AuthenticatedUser | null>(() => {
+        if (!account) {
+            return null;
+        }
 
-                        if (!tenantId) {
-                            try {
-                                const token = await tokenCache.getAccessToken('arm');
-                                tenantId = token.tenantId ?? tenantId;
-                            } catch (error) {
-                                console.warn('Failed to extract tenant ID from ARM token:', error);
-                            }
-                        }
+        const idTokenClaims = account.idTokenClaims;
+        const email = idTokenClaims?.email && typeof idTokenClaims.email === 'string' ? idTokenClaims.email : '';
 
-                        setIsAuthenticated(true);
-                        setUser({
-                            name: data.name || '',
-                            username: data.username || '',
-                            email: data.email || data.username || '',
-                            tenantId,
-                            objectId: data.objectId || '',
-                        });
-                    } else {
-                        setIsAuthenticated(false);
-                        setUser(null);
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to check auth status:', error);
-                setIsAuthenticated(false);
-                setUser(null);
-            } finally {
-                setIsLoading(false);
-            }
+        return {
+            name: account.name ?? account.username,
+            username: account.username,
+            email,
+            // Tenant/Directory ID
+            tenantId: account.tenantId,
+            objectId: account.localAccountId || idTokenClaims?.oid || '',
         };
+    }, [account]);
 
-        checkAuthStatus();
-    }, []);
+    const signIn = useCallback(
+        async (requestOverrides?: Partial<RedirectRequest>) => {
+            await instance.loginRedirect({ ...loginRequest, ...requestOverrides });
+        },
+        [instance]
+    );
 
-    const signIn = useCallback((returnUrl?: string) => {
-        const url = returnUrl ? `/api/auth/login?returnUrl=${encodeURIComponent(returnUrl)}` : '/api/auth/login';
-        window.location.href = url;
-    }, []);
+    const signOut = useCallback(async () => {
+        await instance.logoutRedirect({ account: account ?? undefined, logoutHint: account?.idTokenClaims?.login_hint });
+    }, [instance, account]);
 
-    const signOut = useCallback(() => {
-        window.location.href = '/api/auth/logout';
-    }, []);
+    const switchTenant = useCallback(
+        async (tenantId: string) => {
+            await instance.loginRedirect({
+                ...loginRequest,
+                authority: `https://login.microsoftonline.com/${tenantId}`,
+            });
+        },
+        [instance]
+    );
 
-    const switchTenant = useCallback((tenantId: string, returnUrl?: string) => {
-        const url = returnUrl
-            ? `/api/auth/switch-tenant?tenantId=${encodeURIComponent(tenantId)}&returnUrl=${encodeURIComponent(returnUrl)}`
-            : `/api/auth/switch-tenant?tenantId=${encodeURIComponent(tenantId)}`;
-        window.location.href = url;
-    }, []);
+    // If there are accounts but no active account, set one
+    useEffect(() => {
+        if (!isLoadingAuth) {
+            const accounts = instance.getAllAccounts();
+            if (accounts.length > 0 && !instance.getActiveAccount()) {
+                instance.setActiveAccount(accounts[0]);
+            }
+        }
+    }, [isLoadingAuth, instance]);
 
     const value = useMemo<AuthContextValue>(
         () => ({
             isAuthenticated,
-            isLoading,
+            isLoading: isLoadingAuth,
             user,
             signIn,
             signOut,
             switchTenant,
         }),
-        [isAuthenticated, isLoading, user, signIn, signOut, switchTenant]
+        [isAuthenticated, isLoadingAuth, user, signIn, signOut, switchTenant]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

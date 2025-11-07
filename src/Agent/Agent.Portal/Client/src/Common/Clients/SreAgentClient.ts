@@ -6,9 +6,9 @@ import { Response } from '../Contracts/Response';
 import { Agent, SreAgentArgItem } from '../Contracts/SreAgent';
 import { LogLevel } from '../Contracts/Telemetry';
 import { logTelemetryEvent } from '../Hooks/useTelemetry';
+import { acquireAccessToken } from '../Utilities/Client';
 import { ArmClient } from './ArmClient';
 import { Client } from './Client';
-import { tokenCache } from './TokenCache';
 
 export class SreAgentClient extends Client {
     private static _instance: SreAgentClient | null = null;
@@ -36,12 +36,11 @@ export class SreAgentClient extends Client {
 
     /**
      * Fetches all SRE Agent resources across subscriptions using Azure Resource Graph (ARG).
-     * Backend handles token caching and refreshing.
      * @param subscriptionIds - Optional array of subscription IDs to filter by. Empty or undefined means all subscriptions.
      * @param resourceGroupNames - Optional array of resource group names to filter by. Empty or undefined means all resource groups.
      */
     public async getAgentsFromArg(subscriptionIds?: string[], resourceGroupNames?: string[]): Promise<Response<SreAgentArgItem[]>> {
-        const token = await tokenCache.getAccessToken('arm');
+        const { accessToken: token } = await acquireAccessToken('arm', this.telemetrySource);
 
         try {
             const endpoints = getCloudEndpoints();
@@ -73,7 +72,7 @@ export class SreAgentClient extends Client {
             const response = await fetch(argUrl, {
                 method: 'POST',
                 headers: {
-                    Authorization: `Bearer ${token.raw}`,
+                    Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(query),

@@ -8,11 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Identity.Web" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!-- Include the Client folder in the project -->
     <Content Remove="$(ClientRoot)**" />
     <None Remove="$(ClientRoot)**" />

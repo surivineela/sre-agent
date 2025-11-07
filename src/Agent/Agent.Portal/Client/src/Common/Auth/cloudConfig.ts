@@ -72,9 +72,9 @@ export const getCloudScopes = () => {
 
     return {
         graph: [`${endpoints.graph}/.default`],
-        arm: [`${endpoints.arm}/.default`],
-        sreAgent: [`${endpoints.sreAgent}/.default`],
-        appInsights: [`${endpoints.appInsights}/.default`],
+        arm: [`${endpoints.arm}/user_impersonation`],
+        sreAgent: [`${endpoints.sreAgent}/Threads.ReadWrite.All`],
+        appInsights: [`${endpoints.appInsights}/Data.Read`],
     } as const satisfies Record<AuthScopeIdentifier, readonly string[]>;
 };
 

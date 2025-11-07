@@ -1,7 +1,9 @@
+import { MsalProvider } from '@azure/msal-react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import App from './App';
+import { msalInstance } from './Common/Auth/msalConfig';
 import { AuthProvider } from './Common/Contexts/AuthContext';
 import { UserPreferencesProvider } from './Common/Contexts/UserPreferencesContext';
 import './index.css';
@@ -15,11 +17,13 @@ if (!rootElement) {
 createRoot(rootElement).render(
     <StrictMode>
         <HelmetProvider>
-            <AuthProvider>
-                <UserPreferencesProvider>
-                    <App />
-                </UserPreferencesProvider>
-            </AuthProvider>
+            <MsalProvider instance={msalInstance}>
+                <AuthProvider>
+                    <UserPreferencesProvider>
+                        <App />
+                    </UserPreferencesProvider>
+                </AuthProvider>
+            </MsalProvider>
         </HelmetProvider>
     </StrictMode>
 );

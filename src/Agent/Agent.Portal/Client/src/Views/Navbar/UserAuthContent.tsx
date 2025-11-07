@@ -1,4 +1,15 @@
-import { Button, Divider, Dropdown, Field, Option, Persona, Popover, PopoverSurface, PopoverTrigger } from '@fluentui/react-components';
+import {
+    Button,
+    Divider,
+    Dropdown,
+    Field,
+    Option,
+    OptionOnSelectData,
+    Persona,
+    Popover,
+    PopoverSurface,
+    PopoverTrigger,
+} from '@fluentui/react-components';
 import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
@@ -18,12 +29,12 @@ export const UserAuthContent = () => {
     }, [signIn]);
 
     const handleTenantChange = useCallback(
-        (_: any, data: any) => {
+        (_: any, data: OptionOnSelectData) => {
             const selectedTenant = tenants.find(t => t.tenantId === data.optionValue);
 
             if (selectedTenant && selectedTenant.tenantId !== user?.tenantId) {
                 // Switch tenant by signing out and signing back in with the new tenant
-                switchTenant(selectedTenant.tenantId, window.location.pathname);
+                switchTenant(selectedTenant.tenantId);
             }
         },
         [switchTenant, tenants, user?.tenantId]

@@ -5,9 +5,9 @@ import { ARGRequestContent, ARGResponseObjectArray } from '../Contracts/Arg';
 import { ArmObj, ResponseArray } from '../Contracts/Arm';
 import { Response } from '../Contracts/Response';
 import { parseArmId } from '../Utilities/ArmId';
+import { acquireAccessToken } from '../Utilities/Client';
 import { ArmClient } from './ArmClient';
 import { Client } from './Client';
-import { tokenCache } from './TokenCache';
 
 export interface ResourceGroup {
     readonly id: string;
@@ -48,7 +48,7 @@ export class ResourceGroupClient extends Client {
         apiVersion = ApiVersions.argQueryApiVersion20240401
     ): Promise<Response<T[]>> {
         try {
-            const tokenResponse = await tokenCache.getAccessToken('arm');
+            const { accessToken: token } = await acquireAccessToken('arm', this.telemetrySource);
 
             const endpoints = getCloudEndpoints();
             const argUrl = `${endpoints.arm}/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`;
@@ -66,7 +66,7 @@ export class ResourceGroupClient extends Client {
             const response = await fetch(argUrl, {
                 method: 'POST',
                 headers: {
-                    Authorization: `Bearer ${tokenResponse.raw}`,
+                    Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
                     'x-ms-command-name': commandName,
                 },

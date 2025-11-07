@@ -1,4 +1,75 @@
+import { InteractionRequiredAuthError } from '@azure/msal-browser';
+import { getScopesForApi } from '../Auth/cloudConfig';
+import { msalInstance } from '../Auth/msalConfig';
+import { TelemetrySource } from '../Constants/Telemetry';
 import { KeyValue } from '../Contracts/Arm';
+import { LogLevel } from '../Contracts/Telemetry';
+import { AuthScopeIdentifier } from '../Hooks/useAuthTokenManager';
+import { logTelemetryEvent } from '../Hooks/useTelemetry';
+
+/**
+ * Acquires an access token for the specified scope identifier using MSAL.
+ * Handles caching, automatic refresh, and interactive authentication fallback.
+ *
+ * @param scopeIdentifier - The API scope identifier ('arm', 'graph', 'sreAgent', 'appInsights')
+ * @param telemetrySource - The source of the telemetry event for tracking
+ * @param forceRefresh - If true, bypasses cache and requests a new token from the server
+ * @returns An object containing the access token and optional expiration date
+ * @throws Error if token acquisition fails
+ */
+export const acquireAccessToken = async (
+    scopeIdentifier: AuthScopeIdentifier,
+    telemetrySource: TelemetrySource,
+    forceRefresh: boolean = false
+): Promise<{ accessToken: string; expiresOn?: Date }> => {
+    const account = msalInstance.getActiveAccount();
+
+    if (!account) {
+        logTelemetryEvent({
+            action: 'acquire-access-token',
+            actionModifier: 'no-active-account',
+            logLevel: LogLevel.Error,
+            telemetrySource,
+            additionalData: {
+                scopeIdentifier,
+                timestamp: new Date().toISOString(),
+            },
+        });
+
+        return { accessToken: '' };
+    }
+
+    const scopes = getScopesForApi(scopeIdentifier);
+
+    try {
+        const response = await msalInstance.acquireTokenSilent({
+            scopes,
+            account,
+            forceRefresh,
+        });
+
+        return {
+            accessToken: response.accessToken,
+            expiresOn: response.expiresOn || undefined,
+        };
+    } catch (error) {
+        console.error(error);
+        logTelemetryEvent({
+            action: 'acquire-access-token',
+            actionModifier: 'failed',
+            logLevel: LogLevel.Error,
+            telemetrySource,
+            additionalData: {
+                isInteractionRequiredAuthError: error instanceof InteractionRequiredAuthError,
+                scopeIdentifier,
+                error: error instanceof Error ? error.message : String(error),
+                timestamp: new Date().toISOString(),
+            },
+        });
+
+        return { accessToken: '' };
+    }
+};
 
 export const delay = async (func: () => Promise<any>, ms = 3000) => {
     await new Promise(resolve => setTimeout(resolve, ms));

@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { AzPortalToAgentSiteVerbs } from '../../Views/Agent/AgentIFrameContracts';
-import { tokenCache } from '../Clients/TokenCache';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { LogLevel } from '../Contracts/Telemetry';
-import { JWTToken } from '../Utilities/JWTToken';
+import { acquireAccessToken } from '../Utilities/Client';
 import { logTelemetryEvent } from './useTelemetry';
 
 /**
@@ -12,12 +11,7 @@ import { logTelemetryEvent } from './useTelemetry';
  */
 export type AuthScopeIdentifier = 'arm' | 'graph' | 'sreAgent' | 'appInsights';
 
-interface AuthTokenManagerOptions {
-    telemetrySource: TelemetrySource;
-    resourceId?: string;
-    postMessage: (verb: string, data: object) => void;
-    initialTokenTypes: AuthScopeIdentifier[];
-}
+const REFRESH_BUFFER_MS = 5 * 60 * 1000; // 5 minutes before expiry
 
 interface AuthTokenManagerOptions {
     telemetrySource: TelemetrySource;
@@ -26,15 +20,12 @@ interface AuthTokenManagerOptions {
     initialTokenTypes: AuthScopeIdentifier[];
 }
 
-/**
- * Hook for managing authentication tokens in iframe scenarios where we need to proactively
- * send refreshed tokens to the iframe. Tokens are acquired and refreshed automatically by TokenCache.
- */
 export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, initialTokenTypes }: AuthTokenManagerOptions) => {
-    const subscriptionsRef = useRef<Map<AuthScopeIdentifier, (token: JWTToken) => void>>(new Map());
+    const refreshTimeoutsRef = useRef<Map<AuthScopeIdentifier, number>>(new Map());
+    const scheduleTokenRefreshRef = useRef<(tokenType: AuthScopeIdentifier, expiresOn: Date) => void>();
 
     const sendToken = useCallback(
-        (token: JWTToken, tokenType: AuthScopeIdentifier) => {
+        (tokenString: string, tokenType: AuthScopeIdentifier, expiresOn?: Date) => {
             // Map AuthScopeIdentifier to TokenTypes for Agent.Web compatibility
             const tokenTypeMap: Record<AuthScopeIdentifier, string> = {
                 arm: 'arm',
@@ -44,7 +35,7 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
             };
 
             const tokenMessage = {
-                token: token.raw,
+                token: tokenString,
                 type: tokenTypeMap[tokenType],
             };
 
@@ -55,7 +46,7 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
                 additionalData: {
                     resourceId,
                     tokenType,
-                    tokenExpiration: token.expiration?.toISOString(),
+                    tokenExpiration: expiresOn?.toISOString(),
                     timestamp: new Date().toISOString(),
                 },
             });
@@ -65,34 +56,49 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
         [postMessage, telemetrySource, resourceId]
     );
 
-    const handleInitialTokenSetup = useCallback(() => {
-        initialTokenTypes.forEach(async tokenType => {
+    const acquireAndSendToken = useCallback(
+        async (tokenType: AuthScopeIdentifier, action: string, forceRefresh = false) => {
             try {
-                // Get token from cache (will fetch if not cached)
-                const token = await tokenCache.getAccessToken(tokenType);
-                sendToken(token, tokenType);
-
-                // Subscribe to token updates
-                const callback = (updatedToken: JWTToken) => {
-                    sendToken(updatedToken, tokenType);
-                };
-                subscriptionsRef.current.set(tokenType, callback);
-                tokenCache.subscribeToTokenUpdate(tokenType, callback);
-
                 logTelemetryEvent({
-                    action: 'token-setup',
-                    actionModifier: 'success',
+                    action,
+                    actionModifier: 'start',
+                    logLevel: LogLevel.Info,
                     telemetrySource,
                     additionalData: {
                         resourceId,
                         tokenType,
-                        tokenExpiration: token.expiration?.toISOString(),
+                        forceRefresh,
+                        timestamp: new Date().toISOString(),
+                    },
+                });
+
+                const { accessToken, expiresOn } = await acquireAccessToken(tokenType, telemetrySource, forceRefresh);
+
+                if (!accessToken) {
+                    return;
+                }
+
+                sendToken(accessToken, tokenType, expiresOn);
+
+                if (expiresOn && scheduleTokenRefreshRef.current) {
+                    scheduleTokenRefreshRef.current(tokenType, expiresOn);
+                }
+
+                logTelemetryEvent({
+                    action,
+                    actionModifier: 'success',
+                    logLevel: LogLevel.Info,
+                    telemetrySource,
+                    additionalData: {
+                        resourceId,
+                        tokenType,
+                        tokenExpiration: expiresOn?.toISOString(),
                         timestamp: new Date().toISOString(),
                     },
                 });
             } catch (error) {
                 logTelemetryEvent({
-                    action: 'token-setup',
+                    action,
                     actionModifier: 'failed',
                     logLevel: LogLevel.Error,
                     telemetrySource,
@@ -103,17 +109,70 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
                         timestamp: new Date().toISOString(),
                     },
                 });
+                throw error;
             }
+        },
+        [sendToken, telemetrySource, resourceId]
+    );
+
+    const scheduleTokenRefresh = useCallback(
+        (tokenType: AuthScopeIdentifier, expiresOn: Date) => {
+            const existingTimeout = refreshTimeoutsRef.current.get(tokenType);
+            if (existingTimeout) {
+                window.clearTimeout(existingTimeout);
+            }
+
+            const now = Date.now();
+            const expiresAt = expiresOn.getTime();
+            const refreshAt = expiresAt - REFRESH_BUFFER_MS;
+            const delay = refreshAt - now;
+
+            if (delay <= 0) {
+                // Token is already close to expiry, refresh immediately
+                acquireAndSendToken(tokenType, 'token-refresh', true);
+                return;
+            }
+
+            logTelemetryEvent({
+                action: 'token-refresh',
+                actionModifier: 'scheduled',
+                logLevel: LogLevel.Info,
+                telemetrySource,
+                additionalData: {
+                    resourceId,
+                    tokenType,
+                    refreshAt: new Date(refreshAt).toISOString(),
+                    expires: expiresOn.toISOString(),
+                    delayMs: delay,
+                    timestamp: new Date().toISOString(),
+                },
+            });
+
+            const timeoutId = window.setTimeout(() => {
+                acquireAndSendToken(tokenType, 'token-refresh', true);
+            }, delay);
+
+            refreshTimeoutsRef.current.set(tokenType, timeoutId);
+        },
+        [acquireAndSendToken, telemetrySource, resourceId]
+    );
+
+    // Update the ref after scheduleTokenRefresh is defined
+    scheduleTokenRefreshRef.current = scheduleTokenRefresh;
+
+    const handleInitialTokenSetup = useCallback(() => {
+        initialTokenTypes.forEach(tokenType => {
+            acquireAndSendToken(tokenType, 'token-setup');
         });
-    }, [initialTokenTypes, sendToken, telemetrySource, resourceId]);
+    }, [initialTokenTypes, acquireAndSendToken]);
 
     const handleTokenRequest = useCallback(
         async (tokenType: AuthScopeIdentifier) => {
             // Check if we're already managing this token type
-            if (subscriptionsRef.current.has(tokenType)) {
+            if (refreshTimeoutsRef.current.has(tokenType)) {
                 logTelemetryEvent({
                     action: 'token-request',
-                    actionModifier: 'already-subscribed',
+                    actionModifier: 'already-managed',
                     logLevel: LogLevel.Warning,
                     telemetrySource,
                     additionalData: {
@@ -125,65 +184,31 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
                 return;
             }
 
-            try {
-                logTelemetryEvent({
-                    action: 'token-request',
-                    actionModifier: 'new-token-type',
-                    telemetrySource,
-                    additionalData: {
-                        resourceId,
-                        tokenType,
-                        timestamp: new Date().toISOString(),
-                    },
-                });
+            logTelemetryEvent({
+                action: 'token-request',
+                actionModifier: 'new-token-type',
+                telemetrySource,
+                additionalData: {
+                    resourceId,
+                    tokenType,
+                    timestamp: new Date().toISOString(),
+                },
+            });
 
-                // Get token from cache (will fetch if not cached)
-                const token = await tokenCache.getAccessToken(tokenType);
-                sendToken(token, tokenType);
-
-                // Subscribe to token updates
-                const callback = (updatedToken: JWTToken) => {
-                    sendToken(updatedToken, tokenType);
-                };
-                subscriptionsRef.current.set(tokenType, callback);
-                tokenCache.subscribeToTokenUpdate(tokenType, callback);
-
-                logTelemetryEvent({
-                    action: 'token-request',
-                    actionModifier: 'success',
-                    telemetrySource,
-                    additionalData: {
-                        resourceId,
-                        tokenType,
-                        tokenExpiration: token.expiration?.toISOString(),
-                        timestamp: new Date().toISOString(),
-                    },
-                });
-            } catch (error) {
-                logTelemetryEvent({
-                    action: 'token-request',
-                    actionModifier: 'failed',
-                    logLevel: LogLevel.Error,
-                    telemetrySource,
-                    additionalData: {
-                        resourceId,
-                        tokenType,
-                        error: error instanceof Error ? error.message : String(error),
-                        timestamp: new Date().toISOString(),
-                    },
-                });
-            }
+            await acquireAndSendToken(tokenType, 'token-request');
         },
-        [sendToken, telemetrySource, resourceId]
+        [acquireAndSendToken, telemetrySource, resourceId]
     );
 
-    // Cleanup subscriptions on unmount
+    // Cleanup refresh timeouts on unmount
     useEffect(() => {
+        const timeouts = refreshTimeoutsRef.current;
+
         return () => {
-            subscriptionsRef.current.forEach((callback, tokenType) => {
-                tokenCache.unsubscribeToTokenUpdate(tokenType, callback);
+            timeouts.forEach(timeoutId => {
+                window.clearTimeout(timeoutId);
             });
-            subscriptionsRef.current.clear();
+            timeouts.clear();
 
             logTelemetryEvent({
                 action: 'token-cleanup',
