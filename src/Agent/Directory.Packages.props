@@ -95,6 +95,8 @@
     <PackageVersion Include="Microsoft.DurableTask.Client.AzureManaged" Version="1.10.0-preview.1" />
     <PackageVersion Include="Microsoft.DurableTask.Generators" Version="1.0.0-preview.1" />
     <PackageVersion Include="Microsoft.DurableTask.Worker.AzureManaged" Version="1.10.0-preview.1" />
+    <!-- Override transitive dependency from Microsoft.VisualStudio.Services.Client to use 4.8.6 instead of 4.8.5 -->
+    <PackageVersion Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageVersion Include="Microsoft.Extensions.AI" Version="9.8.0" />
     <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.8.0" />
     <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="9.8.0-preview.1.25412.6" />

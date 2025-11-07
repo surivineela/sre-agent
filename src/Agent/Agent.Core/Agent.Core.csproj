@@ -29,6 +29,8 @@
     <PackageReference Include="Microsoft.AspNetCore.OData" />
     <PackageReference Include="Microsoft.Azure.Cosmos" />
     <PackageReference Include="Microsoft.Data.SqlClient" />
+    <!-- Explicit reference to override transitive dependency from Microsoft.VisualStudio.Services.Client -->
+    <PackageReference Include="System.Data.SqlClient" />
     <PackageReference Include="Microsoft.Extensions.AI" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />

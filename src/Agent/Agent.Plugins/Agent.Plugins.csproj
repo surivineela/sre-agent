@@ -41,6 +41,8 @@
     <PackageReference Include="Microsoft.SemanticKernel" />
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
+    <!-- Explicit reference to override transitive dependency from Microsoft.VisualStudio.Services.Client -->
+    <PackageReference Include="System.Data.SqlClient" />
     <PackageReference Include="Octokit" />
     <PackageReference Include="KubernetesClient" />
     <PackageReference Include="ReverseMarkdown" />
