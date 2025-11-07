@@ -85,6 +85,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly IAgentModeConfigurator<TContext> _modeConfigurator;
     private readonly bool _enableHandoffReasoning;
     private readonly IExtensibilityLoader? _extensibiltyLoader;
+    private PromptTemplateResolver? _templateResolver;
 
     /// <summary>
     /// Gets whether handoff reasoning is enabled for agents created by this factory.
@@ -286,8 +287,20 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         return agent;
     }
 
+
     private void ConfigureAgentInstructions(Agent<TContext> agent, IAgentDescriptor agentDescriptor)
     {
+        // Resolve inline template placeholders {{template_name}} in the system prompt
+        var originalInstructions = agent.Instructions.GetOriginalText();
+
+        var resolvedInstructions = _templateResolver?.ResolveTemplates(
+            originalInstructions,
+            contextDescription: "agent instructions",
+            agentName: agent.Name) ?? originalInstructions;
+
+        // Update the Instructions with the resolved text
+        agent.Instructions = new PromptText(resolvedInstructions);
+
         agent.Instructions.WithHandoffInstructions();
 
         if (_promptStarters is not null)
@@ -441,6 +454,10 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                     _promptDescriptors[prompt.Name] = prompt;
                 }
             }
+
+            // Initialize template resolver after all common prompts are loaded
+            _templateResolver = new PromptTemplateResolver(_promptDescriptors, _logger);
+
             LoadCommonToolsFromYaml();
             if (_extensibiltyLoader != null)
             {
@@ -1079,8 +1096,14 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     {
         if (overlay.ReplaceSystemPrompt != null)
         {
+            // Resolve inline templates in the replacement prompt
+            var resolvedPrompt = _templateResolver?.ResolveTemplates(
+                overlay.ReplaceSystemPrompt,
+                contextDescription: "replacement prompt",
+                agentName: agent.Name) ?? overlay.ReplaceSystemPrompt;
+
             // replace base system prompt
-            agent.Instructions = overlay.ReplaceSystemPrompt;
+            agent.Instructions = resolvedPrompt;
 
             // add handoff instructions if specified
             if (overlay.HasHandoffInstructions)
@@ -1096,11 +1119,23 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
         if (overlay.PrependSystemPrompt != null)
         {
-            agent.Instructions = overlay.PrependSystemPrompt + "\n" + agent.Instructions;
+            // Resolve inline templates in prepended text
+            var resolvedPrepend = _templateResolver?.ResolveTemplates(
+                overlay.PrependSystemPrompt,
+                contextDescription: "prepend prompt",
+                agentName: agent.Name) ?? overlay.PrependSystemPrompt;
+
+            agent.Instructions = resolvedPrepend + "\n" + agent.Instructions;
         }
         if (overlay.AppendSystemPrompt != null)
         {
-            agent.Instructions += "\n" + overlay.AppendSystemPrompt;
+            // Resolve inline templates in appended text
+            var resolvedAppend = _templateResolver?.ResolveTemplates(
+                overlay.AppendSystemPrompt,
+                contextDescription: "append prompt",
+                agentName: agent.Name) ?? overlay.AppendSystemPrompt;
+
+            agent.Instructions += "\n" + resolvedAppend;
         }
         if (overlay.HandoffInstructions != null)
         {
