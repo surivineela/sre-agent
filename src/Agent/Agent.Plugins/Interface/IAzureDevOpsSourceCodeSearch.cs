@@ -19,6 +19,7 @@ public interface ICodeSearchResult
     string FileName { get; }
     string FilePath { get; }
     string Repository { get; }
+    string RepositoryId { get; }
     string Project { get; }
     string Branch { get; }
     IReadOnlyList<ICodeMatch> Matches { get; }
@@ -48,6 +49,7 @@ public class CodeSearchResultImpl : ICodeSearchResult
     public string FileName { get; init; } = string.Empty;
     public string FilePath { get; init; } = string.Empty;
     public string Repository { get; init; } = string.Empty;
+    public string RepositoryId { get; init; } = string.Empty;
     public string Project { get; init; } = string.Empty;
     public string Branch { get; init; } = string.Empty;
     public IReadOnlyList<ICodeMatch> Matches => _matches.AsReadOnly();
@@ -70,7 +72,7 @@ public class SearchOptions
     public bool SearchAllBranches { get; init; } = true;
     public bool LimitToMainBranches { get; init; } = false;
     public string[]? FileExtensions { get; init; }
-    public string[]? Repositories { get; init; }
+    public string[]? Repositories { get; set; }
 }
 
 /// <summary>

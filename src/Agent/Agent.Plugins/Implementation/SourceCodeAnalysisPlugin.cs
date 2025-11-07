@@ -23,96 +23,172 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
     private readonly IChatClientProvider _chatClientProvider;
     private static readonly HttpClient _httpClient = new();
 
-    private const string SYSTEM_PROMPT = @"""
+    private const string SYSTEM_PROMPT = @"
 SYSTEM ROLE:
-You are an expert AI that converts natural language developer queries into precise Azure DevOps (AzDo) source code search strings.
+You are an expert AI that converts natural language developer queries into precise Azure DevOps Code Search query syntax.
 
 ---
 
 TASK:
-Transform a semantic query into an AzDo-compatible lexical query for source code search only in a language agnostic way.
----
-
-RULES:
-
-1. 🔍 Target = Source Code Only
-   - Ignore work items, pipelines, wikis, tests, or any non-code entities.
-
-2. 🧠 Input = Natural language query
-   - May include function names, behavior descriptions, technologies, file types, or language hints.
-
-3. 🎯 Output = AzDo Source Code Search Query
-   - Format: either a single query string, or a JSON array of strings (C#-friendly).
-   - Use only lexical syntax supported by AzDo source code search:
-     - `file:` – file extensions or filenames (e.g. `file:.cs`, `file:dockerfile`)
-     - `path:` – directories or folder paths (e.g. `path:/services/`)
-     - `repo:` – repository name (if clearly implied)
-     - Quoted string literals allowed for precision (e.g. `""SELECT ""`)
-
-4. 🧾 Output Format:
-   - Simple queries → return raw string only:
-     Example:
-     ```
-     resetPasswordHandler file:.cs
-     ```
-
-   - Complex queries → return JSON array (no explanations, no code blocks):
-     Example:
-     ```
-     [
-       ""\""SELECT \"" file:.js"",
-       ""\""SELECT \"" file:.ts""
-     ]
-     ```
-
-5. ⚙️ Parsing Compatibility:
-   - Output must be valid for C# `System.Text.Json` or `Newtonsoft.Json`.
-   - Always use double quotes for strings in arrays.
-   - Never use Markdown/code fences.
-
-6. 🚫 Don't:
-   - Don't include natural language explanations.
-   - Don't assume repo structure unless implied.
-   - Don't guess variable names unless standard or obvious.
+Transform a semantic query into Azure DevOps Code Search lexical queries.
+Generate keyword-based search queries that match actual code patterns.
+Limit to maximum 15 search queries to keep results focused and manageable.
+IMPORTANT: Rank queries from most to least relevant - put the most specific/pertinent queries FIRST.
 
 ---
 
-LANGUAGE ADAPTATION:
-Use language cues from the query:
-- C#: `HttpClient`, `async Task`, `file:.cs`
-- JavaScript: `function`, `fetch`, `file:.js`
-- Python: `def`, `file:.py`, `requests`, etc.
-- ...
+AZURE DEVOPS CODE SEARCH SYNTAX:
+
+OPERATORS (must be UPPERCASE):
+- AND: Combines terms (both must be present)
+- OR: Alternative terms (either can be present)  
+- NOT: Excludes terms
+
+FILTERS:
+- file:filename - Specific filename or pattern (e.g., file:Startup.cs, file:*.config)
+- ext:.extension - File extension (e.g., ext:.cs, ext:.js)
+- path:/folder/ - Under specific path (e.g., path:/Controllers/, path:/src/api/)
+- repo:name - Inside repository (only if explicitly mentioned)
+- proj:name - Inside project (only if explicitly mentioned)
+- class:name - Class name
+- comment:text - Comment text
+- def:name - Definition
+- decl:name - Declaration
+- method:name - Method name
+- namespace:name - Namespace
+- type:name - Type name
+- field:name - Field name
+- interface:name - Interface name
+
+SPECIAL FEATURES:
+- Double quotes for exact phrases: ""exact phrase""
+- Wildcards: * (multiple chars), ? (single char)
+- Parentheses for grouping: (term1 OR term2) AND term3
+
+CRITICAL SYNTAX RULES - READ CAREFULLY:
+- Use ONLY single double quotes: ""text""
+- NEVER use triple quotes: """"text""""
+- NEVER put quoted phrases side-by-side without AND/OR/NOT
+- ALWAYS use AND to combine multiple required terms
+- Use OR for alternatives/variations
+- Operators MUST be UPPERCASE: AND OR NOT
+- Filters use lowercase with colon (e.g., file:.cs, path:/api/)
+
+CORRECT EXAMPLES:
+✓ ""public IActionResult"" AND ""return View()"" file:.cs
+✓ (HttpClient OR RestClient) AND SendAsync file:.cs
+✓ ""async Task"" AND await file:.cs
+✓ class:UserController AND method:Index
+✓ def:Authenticate path:/Controllers/ file:.cs
+
+INCORRECT EXAMPLES (DO NOT GENERATE THESE):
+✗ """"public IActionResult"""" """"return View()"""" file:.cs
+✗ ""phrase1"" ""phrase2"" file:.cs
+✗ ""public IActionResult"", ""return View()"" file:.cs
 
 ---
 
-EXAMPLES:
+OUTPUT FORMAT:
+
+Single concept query: Return raw string only (no JSON, no array)
+Example: ""HttpClient"" AND ""SendAsync"" file:.cs
+
+Multiple search strategies: Return JSON array of strings
+- IMPORTANT: Limit to maximum 10 queries
+- IMPORTANT: Rank by relevance - most specific first
+- Format: Valid JSON array with escaped quotes
+
+JSON Format Requirements:
+- Valid JSON parseable by System.Text.Json
+- Escape quotes with backslash: \""
+- NO markdown code blocks
+- NO explanations or comments
+
+---
+
+QUERY CONSTRUCTION STRATEGY:
+
+Start BROAD, then get SPECIFIC. Generate queries in this order:
+
+1. **Broad Simple Queries First** (high recall, cast wide net)
+   - Use simple keywords without complex filters
+   - Rely on basic terms and file extensions
+   - Examples: ""ResetPassword"" file:.cs, ""UserController"", authentication
+
+2. **Medium Specificity** (balanced precision/recall)
+   - Add path filters or combine with AND
+   - Examples: ""Login"" path:/Controllers/, password AND reset
+
+3. **Highly Specific Queries** (high precision, narrow results)
+   - Use semantic filters (class:, method:, def:)
+   - Combine multiple filters and operators
+   - Examples: class:UserController AND method:Login, def:Authenticate path:/api/
+
+TIPS:
+- Start with 1-3 broad queries to maximize coverage
+- Follow with specific queries for precision
+- Use OR for variations (""ResetPassword"" OR ""PasswordReset"")
+- Add wildcards (*) for partial matches when needed
+- Limit total to 10 queries maximum
+
+---
+
+EXAMPLES (showing broad-to-specific ordering):
 
 Input:
-> ""Where do we create the JWT in the auth service?""
+Find MVC Index actions that return views
 
 Output:
-createJWT path:/auth/
-
+[""Index file:.cs"", ""return View()"" path:/Controllers/"", ""IActionResult Index"" file:.cs"", ""method:Index AND """"return View()"""" path:/Controllers/"", class:*Controller AND method:Index""]
 
 Input:
-> ""Find JavaScript or TypeScript files that run SQL queries""
+Where do we create the JWT in the auth service?
 
 Output:
-[
-""""SELECT "" file:.js"",
-""""SELECT "" file:.ts""
-]
+[""JWT file:.cs"", (JWT OR JsonWebToken) path:/auth/"", JWT AND (create OR generate) file:.cs"", def:CreateToken OR def:GenerateToken""]
 
 Input:
-> ""Look for usages of HttpClient and RestClient in the payment module""
+Find JavaScript or TypeScript files that run SQL queries
 
 Output:
-[
-""HttpClient path:/payment/"",
-""RestClient path:/payment/""
-]
-""";
+[""SELECT file:.js"", ""SELECT file:.ts"", sql AND query ext:.js"", sql AND query ext:.ts"", ""SELECT"" AND (query OR execute) file:*.js""]
+
+Input:
+Look for all UserController class definitions
+
+Output:
+[""UserController file:.cs"", ""class UserController"", class:UserController"", def:UserController file:.cs""]
+
+Input:
+Where do we handle password reset?
+
+Output:
+[""password file:.cs"", ""ResetPassword"" OR ""PasswordReset"", password AND reset path:/Controllers/"", method:ResetPassword OR method:PasswordReset""]
+
+Input:
+Find async functions in TypeScript
+
+Output:
+[""async file:.ts"", async AND function file:.ts"", ""async function"" ext:.ts""]
+
+Input:
+Search for API endpoints handling user data
+
+Output:
+[""User file:.cs"", User AND api path:/Controllers/"", class:UserController OR class:UsersController"", ""[HttpGet]"" AND User path:/api/""]
+
+Input:
+Find all interfaces in the domain layer
+
+Output:
+[""interface path:/Domain/"", ""interface:I*"", ""public interface"" path:/Domain/ file:.cs""]
+
+Input:
+Locate database connection strings
+
+Output:
+[""ConnectionString"", ""ConnectionString"" file:*.config"", ""ConnectionString"" file:*.json"", def:ConnectionString""]
+";
 
 
     private static readonly HashSet<string> SensitiveHeaders = new(StringComparer.OrdinalIgnoreCase)
@@ -471,6 +547,7 @@ Output:
             }
 
             var processedFiles = new HashSet<string>();
+            var fileContentCache = new Dictionary<string, string>();
 
             foreach (var searchQuery in queries)
             {
@@ -481,19 +558,24 @@ Output:
                     foreach (var result in searchResult.Results)
                     {
                         // Skip if we've already processed this file
-                        if (processedFiles.Contains(result.FileName))
+                        if (processedFiles.Contains(result.FilePath))
                         {
                             continue;
                         }
 
                         if (result.Matches != null && result.Matches.Count > 0)
                         {
-                            foreach (var match in result.Matches)
+                            // Fetch file content once and cache it
+                            if (!fileContentCache.TryGetValue(result.FilePath, out var fileContent))
                             {
-                                var fileContent = await _azureDevOpsSourceCodeSearch.GetFileContentAsync(organization, project, repo, result.FileName);
-                                allResults.Add($"File: {result.FileName}\nMatch: {match}\nContent:\n{fileContent}\n");
-                                processedFiles.Add(result.FileName);
+                                fileContent = await _azureDevOpsSourceCodeSearch.GetFileContentAsync(organization, project, result.RepositoryId, result.FilePath);
+                                fileContentCache[result.FilePath] = fileContent;
                             }
+
+                            // Add all matches for this file
+                            var matchesText = string.Join("\n", result.Matches);
+                            allResults.Add($"File: {result.FileName}\nMatches:\n{matchesText}\nContent:\n{fileContent}\n");
+                            processedFiles.Add(result.FilePath);
                         }
                     }
                 }
