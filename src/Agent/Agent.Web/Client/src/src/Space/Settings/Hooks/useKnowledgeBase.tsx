@@ -1,4 +1,4 @@
-import { IColumn } from '@fluentui/react/lib/DetailsList';
+import { TableColumnDefinition, TableColumnId, createTableColumn, useTableFeatures, useTableSort } from '@fluentui/react-components';
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import AzPortalProxy from '../../../Common/AzPortalProxy/AzPortalProxy';
@@ -14,6 +14,7 @@ export interface UseKnowledgeBaseReturn {
     // State
     selectedFiles: File[];
     uploadedFiles: UploadedFile[];
+    originalUploadedFiles: UploadedFile[];
     selectedUploadedFileKeys: string[];
     isLoadingFiles: boolean;
     isUploading: boolean;
@@ -40,8 +41,10 @@ export interface UseKnowledgeBaseReturn {
     formatFileSize: (bytes: number) => string;
     isValidFileType: (file: File) => boolean;
 
-    // Columns
-    columns: IColumn[];
+    // Table features
+    tableFeatures: ReturnType<typeof useTableFeatures<UploadedFile>>;
+    headerSortProps: (columnId: TableColumnId) => any;
+    getColumnWidth: (columnId: string) => { width: string; minWidth: string } | { width: string };
 
     // Refs
     fileInputRef: React.RefObject<HTMLInputElement>;
@@ -97,9 +100,12 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
         setIsLoadingFiles(true);
         try {
             const response = await agentMemoryClient.listFiles();
+
             if (response.isSuccessful) {
                 const fileNames = Array.isArray(response.content?.files) ? response.content.files : [];
-                const files = fileNames.map(fileName => ({ name: fileName }));
+                const files = fileNames.map(fileName => ({
+                    name: fileName,
+                }));
                 setUploadedFiles(files);
             } else {
                 portalContext.log({
@@ -229,6 +235,7 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
             });
 
             const response = await agentMemoryClient.uploadFiles(formData);
+
             if (response.isSuccessful) {
                 setSelectedFiles([]);
                 if (fileInputRef.current) {
@@ -373,21 +380,47 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
     }, [loadUploadedFiles]);
 
     // Columns configuration
-    const columns = useMemo<IColumn[]>(() => {
+    const columns = useMemo<TableColumnDefinition<UploadedFile>[]>(() => {
         return [
-            {
-                key: 'name',
-                name: intl.formatMessage(KnowledgeBaseResources.fileName),
-                minWidth: 300,
-                isResizable: true,
-                onRender: (fileObj: UploadedFile) => (
-                    <span data-selection-disabled={true} data-is-focusable={true}>
-                        {fileObj.name}
-                    </span>
-                ),
-            },
+            createTableColumn<UploadedFile>({
+                columnId: 'name',
+                compare: (a, b) => a.name.localeCompare(b.name),
+                renderHeaderCell: () => <span style={{ fontWeight: 500 }}>{intl.formatMessage(KnowledgeBaseResources.fileName)}</span>,
+                renderCell: fileObj => fileObj.name,
+            }),
         ];
-    }, [intl]);
+    }, [intl, formatFileSize]);
+
+    // Table features with sorting
+    const tableFeatures = useTableFeatures(
+        {
+            columns,
+            items: filteredUploadedFiles,
+        },
+        [
+            useTableSort({
+                defaultSortState: { sortColumn: 'name', sortDirection: 'ascending' },
+            }),
+        ]
+    );
+
+    // Column width configuration
+    const getColumnWidth = useCallback((columnId: string) => {
+        switch (columnId) {
+            case 'name':
+                return { width: '250px', minWidth: '250px' };
+            default:
+                return { width: 'auto' };
+        }
+    }, []);
+
+    // Header sort props helper
+    const headerSortProps = (columnId: TableColumnId) => ({
+        onClick: (e: React.MouseEvent) => {
+            tableFeatures.sort.toggleColumnSort(e, columnId);
+        },
+        sortDirection: tableFeatures.sort.getSortDirection(columnId),
+    });
 
     // Effects
     useEffect(() => {
@@ -407,6 +440,7 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
         // State
         selectedFiles,
         uploadedFiles: filteredUploadedFiles,
+        originalUploadedFiles: uploadedFiles,
         selectedUploadedFileKeys,
         isLoadingFiles,
         isUploading,
@@ -433,8 +467,10 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
         formatFileSize,
         isValidFileType,
 
-        // Columns
-        columns,
+        // Table features
+        tableFeatures,
+        headerSortProps,
+        getColumnWidth,
 
         // Refs
         fileInputRef,

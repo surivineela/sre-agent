@@ -28,7 +28,7 @@ import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPorta
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { resolveResourceIcon } from '../../../Common/Helpers/Resources';
 import { KnowledgeBaseResources, SreAgentResources } from '../../../Strings/SREAgentResources';
-import { useKnowledgeBase } from '../Hooks/useKnowledgeBaseNew';
+import { useKnowledgeBase } from '../Hooks/useKnowledgeBase';
 import { useKnowledgeBaseStyles } from '../Styles/KnowledgeBase.styles';
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 import { EmptyState } from './EmptyState';
