@@ -225,13 +225,13 @@ public sealed class IncidentInvestigationTaskHandler(
             var customerLoggerHooks = customerLoggerHelper.GetCustomerLoggerHooks();
 
             // Subscribe customer logger event handlers to the main runHooks
-            runHooks.ToolStart += async (context, agent, tool, input) =>
+            runHooks.ToolStart += async (context, agent, functionCall, tool, input) =>
             {
-                await customerLoggerHooks.OnToolStart(context, agent, tool, input);
+                await customerLoggerHooks.OnToolStart(context, agent, functionCall, tool, input);
             };
-            runHooks.ToolEnd += async (context, agent, tool, output) =>
+            runHooks.ToolEnd += async (context, agent, functionCallContent, tool, output) =>
             {
-                await customerLoggerHooks.OnToolEnd(context, agent, tool, output);
+                await customerLoggerHooks.OnToolEnd(context, agent, functionCallContent, tool, output);
             };
             runHooks.AgentStart += async (context, agent) =>
             {
@@ -349,6 +349,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     async Task UpdateInitialInvestigationStatus(
                         RunContextWrapper<AgentContext> ctx,
                         Agent<AgentContext> agent,
+                        FunctionCallContent functionCall,
                         AIFunction tool,
                         IEnumerable<KeyValuePair<string, object?>>? input)
                     {
@@ -947,32 +948,32 @@ public sealed class IncidentInvestigationTaskHandler(
                 logger.LogInternalWarning(ex, "Failed to get approval status for task {TaskId}", _currentAgentTask.Id);
             }
         }
-        
+
         if (_currentAgentTask.Status == AgentTaskStatus.Complete)
         {
             return "Investigation complete";
         }
-        
+
         if (state.FormingHypothesis.Status == FormingHypothesisStatus.InProgress)
         {
             return state.FormingHypothesis.StatusMessage ?? "Forming hypotheses...";
         }
-        
+
         if (state.InitialInvestigation.Status == InitialInvestigationStatus.InProgress)
         {
             return state.InitialInvestigation.StatusMessage ?? "Performing incident research...";
         }
-        
+
         if (state.FormingHypothesis.Status == FormingHypothesisStatus.Complete)
         {
             return state.FormingHypothesis.StatusMessage ?? "Hypothesis analysis complete";
         }
-        
+
         if (state.InitialInvestigation.Status == InitialInvestigationStatus.Complete)
         {
             return "Initial research complete, preparing to form hypotheses...";
         }
-        
+
         return null;
     }
 
@@ -983,7 +984,7 @@ public sealed class IncidentInvestigationTaskHandler(
     {
         if (_currentAgentTask?.Properties is not IncidentInvestigationTaskProperties state)
         {
-            return null; 
+            return null;
         }
 
         if (_currentAgentTask.DeepInvestigationApprovalId != null)
@@ -1006,7 +1007,7 @@ public sealed class IncidentInvestigationTaskHandler(
         {
             return "Conclusion";
         }
-        
+
         if (state.FormingHypothesis.Status == FormingHypothesisStatus.InProgress)
         {
             if (state.FormingHypothesis.StatusMessage?.Contains("Validating") == true)
@@ -1014,19 +1015,19 @@ public sealed class IncidentInvestigationTaskHandler(
                 return "Validating Hypotheses";
             }
         }
-        
-        if (state.FormingHypothesis.Status == FormingHypothesisStatus.InProgress || 
+
+        if (state.FormingHypothesis.Status == FormingHypothesisStatus.InProgress ||
             state.FormingHypothesis.Status == FormingHypothesisStatus.Complete)
         {
             return "Forming Hypotheses";
         }
-        
-        if (state.InitialInvestigation.Status == InitialInvestigationStatus.InProgress || 
+
+        if (state.InitialInvestigation.Status == InitialInvestigationStatus.InProgress ||
             state.InitialInvestigation.Status == InitialInvestigationStatus.Complete)
         {
             return "Incident Research";
         }
-        
+
         return null;
     }
 
@@ -1044,10 +1045,10 @@ public sealed class IncidentInvestigationTaskHandler(
         var currentStatusMessage = await GetCurrentStatusMessageAsync();
         var currentPhase = await GetCurrentPhaseAsync();
         var updatedAgentTaskInfo = new AgentTaskInfo(
-            _currentAgentTask.Id, 
-            _currentAgentTask.Title, 
-            _currentAgentTask.Status, 
-            _currentAgentTask.LastModified, 
+            _currentAgentTask.Id,
+            _currentAgentTask.Title,
+            _currentAgentTask.Status,
+            _currentAgentTask.LastModified,
             Phase: currentPhase,
             StatusMessage: currentStatusMessage);
 
@@ -1060,7 +1061,7 @@ public sealed class IncidentInvestigationTaskHandler(
             }
             catch (Exception ex)
             {
-                logger.LogInternalWarning(ex, "Failed to get approval {ApprovalId} for task {TaskId}", 
+                logger.LogInternalWarning(ex, "Failed to get approval {ApprovalId} for task {TaskId}",
                     _currentAgentTask.DeepInvestigationApprovalId, _currentAgentTask.Id);
             }
         }
@@ -1097,17 +1098,17 @@ public sealed class IncidentInvestigationTaskHandler(
         try
         {
             await threadRepository.UpdateMessageAsync(
-                _currentAgentTask.ThreadId, 
-                (Guid)_deepInvestigationNotificationMessageId, 
-                updatedMessageJson, 
+                _currentAgentTask.ThreadId,
+                (Guid)_deepInvestigationNotificationMessageId,
+                updatedMessageJson,
                 updatedAgentTaskInfo);
-            
+
             await outboundCommunicationService.AppendAgentStreamMessage(
-                _currentAgentTask.ThreadId, 
-                updatedMessageJson, 
-                StreamMessageType.DeepInvestigation, 
-                _deepInvestigationNotificationMessageId, 
-                _currentAgentTask.LastModified, 
+                _currentAgentTask.ThreadId,
+                updatedMessageJson,
+                StreamMessageType.DeepInvestigation,
+                _deepInvestigationNotificationMessageId,
+                _currentAgentTask.LastModified,
                 cancellationToken);
 
             logger.LogInternalInformation(
@@ -1116,8 +1117,8 @@ public sealed class IncidentInvestigationTaskHandler(
         }
         catch (Exception ex)
         {
-            logger.LogInternalWarning(ex, 
-                "Failed to update deep investigation notification {MessageId} - investigation will continue", 
+            logger.LogInternalWarning(ex,
+                "Failed to update deep investigation notification {MessageId} - investigation will continue",
                 _deepInvestigationNotificationMessageId.Value);
         }
     }
@@ -2086,7 +2087,7 @@ public sealed class IncidentInvestigationTaskHandler(
     /// <summary>
     /// Handles ReportStepCompletion tool calls to provide real-time step streaming.
     /// </summary>
-    private async Task HandleReportStepCompletionToolCallAsync(RunContextWrapper<AgentContext> runContext, Agent<AgentContext> agent, AIFunction tool, IEnumerable<KeyValuePair<string, object?>>? input)
+    private async Task HandleReportStepCompletionToolCallAsync(RunContextWrapper<AgentContext> runContext, Agent<AgentContext> agent, FunctionCallContent functionCall, AIFunction tool, IEnumerable<KeyValuePair<string, object?>>? input)
     {
         if (tool.Name == "ReportStepCompletion")
         {
@@ -2326,7 +2327,7 @@ public sealed class IncidentInvestigationTaskHandler(
             logger.LogInternalError(ex, "Failed to update approval {ApprovalId} status to cancelled after timeout", approvalId);
         }
 
-        return false; 
+        return false;
     }
 
     /// <summary>

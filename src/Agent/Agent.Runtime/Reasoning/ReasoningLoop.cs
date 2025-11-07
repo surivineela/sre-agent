@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
@@ -65,7 +66,8 @@ public class ReasoningLoop : IDisposable
 
     private TelemetrySpan? _rootSpan;
     private TelemetrySpan? _currentAgentSpan;
-    private TelemetrySpan? _currentToolSpan;
+    // private TelemetrySpan? _currentToolSpan;
+    private readonly ConcurrentDictionary<string, TelemetrySpan?> _toolSpans = new();
     private TelemetrySpan? _currentGenerationSpan;
     private Stopwatch? _currentGenerationStopwatch;
     private Exception? _currentException;
@@ -416,10 +418,7 @@ public class ReasoningLoop : IDisposable
                 {
                     case ReasoningLoopChatMessage chatMessage:
                         {
-                            var (azCliExecution, kubectlExecution, psqlExecution) = await ListPendingExecutions(_context.ThreadId);
-                            if ((_context.ApprovalInformation != null &&
-                                _context.ApprovalInformation.PendingApprovals.Count > 0) ||
-                                azCliExecution != null || kubectlExecution != null || psqlExecution != null)
+                            if (await HasPendingApprovalsOrCliExecutionsAsync())
                             {
                                 await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                                     _context.ThreadId,
@@ -556,7 +555,7 @@ public class ReasoningLoop : IDisposable
 
                             var approval = approvalMessage.Approval;
                             var shouldStop = await ProcessNewApprovalAsync(agentChatHistory, approval, cancellationToken);
-                            if (shouldStop)
+                            if (shouldStop || await HasPendingApprovalsOrCliExecutionsAsync())
                             {
                                 return;
                             }
@@ -605,6 +604,13 @@ public class ReasoningLoop : IDisposable
 
                             var toolResults = functionCall.Messages.Where(m => m.Role == ChatRole.Tool).ToList();
                             await PersistReasoningMessagesAsync(agentChatHistory, toolResults);
+
+                            if (await HasPendingApprovalsOrCliExecutionsAsync())
+                            {
+                                _logger.LogInternalInformation("[{threadId}]Pending approvals or CLI executions exist after function call. Halting reasoning loop.", _context.ThreadId);
+                                return;
+                            }
+
                             break;
                         }
                     case ReasoningLoopContinuation continuation:
@@ -680,6 +686,26 @@ public class ReasoningLoop : IDisposable
 
     }
 
+    private async ValueTask<bool> HasPendingApprovalsOrCliExecutionsAsync()
+    {
+        if (_context.ApprovalInformation != null &&
+            _context.ApprovalInformation.PendingApprovals.Count > 0)
+        {
+            _logger.LogInternalInformation("[{threadId}]Pending approvals exist.", _context.ThreadId);
+            return true;
+        }
+
+        var (azCliExecution, kubectlExecution, psqlExecution) = await ListPendingExecutions(_context.ThreadId);
+
+        if (azCliExecution != null || kubectlExecution != null || psqlExecution != null)
+        {
+            _logger.LogInternalInformation("[{threadId}]Pending cli executions exist.", _context.ThreadId);
+            return true;
+        }
+
+        return false;
+    }
+
     private async Task ChangeAgentContextStateAsync(ContextStateEnum newState)
     {
         var oldState = _context.ContextState;
@@ -738,9 +764,8 @@ public class ReasoningLoop : IDisposable
             // handle manual tool calls
             while (runResult.ManualToolCalls != null && runResult.ManualToolCalls.Count > 0)
             {
-                List<ManualToolCallResult> toolResults = [];
+                _logger.LogInternalInformation("[{threadId}]Processing {toolCallCount} manual tool calls: {tools}", _context.ThreadId, runResult.ManualToolCalls.Count, string.Join(", ", runResult.ManualToolCalls.Select(tc => tc.Tool.Name)));
 
-                var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
                 Guid toolCallMessageId = Guid.NewGuid();
 
                 await _outboundCommunicationService.AppendAgentManualToolCallMessage(
@@ -748,162 +773,218 @@ public class ReasoningLoop : IDisposable
                     runResult.ManualToolCalls,
                     toolCallMessageId);
 
-                // TODO: move handoff back to Agent.Framework so we don't have to manipulate the chat history so much outside the runner
-                if (toolCall.Tool.UnderlyingMethod?.Name == nameof(AgentControlFlowPluginDefinition.HandoffBack)
-                    || toolCall.Tool.UnderlyingMethod?.Name == nameof(AgentReasoningControlFlowPluginDefinition.HandoffBack))
+                List<ManualToolCallResult> toolResults = [];
+
+                // Currently, multiple tools are executed seqentially. Because multiple tools may have have implicit dependencies on each other.
+                // For example, 1st az cli tool restarts a container app while 2nd one checks the app's status.
+                foreach (var toolCall in runResult.ManualToolCalls)
                 {
-                    var handoffOutput = GetHandoffBackTransferMessage(toolCall);
-                    if (_context.AgentHandoffChain.Count > 1)
+                    // TODO: move handoff back to Agent.Framework so we don't have to manipulate the chat history so much outside the runner
+                    if (toolCall.Tool.UnderlyingMethod?.Name == nameof(AgentControlFlowPluginDefinition.HandoffBack)
+                        || toolCall.Tool.UnderlyingMethod?.Name == nameof(AgentReasoningControlFlowPluginDefinition.HandoffBack))
                     {
-                        // pop agent off the chain
-                        _context.AgentHandoffChain.RemoveAt(_context.AgentHandoffChain.Count - 1);
-                        var agentName = _context.AgentHandoffChain[^1];
-                        var newAgent = _agentProvider.GetAgent(agentName, _context.ThreadId.ToString());
-
-                        runResult = runResult.WithNewAgent(newAgent);
-                    }
-                    else
-                    {
-                        // Handoff to the default starting agent when no other agents are in the chain
-                        runResult = runResult.WithNewAgent(_defaultStartingAgent);
-
-                        // Update the context to reflect the handoff to default agent
-                        _context = _context with
+                        var handoffOutput = GetHandoffBackTransferMessage(toolCall);
+                        if (_context.AgentHandoffChain.Count > 1)
                         {
-                            AgentHandoffChain = [_defaultStartingAgent.Name]
-                        };
-                    }
+                            // pop agent off the chain
+                            _context.AgentHandoffChain.RemoveAt(_context.AgentHandoffChain.Count - 1);
+                            var agentName = _context.AgentHandoffChain[^1];
+                            var newAgent = _agentProvider.GetAgent(agentName, _context.ThreadId.ToString());
 
-                    _context = await _threadRepository.UpdateAgentContextAsync(_context);
-                    toolResults.Add(new ManualToolCallResult()
-                    {
-                        FunctionCall = toolCall.FunctionCall,
-                        Output = handoffOutput
-                    });
-                }
-                else
-                {
-                    var checkWriteActionResult = CheckWriteActionInReadOnlyMode(toolCall);
-                    var currentAgentMode = _agentRuntimeModifier.GetThreadAgentMode(_context);
-                    if (string.Equals(currentAgentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase) &&
-                       checkWriteActionResult.NeedSkip)
-                    {
-                        //var chatMessage = new ChatMessage(ChatRole.System, checkWriteActionResult.Prompt);
+                            runResult = runResult.WithNewAgent(newAgent);
+                        }
+                        else
+                        {
+                            // Handoff to the default starting agent when no other agents are in the chain
+                            runResult = runResult.WithNewAgent(_defaultStartingAgent);
+
+                            // Update the context to reflect the handoff to default agent
+                            _context = _context with
+                            {
+                                AgentHandoffChain = [_defaultStartingAgent.Name]
+                            };
+                        }
+
+                        _context = await _threadRepository.UpdateAgentContextAsync(_context);
                         toolResults.Add(new ManualToolCallResult()
                         {
                             FunctionCall = toolCall.FunctionCall,
-                            Output = checkWriteActionResult.Prompt
+                            Output = handoffOutput
                         });
-
                     }
                     else
                     {
-                        var checkApprovalResult = await CheckApprovalAsync(toolCall);
-                        bool shouldStop = checkApprovalResult.ApprovalStatus == ToolApprovalStatus.Pending;
-
-                        if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
+                        var checkWriteActionResult = CheckWriteActionInReadOnlyMode(toolCall);
+                        var currentAgentMode = _agentRuntimeModifier.GetThreadAgentMode(_context);
+                        if (string.Equals(currentAgentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                           checkWriteActionResult.NeedSkip)
                         {
-                            try
+                            toolResults.Add(new ManualToolCallResult()
                             {
-                                var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+                                FunctionCall = toolCall.FunctionCall,
+                                Output = checkWriteActionResult.Prompt
+                            });
 
-                                var (azCliExecution, kubectlExecution, psqlExecution) = await ListPendingExecutions(_context.ThreadId);
+                        }
+                        else
+                        {
+                            var checkApprovalResult = await CheckApprovalAsync(toolCall);
+                            bool shouldStop = checkApprovalResult.ApprovalStatus == ToolApprovalStatus.Pending;
 
-                                if (azCliExecution == null && kubectlExecution == null && psqlExecution == null)
-                                {
-                                    toolResults.Add(new ManualToolCallResult()
-                                    {
-                                        FunctionCall = toolCall.FunctionCall,
-                                        Output = functionResult
-                                    });
-                                }
-                                else if (azCliExecution != null)
-                                {
-                                    azCliExecution = azCliExecution with
-                                    {
-                                        AgentContextId = _context.Id,
-                                        OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
-                                    };
-                                    await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, azCliExecution);
-                                    var contextWrapper = new RunContextWrapper<AgentContext>(_context);
-                                    await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.Tool, functionResult);
-                                    break;
-                                }
-                                else if (kubectlExecution != null)
-                                {
-                                    kubectlExecution = kubectlExecution with
-                                    {
-                                        AgentContextId = _context.Id,
-                                        OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
-                                    };
-                                    await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
-                                    var contextWrapper = new RunContextWrapper<AgentContext>(_context);
-                                    await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.Tool, functionResult);
-                                    break;
-                                }
-                                else if (psqlExecution != null)
-                                {
-                                    psqlExecution = psqlExecution with
-                                    {
-                                        AgentContextId = _context.Id,
-                                        OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
-                                    };
-                                    await _threadRepository.UpdatePsqlExecutionAsync(_context.ThreadId, psqlExecution);
-                                    var contextWrapper = new RunContextWrapper<AgentContext>(_context);
-                                    await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.Tool, functionResult);
-                                    break;
-                                }
-                            }
-                            catch (ToolExecutionUnauthorizedException ex)
+                            if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
                             {
                                 try
                                 {
-                                    await HandleToolExecutionUnauthorized(ex, toolCall.Tool, toolCall.FunctionCall);
-                                    shouldStop = true;
-                                }
-                                catch (Exception ex2)
-                                {
-                                    toolResults.Add(new ManualToolCallResult()
+                                    var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+
+                                    var isCliTool = CliTools.ContainsKey(toolCall.Tool.Name);
+
+                                    CliToolExecutionResult? cliToolExecutionResult = null;
+
+                                    var isValidCliToolResult = isCliTool && TryGetCliToolExecutionResult(functionResult, out cliToolExecutionResult);
+
+                                    CliToolExecution? cliExecution = null;
+                                    if (isCliTool && isValidCliToolResult && cliToolExecutionResult?.ExecutionId is not null)
                                     {
-                                        FunctionCall = toolCall.FunctionCall,
-                                        Output = GetErrorMessage(toolCall.FunctionCall, ex2),
-                                    });
+                                        cliExecution = await GetCliToolExecution(_context.ThreadId, CliTools[toolCall.Tool.Name], cliToolExecutionResult.ExecutionId.Value);
+                                    }
+
+                                    // Return immediately if not a CLI tool, or if result is null/invalid
+                                    if (!isCliTool
+                                        || cliExecution is null
+                                        || !cliExecution.IsPending)
+                                    {
+                                        toolResults.Add(new ManualToolCallResult()
+                                        {
+                                            FunctionCall = toolCall.FunctionCall,
+                                            Output = functionResult
+                                        });
+                                    }
+                                    else
+                                    {
+                                        // For pending CLI tools, the tool starts execution asynchronously after the user clicks "Run" on UI
+                                        // So there's no tool execution result is added to the chat history.
+                                        var cliToolType = CliTools[toolCall.Tool.Name];
+
+                                        if (cliExecution.AzCliExecution is not null)
+                                        {
+                                            var azCliExecution = cliExecution.AzCliExecution with
+                                            {
+                                                AgentContextId = _context.Id,
+                                                OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
+                                            };
+                                            await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, azCliExecution);
+                                            var contextWrapper = new RunContextWrapper<AgentContext>(_context);
+                                            await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.FunctionCall, toolCall.Tool, functionResult);
+                                        }
+                                        else if (cliExecution.KubectlExecution is not null)
+                                        {
+                                            var kubectlExecution = cliExecution.KubectlExecution with
+                                            {
+                                                AgentContextId = _context.Id,
+                                                OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
+                                            };
+                                            await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
+                                            var contextWrapper = new RunContextWrapper<AgentContext>(_context);
+                                            await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.FunctionCall, toolCall.Tool, functionResult);
+                                        }
+                                        else if (cliExecution.PsqlExecution is not null)
+                                        {
+                                            var psqlExecution = cliExecution.PsqlExecution with
+                                            {
+                                                AgentContextId = _context.Id,
+                                                OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
+                                            };
+                                            await _threadRepository.UpdatePsqlExecutionAsync(_context.ThreadId, psqlExecution);
+                                            var contextWrapper = new RunContextWrapper<AgentContext>(_context);
+                                            await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.FunctionCall, toolCall.Tool, functionResult);
+                                        }
+                                    }
+                                }
+                                catch (ToolExecutionUnauthorizedException ex)
+                                {
+                                    try
+                                    {
+                                        await HandleToolExecutionUnauthorized(ex, toolCall.Tool, toolCall.FunctionCall);
+                                        shouldStop = true;
+                                    }
+                                    catch (Exception ex2)
+                                    {
+                                        toolResults.Add(new ManualToolCallResult()
+                                        {
+                                            FunctionCall = toolCall.FunctionCall,
+                                            Output = GetErrorMessage(toolCall.FunctionCall, ex2),
+                                        });
+                                    }
                                 }
                             }
-                        }
 
-                        if (shouldStop)
-                        {
-                            // Either it needs approval or authorization
-                            await ChangeAgentContextStateAsync(ContextStateEnum.PendingApproval);
-                            var contextWrapper = new RunContextWrapper<AgentContext>(_context);
-                            var pendingApprovalMessage = "Tool execution is waiting for approval";
-                            await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.Tool, pendingApprovalMessage);
-                            break;
+                            if (shouldStop)
+                            {
+                                // Either it needs approval or authorization
+                                await ChangeAgentContextStateAsync(ContextStateEnum.PendingApproval);
+                                var contextWrapper = new RunContextWrapper<AgentContext>(_context);
+                                var pendingApprovalMessage = "Tool execution is waiting for approval";
+                                await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.FunctionCall, toolCall.Tool, pendingApprovalMessage);
+                            }
                         }
                     }
+
                 }
 
-                runResult = await Runner.ResumeFromManualToolsAsync(
-                    previousResult: runResult,
-                    manualToolResults: toolResults,
-                    config: runConfig,
-                    context: _context,
-                    hooks: runHooks,
-                    displayModelOutput: DisplayModelResponse,
-                    cancellationToken: cancellationToken
-                );
+                if (toolResults.Count > 0)
+                {
+                    if (toolResults.Count == runResult.ManualToolCalls?.Count)
+                    {
+                        // all tools executed, clear manual tool calls
+                        runResult = await Runner.ResumeFromManualToolsAsync(
+                            previousResult: runResult,
+                            manualToolResults: toolResults,
+                            config: runConfig,
+                            context: _context,
+                            hooks: runHooks,
+                            displayModelOutput: DisplayModelResponse,
+                            cancellationToken: cancellationToken
+                        );
 
-                await _outboundCommunicationService.AppendAgentManualToolCallResult(
-                    _context.ThreadId,
-                    toolResults,
-                    toolCallMessageId);
+                        await _outboundCommunicationService.AppendAgentManualToolCallResult(
+                            _context.ThreadId,
+                            toolResults,
+                            toolCallMessageId);
 
-                await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
+                        await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
+                        _currentAgent = runResult.LastAgent;
+                        _context = _context with { CurrentAgent = _currentAgent.Name };
+                        _context = await _threadRepository.UpdateAgentContextAsync(_context);
+                    }
+                    else
+                    {
+                        _logger.LogInternalInformation("[{threadId}]Not all manual tool calls have results. executed {count} out of {total}", _context.ThreadId, toolResults.Count, runResult.ManualToolCalls?.Count);
+                        // partial tool execution, do not resume the runner yet because some of the tools don't have results. Resuming would cause 400 errors.
 
-                _currentAgent = runResult.LastAgent;
-                _context = _context with { CurrentAgent = _currentAgent.Name };
-                _context = await _threadRepository.UpdateAgentContextAsync(_context);
+                        await _outboundCommunicationService.AppendAgentManualToolCallResult(
+                            _context.ThreadId,
+                            toolResults,
+                            toolCallMessageId);
+
+                        var toolResultMessages = toolResults.Select(tr => new ChatMessage(
+                            role: ChatRole.Tool,
+                            contents:
+                            [
+                                new FunctionResultContent(tr.FunctionCall.CallId, tr.Output)
+                            ]
+                        )).ToList();
+
+                        await PersistReasoningMessagesAsync(agentChatHistory, toolResultMessages);
+
+                        // Because we couldn't resume the runner yet, we need to break out of the manual tool call processing loop
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
             }
 
             var endingState = AgentProcessingState.Unknown;
@@ -1260,30 +1341,32 @@ public class ReasoningLoop : IDisposable
         hooks.Handoff += async (context, agent, handoffAgent, handoffReasoning) =>
         {
             _logger.LogInternalInformation("Trace Handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
-            _currentToolSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
-            _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-            _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
-            _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-            _currentToolSpan.SetAttribute(TraceAttribute.HandoffAgentName, handoffAgent.Name);
-            _currentToolSpan.SetAttribute(TraceAttribute.HandoffReasoning, handoffReasoning);
-            _currentToolSpan.End();
-            _currentToolSpan = null;
+            var currentToolSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
+            currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
+            currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            currentToolSpan.SetAttribute(TraceAttribute.HandoffAgentName, handoffAgent.Name);
+            currentToolSpan.SetAttribute(TraceAttribute.HandoffReasoning, handoffReasoning);
+            currentToolSpan.End();
+
             _currentAgentSpan?.End();
             _context.AgentHandoffChain.Add(handoffAgent.Name);
             _context = await _threadRepository.UpdateAgentContextAsync(_context);
         };
 
-        hooks.ToolStart += async (context, agent, tool, input) =>
+        hooks.ToolStart += async (context, agent, functionCall, tool, input) =>
         {
             _logger.LogInternalInformation("Trace Starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
-            _currentToolSpan = _tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
-            _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-            _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
-            _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-            _currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
-            _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input));
-            _currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
-            _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
+            var currentToolSpan = _tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
+            currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
+            currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
+            currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input));
+            currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
+            currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
+
+            _toolSpans[functionCall.CallId] = currentToolSpan;
 
             _logger.LogAgentAction(
                 action: AgentActionEvents.InvokeTool,
@@ -1315,12 +1398,14 @@ public class ReasoningLoop : IDisposable
             }
         };
 
-        hooks.ToolEnd += async (context, agent, tool, output) =>
+        hooks.ToolEnd += async (context, agent, functionCallContent, tool, output) =>
         {
             _logger.LogInternalInformation("Trace Ending tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
-            _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
-            _currentToolSpan?.End();
-            _currentToolSpan = null;
+            var currentToolSpan = _toolSpans.GetValueOrDefault(functionCallContent.CallId);
+            currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
+            currentToolSpan?.End();
+
+            _toolSpans.Remove(functionCallContent.CallId, out var _);
 
             // Stream auto tool results to complete the streaming flow
             if (tool.GetToolMode() == ToolMode.Auto)
@@ -1651,13 +1736,21 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    private static readonly IReadOnlyList<string> ExternalProcessTools =
-    [
-        nameof(ArmPluginDefinition.RunAzCliReadCommandsAsync),
-        nameof(ArmPluginDefinition.RunAzCliWriteCommandsAsync),
-        nameof(KubePluginDefinition.RunKubectlReadCommandAsync),
-        nameof(KubePluginDefinition.RunKubectlWriteCommandAsync),
-    ];
+    private enum CliToolType
+    {
+        AzCli,
+        Kubectl,
+        Psql
+    }
+
+    private static readonly IReadOnlyDictionary<string, CliToolType> CliTools = new Dictionary<string, CliToolType>
+    {
+        [EvaluationHelper.GetToolCallName(nameof(ArmPluginDefinition.RunAzCliReadCommandsAsync))] = CliToolType.AzCli,
+        [EvaluationHelper.GetToolCallName(nameof(ArmPluginDefinition.RunAzCliWriteCommandsAsync))] = CliToolType.AzCli,
+        [EvaluationHelper.GetToolCallName(nameof(KubePluginDefinition.RunKubectlReadCommandAsync))] = CliToolType.Kubectl,
+        [EvaluationHelper.GetToolCallName(nameof(KubePluginDefinition.RunKubectlWriteCommandAsync))] = CliToolType.Kubectl,
+        [EvaluationHelper.GetToolCallName(nameof(PostgreSQLAutomationPluginDefinition.RunPsqlReadCommandAsync))] = CliToolType.Psql
+    };
 
     // Helper method to determine tool execution status using similar logic as CalculateToolCallMetrics
     private static (string ActionResult, string? Failure) DetermineToolExecutionStatus(string toolName, object? result)
@@ -1673,7 +1766,7 @@ public class ReasoningLoop : IDisposable
 
         var normalizedToolName = EvaluationHelper.GetToolCallName(toolName);
         // Check AzCli & Kubectl tools
-        if (ExternalProcessTools.Contains(normalizedToolName)
+        if (CliTools.ContainsKey(normalizedToolName)
             && output.Contains(ExternalProcessCommand.ProcessFailureMessage, StringComparison.OrdinalIgnoreCase))
         {
             return (AgentActionStatus.Fail, output);
@@ -2318,7 +2411,7 @@ public class ReasoningLoop : IDisposable
         {
             Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
             Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
-            Core.ToolStatic.AsyncLocalToolTraceSpan.Value = _currentToolSpan;
+            Core.ToolStatic.AsyncLocalToolTraceSpan.Value = _toolSpans.GetValueOrDefault(toolCall.Tool!.Name);
 
             return await toolCall.Tool.InvokeAsync(new AIFunctionArguments(toolCall.FunctionCall.Arguments), cancellationToken);
         }
@@ -2797,6 +2890,51 @@ public class ReasoningLoop : IDisposable
         return (await azCliExecutionTask, await kubectlExecutionTask, await psqlExecutionTask);
     }
 
+    private record CliToolExecution
+    {
+        public CliToolType ToolType { get; set; }
+        public Core.Models.Api.v1.AzCliExecution? AzCliExecution { get; set; }
+        public Core.Models.Api.v1.KubectlExecution? KubectlExecution { get; set; }
+        public Core.Models.Api.v1.PsqlExecution? PsqlExecution { get; set; }
+
+        public bool IsPending => (ToolType == CliToolType.AzCli && AzCliExecution != null && AzCliExecution.Status == AzCliExecutionStatus.Pending) ||
+                                 (ToolType == CliToolType.Kubectl && KubectlExecution != null && KubectlExecution.Status == KubectlExecutionStatus.Pending) ||
+                                 (ToolType == CliToolType.Psql && PsqlExecution != null && PsqlExecution.Status == AzCliExecutionStatus.Pending);
+    }
+
+    private async Task<CliToolExecution> GetCliToolExecution(Guid threadId, CliToolType toolType, Guid executionId)
+    {
+        if (toolType == CliToolType.AzCli)
+        {
+            var azCliExecution = await _threadRepository.GetAzCliExecutionAsync(threadId, executionId);
+            return new CliToolExecution
+            {
+                ToolType = toolType,
+                AzCliExecution = azCliExecution
+            };
+        }
+        else if (toolType == CliToolType.Kubectl)
+        {
+            var kubectlExecution = await _threadRepository.GetKubectlExecutionAsync(threadId, executionId);
+            return new CliToolExecution
+            {
+                ToolType = toolType,
+                KubectlExecution = kubectlExecution
+            };
+        }
+        else if (toolType == CliToolType.Psql)
+        {
+            var psqlExecution = await _threadRepository.GetPsqlExecutionAsync(threadId, executionId);
+            return new CliToolExecution
+            {
+                ToolType = toolType,
+                PsqlExecution = psqlExecution
+            };
+        }
+        throw new ArgumentException($"Unsupported CliToolType: {toolType}");
+    }
+
+
     private static async Task<TodoPlan?> FindTodoPlanWithSameContentAsync(List<TodoItem> newTodoItems, Guid threadId, IThreadRepository threadRepository)
     {
         var existingPlans = await threadRepository.GetTodoPlansAsync(threadId);
@@ -2912,6 +3050,29 @@ public class ReasoningLoop : IDisposable
             return TodoPlanStatus.InProgress;
 
         return TodoPlanStatus.Planning;
+    }
+
+    private static bool TryGetCliToolExecutionResult(object? toolResult, out CliToolExecutionResult? executionResult)
+    {
+        executionResult = null;
+        try
+        {
+            if (toolResult is JsonElement jsonElement)
+            {
+                var result = jsonElement.Deserialize<CliToolExecutionResult>(AIJsonUtilities.DefaultOptions);
+                if (result?.ExecutionId != null)
+                {
+                    executionResult = result;
+                    return true;
+                }
+            }
+        }
+        catch
+        {
+            // Ignore deserialization errors
+        }
+
+        return false;
     }
 
     // Helper class to deserialize framework todo format

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 
 namespace Agent.Plugins.Interface
@@ -33,9 +34,9 @@ namespace Agent.Plugins.Interface
         Task<string> DiagnoseAKSAppAsync(string AKSClusterResourceId, string _namespace, string kind, string name);
         Task<string> PatchKubernetesYamlAsync(string resourceId, string yamlContent);
         Task<string> ListWorkloadRevisions(string AKSClusterResourceId, string _namespace, string kind, string name);
-        Task<string> RunKubectlReadCommandAsync(string AKSClusterResourceId, string command);
-        Task<string> RunKubectlWriteCommandAsync(string AKSClusterResourceId, string command, string stdin = "");
-        Task<string> RunKubectlCommandHelpAsync(string AKSClusterResourceId, string command);
+        Task<CliToolExecutionResult> RunKubectlReadCommandAsync(string AKSClusterResourceId, string command);
+        Task<CliToolExecutionResult> RunKubectlWriteCommandAsync(string AKSClusterResourceId, string command, string stdin = "");
+        Task<CliToolExecutionResult> RunKubectlCommandHelpAsync(string AKSClusterResourceId, string command);
         Task<string> DiscoverMetricsAsync(string AKSClusterResourceId, string? namePattern, string? metricType);
         Task<string> GetMetricLabelsAsync(string AKSClusterResourceId, string metricName, string? labelName);
         Task<string> ExecutePromQLAsync(string AKSClusterResourceId, string query, string duration, string step, string? labelFilters, string? aggregateFunction, string? aggregateBy, int? limit, double? minValue);

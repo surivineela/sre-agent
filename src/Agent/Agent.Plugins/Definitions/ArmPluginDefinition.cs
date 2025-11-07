@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
@@ -239,7 +240,7 @@ BEST PRACTICES:
   - Run `GetAzCliHelpAsync` for command help. If further clarification is needed, use `SearchDocuments`.
 """)]
         [AgentTool(ToolMode.Manual)]
-        public async Task<string> RunAzCliReadCommandsAsync(
+        public async Task<CliToolExecutionResult> RunAzCliReadCommandsAsync(
     [Description("Complete az command string for read operations (list, show, get)")] string command)
         {
             return await _armPlugin.RunAzCliReadCommandsAsync(command);
@@ -319,7 +320,7 @@ BEST PRACTICES:
   - Run `GetAzCliHelpAsync` for command help. If further clarification is needed, use `SearchDocuments`.
 """)]
         [AgentTool(ToolMode.Manual)]
-        public async Task<string> RunAzCliWriteCommandsAsync(
+        public async Task<CliToolExecutionResult> RunAzCliWriteCommandsAsync(
             [Description("Complete az command string for write operations (create, update, set, scale, start, stop, restart)")] string command)
         {
             return await _armPlugin.RunAzCliWriteCommandsAsync(command);

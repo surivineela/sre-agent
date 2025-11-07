@@ -183,28 +183,28 @@ namespace Agent.Plugins.Implementation
             return await _armHelper.UpdateAppSettingsAsync(resourceId, appSettings);
         }
 
-        public async Task<string> RunAzCliReadCommandsAsync(string command)
+        public async Task<CliToolExecutionResult> RunAzCliReadCommandsAsync(string command)
         {
             try
             {
                 if (ArmHelper.IsAksCommandInvokeCommand(command))
                 {
-                    return "Error: AKS command invoke operations should be handled by kubectl_command_executor_agent only.";
+                    return new(new CliExecutionResult { Output = "Error: AKS command invoke operations should be handled by kubectl_command_executor_agent only.", ErrorType = CliErrorType.ValidationError }, null);
                 }
 
                 if (!ArmHelper.IsReadOnlyCommand(command))
                 {
-                    return $"Error: This method only supports read operations ({ArmHelper.AllowedReadVerbString}). Use RunAzCliWriteCommandsAsync for write operations.";
+                    return new(new CliExecutionResult { Output = $"Error: This method only supports read operations ({ArmHelper.AllowedReadVerbString}). Use RunAzCliWriteCommandsAsync for write operations.", ErrorType = CliErrorType.ValidationError }, null);
                 }
 
                 if (ArmHelper.IsBlockedSubCommand(command))
                 {
-                    return $"Error: This command is currently not supported. Unsupported subcommands: {string.Join(", ", ArmHelper.BlockedSubCommands)}. Please suggest using Azure portal or Az CLI directly";
+                    return new(new CliExecutionResult { Output = $"Error: This command is currently not supported. Unsupported subcommands: {string.Join(", ", ArmHelper.BlockedSubCommands)}. Please suggest using Azure portal or Az CLI directly", ErrorType = CliErrorType.ValidationError }, null);
                 }
 
                 if (ThreadId == null)
                 {
-                    return "Error: ThreadId is not set. Please set the ThreadId before running commands.";
+                    return new(new CliExecutionResult { Output = "Error: ThreadId is not set. Please set the ThreadId before running commands.", ErrorType = CliErrorType.Other }, null);
                 }
 
                 return await ExecuteAzCliCommandWithApprovalFallback(command, writeCommand: false);
@@ -212,11 +212,11 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "Failed to create execution for command: {Command}", command);
-                return $"Failed to prepare command execution: {ex.Message}";
+                return new(new CliExecutionResult { Output = $"Failed to prepare command execution: {ex.Message}", ErrorType = CliErrorType.Other }, null);
             }
         }
 
-        public async Task<string> RunAzCliWriteCommandsAsync(string command)
+        public async Task<CliToolExecutionResult> RunAzCliWriteCommandsAsync(string command)
         {
             try
             {
@@ -224,7 +224,7 @@ namespace Agent.Plugins.Implementation
                 var validationResult = ValidateWriteCommandRequest(command);
                 if (validationResult != null)
                 {
-                    return validationResult;
+                    return new(new CliExecutionResult { Output = validationResult, ErrorType = CliErrorType.ValidationError }, null);
                 }
 
                 var executionId = Guid.NewGuid();
@@ -251,13 +251,13 @@ namespace Agent.Plugins.Implementation
                 else
                 {
                     var execution = await CreateAndPersistAzCliExecution(executionId, command, requiresApproval: true);
-                    return "Azure CLI write command has been prepared for approval. Please click 'Authorize' to execute or 'Cancel' to dismiss.";
+                    return new(new CliExecutionResult { Output = "Azure CLI write command has been prepared for approval. Please click 'Authorize' to execute or 'Cancel' to dismiss.", ErrorType = CliErrorType.None }, executionId);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "Failed to create execution for write command: {Command}", command);
-                return $"Failed to prepare command execution: {ex.Message}";
+                return new(new CliExecutionResult { Output = $"Failed to prepare command execution: {ex.Message}", ErrorType = CliErrorType.Other }, null);
             }
         }
 
@@ -365,7 +365,7 @@ namespace Agent.Plugins.Implementation
             );
         }
 
-        private async Task<string> ExecuteAzCliCommandWithApprovalFallback(
+        private async Task<CliToolExecutionResult> ExecuteAzCliCommandWithApprovalFallback(
             string command,
             bool writeCommand)
         {
@@ -383,20 +383,20 @@ namespace Agent.Plugins.Implementation
                     if (result.ErrorType == CliErrorType.AuthorizationError || result.ErrorType == CliErrorType.NotFoundError)
                     {
                         await UpdateAzCliExecutionWithOboFlow(execution);
-                        return $"Azure CLI {cmdType} command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.";
+                        return new(new CliExecutionResult { Output = $"Azure CLI {cmdType} command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.", ErrorType = CliErrorType.None }, executionId);
                     }
                     else
                     {
                         await UpdateAzCliExecutionWithFailure(execution, result.Output);
 
-                        return $"Azure CLI {cmdType} command failed. Output: {result.Output}";
+                        return new(result, executionId);
                     }
                 }
                 else
                 {
                     await UpdateAzCliExecutionWithSuccess(execution, result.Output);
 
-                    return $"Azure CLI {cmdType} command completed successfully. Output: {result.Output}";
+                    return new(result, executionId);
                 }
             }
             catch (Exception ex)

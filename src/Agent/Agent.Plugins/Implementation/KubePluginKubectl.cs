@@ -21,22 +21,22 @@ namespace Agent.Plugins
         [GeneratedRegex(@"^([a-z0-9.-]+)\/([a-z0-9.-]+) (created|configured|patched|edited|scaled|deleted)$", RegexOptions.IgnoreCase)]
         private static partial Regex KubectlOutputRegex();
 
-        public async Task<string> RunKubectlCommandHelpAsync(
+        public async Task<CliToolExecutionResult> RunKubectlCommandHelpAsync(
             string resourceId,
             string command)
         {
             try
             {
                 var result = await ExecuteKubectlCommandSafely(resourceId, $"{command} --help", "");
-                return result.Output;
+                return new(result, null);
             }
             catch (Exception ex)
             {
-                return $"[Exception encountered]: Failed to execute command: {ex.ToString()}";
+                return new(new CliExecutionResult { Output = $"[Exception encountered]: Failed to execute command: {ex.ToString()}", ErrorType = CliErrorType.Other }, null);
             }
         }
 
-        public async Task<string> RunKubectlReadCommandAsync(
+        public async Task<CliToolExecutionResult> RunKubectlReadCommandAsync(
             string resourceId,
             string command)
         {
@@ -46,12 +46,12 @@ namespace Agent.Plugins
                 var validationSummary = ValidateKubectlReadCommand(command.Trim());
                 if (validationSummary != null)
                 {
-                    return validationSummary; // Return the validation error message
+                    return new(new CliExecutionResult { Output = validationSummary, ErrorType = CliErrorType.ValidationError }, null); // Return the validation error message
                 }
 
                 if (ThreadId == null || _threadRepository == null)
                 {
-                    return "Error: ThreadId is not set or ThreadRepository is not available. Please set the ThreadId before running commands.";
+                    return new(new CliExecutionResult { Output = "Error: ThreadId is not set or ThreadRepository is not available. Please set the ThreadId before running commands.", ErrorType = CliErrorType.Other }, null);
                 }
 
                 return await ExecuteKubectlWithApprovalFallback(
@@ -63,11 +63,11 @@ namespace Agent.Plugins
             catch (Exception ex)
             {
                 _logger?.LogInternalError(ex, "Failed to create execution for read command: {Command}", command);
-                return $"Failed to prepare command execution: {ex.Message}";
+                return new(new CliExecutionResult { Output = $"Failed to prepare command execution: {ex.Message}", ErrorType = CliErrorType.Other }, null);
             }
         }
 
-        public async Task<string> RunKubectlWriteCommandAsync(
+        public async Task<CliToolExecutionResult> RunKubectlWriteCommandAsync(
             string resourceId,
             string command,
             string stdin = "")
@@ -78,7 +78,7 @@ namespace Agent.Plugins
                 var validationResult = ValidateWriteCommandRequest(command);
                 if (validationResult != null)
                 {
-                    return validationResult;
+                    return new(new CliExecutionResult { Output = validationResult, ErrorType = CliErrorType.ValidationError }, null);
                 }
 
                 var executionId = Guid.NewGuid();
@@ -106,14 +106,14 @@ namespace Agent.Plugins
                 else
                 {
                     await CreateAndPersistKubectlExecution(executionId, resourceId, command, stdin, requiresApproval: true);
-                    return "Kubectl write command has been prepared for approval. Please click 'Authorize' to execute or 'Cancel' to dismiss.";
+                    return new(new CliExecutionResult { Output = "Kubectl write command has been prepared for approval. Please click 'Authorize' to execute or 'Cancel' to dismiss.", ErrorType = CliErrorType.None }, executionId);
 
                 }
             }
             catch (Exception ex)
             {
                 _logger?.LogInternalError(ex, "Failed to create execution for write command: {Command}", command);
-                return $"Failed to prepare command execution: {ex.Message}";
+                return new(new CliExecutionResult { Output = $"Failed to prepare command execution: {ex.Message}", ErrorType = CliErrorType.Other }, null);
             }
         }
 
@@ -197,7 +197,7 @@ namespace Agent.Plugins
             );
         }
 
-        private async Task<string> ExecuteKubectlWithApprovalFallback(
+        private async Task<CliToolExecutionResult> ExecuteKubectlWithApprovalFallback(
             string resourceId,
             string command,
             string stdin,
@@ -220,18 +220,18 @@ namespace Agent.Plugins
                     if (result.ErrorType == CliErrorType.AuthorizationError)
                     {
                         await UpdateExecutionWithOboFlow(execution);
-                        return $"Kubectl {cmdType} command has been prepared for approval. Please click 'Authorize' to execute or 'Cancel' to dismiss.";
+                        return new(new CliExecutionResult { Output = $"Kubectl {cmdType} command has been prepared for approval. Please click 'Authorize' to execute or 'Cancel' to dismiss.", ErrorType = CliErrorType.None }, executionId);
                     }
                     else
                     {
                         await UpdateExecutionWithFailure(execution, result.Output);
-                        return $"Kubectl {cmdType} command failed. Output:\n{result.Output}";
+                        return new(result, executionId);
                     }
                 }
                 else
                 {
                     await UpdateExecutionWithSuccess(execution, result.Output);
-                    return $"Kubectl {cmdType} command completed successfully. Output:\n{result.Output}";
+                    return new(result, executionId);
                 }
             }
             catch (Exception ex)

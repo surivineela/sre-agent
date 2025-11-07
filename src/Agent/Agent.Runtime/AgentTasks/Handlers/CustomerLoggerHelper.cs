@@ -35,7 +35,7 @@ public sealed class CustomerLoggerHelper
         var hooks = new RunHooks<AgentContext>();
 
         // TOOL HOOKS - capture tool names, inputs, outputs
-        hooks.ToolStart += (context, agent, tool, input) =>
+        hooks.ToolStart += (context, agent, functionCall, tool, input) =>
         {
             var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
 
@@ -47,14 +47,15 @@ public sealed class CustomerLoggerHelper
                 ["ThreadId"] = agentContext.ThreadId.ToString(),
                 ["TaskType"] = _taskType,
                 ["ToolDescription"] = tool.Description,
-                ["ToolInput"] = FormatToolArguments(input)
+                ["ToolInput"] = FormatToolArguments(input),
+                ["CallId"] = functionCall.CallId
             };
 
             _customerLogger.LogCustomEvent("AgentToolExecution", properties);
             return Task.CompletedTask;
         };
 
-        hooks.ToolEnd += (context, agent, tool, output) =>
+        hooks.ToolEnd += (context, agent, functionCallContent, tool, output) =>
         {
             var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
 
@@ -65,7 +66,8 @@ public sealed class CustomerLoggerHelper
                 ["SubAgentName"] = agent.Name,
                 ["ThreadId"] = agentContext.ThreadId.ToString(),
                 ["TaskType"] = _taskType,
-                ["ToolOutput"] = TruncateString(output?.ToString() ?? "", 1000)
+                ["ToolOutput"] = TruncateString(output?.ToString() ?? "", 1000),
+                ["CallId"] = functionCallContent.CallId
             };
 
             _customerLogger.LogCustomEvent("AgentToolExecution", properties);

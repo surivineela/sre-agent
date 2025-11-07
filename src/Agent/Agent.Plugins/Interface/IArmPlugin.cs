@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Models;
 
 namespace Agent.Plugins.Interface
@@ -30,8 +31,8 @@ namespace Agent.Plugins.Interface
         Task<bool> ListKeysAndUpdateAppSettingsAsync(string storageResourceId, string appServiceResourceId, string appSettingKey);
         Task<bool> ConfigureAppSettingsForManagedIdentityStorage(string resourceId, string storageAccountName, bool useUserAssignedManagedIdentity = false, string userManagedIdentityClientId = "");
         Task<bool> UpdateAppSettingsAsync(string resourceId, IDictionary<string, string> appSettings);
-        Task<string> RunAzCliReadCommandsAsync(string command);
-        Task<string> RunAzCliWriteCommandsAsync(string command);
+        Task<CliToolExecutionResult> RunAzCliReadCommandsAsync(string command);
+        Task<CliToolExecutionResult> RunAzCliWriteCommandsAsync(string command);
         Task<string> GetAzCliHelpAsync(string helpTopic, string grepPattern = "");
         Task<string> GetResourceIdFromStorageServiceUri(string storageServiceUri, string subscriptionId);
         Task<(bool, string)> EnableTrafficManagerEndpoint(string subscriptionId, string resourceGroupName, string profileName, string endpointName, string endpointType);

@@ -32,7 +32,7 @@ namespace Agent.Plugins.Definitions
                     "FORBIDDEN: INSERT, UPDATE, DELETE, CREATE, DROP, ALTER operations for safety. " +
                     "WORKFLOW: Command validation → Approval request → Secure execution → Results. " +
                     "USE WHEN: Need to query PostgreSQL databases, inspect table structures, analyze query plans, or retrieve data.")]
-        public async Task<CliExecutionResult> RunPsqlReadCommandAsync(
+        public async Task<CliToolExecutionResult> RunPsqlReadCommandAsync(
             [Description("The PostgreSQL command to execute (read-only operations only)")] string command,
             [Description("Optional database name to connect to")] string? database = null)
         {

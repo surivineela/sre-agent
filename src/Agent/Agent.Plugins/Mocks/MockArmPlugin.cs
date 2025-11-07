@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Kusto.Cloud.Platform.Utils;
@@ -147,12 +148,12 @@ namespace Agent.Plugins.Mocks
             return Task.FromResult(true);
         }
 
-        public Task<string> RunAzCliReadCommandsAsync(string command)
+        public Task<CliToolExecutionResult> RunAzCliReadCommandsAsync(string command)
         {
-            return Task.FromResult("Command executed");
+            return Task.FromResult(new CliToolExecutionResult(new CliExecutionResult { Output = "Command executed", ErrorType = CliErrorType.None }, null));
         }
 
-        public Task<string> RunAzCliWriteCommandsAsync(string command)
+        public Task<CliToolExecutionResult> RunAzCliWriteCommandsAsync(string command)
         {
             throw new NotImplementedException();
         }

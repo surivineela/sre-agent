@@ -246,7 +246,7 @@ namespace Agent.Web.Controllers.v1
                                         DisplayName: $"{userName} <{userEmail}>",
                                         UserId: userId,
                                         Role: Role.User
-        )
+                                    )
                                 };
                                 await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
                                 await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);

@@ -9,7 +9,7 @@ public interface IPostgreSQLAutomationPlugin
     /// </summary>
     public Guid? ThreadId { get; set; }
 
-    Task<CliExecutionResult> RunPsqlReadCommandAsync(string command, string? database = null);
+    Task<CliToolExecutionResult> RunPsqlReadCommandAsync(string command, string? database = null);
 
     Task<string?> ValidatePsqlCommandAsync(string command, string? database = null);
 }

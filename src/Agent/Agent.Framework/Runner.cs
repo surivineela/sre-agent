@@ -45,7 +45,7 @@ public static class Runner
         TContext? context = null,
         RunHooks<TContext>? hooks = null,
         Func<string, Task>? displayModelOutput = null,
-        bool allowParallelToolCalls = false,
+        bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
@@ -80,7 +80,7 @@ public static class Runner
 
             if (hooks != null)
             {
-                await hooks.OnToolEnd(previousResult.ContextWrapper, previousResult.LastAgent, manualToolCall.Tool, matchingResult.Output);
+                await hooks.OnToolEnd(previousResult.ContextWrapper, previousResult.LastAgent, manualToolCall.FunctionCall, manualToolCall.Tool, matchingResult.Output);
             }
         }
 
@@ -112,7 +112,7 @@ public static class Runner
         int maxTurns = DefaultMaxTurns,
         RunHooks<TContext>? hooks = null,
         Func<string, Task>? displayModelOutput = null,
-        bool allowParallelToolCalls = false,
+        bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
@@ -145,7 +145,7 @@ public static class Runner
         int maxTurns = DefaultMaxTurns,
         RunHooks<TContext>? hooks = null,
         Func<string, Task>? displayModelOutput = null,
-        bool allowParallelToolCalls = false,
+        bool allowParallelToolCalls = true,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -206,7 +206,7 @@ public static class Runner
         Trajectory? trajectory = null,
         Func<string, Task>? displayModelOutput = null,
         bool _shouldRunAgentStartHooks = true,
-        bool allowParallelToolCalls = false,
+        bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
         CancellationToken cancellationToken = default // TODO: use cancellation token
     ) where TContext : class
@@ -567,7 +567,7 @@ public static class Runner
         bool shouldRunAgentStartHooks,
         Trajectory trajectory,
         ILogger logger,
-        bool allowParallelToolCalls = false,
+        bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
         Func<string, Task>? displayModelOutput = null
     ) where TContext : class
@@ -773,7 +773,7 @@ public static class Runner
                         }
                     }
 
-                    await hooks.OnToolEnd(contextWrapper, agent, tool, cachedFunctionResult);
+                    await hooks.OnToolEnd(contextWrapper, agent, functionCall, tool, cachedFunctionResult);
 
                     continue;
                 }
@@ -904,11 +904,11 @@ public static class Runner
                         // Store CallId for streaming
                         ToolStatic.AsyncLocalFunctionCallId.Value = functionCall.CallId;
 
-                        await hooks.OnToolStart(contextWrapper, agent, agentAsTool, functionCall.Arguments);
+                        await hooks.OnToolStart(contextWrapper, agent, functionCall, agentAsTool, functionCall.Arguments);
 
                         var toolResult = await agentAsTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments));
 
-                        await hooks.OnToolEnd(contextWrapper, agent, agentAsTool, toolResult);
+                        await hooks.OnToolEnd(contextWrapper, agent, functionCall, agentAsTool, toolResult);
 
                         var result = new FunctionResultContent(functionCall.CallId, toolResult);
                         functionResults.Add(result);
@@ -931,7 +931,7 @@ public static class Runner
                         ToolStatic.AsyncLocalFunctionCallId.Value = functionCall.CallId;
 
                         // run auto tool
-                        await hooks.OnToolStart(contextWrapper, agent, tool, functionCall.Arguments);
+                        await hooks.OnToolStart(contextWrapper, agent, functionCall, tool, functionCall.Arguments);
 
                         object? toolResult = null;
 
@@ -945,7 +945,7 @@ public static class Runner
                             toolResult = GetToolErrorMessage(functionCall, e);
                         }
 
-                        await hooks.OnToolEnd(contextWrapper, agent, tool, toolResult);
+                        await hooks.OnToolEnd(contextWrapper, agent, functionCall, tool, toolResult);
 
                         var result = new FunctionResultContent(functionCall.CallId, toolResult);
                         functionResults.Add(result);
@@ -967,7 +967,7 @@ public static class Runner
                         ToolStatic.AsyncLocalFunctionCallId.Value = functionCall.CallId;
 
                         // return manual tool call result
-                        await hooks.OnToolStart(contextWrapper, agent, tool, functionCall.Arguments);
+                        await hooks.OnToolStart(contextWrapper, agent, functionCall, tool, functionCall.Arguments);
 
                         // modelResponseMessage will be added to the context when the loop is resumed
 

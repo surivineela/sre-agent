@@ -215,7 +215,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             CriticOnHandOff = agentDescriptor.CriticOnHandOff,
             FactoryTools = [.. agentDescriptor.Tools, .. agentDescriptor.McpTools],
             // TODO: parallel tool calls not supported in the framework yet, ignore agent-level overrides
-            AllowParallelToolCalls = false, // agentDescriptor.AllowParallelToolCalls,
+            AllowParallelToolCalls = true, // agentDescriptor.AllowParallelToolCalls,
             OutputType = GetOutputType(agentDescriptor),
             UserPromptOverride = agentDescriptor.UserPromptOverride,
             DisableDocumentRetrieval = agentDescriptor.DisableDocumentRetrieval,

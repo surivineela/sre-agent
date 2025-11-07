@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Models.Api.v1;
@@ -20,7 +21,7 @@ public sealed class TracingHelper : IDisposable
     private TelemetrySpan? _rootSpan;
     private TelemetrySpan? _currentStepSpan;
     private TelemetrySpan? _currentAgentSpan;
-    private TelemetrySpan? _currentToolSpan;
+    private readonly ConcurrentDictionary<string, TelemetrySpan?> _toolSpans = new();
     private TelemetrySpan? _currentGenerationSpan;
     private bool _disposed = false;
 
@@ -81,38 +82,42 @@ public sealed class TracingHelper : IDisposable
         hooks.Handoff += (context, agent, handoffAgent, handoffReasoning) =>
         {
             var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
-            _currentToolSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
-            _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
-            _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
-            _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-            _currentToolSpan.SetAttribute(TraceAttribute.HandoffAgentName, handoffAgent.Name);
-            _currentToolSpan.SetAttribute(TraceAttribute.HandoffReasoning, handoffReasoning);
-            _currentToolSpan.End();
-            _currentToolSpan = null;
+            var handoffSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
+            handoffSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
+            handoffSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
+            handoffSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            handoffSpan.SetAttribute(TraceAttribute.HandoffAgentName, handoffAgent.Name);
+            handoffSpan.SetAttribute(TraceAttribute.HandoffReasoning, handoffReasoning);
+            handoffSpan.End();
             _currentAgentSpan?.End();
             return Task.CompletedTask;
         };
 
-        hooks.ToolStart += (context, agent, tool, input) =>
+        hooks.ToolStart += (context, agent, functionCall, tool, input) =>
         {
             var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
-            _currentToolSpan = _tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
-            _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
-            _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
-            _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-            _currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
-            _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input));
-            _currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
-            _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
+            var currentToolSpan = _tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
+            currentToolSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
+            currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
+            currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
+            currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input));
+            currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
+            currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
+
+            _toolSpans[functionCall.CallId] = currentToolSpan;
 
             return Task.CompletedTask;
         };
 
-        hooks.ToolEnd += (context, agent, tool, output) =>
+        hooks.ToolEnd += (context, agent, functionCallContent, tool, output) =>
         {
-            _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
-            _currentToolSpan?.End();
-            _currentToolSpan = null;
+            var currentToolSpan = _toolSpans.GetValueOrDefault(functionCallContent.CallId);
+            currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
+            currentToolSpan?.End();
+
+            _toolSpans.Remove(functionCallContent.CallId, out var _);
+
             return Task.CompletedTask;
         };
 
@@ -245,8 +250,14 @@ public sealed class TracingHelper : IDisposable
                 _currentStepSpan = null;
                 _currentAgentSpan?.End();
                 _currentAgentSpan = null;
-                _currentToolSpan?.End();
-                _currentToolSpan = null;
+
+                // End all tool spans
+                foreach (var toolSpan in _toolSpans.Values)
+                {
+                    toolSpan?.End();
+                }
+                _toolSpans.Clear();
+
                 _currentGenerationSpan?.End();
                 _currentGenerationSpan = null;
             }

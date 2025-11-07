@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.AI;
 
 namespace Agent.Core.Models.Api.v1;
 

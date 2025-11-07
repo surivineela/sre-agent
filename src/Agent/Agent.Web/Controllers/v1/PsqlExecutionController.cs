@@ -173,7 +173,8 @@ namespace Agent.Web.Controllers.v1
                                 _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with agent identity");
                                 // this is an approval (not authorization) action, use agent identity
                                 // Use direct plugin call instead of tool factory
-                                result = await _postgreSQLAutomationPlugin.RunPsqlReadCommandAsync(execution.Command);
+                                var cliToolResult = await _postgreSQLAutomationPlugin.RunPsqlReadCommandAsync(execution.Command);
+                                result = cliToolResult.CliExecutionResult;
                                 if (result.ErrorOccurred && (result.ErrorType == CliErrorType.AuthorizationError))
                                 {
                                     // trigger obo flow

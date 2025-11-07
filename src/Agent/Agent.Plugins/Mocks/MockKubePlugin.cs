@@ -1,4 +1,5 @@
 using System.Text;
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Mocks;
@@ -711,17 +712,17 @@ public class MockKubePlugin : IKubePlugin
         return Task.FromResult($"Mock: Successfully applied YAML content.");
     }
 
-    public Task<string> RunKubectlReadCommandAsync(string AKSClusterResourceId, string command)
+    public Task<CliToolExecutionResult> RunKubectlReadCommandAsync(string AKSClusterResourceId, string command)
     {
         throw new NotImplementedException();
     }
 
-    public Task<string> RunKubectlWriteCommandAsync(string AKSClusterResourceId, string command, string stdin = "")
+    public Task<CliToolExecutionResult> RunKubectlWriteCommandAsync(string AKSClusterResourceId, string command, string stdin = "")
     {
         throw new NotImplementedException();
     }
 
-    public Task<string> RunKubectlCommandHelpAsync(string AKSClusterResourceId, string command)
+    public Task<CliToolExecutionResult> RunKubectlCommandHelpAsync(string AKSClusterResourceId, string command)
     {
         throw new NotImplementedException();
     }

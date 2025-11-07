@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Configuration;
@@ -41,7 +42,7 @@ public class WorkflowOrchestrator : IDisposable
     // Telemetry spans for workflow tracing
     private TelemetrySpan? _rootSpan;
     private TelemetrySpan? _currentAgentSpan;
-    private TelemetrySpan? _currentToolSpan;
+    private readonly ConcurrentDictionary<string, TelemetrySpan?> _toolSpans = new();
     private TelemetrySpan? _currentGenerationSpan;
     private TelemetrySpan? _currentSummarizerSpan;
     private TelemetrySpan? _currentCriticSpan;
@@ -1197,14 +1198,13 @@ Please consolidate the findings, identify key insights, and provide actionable r
         hooks.Handoff += async (context, agent, handoffAgent, handoffReasoning) =>
         {
             _logger.LogInternalInformation("Workflow trace handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
-            _currentToolSpan = _tracer.StartSpan($"workflow.handoff", SpanKind.Internal, _currentAgentSpan);
-            _currentToolSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
-            _currentToolSpan.SetAttribute("workflow.operation", "Handoff");
-            _currentToolSpan.SetAttribute("workflow.source_agent", agent.Name);
-            _currentToolSpan.SetAttribute("workflow.target_agent", handoffAgent.Name);
-            _currentToolSpan.SetAttribute("workflow.handoff_reasoning", handoffReasoning);
-            _currentToolSpan.End();
-            _currentToolSpan = null;
+            var handoffSpan = _tracer.StartSpan($"workflow.handoff", SpanKind.Internal, _currentAgentSpan);
+            handoffSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
+            handoffSpan.SetAttribute("workflow.operation", "Handoff");
+            handoffSpan.SetAttribute("workflow.source_agent", agent.Name);
+            handoffSpan.SetAttribute("workflow.target_agent", handoffAgent.Name);
+            handoffSpan.SetAttribute("workflow.handoff_reasoning", handoffReasoning);
+            handoffSpan.End();
             _currentAgentSpan?.End();
 
             // Update handoff chain (workflow orchestrator handles this differently)
@@ -1212,17 +1212,20 @@ Please consolidate the findings, identify key insights, and provide actionable r
             await _threadRepository.UpdateAgentContextAsync(_context);
         };
 
-        hooks.ToolStart += async (context, agent, tool, input) =>
+        hooks.ToolStart += async (context, agent, functionCall, tool, input) =>
         {
             _logger.LogInternalInformation("Workflow trace starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
-            _currentToolSpan = _tracer.StartActiveSpan($"workflow.tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
-            _currentToolSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
-            _currentToolSpan.SetAttribute("workflow.operation", "Tool");
-            _currentToolSpan.SetAttribute("workflow.agent_name", agent.Name);
-            _currentToolSpan.SetAttribute("workflow.tool_name", tool.Name);
-            _currentToolSpan.SetAttribute("workflow.tool_input", FormatToolArguments(input));
-            _currentToolSpan.SetAttribute("workflow.model_temperature", agent.Temperature.ToString());
-            _currentToolSpan.SetAttribute("workflow.tool_description", tool.Description);
+            var currentToolSpan = _tracer.StartActiveSpan($"workflow.tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
+            currentToolSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
+            currentToolSpan.SetAttribute("workflow.operation", "Tool");
+            currentToolSpan.SetAttribute("workflow.agent_name", agent.Name);
+            currentToolSpan.SetAttribute("workflow.tool_name", tool.Name);
+            currentToolSpan.SetAttribute("workflow.tool_input", FormatToolArguments(input));
+            currentToolSpan.SetAttribute("workflow.model_temperature", agent.Temperature.ToString());
+            currentToolSpan.SetAttribute("workflow.tool_description", tool.Description);
+            currentToolSpan.SetAttribute("workflow.call_id", functionCall.CallId);
+
+            _toolSpans[functionCall.CallId] = currentToolSpan;
 
 
             // Stream auto tools to avoid missing them (manual tools are handled separately)
@@ -1241,12 +1244,14 @@ Please consolidate the findings, identify key insights, and provide actionable r
             }
         };
 
-        hooks.ToolEnd += async (context, agent, tool, output) =>
+        hooks.ToolEnd += async (context, agent, functionCallContent, tool, output) =>
         {
             _logger.LogInternalInformation("Workflow trace ending tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
-            _currentToolSpan?.SetAttribute("workflow.tool_output", output?.ToString() ?? string.Empty);
-            _currentToolSpan?.End();
-            _currentToolSpan = null;
+            var currentToolSpan = _toolSpans.GetValueOrDefault(functionCallContent.CallId);
+            currentToolSpan?.SetAttribute("workflow.tool_output", output?.ToString() ?? string.Empty);
+            currentToolSpan?.End();
+
+            _toolSpans.Remove(functionCallContent.CallId, out var _);
 
             // Stream auto tool results to complete the streaming flow
             if (tool.GetToolMode() == ToolMode.Auto)
@@ -1552,7 +1557,14 @@ Please consolidate the findings, identify key insights, and provide actionable r
             // End all active spans
             _currentCriticSpan?.End();
             _currentGenerationSpan?.End();
-            _currentToolSpan?.End();
+
+            // End all tool spans
+            foreach (var toolSpan in _toolSpans.Values)
+            {
+                toolSpan?.End();
+            }
+            _toolSpans.Clear();
+
             _currentAgentSpan?.End();
             _rootSpan?.End();
 

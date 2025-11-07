@@ -30,7 +30,7 @@ public class PostgreSQLAutomationPlugin : IPostgreSQLAutomationPlugin
         _postgresSQLCommandHelper = postgresSQLCommandHelper;
     }
 
-    public async Task<CliExecutionResult> RunPsqlReadCommandAsync(string command, string? database = null)
+    public async Task<CliToolExecutionResult> RunPsqlReadCommandAsync(string command, string? database = null)
     {
         _logger.LogInternalInformation($"Starting PSQL read command execution for command: {command}");
 
@@ -38,11 +38,7 @@ public class PostgreSQLAutomationPlugin : IPostgreSQLAutomationPlugin
         var validationSummary = await ValidatePsqlCommandAsync(command, database);
         if (validationSummary != null)
         {
-            return new CliExecutionResult
-            {
-                Output = validationSummary,
-                ErrorType = CliErrorType.ValidationError
-            };
+            return new(new CliExecutionResult { Output = validationSummary, ErrorType = CliErrorType.ValidationError }, null);
         }
 
         try
@@ -50,11 +46,7 @@ public class PostgreSQLAutomationPlugin : IPostgreSQLAutomationPlugin
             // Validate ThreadId is set
             if (ThreadId == null)
             {
-                return new CliExecutionResult
-                {
-                    Output = "ThreadId is not set. Cannot execute PostgreSQL command.",
-                    ErrorType = CliErrorType.Other
-                };
+                return new(new CliExecutionResult { Output = "ThreadId is not set. Cannot execute PostgreSQL command.", ErrorType = CliErrorType.Other }, null);
             }
 
             // Create execution record first so UI can display it
@@ -72,20 +64,12 @@ public class PostgreSQLAutomationPlugin : IPostgreSQLAutomationPlugin
             // Execute with approval fallback pattern (same as Azure CLI and kubectl)
             var result = await ExecutePsqlWithApprovalFallback(execution, command, database, writeCommand: false);
 
-            return new CliExecutionResult
-            {
-                Output = result,
-                ErrorType = CliErrorType.None
-            };
+            return new(new CliExecutionResult { Output = result, ErrorType = CliErrorType.None }, executionId);
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Failed to execute PSQL command: {command}");
-            return new CliExecutionResult
-            {
-                Output = ex.Message,
-                ErrorType = CliErrorType.Other
-            };
+            return new(new CliExecutionResult { Output = ex.Message, ErrorType = CliErrorType.Other }, null);
         }
     }
 
