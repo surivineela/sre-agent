@@ -6,7 +6,7 @@ import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 
 export const useAgentConnectors = (agentResourceId: string) => {
     const [connectors, setConnectors] = useState<Connector[]>([]);
-    const [isConnectorsLoading, setIsConnectorsLoading] = useState(false);
+    const [isConnectorsLoading, setIsConnectorsLoading] = useState(true);
     const [connectorsFailure, setConnectorsFailure] = useState('');
 
     const [isConnectorsUpdating, setIsConnectorsUpdating] = useState(false);
