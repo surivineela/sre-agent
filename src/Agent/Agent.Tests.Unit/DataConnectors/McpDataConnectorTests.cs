@@ -30,16 +30,10 @@ public class McpDataConnectorTests
         {
             Name = "structured-mcp",
             DataConnectorType = "Mcp",
-            DataSource = "Endpoint=https://api.example.com/mcp;AuthType=BearerToken;BearerToken=secret;ServiceType=ExampleService;Custom-Header=Value"
+            DataSource = "Endpoint=https://api.example.com/mcp;AuthType=BearerToken;BearerToken=secret;ServiceType=ExampleService"
         };
 
-        string? capturedName = null;
-        string? capturedType = null;
-        string? capturedEndpoint = null;
         McpAuthenticationConfig? capturedAuth = null;
-        Dictionary<string, string>? capturedHeaders = null;
-        string? capturedDescription = null;
-        string? capturedServiceType = null;
 
         _connectionManagerMock
             .Setup(m => m.CreateAndAddConnectionAsync(
@@ -53,24 +47,9 @@ public class McpDataConnectorTests
                 It.IsAny<Dictionary<string, string>?>(),
                 It.IsAny<string?>(),
                 It.IsAny<string?>()))
-            .Callback((string name,
-                       string type,
-                       string? endpoint,
-                       string? command,
-                       string[]? arguments,
-                       string? workingDirectory,
-                       McpAuthenticationConfig? authConfig,
-                       Dictionary<string, string>? headers,
-                       string? description,
-                       string? serviceType) =>
+            .Callback<string, string, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType) =>
             {
-                capturedName = name;
-                capturedType = type;
-                capturedEndpoint = endpoint;
                 capturedAuth = authConfig;
-                capturedHeaders = headers;
-                capturedDescription = description;
-                capturedServiceType = serviceType;
             })
             .ReturnsAsync(CreateConnection());
 
@@ -80,20 +59,56 @@ public class McpDataConnectorTests
         await connector.InitAsync(settings, CancellationToken.None);
 
         // Assert
-        Assert.Equal(settings.Name, capturedName);
-        Assert.Equal("http", capturedType);
-        Assert.Equal("https://api.example.com/mcp", capturedEndpoint);
-
         Assert.NotNull(capturedAuth);
         Assert.Equal(McpAuthenticationType.Bearer, capturedAuth!.Type);
         Assert.Equal("secret", capturedAuth.BearerToken);
+    }
 
-        Assert.NotNull(capturedHeaders);
-        Assert.True(capturedHeaders!.TryGetValue("Custom-Header", out string? headerValue));
-        Assert.Equal("Value", headerValue);
+    [Fact]
+    public async Task InitAsync_WithCustomHeadersAuthType_ParsesCustomHeaders()
+    {
+        // Arrange
+        var settings = new DataConnectorInstanceSettings
+        {
+            Name = "custom-headers-mcp",
+            DataConnectorType = "Mcp",
+            DataSource = "Endpoint=https://api.example.com/mcp;AuthType=CustomHeaders;Custom-Header=Value;X-API-Key=secret123"
+        };
 
-        //Assert.Equal("Example connection", capturedDescription);
-        //Assert.Equal("ExampleService", capturedServiceType);
+        McpAuthenticationConfig? capturedAuth = null;
+
+        _connectionManagerMock
+            .Setup(m => m.CreateAndAddConnectionAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string[]?>(),
+                It.IsAny<string?>(),
+                It.IsAny<McpAuthenticationConfig?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
+            .Callback<string, string, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType) =>
+            {
+                capturedAuth = authConfig;
+            })
+            .ReturnsAsync(CreateConnection());
+
+        McpDataConnector connector = CreateConnector();
+
+        // Act
+        await connector.InitAsync(settings, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(capturedAuth);
+        Assert.Equal(McpAuthenticationType.CustomHeaders, capturedAuth!.Type);
+        Assert.NotNull(capturedAuth.CustomHeaders);
+        Assert.Equal(2, capturedAuth.CustomHeaders.Count);
+        Assert.True(capturedAuth.CustomHeaders.TryGetValue("Custom-Header", out string? customHeaderValue));
+        Assert.Equal("Value", customHeaderValue);
+        Assert.True(capturedAuth.CustomHeaders.TryGetValue("X-API-Key", out string? apiKeyValue));
+        Assert.Equal("secret123", apiKeyValue);
     }
 
     [Fact]

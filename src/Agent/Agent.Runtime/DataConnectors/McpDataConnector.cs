@@ -171,27 +171,7 @@ public class McpDataConnector : IDataConnector
             authentication = BuildAuthenticationConfig(authTypeValue, values);
         }
 
-        var headerKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "Endpoint",
-            "AuthType",
-            "BearerToken"
-        };
-
-        Dictionary<string, string>? headers = null;
-
-        foreach ((string key, string value) in values)
-        {
-            if (headerKeys.Contains(key))
-            {
-                continue;
-            }
-
-            headers ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            headers[key] = value;
-        }
-
-        return new McpConnectionSettings(DefaultTransportType, endpoint, authentication, headers, "Mcp Tool", connectionName);
+        return new McpConnectionSettings(DefaultTransportType, endpoint, authentication, Headers: null, "Mcp Tool", connectionName);
     }
 
     // TODO: Extend to support other authentication types as needed.
@@ -211,6 +191,33 @@ public class McpDataConnector : IDataConnector
             {
                 Type = McpAuthenticationType.Bearer,
                 BearerToken = bearerToken
+            };
+        }
+
+        if (authTypeValue.Equals("CustomHeaders", StringComparison.OrdinalIgnoreCase))
+        {
+            var headerKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Endpoint",
+                "AuthType",
+                "BearerToken"
+            };
+
+            var customHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach ((string key, string value) in values)
+            {
+                if (headerKeys.Contains(key))
+                {
+                    continue;
+                }
+
+                customHeaders[key] = value;
+            }
+
+            return new McpAuthenticationConfig
+            {
+                Type = McpAuthenticationType.CustomHeaders,
+                CustomHeaders = customHeaders
             };
         }
 
