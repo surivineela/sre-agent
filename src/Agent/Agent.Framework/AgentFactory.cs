@@ -356,6 +356,14 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         foreach (var agent in _agents.Values)
         {
             var agentDescriptor = _agentDescriptors[agent.Name];
+
+            // If agentDescriptor.Handoffs is null, set agent.Handoffs to empty list
+            if (agentDescriptor.Handoffs == null)
+            {
+                agent.Handoffs = [];
+                continue;
+            }
+
             foreach (var handoff in agentDescriptor.Handoffs)
             {
                 if (!_agents.ContainsKey(handoff))
