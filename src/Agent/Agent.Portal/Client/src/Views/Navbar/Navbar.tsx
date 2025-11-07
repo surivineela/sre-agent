@@ -1,7 +1,8 @@
-import { Image, makeStyles, Text, tokens, Tooltip } from '@fluentui/react-components';
+import { Button, Image, makeStyles, Text, tokens, Tooltip } from '@fluentui/react-components';
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { useNavigate, useParams } from 'react-router-dom';
+import { LearnMoreLinks } from '../../Common/Constants/Links';
 import { parseArmId } from '../../Common/Utilities/ArmId';
 import { PortalResources } from '../../Strings/Resources';
 import { FeedbackButton } from './FeedbackButton';
@@ -53,6 +54,9 @@ const useStyles = makeStyles({
     agentName: {
         color: tokens.colorNeutralForeground1,
     },
+    navbarButton: {
+        minWidth: '50px',
+    },
 });
 
 export const Navbar = () => {
@@ -88,6 +92,14 @@ export const Navbar = () => {
             </Tooltip>
 
             <div className={styles.section}>
+                <Button
+                    className={styles.navbarButton}
+                    appearance="subtle"
+                    onClick={() => window.open(LearnMoreLinks.sreAgentOverview, '_blank', 'noopener,noreferrer')}
+                >
+                    {intl.formatMessage(PortalResources.docs)}
+                </Button>
+
                 <NotificationButton />
 
                 <FeedbackButton />

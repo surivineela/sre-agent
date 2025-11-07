@@ -9,6 +9,7 @@ export const PortalResources = defineMessages({
     add: { defaultMessage: 'Add', id: '2/2yg+' },
     agents: { defaultMessage: 'Agents', id: 'GBnvl1' },
     agentName: { defaultMessage: 'Agent name', id: 'ctcA0c' },
+    docs: { defaultMessage: 'Docs', id: '/6/sPX' },
     enterName: { defaultMessage: 'Enter name', id: 'OJ2u8k' },
     subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
     resourceGroup: { defaultMessage: 'Resource group', id: '+uAdUZ' },

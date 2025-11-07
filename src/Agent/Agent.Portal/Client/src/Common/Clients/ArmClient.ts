@@ -361,7 +361,6 @@ export class ArmClient extends Client {
                 apiVersion: request.apiVersion,
             });
         }, retryAfter).then(r => {
-            console.log('POLLED', r);
             if (!r || !r.isSuccessful) {
                 // Return error if no response or failed
                 return {

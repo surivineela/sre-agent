@@ -682,7 +682,6 @@ export const useSreAgentCreate = ({
         validationSchema,
         isDeploying,
         onSubmit,
-        setIsDeploying,
         permissionsLoading,
         setPermissionsLoading,
         deploymentResourceId: deploymentId,

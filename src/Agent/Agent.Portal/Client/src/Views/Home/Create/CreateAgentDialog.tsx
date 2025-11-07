@@ -16,9 +16,6 @@ import { ManagedResourceGroups } from './ManagedResourceGroups';
 import { Review } from './Review';
 import { useSreAgentCreate } from './useSreAgentCreate';
 
-// TODO: Re-create after deployment failure seemed to get stuck; maybe quietly triggering deployment in background?
-// TODO: Initial sub/RG values don't get reset on re-open dialog (they're not technically "initial" values atm)
-
 export interface SreAgentCreateFormProps {
     subscriptionId: string;
     resourceGroupId: string;
@@ -49,21 +46,13 @@ export const CreateAgentDialog = (props: CreateAgentDialogProps) => {
         setCurrentStepIndex(4);
     }, []);
 
-    const {
-        onSubmit,
-        validationSchema,
-        initialValues,
-        isDeploying,
-        setIsDeploying,
-        permissionsLoading,
-        deploymentResourceId,
-        agentResourceId,
-    } = useSreAgentCreate({
-        showRegistrationDialog: () => Promise.resolve(true),
-        agentSpaceId: '',
-        agentSpaceLocation: undefined,
-        onDeploymentStarted: handleDeploymentStarted,
-    });
+    const { onSubmit, validationSchema, initialValues, isDeploying, permissionsLoading, deploymentResourceId, agentResourceId } =
+        useSreAgentCreate({
+            showRegistrationDialog: () => Promise.resolve(true),
+            agentSpaceId: '',
+            agentSpaceLocation: undefined,
+            onDeploymentStarted: handleDeploymentStarted,
+        });
 
     return (
         <Formik<SreAgentCreateFormProps>
@@ -77,7 +66,6 @@ export const CreateAgentDialog = (props: CreateAgentDialogProps) => {
                 isDialogOpen={isDialogOpen}
                 setIsDialogOpen={setIsDialogOpen}
                 isDeploying={isDeploying}
-                setIsDeploying={setIsDeploying}
                 permissionsLoading={permissionsLoading}
                 agentSpaceLocation={undefined}
                 currentStepIndex={currentStepIndex}
@@ -93,7 +81,6 @@ interface InnerCreateAgentDialogProps {
     isDialogOpen: boolean;
     setIsDialogOpen: (isOpen: boolean) => void;
     isDeploying: boolean;
-    setIsDeploying: (isDeploying: boolean) => void;
     permissionsLoading: boolean;
     agentSpaceLocation?: string;
     currentStepIndex: number;
@@ -107,7 +94,6 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
         isDialogOpen,
         setIsDialogOpen,
         isDeploying,
-        setIsDeploying,
         permissionsLoading,
         agentSpaceLocation,
         currentStepIndex,
@@ -118,7 +104,7 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
 
     const intl = useIntl();
     const navigate = useNavigate();
-    const { values, errors, resetForm, submitForm } = useFormikContext<SreAgentCreateFormProps>();
+    const { values, errors, submitForm } = useFormikContext<SreAgentCreateFormProps>();
 
     const { deploymentSucceeded } = useDeployment(deploymentResourceId, currentStepIndex === 4, TelemetrySource.SreAgentCreate);
 
@@ -221,10 +207,7 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
         <WizardDialog
             isDialogOpen={isDialogOpen}
             onClose={() => {
-                setCurrentStepIndex(0);
-                resetForm();
                 setIsDialogOpen(false);
-                setIsDeploying(false);
             }}
             title={intl.formatMessage(PortalResources.createAgent)}
             steps={wizardSteps}

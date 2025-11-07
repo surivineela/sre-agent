@@ -293,7 +293,8 @@ export const HomeBrowseView = () => {
                 </Card>
             </div>
 
-            <CreateAgentDialog isDialogOpen={isCreateDialogOpen} setIsDialogOpen={setIsCreateDialogOpen} />
+            {/* Fully dismount create components on close to fully reset state */}
+            {isCreateDialogOpen && <CreateAgentDialog isDialogOpen={isCreateDialogOpen} setIsDialogOpen={setIsCreateDialogOpen} />}
         </div>
     );
 };
