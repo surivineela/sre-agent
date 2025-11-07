@@ -21,7 +21,7 @@ import {
     ToolbarButton,
 } from '@fluentui/react-components';
 import { Add16Regular, ArrowClockwise16Regular, Delete16Regular, Delete20Regular, DocumentText16Regular } from '@fluentui/react-icons';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { FC, useContext, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';

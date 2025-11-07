@@ -20,7 +20,7 @@ import {
     SkeletonItem,
 } from '@fluentui/react-components';
 import { Add12Regular, Checkmark12Regular } from '@fluentui/react-icons';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useIntl } from 'react-intl';

@@ -1,5 +1,5 @@
 import { SearchBox, SearchBoxProps } from '@fluentui/react-components';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import useIntl from 'react-intl/src/components/useIntl';
 import { SreAgentResources } from '../../../Strings/SREAgentResources';

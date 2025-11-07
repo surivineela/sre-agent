@@ -13,7 +13,7 @@ import {
 } from '@fluentui/react-components';
 import { ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ISortedDetailsListColumn } from '../../../../Common/Components/DetailsList/Constants';

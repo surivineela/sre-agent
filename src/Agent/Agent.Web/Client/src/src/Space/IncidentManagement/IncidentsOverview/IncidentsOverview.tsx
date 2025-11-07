@@ -22,7 +22,7 @@ import {
     useRestoreFocusSource,
 } from '@fluentui/react-components';
 import { ArrowClockwise16Regular, Branch16Regular } from '@fluentui/react-icons';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router-dom';

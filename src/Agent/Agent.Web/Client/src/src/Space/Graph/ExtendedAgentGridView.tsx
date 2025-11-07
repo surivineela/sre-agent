@@ -51,8 +51,7 @@ import {
     ErrorCircle20Regular,
     MoreHorizontal16Regular,
 } from '@fluentui/react-icons';
-import { debounce } from 'lodash';
-import * as React from 'react';
+import debounce from 'lodash/debounce';
 import { FC, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';

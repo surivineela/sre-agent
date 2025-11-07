@@ -2,7 +2,7 @@ import { Checkbox, InputOnChangeData, Link, SearchBox, SearchBoxChangeEvent, Too
 import { CheckmarkCircle16Regular } from '@fluentui/react-icons';
 import { ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { Dispatch, FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router-dom';

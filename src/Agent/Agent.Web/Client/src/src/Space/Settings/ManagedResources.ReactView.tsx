@@ -29,7 +29,7 @@ import {
     ToolbarDivider,
 } from '@fluentui/react-components';
 import { Add16Regular, ArrowClockwise16Regular, Delete16Regular } from '@fluentui/react-icons';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { FC, useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
