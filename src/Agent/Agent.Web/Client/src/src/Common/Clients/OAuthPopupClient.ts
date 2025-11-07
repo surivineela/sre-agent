@@ -1,4 +1,4 @@
-import { popupId, redirectUrl } from './OAuthService';
+import { getRedirectUrl, popupId } from './OAuthService';
 
 export interface IOAuthPopup {
     [x: string]: any;
@@ -58,7 +58,7 @@ export class OAuthPopup implements IOAuthPopup {
         let timeoutCounter = 0;
         const listener = (event: MessageEvent) => {
             const origin = event.origin;
-            const redirectOrigin = new URL(redirectUrl).origin;
+            const redirectOrigin = new URL(getRedirectUrl()).origin;
             if (origin !== redirectOrigin) {
                 return;
             }

@@ -319,7 +319,7 @@ export const Connectors = () => {
                 onSubmit={onSubmit}
                 refreshAgent={refreshAgent}
                 selectedConnector={selectedConnector}
-                existingDataConnectors={connectors}
+                existingConnectors={connectors}
             />
         </div>
     );

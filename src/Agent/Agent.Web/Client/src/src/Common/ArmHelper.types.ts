@@ -13,6 +13,7 @@ export interface ArmRequestObject<T> {
     apiVersion?: string | null;
     queryString?: string;
     headers?: KeyValue<AxiosHeaderValue | undefined>;
+    useManagementEndpoint?: boolean;
 }
 export interface HttpResponseObject<T> {
     metadata: {

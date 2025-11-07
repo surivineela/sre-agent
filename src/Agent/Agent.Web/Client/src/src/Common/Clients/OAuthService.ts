@@ -4,7 +4,13 @@ import MakeArmCall from './ArmClient';
 import { Connector, TestConnectionObject } from './ConnectorService';
 
 export const popupId = 'ms-sreagent-oauthpopup';
-export const redirectUrl = `https://localhost:5173/static/authredirect.html?pid=${popupId}`;
+
+export const getRedirectUrl = () => {
+    // Use the current origin to support both dev (localhost:5173) and production
+    const baseUrl = window.location.origin;
+    // In production, the base is /static, in dev it's also /static due to vite config
+    return `${baseUrl}/static/authredirect.html?pid=${popupId}`;
+};
 
 interface ConsentUrlOptions {
     subscriptionId: string;
@@ -34,7 +40,7 @@ export class OAuthServiceClient {
             parameters: [
                 {
                     parameterName: 'token',
-                    redirectUrl,
+                    redirectUrl: getRedirectUrl(),
                     tenantId,
                     objectId,
                 },
@@ -108,6 +114,7 @@ export class OAuthServiceClient {
                 method,
                 body,
                 url: uri,
+                useManagementEndpoint: false,
             });
         } catch (error: any) {
             return Promise.reject(error?.content ?? error);

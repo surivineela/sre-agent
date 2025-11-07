@@ -13,7 +13,7 @@ export const useApiConnection = () => {
     const { log } = useContext(AzPortalContext);
 
     const [apiConnection, setApiConnection] = useState<Connector>();
-    const [apiConnectionLoading, setApiConnectionLoading] = useState(true);
+    const [apiConnectionLoading, setApiConnectionLoading] = useState(false);
     const [apiConnectionLoaded, setApiConnectionLoaded] = useState(false);
     const [apiConnectionLoadFailure, setApiConnectionLoadFailure] = useState('');
 
@@ -38,7 +38,7 @@ export const useApiConnection = () => {
                 setApiConnectionLoaded(true);
                 return response.data;
             } else {
-                const error = getErrorMessage(response?.metadata?.error);
+                const error = getErrorMessage((response?.data as any).error.message);
                 log({
                     action: 'fetch-api-connection',
                     actionModifier: 'failed',

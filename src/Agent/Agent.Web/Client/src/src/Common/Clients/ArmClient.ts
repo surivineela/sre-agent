@@ -51,6 +51,7 @@ interface InternalArmRequest {
     commandName?: string;
     body: any;
     apiVersion: string | null;
+    useManagementEndpoint: boolean;
     queryString?: string;
     headers?: KeyValue<AxiosHeaderValue | undefined>;
 }
@@ -95,6 +96,7 @@ const armObs$ = armSubject$.pipe(
                 body: { requests: batchBody },
                 apiVersion: ApiVersions.armBatchApi20151101,
                 id: Guid.newGuid(),
+                useManagementEndpoint: true,
             })
         ).pipe(
             concatMap(result => {
@@ -135,9 +137,14 @@ export const getTelemetryInfo = (
 
 const makeArmRequest = async <T>(armObj: InternalArmRequest, _retry = 0): Promise<AxiosResponse<T>> => {
     const env = AzPortalProxy.envInfo;
-    const { method, resourceId, body, apiVersion, queryString } = armObj;
-    const armEndpoint = env?.armEndpoint;
-    let url = `${armEndpoint}${resourceId}${queryString || ''}`;
+    const { method, resourceId, body, apiVersion, queryString, useManagementEndpoint } = armObj;
+    let url: string;
+    if (useManagementEndpoint) {
+        const armEndpoint = env?.armEndpoint;
+        url = `${armEndpoint}${resourceId}${queryString || ''}`;
+    } else {
+        url = `${resourceId}${queryString || ''}`;
+    }
     if (apiVersion !== null) {
         url = Url.appendQueryString(url, `api-version=${apiVersion}`);
     }
@@ -186,6 +193,7 @@ const MakeArmCall = async <T, U = T>(requestObject: ArmRequestObject<U>): Promis
         headers,
         url,
         skipPolling = false,
+        useManagementEndpoint = true,
     } = requestObject;
 
     const useDirectUrl = !!url;
@@ -203,6 +211,7 @@ const MakeArmCall = async <T, U = T>(requestObject: ArmRequestObject<U>): Promis
         headers: headers || {},
         method: method || 'GET',
         apiVersion: effectiveApiVersion,
+        useManagementEndpoint,
     };
 
     if (!effectiveSkipBatching && !alwaysSkipBatching) {

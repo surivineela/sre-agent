@@ -235,6 +235,7 @@ export type Connector = ArmObj<ConnectorProperties>;
 export interface GetConnectorOptions {
     subscriptionId: string;
     resourceGroup: string;
+    agentName: string;
     connectionName: string;
     apiVersion?: string;
 }
@@ -242,6 +243,7 @@ export interface GetConnectorOptions {
 export interface PutConnectorOptions {
     subscriptionId: string;
     resourceGroup: string;
+    agentName: string;
     connectionName: string;
     location: string;
     apiVersion?: string;
@@ -260,8 +262,8 @@ export interface PutConnectorAccessPoliciesOptions {
 
 export class ConnectorService {
     public static async getConnector(options: GetConnectorOptions): Promise<HttpResponseObject<Connector>> {
-        const { subscriptionId, resourceGroup, connectionName, apiVersion = '2018-07-01-preview' } = options;
-        const url = `/subscriptions/${subscriptionId}/resourceGroups/${resourceGroup}/providers/Microsoft.Web/connections/${connectionName}?api-version=${apiVersion}`;
+        const { subscriptionId, resourceGroup, agentName, connectionName, apiVersion = '2018-07-01-preview' } = options;
+        const url = `/subscriptions/${subscriptionId}/resourceGroups/${resourceGroup}/providers/Microsoft.Web/connections/${agentName}-${connectionName}?api-version=${apiVersion}`;
 
         return MakeArmCall({
             commandName: 'getConnector',
@@ -271,12 +273,12 @@ export class ConnectorService {
     }
 
     public static async putConnector(options: PutConnectorOptions): Promise<HttpResponseObject<Connector>> {
-        const { subscriptionId, resourceGroup, connectionName, location, apiVersion = '2018-07-01-preview' } = options;
-        const url = `/subscriptions/${subscriptionId}/resourceGroups/${resourceGroup}/providers/Microsoft.Web/connections/${connectionName}?api-version=${apiVersion}`;
+        const { subscriptionId, resourceGroup, agentName, connectionName, location, apiVersion = '2018-07-01-preview' } = options;
+        const url = `/subscriptions/${subscriptionId}/resourceGroups/${resourceGroup}/providers/Microsoft.Web/connections/${agentName}-${connectionName}?api-version=${apiVersion}`;
 
         const content = {
             kind: 'V2',
-            name: connectionName,
+            name: `${agentName}-${connectionName}`,
             location: location,
             properties: {
                 api: {
@@ -287,7 +289,7 @@ export class ConnectorService {
         };
 
         return MakeArmCall({
-            commandName: 'getConnector',
+            commandName: 'putConnector',
             method: 'PUT',
             body: content,
             url,
@@ -307,8 +309,8 @@ export class ConnectorService {
             apiVersion = '2018-07-01-preview',
         } = options;
 
-        const policyName = `${agentName}-${objectId}`;
-        const url = `/subscriptions/${subscriptionId}/resourceGroups/${resourceGroup}/providers/Microsoft.Web/connections/${connectionName}/accessPolicies/${policyName}?api-version=${apiVersion}`;
+        const policyName = `${agentName}-${connectionName}-${objectId}`;
+        const url = `/subscriptions/${subscriptionId}/resourceGroups/${resourceGroup}/providers/Microsoft.Web/connections/${agentName}-${connectionName}/accessPolicies/${policyName}?api-version=${apiVersion}`;
 
         const content = {
             name: policyName,
@@ -323,7 +325,7 @@ export class ConnectorService {
         };
 
         return MakeArmCall({
-            commandName: 'getConnector',
+            commandName: 'putConnectorAccessPolicies',
             method: 'PUT',
             body: content,
             url,

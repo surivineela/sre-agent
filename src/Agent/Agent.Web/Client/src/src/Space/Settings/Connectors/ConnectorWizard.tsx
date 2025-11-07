@@ -173,7 +173,7 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
             onCancel={onCancel}
         >
             <div className={styles.wizardContentContainer}>
-                {currentStep === StepKey.ConnectorPicker && <ConnectorPicker />}
+                {currentStep === StepKey.ConnectorPicker && <ConnectorPicker existingConnectors={existingConnectors} />}
                 {currentStep === StepKey.Setup && setupForm}
                 {currentStep === StepKey.ReviewAndAdd && <ReviewAndAdd userAssignedIdentities={userAssignedIdentityOptions} />}
             </div>

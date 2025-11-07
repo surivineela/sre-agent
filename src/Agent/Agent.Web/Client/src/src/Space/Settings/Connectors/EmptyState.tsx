@@ -1,5 +1,4 @@
-import { Button, mergeClasses, Text } from '@fluentui/react-components';
-import * as React from 'react';
+import { Button, Text } from '@fluentui/react-components';
 import { useIntl } from 'react-intl';
 import { resolveResourceIcon } from '../../../Common/Helpers/Resources';
 import { ConnectorsResources } from '../../../Strings/SREAgentResources';
@@ -22,7 +21,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ variant, onPrimaryAction
 
     if (variant === EmptyStateType.NoSearchResults) {
         return (
-            <div className={mergeClasses(styles.noSearchResultsContainer, styles.textContainer)}>
+            <div className={`${styles.noSearchResultsContainer} ${styles.textContainer}`}>
                 <Text className={styles.secondaryTitle}>{intl.formatMessage(ConnectorsResources.noSearchResults)}</Text>
                 <Text className={styles.searchDescription}>{intl.formatMessage(ConnectorsResources.noSearchResultsDescription)}</Text>
             </div>

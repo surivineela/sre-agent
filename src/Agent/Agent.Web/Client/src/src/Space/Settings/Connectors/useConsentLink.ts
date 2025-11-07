@@ -26,11 +26,6 @@ export const useConsentLink = (connectionName: string) => {
             resourceId,
         });
 
-        setConsentLink(undefined);
-        setConsentLinkLoading(true);
-        setConsentLinkLoaded(false);
-        setConsentLinkLoadFailure('');
-
         if (objectId && tenantId) {
             const response = await OAuthServiceClient.fetchConsentUrlForConnection({
                 subscriptionId: subscription,
@@ -71,11 +66,21 @@ export const useConsentLink = (connectionName: string) => {
         }
     }, [log, resourceId, objectId, tenantId, subscription, resourceGroup, connectionName]);
 
+    const refreshConsentLink = useCallback(async () => {
+        setConsentLink(undefined);
+        setConsentLinkLoading(true);
+        setConsentLinkLoaded(false);
+        setConsentLinkLoadFailure('');
+
+        fetchConsentLink();
+    }, [fetchConsentLink]);
+
     return {
         consentLink,
         consentLinkLoading,
         consentLinkLoaded,
         consentLinkLoadFailure,
         fetchConsentLink,
+        refreshConsentLink,
     };
 };

@@ -13,7 +13,7 @@ interface ConnectorsWizardFormikProps {
     agentName?: string;
     agentLocation?: string;
     agentIdentity?: MsiIdentity;
-    existingDataConnectors?: Connector[];
+    existingConnectors?: Connector[];
 }
 
 export interface ConnectorFormProps {

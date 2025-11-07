@@ -1,7 +1,7 @@
 import { Button, Card, Link } from '@fluentui/react-components';
 import { CheckmarkCircle20Filled } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
-import { useCallback, useContext, useEffect, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { OAuthPopup } from '../../../Common/Clients/OAuthPopupClient';
@@ -51,102 +51,71 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
         return connectorType === ConnectorType.OutlookSendEmail ? 'office365' : 'teams';
     }, [connectorType]);
 
-    const {
-        apiConnection,
-        apiConnectionLoading,
-        apiConnectionLoaded,
-        apiConnectionLoadFailure,
-        apiConnectionCreating,
-        apiConnectionCreateFailure,
-        fetchApiConnection,
-        createApiConnection,
-    } = useApiConnection();
-    const { consentLink, fetchConsentLink } = useConsentLink(connectorApiName);
-
-    useEffect(() => {
-        if (!apiConnectionLoaded && !apiConnectionLoadFailure) {
-            fetchApiConnection({ subscriptionId: subscription, resourceGroup, connectionName: connectorApiName }).then(apiConnection => {
-                setFieldValue('email', apiConnection?.properties?.displayName || '');
-                setFieldValue('url', apiConnection?.properties?.connectionRuntimeUrl || '');
-            });
-        }
-    }, [
-        apiConnectionLoadFailure,
-        apiConnectionLoaded,
-        apiConnectionLoading,
-        connectorApiName,
-        fetchApiConnection,
-        resourceGroup,
-        setFieldValue,
-        subscription,
-    ]);
-
-    useEffect(() => {
-        if (apiConnection && !apiConnectionCreateFailure) {
-            fetchConsentLink();
-        }
-    }, [apiConnection, apiConnectionCreateFailure, fetchConsentLink]);
+    const { apiConnection, apiConnectionCreating, fetchApiConnection, createApiConnection } = useApiConnection();
+    const { consentLink, fetchConsentLink, refreshConsentLink } = useConsentLink(`${agentName}-${connectorApiName}`);
 
     const onSignInClick = useCallback(async () => {
-        let apiConnectionLocal = apiConnection;
-        let consentLinkObject = consentLink;
-        if (!apiConnectionLocal) {
-            apiConnectionLocal = await createApiConnection({
-                subscriptionId: subscription,
-                resourceGroup,
-                connectionName: connectorApiName,
-                location: agentLocation || '',
-                agentName: agentName || '',
-                tenantId: agentIdentity?.tenantId || '',
-                objectId: agentIdentity?.principalId || '',
-            });
-            consentLinkObject = await fetchConsentLink();
-        }
-
-        const oauthPopupClient = new OAuthPopup({ consentUrl: consentLinkObject?.link || '' });
-
-        const loginResponse = await oauthPopupClient.loginPromise;
-        if (loginResponse.error) {
-            throw new Error(atob(loginResponse.error));
-        }
-        if (loginResponse.code) {
-            await OAuthServiceClient.confirmConsentCodeForConnection({
-                subscriptionId: subscription,
-                resourceGroup,
-                connectionName: connectorApiName,
-                code: loginResponse.code,
-                tenantId: agentIdentity?.tenantId || '',
-                objectId: agentIdentity?.principalId || '',
-            });
-        }
-
-        const fetchedConnection = await fetchApiConnection({
+        await createApiConnection({
             subscriptionId: subscription,
             resourceGroup,
             connectionName: connectorApiName,
+            location: agentLocation || '',
+            agentName: agentName || '',
+            tenantId: agentIdentity?.tenantId || '',
+            objectId: agentIdentity?.principalId || '',
         });
+        const consentLinkObject = await fetchConsentLink();
+        if (consentLinkObject?.link) {
+            const oauthPopupClient = new OAuthPopup({ consentUrl: consentLinkObject?.link || '' });
 
-        if (fetchedConnection) {
-            await OAuthServiceClient.testConnection(fetchedConnection);
+            const loginResponse = await oauthPopupClient.loginPromise;
+            if (loginResponse.error) {
+                throw new Error(atob(loginResponse.error));
+            }
+            if (loginResponse.code) {
+                await OAuthServiceClient.confirmConsentCodeForConnection({
+                    subscriptionId: subscription,
+                    resourceGroup,
+                    connectionName: connectorApiName,
+                    code: loginResponse.code,
+                    tenantId: agentIdentity?.tenantId || '',
+                    objectId: agentIdentity?.principalId || '',
+                });
+            }
+
+            const fetchedConnection = await fetchApiConnection({
+                subscriptionId: subscription,
+                resourceGroup,
+                agentName: agentName || '',
+                connectionName: connectorApiName,
+            });
+            await refreshConsentLink();
+
+            if (fetchedConnection) {
+                await OAuthServiceClient.testConnection(fetchedConnection);
+            }
+
+            setFieldValue('email', fetchedConnection?.properties?.displayName || '');
+            setFieldValue('url', fetchedConnection?.properties?.connectionRuntimeUrl || '');
         }
-
-        setFieldValue('email', fetchedConnection?.properties?.displayName || '');
-        setFieldValue('url', fetchedConnection?.properties?.connectionRuntimeUrl || '');
-        return { connection: fetchedConnection };
     }, [
         agentIdentity,
         agentLocation,
         agentName,
-        apiConnection,
         connectorApiName,
-        consentLink,
         createApiConnection,
         fetchApiConnection,
         fetchConsentLink,
+        refreshConsentLink,
         resourceGroup,
         setFieldValue,
         subscription,
     ]);
+
+    const isNotAuthenticated = useMemo(
+        () => !apiConnection || !consentLink || consentLink.status === 'Unauthenticated',
+        [apiConnection, consentLink]
+    );
 
     return (
         <ConnectorWithManagedIdentityFormBase {...props}>
@@ -155,11 +124,11 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
                 required
                 orientation="vertical"
             >
-                {!apiConnection || !consentLink || consentLink.status === 'Unauthenticated' ? (
+                {isNotAuthenticated ? (
                     <Button
                         appearance="primary"
                         onClick={onSignInClick}
-                        disabled={apiConnectionLoading || apiConnectionLoaded || !!apiConnectionCreateFailure || apiConnectionCreating}
+                        disabled={apiConnectionCreating}
                         className={styles.outlookTeamsButton}
                     >
                         {intl.formatMessage(ConnectorsResources.signInToService, { service: connectorService })}
@@ -171,7 +140,7 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
                                 <img src={resolveResourceIcon(connectorIconName)} alt={connectorService} width={24} height={24} />
                                 <div className={styles.accountText}>
                                     <span className={styles.connectedLabel}>{intl.formatMessage(ConnectorsResources.connectedAs)}</span>
-                                    <span className={styles.accountEmail}>{apiConnection?.properties?.displayName || ''}</span>
+                                    <span className={styles.accountEmail}>{apiConnection?.properties?.authenticatedUser?.name || ''}</span>
                                 </div>
                             </div>
                             <CheckmarkCircle20Filled className={styles.checkmark} />
