@@ -147,7 +147,7 @@ public partial class ThreadEvaluator
                     }
 
                     // Skip daily report threads created by DailyReportScanner
-                    if (thread.Title.StartsWith("Daily Resources Report", StringComparison.OrdinalIgnoreCase) && thread.Source == ThreadSource.Agent)
+                    if (thread.Title.StartsWith("Daily Resources Report", StringComparison.OrdinalIgnoreCase) && thread.Source == ThreadSource.DailyReport)
                     {
                         dailyReportThreadsFiltered++;
                         continue;
