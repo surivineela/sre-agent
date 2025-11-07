@@ -15,6 +15,9 @@ import {
     DialogSurface,
     DialogTitle,
     makeStyles,
+    MessageBar,
+    MessageBarBody,
+    MessageBarGroup,
     SearchBox,
     SelectTabData,
     SelectTabEvent,
@@ -457,6 +460,14 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                         </TabList>
                         {tabKey === TabKeys.select && (
                             <div className={localStyles.tabContent}>
+                                <MessageBarGroup animate={'exit-only'} className={styles.messageBarGroup} style={{ marginBottom: 8 }}>
+                                    <MessageBar className={styles.messageBar}>
+                                        <MessageBarBody className={styles.messageBarBody}>
+                                            {intl.formatMessage(SreAgentResources.supportedServicesMessage)}
+                                        </MessageBarBody>
+                                    </MessageBar>
+                                </MessageBarGroup>
+
                                 <div className={localStyles.fixedSection}>
                                     <div className={localStyles.filterRow}>
                                         {selectedResourceGroups.length === 1

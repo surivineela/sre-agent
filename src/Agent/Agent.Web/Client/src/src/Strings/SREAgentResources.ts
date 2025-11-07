@@ -321,8 +321,12 @@ export const SreAgentResources = defineMessages({
     },
     supportedServicesMessage: {
         defaultMessage:
-            'To get optimal agent performance for diagnostics, metrics, knowledge, and more during preview, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps.',
-        id: '0aN6iW',
+            'To get optimal agent performance for diagnostics, metrics, knowledge, and more, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps.',
+        id: '0zGfOk',
+    },
+    elevatePermissionsMessage: {
+        defaultMessage: 'Agent permissions are determined by its assigned RBAC roles.',
+        id: 'XYIeUc',
     },
     learnMore: { defaultMessage: 'Learn more', id: 'TdTXXf' },
     startChat: { defaultMessage: 'Start chat', id: 'v8lolG' },
@@ -958,8 +962,8 @@ export const AccessControlResources = defineMessages({
 export const RbacWarningBannerResources = defineMessages({
     rbacWarningMessage: {
         defaultMessage:
-            'Starting September 25th, 2025, users without one of the required Azure role-based access control (RBAC) roles will lose access to Azure SRE Agent.',
-        id: 'MWaWoR',
+            'Users without one of the required Azure role-based access control (RBAC) roles will not have access to Azure SRE Agent.',
+        id: 'wUnPMf',
     },
     assignRole: { defaultMessage: 'Assign yourself the SRE Agent Admin role.', id: 'y79eIb' },
     genericWarningText: { defaultMessage: 'You have warnings regarding your agent.', id: 'spEwRf' },

@@ -35,6 +35,8 @@ import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import PermissionedToolbarButton from '../../Common/Components/PermissionedToolbarButton';
+import { TextWithLink } from '../../Common/Components/TextWithLink';
+import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
 import { getUserFriendlyLocation } from '../../Common/Helpers/LocationHelper';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { ManagedResourcesStringResources, SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
@@ -184,9 +186,12 @@ const ManagedResources: FC = () => {
         <div className={styles.container}>
             <div className={styles.header}>{intl.formatMessage(SettingsTabResources.managedResources)}</div>
             <MessageBarGroup animate={'exit-only'} className={styles.messageBarGroup}>
-                <MessageBar className={styles.messageBar} intent={'info'}>
+                <MessageBar className={styles.messageBar}>
                     <MessageBarBody className={styles.messageBarBody}>
-                        {intl.formatMessage(SreAgentResources.supportedServicesMessage)}
+                        <TextWithLink
+                            text={intl.formatMessage(SreAgentResources.elevatePermissionsMessage)}
+                            linkUrl={SreAgentFwLinks.agentManagedIdentity}
+                        />
                     </MessageBarBody>
                 </MessageBar>
             </MessageBarGroup>
