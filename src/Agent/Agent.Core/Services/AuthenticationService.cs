@@ -610,7 +610,7 @@ public class AuthenticationService : IAuthenticationService
             return "http://localhost:1743";
         }
 
-        return "http://diag-runtimehost-euap.trafficmanager.net";
+        return "https://diag-runtimehost-euap.trafficmanager.net";
     }
     #endregion
 
@@ -677,3 +677,4 @@ public class AuthenticationService : IAuthenticationService
     }
     #endregion
 }
+
