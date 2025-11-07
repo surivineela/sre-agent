@@ -158,7 +158,7 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
                                         {isApplyingImprovement ? (
                                             <>
                                                 <Spinner size="extra-tiny" />
-                                                {intl.formatMessage(ScheduledTasksResources.refiningDetails)}
+                                                {intl.formatMessage(ScheduledTasksResources.refining)}
                                             </>
                                         ) : (
                                             <>

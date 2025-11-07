@@ -3,7 +3,6 @@ import { makeStyles, tokens } from '@fluentui/react-components';
 export const useKustoToolCreateDialogStyles = makeStyles({
     dialogSurface: {
         minWidth: 'fit-content',
-        maxWidth: '1200px',
         padding: '0px',
     },
     dialogBody: {
@@ -26,6 +25,7 @@ export const useKustoToolCreateDialogStyles = makeStyles({
         display: 'flex',
         gap: '24px',
         padding: tokens.spacingVerticalXL,
+        overflowX: 'auto',
     },
     toolFormLeft: {
         display: 'flex',
@@ -42,14 +42,80 @@ export const useKustoToolCreateDialogStyles = makeStyles({
     toolFormRight: {
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'stretch',
-        gap: '24px',
-        maxWidth: '600px',
+        alignItems: 'flex-start',
+        gap: tokens.spacingVerticalL,
+        flex: '1 0 0',
+        alignSelf: 'stretch',
+        minWidth: '600px',
     },
     dialogActions: {
         display: 'flex',
         justifyContent: 'flex-end',
         padding: tokens.spacingHorizontalL,
         borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
+    },
+    toolbarButton: {
+        fontWeight: 'normal',
+        padding: '2px 8px',
+    },
+    parametersAccordion: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalS,
+    },
+    parameterAccordionHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'space-between',
+        gap: tokens.spacingHorizontalM,
+        fontWeight: 600,
+    },
+    parameterAccordionItem: {
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        borderRadius: tokens.borderRadiusMedium,
+    },
+    parameterAccordionDescription: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingHorizontalS,
+        padding: `${0} ${tokens.spacingHorizontalM} ${tokens.spacingVerticalM}`,
+        margin: 0,
+    },
+    parameterNameAndType: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: tokens.spacingHorizontalXS,
+        width: '100%',
+        alignItems: 'start',
+    },
+    testPanelHeader: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '12px', width: '100%' },
+    emptyContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '20px',
+        width: '100%',
+        maxHeight: '364px',
+        flexGrow: 1,
+    },
+    testValueAccordionItem: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalS,
+    },
+    testValueColumnHeaders: {
+        display: 'grid',
+        gridTemplateColumns: '2.5fr 2.5fr 1fr',
+        gap: tokens.spacingVerticalXS,
+        marginBottom: tokens.spacingVerticalXS,
+    },
+    testParameterInputs: {
+        display: 'grid',
+        gridTemplateColumns: '2.5fr 2.5fr 1fr',
+        gap: tokens.spacingVerticalXS,
+        alignItems: 'start',
+        marginTop: tokens.spacingVerticalXS,
     },
 });

@@ -23,6 +23,7 @@ import { SettingsKeys } from '../../Settings/Settings.ReactView';
 import { useKustoToolSettings } from './Hooks/useKustoToolSettings';
 import { useKustoToolCreateDialogStyles } from './KustoToolCreateDialog.Styles';
 import { KustoToolCreateForm } from './KustoToolCreateForm';
+import { KustoToolTestPanel } from './KustoToolTestPanel';
 import { KustoToolFormProps } from './KustoToolUtilities';
 
 interface KustoToolCreateDialogProps {
@@ -40,7 +41,7 @@ export const KustoToolCreateDialog: FC<KustoToolCreateDialogProps> = ({ isDialog
     return (
         <Dialog open={isDialogOpen} onOpenChange={(_, data) => setIsDialogOpen(data.open)}>
             <Formik<KustoToolFormProps> initialValues={initialValues} validationSchema={validationSchema} onSubmit={save}>
-                {({ submitForm }) => {
+                {({ submitForm, dirty, isValid }) => {
                     return (
                         <DialogSurface className={styles.dialogSurface}>
                             <DialogBody className={styles.dialogBody}>
@@ -60,6 +61,7 @@ export const KustoToolCreateDialog: FC<KustoToolCreateDialogProps> = ({ isDialog
                                     </DialogTitle>
                                 </div>
                                 <DialogContent>
+                                    {/* No connectors message bar */}
                                     {connectors?.length === 0 && (
                                         <MessageBar intent="warning" icon={<WarningFilled />}>
                                             <MessageBarBody>
@@ -80,19 +82,21 @@ export const KustoToolCreateDialog: FC<KustoToolCreateDialogProps> = ({ isDialog
                                             </MessageBarActions>
                                         </MessageBar>
                                     )}
+
+                                    {/* Tool form */}
                                     <div className={styles.toolForm}>
                                         <div className={styles.toolFormLeft}>
                                             <KustoToolCreateForm connectors={connectors} />
                                         </div>
                                         <div className={styles.toolFormDivider}></div>
-                                        <div className={styles.toolFormRight}></div>
+                                        <div className={styles.toolFormRight}>
+                                            <KustoToolTestPanel />
+                                        </div>
                                     </div>
                                 </DialogContent>
                                 <DialogActions className={styles.dialogActions}>
                                     <DialogTrigger disableButtonEnhancement>
-                                        {/* Disable when the test run button has not been run yet */}
-                                        {/* Test run button will only enable when form isValid */}
-                                        <Button appearance="primary" onClick={submitForm} disabled={false}>
+                                        <Button appearance="primary" onClick={submitForm} disabled={!dirty || !isValid}>
                                             {intl.formatMessage(ExtendedAgentsGraphResources.createTool)}
                                         </Button>
                                     </DialogTrigger>

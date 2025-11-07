@@ -1,6 +1,6 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { object, string } from 'yup';
+import { array, mixed, object, string } from 'yup';
 import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessageOrStringify } from '../../../../Common/Clients/ArmClient';
@@ -20,7 +20,7 @@ export const useKustoToolSettings = () => {
     const initialValues: KustoToolFormProps = useMemo(() => {
         return {
             name: '',
-            instructions: '',
+            description: '',
             connector: '',
             database: '',
             query: '',
@@ -43,10 +43,21 @@ export const useKustoToolSettings = () => {
                             return new RegExp(`^[a-zA-Z0-9-]{1,${ENTITY_NAME_MAX_LENGTH}}$`).test(name);
                         }
                     ),
-                instructions: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
+                description: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
                 connector: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
                 database: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
                 query: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
+                parameters: array().of(
+                    object({
+                        name: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
+                        type: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
+                        required: mixed(),
+                        value: string().when('required', {
+                            is: true,
+                            then: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
+                        }),
+                    })
+                ),
             }),
         [intl]
     );
@@ -58,7 +69,7 @@ export const useKustoToolSettings = () => {
             const body: ExtendedTool = {
                 name: values.name,
                 type: 'KustoTool',
-                description: values.instructions,
+                description: values.description,
                 connector: values.connector,
                 database: values.database,
                 query: values.query,

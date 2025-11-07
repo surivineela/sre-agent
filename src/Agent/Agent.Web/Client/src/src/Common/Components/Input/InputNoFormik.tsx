@@ -6,10 +6,10 @@ export type InputNoFormikProps = InputProps &
         isLoading?: boolean;
     };
 
-const InputNoFormik: React.FC<InputNoFormikProps> = ({ isLoading, label, ...props }) => {
-    if (label) {
+const InputNoFormik: React.FC<InputNoFormikProps> = ({ isLoading, label, error, ...props }) => {
+    if (label || error) {
         return (
-            <FieldWrapper label={label} {...props}>
+            <FieldWrapper label={label} error={error} {...props}>
                 {isLoading ? (
                     <Skeleton>
                         <SkeletonItem size={32} animation={'wave'} />

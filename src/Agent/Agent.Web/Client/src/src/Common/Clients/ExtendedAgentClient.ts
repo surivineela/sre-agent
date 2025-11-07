@@ -51,6 +51,35 @@ export class ExtendedAgentClient extends DataPlaneClient {
             };
         }
     };
+
+    public testKustoTool = async (tool: Partial<ExtendedTool>) => {
+        try {
+            const { data } = await axios.post(
+                this.getRequestUrl('/api/v1/extendedAgent/tools/kusto/test'),
+                {
+                    query: tool.query,
+                    connector: tool.connector || '',
+                    database: tool.database,
+                    mode: tool.mode || 'query',
+                    parameters: tool.parameters,
+                },
+                {
+                    headers: getAgentHeaders(),
+                }
+            );
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            return {
+                isSuccessful: false,
+                error: errorMessage,
+            };
+        }
+    };
+
     public applyEntity = async (
         data: Partial<ExtendedAgent> | Partial<ExtendedTool> | Partial<ExtendedConnector>,
         type: 'agent' | 'tool' | 'connector'

@@ -5,7 +5,9 @@ import { useIntl } from 'react-intl';
 import InputFormik from '../../../Common/Components/Input/InputFormik';
 import TextareaFormik from '../../../Common/Components/Textarea/TextareaFormik';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import { AgentPromptTextarea } from '../../Components/AgentPromptTextarea';
 import { ExtendedConnector } from '../../Contracts/ExtendedAgentGraph';
+import { ParametersSection } from './Common/ParametersSection';
 import { KustoToolFormProps } from './KustoToolUtilities';
 
 interface CreateFormProps {
@@ -25,10 +27,11 @@ export const KustoToolCreateForm: FC<CreateFormProps> = ({ connectors }) => {
                 orientation="vertical"
                 required
             />
-            <TextareaFormik
-                name="instructions"
-                label={intl.formatMessage(ExtendedAgentsGraphResources.instructions)}
+            <AgentPromptTextarea
+                label={intl.formatMessage(ExtendedAgentsGraphResources.description)}
                 placeholder={intl.formatMessage(ExtendedAgentsGraphResources.descriptionPlaceholder)}
+                prompt={values.description ?? ''}
+                setPrompt={(description: string) => setFieldValue('description', description)}
                 orientation="vertical"
                 required
             />
@@ -82,6 +85,7 @@ export const KustoToolCreateForm: FC<CreateFormProps> = ({ connectors }) => {
                 orientation="vertical"
                 required
             />
+            <ParametersSection />
         </>
     );
 };

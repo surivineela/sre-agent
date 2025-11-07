@@ -2,7 +2,7 @@ import { ToolParameter } from '../../Contracts/ExtendedAgentGraph';
 
 export interface KustoToolFormProps {
     name: string;
-    instructions: string;
+    description: string;
     connector?: string;
     database?: string;
     query?: string;
