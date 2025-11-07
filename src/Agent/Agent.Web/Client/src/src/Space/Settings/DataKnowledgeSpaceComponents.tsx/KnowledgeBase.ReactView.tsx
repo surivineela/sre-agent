@@ -8,6 +8,7 @@ import {
     DialogSurface,
     DialogTitle,
     InputOnChangeData,
+    Link,
     SearchBox,
     SearchBoxChangeEvent,
     Table,
@@ -125,10 +126,7 @@ const KnowledgeBase: FC = () => {
     return (
         <div className={styles.container}>
             <div className={styles.header}>{intl.formatMessage(KnowledgeBaseResources.fileUploadTitle)}</div>
-            <Text className={styles.description}>
-                {intl.formatMessage(KnowledgeBaseResources.fileUploadDescription)}{' '}
-                <span className={styles.linkText}>{intl.formatMessage(KnowledgeBaseResources.fileUploadLinkDescription)}</span>
-            </Text>
+            <Text className={styles.description}>{intl.formatMessage(KnowledgeBaseResources.fileUploadDescription)}</Text>
             <div className={styles.buttonsContainer}>
                 <Toolbar>
                     <ToolbarButton
@@ -242,9 +240,7 @@ const KnowledgeBase: FC = () => {
                                     />
                                     <Text>
                                         {intl.formatMessage(KnowledgeBaseResources.dragFilesHere)}{' '}
-                                        <span onClick={handleButtonClick} className={styles.linkText}>
-                                            {intl.formatMessage(KnowledgeBaseResources.browseForFiles)}
-                                        </span>
+                                        <Link onClick={handleButtonClick}>{intl.formatMessage(KnowledgeBaseResources.browseForFiles)}</Link>
                                     </Text>
                                 </div>
                             </div>

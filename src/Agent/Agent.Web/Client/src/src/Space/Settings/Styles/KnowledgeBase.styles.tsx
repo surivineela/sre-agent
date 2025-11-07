@@ -176,10 +176,6 @@ export const useKnowledgeBaseStyles = makeStyles({
         fontSize: '12px',
         color: tokens.colorNeutralForeground2,
     },
-    linkText: {
-        color: tokens.colorBrandForeground1,
-        cursor: 'pointer',
-    },
     folderIcon: {
         height: '50px',
         width: '50px',
