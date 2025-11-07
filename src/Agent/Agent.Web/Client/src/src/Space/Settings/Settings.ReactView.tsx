@@ -18,6 +18,7 @@ import ManagedResources from './ManagedResources.ReactView';
 import McpServer from './McpServer';
 import { useSettingsStyles } from './Styles/Settings.styles';
 import SubAgents from './SubAgents.ReactView';
+import Support from './Support';
 import Usage from './Usage';
 
 export enum SettingsKeys {
@@ -33,6 +34,7 @@ export enum SettingsKeys {
     DataKnowledgeSpace = 'dataKnowledgeSpace',
     McpServers = 'mcpServers',
     Usage = 'usage',
+    Support = 'support',
 }
 
 // Settings uses shared navigation styles with specific maxWidth
@@ -125,6 +127,11 @@ const Settings: FC = () => {
             key: SettingsKeys.Usage,
         });
 
+        items.push({
+            name: intl.formatMessage(SettingsTabResources.support),
+            key: SettingsKeys.Support,
+        });
+
         return items;
     }, [intl, showConnectors, showDataConnectors, showMcpServer, showSubAgents]);
 
@@ -186,6 +193,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.SubAgents && showSubAgents && <SubAgents />}
                     {selectedKey === SettingsKeys.McpServers && <McpServer />}
                     {selectedKey === SettingsKeys.Usage && <Usage />}
+                    {selectedKey === SettingsKeys.Support && <Support />}
                 </div>
             </div>
         )

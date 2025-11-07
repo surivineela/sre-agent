@@ -57,8 +57,6 @@ const generalSettingsHeader: CSSProperties = { marginBottom: '20px', fontSize: '
 
 const accessControlSettingsContainer: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '10px' };
 
-const accessControlSettingsButton: CSSProperties = { width: 'fit-content' };
-
 const navContainerStyles: CSSProperties = {
     display: 'flex',
     height: 'calc(100vh - 52px)',
@@ -163,7 +161,6 @@ export const useSettingsStyles = () => {
         gridStyle,
         generalSettingsHeader,
         accessControlSettingsContainer,
-        accessControlSettingsButton,
         navContainerStyles,
         navPivotContainer,
         incidentManagementDescriptionStyle,

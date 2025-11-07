@@ -959,6 +959,14 @@ export const AccessControlResources = defineMessages({
     openAccessControl: { defaultMessage: 'Go to Access control', id: 'fUgypu' },
 });
 
+export const SupportResources = defineMessages({
+    description: {
+        defaultMessage: 'Visit Support + Troubleshooting to access support resources and troubleshoot issues related to your SRE Agent.',
+        id: 'ghwElt',
+    },
+    buttonText: { defaultMessage: 'Go to Support + Troubleshooting', id: '2l5w5P' },
+});
+
 export const RbacWarningBannerResources = defineMessages({
     rbacWarningMessage: {
         defaultMessage:
@@ -1877,6 +1885,7 @@ export const SettingsTabResources = defineMessages({
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
     dataKnowledgeSpace: { defaultMessage: 'Data knowledge space', id: '5U04OG' },
     usage: { defaultMessage: 'Agent consumption', id: 'p7xkho' },
+    support: { defaultMessage: 'Support + troubleshooting', id: 'NN4zut' },
     fileSource: { defaultMessage: 'File Source', id: 'CJ6tzL' },
     dataSource: { defaultMessage: 'Data Source', id: 'uudb6D' },
     subAgents: { defaultMessage: 'Sub-agents', id: 'VIn2J0' },

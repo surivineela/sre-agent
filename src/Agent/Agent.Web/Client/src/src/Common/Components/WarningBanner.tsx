@@ -13,7 +13,7 @@ import {
     useRestoreFocusSource,
     useRestoreFocusTarget,
 } from '@fluentui/react-components';
-import { ArrowSquareUpRightRegular, Dismiss24Regular, DismissRegular } from '@fluentui/react-icons';
+import { Dismiss24Regular, DismissRegular, OpenRegular } from '@fluentui/react-icons';
 import { memo, useContext, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router-dom';
@@ -169,7 +169,7 @@ const RbacWarningMessageBarContent = memo(
 
         const buttons = (
             <>
-                <Button onClick={onClickAssignRole} appearance="subtle" icon={<ArrowSquareUpRightRegular />}>
+                <Button onClick={onClickAssignRole} appearance="subtle" icon={<OpenRegular />}>
                     {intl.formatMessage(RbacWarningBannerResources.assignRole)}
                 </Button>
                 <Button onClick={onClickDismiss} appearance="subtle" icon={<DismissRegular />}>
@@ -214,7 +214,7 @@ const UsageWarningMessageBarContent = memo(
 
         const buttons = (
             <>
-                <Button onClick={onClickAgentConsumptionButton} appearance="subtle" icon={<ArrowSquareUpRightRegular />}>
+                <Button onClick={onClickAgentConsumptionButton} appearance="subtle" icon={<OpenRegular />}>
                     {intl.formatMessage(RbacWarningBannerResources.goToAgentConsumption)}
                 </Button>
                 <Button onClick={onClickDismiss} appearance="subtle" icon={<DismissRegular />}>

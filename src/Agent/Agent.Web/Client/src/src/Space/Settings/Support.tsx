@@ -1,33 +1,33 @@
-import { FC, useCallback, useContext } from 'react';
+import { FC, memo, useCallback, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { AccessControlResources, SettingsTabResources } from '../../Strings/SREAgentResources';
+import { SettingsTabResources, SupportResources } from '../../Strings/SREAgentResources';
 import AzurePortalBladeLinkPage from './AzurePortalBladeLinkPage';
 
-const AccessControl: FC = () => {
+const Support: FC = () => {
     const { resourceId } = useContext(EnvironmentContext);
     const az = useContext(AzPortalContext);
     const intl = useIntl();
 
     const onClickButton = useCallback(() => {
         az.openBlade({
-            extension: 'Microsoft_Azure_AD',
-            detailBlade: 'AccessControlBlade',
+            extension: 'Microsoft_Azure_Support',
+            detailBlade: 'Aurora.ReactView',
             detailBladeInputs: {
-                scope: resourceId,
+                resourceId: resourceId,
             },
         });
     }, [az, resourceId]);
 
     return (
         <AzurePortalBladeLinkPage
-            title={intl.formatMessage(SettingsTabResources.accessControl)}
-            description={intl.formatMessage(AccessControlResources.accessControlDescription)}
-            buttonText={intl.formatMessage(AccessControlResources.openAccessControl)}
+            title={intl.formatMessage(SettingsTabResources.support)}
+            description={intl.formatMessage(SupportResources.description)}
+            buttonText={intl.formatMessage(SupportResources.buttonText)}
             onClickButton={onClickButton}
         />
     );
 };
 
-export default AccessControl;
+export default memo(Support);

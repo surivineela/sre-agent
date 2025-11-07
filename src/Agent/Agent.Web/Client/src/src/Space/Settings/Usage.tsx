@@ -331,9 +331,7 @@ const Usage = () => {
         <CopilotProvider {...CopilotTheme} mode={'canvas'} theme={theme.isInverted ? webDarkTheme : webLightTheme}>
             <div className={styles.root}>
                 <div className={styles.title}>
-                    <div style={{ ...settingStyles.generalSettingsHeader, marginBottom: tokens.spacingVerticalS }}>
-                        {intl.formatMessage(SettingsTabResources.usage)}
-                    </div>
+                    <div style={settingStyles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.usage)}</div>
                     <div>
                         <Body1>
                             <span className={styles.smallSpaceOnRight}>{intl.formatMessage(UsageResources.description)}</span>
