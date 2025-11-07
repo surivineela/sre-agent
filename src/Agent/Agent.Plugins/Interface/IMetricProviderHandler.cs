@@ -20,14 +20,14 @@ namespace Agent.Plugins.Interface
         /// Discovers and returns all available metric names from the provider
         /// </summary>
         /// <returns>Array of metric names available in this provider</returns>
-        Task<MetricDefinition[]> DiscoverMetricsAsync();
+        Task<MetricDefinition[]> DiscoverMetricsAsync(string? resourceId = null);
 
         /// <summary>
         /// Gets the dimensions for a specific metric. This helps identify what dimensions are available for filtering.
         /// </summary>
         /// <param name="metricName">Name of the metric to get dimensions for</param>
         /// <returns>Array of dimension names available for the specified metric</returns>
-        Task<string[]> GetDimensionNamesAsync(string metricName);
+        Task<string[]> GetDimensionNamesAsync(string metricName, string? resourceId = null);
 
         /// <summary>
         /// Fetches time series data from the metric provider
@@ -43,6 +43,7 @@ namespace Agent.Plugins.Interface
             DateTime startTime,
             DateTime endTime,
             DimensionFilter[] filters,
-            string aggregation);
+            string aggregation,
+            string? resourceId = null);
     }
 }

@@ -3,8 +3,10 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Microsoft.Extensions.Hosting;
@@ -18,6 +20,7 @@ namespace Agent.Plugins.Implementation
     public class MetricsAnalysisPlugin : IMetricsAnalysisPlugin
     {
         private readonly IChatCompletionService _chatCompletionService;
+        private readonly IAgentOutboundCommunicationService _outboundService;
         private readonly ILogger<MetricsAnalysisPlugin> _logger;
         private readonly ISessionPoolService _sessionPoolService;
         private readonly IHostEnvironment _hostEnvironment;
@@ -27,11 +30,13 @@ namespace Agent.Plugins.Implementation
 
         public MetricsAnalysisPlugin(
             IChatCompletionService chatCompletionService,
+            IAgentOutboundCommunicationService outboundService,
             ILogger<MetricsAnalysisPlugin> logger,
             ISessionPoolService sessionPoolService,
             IHostEnvironment hostEnvironment)
         {
             _chatCompletionService = chatCompletionService;
+            _outboundService = outboundService;
             _logger = logger;
             _sessionPoolService = sessionPoolService;
             _hostEnvironment = hostEnvironment;
@@ -316,13 +321,11 @@ ONLY state factual observations based on what you see in the chart. Don't provid
                 new TextContent(multimodalPrompt)
             };
 
-            foreach (var ts in timeSeries)
-            {
-                // Generate line chart using ScottPlot
-                var chartPath = Path.Combine(_tempDirectory, $"metrics_chart_{Guid.NewGuid()}.png");
-                var chartBytes = GenerateLineChart(ts, chartPath);
-                messages.Add(new ImageContent(chartBytes, "image/png"));
-            }
+            // Generate line chart using ScottPlot
+            var chartPath = Path.Combine(_tempDirectory, $"metrics_chart_{Guid.NewGuid()}.png");
+            var chartBytes = GenerateLineChart(timeSeries, chartPath);
+            messages.Add(new ImageContent(chartBytes, "image/png"));
+            await PostChartImage(chartBytes);
 
             var chatHistory = new ChatHistory();
             chatHistory.AddUserMessage(messages);
@@ -333,26 +336,57 @@ ONLY state factual observations based on what you see in the chart. Don't provid
             return response;
         }
 
+        private async Task PostChartImage(byte[] imageBytes)
+        {
+            var threadId = ToolStatic.AsyncLocalThreadId.Value;
+            if (threadId == Guid.Empty)
+            {
+                _logger.LogInternalWarning("ThreadId is null, cannot post chart image");
+                return;
+            }
+
+            // Convert image to base64
+            var base64Image = "data:image/png;base64," + Convert.ToBase64String(imageBytes);
+            var chartMessage = $"![Chart Graph]({base64Image})\r";
+
+            Guid messageId = Guid.NewGuid();
+
+            // Save to database via the outbound service
+            await _outboundService.AppendAgentImageMessage(threadId, chartMessage, messageId);
+
+            // Stream the complete image message directly to bypass tool call limitations
+            await _outboundService.AppendAgentStreamMessage(threadId, chartMessage, StreamMessageType.Image, messageId);
+        }
+
         private byte[] GenerateLineChart(
-            TimeSeries series,
+            TimeSeries[] series,
             string outputPath)
         {
             try
             {
-                var plot = new Plot();
-
-                // Create line plots for each time series
-                if (series.DataPoints.Count > 0)
+                if (series.Length == 0)
                 {
-                    var timestamps = series.DataPoints.Select(dp => dp.Timestamp.ToOADate()).ToArray();
-                    var values = series.DataPoints.Select(dp => dp.Value).ToArray();
-
-                    var scatter = plot.Add.Scatter(timestamps, values);
-                    scatter.LegendText = series.FormatDimensions();
-                    scatter.LineWidth = 2;
+                    throw new ArgumentException("No time series data provided for chart generation");
                 }
 
-                plot.Title(series.MetricName + (string.IsNullOrEmpty(series.Unit) ? string.Empty : $" ({series.Unit})"));
+                var plot = new Plot();
+
+                foreach (var ts in series)
+                {
+                    // Create line plots for each time series
+                    if (ts.DataPoints.Count > 0)
+                    {
+                        var timestamps = ts.DataPoints.Select(dp => dp.Timestamp.ToOADate()).ToArray();
+                        var values = ts.DataPoints.Select(dp => dp.Value).ToArray();
+
+                        var scatter = plot.Add.Scatter(timestamps, values);
+                        scatter.LegendText = ts.FormatDimensions();
+                        scatter.LineWidth = 2;
+                    }
+
+                }
+
+                plot.Title(series[0].MetricName + (string.IsNullOrEmpty(series[0].Unit) ? string.Empty : $" ({series[0].Unit})"));
                 plot.XLabel("Time");
                 plot.YLabel("Value");
                 plot.ShowLegend(Edge.Bottom);

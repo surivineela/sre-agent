@@ -35,7 +35,7 @@ namespace Agent.Plugins.Implementation
         /// Discovers and returns all available metric names from the Geneva Metrics provider
         /// </summary>
         /// <returns>Array of metric names available in the Geneva Metrics provider</returns>
-        public async Task<MetricDefinition[]> DiscoverMetricsAsync()
+        public async Task<MetricDefinition[]> DiscoverMetricsAsync(string? resourceId = null)
         {
             var connector = GetGenevaMetricsConnector();
 
@@ -51,7 +51,7 @@ namespace Agent.Plugins.Implementation
         /// </summary>
         /// <param name="metricName">Name of the metric to get dimensions for</param>
         /// <returns>Array of dimension names available for the specified metric</returns>
-        public async Task<string[]> GetDimensionNamesAsync(string metricName)
+        public async Task<string[]> GetDimensionNamesAsync(string metricName, string? resourceId = null)
         {
             var connector = GetGenevaMetricsConnector();
 
@@ -68,7 +68,8 @@ namespace Agent.Plugins.Implementation
             DateTime startTime,
             DateTime endTime,
             DimensionFilter[] filters,
-            string aggregation)
+            string aggregation,
+            string? resourceId = null)
         {
             var connector = GetGenevaMetricsConnector();
 

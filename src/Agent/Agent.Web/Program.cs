@@ -415,6 +415,7 @@ public class Program
             .AddTransient<RedisPluginDefinition>()
 
             .AddSingleton<IMetricProviderHandler, GenevaMetricProviderHandler>()
+            .AddSingleton<IMetricProviderHandler, AzureMonitorMetricProviderHandler>()
             .AddSingleton<MetricsAnalysisPluginDefinition>()
             .AddSingleton<IMetricsAnalysisPlugin, MetricsAnalysisPlugin>()
             .AddTransient<MetricsPluginDefinition>()

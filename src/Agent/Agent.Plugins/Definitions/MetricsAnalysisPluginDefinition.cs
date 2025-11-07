@@ -30,7 +30,9 @@ namespace Agent.Plugins.Definitions
         [AgentTool(ToolMode.Auto)]
         public async Task<MetricDefinition[]> DiscoverMetricsAsync(
             [Description("Name of the metric provider. Supported values: 'AzureMonitor', 'Geneva', 'Prometheus'")]
-            string metricProvider)
+            string metricProvider,
+            [Description("Optional resource identifier to scope the metrics discovery (e.g., Azure Resource ID for Azure Monitor)")]
+            string? resourceId)
         {
             // Resolve the handler from the metricProvider parameter
             var handler = _metricProviderHandlers.FirstOrDefault(h =>
@@ -42,7 +44,7 @@ namespace Agent.Plugins.Definitions
             }
 
             // Call the handler's method to discover available metrics
-            return await handler.DiscoverMetricsAsync();
+            return await handler.DiscoverMetricsAsync(resourceId);
         }
 
         [Description("Performs comprehensive metrics analysis using three approaches: " +
@@ -72,13 +74,15 @@ namespace Agent.Plugins.Definitions
             string symptoms,
             [Description("Details of the impacted resource including resource id, region, and other properties (e.g., 'Resource ID: /subscriptions/.../resourceGroups/myRG/providers/Microsoft.Compute/virtualMachines/myVM, Region: East US, SKU: Standard_D4s_v3')")]
             string resourceDetails,
+            [Description("Optional resource identifier to scope the metric query (e.g., Azure Resource ID for Azure Monitor)")]
+            string? resourceId,
             [Description("Name of the metric provider. Supported values: 'AzureMonitor', 'Geneva', 'Prometheus'")]
             string metricProvider,
             [Description("Name of the metric to query (e.g., 'CPU_Usage', 'Memory_Available_Bytes')")]
             string metricName,
-            [Description("Start time for the metric query in ISO 8601 format (e.g., '2024-01-01T00:00:00Z')")]
+            [Description("Start time for the metric query in ISO 8601 format (e.g., '2024-01-01T00:00:00+04:00')")]
             DateTime startTime,
-            [Description("End time for the metric query in ISO 8601 format (e.g., '2024-01-01T23:59:59Z')")]
+            [Description("End time for the metric query in ISO 8601 format (e.g., '2024-01-01T23:59:59+04:00')")]
             DateTime endTime,
             [Description("Aggregation type to apply to the metric data (e.g., 'Average', 'Sum', 'Maximum', 'Minimum', 'Count')")]
             string aggregation)
@@ -92,10 +96,10 @@ namespace Agent.Plugins.Definitions
                 throw new InvalidOperationException($"Metric provider '{metricProvider}' not found or not supported.");
             }
 
-            var dimensions = await handler.GetDimensionNamesAsync(metricName);
+            var dimensions = await handler.GetDimensionNamesAsync(metricName, resourceId);
             var generatedFilters = await _metricsAnalysisPlugin.GenerateFiltersAsync(symptoms, resourceDetails, metricName, dimensions);
 
-            TimeSeries[] timeSeries = await handler.FetchMetricDataAsync(metricName, startTime, endTime, generatedFilters, aggregation);
+            TimeSeries[] timeSeries = await handler.FetchMetricDataAsync(metricName, startTime.ToUniversalTime(), endTime.ToUniversalTime(), generatedFilters, aggregation, resourceId);
             var result = await _metricsAnalysisPlugin.AnalyzeMetricsAsync(symptoms, timeSeries);
             return result.CombinedAnalysis;
         }
