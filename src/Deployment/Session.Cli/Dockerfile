@@ -1,6 +1,8 @@
 # Use the official .NET 9 runtime image to run the app
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 
+ARG AZCLI_VERSION=2.76.0
+
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-2-step-by-step-installation-instructions
 RUN apt-get update && \
     apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release && \
@@ -10,7 +12,7 @@ RUN apt-get update && \
     AZ_DIST=$(lsb_release -cs) && \
     printf "Types: deb \nURIs: https://packages.microsoft.com/repos/azure-cli/ \nSuites: ${AZ_DIST} \nComponents: main \nArchitectures: $(dpkg --print-architecture) \nSigned-by: /etc/apt/keyrings/microsoft.gpg" | tee /etc/apt/sources.list.d/azure-cli.sources && \
     apt-get update && \
-    apt-get install -y azure-cli && \
+    apt-get install -y azure-cli=${AZCLI_VERSION}-1~${AZ_DIST} && \
     # Install kubectl
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
