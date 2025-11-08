@@ -114,7 +114,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                         height: 'calc(100% - 20px)',
                     }}
                 >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '33%', flex: 'none' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minHeight: '33%', flex: 'none' }}>
                         {!view && (
                             <Text size={400} weight="semibold">
                                 {intl.formatMessage(IncidentHandlerCreateResources.reviewCustomInstructionsTitle)}
@@ -133,7 +133,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                             aria-label={intl.formatMessage(IncidentHandlerCreateResources.customInstructionsAriaLabel)}
                         />
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '67%', flex: 'none' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '0%', flex: '1 1 auto' }}>
                         <Text size={400} weight="semibold" style={{ marginTop: 32 }}>
                             {intl.formatMessage(IncidentHandlerCreateResources.reviewToolsTitle)}
                         </Text>
