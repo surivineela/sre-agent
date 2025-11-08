@@ -85,7 +85,7 @@ public class TrajectoryEvals
         //return;
 
         // 3. Extract the trajectory
-        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
+        (var extractedTrajectory, var _, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
             (await GetTestHostAsync()).RunConfig.ChatClient,
             conversationMessages,
             startAgent,
@@ -125,7 +125,7 @@ public class TrajectoryEvals
         //return;
 
         // 3. Extract the trajectory
-        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
+        (var extractedTrajectory, var _, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
             (await GetTestHostAsync()).RunConfig.ChatClient,
             conversationMessages);
 
@@ -159,7 +159,7 @@ public class TrajectoryEvals
             chatTranscript);
 
         // 3. Extract the trajectory
-        (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
+        (var extractedTrajectory, var _, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
             (await GetTestHostAsync()).RunConfig.ChatClient,
             conversationMessages);
 

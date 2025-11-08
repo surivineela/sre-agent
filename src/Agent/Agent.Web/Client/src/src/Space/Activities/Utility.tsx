@@ -583,7 +583,14 @@ export const createChatMessageContentFromStreamingMessage = (streamingMessage: S
 };
 
 export const isDefaultStreamingMessageType = (streamingMessage: StreamingMessage): boolean => {
-    return !streamingMessage.additionalProperties?.streamMessageType;
+    const streamMessageType = streamingMessage.additionalProperties?.streamMessageType;
+    // Default message type excludes special types like images, charts, and trajectory insights
+    return !streamMessageType;
+};
+
+export const isTrajectoryInsightMessageType = (streamingMessage: StreamingMessage): boolean => {
+    const streamMessageType = streamingMessage.additionalProperties?.streamMessageType;
+    return !!streamMessageType && equals(streamMessageType, 'trajectoryinsight', AntUxStringComparison.IgnoreCase);
 };
 
 export const isImageStreamingMessageType = (streamingMessage: StreamingMessage): boolean => {

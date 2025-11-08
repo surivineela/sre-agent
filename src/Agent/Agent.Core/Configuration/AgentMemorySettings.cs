@@ -25,4 +25,11 @@ public class AgentMemorySettings
     public float UserMemoryVectorSimilarityThreshold { get; set; } = 0.1f;
     public float DocumentVectorSimilarityThreshold { get; set; } = 0.65f;
     public float MinimumRerankerScoreThreshold { get; set; } = 2.0f;
+
+    // Session Insights settings
+    /// <summary>
+    /// Controls whether trajectory insights are generated and posted to threads.
+    /// Default: true.
+    /// </summary>
+    public bool EnableInsightPosting { get; set; } = true;
 }

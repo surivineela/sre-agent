@@ -244,6 +244,9 @@ export const SreAgentResources = defineMessages({
     renameFieldLabel: { defaultMessage: 'Rename thread', id: '4Orfd8' },
     threadTitleEmptyError: { defaultMessage: 'Thread title cannot be empty', id: '/N0Usl' },
     renamePermissionsError: { defaultMessage: 'You do not have permission to rename this thread.', id: 'kT9YDi' },
+    generateInsights: { defaultMessage: 'Generate Session Insights', id: '6gD0ie' },
+    generatingInsights: { defaultMessage: 'Generating insights...', id: '751M54' },
+    generateInsightsPermissionsError: { defaultMessage: 'You do not have permission to generate insights for this thread.', id: '19xydZ' },
     discard: { defaultMessage: 'Discard', id: 'nmpevl' },
     disconnect: { defaultMessage: 'Disconnect', id: 'qj1uhz' },
     endpoint: { defaultMessage: 'Endpoint', id: 'ljmS5P' },
@@ -554,6 +557,30 @@ export const SreAgentResources = defineMessages({
     loadingMoreRows: { defaultMessage: 'Loading more rows...', id: 'PSfARI' },
     warning: { defaultMessage: 'Warning', id: '3SVI5p' },
     undo: { defaultMessage: 'Undo', id: 'JkS37H' },
+    // Session Insights
+    sessionInsight: { defaultMessage: 'Session Insight', id: 'DYp/nK' },
+    clickToViewSessionAnalysis: { defaultMessage: 'Click to view session analysis and insights', id: 'ttWUo6' },
+    timeline: { defaultMessage: 'Timeline', id: 'zWkvNO' },
+    agentPerformance: { defaultMessage: 'Agent Performance', id: 'urxxsP' },
+    noInsightContentAvailable: { defaultMessage: 'No insight content available', id: 'cHKA8f' },
+    insightNoMarkdownContent: { defaultMessage: 'This insight does not have markdown content.', id: 'TexFnY' },
+    noSessionInsightsFound: { defaultMessage: 'No session insights found.', id: 'fuHqFL' },
+    noInsightsAvailable: { defaultMessage: 'No insights available', id: 'trhBLG' },
+    insightsNotGenerated: { defaultMessage: 'Insights have not been generated for this thread yet.', id: '/3OCn6' },
+    noInsightSelected: { defaultMessage: 'No insight selected', id: 'A9cgAa' },
+    threadsWithInsightsCount: { defaultMessage: 'Threads with Insights ({count})', id: 'SIW6OB' },
+    noThreadsWithInsights: { defaultMessage: 'No threads with session insights found.', id: 'V9GGMu' },
+    insightWasHelpful: { defaultMessage: 'This insight was helpful', id: 'BD+V8L' },
+    insightNeedsImprovement: { defaultMessage: 'This insight needs improvement', id: '+XtuWl' },
+    // Feedback
+    threadFeedback: { defaultMessage: 'Thread Feedback', id: 'bICPAQ' },
+    noFeedbackYet: { defaultMessage: 'No Feedback Yet', id: 'R4Blzb' },
+    feedbackWillAppearHere: { defaultMessage: 'Feedback submitted on threads will appear here', id: 'GGr/yS' },
+    noFeedbackSelected: { defaultMessage: 'No feedback selected', id: 'cesI6Z' },
+    feedbackId: { defaultMessage: 'Feedback ID', id: 'T/nqbo' },
+    submitted: { defaultMessage: 'Submitted', id: 'raexxM' },
+    rating: { defaultMessage: 'Rating', id: 'ETRyBL' },
+    noAdditionalComments: { defaultMessage: 'No additional comments provided', id: 'wBh+z3' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -565,6 +592,7 @@ export const SreAgentTabResources = defineMessages({
     logs: { defaultMessage: 'Logs', id: 'SNuQo7' },
     feedback: { defaultMessage: 'Give us feedback', id: 'aQPexO' },
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
+    sessionInsights: { defaultMessage: 'Session Insights', id: '9WBhPZ' },
     scheduledTasks: { defaultMessage: 'Scheduled tasks', id: 'sy7vzf' },
 });
 
@@ -1885,6 +1913,7 @@ export const SettingsTabResources = defineMessages({
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
     dataKnowledgeSpace: { defaultMessage: 'Data knowledge space', id: '5U04OG' },
     usage: { defaultMessage: 'Agent consumption', id: 'p7xkho' },
+    sessionInsights: { defaultMessage: 'Session insights', id: 'CQ0CLu' },
     support: { defaultMessage: 'Support + troubleshooting', id: 'NN4zut' },
     fileSource: { defaultMessage: 'File Source', id: 'CJ6tzL' },
     dataSource: { defaultMessage: 'Data Source', id: 'uudb6D' },

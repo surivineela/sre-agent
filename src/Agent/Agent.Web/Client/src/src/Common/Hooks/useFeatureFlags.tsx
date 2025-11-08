@@ -6,6 +6,7 @@ interface FeatureFlags {
     scheduledTasks: boolean;
     agentMemory: boolean;
     extendedAgentsGraph: boolean;
+    sessionInsights: boolean;
 }
 
 interface FeatureStatusResponse {
@@ -17,6 +18,7 @@ export const useFeatureFlags = () => {
         scheduledTasks: false,
         agentMemory: false,
         extendedAgentsGraph: false,
+        sessionInsights: false,
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
@@ -46,6 +48,7 @@ export const useFeatureFlags = () => {
                     scheduledTasks: false,
                     agentMemory: false,
                     extendedAgentsGraph: false,
+                    sessionInsights: false,
                 });
             } finally {
                 setLoading(false);

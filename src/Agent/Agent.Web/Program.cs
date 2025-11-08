@@ -233,6 +233,17 @@ public class Program
         builder.Services.Configure<MCPSettings>(
             builder.Configuration.GetSection("AppSettings:Core:External:MCP"));
 
+        // Configure AgentMemorySettings
+        builder.Services.Configure<AgentMemorySettings>(
+            builder.Configuration.GetSection("AppSettings:Core:AgentMemory"));
+
+        // Add AgentMemorySettings singleton registration
+        builder.Services.AddSingleton<AgentMemorySettings>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<AgentMemorySettings>>();
+            return options.Value;
+        });
+
         // Configure ChatClientProvider settings
         builder.Services.Configure<ChatClientProviderSettings>(
             builder.Configuration.GetSection("AppSettings:Core:ChatClientProvider"));
@@ -509,8 +520,15 @@ public class Program
             .AddTransient<ICannotConnectToVmPlugin, CannotConnectToVmPlugin>()
             .AddTransient<CannotConnectToVmPluginDefinition>()
 
-            .AddSingleton<ThreadEvaluator>()
-            .AddSingleton<TrajectoryEvaluator>()
+            .AddSingleton<ThreadEvaluator>();
+
+        // Conditionally register InsightPostingService based on Session Insights enablement
+        if (SessionInsightsEnabled(builder))
+        {
+            builder.Services.AddSingleton<InsightPostingService>();
+        }
+
+        builder.Services
             .AddSingleton<TlsBestPracticesScanner>()
             .AddTransient<LocalAuthScanner>()
             .AddSingleton<SourceCodeScanner>()
@@ -765,6 +783,16 @@ public class Program
             .ConfigureAzureOpenAIClient()
             .ConfigureIChatClient(builder.Configuration)
             .ConfigureIEmbeddingGenerator(builder.Configuration);
+
+        // Register non-keyed IEmbeddingGenerator for services that need it via constructor injection
+        builder.Services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
+        {
+            var chatClientProvider = sp.GetRequiredService<IChatClientProvider>();
+            return chatClientProvider.EmbeddingModel;
+        });
+
+        // Register TrajectoryEvaluator after embedding generator is configured (it depends on IEmbeddingGenerator)
+        builder.Services.AddSingleton<TrajectoryEvaluator>();
 
         // Register TSG Plugin - Always enabled since it uses DataConnector (not Azure Search)
         builder.Services.AddTransient<ITsgPlugin>(sp =>
@@ -1384,6 +1412,12 @@ public class Program
     {
         var agentMemorySettings = builder.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
         return agentMemorySettings?.Enabled ?? false;
+    }
+
+    private static bool SessionInsightsEnabled(WebApplicationBuilder builder)
+    {
+        var agentMemorySettings = builder.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
+        return (agentMemorySettings?.Enabled ?? false) || (agentMemorySettings?.EnableInsightPosting ?? false);
     }
 
     private static bool AgentMemoryRetrievalEnabled(WebApplicationBuilder builder)

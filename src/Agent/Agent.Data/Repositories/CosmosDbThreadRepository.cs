@@ -58,8 +58,12 @@ public class CosmosDbThreadRepository : IThreadRepository
                 return null;
             }
 
-            // Then get the start message
-            MessageDocument? startMessageDoc = await GetDocumentAsync<MessageDocument>(threadDoc.MessageId, threadIdStr);
+            // Then get the start message (if it exists)
+            MessageDocument? startMessageDoc = null;
+            if (!string.IsNullOrEmpty(threadDoc.MessageId))
+            {
+                startMessageDoc = await GetDocumentAsync<MessageDocument>(threadDoc.MessageId, threadIdStr);
+            }
 
             if (startMessageDoc == null)
             {
@@ -70,7 +74,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             // last message may be null if thread was created before we started saving last message id
             // & a new message has not been added to the thread
             Message? lastMessageDocDomainModel;
-            if (threadDoc.LastMessageId == null)
+            if (threadDoc.LastMessageId == null || string.IsNullOrEmpty(threadDoc.LastMessageId))
             {
                 _logger.LogInternalInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
                 lastMessageDocDomainModel = null;
@@ -199,6 +203,8 @@ public class CosmosDbThreadRepository : IThreadRepository
         var threads = new List<Thread>();
 
         // Query for thread documents
+        // Note: We filter by DocumentType to exclude SessionInsightDocument and other document types
+        // that share the same container but have different schemas
         var query = _client.GetContainer<ThreadDocument>(_databaseName).GetItemLinqQueryable<ThreadDocument>()
             .Where(t => t.DocumentType == "Thread")
             .OrderBy(t => t.CreatedTimestamp);
@@ -238,6 +244,29 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             foreach (var threadDoc in await iterator.ReadNextAsync())
             {
+                // Skip threads with null IDs or MessageIds
+                // This can happen when SessionInsightDocument objects are incorrectly deserialized as ThreadDocument
+                // since they share the same container but have different schemas
+                if (string.IsNullOrEmpty(threadDoc.Id))
+                {
+                    _logger.LogInternalWarning(
+                        "Skipping document with null or empty ID. MessageId: {MessageId}, DocumentType: {DocumentType}. " +
+                        "This may indicate a SessionInsightDocument was deserialized as ThreadDocument.", 
+                        threadDoc.MessageId, 
+                        threadDoc.DocumentType);
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(threadDoc.MessageId))
+                {
+                    _logger.LogInternalWarning(
+                        "Skipping document with null or empty MessageId. ThreadId: {ThreadId}, DocumentType: {DocumentType}. " +
+                        "This may indicate a SessionInsightDocument was deserialized as ThreadDocument.",
+                        threadDoc.Id,
+                        threadDoc.DocumentType);
+                    continue;
+                }
+
                 // Get the start message for each thread
                 MessageDocument? startMessageDoc = await GetDocumentAsync<MessageDocument>(
                     threadDoc.MessageId,
@@ -248,7 +277,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                 // last message may be null if thread was created before we started saving last message id
                 // & a new message has not been added to the thread
                 Message? lastMessageDocDomainModel;
-                if (threadDoc.LastMessageId == null)
+                if (string.IsNullOrEmpty(threadDoc.LastMessageId))
                 {
                     _logger.LogInternalInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
                     lastMessageDocDomainModel = null;

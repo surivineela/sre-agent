@@ -5,6 +5,7 @@
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
@@ -33,6 +34,8 @@ public class TrajectoryEvaluator
     private readonly TimeSpan _coolDownPeriod;         // Minimum time since last modification before evaluation
 
     private readonly ISearchIndexService _searchIndexService;
+    private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
+    private readonly InsightPostingService? _insightPostingService;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = AIJsonUtilities.DefaultOptions;
 
@@ -43,6 +46,8 @@ public class TrajectoryEvaluator
         IAgentMemoryClient memory,
         Tracer tracer,
         ISearchIndexService searchIndexService,
+        IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
+        InsightPostingService? insightPostingService = null,
         TimeSpan? evaluationHistoryRange = null,
         TimeSpan? coolDownPeriod = null)
     {
@@ -53,6 +58,8 @@ public class TrajectoryEvaluator
         _memory = memory;
 
         _searchIndexService = searchIndexService;
+        _embeddingGenerator = embeddingGenerator;
+        _insightPostingService = insightPostingService;
 
         // Allow overriding default time windows
         _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
@@ -180,9 +187,14 @@ public class TrajectoryEvaluator
     }
 
     /// <summary>
-    /// Evaluate a single thread's behavior and performance
+    /// Evaluate a single thread's behavior and performance.
+    /// Generates trajectory data and posts insights if configured.
     /// </summary>
-    private async Task<ThreadModel?> GenerateTrajectory(ThreadModel thread, CancellationToken cancellationToken)
+    /// <param name="thread">The thread to evaluate</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="isUserRequested">Whether insight generation was explicitly requested by user</param>
+    /// <returns>Updated thread model or null if evaluation failed</returns>
+    public async Task<ThreadModel?> GenerateTrajectory(ThreadModel thread, CancellationToken cancellationToken, bool isUserRequested = false)
     {
         try
         {
@@ -195,8 +207,8 @@ public class TrajectoryEvaluator
             {
                 _logger.LogInternalWarning($"No agent contexts found for thread {thread.Id}, skipping trajectory generation");
                 // Update timestamp anyway to avoid retrying this thread
-                await _threadRepository.UpdateTrajectoryGeneratedTimestampAsync(thread.Id, DateTime.UtcNow);
-                return thread;
+                var updatedThread = await _threadRepository.UpdateTrajectoryGeneratedTimestampAsync(thread.Id, DateTime.UtcNow);
+                return updatedThread ?? thread;
             }
 
             var chatMessages = await EvaluationHelper.GetChatMessages(_threadRepository, agentContext, _logger);
@@ -213,11 +225,12 @@ public class TrajectoryEvaluator
 
             if (trajectory != null)
             {
+                // Save trajectory data for all threads
+                var trajectoryString = JsonSerializer.Serialize(trajectory, _jsonSerializerOptions);
+                await SaveTrajectoryAsync(thread.Id, trajectoryString, trajectoryInfo.PromptHash, cancellationToken);
+
                 if (trajectory.IsInvestigationThread)
                 {
-                    var trajectoryString = JsonSerializer.Serialize(trajectory, _jsonSerializerOptions);
-                    await SaveTrajectoryAsync(thread.Id, trajectoryString, trajectoryInfo.PromptHash, cancellationToken);
-
                     var vector = await _chatClientProvider.EmbeddingModel.GenerateVectorForAgentMemoryAsync(trajectory.SymptomsObserved, _logger, cancellationToken);
                     var memory = AgentMemory.FromTrajectory(
                         trajectoryGuid: thread.Id, // use thread id as the id to keep it unique + update existing memory on re-eval
@@ -226,16 +239,28 @@ public class TrajectoryEvaluator
                     );
 
                     await _searchIndexService.IndexContentAsync(memory);
-
-                    // Update thread with evaluation timestamp
-                    await _threadRepository.UpdateTrajectoryGeneratedTimestampAsync(thread.Id, DateTime.UtcNow);
+                    _logger.LogInternalInformation($"Indexed investigation thread {thread.Id} for retrieval");
                 }
                 else
                 {
-                    _logger.LogInternalWarning($"Skipping non-investigation thread. Reason: {trajectory.ClassificationReason}");
+                    _logger.LogInternalInformation($"Non-investigation thread {thread.Id}. Reason: {trajectory.ClassificationReason}");
+                }
 
-                    // Update timestamp anyway to avoid retrying this thread
-                    await _threadRepository.UpdateTrajectoryGeneratedTimestampAsync(thread.Id, DateTime.UtcNow);
+                // Post insights to the thread after trajectory is saved
+                var insightsPosted = await PostInsightsToThreadAsync(thread, trajectory, trajectoryInfo.ChatTranscript, chatMessages.Count, isUserRequested, cancellationToken);
+
+                // Only update thread trajectory timestamp if insights were actually posted
+                if (insightsPosted)
+                {
+                    var updatedThread = await _threadRepository.UpdateTrajectoryGeneratedTimestampAsync(thread.Id, DateTime.UtcNow);
+                    if (updatedThread != null)
+                    {
+                        thread = updatedThread;
+                    }
+                }
+                else
+                {
+                    _logger.LogInternalInformation($"Insights were not posted for thread {thread.Id}, not updating trajectory timestamp");
                 }
             }
         }
@@ -286,6 +311,62 @@ public class TrajectoryEvaluator
         {
             _logger.LogInternalError(ex, $"Error checking trajectory generation status for thread {threadId}");
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Posts trajectory insights to a thread if meaningful insights exist
+    /// </summary>
+    /// <param name="thread">The thread to post insights to</param>
+    /// <param name="trajectory">The trajectory data containing insights</param>
+    /// <param name="chatTranscript">The full chat transcript that was analyzed</param>
+    /// <param name="messageCount">Number of messages in the thread</param>
+    /// <param name="isUserRequested">Whether insight generation was explicitly requested by user</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if insights were successfully posted, false otherwise</returns>
+    private async Task<bool> PostInsightsToThreadAsync(
+        ThreadModel thread,
+        ProcessedTrajectoryOutput_v3 trajectory,
+        string chatTranscript,
+        int messageCount,
+        bool isUserRequested,
+        CancellationToken cancellationToken)
+    {
+        if (_insightPostingService == null)
+        {
+            _logger.LogInternalInformation("Insight posting is disabled (Session Insights not enabled)");
+            return false;
+        }
+
+        // Conditional logic for when to generate insights:
+        // 1. User explicitly requested it, OR
+        // 2. It's an incident trajectory, OR
+        // 3. Thread has more than 3 messages
+        bool shouldGenerateInsights = isUserRequested 
+            || thread.Source == Core.Models.Api.v1.ThreadSource.Incident 
+            || messageCount > 3;
+
+        if (!shouldGenerateInsights)
+        {
+            _logger.LogInternalInformation(
+                $"Skipping insight generation for thread {thread.Id}. " +
+                $"UserRequested: {isUserRequested}, Source: {thread.Source}, MessageCount: {messageCount}");
+            return false;
+        }
+
+        try
+        {
+            return await _insightPostingService.PostTrajectoryInsightsAsync(
+                thread.Id,
+                trajectory,
+                chatTranscript,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Failed to post insights for thread {thread.Id}");
+            // Don't fail the entire trajectory evaluation if insight posting fails
+            return false;
         }
     }
 

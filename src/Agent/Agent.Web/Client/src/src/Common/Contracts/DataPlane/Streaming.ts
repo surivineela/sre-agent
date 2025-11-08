@@ -9,6 +9,7 @@ export type StreamingMessageType =
     | 'deepinvestigation'
     | 'memorysearch'
     | 'todoplan'
+    | 'trajectoryinsight'
     | null;
 
 export enum MessageRequestType {

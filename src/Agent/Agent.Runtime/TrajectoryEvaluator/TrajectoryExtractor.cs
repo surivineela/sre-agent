@@ -13,6 +13,17 @@ using ChatClientExtensions = Agent.Framework.ChatClientExtensions;
 namespace Agent.Runtime.TrajectoryEvaluator;
 
 /// <summary>
+/// Result of trajectory generation containing the processed trajectory, prompt hash, and chat transcript
+/// </summary>
+/// <param name="Trajectory">The processed trajectory output</param>
+/// <param name="PromptHash">Hash of the prompt used to generate the trajectory</param>
+/// <param name="ChatTranscript">The full chat transcript that was analyzed</param>
+public sealed record TrajectoryGenerationResult(
+    ProcessedTrajectoryOutput_v3 Trajectory,
+    string PromptHash,
+    string ChatTranscript);
+
+/// <summary>
 /// Scanner that periodically evaluates completed threads to assess their behavior and performance.
 /// Filters threads based on configurable time windows:
 /// - Evaluation history range: How far back to search for threads (default: 24 hours)
@@ -22,7 +33,7 @@ public static class TrajectoryExtractor
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = AIJsonUtilities.DefaultOptions;
 
-    public static async Task<(ProcessedTrajectoryOutput_v3 Trajectory, string PromptHash)> GenerateTrajectoryAsync_v3(
+    public static async Task<TrajectoryGenerationResult> GenerateTrajectoryAsync_v3(
         IChatClient chatClient,
         IEnumerable<ChatMessage> chatMessages,
         string startAgent = "meta_agent",
@@ -63,7 +74,7 @@ public static class TrajectoryExtractor
         // process as needed
         var finalTrajectory = ProcessedTrajectoryOutput_v3.FromTrajectoryOutput(rawTraj);
 
-        return (finalTrajectory, TrajectoryPromptHash_v3);
+        return new TrajectoryGenerationResult(finalTrajectory, TrajectoryPromptHash_v3, chatTranscript);
     }
 
     private const string TrajectoryExtractionPrompt =

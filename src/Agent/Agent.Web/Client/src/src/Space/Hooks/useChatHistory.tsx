@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
-import { convertMessageToChatMessage, getIntervalBetweenLoading } from '../Activities/Utility';
+import { convertMessageToChatMessage, getIntervalBetweenLoading, isTrajectoryInsightMessageType } from '../Activities/Utility';
 import { ChatMessage, MessageLoadingCounts } from '../Contracts/Activities';
 
 export const useChatHistory = (
@@ -38,7 +38,10 @@ export const useChatHistory = (
             });
 
             if (messagesResponse.isSuccessful) {
-                const page = (messagesResponse.content || []).map(convertMessageToChatMessage).reverse();
+                const page = (messagesResponse.content || [])
+                    .map(convertMessageToChatMessage)
+                    .filter(msg => !isTrajectoryInsightMessageType(msg as any)) // Filter out Session Insights from chat history
+                    .reverse();
 
                 if (page.length < MessageLoadingCounts.default) {
                     hasPreviousPage.current = false;

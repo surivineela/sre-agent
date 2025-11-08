@@ -5,8 +5,10 @@ import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
+import { useFeatureFlags } from '../../Common/Hooks/useFeatureFlags';
 import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
 import { SettingsTabResources } from '../../Strings/SREAgentResources';
+import SessionInsights from '../SessionInsights/SessionInsights';
 import { useSharedNavDrawerStyles } from '../Styles/Navigation.styles';
 import AccessControl from './AccessControl.ReactView';
 import Basics from './Basics.ReactView';
@@ -34,6 +36,7 @@ export enum SettingsKeys {
     DataKnowledgeSpace = 'dataKnowledgeSpace',
     McpServers = 'mcpServers',
     Usage = 'usage',
+    SessionInsights = 'sessionInsights',
     Support = 'support',
 }
 
@@ -51,6 +54,9 @@ const Settings: FC = () => {
     const showConnectors = useConfigSetting(SettingNames.Connectors);
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
     const showMcpServer = useConfigSetting(SettingNames.McpServer);
+
+    const { features } = useFeatureFlags();
+    const showSessionInsights = features.sessionInsights;
 
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
 
@@ -127,13 +133,20 @@ const Settings: FC = () => {
             key: SettingsKeys.Usage,
         });
 
+        if (showSessionInsights) {
+            items.push({
+                name: intl.formatMessage(SettingsTabResources.sessionInsights),
+                key: SettingsKeys.SessionInsights,
+            });
+        }
+
         items.push({
             name: intl.formatMessage(SettingsTabResources.support),
             key: SettingsKeys.Support,
         });
 
         return items;
-    }, [intl, showConnectors, showDataConnectors, showMcpServer, showSubAgents]);
+    }, [intl, showConnectors, showDataConnectors, showMcpServer, showSubAgents, showSessionInsights]);
 
     const onNavigationClick = useCallback(
         (navKey: string) => {
@@ -193,6 +206,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.SubAgents && showSubAgents && <SubAgents />}
                     {selectedKey === SettingsKeys.McpServers && <McpServer />}
                     {selectedKey === SettingsKeys.Usage && <Usage />}
+                    {selectedKey === SettingsKeys.SessionInsights && <SessionInsights />}
                     {selectedKey === SettingsKeys.Support && <Support />}
                 </div>
             </div>

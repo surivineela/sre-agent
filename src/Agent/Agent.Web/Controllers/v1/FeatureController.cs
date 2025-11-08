@@ -28,11 +28,15 @@ namespace Agent.Web.Controllers.v1
         {
             try
             {
+                // Session Insights is enabled if AgentMemory is enabled OR EnableInsightPosting is enabled
+                var sessionInsightsEnabled = agentMemorySettings.Value.Enabled || agentMemorySettings.Value.EnableInsightPosting;
+                
                 var features = new Dictionary<string, bool>
                 {
                     ["scheduledTasks"] = scheduledTaskSettings.Value.Enabled,
                     ["agentMemory"] = agentMemorySettings.Value.Enabled,
-                    ["extendedAgentsGraph"] = extendedAgentsGraphSettings.Value.Enabled
+                    ["extendedAgentsGraph"] = extendedAgentsGraphSettings.Value.Enabled,
+                    ["sessionInsights"] = sessionInsightsEnabled
                 };
 
                 var response = new FeatureStatusResponse(Features: features);
@@ -57,6 +61,8 @@ namespace Agent.Web.Controllers.v1
                     "scheduledtasks" => scheduledTaskSettings.Value.Enabled,
                     "agentmemory" => agentMemorySettings.Value.Enabled,
                     "extendedagentsgraph" => extendedAgentsGraphSettings.Value.Enabled,
+                    // Session Insights is enabled if AgentMemory is enabled OR EnableInsightPosting is enabled
+                    "sessioninsights" => agentMemorySettings.Value.Enabled || agentMemorySettings.Value.EnableInsightPosting,
                     _ => null
                 };
 

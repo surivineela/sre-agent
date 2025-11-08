@@ -1,3 +1,4 @@
+// ...existing imports...
 import { ChatInput } from '@fluentui-copilot/react-chat-input';
 import {
     $createGhostTextNode,
@@ -41,6 +42,7 @@ import {
     Popover,
     PopoverSurface,
     PositioningImperativeRef,
+    Spinner,
     Table,
     TableBody,
     TableCell,
@@ -52,7 +54,7 @@ import {
     Tooltip,
     useRestoreFocusTarget,
 } from '@fluentui/react-components';
-import { ChatWarningRegular, Lightbulb32Regular, SearchSparkle32Regular } from '@fluentui/react-icons';
+import { ChartMultiple24Regular, ChatWarningRegular, Lightbulb32Regular, SearchSparkle32Regular } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -64,6 +66,7 @@ import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { Guid } from '../../Common/Helpers/Guid';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
+import { useFeatureFlags } from '../../Common/Hooks/useFeatureFlags';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import {
     ActivitiesResources,
@@ -82,12 +85,84 @@ import { chatInputTextStyles, useChatInputStyles, useDialogStyles } from '../Sty
 import AgentModeSelector from './AgentModeSelector';
 import { $createShortcutNode, $getShortcutValuefromShortcutNode, $isShortcutNode, ShortcutNode } from './Chat/ShortcutNode';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
+const GenerateInsightsButton = memo(({ threadId }: { threadId?: string | null }) => {
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { canWriteThreads } = usePermissionContext();
+    const intl = useIntl();
+    const [isGenerating, setIsGenerating] = useState(false);
+    const { iconWrapper } = useFooterButtonIconStyles();
+    const { features } = useFeatureFlags();
+
+    const handleGenerateInsights = useCallback(async () => {
+        if (!threadId) return;
+        setIsGenerating(true);
+        try {
+            const response = await fetch(`${sreAgentEndpoint}/api/v1/threads/${threadId}/insights`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Failed to generate insights:', errorData.errorMessage);
+            }
+        } catch (error) {
+            console.error('Error generating insights:', error);
+        } finally {
+            setIsGenerating(false);
+        }
+    }, [threadId, sreAgentEndpoint]);
+
+    // Don't render if session insights is disabled (after all hooks)
+    if (!features.sessionInsights) {
+        return null;
+    }
+
+    return (
+        <Tooltip content={intl.formatMessage(SreAgentResources.generateInsights)} relationship="label">
+            <Button
+                icon={<span className={iconWrapper}>{isGenerating ? <Spinner size="tiny" /> : <ChartMultiple24Regular />}</span>}
+                appearance="subtle"
+                shape="rounded"
+                disabled={!canWriteThreads || isGenerating || !threadId}
+                onClick={handleGenerateInsights}
+                style={{ height: '100%' }}
+            />
+        </Tooltip>
+    );
+});
 
 enum ChatBoxButtonIds {
     DeepInvestigation = 'deep-investigation',
     AgentMode = 'agent-mode',
     PromptLibrary = 'prompt-library',
 }
+
+const useFooterButtonGroupStyles = makeStyles({
+    container: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalXS,
+    },
+    trailingGroup: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalXS,
+    },
+});
+
+const useFooterButtonIconStyles = makeStyles({
+    iconWrapper: {
+        width: '24px',
+        height: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        '& svg': {
+            width: '24px',
+            height: '24px',
+        },
+    },
+});
 
 const useDownButtonStyles = makeStyles({
     root: {
@@ -1075,8 +1150,9 @@ const ContentBefore = (props: {
     prompts: string[];
     threadSource?: string;
 }) => {
+    const { container, trailingGroup } = useFooterButtonGroupStyles();
     return (
-        <>
+        <div className={container}>
             <DeepInvestigationButton
                 isDeepInvestigationButtonEnabled={props.isDeepInvestigationButtonEnabled}
                 isDeepInvestigationTurnedOn={props.isDeepInvestigationTurnedOn}
@@ -1085,16 +1161,19 @@ const ContentBefore = (props: {
             {props.showAgentModeSelector && props.threadId && (
                 <AgentModeSelector id={ChatBoxButtonIds.AgentMode} threadId={props.threadId} disabled={props.isTyping} />
             )}
-            <PromptLibraryButton
-                isTyping={props.isTyping}
-                disableInputInteraction={props.disableInputInteraction}
-                messagePromptsUsed={props.messagePromptsUsed}
-                sendMessage={props.sendMessage}
-                prompts={props.prompts}
-                threadId={props.threadId}
-                threadSource={props.threadSource}
-            />
-        </>
+            <div className={trailingGroup}>
+                <PromptLibraryButton
+                    isTyping={props.isTyping}
+                    disableInputInteraction={props.disableInputInteraction}
+                    messagePromptsUsed={props.messagePromptsUsed}
+                    sendMessage={props.sendMessage}
+                    prompts={props.prompts}
+                    threadId={props.threadId}
+                    threadSource={props.threadSource}
+                />
+                <GenerateInsightsButton threadId={props.threadId} />
+            </div>
+        </div>
     );
 };
 
@@ -1110,6 +1189,7 @@ const DeepInvestigationButton = memo(
     }) => {
         const { canWriteThreads } = usePermissionContext();
         const intl = useIntl();
+        const { iconWrapper } = useFooterButtonIconStyles();
 
         const tooltipContentWhenNoPermission = isDeepInvestigationTurnedOn
             ? intl.formatMessage(AgentTaskResources.deepInvestigationNoPermissionTurnedOnMessage)
@@ -1123,12 +1203,16 @@ const DeepInvestigationButton = memo(
                 canPerform={canWriteThreads}
                 noPermissionTooltip={canWriteThreads ? '' : tooltipContentWhenNoPermission}
                 allowedTooltip={stateTooltip}
-                icon={<SearchSparkle32Regular />}
+                icon={
+                    <span className={iconWrapper}>
+                        <SearchSparkle32Regular />
+                    </span>
+                }
                 disabledReason={!isDeepInvestigationButtonEnabled}
                 appearance={'subtle'}
                 shape={'rounded'}
                 onClick={() => onClickDeepInvestigationButton()}
-                style={{ marginRight: tokens.spacingHorizontalS, height: '100%' }}
+                style={{ height: '100%' }}
             />
         );
     }
@@ -1157,6 +1241,7 @@ const PromptLibraryButton = memo(
         const [query, setQuery] = useState('');
         const intl = useIntl();
         const { dialogSurface, dialogBody, dialogContent } = useDialogStyles();
+        const { iconWrapper } = useFooterButtonIconStyles();
 
         const categories = useMemo<string[]>(
             () => ['Get started', 'Azure App Service', 'Azure Container App', 'Azure Kubernetes Service', 'Azure API Management'],
@@ -1351,7 +1436,11 @@ const PromptLibraryButton = memo(
                 <DialogTrigger disableButtonEnhancement>
                     <Tooltip content={intl.formatMessage(PromptResources.promptExamples)} relationship="label">
                         <Button
-                            icon={<Lightbulb32Regular />}
+                            icon={
+                                <span className={iconWrapper}>
+                                    <Lightbulb32Regular />
+                                </span>
+                            }
                             disabled={disableInputInteraction || isTyping}
                             shape="rounded"
                             appearance="subtle"

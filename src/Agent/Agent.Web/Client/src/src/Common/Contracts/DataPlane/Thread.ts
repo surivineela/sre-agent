@@ -16,6 +16,7 @@ export interface Thread {
     agentTasks?: AgentTaskMetaData[];
     favorite?: boolean;
     incidentDetails?: IncidentDetails;
+    trajectoryGeneratedTimestamp?: string;
 }
 
 export interface AgentStatus {

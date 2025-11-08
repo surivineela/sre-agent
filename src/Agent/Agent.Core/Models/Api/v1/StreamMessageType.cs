@@ -89,4 +89,9 @@ public enum StreamMessageType
     /// Memory search results with structured data for rendering memory card
     /// </summary>
     MemorySearch,
+
+    /// <summary>
+    /// Trajectory insights and learnings posted after thread evaluation
+    /// </summary>
+    TrajectoryInsight,
 }

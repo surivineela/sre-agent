@@ -11,6 +11,7 @@ import MemoryChatMessage from './MemoryChatMessage';
 import PsqlExecutionMessage from './PsqlExecutionMessage';
 import ScheduledTaskCreationCard from './ScheduledTaskCreationCard';
 import ScheduledTaskExecutionCard from './ScheduledTaskExecutionCard';
+import SessionInsightCard from './SessionInsightCard';
 import TextOrImageMessage from './TextOrImageMessage';
 import TodoPlanChatMessage from './TodoPlanChatMessage';
 
@@ -20,10 +21,14 @@ const AgentMessage = ({
     timeStamp,
     isTyping,
     threadId,
+    sendMessage,
     updateApprovalOrCliMessageInStreamingMessage,
 }: IAgentMessageProps) => {
     // Check if this is a scheduled task execution message
     const scheduledTaskData = useScheduledTaskMessage(messageContent.text || '');
+
+    // Check if this is a trajectory insight message
+    const isTrajectoryInsight = messageContent.isTrajectoryInsight || (messageContent.text || '').includes('# Session Insight');
 
     return (
         <>
@@ -39,6 +44,8 @@ const AgentMessage = ({
                 <ChangeDiffMessage changeDiffData={messageContent.changeDiff} />
             ) : messageContent.isDailyReport ? (
                 <DailyReportMessage text={messageContent.text} timeStamp={timeStamp} />
+            ) : isTrajectoryInsight && messageContent.text ? (
+                <SessionInsightCard insightText={messageContent.text} onRequestRefinement={sendMessage} />
             ) : scheduledTaskData.isScheduledTaskCreationMessage && scheduledTaskData.task ? (
                 <ScheduledTaskCreationCard
                     data={{

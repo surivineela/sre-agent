@@ -16,6 +16,7 @@ using Agent.Plugins.Interface;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
+using Agent.Runtime.TrajectoryEvaluator;
 using Agent.Web.Authorization;
 using Agent.Web.Models.WelcomeMessage;
 using Microsoft.AspNetCore.Mvc;
@@ -50,7 +51,9 @@ namespace Agent.Web.Controllers.v1
         IReasoningLoopManager reasoningLoopManager,
         ThreadManagementService threadManagementService,
         ActionSettings actionSettings,
-        IAgentRuntimeModifier<AgentContext> agentRuntimeModifier) : ControllerBase
+        IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
+        TrajectoryEvaluator trajectoryEvaluator,
+        ISessionInsightRepository sessionInsightRepository) : ControllerBase
     {
         // By default, returns threads ordered by timestamp in ascending order.
         // Pagination can be achieve by using `top` and `skip` query options. https://learn.microsoft.com/en-us/odata/client/pagination#client-driven-paging
@@ -253,7 +256,7 @@ namespace Agent.Web.Controllers.v1
                 ThreadId: threadId,
                 MessageFeedbackId: messageFeedbackId,
                 IsPositive: request.IsPositive,
-                FeedbackText: request.FeedbackText ?? string.Empty
+                FeedbackText: request.FeedbackText! 
             ));
 
             return CreatedAtAction(
@@ -406,6 +409,14 @@ namespace Agent.Web.Controllers.v1
             {
                 logger.LogInternalInformation("Thread evaluation {id} found for thread {}", threadEvaluation.Id, threadId);
                 await repository.DeleteThreadEvaluateResultAsync(threadEvaluation.Id);
+            }
+
+            // Delete session insight if it exists
+            var hasSessionInsight = await sessionInsightRepository.SessionInsightExistsAsync(threadId.ToString());
+            if (hasSessionInsight)
+            {
+                logger.LogInternalInformation("Session insight found for thread {threadId}, deleting it", threadId);
+                await sessionInsightRepository.DeleteSessionInsightAsync(threadId.ToString());
             }
 
             // Delete CLI executions (Az CLI) for this thread
@@ -1058,6 +1069,217 @@ namespace Agent.Web.Controllers.v1
         }
 
         #endregion
+
+        #region Trajectory Insights
+
+        /// <summary>
+        /// Gets session insights for a specific thread from Cosmos DB
+        /// </summary>
+        /// <param name="threadId">The ID of the thread</param>
+        /// <returns>Session insight if found</returns>
+        [HttpGet("{threadId}/insights")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
+        public async Task<ActionResult<SessionInsight>> GetSessionInsight(Guid threadId)
+        {
+            try
+            {
+                var insight = await sessionInsightRepository.GetSessionInsightAsync(threadId.ToString());
+                
+                if (insight == null)
+                {
+                    return NotFound();
+                }
+
+                // Map to API model
+                var apiModel = MapToSessionInsight(insight);
+                return Ok(apiModel);
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error retrieving session insight for thread {ThreadId}", threadId);
+                return StatusCode(500);
+            }
+        }
+
+        /// <summary>
+        /// Gets a paginated list of session insights
+        /// </summary>
+        /// <param name="skip">Number of items to skip</param>
+        /// <param name="take">Number of items to take</param>
+        /// <param name="investigationOnly">Filter for investigation threads only</param>
+        /// <returns>Paginated list of session insights</returns>
+        [HttpGet("insights")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
+        public async Task<ActionResult<SessionInsightList>> GetSessionInsights(
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = 20,
+            [FromQuery] bool investigationOnly = false)
+        {
+            try
+            {
+                var insights = investigationOnly
+                    ? await sessionInsightRepository.GetInvestigationInsightsAsync(skip, take)
+                    : await sessionInsightRepository.GetSessionInsightsAsync(skip, take);
+
+                // Return full SessionInsight objects with all data including markdown
+                var fullInsights = insights.Select(MapToSessionInsight).ToList();
+
+                return Ok(new SessionInsightList(
+                    Insights: fullInsights,
+                    TotalCount: fullInsights.Count,
+                    Skip: skip,
+                    Take: take,
+                    HasMore: fullInsights.Count == take
+                ));
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error retrieving session insights");
+                return StatusCode(500);
+            }
+        }
+
+        /// <summary>
+        /// Adds feedback to a session insight
+        /// </summary>
+        /// <param name="threadId">The ID of the thread</param>
+        /// <param name="feedback">The feedback to add</param>
+        /// <returns>Success response</returns>
+        [HttpPost("{threadId}/insights/feedback")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
+        public async Task<ActionResult> AddInsightFeedback(
+            Guid threadId,
+            [FromBody] SessionInsightFeedback feedback)
+        {
+            try
+            {
+                var insightFeedback = new InsightFeedback(
+                    FeedbackId: Guid.NewGuid().ToString(),
+                    SubmittedAt: DateTime.UtcNow,
+                    Rating: feedback.Rating,
+                    Comment: feedback.Comment,
+                    UserId: "current-user" // TODO: Get from authentication context
+                );
+
+                await sessionInsightRepository.AddFeedbackToInsightAsync(threadId.ToString(), insightFeedback);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error adding feedback to session insight for thread {ThreadId}", threadId);
+                return StatusCode(500);
+            }
+        }
+
+        /// <summary>
+        /// Generates and posts trajectory insights for a specific thread on-demand.
+        /// </summary>
+        /// <param name="threadId">The ID of the thread to generate insights for</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Result indicating success or failure</returns>
+        [HttpPost("{threadId}/insights")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
+        public async Task<ActionResult<GenerateInsightsResponse>> GenerateInsights(
+            Guid threadId,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                logger.LogInternalInformation("Generating insights for thread {ThreadId}", threadId);
+
+                // 1. Verify thread exists
+                var thread = await repository.GetThreadAsync(threadId);
+                if (thread == null)
+                {
+                    logger.LogInternalWarning("Thread {ThreadId} not found", threadId);
+                    return NotFound(new GenerateInsightsResponse
+                    {
+                        Success = false,
+                        ErrorMessage = $"Thread with ID {threadId} not found"
+                    });
+                }
+
+                // 2. Generate trajectory for this thread
+                logger.LogInternalInformation("Generating trajectory for thread {ThreadId}", threadId);
+                var updatedThread = await trajectoryEvaluator.GenerateTrajectory(thread, cancellationToken, isUserRequested: true);
+
+                if (updatedThread == null)
+                {
+                    logger.LogInternalWarning("Failed to generate trajectory for thread {ThreadId}", threadId);
+                    return StatusCode(500, new GenerateInsightsResponse
+                    {
+                        Success = false,
+                        ErrorMessage = "Failed to generate trajectory for this thread"
+                    });
+                }
+
+                logger.LogInternalInformation("Successfully generated insights for thread {ThreadId}", threadId);
+                return Ok(new GenerateInsightsResponse
+                {
+                    Success = true,
+                    Message = "Insights generated successfully",
+                    TrajectoryGeneratedTimestamp = updatedThread.TrajectoryGeneratedTimestamp
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error generating insights for thread {ThreadId}", threadId);
+                return StatusCode(500, new GenerateInsightsResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Internal server error while generating insights"
+                });
+            }
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        private SessionInsight MapToSessionInsight(SessionInsightDocument doc)
+        {
+            // Only expose safe, non-sensitive fields to the frontend
+            // Trajectory data (steps, resources, symptoms, etc.) stays in the backend
+            return new SessionInsight(
+                ThreadId: doc.ThreadId,
+                Title: doc.Title,
+                GeneratedTimestamp: doc.GeneratedTimestamp,
+                InsightMarkdown: doc.InsightMarkdown,
+                Feedback: doc.Feedback?.Select(f => new SessionInsightFeedback(
+                    FeedbackId: f.FeedbackId,
+                    SubmittedAt: f.SubmittedAt,
+                    Rating: f.Rating,
+                    Comment: f.Comment
+                )).ToList(),
+                FeedbackCount: doc.Feedback?.Count ?? 0,
+                PositiveFeedbackCount: doc.Feedback?.Count(f => f.Rating == "positive") ?? 0,
+                NegativeFeedbackCount: doc.Feedback?.Count(f => f.Rating == "negative") ?? 0
+            );
+        }
+
+        private SessionInsightSummary MapToSessionInsightSummary(SessionInsightDocument doc)
+        {
+            // Summary view with no sensitive trajectory data
+            return new SessionInsightSummary(
+                ThreadId: doc.ThreadId,
+                Title: doc.Title,
+                GeneratedTimestamp: doc.GeneratedTimestamp,
+                FeedbackCount: doc.Feedback?.Count ?? 0
+            );
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Response model for the generate insights endpoint
+    /// </summary>
+    public record GenerateInsightsResponse
+    {
+        public bool Success { get; init; }
+        public string? Message { get; init; }
+        public string? ErrorMessage { get; init; }
+        public DateTime? TrajectoryGeneratedTimestamp { get; init; }
     }
 }
 

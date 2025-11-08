@@ -41,7 +41,7 @@ namespace Agent.Tests.Unit.Controllers.v1
         {
             // Arrange
             var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = true };
-            var agentMemorySettings = new AgentMemorySettings { Enabled = true };
+            var agentMemorySettings = new AgentMemorySettings { Enabled = true, EnableInsightPosting = true };
             var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = true };
 
             _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
@@ -58,7 +58,8 @@ namespace Agent.Tests.Unit.Controllers.v1
             Assert.True(response.Features["scheduledTasks"]);
             Assert.True(response.Features["agentMemory"]);
             Assert.True(response.Features["extendedAgentsGraph"]);
-            Assert.Equal(3, response.Features.Count);
+            Assert.True(response.Features["sessionInsights"]);
+            Assert.Equal(4, response.Features.Count);
         }
 
         [Fact]
@@ -66,7 +67,7 @@ namespace Agent.Tests.Unit.Controllers.v1
         {
             // Arrange
             var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = false };
-            var agentMemorySettings = new AgentMemorySettings { Enabled = false };
+            var agentMemorySettings = new AgentMemorySettings { Enabled = false, EnableInsightPosting = false };
             var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = false };
 
             _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
@@ -83,7 +84,8 @@ namespace Agent.Tests.Unit.Controllers.v1
             Assert.False(response.Features["scheduledTasks"]);
             Assert.False(response.Features["agentMemory"]);
             Assert.False(response.Features["extendedAgentsGraph"]);
-            Assert.Equal(3, response.Features.Count);
+            Assert.False(response.Features["sessionInsights"]);
+            Assert.Equal(4, response.Features.Count);
         }
 
         [Fact]
@@ -91,7 +93,7 @@ namespace Agent.Tests.Unit.Controllers.v1
         {
             // Arrange
             var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = true };
-            var agentMemorySettings = new AgentMemorySettings { Enabled = false };
+            var agentMemorySettings = new AgentMemorySettings { Enabled = false, EnableInsightPosting = false };
             var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = true };
 
             _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
@@ -108,7 +110,8 @@ namespace Agent.Tests.Unit.Controllers.v1
             Assert.True(response.Features["scheduledTasks"]);
             Assert.False(response.Features["agentMemory"]);
             Assert.True(response.Features["extendedAgentsGraph"]);
-            Assert.Equal(3, response.Features.Count);
+            Assert.False(response.Features["sessionInsights"]);
+            Assert.Equal(4, response.Features.Count);
         }
 
         [Fact]
@@ -224,6 +227,116 @@ namespace Agent.Tests.Unit.Controllers.v1
             Assert.NotNull(enabledProperty);
             Assert.Equal(featureName, featureProperty.GetValue(response));
             Assert.Equal(enabled, enabledProperty.GetValue(response));
+        }
+
+        [Theory]
+        [InlineData("sessioninsights", true, false)]
+        [InlineData("sessionInsights", true, false)]
+        [InlineData("SESSIONINSIGHTS", true, false)]
+        [InlineData("sessioninsights", false, true)]
+        [InlineData("sessionInsights", false, true)]
+        [InlineData("SESSIONINSIGHTS", false, true)]
+        public void GetFeatureStatusByName_SessionInsightsEnabled_ReturnsOkWithEnabled(string featureName, bool agentMemoryEnabled, bool enableInsightPosting)
+        {
+            // Arrange
+            var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = false };
+            var agentMemorySettings = new AgentMemorySettings { Enabled = agentMemoryEnabled, EnableInsightPosting = enableInsightPosting };
+            var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = false };
+
+            _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
+            _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
+
+            // Act
+            var result = _controller.GetFeatureStatus(featureName);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
+            var response = okResult.Value;
+
+            var featureProperty = response.GetType().GetProperty("feature");
+            var enabledProperty = response.GetType().GetProperty("enabled");
+
+            Assert.NotNull(featureProperty);
+            Assert.NotNull(enabledProperty);
+            Assert.Equal(featureName, featureProperty.GetValue(response));
+            Assert.True((bool)enabledProperty.GetValue(response)!); // Should be enabled when either flag is true
+        }
+
+        [Fact]
+        public void GetFeatureStatusByName_SessionInsightsDisabled_ReturnsOkWithDisabled()
+        {
+            // Arrange
+            var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = false };
+            var agentMemorySettings = new AgentMemorySettings { Enabled = false, EnableInsightPosting = false };
+            var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = false };
+
+            _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
+            _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
+
+            // Act
+            var result = _controller.GetFeatureStatus("sessioninsights");
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
+            var response = okResult.Value;
+
+            var featureProperty = response.GetType().GetProperty("feature");
+            var enabledProperty = response.GetType().GetProperty("enabled");
+
+            Assert.NotNull(featureProperty);
+            Assert.NotNull(enabledProperty);
+            Assert.Equal("sessioninsights", featureProperty.GetValue(response));
+            Assert.False((bool)enabledProperty.GetValue(response)!);
+        }
+
+        [Fact]
+        public void GetFeatureStatus_SessionInsightsEnabledViaAgentMemory_ReturnsCorrectStatus()
+        {
+            // Arrange
+            var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = false };
+            var agentMemorySettings = new AgentMemorySettings { Enabled = true, EnableInsightPosting = false };
+            var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = false };
+
+            _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
+            _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
+
+            // Act
+            var result = _controller.GetFeatureStatus();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var response = Assert.IsType<FeatureStatusResponse>(okResult.Value);
+
+            Assert.True(response.Features["agentMemory"]);
+            Assert.True(response.Features["sessionInsights"]);
+        }
+
+        [Fact]
+        public void GetFeatureStatus_SessionInsightsEnabledViaInsightPosting_ReturnsCorrectStatus()
+        {
+            // Arrange
+            var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = false };
+            var agentMemorySettings = new AgentMemorySettings { Enabled = false, EnableInsightPosting = true };
+            var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = false };
+
+            _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
+            _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
+
+            // Act
+            var result = _controller.GetFeatureStatus();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var response = Assert.IsType<FeatureStatusResponse>(okResult.Value);
+
+            Assert.False(response.Features["agentMemory"]);
+            Assert.True(response.Features["sessionInsights"]);
         }
 
         [Fact]

@@ -119,6 +119,7 @@ export interface IChatMessageProps {
     isStreamingMessage?: boolean;
     toolCallText?: string | null;
     isWaitingForStreamingMessages?: boolean;
+    sendMessage?: (message: string) => Promise<void>;
     updateApprovalOrCliMessageInStreamingMessage?: (approvalOrCliMessageProperties: {
         approval?: Approval;
         azCliExecution?: AzCliExecution;
@@ -129,6 +130,7 @@ export interface IChatMessageProps {
 
 export interface ChatMessageContent extends MessageContent {
     isImage?: boolean;
+    isTrajectoryInsight?: boolean;
     deepInvestigationStatus?: {
         enabled: boolean;
     };
@@ -155,6 +157,7 @@ export interface IAgentMessageProps {
     timeStamp: string;
     isTyping?: boolean;
     threadId: string;
+    sendMessage?: (message: string) => Promise<void>;
     updateApprovalOrCliMessageInStreamingMessage?: (approvalOrCliMessageProperties: {
         approval?: Approval;
         azCliExecution?: AzCliExecution;

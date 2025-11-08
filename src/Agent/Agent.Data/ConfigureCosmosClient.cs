@@ -60,6 +60,17 @@ public static class AgentDataConfiguration
             return new CosmosDbThreadRepository(cosmosClient, cosmosDatabaseName, logger);
         });
 
+        // Register the Session Insight repository
+        serviceCollection.AddSingleton<ISessionInsightRepository>(serviceProvider =>
+        {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+
+            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
+            var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbSessionInsightRepository>>();
+            return new CosmosDbSessionInsightRepository(cosmosClient, cosmosDatabaseName, logger);
+        });
+
         // Add Thread Orchestration Mapping repository registration
         serviceCollection.AddSingleton<IThreadOrchestrationMappingRepository>(serviceProvider =>
         {
@@ -154,6 +165,17 @@ public static class AgentDataConfiguration
             var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
             var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbScheduledTaskRepository>>();
             return new CosmosDbScheduledTaskRepository(cosmosClient, cosmosDatabaseName, logger);
+        });
+
+        // Register the SessionInsight repository
+        serviceCollection.AddSingleton<ISessionInsightRepository>(serviceProvider =>
+        {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+
+            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
+            var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbSessionInsightRepository>>();
+            return new CosmosDbSessionInsightRepository(cosmosClient, cosmosDatabaseName, logger);
         });
 
         return serviceCollection;
