@@ -46,7 +46,10 @@ public record PDServiceMetadata(
 );
 
 public record PDServicesResponse(
-    [property: JsonPropertyName("services")] List<PDServiceMetadata> Services
+    [property: JsonPropertyName("services")] List<PDServiceMetadata> Services,
+    [property: JsonPropertyName("limit")] int Limit,
+    [property: JsonPropertyName("offset")] int Offset,
+    [property: JsonPropertyName("more")] bool More
 );
 
 public record PDIncidentTypeMetadata(
@@ -67,7 +70,10 @@ public record PDPriorityMetadata(
 );
 
 public record PDPrioritiesResponse(
-    [property: JsonPropertyName("priorities")] List<PDPriorityMetadata> Priorities
+    [property: JsonPropertyName("priorities")] List<PDPriorityMetadata> Priorities,
+    [property: JsonPropertyName("limit")] int Limit,
+    [property: JsonPropertyName("offset")] int Offset,
+    [property: JsonPropertyName("more")] bool More
 );
 
 public record IncidentBody(
@@ -123,7 +129,11 @@ public interface IPagerDutyService
 
     Task<PagerDutyIncident> GetPagerDutyIncidentAsync(string incidentId);
 
-    Task<HttpResponseMessage> GetPagerDutyRequest(string requestPath);
+    Task<List<PDServiceMetadata>> GetPagerDutyServices();
+
+    Task<List<PDIncidentTypeMetadata>> GetPagerDutyIncidentTypes();
+
+    Task<List<PDPriorityMetadata>> GetPagerDutyPriorities();
 
     /// <summary>
     /// Get the latest incident description from PagerDuty.

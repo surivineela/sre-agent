@@ -2,11 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Net.Http.Json;
 using Agent.Core.Configuration;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
+using Agent.Graph.Services;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
@@ -32,8 +32,8 @@ public class PagerDutyIncidentFilterManagementService : IncidentFilterManagement
     {
         try
         {
-            var response = await _pagerDutyService.GetPagerDutyRequest("status");
-            return response.IsSuccessStatusCode;
+            var response = await _pagerDutyService.GetIncidentsAsync(1, 0);
+            return true;
         }
         catch (Exception ex)
         {
@@ -49,18 +49,25 @@ public class PagerDutyIncidentFilterManagementService : IncidentFilterManagement
         var result = new List<IncidentFilterFieldOption>();
         try
         {
-            // Get Impacted Services List
-            _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Requesting PagerDuty services.");
-            var servicesResponse = await _pagerDutyService.GetPagerDutyRequest("services");
-            var services = await servicesResponse.Content.ReadFromJsonAsync<PDServicesResponse>();
-            if (services != null && services.Services.Any())
+            // Run all three tasks in parallel and await their results
+            var servicesTask = _pagerDutyService.GetPagerDutyServices();
+            var prioritiesTask = _pagerDutyService.GetPagerDutyPriorities();
+            var incidentTypesTask = _pagerDutyService.GetPagerDutyIncidentTypes();
+
+            await Task.WhenAll(servicesTask, prioritiesTask, incidentTypesTask);
+
+            var services = servicesTask.Result;
+            var priorities = prioritiesTask.Result;
+            var incidentTypes = incidentTypesTask.Result;
+
+            if (services.Any())
             {
-                _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Retrieved {ServiceCount} services.", services.Services.Count);
+                _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Retrieved {ServiceCount} services.", services.Count);
                 result.Add(new IncidentFilterFieldOption
                 {
                     FieldName = nameof(PagerDutyIncidentFilterDocumentPayload.ImpactedService),
                     DisplayName = "Impacted Service",
-                    Options = services.Services.Select(s => new KeyValuePair<string, string>(s.Id, s.Name)).ToList()
+                    Options = services.Select(s => new KeyValuePair<string, string>(s.Id, s.Name)).ToList()
                 });
             }
             else
@@ -70,16 +77,14 @@ public class PagerDutyIncidentFilterManagementService : IncidentFilterManagement
 
             // Get Incident Types List
             _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Requesting PagerDuty incident types.");
-            var incidentTypesResponse = await _pagerDutyService.GetPagerDutyRequest("incidents/types");
-            var incidentTypes = await incidentTypesResponse.Content.ReadFromJsonAsync<PDIncidentTypesResponse>();
-            if (incidentTypes != null && incidentTypes.IncidentTypes.Any())
+            if (incidentTypes.Any())
             {
-                _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Retrieved {IncidentTypeCount} incident types.", incidentTypes.IncidentTypes.Count);
+                _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Retrieved {IncidentTypeCount} incident types.", incidentTypes.Count);
                 result.Add(new IncidentFilterFieldOption
                 {
                     FieldName = nameof(PagerDutyIncidentFilterDocumentPayload.IncidentType),
                     DisplayName = "Incident Type",
-                    Options = incidentTypes.IncidentTypes.Select(it => new KeyValuePair<string, string>(it.Id, it.Name)).ToList()
+                    Options = incidentTypes.Select(it => new KeyValuePair<string, string>(it.Id, it.Name)).ToList()
                 });
             }
             else
@@ -89,16 +94,14 @@ public class PagerDutyIncidentFilterManagementService : IncidentFilterManagement
 
             // Get Priorities List
             _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Requesting PagerDuty priorities.");
-            var prioritiesResponse = await _pagerDutyService.GetPagerDutyRequest("priorities");
-            var priorities = await prioritiesResponse.Content.ReadFromJsonAsync<PDPrioritiesResponse>();
-            if (priorities != null && priorities.Priorities.Any())
+            if (priorities.Any())
             {
-                _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Retrieved {PriorityCount} priorities.", priorities.Priorities.Count);
+                _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Retrieved {PriorityCount} priorities.", priorities.Count);
                 result.Add(new IncidentFilterFieldOption
                 {
                     FieldName = nameof(PagerDutyIncidentFilterDocumentPayload.Priority),
                     DisplayName = "Priority",
-                    Options = priorities.Priorities.Select(p => new KeyValuePair<string, string>(p.Id, p.Name)).ToList()
+                    Options = priorities.Select(p => new KeyValuePair<string, string>(p.Id, p.Name)).ToList()
                 });
             }
             else

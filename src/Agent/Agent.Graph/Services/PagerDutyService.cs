@@ -79,12 +79,11 @@ public class PagerDutyService : IPagerDutyService
         //If impactServiceId is provided(could be name or id), we need to translate it to service ID via /services API.
         if (!string.IsNullOrEmpty(impactServiceId))
         {
-            var servicesResponse = await GetPagerDutyRequest("services");
-            var services = await servicesResponse.Content.ReadFromJsonAsync<PDServicesResponse>();
-            var service = services?.Services.FirstOrDefault(s => impactServiceId.Equals(s.Name, StringComparison.OrdinalIgnoreCase) || impactServiceId.Equals(s.Id, StringComparison.OrdinalIgnoreCase));
+            var services = await GetPagerDutyServices();
+            var service = services.FirstOrDefault(s => impactServiceId.Equals(s.Name, StringComparison.OrdinalIgnoreCase) || impactServiceId.Equals(s.Id, StringComparison.OrdinalIgnoreCase));
             if (string.IsNullOrEmpty(service?.Id))
             {
-                var availableServices = string.Join(",", services?.Services.Select(s => s.Name) ?? []);
+                var availableServices = string.Join(",", services.Select(s => s.Name));
                 _logger.LogInternalWarning($"Cannot find {impactServiceId} in {availableServices}");
             }
             else
@@ -179,6 +178,85 @@ public class PagerDutyService : IPagerDutyService
             _logger.LogInternalError("Failed to get PagerDuty request {requestPath}. Error: {errorContent}", requestPath, errorContent);
             throw new HttpRequestException($"Failed to get PagerDuty request {requestPath}. Error: {errorContent}");
         }
+    }
+
+    public async Task<List<PDServiceMetadata>> GetPagerDutyServices()
+    {
+        using var client = CreateHttpClient();
+        int limit = 100;
+        int offset = 0;
+        bool more = true;
+        var allServices = new List<PDServiceMetadata>();
+        while(more)
+        {
+            var url = QueryHelpers.AddQueryString("https://api.pagerduty.com/services", new Dictionary<string, string?>
+            {
+                { "limit", limit.ToString() },
+                { "offset", offset.ToString() }
+            });
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            var response = await client.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogInternalError("Failed to get PagerDuty services. Error: {errorContent}", content);
+                throw new HttpRequestException($"Failed to get PagerDuty services. Error: {content}");
+            }
+            var servicesResponse = await response.Content.ReadFromJsonAsync<PDServicesResponse>();
+            allServices.AddRange(servicesResponse?.Services ?? []);
+
+            more = servicesResponse?.More ?? false;
+            offset = offset + limit;
+            await Task.Delay(100);
+        }
+        return allServices;
+    }
+
+    public async Task<List<PDPriorityMetadata>> GetPagerDutyPriorities()
+    {
+        using var client = CreateHttpClient();
+        int limit = 100;
+        int offset = 0;
+        bool more = true;
+        var allPriorities = new List<PDPriorityMetadata>();
+        while (more)
+        {
+            var url = QueryHelpers.AddQueryString("https://api.pagerduty.com/priorities", new Dictionary<string, string?>
+            {
+                { "limit", limit.ToString() },
+                { "offset", offset.ToString() }
+            });
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            var response = await client.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogInternalError("Failed to get PagerDuty priorities. Error: {errorContent}", content);
+                throw new HttpRequestException($"Failed to get PagerDuty priorities. Error: {content}");
+            }
+            var prioritiesResponse = await response.Content.ReadFromJsonAsync<PDPrioritiesResponse>();
+            allPriorities.AddRange(prioritiesResponse?.Priorities ?? []);
+
+            more = prioritiesResponse?.More ?? false;
+            offset = offset + limit;
+            await Task.Delay(100);
+        }
+        return allPriorities;
+    }
+
+    public async Task<List<PDIncidentTypeMetadata>> GetPagerDutyIncidentTypes()
+    {
+        using var client = CreateHttpClient();
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://api.pagerduty.com/incidents/types");
+        var response = await client.SendAsync(request);
+        var content = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogInternalError("Failed to get Incident Types. Error: {errorContent}", content);
+            throw new HttpRequestException($"Failed to get Incident Types. Error: {content}");
+        }
+        var incidentTypesResponse = await response.Content.ReadFromJsonAsync<PDIncidentTypesResponse>();
+        return incidentTypesResponse?.IncidentTypes ?? new List<PDIncidentTypeMetadata>();
     }
 
     // method to fetch full details of an incident by id
@@ -497,17 +575,27 @@ public class NullablePagerDutyService : IPagerDutyService
         throw new NotImplementedException();
     }
 
-    public Task<HttpResponseMessage> GetPagerDutyRequest(string requestPath)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task ResolveIncident(string incidentId)
     {
         throw new NotImplementedException();
     }
 
     public Task AddNoteToIncident(string incidentId, string note)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<PDServiceMetadata>> GetPagerDutyServices()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<PDIncidentTypeMetadata>> GetPagerDutyIncidentTypes()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<PDPriorityMetadata>> GetPagerDutyPriorities()
     {
         throw new NotImplementedException();
     }
