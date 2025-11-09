@@ -63,8 +63,8 @@ export const EntityIcon: FC<EntityIconProps> = ({ type, shorthandStyle: size, wr
                 };
             case 'connector':
                 return {
-                    backgroundColor: tokens.colorPaletteGreenBackground2,
-                    foregroundColor: tokens.colorPaletteGreenForeground2,
+                    backgroundColor: tokens.colorPaletteGoldBackground2,
+                    foregroundColor: tokens.colorPaletteGoldForeground2,
                     Icon: PlugConnectedRegular,
                 };
         }

@@ -201,8 +201,8 @@ export class ExtendedAgentNodeSize {
     static readonly agentHeight = 118;
     static readonly toolWidth = 320;
     static readonly toolHeight = 40;
-    static readonly connectorWidth = 264; // 220 * 1.2
-    static readonly connectorHeight = 108; // 90 * 1.2
+    static readonly connectorWidth = 320;
+    static readonly connectorHeight = 118;
     static readonly triggerWidth = 320;
     static readonly triggerHeight = 118;
 }

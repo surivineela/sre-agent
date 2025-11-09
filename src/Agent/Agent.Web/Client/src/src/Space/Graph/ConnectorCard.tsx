@@ -1,11 +1,13 @@
 import { Card, mergeClasses, Text, tokens } from '@fluentui/react-components';
-import { PlugConnected24Regular, PlugDisconnected24Regular } from '@fluentui/react-icons';
+import { MoreHorizontal16Regular } from '@fluentui/react-icons';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
-import { memo, useContext } from 'react';
+import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { ExtendedAgentsGraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgentGraphContext, ExtendedAgentGraphNode, ExtendedConnector } from '../Contracts/ExtendedAgentGraph';
+import { Badge } from '../Foundry/common/components/src/Badge/Badge';
 import { useConnectorNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
+import { EntityIcon } from './EntityIcon';
 import { getHandleId } from './Utility';
 
 type HandlePosition = 'T' | 'B' | 'L' | 'R';
@@ -41,20 +43,16 @@ export const ConnectorCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) =>
 
     const {
         connectorCard,
-        connectorEnabledCard,
-        connectorDisabledCard,
         cardHighlighted,
         cardHovered,
         cardSelected,
         cardContent,
         titleRow,
-        iconWrapper,
         nameBlock,
         nameText,
         subtitleText,
-        descriptionText,
-        mutedText,
-        statusBadge,
+        badge,
+        badgeRow,
     } = useConnectorNodeStyles();
     const intl = useIntl();
 
@@ -66,15 +64,47 @@ export const ConnectorCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) =>
 
     const cardStyles = mergeClasses(
         connectorCard,
-        isEnabled ? connectorEnabledCard : connectorDisabledCard,
         !isHovered && nodesToHighlight.includes(id) ? cardHighlighted : undefined,
         isHovered ? cardHovered : undefined,
         isSelectedNode ? cardSelected : undefined
     );
 
-    const ConnectorIcon = isEnabled ? PlugConnected24Regular : PlugDisconnected24Regular;
-    const connectorDescription = connector?.description?.trim();
-    const connectorType = connector?.type ?? intl.formatMessage(SreAgentResources.NA);
+    const statusBadgeElement = useMemo(() => {
+        let backgroundColor: string | undefined;
+        let color: string | undefined;
+        let borderColor: string | undefined;
+        switch (!!isEnabled) {
+            case true:
+                backgroundColor = tokens.colorStatusSuccessBackground1;
+                color = tokens.colorStatusSuccessForeground1;
+                borderColor = tokens.colorStatusSuccessBorder1;
+                break;
+            case false:
+                backgroundColor = tokens.colorNeutralBackgroundDisabled;
+                color = tokens.colorNeutralForegroundDisabled;
+                borderColor = tokens.colorNeutralForegroundDisabled;
+                break;
+            default:
+                break;
+        }
+
+        return (
+            <Badge
+                appearance="outline"
+                size="small"
+                className={badge}
+                style={{
+                    backgroundColor: backgroundColor,
+                    color: color,
+                    borderColor: borderColor,
+                }}
+            >
+                {isEnabled
+                    ? intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusEnabled)
+                    : intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusDisabled)}
+            </Badge>
+        );
+    }, [badge, isEnabled]);
 
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
@@ -82,30 +112,15 @@ export const ConnectorCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) =>
             <Card onClick={() => setSelectedNode(data)} className={cardStyles}>
                 <div className={cardContent}>
                     <div className={titleRow}>
-                        <div className={iconWrapper}>
-                            <ConnectorIcon />
-                        </div>
+                        <EntityIcon type="connector" iconStyle={{ height: '24px', width: '24px' }} />
                         <div className={nameBlock}>
                             <Text className={nameText}>{data?.name}</Text>
-                            <Text className={subtitleText}>{connectorType}</Text>
+                            <Text className={subtitleText}>{intl.formatMessage(ExtendedAgentsGraphResources.connector)}</Text>
                         </div>
+                        <MoreHorizontal16Regular />
                     </div>
 
-                    {connectorDescription ? (
-                        <Text className={descriptionText}>{connectorDescription}</Text>
-                    ) : (
-                        <Text className={mutedText}>{intl.formatMessage(ExtendedAgentsGraphResources.noDescription)}</Text>
-                    )}
-                </div>
-                <div className={statusBadge}>
-                    <div
-                        style={{
-                            width: '12px',
-                            height: '12px',
-                            borderRadius: '50%',
-                            backgroundColor: isEnabled ? tokens.colorPaletteGreenForeground1 : tokens.colorPaletteRedForeground1,
-                        }}
-                    />
+                    <div className={badgeRow}>{statusBadgeElement}</div>
                 </div>
             </Card>
         </div>
