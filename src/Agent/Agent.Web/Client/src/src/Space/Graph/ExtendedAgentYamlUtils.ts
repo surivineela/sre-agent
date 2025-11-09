@@ -54,8 +54,8 @@ const assignIfDefined = (target: Record<string, unknown>, key: string, value: un
     }
 };
 
-export const buildAgentConfigurationYaml = (agent: Partial<ExtendedAgent>): string => {
-    if (!agent.name) {
+export const buildAgentConfigurationYaml = (agent: Partial<ExtendedAgent>, allowEmptyName?: boolean): string => {
+    if (!agent.name && !allowEmptyName) {
         throw new Error('Agent name is required to apply configuration.');
     }
 

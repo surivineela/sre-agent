@@ -83,7 +83,7 @@ export const AgentRightQuickActionButton: React.FC<AgentRightQuickActionButtonPr
                             <MenuItem
                                 className={contextMenuItemWithIcon}
                                 icon={<EntityIcon type="agent" shorthandStyle={iconSizeProp} />}
-                                onClick={() => triggerAgentQuickAction(agent.name, 'createAgent')}
+                                onClick={() => triggerAgentQuickAction(agent.name, 'createHandoffTargetAgent')}
                                 content={intl.formatMessage(ExtendedAgentsGraphResources.quickCreateCreateNewSubagent)}
                             />
                         </MenuGroup>

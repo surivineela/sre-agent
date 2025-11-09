@@ -3,6 +3,7 @@ import {
     Checkbox,
     makeStyles,
     mergeClasses,
+    SearchBox,
     useTableCell_unstable,
     useTableCellStyles_unstable,
     useTableHeader_unstable,
@@ -15,7 +16,7 @@ import {
 import { ChevronDownRegular, ChevronRightRegular } from '@fluentui/react-icons';
 import { createRef, FC } from 'react';
 import { useIntl } from 'react-intl';
-import { ExtendedAgentsGraphResources } from '../../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 
 export interface ToolPickerOption {
     name: string;
@@ -34,20 +35,26 @@ export interface ToolTreeGridGroup {
     tools: ToolPickerOption[];
 }
 
-export interface ToolsTreeGridProps {
+export interface ToolsPickerProps {
     groups: ToolTreeGridGroup[];
     expandedGroupNames: string[];
     onGroupExpandedChange: (groupName: string, expanded: boolean) => void;
-    selectedToolsNames: string[];
+    selectedToolNames: string[];
     onSelectedToolChange: (toolName: string, isSelected: boolean) => void;
+    searchQuery: string;
+    setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+    disabled?: boolean;
 }
 
-export const ToolsTreeGrid: FC<ToolsTreeGridProps> = ({
+export const ToolsPicker: FC<ToolsPickerProps> = ({
     groups,
     expandedGroupNames,
     onGroupExpandedChange,
-    selectedToolsNames,
+    selectedToolNames,
     onSelectedToolChange,
+    searchQuery,
+    setSearchQuery,
+    disabled,
 }) => {
     const intl = useIntl();
     const tableRowStyle = useTableRowStyle();
@@ -56,35 +63,45 @@ export const ToolsTreeGrid: FC<ToolsTreeGridProps> = ({
     const styles = useToolsTreeGridStyles();
 
     return (
-        <TreeGrid aria-label={intl.formatMessage(ExtendedAgentsGraphResources.allTools)} className={styles.treeGrid}>
-            <div role="rowgroup" className={tableHeaderStyle}>
-                <div role="row" className={mergeClasses(tableRowStyle, styles.tableRow)}>
-                    <div
-                        role="columnheader"
-                        className={styles.checkboxCell}
-                        aria-label={intl.formatMessage(ExtendedAgentsGraphResources.selectTool)}
-                    />
-                    <div role="columnheader" className={tableCellStyle}>
-                        {intl.formatMessage(ExtendedAgentsGraphResources.toolName)}
-                    </div>
-                    <div role="columnheader" className={tableCellStyle}>
-                        {intl.formatMessage(ExtendedAgentsGraphResources.description)}
+        <>
+            <SearchBox
+                className={styles.searchBox}
+                placeholder={intl.formatMessage(SreAgentResources.search)}
+                value={searchQuery}
+                onChange={(_, data) => setSearchQuery(data.value)}
+                disabled={disabled}
+            />
+            <TreeGrid aria-label={intl.formatMessage(ExtendedAgentsGraphResources.allTools)} className={styles.treeGrid}>
+                <div role="rowgroup" className={tableHeaderStyle}>
+                    <div role="row" className={mergeClasses(tableRowStyle, styles.tableRow)}>
+                        <div
+                            role="columnheader"
+                            className={styles.checkboxCell}
+                            aria-label={intl.formatMessage(ExtendedAgentsGraphResources.selectTool)}
+                        />
+                        <div role="columnheader" className={tableCellStyle}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.toolName)}
+                        </div>
+                        <div role="columnheader" className={tableCellStyle}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.description)}
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div role="rowgroup" className={styles.body}>
-                {groups.map(group => (
-                    <ToolGroup
-                        name={group.category}
-                        expanded={!!expandedGroupNames.includes(group.category)}
-                        onExpandedChange={expanded => onGroupExpandedChange(group.category, expanded)}
-                        tools={group.tools}
-                        selectedToolsNames={selectedToolsNames}
-                        onSelectedToolChange={onSelectedToolChange}
-                    />
-                ))}
-            </div>
-        </TreeGrid>
+                <div role="rowgroup" className={styles.body}>
+                    {groups.map(group => (
+                        <ToolGroup
+                            name={group.category}
+                            expanded={!!expandedGroupNames.includes(group.category)}
+                            onExpandedChange={expanded => onGroupExpandedChange(group.category, expanded)}
+                            tools={group.tools}
+                            selectedToolsNames={selectedToolNames}
+                            onSelectedToolChange={onSelectedToolChange}
+                            disabled={disabled}
+                        />
+                    ))}
+                </div>
+            </TreeGrid>
+        </>
     );
 };
 
@@ -92,9 +109,10 @@ interface ToolListProps {
     tools?: ToolPickerOption[];
     selectedToolsNames: string[];
     onSelectedToolChange: (toolName: string, isSelected: boolean) => void;
+    disabled?: boolean;
 }
 
-const ToolList: FC<ToolListProps> = ({ tools, selectedToolsNames, onSelectedToolChange }) => {
+const ToolList: FC<ToolListProps> = ({ tools, selectedToolsNames, onSelectedToolChange, disabled }) => {
     const intl = useIntl();
     const tableRowStyle = useTableRowStyle();
     const tableCellStyle = useTableCellStyle();
@@ -113,9 +131,10 @@ const ToolList: FC<ToolListProps> = ({ tools, selectedToolsNames, onSelectedTool
                             checked={selectedToolsNames.includes(tool.name)}
                             onChange={(_, data) => onSelectedToolChange(tool.name, !!data.checked)}
                             aria-label={intl.formatMessage(ExtendedAgentsGraphResources.selectToolWithName, { toolName: tool.name })}
+                            disabled={disabled}
                         />
                     </TreeGridCell>
-                    <TreeGridCell className={tableCellStyle}>{tool.name}</TreeGridCell>
+                    <TreeGridCell className={mergeClasses(tableCellStyle, styles.toolNameCell)}>{tool.name}</TreeGridCell>
                     <TreeGridCell className={tableCellStyle}>{tool.description}</TreeGridCell>
                 </TreeGridRow>
             ))}
@@ -130,9 +149,10 @@ interface ToolGroupProps {
     tools?: ToolPickerOption[];
     selectedToolsNames: string[];
     onSelectedToolChange: (toolName: string, isSelected: boolean) => void;
+    disabled?: boolean;
 }
 
-const ToolGroup: FC<ToolGroupProps> = ({ name, tools, expanded, onExpandedChange, selectedToolsNames, onSelectedToolChange }) => {
+const ToolGroup: FC<ToolGroupProps> = ({ name, tools, expanded, onExpandedChange, selectedToolsNames, onSelectedToolChange, disabled }) => {
     const tableRowStyle = useTableRowStyle();
     const tableCellStyle = useTableCellStyle();
     const styles = useToolsTreeGridStyles();
@@ -141,7 +161,14 @@ const ToolGroup: FC<ToolGroupProps> = ({ name, tools, expanded, onExpandedChange
         <TreeGridRow
             open={expanded}
             onOpenChange={(_, data) => onExpandedChange(data.open)}
-            subtree={<ToolList tools={tools} selectedToolsNames={selectedToolsNames} onSelectedToolChange={onSelectedToolChange} />}
+            subtree={
+                <ToolList
+                    tools={tools}
+                    selectedToolsNames={selectedToolsNames}
+                    onSelectedToolChange={onSelectedToolChange}
+                    disabled={disabled}
+                />
+            }
             className={mergeClasses(tableRowStyle, styles.tableRow)}
         >
             <TreeGridCell className={mergeClasses(tableCellStyle, styles.groupHeaderCell)} header>
@@ -186,7 +213,12 @@ const useToolsTreeGridStyles = makeStyles({
     treeGrid: {
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100% - 48px)',
+        flex: '1 1 auto',
+        height: '0%',
+    },
+    searchBox: {
+        minWidth: '75px',
+        maxWidth: '265px',
     },
     body: {
         flexGrow: 1,
@@ -209,5 +241,10 @@ const useToolsTreeGridStyles = makeStyles({
         flex: 'none',
         display: 'flex',
         justifyContent: 'center',
+    },
+    toolNameCell: {
+        overflowX: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
     },
 });

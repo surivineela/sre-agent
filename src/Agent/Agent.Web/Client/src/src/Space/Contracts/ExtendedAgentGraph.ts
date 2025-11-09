@@ -166,7 +166,10 @@ export type AgentQuickAction =
     | 'addHandoffTargetExistingAgent'
     | 'addHandoff'
     | 'addTool'
+    | 'createHandoffSourceAgent'
+    | 'createHandoffTargetAgent'
     | 'createAgent'
+    | 'editAgent'
     | 'createTool';
 
 // Graph Context
@@ -212,3 +215,14 @@ export type ExtendedAgentFilters = {
     triggerType?: 'incident' | 'scheduled' | 'All';
     searchQuery?: string;
 };
+
+export interface PromptImprovementRequest {
+    prompt: string;
+}
+
+export interface PromptImprovementResponse {
+    improvedPrompt: string;
+    warnings: string[];
+    suggestions: string[];
+    handoffDescription?: string;
+}

@@ -1,5 +1,11 @@
 import axios from 'axios';
-import { ExtendedAgent, ExtendedConnector, ExtendedTool, PaginatedResponse } from '../../Space/Contracts/ExtendedAgentGraph.ts';
+import {
+    ExtendedAgent,
+    ExtendedConnector,
+    ExtendedTool,
+    PaginatedResponse,
+    PromptImprovementResponse,
+} from '../../Space/Contracts/ExtendedAgentGraph.ts';
 import { buildMetaAgentYaml, convertExtendedEntityToYaml } from '../../Space/Graph/ExtendedAgentYamlUtils.ts';
 import { getAgentHeaders } from '../Helpers/headers';
 import { DataPlaneClient, Response } from './DataPlaneClient.ts';
@@ -98,6 +104,31 @@ export class ExtendedAgentClient extends DataPlaneClient {
             }
             return {
                 isSuccessful: true,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            return {
+                isSuccessful: false,
+                error: errorMessage,
+            };
+        }
+    };
+
+    public getPromptImprovement = async (prompt: string): Promise<Response<PromptImprovementResponse>> => {
+        try {
+            const { data } = await axios.post(
+                this.getRequestUrl('/api/v1/extendedAgent/prompt-improvement'),
+                { prompt },
+                {
+                    headers: {
+                        ...getAgentHeaders(),
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            return {
+                isSuccessful: true,
+                content: data,
             };
         } catch (error) {
             const errorMessage = this.getErrorMessage(error);

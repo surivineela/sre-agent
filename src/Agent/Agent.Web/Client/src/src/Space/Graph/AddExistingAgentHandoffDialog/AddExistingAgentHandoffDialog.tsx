@@ -16,7 +16,7 @@ import { FC, useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ExtendedAgent } from '../../Contracts/ExtendedAgentGraph';
-import { useAddAggentHandoffDialogStyles } from './AddExistingAggentHandoffDialog.Styles';
+import { useAddAggentHandoffDialogStyles } from './AddExistingAgentHandoffDialog.Styles';
 
 export interface AddExistingAgentHandoffDialogProps {
     onDismiss: () => void;

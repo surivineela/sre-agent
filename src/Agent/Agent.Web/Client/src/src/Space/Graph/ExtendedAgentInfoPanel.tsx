@@ -120,7 +120,7 @@ export const ExtendedAgentInfoPanel = memo(
         const intl = useIntl();
         const navigate = useNavigate();
         const location = useLocation();
-        const { selectedNode } = useContext(ExtendedAgentGraphContext);
+        const { selectedNode, triggerAgentQuickAction } = useContext(ExtendedAgentGraphContext);
         const [yamlEditorContext, setYamlEditorContext] = useState<YamlEditorContext>();
         const [isResizeHandleHovered, setIsResizeHandleHovered] = useState(false);
         const [isDeleting, setIsDeleting] = useState(false);
@@ -184,9 +184,13 @@ export const ExtendedAgentInfoPanel = memo(
         const handleOpenYamlEditor = useCallback(
             (entity: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger | undefined, type: ExtendedEntityType) => {
                 if (!entity) return;
+                if (type === 'agent' && triggerAgentQuickAction) {
+                    triggerAgentQuickAction(entity.name, 'editAgent');
+                    return;
+                }
                 setYamlEditorContext({ entity, type });
             },
-            []
+            [triggerAgentQuickAction]
         );
 
         const renderToolDetails = useCallback(
@@ -652,7 +656,7 @@ export const ExtendedAgentInfoPanel = memo(
                         {selectedAgent.handoffDescription && (
                             <div className={styles.handoffSection}>
                                 <Text className={mergeClasses(styles.sectionTitle, styles.marginBottom10)}>
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.handoffInstructions)}
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.agentHandoffInstructions)}
                                 </Text>
                                 <textarea readOnly value={selectedAgent.handoffDescription} className={styles.textAreaSmall} />
                             </div>

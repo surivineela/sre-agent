@@ -1,6 +1,6 @@
 import { DropdownProps, OptionOnSelectData, SelectionEvents } from '@fluentui/react-components';
 import { FieldHookConfig, useField } from 'formik';
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { AzPortalContext } from '../../AzPortalProxy/Providers/AzPortalProxyContext';
 import { logFieldValueChange } from '../../Helpers/Telemetry';
 import DropdownNoFormik, { DropdownNoFormikProps, DropdownOptionBase } from './DropdownNoFormik';
@@ -34,16 +34,28 @@ const DropdownFormik = <T extends DropdownOptionBase | string = DropdownOptionBa
     const onOptionSelectWrapper: DropdownProps['onOptionSelect'] = useCallback(
         (ev: SelectionEvents, data: OptionOnSelectData) => {
             const { setValue } = helper;
-            setValue(data.optionValue);
+            if (multiselect) {
+                setValue(data.selectedOptions);
+                logFieldValueChange(name, data.selectedOptions.join(', '), log);
+            } else {
+                setValue(data.optionValue);
+                logFieldValueChange(name, data.optionText, log);
+            }
             onOptionSelect?.(ev, data);
-            logFieldValueChange(name, data.optionText, log);
         },
         [helper, log, name, onOptionSelect]
     );
 
+    const selectedOptions = useMemo(() => {
+        if (!field.value) {
+            return [];
+        }
+        return multiselect ? field.value : [field.value];
+    }, [field.value, multiselect]);
+
     return (
         <DropdownNoFormik
-            value={field.value}
+            selectedOptions={selectedOptions}
             error={meta.touched || showUntouchedFieldError ? meta.error : undefined}
             onBlur={onBlur}
             onOptionSelect={onOptionSelectWrapper}

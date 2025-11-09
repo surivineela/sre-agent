@@ -68,7 +68,9 @@ const DropdownNoFormik = <T extends DropdownOptionBase | string = DropdownOption
                     </Skeleton>
                 ) : (
                     <>
-                        <Dropdown {...props}>{renderOptions()}</Dropdown>
+                        <Dropdown {...props} disabled={disabled}>
+                            {renderOptions()}
+                        </Dropdown>
                         {sublabel}
                     </>
                 )}
@@ -82,7 +84,9 @@ const DropdownNoFormik = <T extends DropdownOptionBase | string = DropdownOption
         </Skeleton>
     ) : (
         <>
-            <Dropdown {...props}>{renderOptions()}</Dropdown>
+            <Dropdown {...props} disabled={disabled}>
+                {renderOptions()}
+            </Dropdown>
             {sublabel}
         </>
     );

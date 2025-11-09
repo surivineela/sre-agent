@@ -11,7 +11,7 @@ const TextareaNoFormik: React.FC<TextareaNoFormikProps> = ({ isLoading, label, .
         return (
             <FieldWrapper label={label} {...props}>
                 {isLoading ? (
-                    <Skeleton>
+                    <Skeleton className={props.className}>
                         <SkeletonItem size={64} animation={'wave'} />
                     </Skeleton>
                 ) : (
@@ -22,7 +22,7 @@ const TextareaNoFormik: React.FC<TextareaNoFormikProps> = ({ isLoading, label, .
     }
 
     return isLoading ? (
-        <Skeleton>
+        <Skeleton className={props.className}>
             <SkeletonItem size={64} animation={'wave'} />
         </Skeleton>
     ) : (

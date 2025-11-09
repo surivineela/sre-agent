@@ -37,8 +37,10 @@ import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles
 import {
     AddExistingAgentHandoffDialog,
     AddExistingAgentHandoffDialogProps,
-} from './AddExistingAggentHandoffDialog/AddExistingAggentHandoffDialog';
+} from './AddExistingAgentHandoffDialog/AddExistingAgentHandoffDialog';
 import { AddExistingToolDialog, AddExistingToolDialogProps } from './AddExistingToolDialog/AddExistingToolDialog';
+import { AgentCreateDialog } from './AgentCreateDialog/AgentCreateDialog';
+import { AgentCreateOrEditInfo } from './AgentCreateDialog/Contracts';
 import { ConnectorCard } from './ConnectorCard';
 import CreateButton from './CreateButton';
 import { ExtendedAgentCard } from './ExtendedAgentCard';
@@ -160,6 +162,7 @@ const ExtendedAgentGraphContent = memo(() => {
     const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo>();
     const [agentHandoffPickerInfo, setAgentHandoffPickerInfo] = useState<AddExistingAgentHandoffDialogProps['handoffInfo'] | undefined>();
     const [toolPickerInfo, setToolPickerInfo] = useState<AddExistingToolDialogProps['toolPickerInfo'] | undefined>();
+    const [agentCreateOrEditInfo, setAgentCreateOrEditInfo] = useState<AgentCreateOrEditInfo>();
 
     const [isOperationInProgress, setIsOperationInProgress] = useState<boolean>(false);
     const [isScheduledTaskDialogOpen, setIsScheduledTaskDialogOpen] = useState(false);
@@ -533,8 +536,10 @@ const ExtendedAgentGraphContent = memo(() => {
         [agents, relationshipAgentName]
     );
 
-    const creationDialogInitialType =
-        creationDialogContext?.kind === 'linkFromAgent' ? creationDialogContext.targetType : creationDialogInitialTypeOverride;
+    const creationDialogInitialType = useMemo(
+        () => (creationDialogContext?.kind === 'linkFromAgent' ? creationDialogContext.targetType : creationDialogInitialTypeOverride),
+        [creationDialogContext, creationDialogInitialTypeOverride]
+    );
 
     const creationDialogNotice = useMemo(() => {
         if (!creationDialogContext || creationDialogContext.kind !== 'linkFromAgent') {
@@ -646,7 +651,7 @@ const ExtendedAgentGraphContent = memo(() => {
     );
 
     const handleRefresh = useCallback(() => {
-        refetch();
+        return refetch();
     }, [refetch]);
 
     const onChangeViewType = useCallback((view: ExtendedAgentGraphView) => {
@@ -1167,11 +1172,26 @@ const ExtendedAgentGraphContent = memo(() => {
                     mode: action === 'addHandoffSourceExistingAgent' ? 'sourcePicker' : 'targetPicker',
                     currentAgent: agents.find(a => a.name === agentName)!,
                 });
+                return;
             }
 
             if (action === 'addTool') {
                 const agent = agents.find(a => a.name === agentName)!;
                 setToolPickerInfo({ agent });
+                return;
+            }
+
+            if (action === 'createHandoffSourceAgent' || action === 'createHandoffTargetAgent' || action === 'editAgent') {
+                const agent = agents.find(a => a.name === agentName)!;
+                setAgentCreateOrEditInfo({
+                    agent: agent,
+                    mode:
+                        action === 'createHandoffSourceAgent'
+                            ? 'createSource'
+                            : action === 'createHandoffTargetAgent'
+                              ? 'createTarget'
+                              : 'edit',
+                });
                 return;
             }
 
@@ -1493,6 +1513,19 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
+            if (itemType === 'agent') {
+                setAgentCreateOrEditInfo({
+                    agent: undefined,
+                    mode: 'create',
+                });
+                return;
+            }
+
+            if (itemType === 'tool') {
+                setIsToolDialogOpen(true);
+                return;
+            }
+
             setCreationDialogContext(undefined);
             setCreationDialogInitialTypeOverride(itemType);
             setCreationDialogTriggerAgentName(undefined);
@@ -1692,7 +1725,7 @@ const ExtendedAgentGraphContent = memo(() => {
                     value={{
                         createTask,
                         updateTask,
-                        refreshTasks: () => Promise.resolve(handleRefresh()),
+                        refreshTasks: handleRefresh,
                         pauseTask,
                         resumeTask,
                         deleteTask,
@@ -1724,6 +1757,19 @@ const ExtendedAgentGraphContent = memo(() => {
                     existingTools={tools}
                     systemTools={systemTools}
                     toolPickerInfo={toolPickerInfo}
+                />
+
+                <AgentCreateDialog
+                    onDismiss={() => setAgentCreateOrEditInfo(undefined)}
+                    refresh={(selectedAgent?: string) => {
+                        handleRefresh().then(() => {
+                            setPendingAgentSelection(selectedAgent);
+                        });
+                    }}
+                    agents={agents}
+                    existingTools={tools}
+                    systemTools={systemTools}
+                    agentCreateOrEditInfo={agentCreateOrEditInfo}
                 />
 
                 <PlaygroundModal

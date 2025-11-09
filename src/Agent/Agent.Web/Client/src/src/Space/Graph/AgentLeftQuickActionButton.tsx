@@ -78,6 +78,12 @@ export const AgentLeftQuickActionButton: React.FC<AgentLeftQuickActionButtonProp
                                 onClick={() => triggerAgentQuickAction(agent.name, 'addHandoffSourceExistingAgent')}
                                 content={intl.formatMessage(ExtendedAgentsGraphResources.quickCreateAddExistingSubagent)}
                             />
+                            <MenuItem
+                                className={contextMenuItemWithIcon}
+                                icon={<EntityIcon type="agent" shorthandStyle={iconSizeProp} />}
+                                onClick={() => triggerAgentQuickAction(agent.name, 'createHandoffSourceAgent')}
+                                content={intl.formatMessage(ExtendedAgentsGraphResources.quickCreateCreateNewSubagent)}
+                            />
                         </MenuGroup>
                     </MenuList>
                 ) : (
