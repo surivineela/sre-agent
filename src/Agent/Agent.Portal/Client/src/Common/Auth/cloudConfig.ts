@@ -71,6 +71,7 @@ export const getCloudScopes = () => {
     const endpoints = getCloudEndpoints();
 
     return {
+        api: [`${import.meta.env.VITE_MSAL_CLIENT_ID}/.default`],
         graph: [`${endpoints.graph}/.default`],
         arm: [`${endpoints.arm}/user_impersonation`],
         sreAgent: [`${endpoints.sreAgent}/Threads.ReadWrite.All`],

@@ -7,11 +7,13 @@ import { logTelemetryLogToConsole } from '../Utilities/Telemetry';
 
 /** Non-hook version - recommended to use the hook where possible */
 export const logTelemetryEvent = (event: ILogEvent & { telemetrySource: TelemetrySource }) => {
+    const defaultedLogLevel = event.logLevel ?? LogLevel.Info;
     const sanitizedAction = sanitizeMessageString(event.action);
     const sanitizedData = getSanitizedLogData(event.additionalData ?? {});
 
     TelemetryClient.logEvent({
         name: 'SREA Portal',
+        logLevel: defaultedLogLevel,
         source: event.telemetrySource,
         action: sanitizedAction,
         actionModifier: event.actionModifier,
@@ -19,7 +21,7 @@ export const logTelemetryEvent = (event: ILogEvent & { telemetrySource: Telemetr
         timestamp: new Date().getUTCSeconds(),
     });
 
-    logTelemetryLogToConsole(event.telemetrySource, event.actionModifier, event.logLevel ?? LogLevel.Info, event.action, sanitizedData);
+    logTelemetryLogToConsole(event.telemetrySource, event.actionModifier, defaultedLogLevel, event.action, sanitizedData);
 };
 
 export const useTelemetry = (telemetrySource: TelemetrySource, resourceId: string | undefined) => {

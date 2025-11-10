@@ -5,6 +5,7 @@ export type TelemetryEvent = {
     readonly timestamp: number;
     readonly source: TelemetrySource;
     readonly action: string;
+    readonly logLevel: LogLevel;
     readonly actionModifier?: string;
     /** The elapsed time in milliseconds for the event being recorded (optional) */
     readonly duration?: number;

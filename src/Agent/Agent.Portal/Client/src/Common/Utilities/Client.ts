@@ -12,29 +12,31 @@ import { logTelemetryEvent } from '../Hooks/useTelemetry';
  * Handles caching, automatic refresh, and interactive authentication fallback.
  *
  * @param scopeIdentifier - The API scope identifier ('arm', 'graph', 'sreAgent', 'appInsights')
- * @param telemetrySource - The source of the telemetry event for tracking
+ * @param telemetrySource - The source of the telemetry event for tracking. `null` only for TelemetryClient
  * @param forceRefresh - If true, bypasses cache and requests a new token from the server
  * @returns An object containing the access token and optional expiration date
  * @throws Error if token acquisition fails
  */
 export const acquireAccessToken = async (
     scopeIdentifier: AuthScopeIdentifier,
-    telemetrySource: TelemetrySource,
+    telemetrySource: TelemetrySource | null,
     forceRefresh: boolean = false
 ): Promise<{ accessToken: string; expiresOn?: Date }> => {
     const account = msalInstance.getActiveAccount();
 
     if (!account) {
-        logTelemetryEvent({
-            action: 'acquire-access-token',
-            actionModifier: 'no-active-account',
-            logLevel: LogLevel.Error,
-            telemetrySource,
-            additionalData: {
-                scopeIdentifier,
-                timestamp: new Date().toISOString(),
-            },
-        });
+        if (telemetrySource) {
+            logTelemetryEvent({
+                action: 'acquire-access-token',
+                actionModifier: 'no-active-account',
+                logLevel: LogLevel.Error,
+                telemetrySource,
+                additionalData: {
+                    scopeIdentifier,
+                    timestamp: new Date().toISOString(),
+                },
+            });
+        }
 
         return { accessToken: '' };
     }
@@ -54,18 +56,20 @@ export const acquireAccessToken = async (
         };
     } catch (error) {
         console.error(error);
-        logTelemetryEvent({
-            action: 'acquire-access-token',
-            actionModifier: 'failed',
-            logLevel: LogLevel.Error,
-            telemetrySource,
-            additionalData: {
-                isInteractionRequiredAuthError: error instanceof InteractionRequiredAuthError,
-                scopeIdentifier,
-                error: error instanceof Error ? error.message : String(error),
-                timestamp: new Date().toISOString(),
-            },
-        });
+        if (telemetrySource) {
+            logTelemetryEvent({
+                action: 'acquire-access-token',
+                actionModifier: 'failed',
+                logLevel: LogLevel.Error,
+                telemetrySource,
+                additionalData: {
+                    isInteractionRequiredAuthError: error instanceof InteractionRequiredAuthError,
+                    scopeIdentifier,
+                    error: error instanceof Error ? error.message : String(error),
+                    timestamp: new Date().toISOString(),
+                },
+            });
+        }
 
         return { accessToken: '' };
     }

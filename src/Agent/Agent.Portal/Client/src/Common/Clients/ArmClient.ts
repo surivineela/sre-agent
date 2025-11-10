@@ -235,13 +235,6 @@ export class ArmClient extends Client {
                 responseHeaders[key] = value;
             });
 
-            console.log('makeArmRequest:', {
-                resourceId,
-                method,
-                sessionId: this.sessionId,
-                correlationId: armObj.id,
-            });
-
             return {
                 data,
                 status: response.status,

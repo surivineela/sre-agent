@@ -88,7 +88,7 @@ export const WizardDialog: FC<WizardProps> = props => {
     );
 
     return (
-        <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
+        <Dialog open={isDialogOpen} onOpenChange={handleOpenChange} modalType={isCancelDisabled ? 'alert' : 'modal'}>
             <DialogSurface className={styles.dialogSurface}>
                 <DialogBody className={styles.dialogBodyGrid}>
                     <div className={styles.dialogTitle}>

@@ -9,7 +9,7 @@ import { logTelemetryEvent } from './useTelemetry';
  * Authentication scope identifiers for different Azure services.
  * Used to map token requests to the appropriate backend endpoints.
  */
-export type AuthScopeIdentifier = 'arm' | 'graph' | 'sreAgent' | 'appInsights';
+export type AuthScopeIdentifier = 'api' | 'arm' | 'graph' | 'sreAgent' | 'appInsights';
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // 5 minutes before expiry
 
@@ -28,6 +28,7 @@ export const useAuthTokenManager = ({ telemetrySource, resourceId, postMessage, 
         (tokenString: string, tokenType: AuthScopeIdentifier, expiresOn?: Date) => {
             // Map AuthScopeIdentifier to TokenTypes for Agent.Web compatibility
             const tokenTypeMap: Record<AuthScopeIdentifier, string> = {
+                api: 'api',
                 arm: 'arm',
                 sreAgent: 'sreagent',
                 graph: 'graph',
