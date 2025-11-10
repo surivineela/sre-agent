@@ -19,14 +19,18 @@ parameters:
   default: false
 
 variables:
+- name: isReleaseBranch
+  value: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]
+- name: branchVersion
+  value: $[replace(variables['Build.SourceBranch'], 'refs/heads/release/', '')]
 - name: MAJOR
-  value: $[format('{0:yy}', pipeline.startTime)]
+  value: $[iif(eq(variables['isReleaseBranch'], true), split(variables['branchVersion'], '.')[0], format('{0:yy}', pipeline.startTime))]
 - name: MINOR
-  value: $[format('{0:M}', pipeline.startTime)]
+  value: $[iif(eq(variables['isReleaseBranch'], true), split(variables['branchVersion'], '.')[1], format('{0:M}', pipeline.startTime))]
 - name: BUILD
-  value: $[counter(variables['MINOR'], 0)]
+  value: $[iif(eq(variables['isReleaseBranch'], true), split(variables['branchVersion'], '.')[2], counter(variables['MINOR'], 0))]
 - name: REVISION
-  value: 0
+  value: $[iif(eq(variables['isReleaseBranch'], true), counter(format('{0}.{1}.{2}', variables['MAJOR'], variables['MINOR'], variables['BUILD']), 1), 0)]
 
 - template: /.pipelines/templates/Shared.1ES.Build.CommonVariables.yaml
 
