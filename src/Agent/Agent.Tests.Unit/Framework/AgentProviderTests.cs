@@ -3,9 +3,9 @@
 // ------------------------------------------------------------
 using System.Reflection;
 using Agent.Core.Configuration;
-using Agent.Framework;
-using Agent.Framework.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
+using Agent.Framework;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.AI;
@@ -14,7 +14,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Agent.Core.Services;
 
 namespace Agent.Tests.Unit.Framework;
 
@@ -117,9 +116,9 @@ public class AgentProviderTests
         await factory.InitializeAsync();
         var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
         var agent1 = provider.GetAgent("agent1");
-        Assert.Contains("Replaced system prompt for agent1.", agent1.Instructions);
-        Assert.Contains("Prepended text.", agent1.Instructions);
-        Assert.Contains("Appended text.", agent1.Instructions);
+        Assert.Contains("Replaced system prompt for agent1.", agent1.Instructions.ToString());
+        Assert.Contains("Prepended text.", agent1.Instructions.ToString());
+        Assert.Contains("Appended text.", agent1.Instructions.ToString());
         Assert.NotNull(agent1.HandoffDescription);
         Assert.Equal("New handoff instructions.".Trim(), agent1.HandoffDescription.ToString().Trim());
         Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
@@ -232,7 +231,7 @@ public class AgentProviderTests
         await factory.InitializeAsync();
         var provider = new AgentProvider<AgentContext>(factory, new TestVariantAssignerNotInExperiment(), _mockProviderLogger.Object, "test-instance");
         var agent1 = provider.GetAgent("agent1");
-        Assert.DoesNotContain("Replaced system prompt for agent1.", agent1.Instructions);
+        Assert.DoesNotContain("Replaced system prompt for agent1.", agent1.Instructions.ToString());
         Assert.NotEqual("New handoff instructions.", agent1.HandoffDescription?.ToString());
     }
 
@@ -259,7 +258,7 @@ public class AgentProviderTests
         await factory.InitializeAsync();
         var provider = new AgentProvider<AgentContext>(factory, new TestVariantAssignerAlwaysIn(), _mockProviderLogger.Object, "test-instance");
         var agent1 = provider.GetAgent("agent1");
-        Assert.DoesNotContain("DISABLED_EXPERIMENT_SHOULD_NOT_APPLY", agent1.Instructions);
+        Assert.DoesNotContain("DISABLED_EXPERIMENT_SHOULD_NOT_APPLY", agent1.Instructions.ToString());
     }
 
     private sealed class TestVariantAssignerAlwaysVariant : IVariantAssigner
@@ -289,7 +288,7 @@ public class AgentProviderTests
         await factory.InitializeAsync();
         var provider = new AgentProvider<AgentContext>(factory, assigner, _mockProviderLogger.Object, "test-instance-for-coverage0");
         var agent1 = provider.GetAgent("agent1");
-        Assert.DoesNotContain("COVERAGE_SHOULD_NOT_APPLY", agent1.Instructions);
+        Assert.DoesNotContain("COVERAGE_SHOULD_NOT_APPLY", agent1.Instructions.ToString());
         var variants = provider.GetActiveVariants("thread-x");
         Assert.DoesNotContain("coverage_experiment", variants.Keys);
     }
@@ -333,8 +332,8 @@ public class AgentProviderTests
         var provider = new AgentProvider<AgentContext>(factory, new DeterministicThreadVariantAssigner(), _mockProviderLogger.Object, "global-instance");
         var agentThread1 = provider.GetAgent("agent1", threadId: "thread-1");
         var agentThread2 = provider.GetAgent("agent1", threadId: "thread-2");
-        Assert.Contains("GLOBAL_VARIANT_APPLIED", agentThread1.Instructions);
-        Assert.Contains("GLOBAL_VARIANT_APPLIED", agentThread2.Instructions);
+        Assert.Contains("GLOBAL_VARIANT_APPLIED", agentThread1.Instructions.ToString());
+        Assert.Contains("GLOBAL_VARIANT_APPLIED", agentThread2.Instructions.ToString());
         var variants1 = provider.GetActiveVariants("thread-1");
         var variants2 = provider.GetActiveVariants("thread-2");
         Assert.Equal(variants1["global_experiment"].Name, variants2["global_experiment"].Name);
@@ -359,8 +358,8 @@ public class AgentProviderTests
         var provider = new AgentProvider<AgentContext>(factory, new DeterministicThreadVariantAssigner(), _mockProviderLogger.Object, "per-thread-instance");
         var agentA = provider.GetAgent("agent1", threadId: "threadA");
         var agentB = provider.GetAgent("agent1", threadId: "threadB");
-        Assert.Contains("PER_THREAD_VARIANT_A", agentA.Instructions);
-        Assert.Contains("PER_THREAD_VARIANT_B", agentB.Instructions);
+        Assert.Contains("PER_THREAD_VARIANT_A", agentA.Instructions.ToString());
+        Assert.Contains("PER_THREAD_VARIANT_B", agentB.Instructions.ToString());
         var variantsA = provider.GetActiveVariants("threadA");
         var variantsB = provider.GetActiveVariants("threadB");
         Assert.NotEqual(variantsA["perthread_experiment"].Name, variantsB["perthread_experiment"].Name);
@@ -584,7 +583,7 @@ public class AgentProviderTests
         var agent1 = provider.GetAgent("agent1");
 
         // prompt_experiment and tool_experiment should NOT be applied
-        Assert.DoesNotContain("Replaced system prompt for agent1.", agent1.Instructions);
+        Assert.DoesNotContain("Replaced system prompt for agent1.", agent1.Instructions.ToString());
         Assert.DoesNotContain("ReplaceToolA", agent1.FactoryTools);
 
         // Get active variants - disabled experiments should not appear
@@ -619,7 +618,7 @@ public class AgentProviderTests
         var agent1 = provider.GetAgent("agent1");
 
         // prompt_experiment should NOT be applied (disabled)
-        Assert.DoesNotContain("Replaced system prompt for agent1.", agent1.Instructions);
+        Assert.DoesNotContain("Replaced system prompt for agent1.", agent1.Instructions.ToString());
 
         // tool_experiment SHOULD be applied (not disabled, and forced)
         Assert.Contains("ReplaceToolA", agent1.FactoryTools);
@@ -658,7 +657,7 @@ public class AgentProviderTests
         var agent1 = provider.GetAgent("agent1");
 
         // prompt_experiment should NOT be applied even though it's forced (disabled takes precedence)
-        Assert.DoesNotContain("Replaced system prompt for agent1.", agent1.Instructions);
+        Assert.DoesNotContain("Replaced system prompt for agent1.", agent1.Instructions.ToString());
 
         // Get active variants - disabled experiment should not appear
         var variants = provider.GetActiveVariants("test-thread");
@@ -812,13 +811,13 @@ public class AgentProviderTests
         var agent1 = provider.GetAgent("agent1");
 
         // Verify the system prompt was replaced
-        Assert.Contains("Replaced system prompt for testing common_prompts.", agent1.Instructions);
+        Assert.Contains("Replaced system prompt for testing common_prompts.", agent1.Instructions.ToString());
 
         // Verify the common prompt was added
-        Assert.Contains("This is another test prompt (2).", agent1.Instructions);
+        Assert.Contains("This is another test prompt (2).", agent1.Instructions.ToString());
 
         // Verify original common prompt from base agent is NOT present (apply_standard_modifiers: false)
-        Assert.DoesNotContain("This is a test prompt.", agent1.Instructions);
+        Assert.DoesNotContain("This is a test prompt.", agent1.Instructions.ToString());
 
         // Verify standard modifiers were NOT applied (apply_standard_modifiers: false)
         // This means the base agent's common prompts (like todo_write) should NOT be present
@@ -848,7 +847,7 @@ public class AgentProviderTests
         var agent1 = provider.GetAgent("agent1");
 
         // Verify the system prompt was replaced
-        Assert.Contains("Replaced system prompt without handoff instructions.", agent1.Instructions);
+        Assert.Contains("Replaced system prompt without handoff instructions.", agent1.Instructions.ToString());
 
         // Verify handoff instructions were NOT added (has_handoff_instructions: false)
         // The PromptText.HasHandoffInstructions should be false
@@ -878,14 +877,14 @@ public class AgentProviderTests
         var agent1 = provider.GetAgent("agent1");
 
         // Verify the system prompt was replaced
-        Assert.Contains("Replaced system prompt with standard modifiers.", agent1.Instructions);
+        Assert.Contains("Replaced system prompt with standard modifiers.", agent1.Instructions.ToString());
 
         // Verify standard modifiers WERE applied (apply_standard_modifiers: true by default)
         // This means handoff instructions should be present
         Assert.True(agent1.Instructions.HasHandoffInstructions);
 
         // Base agent's common prompts should be present (prompt1 is in the base agent's common_prompts)
-        Assert.Contains("This is a test prompt.", agent1.Instructions);
+        Assert.Contains("This is a test prompt.", agent1.Instructions.ToString());
 
         Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
     }
@@ -926,7 +925,7 @@ handoffs: []
         var dynamicAgent = provider.GetAgent("dynamic_test_agent");
         Assert.NotNull(dynamicAgent);
         Assert.Equal("dynamic_test_agent", dynamicAgent.Name);
-        Assert.Contains("Test dynamic agent instructions", dynamicAgent.Instructions);
+        Assert.Contains("Test dynamic agent instructions", dynamicAgent.Instructions.ToString());
     }
 
     [Fact]
@@ -974,7 +973,7 @@ handoffs: []
             logger: _mockFactoryLogger.Object,
             toolFactory: toolFactory,
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
-            assembliesToScan: [],
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: null);
         await factory.InitializeAsync();
@@ -1000,7 +999,7 @@ handoffs: []
             var agent = provider.GetAgent($"dynamic_agent_{i}");
             Assert.NotNull(agent);
             Assert.Equal($"dynamic_agent_{i}", agent.Name);
-            Assert.Contains($"Agent {i} instructions", agent.Instructions);
+            Assert.Contains($"Agent {i} instructions", agent.Instructions.ToString());
         }
     }
 

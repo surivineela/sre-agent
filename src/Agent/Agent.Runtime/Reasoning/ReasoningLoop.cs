@@ -60,7 +60,7 @@ public class ReasoningLoop : IDisposable
 
     private readonly Channel<ReasoningLoopMessage> _msgCh;
     private AgentContext _context;
-    private Agent<AgentContext> _defaultStartingAgent;
+    private readonly Agent<AgentContext> _defaultStartingAgent;
     private Agent<AgentContext> _currentAgent;
     private List<ChatMessage>? _chatHistory;
 
@@ -474,38 +474,7 @@ public class ReasoningLoop : IDisposable
                                 return;
                             }
 
-                            StringBuilder sb = new StringBuilder();
-
-                            // Check for user prompt override
-                            if (chatMessage.ConversationModifier.HasValue
-                                && Modifiers.TryGet(chatMessage.ConversationModifier.Value, out var modifier)
-                                && modifier != null
-                                && !string.IsNullOrEmpty(modifier.UserPromptOverride))
-                            {
-                                _logger.LogInternalInformation("[{threadId}]Using UserPromptOverride from modifier {modifierName}",
-                                    _context.ThreadId, modifier.DisplayName);
-                                sb.AppendLine(modifier.UserPromptOverride);
-                            }
-                            else if (!string.IsNullOrEmpty(_currentAgent.UserPromptOverride))
-                            {
-                                _logger.LogInternalInformation("[{threadId}]Using UserPromptOverride from agent {agentName}",
-                                    _context.ThreadId, _currentAgent.Name);
-                                sb.AppendLine(_currentAgent.UserPromptOverride);
-                            }
-                            else
-                            {
-                                // Default behavior
-                                sb.AppendLine("Try your best to answer the user's questions. Keep in mind:");
-                                sb.AppendLine(" - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly");
-                                sb.AppendLine(" - If there's no suitable agent to handoff to, call HandoffBack directly");
-                                //sb.AppendLine(" - **NEVER** tell the user you're going to handoff");
-                                //sb.AppendLine(" - **NEVER** tell the user what you are handing off for or why you are handing off");
-                                //sb.AppendLine(" - **NEVER** mention anything related to handoff in your notifyUserMessage");
-                                sb.AppendLine(" - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue");
-                            }
-
-                            sb.AppendLine(Agent.Framework.Markers.UserQuestionMarker);
-                            sb.AppendLine(chatMessage.Message.Text);
+                            var sb = ConstructUserMessage(chatMessage);
                             var msg = new ChatMessage(chatMessage.Message.Role, sb.ToString());
 
                             _logger.LogInternalInformation("[{threadId}]Processing chat message.", _context.ThreadId);
@@ -704,6 +673,59 @@ public class ReasoningLoop : IDisposable
         }
 
         return false;
+    }
+
+    private string ConstructUserMessage(ReasoningLoopChatMessage chatMessage)
+    {
+        var sb = new StringBuilder();
+
+        var prependedInstructions = false;
+
+        // only add prompts in vanilla mode
+        if (!_currentAgent.EnableVanillaMode)
+        {
+            // Check for user prompt override
+            if (chatMessage.ConversationModifier.HasValue
+                && Modifiers.TryGet(chatMessage.ConversationModifier.Value, out var modifier)
+                && !string.IsNullOrEmpty(modifier?.UserPromptOverride))
+            {
+                _logger.LogInternalInformation("[{threadId}]Using UserPromptOverride from modifier {modifierName}",
+                    _context.ThreadId, modifier.DisplayName);
+                sb.AppendLine(modifier.UserPromptOverride);
+                prependedInstructions = true;
+            }
+            else
+            {
+                // Default behavior
+                sb.AppendLine("Try your best to answer the user's questions. Keep in mind:");
+                sb.AppendLine(" - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly");
+                sb.AppendLine(" - If there's no suitable agent to handoff to, call HandoffBack directly");
+                //sb.AppendLine(" - **NEVER** tell the user you're going to handoff");
+                //sb.AppendLine(" - **NEVER** tell the user what you are handing off for or why you are handing off");
+                //sb.AppendLine(" - **NEVER** mention anything related to handoff in your notifyUserMessage");
+                sb.AppendLine(" - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue");
+                prependedInstructions = true;
+            }
+        }
+        else if (!string.IsNullOrEmpty(_currentAgent.UserPromptOverride))
+        {
+            _logger.LogInternalInformation("[{threadId}]Using UserPromptOverride from agent {agentName}",
+                _context.ThreadId, _currentAgent.Name);
+            sb.AppendLine(_currentAgent.UserPromptOverride);
+            prependedInstructions = true;
+        }
+
+        if (prependedInstructions)
+        {
+            // if we added other user instructions, then we wanna mark where the user query goes
+            sb.AppendLine(Markers.UserQuestionMarker);
+            sb.AppendLine(chatMessage.Message.Text);
+            return sb.ToString();
+        }
+        else
+        {
+            return chatMessage.Message.Text;
+        }
     }
 
     private async Task ChangeAgentContextStateAsync(ContextStateEnum newState)

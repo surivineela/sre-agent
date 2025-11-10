@@ -37,24 +37,6 @@ namespace Agent.Tests.Unit.Framework
         }
 
         [Fact]
-        public void ImplicitOperator_String_ReturnsPromptTextString()
-        {
-            PromptText prompt = new PromptText("abc");
-            string result = prompt;
-
-            Assert.Contains("abc", result);
-        }
-
-        [Fact]
-        public void ImplicitOperator_String_NullPromptText_ReturnsEmptyString()
-        {
-            PromptText? prompt = null;
-            string result = prompt;
-
-            Assert.Equal(string.Empty, result);
-        }
-
-        [Fact]
         public void ImplicitOperator_PromptText_ReturnsPromptTextInstance()
         {
             string value = "test";

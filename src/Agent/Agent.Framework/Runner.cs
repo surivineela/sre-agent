@@ -616,12 +616,13 @@ public static class Runner
         modelInput.AddRange(ParseCompactedInput(originalInput, generatedMessages));
 
         // Process handoff prompt override if current agent has UserPromptOverride
+        // ToDo: Check if this is still needed..
         if (!string.IsNullOrEmpty(agent.UserPromptOverride))
         {
             modelInput = ProcessHandoffPromptOverride(modelInput, agent);
         }
 
-        // Add plan reminder if required
+        // add plan reminder as required
         AddPlanReminderIfNeeded(modelInput, tools);
 
         // tool invocations like metrics query depend on current time
@@ -1294,8 +1295,8 @@ public static class Runner
     """;
 
     private static void AddPlanReminderIfNeeded(
-    List<ChatMessage> modelInput,
-    IReadOnlyList<AIFunction> tools)
+        List<ChatMessage> modelInput,
+        IReadOnlyList<AIFunction> tools)
     {
         var needsPlan = tools
             .Any(t => string.Equals(ToDoWriteTool.ToolName, t.Name, StringComparison.OrdinalIgnoreCase));

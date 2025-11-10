@@ -239,9 +239,30 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             NextAgentMappings = agentDescriptor.NextAgentMappings?.ToList() ?? []
         };
 
+        agent.ApplyVanillaMode(agentDescriptor.EnableVanillaMode);
+
         if (!agent.FactoryTools.Contains(ToDoWriteTool.ToolName))
         {
             agent.FactoryTools.Add(ToDoWriteTool.ToolName);
+        }
+
+        // Add common tools to the agent
+        if (agentDescriptor.CommonTools is not null
+            && agentDescriptor.CommonTools.Count > 0)
+        {
+            foreach (var commonToolName in agentDescriptor.CommonTools)
+            {
+                if (!_commonToolsDescriptors.TryGetValue(commonToolName, out var commonTools))
+                {
+                    _logger.LogInternalWarning("Agent descriptor {descriptorName} has a common tool {commonToolName} that does not exist.",
+                        agentDescriptor.Name, commonToolName);
+
+                    throw new Exception($"Agent descriptor {agentDescriptor.Name} has a common tool {commonToolName} that does not exist.");
+                }
+
+                // Add all tools from the common tool definition to the agent's tools list
+                agent.FactoryTools.AddRange(commonTools);
+            }
         }
 
         if (!string.IsNullOrEmpty(agentDescriptor.CriticPromptPath))
@@ -260,24 +281,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
 
         ConfigureAgentInstructions(agent, agentDescriptor);
-
-        // Add common tools to the agent
-        if (agentDescriptor.CommonTools != null && agentDescriptor.CommonTools.Count > 0)
-        {
-            foreach (var commonToolName in agentDescriptor.CommonTools)
-            {
-                if (!_commonToolsDescriptors.TryGetValue(commonToolName, out var commonTools))
-                {
-                    _logger.LogInternalWarning("Agent descriptor {descriptorName} has a common tool {commonToolName} that does not exist.",
-                        agentDescriptor.Name, commonToolName);
-
-                    throw new Exception($"Agent descriptor {agentDescriptor.Name} has a common tool {commonToolName} that does not exist.");
-                }
-
-                // Add all tools from the common tool definition to the agent's tools list
-                agent.FactoryTools.AddRange(commonTools);
-            }
-        }
 
         if (_agents.ContainsKey(agentDescriptor.Name) && !isCustomAgent && !overwrite)
         {
@@ -298,29 +301,41 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
     private void ConfigureAgentInstructions(Agent<TContext> agent, IAgentDescriptor agentDescriptor)
     {
-        // Resolve inline template placeholders {{template_name}} in the system prompt
         var originalInstructions = agent.Instructions.GetOriginalText();
 
+        // Resolve inline template placeholders {{template_name}} in the system prompt
         var resolvedInstructions = _templateResolver?.ResolveTemplates(
             originalInstructions,
             contextDescription: "agent instructions",
-            agentName: agent.Name) ?? originalInstructions;
+            agentName: agent.Name)
+            ?? originalInstructions;
 
         // Update the Instructions with the resolved text
         agent.Instructions = new PromptText(resolvedInstructions);
 
-        agent.Instructions.WithHandoffInstructions();
-
-        if (_promptStarters is not null)
+        // skip the handoff instructions and preamble for vanilla agent
+        if (!agent.EnableVanillaMode)
         {
-            foreach (var promptStarter in _promptStarters)
+            agent.Instructions.WithHandoffInstructions();
+
+            if (_promptStarters is not null)
             {
-                agent.Instructions.AddPromptStarter(promptStarter);
+                foreach (var promptStarter in _promptStarters)
+                {
+                    agent.Instructions.AddPromptStarter(promptStarter);
+                }
             }
+
+            // Automatically configure agent for different modes
+            _modeConfigurator.ConfigureAgent(agent, agentDescriptor, _promptDescriptors);
         }
 
-        // Automatically configure agent for different modes
-        _modeConfigurator.ConfigureAgent(agent, agentDescriptor, _promptDescriptors);
+        // add todo common prompt to agent if todo tool is added
+        if (agent.FactoryTools.Contains(ToDoWriteTool.ToolName)
+            && !agentDescriptor.CommonPrompts.Contains(ToDoWriteTool.CommonPromptName))
+        {
+            agentDescriptor.CommonPrompts.Add(ToDoWriteTool.CommonPromptName);
+        }
 
         foreach (var commonPromptName in agentDescriptor.CommonPrompts)
         {
@@ -335,16 +350,14 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             agent.Instructions.AddCommonPrompt(commonPrompt.Prompt);
         }
 
-        if (!agentDescriptor.CommonPrompts.Contains("todo_write"))
+        if (!agent.EnableVanillaMode)
         {
-            agentDescriptor.CommonPrompts.Add("todo_write");
-        }
-
-        if (_promptEnders is not null)
-        {
-            foreach (var promptEnder in _promptEnders)
+            if (_promptEnders is not null)
             {
-                agent.Instructions.AddPromptEnder(promptEnder);
+                foreach (var promptEnder in _promptEnders)
+                {
+                    agent.Instructions.AddPromptEnder(promptEnder);
+                }
             }
         }
     }
@@ -945,7 +958,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         try
         {
             var agent = AddAgentDescriptor(agentDescriptor, isCustomAgent);
-            if (isCustomAgent && agentDescriptor.Name != "meta_agent")
+            if (isCustomAgent
+                && agentDescriptor.Name != "meta_agent")
             {
                 AddAgentToMetaAgentHandoffs(agent.Name);
             }
@@ -1002,23 +1016,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         {
             foreach (var po in overlay.PromptOverlay)
             {
-                if (OverlayAppliesToAllAgents(po.AgentNames))
-                {
-                    foreach (var agent in agentGraph.Values)
-                    {
-                        ApplyPromptOverlay(agent, po);
-                    }
-                }
-                else
-                {
-                    foreach (var agentName in po.AgentNames)
-                    {
-                        if (agentGraph.TryGetValue(agentName, out var agent))
-                        {
-                            ApplyPromptOverlay(agent, po);
-                        }
-                    }
-                }
+                ApplyExperimentAspect(agentGraph, po, po.AgentNames, ApplyPromptOverlay);
             }
         }
 
@@ -1026,23 +1024,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         {
             foreach (var to in overlay.ToolOverlay)
             {
-                if (OverlayAppliesToAllAgents(to.AgentNames))
-                {
-                    foreach (var agent in agentGraph.Values)
-                    {
-                        ApplyToolOverlay(agent, to);
-                    }
-                }
-                else
-                {
-                    foreach (var agentName in to.AgentNames)
-                    {
-                        if (agentGraph.TryGetValue(agentName, out var agent))
-                        {
-                            ApplyToolOverlay(agent, to);
-                        }
-                    }
-                }
+                ApplyExperimentAspect(agentGraph, to, to.AgentNames, ApplyToolOverlay);
             }
         }
 
@@ -1050,23 +1032,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         {
             foreach (var ho in overlay.HandoffOverlay)
             {
-                if (OverlayAppliesToAllAgents(ho.AgentNames))
-                {
-                    foreach (var agent in agentGraph.Values)
-                    {
-                        ApplyHandoffOverlay(agent, ho, agentGraph);
-                    }
-                }
-                else
-                {
-                    foreach (var agentName in ho.AgentNames)
-                    {
-                        if (agentGraph.TryGetValue(agentName, out var agent))
-                        {
-                            ApplyHandoffOverlay(agent, ho, agentGraph);
-                        }
-                    }
-                }
+                ApplyExperimentAspect(agentGraph, ho, ho.AgentNames, ApplyHandoffOverlay);
             }
         }
 
@@ -1074,22 +1040,56 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         {
             foreach (var pa in overlay.ParamOverlay)
             {
-                if (OverlayAppliesToAllAgents(pa.AgentNames))
+                ApplyExperimentAspect(agentGraph, pa, pa.AgentNames, ApplyParamOverlay);
+            }
+        }
+    }
+
+    private void ApplyExperimentAspect<T>(
+        Dictionary<string, Agent<TContext>> agentGraph,
+        T aspect,
+        IEnumerable<string> applicableAgents,
+        Action<Agent<TContext>, T> applicator)
+    {
+        if (OverlayAppliesToAllAgents(applicableAgents))
+        {
+            foreach (var agent in agentGraph.Values)
+            {
+                applicator(agent, aspect);
+            }
+        }
+        else
+        {
+            foreach (var agentName in applicableAgents)
+            {
+                if (agentGraph.TryGetValue(agentName, out var agent))
                 {
-                    foreach (var agent in agentGraph.Values)
-                    {
-                        ApplyParamOverlay(agent, pa);
-                    }
+                    applicator(agent, aspect);
                 }
-                else
+            }
+        }
+    }
+
+    private void ApplyExperimentAspect<T>(
+        Dictionary<string, Agent<TContext>> agentGraph,
+        T aspect,
+        IEnumerable<string> applicableAgents,
+        Action<Agent<TContext>, T, Dictionary<string, Agent<TContext>>?> applicator)
+    {
+        if (OverlayAppliesToAllAgents(applicableAgents))
+        {
+            foreach (var agent in agentGraph.Values)
+            {
+                applicator(agent, aspect, agentGraph);
+            }
+        }
+        else
+        {
+            foreach (var agentName in applicableAgents)
+            {
+                if (agentGraph.TryGetValue(agentName, out var agent))
                 {
-                    foreach (var agentName in pa.AgentNames)
-                    {
-                        if (agentGraph.TryGetValue(agentName, out var agent))
-                        {
-                            ApplyParamOverlay(agent, pa);
-                        }
-                    }
+                    applicator(agent, aspect, agentGraph);
                 }
             }
         }
@@ -1163,7 +1163,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                     continue;
                 }
 
-                if (_agentDescriptors[agent.Name].CommonPrompts.Contains(commonPromptName) && overlay.ApplyStandardModifiers)
+                if (_agentDescriptors[agent.Name].CommonPrompts.Contains(commonPromptName)
+                    && overlay.ApplyStandardModifiers)
                 {
                     // already added in base instructions
                     continue;

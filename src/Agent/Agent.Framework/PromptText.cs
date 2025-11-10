@@ -82,16 +82,6 @@ public class PromptText
         return _text;
     }
 
-    public static implicit operator string(PromptText? promptText)
-    {
-        if (promptText is null)
-        {
-            return string.Empty;
-        }
-
-        return promptText.ToString();
-    }
-
     [return: NotNullIfNotNull(nameof(value))]
     public static implicit operator PromptText?(string? value)
     {
@@ -104,8 +94,6 @@ public class PromptText
     }
 
     public bool HasHandoffInstructions { get; private set; } = false;
-
-    public bool HasFormattingGuidelines { get; private set; } = false;
 
     public PromptText WithHandoffInstructions()
     {

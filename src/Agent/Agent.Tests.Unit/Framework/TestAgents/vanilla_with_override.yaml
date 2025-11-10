@@ -1,0 +1,9 @@
+name: vanilla_with_override_agent
+vanilla_mode: true
+user_prompt_override: |
+  Custom user instructions here.
+  This should be preserved.
+system_prompt: |
+  You are a vanilla agent with user prompt override.
+tools:
+  - TestAutoTool

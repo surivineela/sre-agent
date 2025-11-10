@@ -98,7 +98,7 @@ public class SessionPoolService : ISessionPoolService
         {
             ShellScripts = command,
             AccessTokens = tokens,
-            TimeoutInSeconds = 900 // 15 minutes
+            TimeoutInSeconds = (int)Constants.AzCliDefaultTimeout.TotalSeconds // 15 minutes
         };
 
         var resp = await ExecuteShellCommandAsync<AzCliExecutionRequest, ShellExecuteResponse>(req, identifier);

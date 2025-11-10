@@ -11,7 +11,6 @@ using Agent.Runtime.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Microsoft.Extensions.Logging;
 
 namespace Agent.Web.Services;
 
@@ -40,8 +39,6 @@ public static class PluginConfigApplier
 
 public class ResourceDeploymentService : IResourceDeploymentService
 {
-    private readonly IYamlValidatorFactory _validatorFactory;
-    private readonly IAgentYamlTranslatorFactory _translatorFactory;
     private readonly IExtendedAgentRepository _repository;
     private readonly IExtendedAgentService _extendedAgentService;
     private readonly IPluginSettingsTypeRegistry _pluginSettingsTypeRegistry;
@@ -50,8 +47,6 @@ public class ResourceDeploymentService : IResourceDeploymentService
     private readonly ILogger<ResourceDeploymentService> _logger;
 
     public ResourceDeploymentService(
-        IYamlValidatorFactory validatorFactory,
-        IAgentYamlTranslatorFactory translatorFactory,
         IExtendedAgentRepository repository,
         IExtendedAgentService extendedAgentService,
         IReloadableSettingsStore settingsStore,
@@ -59,8 +54,6 @@ public class ResourceDeploymentService : IResourceDeploymentService
         IServiceProvider serviceProvider,
         ILogger<ResourceDeploymentService> logger)
     {
-        _validatorFactory = validatorFactory;
-        _translatorFactory = translatorFactory;
         _repository = repository;
         _extendedAgentService = extendedAgentService;
         _pluginSettingsTypeRegistry = pluginSettingsTypeRegistry;
@@ -138,6 +131,9 @@ public class ResourceDeploymentService : IResourceDeploymentService
                 UserPromptOverride = agentSpec.UserPromptOverride,
                 InstructionsOverride = agentSpec.InstructionsOverride,
                 Temperature = agentSpec.Temperature,
+                LlmModelName = agentSpec.LlmModelName,
+                EnableVanillaMode = agentSpec.EnableVanillaMode,
+
                 // Workflow agent properties
                 AgentType = agentSpec.AgentType,
                 ParameterExtractionAgent = agentSpec.ParameterExtractionAgent,

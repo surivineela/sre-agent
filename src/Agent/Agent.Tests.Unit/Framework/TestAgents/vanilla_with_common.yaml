@@ -1,0 +1,8 @@
+name: vanilla_with_common_agent
+vanilla_mode: true
+system_prompt: |
+  You are a vanilla agent.
+common_prompts:
+  - prompt1
+tools:
+  - TestAutoTool

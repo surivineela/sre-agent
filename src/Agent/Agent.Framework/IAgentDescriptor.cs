@@ -29,6 +29,7 @@ public interface IAgentDescriptor
     public bool DisableDocumentRetrieval { get; set; }
     public bool EnableHandoffPromptOverride { get; set; }
     public bool DisableCommonPrompts { get; set; }
+    public bool EnableVanillaMode { get; set; }
 
     // === Workflow Agent Support ===
     public AgentType AgentType { get; set; }

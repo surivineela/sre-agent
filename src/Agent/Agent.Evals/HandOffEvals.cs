@@ -43,7 +43,7 @@ public class HandOffEvals
         }
 
         List<ChatMessage> modelInput = [
-            new ChatMessage(ChatRole.System, startAgent.Instructions),
+            new ChatMessage(ChatRole.System, startAgent.Instructions.ToString()),
             .. handOffTest.ChatHistory,
         ];
 

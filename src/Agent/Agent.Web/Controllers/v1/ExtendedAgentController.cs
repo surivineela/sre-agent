@@ -16,7 +16,6 @@ using Agent.Plugins.Kusto;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
-using Agent.Runtime.Services;
 using Agent.Web.Authorization;
 using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Request;
@@ -40,17 +39,15 @@ public class ExtendedAgentController : ControllerBase
     private readonly IConnectorResolver _connectorResolver;
     private readonly IAuthenticationService _authenticationService;
     private readonly IChatClientProvider _chatClientProvider;
-    private readonly IInstructionGenerationService _instructionGenerationService;
     private readonly IToolFactory<AgentContext> _toolFactory;
 
     public ExtendedAgentController(
-         IExtendedAgentService extendedAgentService,
+        IExtendedAgentService extendedAgentService,
         ILogger<ExtendedAgentController> logger,
         IResourceDeploymentService agentService,
         IConnectorResolver connectorResolver,
         IAuthenticationService authenticationService,
         IChatClientProvider chatClientProvider,
-        IInstructionGenerationService instructionGenerationService,
         IToolFactory<AgentContext> toolFactory
        )
     {
@@ -60,7 +57,6 @@ public class ExtendedAgentController : ControllerBase
         _connectorResolver = connectorResolver;
         _authenticationService = authenticationService;
         _chatClientProvider = chatClientProvider;
-        _instructionGenerationService = instructionGenerationService;
         _toolFactory = toolFactory;
     }
 
@@ -290,10 +286,10 @@ public class ExtendedAgentController : ControllerBase
     /// <returns>List of agents with pagination</returns>
     [HttpGet("agents")]
     [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
-    [ProducesResponseType(typeof(ExtendedAgentsListResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PaginatedResponse<YamlAgentDescriptor>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<ExtendedAgentsListResponse>> ListAgents(
+    public async Task<ActionResult<PaginatedResponse<YamlAgentDescriptor>>> ListAgents(
         [FromQuery][Range(1, 200)] int limit = 50,
         [FromQuery][Range(1, int.MaxValue)] int page = 1,
         [FromQuery] string? search = null)

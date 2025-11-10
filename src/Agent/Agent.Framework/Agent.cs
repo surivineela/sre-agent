@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Diagnostics.CodeAnalysis;
+using Agent.Framework.Models;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
@@ -73,14 +74,14 @@ public class Agent<TContext>(string name) where TContext : class
 
     public string ReasoningEffortLevel { get; set; } = "low";
 
-    public bool AlwaysAddPlanReminder { get; set; } = false;
+    public bool EnableVanillaMode { get; private set; } = false;
 
     // === Workflow Agent Properties ===
 
     /// <summary>
     /// Specifies the execution type of this agent.
     /// </summary>
-    public Models.AgentType AgentType { get; set; } = Models.AgentType.Autonomous;
+    public AgentType AgentType { get; set; } = AgentType.Autonomous;
 
     /// <summary>
     /// Name of the agent responsible for extracting parameters from conversation history,
@@ -104,13 +105,24 @@ public class Agent<TContext>(string name) where TContext : class
     /// Mappings that define which agents to execute next based on execution results.
     /// Used by Activity agents to dynamically select subsequent agents in the workflow.
     /// </summary>
-    public List<Models.NextAgentMapping> NextAgentMappings { get; set; } = [];
+    public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
 
     public IChatClient? ChatClient { get; set; } = default;
 
     public virtual IChatClient GetChatClient(RunConfig config)
     {
         return ChatClient ?? config.ChatClient;
+    }
+
+    public void ApplyVanillaMode(bool vanillaMode)
+    {
+        EnableVanillaMode = vanillaMode;
+        if (EnableVanillaMode)
+        {
+            OutputType = typeof(string);
+            CriticOnHandOff = false;
+            MaxReflectionCount = 0;
+        }
     }
 
     /// <summary>
@@ -136,7 +148,6 @@ public class Agent<TContext>(string name) where TContext : class
             ChatToolMode = ChatToolMode,
             Temperature = Temperature,
             ReasoningEffortLevel = ReasoningEffortLevel,
-            AlwaysAddPlanReminder = AlwaysAddPlanReminder,
 
             // Clone collections
             FactoryTools = new List<string>(FactoryTools),
@@ -150,7 +161,7 @@ public class Agent<TContext>(string name) where TContext : class
             ParameterExtractionAgent = ParameterExtractionAgent,
             OrchestrationStartAgents = new List<string>(OrchestrationStartAgents),
             ResultSummarizationPrompt = ResultSummarizationPrompt,
-            NextAgentMappings = new List<Models.NextAgentMapping>(NextAgentMappings),
+            NextAgentMappings = new List<NextAgentMapping>(NextAgentMappings),
 
             OutputType = OutputType,
             ChatClient = ChatClient,

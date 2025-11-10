@@ -34,7 +34,6 @@ public class Constants
 
     public const string DefaultAgentName = "sre_agent";
 
-
     public const string FunctionInvocationChatClient = "function-invocation-enabled";
 
     public const string SREAgentPromptStarter =
@@ -256,5 +255,7 @@ public class Constants
         public const string GenericInternalError =
             "I am unable to fully address your request due to an internal error. Please retry to continue the conversation!";
     }
+
+    public static readonly TimeSpan AzCliDefaultTimeout = TimeSpan.FromMinutes(15);
 }
 

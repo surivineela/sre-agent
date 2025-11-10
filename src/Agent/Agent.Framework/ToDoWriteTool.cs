@@ -55,6 +55,8 @@ public class ToDoWriteTool : AIToolFunction<ToDoWriteTool>
 
     public const string ToolName = nameof(ToDoWrite);
 
+    public const string CommonPromptName = "todo_write";
+
     public const string ToolDescription =
     """
     Use this tool to create and manage a structured task list for your current SRE operations session. This helps you track progress, organize complex infrastructure tasks, and demonstrate thoroughness to the user.

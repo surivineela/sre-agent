@@ -1,5 +1,4 @@
 using Agent.Core.Configuration;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -63,7 +62,12 @@ public class AzCliExecution
                 }
 
                 var (exe, args) = GetExecuableAndArgs([_command]);
-                var pCmd = new ExternalProcessCommand(_logger, exe, [args], envs: envs);
+                var pCmd = new ExternalProcessCommand(
+                    logger: _logger,
+                    exe: exe,
+                    arguments: [args],
+                    timeout: Constants.AzCliDefaultTimeout,
+                    envs: envs);
                 (exitCode, stdout, stderr) = await pCmd.ExecuteAsync(cancellationToken);
             }
 

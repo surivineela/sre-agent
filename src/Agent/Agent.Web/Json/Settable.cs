@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace Agent.Web.Json;
 
 [JsonConverter(typeof(SettableJsonConverter))]
-public struct Settable<T>
+public readonly struct Settable<T>
 {
     public Settable()
     {
@@ -25,7 +25,7 @@ public struct Settable<T>
 
     public T? Value { get; }
 
-    public void ApplyTo(Action<T?> apply)
+    public readonly void ApplyTo(Action<T?> apply)
     {
         if (IsSet)
         {
@@ -33,9 +33,9 @@ public struct Settable<T>
         }
     }
 
-    public static implicit operator Settable<T>(T? value) => new Settable<T>(value);
+    public static implicit operator Settable<T>(T? value) => new(value);
 
     public static implicit operator T?(Settable<T> value) => value.Value;
 
-    public override string? ToString() => Value != null ? Value.ToString() : string.Empty;
+    public override readonly string? ToString() => Value != null ? Value.ToString() : string.Empty;
 }

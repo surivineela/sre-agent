@@ -268,8 +268,7 @@ public static class IncidentInvestigationAgents
                 FactoryTools = ["ToDoWrite", .. toolNames],
                 //FactoryTools = toolNames,
                 OutputType = typeof(InitialInvestigationResult),
-                ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort,
-                AlwaysAddPlanReminder = true
+                ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
             };
         }
 
@@ -521,8 +520,7 @@ public static class IncidentInvestigationAgents
             """,
             FactoryTools = allTools,
             OutputType = typeof(HypothesisValidationResultV2),
-            ReasoningEffortLevel = ChatOptionsExtensions.LowReasoningEffort,
-            AlwaysAddPlanReminder = true
+            ReasoningEffortLevel = ChatOptionsExtensions.LowReasoningEffort
         };
     }
 

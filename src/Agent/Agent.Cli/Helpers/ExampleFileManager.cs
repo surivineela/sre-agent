@@ -87,7 +87,7 @@ spec:
   disable_document_retrieval: false
   enable_handoff_prompt_override: false
   temperature:
-  disable_common_prompts: false
+  vanilla_mode: false
   agent_type: Autonomous
   meta_data: {}
 ";

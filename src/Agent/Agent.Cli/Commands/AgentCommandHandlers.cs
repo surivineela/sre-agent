@@ -37,6 +37,7 @@ public static class AgentCommandHandlers
         var commonPrompts = parseResult.GetValue(AgentCommandOptions.CommonPromptsOption);
         var temperature = parseResult.GetValue(AgentCommandOptions.TemperatureOption);
         var outputType = parseResult.GetValue(AgentCommandOptions.OutputTypeOption);
+        var vanillaMode = parseResult.GetValue(AgentCommandOptions.VanillaModeOption);
         var useSmart = parseResult.GetValue(AgentCommandOptions.SmartOption);
 
         DebugLogger.Debug("Parameters", $"Name: {name}, Smart: {useSmart}, Tools: {tools?.Length ?? 0} items");
@@ -120,7 +121,8 @@ public static class AgentCommandHandlers
             CustomReflectionNote = customReflectionNote ?? string.Empty,
             CommonPrompts = commonPrompts?.ToList() ?? [],
             Temperature = temperature,
-            OutputType = outputType
+            OutputType = outputType,
+            EnableVanillaMode = vanillaMode,
         };
 
         // Validate tool existence before creating the agent

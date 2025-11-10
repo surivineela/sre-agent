@@ -1,8 +1,7 @@
 using Agent.Data.DataModels;
 using Agent.Framework.Models;
-using Agent.Web.Json;
 using Agent.Web.ApiResources;
-using Octokit.Internal;
+using Agent.Web.Json;
 
 namespace Agent.Web.Views.v2;
 
@@ -48,6 +47,8 @@ public class ExtendedAgentView
 
     public Settable<string> LlmModelName { get; set; }
 
+    public Settable<bool?> EnableVanillaMode { get; set; }
+
 
     public static ApiResponseEnvelope<ExtendedAgentView> CreateApiResponseEnvelope(AgentDocumentModel agentDoc)
     {
@@ -82,6 +83,7 @@ public class ExtendedAgentView
         agentView.CommonTools = agent.CommonTools;
         agentView.Temperature = agent.Temperature;
         agentView.LlmModelName = agent.LlmModelName;
+        agentView.EnableVanillaMode = agent.EnableVanillaMode;
 
         ApiResponseEnvelope<ExtendedAgentView> apiResponse = new()
         {
@@ -94,7 +96,10 @@ public class ExtendedAgentView
         return apiResponse;
     }
 
-    public static AgentDocumentModel CreateModel(ApiRequestEnvelope<ExtendedAgentView> envelope, ResourceMetadata? metadata = null, AgentDocumentModel? baseModel = null)
+    public static AgentDocumentModel CreateModel(
+        ApiRequestEnvelope<ExtendedAgentView> envelope,
+        ResourceMetadata? metadata = null,
+        AgentDocumentModel? baseModel = null)
     {
         var result = baseModel ?? new AgentDocumentModel(
             new ResourceMetadata
@@ -160,6 +165,7 @@ public class ExtendedAgentView
             properties.CommonTools.ApplyTo(value => result.Spec.CommonTools = value);
             properties.Temperature.ApplyTo(value => result.Spec.Temperature = value);
             properties.LlmModelName.ApplyTo(value => result.Spec.LlmModelName = value);
+            properties.EnableVanillaMode.ApplyTo(value => result.Spec.EnableVanillaMode = value ?? false);
         });
 
         return result;

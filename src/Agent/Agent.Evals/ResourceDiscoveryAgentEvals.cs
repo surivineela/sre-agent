@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.AI;
@@ -39,7 +38,7 @@ public class ResourceDiscoveryAgentEvals
         var expectedFunctionCall = output.Contents.OfType<FunctionCallContent>().SingleOrDefault();
 
         List<ChatMessage> modelInput = [
-            new ChatMessage(ChatRole.System, startAgent.Instructions),
+            new ChatMessage(ChatRole.System, startAgent.Instructions.ToString()),
             .. testData.ModelInput[1..],
         ];
 

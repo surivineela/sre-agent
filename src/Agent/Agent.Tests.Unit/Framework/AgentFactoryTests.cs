@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -125,7 +127,7 @@ public class AgentFactoryTests
         var agent1 = agentFactory.GetAgent("TestAgent1");
         Assert.NotNull(agent1);
         Assert.Equal("TestAgent1", agent1.Name);
-        Assert.Contains(TestCommonPrompt.PromptText, agent1.Instructions);
+        Assert.Contains(TestCommonPrompt.PromptText, agent1.Instructions.ToString());
 
         var agent2 = agentFactory.GetAgent("TestAgent2");
         Assert.NotNull(agent2);
@@ -166,13 +168,146 @@ public class AgentFactoryTests
             .WithNamingConvention(UnderscoredNamingConvention.Instance)
             .Build();
         var prompt1 = deserializer.Deserialize<YamlPromptDescriptor>(prompt1Content);
-        Assert.Contains(prompt1.Prompt, agent1.Instructions);
+        Assert.Contains(prompt1.Prompt, agent1.Instructions.ToString());
 
         Assert.Contains(agent2.Name, agent1.Handoffs.Select(h => h.AgentName));
 
         // Test that common tools are loaded
         Assert.Contains("TestTool1", agent1.FactoryTools);
         Assert.Contains("TestTool2", agent1.FactoryTools);
+    }
+
+    [Fact]
+    public async Task VanillaMode_Agent_SkipsFrameworkInstructions()
+    {
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
+            defaultOutputType: typeof(DefaultAgentOutput)
+        );
+
+        await agentFactory.InitializeAsync();
+
+        var agent = agentFactory.GetAgent("vanilla_test_agent");
+        Assert.NotNull(agent);
+        Assert.True(agent.EnableVanillaMode);
+        Assert.Equal(typeof(string), agent.OutputType);
+        Assert.False(agent.CriticOnHandOff);
+        Assert.Equal(0, agent.MaxReflectionCount);
+        Assert.Contains(ToDoWriteTool.ToolName, agent.FactoryTools);
+
+        var instructions = agent.Instructions.ToString();
+        Assert.Contains("You are a vanilla agent with minimal instructions.", instructions);
+        Assert.DoesNotContain("# Handoff System Context", instructions);
+        Assert.DoesNotContain(TestCommonPrompt.PromptText, instructions);
+        // todo prompt automatically added
+        Assert.Contains(ToDoWriteTool.ToolName, instructions);
+    }
+
+    [Fact]
+    public async Task VanillaMode_Disabled_IncludesFrameworkInstructions()
+    {
+        const string ModeMarker = "MODE_CONFIG_MARKER";
+
+        _mockAgentModeConfigurator
+            .Setup(c => c.ConfigureAgent(
+                It.IsAny<Agent<AgentContext>>(),
+                It.IsAny<IAgentDescriptor>(),
+                It.IsAny<IReadOnlyDictionary<string, IPromptDescriptor>>()))
+            .Callback<Agent<AgentContext>, IAgentDescriptor, IReadOnlyDictionary<string, IPromptDescriptor>>(
+                (agent, descriptor, prompts) => agent.Instructions.AddCommonPrompt(ModeMarker));
+
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools")
+        );
+
+        await agentFactory.InitializeAsync();
+
+        var agent = agentFactory.GetAgent("agent1");
+        Assert.NotNull(agent);
+        Assert.False(agent.EnableVanillaMode);
+
+        var instructions = agent.Instructions.ToString();
+        const string Prompt1Text = "This is a test prompt.";
+        Assert.Contains("# Handoff System Context", instructions);
+        Assert.Contains(Prompt1Text, instructions);
+        Assert.Contains(ModeMarker, instructions);
+    }
+
+    [Fact]
+    public async Task VanillaMode_WithUserPromptOverride_PreservesOverride()
+    {
+        _mockAgentModeConfigurator.Invocations.Clear();
+
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools")
+        );
+
+        await agentFactory.InitializeAsync();
+
+        var agent = agentFactory.GetAgent("vanilla_with_override_agent");
+        Assert.NotNull(agent);
+        Assert.True(agent.EnableVanillaMode);
+        Assert.Equal(typeof(string), agent.OutputType);
+        Assert.False(agent.CriticOnHandOff);
+        Assert.Equal(0, agent.MaxReflectionCount);
+        Assert.Equal("vanilla_with_override_agent", agent.Name);
+        Assert.Equal("Custom user instructions here.\nThis should be preserved.\n", agent.UserPromptOverride);
+
+        var instructions = agent.Instructions.ToString();
+        Assert.DoesNotContain("# Handoff System Context", instructions);
+
+        var reasoningLoop = (ReasoningLoop)RuntimeHelpers.GetUninitializedObject(typeof(ReasoningLoop));
+
+        typeof(ReasoningLoop)
+            .GetField("_logger", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.SetValue(reasoningLoop, NullLogger<ReasoningLoop>.Instance);
+
+        typeof(ReasoningLoop)
+            .GetField("_context", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.SetValue(reasoningLoop, new AgentContext(Guid.NewGuid(), Guid.NewGuid(), AgentTypeEnum.Meta, ContextStateEnum.Processing, null, null));
+
+        typeof(ReasoningLoop)
+            .GetField("_currentAgent", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.SetValue(reasoningLoop, agent);
+
+        var constructUserMessage = typeof(ReasoningLoop)
+            .GetMethod("ConstructUserMessage", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?? throw new InvalidOperationException("Could not access ConstructUserMessage");
+
+        var chatMessage = new ReasoningLoopChatMessage(new ChatMessage(ChatRole.User, "Help me debug this issue"));
+        var userMessage = (string)constructUserMessage.Invoke(reasoningLoop, new object[] { chatMessage })!;
+
+        Assert.Contains("Custom user instructions here.", userMessage);
+        Assert.Contains(Markers.UserQuestionMarker, userMessage);
+        Assert.Contains("Help me debug this issue", userMessage);
+        Assert.DoesNotContain("Try your best to answer the user's questions", userMessage);
     }
 
     [Fact]
@@ -247,9 +382,9 @@ public class AgentFactoryTests
         Assert.NotNull(agent);
 
         // Assert
-        Assert.Contains("READ-ONLY MODE", agent.Instructions);
-        Assert.Contains("You can only perform READ operations", agent.Instructions);
-        Assert.Contains("You CANNOT make any changes", agent.Instructions);
+        Assert.Contains("READ-ONLY MODE", agent.Instructions.ToString());
+        Assert.Contains("You can only perform READ operations", agent.Instructions.ToString());
+        Assert.Contains("You CANNOT make any changes", agent.Instructions.ToString());
     }
 
     [Fact]
@@ -283,8 +418,8 @@ public class AgentFactoryTests
         Assert.NotNull(agent);
 
         // Should NOT contain the readonly prompt instructions
-        Assert.DoesNotContain("READ-ONLY MODE", agent.Instructions);
-        Assert.DoesNotContain("You can only perform READ operations", agent.Instructions);
+        Assert.DoesNotContain("READ-ONLY MODE", agent.Instructions.ToString());
+        Assert.DoesNotContain("You can only perform READ operations", agent.Instructions.ToString());
     }
 
     [Fact]
@@ -526,7 +661,7 @@ public class AgentFactoryTests
             toolFactory: toolFactory,
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             modeConfigurator: _mockAgentModeConfigurator.Object,
-            assembliesToScan: [],
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
             agentsYamlDirectory: null
         );
         await agentFactory.InitializeAsync();
@@ -600,7 +735,7 @@ handoffs: []
             toolFactory: toolFactory,
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             modeConfigurator: _mockAgentModeConfigurator.Object,
-            assembliesToScan: [],
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
             agentsYamlDirectory: null
         );
         await agentFactory.InitializeAsync();
@@ -672,6 +807,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
     public bool DisableCommonPrompts { get; set; } = false;
+    public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
     public List<string> OrchestrationStartAgents { get; set; } = [];
@@ -703,6 +839,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
     public bool DisableCommonPrompts { get; set; } = false;
+    public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
     public List<string> OrchestrationStartAgents { get; set; } = [];
@@ -733,6 +870,7 @@ public class TestAgent3WithOptionalToolsDescriptor : IAgentDescriptor
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
     public bool DisableCommonPrompts { get; set; } = false;
+    public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
     public List<string> OrchestrationStartAgents { get; set; } = [];
@@ -763,11 +901,20 @@ public class TestAgent4WithOptionalToolsOnlyDescriptor : IAgentDescriptor
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
     public bool DisableCommonPrompts { get; set; } = false;
+    public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
     public List<string> OrchestrationStartAgents { get; set; } = [];
     public string? ResultSummarizationPrompt { get; set; } = string.Empty;
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+}
+
+public class TestTodoWritePrompt : IPromptDescriptor
+{
+    public const string PromptText = "# Task Management\nYou have access to the TodoWrite tool to help you manage and plan operational tasks.";
+
+    public string Name { get; set; } = "todo_write";
+    public string Prompt { get; set; } = PromptText;
 }
 
 public class TestAgent5WithMultipleOptionalToolsDescriptor : IAgentDescriptor
@@ -793,6 +940,7 @@ public class TestAgent5WithMultipleOptionalToolsDescriptor : IAgentDescriptor
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
     public bool DisableCommonPrompts { get; set; } = false;
+    public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
     public List<string> OrchestrationStartAgents { get; set; } = [];
@@ -823,6 +971,7 @@ public class TestAgent6WithEmptyConditionDescriptor : IAgentDescriptor
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
     public bool DisableCommonPrompts { get; set; } = false;
+    public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
     public List<string> OrchestrationStartAgents { get; set; } = [];
@@ -853,6 +1002,7 @@ public class TestAgent7WithDataConnectorConditionDescriptor : IAgentDescriptor
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
     public bool DisableCommonPrompts { get; set; } = false;
+    public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
     public List<string> OrchestrationStartAgents { get; set; } = [];
@@ -883,6 +1033,7 @@ public class TestAgent8WithMissingDataConnectorDescriptor : IAgentDescriptor
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
     public bool DisableCommonPrompts { get; set; } = false;
+    public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
     public List<string> OrchestrationStartAgents { get; set; } = [];
@@ -903,14 +1054,6 @@ public class TestReadOnlyPrompt : IPromptDescriptor
     public const string PromptText = "# Read-Only Mode Instructions\n\n**IMPORTANT: You are operating in READ-ONLY MODE.**\n\n**Read-Only Restrictions:**\n- You can only perform READ operations and queries\n- You CANNOT make any changes, modifications, or write operations";
 
     public string Name { get; set; } = "readonly";
-    public string Prompt { get; set; } = PromptText;
-}
-
-public class TestTodoWritePrompt : IPromptDescriptor
-{
-    public const string PromptText = "# Task Management\nYou have access to the TodoWrite tool to help you manage and plan operational tasks.";
-
-    public string Name { get; set; } = "todo_write";
     public string Prompt { get; set; } = PromptText;
 }
 

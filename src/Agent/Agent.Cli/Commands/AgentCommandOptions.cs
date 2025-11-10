@@ -45,6 +45,7 @@ public static class AgentCommandOptions
     };
     public static readonly Option<float?> TemperatureOption = new("--temperature");
     public static readonly Option<string> OutputTypeOption = new("--output-type");
+    public static readonly Option<bool> VanillaModeOption = new("--vanilla-mode");
     public static readonly Option<bool> SmartOption = new("--smart")
     {
         Description = "Use AI to automatically generate instructions and recommend tools"

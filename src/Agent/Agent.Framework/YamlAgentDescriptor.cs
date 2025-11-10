@@ -80,6 +80,9 @@ public class YamlAgentDescriptor : IAgentDescriptor
     [YamlMember(Alias = "disable_common_prompts")]
     public bool DisableCommonPrompts { get; set; } = false;
 
+    [YamlMember(Alias = "vanilla_mode")]
+    public bool EnableVanillaMode { get; set; } = false;
+
     // === Workflow Agent Support ===
 
     /// <summary>

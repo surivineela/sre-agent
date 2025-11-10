@@ -151,6 +151,7 @@ public static class CommandBuilder
             AgentCommandOptions.CommonPromptsOption,
             AgentCommandOptions.TemperatureOption,
             AgentCommandOptions.OutputTypeOption,
+            AgentCommandOptions.VanillaModeOption,
             AgentCommandOptions.SmartOption
         };
 

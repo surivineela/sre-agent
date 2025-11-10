@@ -14,8 +14,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Agent.Framework;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
@@ -32,8 +30,8 @@ using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Implementation.AzureApplicationInsightsPlugin;
 using Agent.Plugins.Implementation.AzureApplicationInsightsPlugin.Services;
-using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Implementation.CdbSDKDiagnosePlugin;
+using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.Kusto.Tools;
@@ -69,7 +67,6 @@ using Agent.Runtime.TrajectoryEvaluator;
 using Agent.ScheduledTasks.Services;
 using Agent.Web.Authorization;
 using Agent.Web.Services;
-using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
@@ -724,9 +721,7 @@ public class Program
         builder.Services.AddSingleton<IConnectorResolver, DataConnectorResolverService>();
 
         builder.Services.AddScoped<IResourceDeploymentService, ResourceDeploymentService>();
-        builder.Services.AddSingleton<IAgentYamlTranslatorFactory, AgentYamlTranslatorFactory>();
 
-        builder.Services.AddSingleton<IYamlValidatorFactory, YamlValidatorFactory>();
         builder.Services.AddSingleton<CustomAgentFileService>();
         builder.Services.AddSingleton<ICustomAgentFileService>(
             sp => sp.GetRequiredService<CustomAgentFileService>());

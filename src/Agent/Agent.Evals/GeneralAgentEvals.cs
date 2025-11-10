@@ -144,7 +144,7 @@ public class GeneralAgentEvals
         Assert.IsNotNull(agent, $"Agent '{testCase.AgentName}' not found");
 
         List<ChatMessage> modelInput = [
-            new ChatMessage(ChatRole.System, agent.Instructions),
+            new ChatMessage(ChatRole.System, agent.Instructions.ToString()),
             .. testCase.ModelInput,
         ];
 
@@ -253,7 +253,7 @@ public class GeneralAgentEvals
         }
 
         // Prepend the agent's actual system instructions
-        modelInput.Insert(0, new ChatMessage(ChatRole.System, agent.Instructions));
+        modelInput.Insert(0, new ChatMessage(ChatRole.System, agent.Instructions?.ToString()));
         TestContext.WriteLine("Using agent's actual system instructions for evaluation");
 
         TestContext.WriteLine($"\n=== EXPECTED MODEL OUTPUT ===");

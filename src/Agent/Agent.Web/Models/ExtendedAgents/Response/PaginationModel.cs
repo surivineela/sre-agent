@@ -3,14 +3,13 @@
 // ------------------------------------------------------------
 
 using System.Text.Json.Serialization;
-using Agent.Runtime.Models.ExtendedAgents;
 
 namespace Agent.Web.Models.ExtendedAgents.Response;
 
 public class PaginatedResponse<T>
 {
     [JsonPropertyName("data")]
-    public List<T> Data { get; set; }= new List<T>();
+    public List<T> Data { get; set; } = new List<T>();
 
     [JsonPropertyName("page_index")]
     public int PageIndex { get; set; }

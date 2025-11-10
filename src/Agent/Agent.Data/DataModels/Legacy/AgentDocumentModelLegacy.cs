@@ -1,7 +1,5 @@
-using Agent.Data;
-using Agent.Data.DataModels;
-using Agent.Framework.Models;
 using Agent.Framework;
+using Agent.Framework.Models;
 
 namespace Agent.Data.DataModels.Legacy;
 

@@ -1,6 +1,6 @@
+using System.Text.Json.Serialization;
 using Agent.Framework;
 using Agent.Framework.Models;
-using System.Text.Json.Serialization;
 
 namespace Agent.Data.DataModels;
 
@@ -51,6 +51,8 @@ public record AgentDocumentModel(
         DisableDocumentRetrieval = Spec.DisableDocumentRetrieval ?? false,
         EnableHandoffPromptOverride = Spec.EnableHandoffPromptOverride ?? false,
         UserPromptOverride = Spec.UserPromptOverride,
+        LlmModelName = Spec.LlmModelName,
+        EnableVanillaMode = Spec.EnableVanillaMode,
 
         Metadata = Metadata.ToYamlMetadata(),
         // Workflow agent properties
@@ -114,33 +116,19 @@ public class ResourceMetadata
 public class AgentSpec
 {
     public string Name { get; set; } = string.Empty;
-
     public string? Instructions { get; set; }
-
     public string? HandoffDescription { get; set; }
-
     public List<string>? Handoffs { get; set; }
-
     public List<string>? McpTools { get; set; }
-
     public List<string>? Tools { get; set; }
-
     public List<string>? Connectors { get; set; }
-
     public bool? AllowParallelToolCalls { get; set; }
-
     public List<AgentsAsTools>? AgentsAsTools { get; set; }
-
     public int? MaxReflectionCount { get; set; }
-
     public string? CriticPromptPath { get; set; }
-
     public bool? CriticOnHandOff { get; set; }
-
     public string? CustomReflectionNote { get; set; }
-
     public List<string>? CommonPrompts { get; set; }
-
     public List<string>? CommonTools { get; set; }
     public bool? DisableDocumentRetrieval { get; set; }
     public string? InstructionsOverride { get; set; }
@@ -149,6 +137,7 @@ public class AgentSpec
     public string? UserPromptOverride { get; set; }
     public float? Temperature { get; set; }
     public string? LlmModelName { get; set; }
+    public bool EnableVanillaMode { get; set; }
 
     // === Workflow Agent Support ===
 
