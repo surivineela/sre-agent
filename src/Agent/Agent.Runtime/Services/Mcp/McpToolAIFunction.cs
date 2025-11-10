@@ -1,4 +1,7 @@
+using System.Text.Json;
+
 using Agent.Runtime.Interfaces;
+
 using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.Services.Mcp;
@@ -22,6 +25,10 @@ public class McpToolAIFunction : AIFunction
 
     public override string Name => _newName;
     public override string Description => _originalTool.Description;
+    public override IReadOnlyDictionary<string, object?> AdditionalProperties => _originalTool.AdditionalProperties;
+    public override JsonElement JsonSchema => _originalTool.JsonSchema;
+    public override JsonSerializerOptions JsonSerializerOptions => _originalTool.JsonSerializerOptions;
+    public override JsonElement? ReturnJsonSchema => _originalTool.ReturnJsonSchema;
 
     protected override ValueTask<object?> InvokeCoreAsync(
         AIFunctionArguments arguments,
