@@ -58,7 +58,8 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateOrUpdateAgentAsync(
         string agentName,
-        [FromBody] ApiRequestEnvelope<ExtendedAgentView> request)
+        [FromBody] ApiRequestEnvelope<ExtendedAgentView> request,
+        [FromQuery] bool dryRun = false)
     {
         if (request.Type != null && request.Type != "ExtendedAgent")
         {
@@ -74,7 +75,7 @@ public class ExtendedAgentApiController : ControllerBase
 
         var model = ExtendedAgentView.CreateModel(request, existingAgentResult.Response?.Metadata, null);
 
-        var result = await _extendedAgentApiService.CreateOrUpdateAgentAsync(agentName, model);
+        var result = await _extendedAgentApiService.CreateOrUpdateAgentAsync(agentName, model, dryRun);
 
         if (result.IsStatusCodeResult)
         {
@@ -103,7 +104,8 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> PatchAgentAsync(
         string agentName,
-        [FromBody] ApiRequestEnvelope<ExtendedAgentView> request)
+        [FromBody] ApiRequestEnvelope<ExtendedAgentView> request,
+        [FromQuery] bool dryRun = false)
     {
         if (request.Type != null && request.Type != "ExtendedAgent")
         {
@@ -123,7 +125,7 @@ public class ExtendedAgentApiController : ControllerBase
 
         var model = ExtendedAgentView.CreateModel(request, baseModel: baseModelResult.Response);
 
-        var result = await _extendedAgentApiService.CreateOrUpdateAgentAsync(agentName, model);
+        var result = await _extendedAgentApiService.CreateOrUpdateAgentAsync(agentName, model, dryRun);
         if (result.IsStatusCodeResult)
         {
             return result.ActionResult;
@@ -148,9 +150,11 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeleteAgentAsync(string agentName)
+    public async Task<IActionResult> DeleteAgentAsync(
+        string agentName,
+        [FromQuery] bool dryRun = false)
     {
-        var result = await _extendedAgentApiService.DeleteAgentAsync(agentName);
+        var result = await _extendedAgentApiService.DeleteAgentAsync(agentName, dryRun);
 
         if (result.IsStatusCodeResult)
         {
@@ -222,7 +226,8 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateOrUpdateToolAsync(
         string toolName,
-        [FromBody] ApiRequestEnvelope<ToolView> request)
+        [FromBody] ApiRequestEnvelope<ToolView> request,
+        [FromQuery] bool dryRun = false)
     {
         if (request.Type != null && request.Type != "ExtendedAgentTool")
         {
@@ -238,7 +243,7 @@ public class ExtendedAgentApiController : ControllerBase
 
         var model = ToolView.CreateModel(request, existingToolResult.Response?.Metadata, null);
 
-        var result = await _extendedAgentApiService.CreateOrUpdateToolAsync(toolName, model);
+        var result = await _extendedAgentApiService.CreateOrUpdateToolAsync(toolName, model, dryRun);
 
         if (result.IsStatusCodeResult)
         {
@@ -267,7 +272,8 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> PatchToolAsync(
         string toolName,
-        [FromBody] ApiRequestEnvelope<ToolView> request)
+        [FromBody] ApiRequestEnvelope<ToolView> request,
+        [FromQuery] bool dryRun = false)
     {
         if (request.Type != null && request.Type != "ExtendedAgentTool")
         {
@@ -287,7 +293,7 @@ public class ExtendedAgentApiController : ControllerBase
 
         var model = ToolView.CreateModel(request, baseModel: baseModelResult.Response);
 
-        var result = await _extendedAgentApiService.CreateOrUpdateToolAsync(toolName, model);
+        var result = await _extendedAgentApiService.CreateOrUpdateToolAsync(toolName, model, dryRun);
         if (result.IsStatusCodeResult)
         {
             return result.ActionResult;
@@ -312,9 +318,11 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeleteToolAsync(string toolName)
+    public async Task<IActionResult> DeleteToolAsync(
+        string toolName,
+        [FromQuery] bool dryRun = false)
     {
-        var result = await _extendedAgentApiService.DeleteToolAsync(toolName);
+        var result = await _extendedAgentApiService.DeleteToolAsync(toolName, dryRun);
 
         if (result.IsStatusCodeResult)
         {
@@ -386,7 +394,8 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateOrUpdateConnectorAsync(
         string connectorName,
-        [FromBody] ApiRequestEnvelope<ConnectorView> request)
+        [FromBody] ApiRequestEnvelope<ConnectorView> request,
+        [FromQuery] bool dryRun = false)
     {
         if (request.Type != null && request.Type != "ExtendedAgentConnector")
         {
@@ -402,7 +411,7 @@ public class ExtendedAgentApiController : ControllerBase
 
         var model = ConnectorView.CreateModel(request, existingConnectorResult.Response?.Metadata, null);
 
-        var result = await _extendedAgentApiService.CreateOrUpdateConnectorAsync(connectorName, model);
+        var result = await _extendedAgentApiService.CreateOrUpdateConnectorAsync(connectorName, model, dryRun);
 
         if (result.IsStatusCodeResult)
         {
@@ -431,7 +440,8 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> PatchConnectorAsync(
         string connectorName,
-        [FromBody] ApiRequestEnvelope<ConnectorView> request)
+        [FromBody] ApiRequestEnvelope<ConnectorView> request,
+        [FromQuery] bool dryRun = false)
     {
         if (request.Type != null && request.Type != "ExtendedAgentConnector")
         {
@@ -451,7 +461,7 @@ public class ExtendedAgentApiController : ControllerBase
 
         var model = ConnectorView.CreateModel(request, baseModel: baseModelResult.Response);
 
-        var result = await _extendedAgentApiService.CreateOrUpdateConnectorAsync(connectorName, model);
+        var result = await _extendedAgentApiService.CreateOrUpdateConnectorAsync(connectorName, model, dryRun);
         if (result.IsStatusCodeResult)
         {
             return result.ActionResult;
@@ -476,9 +486,11 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeleteConnectorAsync(string connectorName)
+    public async Task<IActionResult> DeleteConnectorAsync(
+        string connectorName,
+        [FromQuery] bool dryRun = false)
     {
-        var result = await _extendedAgentApiService.DeleteConnectorAsync(connectorName);
+        var result = await _extendedAgentApiService.DeleteConnectorAsync(connectorName, dryRun);
 
         if (result.IsStatusCodeResult)
         {
@@ -550,7 +562,8 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateOrUpdatePluginConfigAsync(
         string pluginName,
-        [FromBody] ApiRequestEnvelope<PluginConfigView> request)
+        [FromBody] ApiRequestEnvelope<PluginConfigView> request,
+        [FromQuery] bool dryRun = false)
     {
         if (request.Type != null && request.Type != "PluginConfig")
         {
@@ -566,7 +579,7 @@ public class ExtendedAgentApiController : ControllerBase
 
         var model = PluginConfigView.CreateModel(request, existingPluginResult.Response?.Metadata, null);
 
-        var result = await _extendedAgentApiService.CreateOrUpdatePluginConfigAsync(pluginName, model);
+        var result = await _extendedAgentApiService.CreateOrUpdatePluginConfigAsync(pluginName, model, dryRun);
 
         if (result.IsStatusCodeResult)
         {
@@ -595,7 +608,8 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> PatchPluginConfigAsync(
         string pluginName,
-        [FromBody] ApiRequestEnvelope<PluginConfigView> request)
+        [FromBody] ApiRequestEnvelope<PluginConfigView> request,
+        [FromQuery] bool dryRun = false)
     {
         if (request.Type != null && request.Type != "PluginConfig")
         {
@@ -615,7 +629,7 @@ public class ExtendedAgentApiController : ControllerBase
 
         var model = PluginConfigView.CreateModel(request, baseModel: baseModelResult.Response);
 
-        var result = await _extendedAgentApiService.CreateOrUpdatePluginConfigAsync(pluginName, model);
+        var result = await _extendedAgentApiService.CreateOrUpdatePluginConfigAsync(pluginName, model, dryRun);
         if (result.IsStatusCodeResult)
         {
             return result.ActionResult;
@@ -640,9 +654,11 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeletePluginConfigAsync(string pluginName)
+    public async Task<IActionResult> DeletePluginConfigAsync(
+        string pluginName,
+        [FromQuery] bool dryRun = false)
     {
-        var result = await _extendedAgentApiService.DeletePluginConfigAsync(pluginName);
+        var result = await _extendedAgentApiService.DeletePluginConfigAsync(pluginName, dryRun);
 
         if (result.IsStatusCodeResult)
         {
@@ -714,7 +730,8 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateOrUpdateCommonPromptAsync(
         string promptName,
-        [FromBody] ApiRequestEnvelope<CommonPromptView> request)
+        [FromBody] ApiRequestEnvelope<CommonPromptView> request,
+        [FromQuery] bool dryRun = false)
     {
         if (request.Type != null && request.Type != "CommonPrompt")
         {
@@ -730,7 +747,7 @@ public class ExtendedAgentApiController : ControllerBase
 
         var model = CommonPromptView.CreateModel(request, existingPromptResult.Response?.Metadata, null);
 
-        var result = await _extendedAgentApiService.CreateOrUpdateCommonPromptAsync(promptName, model);
+        var result = await _extendedAgentApiService.CreateOrUpdateCommonPromptAsync(promptName, model, dryRun);
 
         if (result.IsStatusCodeResult)
         {
@@ -759,7 +776,8 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> PatchCommonPromptAsync(
         string promptName,
-        [FromBody] ApiRequestEnvelope<CommonPromptView> request)
+        [FromBody] ApiRequestEnvelope<CommonPromptView> request,
+        [FromQuery] bool dryRun = false)
     {
         if (request.Type != null && request.Type != "CommonPrompt")
         {
@@ -779,7 +797,7 @@ public class ExtendedAgentApiController : ControllerBase
 
         var model = CommonPromptView.CreateModel(request, baseModel: baseModelResult.Response);
 
-        var result = await _extendedAgentApiService.CreateOrUpdateCommonPromptAsync(promptName, model);
+        var result = await _extendedAgentApiService.CreateOrUpdateCommonPromptAsync(promptName, model, dryRun);
         if (result.IsStatusCodeResult)
         {
             return result.ActionResult;
@@ -856,9 +874,11 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeleteCommonPromptAsync(string promptName)
+    public async Task<IActionResult> DeleteCommonPromptAsync(
+        string promptName,
+        [FromQuery] bool dryRun = false)
     {
-        var result = await _extendedAgentApiService.DeleteCommonPromptAsync(promptName);
+        var result = await _extendedAgentApiService.DeleteCommonPromptAsync(promptName, dryRun);
 
         if (result.IsStatusCodeResult)
         {
@@ -878,7 +898,8 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateOrUpdateCommonToolListAsync(
         string listName,
-        [FromBody] ApiRequestEnvelope<CommonToolListView> request)
+        [FromBody] ApiRequestEnvelope<CommonToolListView> request,
+        [FromQuery] bool dryRun = false)
     {
         if (request.Type != null && request.Type != "CommonToolsList")
         {
@@ -894,7 +915,7 @@ public class ExtendedAgentApiController : ControllerBase
 
         var model = CommonToolListView.CreateModel(request, existingListResult.Response?.Metadata, null);
 
-        var result = await _extendedAgentApiService.CreateOrUpdateCommonToolListAsync(listName, model);
+        var result = await _extendedAgentApiService.CreateOrUpdateCommonToolListAsync(listName, model, dryRun);
 
         if (result.IsStatusCodeResult)
         {
@@ -923,7 +944,8 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> PatchCommonToolListAsync(
         string listName,
-        [FromBody] ApiRequestEnvelope<CommonToolListView> request)
+        [FromBody] ApiRequestEnvelope<CommonToolListView> request,
+        [FromQuery] bool dryRun = false)
     {
         if (request.Type != null && request.Type != "CommonToolsList")
         {
@@ -943,7 +965,7 @@ public class ExtendedAgentApiController : ControllerBase
 
         var model = CommonToolListView.CreateModel(request, baseModel: baseModelResult.Response);
 
-        var result = await _extendedAgentApiService.CreateOrUpdateCommonToolListAsync(listName, model);
+        var result = await _extendedAgentApiService.CreateOrUpdateCommonToolListAsync(listName, model, dryRun);
         if (result.IsStatusCodeResult)
         {
             return result.ActionResult;
@@ -1020,9 +1042,11 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeleteCommonToolListAsync(string listName)
+    public async Task<IActionResult> DeleteCommonToolListAsync(
+        string listName,
+        [FromQuery] bool dryRun = false)
     {
-        var result = await _extendedAgentApiService.DeleteCommonToolListAsync(listName);
+        var result = await _extendedAgentApiService.DeleteCommonToolListAsync(listName, dryRun);
 
         if (result.IsStatusCodeResult)
         {

@@ -1,8 +1,10 @@
 using Agent.Core.Interfaces;
+using Agent.Core.Validation;
 using Agent.Data.DataModels;
 using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Web.ApiResources;
+using Agent.Web.Validation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Agent.Web.Services;
@@ -12,24 +14,44 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     private readonly ILogger<ExtendedAgentApiService> _logger;
     private readonly IExtendedAgentService _extendedAgentService;
     private readonly IExtendedAgentRepository _repository;
+    private readonly IExtendedAgentValidator _validator;
 
     public ExtendedAgentApiService(
         ILogger<ExtendedAgentApiService> logger,
         IExtendedAgentService extendedAgentService,
-        IExtendedAgentRepository repository
+        IExtendedAgentRepository repository,
+        IExtendedAgentValidator validator
     )
     {
         _logger = logger;
         _extendedAgentService = extendedAgentService;
         _repository = repository;
+        _validator = validator;
     }
 
-    public async Task<ApiCommandResult<AgentDocumentModel>> CreateOrUpdateAgentAsync(string agentName, AgentDocumentModel model)
+    public async Task<ApiCommandResult<AgentDocumentModel>> CreateOrUpdateAgentAsync(string agentName, AgentDocumentModel model, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Creating or updating extended agent: {AgentName}, OperationId: {OperationId}", agentName, operationId);
+            _logger.LogInternalInformation("Creating or updating extended agent: {AgentName}, DryRun: {DryRun}, OperationId: {OperationId}", agentName, dryRun, operationId);
+
+            // Validate the model
+            var validationResult = await _validator.ValidateAgentAsync(model);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogInternalWarning("Validation failed for agent: {AgentName}. Errors: {Errors}", agentName, string.Join(", ", validationResult.Errors));
+                return new ApiCommandResult<AgentDocumentModel>(new BadRequestObjectResult(ErrorMap.ValidationFailure.CreateErrorEntity(validationResult.ToString())));
+            }
+
+            // If dry-run, skip database operations and return the validated model
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping database operations for agent: {AgentName}", agentName);
+                return new ApiCommandResult<AgentDocumentModel>(model, operationId);
+            }
+
+            // Perform actual database operations
             var agent = await _repository.UpsertAgentAsync(model, operationId);
             await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
 
@@ -42,12 +64,12 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<AgentDocumentModel>> DeleteAgentAsync(string agentName)
+    public async Task<ApiCommandResult<AgentDocumentModel>> DeleteAgentAsync(string agentName, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Deleting extended agent: {AgentName}, OperationId: {OperationId}", agentName, operationId);
+            _logger.LogInternalInformation("Deleting extended agent: {AgentName}, DryRun: {DryRun}, OperationId: {OperationId}", agentName, dryRun, operationId);
 
             var agent = await _repository.GetAgentByNameAsync(agentName);
             if (agent == null)
@@ -55,6 +77,14 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                 return new ApiCommandResult<AgentDocumentModel>(new NoContentResult());
             }
 
+            // If dry-run, skip database operations and return the agent that would be deleted
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping delete operation for agent: {AgentName}", agentName);
+                return new ApiCommandResult<AgentDocumentModel>(agent, operationId);
+            }
+
+            // Perform actual delete operation
             await _repository.DeleteAgentAsync(agentName);
 
             return new ApiCommandResult<AgentDocumentModel>(agent, operationId);
@@ -107,12 +137,29 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     }
 
     // Tool operations
-    public async Task<ApiCommandResult<ToolDocumentModel>> CreateOrUpdateToolAsync(string toolName, ToolDocumentModel model)
+    public async Task<ApiCommandResult<ToolDocumentModel>> CreateOrUpdateToolAsync(string toolName, ToolDocumentModel model, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Creating or updating extended agent tool: {ToolName}, OperationId: {OperationId}", toolName, operationId);
+            _logger.LogInternalInformation("Creating or updating extended agent tool: {ToolName}, DryRun: {DryRun}, OperationId: {OperationId}", toolName, dryRun, operationId);
+
+            // Validate the model
+            var validationResult = await _validator.ValidateToolAsync(model);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogInternalWarning("Validation failed for tool: {ToolName}. Errors: {Errors}", toolName, string.Join(", ", validationResult.Errors));
+                return new ApiCommandResult<ToolDocumentModel>(new BadRequestObjectResult(ErrorMap.ValidationFailure.CreateErrorEntity(validationResult.Errors)));
+            }
+
+            // If dry-run, skip database operations and return the validated model
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping database operations for tool: {ToolName}", toolName);
+                return new ApiCommandResult<ToolDocumentModel>(model, operationId);
+            }
+
+            // Perform actual database operations
             var tool = await _repository.UpsertToolAsync(model, operationId);
             await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
 
@@ -125,12 +172,12 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<ToolDocumentModel>> DeleteToolAsync(string toolName)
+    public async Task<ApiCommandResult<ToolDocumentModel>> DeleteToolAsync(string toolName, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Deleting extended agent tool: {ToolName}, OperationId: {OperationId}", toolName, operationId);
+            _logger.LogInternalInformation("Deleting extended agent tool: {ToolName}, DryRun: {DryRun}, OperationId: {OperationId}", toolName, dryRun, operationId);
 
             var tool = await _repository.GetToolByNameAsync(toolName);
             if (tool == null)
@@ -138,6 +185,14 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                 return new ApiCommandResult<ToolDocumentModel>(new NoContentResult());
             }
 
+            // If dry-run, skip database operations and return the tool that would be deleted
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping delete operation for tool: {ToolName}", toolName);
+                return new ApiCommandResult<ToolDocumentModel>(tool, operationId);
+            }
+
+            // Perform actual delete operations
             await _repository.DeleteToolAsync(toolName);
             await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
 
@@ -191,12 +246,29 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     }
 
     // Connector operations
-    public async Task<ApiCommandResult<ConnectorDocumentModel>> CreateOrUpdateConnectorAsync(string connectorName, ConnectorDocumentModel model)
+    public async Task<ApiCommandResult<ConnectorDocumentModel>> CreateOrUpdateConnectorAsync(string connectorName, ConnectorDocumentModel model, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Creating or updating extended agent connector: {ConnectorName}, OperationId: {OperationId}", connectorName, operationId);
+            _logger.LogInternalInformation("Creating or updating extended agent connector: {ConnectorName}, DryRun: {DryRun}, OperationId: {OperationId}", connectorName, dryRun, operationId);
+
+            // Validate the model
+            var validationResult = await _validator.ValidateConnectorAsync(model);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogInternalWarning("Validation failed for connector: {ConnectorName}. Errors: {Errors}", connectorName, string.Join(", ", validationResult.Errors));
+                return new ApiCommandResult<ConnectorDocumentModel>(new BadRequestObjectResult(ErrorMap.ValidationFailure.CreateErrorEntity(validationResult.Errors)));
+            }
+
+            // If dry-run, skip database operations and return the validated model
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping database operations for connector: {ConnectorName}", connectorName);
+                return new ApiCommandResult<ConnectorDocumentModel>(model, operationId);
+            }
+
+            // Perform actual database operations
             var connector = await _repository.UpsertConnectorAsync(model, operationId);
             await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
 
@@ -209,12 +281,12 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<ConnectorDocumentModel>> DeleteConnectorAsync(string connectorName)
+    public async Task<ApiCommandResult<ConnectorDocumentModel>> DeleteConnectorAsync(string connectorName, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Deleting extended agent connector: {ConnectorName}, OperationId: {OperationId}", connectorName, operationId);
+            _logger.LogInternalInformation("Deleting extended agent connector: {ConnectorName}, DryRun: {DryRun}, OperationId: {OperationId}", connectorName, dryRun, operationId);
 
             var connector = await _repository.GetConnectorByNameAsync(connectorName);
             if (connector == null)
@@ -222,6 +294,14 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                 return new ApiCommandResult<ConnectorDocumentModel>(new NoContentResult());
             }
 
+            // If dry-run, skip database operations and return the connector that would be deleted
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping delete operation for connector: {ConnectorName}", connectorName);
+                return new ApiCommandResult<ConnectorDocumentModel>(connector, operationId);
+            }
+
+            // Perform actual delete operations
             await _repository.DeleteConnectorAsync(connectorName);
             await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
 
@@ -293,12 +373,29 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<PlugInConfigDocumentModel>> CreateOrUpdatePluginConfigAsync(string pluginName, PlugInConfigDocumentModel model)
+    public async Task<ApiCommandResult<PlugInConfigDocumentModel>> CreateOrUpdatePluginConfigAsync(string pluginName, PlugInConfigDocumentModel model, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Creating or updating plugin config: {PluginName}, OperationId: {OperationId}", pluginName, operationId);
+            _logger.LogInternalInformation("Creating or updating plugin config: {PluginName}, DryRun: {DryRun}, OperationId: {OperationId}", pluginName, dryRun, operationId);
+
+            // Validate the model
+            var validationResult = await _validator.ValidatePluginConfigAsync(model);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogInternalWarning("Validation failed for plugin config: {PluginName}. Errors: {Errors}", pluginName, string.Join(", ", validationResult.Errors));
+                return new ApiCommandResult<PlugInConfigDocumentModel>(new BadRequestObjectResult(ErrorMap.ValidationFailure.CreateErrorEntity(validationResult.Errors)));
+            }
+
+            // If dry-run, skip database operations and return the validated model
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping database operations for plugin config: {PluginName}", pluginName);
+                return new ApiCommandResult<PlugInConfigDocumentModel>(model, operationId);
+            }
+
+            // Perform actual database operations
             var plugin = await _repository.UpsertPluginConfigAsync(model);
             await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
 
@@ -311,15 +408,16 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public Task<ApiCommandResult<PlugInConfigDocumentModel>> DeletePluginConfigAsync(string pluginName)
+    public Task<ApiCommandResult<PlugInConfigDocumentModel>> DeletePluginConfigAsync(string pluginName, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Deleting plugin config: {PluginName}, OperationId: {OperationId}", pluginName, operationId);
+            _logger.LogInternalInformation("Deleting plugin config: {PluginName}, DryRun: {DryRun}, OperationId: {OperationId}", pluginName, dryRun, operationId);
 
             // Note: Repository doesn't have DeletePluginConfigAsync, so we return NotFound for now
             // This might need to be implemented in the repository if needed
+            // When implemented, add dry-run logic similar to other delete methods
             return Task.FromResult(new ApiCommandResult<PlugInConfigDocumentModel>(new NotFoundResult()));
         }
         catch (Exception ex)
@@ -366,12 +464,29 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<CommonPromptDocumentModel>> CreateOrUpdateCommonPromptAsync(string promptName, CommonPromptDocumentModel model)
+    public async Task<ApiCommandResult<CommonPromptDocumentModel>> CreateOrUpdateCommonPromptAsync(string promptName, CommonPromptDocumentModel model, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Creating or updating common prompt: {PromptName}, OperationId: {OperationId}", promptName, operationId);
+            _logger.LogInternalInformation("Creating or updating common prompt: {PromptName}, DryRun: {DryRun}, OperationId: {OperationId}", promptName, dryRun, operationId);
+
+            // Validate the model
+            var validationResult = await _validator.ValidateCommonPromptAsync(model);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogInternalWarning("Validation failed for common prompt: {PromptName}. Errors: {Errors}", promptName, string.Join(", ", validationResult.Errors));
+                return new ApiCommandResult<CommonPromptDocumentModel>(new BadRequestObjectResult(ErrorMap.ValidationFailure.CreateErrorEntity(validationResult.Errors)));
+            }
+
+            // If dry-run, skip database operations and return the validated model
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping database operations for common prompt: {PromptName}", promptName);
+                return new ApiCommandResult<CommonPromptDocumentModel>(model, operationId);
+            }
+
+            // Perform actual database operations
             var prompt = await _repository.UpsertCommonPromptAsync(model, operationId);
             await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
 
@@ -384,15 +499,16 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public Task<ApiCommandResult<CommonPromptDocumentModel>> DeleteCommonPromptAsync(string promptName)
+    public Task<ApiCommandResult<CommonPromptDocumentModel>> DeleteCommonPromptAsync(string promptName, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Deleting common prompt: {PromptName}, OperationId: {OperationId}", promptName, operationId);
+            _logger.LogInternalInformation("Deleting common prompt: {PromptName}, DryRun: {DryRun}, OperationId: {OperationId}", promptName, dryRun, operationId);
 
             // Note: Repository doesn't have DeleteCommonPromptAsync, so we return NotFound for now
             // This might need to be implemented in the repository if needed
+            // When implemented, add dry-run logic similar to other delete methods
             return Task.FromResult(new ApiCommandResult<CommonPromptDocumentModel>(new NotFoundResult()));
         }
         catch (Exception ex)
@@ -439,12 +555,29 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<CommonToolsListDocumentModel>> CreateOrUpdateCommonToolListAsync(string listName, CommonToolsListDocumentModel model)
+    public async Task<ApiCommandResult<CommonToolsListDocumentModel>> CreateOrUpdateCommonToolListAsync(string listName, CommonToolsListDocumentModel model, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Creating or updating common tool list: {ListName}, OperationId: {OperationId}", listName, operationId);
+            _logger.LogInternalInformation("Creating or updating common tool list: {ListName}, DryRun: {DryRun}, OperationId: {OperationId}", listName, dryRun, operationId);
+
+            // Validate the model
+            var validationResult = await _validator.ValidateCommonToolsListAsync(model);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogInternalWarning("Validation failed for common tool list: {ListName}. Errors: {Errors}", listName, string.Join(", ", validationResult.Errors));
+                return new ApiCommandResult<CommonToolsListDocumentModel>(new BadRequestObjectResult(ErrorMap.ValidationFailure.CreateErrorEntity(validationResult.Errors)));
+            }
+
+            // If dry-run, skip database operations and return the validated model
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping database operations for common tool list: {ListName}", listName);
+                return new ApiCommandResult<CommonToolsListDocumentModel>(model, operationId);
+            }
+
+            // Perform actual database operations
             var toolList = await _repository.UpsertCommonToolsListAsync(model, operationId);
             await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
 
@@ -457,15 +590,16 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public Task<ApiCommandResult<CommonToolsListDocumentModel>> DeleteCommonToolListAsync(string listName)
+    public Task<ApiCommandResult<CommonToolsListDocumentModel>> DeleteCommonToolListAsync(string listName, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Deleting common tool list: {ListName}, OperationId: {OperationId}", listName, operationId);
+            _logger.LogInternalInformation("Deleting common tool list: {ListName}, DryRun: {DryRun}, OperationId: {OperationId}", listName, dryRun, operationId);
 
             // Note: Repository doesn't have DeleteCommonToolListAsync, so we return NotFound for now
             // This might need to be implemented in the repository if needed
+            // When implemented, add dry-run logic similar to other delete methods
             return Task.FromResult(new ApiCommandResult<CommonToolsListDocumentModel>(new NotFoundResult()));
         }
         catch (Exception ex)

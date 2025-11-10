@@ -386,15 +386,15 @@ public class AgentValidationResult
 
         if (Errors.Count > 0)
         {
-            messages.Add($"Errors: {string.Join("; ", Errors)}");
+            messages.Add($"Errors: \n{string.Join("\n", Errors)}");
         }
 
         if (Warnings.Count > 0)
         {
-            messages.Add($"Warnings: {string.Join("; ", Warnings)}");
+            messages.Add($"Warnings: \n{string.Join("\n", Warnings)}");
         }
 
-        return messages.Count > 0 ? string.Join(" | ", messages) : "Valid";
+        return messages.Count > 0 ? string.Join("\n\n", messages) : "Valid";
     }
 }
 

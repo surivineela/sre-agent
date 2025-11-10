@@ -83,6 +83,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using Agent.Web.Validation;
 
 namespace Agent.Web;
 
@@ -719,6 +720,7 @@ public class Program
         builder.RegisterFunctionsFirstPartyTypes();
         builder.Services.AddTransient<IExtendedAgentService, ExtendedAgentService>();
         builder.Services.AddTransient<IExtendedAgentApiService, ExtendedAgentApiService>();
+        builder.Services.AddTransient<IExtendedAgentValidator, ExtendedAgentValidator>();
         builder.Services.AddSingleton<IConnectorResolver, DataConnectorResolverService>();
 
         builder.Services.AddScoped<IResourceDeploymentService, ResourceDeploymentService>();

@@ -3,6 +3,8 @@
 //------------------------------------------------------------
 
 
+using Microsoft.Azure.Amqp.Framing;
+
 namespace Agent.Web.ApiResources;
 
 public class ErrorMap
@@ -42,5 +44,6 @@ public class ErrorMap
     public static ErrorMap Unauthorized { get { return new ErrorMap("Unauthorized", "The user is not authorized to perform action {0}. Please assign correct roles."); } }
     public static ErrorMap InvalidObjectType { get { return new ErrorMap("InvalidObjectType", "The payload contains invalid object type {0}."); } }
     public static ErrorMap ObjectNameMismatch { get { return new ErrorMap("ObjectNameMismatch", "The object name {0} does not match the name in payload {1}."); } }
+    public static ErrorMap ValidationFailure { get { return new ErrorMap("ValidationFailure", "The object validation failed: {0}."); } }
 
 }
