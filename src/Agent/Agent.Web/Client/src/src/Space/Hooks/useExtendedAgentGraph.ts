@@ -1,6 +1,7 @@
 import { Edge, Node } from '@xyflow/react';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { IncidentFilter, IncidentHandler } from '../../Common/Contracts/Azure/IncidentHandler';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import {
     ExtendedAgent,
@@ -151,10 +152,10 @@ export const useExtendedAgentGraph = () => {
 
             // Process incident handlers
             if (incidentResponse.status === 'fulfilled' && incidentResponse.value.ok) {
-                const incidentHandlers = await incidentResponse.value.json();
+                const incidentHandlers: IncidentHandler[] = await incidentResponse.value.json();
 
                 // Also fetch filters to get the agent mapping
-                let filters: any[] = [];
+                let filters: IncidentFilter[] = [];
                 if (filtersResponse.status === 'fulfilled' && filtersResponse.value.ok) {
                     filters = await filtersResponse.value.json();
                 }
@@ -171,7 +172,7 @@ export const useExtendedAgentGraph = () => {
 
                 if (Array.isArray(incidentHandlers)) {
                     const incidentTriggers: ExtendedTrigger[] = [];
-                    incidentHandlers.map((handler: any) => {
+                    incidentHandlers.forEach((handler: any) => {
                         const filter = filters.find(f => f.id === handler.incidentFilterId);
                         const agentName = filterAgentMap.get(handler.incidentFilterId) || handler.agentName;
                         if (agentName) {
@@ -180,7 +181,7 @@ export const useExtendedAgentGraph = () => {
                                 description: handler.description || 'Incident response handler',
                                 type: 'incident' as const,
                                 agentName: agentName,
-                                status: filter?.enabled ? 'Active' : 'Disabled',
+                                status: filter?.isEnabled ? 'Active' : 'Disabled',
                                 priority: filter?.priority || '-',
                                 incidentType: filter?.incidentType || 'ServiceIssue',
                                 service: filter?.impactedService || '-',
