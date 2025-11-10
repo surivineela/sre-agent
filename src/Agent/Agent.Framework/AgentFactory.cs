@@ -44,6 +44,10 @@ public interface IAgentFactory<TContext> : IAsyncInitializer
 
     public int RegisteredAgentCount { get; }
 
+    public int RegisteredBuiltInAgentCount { get; }
+
+    public int RegisteredExtendedAgentCount { get; }
+
     public Agent<TContext> LoadAgentFromYamlContent(string yamlContent, bool isCustomAgent);
 
     public Agent<TContext> LoadAgentFromDescriptor(YamlAgentDescriptor yamlContent, bool isCustomAgent);
@@ -103,6 +107,10 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     public event EventHandler<AgentChangedEventArgs>? AgentChanged;
 
     public int RegisteredAgentCount => _agents.Count;
+
+    public int RegisteredBuiltInAgentCount => _agents.Values.Count(a => !a.IsExtended);
+
+    public int RegisteredExtendedAgentCount => _agents.Values.Count(a => a.IsExtended);
 
     public AgentFactory(
         ILogger<AgentFactory<TContext>> logger,

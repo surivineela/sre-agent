@@ -53,6 +53,8 @@ public class HeartbeatReporter
         {
             var payload = BuildStatusPayload(
                 _agentFactory.RegisteredAgentCount,
+                _agentFactory.RegisteredBuiltInAgentCount,
+                _agentFactory.RegisteredExtendedAgentCount,
                 _toolFactory.RegisteredToolCount);
 
             stopwatch.Stop();
@@ -81,7 +83,7 @@ public class HeartbeatReporter
         return Task.CompletedTask;
     }
 
-    private static string BuildStatusPayload(int agentCount, int toolCount)
+    private static string BuildStatusPayload(int agentCount, int builtInAgentCount, int extendedAgentCount, int toolCount)
     {
         using var process = Process.GetCurrentProcess();
         var uptime = DateTimeOffset.UtcNow - process.StartTime.ToUniversalTime();
@@ -92,6 +94,8 @@ public class HeartbeatReporter
         var payload = new
         {
             totalAgentCount = agentCount,
+            builtInAgentCount = builtInAgentCount,
+            extendedAgentCount = extendedAgentCount,
             totalToolCount = toolCount
         };
 
