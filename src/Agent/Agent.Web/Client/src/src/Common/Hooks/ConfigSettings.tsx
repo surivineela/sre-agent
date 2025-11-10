@@ -23,11 +23,14 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     'portal.azure.com': {},
     'ms.portal.azure.com': {
         [SettingNames.ShowThreadTraceUI]: true,
+        [SettingNames.DataConnectors]: false,
+        [SettingNames.Connectors]: true,
     },
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.ForUnitTests]: true,
         [SettingNames.ShowThreadTraceUI]: true,
+        [SettingNames.DataConnectors]: false,
         [SettingNames.Connectors]: true,
     },
 };
