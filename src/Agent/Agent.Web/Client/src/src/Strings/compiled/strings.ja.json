@@ -2,7 +2,7 @@
   "++2B26": [
     {
       "type": 0,
-      "value": "Provide values for: "
+      "value": "次の値を指定してください: "
     },
     {
       "type": 1,
@@ -12,7 +12,7 @@
   "+/9vVV": [
     {
       "type": 0,
-      "value": "Describe it in natural language"
+      "value": "自然な言葉で説明する"
     }
   ],
   "+/nU/s": [
@@ -72,19 +72,25 @@
   "+Hx789": [
     {
       "type": 0,
-      "value": "Filter by severity level"
+      "value": "重大度レベルでフィルター"
+    }
+  ],
+  "+Kcoxv": [
+    {
+      "type": 0,
+      "value": "Related incidents"
     }
   ],
   "+KyrhG": [
     {
       "type": 0,
-      "value": "Choose a tool"
+      "value": "ツールを選択する"
     }
   ],
   "+Pmftr": [
     {
       "type": 0,
-      "value": "Reset draft"
+      "value": "下書きをリセットする"
     }
   ],
   "+S4WAz": [
@@ -96,7 +102,7 @@
   "+TFnQ/": [
     {
       "type": 0,
-      "value": "Extended Tools (Optional)"
+      "value": "拡張ツール (省略可能)"
     }
   ],
   "+TlNdm": [
@@ -107,24 +113,28 @@
   ],
   "+TnQ2+": [
     {
+      "type": 0,
+      "value": "プレイグラウンドでは、"
+    },
+    {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": " is read-only in the playground."
+      "value": " は読み取り専用です。"
     }
   ],
   "+U6ozc": [
     {
       "type": 0,
-      "value": "Service"
+      "value": "種類"
     }
   ],
   "+ZdOJt": [
     {
       "type": 0,
-      "value": "Turning off scheduled task(s)"
+      "value": "スケジュールされたタスクをオフにしています"
     }
   ],
   "+bJIWo": [
@@ -142,7 +152,7 @@
   "+h4pn9": [
     {
       "type": 0,
-      "value": "Create new subagent"
+      "value": "新しいサブエージェントを作成する"
     }
   ],
   "+hJd45": [
@@ -154,7 +164,7 @@
   "+hOwpi": [
     {
       "type": 0,
-      "value": "Select a tool to test"
+      "value": "テストするツールを選択する"
     }
   ],
   "+iCTRd": [
@@ -172,7 +182,7 @@
   "+kmL8g": [
     {
       "type": 0,
-      "value": "Provide instructions for what this scheduled task should do."
+      "value": "このスケジュールされたタスクの実行内容を指定します。"
     }
   ],
   "+l+XEu": [
@@ -190,13 +200,13 @@
   "+p60ph": [
     {
       "type": 0,
-      "value": "MCP server icon"
+      "value": "MCP サーバーのアイコン"
     }
   ],
   "+pmvA0": [
     {
       "type": 0,
-      "value": "Enter a scheduled task name"
+      "value": "スケジュールされたタスク名を入力する"
     }
   ],
   "+uAdUZ": [
@@ -235,6 +245,12 @@
       "value": "The maximum AAU limit is 200,000"
     }
   ],
+  "/7GPtw": [
+    {
+      "type": 0,
+      "value": "Go to Incidents"
+    }
+  ],
   "/8MshI": [
     {
       "type": 0,
@@ -244,7 +260,7 @@
   "/9FZdx": [
     {
       "type": 0,
-      "value": "this agent"
+      "value": "このエージェント"
     }
   ],
   "/Br0/Z": [
@@ -256,17 +272,21 @@
   "/F7sHX": [
     {
       "type": 0,
-      "value": "Failed to delete tool "
+      "value": "ツール "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " を削除できませんでした"
     }
   ],
   "/GCoTA": [
     {
       "type": 0,
-      "value": "Clear"
+      "value": "クリア"
     }
   ],
   "/ImSqA": [
@@ -278,25 +298,25 @@
   "/N0Usl": [
     {
       "type": 0,
-      "value": "Thread title cannot be empty"
+      "value": "スレッドのタイトルを空にすることはできません"
     }
   ],
   "/OUWsL": [
     {
       "type": 0,
-      "value": "Get AI recommendations to improve your agent"
+      "value": "エージェントを改善するための AI による推奨事項を取得する"
     }
   ],
   "/RdF9w": [
     {
       "type": 0,
-      "value": "Handoffs"
+      "value": "ハンドオフ"
     }
   ],
   "/TZk1G": [
     {
       "type": 0,
-      "value": "AAU allocation updated from "
+      "value": "AAU の割り当てが "
     },
     {
       "type": 1,
@@ -304,7 +324,7 @@
     },
     {
       "type": 0,
-      "value": " to "
+      "value": " から "
     },
     {
       "type": 1,
@@ -312,7 +332,7 @@
     },
     {
       "type": 0,
-      "value": " successfully."
+      "value": " に正常に更新されました。"
     }
   ],
   "/VnDMl": [
@@ -330,7 +350,7 @@
   "/WgnYE": [
     {
       "type": 0,
-      "value": "We couldn't understand that description. Try a different phrasing."
+      "value": "その説明を理解できませんでした。別の表現をお試しください。"
     }
   ],
   "/WrP/v": [
@@ -342,25 +362,25 @@
   "/XIuIr": [
     {
       "type": 0,
-      "value": "Every minute"
+      "value": "毎分"
     }
   ],
   "/Z1fHN": [
     {
       "type": 0,
-      "value": "Tool and subagent activity sent to user"
+      "value": "ツールとサブエージェントのアクティビティがユーザーに送信されました"
     }
   ],
   "/bWE45": [
     {
       "type": 0,
-      "value": "Scoring agent quality… fresh quick fixes will land here shortly."
+      "value": "エージェントの品質をスコアリングしています…新しいクイック修正がまもなくここに表示されます。"
     }
   ],
   "/clOBU": [
     {
       "type": 0,
-      "value": "Weekly"
+      "value": "毎週"
     }
   ],
   "/dxZCE": [
@@ -378,7 +398,13 @@
   "/mHau5": [
     {
       "type": 0,
-      "value": "Failed to create connector"
+      "value": "コネクタを作成できませんでした"
+    }
+  ],
+  "/qCaiZ": [
+    {
+      "type": 0,
+      "value": "Incident trigger name"
     }
   ],
   "/rNkXe": [
@@ -390,7 +416,7 @@
   "/tauMV": [
     {
       "type": 0,
-      "value": "e.g., ProductionKusto"
+      "value": "例: ProductionKusto"
     }
   ],
   "/wdD42": [
@@ -448,13 +474,13 @@
   "05Rzkx": [
     {
       "type": 0,
-      "value": "Test Agent"
+      "value": "テスト エージェント"
     }
   ],
   "08bD52": [
     {
       "type": 0,
-      "value": "Tool created, but attaching to "
+      "value": "ツールが作成されましたが、"
     },
     {
       "type": 1,
@@ -462,19 +488,33 @@
     },
     {
       "type": 0,
-      "value": " failed. Retry link."
+      "value": " へのアタッチに失敗しました。リンクを再試行します。"
     }
   ],
   "0BUTMv": [
     {
       "type": 0,
-      "value": "Search..."
+      "value": "検索..."
     }
   ],
   "0D+7fr": [
     {
       "type": 0,
       "value": "Microsoft IcM"
+    }
+  ],
+  "0DUgkZ": [
+    {
+      "type": 0,
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " stopped successfully"
     }
   ],
   "0Dhe75": [
@@ -492,7 +532,7 @@
   "0ICwq5": [
     {
       "type": 0,
-      "value": "Last updated"
+      "value": "最終更新日時"
     }
   ],
   "0KB3lG": [
@@ -504,13 +544,13 @@
   "0Krg21": [
     {
       "type": 0,
-      "value": "Quick fixes"
+      "value": "クイック修正"
     }
   ],
   "0MhOuN": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete task "
+      "value": "タスク "
     },
     {
       "type": 1,
@@ -518,7 +558,13 @@
     },
     {
       "type": 0,
-      "value": "? This action cannot be undone."
+      "value": " を削除しますか?この操作は元に戻せません。"
+    }
+  ],
+  "0Qocmw": [
+    {
+      "type": 0,
+      "value": "All tools"
     }
   ],
   "0R+Pet": [
@@ -530,7 +576,7 @@
   "0TOEqZ": [
     {
       "type": 0,
-      "value": "Enter a valid cron expression."
+      "value": "有効な CRON 式を入力してください。"
     }
   ],
   "0TkVxX": [
@@ -553,6 +599,12 @@
       "value": " 個の管理対象リソース グループを追加しています"
     }
   ],
+  "0VVX+G": [
+    {
+      "type": 0,
+      "value": "Connected as"
+    }
+  ],
   "0VuGey": [
     {
       "type": 0,
@@ -562,29 +614,23 @@
   "0aJxT2": [
     {
       "type": 0,
-      "value": "Updated "
+      "value": "更新済み "
     },
     {
       "type": 1,
       "value": "time"
     }
   ],
-  "0aN6iW": [
-    {
-      "type": 0,
-      "value": "プレビュー中に、診断、メトリクス、ナレッジなどに最適なエージェントのパフォーマンスを得るために、次の Azure コンピューティング サービスのうち 1 つ以上を含むリソース グループを使用してください: Azure Kubernetes Service、Functions、Container Apps、または Web Apps。"
-    }
-  ],
   "0cEOKu": [
     {
       "type": 0,
-      "value": "Advanced options"
+      "value": "詳細オプション"
     }
   ],
   "0eZALE": [
     {
       "type": 0,
-      "value": "Last published "
+      "value": "最終公開日時 "
     },
     {
       "type": 1,
@@ -597,22 +643,28 @@
       "value": "タスクの選択"
     }
   ],
+  "0hpRE4": [
+    {
+      "type": 0,
+      "value": "Enter the parameter name"
+    }
+  ],
   "0i3Qrd": [
     {
       "type": 0,
-      "value": "Agent Response"
+      "value": "エージェントの応答"
     }
   ],
   "0iLXks": [
     {
       "type": 0,
-      "value": "No extended agents available"
+      "value": "使用できる拡張エージェントはありません"
     }
   ],
   "0ltHAS": [
     {
       "type": 0,
-      "value": "e.g., Every weekday at 9am"
+      "value": "例: 平日午前 9 時"
     }
   ],
   "0mx8D9": [
@@ -629,19 +681,23 @@
           "value": [
             {
               "type": 0,
-              "value": "Create scheduled tasks to run agents automatically."
+              "value": "エージェントを自動的に実行するためのスケジュールされたタスクを作成します。"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "エージェントを自動的に実行する準備が完了したスケジュールされたタスクが "
+            },
+            {
               "type": 1,
               "value": "count"
             },
             {
               "type": 0,
-              "value": " scheduled tasks ready to run agents automatically."
+              "value": " 件あります。"
             }
           ]
         }
@@ -660,7 +716,7 @@
   "0pysPM": [
     {
       "type": 0,
-      "value": "Total insights"
+      "value": "分析情報の合計数"
     }
   ],
   "0q6E9l": [
@@ -672,7 +728,7 @@
   "0sA1BF": [
     {
       "type": 0,
-      "value": "Maximum file size: 100MB"
+      "value": "ファイルの最大サイズ: 100MB"
     }
   ],
   "0sIUhe": [
@@ -690,7 +746,7 @@
   "0w+w97": [
     {
       "type": 0,
-      "value": "Edit YAML"
+      "value": "YAML を編集"
     }
   ],
   "0w0iFy": [
@@ -705,10 +761,16 @@
       "value": "タスク"
     }
   ],
+  "0zGfOk": [
+    {
+      "type": 0,
+      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+    }
+  ],
   "12GY0h": [
     {
       "type": 0,
-      "value": "Describe the schedule before generating a cron expression."
+      "value": "Cron 式を生成する前に、スケジュールを説明してください。"
     }
   ],
   "1389z+": [
@@ -726,25 +788,25 @@
   "15nhHh": [
     {
       "type": 0,
-      "value": "A unique identifier for your agent"
+      "value": "エージェントの一意識別子"
     }
   ],
   "17sQau": [
     {
       "type": 0,
-      "value": "Use AI to enhance and validate your task instructions"
+      "value": "AI を使用してタスクの指示を強化および検証する"
     }
   ],
   "18C/Jh": [
     {
       "type": 0,
-      "value": "Override default meta agent"
+      "value": "既定のメタ エージェントをオーバーライド"
     }
   ],
   "1CcjQj": [
     {
       "type": 0,
-      "value": "Add a response plan to automate incident handling"
+      "value": "インシデントへの対応を自動化する応答プランを追加する"
     }
   ],
   "1DDIYv": [
@@ -756,7 +818,7 @@
   "1EnaNQ": [
     {
       "type": 0,
-      "value": "Next run: "
+      "value": "次の実行: "
     },
     {
       "type": 1,
@@ -766,7 +828,7 @@
   "1FMpZj": [
     {
       "type": 0,
-      "value": "Error loading graph: "
+      "value": "グラフの読み込み中にエラーが発生しました: "
     },
     {
       "type": 1,
@@ -796,7 +858,7 @@
   "1OorZL": [
     {
       "type": 0,
-      "value": "Failed to update connector with error: "
+      "value": "コネクタを更新できませんでした。エラー: "
     },
     {
       "type": 1,
@@ -848,7 +910,7 @@
   "1aNP56": [
     {
       "type": 0,
-      "value": "Connector \""
+      "value": "コネクタ \""
     },
     {
       "type": 1,
@@ -856,7 +918,7 @@
     },
     {
       "type": 0,
-      "value": "\" has been updated successfully"
+      "value": "\" は正常に更新されました"
     }
   ],
   "1dOMiz": [
@@ -868,7 +930,7 @@
   "1eaczG": [
     {
       "type": 0,
-      "value": "Select fix"
+      "value": "修正を選択する"
     }
   ],
   "1fNFGt": [
@@ -880,25 +942,25 @@
   "1hiiU/": [
     {
       "type": 0,
-      "value": "Review AI suggestions and warnings"
+      "value": "AI の提案と警告を確認"
     }
   ],
   "1hu8Uv": [
     {
       "type": 0,
-      "value": "Alert status"
+      "value": "アラートの状態"
     }
   ],
   "1iEPTM": [
     {
       "type": 0,
-      "value": "General"
+      "value": "全般"
     }
   ],
   "1jBkyH": [
     {
       "type": 0,
-      "value": "Last confidence: "
+      "value": "前回の信頼度: "
     },
     {
       "type": 1,
@@ -920,7 +982,7 @@
             },
             {
               "type": 0,
-              "value": " tools selected"
+              "value": " 件のツールが選択されました"
             }
           ]
         }
@@ -945,13 +1007,13 @@
   "2+TYMx": [
     {
       "type": 0,
-      "value": "Add a trigger"
+      "value": "トリガーの追加"
     }
   ],
   "2+atxY": [
     {
       "type": 0,
-      "value": "Handoff"
+      "value": "ハンドオフ"
     }
   ],
   "2/2yg+": [
@@ -963,7 +1025,7 @@
   "21vNrm": [
     {
       "type": 0,
-      "value": "Validate tool wiring and connector responses in context."
+      "value": "ツールの連携とコンテキストでのコネクタの応答を検証します。"
     }
   ],
   "235+J4": [
@@ -981,7 +1043,7 @@
   "26Vq1R": [
     {
       "type": 0,
-      "value": "Leave the field blank if there's no limit"
+      "value": "制限がない場合はフィールドを空白のままにします"
     }
   ],
   "28HRcH": [
@@ -1003,13 +1065,13 @@
   "2Bb4rY": [
     {
       "type": 0,
-      "value": "Failed to update connector"
+      "value": "コネクタの作成に失敗"
     }
   ],
   "2CSEeq": [
     {
       "type": 0,
-      "value": "Describe the cadence—get the cron"
+      "value": "周期を説明して、Cron を取得する"
     }
   ],
   "2FLZrG": [
@@ -1077,7 +1139,7 @@
   "2YgmBr": [
     {
       "type": 0,
-      "value": "Scheduled task turned off successfully"
+      "value": "スケジュールされたタスクが正常にオフになりました"
     }
   ],
   "2a+ttj": [
@@ -1089,13 +1151,13 @@
   "2ePVf6": [
     {
       "type": 0,
-      "value": "Test your agent in a simple chat interface"
+      "value": "シンプルなチャット インターフェイスでエージェントをテストする"
     }
   ],
   "2ep4et": [
     {
       "type": 0,
-      "value": "Monthly on day "
+      "value": "毎月 "
     },
     {
       "type": 1,
@@ -1103,7 +1165,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " 日の "
     },
     {
       "type": 1,
@@ -1119,19 +1181,25 @@
   "2kRPCZ": [
     {
       "type": 0,
-      "value": "System tools"
+      "value": "システム ツール"
+    }
+  ],
+  "2l5w5P": [
+    {
+      "type": 0,
+      "value": "Go to Support + Troubleshooting"
     }
   ],
   "2m6oj5": [
     {
       "type": 0,
-      "value": "Get started with the curated scenarios below or craft your own prompts."
+      "value": "以下のキュレーションされたシナリオで開始するか、独自のプロンプトを作成してください。"
     }
   ],
   "2mMJRv": [
     {
       "type": 0,
-      "value": "Connectors"
+      "value": "コネクタ"
     }
   ],
   "2os8R1": [
@@ -1146,6 +1214,12 @@
       "value": "クリティカル"
     }
   ],
+  "2reUcp": [
+    {
+      "type": 0,
+      "value": "Subagent name"
+    }
+  ],
   "2tOWr2": [
     {
       "type": 0,
@@ -1155,7 +1229,7 @@
   "2xE9ci": [
     {
       "type": 0,
-      "value": "Analyse the current prompt, tools, and test runs to get tailored guidance."
+      "value": "現在のプロンプト、ツール、およびテスト実行を分析して、最適なガイダンスを取得します。"
     }
   ],
   "2zi2Yj": [
@@ -1167,7 +1241,7 @@
   "3/wF0G": [
     {
       "type": 0,
-      "value": "Slash commands"
+      "value": "スラッシュ コマンド"
     }
   ],
   "30Ap/Y": [
@@ -1185,19 +1259,19 @@
   "33HEdR": [
     {
       "type": 0,
-      "value": "Tools this agent can call"
+      "value": "このエージェントが呼び出せるツール"
     }
   ],
   "35Pxrz": [
     {
       "type": 0,
-      "value": "Enter a name and instructions before creating this agent."
+      "value": "このエージェントを作成する前に、名前と指示を入力します。"
     }
   ],
   "387FD2": [
     {
       "type": 0,
-      "value": "Extended agents"
+      "value": "拡張エージェント"
     }
   ],
   "3BubSI": [
@@ -1215,13 +1289,13 @@
   "3GLH+d": [
     {
       "type": 0,
-      "value": "Examples"
+      "value": "例"
     }
   ],
   "3H77Ic": [
     {
       "type": 0,
-      "value": "No agents available yet"
+      "value": "利用可能なエージェントはまだありません"
     }
   ],
   "3JVa6k": [
@@ -1239,7 +1313,7 @@
   "3Pq+hf": [
     {
       "type": 0,
-      "value": "Create and connect"
+      "value": "作成して接続"
     }
   ],
   "3PxUNi": [
@@ -1251,7 +1325,7 @@
   "3R3pgd": [
     {
       "type": 0,
-      "value": "No suggestions available"
+      "value": "提案はありません"
     }
   ],
   "3Rh7XU": [
@@ -1275,7 +1349,7 @@
   "3VI9mt": [
     {
       "type": 0,
-      "value": "Save Changes"
+      "value": "変更内容を保存"
     }
   ],
   "3Wq8aM": [
@@ -1299,7 +1373,7 @@
   "3n8o15": [
     {
       "type": 0,
-      "value": "Apply changes"
+      "value": "変更を適用する"
     }
   ],
   "3nhWFW": [
@@ -1321,7 +1395,7 @@
   "3sQV42": [
     {
       "type": 0,
-      "value": "Estimated total "
+      "value": "推定合計信頼度 "
     },
     {
       "type": 1,
@@ -1329,7 +1403,7 @@
     },
     {
       "type": 0,
-      "value": "% confidence"
+      "value": "%"
     }
   ],
   "3sjbqq": [
@@ -1359,7 +1433,7 @@
   "3yurtF": [
     {
       "type": 0,
-      "value": "Next run"
+      "value": "次回の実行"
     }
   ],
   "3zLsNR": [
@@ -1377,13 +1451,13 @@
   "4/aFfy": [
     {
       "type": 0,
-      "value": "Tree"
+      "value": "ツリー"
     }
   ],
   "4/nSt8": [
     {
       "type": 0,
-      "value": "Select an existing trigger"
+      "value": "既存のトリガーを選択"
     }
   ],
   "40YXE1": [
@@ -1407,25 +1481,25 @@
   "42RAxK": [
     {
       "type": 0,
-      "value": "Start testing"
+      "value": "テストを開始する"
     }
   ],
   "44QmgP": [
     {
       "type": 0,
-      "value": "connector"
+      "value": "コネクタ"
     }
   ],
   "44Y8wQ": [
     {
       "type": 0,
-      "value": "No common tools configured."
+      "value": "共通ツールが構成されていません。"
     }
   ],
   "451B6Z": [
     {
       "type": 0,
-      "value": "No agents found"
+      "value": "エージェントが見つかりません"
     }
   ],
   "477I0g": [
@@ -1443,39 +1517,35 @@
   "47Qksb": [
     {
       "type": 0,
-      "value": "This agent"
+      "value": "このエージェント"
     }
   ],
   "493R/T": [
     {
       "type": 0,
-      "value": "Share your draft instructions and we’ll tailor them for a scheduled agent run."
+      "value": "下書きの指示を教えてもらえれば、スケジュールされたエージェントの実行に合わせてこちらでそれを調整します。"
     }
   ],
   "498yM3": [
-    {
-      "type": 0,
-      "value": "Runs "
-    },
     {
       "type": 1,
       "value": "description"
     },
     {
       "type": 0,
-      "value": "."
+      "value": " を実行します。"
     }
   ],
   "4BVpFN": [
     {
       "type": 0,
-      "value": "YAML must include a spec object."
+      "value": "YAML には spec オブジェクトを含める必要があります。"
     }
   ],
   "4C44ie": [
     {
       "type": 0,
-      "value": "Trigger details"
+      "value": "トリガーの詳細"
     }
   ],
   "4Ez7HI": [
@@ -1487,7 +1557,7 @@
   "4HV6SH": [
     {
       "type": 0,
-      "value": "Alert created"
+      "value": "アラートが作成されました"
     }
   ],
   "4MeTpL": [
@@ -1499,7 +1569,7 @@
   "4OCLSf": [
     {
       "type": 0,
-      "value": "Response to user"
+      "value": "ユーザーへの応答"
     }
   ],
   "4OUjTL": [
@@ -1511,19 +1581,25 @@
   "4Orfd8": [
     {
       "type": 0,
-      "value": "Rename thread"
+      "value": "スレッドの名前を変更する"
     }
   ],
   "4QLM52": [
     {
       "type": 0,
-      "value": "New agents can take a few seconds to appear in the graph. If you do not see it right away, refresh the list after a brief moment."
+      "value": "新しいエージェントがグラフに表示されるまで数秒かかる場合があります。すぐに表示されない場合は、しばらくしてからリストを更新します。"
     }
   ],
   "4Qhg3L": [
     {
       "type": 0,
-      "value": "Keep the description brief and explain the task’s actions. Include necessary resource identifiers, specify time-sensitive information, and define success/failure signals or required output formats."
+      "value": "説明は簡潔にし、タスクのアクションを説明してください。必要なリソース識別子を含め、時間依存の情報を指定し、成功 / 失敗の指標や必要な出力形式を定義してください。"
+    }
+  ],
+  "4RwjwU": [
+    {
+      "type": 0,
+      "value": "Add handoff from existing agent"
     }
   ],
   "4TnjxL": [
@@ -1535,7 +1611,17 @@
   "4XOvey": [
     {
       "type": 0,
-      "value": "AI Agents"
+      "value": "AI エージェント"
+    }
+  ],
+  "4Xep39": [
+    {
+      "type": 0,
+      "value": "Failed to stop SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "4ZoIgV": [
@@ -1553,7 +1639,7 @@
   "4fPELu": [
     {
       "type": 0,
-      "value": "Function"
+      "value": "機能"
     }
   ],
   "4ii5zj": [
@@ -1589,19 +1675,13 @@
   "4oK1Me": [
     {
       "type": 0,
-      "value": "Switch to form"
+      "value": "フォームに切り替える"
     }
   ],
   "4pJVaS": [
     {
       "type": 0,
-      "value": "Select row"
-    }
-  ],
-  "4uiKBK": [
-    {
-      "type": 0,
-      "value": "Select a Kusto connector"
+      "value": "行の選択"
     }
   ],
   "4upwsn": [
@@ -1613,7 +1693,7 @@
   "4z+NaY": [
     {
       "type": 0,
-      "value": "The type of data source"
+      "value": "データ ソースの種類"
     }
   ],
   "5+bQr/": [
@@ -1635,7 +1715,7 @@
     },
     {
       "type": 0,
-      "value": ", I need diagnostics for intermittent latency spikes across AKS clusters eastus & westeurope."
+      "value": "、eastus および westeurope の AKS クラスター間で断続的なレイテンシ スパイクが発生しており、診断が必要です。"
     }
   ],
   "53O1/Z": [
@@ -1647,7 +1727,7 @@
   "53qjcm": [
     {
       "type": 0,
-      "value": "Updating scheduled task"
+      "value": "スケジュールされたタスクを更新しています"
     }
   ],
   "543Ygw": [
@@ -1659,7 +1739,7 @@
   "54UIcW": [
     {
       "type": 0,
-      "value": "We couldn’t polish the instructions. Try again shortly."
+      "value": "指示を推敲できませんでした。しばらくしてから、もう一度お試しください。"
     }
   ],
   "59z+Aj": [
@@ -1681,7 +1761,7 @@
   "5DqOua": [
     {
       "type": 0,
-      "value": "Pick an extended agent to assist you with tasks."
+      "value": "タスクに役立つ拡張エージェントを選択します。"
     }
   ],
   "5GUtRJ": [
@@ -1693,7 +1773,7 @@
   "5Imse3": [
     {
       "type": 0,
-      "value": "Failed to delete connector with error: "
+      "value": "コネクタを削除できませんでした。エラー: "
     },
     {
       "type": 1,
@@ -1703,33 +1783,29 @@
   "5Lc8g/": [
     {
       "type": 0,
-      "value": "Preview updated"
+      "value": "プレビューが更新されました"
     }
   ],
   "5M+Mu/": [
     {
       "type": 0,
-      "value": "Close quality watcher"
+      "value": "品質ウォッチャーを閉じる"
     }
   ],
   "5MSxYS": [
-    {
-      "type": 0,
-      "value": "Will add as handoff to "
-    },
     {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": "."
+      "value": " にハンドオフとして追加されます。"
     }
   ],
   "5POweM": [
     {
       "type": 0,
-      "value": "Create New Entity"
+      "value": "新しいエンティティを作成"
     }
   ],
   "5QYdPU": [
@@ -1747,7 +1823,7 @@
   "5SH2BD": [
     {
       "type": 0,
-      "value": "Weekly on "
+      "value": "毎週 "
     },
     {
       "type": 1,
@@ -1755,7 +1831,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " の "
     },
     {
       "type": 1,
@@ -1777,7 +1853,7 @@
   "5U04OG": [
     {
       "type": 0,
-      "value": "Data knowledge space"
+      "value": "データ ナレッジ スペース"
     }
   ],
   "5UfRjw": [
@@ -1823,19 +1899,25 @@
   "5XRsWa": [
     {
       "type": 0,
-      "value": "Agent status"
+      "value": "エージェントの状態"
     }
   ],
   "5Y6lHe": [
     {
       "type": 0,
-      "value": "You can increase or decrease active flow AAUs as needed. If the agent reaches the active flow limit, it continues running only in the always-on flow but is unavailable for chat and actions."
+      "value": "必要に応じてアクティブ フローの AAU を増減できます。エージェントがアクティブ フローの上限に達すると、常時オンのフローでのみ動作するようになり、チャットとアクションでは利用できなくなります。"
     }
   ],
   "5cRddy": [
     {
       "type": 0,
       "value": "ユーザーにより軽減済み"
+    }
+  ],
+  "5fVEet": [
+    {
+      "type": 0,
+      "value": "Add tools"
     }
   ],
   "5gEh2M": [
@@ -1875,7 +1957,7 @@
   "5kK+j9": [
     {
       "type": 0,
-      "value": "Restart"
+      "value": "再起動"
     }
   ],
   "5kp1Ie": [
@@ -1907,7 +1989,7 @@
   "5q8BxP": [
     {
       "type": 0,
-      "value": "What would you like to create?"
+      "value": "何を作成しますか?"
     }
   ],
   "5sg7KC": [
@@ -1919,7 +2001,7 @@
   "5ukccA": [
     {
       "type": 0,
-      "value": "Run an analysis to see tailored fixes."
+      "value": "分析を実行して、最適な修正を確認します。"
     }
   ],
   "5w4pim": [
@@ -1943,7 +2025,7 @@
   "5walLE": [
     {
       "type": 0,
-      "value": "Tools · "
+      "value": "ツール · "
     },
     {
       "type": 1,
@@ -1957,7 +2039,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " は "
     },
     {
       "type": 1,
@@ -1965,7 +2047,7 @@
     },
     {
       "type": 0,
-      "value": "%. Start experimenting—your upgrade path awaits."
+      "value": "% です。実験を始めて、アップグレードを実現しましょう。"
     }
   ],
   "5y2qWO": [
@@ -2001,7 +2083,7 @@
   "67UmDz": [
     {
       "type": 0,
-      "value": "Parameter syntax:"
+      "value": "パラメーター構文:"
     }
   ],
   "69FfbB": [
@@ -2026,10 +2108,16 @@
       "value": " XP"
     }
   ],
+  "6BTCPo": [
+    {
+      "type": 0,
+      "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
+    }
+  ],
   "6CxEZS": [
     {
       "type": 0,
-      "value": "Edit & test live agent"
+      "value": "ライブ エージェントを編集およびテストする"
     }
   ],
   "6ENgmY": [
@@ -2047,7 +2135,7 @@
   "6KOA0x": [
     {
       "type": 0,
-      "value": "Cleared the composer. Type a new question to begin a fresh chat."
+      "value": "コンポーザーをクリアしました。新しいチャットを開始するには、 新しい質問を入力します。"
     }
   ],
   "6LZ2qn": [
@@ -2059,7 +2147,7 @@
   "6Lox/s": [
     {
       "type": 0,
-      "value": "recommendations"
+      "value": "推奨事項"
     }
   ],
   "6OBtew": [
@@ -2083,13 +2171,13 @@
   "6SKklv": [
     {
       "type": 0,
-      "value": "Remove attachment"
+      "value": "添付ファイルの削除"
     }
   ],
   "6TO45V": [
     {
       "type": 0,
-      "value": "No parameters defined."
+      "value": "パラメーターが定義されていません。"
     }
   ],
   "6UyZlH": [
@@ -2101,7 +2189,7 @@
   "6Vngei": [
     {
       "type": 0,
-      "value": "Trigger type"
+      "value": "トリガーの種類"
     }
   ],
   "6XFO/C": [
@@ -2113,7 +2201,7 @@
   "6Y8rFa": [
     {
       "type": 0,
-      "value": "No change since last run"
+      "value": "前回の実行以降、変更はありません"
     }
   ],
   "6YHhH+": [
@@ -2137,7 +2225,7 @@
   "6aH1+U": [
     {
       "type": 0,
-      "value": "Create a scheduled task"
+      "value": "スケジュールされたタスクを作成する"
     }
   ],
   "6bkNTl": [
@@ -2149,7 +2237,7 @@
   "6dEJ43": [
     {
       "type": 0,
-      "value": "Cron draft"
+      "value": "Cron の下書き"
     }
   ],
   "6dWeUs": [
@@ -2176,6 +2264,24 @@
       "value": "エージェントが管理するリソース グループを最大 20 個まで選択できます。"
     }
   ],
+  "6tzuXg": [
+    {
+      "type": 0,
+      "value": "Failed to start SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "6u8zJX": [
     {
       "type": 0,
@@ -2185,7 +2291,7 @@
   "6umiRw": [
     {
       "type": 0,
-      "value": "A clear, concise description that helps other agents understand when to delegate work to this specialist agent. This appears in agent handoff decisions and collaboration workflows."
+      "value": "他のエージェントがこの専門エージェントに作業を委任すべきときを理解するのに役立つ、明確で簡潔な説明。これは、エージェントのハンドオフの決定とコラボレーションのワークフローに表示されます。"
     }
   ],
   "6v8Uj+": [
@@ -2201,13 +2307,13 @@
   "6w0QQX": [
     {
       "type": 0,
-      "value": "Apply your edits and refresh insights"
+      "value": "編集内容を適用して分析情報を更新する"
     }
   ],
   "6yuD0y": [
     {
       "type": 0,
-      "value": "Read-only lock"
+      "value": "読み取り専用ロック"
     }
   ],
   "6zUWZ/": [
@@ -2219,7 +2325,7 @@
   "7+Domh": [
     {
       "type": 0,
-      "value": "Notes"
+      "value": "メモ"
     }
   ],
   "7+b0J0": [
@@ -2231,7 +2337,7 @@
   "726zma": [
     {
       "type": 0,
-      "value": "Daily at "
+      "value": "毎日 "
     },
     {
       "type": 1,
@@ -2241,7 +2347,7 @@
   "73c47a": [
     {
       "type": 0,
-      "value": "Turn on scheduled task"
+      "value": "スケジュールされたタスクを有効にする"
     }
   ],
   "74vgSJ": [
@@ -2262,6 +2368,12 @@
       "value": "ストリーミング メッセージから受信したスレッド データが無効です"
     }
   ],
+  "79kwlH": [
+    {
+      "type": 0,
+      "value": "No agents available for handoff"
+    }
+  ],
   "7C0xai": [
     {
       "type": 0,
@@ -2271,19 +2383,13 @@
   "7Cy5xk": [
     {
       "type": 0,
-      "value": "Go to Incident management"
+      "value": "インシデント管理に移動"
     }
   ],
   "7Eq7I8": [
     {
       "type": 0,
       "value": "レビュー モード"
-    }
-  ],
-  "7Hg58U": [
-    {
-      "type": 0,
-      "value": "e.g., QueryKusto"
     }
   ],
   "7M8VZy": [
@@ -2355,31 +2461,31 @@
   "7TVRcx": [
     {
       "type": 0,
-      "value": "Retry link"
+      "value": "リンクを再試行"
     }
   ],
   "7Uk/61": [
     {
       "type": 0,
-      "value": "Agent configuration"
+      "value": "エージェントの構成"
     }
   ],
   "7Vep/o": [
     {
       "type": 0,
-      "value": "A unique identifier for your connector"
+      "value": "コネクタの一意識別子"
     }
   ],
   "7X1tNR": [
     {
       "type": 0,
-      "value": "Create task"
+      "value": "タスクの作成"
     }
   ],
   "7bDMaW": [
     {
       "type": 0,
-      "value": "Delete file?"
+      "value": "ファイルを削除しますか?"
     }
   ],
   "7cS956": [
@@ -2403,7 +2509,7 @@
   "7nUCu9": [
     {
       "type": 0,
-      "value": "Timezone"
+      "value": "タイムゾーン"
     }
   ],
   "7oBAcZ": [
@@ -2414,7 +2520,7 @@
           "value": [
             {
               "type": 0,
-              "value": "No incident response plans yet"
+              "value": "インシデント応答計画はまだありません"
             }
           ]
         },
@@ -2426,7 +2532,7 @@
             },
             {
               "type": 0,
-              "value": " incident response plans ready"
+              "value": " 件のインシデント応答計画が準備完了です"
             }
           ]
         }
@@ -2451,27 +2557,23 @@
   "7sbcy0": [
     {
       "type": 0,
-      "value": "Confidence is calculated based on your agent prompt, available tools, and chat interactions. Click refresh to get AI-powered recommendations."
+      "value": "信頼度はエージェントのプロンプト、利用可能なツール、およびチャットのやり取りに基づいて計算されます。[最新の情報に更新] をクリックして、AI による推奨事項を取得してください。"
     }
   ],
   "7smbCB": [
     {
       "type": 0,
-      "value": "Define autonomous agents with custom instructions and capabilities"
+      "value": "カスタムの指示と機能を備えた自律型エージェントを定義する"
     }
   ],
   "7tqXmc": [
-    {
-      "type": 0,
-      "value": "Describe how "
-    },
     {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": " should handle new incidents."
+      "value": " が新しいインシデントを処理する方法について説明してください。"
     }
   ],
   "7vl63m": [
@@ -2501,7 +2603,7 @@
   "83YwiU": [
     {
       "type": 0,
-      "value": "Tool details · "
+      "value": "ツールの詳細 · "
     },
     {
       "type": 1,
@@ -2511,7 +2613,7 @@
   "86kOeb": [
     {
       "type": 0,
-      "value": "No matches for the current filters."
+      "value": "現在のフィルターに一致するものはありません。"
     }
   ],
   "87v+WY": [
@@ -2523,13 +2625,13 @@
   "8AMq3a": [
     {
       "type": 0,
-      "value": "Daily active flow consumption"
+      "value": "1 日あたりのアクティブ フロー消費量"
     }
   ],
   "8BaLs0": [
     {
       "type": 0,
-      "value": "Select all rows"
+      "value": "すべての行を選択"
     }
   ],
   "8F5cJQ": [
@@ -2541,7 +2643,7 @@
   "8LMIGa": [
     {
       "type": 0,
-      "value": "These will be replaced with actual values at runtime."
+      "value": "これらは実行時に実際の値に置き換えられます。"
     }
   ],
   "8NHZQV": [
@@ -2567,7 +2669,7 @@
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": " 日前"
             }
           ]
         }
@@ -2580,7 +2682,7 @@
   "8Q504V": [
     {
       "type": 0,
-      "value": "Metadata"
+      "value": "メタデータ"
     }
   ],
   "8QX1EO": [
@@ -2592,7 +2694,7 @@
   "8RcpTO": [
     {
       "type": 0,
-      "value": "Describe this connector..."
+      "value": "このコネクタについて説明してください..."
     }
   ],
   "8RdOD0": [
@@ -2601,16 +2703,32 @@
       "value": "ID の選択"
     }
   ],
+  "8SCDv/": [
+    {
+      "type": 0,
+      "value": "Enter the query for the tool to run"
+    }
+  ],
   "8Vd2Kv": [
     {
       "type": 0,
-      "value": "Update list"
+      "value": "リストを更新する"
     }
   ],
   "8Wiwkg": [
     {
       "type": 0,
       "value": "ナレッジ グラフを構築しています"
+    }
+  ],
+  "8Zl3PA": [
+    {
+      "type": 0,
+      "value": "Failed to start SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "8aHHLj": [
@@ -2622,27 +2740,19 @@
   "8dASTJ": [
     {
       "type": 0,
-      "value": "Create a handoff sub-agent"
+      "value": "ハンドオフ サブエージェントを作成する"
     }
   ],
   "8dTxSy": [
     {
       "type": 0,
-      "value": "Learn more about how to calculate cost"
+      "value": "コストの計算方法に関する詳細情報"
     }
   ],
   "8eOoHt": [
     {
       "type": 0,
-      "value": "This will permanently "
-    },
-    {
-      "type": 1,
-      "value": "actionVerb"
-    },
-    {
-      "type": 0,
-      "value": " "
+      "value": "これにより、"
     },
     {
       "type": 1,
@@ -2650,7 +2760,7 @@
     },
     {
       "type": 0,
-      "value": " "
+      "value": " 件の "
     },
     {
       "type": 1,
@@ -2658,7 +2768,7 @@
     },
     {
       "type": 0,
-      "value": "s. Are you sure you want to "
+      "value": " が完全に "
     },
     {
       "type": 1,
@@ -2666,7 +2776,7 @@
     },
     {
       "type": 0,
-      "value": " these "
+      "value": " されます。これらの "
     },
     {
       "type": 1,
@@ -2674,13 +2784,27 @@
     },
     {
       "type": 0,
-      "value": "s?"
+      "value": " を "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " しますか?"
     }
   ],
   "8fYK1J": [
     {
       "type": 0,
       "value": "実行時間"
+    }
+  ],
+  "8fw5Cz": [
+    {
+      "type": 0,
+      "value": "Try different search terms or clear your search to see all connectors."
     }
   ],
   "8lCjAM": [
@@ -2698,13 +2822,13 @@
   "8ojA9A": [
     {
       "type": 0,
-      "value": "Let AI polish the instructions"
+      "value": "AI に指示を推敲させる"
     }
   ],
   "8oyl6b": [
     {
       "type": 0,
-      "value": "Line chart"
+      "value": "折れ線グラフ"
     }
   ],
   "8quEg9": [
@@ -2716,7 +2840,7 @@
   "8rNTuV": [
     {
       "type": 0,
-      "value": "Select an agent to hand off to"
+      "value": "引き継ぎ先のエージェントを選択"
     }
   ],
   "8v0Pyn": [
@@ -2732,7 +2856,7 @@
   "8wQLC0": [
     {
       "type": 0,
-      "value": "Close Todo Plans"
+      "value": "Todo プランを閉じる"
     }
   ],
   "8yyU6n": [
@@ -2750,7 +2874,7 @@
   "9+dRta": [
     {
       "type": 0,
-      "value": "This will permanently delete "
+      "value": "これにより、エージェントが使用するナレッジ ソースから "
     },
     {
       "type": 1,
@@ -2758,7 +2882,7 @@
     },
     {
       "type": 0,
-      "value": " files from the knowledge sources the agent uses. Are you sure you want to delete these files?"
+      "value": " 件のファイルが完全に削除されます。これらのファイルを削除しますか?"
     }
   ],
   "9/ucRx": [
@@ -2788,7 +2912,7 @@
   "94QRkK": [
     {
       "type": 0,
-      "value": "Follow-up questions"
+      "value": "フォローアップの質問"
     }
   ],
   "94zF5I": [
@@ -2812,25 +2936,25 @@
   "98A08r": [
     {
       "type": 0,
-      "value": "Learn more about MCP servers"
+      "value": "MCP サーバーの詳細情報"
     }
   ],
   "98TwgV": [
     {
       "type": 0,
-      "value": "Describe when and why other agents should hand off to this agent..."
+      "value": "他のエージェントがこのエージェントに引き継ぐ必要があるタイミングと理由を説明してください..."
     }
   ],
   "99OdS3": [
     {
       "type": 0,
-      "value": "Planning"
+      "value": "計画"
     }
   ],
   "9Dp2VU": [
     {
       "type": 0,
-      "value": "Save failed: "
+      "value": "保存に失敗しました: "
     },
     {
       "type": 1,
@@ -2840,13 +2964,13 @@
   "9G+4ga": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all data connectors."
+      "value": "別の検索語句を試すか、検索をクリアしてすべてのデータ コネクタを表示してください。"
     }
   ],
   "9GSKOR": [
     {
       "type": 0,
-      "value": "This overrides the default meta agent to remove general Azure knowledge and provide a more focused experience."
+      "value": "これにより、既定のメタ エージェントがオーバーライドされ、一般的な Azure ナレッジが除外されて、より焦点を絞ったエクスペリエンスが提供されます。"
     }
   ],
   "9MPGF8": [
@@ -2858,13 +2982,13 @@
   "9MwJ6v": [
     {
       "type": 0,
-      "value": "e.g., IncidentAnalyzer"
+      "value": "例: IncidentAnalyzer"
     }
   ],
   "9SQWi9": [
     {
       "type": 0,
-      "value": "Configuration target"
+      "value": "構成ターゲット"
     }
   ],
   "9VUlhV": [
@@ -2876,19 +3000,19 @@
   "9WRlF4": [
     {
       "type": 0,
-      "value": "Send"
+      "value": "送信"
     }
   ],
   "9X3VEw": [
     {
       "type": 0,
-      "value": "The task will stop running after reaching this number"
+      "value": "この数値に達すると、タスクの実行が停止します"
     }
   ],
   "9XASFm": [
     {
       "type": 0,
-      "value": "Selected files table"
+      "value": "選択したファイルの表"
     }
   ],
   "9ZIBMx": [
@@ -2903,20 +3027,10 @@
       "value": "タイトル"
     }
   ],
-  "9bH3e2": [
-    {
-      "type": 0,
-      "value": "Nodes: "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    }
-  ],
   "9jaWOF": [
     {
       "type": 0,
-      "value": "MCP tools · "
+      "value": "MCP ツール · "
     },
     {
       "type": 1,
@@ -2926,7 +3040,7 @@
   "9q75fe": [
     {
       "type": 0,
-      "value": "No handoff agents available"
+      "value": "利用可能なハンドオフ エージェントはありません"
     }
   ],
   "9sDoY5": [
@@ -2936,7 +3050,7 @@
     },
     {
       "type": 0,
-      "value": " of "
+      "value": " / "
     },
     {
       "type": 1,
@@ -2944,7 +3058,7 @@
     },
     {
       "type": 0,
-      "value": " completed"
+      "value": " 完了"
     }
   ],
   "9uOFF3": [
@@ -2956,7 +3070,7 @@
   "9xBQKf": [
     {
       "type": 0,
-      "value": "YAML editing is coming soon for this entity."
+      "value": "このエンティティの YAML 編集はまもなく利用可能になります。"
     }
   ],
   "A/xTHO": [
@@ -2986,13 +3100,13 @@
   "A3ptul": [
     {
       "type": 0,
-      "value": "Templates"
+      "value": "テンプレート"
     }
   ],
   "A4ZrJb": [
     {
       "type": 0,
-      "value": "Playground actions are coming soon."
+      "value": "プレイグラウンドのアクションはまもなく利用可能になります。"
     }
   ],
   "AA/tRJ": [
@@ -3032,7 +3146,7 @@
   "AHQdRU": [
     {
       "type": 0,
-      "value": "Monthly AAU limit:"
+      "value": "月間 AAU 制限:"
     }
   ],
   "ALkPTF": [
@@ -3044,13 +3158,13 @@
   "ASLbZd": [
     {
       "type": 0,
-      "value": "Export analysis"
+      "value": "分析をエクスポートする"
     }
   ],
   "ATXGa+": [
     {
       "type": 0,
-      "value": "Agent Name"
+      "value": "エージェント名"
     }
   ],
   "ATYp8z": [
@@ -3062,13 +3176,13 @@
   "AYrXUB": [
     {
       "type": 0,
-      "value": "No pending configuration changes to apply"
+      "value": "適用する保留中の構成変更はありません"
     }
   ],
   "AaJ/LU": [
     {
       "type": 0,
-      "value": "Polish the instructions"
+      "value": "指示を推敲する"
     }
   ],
   "AbXVP4": [
@@ -3080,7 +3194,7 @@
   "AbleKr": [
     {
       "type": 0,
-      "value": "data connector"
+      "value": "データ コネクタ"
     }
   ],
   "AbpmRv": [
@@ -3092,7 +3206,7 @@
   "Ad7J7h": [
     {
       "type": 0,
-      "value": "Failed to delete task: "
+      "value": "タスクの削除に失敗しました。"
     },
     {
       "type": 1,
@@ -3102,7 +3216,7 @@
   "AdRf7Y": [
     {
       "type": 0,
-      "value": "Detected cron: "
+      "value": "cron が検出されました: "
     },
     {
       "type": 1,
@@ -3112,7 +3226,7 @@
   "AdnFH8": [
     {
       "type": 0,
-      "value": "The current consumption exceeds the new allocation, which will take effect next month. Until then, the agent will run only in the always-on flow. Chat and actions will be unavailable."
+      "value": "現在の消費量が、来月から有効になる新しい割り当てを超えています。それまでは、エージェントは常時オンのフローでのみ動作します。チャットとアクションは利用できなくなります。"
     }
   ],
   "AeWmvh": [
@@ -3130,7 +3244,7 @@
   "Ai/0lk": [
     {
       "type": 0,
-      "value": "A function or capability for agents to use"
+      "value": "エージェントが使用する機能または能力"
     }
   ],
   "AmnkPD": [
@@ -3148,7 +3262,7 @@
   "AqVLXi": [
     {
       "type": 0,
-      "value": "Create reusable functions and actions for your agents"
+      "value": "エージェントが使用する再利用可能な機能とアクションを作成"
     }
   ],
   "AuFOi8": [
@@ -3166,7 +3280,7 @@
   "AzTehW": [
     {
       "type": 0,
-      "value": "Review and edit the full "
+      "value": "完全な "
     },
     {
       "type": 1,
@@ -3174,25 +3288,25 @@
     },
     {
       "type": 0,
-      "value": " YAML."
+      "value": " YAML を確認して編集します。"
     }
   ],
   "B3Q5mz": [
     {
       "type": 0,
-      "value": "Trigger"
+      "value": "トリガー"
     }
   ],
   "B5kyn8": [
     {
       "type": 0,
-      "value": "connectors"
+      "value": "コネクタ"
     }
   ],
   "B7EJpi": [
     {
       "type": 0,
-      "value": "Agent Quality"
+      "value": "エージェントの品質"
     }
   ],
   "BEck3n": [
@@ -3216,13 +3330,13 @@
   "BLU3k6": [
     {
       "type": 0,
-      "value": "Edit a scheduled task"
+      "value": "スケジュールされたタスクを編集する"
     }
   ],
   "BNH9Uy": [
     {
       "type": 0,
-      "value": "Quality "
+      "value": "品質 "
     },
     {
       "type": 1,
@@ -3236,13 +3350,13 @@
   "BP3wUO": [
     {
       "type": 0,
-      "value": "The type of tool functionality"
+      "value": "ツール機能の種類"
     }
   ],
   "BSQQkf": [
     {
       "type": 0,
-      "value": "Query returned no results"
+      "value": "クエリの結果が返されませんでした"
     }
   ],
   "BT9p8f": [
@@ -3260,19 +3374,19 @@
   "BV7QgK": [
     {
       "type": 1,
-      "value": "actionVerb"
-    },
-    {
-      "type": 0,
-      "value": " "
-    },
-    {
-      "type": 1,
       "value": "itemType"
     },
     {
       "type": 0,
-      "value": "?"
+      "value": " を "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " しますか?"
     }
   ],
   "BWpuKl": [
@@ -3284,13 +3398,19 @@
   "BWt4Jj": [
     {
       "type": 0,
-      "value": "Binding"
+      "value": "バインド"
+    }
+  ],
+  "BakoFg": [
+    {
+      "type": 0,
+      "value": "Select tool"
     }
   ],
   "BbTpTJ": [
     {
       "type": 0,
-      "value": "Using latest YAML changes"
+      "value": "最新の YAML 変更を使用しています"
     }
   ],
   "BcEbxp": [
@@ -3300,7 +3420,7 @@
     },
     {
       "type": 0,
-      "value": "s"
+      "value": " 秒"
     }
   ],
   "Bcgdb7": [
@@ -3322,61 +3442,49 @@
   "BgdyiU": [
     {
       "type": 0,
-      "value": "Incident response"
+      "value": "インシデント応答"
     }
   ],
   "BhRlDa": [
     {
       "type": 0,
-      "value": "Deleting incidents "
+      "value": "インシデント "
     },
     {
       "type": 1,
       "value": "titles"
-    }
-  ],
-  "BkOSF2": [
+    },
     {
       "type": 0,
-      "value": "Parameters"
+      "value": " を削除しています"
     }
   ],
   "Bluuk+": [
     {
       "type": 0,
-      "value": "Data type and requirement for validation"
+      "value": "データ型と検証の要件"
     }
   ],
   "BmEERa": [
-    {
-      "type": 0,
-      "value": "Deleting "
-    },
     {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " data connectors..."
+      "value": " 件のデータ コネクタを削除しています..."
     }
   ],
   "BuziI2": [
     {
       "type": 0,
-      "value": "Collapse panel"
+      "value": "パネルを折りたたむ"
     }
   ],
   "BynA9c": [
     {
       "type": 0,
-      "value": "Optional tweaks"
-    }
-  ],
-  "C2PrxB": [
-    {
-      "type": 0,
-      "value": "SRE エージェント管理者ロールを自分に割り当てるには、ここをクリックします。"
+      "value": "オプションの調整"
     }
   ],
   "C2iTEH": [
@@ -3391,6 +3499,12 @@
       "value": "ロジック アプリの共同作成者"
     }
   ],
+  "C6Jt4c": [
+    {
+      "type": 0,
+      "value": "Scheduled task name"
+    }
+  ],
   "CBHDb1": [
     {
       "type": 0,
@@ -3400,7 +3514,7 @@
   "CEdEmD": [
     {
       "type": 0,
-      "value": "Creates a draft agent and tool workspace for testing without touching production. Coming soon..."
+      "value": "運用環境に影響を与えずにテスト用の下書きエージェントとツール ワークスペースを作成します。近日公開予定..."
     }
   ],
   "CFJ1OD": [
@@ -3412,19 +3526,19 @@
   "CGn7Yd": [
     {
       "type": 0,
-      "value": "Link a tool or create a new one to configure it here."
+      "value": "ツールをリンクするか、新しいツールを作成してここで構成します。"
     }
   ],
   "CHt7dX": [
     {
       "type": 0,
-      "value": "MCP Tools (Optional)"
+      "value": "MCP ツール (オプション)"
     }
   ],
   "CJ6tzL": [
     {
       "type": 0,
-      "value": "File Source"
+      "value": "ファイル ソース"
     }
   ],
   "CJEYfo": [
@@ -3448,25 +3562,25 @@
   "CMbKXm": [
     {
       "type": 0,
-      "value": "Playground highlights"
+      "value": "プレイグラウンドのハイライト"
     }
   ],
   "CNd+KS": [
     {
       "type": 0,
-      "value": "Connect related agents and tools"
+      "value": "関連するエージェントとツールを接続"
     }
   ],
   "CPsPh7": [
     {
       "type": 0,
-      "value": "How would you like to define the schedule?"
+      "value": "スケジュールをどのように定義しますか?"
     }
   ],
   "CTRqZs": [
     {
       "type": 0,
-      "value": "Test query"
+      "value": "クエリをテストする"
     }
   ],
   "CVAKJE": [
@@ -3478,7 +3592,7 @@
   "CX0VFc": [
     {
       "type": 0,
-      "value": "Loading trigger status…"
+      "value": "トリガーの状態を読み込んでいます..."
     }
   ],
   "CZ6s9k": [
@@ -3490,19 +3604,19 @@
   "CaZAZZ": [
     {
       "type": 0,
-      "value": "Open scheduled tasks"
+      "value": "スケジュールされたタスクを開く"
     }
   ],
   "CbntSG": [
     {
       "type": 0,
-      "value": "Database query connector"
+      "value": "データベースのクエリ コネクタ"
     }
   ],
   "CeDXMM": [
     {
       "type": 0,
-      "value": "Here are the memory search results:"
+      "value": "メモリ検索結果は次のとおりです。"
     }
   ],
   "CfGC/2": [
@@ -3511,20 +3625,20 @@
       "value": "監視するリソース グループの選択"
     }
   ],
+  "Cfvmd0": [
+    {
+      "type": 0,
+      "value": "The agent has used 90% of the active flow AAUs. If the limit is reached, the agent will run only in always-on flow and be unavailable for chat and actions."
+    }
+  ],
   "ChQQJ0": [
     {
       "type": 0,
-      "value": "Selected "
+      "value": "選択済み "
     },
     {
       "type": 1,
       "value": "itemType"
-    }
-  ],
-  "CimbUb": [
-    {
-      "type": 0,
-      "value": "エージェントがホストされているリソース グループに対して共同作成者または所有者のアクセス権があることを確認してください。アクセスの問題が解決しない場合は、グループ ベースのロール割り当てに依存せず、アカウントに直接ロールを割り当ててください。"
     }
   ],
   "Ck8Kax": [
@@ -3542,19 +3656,19 @@
   "CppiJ4": [
     {
       "type": 0,
-      "value": "Applying your changes"
+      "value": "変更を適用しています"
     }
   ],
   "Cv2vtV": [
     {
       "type": 0,
-      "value": "moments ago"
+      "value": "たった今"
     }
   ],
   "CvGdox": [
     {
       "type": 0,
-      "value": "Add more tools for incident response"
+      "value": "インシデント応答用の他のツールを追加する"
     }
   ],
   "CvWvf+": [
@@ -3579,6 +3693,12 @@
     {
       "type": 0,
       "value": "設定"
+    }
+  ],
+  "D3rb1K": [
+    {
+      "type": 0,
+      "value": "Azure DevOps"
     }
   ],
   "D473QI": [
@@ -3612,7 +3732,7 @@
   "D7U9Zo": [
     {
       "type": 0,
-      "value": "Custom instructions"
+      "value": "カスタム指示"
     }
   ],
   "D97db3": [
@@ -3630,19 +3750,11 @@
   "DDSwQB": [
     {
       "type": 1,
-      "value": "actionVerb"
-    },
-    {
-      "type": 0,
-      "value": " "
-    },
-    {
-      "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " "
+      "value": " 件の "
     },
     {
       "type": 1,
@@ -3650,13 +3762,21 @@
     },
     {
       "type": 0,
-      "value": "s?"
+      "value": " を "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " しますか?"
     }
   ],
   "DF0TNm": [
     {
       "type": 0,
-      "value": "Code optimization insights"
+      "value": "コード最適化の分析情報"
     }
   ],
   "DFQKku": [
@@ -3665,16 +3785,28 @@
       "value": "Ops Pro"
     }
   ],
+  "DFfvL6": [
+    {
+      "type": 0,
+      "value": "Temporarily stop the agent from all activities."
+    }
+  ],
+  "DIZgr3": [
+    {
+      "type": 0,
+      "value": "Boolean"
+    }
+  ],
   "DJN+DZ": [
     {
       "type": 0,
-      "value": "Choose whether to run deep investigations alongside regular investigations"
+      "value": "通常の調査と併せて詳細な調査を実行するかどうかを選択します。"
     }
   ],
   "DMEE1o": [
     {
       "type": 0,
-      "value": "Select a tool to connect"
+      "value": "接続するツールを選択"
     }
   ],
   "DMd1Ql": [
@@ -3692,7 +3824,7 @@
   "DQfSk8": [
     {
       "type": 0,
-      "value": "Output type"
+      "value": "出力タイプ"
     }
   ],
   "DVVbGP": [
@@ -3708,7 +3840,7 @@
     },
     {
       "type": 0,
-      "value": ", audit today’s incidents and draft a leadership update with priority blockers."
+      "value": "、本日のインシデントを監査し、優先度の高い障害を含む経営陣向けの報告の下書きを作成してください。"
     }
   ],
   "DX7w9O": [
@@ -3720,7 +3852,7 @@
   "Da55kZ": [
     {
       "type": 0,
-      "value": "Select MCP tools from connected servers"
+      "value": "接続済みサーバーから MCP ツールを選択する"
     }
   ],
   "DasCIQ": [
@@ -3738,7 +3870,7 @@
   "Df+1hk": [
     {
       "type": 0,
-      "value": "Analysing configuration…"
+      "value": "構成を分析しています..."
     }
   ],
   "Dff3ms": [
@@ -3756,13 +3888,13 @@
   "DhBWKr": [
     {
       "type": 0,
-      "value": "No instructions provided yet."
+      "value": "指示はまだ入力されていません。"
     }
   ],
   "Dhy8jb": [
     {
       "type": 0,
-      "value": "A data source connection for tools (e.g., Kusto cluster for running queries)"
+      "value": "ツール用のデータ ソース接続 (クエリを実行するための Kusto クラスターなど)"
     }
   ],
   "DlSXUR": [
@@ -3801,10 +3933,16 @@
       "value": "メモリ検索結果"
     }
   ],
+  "Dvly6A": [
+    {
+      "type": 0,
+      "value": "Failed to create tool"
+    }
+  ],
   "Dw2xIY": [
     {
       "type": 0,
-      "value": "Create a new tool"
+      "value": "新しいツールを作成"
     }
   ],
   "Dx3Xj3": [
@@ -3822,7 +3960,7 @@
   "E+jVAN": [
     {
       "type": 0,
-      "value": "No trace data found for this thread."
+      "value": "このスレッドのトレース データは見つかりませんでした。"
     }
   ],
   "E396gv": [
@@ -3837,6 +3975,12 @@
       "value": "選択したリソース グループの一部に、必要な roleAssignments/write アクセス許可と Microsoft.ManagedIdentity/userAssignedIdentities/write アクセス許可がありません。"
     }
   ],
+  "E9CWuE": [
+    {
+      "type": 0,
+      "value": "Example: where SubscriptionId == \"##SubscriptionId##\""
+    }
+  ],
   "EAO/K+": [
     {
       "type": 0,
@@ -3846,7 +3990,7 @@
   "EBpelF": [
     {
       "type": 0,
-      "value": "No warnings found"
+      "value": "警告は見つかりませんでした"
     }
   ],
   "ED/jWk": [
@@ -3858,27 +4002,13 @@
   "EEb00g": [
     {
       "type": 0,
-      "value": "Run insights to track confidence and recommended fixes."
+      "value": "分析情報を実行して、信頼度と推奨される修正を追跡します。"
     }
   ],
-  "EHyU+4": [
+  "EHy/sj": [
     {
       "type": 0,
-      "value": "Use "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "##ParamName##"
-        }
-      ],
-      "type": 8,
-      "value": "code"
-    },
-    {
-      "type": 0,
-      "value": " in your query to define parameter placeholders."
+      "value": "Enter a number"
     }
   ],
   "EI/cfO": [
@@ -3910,7 +4040,7 @@
   "EN5iMk": [
     {
       "type": 0,
-      "value": "Service type"
+      "value": "サービスの種類"
     }
   ],
   "ENnkRe": [
@@ -3922,7 +4052,13 @@
   "EOt0+9": [
     {
       "type": 0,
-      "value": "Full workflow with quality evaluation"
+      "value": "品質評価を含む完全なワークフロー"
+    }
+  ],
+  "EQa6dK": [
+    {
+      "type": 0,
+      "value": "Built-in Tool"
     }
   ],
   "ESChST": [
@@ -3952,7 +4088,7 @@
   "EbNaDn": [
     {
       "type": 0,
-      "value": "Knowledge Base"
+      "value": "ナレッジ ベース"
     }
   ],
   "Ebd6gR": [
@@ -3964,7 +4100,7 @@
   "Ec1M0J": [
     {
       "type": 0,
-      "value": "Action plan"
+      "value": "アクション プラン"
     }
   ],
   "EdEthU": [
@@ -3976,7 +4112,7 @@
   "EdZ3pj": [
     {
       "type": 0,
-      "value": "Agent: "
+      "value": "エージェント: "
     },
     {
       "type": 1,
@@ -3986,7 +4122,7 @@
   "EicA1w": [
     {
       "type": 0,
-      "value": "Test the query to continue."
+      "value": "続行するにはクエリをテストしてください。"
     }
   ],
   "ElI1gd": [
@@ -3998,7 +4134,7 @@
   "ElqLuA": [
     {
       "type": 0,
-      "value": "Trace data parsed with warnings."
+      "value": "トレース データは解析されましたが、警告が発生しました。"
     }
   ],
   "Ep74wA": [
@@ -4019,10 +4155,16 @@
       "value": "Azure SRE エージェント"
     }
   ],
+  "Eu772h": [
+    {
+      "type": 0,
+      "value": "Built-in Tools"
+    }
+  ],
   "Euy+fB": [
     {
       "type": 0,
-      "value": "Connect MCP server"
+      "value": "MCP サーバーに接続"
     }
   ],
   "EwRIOm": [
@@ -4034,45 +4176,53 @@
   "F4a/f4": [
     {
       "type": 0,
-      "value": "User Permissions"
+      "value": "ユーザーのアクセス許可"
     }
   ],
   "F5b1Mw": [
     {
       "type": 0,
-      "value": "Currently showing "
+      "value": "現在 "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " を表示しています"
     }
   ],
   "F6qYbg": [
     {
       "type": 0,
-      "value": "Select tools this agent can use"
-    }
-  ],
-  "F8R5Bb": [
-    {
-      "type": 0,
-      "value": "Connections: "
-    },
-    {
-      "type": 1,
-      "value": "count"
+      "value": "このエージェントが使用できるツールを選択"
     }
   ],
   "F8UOXS": [
     {
       "type": 0,
-      "value": "Relationship preview"
+      "value": "リレーションシップのプレビュー"
+    }
+  ],
+  "F8v2Mz": [
+    {
+      "type": 0,
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " started successfully"
     }
   ],
   "F8xMoD": [
     {
       "type": 0,
-      "value": "Loading tool details..."
+      "value": "ツールの詳細を読み込んでいます..."
     }
   ],
   "F9LrJA": [
@@ -4090,17 +4240,21 @@
   "FE2ukR": [
     {
       "type": 0,
-      "value": "Remove handoff "
+      "value": "ハンドオフ "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " を削除"
     }
   ],
   "FFFf74": [
     {
       "type": 0,
-      "value": "Last run: "
+      "value": "前回の実行: "
     },
     {
       "type": 1,
@@ -4116,13 +4270,13 @@
   "FGP0Kd": [
     {
       "type": 0,
-      "value": "CPU usage insights"
+      "value": "CPU 使用状況に関する分析情報"
     }
   ],
   "FLN/px": [
     {
       "type": 0,
-      "value": "Chat diagnostics"
+      "value": "チャット診断"
     }
   ],
   "FLm/x4": [
@@ -4134,19 +4288,19 @@
   "FNQNS1": [
     {
       "type": 0,
-      "value": "Weekdays at 9am Pacific"
-    }
-  ],
-  "FO/nez": [
-    {
-      "type": 0,
-      "value": "Describe what this tool does..."
+      "value": "平日の午前 9 時 (太平洋標準時)"
     }
   ],
   "FPdoJ3": [
     {
       "type": 0,
-      "value": "Define how incidents are detected and reviewed, and the instructions for how the agent responds."
+      "value": "インシデントの検出および確認方法と、エージェントの応答方法に関する指示を定義します。"
+    }
+  ],
+  "FS0tWa": [
+    {
+      "type": 0,
+      "value": "No source agent specified"
     }
   ],
   "FSYccN": [
@@ -4158,17 +4312,21 @@
   "FSZ5F/": [
     {
       "type": 0,
-      "value": "Deleting scheduled task "
+      "value": "スケジュールされたタスク "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " を削除しています"
     }
   ],
   "FTWkpv": [
     {
       "type": 0,
-      "value": "Create new entity"
+      "value": "新しいエンティティを作成"
     }
   ],
   "FUQvS0": [
@@ -4180,7 +4338,23 @@
   "FVOAIQ": [
     {
       "type": 0,
-      "value": "Handoff Agents (Optional)"
+      "value": "ハンドオフ エージェント (省略可能)"
+    }
+  ],
+  "FWou/7": [
+    {
+      "type": 0,
+      "value": "Select tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    }
+  ],
+  "FZeQlc": [
+    {
+      "type": 0,
+      "value": "Disconnected"
     }
   ],
   "FZwBv0": [
@@ -4192,13 +4366,13 @@
   "FeBVnC": [
     {
       "type": 0,
-      "value": "You can edit this entity directly or spin up a copy once cloning is available."
+      "value": "このエンティティを直接編集するか、複製が利用可能になってからコピーを作成できます。"
     }
   ],
   "FeBneB": [
     {
       "type": 0,
-      "value": "Probe for multi-step diagnostics to see if the agent can orchestrate tools effectively."
+      "value": "複数ステップの診断を試行し、エージェントがツールを効果的にオーケストレーションできるか確認します。"
     }
   ],
   "FitglU": [
@@ -4210,7 +4384,7 @@
   "FkvYGq": [
     {
       "type": 0,
-      "value": "System prompt that defines the agent's behavior"
+      "value": "エージェントの動作を定義するシステム プロンプト"
     }
   ],
   "FnKIAW": [
@@ -4219,10 +4393,30 @@
       "value": "確認済み"
     }
   ],
+  "FpUGgx": [
+    {
+      "type": 0,
+      "value": "Starting SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in progress"
+    }
+  ],
   "Fr5LyM": [
     {
       "type": 0,
       "value": "安全"
+    }
+  ],
+  "FsIud6": [
+    {
+      "type": 0,
+      "value": "Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included."
     }
   ],
   "Fv1ZSz": [
@@ -4240,19 +4434,19 @@
   "FvtGBp": [
     {
       "type": 0,
-      "value": "browse for files"
+      "value": "ファイルを参照します"
     }
   ],
   "FyrC09": [
     {
       "type": 0,
-      "value": "Create trigger"
+      "value": "トリガーを作成"
     }
   ],
   "FzjwEg": [
     {
       "type": 0,
-      "value": "Critic on handoff"
+      "value": "ハンドオフの評価者"
     }
   ],
   "G+JlQs": [
@@ -4264,7 +4458,7 @@
   "G/YsSs": [
     {
       "type": 0,
-      "value": "Custom cron"
+      "value": "カスタム cron"
     }
   ],
   "G/yZLu": [
@@ -4280,7 +4474,7 @@
     },
     {
       "type": 0,
-      "value": " subscriptions selected"
+      "value": " 個のサブスクリプションが選択されました"
     }
   ],
   "G6vaGg": [
@@ -4295,6 +4489,40 @@
       "value": "すべてのインシデントの種類"
     }
   ],
+  "GBLVEV": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "document"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "documents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "GBnvl1": [
     {
       "type": 0,
@@ -4304,7 +4532,7 @@
   "GCQn0j": [
     {
       "type": 0,
-      "value": "Tool testing is unavailable for this entity."
+      "value": "このエンティティではツールのテストは利用できません。"
     }
   ],
   "GCVHNV": [
@@ -4315,28 +4543,24 @@
   ],
   "GCVZ4/": [
     {
-      "type": 0,
-      "value": "Successfully deleted "
-    },
-    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " data connectors"
+      "value": " 件のデータ コネクタが正常に削除されました"
     }
   ],
   "GCcYpN": [
     {
       "type": 0,
-      "value": "No MCP tools available"
+      "value": "使用できる MCP ツールはありません"
     }
   ],
   "GCmxza": [
     {
       "type": 0,
-      "value": "Back to commands"
+      "value": "コマンドに戻る"
     }
   ],
   "GMhzu1": [
@@ -4345,10 +4569,16 @@
       "value": "Response subagent"
     }
   ],
+  "GP/BbQ": [
+    {
+      "type": 0,
+      "value": "Enable Knowledge Base"
+    }
+  ],
   "GSCabm": [
     {
       "type": 0,
-      "value": "MCP tools"
+      "value": "MCP ツール"
     }
   ],
   "GUx4Ld": [
@@ -4360,31 +4590,43 @@
   "GaA28c": [
     {
       "type": 0,
-      "value": "Incident details"
+      "value": "インシデントの詳細"
     }
   ],
   "GdgrWi": [
     {
       "type": 0,
-      "value": "Select a tool"
+      "value": "ツールを選択する"
     }
   ],
   "GkJbiq": [
     {
       "type": 0,
-      "value": "Start a new chat thread."
+      "value": "新しいチャット スレッドを開始します。"
     }
   ],
   "GkKcbX": [
     {
       "type": 0,
-      "value": "Add a response plan"
+      "value": "対応計画を追加する"
     }
   ],
   "Gl8fnJ": [
     {
       "type": 0,
       "value": "ドロワーのサイズ変更"
+    }
+  ],
+  "GnWmca": [
+    {
+      "type": 0,
+      "value": "Triggers"
+    }
+  ],
+  "Gnbr9F": [
+    {
+      "type": 0,
+      "value": "Select a connector"
     }
   ],
   "GoSIa4": [
@@ -4402,7 +4644,7 @@
   "GpZr9J": [
     {
       "type": 0,
-      "value": "Automatically run "
+      "value": "主要なシステムを正常な状態に保つために、スケジュールに従って "
     },
     {
       "type": 1,
@@ -4410,7 +4652,7 @@
     },
     {
       "type": 0,
-      "value": " on a schedule to keep key systems healthy."
+      "value": " を自動的に実行します。"
     }
   ],
   "GroBmn": [
@@ -4432,13 +4674,13 @@
     },
     {
       "type": 0,
-      "value": " params detected"
+      "value": " 個のパラメーターが検出されました"
     }
   ],
   "H1OQZj": [
     {
       "type": 0,
-      "value": "YAML must include kind: {expectedKind}."
+      "value": "YAML には、kind: {expectedKind} を含める必要があります。"
     }
   ],
   "H3ooTI": [
@@ -4456,7 +4698,7 @@
   "HADwwN": [
     {
       "type": 0,
-      "value": "Task details"
+      "value": "タスクの詳細"
     }
   ],
   "HAlOn1": [
@@ -4474,25 +4716,31 @@
   "HFuyFh": [
     {
       "type": 0,
-      "value": "No code optimization recommendations detected."
+      "value": "コード最適化の推奨事項は検出されませんでした。"
     }
   ],
   "HKlw1J": [
     {
       "type": 0,
-      "value": "This will permanently disconnect this data connector from the agent. Are you sure you want to disconnect this data connector?"
+      "value": "これにより、このデータ コネクタがエージェントから完全に切断されます。このデータ コネクタを切断しますか?"
     }
   ],
   "HMZIeG": [
     {
       "type": 0,
-      "value": "Get AI-powered quality insights and improvement suggestions"
+      "value": "AI による品質分析情報と改善提案を取得してください。"
+    }
+  ],
+  "HNBpJ4": [
+    {
+      "type": 0,
+      "value": "Metrics"
     }
   ],
   "HNECLT": [
     {
       "type": 0,
-      "value": "Build Your Agent Ecosystem"
+      "value": "エージェント エコシステムを構築"
     }
   ],
   "HOJNsf": [
@@ -4504,7 +4752,7 @@
   "HQ4NJ3": [
     {
       "type": 0,
-      "value": "Learn more about response plans"
+      "value": "応答プランの詳細情報"
     }
   ],
   "HQc/Lf": [
@@ -4528,13 +4776,19 @@
   "HUPaMQ": [
     {
       "type": 0,
-      "value": "View findings"
+      "value": "結果を表示する"
     }
   ],
   "HWMrXF": [
     {
       "type": 0,
       "value": "リソース グループの追加"
+    }
+  ],
+  "HZQtAg": [
+    {
+      "type": 0,
+      "value": "Test values"
     }
   ],
   "HbTFJf": [
@@ -4546,7 +4800,7 @@
   "Hgs+WM": [
     {
       "type": 0,
-      "value": "View trace"
+      "value": "トレースの表示"
     }
   ],
   "Hh0q8u": [
@@ -4562,13 +4816,13 @@
   "Hh8It5": [
     {
       "type": 0,
-      "value": "Changes pending analysis"
+      "value": "分析保留中の変更"
     }
   ],
   "HiBsED": [
     {
       "type": 0,
-      "value": "No handoffs added yet."
+      "value": "ハンドオフはまだ追加されていません。"
     }
   ],
   "HjTHxo": [
@@ -4586,7 +4840,7 @@
   "Hs02Tq": [
     {
       "type": 0,
-      "value": "Loading daily reports"
+      "value": "日次レポートを読み込んでいます"
     }
   ],
   "HtpD+z": [
@@ -4604,7 +4858,7 @@
   "Hv0XJn": [
     {
       "type": 0,
-      "value": "Suggestions"
+      "value": "提案"
     }
   ],
   "Hv7pA2": [
@@ -4628,13 +4882,19 @@
   "I1tfGG": [
     {
       "type": 0,
-      "value": "View Memory Search Results"
+      "value": "メモリ検索結果を表示する"
+    }
+  ],
+  "I3MA83": [
+    {
+      "type": 0,
+      "value": "String"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "既存のものを使用"
     }
   ],
   "I7aBF4": [
@@ -4676,7 +4936,7 @@
   "IEIivr": [
     {
       "type": 0,
-      "value": "Connected tool "
+      "value": "ツール "
     },
     {
       "type": 1,
@@ -4684,7 +4944,7 @@
     },
     {
       "type": 0,
-      "value": " to "
+      "value": " を "
     },
     {
       "type": 1,
@@ -4692,7 +4952,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " に接続しました。"
     }
   ],
   "IF3r+X": [
@@ -4710,13 +4970,13 @@
   "IJX2gV": [
     {
       "type": 0,
-      "value": "Connect handoffs and tools"
+      "value": "ハンドオフとツールを接続"
     }
   ],
   "INiE0x": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "エージェントの品質は "
     },
     {
       "type": 1,
@@ -4724,13 +4984,13 @@
     },
     {
       "type": 0,
-      "value": "/100 but may be outdated. Refresh to keep guidance current."
+      "value": "/100 ですが、古い可能性があります。最新の情報に更新してガイダンスを最新の状態に保ってください。"
     }
   ],
   "INiSE2": [
     {
       "type": 0,
-      "value": "Tool Name"
+      "value": "ツール名"
     }
   ],
   "IQaKwH": [
@@ -4786,19 +5046,19 @@
   "IbMKy+": [
     {
       "type": 0,
-      "value": "Use this version"
+      "value": "このバージョンを使用する"
     }
   ],
   "IcB2fr": [
     {
       "type": 0,
-      "value": "Tool method argument that receives this value"
+      "value": "この値を受け取るツール メソッド引数"
     }
   ],
   "IcUakl": [
     {
       "type": 0,
-      "value": "Time zone"
+      "value": "タイム ゾーン"
     }
   ],
   "IiNwpr": [
@@ -4818,7 +5078,7 @@
   "InWqys": [
     {
       "type": 0,
-      "value": "Optional"
+      "value": "省略可能"
     }
   ],
   "IoApza": [
@@ -4830,25 +5090,25 @@
   "IomdzL": [
     {
       "type": 0,
-      "value": "The agent uses predefined queries for structured logs, telemetry, and time series data."
+      "value": "エージェントは構造化ログ、テレメトリ、および時系列データに対して定義済みクエリを使用します。"
     }
   ],
   "Ip7Gd3": [
     {
       "type": 0,
-      "value": "Auto-apply"
+      "value": "自動適用"
     }
   ],
   "IrCHQG": [
     {
       "type": 0,
-      "value": "Select an agent to view its configuration."
+      "value": "エージェントを選択して、その構成を表示します。"
     }
   ],
   "ItmLyp": [
     {
       "type": 0,
-      "value": "Connect an incident platform"
+      "value": "インシデント プラットフォームを接続する"
     }
   ],
   "IuFETn": [
@@ -4860,7 +5120,7 @@
   "IvKdxU": [
     {
       "type": 0,
-      "value": "System tools · "
+      "value": "システム ツール · "
     },
     {
       "type": 1,
@@ -4908,13 +5168,13 @@
   "J7FnS1": [
     {
       "type": 0,
-      "value": "Connect existing items"
+      "value": "既存のアイテムを接続"
     }
   ],
   "J8u7Xg": [
     {
       "type": 0,
-      "value": "Last Modified"
+      "value": "最終変更日時"
     }
   ],
   "JAtEuU": [
@@ -4955,16 +5215,28 @@
       "value": "前へ"
     }
   ],
+  "JKFypr": [
+    {
+      "type": 0,
+      "value": "Stop agent"
+    }
+  ],
   "JMdyE9": [
     {
       "type": 0,
-      "value": "Use AI to enhance and validate your agent instructions"
+      "value": "AI を使用してエージェントの指示を強化および検証する"
     }
   ],
   "JRLN0D": [
     {
       "type": 0,
       "value": "インシデント対応計画を使用すると、一般的な種類のインシデントを管理するために必要なツールがエージェントによって選択されます。カスタム対応計画は、指定した特定の指示をエージェントに与えることによって、この機能を置き換えます。"
+    }
+  ],
+  "JSW9Xw": [
+    {
+      "type": 0,
+      "value": "Starting SRE Agent"
     }
   ],
   "JT7be1": [
@@ -4999,7 +5271,7 @@
           "value": [
             {
               "type": 0,
-              "value": "No scheduled tasks yet"
+              "value": "スケジュールされたタスクはまだありません"
             }
           ]
         },
@@ -5011,7 +5283,7 @@
             },
             {
               "type": 0,
-              "value": " scheduled tasks ready"
+              "value": " 件のスケジュールされたタスクが準備完了です"
             }
           ]
         }
@@ -5040,13 +5312,13 @@
     },
     {
       "type": 0,
-      "value": " locations selected"
+      "value": " 個の場所が選択されました"
     }
   ],
   "JbMs9l": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "エージェントの品質は "
     },
     {
       "type": 1,
@@ -5054,13 +5326,13 @@
     },
     {
       "type": 0,
-      "value": "/100. No quick fixes right now."
+      "value": "/100 です。現在、クイック修正はありません。"
     }
   ],
   "JbmMWM": [
     {
       "type": 0,
-      "value": "Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatible connector was found)"
+      "value": "マネージド ID (エージェント スペースのマネージド ID が自動的にエージェント スペースとして選択され、互換性のあるコネクタが見つかりました)"
     }
   ],
   "JezZlU": [
@@ -5078,7 +5350,7 @@
   "JiENoF": [
     {
       "type": 0,
-      "value": "Hide diff"
+      "value": "差分を非表示にする"
     }
   ],
   "JjKcCj": [
@@ -5125,16 +5397,34 @@
       "value": "ServiceNow を切断しますか?"
     }
   ],
+  "JnDKv3": [
+    {
+      "type": 0,
+      "value": "Failed to stop SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "Jrrm2K": [
     {
       "type": 0,
-      "value": "Click \"Execute Tool\" to test this system tool"
+      "value": "[ツールの実行] をクリックして、このシステム ツールをテストします"
     }
   ],
   "Jsy4yb": [
     {
       "type": 0,
-      "value": "Try Evaluation"
+      "value": "評価を試す"
     }
   ],
   "JwHSD6": [
@@ -5152,19 +5442,19 @@
   "Jz5GjX": [
     {
       "type": 0,
-      "value": "Review Your trigger"
+      "value": "トリガーを確認"
     }
   ],
   "JzOvG/": [
     {
       "type": 0,
-      "value": "Assumptions we made"
+      "value": "こちらで行った想定"
     }
   ],
   "K1h5xo": [
     {
       "type": 0,
-      "value": "Scheduled tasks require an upgrade. Contact your administrator to enable them."
+      "value": "スケジュールされたタスクにはアップグレードが必要です。有効にするには管理者に問い合わせてください。"
     }
   ],
   "K3r6DQ": [
@@ -5176,19 +5466,19 @@
   "K7AkdL": [
     {
       "type": 0,
-      "value": "Show"
+      "value": "表示"
     }
   ],
   "K9q4Xw": [
     {
       "type": 0,
-      "value": "MCP servers"
+      "value": "MCP サーバー"
     }
   ],
   "KAYnaH": [
     {
       "type": 0,
-      "value": "Auto-applying changes… latest draft will be used for new tests."
+      "value": "変更を自動適用中です…最新の下書きが新しいテストで使用されます。"
     }
   ],
   "KAYpG9": [
@@ -5200,7 +5490,7 @@
   "KGmQjH": [
     {
       "type": 0,
-      "value": "Highlights"
+      "value": "ハイライト"
     }
   ],
   "KI/Heo": [
@@ -5212,7 +5502,7 @@
   "KJHRU/": [
     {
       "type": 0,
-      "value": "Add existing subagent"
+      "value": "既存のサブエージェントを追加する"
     }
   ],
   "KJuQJ3": [
@@ -5236,7 +5526,7 @@
   "KNwLvk": [
     {
       "type": 0,
-      "value": "Test Parameters"
+      "value": "テスト パラメーター"
     }
   ],
   "KQ9L9d": [
@@ -5248,7 +5538,7 @@
   "KR79he": [
     {
       "type": 0,
-      "value": "New agent"
+      "value": "新しいエージェント"
     }
   ],
   "KS5JHs": [
@@ -5266,15 +5556,11 @@
   "KaLLyk": [
     {
       "type": 0,
-      "value": "Projected +"
+      "value": "合計で、予測 +"
     },
     {
       "type": 1,
       "value": "lift"
-    },
-    {
-      "type": 0,
-      "value": " overall"
     }
   ],
   "KbCGsK": [
@@ -5283,16 +5569,22 @@
       "value": "[承認] をクリックすると、この操作は、ユーザーの資格情報を使用してユーザーに代わって実行されます。"
     }
   ],
+  "Kfaepo": [
+    {
+      "type": 0,
+      "value": "Learn more about connectors"
+    }
+  ],
   "KgcF6B": [
     {
       "type": 0,
-      "value": "Yes/No"
+      "value": "はい/いいえ"
     }
   ],
   "KiANnA": [
     {
       "type": 0,
-      "value": "Turn on scheduled task(s)"
+      "value": "スケジュールされたタスクを有効にする"
     }
   ],
   "Kkc3/u": [
@@ -5304,7 +5596,7 @@
   "Km+WSh": [
     {
       "type": 0,
-      "value": "Map to argument"
+      "value": "引数にマップする"
     }
   ],
   "KoJ1C+": [
@@ -5324,19 +5616,19 @@
   "KptJSd": [
     {
       "type": 0,
-      "value": "No MCP tools configured."
+      "value": "構成済みの MCP ツールはありません。"
     }
   ],
   "KqwLPK": [
     {
       "type": 0,
-      "value": "Database indexing connector"
+      "value": "データベースのインデックス作成コネクタ"
     }
   ],
   "KryvVM": [
     {
       "type": 0,
-      "value": "Parameter values (for testing)"
+      "value": "パラメーター値 (テスト用)"
     }
   ],
   "KsuM4D": [
@@ -5354,7 +5646,7 @@
   "Kxd0Vr": [
     {
       "type": 0,
-      "value": "Allow parallel tool calls"
+      "value": "並列ツール呼び出しを許可"
     }
   ],
   "KyDsjH": [
@@ -5372,13 +5664,13 @@
   "L+ewYY": [
     {
       "type": 0,
-      "value": "AI suggestions discarded"
+      "value": "AI の提案が破棄されました"
     }
   ],
   "L/i6dy": [
     {
       "type": 0,
-      "value": "We’ll mark this agent as Autonomous automatically so it can run on its own."
+      "value": "このエージェントは、自動的に自律型としてマークされるため、単独で実行できるようになります。"
     }
   ],
   "L0KVkI": [
@@ -5398,25 +5690,25 @@
   "L7EoQf": [
     {
       "type": 0,
-      "value": "Auto-apply ON"
+      "value": "自動適用オン"
     }
   ],
   "L7gQfJ": [
     {
       "type": 0,
-      "value": "Welcome to the playground"
+      "value": "プレイグラウンドへようこそ"
     }
   ],
   "LAHAJH": [
     {
       "type": 0,
-      "value": "No MCP connections available"
+      "value": "使用できる MCP 接続がありません"
     }
   ],
   "LFb8Ku": [
     {
       "type": 0,
-      "value": "recent activity"
+      "value": "最近のアクティビティ"
     }
   ],
   "LFn7Ak": [
@@ -5428,13 +5720,13 @@
   "LGZkPZ": [
     {
       "type": 0,
-      "value": "Switch to YAML"
+      "value": "YAML に切り替える"
     }
   ],
   "LIm7q8": [
     {
       "type": 0,
-      "value": "Analysed "
+      "value": "分析済み "
     },
     {
       "type": 1,
@@ -5456,21 +5748,17 @@
   "LPz7Qc": [
     {
       "type": 0,
-      "value": "Tool Type"
+      "value": "ツールの種類"
     }
   ],
   "LQ2AtR": [
-    {
-      "type": 0,
-      "value": "Deleted "
-    },
     {
       "type": 1,
       "value": "successCount"
     },
     {
       "type": 0,
-      "value": " data connectors. Failed to delete "
+      "value": " 件のデータ コネクタを削除しました。"
     },
     {
       "type": 1,
@@ -5478,7 +5766,7 @@
     },
     {
       "type": 0,
-      "value": ": "
+      "value": " 件の削除に失敗しました。"
     },
     {
       "type": 1,
@@ -5500,7 +5788,7 @@
   "LTDPn/": [
     {
       "type": 0,
-      "value": "You have unsaved changes."
+      "value": "保存されていない変更があります。"
     }
   ],
   "LUSiug": [
@@ -5520,7 +5808,7 @@
   "LXOsKd": [
     {
       "type": 0,
-      "value": "We could not generate insights right now. Try again in a moment."
+      "value": "現在、分析情報を生成できません。しばらくしてからもう一度お試しください。"
     }
   ],
   "LZyV4T": [
@@ -5529,22 +5817,28 @@
       "value": "フィルターはインシデント対応計画が適用されるインシデントを定義します。これらは、次のステップでプレビューするインシデントのリストに適用されます。"
     }
   ],
+  "LaIt/v": [
+    {
+      "type": 0,
+      "value": "Creating Kusto Tool"
+    }
+  ],
   "LbkJp1": [
     {
       "type": 0,
-      "value": "MCP servers table"
+      "value": "MCP サーバー テーブル"
     }
   ],
   "LkUvu/": [
     {
       "type": 0,
-      "value": "Describe the schedule"
+      "value": "スケジュールについて説明してください"
     }
   ],
   "Lm9kBB": [
     {
       "type": 0,
-      "value": "Select an incident."
+      "value": "インシデントを選択します。"
     }
   ],
   "LnglaU": [
@@ -5562,7 +5856,7 @@
   "LsGLc0": [
     {
       "type": 0,
-      "value": "Direct argument"
+      "value": "直接引数"
     }
   ],
   "LupnQU": [
@@ -5576,7 +5870,7 @@
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": " 時間前"
             }
           ]
         }
@@ -5612,12 +5906,12 @@
   ],
   "M+QCSD": [
     {
-      "type": 0,
-      "value": "Enter "
-    },
-    {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " を入力する"
     }
   ],
   "M/3/kG": [
@@ -5635,7 +5929,7 @@
   "M3159R": [
     {
       "type": 0,
-      "value": "Quick create"
+      "value": "簡易作成"
     }
   ],
   "M4emJP": [
@@ -5669,7 +5963,7 @@
     },
     {
       "type": 0,
-      "value": " completed"
+      "value": " が完了しました"
     }
   ],
   "MI5gZ+": [
@@ -5687,25 +5981,25 @@
   "MJUuF5": [
     {
       "type": 0,
-      "value": "Failed to improve instructions. Please try again."
+      "value": "指示を改善できませんでした。もう一度お試しください。"
     }
   ],
   "MK8Q9z": [
     {
       "type": 0,
-      "value": "Creating connector"
+      "value": "コネクタを作成しています"
     }
   ],
   "MLVVhB": [
     {
       "type": 0,
-      "value": "Dictionary key (map_to)"
+      "value": "辞書キー (map_to)"
     }
   ],
   "MOhprT": [
     {
       "type": 0,
-      "value": "Preview diff"
+      "value": "差分をプレビューする"
     }
   ],
   "MOsoTa": [
@@ -5717,7 +6011,7 @@
   "MOttDA": [
     {
       "type": 0,
-      "value": "Yes, override with custom meta agent"
+      "value": "はい、カスタム メタ エージェントでオーバーライドします"
     }
   ],
   "MPzBut": [
@@ -5729,7 +6023,7 @@
   "MQNtQ+": [
     {
       "type": 0,
-      "value": "Data Connectors"
+      "value": "データ コネクタ"
     }
   ],
   "MSWnaq": [
@@ -5741,25 +6035,19 @@
   "MUVpbF": [
     {
       "type": 0,
-      "value": "The agent generates queries by learning about your logs, telemetry, and time series data."
-    }
-  ],
-  "MWaWoR": [
-    {
-      "type": 0,
-      "value": "2025 年 9 月 25 日以降、必要な Azure ロールベースのアクセス制御 (RBAC) ロールを持たないユーザーは、Azure SRE Agent にアクセスできなくなります。"
+      "value": "エージェントはログ、テレメトリ、および時系列データを学習してクエリを生成します。"
     }
   ],
   "MaaxCM": [
     {
       "type": 0,
-      "value": "Kusto Configuration"
+      "value": "Kusto の構成"
     }
   ],
   "MgdnPi": [
     {
       "type": 0,
-      "value": "Response"
+      "value": "応答"
     }
   ],
   "MhTfXm": [
@@ -5771,7 +6059,7 @@
   "MjxZUD": [
     {
       "type": 0,
-      "value": "Use natural language—we’ll translate it into a cron schedule."
+      "value": "自然言語を使用してください。cron スケジュールに変換されます。"
     }
   ],
   "MlX0aZ": [
@@ -5783,7 +6071,7 @@
   "MnlPLt": [
     {
       "type": 0,
-      "value": "Handoffs · "
+      "value": "ハンドオフ · "
     },
     {
       "type": 1,
@@ -5821,7 +6109,7 @@
   "Mx6yYf": [
     {
       "type": 0,
-      "value": "Scheduled task(s) turned off successfully"
+      "value": "スケジュールされたタスクが正常にオフになりました"
     }
   ],
   "MxYLKu": [
@@ -5839,7 +6127,7 @@
   "N+XwM+": [
     {
       "type": 0,
-      "value": "Create Your First Entity"
+      "value": "最初のエンティティを作成"
     }
   ],
   "N+sJfO": [
@@ -5848,24 +6136,26 @@
       "value": "グリッド ビュー"
     }
   ],
+  "N/CtWu": [
+    {
+      "type": 0,
+      "value": "Unselected"
+    }
+  ],
   "N0d5pM": [
     {
       "type": 0,
-      "value": "AM"
+      "value": "午前"
     }
   ],
   "N0wOFf": [
-    {
-      "type": 0,
-      "value": "Created "
-    },
     {
       "type": 1,
       "value": "toolName"
     },
     {
       "type": 0,
-      "value": " and connected it to "
+      "value": " を作成し、"
     },
     {
       "type": 1,
@@ -5873,23 +6163,27 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " に接続しました。"
     }
   ],
   "N7cqYp": [
     {
       "type": 0,
-      "value": "Turning off scheduled task "
+      "value": "スケジュールされたタスク "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " をオフにしています"
     }
   ],
   "N7lPfx": [
     {
       "type": 0,
-      "value": "Relationships"
+      "value": "リレーションシップ"
     }
   ],
   "NAAdaF": [
@@ -5907,7 +6201,7 @@
   "NBiLYK": [
     {
       "type": 0,
-      "value": "Drafting…"
+      "value": "下書き作成中…"
     }
   ],
   "NBxjGE": [
@@ -5925,25 +6219,31 @@
   "NDy5dO": [
     {
       "type": 0,
-      "value": "Agent Type"
+      "value": "エージェントのタイプ"
     }
   ],
   "NGhUmq": [
     {
       "type": 0,
-      "value": "Refresh insights"
+      "value": "分析情報を更新する"
     }
   ],
   "NIrBo5": [
     {
       "type": 0,
-      "value": "Files will be stored in the agent."
+      "value": "ファイルはエージェントに保存されます。"
     }
   ],
   "NMSoXQ": [
     {
       "type": 0,
       "value": "インシデント対応計画を無効にしています"
+    }
+  ],
+  "NN4zut": [
+    {
+      "type": 0,
+      "value": "Support + troubleshooting"
     }
   ],
   "NOMbLF": [
@@ -5955,13 +6255,13 @@
   "NPm9R5": [
     {
       "type": 0,
-      "value": "Failed to load MCP tools."
+      "value": "MCP ツールの読み込みに失敗しました。"
     }
   ],
   "NSWNPa": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all files."
+      "value": "別の検索語句を試すか、検索をクリアしてすべてのファイルを表示してください。"
     }
   ],
   "NV14yw": [
@@ -6003,7 +6303,7 @@
   "NlBiTm": [
     {
       "type": 0,
-      "value": "Filtered agent"
+      "value": "フィルターされたエージェント"
     }
   ],
   "Nrc9ba": [
@@ -6024,7 +6324,7 @@
             },
             {
               "type": 0,
-              "value": " documents selected"
+              "value": " 件のドキュメントが選択されました"
             }
           ]
         }
@@ -6036,16 +6336,12 @@
   ],
   "NwAgjY": [
     {
-      "type": 0,
-      "value": "Every "
-    },
-    {
       "type": 1,
       "value": "minutes"
     },
     {
       "type": 0,
-      "value": " minutes"
+      "value": " 分ごと"
     }
   ],
   "O+srpo": [
@@ -6092,16 +6388,22 @@
       "value": "count"
     }
   ],
+  "O/gthC": [
+    {
+      "type": 0,
+      "value": "Go to Scheduled Task"
+    }
+  ],
   "O0JI8M": [
     {
       "type": 0,
-      "value": "Overall Quality"
+      "value": "全体的な品質"
     }
   ],
   "O3Ak71": [
     {
       "type": 0,
-      "value": "You do not have permission to use this feature."
+      "value": "この機能を使用するためのアクセス許可がありません。"
     }
   ],
   "O79Wpv": [
@@ -6116,16 +6418,22 @@
       "value": "この SRE エージェントを削除しますか?この操作は元に戻すことができません。"
     }
   ],
+  "O9C6j/": [
+    {
+      "type": 0,
+      "value": "Create subagent"
+    }
+  ],
   "OBoUb6": [
     {
       "type": 0,
-      "value": "Fresh"
+      "value": "最新の情報に更新"
     }
   ],
   "OIWzWF": [
     {
       "type": 0,
-      "value": "Filter by autonomy level"
+      "value": "自律性レベルでフィルター"
     }
   ],
   "OJ2u8k": [
@@ -6143,7 +6451,7 @@
   "OLSbA3": [
     {
       "type": 0,
-      "value": "Create a plan that starts this agent when a new incident is detected."
+      "value": "新しいインシデントが検出されたときにこのエージェントを起動するプランを作成します。"
     }
   ],
   "OMp9VI": [
@@ -6166,10 +6474,16 @@
       "value": "割り当て先"
     }
   ],
+  "ONbwY2": [
+    {
+      "type": 0,
+      "value": "Custom Tool"
+    }
+  ],
   "OO5Y94": [
     {
       "type": 0,
-      "value": "We couldn't find tool "
+      "value": "ツール "
     },
     {
       "type": 1,
@@ -6177,13 +6491,13 @@
     },
     {
       "type": 0,
-      "value": ". Refresh and try again."
+      "value": " が見つかりませんでした。最新の情報に更新して、もう一度お試しください。"
     }
   ],
   "OPBqEN": [
     {
       "type": 0,
-      "value": "Trace data parsed with errors."
+      "value": "トレース データは解析されましたが、エラーが発生しました。"
     }
   ],
   "ORGv1Q": [
@@ -6207,7 +6521,7 @@
   "OUJuir": [
     {
       "type": 0,
-      "value": "Model details"
+      "value": "モデルの詳細"
     }
   ],
   "OV0MpG": [
@@ -6237,25 +6551,25 @@
   "OXek0m": [
     {
       "type": 0,
-      "value": "Use standard cron syntax (UTC) to control when the agent runs."
+      "value": "エージェントの実行タイミングを制御するには、標準の cron 構文 (UTC) を使用します。"
     }
   ],
   "OYAXyI": [
     {
       "type": 0,
-      "value": "Provide information the agent will reference when analyzing or answering questions."
+      "value": "エージェントが質問を分析または回答する際に参照する情報を提供してください。"
     }
   ],
   "OYKAqF": [
     {
       "type": 0,
-      "value": "Quick start"
+      "value": "クイック スタート"
     }
   ],
   "Oc1AVw": [
     {
       "type": 0,
-      "value": "Draft synced "
+      "value": "下書きの同期済み "
     },
     {
       "type": 1,
@@ -6265,7 +6579,7 @@
   "OeU7Xk": [
     {
       "type": 0,
-      "value": "Explain what this scheduled trigger does for "
+      "value": "このスケジュールされたトリガーが "
     },
     {
       "type": 1,
@@ -6273,7 +6587,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " に対して何を行うかを説明してください。"
     }
   ],
   "OlIql8": [
@@ -6288,10 +6602,22 @@
       "value": "すべての監視データを表示および検索します。また、すべての Azure リソース上の Azure Diagnostics の構成を表示するなど、監視設定を表示します。"
     }
   ],
+  "OoxcFC": [
+    {
+      "type": 0,
+      "value": "Select the input type"
+    }
+  ],
+  "OpUvSu": [
+    {
+      "type": 0,
+      "value": "Create Kusto Tool"
+    }
+  ],
   "OrQ4EY": [
     {
       "type": 0,
-      "value": "Expand chat preview"
+      "value": "チャットのプレビューを展開する"
     }
   ],
   "OsIQyM": [
@@ -6303,7 +6629,7 @@
   "Oshix6": [
     {
       "type": 0,
-      "value": "Select an existing agent below to add as a handoff."
+      "value": "ハンドオフとして追加する既存のエージェントを以下から選択します。"
     }
   ],
   "OvzONl": [
@@ -6333,7 +6659,7 @@
   "P0yf0W": [
     {
       "type": 0,
-      "value": "Search tools by name, category, or description"
+      "value": "名前、カテゴリ、または説明でツールを検索する"
     }
   ],
   "P3qxV2": [
@@ -6345,7 +6671,7 @@
   "P5X8Kw": [
     {
       "type": 0,
-      "value": "Review your trigger configuration before creating"
+      "value": "作成する前にトリガーの構成を確認してください"
     }
   ],
   "P7MNl8": [
@@ -6357,7 +6683,7 @@
   "P7PLVj": [
     {
       "type": 0,
-      "value": "Date"
+      "value": "日付"
     }
   ],
   "P9odAr": [
@@ -6386,10 +6712,16 @@
       "value": "最近のプロンプト"
     }
   ],
+  "PF15hb": [
+    {
+      "type": 0,
+      "value": "Input value"
+    }
+  ],
   "PFUTWt": [
     {
       "type": 0,
-      "value": "AI improvements applied to instructions"
+      "value": "AI の改善を指示に適用"
     }
   ],
   "PFtMy9": [
@@ -6416,34 +6748,40 @@
       "value": "インシデントのフィルター"
     }
   ],
+  "PKvAvF": [
+    {
+      "type": 0,
+      "value": "Extend your agent’s capabilities with connectors"
+    }
+  ],
   "PPrKNq": [
     {
       "type": 0,
-      "value": "Defines how the agent operates"
+      "value": "エージェントの動作を定義"
     }
   ],
   "PQgsh+": [
     {
       "type": 0,
-      "value": "Execute Tool"
+      "value": "ツールを実行する"
     }
   ],
   "PS7hBo": [
     {
       "type": 0,
-      "value": "Choose the Kusto connector this tool will query"
+      "value": "このツールがクエリする Kusto コネクタを選択"
     }
   ],
   "PSfARI": [
     {
       "type": 0,
-      "value": "Loading more rows..."
+      "value": "行をさらに読み込んでいます..."
     }
   ],
   "PU1wDo": [
     {
       "type": 0,
-      "value": "Common tools"
+      "value": "共通ツール"
     }
   ],
   "PW+sL4": [
@@ -6456,6 +6794,18 @@
     {
       "type": 0,
       "value": "リソース分析"
+    }
+  ],
+  "PXJ+oX": [
+    {
+      "type": 0,
+      "value": "To view incidents triggered, go to Incidents"
+    }
+  ],
+  "PXJi2R": [
+    {
+      "type": 0,
+      "value": "No target agent specified"
     }
   ],
   "PXYq8b": [
@@ -6483,7 +6833,13 @@
   "Pa1S0J": [
     {
       "type": 0,
-      "value": "Total active flow consumption"
+      "value": "アクティブ フローの合計消費量"
+    }
+  ],
+  "PbaaPs": [
+    {
+      "type": 0,
+      "value": "Add subagent"
     }
   ],
   "Pc+tM3": [
@@ -6545,7 +6901,7 @@
   "PvMAYc": [
     {
       "type": 0,
-      "value": "No system tools match your search."
+      "value": "検索に一致するシステム ツールはありません。"
     }
   ],
   "Pwen/L": [
@@ -6569,13 +6925,21 @@
   "PxsPJt": [
     {
       "type": 0,
-      "value": "Turning on scheduled task(s)"
+      "value": "スケジュールされたタスク "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " を有効にしています"
     }
   ],
   "PysW/n": [
     {
       "type": 0,
-      "value": "Reset changes"
+      "value": "変更をリセット"
     }
   ],
   "PzGaVI": [
@@ -6587,7 +6951,7 @@
   "Q++yMM": [
     {
       "type": 0,
-      "value": "Subagent"
+      "value": "サブエージェント"
     }
   ],
   "Q/agzh": [
@@ -6599,7 +6963,7 @@
   "Q2CgqG": [
     {
       "type": 0,
-      "value": "Choose your approach below. You can always switch between editing and testing."
+      "value": "以下からアプローチを選択してください。編集とテストはいつでも切り替え可能です。"
     }
   ],
   "Q3p3sz": [
@@ -6611,15 +6975,7 @@
   "Q4f1wN": [
     {
       "type": 0,
-      "value": "This will permanently "
-    },
-    {
-      "type": 1,
-      "value": "actionVerb"
-    },
-    {
-      "type": 0,
-      "value": " this "
+      "value": "これにより、この "
     },
     {
       "type": 1,
@@ -6627,7 +6983,7 @@
     },
     {
       "type": 0,
-      "value": ". Are you sure you want to "
+      "value": " が完全に "
     },
     {
       "type": 1,
@@ -6635,7 +6991,7 @@
     },
     {
       "type": 0,
-      "value": " this "
+      "value": " されます。この "
     },
     {
       "type": 1,
@@ -6643,13 +6999,27 @@
     },
     {
       "type": 0,
-      "value": "?"
+      "value": " を "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " しますか?"
+    }
+  ],
+  "Q6Lw7i": [
+    {
+      "type": 0,
+      "value": "To learn more about permissions, click here."
     }
   ],
   "Q7/1w4": [
     {
       "type": 0,
-      "value": "Required for testing"
+      "value": "テストに必要"
     }
   ],
   "Q8Qw5B": [
@@ -6679,7 +7049,7 @@
   "QChoto": [
     {
       "type": 0,
-      "value": "Updating AAU allocation from "
+      "value": "AAU 割り当てを "
     },
     {
       "type": 1,
@@ -6687,7 +7057,7 @@
     },
     {
       "type": 0,
-      "value": " to "
+      "value": " から "
     },
     {
       "type": 1,
@@ -6695,7 +7065,13 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " に更新しています。"
+    }
+  ],
+  "QDa8Q+": [
+    {
+      "type": 0,
+      "value": "Add connector"
     }
   ],
   "QEhO+z": [
@@ -6716,10 +7092,16 @@
       "value": "Azure Digital Twins データ所有者"
     }
   ],
+  "QK0vxq": [
+    {
+      "type": 0,
+      "value": "Go to Connectors"
+    }
+  ],
   "QOSRgI": [
     {
       "type": 0,
-      "value": "AAU Consumption"
+      "value": "AAU 消費量"
     }
   ],
   "QQX4Pv": [
@@ -6734,40 +7116,26 @@
       "value": "使用 (トリガー、アクション)"
     }
   ],
-  "QWEHW2": [
+  "QW+Q5N": [
     {
       "type": 0,
-      "value": "Every "
-    },
+      "value": "Clear all"
+    }
+  ],
+  "QWEHW2": [
     {
       "type": 1,
       "value": "hours"
     },
     {
       "type": 0,
-      "value": " hours"
+      "value": " 時間ごと"
     }
   ],
   "QY3CEK": [
     {
       "type": 0,
-      "value": "Handoff Description"
-    }
-  ],
-  "Qc3Kdl": [
-    {
-      "type": 0,
-      "value": "Example: "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "where SubscriptionId == \"##SubscriptionId##\""
-        }
-      ],
-      "type": 8,
-      "value": "code"
+      "value": "ハンドオフの説明"
     }
   ],
   "QdDYGR": [
@@ -6797,13 +7165,13 @@
   "Ql/5RS": [
     {
       "type": 0,
-      "value": "Scoring…"
+      "value": "スコアリングしています..."
     }
   ],
   "QlkL14": [
     {
       "type": 0,
-      "value": "Updating connector"
+      "value": "コネクタを更新しています"
     }
   ],
   "QlsDcr": [
@@ -6821,7 +7189,7 @@
   "QmOU5t": [
     {
       "type": 0,
-      "value": "Deleting connector \""
+      "value": "コネクタ \""
     },
     {
       "type": 1,
@@ -6829,37 +7197,37 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": "\" を削除しています"
     }
   ],
   "Qn5bey": [
     {
       "type": 0,
-      "value": "No quick fixes needed."
+      "value": "クイック修正は不要です。"
     }
   ],
   "Qn8Bok": [
     {
       "type": 0,
-      "value": "Handback"
+      "value": "ハンドバック"
     }
   ],
   "QomX1y": [
     {
       "type": 0,
-      "value": "e.g., 0 9 * * 1-5"
+      "value": "例: 0 9 * * 1-5"
     }
   ],
   "QpCzB2": [
     {
       "type": 0,
-      "value": "Resize configuration and preview panels"
+      "value": "構成パネルとプレビュー パネルのサイズを変更する"
     }
   ],
   "QrihTZ": [
     {
       "type": 0,
-      "value": "Friday"
+      "value": "金曜日"
     }
   ],
   "QwnGVY": [
@@ -6871,7 +7239,7 @@
   "QzM+2e": [
     {
       "type": 0,
-      "value": "Start filling in the fields above to define this tool."
+      "value": "上記のフィールドの入力を開始して、このツールを定義してください。"
     }
   ],
   "R+J5ox": [
@@ -6911,7 +7279,7 @@
   "R3mMmc": [
     {
       "type": 0,
-      "value": "Monthly AAU limit slider"
+      "value": "月間 AAU 制限スライダー"
     }
   ],
   "R7DP3y": [
@@ -6929,13 +7297,19 @@
   "RA3fki": [
     {
       "type": 0,
-      "value": "Missing context"
+      "value": "コンテキストがありません"
     }
   ],
   "RAjqKb": [
     {
       "type": 0,
       "value": "パネルを閉じる"
+    }
+  ],
+  "REOGTJ": [
+    {
+      "type": 0,
+      "value": "Add a connector to give the agent additional tools for automating incident handling."
     }
   ],
   "RH8rNM": [
@@ -6947,33 +7321,29 @@
   "RI59Ed": [
     {
       "type": 0,
-      "value": "Add existing tool"
+      "value": "既存のツールを追加"
     }
   ],
   "RK2Ddg": [
     {
       "type": 0,
-      "value": "Orchestrator"
+      "value": "オーケストレーター"
     }
   ],
   "RK9Ag4": [
-    {
-      "type": 0,
-      "value": "Delete "
-    },
     {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " files?"
+      "value": " 件のファイルを削除しますか?"
     }
   ],
   "RR+13c": [
     {
       "type": 0,
-      "value": "Replace the default meta agent with a specialized version tailored for this extended agent"
+      "value": "既定のメタ エージェントを、この拡張エージェント用に調整された専用のバージョンに置き換えます"
     }
   ],
   "RSDnlS": [
@@ -7021,7 +7391,7 @@
   "Rk/SSB": [
     {
       "type": 0,
-      "value": "Server error occurred. Please try again in a few moments."
+      "value": "サーバー エラーが発生しました。しばらくしてからもう一度お試しください。"
     }
   ],
   "RpKuX5": [
@@ -7050,19 +7420,23 @@
           "value": [
             {
               "type": 0,
-              "value": "Set up incident response plans to trigger agents automatically."
+              "value": "エージェントを自動的にトリガーするようにインシデント応答計画を設定します。"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "エージェントをトリガーする準備が整ったインシデント応答計画が "
+            },
+            {
               "type": 1,
               "value": "count"
             },
             {
               "type": 0,
-              "value": " incident response plans ready to trigger your agents."
+              "value": " 件あります。"
             }
           ]
         }
@@ -7075,7 +7449,7 @@
   "S0GneP": [
     {
       "type": 0,
-      "value": "Review Your agent"
+      "value": "エージェントを確認"
     }
   ],
   "S1VBUm": [
@@ -7090,10 +7464,24 @@
       "value": "過去 12 時間"
     }
   ],
+  "S2jxf1": [
+    {
+      "type": 0,
+      "value": "No "
+    },
+    {
+      "type": 1,
+      "value": "activeTab"
+    },
+    {
+      "type": 0,
+      "value": " found"
+    }
+  ],
   "S2z35W": [
     {
       "type": 0,
-      "value": "Failed to create connector with error: "
+      "value": "コネクタを作成できませんでした。エラー: "
     },
     {
       "type": 1,
@@ -7109,13 +7497,13 @@
   "S5UkvS": [
     {
       "type": 0,
-      "value": "Playground mode"
+      "value": "プレイグラウンド モード"
     }
   ],
   "S8/4ZI": [
     {
       "type": 0,
-      "value": "More actions"
+      "value": "その他のアクション"
     }
   ],
   "SAINuE": [
@@ -7128,6 +7516,12 @@
     {
       "type": 0,
       "value": "Cognitive Services データ閲覧者"
+    }
+  ],
+  "SDsdCi": [
+    {
+      "type": 0,
+      "value": "Add existing tools"
     }
   ],
   "SFUZOQ": [
@@ -7173,7 +7567,7 @@
   "SR33a/": [
     {
       "type": 0,
-      "value": "Restart chat conversation"
+      "value": "チャットの会話を再起動する"
     }
   ],
   "SRf69j": [
@@ -7215,13 +7609,13 @@
   "SXcBLr": [
     {
       "type": 0,
-      "value": "No common prompts added."
+      "value": "一般的なプロンプトは追加されていません。"
     }
   ],
   "SZMgCd": [
     {
       "type": 0,
-      "value": "Connect a Model Context Protocol (MCP) server to give the agent additional tools and actions for automating incident handling."
+      "value": "モデル コンテキスト プロトコル (MCP) サーバーを接続して、エージェントにインシデント処理の自動化に役立つ追加のツールと操作を提供します。"
     }
   ],
   "Sdc+Dp": [
@@ -7233,7 +7627,7 @@
   "Seanpx": [
     {
       "type": 0,
-      "value": "Required"
+      "value": "必須"
     }
   ],
   "SezWLK": [
@@ -7257,7 +7651,7 @@
   "SmFb5S": [
     {
       "type": 0,
-      "value": "Draft not yet synced"
+      "value": "下書きはまだ同期されていません"
     }
   ],
   "Sr4IbA": [
@@ -7275,7 +7669,7 @@
   "StVmtb": [
     {
       "type": 0,
-      "value": "Generate schedule"
+      "value": "スケジュールを生成する"
     }
   ],
   "SuVToZ": [
@@ -7292,30 +7686,22 @@
   ],
   "T+FE9b": [
     {
-      "type": 0,
-      "value": "Interactive testing for "
-    },
-    {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": " is coming soon."
+      "value": " の対話型テストはまもなく利用可能になります。"
     }
   ],
   "T/G3bv": [
-    {
-      "type": 0,
-      "value": "Created "
-    },
     {
       "type": 1,
       "value": "handoffName"
     },
     {
       "type": 0,
-      "value": " and added it as a handoff for "
+      "value": " を作成し、"
     },
     {
       "type": 1,
@@ -7323,7 +7709,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " のハンドオフとして追加しました。"
     }
   ],
   "T0/eoE": [
@@ -7347,7 +7733,7 @@
   "T7fzjx": [
     {
       "type": 0,
-      "value": "Save YAML"
+      "value": "YAML を保存"
     }
   ],
   "T8DCV7": [
@@ -7401,7 +7787,7 @@
   "THFIRB": [
     {
       "type": 0,
-      "value": "Incident trigger"
+      "value": "インシデント トリガー"
     }
   ],
   "TIDNOO": [
@@ -7429,7 +7815,7 @@
   "TKsgZu": [
     {
       "type": 0,
-      "value": "Key alerts"
+      "value": "主要なアラート"
     }
   ],
   "TMZ2Rq": [
@@ -7441,7 +7827,7 @@
   "TO55dt": [
     {
       "type": 0,
-      "value": "Azure SRE Agent billing is measured in Azure agent units (AAU). Monthly AAU billing reflects both the fixed always-on flow and variable usage from active flow. You can increase or decrease the active flow AAU allocation at any time."
+      "value": "Azure SRE Agent の課金は Azure エージェント単位 (AAU) で計測されます。月次の AAU 請求には、固定の常時オンのフローとアクティブ フローの可変の使用量が反映されます。アクティブ フローの AAU 割り当てはいつでも増減できます。"
     }
   ],
   "TQ0n+a": [
@@ -7451,7 +7837,7 @@
     },
     {
       "type": 0,
-      "value": " lands at "
+      "value": " は "
     },
     {
       "type": 1,
@@ -7459,13 +7845,13 @@
     },
     {
       "type": 0,
-      "value": "%. Sharpen instructions and tools to climb faster."
+      "value": "% です。指示とツールを改善して、より速く成長しましょう。"
     }
   ],
   "TRceX/": [
     {
       "type": 0,
-      "value": "No agents-as-tools configured."
+      "value": "ツールとしてのエージェントは構成されていません。"
     }
   ],
   "TZWmvi": [
@@ -7489,7 +7875,7 @@
   "Tg4Q8g": [
     {
       "type": 0,
-      "value": "Disconnect data connector?"
+      "value": "データコネクタを切断しますか?"
     }
   ],
   "ThSX0k": [
@@ -7507,13 +7893,13 @@
   "Tkn9dK": [
     {
       "type": 0,
-      "value": "Select an agent to manage its relationships."
+      "value": "エージェントを選択して、そのリレーションシップを管理します。"
     }
   ],
   "TmQqXl": [
     {
       "type": 0,
-      "value": "Optional: choose when this schedule should begin running."
+      "value": "省略可能: このスケジュールの実行を開始するタイミングを選択します。"
     }
   ],
   "Tq2F2Y": [
@@ -7522,10 +7908,16 @@
       "value": "応答プランを作成するためのアクセス許可がありません。"
     }
   ],
+  "TrnqJG": [
+    {
+      "type": 0,
+      "value": "Input type"
+    }
+  ],
   "TwMqIK": [
     {
       "type": 0,
-      "value": "Review Your connector"
+      "value": "コネクタを確認"
     }
   ],
   "TyvDrC": [
@@ -7543,7 +7935,13 @@
   "U914O/": [
     {
       "type": 0,
-      "value": "No params needed"
+      "value": "パラメーターは必要ありません"
+    }
+  ],
+  "UBbDNy": [
+    {
+      "type": 0,
+      "value": "No documents in knowledge base. Add some?"
     }
   ],
   "UCYFxr": [
@@ -7575,7 +7973,7 @@
   "UNXega": [
     {
       "type": 0,
-      "value": "From agent"
+      "value": "転送元エージェント"
     }
   ],
   "UPybTw": [
@@ -7587,7 +7985,7 @@
   "UQUIP7": [
     {
       "type": 0,
-      "value": "Request error"
+      "value": "要求エラー"
     }
   ],
   "UV4Dx5": [
@@ -7633,7 +8031,7 @@
     },
     {
       "type": 0,
-      "value": " is already a handoff for "
+      "value": " は既に "
     },
     {
       "type": 1,
@@ -7641,7 +8039,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " のハンドオフです。"
     }
   ],
   "UmEsZF": [
@@ -7671,25 +8069,25 @@
   "V4yeoh": [
     {
       "type": 0,
-      "value": "Peak Usage"
+      "value": "ピーク時の使用量"
     }
   ],
   "V52jNn": [
     {
       "type": 0,
-      "value": "Enabled"
+      "value": "有効"
     }
   ],
   "V5AOl5": [
     {
       "type": 0,
-      "value": "Remove starter agent"
+      "value": "スターター エージェントを削除"
     }
   ],
   "V5w7/I": [
     {
       "type": 0,
-      "value": "Optimize alert response with an incident platform"
+      "value": "インシデント プラットフォームを使用してアラート対応を最適化する"
     }
   ],
   "V9A1Xh": [
@@ -7701,7 +8099,7 @@
   "VA/Z1S": [
     {
       "type": 0,
-      "value": "Hide"
+      "value": "非表示にする"
     }
   ],
   "VB+AjJ": [
@@ -7719,13 +8117,13 @@
   "VIYXlx": [
     {
       "type": 0,
-      "value": "Chat preview"
+      "value": "チャットのプレビュー"
     }
   ],
   "VIcJZp": [
     {
       "type": 0,
-      "value": "List View"
+      "value": "リスト ビュー"
     }
   ],
   "VIgoaE": [
@@ -7746,12 +8144,6 @@
       "value": "接続されている API"
     }
   ],
-  "VMIM8/": [
-    {
-      "type": 0,
-      "value": "分析"
-    }
-  ],
   "VQDmmK": [
     {
       "type": 0,
@@ -7761,29 +8153,35 @@
   "VQlvNn": [
     {
       "type": 0,
-      "value": "Overriding the meta agent is recommended because this extended agent doesn't need the default agent's world knowledge of Azure resources, providing a more focused experience."
+      "value": "この拡張エージェントは Azure リソースに関する既定のエージェントの汎用的な知識を必要としないため、より焦点を絞ったエクスペリエンスを提供できます。そのため、メタ エージェントをオーバーライドすることをお勧めします。"
     }
   ],
   "VQn8u+": [
     {
       "type": 0,
-      "value": "Select system tools this agent can use"
+      "value": "このエージェントが使用できるシステム ツールを選択"
     }
   ],
   "VSWkne": [
     {
       "type": 0,
-      "value": "Warnings"
+      "value": "警告"
     }
   ],
   "VTkRGg": [
     {
-      "type": 0,
-      "value": "Connect relationships for "
-    },
-    {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " のリレーションシップを接続"
+    }
+  ],
+  "VU4BBu": [
+    {
+      "type": 0,
+      "value": "Parameter"
     }
   ],
   "VUHkVQ": [
@@ -7801,13 +8199,13 @@
   "VVy70J": [
     {
       "type": 0,
-      "value": "Quality watcher"
+      "value": "品質ウォッチャー"
     }
   ],
   "VWq2cH": [
     {
       "type": 0,
-      "value": "Playbook Legend"
+      "value": "プレイブックの凡例"
     }
   ],
   "VYjDXQ": [
@@ -7828,6 +8226,12 @@
       "value": "レビュー (既定)"
     }
   ],
+  "Vipo+I": [
+    {
+      "type": 0,
+      "value": "No parameters configured"
+    }
+  ],
   "VlBNux": [
     {
       "type": 0,
@@ -7837,13 +8241,13 @@
   "VnySGb": [
     {
       "type": 0,
-      "value": "A meta agent override already exists in your system."
+      "value": "メタ エージェントのオーバーライドは既にシステムに存在します。"
     }
   ],
   "VpVoQZ": [
     {
       "type": 0,
-      "value": "Tool recommendations"
+      "value": "ツールの推奨事項"
     }
   ],
   "VpsD7s": [
@@ -7875,7 +8279,7 @@
   "VvrxSY": [
     {
       "type": 0,
-      "value": "Common prompts"
+      "value": "一般的なプロンプト"
     }
   ],
   "VwHnVH": [
@@ -7887,7 +8291,7 @@
   "VzeCzD": [
     {
       "type": 0,
-      "value": "Type for dictionary values"
+      "value": "辞書値の型"
     }
   ],
   "VzzYJk": [
@@ -7908,6 +8312,12 @@
       "value": "応答プランが見つかりません"
     }
   ],
+  "W1Qs5O": [
+    {
+      "type": 0,
+      "value": "Runs"
+    }
+  ],
   "W2JBdp": [
     {
       "type": 0,
@@ -7917,7 +8327,7 @@
   "W5zi/x": [
     {
       "type": 0,
-      "value": "Please try again or check the console for details."
+      "value": "再試行するか、コンソールで詳細を確認してください。"
     }
   ],
   "W6NO8g": [
@@ -7935,7 +8345,7 @@
   "W8LUUc": [
     {
       "type": 0,
-      "value": "Not analyzed"
+      "value": "分析されていません"
     }
   ],
   "W99XAG": [
@@ -7962,6 +8372,12 @@
       "value": "前回のデータ キャプチャ時間"
     }
   ],
+  "WJj+TP": [
+    {
+      "type": 0,
+      "value": "You do not have permission to check incident management connection."
+    }
+  ],
   "WLw9E7": [
     {
       "type": 0,
@@ -7971,7 +8387,7 @@
   "WMNHPh": [
     {
       "type": 0,
-      "value": "Saturday"
+      "value": "土曜日"
     }
   ],
   "WTrOy3": [
@@ -7983,7 +8399,7 @@
   "WUV28A": [
     {
       "type": 0,
-      "value": "Saving…"
+      "value": "保存しています..."
     }
   ],
   "WVTzuw": [
@@ -8021,13 +8437,13 @@
   "WcnRC1": [
     {
       "type": 0,
-      "value": "Pick an agent to visualize its tools, connectors, and handoffs."
+      "value": "エージェントを選択して、そのツール、コネクタ、ハンドオフを視覚化します。"
     }
   ],
   "WdmBr4": [
     {
       "type": 0,
-      "value": "Insight streak: "
+      "value": "連続した分析情報: "
     },
     {
       "type": 1,
@@ -8036,17 +8452,13 @@
   ],
   "Wekzzh": [
     {
-      "type": 0,
-      "value": "Are you sure you want to delete "
-    },
-    {
       "offset": 0,
       "options": {
         "one": {
           "value": [
             {
               "type": 0,
-              "value": "this item"
+              "value": "このアイテム"
             }
           ]
         },
@@ -8054,14 +8466,14 @@
           "value": [
             {
               "type": 0,
-              "value": "these "
+              "value": "これらの "
             },
             {
               "type": 7
             },
             {
               "type": 0,
-              "value": " items"
+              "value": " 件のアイテム"
             }
           ]
         }
@@ -8072,7 +8484,7 @@
     },
     {
       "type": 0,
-      "value": "? This action cannot be undone."
+      "value": "を削除しますか?この操作は元に戻せません。"
     }
   ],
   "Wf6bDe": [
@@ -8084,19 +8496,25 @@
   "WfXPv6": [
     {
       "type": 0,
-      "value": "New thread for each run"
+      "value": "各実行ごとの新しいスレッド"
     }
   ],
   "WhuvJH": [
     {
       "type": 0,
-      "value": "Auto-apply OFF"
+      "value": "自動適用オフ"
+    }
+  ],
+  "WjqsyE": [
+    {
+      "type": 0,
+      "value": "When enabled, the SearchMemory tool and knowledge base prompts will be automatically added"
     }
   ],
   "Wkup5T": [
     {
       "type": 0,
-      "value": "Pending user input"
+      "value": "ユーザーによる入力の保留中"
     }
   ],
   "Wn+PVy": [
@@ -8108,19 +8526,19 @@
   "WolNVP": [
     {
       "type": 0,
-      "value": "No recent analysis"
+      "value": "最近の分析はありません"
     }
   ],
   "WsILsq": [
     {
       "type": 0,
-      "value": "Iterate on instructions without impacting production threads."
+      "value": "運用スレッドに影響を与えずに指示を繰り返し実行します。"
     }
   ],
   "WsJuyI": [
     {
       "type": 0,
-      "value": "Agent playground"
+      "value": "エージェント プレイグラウンド"
     }
   ],
   "Wtf3vL": [
@@ -8144,7 +8562,7 @@
   "WzNnqa": [
     {
       "type": 0,
-      "value": "Ready to start a new chat with extended agent “"
+      "value": "拡張エージェント \""
     },
     {
       "type": 1,
@@ -8152,7 +8570,7 @@
     },
     {
       "type": 0,
-      "value": "”. Your next message will launch it."
+      "value": "\" との新しいチャットを開始する準備ができました。次のメッセージで起動します。"
     }
   ],
   "X192re": [
@@ -8164,7 +8582,7 @@
   "X3fjbS": [
     {
       "type": 0,
-      "value": "Context: "
+      "value": "コンテキスト: "
     },
     {
       "type": 1,
@@ -8174,7 +8592,7 @@
   "X3hl5x": [
     {
       "type": 0,
-      "value": "Assumptions"
+      "value": "想定"
     }
   ],
   "X4Y2nv": [
@@ -8196,7 +8614,7 @@
   "X5Q310": [
     {
       "type": 0,
-      "value": "Hide details"
+      "value": "詳細を非表示にする"
     }
   ],
   "X5UCWb": [
@@ -8214,7 +8632,7 @@
   "X7mXLW": [
     {
       "type": 0,
-      "value": "YAML error"
+      "value": "YAML エラー"
     }
   ],
   "X8SzJ6": [
@@ -8232,19 +8650,25 @@
   "XCfiZ2": [
     {
       "type": 0,
-      "value": "Draft the cron for me"
+      "value": "Cron の下書きを自動的に作成する"
     }
   ],
   "XDSe35": [
     {
       "type": 0,
-      "value": "Select an agent or tool to start a playground session."
+      "value": "プレイグラウンド セッションを開始するエージェントまたはツールを選択してください。"
+    }
+  ],
+  "XDcbqQ": [
+    {
+      "type": 0,
+      "value": "Stopping SRE Agent"
     }
   ],
   "XEB3Fn": [
     {
       "type": 0,
-      "value": "Will attach to "
+      "value": "ツールとして "
     },
     {
       "type": 1,
@@ -8252,7 +8676,7 @@
     },
     {
       "type": 0,
-      "value": " as a tool."
+      "value": " にアタッチします。"
     }
   ],
   "XEanEV": [
@@ -8270,23 +8694,27 @@
   "XG++pU": [
     {
       "type": 0,
-      "value": "Delete resource group "
+      "value": "リソース グループ "
     },
     {
       "type": 1,
       "value": "resourceGroupName"
+    },
+    {
+      "type": 0,
+      "value": " を削除する"
     }
   ],
   "XHc00z": [
     {
       "type": 0,
-      "value": "Connector Type"
+      "value": "コネクタの種類"
     }
   ],
   "XHoPAJ": [
     {
       "type": 0,
-      "value": "Response plan details"
+      "value": "応答プランの詳細"
     }
   ],
   "XJ+Lww": [
@@ -8304,7 +8732,7 @@
   "XKWCS3": [
     {
       "type": 0,
-      "value": "Removed the starter agent. Next messages will stay in this thread."
+      "value": "スターター エージェントを削除しました。次のメッセージはこのスレッドに残ります。"
     }
   ],
   "XKhlZF": [
@@ -8328,13 +8756,13 @@
   "XM+FCY": [
     {
       "type": 0,
-      "value": "Connected tools"
+      "value": "接続されたツール"
     }
   ],
   "XMUseu": [
     {
       "type": 0,
-      "value": "Failed to update AAU allocation. Error: "
+      "value": "AAU 割り当ての更新に失敗しました。エラー: "
     },
     {
       "type": 1,
@@ -8344,7 +8772,7 @@
   "XPR3X/": [
     {
       "type": 0,
-      "value": "Thread title was renamed successfully to '"
+      "value": "スレッドのタイトルが正常に '"
     },
     {
       "type": 1,
@@ -8352,7 +8780,7 @@
     },
     {
       "type": 0,
-      "value": "'"
+      "value": "' に変更されました"
     }
   ],
   "XRdOZL": [
@@ -8361,16 +8789,28 @@
       "value": "インシデントの選択または検索"
     }
   ],
+  "XS8hWM": [
+    {
+      "type": 0,
+      "value": "Enter a boolean"
+    }
+  ],
   "XV8dOu": [
     {
       "type": 0,
-      "value": "Message grouping for updates"
+      "value": "更新に関するメッセージのグループ化"
     }
   ],
   "XVG+T1": [
     {
       "type": 0,
-      "value": "Refining details..."
+      "value": "詳細を改善しています..."
+    }
+  ],
+  "XYIeUc": [
+    {
+      "type": 0,
+      "value": "Agent permissions are determined by its assigned RBAC roles."
     }
   ],
   "XYSJsS": [
@@ -8400,7 +8840,7 @@
   "Xb85sq": [
     {
       "type": 0,
-      "value": "Grid view is coming soon."
+      "value": "グリッド ビューは近日公開予定です。"
     }
   ],
   "XbNTkN": [
@@ -8415,6 +8855,20 @@
       "value": "ハイライトされたポイント"
     }
   ],
+  "XfAFyQ": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " connectors..."
+    }
+  ],
   "Xkdnen": [
     {
       "type": 0,
@@ -8424,19 +8878,25 @@
   "Xmty/4": [
     {
       "type": 0,
-      "value": "Hide watcher panel"
+      "value": "ウォッチャー パネルを非表示にする"
     }
   ],
   "XqRXu6": [
     {
       "type": 0,
-      "value": "Playground"
+      "value": "プレイグラウンド"
     }
   ],
   "XtnlO8": [
     {
       "type": 0,
       "value": "PostgreSQL フレキシブル サーバーの長期保有バックアップを管理します。"
+    }
+  ],
+  "Xup5P8": [
+    {
+      "type": 0,
+      "value": "What happened"
     }
   ],
   "XvrDTb": [
@@ -8452,13 +8912,13 @@
     },
     {
       "type": 0,
-      "value": ", give me your mission briefing and how you partner with engineers."
+      "value": "、ミッションの状況を説明し、どのようにエンジニアと連携しているかを教えてください。"
     }
   ],
   "Y2PFzA": [
     {
       "type": 0,
-      "value": "Priority fixes"
+      "value": "優先修正事項"
     }
   ],
   "Y2QRpS": [
@@ -8470,11 +8930,31 @@
   "Y3qQB0": [
     {
       "type": 0,
-      "value": "Turning on scheduled task "
+      "value": "スケジュールされたタスク "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " を有効にしています"
+    }
+  ],
+  "Y47Dwm": [
+    {
+      "type": 0,
+      "value": "Kusto tools"
+    }
+  ],
+  "Y5IFiT": [
+    {
+      "type": 1,
+      "value": "service"
+    },
+    {
+      "type": 0,
+      "value": " account"
     }
   ],
   "Y7Lbpf": [
@@ -8486,13 +8966,13 @@
   "Y7RxDE": [
     {
       "type": 0,
-      "value": "Run task now"
+      "value": "今すぐタスクを実行"
     }
   ],
   "YAgYL6": [
     {
       "type": 0,
-      "value": "Tuesday"
+      "value": "火曜日"
     }
   ],
   "YBXVNU": [
@@ -8510,7 +8990,7 @@
   "YCnSYw": [
     {
       "type": 0,
-      "value": "No description provided."
+      "value": "説明が入力されていません。"
     }
   ],
   "YE+vjH": [
@@ -8531,16 +9011,30 @@
       "value": "引き続き使用する"
     }
   ],
+  "YKwGp6": [
+    {
+      "type": 0,
+      "value": "Added tools to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "YMjUWP": [
     {
       "type": 0,
-      "value": "Turn off scheduled task"
+      "value": "スケジュールされたタスクを無効にする"
     }
   ],
   "YN1/XY": [
     {
       "type": 0,
-      "value": "Stress test"
+      "value": "ストレス テスト"
     }
   ],
   "YP06jq": [
@@ -8552,21 +9046,17 @@
   "YT6JU9": [
     {
       "type": 0,
-      "value": "Enter a name before creating this item."
+      "value": "このアイテムを作成する前に名前を入力してください。"
     }
   ],
   "YXOz1v": [
-    {
-      "type": 0,
-      "value": "Executing "
-    },
     {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": "..."
+      "value": " を実行しています..."
     }
   ],
   "YZIFAO": [
@@ -8584,7 +9074,7 @@
   "YeKWbP": [
     {
       "type": 0,
-      "value": "Authentication"
+      "value": "認証"
     }
   ],
   "YgyuGj": [
@@ -8632,7 +9122,7 @@
   "YrlQBL": [
     {
       "type": 0,
-      "value": "tool"
+      "value": "ツール"
     }
   ],
   "Ys9AIu": [
@@ -8644,7 +9134,7 @@
   "YsFdGq": [
     {
       "type": 0,
-      "value": "Supported file formats: .md and .txt"
+      "value": "サポートされているファイル形式: .md および .txt"
     }
   ],
   "Ysew65": [
@@ -8656,19 +9146,19 @@
   "YuvMS0": [
     {
       "type": 0,
-      "value": "Insights not yet analysed"
+      "value": "分析情報はまだ分析されていません"
     }
   ],
   "Z+uDP9": [
     {
       "type": 0,
-      "value": "Add a file or connect an external data source, such as a service or repository, to help the agent generate more informed responses."
+      "value": "ファイルを追加するか、サービスやリポジトリなどの外部データ ソースを接続して、エージェントがより適切な応答を生成できるようにします。"
     }
   ],
   "Z+wlsh": [
     {
       "type": 0,
-      "value": "Tool configuration is unavailable for this selection."
+      "value": "この選択ではツールの構成は利用できません。"
     }
   ],
   "Z1VHv1": [
@@ -8680,13 +9170,13 @@
   "Z4bt4u": [
     {
       "type": 0,
-      "value": "Auto-generated if left empty"
+      "value": "空のままにすると、自動生成されます"
     }
   ],
   "Z5ntkd": [
     {
       "type": 0,
-      "value": "Configuration changes are auto-applied (disable auto-apply to use manual apply)"
+      "value": "構成の変更は自動的に適用されます (手動適用を使用するには自動適用を無効にしてください)"
     }
   ],
   "Z6rVz/": [
@@ -8710,13 +9200,13 @@
   "Z8Y6DE": [
     {
       "type": 0,
-      "value": "Last Synced"
+      "value": "最終同期"
     }
   ],
   "Z9TajN": [
     {
       "type": 0,
-      "value": "Parsing…"
+      "value": "解析しています..."
     }
   ],
   "Z9pRs5": [
@@ -8728,7 +9218,7 @@
   "ZA4OiK": [
     {
       "type": 0,
-      "value": "Failed to create scheduled task: "
+      "value": "スケジュールされたタスクの作成に失敗しました。"
     },
     {
       "type": 1,
@@ -8738,7 +9228,7 @@
   "ZBKZDe": [
     {
       "type": 0,
-      "value": "Each "
+      "value": "各 "
     },
     {
       "type": 1,
@@ -8746,19 +9236,19 @@
     },
     {
       "type": 0,
-      "value": " must include a name."
+      "value": " には名前を含める必要があります。"
     }
   ],
   "ZBlAho": [
     {
       "type": 0,
-      "value": "Check if the agent introduces itself properly and outlines its capabilities."
+      "value": "エージェントが自身を適切に紹介し、その機能を説明しているか確認します。"
     }
   ],
   "ZBpAJ/": [
     {
       "type": 0,
-      "value": "Chat restarted with new configuration."
+      "value": "新しい構成でチャットが再起動されました。"
     }
   ],
   "ZCA/Ga": [
@@ -8775,10 +9265,20 @@
       "value": " に更新しています"
     }
   ],
+  "ZF9lPS": [
+    {
+      "type": 0,
+      "value": "Remove tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    }
+  ],
   "ZMa6Rh": [
     {
       "type": 0,
-      "value": "Deleting scheduled task(s)"
+      "value": "スケジュールされたタスクを削除しています"
     }
   ],
   "ZNMCbm": [
@@ -8790,19 +9290,19 @@
   "ZOO+kP": [
     {
       "type": 0,
-      "value": "Start on"
+      "value": "開始日"
     }
   ],
   "ZOdb7N": [
     {
       "type": 0,
-      "value": "Visual View"
+      "value": "ビジュアル ビュー"
     }
   ],
   "ZPP6n7": [
     {
       "type": 0,
-      "value": "Form editing is coming soon for this entity."
+      "value": "このエンティティのフォーム編集はまもなく利用可能になります。"
     }
   ],
   "ZUXvHE": [
@@ -8825,16 +9325,12 @@
   ],
   "Ze5Ejt": [
     {
-      "type": 0,
-      "value": "Testing for "
-    },
-    {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": " is coming soon. Only Kusto tools are supported right now."
+      "value": " のテストはまもなく利用可能になります。現在サポートされているのは Kusto ツールのみです。"
     }
   ],
   "Zh+5A6": [
@@ -8852,7 +9348,7 @@
   "ZjlBPk": [
     {
       "type": 0,
-      "value": "Conclusion"
+      "value": "結論"
     }
   ],
   "Zkjd9I": [
@@ -8864,19 +9360,19 @@
   "ZmlNQ3": [
     {
       "type": 0,
-      "value": "Activity"
+      "value": "アクティビティ"
     }
   ],
   "Zo9lK6": [
     {
       "type": 0,
-      "value": "Select an existing tool below to connect."
+      "value": "接続するには、既存のツールを以下から選択してください。"
     }
   ],
   "Zq5BCQ": [
     {
       "type": 0,
-      "value": "Failed to apply changes"
+      "value": "変更を適用できませんでした"
     }
   ],
   "ZqVUb5": [
@@ -8886,7 +9382,7 @@
     },
     {
       "type": 0,
-      "value": " scheduled task"
+      "value": " のスケジュールされたタスク"
     }
   ],
   "Zqa4dQ": [
@@ -8904,13 +9400,13 @@
   "Zt/L20": [
     {
       "type": 0,
-      "value": "No metadata provided."
+      "value": "メタデータが指定されていません。"
     }
   ],
   "Zu+xDc": [
     {
       "type": 0,
-      "value": "Fetching suggestions..."
+      "value": "提案を取得しています..."
     }
   ],
   "ZukeYV": [
@@ -8930,7 +9426,7 @@
   "Zve9uZ": [
     {
       "type": 0,
-      "value": "Test your Kusto query before saving"
+      "value": "保存する前に Kusto クエリをテストしてください"
     }
   ],
   "ZwYyES": [
@@ -8942,7 +9438,7 @@
   "a1UV+9": [
     {
       "type": 0,
-      "value": "Always-on flow + "
+      "value": "常時オンのフロー + "
     },
     {
       "style": null,
@@ -8951,13 +9447,13 @@
     },
     {
       "type": 0,
-      "value": " active flow AAUs"
+      "value": " 件のアクティブ フロー AAU"
     }
   ],
   "a5dT17": [
     {
       "type": 0,
-      "value": "Search data connectors"
+      "value": "データ コネクタを検索する"
     }
   ],
   "a5msuh": [
@@ -8981,7 +9477,13 @@
   "a8czK7": [
     {
       "type": 0,
-      "value": "Add a knowledge source"
+      "value": "ナレッジ ソースを追加する"
+    }
+  ],
+  "a8fWCd": [
+    {
+      "type": 0,
+      "value": "Enter a datetime"
     }
   ],
   "a8l/yJ": [
@@ -8999,7 +9501,7 @@
   "aA8bDw": [
     {
       "type": 0,
-      "value": "Text"
+      "value": "テキスト"
     }
   ],
   "aAADUG": [
@@ -9032,6 +9534,12 @@
       "value": "LUIS で読み取りおよびテスト関数にアクセスできます。"
     }
   ],
+  "aH3ak4": [
+    {
+      "type": 0,
+      "value": "Build subagent workflows"
+    }
+  ],
   "aH4De2": [
     {
       "type": 0,
@@ -9041,7 +9549,7 @@
   "aKNsTc": [
     {
       "type": 0,
-      "value": "Controls how this value is passed to the tool method"
+      "value": "この値がツール メソッドに渡される方法を制御します"
     }
   ],
   "aLBTVj": [
@@ -9055,7 +9563,7 @@
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": " 分前"
             }
           ]
         }
@@ -9098,7 +9606,7 @@
   "aSipXt": [
     {
       "type": 0,
-      "value": "Increase the agent's knowledge of your infrastructure"
+      "value": "インフラストラクチャに関するエージェントの知識を増やします。"
     }
   ],
   "aTyEZH": [
@@ -9164,13 +9672,13 @@
   "aprHig": [
     {
       "type": 0,
-      "value": "Max reflections"
+      "value": "最大リフレクション回数"
     }
   ],
   "aqGaRm": [
     {
       "type": 0,
-      "value": "Provide a short report about the latest signals and note any follow-up actions."
+      "value": "最新のシグナルに関する短いレポートを入力し、フォローアップ アクションを記載してください。"
     }
   ],
   "aqNZbD": [
@@ -9182,7 +9690,7 @@
   "arE3XO": [
     {
       "type": 0,
-      "value": "Tool test failed but no error details were provided."
+      "value": "ツールのテストに失敗しましたが、エラーの詳細は提供されませんでした。"
     }
   ],
   "auFFJa": [
@@ -9200,13 +9708,13 @@
   "azMsfM": [
     {
       "type": 0,
-      "value": "Monday"
+      "value": "月曜日"
     }
   ],
   "b0+PAq": [
     {
       "type": 0,
-      "value": "Audit check"
+      "value": "監査チェック"
     }
   ],
   "b2PyOl": [
@@ -9228,7 +9736,7 @@
   "b3sNCU": [
     {
       "type": 0,
-      "value": "Failed to turn off task: "
+      "value": "タスクの無効化に失敗しました。"
     },
     {
       "type": 1,
@@ -9238,7 +9746,7 @@
   "b5OEXm": [
     {
       "type": 0,
-      "value": "How often should it run?"
+      "value": "どれくらいの頻度で実行する必要がありますか?"
     }
   ],
   "b7D4Lh": [
@@ -9256,19 +9764,19 @@
   "b8PngH": [
     {
       "type": 0,
-      "value": "Loading agents…"
+      "value": "エージェントを読み込んでいます..."
     }
   ],
   "bCzUPd": [
     {
       "type": 0,
-      "value": "Cluster URI"
+      "value": "クラスター URI"
     }
   ],
   "bK0VQe": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete this Extended Tool? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
+      "value": "この拡張ツールを削除しますか? YAML 構成は完全に削除され、復元することはできません。この操作は元に戻せません。"
     }
   ],
   "bKgVBL": [
@@ -9292,19 +9800,19 @@
   "baRFiF": [
     {
       "type": 0,
-      "value": "Form"
+      "value": "フォーム"
     }
   ],
   "bdFY56": [
     {
       "type": 0,
-      "value": "Connector (Optional)"
+      "value": "コネクタ (省略可能)"
     }
   ],
   "bdhTWR": [
     {
       "type": 0,
-      "value": "Name can only contain letters, numbers, or hyphens and must be "
+      "value": "名前には文字、数字、ハイフンのみを使用でき、"
     },
     {
       "type": 1,
@@ -9312,7 +9820,7 @@
     },
     {
       "type": 0,
-      "value": " characters or fewer."
+      "value": " 文字以下である必要があります。"
     }
   ],
   "bect+9": [
@@ -9324,13 +9832,13 @@
   "bjLeN1": [
     {
       "type": 0,
-      "value": "Please restart the chat to see your changes."
+      "value": "変更を反映するにはチャットを再起動してください。"
     }
   ],
   "bjOnWH": [
     {
       "type": 0,
-      "value": "Add your draft instructions before asking for polish."
+      "value": "推敲を求める前に、下書きの指示を追加してください。"
     }
   ],
   "blSyDZ": [
@@ -9342,13 +9850,13 @@
   "blYlGH": [
     {
       "type": 0,
-      "value": "Invalid request. Please check your instructions and try again."
+      "value": "無効な要求です。指示を確認して、もう一度お試しください。"
     }
   ],
   "bn84V+": [
     {
       "type": 0,
-      "value": "Delete tool"
+      "value": "ツールを削除"
     }
   ],
   "boVrya": [
@@ -9372,17 +9880,21 @@
   "bquSks": [
     {
       "type": 0,
-      "value": "Collapse span with id: "
+      "value": "ID: "
     },
     {
       "type": 1,
       "value": "id"
+    },
+    {
+      "type": 0,
+      "value": " のスパンを折りたたむ"
     }
   ],
   "br2BTb": [
     {
       "type": 0,
-      "value": "Finish setup to enable previews."
+      "value": "セットアップを完了してプレビューを有効にします。"
     }
   ],
   "bri0SI": [
@@ -9400,7 +9912,7 @@
   "bs6oPY": [
     {
       "type": 0,
-      "value": "Author agent configuration and test"
+      "value": "エージェントの構成とテストを作成する"
     }
   ],
   "bswtOq": [
@@ -9422,7 +9934,7 @@
   "bxSp6r": [
     {
       "type": 0,
-      "value": "No tools match your search."
+      "value": "検索に一致するツールはありません。"
     }
   ],
   "bxcc6L": [
@@ -9443,10 +9955,16 @@
       "value": "今すぐ"
     }
   ],
+  "byP6IC": [
+    {
+      "type": 0,
+      "value": "Selected"
+    }
+  ],
   "c/8Uhj": [
     {
       "type": 0,
-      "value": "Here is the To-Do plan:"
+      "value": "To-Do プランは次のとおりです。"
     }
   ],
   "c/KktL": [
@@ -9458,13 +9976,13 @@
   "c/bty0": [
     {
       "type": 0,
-      "value": "No system tools configured."
+      "value": "システム ツールが構成されていません。"
     }
   ],
   "c1ECOO": [
     {
       "type": 0,
-      "value": "Tool testing"
+      "value": "ツールのテスト"
     }
   ],
   "c1EiBR": [
@@ -9488,13 +10006,19 @@
   "c3TO1+": [
     {
       "type": 0,
-      "value": "Open in playground"
+      "value": "プレイグラウンドで開く"
+    }
+  ],
+  "c5hwBU": [
+    {
+      "type": 0,
+      "value": "The agent will resume all activities."
     }
   ],
   "c8Doeq": [
     {
       "type": 0,
-      "value": "Connector \""
+      "value": "コネクタ \""
     },
     {
       "type": 1,
@@ -9502,13 +10026,13 @@
     },
     {
       "type": 0,
-      "value": "\" has been deleted successfully"
+      "value": "\" は正常に削除されました"
     }
   ],
   "cBcrgh": [
     {
       "type": 0,
-      "value": "Enter task details"
+      "value": "タスクの詳細を入力する"
     }
   ],
   "cDjhgm": [
@@ -9526,19 +10050,25 @@
   "cG0Q8M": [
     {
       "type": 0,
-      "value": "Temperature"
+      "value": "温度"
     }
   ],
   "cJGGY4": [
     {
       "type": 0,
-      "value": "Your changes are being processed and will appear in the chat preview momentarily."
+      "value": "変更を処理中です。まもなくチャット プレビューに反映されます。"
     }
   ],
   "cLC2fM": [
     {
       "type": 0,
-      "value": "AI chat service is currently unavailable. Please try again later."
+      "value": "AI チャット サービスは現在利用できません。後でもう一度お試しください。"
+    }
+  ],
+  "cLHCHE": [
+    {
+      "type": 0,
+      "value": "Connector status"
     }
   ],
   "cRTR/A": [
@@ -9562,23 +10092,29 @@
   "cYwv8P": [
     {
       "type": 0,
-      "value": "Intent Match"
+      "value": "意図の一致"
     }
   ],
   "ccXLVi": [
     {
       "type": 0,
-      "value": "Category"
+      "value": "カテゴリ"
     }
   ],
   "cfbpDd": [
     {
       "type": 0,
-      "value": "Category: "
+      "value": "カテゴリ: "
     },
     {
       "type": 1,
       "value": "category"
+    }
+  ],
+  "cg54iX": [
+    {
+      "type": 0,
+      "value": "Kusto tool name"
     }
   ],
   "ciB+oy": [
@@ -9596,19 +10132,19 @@
   "coPQxN": [
     {
       "type": 0,
-      "value": "Filter by custom plan"
+      "value": "カスタム プランでフィルター"
     }
   ],
   "coy1iv": [
     {
       "type": 0,
-      "value": "Edit YAML configuration"
+      "value": "YAML 構成を編集"
     }
   ],
   "cqx+Rd": [
     {
       "type": 0,
-      "value": "Manage connectors"
+      "value": "コネクタを管理"
     }
   ],
   "crWYMh": [
@@ -9640,7 +10176,7 @@
   "ctcA0c": [
     {
       "type": 0,
-      "value": "Agent name"
+      "value": "エージェント名"
     }
   ],
   "cubQfQ": [
@@ -9675,6 +10211,12 @@
     {
       "type": 0,
       "value": "API Management ワークスペースを管理します。"
+    }
+  ],
+  "d2czNd": [
+    {
+      "type": 0,
+      "value": "Datetime"
     }
   ],
   "d3MtwZ": [
@@ -9720,7 +10262,7 @@
   "dGa0bG": [
     {
       "type": 0,
-      "value": "Agent quality not scored yet. Run a check to reveal opportunities."
+      "value": "エージェントの品質のスコアリングはまだ行われていません。チェックを実行して機会を明確にします。"
     }
   ],
   "dI9gP+": [
@@ -9738,13 +10280,13 @@
   "dLWTUk": [
     {
       "type": 0,
-      "value": "An AI sub-agent with instructions and tools"
+      "value": "指示とツールを備えた AI サブエージェント"
     }
   ],
   "dO3eHj": [
     {
       "type": 0,
-      "value": "Make changes to the current agent configuration and test immediately."
+      "value": "現在のエージェント構成を変更し、すぐにテストします。"
     }
   ],
   "dQ5/dh": [
@@ -9780,7 +10322,7 @@
   "dWSIqT": [
     {
       "type": 0,
-      "value": "Consumption AAU usage"
+      "value": "消費された AAU 使用量"
     }
   ],
   "dYwe9B": [
@@ -9792,7 +10334,7 @@
   "daUwAL": [
     {
       "type": 0,
-      "value": "Creating scheduled task"
+      "value": "スケジュールされたタスクを作成しています"
     }
   ],
   "dd6gV2": [
@@ -9804,7 +10346,7 @@
   "dhmpfi": [
     {
       "type": 0,
-      "value": "Delete scheduled task(s)"
+      "value": "スケジュールされたタスクを削除する"
     }
   ],
   "dhqlRa": [
@@ -9821,22 +10363,18 @@
   ],
   "djuhEG": [
     {
-      "type": 0,
-      "value": "Enter "
-    },
-    {
       "type": 1,
       "value": "type"
     },
     {
       "type": 0,
-      "value": " value"
+      "value": " の値を入力"
     }
   ],
   "dk4jPW": [
     {
       "type": 0,
-      "value": "Critic prompt"
+      "value": "評価者用プロンプト"
     }
   ],
   "dkqYUR": [
@@ -9846,7 +10384,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " は "
     },
     {
       "type": 1,
@@ -9854,13 +10392,13 @@
     },
     {
       "type": 0,
-      "value": "%—you are outperforming the target confidence. Ship it! 🚀"
+      "value": "% です。目標の信頼度を上回っています。リリースしましょう! 🚀"
     }
   ],
   "dkt4ac": [
     {
       "type": 0,
-      "value": "Resolve YAML errors before applying changes"
+      "value": "変更を適用する前に YAML エラーを修正してください"
     }
   ],
   "dnXgff": [
@@ -9872,7 +10410,7 @@
   "dtQgfG": [
     {
       "type": 0,
-      "value": "Query Tester"
+      "value": "クエリ テスター"
     }
   ],
   "du1laW": [
@@ -9884,13 +10422,13 @@
   "dw6Z3b": [
     {
       "type": 0,
-      "value": "What it means"
+      "value": "それが意味する内容"
     }
   ],
   "dwkMC2": [
     {
       "type": 0,
-      "value": "Score agent quality"
+      "value": "エージェントの品質をスコアリングする"
     }
   ],
   "e0a3XV": [
@@ -9914,7 +10452,7 @@
   "eCZ0j1": [
     {
       "type": 0,
-      "value": "Open Todo Plans"
+      "value": "To-Do プランを開く"
     }
   ],
   "eEu4cm": [
@@ -9962,19 +10500,19 @@
   "eVjPEQ": [
     {
       "type": 0,
-      "value": "Model Generation"
+      "value": "モデル生成"
     }
   ],
   "eYClyG": [
     {
       "type": 0,
-      "value": "Capture AI-driven insights on confidence and next tweaks."
+      "value": "信頼度と今後の微調整に関する、AI による分析情報を取得します。"
     }
   ],
   "eYEnNu": [
     {
       "type": 0,
-      "value": "Run this agent on a repeating schedule."
+      "value": "このエージェントを定期的に実行します。"
     }
   ],
   "eZMksq": [
@@ -9998,7 +10536,7 @@
   "ee4AUg": [
     {
       "type": 0,
-      "value": "Scheduled task turned on successfully"
+      "value": "スケジュールされたタスクが正常にオフになりました"
     }
   ],
   "egubDj": [
@@ -10008,7 +10546,7 @@
     },
     {
       "type": 0,
-      "value": "% confidence"
+      "value": "% の信頼度"
     }
   ],
   "ehbsXg": [
@@ -10020,7 +10558,13 @@
   "ehhpyJ": [
     {
       "type": 0,
-      "value": "Add All"
+      "value": "すべて追加"
+    }
+  ],
+  "ekSxhn": [
+    {
+      "type": 0,
+      "value": "Connectors give the agent more tools to take action."
     }
   ],
   "emW/QQ": [
@@ -10032,7 +10576,7 @@
   "ene/8x": [
     {
       "type": 0,
-      "value": "Tune agent behavior in a safe space before you publish changes."
+      "value": "変更を公開する前に、安全な環境でエージェントの動作を調整します。"
     }
   ],
   "eq57j2": [
@@ -10056,7 +10600,7 @@
   "et3seW": [
     {
       "type": 0,
-      "value": "New handoff sub-agents start as Autonomous. You can connect tools and other details later."
+      "value": "新しいハンドオフ サブエージェントは、自律型として開始されます。ツールやその他の詳細は後から接続できます。"
     }
   ],
   "euBSDU": [
@@ -10068,7 +10612,7 @@
   "euKVCa": [
     {
       "type": 0,
-      "value": "System tools are built-in tools provided by the platform"
+      "value": "システム ツールは、プラットフォームによって提供される組み込みツールです"
     }
   ],
   "exofc7": [
@@ -10093,10 +10637,16 @@
       "value": "接続文字列またはエンドポイントの入力"
     }
   ],
+  "f04POI": [
+    {
+      "type": 0,
+      "value": "Tool created successfully"
+    }
+  ],
   "f0LQra": [
     {
       "type": 0,
-      "value": "Improve with AI"
+      "value": "AI で改善"
     }
   ],
   "f0Luxo": [
@@ -10108,7 +10658,7 @@
   "f0Sf6g": [
     {
       "type": 0,
-      "value": "Add a file"
+      "value": "ファイルを追加する"
     }
   ],
   "f0Y4Zr": [
@@ -10126,7 +10676,7 @@
   "f6xT1Y": [
     {
       "type": 0,
-      "value": "Scheduled task(s) turned on successfully"
+      "value": "スケジュールされたタスクが正常に有効になりました"
     }
   ],
   "f7Zx3L": [
@@ -10138,13 +10688,19 @@
   "f9xN/g": [
     {
       "type": 0,
-      "value": "Rising Specialist"
+      "value": "成長中の専門家"
+    }
+  ],
+  "fCiXKq": [
+    {
+      "type": 0,
+      "value": "Add scheduled task"
     }
   ],
   "fE5E6W": [
     {
       "type": 0,
-      "value": "How do you want to get started?"
+      "value": "どのように始めますか?"
     }
   ],
   "fEYQWU": [
@@ -10168,13 +10724,13 @@
   "fHE7i7": [
     {
       "type": 0,
-      "value": "Code optimizations"
+      "value": "コードの最適化"
     }
   ],
   "fINN7t": [
     {
       "type": 0,
-      "value": "Insights: "
+      "value": "分析情報: "
     },
     {
       "type": 1,
@@ -10184,7 +10740,7 @@
   "fIQSsD": [
     {
       "type": 0,
-      "value": "Couldn’t draft the cron yet. Refine the description and try again."
+      "value": "Cron の下書きをまだ作成できませんでした。説明を調整して、もう一度お試しください。"
     }
   ],
   "fLkL3F": [
@@ -10196,7 +10752,7 @@
   "fT73QI": [
     {
       "type": 0,
-      "value": "New tool"
+      "value": "新しいツール"
     }
   ],
   "fUgypu": [
@@ -10214,7 +10770,7 @@
   "fbr20l": [
     {
       "type": 0,
-      "value": "Create & Link"
+      "value": "作成してリンクする"
     }
   ],
   "fdCjVS": [
@@ -10235,22 +10791,28 @@
       "value": "この名前のサブエージェントは既に存在します"
     }
   ],
+  "fiLH5L": [
+    {
+      "type": 0,
+      "value": "To create a Kusto tool, first add an Azure Data Explorer connector."
+    }
+  ],
   "fio5op": [
     {
       "type": 0,
-      "value": "Output"
+      "value": "出力"
     }
   ],
   "fjOQVZ": [
     {
       "type": 0,
-      "value": "Learn more about incident platform integration"
+      "value": "インシデント プラットフォーム統合の詳細情報"
     }
   ],
   "fjgqNG": [
     {
       "type": 0,
-      "value": "Failed to load trace data: "
+      "value": "トレース データを読み込めませんでした: "
     },
     {
       "type": 1,
@@ -10266,13 +10828,13 @@
   "fr6Gnj": [
     {
       "type": 0,
-      "value": "Change AAU allocation"
+      "value": "AAU 割り当てを変更する"
     }
   ],
   "fssuHC": [
     {
       "type": 0,
-      "value": "Connect an MCP server"
+      "value": "MCP サーバーに接続する"
     }
   ],
   "ftDEuE": [
@@ -10326,7 +10888,7 @@
   "g4II+z": [
     {
       "type": 0,
-      "value": "e.g. 0 0 * * *"
+      "value": "例: 0 0 * * *"
     }
   ],
   "g7HOVb": [
@@ -10350,19 +10912,19 @@
   "gD6r6x": [
     {
       "type": 0,
-      "value": "Day of week"
+      "value": "曜日"
     }
   ],
   "gDVRX+": [
     {
       "type": 0,
-      "value": "Drag files here or"
+      "value": "ここにファイルをドラッグするか"
     }
   ],
   "gGfQUL": [
     {
       "type": 0,
-      "value": "Warm-up scenario"
+      "value": "ウォームアップ シナリオ"
     }
   ],
   "gHCL4X": [
@@ -10392,7 +10954,7 @@
   "gP/k0J": [
     {
       "type": 0,
-      "value": "Optional description of what this connector accesses"
+      "value": "このコネクタがアクセスする内容の説明 (省略可能)"
     }
   ],
   "gUQeKV": [
@@ -10407,10 +10969,16 @@
       "value": "IoT Hub デバイス ツインを管理します。"
     }
   ],
+  "gclDgn": [
+    {
+      "type": 0,
+      "value": "Create a Kusto tool"
+    }
+  ],
   "gct+2s": [
     {
       "type": 0,
-      "value": "Incident response plan:"
+      "value": "インシデント応答プラン:"
     }
   ],
   "gdUWAX": [
@@ -10423,6 +10991,12 @@
     {
       "type": 0,
       "value": "スレッド ID"
+    }
+  ],
+  "ghwElt": [
+    {
+      "type": 0,
+      "value": "Visit Support + Troubleshooting to access support resources and troubleshoot issues related to your SRE Agent."
     }
   ],
   "gj6Qc6": [
@@ -10449,10 +11023,16 @@
       "value": "Grafana ダッシュボードを設定するにはアクセス許可が必要です。"
     }
   ],
+  "gox4oK": [
+    {
+      "type": 0,
+      "value": "Enter the database name"
+    }
+  ],
   "grgDhd": [
     {
       "type": 0,
-      "value": "Failed to load scheduled tasks: "
+      "value": "スケジュールされたタスクの読み込みに失敗しました。"
     },
     {
       "type": 1,
@@ -10462,7 +11042,7 @@
   "gvlNuI": [
     {
       "type": 0,
-      "value": "Start fresh or reuse an existing trigger configuration."
+      "value": "新しく開始するか、既存のトリガー構成を再利用します。"
     }
   ],
   "gwSeXa": [
@@ -10522,13 +11102,19 @@
   "h+sisx": [
     {
       "type": 0,
-      "value": "Author and Test - Configure and test"
+      "value": "作成とテスト - 構成とテスト"
+    }
+  ],
+  "h/OQTK": [
+    {
+      "type": 0,
+      "value": "Use ##ParamName## in your query to define parameter placeholders."
     }
   ],
   "h0W8DM": [
     {
       "type": 0,
-      "value": "Time of day"
+      "value": "時刻"
     }
   ],
   "h4BqRo": [
@@ -10538,13 +11124,13 @@
     },
     {
       "type": 0,
-      "value": " incident response plan"
+      "value": " のインシデント応答計画"
     }
   ],
   "h4XDJP": [
     {
       "type": 0,
-      "value": "Symptoms:"
+      "value": "症状:"
     }
   ],
   "h6183G": [
@@ -10567,6 +11153,12 @@
       "value": "\" のインシデントが見つかりませんでした"
     }
   ],
+  "hF/2EL": [
+    {
+      "type": 0,
+      "value": "Handoff Instructions"
+    }
+  ],
   "hF5T80": [
     {
       "type": 0,
@@ -10576,7 +11168,7 @@
   "hGMSK3": [
     {
       "type": 0,
-      "value": "Apply Suggestions"
+      "value": "提案を適用"
     }
   ],
   "hGQqkW": [
@@ -10600,7 +11192,7 @@
   "hNKm4/": [
     {
       "type": 0,
-      "value": "Sub-Agent"
+      "value": "サブエージェント"
     }
   ],
   "hO1Iog": [
@@ -10624,13 +11216,13 @@
   "hS+M7h": [
     {
       "type": 0,
-      "value": "Steps to resolution"
+      "value": "解決手順"
     }
   ],
   "hWVnHh": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete this Extended Agent? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
+      "value": "この拡張エージェントを削除しますか? YAML 構成は完全に削除され、復元することはできません。この操作は元に戻せません。"
     }
   ],
   "hX5PAb": [
@@ -10654,13 +11246,13 @@
   "haOtj7": [
     {
       "type": 0,
-      "value": "System tools are read-only. View the YAML for reference."
+      "value": "システム ツールは読み取り専用です。参照用に YAML を表示します。"
     }
   ],
   "heMr0D": [
     {
       "type": 0,
-      "value": "How well your agent is meeting user intents based on chat interactions. Updates after conversations."
+      "value": "チャットのやり取りに基づいて、エージェントがユーザーの意図をどれだけ満たしているかを示します。会話後に更新されます。"
     }
   ],
   "hfACn+": [
@@ -10684,19 +11276,19 @@
   "hgAzMV": [
     {
       "type": 0,
-      "value": "Remove file"
+      "value": "ファイルを削除する"
     }
   ],
   "hijOHm": [
     {
       "type": 0,
-      "value": "Preview AI recommendations without changing your instructions"
+      "value": "指示を変更せずに AI の推奨事項をプレビューする"
     }
   ],
   "hkgUC5": [
     {
       "type": 0,
-      "value": "No parameters required for this tool."
+      "value": "このツールでは、パラメーターは必要ありません。"
     }
   ],
   "hlmkcL": [
@@ -10709,6 +11301,12 @@
     {
       "type": 0,
       "value": "Grafana リソース"
+    }
+  ],
+  "hqWr3L": [
+    {
+      "type": 0,
+      "value": "RCA category"
     }
   ],
   "hrdmcd": [
@@ -10726,7 +11324,7 @@
   "hzElIu": [
     {
       "type": 0,
-      "value": "No files match your search"
+      "value": "検索に一致するファイルはありません"
     }
   ],
   "hzSNj4": [
@@ -10756,7 +11354,7 @@
   "iDPKM0": [
     {
       "type": 0,
-      "value": "Filter tasks"
+      "value": "タスクをフィルター処理する"
     }
   ],
   "iDSWYk": [
@@ -10774,19 +11372,27 @@
   "iJ+eDu": [
     {
       "type": 0,
-      "value": "Failed to load data"
+      "value": "データの読み込みに失敗しました"
     }
   ],
   "iJCsVz": [
     {
       "type": 0,
-      "value": "Not yet published"
+      "value": "未公開"
     }
   ],
-  "iMBgdL": [
+  "iMaY2Q": [
     {
       "type": 0,
-      "value": "Kusto Tool"
+      "value": "Stopping SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in progress"
     }
   ],
   "iNgloh": [
@@ -10798,19 +11404,25 @@
   "iV7LUx": [
     {
       "type": 0,
-      "value": "Create a new trigger with custom settings"
+      "value": "カスタム設定で新しいトリガーを作成"
     }
   ],
   "iXNbPf": [
     {
       "type": 0,
-      "value": "Rename"
+      "value": "名前の変更"
+    }
+  ],
+  "iY7P1k": [
+    {
+      "type": 0,
+      "value": "Agent Autonomy"
     }
   ],
   "iZDRGO": [
     {
       "type": 0,
-      "value": "Assigned"
+      "value": "割り当て済み"
     }
   ],
   "iZuO+L": [
@@ -10825,16 +11437,10 @@
       "value": "コア アプリケーション グループのリソース名"
     }
   ],
-  "ic8SAj": [
-    {
-      "type": 0,
-      "value": "または"
-    }
-  ],
   "icyjmd": [
     {
       "type": 0,
-      "value": "To-Do Plan"
+      "value": "To-Do プラン"
     }
   ],
   "ielB5f": [
@@ -10849,16 +11455,22 @@
       "value": "Copy コマンド"
     }
   ],
+  "ifdupA": [
+    {
+      "type": 0,
+      "value": "To view runs, go to Agent Runs"
+    }
+  ],
   "iihhVc": [
     {
       "type": 0,
-      "value": "Quality Evaluation"
+      "value": "品質評価"
     }
   ],
   "ijOojL": [
     {
       "type": 0,
-      "value": "Agent created, but linking to "
+      "value": "エージェントが作成されましたが、"
     },
     {
       "type": 1,
@@ -10866,13 +11478,13 @@
     },
     {
       "type": 0,
-      "value": " failed. Retry link."
+      "value": " へのリンクに失敗しました。リンクを再試行します。"
     }
   ],
   "ipsqxO": [
     {
       "type": 0,
-      "value": "Select an agent"
+      "value": "エージェントを選択"
     }
   ],
   "iqdd9H": [
@@ -10890,13 +11502,13 @@
   "isZXYe": [
     {
       "type": 0,
-      "value": "Applying…"
+      "value": "適用しています…"
     }
   ],
   "it6Lig": [
     {
       "type": 0,
-      "value": "Input"
+      "value": "入力"
     }
   ],
   "it8L1Q": [
@@ -10944,27 +11556,29 @@
   "iydbuT": [
     {
       "type": 0,
-      "value": "e.g., P1 incident response"
+      "value": "例: P1 インシデント応答"
     }
   ],
   "izQgEq": [
-    {
-      "type": 0,
-      "value": "Creates a handoff for "
-    },
     {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": "."
+      "value": " のハンドオフを作成します。"
     }
   ],
   "j1FyDL": [
     {
       "type": 0,
-      "value": "No extended tools available."
+      "value": "使用できる拡張ツールはありません。"
+    }
+  ],
+  "j1pB0w": [
+    {
+      "type": 0,
+      "value": "Go to Agent Consumption"
     }
   ],
   "j3bwJQ": [
@@ -10976,7 +11590,7 @@
   "j59lXr": [
     {
       "type": 0,
-      "value": "No matching items yet. Complete the quick create form to add one."
+      "value": "一致するアイテムはまだありません。追加するには、簡易作成フォームに入力します。"
     }
   ],
   "j5QthH": [
@@ -11024,7 +11638,7 @@
   "jM/rXB": [
     {
       "type": 0,
-      "value": "Create and connect new items"
+      "value": "新しいアイテムを作成して接続"
     }
   ],
   "jOkfJV": [
@@ -11037,6 +11651,48 @@
     {
       "type": 0,
       "value": "根本原因分析カテゴリが見つかりません"
+    }
+  ],
+  "jSgRib": [
+    {
+      "type": 0,
+      "value": "Your knowledge base has "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "document"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "documents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ". Add more?"
     }
   ],
   "jTQZpk": [
@@ -11055,6 +11711,12 @@
     {
       "type": 0,
       "value": "応答プランを編集するためのアクセス許可がありません。"
+    }
+  ],
+  "ja85pV": [
+    {
+      "type": 0,
+      "value": "Add Documents"
     }
   ],
   "jabB4C": [
@@ -11086,7 +11748,7 @@
   "jjTzIr": [
     {
       "type": 0,
-      "value": "Database"
+      "value": "データベース"
     }
   ],
   "jlOO/9": [
@@ -11098,19 +11760,19 @@
   "jqpolM": [
     {
       "type": 0,
-      "value": "No system tools available."
+      "value": "使用できるシステム ツールがありません。"
     }
   ],
   "ju7bLp": [
     {
       "type": 0,
-      "value": "No connectors available"
+      "value": "使用できるコネクタはありません"
     }
   ],
   "jv8SuZ": [
     {
       "type": 0,
-      "value": "Start time (optional)"
+      "value": "開始時刻 (省略可能)"
     }
   ],
   "jvo0vs": [
@@ -11122,23 +11784,27 @@
   "jw1Wpc": [
     {
       "type": 0,
-      "value": "Deleting incident "
+      "value": "インシデント "
     },
     {
       "type": 1,
       "value": "title"
+    },
+    {
+      "type": 0,
+      "value": " を削除しています"
     }
   ],
   "jxYyO2": [
     {
       "type": 0,
-      "value": "YAML must include {collectionName} with at least one entry."
+      "value": "YAML には、少なくとも 1 つのエントリを持つ {collectionName} を含める必要があります。"
     }
   ],
   "k+3+Dy": [
     {
       "type": 0,
-      "value": "Bar chart"
+      "value": "横棒グラフ"
     }
   ],
   "k0VNHX": [
@@ -11148,13 +11814,13 @@
     },
     {
       "type": 0,
-      "value": "ms"
+      "value": " ミリ秒"
     }
   ],
   "k4dB65": [
     {
       "type": 0,
-      "value": "This will create both your agent (\""
+      "value": "これにより、エージェント (\""
     },
     {
       "type": 1,
@@ -11162,13 +11828,13 @@
     },
     {
       "type": 0,
-      "value": "\") and a separate \"meta_agent\" for orchestration."
+      "value": "\") とオーケストレーション用の別の \"meta_agent\" の両方が作成されます。"
     }
   ],
   "k5T5VE": [
     {
       "type": 0,
-      "value": "Select a starting agent"
+      "value": "開始エージェントを選択"
     }
   ],
   "k8ZNgH": [
@@ -11177,10 +11843,16 @@
       "value": "アラート ID"
     }
   ],
+  "kFkPWB": [
+    {
+      "type": 0,
+      "value": "Number"
+    }
+  ],
   "kG0ZtT": [
     {
       "type": 0,
-      "value": "Other cron ideas"
+      "value": "Cron のその他のアイデア"
     }
   ],
   "kHIJzq": [
@@ -11192,31 +11864,31 @@
   "kNEmDU": [
     {
       "type": 0,
-      "value": "Goal: 85%+ confidence"
+      "value": "目標: 85% 以上の信頼度"
     }
   ],
   "kQAf2d": [
     {
       "type": 0,
-      "value": "Select"
+      "value": "選択"
     }
   ],
   "kQSvkP": [
     {
       "type": 0,
-      "value": "Connector type"
+      "value": "コネクタの種類"
     }
   ],
   "kT9YDi": [
     {
       "type": 0,
-      "value": "You do not have permission to rename this thread."
+      "value": "このスレッドの名前を変更するために必要な権限がありません。"
     }
   ],
   "kWBrry": [
     {
       "type": 0,
-      "value": "Starting agent"
+      "value": "エージェントを起動しています"
     }
   ],
   "kWs94j": [
@@ -11228,7 +11900,7 @@
   "kX8T8H": [
     {
       "type": 0,
-      "value": "Name of the dictionary this parameter contributes to"
+      "value": "このパラメーターが追加される辞書の名前"
     }
   ],
   "kbDtEK": [
@@ -11241,10 +11913,16 @@
       "value": "failedFiles"
     }
   ],
+  "ketkP5": [
+    {
+      "type": 0,
+      "value": "Knowledge Base Enabled"
+    }
+  ],
   "khOzXi": [
     {
       "type": 0,
-      "value": "Custom schedule"
+      "value": "カスタム スケジュール"
     }
   ],
   "kn+J82": [
@@ -11300,7 +11978,7 @@
   "ks97gc": [
     {
       "type": 0,
-      "value": "Use an existing trigger configuration"
+      "value": "既存のトリガー構成を使用"
     }
   ],
   "ku+mDU": [
@@ -11315,10 +11993,16 @@
       "value": "Response plan saved successfully"
     }
   ],
+  "kxokJj": [
+    {
+      "type": 0,
+      "value": "Agent datagrid"
+    }
+  ],
   "l+e8nZ": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the selected scheduled task(s)? This action cannot be undone."
+      "value": "スケジュールされたタスクを削除しますか?この操作は元に戻せません。"
     }
   ],
   "l0TtPi": [
@@ -11343,16 +12027,28 @@
       "value": " 個のリソース グループが選択されています。"
     }
   ],
+  "l0UKyP": [
+    {
+      "type": 0,
+      "value": "Azure Data Explorer"
+    }
+  ],
+  "l0VCdV": [
+    {
+      "type": 0,
+      "value": "Create tool"
+    }
+  ],
   "l2Ni9H": [
     {
       "type": 0,
-      "value": "Chat preview is only available for agents."
+      "value": "チャットのプレビューはエージェントでのみ利用可能です。"
     }
   ],
   "l5a3zV": [
     {
       "type": 0,
-      "value": "Make a copy"
+      "value": "コピーを作成する"
     }
   ],
   "l5sNim": [
@@ -11364,7 +12060,7 @@
   "lCsNuL": [
     {
       "type": 0,
-      "value": "Trace data found, but could not parse into spans."
+      "value": "トレース データは見つかりましたが、スパンに解析できませんでした。"
     }
   ],
   "lDMkTI": [
@@ -11380,7 +12076,7 @@
   "lDx7s5": [
     {
       "type": 0,
-      "value": "Agent responses are more concise in this mode."
+      "value": "このモードでは、エージェントの応答がより簡潔になります。"
     }
   ],
   "lKv8ex": [
@@ -11404,7 +12100,7 @@
   "lUAfdH": [
     {
       "type": 0,
-      "value": "MCP server name"
+      "value": "MCP サーバー名"
     }
   ],
   "lawXja": [
@@ -11454,7 +12150,7 @@
   "lni1id": [
     {
       "type": 0,
-      "value": "Search system tools by name, category, or description"
+      "value": "名前、カテゴリ、または説明でシステム ツールを検索する"
     }
   ],
   "lqgE72": [
@@ -11472,13 +12168,13 @@
   "lxblgl": [
     {
       "type": 0,
-      "value": "Wednesday"
+      "value": "水曜日"
     }
   ],
   "m+cdhC": [
     {
       "type": 0,
-      "value": "Recently used"
+      "value": "最近使用したもの"
     }
   ],
   "m0kcbz": [
@@ -11490,7 +12186,13 @@
   "m3Npit": [
     {
       "type": 0,
-      "value": "No tools available. Try creating one or clearing your filters."
+      "value": "使用できるツールがありません。作成するか、フィルターをクリアしてみてください。"
+    }
+  ],
+  "m4vqJl": [
+    {
+      "type": 0,
+      "value": "Files"
     }
   ],
   "m57OnF": [
@@ -11508,7 +12210,7 @@
   "m8grMF": [
     {
       "type": 0,
-      "value": "Connector \""
+      "value": "コネクタ \""
     },
     {
       "type": 1,
@@ -11516,13 +12218,13 @@
     },
     {
       "type": 0,
-      "value": "\" has been created successfully"
+      "value": "\" は正常に作成されました"
     }
   ],
   "mAinBm": [
     {
       "type": 0,
-      "value": "Automatically push YAML edits to the agent during testing."
+      "value": "テスト中に YAML の編集をエージェントに対して自動的にプッシュします。"
     }
   ],
   "mAyw3x": [
@@ -11540,31 +12242,31 @@
   "mGh+K0": [
     {
       "type": 0,
-      "value": "Owning team ID is required when adding a default response plan."
+      "value": "既定の応答プランを追加するときは、所有チーム ID が必要です。"
     }
   ],
   "mHep2R": [
     {
       "type": 0,
-      "value": "Last run"
+      "value": "前回の実行"
     }
   ],
   "mJR06P": [
     {
       "type": 0,
-      "value": "Sunday"
+      "value": "日曜日"
     }
   ],
   "mJXXeS": [
     {
       "type": 0,
-      "value": "No tools connected yet."
+      "value": "ツールはまだ接続されていません。"
     }
   ],
   "mMgwbu": [
     {
       "type": 0,
-      "value": "Undo (10s)"
+      "value": "元に戻す (10 秒)"
     }
   ],
   "mOFG3K": [
@@ -11576,7 +12278,7 @@
   "mRJIzw": [
     {
       "type": 0,
-      "value": "Results ("
+      "value": "結果 ("
     },
     {
       "type": 1,
@@ -11593,7 +12295,7 @@
           "value": [
             {
               "type": 0,
-              "value": "row"
+              "value": "行"
             }
           ]
         },
@@ -11601,7 +12303,7 @@
           "value": [
             {
               "type": 0,
-              "value": "rows"
+              "value": "行"
             }
           ]
         }
@@ -11618,13 +12320,13 @@
   "mRL9Vh": [
     {
       "type": 0,
-      "value": "Creating..."
+      "value": "作成しています..."
     }
   ],
   "mSoczp": [
     {
       "type": 0,
-      "value": "YAML spec must include a name for the "
+      "value": "YAML の spec には "
     },
     {
       "type": 1,
@@ -11632,7 +12334,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " の名前を含める必要があります。"
     }
   ],
   "mV7WX3": [
@@ -11644,7 +12346,7 @@
   "mVkTZZ": [
     {
       "type": 0,
-      "value": "Plugin"
+      "value": "プラグイン"
     }
   ],
   "mZ0R9v": [
@@ -11656,7 +12358,7 @@
   "mZ3wu9": [
     {
       "type": 0,
-      "value": "Tool type"
+      "value": "ツールの種類"
     }
   ],
   "makWrV": [
@@ -11668,19 +12370,19 @@
   "mbb8vl": [
     {
       "type": 0,
-      "value": "User prompt"
+      "value": "ユーザー プロンプト"
     }
   ],
   "mbtoHb": [
     {
       "type": 0,
-      "value": "How should this trigger be set up?"
+      "value": "このトリガーをどのように設定しますか?"
     }
   ],
   "methez": [
     {
       "type": 0,
-      "value": "Max tier achieved—keep refining to stay ahead."
+      "value": "最大レベルに到達しました。優位性を保ために、改良を続けましょう。"
     }
   ],
   "mgYBYo": [
@@ -11692,13 +12394,13 @@
   "mgZVf8": [
     {
       "type": 0,
-      "value": "No tools configured."
+      "value": "ツールが構成されていません。"
     }
   ],
   "mhKk7c": [
     {
       "type": 0,
-      "value": "Create new Kusto tool"
+      "value": "新しい Kusto ツールを作成する"
     }
   ],
   "mkhNnB": [
@@ -11716,21 +12418,23 @@
   "mm/uFP": [
     {
       "type": 0,
-      "value": "Filter by mitigated by"
+      "value": "軽減対象でフィルター"
+    }
+  ],
+  "moOg2N": [
+    {
+      "type": 0,
+      "value": "Outlook"
     }
   ],
   "mopY52": [
-    {
-      "type": 0,
-      "value": "Created "
-    },
     {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": " and linked it as a handoff for "
+      "value": " を作成し、"
     },
     {
       "type": 1,
@@ -11738,7 +12442,7 @@
     },
     {
       "type": 0,
-      "value": ". Choose what you’d like to do next."
+      "value": " のハンドオフとしてリンクしました。次に何を行うかを選択してください。"
     }
   ],
   "mq/sud": [
@@ -11750,7 +12454,7 @@
   "mrOnjM": [
     {
       "type": 0,
-      "value": "Mode"
+      "value": "モード"
     }
   ],
   "mtr3R4": [
@@ -11780,7 +12484,7 @@
   "n2h/5e": [
     {
       "type": 0,
-      "value": "Dictionary value type"
+      "value": "辞書値の型"
     }
   ],
   "n5QvJy": [
@@ -11792,7 +12496,7 @@
   "n7yYXG": [
     {
       "type": 0,
-      "value": "Service"
+      "value": "サービス"
     }
   ],
   "nBPow3": [
@@ -11814,7 +12518,7 @@
   "nCowEs": [
     {
       "type": 0,
-      "value": "All agents"
+      "value": "すべてのエージェント"
     }
   ],
   "nDyaq/": [
@@ -11832,7 +12536,7 @@
   "nFpcjX": [
     {
       "type": 0,
-      "value": "Auto-generated"
+      "value": "自動生成"
     }
   ],
   "nL/Owh": [
@@ -11872,13 +12576,13 @@
   "nUT0Lv": [
     {
       "type": 0,
-      "value": "Tools"
+      "value": "ツール"
     }
   ],
   "nWJtZd": [
     {
       "type": 0,
-      "value": "Connector details · "
+      "value": "コネクタの詳細 · "
     },
     {
       "type": 1,
@@ -11888,21 +12592,17 @@
   "ncB14A": [
     {
       "type": 0,
-      "value": "Agent invoked"
+      "value": "エージェントが呼び出されました"
     }
   ],
   "nkYx6+": [
-    {
-      "type": 0,
-      "value": "Disconnect "
-    },
     {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " data connectors?"
+      "value": " 件のデータ コネクタを切断しますか?"
     }
   ],
   "nmpevl": [
@@ -11920,7 +12620,7 @@
   "noxLT+": [
     {
       "type": 0,
-      "value": "Apply fixes"
+      "value": "修正を適用する"
     }
   ],
   "npvxpr": [
@@ -11950,13 +12650,13 @@
   "nx7y+W": [
     {
       "type": 0,
-      "value": "Re-run insights"
+      "value": "分析情報を再実行する"
     }
   ],
   "nxmZHP": [
     {
       "type": 0,
-      "value": "Configuration saved successfully."
+      "value": "構成が正常に保存されました。"
     }
   ],
   "nxvTtg": [
@@ -11968,25 +12668,25 @@
   "nySNrf": [
     {
       "type": 0,
-      "value": "A unique identifier for your tool"
+      "value": "ツールの一意識別子"
     }
   ],
   "o0pkiK": [
     {
       "type": 0,
-      "value": "Describe what this agent does and how it should behave..."
+      "value": "このエージェントが何を行い、どのように動作するかを説明してください..."
     }
   ],
   "o1g3JC": [
     {
       "type": 0,
-      "value": "No tools linked yet. Add tools so this agent can take action."
+      "value": "ツールはまだリンクされていません。このエージェントがアクションを実行できるようにツールを追加します。"
     }
   ],
   "o3uElD": [
     {
       "type": 0,
-      "value": "Add data connector"
+      "value": "データ コネクタを追加する"
     }
   ],
   "o7TUwc": [
@@ -12009,16 +12709,12 @@
   ],
   "oBxxMY": [
     {
-      "type": 0,
-      "value": "Failed to delete all "
-    },
-    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " data connectors"
+      "value": " 件のすべてのデータ コネクタを削除できませんでした"
     }
   ],
   "oDI/Rp": [
@@ -12038,7 +12734,7 @@
   "oDVFQr": [
     {
       "type": 0,
-      "value": "Ignore (use static value)"
+      "value": "無視 (静的な値を使用)"
     }
   ],
   "oDb8Xv": [
@@ -12053,22 +12749,28 @@
       "value": "Azure リソースのアクティビティとインシデントを監視して対応するために、エージェントは許可された特定のサブスクリプション、リソース グループ、サービスにアクセスする必要があります。"
     }
   ],
+  "oHGFwy": [
+    {
+      "type": 0,
+      "value": "Sign in with a different account"
+    }
+  ],
   "oKJ0fm": [
     {
       "type": 0,
-      "value": "Nothing to preview yet."
+      "value": "プレビューするものはまだありません。"
     }
   ],
   "oM0lfe": [
     {
       "type": 0,
-      "value": "Select a node to see its details."
+      "value": "ノードを選択して、その詳細を表示します。"
     }
   ],
   "oMsZ4g": [
     {
       "type": 0,
-      "value": "Day of month"
+      "value": "月の日付"
     }
   ],
   "oQ/TUW": [
@@ -12080,7 +12782,7 @@
   "oQJEFn": [
     {
       "type": 0,
-      "value": "Performance Issue"
+      "value": "パフォーマンスの問題"
     }
   ],
   "oTNrPz": [
@@ -12092,7 +12794,7 @@
   "oTOgOq": [
     {
       "type": 0,
-      "value": "Loading MCP tools..."
+      "value": "MCP ツールを読み込んでいます..."
     }
   ],
   "oUWADl": [
@@ -12122,7 +12824,7 @@
   "ob6s4+": [
     {
       "type": 0,
-      "value": "Deny assignment"
+      "value": "拒否の割り当て"
     }
   ],
   "obRqDQ": [
@@ -12144,7 +12846,7 @@
   "ocTBQX": [
     {
       "type": 0,
-      "value": "Failed to delete connector"
+      "value": "コネクタの削除に失敗しました"
     }
   ],
   "omHElC": [
@@ -12162,7 +12864,7 @@
   "osuyeD": [
     {
       "type": 0,
-      "value": "Out of date"
+      "value": "最新ではありません"
     }
   ],
   "ovJ26C": [
@@ -12174,11 +12876,15 @@
   "owa0nd": [
     {
       "type": 0,
-      "value": "Expand span with id: "
+      "value": "ID: "
     },
     {
       "type": 1,
       "value": "id"
+    },
+    {
+      "type": 0,
+      "value": " のスパンを展開する"
     }
   ],
   "ox7DwN": [
@@ -12190,7 +12896,7 @@
   "p/QlSI": [
     {
       "type": 0,
-      "value": "Updating connector \""
+      "value": "コネクタ \""
     },
     {
       "type": 1,
@@ -12198,7 +12904,7 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": "\" を更新しています"
     }
   ],
   "p/xAmY": [
@@ -12246,13 +12952,13 @@
   "p8Ubox": [
     {
       "type": 0,
-      "value": "Connect an incident management platform so the agent will collect, analyze, and respond to alerts."
+      "value": "エージェントがアラートを収集および分析して対応できるように、インシデント管理プラットフォームを接続します。"
     }
   ],
   "pA7W9m": [
     {
       "type": 0,
-      "value": "Intent Met Score"
+      "value": "意図の満足度スコア"
     }
   ],
   "pAFuFx": [
@@ -12276,13 +12982,13 @@
   "pCRg92": [
     {
       "type": 0,
-      "value": "You do not have permission to add or delete connectors."
+      "value": "コネクタを追加または削除するためのアクセス許可がありません。"
     }
   ],
   "pCjcdM": [
     {
       "type": 0,
-      "value": "Prompt highlights"
+      "value": "プロンプトのハイライト"
     }
   ],
   "pDUFq5": [
@@ -12300,7 +13006,7 @@
   "pFnETG": [
     {
       "type": 0,
-      "value": "Failed to rename thread with error: "
+      "value": "スレッドの名前を変更できませんでした。エラー: "
     },
     {
       "type": 1,
@@ -12328,7 +13034,7 @@
   "pSeneB": [
     {
       "type": 0,
-      "value": "Each "
+      "value": "各 "
     },
     {
       "type": 1,
@@ -12336,7 +13042,7 @@
     },
     {
       "type": 0,
-      "value": " must include a type."
+      "value": " には型を含める必要があります。"
     }
   ],
   "pSfQh6": [
@@ -12354,7 +13060,7 @@
   "pbpjik": [
     {
       "type": 0,
-      "value": "When you finish creating this agent, we'll automatically add it as a handoff for "
+      "value": "このエージェントの作成が完了すると、"
     },
     {
       "type": 1,
@@ -12362,7 +13068,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " のハンドオフとして自動的に追加されます。"
     }
   ],
   "pe7UAe": [
@@ -12374,7 +13080,7 @@
   "peOEU7": [
     {
       "type": 0,
-      "value": "No connectors linked."
+      "value": "コネクタがリンクされていません。"
     }
   ],
   "pf5nil": [
@@ -12383,10 +13089,28 @@
       "value": "コア アプリケーション グループ"
     }
   ],
+  "pgIRcn": [
+    {
+      "type": 0,
+      "value": "Enter a string"
+    }
+  ],
   "piCpTn": [
     {
       "type": 0,
       "value": "Grafana ダッシュボードがプロビジョニングされてリンクされると、リソースがダッシュボードに完全に事前設定されるまでに時間がかかる場合があります。"
+    }
+  ],
+  "plun1b": [
+    {
+      "type": 0,
+      "value": "Hand-off"
+    }
+  ],
+  "pndXMi": [
+    {
+      "type": 0,
+      "value": "Enter a value"
     }
   ],
   "pnlHOZ": [
@@ -12406,15 +13130,11 @@
   "polqL7": [
     {
       "type": 0,
-      "value": "-"
+      "value": "前回の実行以降 -"
     },
     {
       "type": 1,
       "value": "delta"
-    },
-    {
-      "type": 0,
-      "value": " since last run"
     }
   ],
   "ppARxn": [
@@ -12426,7 +13146,13 @@
   "ppzeDo": [
     {
       "type": 0,
-      "value": "Link Tool"
+      "value": "リンク ツール"
+    }
+  ],
+  "pqedsA": [
+    {
+      "type": 0,
+      "value": "Mute all warnings"
     }
   ],
   "pqgzm0": [
@@ -12438,7 +13164,7 @@
   "pr9fPP": [
     {
       "type": 0,
-      "value": "Alert title"
+      "value": "アラートのタイトル"
     }
   ],
   "psUT6S": [
@@ -12450,7 +13176,7 @@
   "puQ/kF": [
     {
       "type": 0,
-      "value": "Loading chat threads"
+      "value": "チャット スレッドを読み込んでいます"
     }
   ],
   "pyXjlj": [
@@ -12480,19 +13206,31 @@
   "qAhUUO": [
     {
       "type": 0,
-      "value": "Thursday"
+      "value": "木曜日"
+    }
+  ],
+  "qB4s5L": [
+    {
+      "type": 0,
+      "value": "Add parameter"
+    }
+  ],
+  "qDwvZ4": [
+    {
+      "type": 0,
+      "value": "Unknown error"
     }
   ],
   "qQh4Xu": [
     {
       "type": 0,
-      "value": "The agent references documentation and files to understand your projects and processes."
+      "value": "エージェントは、プロジェクトとプロセスを理解するためにドキュメントとファイルを参照します。"
     }
   ],
   "qavd9Y": [
     {
       "type": 0,
-      "value": "Tell us how often your agent should run and we’ll draft the cron expression for you."
+      "value": "エージェントを実行する頻度を教えてもらえれば、こちらで Cron 式の下書きを作成します。"
     }
   ],
   "qdAlfY": [
@@ -12516,13 +13254,13 @@
   "qf1aUJ": [
     {
       "type": 0,
-      "value": "A connector with this name already exists"
+      "value": "この名前のコネクタは既に存在します"
     }
   ],
   "qh9t2U": [
     {
       "type": 0,
-      "value": "Connect to agent"
+      "value": "エージェントに接続する"
     }
   ],
   "qhApmK": [
@@ -12534,7 +13272,7 @@
   "qiY3L8": [
     {
       "type": 0,
-      "value": "Connector Name"
+      "value": "コネクタ名"
     }
   ],
   "qj1uhz": [
@@ -12546,7 +13284,7 @@
   "qj71j1": [
     {
       "type": 0,
-      "value": "Query"
+      "value": "クエリ"
     }
   ],
   "qlcuNQ": [
@@ -12564,19 +13302,19 @@
   "qquh75": [
     {
       "type": 0,
-      "value": "Select a linked tool to edit"
+      "value": "編集するリンクされたツールを選択する"
     }
   ],
   "qs5hhk": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the selected incident thread?"
+      "value": "選択したインシデント スレッドを削除しますか?"
     }
   ],
   "qvTohT": [
     {
       "type": 0,
-      "value": "No results for \""
+      "value": "\""
     },
     {
       "type": 1,
@@ -12584,19 +13322,19 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": "\" に対する結果はありません"
     }
   ],
   "qvviEg": [
     {
       "type": 0,
-      "value": "Add handoff to existing agent"
+      "value": "既存のエージェントにハンドオフを追加"
     }
   ],
   "qxlJil": [
     {
       "type": 0,
-      "value": "PM"
+      "value": "午後"
     }
   ],
   "qyJtWy": [
@@ -12622,7 +13360,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes selected"
+              "value": " 件のクイック修正が選択されました"
             }
           ]
         }
@@ -12635,7 +13373,7 @@
   "r2cpCI": [
     {
       "type": 0,
-      "value": "Evaluating agent…"
+      "value": "エージェントを評価しています..."
     }
   ],
   "r2x5ZI": [
@@ -12647,13 +13385,13 @@
   "r8XsCU": [
     {
       "type": 0,
-      "value": "Connector"
+      "value": "コネクタ"
     }
   ],
   "rAbWbb": [
     {
       "type": 0,
-      "value": "No description available"
+      "value": "説明はありません"
     }
   ],
   "rBPlLc": [
@@ -12665,7 +13403,7 @@
   "rBhkvO": [
     {
       "type": 0,
-      "value": "This will permanently delete the file from the knowledge sources the agent uses. Are you sure you want to delete this file?"
+      "value": "これにより、エージェントが使用するナレッジ ソースからファイルが完全に削除されます。このファイルを削除しますか?"
     }
   ],
   "rELDbB": [
@@ -12682,16 +13420,12 @@
   ],
   "rG1sas": [
     {
-      "type": 0,
-      "value": "Attaches to "
-    },
-    {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": "."
+      "value": " にアタッチします。"
     }
   ],
   "rI2aPZ": [
@@ -12702,16 +13436,12 @@
   ],
   "rKdPkY": [
     {
-      "type": 0,
-      "value": "Select a "
-    },
-    {
       "type": 1,
       "value": "entityLabel"
     },
     {
       "type": 0,
-      "value": " to edit its configuration YAML."
+      "value": " を選択して、構成 YAML を編集します。"
     }
   ],
   "rKq4sw": [
@@ -12757,19 +13487,19 @@
   "rTBfGn": [
     {
       "type": 0,
-      "value": "Service type: All"
+      "value": "サービスの種類: すべて"
     }
   ],
   "rU0caB": [
     {
       "type": 0,
-      "value": "Update AAU allocation"
+      "value": "AAU 割り当てを更新する"
     }
   ],
   "rVbKiP": [
     {
       "type": 0,
-      "value": "Continue editing"
+      "value": "編集を続行する"
     }
   ],
   "rVtn/e": [
@@ -12781,7 +13511,7 @@
   "rXQSJp": [
     {
       "type": 0,
-      "value": "Query test failed: "
+      "value": "クエリ テストに失敗しました: "
     },
     {
       "type": 1,
@@ -12809,7 +13539,7 @@
   "rd+inb": [
     {
       "type": 0,
-      "value": "Create AI agents with custom tools and connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
+      "value": "カスタム ツールとコネクタを備えた AI エージェントを作成します。どのように連携するかを対話型グラフで視覚化します。最初のエージェント、ツール、またはコネクタを作成して開始します。"
     }
   ],
   "rd6YZk": [
@@ -12818,10 +13548,22 @@
       "value": "エージェントはアクションを提案できるが実行前に承認が必要"
     }
   ],
+  "rdsirP": [
+    {
+      "type": 0,
+      "value": "The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and acrtions."
+    }
+  ],
   "rhSI1/": [
     {
       "type": 0,
-      "value": "Model"
+      "value": "モデル"
+    }
+  ],
+  "ri3YXY": [
+    {
+      "type": 0,
+      "value": "Add a connector"
     }
   ],
   "riEsC7": [
@@ -12863,7 +13605,7 @@
   "rlwohK": [
     {
       "type": 0,
-      "value": "Documentation connector"
+      "value": "ドキュメント コネクタ"
     }
   ],
   "rpG/Bn": [
@@ -12887,13 +13629,13 @@
   "rrN9ke": [
     {
       "type": 0,
-      "value": "tools"
+      "value": "ツール"
     }
   ],
   "rrQX3M": [
     {
       "type": 0,
-      "value": "Score this agent and get tailored fixes."
+      "value": "このエージェントのスコアリングを行い、最適な修正を取得します。"
     }
   ],
   "rvirM2": [
@@ -12911,7 +13653,7 @@
   "rxcQLa": [
     {
       "type": 0,
-      "value": "Creating connector \""
+      "value": "コネクタ \""
     },
     {
       "type": 1,
@@ -12919,7 +13661,7 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": "\" を作成しています"
     }
   ],
   "ryPHA8": [
@@ -12937,13 +13679,13 @@
   "s00xPm": [
     {
       "type": 0,
-      "value": "Learn more about knowledge sources"
+      "value": "ナレッジ ソースに関する詳細情報"
     }
   ],
   "s04Z5U": [
     {
       "type": 0,
-      "value": "This will permanently disconnect "
+      "value": "これにより、"
     },
     {
       "type": 1,
@@ -12951,25 +13693,25 @@
     },
     {
       "type": 0,
-      "value": " data connectors from the agent. Are you sure you want to disconnect these data connectors?"
+      "value": " 件のデータ コネクタがエージェントから完全に切断されます。これらのデータ コネクタを切断しますか?"
     }
   ],
   "s2GWth": [
     {
       "type": 0,
-      "value": "Intent Match (1-5)"
+      "value": "意図の一致 (1-5)"
     }
   ],
   "s2XIgr": [
     {
       "type": 0,
-      "value": "Show details"
+      "value": "詳細を表示する"
     }
   ],
   "s6iZgz": [
     {
       "type": 0,
-      "value": "Description (Optional)"
+      "value": "説明 (省略可能)"
     }
   ],
   "s7DlV0": [
@@ -12981,7 +13723,7 @@
   "s7HLdg": [
     {
       "type": 0,
-      "value": "Run deep investigation autonomously"
+      "value": "詳細な調査を自律的に実行する"
     }
   ],
   "s8HBot": [
@@ -12999,7 +13741,7 @@
   "sAireQ": [
     {
       "type": 0,
-      "value": "Select subscription"
+      "value": "サブスクリプションの選択"
     }
   ],
   "sH0O5v": [
@@ -13010,16 +13752,12 @@
   ],
   "sHc8w5": [
     {
-      "type": 0,
-      "value": "Created "
-    },
-    {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": ". Pick a next step below to keep building."
+      "value": " を作成しました。以下の次のステップを選択して作成を続けてください。"
     }
   ],
   "sI+CCC": [
@@ -13031,19 +13769,19 @@
   "sI/fs2": [
     {
       "type": 0,
-      "value": "Use same thread"
+      "value": "同じスレッドを使用する"
     }
   ],
   "sILeXv": [
     {
       "type": 0,
-      "value": "Root Cause:"
+      "value": "根本原因:"
     }
   ],
   "sIMS7i": [
     {
       "type": 0,
-      "value": "Progress"
+      "value": "進行状況"
     }
   ],
   "sIwc3/": [
@@ -13053,13 +13791,13 @@
     },
     {
       "type": 0,
-      "value": " is a system tool and cannot be run from the playground yet."
+      "value": " はシステム ツールのため、プレイグラウンドからはまだ実行できません。"
     }
   ],
   "sNofwe": [
     {
       "type": 0,
-      "value": "No, keep default meta agent"
+      "value": "いいえ、既定のメタ エージェントを維持します"
     }
   ],
   "sNutPl": [
@@ -13071,13 +13809,13 @@
   "sNuzQE": [
     {
       "type": 0,
-      "value": "No nodes found"
+      "value": "ノードが見つかりません"
     }
   ],
   "sQZhm1": [
     {
       "type": 0,
-      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
+      "value": "このリストには、カテゴリ別に整理された拡張エージェント、ツール、コネクタが表示されます。機能を拡張するためのサブエージェントを作成および管理し、特定のタスク用のカスタム ツールを追加します。また、外部リソースにアクセスするためのコネクタを構成します。"
     }
   ],
   "sQkhYk": [
@@ -13089,7 +13827,7 @@
   "sRU00i": [
     {
       "type": 0,
-      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
+      "value": "サブスクリプション間でエージェント管理リソース グループを割り当てるには、それらのリソース グループに対する所有者またはユーザー アクセス管理者のアクセス許可が必要です。エージェント リソースおよび管理対象リソースのグループは異なるリージョンおよびサブスクリプションに存在できます。"
     }
   ],
   "sRb5P9": [
@@ -13101,19 +13839,19 @@
   "sTodCB": [
     {
       "type": 0,
-      "value": "Link this agent to its handoffs and tools so the relationships are ready when it goes live."
+      "value": "このエージェントをハンドオフとツールにリンクして、稼働時にリレーションシップが有効になるようにします。"
     }
   ],
   "sUfX4j": [
     {
       "type": 0,
-      "value": "It may take a few seconds for new agents or tools to appear in the graph after they are created."
+      "value": "新しいエージェントまたはツールが作成されてからグラフに表示されるまで数秒かかる場合があります。"
     }
   ],
   "sV2v5L": [
     {
       "type": 0,
-      "value": "Instructions"
+      "value": "指示"
     }
   ],
   "sVDrdr": [
@@ -13124,8 +13862,12 @@
   ],
   "sVJ+oz": [
     {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
       "type": 0,
-      "value": "Added handoff to "
+      "value": " の "
     },
     {
       "type": 1,
@@ -13133,21 +13875,13 @@
     },
     {
       "type": 0,
-      "value": " for "
-    },
-    {
-      "type": 1,
-      "value": "agentName"
-    },
-    {
-      "type": 0,
-      "value": "."
+      "value": " にハンドオフを追加しました。"
     }
   ],
   "sXiGbo": [
     {
       "type": 0,
-      "value": "Add file"
+      "value": "ファイルを追加する"
     }
   ],
   "sZIoMy": [
@@ -13165,7 +13899,7 @@
   "sdNNv5": [
     {
       "type": 0,
-      "value": "When an incident opens, have "
+      "value": "インシデントが発生すると、"
     },
     {
       "type": 1,
@@ -13173,25 +13907,25 @@
     },
     {
       "type": 0,
-      "value": " investigate and summarize the latest state."
+      "value": " が調査し、最新の状態を要約します。"
     }
   ],
   "sdussP": [
     {
       "type": 0,
-      "value": "System Tools (Optional)"
+      "value": "システム ツール (省略可能)"
     }
   ],
   "sf6hMj": [
     {
       "type": 0,
-      "value": "Heads-up"
+      "value": "注意事項"
     }
   ],
   "sjlioi": [
     {
       "type": 0,
-      "value": "Subagent invoked"
+      "value": "サブエージェントが呼び出されました"
     }
   ],
   "slxYbm": [
@@ -13219,13 +13953,19 @@
   "snui0/": [
     {
       "type": 0,
-      "value": "agent"
+      "value": "エージェント"
+    }
+  ],
+  "spEwRf": [
+    {
+      "type": 0,
+      "value": "You have warnings regarding your agent."
     }
   ],
   "sqGM6w": [
     {
       "type": 0,
-      "value": "Delete Items"
+      "value": "項目の削除"
     }
   ],
   "srG8e2": [
@@ -13243,13 +13983,13 @@
   "ssDQgc": [
     {
       "type": 0,
-      "value": "Tools from Model Context Protocol (MCP) servers. These tools are grouped by connection and loaded from connected servers such."
+      "value": "モデル コンテキスト プロトコル (MCP) サーバーからのツールです。これらのツールは接続ごとにグループ化され、接続されたサーバーから読み込まれます。"
     }
   ],
   "strvmG": [
     {
       "type": 0,
-      "value": "Every hour"
+      "value": "1 時間ごと"
     }
   ],
   "swRudj": [
@@ -13264,6 +14004,12 @@
       "value": "プラットフォーム接続後、エージェントがインシデントに対応できるようにインシデント対応計画とカスタム対応計画を作成します。"
     }
   ],
+  "swe9tO": [
+    {
+      "type": 0,
+      "value": "Run a test first to validate the query and ensure the agent can access Azure Data Explorer."
+    }
+  ],
   "sy7vzf": [
     {
       "type": 0,
@@ -13272,12 +14018,12 @@
   ],
   "t+IV9f": [
     {
-      "type": 0,
-      "value": "Agent at "
-    },
-    {
       "type": 1,
       "value": "time"
+    },
+    {
+      "type": 0,
+      "value": " 時点のエージェント"
     }
   ],
   "t/atZW": [
@@ -13307,7 +14053,7 @@
   "t3n6rd": [
     {
       "type": 0,
-      "value": "AI Suggestions"
+      "value": "AI の提案"
     }
   ],
   "t3wAiN": [
@@ -13319,7 +14065,7 @@
   "t6/9PU": [
     {
       "type": 0,
-      "value": "Relationships (optional)"
+      "value": "リレーションシップ (省略可能)"
     }
   ],
   "t9I1dY": [
@@ -13331,7 +14077,7 @@
   "tB02Wz": [
     {
       "type": 0,
-      "value": "Generating…"
+      "value": "生成中…"
     }
   ],
   "tCrMHt": [
@@ -13349,7 +14095,7 @@
   "tGHG7q": [
     {
       "type": 0,
-      "value": "Back to Edit"
+      "value": "編集に戻る"
     }
   ],
   "tHCvDB": [
@@ -13361,7 +14107,7 @@
   "tJuu1A": [
     {
       "type": 0,
-      "value": "✨ AI Suggested Handoff Description"
+      "value": "✨ AI が提案するハンドオフの説明"
     }
   ],
   "tLYOnZ": [
@@ -13385,7 +14131,7 @@
   "tRaGqN": [
     {
       "type": 0,
-      "value": "Testing query…"
+      "value": "クエリをテストしています..."
     }
   ],
   "tSKi9q": [
@@ -13403,13 +14149,13 @@
   "tTVtNj": [
     {
       "type": 0,
-      "value": "Set a run limit"
+      "value": "実行制限を設定する"
     }
   ],
   "tU3A8E": [
     {
       "type": 0,
-      "value": "Your new "
+      "value": "新しい "
     },
     {
       "type": 1,
@@ -13417,7 +14163,7 @@
     },
     {
       "type": 0,
-      "value": " will be ready in a few seconds. Feel free to keep editing while we connect it."
+      "value": " の準備は数秒で完了します。接続中も自由に編集を続けることができます。"
     }
   ],
   "tWX1j9": [
@@ -13429,7 +14175,7 @@
   "tZmd+w": [
     {
       "type": 0,
-      "value": "Connect a data source"
+      "value": "データ ソースへの接続"
     }
   ],
   "tb6uBb": [
@@ -13439,7 +14185,7 @@
     },
     {
       "type": 0,
-      "value": " is already connected to "
+      "value": " は既に "
     },
     {
       "type": 1,
@@ -13447,7 +14193,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " に接続されています。"
     }
   ],
   "tbPq1d": [
@@ -13469,7 +14215,7 @@
   "tbxHpV": [
     {
       "type": 0,
-      "value": "Validate how the agent summarizes risk and next steps for leadership updates."
+      "value": "エージェントが経営陣向けの報告のためにリスクと次のステップをどのように要約するかを検証します。"
     }
   ],
   "tfuXMw": [
@@ -13489,25 +14235,25 @@
   "thOyk5": [
     {
       "type": 0,
-      "value": "Deleting connector"
+      "value": "コネクタを削除しています"
     }
   ],
   "tjE5Cb": [
     {
       "type": 0,
-      "value": "No handoffs configured."
+      "value": "ハンドオフが構成されていません。"
     }
   ],
   "tjklHQ": [
     {
       "type": 0,
-      "value": "Experiment with your agent's configuration and see real-time results"
+      "value": "エージェントの構成を試し、リアルタイムの結果を確認します"
     }
   ],
   "tkr5bn": [
     {
       "type": 0,
-      "value": "Turn off scheduled task(s)"
+      "value": "スケジュールされたタスクをオフにする"
     }
   ],
   "trPabo": [
@@ -13519,7 +14265,7 @@
   "ts7YvN": [
     {
       "type": 0,
-      "value": "Repeat until"
+      "value": "次まで繰り返す"
     }
   ],
   "tshYzs": [
@@ -13531,13 +14277,19 @@
   "tthToS": [
     {
       "type": 0,
-      "value": "Disabled"
+      "value": "無効"
+    }
+  ],
+  "tu6JYo": [
+    {
+      "type": 0,
+      "value": "Start agent"
     }
   ],
   "tujypD": [
     {
       "type": 0,
-      "value": "Agents-as-tools · "
+      "value": "ツールとしてのエージェント · "
     },
     {
       "type": 1,
@@ -13547,13 +14299,13 @@
   "tvw8DP": [
     {
       "type": 0,
-      "value": "Select existing tools or create new ones later"
+      "value": "既存のツールを選択するか、後で新しいツールを作成"
     }
   ],
   "txLniB": [
     {
       "type": 0,
-      "value": "Learn more about code optimizations"
+      "value": "コードの最適化に関する詳細情報"
     }
   ],
   "tyJNW5": [
@@ -13583,7 +14335,7 @@
   "u3AxgJ": [
     {
       "type": 0,
-      "value": "Incident status:"
+      "value": "インシデント状態:"
     }
   ],
   "u4WKBH": [
@@ -13607,7 +14359,7 @@
   "u60c6a": [
     {
       "type": 0,
-      "value": "Run insights to see guidance for this configuration."
+      "value": "分析情報を実行して、この構成に関するガイダンスを確認します。"
     }
   ],
   "u64mw7": [
@@ -13631,7 +14383,7 @@
   "uFaAgq": [
     {
       "type": 0,
-      "value": "Connect relationships"
+      "value": "リレーションシップを接続"
     }
   ],
   "uI0Lmu": [
@@ -13643,7 +14395,7 @@
   "uLmZLS": [
     {
       "type": 0,
-      "value": "Active flow AAUs reset in "
+      "value": "アクティブ フローの AAU は、"
     },
     {
       "offset": 0,
@@ -13682,12 +14434,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "days"
+    },
+    {
+      "type": 0,
+      "value": " 後にリセットされます"
     }
   ],
   "uMF+CT": [
     {
       "type": 0,
-      "value": "Remove extended agent: "
+      "value": "拡張エージェントの削除: "
     },
     {
       "type": 1,
@@ -13697,7 +14453,7 @@
   "uMNRNl": [
     {
       "type": 0,
-      "value": "Agents as tools"
+      "value": "ツールとしてのエージェント"
     }
   ],
   "uNTENz": [
@@ -13707,19 +14463,19 @@
         "other": {
           "value": [
             {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " confidence points to reach "
-            },
-            {
               "type": 1,
               "value": "tier"
             },
             {
               "type": 0,
-              "value": "."
+              "value": " に到達するためには、"
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " の信頼度ポイントが必要です。"
             }
           ]
         }
@@ -13748,25 +14504,31 @@
     },
     {
       "type": 0,
-      "value": " failed"
+      "value": " が失敗しました"
     }
   ],
   "uYb82D": [
     {
       "type": 0,
-      "value": "Pick from presets"
+      "value": "プリセットから選択する"
     }
   ],
   "ubULuu": [
     {
       "type": 0,
-      "value": "Clear description for agents to understand when to use this tool"
+      "value": "エージェントがこのツールをいつ使用するかを理解するための明確な説明"
     }
   ],
   "udi5I/": [
     {
       "type": 0,
-      "value": "Create incident response plans or scheduled tasks to trigger agents automatically."
+      "value": "エージェントを自動的にトリガーするためのインシデント応答計画またはスケジュールされたタスクを作成します。"
+    }
+  ],
+  "ueVpay": [
+    {
+      "type": 0,
+      "value": "Refining..."
     }
   ],
   "ug01Mk": [
@@ -13778,13 +14540,13 @@
   "ukQpDs": [
     {
       "type": 0,
-      "value": "Folder"
+      "value": "フォルダー"
     }
   ],
   "uld/2m": [
     {
       "type": 0,
-      "value": "Incident status"
+      "value": "インシデント状態:"
     }
   ],
   "uln7eT": [
@@ -13796,7 +14558,7 @@
   "unj6JR": [
     {
       "type": 0,
-      "value": "Create from template"
+      "value": "テンプレートから作成"
     }
   ],
   "unxs9C": [
@@ -13808,25 +14570,25 @@
   "us/IXr": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the selected incident threads?"
+      "value": "選択したインシデント スレッドを削除しますか?"
     }
   ],
   "uudb6D": [
     {
       "type": 0,
-      "value": "Data Source"
+      "value": "データ ソース"
     }
   ],
   "uva2Xo": [
     {
       "type": 0,
-      "value": "Get more details about these insights"
+      "value": "これらの分析情報の詳細情報を取得する"
     }
   ],
   "uwY8Nf": [
     {
       "type": 0,
-      "value": "Refine with AI"
+      "value": "AI で改良する"
     }
   ],
   "uyO1AJ": [
@@ -13838,7 +14600,7 @@
   "v/3x6O": [
     {
       "type": 0,
-      "value": "Improving instructions..."
+      "value": "指示を改善しています..."
     }
   ],
   "v0CXYP": [
@@ -13856,7 +14618,13 @@
   "v3xWf6": [
     {
       "type": 0,
-      "value": "Expand configuration panel"
+      "value": "構成パネルを展開する"
+    }
+  ],
+  "v6cujo": [
+    {
+      "type": 0,
+      "value": "Kusto tool"
     }
   ],
   "v8cTK0": [
@@ -13880,7 +14648,7 @@
   "vAW30j": [
     {
       "type": 0,
-      "value": "Frequency"
+      "value": "頻度"
     }
   ],
   "vAWzLN": [
@@ -13892,7 +14660,7 @@
   "vB/Cv7": [
     {
       "type": 0,
-      "value": "Memory usage insights"
+      "value": "メモリ使用量に関する分析情報"
     }
   ],
   "vCAhII": [
@@ -13904,7 +14672,7 @@
   "vCsh17": [
     {
       "type": 0,
-      "value": "Connect to data sources like Kusto for rich agent capabilities"
+      "value": "Kusto などのデータ ソースに接続すると、豊富なエージェント機能を利用できます"
     }
   ],
   "vDbj1h": [
@@ -13916,13 +14684,13 @@
   "vG08m6": [
     {
       "type": 0,
-      "value": "Improve your agent prompt to increase confidence"
+      "value": "エージェントのプロンプトを改善して信頼度を向上させます"
     }
   ],
   "vIBOch": [
     {
       "type": 0,
-      "value": "Auto apply"
+      "value": "自動適用"
     }
   ],
   "vPX3R3": [
@@ -13931,10 +14699,16 @@
       "value": "応答プランを無効にするためのアクセス許可がありません。"
     }
   ],
+  "vS6Lmt": [
+    {
+      "type": 0,
+      "value": "Incident triggers"
+    }
+  ],
   "vSW3OF": [
     {
       "type": 0,
-      "value": "Failed to update task: "
+      "value": "タスクを更新できませんでした。"
     },
     {
       "type": 1,
@@ -13944,7 +14718,7 @@
   "vV67Wm": [
     {
       "type": 0,
-      "value": "Failed to turn on task: "
+      "value": "タスクを有効にできませんでした。"
     },
     {
       "type": 1,
@@ -13954,7 +14728,7 @@
   "vVpzJQ": [
     {
       "type": 0,
-      "value": "Suggested instructions"
+      "value": "推奨される指示"
     }
   ],
   "vXCeIi": [
@@ -13972,7 +14746,7 @@
   "vZWQHk": [
     {
       "type": 0,
-      "value": "Edit existing"
+      "value": "既存の編集を行う"
     }
   ],
   "vao/Lv": [
@@ -14008,7 +14782,7 @@
   "vlv+Ch": [
     {
       "type": 0,
-      "value": "Scheduled trigger"
+      "value": "スケジュールされたトリガー"
     }
   ],
   "vs8s5B": [
@@ -14020,13 +14794,13 @@
   "vsQnBO": [
     {
       "type": 0,
-      "value": "Blocking usage insights"
+      "value": "使用状況の分析情報をブロックしています"
     }
   ],
   "vz94UY": [
     {
       "type": 0,
-      "value": "Fresh • "
+      "value": "最新の情報に更新 • "
     },
     {
       "type": 1,
@@ -14048,31 +14822,31 @@
   "w0xxAb": [
     {
       "type": 0,
-      "value": "Clear description"
+      "value": "説明をクリアする"
     }
   ],
   "w5FDGY": [
     {
       "type": 0,
-      "value": "Update scheduled task"
+      "value": "スケジュールされたタスクを更新する"
     }
   ],
   "w6nz4p": [
     {
       "type": 0,
-      "value": "Open incident triggers"
+      "value": "インシデント トリガーを開く"
     }
   ],
   "w87Yom": [
     {
       "type": 0,
-      "value": "Agent tools"
+      "value": "エージェント ツール"
     }
   ],
   "w8UjdT": [
     {
       "type": 0,
-      "value": "Connect an Azure service MCP server to give the agent more tools to resolve an incident."
+      "value": "Azure サービスの MCP サーバーを接続して、エージェントにインシデント解決のためのより多くのツールを提供します。"
     }
   ],
   "w9tk1A": [
@@ -14084,7 +14858,7 @@
   "wBgTQg": [
     {
       "type": 0,
-      "value": "Author, Test & Evaluate - Full workflow"
+      "value": "作成、テストおよび評価 - 完全なワークフロー"
     }
   ],
   "wEQDC6": [
@@ -14101,12 +14875,12 @@
   ],
   "wGLrHW": [
     {
-      "type": 0,
-      "value": "User at "
-    },
-    {
       "type": 1,
       "value": "time"
+    },
+    {
+      "type": 0,
+      "value": " 時点のユーザー"
     }
   ],
   "wGcWbo": [
@@ -14118,7 +14892,7 @@
   "wI+r41": [
     {
       "type": 0,
-      "value": "More tools"
+      "value": "その他のツール"
     }
   ],
   "wL7VAE": [
@@ -14139,28 +14913,30 @@
   ],
   "wOHH3J": [
     {
-      "type": 0,
-      "value": "Describe what "
-    },
-    {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": " should do each time it runs."
+      "value": " を実行するたびに何を行うかを説明してください。"
     }
   ],
   "wQdhYo": [
     {
       "type": 0,
-      "value": "Create a new handoff agent"
+      "value": "新しいハンドオフ エージェントを作成"
     }
   ],
   "wSZR47": [
     {
       "type": 0,
       "value": "送信"
+    }
+  ],
+  "wUnPMf": [
+    {
+      "type": 0,
+      "value": "Users without one of the required Azure role-based access control (RBAC) roles will not have access to Azure SRE Agent."
     }
   ],
   "wVpXzO": [
@@ -14178,13 +14954,13 @@
   "wYsv4Z": [
     {
       "type": 0,
-      "value": "Monthly"
+      "value": "月単位"
     }
   ],
   "wb/AUH": [
     {
       "type": 0,
-      "value": "Next run times"
+      "value": "次回の実行時間"
     }
   ],
   "wbigtI": [
@@ -14196,7 +14972,7 @@
   "wbwhbH": [
     {
       "type": 0,
-      "value": "Task name"
+      "value": "タスク名"
     }
   ],
   "we4Lby": [
@@ -14214,7 +14990,7 @@
   "wgyFIG": [
     {
       "type": 0,
-      "value": "Polishing…"
+      "value": "推敲中…"
     }
   ],
   "wjEBlr": [
@@ -14224,7 +15000,7 @@
     },
     {
       "type": 0,
-      "value": " is at "
+      "value": " は "
     },
     {
       "type": 1,
@@ -14232,19 +15008,19 @@
     },
     {
       "type": 0,
-      "value": "%. Continue refining to move toward the next tier."
+      "value": "% です。次のレベルに進むために改良を続けてください。"
     }
   ],
   "wjfh7Z": [
     {
       "type": 0,
-      "value": "Tester - Test your agent"
+      "value": "テスター - エージェントをテストする"
     }
   ],
   "wk6Nft": [
     {
       "type": 0,
-      "value": "Begin editing the current configuration in the playground."
+      "value": "プレイグラウンドで現在の構成の編集を開始します。"
     }
   ],
   "wkLkeE": [
@@ -14274,19 +15050,19 @@
   "x/7RC2": [
     {
       "type": 0,
-      "value": "Checking trigger setup…"
+      "value": "トリガーのセットアップを確認しています..."
     }
   ],
   "x1YTqM": [
     {
       "type": 0,
-      "value": "Describe the cadence before we can help."
+      "value": "サポートできるよう、先に周期を説明してください。"
     }
   ],
   "x25AjF": [
     {
       "type": 0,
-      "value": "Tool usage ID"
+      "value": "ツール使用状況 ID"
     }
   ],
   "x3aQrV": [
@@ -14298,19 +15074,25 @@
   "x3qvaC": [
     {
       "type": 0,
-      "value": "No runs yet"
+      "value": "まだ実行されていません"
     }
   ],
   "x4OHX9": [
     {
       "type": 0,
-      "value": "Sub-Agent Builder"
+      "value": "サブエージェント ビルダー"
     }
   ],
   "xDYr9m": [
     {
       "type": 0,
       "value": "報告されたインシデント"
+    }
+  ],
+  "xEjqoV": [
+    {
+      "type": 0,
+      "value": "Click here to learn more"
     }
   ],
   "xGPsyJ": [
@@ -14322,13 +15104,13 @@
   "xHpwlo": [
     {
       "type": 0,
-      "value": "File Name"
+      "value": "ファイル名"
     }
   ],
   "xJLI97": [
     {
       "type": 0,
-      "value": "Hide findings"
+      "value": "結果を非表示にする"
     }
   ],
   "xK7rmd": [
@@ -14337,10 +15119,22 @@
       "value": "分析情報"
     }
   ],
+  "xLrAFR": [
+    {
+      "type": 0,
+      "value": "Parameter name"
+    }
+  ],
   "xNC5hG": [
     {
       "type": 0,
-      "value": "Dictionary (group into args)"
+      "value": "辞書 (引数にグループ化)"
+    }
+  ],
+  "xPuGYM": [
+    {
+      "type": 0,
+      "value": "No connectors match your search"
     }
   ],
   "xSsto+": [
@@ -14380,7 +15174,7 @@
   "xXHSO2": [
     {
       "type": 0,
-      "value": "Rookie Analyst"
+      "value": "新人アナリスト"
     }
   ],
   "xXhn+h": [
@@ -14423,10 +15217,16 @@
       "value": "グラフのデータ ポイントが不足しています"
     }
   ],
+  "xet2Cv": [
+    {
+      "type": 0,
+      "value": "Query parameters"
+    }
+  ],
   "xf9BKi": [
     {
       "type": 0,
-      "value": "Ready to test your agent?"
+      "value": "エージェントをテストする準備はできましたか?"
     }
   ],
   "xmcVZ0": [
@@ -14462,7 +15262,7 @@
   "xsbZ+Q": [
     {
       "type": 0,
-      "value": "Add a tool"
+      "value": "ツールの追加"
     }
   ],
   "xtkizV": [
@@ -14474,7 +15274,7 @@
   "xvTDgy": [
     {
       "type": 0,
-      "value": "Search tools…"
+      "value": "ツールの検索…"
     }
   ],
   "xxoHVE": [
@@ -14486,7 +15286,7 @@
   "xy47sz": [
     {
       "type": 0,
-      "value": "Unable to parse YAML: "
+      "value": "YAML を解析できません: "
     },
     {
       "type": 1,
@@ -14502,41 +15302,49 @@
   "y0KXuM": [
     {
       "type": 0,
-      "value": "+"
+      "value": "前回の実行以降 +"
     },
     {
       "type": 1,
       "value": "delta"
-    },
-    {
-      "type": 0,
-      "value": " since last run"
     }
   ],
   "y3Uu5i": [
     {
       "type": 0,
-      "value": "No data connectors match your search"
+      "value": "検索条件に一致するデータ コネクタはありません"
     }
   ],
   "y5oInX": [
     {
       "type": 0,
-      "value": "Incident priority"
+      "value": "インシデントの優先度"
+    }
+  ],
+  "y79eIb": [
+    {
+      "type": 0,
+      "value": "Assign yourself the SRE Agent Admin role."
     }
   ],
   "y87pob": [
-    {
-      "type": 0,
-      "value": "You are previewing "
-    },
     {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": "."
+      "value": " をプレビューしています。"
+    }
+  ],
+  "yBnHns": [
+    {
+      "type": 0,
+      "value": "Sign in to "
+    },
+    {
+      "type": 1,
+      "value": "service"
     }
   ],
   "yDh8i7": [
@@ -14548,7 +15356,13 @@
   "yFU6JN": [
     {
       "type": 0,
-      "value": "Chat input"
+      "value": "チャット入力"
+    }
+  ],
+  "yJJ/jv": [
+    {
+      "type": 0,
+      "value": "Mute this warning"
     }
   ],
   "yJSwfQ": [
@@ -14560,7 +15374,7 @@
   "yLRKP5": [
     {
       "type": 0,
-      "value": "Handoff description"
+      "value": "ハンドオフの説明"
     }
   ],
   "yNCGjc": [
@@ -14584,13 +15398,13 @@
   "yX3QcY": [
     {
       "type": 0,
-      "value": "Tool details"
+      "value": "ツールの詳細"
     }
   ],
   "yYJHyl": [
     {
       "type": 0,
-      "value": "No tools are linked yet. Add tools on the left to enable testing."
+      "value": "リンクされたツールはまだありません。左側でツールを追加してテストを有効にしてください。"
     }
   ],
   "yYK6LR": [
@@ -14620,13 +15434,13 @@
   "yeL9WV": [
     {
       "type": 0,
-      "value": "Design, test, and refine agents without touching production."
+      "value": "運用環境に影響を与えずにエージェントを設計、テスト、調整します。"
     }
   ],
   "yf9+0C": [
     {
       "type": 0,
-      "value": "Polished version"
+      "value": "推敲されたバージョン"
     }
   ],
   "yh4G7g": [
@@ -14644,13 +15458,13 @@
   "yhZZjG": [
     {
       "type": 0,
-      "value": "To agent"
+      "value": "転送先エージェント"
     }
   ],
   "yhqGka": [
     {
       "type": 0,
-      "value": "Choose how this trigger should behave and which agent it starts."
+      "value": "このトリガーの動作と、起動するエージェントを選択します。"
     }
   ],
   "yiAEBc": [
@@ -14668,7 +15482,7 @@
   "ynVolH": [
     {
       "type": 0,
-      "value": "Ask a question or enter a slash(/) to use a command"
+      "value": "質問を入力するか、スラッシュ (/) を入力してコマンドを使用します"
     }
   ],
   "yo67XU": [
@@ -14686,7 +15500,7 @@
   "ysBuRt": [
     {
       "type": 0,
-      "value": "Failed to create default incident response plan. Error: "
+      "value": "既定のインシデント対応計画を作成できませんでした。エラー: "
     },
     {
       "type": 1,
@@ -14708,7 +15522,13 @@
   "z0uI4M": [
     {
       "type": 0,
-      "value": "Run scenario"
+      "value": "シナリオの実行"
+    }
+  ],
+  "z43sTn": [
+    {
+      "type": 0,
+      "value": "View Knowledge Base"
     }
   ],
   "z5cF/O": [
@@ -14720,7 +15540,7 @@
   "z7SGAU": [
     {
       "type": 0,
-      "value": "Scheduled task(s) deleted successfully"
+      "value": "スケジュールされたタスクが正常に削除されました"
     }
   ],
   "z8ZYoc": [
@@ -14738,19 +15558,19 @@
   "zCp11f": [
     {
       "type": 0,
-      "value": "Query test succeeded."
+      "value": "クエリ テストが成功しました。"
     }
   ],
   "zDcGyS": [
     {
       "type": 0,
-      "value": "Trigger name"
+      "value": "トリガー名"
     }
   ],
   "zE+jtE": [
     {
       "type": 0,
-      "value": "Rename thread title"
+      "value": "スレッド タイトルの名前を変更する"
     }
   ],
   "zEg90u": [
@@ -14768,13 +15588,13 @@
   "zHZdPM": [
     {
       "type": 0,
-      "value": "Analyzing configuration for improvement recommendations."
+      "value": "改善の推奨事項を得るために、構成を分析しています。"
     }
   ],
   "zMX3td": [
     {
       "type": 0,
-      "value": "Renaming the thread title to '"
+      "value": "スレッドタイトルを '"
     },
     {
       "type": 1,
@@ -14782,7 +15602,7 @@
     },
     {
       "type": 0,
-      "value": "'"
+      "value": "' に変更しています"
     }
   ],
   "zN87hN": [
@@ -14806,7 +15626,7 @@
   "zUNfOA": [
     {
       "type": 0,
-      "value": "Open watcher drawer"
+      "value": "ウォッチャー ドロワーを開く"
     }
   ],
   "zZsxcQ": [
@@ -14829,16 +15649,12 @@
   ],
   "zeJdWA": [
     {
-      "type": 0,
-      "value": "Deleting "
-    },
-    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " incidents"
+      "value": " 件のインシデントを削除しています"
     }
   ],
   "zfM/75": [
@@ -14862,7 +15678,7 @@
   "zhoVUT": [
     {
       "type": 0,
-      "value": "Advanced settings"
+      "value": "詳細設定"
     }
   ],
   "zpkKsD": [
@@ -14874,17 +15690,21 @@
   "zr8jA6": [
     {
       "type": 0,
-      "value": "Remove tool "
+      "value": "ツール "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " を削除"
     }
   ],
   "zuQF37": [
     {
       "type": 0,
-      "value": "Review Your tool"
+      "value": "ツールを確認"
     }
   ],
   "zvKOAu": [
@@ -14902,7 +15722,7 @@
   "zxvhnE": [
     {
       "type": 0,
-      "value": "Daily"
+      "value": "日単位"
     }
   ]
 }

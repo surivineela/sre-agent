@@ -8,7 +8,7 @@
   "+CwN9C": [
     {
       "type": 0,
-      "value": "System"
+      "value": "Systém"
     }
   ],
   "+Ov1f1": [
@@ -50,13 +50,19 @@
   "+uAdUZ": [
     {
       "type": 0,
-      "value": "Resource group"
+      "value": "Skupina prostředků"
     }
   ],
   "+zgzmq": [
     {
       "type": 0,
       "value": "Cosmos DB Accounts"
+    }
+  ],
+  "/6/sPX": [
+    {
+      "type": 0,
+      "value": "Docs"
     }
   ],
   "/6Fckw": [
@@ -109,6 +115,12 @@
       "value": " filter"
     }
   ],
+  "/zFP1/": [
+    {
+      "type": 0,
+      "value": "Start time"
+    }
+  ],
   "01lT1B": [
     {
       "type": 0,
@@ -135,10 +147,22 @@
       "value": "Manage SQL servers and their security policies."
     }
   ],
+  "0oLj/t": [
+    {
+      "type": 0,
+      "value": "Expand"
+    }
+  ],
   "0te2Ra": [
     {
       "type": 0,
       "value": "Manage Azure Data Factory instances."
+    }
+  ],
+  "1Lx9q5": [
+    {
+      "type": 0,
+      "value": "Loading operations..."
     }
   ],
   "1YPTmM": [
@@ -171,6 +195,12 @@
       "value": "Add"
     }
   ],
+  "2GuZPR": [
+    {
+      "type": 0,
+      "value": "Portal feedback"
+    }
+  ],
   "2LQx4N": [
     {
       "type": 0,
@@ -198,7 +228,7 @@
   "3cc4Ct": [
     {
       "type": 0,
-      "value": "Light"
+      "value": "Světlé"
     }
   ],
   "3nhWFW": [
@@ -240,7 +270,7 @@
   "456ixe": [
     {
       "type": 0,
-      "value": "All regions"
+      "value": "Všechny oblasti"
     }
   ],
   "47FYwb": [
@@ -261,6 +291,12 @@
       "value": "API Management Service Reader Role"
     }
   ],
+  "4USxEK": [
+    {
+      "type": 0,
+      "value": "Remove resource group"
+    }
+  ],
   "4ii5zj": [
     {
       "type": 0,
@@ -271,6 +307,12 @@
     {
       "type": 0,
       "value": "List cluster admin credential action."
+    }
+  ],
+  "556JQK": [
+    {
+      "type": 0,
+      "value": "Deploy"
     }
   ],
   "5M+hLZ": [
@@ -408,44 +450,60 @@
         "few": {
           "value": [
             {
+              "type": 0,
+              "value": "Před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": " dny"
             }
           ]
         },
         "many": {
           "value": [
             {
+              "type": 0,
+              "value": "Před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": " dny"
             }
           ]
         },
         "one": {
           "value": [
             {
+              "type": 0,
+              "value": "před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " day ago"
+              "value": " dnem"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "Před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": " dny"
             }
           ]
         }
@@ -470,7 +528,7 @@
   "8yyU6n": [
     {
       "type": 0,
-      "value": "All subscriptions"
+      "value": "Všechna předplatná"
     }
   ],
   "9+Ddtu": [
@@ -483,6 +541,12 @@
     {
       "type": 0,
       "value": "Select all"
+    }
+  ],
+  "9M3sYh": [
+    {
+      "type": 0,
+      "value": "Deployment failed"
     }
   ],
   "ABo5XY": [
@@ -524,7 +588,7 @@
   "Avsnjl": [
     {
       "type": 0,
-      "value": "Themes"
+      "value": "Motivy"
     }
   ],
   "B6aNdQ": [
@@ -584,7 +648,7 @@
   "Ch3IdZ": [
     {
       "type": 0,
-      "value": "View popular skills"
+      "value": "Zobrazit oblíbené dovednosti"
     }
   ],
   "CrmeG3": [
@@ -596,7 +660,7 @@
   "D3idYv": [
     {
       "type": 0,
-      "value": "Settings"
+      "value": "Nastavení"
     }
   ],
   "DdD2hE": [
@@ -608,7 +672,7 @@
   "DdnNXo": [
     {
       "type": 0,
-      "value": "Privacy & cookies"
+      "value": "Ochrana osobních údajů a soubory cookie"
     }
   ],
   "Dff3ms": [
@@ -668,13 +732,13 @@
   "GBnvl1": [
     {
       "type": 0,
-      "value": "Agents"
+      "value": "Agenti"
     }
   ],
   "GDEEBE": [
     {
       "type": 0,
-      "value": "We were unable to load the URL "
+      "value": "Nepodařilo se nám načíst adresu URL "
     },
     {
       "type": 1,
@@ -682,7 +746,7 @@
     },
     {
       "type": 0,
-      "value": ". We've detected that your organization has selected Zscaler to protect you from unknown domains. Please speak to your network administrator to remove the restriction on this domain in order to proceed with interacting with your agent."
+      "value": ". Zjistili jsme, že si vaše organizace vybrala Zscaler, abyste byli chráněni před neznámými doménami. Abyste mohli pokračovat v interakci se svým agentem, obraťte se na správce sítě, aby odstranil omezení u této domény."
     }
   ],
   "GWson9": [
@@ -706,7 +770,7 @@
   "H/i1A+": [
     {
       "type": 0,
-      "value": "Create your first Azure SRE Agent"
+      "value": "Vytvořte svého prvního agenta Azure SRE"
     }
   ],
   "H3ooTI": [
@@ -718,7 +782,7 @@
   "HAlOn1": [
     {
       "type": 0,
-      "value": "Name"
+      "value": "Název"
     }
   ],
   "HCDcpW": [
@@ -736,13 +800,13 @@
   "He4/qi": [
     {
       "type": 0,
-      "value": "Azure SRE Agents"
+      "value": "Agenti Azure SRE"
     }
   ],
   "I6cq17": [
     {
       "type": 0,
-      "value": "Trademarks"
+      "value": "Ochranné známky"
     }
   ],
   "IEFW3Y": [
@@ -763,12 +827,6 @@
       "value": "A resource group with this name already exists in the selected subscription."
     }
   ],
-  "J1ADxz": [
-    {
-      "type": 0,
-      "value": "Delete resource group"
-    }
-  ],
   "KAYpG9": [
     {
       "type": 0,
@@ -784,7 +842,7 @@
   "Kbdzt3": [
     {
       "type": 0,
-      "value": "This subscription is not currently whitelisted to use SRE Agent. Please contact your administrator or support team to request access."
+      "value": "Toto předplatné není momentálně na seznamu povolených pro použití agenta SRE. Pro žádost o přístup se obraťte na správce nebo tým podpory."
     }
   ],
   "Kg6ebk": [
@@ -805,10 +863,10 @@
       "value": "Function Apps"
     }
   ],
-  "LPprqA": [
+  "LOghU6": [
     {
       "type": 0,
-      "value": "Review resource groups"
+      "value": "Succeeded"
     }
   ],
   "LSaaxU": [
@@ -836,44 +894,60 @@
         "few": {
           "value": [
             {
+              "type": 0,
+              "value": "Před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": " hod."
             }
           ]
         },
         "many": {
           "value": [
             {
+              "type": 0,
+              "value": "Před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": " hod."
             }
           ]
         },
         "one": {
           "value": [
             {
+              "type": 0,
+              "value": "Před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " hour ago"
+              "value": " hodinou"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "Před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": " hod."
             }
           ]
         }
@@ -898,7 +972,7 @@
   "NAidKb": [
     {
       "type": 0,
-      "value": "Notifications"
+      "value": "Oznámení"
     }
   ],
   "NCTGGm": [
@@ -933,10 +1007,22 @@
       "value": "Resource groups list"
     }
   ],
+  "Nrc9ba": [
+    {
+      "type": 0,
+      "value": "Thank you for your feedback!"
+    }
+  ],
   "OJ2u8k": [
     {
       "type": 0,
       "value": "Enter name"
+    }
+  ],
+  "ORGv1Q": [
+    {
+      "type": 0,
+      "value": "Created"
     }
   ],
   "OTGHHm": [
@@ -945,10 +1031,10 @@
       "value": "The resources you picked have permissions for these roles."
     }
   ],
-  "OVAsQ8": [
+  "OjYIuI": [
     {
       "type": 0,
-      "value": "Roles and permissions"
+      "value": "Deployment name"
     }
   ],
   "Oom2N7": [
@@ -966,7 +1052,7 @@
   "P/DTRU": [
     {
       "type": 0,
-      "value": "Dismiss completed"
+      "value": "Zavřít dokončené"
     }
   ],
   "P3qxV2": [
@@ -1052,7 +1138,7 @@
   "R/6nsx": [
     {
       "type": 0,
-      "value": "Subscription"
+      "value": "Předplatné"
     }
   ],
   "R1RX2a": [
@@ -1064,7 +1150,7 @@
   "RDwKyy": [
     {
       "type": 0,
-      "value": "Directory"
+      "value": "Adresář"
     }
   ],
   "RStTJp": [
@@ -1085,6 +1171,12 @@
       "value": "Azure Kubernetes Service RBAC Reader"
     }
   ],
+  "S8snIe": [
+    {
+      "type": 0,
+      "value": "Updating"
+    }
+  ],
   "SCjiXP": [
     {
       "type": 0,
@@ -1094,7 +1186,7 @@
   "SQJto2": [
     {
       "type": 0,
-      "value": "Sign in"
+      "value": "Přihlásit se"
     }
   ],
   "Sr4IbA": [
@@ -1130,7 +1222,7 @@
   "TDaF6J": [
     {
       "type": 0,
-      "value": "Dismiss"
+      "value": "Zavřít"
     }
   ],
   "TDoBlx": [
@@ -1142,7 +1234,7 @@
   "TleXgd": [
     {
       "type": 0,
-      "value": "Azure SRE Agents reduce site reliability costs by proactively identifying issues, automating tasks, and preventing downtime."
+      "value": "Agenti SRE Azure snižují náklady na spolehlivost webu tím, že proaktivně identifikují problémy, automatizují úlohy a předchází výpadkům."
     }
   ],
   "TzxmIN": [
@@ -1160,7 +1252,7 @@
   "UQUIP7": [
     {
       "type": 0,
-      "value": "Request error"
+      "value": "Chyba žádosti"
     }
   ],
   "UVD6yh": [
@@ -1184,7 +1276,7 @@
   "UrGI9K": [
     {
       "type": 0,
-      "value": "Create agent"
+      "value": "Vytvořit agenta"
     }
   ],
   "UuzObe": [
@@ -1221,10 +1313,16 @@
       "value": "Create"
     }
   ],
+  "W/V6+Y": [
+    {
+      "type": 0,
+      "value": "Collapse"
+    }
+  ],
   "W4H4Z9": [
     {
       "type": 0,
-      "value": "Notifications will appear here when actions are performed"
+      "value": "Tady se zobrazí oznámení při provedení akcí"
     }
   ],
   "WE+M5j": [
@@ -1293,16 +1391,6 @@
     {
       "type": 0,
       "value": "SQL Managed Instances"
-    }
-  ],
-  "XG++pU": [
-    {
-      "type": 0,
-      "value": "Delete resource group "
-    },
-    {
-      "type": 1,
-      "value": "resourceGroupName"
     }
   ],
   "XJ+Lww": [
@@ -1420,44 +1508,60 @@
         "few": {
           "value": [
             {
+              "type": 0,
+              "value": "před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": " min."
             }
           ]
         },
         "many": {
           "value": [
             {
+              "type": 0,
+              "value": "před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": " min."
             }
           ]
         },
         "one": {
           "value": [
             {
+              "type": 0,
+              "value": "před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " minute ago"
+              "value": " minutou"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": " min."
             }
           ]
         }
@@ -1500,7 +1604,7 @@
   "bPyOFk": [
     {
       "type": 0,
-      "value": "Terms & conditions"
+      "value": "Podmínky a ujednání"
     }
   ],
   "bXkiU5": [
@@ -1512,7 +1616,7 @@
   "bxv59V": [
     {
       "type": 0,
-      "value": "Just now"
+      "value": "Právě teď"
     }
   ],
   "c1EiBR": [
@@ -1563,6 +1667,12 @@
       "value": "Back"
     }
   ],
+  "czVHN2": [
+    {
+      "type": 0,
+      "value": "Resource operations"
+    }
+  ],
   "d2GmfJ": [
     {
       "type": 0,
@@ -1583,6 +1693,12 @@
     {
       "type": 0,
       "value": " options"
+    }
+  ],
+  "dHVUaP": [
+    {
+      "type": 0,
+      "value": "Positive"
     }
   ],
   "dKhdkO": [
@@ -1624,7 +1740,7 @@
   "eHNXXp": [
     {
       "type": 0,
-      "value": "Dismiss all"
+      "value": "Zavřít vše"
     }
   ],
   "eKpamp": [
@@ -1670,7 +1786,7 @@
   "fpexn2": [
     {
       "type": 0,
-      "value": "No notifications"
+      "value": "Žádná oznámení"
     }
   ],
   "ftfFhS": [
@@ -1682,7 +1798,7 @@
   "g82HU6": [
     {
       "type": 0,
-      "value": "Operation cancelled"
+      "value": "Operace byla zrušena"
     }
   ],
   "gC4xMY": [
@@ -1701,6 +1817,12 @@
     {
       "type": 0,
       "value": "Read, logstream and exec into Container Apps."
+    }
+  ],
+  "gty4jJ": [
+    {
+      "type": 0,
+      "value": "Deployment in progress..."
     }
   ],
   "gzx/k1": [
@@ -1760,7 +1882,7 @@
   "i50Kb0": [
     {
       "type": 0,
-      "value": "Explore agent skills"
+      "value": "Prozkoumat dovednosti agentů"
     }
   ],
   "i5OUQE": [
@@ -1814,7 +1936,7 @@
   "jEU2gk": [
     {
       "type": 0,
-      "value": "All resource groups"
+      "value": "Všechny skupiny prostředků"
     }
   ],
   "jHJmjf": [
@@ -1841,10 +1963,16 @@
       "value": "Save"
     }
   ],
+  "kVQ1fo": [
+    {
+      "type": 0,
+      "value": "Negative"
+    }
+  ],
   "kbQZUj": [
     {
       "type": 0,
-      "value": "We were unable to load the URL "
+      "value": "Nepodařilo se nám načíst adresu URL "
     },
     {
       "type": 1,
@@ -1852,7 +1980,7 @@
     },
     {
       "type": 0,
-      "value": ". This may be due to the existence of a firewall or network restrictions placed on the domain of your agent. Please speak to your network administrator to remove this restriction in order to proceed with interacting with your agent."
+      "value": ". To může být způsobeno existencí brány firewall nebo síťovými omezeními v doméně vašeho agenta. Abyste mohli pokračovat v interakci se svým agentem, obraťte se na správce sítě, aby toto omezení odstranil."
     }
   ],
   "kyVg+J": [
@@ -1902,7 +2030,7 @@
   "lnaWo/": [
     {
       "type": 0,
-      "value": "Region"
+      "value": "Země/oblast"
     }
   ],
   "lvNWLS": [
@@ -1935,6 +2063,12 @@
       "value": "Lets you manage all resources in the cluster."
     }
   ],
+  "nDyaq/": [
+    {
+      "type": 0,
+      "value": "Running"
+    }
+  ],
   "nlPgO8": [
     {
       "type": 1,
@@ -1954,7 +2088,7 @@
   "oHGFwy": [
     {
       "type": 0,
-      "value": "Sign in with a different account"
+      "value": "Přihlásit se pomocí jiného účtu"
     }
   ],
   "oIiHqo": [
@@ -1985,12 +2119,6 @@
       "value": "No"
     }
   ],
-  "ob9EPi": [
-    {
-      "type": 0,
-      "value": "Permissions to assign roles"
-    }
-  ],
   "p/xAmY": [
     {
       "type": 0,
@@ -2001,6 +2129,12 @@
     {
       "type": 0,
       "value": "Manage without access. Can't manage security policies or parent SQL servers."
+    }
+  ],
+  "p849eW": [
+    {
+      "type": 0,
+      "value": "Correlation ID"
     }
   ],
   "pAFuFx": [
@@ -2086,7 +2220,7 @@
   "rbrahO": [
     {
       "type": 0,
-      "value": "Close"
+      "value": "Zavřít"
     }
   ],
   "rjgOC5": [
@@ -2116,7 +2250,7 @@
   "s7mQCK": [
     {
       "type": 0,
-      "value": "Reduce site reliability expenses with Azure SRE Agents"
+      "value": "Snižte náklady na spolehlivost webu pomocí agentů SRE Azure"
     }
   ],
   "sI+CCC": [
@@ -2144,44 +2278,60 @@
         "few": {
           "value": [
             {
+              "type": 0,
+              "value": "před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " seconds ago"
+              "value": " sekundami"
             }
           ]
         },
         "many": {
           "value": [
             {
+              "type": 0,
+              "value": "před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " seconds ago"
+              "value": " sekundami"
             }
           ]
         },
         "one": {
           "value": [
             {
+              "type": 0,
+              "value": "před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " second ago"
+              "value": " sekundou"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "před "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " seconds ago"
+              "value": " sekundami"
             }
           ]
         }
@@ -2212,7 +2362,13 @@
   "tOdNiY": [
     {
       "type": 0,
-      "value": "Dark"
+      "value": "Tmavé"
+    }
+  ],
+  "tYoDsC": [
+    {
+      "type": 0,
+      "value": "Share your thoughts about the portal..."
     }
   ],
   "tffS9r": [
@@ -2257,6 +2413,18 @@
       "value": "You do not have permission to create resource groups under the currently selected subscription."
     }
   ],
+  "v90qT8": [
+    {
+      "type": 0,
+      "value": "Deployment succeeded"
+    }
+  ],
+  "vXCeIi": [
+    {
+      "type": 0,
+      "value": "Failed"
+    }
+  ],
   "vbdOl/": [
     {
       "type": 0,
@@ -2275,10 +2443,22 @@
       "value": "Learn more about Reader and Privileged permissions"
     }
   ],
+  "vxVGav": [
+    {
+      "type": 0,
+      "value": "No operations found"
+    }
+  ],
   "wCtBb6": [
     {
       "type": 0,
-      "value": "Try Azure for free"
+      "value": "Vyzkoušet Azure zdarma"
+    }
+  ],
+  "wSZR47": [
+    {
+      "type": 0,
+      "value": "Submit"
     }
   ],
   "wbigtI": [
@@ -2320,7 +2500,7 @@
   "xXbJso": [
     {
       "type": 0,
-      "value": "Sign out"
+      "value": "Odhlásit se"
     }
   ],
   "xXhn+h": [
@@ -2335,10 +2515,16 @@
       "value": "Can read all monitoring data."
     }
   ],
+  "xhfdqv": [
+    {
+      "type": 0,
+      "value": "Creating"
+    }
+  ],
   "xmcVZ0": [
     {
       "type": 0,
-      "value": "Search"
+      "value": "Hledat"
     }
   ],
   "xmsrBu": [
@@ -2362,7 +2548,7 @@
   "y1Z3or": [
     {
       "type": 0,
-      "value": "Language"
+      "value": "Jazyk"
     }
   ],
   "yV5oYe": [
@@ -2409,12 +2595,6 @@
     {
       "type": 0,
       "value": "Detected resource types"
-    }
-  ],
-  "zcyAwy": [
-    {
-      "type": 0,
-      "value": "Choose resource groups"
     }
   ],
   "zhHihn": [

@@ -2,17 +2,21 @@
   "++2B26": [
     {
       "type": 0,
-      "value": "Provide values for: "
+      "value": "提供 "
     },
     {
       "type": 1,
       "value": "parameters"
+    },
+    {
+      "type": 0,
+      "value": " 的值"
     }
   ],
   "+/9vVV": [
     {
       "type": 0,
-      "value": "Describe it in natural language"
+      "value": "用自然语言描述"
     }
   ],
   "+/nU/s": [
@@ -72,19 +76,25 @@
   "+Hx789": [
     {
       "type": 0,
-      "value": "Filter by severity level"
+      "value": "按严重级别筛选"
+    }
+  ],
+  "+Kcoxv": [
+    {
+      "type": 0,
+      "value": "Related incidents"
     }
   ],
   "+KyrhG": [
     {
       "type": 0,
-      "value": "Choose a tool"
+      "value": "选择工具"
     }
   ],
   "+Pmftr": [
     {
       "type": 0,
-      "value": "Reset draft"
+      "value": "重置草稿"
     }
   ],
   "+S4WAz": [
@@ -96,7 +106,7 @@
   "+TFnQ/": [
     {
       "type": 0,
-      "value": "Extended Tools (Optional)"
+      "value": "扩展工具(可选)"
     }
   ],
   "+TlNdm": [
@@ -112,19 +122,19 @@
     },
     {
       "type": 0,
-      "value": " is read-only in the playground."
+      "value": " 在操场中是只读的。"
     }
   ],
   "+U6ozc": [
     {
       "type": 0,
-      "value": "Service"
+      "value": "类型"
     }
   ],
   "+ZdOJt": [
     {
       "type": 0,
-      "value": "Turning off scheduled task(s)"
+      "value": "正在关闭计划的任务"
     }
   ],
   "+bJIWo": [
@@ -142,7 +152,7 @@
   "+h4pn9": [
     {
       "type": 0,
-      "value": "Create new subagent"
+      "value": "创建新的子智能体"
     }
   ],
   "+hJd45": [
@@ -154,7 +164,7 @@
   "+hOwpi": [
     {
       "type": 0,
-      "value": "Select a tool to test"
+      "value": "选择要测试的工具"
     }
   ],
   "+iCTRd": [
@@ -172,7 +182,7 @@
   "+kmL8g": [
     {
       "type": 0,
-      "value": "Provide instructions for what this scheduled task should do."
+      "value": "提供有关此计划任务应执行的操作的说明。"
     }
   ],
   "+l+XEu": [
@@ -190,13 +200,13 @@
   "+p60ph": [
     {
       "type": 0,
-      "value": "MCP server icon"
+      "value": "MCP 服务器图标"
     }
   ],
   "+pmvA0": [
     {
       "type": 0,
-      "value": "Enter a scheduled task name"
+      "value": "输入计划任务名称"
     }
   ],
   "+uAdUZ": [
@@ -232,7 +242,13 @@
   "/5UY6N": [
     {
       "type": 0,
-      "value": "The maximum AAU limit is 200,000"
+      "value": "AAU 最大限制为 200,000"
+    }
+  ],
+  "/7GPtw": [
+    {
+      "type": 0,
+      "value": "Go to Incidents"
     }
   ],
   "/8MshI": [
@@ -244,7 +260,7 @@
   "/9FZdx": [
     {
       "type": 0,
-      "value": "this agent"
+      "value": "此智能体"
     }
   ],
   "/Br0/Z": [
@@ -256,7 +272,7 @@
   "/F7sHX": [
     {
       "type": 0,
-      "value": "Failed to delete tool "
+      "value": "未能删除工具 "
     },
     {
       "type": 1,
@@ -266,7 +282,7 @@
   "/GCoTA": [
     {
       "type": 0,
-      "value": "Clear"
+      "value": "清除"
     }
   ],
   "/ImSqA": [
@@ -278,25 +294,25 @@
   "/N0Usl": [
     {
       "type": 0,
-      "value": "Thread title cannot be empty"
+      "value": "线程标题不能为空"
     }
   ],
   "/OUWsL": [
     {
       "type": 0,
-      "value": "Get AI recommendations to improve your agent"
+      "value": "获取 AI 建议以优化智能体"
     }
   ],
   "/RdF9w": [
     {
       "type": 0,
-      "value": "Handoffs"
+      "value": "转接"
     }
   ],
   "/TZk1G": [
     {
       "type": 0,
-      "value": "AAU allocation updated from "
+      "value": "已成功将 AAU 配额从 "
     },
     {
       "type": 1,
@@ -304,7 +320,7 @@
     },
     {
       "type": 0,
-      "value": " to "
+      "value": " 更新为 "
     },
     {
       "type": 1,
@@ -312,7 +328,7 @@
     },
     {
       "type": 0,
-      "value": " successfully."
+      "value": "。"
     }
   ],
   "/VnDMl": [
@@ -330,7 +346,7 @@
   "/WgnYE": [
     {
       "type": 0,
-      "value": "We couldn't understand that description. Try a different phrasing."
+      "value": "我们无法理解该描述。请尝试其他表述。"
     }
   ],
   "/WrP/v": [
@@ -342,25 +358,25 @@
   "/XIuIr": [
     {
       "type": 0,
-      "value": "Every minute"
+      "value": "每分钟"
     }
   ],
   "/Z1fHN": [
     {
       "type": 0,
-      "value": "Tool and subagent activity sent to user"
+      "value": "发送给用户的工具和子智能体活动"
     }
   ],
   "/bWE45": [
     {
       "type": 0,
-      "value": "Scoring agent quality… fresh quick fixes will land here shortly."
+      "value": "正在对智能体质量进行评分…新的快速修补程序即将上线。"
     }
   ],
   "/clOBU": [
     {
       "type": 0,
-      "value": "Weekly"
+      "value": "每周"
     }
   ],
   "/dxZCE": [
@@ -378,7 +394,13 @@
   "/mHau5": [
     {
       "type": 0,
-      "value": "Failed to create connector"
+      "value": "无法创建连接器"
+    }
+  ],
+  "/qCaiZ": [
+    {
+      "type": 0,
+      "value": "Incident trigger name"
     }
   ],
   "/rNkXe": [
@@ -390,7 +412,7 @@
   "/tauMV": [
     {
       "type": 0,
-      "value": "e.g., ProductionKusto"
+      "value": "例如 ProductionKusto"
     }
   ],
   "/wdD42": [
@@ -448,13 +470,13 @@
   "05Rzkx": [
     {
       "type": 0,
-      "value": "Test Agent"
+      "value": "测试智能体"
     }
   ],
   "08bD52": [
     {
       "type": 0,
-      "value": "Tool created, but attaching to "
+      "value": "已创建工具，但附加到 "
     },
     {
       "type": 1,
@@ -462,19 +484,33 @@
     },
     {
       "type": 0,
-      "value": " failed. Retry link."
+      "value": " 失败。重试链接。"
     }
   ],
   "0BUTMv": [
     {
       "type": 0,
-      "value": "Search..."
+      "value": "搜索..."
     }
   ],
   "0D+7fr": [
     {
       "type": 0,
       "value": "Microsoft IcM"
+    }
+  ],
+  "0DUgkZ": [
+    {
+      "type": 0,
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " stopped successfully"
     }
   ],
   "0Dhe75": [
@@ -492,7 +528,7 @@
   "0ICwq5": [
     {
       "type": 0,
-      "value": "Last updated"
+      "value": "上次更新时间"
     }
   ],
   "0KB3lG": [
@@ -504,13 +540,13 @@
   "0Krg21": [
     {
       "type": 0,
-      "value": "Quick fixes"
+      "value": "快速修复"
     }
   ],
   "0MhOuN": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete task "
+      "value": "是否确定要删除任务 "
     },
     {
       "type": 1,
@@ -518,7 +554,13 @@
     },
     {
       "type": 0,
-      "value": "? This action cannot be undone."
+      "value": "?此操作无法撤消。"
+    }
+  ],
+  "0Qocmw": [
+    {
+      "type": 0,
+      "value": "All tools"
     }
   ],
   "0R+Pet": [
@@ -530,7 +572,7 @@
   "0TOEqZ": [
     {
       "type": 0,
-      "value": "Enter a valid cron expression."
+      "value": "输入有效的 Cron 表达式。"
     }
   ],
   "0TkVxX": [
@@ -557,6 +599,12 @@
       "value": " 个受管理资源组"
     }
   ],
+  "0VVX+G": [
+    {
+      "type": 0,
+      "value": "Connected as"
+    }
+  ],
   "0VuGey": [
     {
       "type": 0,
@@ -566,29 +614,23 @@
   "0aJxT2": [
     {
       "type": 0,
-      "value": "Updated "
+      "value": "更新时间: "
     },
     {
       "type": 1,
       "value": "time"
     }
   ],
-  "0aN6iW": [
-    {
-      "type": 0,
-      "value": "要在预览期间实现智能体在诊断、指标、知识等方面的最佳智能体性能，请使用包含其中一个或多个以下 Azure 计算服务的资源组: Azure Kubernetes 服务、Functions、容器应用或 Web 应用。"
-    }
-  ],
   "0cEOKu": [
     {
       "type": 0,
-      "value": "Advanced options"
+      "value": "高级选项"
     }
   ],
   "0eZALE": [
     {
       "type": 0,
-      "value": "Last published "
+      "value": "上次发布时间: "
     },
     {
       "type": 1,
@@ -601,22 +643,28 @@
       "value": "选择任务"
     }
   ],
+  "0hpRE4": [
+    {
+      "type": 0,
+      "value": "Enter the parameter name"
+    }
+  ],
   "0i3Qrd": [
     {
       "type": 0,
-      "value": "Agent Response"
+      "value": "智能体响应"
     }
   ],
   "0iLXks": [
     {
       "type": 0,
-      "value": "No extended agents available"
+      "value": "没有可用的扩展智能体"
     }
   ],
   "0ltHAS": [
     {
       "type": 0,
-      "value": "e.g., Every weekday at 9am"
+      "value": "例如，每个工作日上午 9 点"
     }
   ],
   "0mx8D9": [
@@ -633,7 +681,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Create scheduled tasks to run agents automatically."
+              "value": "创建计划任务以自动运行智能体。"
             }
           ]
         },
@@ -645,7 +693,7 @@
             },
             {
               "type": 0,
-              "value": " scheduled tasks ready to run agents automatically."
+              "value": " 个计划任务已就绪，可自动运行智能体。"
             }
           ]
         }
@@ -664,7 +712,7 @@
   "0pysPM": [
     {
       "type": 0,
-      "value": "Total insights"
+      "value": "见解总数"
     }
   ],
   "0q6E9l": [
@@ -676,7 +724,7 @@
   "0sA1BF": [
     {
       "type": 0,
-      "value": "Maximum file size: 100MB"
+      "value": "文件大小上限: 100 MB"
     }
   ],
   "0sIUhe": [
@@ -694,7 +742,7 @@
   "0w+w97": [
     {
       "type": 0,
-      "value": "Edit YAML"
+      "value": "编辑 YAML"
     }
   ],
   "0w0iFy": [
@@ -709,10 +757,16 @@
       "value": "任务"
     }
   ],
+  "0zGfOk": [
+    {
+      "type": 0,
+      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+    }
+  ],
   "12GY0h": [
     {
       "type": 0,
-      "value": "Describe the schedule before generating a cron expression."
+      "value": "在生成 cron 表达式前，请描述计划。"
     }
   ],
   "1389z+": [
@@ -730,25 +784,25 @@
   "15nhHh": [
     {
       "type": 0,
-      "value": "A unique identifier for your agent"
+      "value": "智能体的唯一标识符"
     }
   ],
   "17sQau": [
     {
       "type": 0,
-      "value": "Use AI to enhance and validate your task instructions"
+      "value": "使用 AI 增强和验证任务指令"
     }
   ],
   "18C/Jh": [
     {
       "type": 0,
-      "value": "Override default meta agent"
+      "value": "替代默认元智能体"
     }
   ],
   "1CcjQj": [
     {
       "type": 0,
-      "value": "Add a response plan to automate incident handling"
+      "value": "添加响应计划，实现事件处理自动化"
     }
   ],
   "1DDIYv": [
@@ -760,7 +814,7 @@
   "1EnaNQ": [
     {
       "type": 0,
-      "value": "Next run: "
+      "value": "下次运行: "
     },
     {
       "type": 1,
@@ -770,7 +824,7 @@
   "1FMpZj": [
     {
       "type": 0,
-      "value": "Error loading graph: "
+      "value": "加载图形时出错: "
     },
     {
       "type": 1,
@@ -800,7 +854,7 @@
   "1OorZL": [
     {
       "type": 0,
-      "value": "Failed to update connector with error: "
+      "value": "未能更新连接器，出现错误: "
     },
     {
       "type": 1,
@@ -852,7 +906,7 @@
   "1aNP56": [
     {
       "type": 0,
-      "value": "Connector \""
+      "value": "已成功更新连接器 \""
     },
     {
       "type": 1,
@@ -860,7 +914,7 @@
     },
     {
       "type": 0,
-      "value": "\" has been updated successfully"
+      "value": "\""
     }
   ],
   "1dOMiz": [
@@ -872,7 +926,7 @@
   "1eaczG": [
     {
       "type": 0,
-      "value": "Select fix"
+      "value": "选择修补程序"
     }
   ],
   "1fNFGt": [
@@ -884,25 +938,25 @@
   "1hiiU/": [
     {
       "type": 0,
-      "value": "Review AI suggestions and warnings"
+      "value": "查看 AI 建议和警告"
     }
   ],
   "1hu8Uv": [
     {
       "type": 0,
-      "value": "Alert status"
+      "value": "警报状态"
     }
   ],
   "1iEPTM": [
     {
       "type": 0,
-      "value": "General"
+      "value": "常规"
     }
   ],
   "1jBkyH": [
     {
       "type": 0,
-      "value": "Last confidence: "
+      "value": "低置信度: "
     },
     {
       "type": 1,
@@ -920,11 +974,15 @@
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "已选择 "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " tools selected"
+              "value": " 个工具"
             }
           ]
         }
@@ -949,13 +1007,13 @@
   "2+TYMx": [
     {
       "type": 0,
-      "value": "Add a trigger"
+      "value": "添加触发器"
     }
   ],
   "2+atxY": [
     {
       "type": 0,
-      "value": "Handoff"
+      "value": "转接"
     }
   ],
   "2/2yg+": [
@@ -967,7 +1025,7 @@
   "21vNrm": [
     {
       "type": 0,
-      "value": "Validate tool wiring and connector responses in context."
+      "value": "在上下文中验证工具接线和连接器响应。"
     }
   ],
   "235+J4": [
@@ -985,7 +1043,7 @@
   "26Vq1R": [
     {
       "type": 0,
-      "value": "Leave the field blank if there's no limit"
+      "value": "如果没有限制，请将该字段留空"
     }
   ],
   "28HRcH": [
@@ -1011,13 +1069,13 @@
   "2Bb4rY": [
     {
       "type": 0,
-      "value": "Failed to update connector"
+      "value": "未能更新连接器"
     }
   ],
   "2CSEeq": [
     {
       "type": 0,
-      "value": "Describe the cadence—get the cron"
+      "value": "描述节奏 - 获取 cron"
     }
   ],
   "2FLZrG": [
@@ -1041,7 +1099,7 @@
   "2Mm/ie": [
     {
       "type": 0,
-      "value": "Failed to save response plan"
+      "value": "未能保存响应计划"
     }
   ],
   "2OQ6yB": [
@@ -1085,7 +1143,7 @@
   "2YgmBr": [
     {
       "type": 0,
-      "value": "Scheduled task turned off successfully"
+      "value": "已成功关闭计划的任务"
     }
   ],
   "2a+ttj": [
@@ -1097,13 +1155,13 @@
   "2ePVf6": [
     {
       "type": 0,
-      "value": "Test your agent in a simple chat interface"
+      "value": "在简单聊天界面中测试智能体"
     }
   ],
   "2ep4et": [
     {
       "type": 0,
-      "value": "Monthly on day "
+      "value": "每月 "
     },
     {
       "type": 1,
@@ -1111,7 +1169,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " 日 "
     },
     {
       "type": 1,
@@ -1127,19 +1185,25 @@
   "2kRPCZ": [
     {
       "type": 0,
-      "value": "System tools"
+      "value": "系统工具"
+    }
+  ],
+  "2l5w5P": [
+    {
+      "type": 0,
+      "value": "Go to Support + Troubleshooting"
     }
   ],
   "2m6oj5": [
     {
       "type": 0,
-      "value": "Get started with the curated scenarios below or craft your own prompts."
+      "value": "开始使用下面精选的场景，或创建你自己的提示。"
     }
   ],
   "2mMJRv": [
     {
       "type": 0,
-      "value": "Connectors"
+      "value": "连接器"
     }
   ],
   "2os8R1": [
@@ -1154,6 +1218,12 @@
       "value": "严重"
     }
   ],
+  "2reUcp": [
+    {
+      "type": 0,
+      "value": "Subagent name"
+    }
+  ],
   "2tOWr2": [
     {
       "type": 0,
@@ -1163,7 +1233,7 @@
   "2xE9ci": [
     {
       "type": 0,
-      "value": "Analyse the current prompt, tools, and test runs to get tailored guidance."
+      "value": "分析当前提示、工具和测试运行，以获得定制指导。"
     }
   ],
   "2zi2Yj": [
@@ -1175,7 +1245,7 @@
   "3/wF0G": [
     {
       "type": 0,
-      "value": "Slash commands"
+      "value": "斜杠命令"
     }
   ],
   "30Ap/Y": [
@@ -1193,19 +1263,19 @@
   "33HEdR": [
     {
       "type": 0,
-      "value": "Tools this agent can call"
+      "value": "此智能体可以调用的工具"
     }
   ],
   "35Pxrz": [
     {
       "type": 0,
-      "value": "Enter a name and instructions before creating this agent."
+      "value": "在创建此智能体之前，请输入名称和说明。"
     }
   ],
   "387FD2": [
     {
       "type": 0,
-      "value": "Extended agents"
+      "value": "扩展智能体"
     }
   ],
   "3BubSI": [
@@ -1223,13 +1293,13 @@
   "3GLH+d": [
     {
       "type": 0,
-      "value": "Examples"
+      "value": "示例"
     }
   ],
   "3H77Ic": [
     {
       "type": 0,
-      "value": "No agents available yet"
+      "value": "尚无智能体可用"
     }
   ],
   "3JVa6k": [
@@ -1247,7 +1317,7 @@
   "3Pq+hf": [
     {
       "type": 0,
-      "value": "Create and connect"
+      "value": "创建并连接"
     }
   ],
   "3PxUNi": [
@@ -1259,7 +1329,7 @@
   "3R3pgd": [
     {
       "type": 0,
-      "value": "No suggestions available"
+      "value": "无可用建议"
     }
   ],
   "3Rh7XU": [
@@ -1277,13 +1347,13 @@
   "3SVI5p": [
     {
       "type": 0,
-      "value": "Warning"
+      "value": "警告"
     }
   ],
   "3VI9mt": [
     {
       "type": 0,
-      "value": "Save Changes"
+      "value": "保存更改"
     }
   ],
   "3Wq8aM": [
@@ -1307,7 +1377,7 @@
   "3n8o15": [
     {
       "type": 0,
-      "value": "Apply changes"
+      "value": "应用更改"
     }
   ],
   "3nhWFW": [
@@ -1329,7 +1399,7 @@
   "3sQV42": [
     {
       "type": 0,
-      "value": "Estimated total "
+      "value": "估计总置信度为 "
     },
     {
       "type": 1,
@@ -1337,7 +1407,7 @@
     },
     {
       "type": 0,
-      "value": "% confidence"
+      "value": "%"
     }
   ],
   "3sjbqq": [
@@ -1367,7 +1437,7 @@
   "3yurtF": [
     {
       "type": 0,
-      "value": "Next run"
+      "value": "下次运行"
     }
   ],
   "3zLsNR": [
@@ -1385,13 +1455,13 @@
   "4/aFfy": [
     {
       "type": 0,
-      "value": "Tree"
+      "value": "树"
     }
   ],
   "4/nSt8": [
     {
       "type": 0,
-      "value": "Select an existing trigger"
+      "value": "选择现有触发器"
     }
   ],
   "40YXE1": [
@@ -1415,25 +1485,25 @@
   "42RAxK": [
     {
       "type": 0,
-      "value": "Start testing"
+      "value": "开始测试"
     }
   ],
   "44QmgP": [
     {
       "type": 0,
-      "value": "connector"
+      "value": "连接器"
     }
   ],
   "44Y8wQ": [
     {
       "type": 0,
-      "value": "No common tools configured."
+      "value": "未配置任何常用工具。"
     }
   ],
   "451B6Z": [
     {
       "type": 0,
-      "value": "No agents found"
+      "value": "找不到智能体"
     }
   ],
   "477I0g": [
@@ -1451,19 +1521,19 @@
   "47Qksb": [
     {
       "type": 0,
-      "value": "This agent"
+      "value": "此智能体"
     }
   ],
   "493R/T": [
     {
       "type": 0,
-      "value": "Share your draft instructions and we’ll tailor them for a scheduled agent run."
+      "value": "共享你的草稿说明，我们将为计划的智能体运行量身定制它们。"
     }
   ],
   "498yM3": [
     {
       "type": 0,
-      "value": "Runs "
+      "value": "运行 "
     },
     {
       "type": 1,
@@ -1471,19 +1541,19 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "。"
     }
   ],
   "4BVpFN": [
     {
       "type": 0,
-      "value": "YAML must include a spec object."
+      "value": "YAML 必须包含规范对象。"
     }
   ],
   "4C44ie": [
     {
       "type": 0,
-      "value": "Trigger details"
+      "value": "触发器详细信息"
     }
   ],
   "4Ez7HI": [
@@ -1495,7 +1565,7 @@
   "4HV6SH": [
     {
       "type": 0,
-      "value": "Alert created"
+      "value": "已创建警报"
     }
   ],
   "4MeTpL": [
@@ -1507,7 +1577,7 @@
   "4OCLSf": [
     {
       "type": 0,
-      "value": "Response to user"
+      "value": "对用户的响应"
     }
   ],
   "4OUjTL": [
@@ -1519,19 +1589,25 @@
   "4Orfd8": [
     {
       "type": 0,
-      "value": "Rename thread"
+      "value": "重命名线程"
     }
   ],
   "4QLM52": [
     {
       "type": 0,
-      "value": "New agents can take a few seconds to appear in the graph. If you do not see it right away, refresh the list after a brief moment."
+      "value": "新智能体可能需要几秒钟才能显示在图中。如果目前未显示，请稍等片刻，然后刷新列表。"
     }
   ],
   "4Qhg3L": [
     {
       "type": 0,
-      "value": "Keep the description brief and explain the task’s actions. Include necessary resource identifiers, specify time-sensitive information, and define success/failure signals or required output formats."
+      "value": "保持描述简洁，说明任务的操作。包含必要的资源标识符，指定时间敏感信息，并定义成功/失败信号或所需的输出格式。"
+    }
+  ],
+  "4RwjwU": [
+    {
+      "type": 0,
+      "value": "Add handoff from existing agent"
     }
   ],
   "4TnjxL": [
@@ -1543,7 +1619,17 @@
   "4XOvey": [
     {
       "type": 0,
-      "value": "AI Agents"
+      "value": "AI 智能体"
+    }
+  ],
+  "4Xep39": [
+    {
+      "type": 0,
+      "value": "Failed to stop SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "4ZoIgV": [
@@ -1561,7 +1647,7 @@
   "4fPELu": [
     {
       "type": 0,
-      "value": "Function"
+      "value": "函数"
     }
   ],
   "4ii5zj": [
@@ -1597,19 +1683,13 @@
   "4oK1Me": [
     {
       "type": 0,
-      "value": "Switch to form"
+      "value": "切换到表单"
     }
   ],
   "4pJVaS": [
     {
       "type": 0,
-      "value": "Select row"
-    }
-  ],
-  "4uiKBK": [
-    {
-      "type": 0,
-      "value": "Select a Kusto connector"
+      "value": "选择行"
     }
   ],
   "4upwsn": [
@@ -1621,7 +1701,7 @@
   "4z+NaY": [
     {
       "type": 0,
-      "value": "The type of data source"
+      "value": "数据源的类型"
     }
   ],
   "5+bQr/": [
@@ -1643,7 +1723,7 @@
     },
     {
       "type": 0,
-      "value": ", I need diagnostics for intermittent latency spikes across AKS clusters eastus & westeurope."
+      "value": "，我需要针对美国东部和西欧 AKS 群集中出现的间歇性延迟峰值进行诊断。"
     }
   ],
   "53O1/Z": [
@@ -1655,7 +1735,7 @@
   "53qjcm": [
     {
       "type": 0,
-      "value": "Updating scheduled task"
+      "value": "正在更新计划的任务"
     }
   ],
   "543Ygw": [
@@ -1667,7 +1747,7 @@
   "54UIcW": [
     {
       "type": 0,
-      "value": "We couldn’t polish the instructions. Try again shortly."
+      "value": "无法润色说明。请稍后重试。"
     }
   ],
   "59z+Aj": [
@@ -1689,7 +1769,7 @@
   "5DqOua": [
     {
       "type": 0,
-      "value": "Pick an extended agent to assist you with tasks."
+      "value": "请选择扩展代理来帮助你完成任务。"
     }
   ],
   "5GUtRJ": [
@@ -1701,7 +1781,7 @@
   "5Imse3": [
     {
       "type": 0,
-      "value": "Failed to delete connector with error: "
+      "value": "未能删除连接器，出现错误: "
     },
     {
       "type": 1,
@@ -1711,19 +1791,19 @@
   "5Lc8g/": [
     {
       "type": 0,
-      "value": "Preview updated"
+      "value": "预览已更新"
     }
   ],
   "5M+Mu/": [
     {
       "type": 0,
-      "value": "Close quality watcher"
+      "value": "关闭质量观察程序"
     }
   ],
   "5MSxYS": [
     {
       "type": 0,
-      "value": "Will add as handoff to "
+      "value": "将作为转接添加到 "
     },
     {
       "type": 1,
@@ -1731,13 +1811,13 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "。"
     }
   ],
   "5POweM": [
     {
       "type": 0,
-      "value": "Create New Entity"
+      "value": "创建新实体"
     }
   ],
   "5QYdPU": [
@@ -1755,7 +1835,7 @@
   "5SH2BD": [
     {
       "type": 0,
-      "value": "Weekly on "
+      "value": "每周 "
     },
     {
       "type": 1,
@@ -1763,7 +1843,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " "
     },
     {
       "type": 1,
@@ -1785,7 +1865,7 @@
   "5U04OG": [
     {
       "type": 0,
-      "value": "Data knowledge space"
+      "value": "数据知识空间"
     }
   ],
   "5UfRjw": [
@@ -1831,19 +1911,25 @@
   "5XRsWa": [
     {
       "type": 0,
-      "value": "Agent status"
+      "value": "智能体状态"
     }
   ],
   "5Y6lHe": [
     {
       "type": 0,
-      "value": "You can increase or decrease active flow AAUs as needed. If the agent reaches the active flow limit, it continues running only in the always-on flow but is unavailable for chat and actions."
+      "value": "可根据需要增加或减少活动流 AAU。如果智能体达到活动流限制，它将仅在始终可用流中继续运行，但不可用于聊天和操作。"
     }
   ],
   "5cRddy": [
     {
       "type": 0,
       "value": "由用户缓解"
+    }
+  ],
+  "5fVEet": [
+    {
+      "type": 0,
+      "value": "Add tools"
     }
   ],
   "5gEh2M": [
@@ -1883,7 +1969,7 @@
   "5kK+j9": [
     {
       "type": 0,
-      "value": "Restart"
+      "value": "重启"
     }
   ],
   "5kp1Ie": [
@@ -1915,7 +2001,7 @@
   "5q8BxP": [
     {
       "type": 0,
-      "value": "What would you like to create?"
+      "value": "你想要创建什么内容?"
     }
   ],
   "5sg7KC": [
@@ -1927,7 +2013,7 @@
   "5ukccA": [
     {
       "type": 0,
-      "value": "Run an analysis to see tailored fixes."
+      "value": "运行分析以查看定制修补程序。"
     }
   ],
   "5w4pim": [
@@ -1951,11 +2037,15 @@
   "5walLE": [
     {
       "type": 0,
-      "value": "Tools · "
+      "value": "工具 · "
     },
     {
       "type": 1,
       "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 个"
     }
   ],
   "5xbHr/": [
@@ -1965,7 +2055,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " 为 "
     },
     {
       "type": 1,
@@ -1973,7 +2063,7 @@
     },
     {
       "type": 0,
-      "value": "%. Start experimenting—your upgrade path awaits."
+      "value": "%。开始试验 - 你的升级路径已准备好。"
     }
   ],
   "5y2qWO": [
@@ -2009,7 +2099,7 @@
   "67UmDz": [
     {
       "type": 0,
-      "value": "Parameter syntax:"
+      "value": "参数语法:"
     }
   ],
   "69FfbB": [
@@ -2034,10 +2124,16 @@
       "value": " XP"
     }
   ],
+  "6BTCPo": [
+    {
+      "type": 0,
+      "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
+    }
+  ],
   "6CxEZS": [
     {
       "type": 0,
-      "value": "Edit & test live agent"
+      "value": "编辑并测试实时智能体"
     }
   ],
   "6ENgmY": [
@@ -2055,7 +2151,7 @@
   "6KOA0x": [
     {
       "type": 0,
-      "value": "Cleared the composer. Type a new question to begin a fresh chat."
+      "value": "已清除提示编辑区。键入新问题以开始新聊天。"
     }
   ],
   "6LZ2qn": [
@@ -2067,7 +2163,7 @@
   "6Lox/s": [
     {
       "type": 0,
-      "value": "recommendations"
+      "value": "建议"
     }
   ],
   "6OBtew": [
@@ -2091,13 +2187,13 @@
   "6SKklv": [
     {
       "type": 0,
-      "value": "Remove attachment"
+      "value": "移除附件"
     }
   ],
   "6TO45V": [
     {
       "type": 0,
-      "value": "No parameters defined."
+      "value": "未定义任何参数。"
     }
   ],
   "6UyZlH": [
@@ -2109,7 +2205,7 @@
   "6Vngei": [
     {
       "type": 0,
-      "value": "Trigger type"
+      "value": "触发器类型"
     }
   ],
   "6XFO/C": [
@@ -2121,7 +2217,7 @@
   "6Y8rFa": [
     {
       "type": 0,
-      "value": "No change since last run"
+      "value": "自上次运行后无更改"
     }
   ],
   "6YHhH+": [
@@ -2145,7 +2241,7 @@
   "6aH1+U": [
     {
       "type": 0,
-      "value": "Create a scheduled task"
+      "value": "创建计划的任务"
     }
   ],
   "6bkNTl": [
@@ -2157,7 +2253,7 @@
   "6dEJ43": [
     {
       "type": 0,
-      "value": "Cron draft"
+      "value": "Cron 草稿"
     }
   ],
   "6dWeUs": [
@@ -2184,6 +2280,24 @@
       "value": "最多可以选择 20 个资源组供代理管理。"
     }
   ],
+  "6tzuXg": [
+    {
+      "type": 0,
+      "value": "Failed to start SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "6u8zJX": [
     {
       "type": 0,
@@ -2193,7 +2307,7 @@
   "6umiRw": [
     {
       "type": 0,
-      "value": "A clear, concise description that helps other agents understand when to delegate work to this specialist agent. This appears in agent handoff decisions and collaboration workflows."
+      "value": "清晰简明的说明，帮助其他智能体了解何时将工作委派给该专家智能体。这会显示在智能体交接决策和协作工作流中。"
     }
   ],
   "6v8Uj+": [
@@ -2209,13 +2323,13 @@
   "6w0QQX": [
     {
       "type": 0,
-      "value": "Apply your edits and refresh insights"
+      "value": "应用所做编辑并刷新见解"
     }
   ],
   "6yuD0y": [
     {
       "type": 0,
-      "value": "Read-only lock"
+      "value": "只读锁定"
     }
   ],
   "6zUWZ/": [
@@ -2227,7 +2341,7 @@
   "7+Domh": [
     {
       "type": 0,
-      "value": "Notes"
+      "value": "备注"
     }
   ],
   "7+b0J0": [
@@ -2239,7 +2353,7 @@
   "726zma": [
     {
       "type": 0,
-      "value": "Daily at "
+      "value": "每日 "
     },
     {
       "type": 1,
@@ -2249,7 +2363,7 @@
   "73c47a": [
     {
       "type": 0,
-      "value": "Turn on scheduled task"
+      "value": "启用计划的任务"
     }
   ],
   "74vgSJ": [
@@ -2270,6 +2384,12 @@
       "value": "从流式传输消息接收的线程数据无效"
     }
   ],
+  "79kwlH": [
+    {
+      "type": 0,
+      "value": "No agents available for handoff"
+    }
+  ],
   "7C0xai": [
     {
       "type": 0,
@@ -2279,19 +2399,13 @@
   "7Cy5xk": [
     {
       "type": 0,
-      "value": "Go to Incident management"
+      "value": "转到事件管理"
     }
   ],
   "7Eq7I8": [
     {
       "type": 0,
       "value": "审阅模式"
-    }
-  ],
-  "7Hg58U": [
-    {
-      "type": 0,
-      "value": "e.g., QueryKusto"
     }
   ],
   "7M8VZy": [
@@ -2315,7 +2429,7 @@
   "7Or82y": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "智能体质量为 "
     },
     {
       "type": 1,
@@ -2323,7 +2437,7 @@
     },
     {
       "type": 0,
-      "value": "/100 with "
+      "value": "/100，有 "
     },
     {
       "offset": 0,
@@ -2335,7 +2449,7 @@
             },
             {
               "type": 0,
-              "value": " quick fix ready"
+              "value": " 个快速修补程序已就绪"
             }
           ]
         },
@@ -2346,7 +2460,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes ready"
+              "value": " 个快速修补程序已就绪"
             }
           ]
         }
@@ -2357,37 +2471,37 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "。"
     }
   ],
   "7TVRcx": [
     {
       "type": 0,
-      "value": "Retry link"
+      "value": "重试链接"
     }
   ],
   "7Uk/61": [
     {
       "type": 0,
-      "value": "Agent configuration"
+      "value": "智能体配置"
     }
   ],
   "7Vep/o": [
     {
       "type": 0,
-      "value": "A unique identifier for your connector"
+      "value": "连接器的唯一标识符"
     }
   ],
   "7X1tNR": [
     {
       "type": 0,
-      "value": "Create task"
+      "value": "创建任务"
     }
   ],
   "7bDMaW": [
     {
       "type": 0,
-      "value": "Delete file?"
+      "value": "删除文件?"
     }
   ],
   "7cS956": [
@@ -2411,7 +2525,7 @@
   "7nUCu9": [
     {
       "type": 0,
-      "value": "Timezone"
+      "value": "时区"
     }
   ],
   "7oBAcZ": [
@@ -2422,7 +2536,7 @@
           "value": [
             {
               "type": 0,
-              "value": "No incident response plans yet"
+              "value": "尚无事件响应计划"
             }
           ]
         },
@@ -2434,7 +2548,7 @@
             },
             {
               "type": 0,
-              "value": " incident response plans ready"
+              "value": " 个事件响应计划已就绪"
             }
           ]
         }
@@ -2459,19 +2573,19 @@
   "7sbcy0": [
     {
       "type": 0,
-      "value": "Confidence is calculated based on your agent prompt, available tools, and chat interactions. Click refresh to get AI-powered recommendations."
+      "value": "置信度基于你的智能体提示、可用工具和聊天交互情况进行计算。单击“刷新”以获取 AI 支持的建议。"
     }
   ],
   "7smbCB": [
     {
       "type": 0,
-      "value": "Define autonomous agents with custom instructions and capabilities"
+      "value": "使用自定义指令和功能定义自主智能体"
     }
   ],
   "7tqXmc": [
     {
       "type": 0,
-      "value": "Describe how "
+      "value": "描述 "
     },
     {
       "type": 1,
@@ -2479,7 +2593,7 @@
     },
     {
       "type": 0,
-      "value": " should handle new incidents."
+      "value": " 应如何处理新事件。"
     }
   ],
   "7vl63m": [
@@ -2509,7 +2623,7 @@
   "83YwiU": [
     {
       "type": 0,
-      "value": "Tool details · "
+      "value": "工具详细信息 · "
     },
     {
       "type": 1,
@@ -2519,7 +2633,7 @@
   "86kOeb": [
     {
       "type": 0,
-      "value": "No matches for the current filters."
+      "value": "当前筛选器没有匹配项。"
     }
   ],
   "87v+WY": [
@@ -2531,13 +2645,13 @@
   "8AMq3a": [
     {
       "type": 0,
-      "value": "Daily active flow consumption"
+      "value": "每日活动流消耗"
     }
   ],
   "8BaLs0": [
     {
       "type": 0,
-      "value": "Select all rows"
+      "value": "选择所有行"
     }
   ],
   "8F5cJQ": [
@@ -2549,7 +2663,7 @@
   "8LMIGa": [
     {
       "type": 0,
-      "value": "These will be replaced with actual values at runtime."
+      "value": "这些值将在运行时替换为实际值。"
     }
   ],
   "8NHZQV": [
@@ -2575,7 +2689,7 @@
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": " 天前"
             }
           ]
         }
@@ -2588,7 +2702,7 @@
   "8Q504V": [
     {
       "type": 0,
-      "value": "Metadata"
+      "value": "元数据"
     }
   ],
   "8QX1EO": [
@@ -2600,7 +2714,7 @@
   "8RcpTO": [
     {
       "type": 0,
-      "value": "Describe this connector..."
+      "value": "描述此连接器..."
     }
   ],
   "8RdOD0": [
@@ -2609,16 +2723,32 @@
       "value": "选择标识"
     }
   ],
+  "8SCDv/": [
+    {
+      "type": 0,
+      "value": "Enter the query for the tool to run"
+    }
+  ],
   "8Vd2Kv": [
     {
       "type": 0,
-      "value": "Update list"
+      "value": "更新列表"
     }
   ],
   "8Wiwkg": [
     {
       "type": 0,
       "value": "正在构建知识图表"
+    }
+  ],
+  "8Zl3PA": [
+    {
+      "type": 0,
+      "value": "Failed to start SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "8aHHLj": [
@@ -2630,19 +2760,19 @@
   "8dASTJ": [
     {
       "type": 0,
-      "value": "Create a handoff sub-agent"
+      "value": "创建转接子智能体"
     }
   ],
   "8dTxSy": [
     {
       "type": 0,
-      "value": "Learn more about how to calculate cost"
+      "value": "详细了解如何计算成本"
     }
   ],
   "8eOoHt": [
     {
       "type": 0,
-      "value": "This will permanently "
+      "value": "这将永久"
     },
     {
       "type": 1,
@@ -2658,7 +2788,7 @@
     },
     {
       "type": 0,
-      "value": " "
+      "value": " 个 "
     },
     {
       "type": 1,
@@ -2666,7 +2796,7 @@
     },
     {
       "type": 0,
-      "value": "s. Are you sure you want to "
+      "value": "。是否确定要"
     },
     {
       "type": 1,
@@ -2674,7 +2804,7 @@
     },
     {
       "type": 0,
-      "value": " these "
+      "value": "这些 "
     },
     {
       "type": 1,
@@ -2682,13 +2812,19 @@
     },
     {
       "type": 0,
-      "value": "s?"
+      "value": "?"
     }
   ],
   "8fYK1J": [
     {
       "type": 0,
       "value": "执行时间"
+    }
+  ],
+  "8fw5Cz": [
+    {
+      "type": 0,
+      "value": "Try different search terms or clear your search to see all connectors."
     }
   ],
   "8lCjAM": [
@@ -2706,13 +2842,13 @@
   "8ojA9A": [
     {
       "type": 0,
-      "value": "Let AI polish the instructions"
+      "value": "让 AI 润色说明"
     }
   ],
   "8oyl6b": [
     {
       "type": 0,
-      "value": "Line chart"
+      "value": "折线图"
     }
   ],
   "8quEg9": [
@@ -2724,7 +2860,7 @@
   "8rNTuV": [
     {
       "type": 0,
-      "value": "Select an agent to hand off to"
+      "value": "选择要转接到的智能体"
     }
   ],
   "8v0Pyn": [
@@ -2740,7 +2876,7 @@
   "8wQLC0": [
     {
       "type": 0,
-      "value": "Close Todo Plans"
+      "value": "关闭待办事项计划"
     }
   ],
   "8yyU6n": [
@@ -2758,7 +2894,7 @@
   "9+dRta": [
     {
       "type": 0,
-      "value": "This will permanently delete "
+      "value": "这将从智能体使用的知识来源中永久删除 "
     },
     {
       "type": 1,
@@ -2766,7 +2902,7 @@
     },
     {
       "type": 0,
-      "value": " files from the knowledge sources the agent uses. Are you sure you want to delete these files?"
+      "value": " 个文件。是否确定要删除这些文件?"
     }
   ],
   "9/ucRx": [
@@ -2796,7 +2932,7 @@
   "94QRkK": [
     {
       "type": 0,
-      "value": "Follow-up questions"
+      "value": "跟进问题"
     }
   ],
   "94zF5I": [
@@ -2820,25 +2956,25 @@
   "98A08r": [
     {
       "type": 0,
-      "value": "Learn more about MCP servers"
+      "value": "详细了解 MCP 服务器"
     }
   ],
   "98TwgV": [
     {
       "type": 0,
-      "value": "Describe when and why other agents should hand off to this agent..."
+      "value": "描述其他智能体应何时以及为何将工作交接给此智能体..."
     }
   ],
   "99OdS3": [
     {
       "type": 0,
-      "value": "Planning"
+      "value": "规划"
     }
   ],
   "9Dp2VU": [
     {
       "type": 0,
-      "value": "Save failed: "
+      "value": "保存失败: "
     },
     {
       "type": 1,
@@ -2848,13 +2984,13 @@
   "9G+4ga": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all data connectors."
+      "value": "请尝试其他搜索词，或者清除搜索以查看所有数据连接器。"
     }
   ],
   "9GSKOR": [
     {
       "type": 0,
-      "value": "This overrides the default meta agent to remove general Azure knowledge and provide a more focused experience."
+      "value": "这会替代默认元智能体，以移除常规 Azure 知识并提供更具针对性体验。"
     }
   ],
   "9MPGF8": [
@@ -2866,13 +3002,13 @@
   "9MwJ6v": [
     {
       "type": 0,
-      "value": "e.g., IncidentAnalyzer"
+      "value": "例如 IncidentAnalyzer"
     }
   ],
   "9SQWi9": [
     {
       "type": 0,
-      "value": "Configuration target"
+      "value": "配置目标"
     }
   ],
   "9VUlhV": [
@@ -2884,19 +3020,19 @@
   "9WRlF4": [
     {
       "type": 0,
-      "value": "Send"
+      "value": "发送"
     }
   ],
   "9X3VEw": [
     {
       "type": 0,
-      "value": "The task will stop running after reaching this number"
+      "value": "任务将在达到此数量后停止运行"
     }
   ],
   "9XASFm": [
     {
       "type": 0,
-      "value": "Selected files table"
+      "value": "选择的文件表"
     }
   ],
   "9ZIBMx": [
@@ -2911,40 +3047,38 @@
       "value": "标题"
     }
   ],
-  "9bH3e2": [
-    {
-      "type": 0,
-      "value": "Nodes: "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    }
-  ],
   "9jaWOF": [
     {
       "type": 0,
-      "value": "MCP tools · "
+      "value": "MCP 工具 "
     },
     {
       "type": 1,
       "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 个"
     }
   ],
   "9q75fe": [
     {
       "type": 0,
-      "value": "No handoff agents available"
+      "value": "无转接智能体可用"
     }
   ],
   "9sDoY5": [
+    {
+      "type": 0,
+      "value": "已完成 "
+    },
     {
       "type": 1,
       "value": "completed"
     },
     {
       "type": 0,
-      "value": " of "
+      "value": " 个，共 "
     },
     {
       "type": 1,
@@ -2952,7 +3086,7 @@
     },
     {
       "type": 0,
-      "value": " completed"
+      "value": " 个"
     }
   ],
   "9uOFF3": [
@@ -2964,7 +3098,7 @@
   "9xBQKf": [
     {
       "type": 0,
-      "value": "YAML editing is coming soon for this entity."
+      "value": "即将向此实体推出 YAML 编辑功能。"
     }
   ],
   "A/xTHO": [
@@ -2994,13 +3128,13 @@
   "A3ptul": [
     {
       "type": 0,
-      "value": "Templates"
+      "value": "模板"
     }
   ],
   "A4ZrJb": [
     {
       "type": 0,
-      "value": "Playground actions are coming soon."
+      "value": "操场操作即将推出。"
     }
   ],
   "AA/tRJ": [
@@ -3040,7 +3174,7 @@
   "AHQdRU": [
     {
       "type": 0,
-      "value": "Monthly AAU limit:"
+      "value": "每月 AAU 限制:"
     }
   ],
   "ALkPTF": [
@@ -3052,13 +3186,13 @@
   "ASLbZd": [
     {
       "type": 0,
-      "value": "Export analysis"
+      "value": "导出分析"
     }
   ],
   "ATXGa+": [
     {
       "type": 0,
-      "value": "Agent Name"
+      "value": "智能体名称"
     }
   ],
   "ATYp8z": [
@@ -3070,13 +3204,13 @@
   "AYrXUB": [
     {
       "type": 0,
-      "value": "No pending configuration changes to apply"
+      "value": "无待应用的配置更改"
     }
   ],
   "AaJ/LU": [
     {
       "type": 0,
-      "value": "Polish the instructions"
+      "value": "润色说明"
     }
   ],
   "AbXVP4": [
@@ -3088,7 +3222,7 @@
   "AbleKr": [
     {
       "type": 0,
-      "value": "data connector"
+      "value": "数据连接器"
     }
   ],
   "AbpmRv": [
@@ -3100,7 +3234,7 @@
   "Ad7J7h": [
     {
       "type": 0,
-      "value": "Failed to delete task: "
+      "value": "未能删除任务: "
     },
     {
       "type": 1,
@@ -3110,7 +3244,7 @@
   "AdRf7Y": [
     {
       "type": 0,
-      "value": "Detected cron: "
+      "value": "检测到 cron: "
     },
     {
       "type": 1,
@@ -3120,7 +3254,7 @@
   "AdnFH8": [
     {
       "type": 0,
-      "value": "The current consumption exceeds the new allocation, which will take effect next month. Until then, the agent will run only in the always-on flow. Chat and actions will be unavailable."
+      "value": "当前消耗量超出将于下个月生效的新配额。在此之前，智能体仅在始终可用流中运行。聊天和操作将不可用。"
     }
   ],
   "AeWmvh": [
@@ -3138,7 +3272,7 @@
   "Ai/0lk": [
     {
       "type": 0,
-      "value": "A function or capability for agents to use"
+      "value": "智能体要使用的函数或功能"
     }
   ],
   "AmnkPD": [
@@ -3156,7 +3290,7 @@
   "AqVLXi": [
     {
       "type": 0,
-      "value": "Create reusable functions and actions for your agents"
+      "value": "为智能体创建可重用的函数和操作"
     }
   ],
   "AuFOi8": [
@@ -3174,7 +3308,7 @@
   "AzTehW": [
     {
       "type": 0,
-      "value": "Review and edit the full "
+      "value": "查看并编辑完整的 "
     },
     {
       "type": 1,
@@ -3182,25 +3316,25 @@
     },
     {
       "type": 0,
-      "value": " YAML."
+      "value": " YAML。"
     }
   ],
   "B3Q5mz": [
     {
       "type": 0,
-      "value": "Trigger"
+      "value": "触发器"
     }
   ],
   "B5kyn8": [
     {
       "type": 0,
-      "value": "connectors"
+      "value": "连接器"
     }
   ],
   "B7EJpi": [
     {
       "type": 0,
-      "value": "Agent Quality"
+      "value": "智能体质量"
     }
   ],
   "BEck3n": [
@@ -3224,13 +3358,13 @@
   "BLU3k6": [
     {
       "type": 0,
-      "value": "Edit a scheduled task"
+      "value": "编辑计划的任务"
     }
   ],
   "BNH9Uy": [
     {
       "type": 0,
-      "value": "Quality "
+      "value": "质量 "
     },
     {
       "type": 1,
@@ -3244,13 +3378,13 @@
   "BP3wUO": [
     {
       "type": 0,
-      "value": "The type of tool functionality"
+      "value": "工具功能的类型"
     }
   ],
   "BSQQkf": [
     {
       "type": 0,
-      "value": "Query returned no results"
+      "value": "查询未返回任何结果"
     }
   ],
   "BT9p8f": [
@@ -3292,13 +3426,19 @@
   "BWt4Jj": [
     {
       "type": 0,
-      "value": "Binding"
+      "value": "绑定"
+    }
+  ],
+  "BakoFg": [
+    {
+      "type": 0,
+      "value": "Select tool"
     }
   ],
   "BbTpTJ": [
     {
       "type": 0,
-      "value": "Using latest YAML changes"
+      "value": "正在使用最新的 YAML 更改"
     }
   ],
   "BcEbxp": [
@@ -3308,7 +3448,7 @@
     },
     {
       "type": 0,
-      "value": "s"
+      "value": " 秒"
     }
   ],
   "Bcgdb7": [
@@ -3334,35 +3474,29 @@
   "BgdyiU": [
     {
       "type": 0,
-      "value": "Incident response"
+      "value": "事件响应"
     }
   ],
   "BhRlDa": [
     {
       "type": 0,
-      "value": "Deleting incidents "
+      "value": "正在删除事件 "
     },
     {
       "type": 1,
       "value": "titles"
     }
   ],
-  "BkOSF2": [
-    {
-      "type": 0,
-      "value": "Parameters"
-    }
-  ],
   "Bluuk+": [
     {
       "type": 0,
-      "value": "Data type and requirement for validation"
+      "value": "用于验证的数据类型和要求"
     }
   ],
   "BmEERa": [
     {
       "type": 0,
-      "value": "Deleting "
+      "value": "正在删除 "
     },
     {
       "type": 1,
@@ -3370,25 +3504,19 @@
     },
     {
       "type": 0,
-      "value": " data connectors..."
+      "value": " 个数据连接器..."
     }
   ],
   "BuziI2": [
     {
       "type": 0,
-      "value": "Collapse panel"
+      "value": "折叠面板"
     }
   ],
   "BynA9c": [
     {
       "type": 0,
-      "value": "Optional tweaks"
-    }
-  ],
-  "C2PrxB": [
-    {
-      "type": 0,
-      "value": "单击此处为自己分配 SRE 智能体管理员角色。"
+      "value": "可选调整"
     }
   ],
   "C2iTEH": [
@@ -3403,16 +3531,22 @@
       "value": "逻辑应用参与者"
     }
   ],
+  "C6Jt4c": [
+    {
+      "type": 0,
+      "value": "Scheduled task name"
+    }
+  ],
   "CBHDb1": [
     {
       "type": 0,
-      "value": "Task status"
+      "value": "任务状态"
     }
   ],
   "CEdEmD": [
     {
       "type": 0,
-      "value": "Creates a draft agent and tool workspace for testing without touching production. Coming soon..."
+      "value": "创建草稿智能体和工具工作区，用于测试且不影响生产环境。即将推出..."
     }
   ],
   "CFJ1OD": [
@@ -3424,19 +3558,19 @@
   "CGn7Yd": [
     {
       "type": 0,
-      "value": "Link a tool or create a new one to configure it here."
+      "value": "链接工具或创建新工具以在此处进行配置。"
     }
   ],
   "CHt7dX": [
     {
       "type": 0,
-      "value": "MCP Tools (Optional)"
+      "value": "MCP 工具(可选)"
     }
   ],
   "CJ6tzL": [
     {
       "type": 0,
-      "value": "File Source"
+      "value": "文件源"
     }
   ],
   "CJEYfo": [
@@ -3460,25 +3594,25 @@
   "CMbKXm": [
     {
       "type": 0,
-      "value": "Playground highlights"
+      "value": "操场亮点"
     }
   ],
   "CNd+KS": [
     {
       "type": 0,
-      "value": "Connect related agents and tools"
+      "value": "连接相关智能体和工具"
     }
   ],
   "CPsPh7": [
     {
       "type": 0,
-      "value": "How would you like to define the schedule?"
+      "value": "你希望如何定义计划?"
     }
   ],
   "CTRqZs": [
     {
       "type": 0,
-      "value": "Test query"
+      "value": "测试查询"
     }
   ],
   "CVAKJE": [
@@ -3490,7 +3624,7 @@
   "CX0VFc": [
     {
       "type": 0,
-      "value": "Loading trigger status…"
+      "value": "正在加载触发器状态…"
     }
   ],
   "CZ6s9k": [
@@ -3502,19 +3636,19 @@
   "CaZAZZ": [
     {
       "type": 0,
-      "value": "Open scheduled tasks"
+      "value": "打开计划任务"
     }
   ],
   "CbntSG": [
     {
       "type": 0,
-      "value": "Database query connector"
+      "value": "数据库查询连接器"
     }
   ],
   "CeDXMM": [
     {
       "type": 0,
-      "value": "Here are the memory search results:"
+      "value": "以下是内存搜索结果:"
     }
   ],
   "CfGC/2": [
@@ -3523,20 +3657,20 @@
       "value": "选择要监视的资源组"
     }
   ],
+  "Cfvmd0": [
+    {
+      "type": 0,
+      "value": "The agent has used 90% of the active flow AAUs. If the limit is reached, the agent will run only in always-on flow and be unavailable for chat and actions."
+    }
+  ],
   "ChQQJ0": [
     {
       "type": 0,
-      "value": "Selected "
+      "value": "已选择 "
     },
     {
       "type": 1,
       "value": "itemType"
-    }
-  ],
-  "CimbUb": [
-    {
-      "type": 0,
-      "value": "确保你对托管智能体的资源组具有参与者或所有者访问权限。如果仍然遇到访问权限问题，请将角色直接分配给帐户，而不是依赖于基于组的角色分配。"
     }
   ],
   "Ck8Kax": [
@@ -3554,19 +3688,19 @@
   "CppiJ4": [
     {
       "type": 0,
-      "value": "Applying your changes"
+      "value": "正在应用更改"
     }
   ],
   "Cv2vtV": [
     {
       "type": 0,
-      "value": "moments ago"
+      "value": "不久前"
     }
   ],
   "CvGdox": [
     {
       "type": 0,
-      "value": "Add more tools for incident response"
+      "value": "添加更多用于事件响应的工具"
     }
   ],
   "CvWvf+": [
@@ -3591,6 +3725,12 @@
     {
       "type": 0,
       "value": "设置"
+    }
+  ],
+  "D3rb1K": [
+    {
+      "type": 0,
+      "value": "Azure DevOps"
     }
   ],
   "D473QI": [
@@ -3624,7 +3764,7 @@
   "D7U9Zo": [
     {
       "type": 0,
-      "value": "Custom instructions"
+      "value": "自定义说明"
     }
   ],
   "D97db3": [
@@ -3654,7 +3794,7 @@
     },
     {
       "type": 0,
-      "value": " "
+      "value": " 个 "
     },
     {
       "type": 1,
@@ -3662,13 +3802,13 @@
     },
     {
       "type": 0,
-      "value": "s?"
+      "value": "?"
     }
   ],
   "DF0TNm": [
     {
       "type": 0,
-      "value": "Code optimization insights"
+      "value": "代码优化见解"
     }
   ],
   "DFQKku": [
@@ -3677,16 +3817,28 @@
       "value": "Ops Pro"
     }
   ],
+  "DFfvL6": [
+    {
+      "type": 0,
+      "value": "Temporarily stop the agent from all activities."
+    }
+  ],
+  "DIZgr3": [
+    {
+      "type": 0,
+      "value": "Boolean"
+    }
+  ],
   "DJN+DZ": [
     {
       "type": 0,
-      "value": "Choose whether to run deep investigations alongside regular investigations"
+      "value": "选择是否在常规调查的同时进行深度调查"
     }
   ],
   "DMEE1o": [
     {
       "type": 0,
-      "value": "Select a tool to connect"
+      "value": "选择要连接的工具"
     }
   ],
   "DMd1Ql": [
@@ -3704,7 +3856,7 @@
   "DQfSk8": [
     {
       "type": 0,
-      "value": "Output type"
+      "value": "输出类型"
     }
   ],
   "DVVbGP": [
@@ -3720,7 +3872,7 @@
     },
     {
       "type": 0,
-      "value": ", audit today’s incidents and draft a leadership update with priority blockers."
+      "value": "，审核今天的事件，并起草一份包含优先阻碍项的管理层更新。"
     }
   ],
   "DX7w9O": [
@@ -3732,7 +3884,7 @@
   "Da55kZ": [
     {
       "type": 0,
-      "value": "Select MCP tools from connected servers"
+      "value": "从已连接的服务器中选择 MCP 工具"
     }
   ],
   "DasCIQ": [
@@ -3750,7 +3902,7 @@
   "Df+1hk": [
     {
       "type": 0,
-      "value": "Analysing configuration…"
+      "value": "正在分析配置…"
     }
   ],
   "Dff3ms": [
@@ -3768,13 +3920,13 @@
   "DhBWKr": [
     {
       "type": 0,
-      "value": "No instructions provided yet."
+      "value": "尚未提供任何指令。"
     }
   ],
   "Dhy8jb": [
     {
       "type": 0,
-      "value": "A data source connection for tools (e.g., Kusto cluster for running queries)"
+      "value": "工具的数据源连接(例如，用于运行查询的 Kusto 群集)"
     }
   ],
   "DlSXUR": [
@@ -3813,10 +3965,16 @@
       "value": "记忆搜索结果"
     }
   ],
+  "Dvly6A": [
+    {
+      "type": 0,
+      "value": "Failed to create tool"
+    }
+  ],
   "Dw2xIY": [
     {
       "type": 0,
-      "value": "Create a new tool"
+      "value": "创建新工具"
     }
   ],
   "Dx3Xj3": [
@@ -3834,7 +3992,7 @@
   "E+jVAN": [
     {
       "type": 0,
-      "value": "No trace data found for this thread."
+      "value": "未找到此线程的跟踪数据。"
     }
   ],
   "E396gv": [
@@ -3849,6 +4007,12 @@
       "value": "选择的某些资源组没有所需的 roleAssignments/write 和 Microsoft.ManagedIdentity/userAssignedIdentities/write 权限。"
     }
   ],
+  "E9CWuE": [
+    {
+      "type": 0,
+      "value": "Example: where SubscriptionId == \"##SubscriptionId##\""
+    }
+  ],
   "EAO/K+": [
     {
       "type": 0,
@@ -3858,7 +4022,7 @@
   "EBpelF": [
     {
       "type": 0,
-      "value": "No warnings found"
+      "value": "未找到警告"
     }
   ],
   "ED/jWk": [
@@ -3870,27 +4034,13 @@
   "EEb00g": [
     {
       "type": 0,
-      "value": "Run insights to track confidence and recommended fixes."
+      "value": "运行见解以跟踪置信度和推荐修补程序。"
     }
   ],
-  "EHyU+4": [
+  "EHy/sj": [
     {
       "type": 0,
-      "value": "Use "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "##ParamName##"
-        }
-      ],
-      "type": 8,
-      "value": "code"
-    },
-    {
-      "type": 0,
-      "value": " in your query to define parameter placeholders."
+      "value": "Enter a number"
     }
   ],
   "EI/cfO": [
@@ -3922,7 +4072,7 @@
   "EN5iMk": [
     {
       "type": 0,
-      "value": "Service type"
+      "value": "服务类型"
     }
   ],
   "ENnkRe": [
@@ -3934,7 +4084,13 @@
   "EOt0+9": [
     {
       "type": 0,
-      "value": "Full workflow with quality evaluation"
+      "value": "包含质量评估的完整工作流"
+    }
+  ],
+  "EQa6dK": [
+    {
+      "type": 0,
+      "value": "Built-in Tool"
     }
   ],
   "ESChST": [
@@ -3964,7 +4120,7 @@
   "EbNaDn": [
     {
       "type": 0,
-      "value": "Knowledge Base"
+      "value": "知识库"
     }
   ],
   "Ebd6gR": [
@@ -3976,7 +4132,7 @@
   "Ec1M0J": [
     {
       "type": 0,
-      "value": "Action plan"
+      "value": "操作计划"
     }
   ],
   "EdEthU": [
@@ -3988,7 +4144,7 @@
   "EdZ3pj": [
     {
       "type": 0,
-      "value": "Agent: "
+      "value": "智能体: "
     },
     {
       "type": 1,
@@ -3998,7 +4154,7 @@
   "EicA1w": [
     {
       "type": 0,
-      "value": "Test the query to continue."
+      "value": "测试查询以继续。"
     }
   ],
   "ElI1gd": [
@@ -4010,7 +4166,7 @@
   "ElqLuA": [
     {
       "type": 0,
-      "value": "Trace data parsed with warnings."
+      "value": "已解析跟踪数据，但出现警告。"
     }
   ],
   "Ep74wA": [
@@ -4031,10 +4187,16 @@
       "value": "Azure SRE 代理"
     }
   ],
+  "Eu772h": [
+    {
+      "type": 0,
+      "value": "Built-in Tools"
+    }
+  ],
   "Euy+fB": [
     {
       "type": 0,
-      "value": "Connect MCP server"
+      "value": "连接 MCP 服务器"
     }
   ],
   "EwRIOm": [
@@ -4046,13 +4208,13 @@
   "F4a/f4": [
     {
       "type": 0,
-      "value": "User Permissions"
+      "value": "用户权限"
     }
   ],
   "F5b1Mw": [
     {
       "type": 0,
-      "value": "Currently showing "
+      "value": "当前正在显示 "
     },
     {
       "type": 1,
@@ -4062,29 +4224,33 @@
   "F6qYbg": [
     {
       "type": 0,
-      "value": "Select tools this agent can use"
-    }
-  ],
-  "F8R5Bb": [
-    {
-      "type": 0,
-      "value": "Connections: "
-    },
-    {
-      "type": 1,
-      "value": "count"
+      "value": "选择此智能体可以使用的工具"
     }
   ],
   "F8UOXS": [
     {
       "type": 0,
-      "value": "Relationship preview"
+      "value": "关系预览"
+    }
+  ],
+  "F8v2Mz": [
+    {
+      "type": 0,
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " started successfully"
     }
   ],
   "F8xMoD": [
     {
       "type": 0,
-      "value": "Loading tool details..."
+      "value": "正在加载工具详细信息..."
     }
   ],
   "F9LrJA": [
@@ -4102,7 +4268,7 @@
   "FE2ukR": [
     {
       "type": 0,
-      "value": "Remove handoff "
+      "value": "移除转接 "
     },
     {
       "type": 1,
@@ -4112,7 +4278,7 @@
   "FFFf74": [
     {
       "type": 0,
-      "value": "Last run: "
+      "value": "上次运行: "
     },
     {
       "type": 1,
@@ -4128,13 +4294,13 @@
   "FGP0Kd": [
     {
       "type": 0,
-      "value": "CPU usage insights"
+      "value": "CPU 使用情况见解"
     }
   ],
   "FLN/px": [
     {
       "type": 0,
-      "value": "Chat diagnostics"
+      "value": "聊天诊断"
     }
   ],
   "FLm/x4": [
@@ -4146,19 +4312,19 @@
   "FNQNS1": [
     {
       "type": 0,
-      "value": "Weekdays at 9am Pacific"
-    }
-  ],
-  "FO/nez": [
-    {
-      "type": 0,
-      "value": "Describe what this tool does..."
+      "value": "太平洋时间工作日上午 9 点"
     }
   ],
   "FPdoJ3": [
     {
       "type": 0,
-      "value": "Define how incidents are detected and reviewed, and the instructions for how the agent responds."
+      "value": "定义事件的检测和评审方式，以及关于智能体响应方式的说明。"
+    }
+  ],
+  "FS0tWa": [
+    {
+      "type": 0,
+      "value": "No source agent specified"
     }
   ],
   "FSYccN": [
@@ -4170,7 +4336,7 @@
   "FSZ5F/": [
     {
       "type": 0,
-      "value": "Deleting scheduled task "
+      "value": "正在删除计划的任务 "
     },
     {
       "type": 1,
@@ -4180,7 +4346,7 @@
   "FTWkpv": [
     {
       "type": 0,
-      "value": "Create new entity"
+      "value": "创建新实体"
     }
   ],
   "FUQvS0": [
@@ -4192,7 +4358,23 @@
   "FVOAIQ": [
     {
       "type": 0,
-      "value": "Handoff Agents (Optional)"
+      "value": "转接智能体(可选)"
+    }
+  ],
+  "FWou/7": [
+    {
+      "type": 0,
+      "value": "Select tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    }
+  ],
+  "FZeQlc": [
+    {
+      "type": 0,
+      "value": "Disconnected"
     }
   ],
   "FZwBv0": [
@@ -4204,13 +4386,13 @@
   "FeBVnC": [
     {
       "type": 0,
-      "value": "You can edit this entity directly or spin up a copy once cloning is available."
+      "value": "可直接编辑此实体，或在克隆可用后创建一个副本。"
     }
   ],
   "FeBneB": [
     {
       "type": 0,
-      "value": "Probe for multi-step diagnostics to see if the agent can orchestrate tools effectively."
+      "value": "探测多步骤诊断，查看智能体是否能有效协调工具。"
     }
   ],
   "FitglU": [
@@ -4222,7 +4404,7 @@
   "FkvYGq": [
     {
       "type": 0,
-      "value": "System prompt that defines the agent's behavior"
+      "value": "定义智能体行为的系统提示"
     }
   ],
   "FnKIAW": [
@@ -4231,10 +4413,30 @@
       "value": "已确认"
     }
   ],
+  "FpUGgx": [
+    {
+      "type": 0,
+      "value": "Starting SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in progress"
+    }
+  ],
   "Fr5LyM": [
     {
       "type": 0,
       "value": "安全"
+    }
+  ],
+  "FsIud6": [
+    {
+      "type": 0,
+      "value": "Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included."
     }
   ],
   "Fv1ZSz": [
@@ -4252,19 +4454,19 @@
   "FvtGBp": [
     {
       "type": 0,
-      "value": "browse for files"
+      "value": "浏览文件"
     }
   ],
   "FyrC09": [
     {
       "type": 0,
-      "value": "Create trigger"
+      "value": "创建触发器"
     }
   ],
   "FzjwEg": [
     {
       "type": 0,
-      "value": "Critic on handoff"
+      "value": "转接时的批评"
     }
   ],
   "G+JlQs": [
@@ -4276,7 +4478,7 @@
   "G/YsSs": [
     {
       "type": 0,
-      "value": "Custom cron"
+      "value": "自定义 Cron"
     }
   ],
   "G/yZLu": [
@@ -4287,12 +4489,16 @@
   ],
   "G5JMSn": [
     {
+      "type": 0,
+      "value": "已选择 "
+    },
+    {
       "type": 1,
       "value": "0"
     },
     {
       "type": 0,
-      "value": " subscriptions selected"
+      "value": " 个订阅"
     }
   ],
   "G6vaGg": [
@@ -4307,6 +4513,40 @@
       "value": "所有事件类型"
     }
   ],
+  "GBLVEV": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "document"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "documents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "GBnvl1": [
     {
       "type": 0,
@@ -4316,7 +4556,7 @@
   "GCQn0j": [
     {
       "type": 0,
-      "value": "Tool testing is unavailable for this entity."
+      "value": "此实体无法进行工具测试。"
     }
   ],
   "GCVHNV": [
@@ -4328,7 +4568,7 @@
   "GCVZ4/": [
     {
       "type": 0,
-      "value": "Successfully deleted "
+      "value": "已成功删除 "
     },
     {
       "type": 1,
@@ -4336,19 +4576,19 @@
     },
     {
       "type": 0,
-      "value": " data connectors"
+      "value": " 个数据连接器"
     }
   ],
   "GCcYpN": [
     {
       "type": 0,
-      "value": "No MCP tools available"
+      "value": "无 MCP 工具可用"
     }
   ],
   "GCmxza": [
     {
       "type": 0,
-      "value": "Back to commands"
+      "value": "返回到命令"
     }
   ],
   "GMhzu1": [
@@ -4357,10 +4597,16 @@
       "value": "Response subagent"
     }
   ],
+  "GP/BbQ": [
+    {
+      "type": 0,
+      "value": "Enable Knowledge Base"
+    }
+  ],
   "GSCabm": [
     {
       "type": 0,
-      "value": "MCP tools"
+      "value": "MCP 工具"
     }
   ],
   "GUx4Ld": [
@@ -4372,31 +4618,43 @@
   "GaA28c": [
     {
       "type": 0,
-      "value": "Incident details"
+      "value": "事件详细信息"
     }
   ],
   "GdgrWi": [
     {
       "type": 0,
-      "value": "Select a tool"
+      "value": "选择工具"
     }
   ],
   "GkJbiq": [
     {
       "type": 0,
-      "value": "Start a new chat thread."
+      "value": "启动新聊天线程。"
     }
   ],
   "GkKcbX": [
     {
       "type": 0,
-      "value": "Add a response plan"
+      "value": "添加响应计划"
     }
   ],
   "Gl8fnJ": [
     {
       "type": 0,
       "value": "调整抽屉大小"
+    }
+  ],
+  "GnWmca": [
+    {
+      "type": 0,
+      "value": "Triggers"
+    }
+  ],
+  "Gnbr9F": [
+    {
+      "type": 0,
+      "value": "Select a connector"
     }
   ],
   "GoSIa4": [
@@ -4414,7 +4672,7 @@
   "GpZr9J": [
     {
       "type": 0,
-      "value": "Automatically run "
+      "value": "按计划自动运行 "
     },
     {
       "type": 1,
@@ -4422,7 +4680,7 @@
     },
     {
       "type": 0,
-      "value": " on a schedule to keep key systems healthy."
+      "value": "，以保持关键系统正常运行。"
     }
   ],
   "GroBmn": [
@@ -4439,18 +4697,22 @@
   ],
   "GzKpRn": [
     {
+      "type": 0,
+      "value": "检测到 "
+    },
+    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " params detected"
+      "value": " 个参数"
     }
   ],
   "H1OQZj": [
     {
       "type": 0,
-      "value": "YAML must include kind: {expectedKind}."
+      "value": "YAML 必须包含类型: {expectedKind}。"
     }
   ],
   "H3ooTI": [
@@ -4468,7 +4730,7 @@
   "HADwwN": [
     {
       "type": 0,
-      "value": "Task details"
+      "value": "任务详细信息"
     }
   ],
   "HAlOn1": [
@@ -4486,25 +4748,31 @@
   "HFuyFh": [
     {
       "type": 0,
-      "value": "No code optimization recommendations detected."
+      "value": "未检测到代码优化建议。"
     }
   ],
   "HKlw1J": [
     {
       "type": 0,
-      "value": "This will permanently disconnect this data connector from the agent. Are you sure you want to disconnect this data connector?"
+      "value": "这将永久断开此数据连接器与智能体的连接。是否确定要断开此数据连接器?"
     }
   ],
   "HMZIeG": [
     {
       "type": 0,
-      "value": "Get AI-powered quality insights and improvement suggestions"
+      "value": "获取 AI 支持的质量见解和改进建议"
+    }
+  ],
+  "HNBpJ4": [
+    {
+      "type": 0,
+      "value": "Metrics"
     }
   ],
   "HNECLT": [
     {
       "type": 0,
-      "value": "Build Your Agent Ecosystem"
+      "value": "构建智能体生态系统"
     }
   ],
   "HOJNsf": [
@@ -4516,7 +4784,7 @@
   "HQ4NJ3": [
     {
       "type": 0,
-      "value": "Learn more about response plans"
+      "value": "详细了解响应计划"
     }
   ],
   "HQc/Lf": [
@@ -4540,13 +4808,19 @@
   "HUPaMQ": [
     {
       "type": 0,
-      "value": "View findings"
+      "value": "查看结果"
     }
   ],
   "HWMrXF": [
     {
       "type": 0,
       "value": "添加资源组"
+    }
+  ],
+  "HZQtAg": [
+    {
+      "type": 0,
+      "value": "Test values"
     }
   ],
   "HbTFJf": [
@@ -4558,7 +4832,7 @@
   "Hgs+WM": [
     {
       "type": 0,
-      "value": "View trace"
+      "value": "查看跟踪"
     }
   ],
   "Hh0q8u": [
@@ -4574,13 +4848,13 @@
   "Hh8It5": [
     {
       "type": 0,
-      "value": "Changes pending analysis"
+      "value": "更改待分析"
     }
   ],
   "HiBsED": [
     {
       "type": 0,
-      "value": "No handoffs added yet."
+      "value": "尚未添加任何转接。"
     }
   ],
   "HjTHxo": [
@@ -4598,7 +4872,7 @@
   "Hs02Tq": [
     {
       "type": 0,
-      "value": "Loading daily reports"
+      "value": "正在加载每日报告"
     }
   ],
   "HtpD+z": [
@@ -4616,7 +4890,7 @@
   "Hv0XJn": [
     {
       "type": 0,
-      "value": "Suggestions"
+      "value": "建议"
     }
   ],
   "Hv7pA2": [
@@ -4640,13 +4914,19 @@
   "I1tfGG": [
     {
       "type": 0,
-      "value": "View Memory Search Results"
+      "value": "查看内存搜索结果"
+    }
+  ],
+  "I3MA83": [
+    {
+      "type": 0,
+      "value": "String"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "使用现有项"
     }
   ],
   "I7aBF4": [
@@ -4670,7 +4950,7 @@
   "I9W7ey": [
     {
       "type": 0,
-      "value": "Completed runs"
+      "value": "已完成的运行数"
     }
   ],
   "IAwPyV": [
@@ -4688,7 +4968,7 @@
   "IEIivr": [
     {
       "type": 0,
-      "value": "Connected tool "
+      "value": "已将工具 "
     },
     {
       "type": 1,
@@ -4696,7 +4976,7 @@
     },
     {
       "type": 0,
-      "value": " to "
+      "value": " 连接到 "
     },
     {
       "type": 1,
@@ -4704,7 +4984,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "。"
     }
   ],
   "IF3r+X": [
@@ -4722,13 +5002,13 @@
   "IJX2gV": [
     {
       "type": 0,
-      "value": "Connect handoffs and tools"
+      "value": "连接转接和工具"
     }
   ],
   "INiE0x": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "智能体质量为 "
     },
     {
       "type": 1,
@@ -4736,13 +5016,13 @@
     },
     {
       "type": 0,
-      "value": "/100 but may be outdated. Refresh to keep guidance current."
+      "value": "/100，但可能已过时。刷新以保持指导是最新的。"
     }
   ],
   "INiSE2": [
     {
       "type": 0,
-      "value": "Tool Name"
+      "value": "工具名称"
     }
   ],
   "IQaKwH": [
@@ -4758,7 +5038,7 @@
     },
     {
       "type": 0,
-      "value": " —handoff→ "
+      "value": " —转接→ "
     },
     {
       "type": 1,
@@ -4798,19 +5078,19 @@
   "IbMKy+": [
     {
       "type": 0,
-      "value": "Use this version"
+      "value": "使用此版本"
     }
   ],
   "IcB2fr": [
     {
       "type": 0,
-      "value": "Tool method argument that receives this value"
+      "value": "接收此值的工具方法参数"
     }
   ],
   "IcUakl": [
     {
       "type": 0,
-      "value": "Time zone"
+      "value": "时区"
     }
   ],
   "IiNwpr": [
@@ -4826,7 +5106,7 @@
   "InWqys": [
     {
       "type": 0,
-      "value": "Optional"
+      "value": "可选"
     }
   ],
   "IoApza": [
@@ -4838,25 +5118,25 @@
   "IomdzL": [
     {
       "type": 0,
-      "value": "The agent uses predefined queries for structured logs, telemetry, and time series data."
+      "value": "智能体使用预定义的查询处理结构化日志、遥测和时序数据。"
     }
   ],
   "Ip7Gd3": [
     {
       "type": 0,
-      "value": "Auto-apply"
+      "value": "自动应用"
     }
   ],
   "IrCHQG": [
     {
       "type": 0,
-      "value": "Select an agent to view its configuration."
+      "value": "选择智能体以查看其配置。"
     }
   ],
   "ItmLyp": [
     {
       "type": 0,
-      "value": "Connect an incident platform"
+      "value": "连接事件平台"
     }
   ],
   "IuFETn": [
@@ -4868,11 +5148,15 @@
   "IvKdxU": [
     {
       "type": 0,
-      "value": "System tools · "
+      "value": "系统工具 · "
     },
     {
       "type": 1,
       "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 个"
     }
   ],
   "IvjoDS": [
@@ -4916,13 +5200,13 @@
   "J7FnS1": [
     {
       "type": 0,
-      "value": "Connect existing items"
+      "value": "连接现有项"
     }
   ],
   "J8u7Xg": [
     {
       "type": 0,
-      "value": "Last Modified"
+      "value": "上次修改时间"
     }
   ],
   "JAtEuU": [
@@ -4963,16 +5247,28 @@
       "value": "上一步"
     }
   ],
+  "JKFypr": [
+    {
+      "type": 0,
+      "value": "Stop agent"
+    }
+  ],
   "JMdyE9": [
     {
       "type": 0,
-      "value": "Use AI to enhance and validate your agent instructions"
+      "value": "使用 AI 增强和验证智能体指令"
     }
   ],
   "JRLN0D": [
     {
       "type": 0,
       "value": "使用事件响应计划，智能体可选择管理常见类型的事件所需的工具。自定义响应计划通过为智能体提供你给出的特定指令来代替此功能。"
+    }
+  ],
+  "JSW9Xw": [
+    {
+      "type": 0,
+      "value": "Starting SRE Agent"
     }
   ],
   "JT7be1": [
@@ -5007,7 +5303,7 @@
           "value": [
             {
               "type": 0,
-              "value": "No scheduled tasks yet"
+              "value": "尚无计划任务"
             }
           ]
         },
@@ -5019,7 +5315,7 @@
             },
             {
               "type": 0,
-              "value": " scheduled tasks ready"
+              "value": " 个计划任务已就绪"
             }
           ]
         }
@@ -5043,18 +5339,22 @@
   ],
   "JbB2Vb": [
     {
+      "type": 0,
+      "value": "已选择 "
+    },
+    {
       "type": 1,
       "value": "0"
     },
     {
       "type": 0,
-      "value": " locations selected"
+      "value": " 个位置"
     }
   ],
   "JbMs9l": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "智能体质量为 "
     },
     {
       "type": 1,
@@ -5062,13 +5362,13 @@
     },
     {
       "type": 0,
-      "value": "/100. No quick fixes right now."
+      "value": "/100。目前没有快速修补程序。"
     }
   ],
   "JbmMWM": [
     {
       "type": 0,
-      "value": "Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatible connector was found)"
+      "value": "托管标识(自动选择智能体空间托管标识作为智能体空间并找到兼容的连接器)"
     }
   ],
   "JezZlU": [
@@ -5086,7 +5386,7 @@
   "JiENoF": [
     {
       "type": 0,
-      "value": "Hide diff"
+      "value": "隐藏差异"
     }
   ],
   "JjKcCj": [
@@ -5104,7 +5404,7 @@
   "JkS37H": [
     {
       "type": 0,
-      "value": "Undo"
+      "value": "撤消"
     }
   ],
   "JkbJ/T": [
@@ -5133,16 +5433,34 @@
       "value": "断开 ServiceNow 连接?"
     }
   ],
+  "JnDKv3": [
+    {
+      "type": 0,
+      "value": "Failed to stop SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "Jrrm2K": [
     {
       "type": 0,
-      "value": "Click \"Execute Tool\" to test this system tool"
+      "value": "单击“执行工具”以测试此系统工具"
     }
   ],
   "Jsy4yb": [
     {
       "type": 0,
-      "value": "Try Evaluation"
+      "value": "尝试评估"
     }
   ],
   "JwHSD6": [
@@ -5160,19 +5478,19 @@
   "Jz5GjX": [
     {
       "type": 0,
-      "value": "Review Your trigger"
+      "value": "查看触发器"
     }
   ],
   "JzOvG/": [
     {
       "type": 0,
-      "value": "Assumptions we made"
+      "value": "我们的假设"
     }
   ],
   "K1h5xo": [
     {
       "type": 0,
-      "value": "Scheduled tasks require an upgrade. Contact your administrator to enable them."
+      "value": "计划任务需要升级。请与管理员联系以启用它们。"
     }
   ],
   "K3r6DQ": [
@@ -5184,19 +5502,19 @@
   "K7AkdL": [
     {
       "type": 0,
-      "value": "Show"
+      "value": "显示"
     }
   ],
   "K9q4Xw": [
     {
       "type": 0,
-      "value": "MCP servers"
+      "value": "MCP 服务器"
     }
   ],
   "KAYnaH": [
     {
       "type": 0,
-      "value": "Auto-applying changes… latest draft will be used for new tests."
+      "value": "正在自动应用更改…最新草稿将用于新测试。"
     }
   ],
   "KAYpG9": [
@@ -5208,7 +5526,7 @@
   "KGmQjH": [
     {
       "type": 0,
-      "value": "Highlights"
+      "value": "亮点"
     }
   ],
   "KI/Heo": [
@@ -5220,7 +5538,7 @@
   "KJHRU/": [
     {
       "type": 0,
-      "value": "Add existing subagent"
+      "value": "添加现有子智能体"
     }
   ],
   "KJuQJ3": [
@@ -5244,7 +5562,7 @@
   "KNwLvk": [
     {
       "type": 0,
-      "value": "Test Parameters"
+      "value": "测试参数"
     }
   ],
   "KQ9L9d": [
@@ -5256,7 +5574,7 @@
   "KR79he": [
     {
       "type": 0,
-      "value": "New agent"
+      "value": "新建智能体"
     }
   ],
   "KS5JHs": [
@@ -5274,15 +5592,11 @@
   "KaLLyk": [
     {
       "type": 0,
-      "value": "Projected +"
+      "value": "整体预估 +"
     },
     {
       "type": 1,
       "value": "lift"
-    },
-    {
-      "type": 0,
-      "value": " overall"
     }
   ],
   "KbCGsK": [
@@ -5291,16 +5605,22 @@
       "value": "如果单击“授权”，则将使用你的凭据代表你执行此操作。"
     }
   ],
+  "Kfaepo": [
+    {
+      "type": 0,
+      "value": "Learn more about connectors"
+    }
+  ],
   "KgcF6B": [
     {
       "type": 0,
-      "value": "Yes/No"
+      "value": "是/否"
     }
   ],
   "KiANnA": [
     {
       "type": 0,
-      "value": "Turn on scheduled task(s)"
+      "value": "启用计划的任务"
     }
   ],
   "Kkc3/u": [
@@ -5312,7 +5632,7 @@
   "Km+WSh": [
     {
       "type": 0,
-      "value": "Map to argument"
+      "value": "映射到参数"
     }
   ],
   "KoJ1C+": [
@@ -5332,19 +5652,19 @@
   "KptJSd": [
     {
       "type": 0,
-      "value": "No MCP tools configured."
+      "value": "未配置任何 MCP 工具。"
     }
   ],
   "KqwLPK": [
     {
       "type": 0,
-      "value": "Database indexing connector"
+      "value": "数据库索引连接器"
     }
   ],
   "KryvVM": [
     {
       "type": 0,
-      "value": "Parameter values (for testing)"
+      "value": "参数值(用于测试)"
     }
   ],
   "KsuM4D": [
@@ -5362,7 +5682,7 @@
   "Kxd0Vr": [
     {
       "type": 0,
-      "value": "Allow parallel tool calls"
+      "value": "允许并行工具调用"
     }
   ],
   "KyDsjH": [
@@ -5380,13 +5700,13 @@
   "L+ewYY": [
     {
       "type": 0,
-      "value": "AI suggestions discarded"
+      "value": "已放弃 AI 建议"
     }
   ],
   "L/i6dy": [
     {
       "type": 0,
-      "value": "We’ll mark this agent as Autonomous automatically so it can run on its own."
+      "value": "我们将自动将此智能体标记为“自主”，以便它可以自行运行。"
     }
   ],
   "L0KVkI": [
@@ -5406,25 +5726,25 @@
   "L7EoQf": [
     {
       "type": 0,
-      "value": "Auto-apply ON"
+      "value": "自动应用已开启"
     }
   ],
   "L7gQfJ": [
     {
       "type": 0,
-      "value": "Welcome to the playground"
+      "value": "欢迎使用操场"
     }
   ],
   "LAHAJH": [
     {
       "type": 0,
-      "value": "No MCP connections available"
+      "value": "无 MCP 连接可用"
     }
   ],
   "LFb8Ku": [
     {
       "type": 0,
-      "value": "recent activity"
+      "value": "最近的活动"
     }
   ],
   "LFn7Ak": [
@@ -5436,13 +5756,13 @@
   "LGZkPZ": [
     {
       "type": 0,
-      "value": "Switch to YAML"
+      "value": "切换到 YAML"
     }
   ],
   "LIm7q8": [
     {
       "type": 0,
-      "value": "Analysed "
+      "value": "分析时间: "
     },
     {
       "type": 1,
@@ -5464,13 +5784,13 @@
   "LPz7Qc": [
     {
       "type": 0,
-      "value": "Tool Type"
+      "value": "工具类型"
     }
   ],
   "LQ2AtR": [
     {
       "type": 0,
-      "value": "Deleted "
+      "value": "已删除 "
     },
     {
       "type": 1,
@@ -5478,7 +5798,7 @@
     },
     {
       "type": 0,
-      "value": " data connectors. Failed to delete "
+      "value": " 个数据连接器。未能删除 "
     },
     {
       "type": 1,
@@ -5486,7 +5806,7 @@
     },
     {
       "type": 0,
-      "value": ": "
+      "value": " 个: "
     },
     {
       "type": 1,
@@ -5508,7 +5828,7 @@
   "LTDPn/": [
     {
       "type": 0,
-      "value": "You have unsaved changes."
+      "value": "你有未保存的更改。"
     }
   ],
   "LUSiug": [
@@ -5524,7 +5844,7 @@
   "LXOsKd": [
     {
       "type": 0,
-      "value": "We could not generate insights right now. Try again in a moment."
+      "value": "当前无法生成见解。请稍后重试。"
     }
   ],
   "LZyV4T": [
@@ -5533,22 +5853,28 @@
       "value": "筛选器将定义事件响应计划所适用的事件。这些适用于下一步中预览的事件列表。"
     }
   ],
+  "LaIt/v": [
+    {
+      "type": 0,
+      "value": "Creating Kusto Tool"
+    }
+  ],
   "LbkJp1": [
     {
       "type": 0,
-      "value": "MCP servers table"
+      "value": "MCP 服务器表"
     }
   ],
   "LkUvu/": [
     {
       "type": 0,
-      "value": "Describe the schedule"
+      "value": "描述计划"
     }
   ],
   "Lm9kBB": [
     {
       "type": 0,
-      "value": "Select an incident."
+      "value": "选择事件。"
     }
   ],
   "LnglaU": [
@@ -5566,7 +5892,7 @@
   "LsGLc0": [
     {
       "type": 0,
-      "value": "Direct argument"
+      "value": "直接参数"
     }
   ],
   "LupnQU": [
@@ -5580,7 +5906,7 @@
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": " 小时前"
             }
           ]
         }
@@ -5617,7 +5943,7 @@
   "M+QCSD": [
     {
       "type": 0,
-      "value": "Enter "
+      "value": "输入 "
     },
     {
       "type": 1,
@@ -5639,7 +5965,7 @@
   "M3159R": [
     {
       "type": 0,
-      "value": "Quick create"
+      "value": "快速创建"
     }
   ],
   "M4emJP": [
@@ -5673,7 +5999,7 @@
     },
     {
       "type": 0,
-      "value": " completed"
+      "value": " 已完成"
     }
   ],
   "MI5gZ+": [
@@ -5691,25 +6017,25 @@
   "MJUuF5": [
     {
       "type": 0,
-      "value": "Failed to improve instructions. Please try again."
+      "value": "未能优化指令。请重试。"
     }
   ],
   "MK8Q9z": [
     {
       "type": 0,
-      "value": "Creating connector"
+      "value": "正在创建连接器"
     }
   ],
   "MLVVhB": [
     {
       "type": 0,
-      "value": "Dictionary key (map_to)"
+      "value": "字典键(map_to)"
     }
   ],
   "MOhprT": [
     {
       "type": 0,
-      "value": "Preview diff"
+      "value": "预览差异"
     }
   ],
   "MOsoTa": [
@@ -5721,7 +6047,7 @@
   "MOttDA": [
     {
       "type": 0,
-      "value": "Yes, override with custom meta agent"
+      "value": "是，使用自定义元智能体替代"
     }
   ],
   "MPzBut": [
@@ -5733,7 +6059,7 @@
   "MQNtQ+": [
     {
       "type": 0,
-      "value": "Data Connectors"
+      "value": "数据连接器"
     }
   ],
   "MSWnaq": [
@@ -5745,25 +6071,19 @@
   "MUVpbF": [
     {
       "type": 0,
-      "value": "The agent generates queries by learning about your logs, telemetry, and time series data."
-    }
-  ],
-  "MWaWoR": [
-    {
-      "type": 0,
-      "value": "自 2025 年 9 月 25 日起，未拥有所需 Azure 基于角色访问控制(RBAC)角色的用户将无法访问 Azure SRE 智能体。"
+      "value": "智能体通过学习你的日志、遥测和时序数据来生成查询。"
     }
   ],
   "MaaxCM": [
     {
       "type": 0,
-      "value": "Kusto Configuration"
+      "value": "Kusto 配置"
     }
   ],
   "MgdnPi": [
     {
       "type": 0,
-      "value": "Response"
+      "value": "响应"
     }
   ],
   "MhTfXm": [
@@ -5775,7 +6095,7 @@
   "MjxZUD": [
     {
       "type": 0,
-      "value": "Use natural language—we’ll translate it into a cron schedule."
+      "value": "使用自然语言 - 我们会将它转换为 cron 计划。"
     }
   ],
   "MlX0aZ": [
@@ -5787,17 +6107,21 @@
   "MnlPLt": [
     {
       "type": 0,
-      "value": "Handoffs · "
+      "value": "转接 · "
     },
     {
       "type": 1,
       "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 个"
     }
   ],
   "MnpUD7": [
     {
       "type": 0,
-      "value": "View details"
+      "value": "查看详细信息"
     }
   ],
   "Mnvpbx": [
@@ -5825,7 +6149,7 @@
   "Mx6yYf": [
     {
       "type": 0,
-      "value": "Scheduled task(s) turned off successfully"
+      "value": "已成功关闭计划的任务"
     }
   ],
   "MxYLKu": [
@@ -5843,7 +6167,7 @@
   "N+XwM+": [
     {
       "type": 0,
-      "value": "Create Your First Entity"
+      "value": "创建第一个实体"
     }
   ],
   "N+sJfO": [
@@ -5852,16 +6176,22 @@
       "value": "网格视图"
     }
   ],
+  "N/CtWu": [
+    {
+      "type": 0,
+      "value": "Unselected"
+    }
+  ],
   "N0d5pM": [
     {
       "type": 0,
-      "value": "AM"
+      "value": "上午"
     }
   ],
   "N0wOFf": [
     {
       "type": 0,
-      "value": "Created "
+      "value": "已创建 "
     },
     {
       "type": 1,
@@ -5869,7 +6199,7 @@
     },
     {
       "type": 0,
-      "value": " and connected it to "
+      "value": " 并已将其连接到 "
     },
     {
       "type": 1,
@@ -5877,13 +6207,13 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "。"
     }
   ],
   "N7cqYp": [
     {
       "type": 0,
-      "value": "Turning off scheduled task "
+      "value": "正在关闭计划的任务 "
     },
     {
       "type": 1,
@@ -5893,7 +6223,7 @@
   "N7lPfx": [
     {
       "type": 0,
-      "value": "Relationships"
+      "value": "关系"
     }
   ],
   "NAAdaF": [
@@ -5911,7 +6241,7 @@
   "NBiLYK": [
     {
       "type": 0,
-      "value": "Drafting…"
+      "value": "起草中…"
     }
   ],
   "NBxjGE": [
@@ -5929,25 +6259,31 @@
   "NDy5dO": [
     {
       "type": 0,
-      "value": "Agent Type"
+      "value": "智能体类型"
     }
   ],
   "NGhUmq": [
     {
       "type": 0,
-      "value": "Refresh insights"
+      "value": "刷新见解"
     }
   ],
   "NIrBo5": [
     {
       "type": 0,
-      "value": "Files will be stored in the agent."
+      "value": "文件将存储在智能体中。"
     }
   ],
   "NMSoXQ": [
     {
       "type": 0,
       "value": "正在禁用事件响应计划"
+    }
+  ],
+  "NN4zut": [
+    {
+      "type": 0,
+      "value": "Support + troubleshooting"
     }
   ],
   "NOMbLF": [
@@ -5959,13 +6295,13 @@
   "NPm9R5": [
     {
       "type": 0,
-      "value": "Failed to load MCP tools."
+      "value": "未能加载 MCP 工具。"
     }
   ],
   "NSWNPa": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all files."
+      "value": "请尝试其他搜索词，或者清除搜索以查看所有文件。"
     }
   ],
   "NV14yw": [
@@ -6007,7 +6343,7 @@
   "NlBiTm": [
     {
       "type": 0,
-      "value": "Filtered agent"
+      "value": "已筛选智能体"
     }
   ],
   "Nrc9ba": [
@@ -6023,12 +6359,16 @@
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "已选择 "
+            },
+            {
               "type": 1,
               "value": "count"
             },
             {
               "type": 0,
-              "value": " documents selected"
+              "value": " 个文档"
             }
           ]
         }
@@ -6041,7 +6381,7 @@
   "NwAgjY": [
     {
       "type": 0,
-      "value": "Every "
+      "value": "每 "
     },
     {
       "type": 1,
@@ -6049,13 +6389,13 @@
     },
     {
       "type": 0,
-      "value": " minutes"
+      "value": " 分钟"
     }
   ],
   "O+srpo": [
     {
       "type": 0,
-      "value": "Review "
+      "value": "查看 "
     },
     {
       "offset": 0,
@@ -6064,7 +6404,7 @@
           "value": [
             {
               "type": 0,
-              "value": "findings"
+              "value": "结果"
             }
           ]
         },
@@ -6075,7 +6415,7 @@
             },
             {
               "type": 0,
-              "value": " quick fix"
+              "value": " 个快速修补程序"
             }
           ]
         },
@@ -6086,7 +6426,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes"
+              "value": " 个快速修补程序"
             }
           ]
         }
@@ -6096,16 +6436,22 @@
       "value": "count"
     }
   ],
+  "O/gthC": [
+    {
+      "type": 0,
+      "value": "Go to Scheduled Task"
+    }
+  ],
   "O0JI8M": [
     {
       "type": 0,
-      "value": "Overall Quality"
+      "value": "整体质量"
     }
   ],
   "O3Ak71": [
     {
       "type": 0,
-      "value": "You do not have permission to use this feature."
+      "value": "没有权限使用此功能。"
     }
   ],
   "O79Wpv": [
@@ -6120,16 +6466,22 @@
       "value": "是否确定要删除此 SRE 代理?此操作无法撤消。"
     }
   ],
+  "O9C6j/": [
+    {
+      "type": 0,
+      "value": "Create subagent"
+    }
+  ],
   "OBoUb6": [
     {
       "type": 0,
-      "value": "Fresh"
+      "value": "全新"
     }
   ],
   "OIWzWF": [
     {
       "type": 0,
-      "value": "Filter by autonomy level"
+      "value": "按自治级别筛选"
     }
   ],
   "OJ2u8k": [
@@ -6147,7 +6499,7 @@
   "OLSbA3": [
     {
       "type": 0,
-      "value": "Create a plan that starts this agent when a new incident is detected."
+      "value": "创建在检测到新事件时启动此智能体的计划。"
     }
   ],
   "OMp9VI": [
@@ -6170,10 +6522,16 @@
       "value": "分配对象"
     }
   ],
+  "ONbwY2": [
+    {
+      "type": 0,
+      "value": "Custom Tool"
+    }
+  ],
   "OO5Y94": [
     {
       "type": 0,
-      "value": "We couldn't find tool "
+      "value": "找不到工具 "
     },
     {
       "type": 1,
@@ -6181,13 +6539,13 @@
     },
     {
       "type": 0,
-      "value": ". Refresh and try again."
+      "value": "。刷新并重试。"
     }
   ],
   "OPBqEN": [
     {
       "type": 0,
-      "value": "Trace data parsed with errors."
+      "value": "已解析跟踪数据，但出现错误。"
     }
   ],
   "ORGv1Q": [
@@ -6211,7 +6569,7 @@
   "OUJuir": [
     {
       "type": 0,
-      "value": "Model details"
+      "value": "模型详细信息"
     }
   ],
   "OV0MpG": [
@@ -6241,25 +6599,25 @@
   "OXek0m": [
     {
       "type": 0,
-      "value": "Use standard cron syntax (UTC) to control when the agent runs."
+      "value": "使用标准 cron 语法(UTC)控制智能体的运行时间。"
     }
   ],
   "OYAXyI": [
     {
       "type": 0,
-      "value": "Provide information the agent will reference when analyzing or answering questions."
+      "value": "提供智能体在分析或回答问题时参考的信息。"
     }
   ],
   "OYKAqF": [
     {
       "type": 0,
-      "value": "Quick start"
+      "value": "快速入门"
     }
   ],
   "Oc1AVw": [
     {
       "type": 0,
-      "value": "Draft synced "
+      "value": "草稿同步时间: "
     },
     {
       "type": 1,
@@ -6269,7 +6627,7 @@
   "OeU7Xk": [
     {
       "type": 0,
-      "value": "Explain what this scheduled trigger does for "
+      "value": "说明此计划触发器对 "
     },
     {
       "type": 1,
@@ -6277,7 +6635,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 执行的操作。"
     }
   ],
   "OlIql8": [
@@ -6292,10 +6650,22 @@
       "value": "查看和搜索所有监视数据并查看监视设置，其中包括查看所有 Azure 资源上的 Azure 诊断的配置。"
     }
   ],
+  "OoxcFC": [
+    {
+      "type": 0,
+      "value": "Select the input type"
+    }
+  ],
+  "OpUvSu": [
+    {
+      "type": 0,
+      "value": "Create Kusto Tool"
+    }
+  ],
   "OrQ4EY": [
     {
       "type": 0,
-      "value": "Expand chat preview"
+      "value": "展开聊天预览"
     }
   ],
   "OsIQyM": [
@@ -6307,7 +6677,7 @@
   "Oshix6": [
     {
       "type": 0,
-      "value": "Select an existing agent below to add as a handoff."
+      "value": "选择下面的现有智能体以添加为转接。"
     }
   ],
   "OvzONl": [
@@ -6337,7 +6707,7 @@
   "P0yf0W": [
     {
       "type": 0,
-      "value": "Search tools by name, category, or description"
+      "value": "按名称、类别或说明搜索工具"
     }
   ],
   "P3qxV2": [
@@ -6349,7 +6719,7 @@
   "P5X8Kw": [
     {
       "type": 0,
-      "value": "Review your trigger configuration before creating"
+      "value": "在创建之前查看触发器配置"
     }
   ],
   "P7MNl8": [
@@ -6361,7 +6731,7 @@
   "P7PLVj": [
     {
       "type": 0,
-      "value": "Date"
+      "value": "日期"
     }
   ],
   "P9odAr": [
@@ -6390,10 +6760,16 @@
       "value": "我最近的提示"
     }
   ],
+  "PF15hb": [
+    {
+      "type": 0,
+      "value": "Input value"
+    }
+  ],
   "PFUTWt": [
     {
       "type": 0,
-      "value": "AI improvements applied to instructions"
+      "value": "已将 AI 优化应用于指令"
     }
   ],
   "PFtMy9": [
@@ -6420,34 +6796,40 @@
       "value": "筛选事件"
     }
   ],
+  "PKvAvF": [
+    {
+      "type": 0,
+      "value": "Extend your agent’s capabilities with connectors"
+    }
+  ],
   "PPrKNq": [
     {
       "type": 0,
-      "value": "Defines how the agent operates"
+      "value": "定义智能体的运行方式"
     }
   ],
   "PQgsh+": [
     {
       "type": 0,
-      "value": "Execute Tool"
+      "value": "执行工具"
     }
   ],
   "PS7hBo": [
     {
       "type": 0,
-      "value": "Choose the Kusto connector this tool will query"
+      "value": "选择此工具将查询的 Kusto 连接器"
     }
   ],
   "PSfARI": [
     {
       "type": 0,
-      "value": "Loading more rows..."
+      "value": "正在加载更多行..."
     }
   ],
   "PU1wDo": [
     {
       "type": 0,
-      "value": "Common tools"
+      "value": "常用工具"
     }
   ],
   "PW+sL4": [
@@ -6460,6 +6842,18 @@
     {
       "type": 0,
       "value": "资源分析"
+    }
+  ],
+  "PXJ+oX": [
+    {
+      "type": 0,
+      "value": "To view incidents triggered, go to Incidents"
+    }
+  ],
+  "PXJi2R": [
+    {
+      "type": 0,
+      "value": "No target agent specified"
     }
   ],
   "PXYq8b": [
@@ -6481,13 +6875,19 @@
     },
     {
       "type": 0,
-      "value": "t"
+      "value": " 个令牌"
     }
   ],
   "Pa1S0J": [
     {
       "type": 0,
-      "value": "Total active flow consumption"
+      "value": "活动流总消耗量"
+    }
+  ],
+  "PbaaPs": [
+    {
+      "type": 0,
+      "value": "Add subagent"
     }
   ],
   "Pc+tM3": [
@@ -6549,7 +6949,7 @@
   "PvMAYc": [
     {
       "type": 0,
-      "value": "No system tools match your search."
+      "value": "没有与搜索匹配的系统工具。"
     }
   ],
   "Pwen/L": [
@@ -6567,19 +6967,19 @@
   "Px6I1N": [
     {
       "type": 0,
-      "value": "Total tasks"
+      "value": "任务总计"
     }
   ],
   "PxsPJt": [
     {
       "type": 0,
-      "value": "Turning on scheduled task(s)"
+      "value": "正在启用计划的任务"
     }
   ],
   "PysW/n": [
     {
       "type": 0,
-      "value": "Reset changes"
+      "value": "重置更改"
     }
   ],
   "PzGaVI": [
@@ -6591,7 +6991,7 @@
   "Q++yMM": [
     {
       "type": 0,
-      "value": "Subagent"
+      "value": "子智能体"
     }
   ],
   "Q/agzh": [
@@ -6603,7 +7003,7 @@
   "Q2CgqG": [
     {
       "type": 0,
-      "value": "Choose your approach below. You can always switch between editing and testing."
+      "value": "在下面选择你的方法。可随时在编辑和测试之间切换。"
     }
   ],
   "Q3p3sz": [
@@ -6615,7 +7015,7 @@
   "Q4f1wN": [
     {
       "type": 0,
-      "value": "This will permanently "
+      "value": "这将永久"
     },
     {
       "type": 1,
@@ -6623,7 +7023,7 @@
     },
     {
       "type": 0,
-      "value": " this "
+      "value": "此 "
     },
     {
       "type": 1,
@@ -6631,7 +7031,7 @@
     },
     {
       "type": 0,
-      "value": ". Are you sure you want to "
+      "value": "。是否确定要"
     },
     {
       "type": 1,
@@ -6639,7 +7039,7 @@
     },
     {
       "type": 0,
-      "value": " this "
+      "value": "此 "
     },
     {
       "type": 1,
@@ -6650,10 +7050,16 @@
       "value": "?"
     }
   ],
+  "Q6Lw7i": [
+    {
+      "type": 0,
+      "value": "To learn more about permissions, click here."
+    }
+  ],
   "Q7/1w4": [
     {
       "type": 0,
-      "value": "Required for testing"
+      "value": "测试必需"
     }
   ],
   "Q8Qw5B": [
@@ -6683,7 +7089,7 @@
   "QChoto": [
     {
       "type": 0,
-      "value": "Updating AAU allocation from "
+      "value": "正在将 AAU 配额从 "
     },
     {
       "type": 1,
@@ -6691,7 +7097,7 @@
     },
     {
       "type": 0,
-      "value": " to "
+      "value": " 更新为 "
     },
     {
       "type": 1,
@@ -6699,7 +7105,13 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "。"
+    }
+  ],
+  "QDa8Q+": [
+    {
+      "type": 0,
+      "value": "Add connector"
     }
   ],
   "QEhO+z": [
@@ -6720,10 +7132,16 @@
       "value": "Azure 数字孪生数据所有者"
     }
   ],
+  "QK0vxq": [
+    {
+      "type": 0,
+      "value": "Go to Connectors"
+    }
+  ],
   "QOSRgI": [
     {
       "type": 0,
-      "value": "AAU Consumption"
+      "value": "AAU 消耗量"
     }
   ],
   "QQX4Pv": [
@@ -6738,10 +7156,16 @@
       "value": "使用(触发器, 操作)"
     }
   ],
+  "QW+Q5N": [
+    {
+      "type": 0,
+      "value": "Clear all"
+    }
+  ],
   "QWEHW2": [
     {
       "type": 0,
-      "value": "Every "
+      "value": "每 "
     },
     {
       "type": 1,
@@ -6749,29 +7173,13 @@
     },
     {
       "type": 0,
-      "value": " hours"
+      "value": " 小时"
     }
   ],
   "QY3CEK": [
     {
       "type": 0,
-      "value": "Handoff Description"
-    }
-  ],
-  "Qc3Kdl": [
-    {
-      "type": 0,
-      "value": "Example: "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "where SubscriptionId == \"##SubscriptionId##\""
-        }
-      ],
-      "type": 8,
-      "value": "code"
+      "value": "交接说明"
     }
   ],
   "QdDYGR": [
@@ -6801,13 +7209,13 @@
   "Ql/5RS": [
     {
       "type": 0,
-      "value": "Scoring…"
+      "value": "正在评分…"
     }
   ],
   "QlkL14": [
     {
       "type": 0,
-      "value": "Updating connector"
+      "value": "正在更新连接器"
     }
   ],
   "QlsDcr": [
@@ -6825,7 +7233,7 @@
   "QmOU5t": [
     {
       "type": 0,
-      "value": "Deleting connector \""
+      "value": "正在删除连接器 \""
     },
     {
       "type": 1,
@@ -6839,31 +7247,31 @@
   "Qn5bey": [
     {
       "type": 0,
-      "value": "No quick fixes needed."
+      "value": "无需快速修复。"
     }
   ],
   "Qn8Bok": [
     {
       "type": 0,
-      "value": "Handback"
+      "value": "返还"
     }
   ],
   "QomX1y": [
     {
       "type": 0,
-      "value": "e.g., 0 9 * * 1-5"
+      "value": "例如 0 9 * * 1-5"
     }
   ],
   "QpCzB2": [
     {
       "type": 0,
-      "value": "Resize configuration and preview panels"
+      "value": "调整配置和预览面板大小"
     }
   ],
   "QrihTZ": [
     {
       "type": 0,
-      "value": "Friday"
+      "value": "星期五"
     }
   ],
   "QwnGVY": [
@@ -6875,7 +7283,7 @@
   "QzM+2e": [
     {
       "type": 0,
-      "value": "Start filling in the fields above to define this tool."
+      "value": "开始填写上方字段以定义此工具。"
     }
   ],
   "R+J5ox": [
@@ -6915,7 +7323,7 @@
   "R3mMmc": [
     {
       "type": 0,
-      "value": "Monthly AAU limit slider"
+      "value": "每月 AAU 限制滑块"
     }
   ],
   "R7DP3y": [
@@ -6933,13 +7341,19 @@
   "RA3fki": [
     {
       "type": 0,
-      "value": "Missing context"
+      "value": "缺少上下文"
     }
   ],
   "RAjqKb": [
     {
       "type": 0,
       "value": "关闭面板"
+    }
+  ],
+  "REOGTJ": [
+    {
+      "type": 0,
+      "value": "Add a connector to give the agent additional tools for automating incident handling."
     }
   ],
   "RH8rNM": [
@@ -6951,19 +7365,19 @@
   "RI59Ed": [
     {
       "type": 0,
-      "value": "Add existing tool"
+      "value": "添加现有工具"
     }
   ],
   "RK2Ddg": [
     {
       "type": 0,
-      "value": "Orchestrator"
+      "value": "业务流程协调程序"
     }
   ],
   "RK9Ag4": [
     {
       "type": 0,
-      "value": "Delete "
+      "value": "是否删除 "
     },
     {
       "type": 1,
@@ -6971,13 +7385,13 @@
     },
     {
       "type": 0,
-      "value": " files?"
+      "value": " 个文件?"
     }
   ],
   "RR+13c": [
     {
       "type": 0,
-      "value": "Replace the default meta agent with a specialized version tailored for this extended agent"
+      "value": "将默认元智能体替换为此扩展智能体定制的专用版本"
     }
   ],
   "RSDnlS": [
@@ -7025,7 +7439,7 @@
   "Rk/SSB": [
     {
       "type": 0,
-      "value": "Server error occurred. Please try again in a few moments."
+      "value": "发生服务器错误。请稍后重试。"
     }
   ],
   "RpKuX5": [
@@ -7054,7 +7468,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Set up incident response plans to trigger agents automatically."
+              "value": "设置事件响应计划以自动触发智能体。"
             }
           ]
         },
@@ -7066,7 +7480,7 @@
             },
             {
               "type": 0,
-              "value": " incident response plans ready to trigger your agents."
+              "value": " 个事件响应计划已准备好触发智能体。"
             }
           ]
         }
@@ -7079,7 +7493,7 @@
   "S0GneP": [
     {
       "type": 0,
-      "value": "Review Your agent"
+      "value": "查看你的智能体"
     }
   ],
   "S1VBUm": [
@@ -7094,10 +7508,24 @@
       "value": "过去 12 小时"
     }
   ],
+  "S2jxf1": [
+    {
+      "type": 0,
+      "value": "No "
+    },
+    {
+      "type": 1,
+      "value": "activeTab"
+    },
+    {
+      "type": 0,
+      "value": " found"
+    }
+  ],
   "S2z35W": [
     {
       "type": 0,
-      "value": "Failed to create connector with error: "
+      "value": "未能创建连接器，出现错误: "
     },
     {
       "type": 1,
@@ -7113,13 +7541,13 @@
   "S5UkvS": [
     {
       "type": 0,
-      "value": "Playground mode"
+      "value": "操场模式"
     }
   ],
   "S8/4ZI": [
     {
       "type": 0,
-      "value": "More actions"
+      "value": "更多操作"
     }
   ],
   "SAINuE": [
@@ -7132,6 +7560,12 @@
     {
       "type": 0,
       "value": "认知服务数据读者"
+    }
+  ],
+  "SDsdCi": [
+    {
+      "type": 0,
+      "value": "Add existing tools"
     }
   ],
   "SFUZOQ": [
@@ -7177,7 +7611,7 @@
   "SR33a/": [
     {
       "type": 0,
-      "value": "Restart chat conversation"
+      "value": "重启聊天对话"
     }
   ],
   "SRf69j": [
@@ -7219,13 +7653,13 @@
   "SXcBLr": [
     {
       "type": 0,
-      "value": "No common prompts added."
+      "value": "未添加任何常见提示。"
     }
   ],
   "SZMgCd": [
     {
       "type": 0,
-      "value": "Connect a Model Context Protocol (MCP) server to give the agent additional tools and actions for automating incident handling."
+      "value": "连接模型上下文协议(MCP)服务器，以向智能体提供用于自动处理事件的其他工具和操作。"
     }
   ],
   "Sdc+Dp": [
@@ -7237,7 +7671,7 @@
   "Seanpx": [
     {
       "type": 0,
-      "value": "Required"
+      "value": "必需"
     }
   ],
   "SezWLK": [
@@ -7261,7 +7695,7 @@
   "SmFb5S": [
     {
       "type": 0,
-      "value": "Draft not yet synced"
+      "value": "草稿尚未同步"
     }
   ],
   "Sr4IbA": [
@@ -7279,7 +7713,7 @@
   "StVmtb": [
     {
       "type": 0,
-      "value": "Generate schedule"
+      "value": "生成计划"
     }
   ],
   "SuVToZ": [
@@ -7297,7 +7731,7 @@
   "T+FE9b": [
     {
       "type": 0,
-      "value": "Interactive testing for "
+      "value": "即将推出针对 "
     },
     {
       "type": 1,
@@ -7305,13 +7739,13 @@
     },
     {
       "type": 0,
-      "value": " is coming soon."
+      "value": " 的交互式测试。"
     }
   ],
   "T/G3bv": [
     {
       "type": 0,
-      "value": "Created "
+      "value": "已创建 "
     },
     {
       "type": 1,
@@ -7319,7 +7753,7 @@
     },
     {
       "type": 0,
-      "value": " and added it as a handoff for "
+      "value": " 并将其添加为 "
     },
     {
       "type": 1,
@@ -7327,7 +7761,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 的转接。"
     }
   ],
   "T0/eoE": [
@@ -7351,7 +7785,7 @@
   "T7fzjx": [
     {
       "type": 0,
-      "value": "Save YAML"
+      "value": "保存 YAML"
     }
   ],
   "T8DCV7": [
@@ -7405,7 +7839,7 @@
   "THFIRB": [
     {
       "type": 0,
-      "value": "Incident trigger"
+      "value": "事件触发器"
     }
   ],
   "TIDNOO": [
@@ -7437,7 +7871,7 @@
   "TKsgZu": [
     {
       "type": 0,
-      "value": "Key alerts"
+      "value": "关键警报"
     }
   ],
   "TMZ2Rq": [
@@ -7449,7 +7883,7 @@
   "TO55dt": [
     {
       "type": 0,
-      "value": "Azure SRE Agent billing is measured in Azure agent units (AAU). Monthly AAU billing reflects both the fixed always-on flow and variable usage from active flow. You can increase or decrease the active flow AAU allocation at any time."
+      "value": "Azure SRE 智能体按 Azure 智能体单位(AAU)进行计费。每月 AAU 计费既反映了固定的始终可用流，又反映了活动流产生的可变使用量。可随时增加或减少活动流 AAU 配额。"
     }
   ],
   "TQ0n+a": [
@@ -7459,7 +7893,7 @@
     },
     {
       "type": 0,
-      "value": " lands at "
+      "value": " 得分为 "
     },
     {
       "type": 1,
@@ -7467,13 +7901,13 @@
     },
     {
       "type": 0,
-      "value": "%. Sharpen instructions and tools to climb faster."
+      "value": "%。优化指令和工具，加快提升速度。"
     }
   ],
   "TRceX/": [
     {
       "type": 0,
-      "value": "No agents-as-tools configured."
+      "value": "未配置智能体即工具。"
     }
   ],
   "TZWmvi": [
@@ -7497,7 +7931,7 @@
   "Tg4Q8g": [
     {
       "type": 0,
-      "value": "Disconnect data connector?"
+      "value": "是否断开数据连接器?"
     }
   ],
   "ThSX0k": [
@@ -7515,13 +7949,13 @@
   "Tkn9dK": [
     {
       "type": 0,
-      "value": "Select an agent to manage its relationships."
+      "value": "选择智能体以管理其关系。"
     }
   ],
   "TmQqXl": [
     {
       "type": 0,
-      "value": "Optional: choose when this schedule should begin running."
+      "value": "可选: 选择此计划应何时开始运行。"
     }
   ],
   "Tq2F2Y": [
@@ -7530,10 +7964,16 @@
       "value": "你没有创建响应计划的权限。"
     }
   ],
+  "TrnqJG": [
+    {
+      "type": 0,
+      "value": "Input type"
+    }
+  ],
   "TwMqIK": [
     {
       "type": 0,
-      "value": "Review Your connector"
+      "value": "查看连接器"
     }
   ],
   "TyvDrC": [
@@ -7551,7 +7991,13 @@
   "U914O/": [
     {
       "type": 0,
-      "value": "No params needed"
+      "value": "无需参数"
+    }
+  ],
+  "UBbDNy": [
+    {
+      "type": 0,
+      "value": "No documents in knowledge base. Add some?"
     }
   ],
   "UCYFxr": [
@@ -7583,7 +8029,7 @@
   "UNXega": [
     {
       "type": 0,
-      "value": "From agent"
+      "value": "来自智能体"
     }
   ],
   "UPybTw": [
@@ -7595,7 +8041,7 @@
   "UQUIP7": [
     {
       "type": 0,
-      "value": "Request error"
+      "value": "请求错误"
     }
   ],
   "UV4Dx5": [
@@ -7641,7 +8087,7 @@
     },
     {
       "type": 0,
-      "value": " is already a handoff for "
+      "value": " 已是 "
     },
     {
       "type": 1,
@@ -7649,7 +8095,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 的转接。"
     }
   ],
   "UmEsZF": [
@@ -7679,25 +8125,25 @@
   "V4yeoh": [
     {
       "type": 0,
-      "value": "Peak Usage"
+      "value": "高峰使用情况"
     }
   ],
   "V52jNn": [
     {
       "type": 0,
-      "value": "Enabled"
+      "value": "已启用"
     }
   ],
   "V5AOl5": [
     {
       "type": 0,
-      "value": "Remove starter agent"
+      "value": "移除入门级智能体"
     }
   ],
   "V5w7/I": [
     {
       "type": 0,
-      "value": "Optimize alert response with an incident platform"
+      "value": "使用事件平台优化警报响应"
     }
   ],
   "V9A1Xh": [
@@ -7709,7 +8155,7 @@
   "VA/Z1S": [
     {
       "type": 0,
-      "value": "Hide"
+      "value": "隐藏"
     }
   ],
   "VB+AjJ": [
@@ -7727,13 +8173,13 @@
   "VIYXlx": [
     {
       "type": 0,
-      "value": "Chat preview"
+      "value": "聊天预览"
     }
   ],
   "VIcJZp": [
     {
       "type": 0,
-      "value": "List View"
+      "value": "列表视图"
     }
   ],
   "VIgoaE": [
@@ -7754,12 +8200,6 @@
       "value": "已连接的 API"
     }
   ],
-  "VMIM8/": [
-    {
-      "type": 0,
-      "value": "分析"
-    }
-  ],
   "VQDmmK": [
     {
       "type": 0,
@@ -7769,29 +8209,39 @@
   "VQlvNn": [
     {
       "type": 0,
-      "value": "Overriding the meta agent is recommended because this extended agent doesn't need the default agent's world knowledge of Azure resources, providing a more focused experience."
+      "value": "建议替代元智能体，因为此扩展智能体无需默认智能体的 Azure 资源通用知识，从而提供更具针对性的体验。"
     }
   ],
   "VQn8u+": [
     {
       "type": 0,
-      "value": "Select system tools this agent can use"
+      "value": "选择此智能体可以使用的系统工具"
     }
   ],
   "VSWkne": [
     {
       "type": 0,
-      "value": "Warnings"
+      "value": "警告"
     }
   ],
   "VTkRGg": [
     {
       "type": 0,
-      "value": "Connect relationships for "
+      "value": "连接 "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 的关系"
+    }
+  ],
+  "VU4BBu": [
+    {
+      "type": 0,
+      "value": "Parameter"
     }
   ],
   "VUHkVQ": [
@@ -7809,13 +8259,13 @@
   "VVy70J": [
     {
       "type": 0,
-      "value": "Quality watcher"
+      "value": "质量观察程序"
     }
   ],
   "VWq2cH": [
     {
       "type": 0,
-      "value": "Playbook Legend"
+      "value": "playbook 图例"
     }
   ],
   "VYjDXQ": [
@@ -7836,6 +8286,12 @@
       "value": "审阅(默认)"
     }
   ],
+  "Vipo+I": [
+    {
+      "type": 0,
+      "value": "No parameters configured"
+    }
+  ],
   "VlBNux": [
     {
       "type": 0,
@@ -7845,13 +8301,13 @@
   "VnySGb": [
     {
       "type": 0,
-      "value": "A meta agent override already exists in your system."
+      "value": "系统中已存在元智能体替代。"
     }
   ],
   "VpVoQZ": [
     {
       "type": 0,
-      "value": "Tool recommendations"
+      "value": "工具建议"
     }
   ],
   "VpsD7s": [
@@ -7879,7 +8335,7 @@
   "VvrxSY": [
     {
       "type": 0,
-      "value": "Common prompts"
+      "value": "常见提示"
     }
   ],
   "VwHnVH": [
@@ -7891,7 +8347,7 @@
   "VzeCzD": [
     {
       "type": 0,
-      "value": "Type for dictionary values"
+      "value": "字典值的类型"
     }
   ],
   "VzzYJk": [
@@ -7912,6 +8368,12 @@
       "value": "找不到响应计划"
     }
   ],
+  "W1Qs5O": [
+    {
+      "type": 0,
+      "value": "Runs"
+    }
+  ],
   "W2JBdp": [
     {
       "type": 0,
@@ -7921,7 +8383,7 @@
   "W5zi/x": [
     {
       "type": 0,
-      "value": "Please try again or check the console for details."
+      "value": "请重试或在控制台查看详细信息。"
     }
   ],
   "W6NO8g": [
@@ -7939,7 +8401,7 @@
   "W8LUUc": [
     {
       "type": 0,
-      "value": "Not analyzed"
+      "value": "未分析"
     }
   ],
   "W99XAG": [
@@ -7966,6 +8428,12 @@
       "value": "上次数据捕获时间"
     }
   ],
+  "WJj+TP": [
+    {
+      "type": 0,
+      "value": "You do not have permission to check incident management connection."
+    }
+  ],
   "WLw9E7": [
     {
       "type": 0,
@@ -7975,7 +8443,7 @@
   "WMNHPh": [
     {
       "type": 0,
-      "value": "Saturday"
+      "value": "星期六"
     }
   ],
   "WTrOy3": [
@@ -7987,7 +8455,7 @@
   "WUV28A": [
     {
       "type": 0,
-      "value": "Saving…"
+      "value": "正在保存…"
     }
   ],
   "WVTzuw": [
@@ -8029,13 +8497,13 @@
   "WcnRC1": [
     {
       "type": 0,
-      "value": "Pick an agent to visualize its tools, connectors, and handoffs."
+      "value": "选择智能体以可视化其工具、连接器和转接。"
     }
   ],
   "WdmBr4": [
     {
       "type": 0,
-      "value": "Insight streak: "
+      "value": "见解连续次数: "
     },
     {
       "type": 1,
@@ -8045,7 +8513,7 @@
   "Wekzzh": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete "
+      "value": "是否确定要删除"
     },
     {
       "offset": 0,
@@ -8054,7 +8522,7 @@
           "value": [
             {
               "type": 0,
-              "value": "this item"
+              "value": "此项"
             }
           ]
         },
@@ -8062,14 +8530,14 @@
           "value": [
             {
               "type": 0,
-              "value": "these "
+              "value": "这 "
             },
             {
               "type": 7
             },
             {
               "type": 0,
-              "value": " items"
+              "value": " 项"
             }
           ]
         }
@@ -8080,7 +8548,7 @@
     },
     {
       "type": 0,
-      "value": "? This action cannot be undone."
+      "value": "?此操作无法撤消。"
     }
   ],
   "Wf6bDe": [
@@ -8092,19 +8560,25 @@
   "WfXPv6": [
     {
       "type": 0,
-      "value": "New thread for each run"
+      "value": "每次运行的新线程"
     }
   ],
   "WhuvJH": [
     {
       "type": 0,
-      "value": "Auto-apply OFF"
+      "value": "自动应用已关闭"
+    }
+  ],
+  "WjqsyE": [
+    {
+      "type": 0,
+      "value": "When enabled, the SearchMemory tool and knowledge base prompts will be automatically added"
     }
   ],
   "Wkup5T": [
     {
       "type": 0,
-      "value": "Pending user input"
+      "value": "待定用户输入"
     }
   ],
   "Wn+PVy": [
@@ -8116,19 +8590,19 @@
   "WolNVP": [
     {
       "type": 0,
-      "value": "No recent analysis"
+      "value": "无近期分析"
     }
   ],
   "WsILsq": [
     {
       "type": 0,
-      "value": "Iterate on instructions without impacting production threads."
+      "value": "对指令进行迭代优化且不影响生产线程。"
     }
   ],
   "WsJuyI": [
     {
       "type": 0,
-      "value": "Agent playground"
+      "value": "智能体操场"
     }
   ],
   "Wtf3vL": [
@@ -8152,7 +8626,7 @@
   "WzNnqa": [
     {
       "type": 0,
-      "value": "Ready to start a new chat with extended agent “"
+      "value": "准备开始与扩展智能体 “"
     },
     {
       "type": 1,
@@ -8160,7 +8634,7 @@
     },
     {
       "type": 0,
-      "value": "”. Your next message will launch it."
+      "value": "” 进行新的聊天。你的下一条消息将启动它。"
     }
   ],
   "X192re": [
@@ -8172,7 +8646,7 @@
   "X3fjbS": [
     {
       "type": 0,
-      "value": "Context: "
+      "value": "上下文: "
     },
     {
       "type": 1,
@@ -8182,7 +8656,7 @@
   "X3hl5x": [
     {
       "type": 0,
-      "value": "Assumptions"
+      "value": "假设"
     }
   ],
   "X4Y2nv": [
@@ -8204,7 +8678,7 @@
   "X5Q310": [
     {
       "type": 0,
-      "value": "Hide details"
+      "value": "隐藏详细信息"
     }
   ],
   "X5UCWb": [
@@ -8222,7 +8696,7 @@
   "X7mXLW": [
     {
       "type": 0,
-      "value": "YAML error"
+      "value": "YAML 错误"
     }
   ],
   "X8SzJ6": [
@@ -8240,19 +8714,25 @@
   "XCfiZ2": [
     {
       "type": 0,
-      "value": "Draft the cron for me"
+      "value": "为我创建 cron 草稿"
     }
   ],
   "XDSe35": [
     {
       "type": 0,
-      "value": "Select an agent or tool to start a playground session."
+      "value": "选择智能体或工具，开始操场会话。"
+    }
+  ],
+  "XDcbqQ": [
+    {
+      "type": 0,
+      "value": "Stopping SRE Agent"
     }
   ],
   "XEB3Fn": [
     {
       "type": 0,
-      "value": "Will attach to "
+      "value": "将作为工具附加到 "
     },
     {
       "type": 1,
@@ -8260,7 +8740,7 @@
     },
     {
       "type": 0,
-      "value": " as a tool."
+      "value": "。"
     }
   ],
   "XEanEV": [
@@ -8278,7 +8758,7 @@
   "XG++pU": [
     {
       "type": 0,
-      "value": "Delete resource group "
+      "value": "删除资源组 "
     },
     {
       "type": 1,
@@ -8288,13 +8768,13 @@
   "XHc00z": [
     {
       "type": 0,
-      "value": "Connector Type"
+      "value": "连接器类型"
     }
   ],
   "XHoPAJ": [
     {
       "type": 0,
-      "value": "Response plan details"
+      "value": "响应计划详细信息"
     }
   ],
   "XJ+Lww": [
@@ -8312,7 +8792,7 @@
   "XKWCS3": [
     {
       "type": 0,
-      "value": "Removed the starter agent. Next messages will stay in this thread."
+      "value": "已移除入门级智能体。下一条消息将保留在此线程中。"
     }
   ],
   "XKhlZF": [
@@ -8336,13 +8816,13 @@
   "XM+FCY": [
     {
       "type": 0,
-      "value": "Connected tools"
+      "value": "已连接工具"
     }
   ],
   "XMUseu": [
     {
       "type": 0,
-      "value": "Failed to update AAU allocation. Error: "
+      "value": "未能更新 AAU 配额。错误: "
     },
     {
       "type": 1,
@@ -8352,7 +8832,7 @@
   "XPR3X/": [
     {
       "type": 0,
-      "value": "Thread title was renamed successfully to '"
+      "value": "线程标题已成功重命名为“"
     },
     {
       "type": 1,
@@ -8360,7 +8840,7 @@
     },
     {
       "type": 0,
-      "value": "'"
+      "value": "”"
     }
   ],
   "XRdOZL": [
@@ -8369,16 +8849,28 @@
       "value": "选择或搜索事件"
     }
   ],
+  "XS8hWM": [
+    {
+      "type": 0,
+      "value": "Enter a boolean"
+    }
+  ],
   "XV8dOu": [
     {
       "type": 0,
-      "value": "Message grouping for updates"
+      "value": "更新消息分组"
     }
   ],
   "XVG+T1": [
     {
       "type": 0,
-      "value": "Refining details..."
+      "value": "正在优化详细信息..."
+    }
+  ],
+  "XYIeUc": [
+    {
+      "type": 0,
+      "value": "Agent permissions are determined by its assigned RBAC roles."
     }
   ],
   "XYSJsS": [
@@ -8408,7 +8900,7 @@
   "Xb85sq": [
     {
       "type": 0,
-      "value": "Grid view is coming soon."
+      "value": "网格视图即将推出。"
     }
   ],
   "XbNTkN": [
@@ -8423,6 +8915,20 @@
       "value": "突出显示的点"
     }
   ],
+  "XfAFyQ": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " connectors..."
+    }
+  ],
   "Xkdnen": [
     {
       "type": 0,
@@ -8432,19 +8938,25 @@
   "Xmty/4": [
     {
       "type": 0,
-      "value": "Hide watcher panel"
+      "value": "隐藏观察程序面板"
     }
   ],
   "XqRXu6": [
     {
       "type": 0,
-      "value": "Playground"
+      "value": "操场"
     }
   ],
   "XtnlO8": [
     {
       "type": 0,
       "value": "管理 PostgreSQL 灵活服务器的长期保留备份。"
+    }
+  ],
+  "Xup5P8": [
+    {
+      "type": 0,
+      "value": "What happened"
     }
   ],
   "XvrDTb": [
@@ -8460,13 +8972,13 @@
     },
     {
       "type": 0,
-      "value": ", give me your mission briefing and how you partner with engineers."
+      "value": "，请向我说明你的任务简报以及你与工程师的合作方式。"
     }
   ],
   "Y2PFzA": [
     {
       "type": 0,
-      "value": "Priority fixes"
+      "value": "优先修复"
     }
   ],
   "Y2QRpS": [
@@ -8478,11 +8990,27 @@
   "Y3qQB0": [
     {
       "type": 0,
-      "value": "Turning on scheduled task "
+      "value": "正在启用计划的任务 "
     },
     {
       "type": 1,
       "value": "name"
+    }
+  ],
+  "Y47Dwm": [
+    {
+      "type": 0,
+      "value": "Kusto tools"
+    }
+  ],
+  "Y5IFiT": [
+    {
+      "type": 1,
+      "value": "service"
+    },
+    {
+      "type": 0,
+      "value": " account"
     }
   ],
   "Y7Lbpf": [
@@ -8494,13 +9022,13 @@
   "Y7RxDE": [
     {
       "type": 0,
-      "value": "Run task now"
+      "value": "立即运行任务"
     }
   ],
   "YAgYL6": [
     {
       "type": 0,
-      "value": "Tuesday"
+      "value": "星期二"
     }
   ],
   "YBXVNU": [
@@ -8518,7 +9046,7 @@
   "YCnSYw": [
     {
       "type": 0,
-      "value": "No description provided."
+      "value": "未提供指令。"
     }
   ],
   "YE+vjH": [
@@ -8539,16 +9067,30 @@
       "value": "继续处理"
     }
   ],
+  "YKwGp6": [
+    {
+      "type": 0,
+      "value": "Added tools to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "YMjUWP": [
     {
       "type": 0,
-      "value": "Turn off scheduled task"
+      "value": "关闭计划的任务"
     }
   ],
   "YN1/XY": [
     {
       "type": 0,
-      "value": "Stress test"
+      "value": "压力测试"
     }
   ],
   "YP06jq": [
@@ -8560,13 +9102,13 @@
   "YT6JU9": [
     {
       "type": 0,
-      "value": "Enter a name before creating this item."
+      "value": "在创建此项之前输入名称。"
     }
   ],
   "YXOz1v": [
     {
       "type": 0,
-      "value": "Executing "
+      "value": "正在执行 "
     },
     {
       "type": 1,
@@ -8592,7 +9134,7 @@
   "YeKWbP": [
     {
       "type": 0,
-      "value": "Authentication"
+      "value": "身份验证"
     }
   ],
   "YgyuGj": [
@@ -8640,7 +9182,7 @@
   "YrlQBL": [
     {
       "type": 0,
-      "value": "tool"
+      "value": "工具"
     }
   ],
   "Ys9AIu": [
@@ -8652,7 +9194,7 @@
   "YsFdGq": [
     {
       "type": 0,
-      "value": "Supported file formats: .md and .txt"
+      "value": "支持的文件格式: .md 和 .txt"
     }
   ],
   "Ysew65": [
@@ -8664,19 +9206,19 @@
   "YuvMS0": [
     {
       "type": 0,
-      "value": "Insights not yet analysed"
+      "value": "尚未分析见解"
     }
   ],
   "Z+uDP9": [
     {
       "type": 0,
-      "value": "Add a file or connect an external data source, such as a service or repository, to help the agent generate more informed responses."
+      "value": "添加文件或连接外部数据源(例如服务或存储库)，帮助智能体生成更具参考价值的响应。"
     }
   ],
   "Z+wlsh": [
     {
       "type": 0,
-      "value": "Tool configuration is unavailable for this selection."
+      "value": "此选择不支持工具配置。"
     }
   ],
   "Z1VHv1": [
@@ -8688,13 +9230,13 @@
   "Z4bt4u": [
     {
       "type": 0,
-      "value": "Auto-generated if left empty"
+      "value": "如果留空，则自动生成"
     }
   ],
   "Z5ntkd": [
     {
       "type": 0,
-      "value": "Configuration changes are auto-applied (disable auto-apply to use manual apply)"
+      "value": "会自动应用配置更改(若要使用手动应用，请禁用“自动应用”)"
     }
   ],
   "Z6rVz/": [
@@ -8718,13 +9260,13 @@
   "Z8Y6DE": [
     {
       "type": 0,
-      "value": "Last Synced"
+      "value": "上次同步时间"
     }
   ],
   "Z9TajN": [
     {
       "type": 0,
-      "value": "Parsing…"
+      "value": "正在分析…"
     }
   ],
   "Z9pRs5": [
@@ -8736,7 +9278,7 @@
   "ZA4OiK": [
     {
       "type": 0,
-      "value": "Failed to create scheduled task: "
+      "value": "未能创建计划的任务k: "
     },
     {
       "type": 1,
@@ -8746,7 +9288,7 @@
   "ZBKZDe": [
     {
       "type": 0,
-      "value": "Each "
+      "value": "每个 "
     },
     {
       "type": 1,
@@ -8754,19 +9296,19 @@
     },
     {
       "type": 0,
-      "value": " must include a name."
+      "value": " 必须包含一个名称。"
     }
   ],
   "ZBlAho": [
     {
       "type": 0,
-      "value": "Check if the agent introduces itself properly and outlines its capabilities."
+      "value": "检查智能体是否正确介绍自身并说明其功能。"
     }
   ],
   "ZBpAJ/": [
     {
       "type": 0,
-      "value": "Chat restarted with new configuration."
+      "value": "聊天已使用新配置重启。"
     }
   ],
   "ZCA/Ga": [
@@ -8779,10 +9321,20 @@
       "value": "channel"
     }
   ],
+  "ZF9lPS": [
+    {
+      "type": 0,
+      "value": "Remove tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    }
+  ],
   "ZMa6Rh": [
     {
       "type": 0,
-      "value": "Deleting scheduled task(s)"
+      "value": "正在删除计划的任务"
     }
   ],
   "ZNMCbm": [
@@ -8794,19 +9346,19 @@
   "ZOO+kP": [
     {
       "type": 0,
-      "value": "Start on"
+      "value": "开始时间"
     }
   ],
   "ZOdb7N": [
     {
       "type": 0,
-      "value": "Visual View"
+      "value": "可视化视图"
     }
   ],
   "ZPP6n7": [
     {
       "type": 0,
-      "value": "Form editing is coming soon for this entity."
+      "value": "即将向此实体推出表单编辑功能。"
     }
   ],
   "ZUXvHE": [
@@ -8830,7 +9382,7 @@
   "Ze5Ejt": [
     {
       "type": 0,
-      "value": "Testing for "
+      "value": "即将推出针对 "
     },
     {
       "type": 1,
@@ -8838,7 +9390,7 @@
     },
     {
       "type": 0,
-      "value": " is coming soon. Only Kusto tools are supported right now."
+      "value": " 的测试。目前仅支持 Kusto 工具。"
     }
   ],
   "Zh+5A6": [
@@ -8856,7 +9408,7 @@
   "ZjlBPk": [
     {
       "type": 0,
-      "value": "Conclusion"
+      "value": "结论"
     }
   ],
   "Zkjd9I": [
@@ -8868,19 +9420,19 @@
   "ZmlNQ3": [
     {
       "type": 0,
-      "value": "Activity"
+      "value": "活动"
     }
   ],
   "Zo9lK6": [
     {
       "type": 0,
-      "value": "Select an existing tool below to connect."
+      "value": "选择下面的现有工具来进行连接。"
     }
   ],
   "Zq5BCQ": [
     {
       "type": 0,
-      "value": "Failed to apply changes"
+      "value": "无法应用更改"
     }
   ],
   "ZqVUb5": [
@@ -8890,7 +9442,7 @@
     },
     {
       "type": 0,
-      "value": " scheduled task"
+      "value": " 计划任务"
     }
   ],
   "Zqa4dQ": [
@@ -8908,13 +9460,13 @@
   "Zt/L20": [
     {
       "type": 0,
-      "value": "No metadata provided."
+      "value": "未提供元数据。"
     }
   ],
   "Zu+xDc": [
     {
       "type": 0,
-      "value": "Fetching suggestions..."
+      "value": "正在提取建议..."
     }
   ],
   "ZukeYV": [
@@ -8934,7 +9486,7 @@
   "Zve9uZ": [
     {
       "type": 0,
-      "value": "Test your Kusto query before saving"
+      "value": "保存前测试 Kusto 查询"
     }
   ],
   "ZwYyES": [
@@ -8946,7 +9498,7 @@
   "a1UV+9": [
     {
       "type": 0,
-      "value": "Always-on flow + "
+      "value": "始终可用流 + "
     },
     {
       "style": null,
@@ -8955,13 +9507,13 @@
     },
     {
       "type": 0,
-      "value": " active flow AAUs"
+      "value": " 个活动流 AAU"
     }
   ],
   "a5dT17": [
     {
       "type": 0,
-      "value": "Search data connectors"
+      "value": "搜索数据连接器"
     }
   ],
   "a5msuh": [
@@ -8985,7 +9537,13 @@
   "a8czK7": [
     {
       "type": 0,
-      "value": "Add a knowledge source"
+      "value": "添加知识来源"
+    }
+  ],
+  "a8fWCd": [
+    {
+      "type": 0,
+      "value": "Enter a datetime"
     }
   ],
   "a8l/yJ": [
@@ -9003,7 +9561,7 @@
   "aA8bDw": [
     {
       "type": 0,
-      "value": "Text"
+      "value": "文本"
     }
   ],
   "aAADUG": [
@@ -9036,6 +9594,12 @@
       "value": "有权访问 LUIS 下的读取和测试功能。"
     }
   ],
+  "aH3ak4": [
+    {
+      "type": 0,
+      "value": "Build subagent workflows"
+    }
+  ],
   "aH4De2": [
     {
       "type": 0,
@@ -9045,7 +9609,7 @@
   "aKNsTc": [
     {
       "type": 0,
-      "value": "Controls how this value is passed to the tool method"
+      "value": "控制如何将此值传递给工具方法"
     }
   ],
   "aLBTVj": [
@@ -9059,7 +9623,7 @@
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": " 分钟前"
             }
           ]
         }
@@ -9102,7 +9666,7 @@
   "aSipXt": [
     {
       "type": 0,
-      "value": "Increase the agent's knowledge of your infrastructure"
+      "value": "提升智能体对你的基础结构的了解程度"
     }
   ],
   "aTyEZH": [
@@ -9168,13 +9732,13 @@
   "aprHig": [
     {
       "type": 0,
-      "value": "Max reflections"
+      "value": "最大反射数"
     }
   ],
   "aqGaRm": [
     {
       "type": 0,
-      "value": "Provide a short report about the latest signals and note any follow-up actions."
+      "value": "提供有关最新信号的简短报告，并记下任何后续操作。"
     }
   ],
   "aqNZbD": [
@@ -9186,7 +9750,7 @@
   "arE3XO": [
     {
       "type": 0,
-      "value": "Tool test failed but no error details were provided."
+      "value": "工具测试失败，但未提供错误详细信息。"
     }
   ],
   "auFFJa": [
@@ -9204,13 +9768,13 @@
   "azMsfM": [
     {
       "type": 0,
-      "value": "Monday"
+      "value": "星期一"
     }
   ],
   "b0+PAq": [
     {
       "type": 0,
-      "value": "Audit check"
+      "value": "审核检查"
     }
   ],
   "b2PyOl": [
@@ -9236,7 +9800,7 @@
   "b3sNCU": [
     {
       "type": 0,
-      "value": "Failed to turn off task: "
+      "value": "未能关闭任务: "
     },
     {
       "type": 1,
@@ -9246,7 +9810,7 @@
   "b5OEXm": [
     {
       "type": 0,
-      "value": "How often should it run?"
+      "value": "应多久运行一次?"
     }
   ],
   "b7D4Lh": [
@@ -9264,19 +9828,19 @@
   "b8PngH": [
     {
       "type": 0,
-      "value": "Loading agents…"
+      "value": "正在加载智能体…"
     }
   ],
   "bCzUPd": [
     {
       "type": 0,
-      "value": "Cluster URI"
+      "value": "群集 URI"
     }
   ],
   "bK0VQe": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete this Extended Tool? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
+      "value": "是否确实要删除此扩展工具? YAML 配置将被永久移除且无法恢复。此操作无法撤消。"
     }
   ],
   "bKgVBL": [
@@ -9300,19 +9864,19 @@
   "baRFiF": [
     {
       "type": 0,
-      "value": "Form"
+      "value": "表单"
     }
   ],
   "bdFY56": [
     {
       "type": 0,
-      "value": "Connector (Optional)"
+      "value": "连接器(可选)"
     }
   ],
   "bdhTWR": [
     {
       "type": 0,
-      "value": "Name can only contain letters, numbers, or hyphens and must be "
+      "value": "名称只能包含字母、数字或连字符，且长度不能超过 "
     },
     {
       "type": 1,
@@ -9320,7 +9884,7 @@
     },
     {
       "type": 0,
-      "value": " characters or fewer."
+      "value": " 个字符。"
     }
   ],
   "bect+9": [
@@ -9332,13 +9896,13 @@
   "bjLeN1": [
     {
       "type": 0,
-      "value": "Please restart the chat to see your changes."
+      "value": "请重启聊天以查看更改。"
     }
   ],
   "bjOnWH": [
     {
       "type": 0,
-      "value": "Add your draft instructions before asking for polish."
+      "value": "请先添加草稿说明，再请求润色。"
     }
   ],
   "blSyDZ": [
@@ -9350,13 +9914,13 @@
   "blYlGH": [
     {
       "type": 0,
-      "value": "Invalid request. Please check your instructions and try again."
+      "value": "请求无效。请检查你的指令，然后重试。"
     }
   ],
   "bn84V+": [
     {
       "type": 0,
-      "value": "Delete tool"
+      "value": "删除工具"
     }
   ],
   "boVrya": [
@@ -9380,17 +9944,21 @@
   "bquSks": [
     {
       "type": 0,
-      "value": "Collapse span with id: "
+      "value": "折叠 ID 为 "
     },
     {
       "type": 1,
       "value": "id"
+    },
+    {
+      "type": 0,
+      "value": " 的范围"
     }
   ],
   "br2BTb": [
     {
       "type": 0,
-      "value": "Finish setup to enable previews."
+      "value": "完成设置以启用预览。"
     }
   ],
   "bri0SI": [
@@ -9408,7 +9976,7 @@
   "bs6oPY": [
     {
       "type": 0,
-      "value": "Author agent configuration and test"
+      "value": "创建智能体配置和测试"
     }
   ],
   "bswtOq": [
@@ -9430,7 +9998,7 @@
   "bxSp6r": [
     {
       "type": 0,
-      "value": "No tools match your search."
+      "value": "没有与搜索匹配的工具。"
     }
   ],
   "bxcc6L": [
@@ -9451,10 +10019,16 @@
       "value": "刚才"
     }
   ],
+  "byP6IC": [
+    {
+      "type": 0,
+      "value": "Selected"
+    }
+  ],
   "c/8Uhj": [
     {
       "type": 0,
-      "value": "Here is the To-Do plan:"
+      "value": "以下是待办事项计划:"
     }
   ],
   "c/KktL": [
@@ -9466,13 +10040,13 @@
   "c/bty0": [
     {
       "type": 0,
-      "value": "No system tools configured."
+      "value": "未配置系统工具。"
     }
   ],
   "c1ECOO": [
     {
       "type": 0,
-      "value": "Tool testing"
+      "value": "工具测试"
     }
   ],
   "c1EiBR": [
@@ -9496,13 +10070,19 @@
   "c3TO1+": [
     {
       "type": 0,
-      "value": "Open in playground"
+      "value": "在操场中打开"
+    }
+  ],
+  "c5hwBU": [
+    {
+      "type": 0,
+      "value": "The agent will resume all activities."
     }
   ],
   "c8Doeq": [
     {
       "type": 0,
-      "value": "Connector \""
+      "value": "已成功删除连接器 \""
     },
     {
       "type": 1,
@@ -9510,13 +10090,13 @@
     },
     {
       "type": 0,
-      "value": "\" has been deleted successfully"
+      "value": "\""
     }
   ],
   "cBcrgh": [
     {
       "type": 0,
-      "value": "Enter task details"
+      "value": "输入任务详细信息"
     }
   ],
   "cDjhgm": [
@@ -9534,19 +10114,25 @@
   "cG0Q8M": [
     {
       "type": 0,
-      "value": "Temperature"
+      "value": "温度"
     }
   ],
   "cJGGY4": [
     {
       "type": 0,
-      "value": "Your changes are being processed and will appear in the chat preview momentarily."
+      "value": "正在处理你的更改，稍后将在聊天预览中显示。"
     }
   ],
   "cLC2fM": [
     {
       "type": 0,
-      "value": "AI chat service is currently unavailable. Please try again later."
+      "value": "AI 聊天服务当前不可用。请稍后重试。"
+    }
+  ],
+  "cLHCHE": [
+    {
+      "type": 0,
+      "value": "Connector status"
     }
   ],
   "cRTR/A": [
@@ -9570,23 +10156,29 @@
   "cYwv8P": [
     {
       "type": 0,
-      "value": "Intent Match"
+      "value": "意向匹配"
     }
   ],
   "ccXLVi": [
     {
       "type": 0,
-      "value": "Category"
+      "value": "类别"
     }
   ],
   "cfbpDd": [
     {
       "type": 0,
-      "value": "Category: "
+      "value": "类别: "
     },
     {
       "type": 1,
       "value": "category"
+    }
+  ],
+  "cg54iX": [
+    {
+      "type": 0,
+      "value": "Kusto tool name"
     }
   ],
   "ciB+oy": [
@@ -9604,19 +10196,19 @@
   "coPQxN": [
     {
       "type": 0,
-      "value": "Filter by custom plan"
+      "value": "按自定义计划筛选"
     }
   ],
   "coy1iv": [
     {
       "type": 0,
-      "value": "Edit YAML configuration"
+      "value": "编辑 YAML 配置"
     }
   ],
   "cqx+Rd": [
     {
       "type": 0,
-      "value": "Manage connectors"
+      "value": "管理连接器"
     }
   ],
   "crWYMh": [
@@ -9644,7 +10236,7 @@
   "ctcA0c": [
     {
       "type": 0,
-      "value": "Agent name"
+      "value": "智能体名称"
     }
   ],
   "cubQfQ": [
@@ -9683,6 +10275,12 @@
     {
       "type": 0,
       "value": "管理 API Management 工作区。"
+    }
+  ],
+  "d2czNd": [
+    {
+      "type": 0,
+      "value": "Datetime"
     }
   ],
   "d3MtwZ": [
@@ -9728,7 +10326,7 @@
   "dGa0bG": [
     {
       "type": 0,
-      "value": "Agent quality not scored yet. Run a check to reveal opportunities."
+      "value": "尚未对智能体质量进行评分。运行检查以发现机会。"
     }
   ],
   "dI9gP+": [
@@ -9746,13 +10344,13 @@
   "dLWTUk": [
     {
       "type": 0,
-      "value": "An AI sub-agent with instructions and tools"
+      "value": "包含指令和工具的 AI 子智能体"
     }
   ],
   "dO3eHj": [
     {
       "type": 0,
-      "value": "Make changes to the current agent configuration and test immediately."
+      "value": "更改当前智能体配置并立即测试。"
     }
   ],
   "dQ5/dh": [
@@ -9788,7 +10386,7 @@
   "dWSIqT": [
     {
       "type": 0,
-      "value": "Consumption AAU usage"
+      "value": "消耗 AAU 使用情况"
     }
   ],
   "dYwe9B": [
@@ -9800,7 +10398,7 @@
   "daUwAL": [
     {
       "type": 0,
-      "value": "Creating scheduled task"
+      "value": "正在创建计划的任务"
     }
   ],
   "dd6gV2": [
@@ -9812,7 +10410,7 @@
   "dhmpfi": [
     {
       "type": 0,
-      "value": "Delete scheduled task(s)"
+      "value": "删除计划的任务"
     }
   ],
   "dhqlRa": [
@@ -9830,7 +10428,7 @@
   "djuhEG": [
     {
       "type": 0,
-      "value": "Enter "
+      "value": "输入 "
     },
     {
       "type": 1,
@@ -9838,13 +10436,13 @@
     },
     {
       "type": 0,
-      "value": " value"
+      "value": " 值"
     }
   ],
   "dk4jPW": [
     {
       "type": 0,
-      "value": "Critic prompt"
+      "value": "批评式提示语"
     }
   ],
   "dkqYUR": [
@@ -9854,7 +10452,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " 得分为 "
     },
     {
       "type": 1,
@@ -9862,13 +10460,13 @@
     },
     {
       "type": 0,
-      "value": "%—you are outperforming the target confidence. Ship it! 🚀"
+      "value": "% - 你的表现超过了目标置信度。发布吧! 🚀"
     }
   ],
   "dkt4ac": [
     {
       "type": 0,
-      "value": "Resolve YAML errors before applying changes"
+      "value": "请解决 YAML 错误后再应用更改"
     }
   ],
   "dnXgff": [
@@ -9880,7 +10478,7 @@
   "dtQgfG": [
     {
       "type": 0,
-      "value": "Query Tester"
+      "value": "查询测试器"
     }
   ],
   "du1laW": [
@@ -9892,13 +10490,13 @@
   "dw6Z3b": [
     {
       "type": 0,
-      "value": "What it means"
+      "value": "其含义"
     }
   ],
   "dwkMC2": [
     {
       "type": 0,
-      "value": "Score agent quality"
+      "value": "进行智能体质量评分"
     }
   ],
   "e0a3XV": [
@@ -9922,7 +10520,7 @@
   "eCZ0j1": [
     {
       "type": 0,
-      "value": "Open Todo Plans"
+      "value": "打开待办事项计划"
     }
   ],
   "eEu4cm": [
@@ -9970,19 +10568,19 @@
   "eVjPEQ": [
     {
       "type": 0,
-      "value": "Model Generation"
+      "value": "模型生成"
     }
   ],
   "eYClyG": [
     {
       "type": 0,
-      "value": "Capture AI-driven insights on confidence and next tweaks."
+      "value": "捕获 AI 驱动的置信度和后续调整见解。"
     }
   ],
   "eYEnNu": [
     {
       "type": 0,
-      "value": "Run this agent on a repeating schedule."
+      "value": "按重复计划运行此智能体。"
     }
   ],
   "eZMksq": [
@@ -10006,7 +10604,7 @@
   "ee4AUg": [
     {
       "type": 0,
-      "value": "Scheduled task turned on successfully"
+      "value": "已成功开启计划的任务"
     }
   ],
   "egubDj": [
@@ -10016,7 +10614,7 @@
     },
     {
       "type": 0,
-      "value": "% confidence"
+      "value": "% 置信度"
     }
   ],
   "ehbsXg": [
@@ -10028,7 +10626,13 @@
   "ehhpyJ": [
     {
       "type": 0,
-      "value": "Add All"
+      "value": "全部添加"
+    }
+  ],
+  "ekSxhn": [
+    {
+      "type": 0,
+      "value": "Connectors give the agent more tools to take action."
     }
   ],
   "emW/QQ": [
@@ -10040,7 +10644,7 @@
   "ene/8x": [
     {
       "type": 0,
-      "value": "Tune agent behavior in a safe space before you publish changes."
+      "value": "在安全环境中调整智能体行为，然后再发布更改。"
     }
   ],
   "eq57j2": [
@@ -10064,7 +10668,7 @@
   "et3seW": [
     {
       "type": 0,
-      "value": "New handoff sub-agents start as Autonomous. You can connect tools and other details later."
+      "value": "新的转接子智能体以“自主”形式启动。稍后可以连接工具和其他详细信息。"
     }
   ],
   "euBSDU": [
@@ -10076,7 +10680,7 @@
   "euKVCa": [
     {
       "type": 0,
-      "value": "System tools are built-in tools provided by the platform"
+      "value": "系统工具是由平台提供的内置工具"
     }
   ],
   "exofc7": [
@@ -10101,10 +10705,16 @@
       "value": "输入连接字符串或终结点"
     }
   ],
+  "f04POI": [
+    {
+      "type": 0,
+      "value": "Tool created successfully"
+    }
+  ],
   "f0LQra": [
     {
       "type": 0,
-      "value": "Improve with AI"
+      "value": "使用 AI 进行改进"
     }
   ],
   "f0Luxo": [
@@ -10116,7 +10726,7 @@
   "f0Sf6g": [
     {
       "type": 0,
-      "value": "Add a file"
+      "value": "添加文件"
     }
   ],
   "f0Y4Zr": [
@@ -10134,7 +10744,7 @@
   "f6xT1Y": [
     {
       "type": 0,
-      "value": "Scheduled task(s) turned on successfully"
+      "value": "已成功开启计划的任务"
     }
   ],
   "f7Zx3L": [
@@ -10146,13 +10756,19 @@
   "f9xN/g": [
     {
       "type": 0,
-      "value": "Rising Specialist"
+      "value": "新晋专家"
+    }
+  ],
+  "fCiXKq": [
+    {
+      "type": 0,
+      "value": "Add scheduled task"
     }
   ],
   "fE5E6W": [
     {
       "type": 0,
-      "value": "How do you want to get started?"
+      "value": "你想如何开始?"
     }
   ],
   "fEYQWU": [
@@ -10176,13 +10792,13 @@
   "fHE7i7": [
     {
       "type": 0,
-      "value": "Code optimizations"
+      "value": "代码优化"
     }
   ],
   "fINN7t": [
     {
       "type": 0,
-      "value": "Insights: "
+      "value": "见解: "
     },
     {
       "type": 1,
@@ -10192,7 +10808,7 @@
   "fIQSsD": [
     {
       "type": 0,
-      "value": "Couldn’t draft the cron yet. Refine the description and try again."
+      "value": "尚无法创建 cron 草稿。请优化描述后重试。"
     }
   ],
   "fLkL3F": [
@@ -10204,7 +10820,7 @@
   "fT73QI": [
     {
       "type": 0,
-      "value": "New tool"
+      "value": "新建工具"
     }
   ],
   "fUgypu": [
@@ -10222,7 +10838,7 @@
   "fbr20l": [
     {
       "type": 0,
-      "value": "Create & Link"
+      "value": "创建和链接"
     }
   ],
   "fdCjVS": [
@@ -10243,22 +10859,28 @@
       "value": "具有此名称的子智能体已经存在"
     }
   ],
+  "fiLH5L": [
+    {
+      "type": 0,
+      "value": "To create a Kusto tool, first add an Azure Data Explorer connector."
+    }
+  ],
   "fio5op": [
     {
       "type": 0,
-      "value": "Output"
+      "value": "输出"
     }
   ],
   "fjOQVZ": [
     {
       "type": 0,
-      "value": "Learn more about incident platform integration"
+      "value": "详细了解事件平台集成"
     }
   ],
   "fjgqNG": [
     {
       "type": 0,
-      "value": "Failed to load trace data: "
+      "value": "未能加载跟踪数据: "
     },
     {
       "type": 1,
@@ -10274,13 +10896,13 @@
   "fr6Gnj": [
     {
       "type": 0,
-      "value": "Change AAU allocation"
+      "value": "更改 AAU 配额"
     }
   ],
   "fssuHC": [
     {
       "type": 0,
-      "value": "Connect an MCP server"
+      "value": "连接 MCP 服务器"
     }
   ],
   "ftDEuE": [
@@ -10328,13 +10950,13 @@
   "g4Dsk6": [
     {
       "type": 0,
-      "value": "Total runs"
+      "value": "总运行数"
     }
   ],
   "g4II+z": [
     {
       "type": 0,
-      "value": "e.g. 0 0 * * *"
+      "value": "例如 0 0 * * *"
     }
   ],
   "g7HOVb": [
@@ -10358,19 +10980,19 @@
   "gD6r6x": [
     {
       "type": 0,
-      "value": "Day of week"
+      "value": "星期几"
     }
   ],
   "gDVRX+": [
     {
       "type": 0,
-      "value": "Drag files here or"
+      "value": "将文件拖动到此处或"
     }
   ],
   "gGfQUL": [
     {
       "type": 0,
-      "value": "Warm-up scenario"
+      "value": "预热场景"
     }
   ],
   "gHCL4X": [
@@ -10400,7 +11022,7 @@
   "gP/k0J": [
     {
       "type": 0,
-      "value": "Optional description of what this connector accesses"
+      "value": "此连接器所访问内容的可选说明"
     }
   ],
   "gUQeKV": [
@@ -10415,10 +11037,16 @@
       "value": "管理 IoT 中心设备孪生。"
     }
   ],
+  "gclDgn": [
+    {
+      "type": 0,
+      "value": "Create a Kusto tool"
+    }
+  ],
   "gct+2s": [
     {
       "type": 0,
-      "value": "Incident response plan:"
+      "value": "事件响应计划:"
     }
   ],
   "gdUWAX": [
@@ -10431,6 +11059,12 @@
     {
       "type": 0,
       "value": "线程 ID"
+    }
+  ],
+  "ghwElt": [
+    {
+      "type": 0,
+      "value": "Visit Support + Troubleshooting to access support resources and troubleshoot issues related to your SRE Agent."
     }
   ],
   "gj6Qc6": [
@@ -10457,10 +11091,16 @@
       "value": "需要权限才能设置 Grafana 仪表板。"
     }
   ],
+  "gox4oK": [
+    {
+      "type": 0,
+      "value": "Enter the database name"
+    }
+  ],
   "grgDhd": [
     {
       "type": 0,
-      "value": "Failed to load scheduled tasks: "
+      "value": "未能加载计划的任务: "
     },
     {
       "type": 1,
@@ -10470,7 +11110,7 @@
   "gvlNuI": [
     {
       "type": 0,
-      "value": "Start fresh or reuse an existing trigger configuration."
+      "value": "启动全新或重用现有触发器配置。"
     }
   ],
   "gwSeXa": [
@@ -10534,13 +11174,19 @@
   "h+sisx": [
     {
       "type": 0,
-      "value": "Author and Test - Configure and test"
+      "value": "创建和测试 - 配置和测试"
+    }
+  ],
+  "h/OQTK": [
+    {
+      "type": 0,
+      "value": "Use ##ParamName## in your query to define parameter placeholders."
     }
   ],
   "h0W8DM": [
     {
       "type": 0,
-      "value": "Time of day"
+      "value": "当天时间"
     }
   ],
   "h4BqRo": [
@@ -10550,13 +11196,13 @@
     },
     {
       "type": 0,
-      "value": " incident response plan"
+      "value": " 事件响应计划"
     }
   ],
   "h4XDJP": [
     {
       "type": 0,
-      "value": "Symptoms:"
+      "value": "症状:"
     }
   ],
   "h6183G": [
@@ -10579,6 +11225,12 @@
       "value": "” 的事件"
     }
   ],
+  "hF/2EL": [
+    {
+      "type": 0,
+      "value": "Handoff Instructions"
+    }
+  ],
   "hF5T80": [
     {
       "type": 0,
@@ -10588,7 +11240,7 @@
   "hGMSK3": [
     {
       "type": 0,
-      "value": "Apply Suggestions"
+      "value": "应用建议"
     }
   ],
   "hGQqkW": [
@@ -10612,7 +11264,7 @@
   "hNKm4/": [
     {
       "type": 0,
-      "value": "Sub-Agent"
+      "value": "子智能体"
     }
   ],
   "hO1Iog": [
@@ -10636,13 +11288,13 @@
   "hS+M7h": [
     {
       "type": 0,
-      "value": "Steps to resolution"
+      "value": "解决步骤"
     }
   ],
   "hWVnHh": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete this Extended Agent? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
+      "value": "是否确实要删除此扩展智能体? YAML 配置将被永久移除且无法恢复。此操作无法撤消。"
     }
   ],
   "hX5PAb": [
@@ -10666,13 +11318,13 @@
   "haOtj7": [
     {
       "type": 0,
-      "value": "System tools are read-only. View the YAML for reference."
+      "value": "系统工具是只读的。查看 YAML 以供参考。"
     }
   ],
   "heMr0D": [
     {
       "type": 0,
-      "value": "How well your agent is meeting user intents based on chat interactions. Updates after conversations."
+      "value": "基于聊天交互情况评估智能体满足用户意向的程度。对话后更新。"
     }
   ],
   "hfACn+": [
@@ -10696,19 +11348,19 @@
   "hgAzMV": [
     {
       "type": 0,
-      "value": "Remove file"
+      "value": "移除文件"
     }
   ],
   "hijOHm": [
     {
       "type": 0,
-      "value": "Preview AI recommendations without changing your instructions"
+      "value": "预览 AI 建议，而不更改指令"
     }
   ],
   "hkgUC5": [
     {
       "type": 0,
-      "value": "No parameters required for this tool."
+      "value": "此工具无需参数。"
     }
   ],
   "hlmkcL": [
@@ -10721,6 +11373,12 @@
     {
       "type": 0,
       "value": "Grafana 资源"
+    }
+  ],
+  "hqWr3L": [
+    {
+      "type": 0,
+      "value": "RCA category"
     }
   ],
   "hrdmcd": [
@@ -10738,7 +11396,7 @@
   "hzElIu": [
     {
       "type": 0,
-      "value": "No files match your search"
+      "value": "没有与搜索匹配的文件"
     }
   ],
   "hzSNj4": [
@@ -10768,7 +11426,7 @@
   "iDPKM0": [
     {
       "type": 0,
-      "value": "Filter tasks"
+      "value": "筛选任务"
     }
   ],
   "iDSWYk": [
@@ -10786,19 +11444,27 @@
   "iJ+eDu": [
     {
       "type": 0,
-      "value": "Failed to load data"
+      "value": "未能加载数据"
     }
   ],
   "iJCsVz": [
     {
       "type": 0,
-      "value": "Not yet published"
+      "value": "尚未发布"
     }
   ],
-  "iMBgdL": [
+  "iMaY2Q": [
     {
       "type": 0,
-      "value": "Kusto Tool"
+      "value": "Stopping SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in progress"
     }
   ],
   "iNgloh": [
@@ -10810,19 +11476,25 @@
   "iV7LUx": [
     {
       "type": 0,
-      "value": "Create a new trigger with custom settings"
+      "value": "使用自定义设置创建新触发器"
     }
   ],
   "iXNbPf": [
     {
       "type": 0,
-      "value": "Rename"
+      "value": "重命名"
+    }
+  ],
+  "iY7P1k": [
+    {
+      "type": 0,
+      "value": "Agent Autonomy"
     }
   ],
   "iZDRGO": [
     {
       "type": 0,
-      "value": "Assigned"
+      "value": "已分配"
     }
   ],
   "iZuO+L": [
@@ -10837,16 +11509,10 @@
       "value": "核心应用程序组资源名称"
     }
   ],
-  "ic8SAj": [
-    {
-      "type": 0,
-      "value": "或"
-    }
-  ],
   "icyjmd": [
     {
       "type": 0,
-      "value": "To-Do Plan"
+      "value": "待办事项计划"
     }
   ],
   "ielB5f": [
@@ -10861,16 +11527,22 @@
       "value": "复制命令"
     }
   ],
+  "ifdupA": [
+    {
+      "type": 0,
+      "value": "To view runs, go to Agent Runs"
+    }
+  ],
   "iihhVc": [
     {
       "type": 0,
-      "value": "Quality Evaluation"
+      "value": "质量评估"
     }
   ],
   "ijOojL": [
     {
       "type": 0,
-      "value": "Agent created, but linking to "
+      "value": "已创建智能体，但链接到 "
     },
     {
       "type": 1,
@@ -10878,13 +11550,13 @@
     },
     {
       "type": 0,
-      "value": " failed. Retry link."
+      "value": " 失败。重试链接。"
     }
   ],
   "ipsqxO": [
     {
       "type": 0,
-      "value": "Select an agent"
+      "value": "选择智能体"
     }
   ],
   "iqdd9H": [
@@ -10902,13 +11574,13 @@
   "isZXYe": [
     {
       "type": 0,
-      "value": "Applying…"
+      "value": "正在应用…"
     }
   ],
   "it6Lig": [
     {
       "type": 0,
-      "value": "Input"
+      "value": "输入"
     }
   ],
   "it8L1Q": [
@@ -10956,13 +11628,13 @@
   "iydbuT": [
     {
       "type": 0,
-      "value": "e.g., P1 incident response"
+      "value": "例如，P1 事件响应"
     }
   ],
   "izQgEq": [
     {
       "type": 0,
-      "value": "Creates a handoff for "
+      "value": "为 "
     },
     {
       "type": 1,
@@ -10970,13 +11642,19 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 创建转接。"
     }
   ],
   "j1FyDL": [
     {
       "type": 0,
-      "value": "No extended tools available."
+      "value": "无扩展工具可用。"
+    }
+  ],
+  "j1pB0w": [
+    {
+      "type": 0,
+      "value": "Go to Agent Consumption"
     }
   ],
   "j3bwJQ": [
@@ -10988,7 +11666,7 @@
   "j59lXr": [
     {
       "type": 0,
-      "value": "No matching items yet. Complete the quick create form to add one."
+      "value": "尚无匹配项。完成快速创建表单以添加一个。"
     }
   ],
   "j5QthH": [
@@ -11036,7 +11714,7 @@
   "jM/rXB": [
     {
       "type": 0,
-      "value": "Create and connect new items"
+      "value": "创建和连接新项"
     }
   ],
   "jOkfJV": [
@@ -11049,6 +11727,48 @@
     {
       "type": 0,
       "value": "找不到根本原因分析类别"
+    }
+  ],
+  "jSgRib": [
+    {
+      "type": 0,
+      "value": "Your knowledge base has "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "document"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "documents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ". Add more?"
     }
   ],
   "jTQZpk": [
@@ -11067,6 +11787,12 @@
     {
       "type": 0,
       "value": "你没有编辑响应计划的权限。"
+    }
+  ],
+  "ja85pV": [
+    {
+      "type": 0,
+      "value": "Add Documents"
     }
   ],
   "jabB4C": [
@@ -11094,7 +11820,7 @@
   "jjTzIr": [
     {
       "type": 0,
-      "value": "Database"
+      "value": "数据库"
     }
   ],
   "jlOO/9": [
@@ -11106,19 +11832,19 @@
   "jqpolM": [
     {
       "type": 0,
-      "value": "No system tools available."
+      "value": "无系统工具可用。"
     }
   ],
   "ju7bLp": [
     {
       "type": 0,
-      "value": "No connectors available"
+      "value": "无连接器可用"
     }
   ],
   "jv8SuZ": [
     {
       "type": 0,
-      "value": "Start time (optional)"
+      "value": "开始时间(可选)"
     }
   ],
   "jvo0vs": [
@@ -11130,7 +11856,7 @@
   "jw1Wpc": [
     {
       "type": 0,
-      "value": "Deleting incident "
+      "value": "正在删除事件 "
     },
     {
       "type": 1,
@@ -11140,13 +11866,13 @@
   "jxYyO2": [
     {
       "type": 0,
-      "value": "YAML must include {collectionName} with at least one entry."
+      "value": "YAML 必须包含至少带有一个条目的 {collectionName}。"
     }
   ],
   "k+3+Dy": [
     {
       "type": 0,
-      "value": "Bar chart"
+      "value": "条形图"
     }
   ],
   "k0VNHX": [
@@ -11156,13 +11882,13 @@
     },
     {
       "type": 0,
-      "value": "ms"
+      "value": " 毫秒"
     }
   ],
   "k4dB65": [
     {
       "type": 0,
-      "value": "This will create both your agent (\""
+      "value": "这将创建你的智能体(“"
     },
     {
       "type": 1,
@@ -11170,13 +11896,13 @@
     },
     {
       "type": 0,
-      "value": "\") and a separate \"meta_agent\" for orchestration."
+      "value": "”)和一个用于编排的独立 \"meta_agent\"。"
     }
   ],
   "k5T5VE": [
     {
       "type": 0,
-      "value": "Select a starting agent"
+      "value": "选择起始智能体"
     }
   ],
   "k8ZNgH": [
@@ -11185,10 +11911,16 @@
       "value": "警报 ID"
     }
   ],
+  "kFkPWB": [
+    {
+      "type": 0,
+      "value": "Number"
+    }
+  ],
   "kG0ZtT": [
     {
       "type": 0,
-      "value": "Other cron ideas"
+      "value": "其他 cron 想法"
     }
   ],
   "kHIJzq": [
@@ -11200,31 +11932,31 @@
   "kNEmDU": [
     {
       "type": 0,
-      "value": "Goal: 85%+ confidence"
+      "value": "目标: 85%+ 置信度"
     }
   ],
   "kQAf2d": [
     {
       "type": 0,
-      "value": "Select"
+      "value": "选择"
     }
   ],
   "kQSvkP": [
     {
       "type": 0,
-      "value": "Connector type"
+      "value": "连接器类型"
     }
   ],
   "kT9YDi": [
     {
       "type": 0,
-      "value": "You do not have permission to rename this thread."
+      "value": "你没有重命名此线程的权限。"
     }
   ],
   "kWBrry": [
     {
       "type": 0,
-      "value": "Starting agent"
+      "value": "正在启动智能体"
     }
   ],
   "kWs94j": [
@@ -11236,7 +11968,7 @@
   "kX8T8H": [
     {
       "type": 0,
-      "value": "Name of the dictionary this parameter contributes to"
+      "value": "此参数参与的字典的名称"
     }
   ],
   "kbDtEK": [
@@ -11249,10 +11981,16 @@
       "value": "failedFiles"
     }
   ],
+  "ketkP5": [
+    {
+      "type": 0,
+      "value": "Knowledge Base Enabled"
+    }
+  ],
   "khOzXi": [
     {
       "type": 0,
-      "value": "Custom schedule"
+      "value": "自定义计划"
     }
   ],
   "kn+J82": [
@@ -11280,7 +12018,7 @@
     },
     {
       "type": 0,
-      "value": " —uses→ "
+      "value": " —使用→ "
     },
     {
       "type": 1,
@@ -11308,7 +12046,7 @@
   "ks97gc": [
     {
       "type": 0,
-      "value": "Use an existing trigger configuration"
+      "value": "使用现有触发器配置"
     }
   ],
   "ku+mDU": [
@@ -11320,13 +12058,19 @@
   "kvKWEJ": [
     {
       "type": 0,
-      "value": "Response plan saved successfully"
+      "value": "响应计划已成功保存"
+    }
+  ],
+  "kxokJj": [
+    {
+      "type": 0,
+      "value": "Agent datagrid"
     }
   ],
   "l+e8nZ": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the selected scheduled task(s)? This action cannot be undone."
+      "value": "是否确定要删除所选的计划任务?此操作无法撤消。"
     }
   ],
   "l0TtPi": [
@@ -11351,16 +12095,28 @@
       "value": " 个资源组。"
     }
   ],
+  "l0UKyP": [
+    {
+      "type": 0,
+      "value": "Azure Data Explorer"
+    }
+  ],
+  "l0VCdV": [
+    {
+      "type": 0,
+      "value": "Create tool"
+    }
+  ],
   "l2Ni9H": [
     {
       "type": 0,
-      "value": "Chat preview is only available for agents."
+      "value": "聊天预览仅对智能体可用。"
     }
   ],
   "l5a3zV": [
     {
       "type": 0,
-      "value": "Make a copy"
+      "value": "创建副本"
     }
   ],
   "l5sNim": [
@@ -11372,7 +12128,7 @@
   "lCsNuL": [
     {
       "type": 0,
-      "value": "Trace data found, but could not parse into spans."
+      "value": "找到跟踪数据，但无法解析为跨度。"
     }
   ],
   "lDMkTI": [
@@ -11388,7 +12144,7 @@
   "lDx7s5": [
     {
       "type": 0,
-      "value": "Agent responses are more concise in this mode."
+      "value": "在此模式下，代理的答复更简洁。"
     }
   ],
   "lKv8ex": [
@@ -11412,7 +12168,7 @@
   "lUAfdH": [
     {
       "type": 0,
-      "value": "MCP server name"
+      "value": "MCP 服务器名称"
     }
   ],
   "lawXja": [
@@ -11462,7 +12218,7 @@
   "lni1id": [
     {
       "type": 0,
-      "value": "Search system tools by name, category, or description"
+      "value": "按名称、类别或说明搜索系统工具"
     }
   ],
   "lqgE72": [
@@ -11480,13 +12236,13 @@
   "lxblgl": [
     {
       "type": 0,
-      "value": "Wednesday"
+      "value": "星期三"
     }
   ],
   "m+cdhC": [
     {
       "type": 0,
-      "value": "Recently used"
+      "value": "最近使用"
     }
   ],
   "m0kcbz": [
@@ -11498,7 +12254,13 @@
   "m3Npit": [
     {
       "type": 0,
-      "value": "No tools available. Try creating one or clearing your filters."
+      "value": "无工具可用。请尝试创建一个工具或清除筛选器。"
+    }
+  ],
+  "m4vqJl": [
+    {
+      "type": 0,
+      "value": "Files"
     }
   ],
   "m57OnF": [
@@ -11516,7 +12278,7 @@
   "m8grMF": [
     {
       "type": 0,
-      "value": "Connector \""
+      "value": "已成功创建连接器 \""
     },
     {
       "type": 1,
@@ -11524,13 +12286,13 @@
     },
     {
       "type": 0,
-      "value": "\" has been created successfully"
+      "value": "\""
     }
   ],
   "mAinBm": [
     {
       "type": 0,
-      "value": "Automatically push YAML edits to the agent during testing."
+      "value": "测试期间自动将 YAML 编辑推送到智能体。"
     }
   ],
   "mAyw3x": [
@@ -11548,31 +12310,31 @@
   "mGh+K0": [
     {
       "type": 0,
-      "value": "Owning team ID is required when adding a default response plan."
+      "value": "添加默认响应计划时，必须提供负责团队 ID。"
     }
   ],
   "mHep2R": [
     {
       "type": 0,
-      "value": "Last run"
+      "value": "上次运行"
     }
   ],
   "mJR06P": [
     {
       "type": 0,
-      "value": "Sunday"
+      "value": "星期日"
     }
   ],
   "mJXXeS": [
     {
       "type": 0,
-      "value": "No tools connected yet."
+      "value": "尚未连接任何工具。"
     }
   ],
   "mMgwbu": [
     {
       "type": 0,
-      "value": "Undo (10s)"
+      "value": "撤消(10s)"
     }
   ],
   "mOFG3K": [
@@ -11584,7 +12346,7 @@
   "mRJIzw": [
     {
       "type": 0,
-      "value": "Results ("
+      "value": "结果 ("
     },
     {
       "type": 1,
@@ -11601,7 +12363,7 @@
           "value": [
             {
               "type": 0,
-              "value": "row"
+              "value": "行"
             }
           ]
         },
@@ -11609,7 +12371,7 @@
           "value": [
             {
               "type": 0,
-              "value": "rows"
+              "value": "行"
             }
           ]
         }
@@ -11626,13 +12388,13 @@
   "mRL9Vh": [
     {
       "type": 0,
-      "value": "Creating..."
+      "value": "正在创建..."
     }
   ],
   "mSoczp": [
     {
       "type": 0,
-      "value": "YAML spec must include a name for the "
+      "value": "YAML 规范必须包含 "
     },
     {
       "type": 1,
@@ -11640,7 +12402,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 的名称。"
     }
   ],
   "mV7WX3": [
@@ -11652,7 +12414,7 @@
   "mVkTZZ": [
     {
       "type": 0,
-      "value": "Plugin"
+      "value": "插件"
     }
   ],
   "mZ0R9v": [
@@ -11664,7 +12426,7 @@
   "mZ3wu9": [
     {
       "type": 0,
-      "value": "Tool type"
+      "value": "工具类型"
     }
   ],
   "makWrV": [
@@ -11676,19 +12438,19 @@
   "mbb8vl": [
     {
       "type": 0,
-      "value": "User prompt"
+      "value": "用户提示"
     }
   ],
   "mbtoHb": [
     {
       "type": 0,
-      "value": "How should this trigger be set up?"
+      "value": "应如何设置此触发器?"
     }
   ],
   "methez": [
     {
       "type": 0,
-      "value": "Max tier achieved—keep refining to stay ahead."
+      "value": "已达到最大层级 - 继续优化以保持领先。"
     }
   ],
   "mgYBYo": [
@@ -11700,13 +12462,13 @@
   "mgZVf8": [
     {
       "type": 0,
-      "value": "No tools configured."
+      "value": "未配置任何工具。"
     }
   ],
   "mhKk7c": [
     {
       "type": 0,
-      "value": "Create new Kusto tool"
+      "value": "创建新的 Kusto 工具"
     }
   ],
   "mkhNnB": [
@@ -11724,13 +12486,19 @@
   "mm/uFP": [
     {
       "type": 0,
-      "value": "Filter by mitigated by"
+      "value": "筛选(按缓解者)"
+    }
+  ],
+  "moOg2N": [
+    {
+      "type": 0,
+      "value": "Outlook"
     }
   ],
   "mopY52": [
     {
       "type": 0,
-      "value": "Created "
+      "value": "已创建 "
     },
     {
       "type": 1,
@@ -11738,7 +12506,7 @@
     },
     {
       "type": 0,
-      "value": " and linked it as a handoff for "
+      "value": " 并将其作为 "
     },
     {
       "type": 1,
@@ -11746,7 +12514,7 @@
     },
     {
       "type": 0,
-      "value": ". Choose what you’d like to do next."
+      "value": " 的转接。选择接下来要执行的操作。"
     }
   ],
   "mq/sud": [
@@ -11758,7 +12526,7 @@
   "mrOnjM": [
     {
       "type": 0,
-      "value": "Mode"
+      "value": "模式"
     }
   ],
   "mtr3R4": [
@@ -11788,7 +12556,7 @@
   "n2h/5e": [
     {
       "type": 0,
-      "value": "Dictionary value type"
+      "value": "字典值类型"
     }
   ],
   "n5QvJy": [
@@ -11800,7 +12568,7 @@
   "n7yYXG": [
     {
       "type": 0,
-      "value": "Service"
+      "value": "服务"
     }
   ],
   "nBPow3": [
@@ -11822,7 +12590,7 @@
   "nCowEs": [
     {
       "type": 0,
-      "value": "All agents"
+      "value": "所有智能体"
     }
   ],
   "nDyaq/": [
@@ -11840,7 +12608,7 @@
   "nFpcjX": [
     {
       "type": 0,
-      "value": "Auto-generated"
+      "value": "已自动生成"
     }
   ],
   "nL/Owh": [
@@ -11880,13 +12648,13 @@
   "nUT0Lv": [
     {
       "type": 0,
-      "value": "Tools"
+      "value": "工具"
     }
   ],
   "nWJtZd": [
     {
       "type": 0,
-      "value": "Connector details · "
+      "value": "连接器详细信息 · "
     },
     {
       "type": 1,
@@ -11896,13 +12664,13 @@
   "ncB14A": [
     {
       "type": 0,
-      "value": "Agent invoked"
+      "value": "智能体已调用"
     }
   ],
   "nkYx6+": [
     {
       "type": 0,
-      "value": "Disconnect "
+      "value": "是否断开 "
     },
     {
       "type": 1,
@@ -11910,7 +12678,7 @@
     },
     {
       "type": 0,
-      "value": " data connectors?"
+      "value": " 个数据连接器?"
     }
   ],
   "nmpevl": [
@@ -11928,7 +12696,7 @@
   "noxLT+": [
     {
       "type": 0,
-      "value": "Apply fixes"
+      "value": "应用修补程序"
     }
   ],
   "npvxpr": [
@@ -11958,13 +12726,13 @@
   "nx7y+W": [
     {
       "type": 0,
-      "value": "Re-run insights"
+      "value": "重新运行见解"
     }
   ],
   "nxmZHP": [
     {
       "type": 0,
-      "value": "Configuration saved successfully."
+      "value": "已成功保存配置。"
     }
   ],
   "nxvTtg": [
@@ -11976,25 +12744,25 @@
   "nySNrf": [
     {
       "type": 0,
-      "value": "A unique identifier for your tool"
+      "value": "工具的唯一标识符"
     }
   ],
   "o0pkiK": [
     {
       "type": 0,
-      "value": "Describe what this agent does and how it should behave..."
+      "value": "描述此智能体的作用及其行为方式..."
     }
   ],
   "o1g3JC": [
     {
       "type": 0,
-      "value": "No tools linked yet. Add tools so this agent can take action."
+      "value": "尚无链接的工具。添加工具，以便此智能体可以执行操作。"
     }
   ],
   "o3uElD": [
     {
       "type": 0,
-      "value": "Add data connector"
+      "value": "添加数据连接器"
     }
   ],
   "o7TUwc": [
@@ -12018,7 +12786,7 @@
   "oBxxMY": [
     {
       "type": 0,
-      "value": "Failed to delete all "
+      "value": "未能删除全部 "
     },
     {
       "type": 1,
@@ -12026,7 +12794,7 @@
     },
     {
       "type": 0,
-      "value": " data connectors"
+      "value": " 个数据连接器"
     }
   ],
   "oDI/Rp": [
@@ -12046,7 +12814,7 @@
   "oDVFQr": [
     {
       "type": 0,
-      "value": "Ignore (use static value)"
+      "value": "忽略(使用静态值)"
     }
   ],
   "oDb8Xv": [
@@ -12061,22 +12829,28 @@
       "value": "为了帮助监视和响应 Azure 资源中的活动和事件，智能体需要访问你允许的特定订阅、资源组和服务。"
     }
   ],
+  "oHGFwy": [
+    {
+      "type": 0,
+      "value": "Sign in with a different account"
+    }
+  ],
   "oKJ0fm": [
     {
       "type": 0,
-      "value": "Nothing to preview yet."
+      "value": "尚无可预览内容。"
     }
   ],
   "oM0lfe": [
     {
       "type": 0,
-      "value": "Select a node to see its details."
+      "value": "选择节点以查看其详细信息。"
     }
   ],
   "oMsZ4g": [
     {
       "type": 0,
-      "value": "Day of month"
+      "value": "一月中的某一天"
     }
   ],
   "oQ/TUW": [
@@ -12088,7 +12862,7 @@
   "oQJEFn": [
     {
       "type": 0,
-      "value": "Performance Issue"
+      "value": "性能问题"
     }
   ],
   "oTNrPz": [
@@ -12100,7 +12874,7 @@
   "oTOgOq": [
     {
       "type": 0,
-      "value": "Loading MCP tools..."
+      "value": "正在加载 MCP 工具..."
     }
   ],
   "oUWADl": [
@@ -12130,7 +12904,7 @@
   "ob6s4+": [
     {
       "type": 0,
-      "value": "Deny assignment"
+      "value": "拒绝分配"
     }
   ],
   "obRqDQ": [
@@ -12152,7 +12926,7 @@
   "ocTBQX": [
     {
       "type": 0,
-      "value": "Failed to delete connector"
+      "value": "未能删除连接器"
     }
   ],
   "omHElC": [
@@ -12170,7 +12944,7 @@
   "osuyeD": [
     {
       "type": 0,
-      "value": "Out of date"
+      "value": "过期"
     }
   ],
   "ovJ26C": [
@@ -12182,11 +12956,15 @@
   "owa0nd": [
     {
       "type": 0,
-      "value": "Expand span with id: "
+      "value": "扩展 ID 为 "
     },
     {
       "type": 1,
       "value": "id"
+    },
+    {
+      "type": 0,
+      "value": " 的范围"
     }
   ],
   "ox7DwN": [
@@ -12198,7 +12976,7 @@
   "p/QlSI": [
     {
       "type": 0,
-      "value": "Updating connector \""
+      "value": "正在更新连接器 \""
     },
     {
       "type": 1,
@@ -12248,19 +13026,19 @@
   "p7xkho": [
     {
       "type": 0,
-      "value": "Agent consumption"
+      "value": "智能体消耗"
     }
   ],
   "p8Ubox": [
     {
       "type": 0,
-      "value": "Connect an incident management platform so the agent will collect, analyze, and respond to alerts."
+      "value": "连接事件管理平台，使智能体能够收集、分析并响应警报。"
     }
   ],
   "pA7W9m": [
     {
       "type": 0,
-      "value": "Intent Met Score"
+      "value": "意向达成分数"
     }
   ],
   "pAFuFx": [
@@ -12284,13 +13062,13 @@
   "pCRg92": [
     {
       "type": 0,
-      "value": "You do not have permission to add or delete connectors."
+      "value": "你没有添加或删除连接器的权限。"
     }
   ],
   "pCjcdM": [
     {
       "type": 0,
-      "value": "Prompt highlights"
+      "value": "提示亮点"
     }
   ],
   "pDUFq5": [
@@ -12308,7 +13086,7 @@
   "pFnETG": [
     {
       "type": 0,
-      "value": "Failed to rename thread with error: "
+      "value": "未能重命名线程，出现错误: "
     },
     {
       "type": 1,
@@ -12336,7 +13114,7 @@
   "pSeneB": [
     {
       "type": 0,
-      "value": "Each "
+      "value": "每个 "
     },
     {
       "type": 1,
@@ -12344,7 +13122,7 @@
     },
     {
       "type": 0,
-      "value": " must include a type."
+      "value": " 必须包含一个类型。"
     }
   ],
   "pSfQh6": [
@@ -12362,7 +13140,7 @@
   "pbpjik": [
     {
       "type": 0,
-      "value": "When you finish creating this agent, we'll automatically add it as a handoff for "
+      "value": "完成创建此智能体后，我们将自动将其添加为 "
     },
     {
       "type": 1,
@@ -12370,7 +13148,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 的转接。"
     }
   ],
   "pe7UAe": [
@@ -12382,7 +13160,7 @@
   "peOEU7": [
     {
       "type": 0,
-      "value": "No connectors linked."
+      "value": "未链接任何连接器。"
     }
   ],
   "pf5nil": [
@@ -12391,10 +13169,28 @@
       "value": "核心应用程序组"
     }
   ],
+  "pgIRcn": [
+    {
+      "type": 0,
+      "value": "Enter a string"
+    }
+  ],
   "piCpTn": [
     {
       "type": 0,
       "value": "预配并链接 Grafana 仪表板后，资源可能需要一段时间才能完全填充仪表板。"
+    }
+  ],
+  "plun1b": [
+    {
+      "type": 0,
+      "value": "Hand-off"
+    }
+  ],
+  "pndXMi": [
+    {
+      "type": 0,
+      "value": "Enter a value"
     }
   ],
   "pnlHOZ": [
@@ -12422,7 +13218,7 @@
     },
     {
       "type": 0,
-      "value": " since last run"
+      "value": " (自上次运行以来)"
     }
   ],
   "ppARxn": [
@@ -12434,7 +13230,13 @@
   "ppzeDo": [
     {
       "type": 0,
-      "value": "Link Tool"
+      "value": "链接工具"
+    }
+  ],
+  "pqedsA": [
+    {
+      "type": 0,
+      "value": "Mute all warnings"
     }
   ],
   "pqgzm0": [
@@ -12446,7 +13248,7 @@
   "pr9fPP": [
     {
       "type": 0,
-      "value": "Alert title"
+      "value": "警报标题"
     }
   ],
   "psUT6S": [
@@ -12458,7 +13260,7 @@
   "puQ/kF": [
     {
       "type": 0,
-      "value": "Loading chat threads"
+      "value": "正在加载聊天线程"
     }
   ],
   "pyXjlj": [
@@ -12488,19 +13290,31 @@
   "qAhUUO": [
     {
       "type": 0,
-      "value": "Thursday"
+      "value": "星期四"
+    }
+  ],
+  "qB4s5L": [
+    {
+      "type": 0,
+      "value": "Add parameter"
+    }
+  ],
+  "qDwvZ4": [
+    {
+      "type": 0,
+      "value": "Unknown error"
     }
   ],
   "qQh4Xu": [
     {
       "type": 0,
-      "value": "The agent references documentation and files to understand your projects and processes."
+      "value": "智能体引用文档和文件以了解你的项目和流程。"
     }
   ],
   "qavd9Y": [
     {
       "type": 0,
-      "value": "Tell us how often your agent should run and we’ll draft the cron expression for you."
+      "value": "告诉我们智能体应多久运行一次，我们将为你生成 cron 表达式的草稿。"
     }
   ],
   "qdAlfY": [
@@ -12524,13 +13338,13 @@
   "qf1aUJ": [
     {
       "type": 0,
-      "value": "A connector with this name already exists"
+      "value": "具有此名称的连接器已存在"
     }
   ],
   "qh9t2U": [
     {
       "type": 0,
-      "value": "Connect to agent"
+      "value": "连接到智能体"
     }
   ],
   "qhApmK": [
@@ -12542,7 +13356,7 @@
   "qiY3L8": [
     {
       "type": 0,
-      "value": "Connector Name"
+      "value": "连接器名称"
     }
   ],
   "qj1uhz": [
@@ -12554,7 +13368,7 @@
   "qj71j1": [
     {
       "type": 0,
-      "value": "Query"
+      "value": "查询"
     }
   ],
   "qlcuNQ": [
@@ -12572,19 +13386,19 @@
   "qquh75": [
     {
       "type": 0,
-      "value": "Select a linked tool to edit"
+      "value": "选择要编辑的链接工具"
     }
   ],
   "qs5hhk": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the selected incident thread?"
+      "value": "是否确定要删除所选事件线程?"
     }
   ],
   "qvTohT": [
     {
       "type": 0,
-      "value": "No results for \""
+      "value": "没有“"
     },
     {
       "type": 1,
@@ -12592,19 +13406,19 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": "”的结果"
     }
   ],
   "qvviEg": [
     {
       "type": 0,
-      "value": "Add handoff to existing agent"
+      "value": "将转接添加到现有智能体"
     }
   ],
   "qxlJil": [
     {
       "type": 0,
-      "value": "PM"
+      "value": "下午"
     }
   ],
   "qyJtWy": [
@@ -12626,11 +13440,15 @@
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "已选择 "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " quick fixes selected"
+              "value": " 个快速修补程序"
             }
           ]
         }
@@ -12643,7 +13461,7 @@
   "r2cpCI": [
     {
       "type": 0,
-      "value": "Evaluating agent…"
+      "value": "正在评估智能体…"
     }
   ],
   "r2x5ZI": [
@@ -12655,13 +13473,13 @@
   "r8XsCU": [
     {
       "type": 0,
-      "value": "Connector"
+      "value": "连接器"
     }
   ],
   "rAbWbb": [
     {
       "type": 0,
-      "value": "No description available"
+      "value": "没有可用的描述"
     }
   ],
   "rBPlLc": [
@@ -12673,7 +13491,7 @@
   "rBhkvO": [
     {
       "type": 0,
-      "value": "This will permanently delete the file from the knowledge sources the agent uses. Are you sure you want to delete this file?"
+      "value": "这将从智能体使用的知识来源中永久删除此文件。是否确定要删除此文件?"
     }
   ],
   "rELDbB": [
@@ -12691,7 +13509,7 @@
   "rG1sas": [
     {
       "type": 0,
-      "value": "Attaches to "
+      "value": "附加到 "
     },
     {
       "type": 1,
@@ -12699,7 +13517,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "。"
     }
   ],
   "rI2aPZ": [
@@ -12711,7 +13529,7 @@
   "rKdPkY": [
     {
       "type": 0,
-      "value": "Select a "
+      "value": "选择 "
     },
     {
       "type": 1,
@@ -12719,7 +13537,7 @@
     },
     {
       "type": 0,
-      "value": " to edit its configuration YAML."
+      "value": " 以编辑其配置 YAML。"
     }
   ],
   "rKq4sw": [
@@ -12765,19 +13583,19 @@
   "rTBfGn": [
     {
       "type": 0,
-      "value": "Service type: All"
+      "value": "服务类型: 全部"
     }
   ],
   "rU0caB": [
     {
       "type": 0,
-      "value": "Update AAU allocation"
+      "value": "更新 AAU 配额"
     }
   ],
   "rVbKiP": [
     {
       "type": 0,
-      "value": "Continue editing"
+      "value": "继续编辑"
     }
   ],
   "rVtn/e": [
@@ -12789,7 +13607,7 @@
   "rXQSJp": [
     {
       "type": 0,
-      "value": "Query test failed: "
+      "value": "查询测试失败: "
     },
     {
       "type": 1,
@@ -12817,7 +13635,7 @@
   "rd+inb": [
     {
       "type": 0,
-      "value": "Create AI agents with custom tools and connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
+      "value": "使用自定义工具和连接器创建 AI 智能体。使用交互式图表可视化它们的协同工作方式。从创建第一个智能体、工具或连接器入手。"
     }
   ],
   "rd6YZk": [
@@ -12826,10 +13644,22 @@
       "value": "智能体可以提出操作建议，但需要获得批准后才能执行"
     }
   ],
+  "rdsirP": [
+    {
+      "type": 0,
+      "value": "The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and acrtions."
+    }
+  ],
   "rhSI1/": [
     {
       "type": 0,
-      "value": "Model"
+      "value": "模型"
+    }
+  ],
+  "ri3YXY": [
+    {
+      "type": 0,
+      "value": "Add a connector"
     }
   ],
   "riEsC7": [
@@ -12871,7 +13701,7 @@
   "rlwohK": [
     {
       "type": 0,
-      "value": "Documentation connector"
+      "value": "文档连接器"
     }
   ],
   "rpG/Bn": [
@@ -12895,13 +13725,13 @@
   "rrN9ke": [
     {
       "type": 0,
-      "value": "tools"
+      "value": "工具"
     }
   ],
   "rrQX3M": [
     {
       "type": 0,
-      "value": "Score this agent and get tailored fixes."
+      "value": "对此智能体进行评分并获取定制修补程序。"
     }
   ],
   "rvirM2": [
@@ -12919,7 +13749,7 @@
   "rxcQLa": [
     {
       "type": 0,
-      "value": "Creating connector \""
+      "value": "正在创建连接器 \""
     },
     {
       "type": 1,
@@ -12945,13 +13775,13 @@
   "s00xPm": [
     {
       "type": 0,
-      "value": "Learn more about knowledge sources"
+      "value": "详细了解知识源"
     }
   ],
   "s04Z5U": [
     {
       "type": 0,
-      "value": "This will permanently disconnect "
+      "value": "这将永久断开 "
     },
     {
       "type": 1,
@@ -12959,25 +13789,25 @@
     },
     {
       "type": 0,
-      "value": " data connectors from the agent. Are you sure you want to disconnect these data connectors?"
+      "value": " 个数据连接器与智能体的连接。是否确定要断开这些数据连接器?"
     }
   ],
   "s2GWth": [
     {
       "type": 0,
-      "value": "Intent Match (1-5)"
+      "value": "意向匹配(1-5)"
     }
   ],
   "s2XIgr": [
     {
       "type": 0,
-      "value": "Show details"
+      "value": "显示详细信息"
     }
   ],
   "s6iZgz": [
     {
       "type": 0,
-      "value": "Description (Optional)"
+      "value": "描述(可选)"
     }
   ],
   "s7DlV0": [
@@ -12989,7 +13819,7 @@
   "s7HLdg": [
     {
       "type": 0,
-      "value": "Run deep investigation autonomously"
+      "value": "自主运行深度调查"
     }
   ],
   "s8HBot": [
@@ -13007,7 +13837,7 @@
   "sAireQ": [
     {
       "type": 0,
-      "value": "Select subscription"
+      "value": "选择订阅"
     }
   ],
   "sH0O5v": [
@@ -13019,7 +13849,7 @@
   "sHc8w5": [
     {
       "type": 0,
-      "value": "Created "
+      "value": "已创建 "
     },
     {
       "type": 1,
@@ -13027,7 +13857,7 @@
     },
     {
       "type": 0,
-      "value": ". Pick a next step below to keep building."
+      "value": "。在下方选择下一步，继续进行构建。"
     }
   ],
   "sI+CCC": [
@@ -13039,19 +13869,19 @@
   "sI/fs2": [
     {
       "type": 0,
-      "value": "Use same thread"
+      "value": "使用相同线程"
     }
   ],
   "sILeXv": [
     {
       "type": 0,
-      "value": "Root Cause:"
+      "value": "根本原因:"
     }
   ],
   "sIMS7i": [
     {
       "type": 0,
-      "value": "Progress"
+      "value": "进度"
     }
   ],
   "sIwc3/": [
@@ -13061,13 +13891,13 @@
     },
     {
       "type": 0,
-      "value": " is a system tool and cannot be run from the playground yet."
+      "value": " 是系统工具，暂时无法在操场中运行。"
     }
   ],
   "sNofwe": [
     {
       "type": 0,
-      "value": "No, keep default meta agent"
+      "value": "否，保留默认元智能体"
     }
   ],
   "sNutPl": [
@@ -13079,13 +13909,13 @@
   "sNuzQE": [
     {
       "type": 0,
-      "value": "No nodes found"
+      "value": "未找到节点"
     }
   ],
   "sQZhm1": [
     {
       "type": 0,
-      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
+      "value": "此列表显示按类别整理的扩展智能体、工具和连接器。创建和管理子智能体以扩展你的功能，添加用于特定任务的自定义工具，并配置连接器以访问外部资源。"
     }
   ],
   "sQkhYk": [
@@ -13097,7 +13927,7 @@
   "sRU00i": [
     {
       "type": 0,
-      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
+      "value": "要跨订阅分配智能体托管资源组，需要对这些资源组拥有“所有者”或“用户访问管理员”权限。智能体资源和托管资源组可位于不同区域和订阅。"
     }
   ],
   "sRb5P9": [
@@ -13109,19 +13939,19 @@
   "sTodCB": [
     {
       "type": 0,
-      "value": "Link this agent to its handoffs and tools so the relationships are ready when it goes live."
+      "value": "将此智能体链接到其转接和工具，以便关系在生效时就绪。"
     }
   ],
   "sUfX4j": [
     {
       "type": 0,
-      "value": "It may take a few seconds for new agents or tools to appear in the graph after they are created."
+      "value": "创建新智能体或工具后，它们可能需要几秒钟时间才能显示在图表中。"
     }
   ],
   "sV2v5L": [
     {
       "type": 0,
-      "value": "Instructions"
+      "value": "指令"
     }
   ],
   "sVDrdr": [
@@ -13133,15 +13963,7 @@
   "sVJ+oz": [
     {
       "type": 0,
-      "value": "Added handoff to "
-    },
-    {
-      "type": 1,
-      "value": "handoffName"
-    },
-    {
-      "type": 0,
-      "value": " for "
+      "value": "已将转接添加到 "
     },
     {
       "type": 1,
@@ -13149,13 +13971,21 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 的 "
+    },
+    {
+      "type": 1,
+      "value": "handoffName"
+    },
+    {
+      "type": 0,
+      "value": "。"
     }
   ],
   "sXiGbo": [
     {
       "type": 0,
-      "value": "Add file"
+      "value": "添加文件"
     }
   ],
   "sZIoMy": [
@@ -13173,7 +14003,7 @@
   "sdNNv5": [
     {
       "type": 0,
-      "value": "When an incident opens, have "
+      "value": "事件打开时，要求 "
     },
     {
       "type": 1,
@@ -13181,25 +14011,25 @@
     },
     {
       "type": 0,
-      "value": " investigate and summarize the latest state."
+      "value": " 调查并汇总最新状态。"
     }
   ],
   "sdussP": [
     {
       "type": 0,
-      "value": "System Tools (Optional)"
+      "value": "系统工具(可选)"
     }
   ],
   "sf6hMj": [
     {
       "type": 0,
-      "value": "Heads-up"
+      "value": "提醒"
     }
   ],
   "sjlioi": [
     {
       "type": 0,
-      "value": "Subagent invoked"
+      "value": "子智能体已调用"
     }
   ],
   "slxYbm": [
@@ -13227,13 +14057,19 @@
   "snui0/": [
     {
       "type": 0,
-      "value": "agent"
+      "value": "智能体"
+    }
+  ],
+  "spEwRf": [
+    {
+      "type": 0,
+      "value": "You have warnings regarding your agent."
     }
   ],
   "sqGM6w": [
     {
       "type": 0,
-      "value": "Delete Items"
+      "value": "删除项"
     }
   ],
   "srG8e2": [
@@ -13251,13 +14087,13 @@
   "ssDQgc": [
     {
       "type": 0,
-      "value": "Tools from Model Context Protocol (MCP) servers. These tools are grouped by connection and loaded from connected servers such."
+      "value": "来自模型上下文协议(MCP)服务器的工具。这些工具按连接分组，并从连接的服务器加载。"
     }
   ],
   "strvmG": [
     {
       "type": 0,
-      "value": "Every hour"
+      "value": "每小时"
     }
   ],
   "swRudj": [
@@ -13272,6 +14108,12 @@
       "value": "连接平台后，请创建事件响应计划和自定义响应计划，以便智能体可以响应事件。"
     }
   ],
+  "swe9tO": [
+    {
+      "type": 0,
+      "value": "Run a test first to validate the query and ensure the agent can access Azure Data Explorer."
+    }
+  ],
   "sy7vzf": [
     {
       "type": 0,
@@ -13280,12 +14122,12 @@
   ],
   "t+IV9f": [
     {
-      "type": 0,
-      "value": "Agent at "
-    },
-    {
       "type": 1,
       "value": "time"
+    },
+    {
+      "type": 0,
+      "value": " 的智能体"
     }
   ],
   "t/atZW": [
@@ -13315,7 +14157,7 @@
   "t3n6rd": [
     {
       "type": 0,
-      "value": "AI Suggestions"
+      "value": "AI 建议"
     }
   ],
   "t3wAiN": [
@@ -13327,7 +14169,7 @@
   "t6/9PU": [
     {
       "type": 0,
-      "value": "Relationships (optional)"
+      "value": "关系(可选)"
     }
   ],
   "t9I1dY": [
@@ -13339,7 +14181,7 @@
   "tB02Wz": [
     {
       "type": 0,
-      "value": "Generating…"
+      "value": "正在生成…"
     }
   ],
   "tCrMHt": [
@@ -13357,7 +14199,7 @@
   "tGHG7q": [
     {
       "type": 0,
-      "value": "Back to Edit"
+      "value": "返回到“编辑”"
     }
   ],
   "tHCvDB": [
@@ -13369,7 +14211,7 @@
   "tJuu1A": [
     {
       "type": 0,
-      "value": "✨ AI Suggested Handoff Description"
+      "value": "✨ AI 建议的交接说明"
     }
   ],
   "tLYOnZ": [
@@ -13393,7 +14235,7 @@
   "tRaGqN": [
     {
       "type": 0,
-      "value": "Testing query…"
+      "value": "正在测试查询…"
     }
   ],
   "tSKi9q": [
@@ -13411,13 +14253,13 @@
   "tTVtNj": [
     {
       "type": 0,
-      "value": "Set a run limit"
+      "value": "设置运行限制"
     }
   ],
   "tU3A8E": [
     {
       "type": 0,
-      "value": "Your new "
+      "value": "你的新 "
     },
     {
       "type": 1,
@@ -13425,7 +14267,7 @@
     },
     {
       "type": 0,
-      "value": " will be ready in a few seconds. Feel free to keep editing while we connect it."
+      "value": " 将在几秒钟内准备就绪。在我们连接它时，可随时继续编辑。"
     }
   ],
   "tWX1j9": [
@@ -13437,17 +14279,21 @@
   "tZmd+w": [
     {
       "type": 0,
-      "value": "Connect a data source"
+      "value": "连接到数据源"
     }
   ],
   "tb6uBb": [
+    {
+      "type": 0,
+      "value": "已将 "
+    },
     {
       "type": 1,
       "value": "toolName"
     },
     {
       "type": 0,
-      "value": " is already connected to "
+      "value": " 连接到 "
     },
     {
       "type": 1,
@@ -13455,7 +14301,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "。"
     }
   ],
   "tbPq1d": [
@@ -13477,7 +14323,7 @@
   "tbxHpV": [
     {
       "type": 0,
-      "value": "Validate how the agent summarizes risk and next steps for leadership updates."
+      "value": "验证智能体如何汇总风险及后续步骤以供领导层更新。"
     }
   ],
   "tfuXMw": [
@@ -13497,25 +14343,25 @@
   "thOyk5": [
     {
       "type": 0,
-      "value": "Deleting connector"
+      "value": "正在删除连接器"
     }
   ],
   "tjE5Cb": [
     {
       "type": 0,
-      "value": "No handoffs configured."
+      "value": "未配置任何转接。"
     }
   ],
   "tjklHQ": [
     {
       "type": 0,
-      "value": "Experiment with your agent's configuration and see real-time results"
+      "value": "试验智能体的配置并查看实时结果"
     }
   ],
   "tkr5bn": [
     {
       "type": 0,
-      "value": "Turn off scheduled task(s)"
+      "value": "关闭计划的任务"
     }
   ],
   "trPabo": [
@@ -13527,7 +14373,7 @@
   "ts7YvN": [
     {
       "type": 0,
-      "value": "Repeat until"
+      "value": "重复直到"
     }
   ],
   "tshYzs": [
@@ -13539,29 +14385,39 @@
   "tthToS": [
     {
       "type": 0,
-      "value": "Disabled"
+      "value": "已禁用"
+    }
+  ],
+  "tu6JYo": [
+    {
+      "type": 0,
+      "value": "Start agent"
     }
   ],
   "tujypD": [
     {
       "type": 0,
-      "value": "Agents-as-tools · "
+      "value": "智能体即工具 · "
     },
     {
       "type": 1,
       "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 个"
     }
   ],
   "tvw8DP": [
     {
       "type": 0,
-      "value": "Select existing tools or create new ones later"
+      "value": "选择现有工具或稍后创建新工具"
     }
   ],
   "txLniB": [
     {
       "type": 0,
-      "value": "Learn more about code optimizations"
+      "value": "详细了解代码优化"
     }
   ],
   "tyJNW5": [
@@ -13579,7 +14435,7 @@
   "u04DEJ": [
     {
       "type": 0,
-      "value": "There was an error loading the usage data. Please try again later."
+      "value": "加载使用数据时出错。请稍后重试。"
     }
   ],
   "u0xiAh": [
@@ -13591,7 +14447,7 @@
   "u3AxgJ": [
     {
       "type": 0,
-      "value": "Incident status:"
+      "value": "事件状态:"
     }
   ],
   "u4WKBH": [
@@ -13615,7 +14471,7 @@
   "u60c6a": [
     {
       "type": 0,
-      "value": "Run insights to see guidance for this configuration."
+      "value": "运行见解以获取此配置的指导。"
     }
   ],
   "u64mw7": [
@@ -13639,7 +14495,7 @@
   "uFaAgq": [
     {
       "type": 0,
-      "value": "Connect relationships"
+      "value": "连接关系"
     }
   ],
   "uI0Lmu": [
@@ -13651,7 +14507,7 @@
   "uLmZLS": [
     {
       "type": 0,
-      "value": "Active flow AAUs reset in "
+      "value": "活动流 AAUs 在 "
     },
     {
       "offset": 0,
@@ -13660,7 +14516,7 @@
           "value": [
             {
               "type": 0,
-              "value": "today"
+              "value": "今天"
             }
           ]
         },
@@ -13671,7 +14527,7 @@
             },
             {
               "type": 0,
-              "value": " day"
+              "value": " 天"
             }
           ]
         },
@@ -13682,7 +14538,7 @@
             },
             {
               "type": 0,
-              "value": " days"
+              "value": " 天"
             }
           ]
         }
@@ -13690,12 +14546,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "days"
+    },
+    {
+      "type": 0,
+      "value": "重置"
     }
   ],
   "uMF+CT": [
     {
       "type": 0,
-      "value": "Remove extended agent: "
+      "value": "移除扩展智能体: "
     },
     {
       "type": 1,
@@ -13705,7 +14565,7 @@
   "uMNRNl": [
     {
       "type": 0,
-      "value": "Agents as tools"
+      "value": "智能体即工具"
     }
   ],
   "uNTENz": [
@@ -13715,11 +14575,15 @@
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "需要 "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " confidence points to reach "
+              "value": " 点置信度分数才能达到 "
             },
             {
               "type": 1,
@@ -13727,7 +14591,7 @@
             },
             {
               "type": 0,
-              "value": "."
+              "value": "。"
             }
           ]
         }
@@ -13756,25 +14620,31 @@
     },
     {
       "type": 0,
-      "value": " failed"
+      "value": " 失败"
     }
   ],
   "uYb82D": [
     {
       "type": 0,
-      "value": "Pick from presets"
+      "value": "从预设中选择"
     }
   ],
   "ubULuu": [
     {
       "type": 0,
-      "value": "Clear description for agents to understand when to use this tool"
+      "value": "便于智能体了解何时使用此工具的清晰说明"
     }
   ],
   "udi5I/": [
     {
       "type": 0,
-      "value": "Create incident response plans or scheduled tasks to trigger agents automatically."
+      "value": "创建事件响应计划或计划任务以自动触发智能体。"
+    }
+  ],
+  "ueVpay": [
+    {
+      "type": 0,
+      "value": "Refining..."
     }
   ],
   "ug01Mk": [
@@ -13786,13 +14656,13 @@
   "ukQpDs": [
     {
       "type": 0,
-      "value": "Folder"
+      "value": "文件夹"
     }
   ],
   "uld/2m": [
     {
       "type": 0,
-      "value": "Incident status"
+      "value": "事件状态"
     }
   ],
   "uln7eT": [
@@ -13804,7 +14674,7 @@
   "unj6JR": [
     {
       "type": 0,
-      "value": "Create from template"
+      "value": "根据模板创建"
     }
   ],
   "unxs9C": [
@@ -13816,25 +14686,25 @@
   "us/IXr": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the selected incident threads?"
+      "value": "是否确定要删除所选事件线程?"
     }
   ],
   "uudb6D": [
     {
       "type": 0,
-      "value": "Data Source"
+      "value": "数据源"
     }
   ],
   "uva2Xo": [
     {
       "type": 0,
-      "value": "Get more details about these insights"
+      "value": "获取有关这些见解的更多详细信息"
     }
   ],
   "uwY8Nf": [
     {
       "type": 0,
-      "value": "Refine with AI"
+      "value": "使用 AI 优化"
     }
   ],
   "uyO1AJ": [
@@ -13846,7 +14716,7 @@
   "v/3x6O": [
     {
       "type": 0,
-      "value": "Improving instructions..."
+      "value": "正在优化指令..."
     }
   ],
   "v0CXYP": [
@@ -13864,7 +14734,13 @@
   "v3xWf6": [
     {
       "type": 0,
-      "value": "Expand configuration panel"
+      "value": "展开配置面板"
+    }
+  ],
+  "v6cujo": [
+    {
+      "type": 0,
+      "value": "Kusto tool"
     }
   ],
   "v8cTK0": [
@@ -13888,7 +14764,7 @@
   "vAW30j": [
     {
       "type": 0,
-      "value": "Frequency"
+      "value": "频率"
     }
   ],
   "vAWzLN": [
@@ -13900,7 +14776,7 @@
   "vB/Cv7": [
     {
       "type": 0,
-      "value": "Memory usage insights"
+      "value": "内存使用率见解"
     }
   ],
   "vCAhII": [
@@ -13912,7 +14788,7 @@
   "vCsh17": [
     {
       "type": 0,
-      "value": "Connect to data sources like Kusto for rich agent capabilities"
+      "value": "连接到 Kusto 等数据源以使用丰富的智能体功能"
     }
   ],
   "vDbj1h": [
@@ -13924,13 +14800,13 @@
   "vG08m6": [
     {
       "type": 0,
-      "value": "Improve your agent prompt to increase confidence"
+      "value": "改进智能体提示以提升置信度"
     }
   ],
   "vIBOch": [
     {
       "type": 0,
-      "value": "Auto apply"
+      "value": "自动应用"
     }
   ],
   "vPX3R3": [
@@ -13939,10 +14815,16 @@
       "value": "你没有关闭响应计划的权限。"
     }
   ],
+  "vS6Lmt": [
+    {
+      "type": 0,
+      "value": "Incident triggers"
+    }
+  ],
   "vSW3OF": [
     {
       "type": 0,
-      "value": "Failed to update task: "
+      "value": "未能更新任务: "
     },
     {
       "type": 1,
@@ -13952,7 +14834,7 @@
   "vV67Wm": [
     {
       "type": 0,
-      "value": "Failed to turn on task: "
+      "value": "未能启用任务: "
     },
     {
       "type": 1,
@@ -13962,7 +14844,7 @@
   "vVpzJQ": [
     {
       "type": 0,
-      "value": "Suggested instructions"
+      "value": "建议的指令"
     }
   ],
   "vXCeIi": [
@@ -13980,7 +14862,7 @@
   "vZWQHk": [
     {
       "type": 0,
-      "value": "Edit existing"
+      "value": "编辑现有项"
     }
   ],
   "vao/Lv": [
@@ -14016,7 +14898,7 @@
   "vlv+Ch": [
     {
       "type": 0,
-      "value": "Scheduled trigger"
+      "value": "计划的触发器"
     }
   ],
   "vs8s5B": [
@@ -14028,13 +14910,13 @@
   "vsQnBO": [
     {
       "type": 0,
-      "value": "Blocking usage insights"
+      "value": "正在阻止使用情况见解"
     }
   ],
   "vz94UY": [
     {
       "type": 0,
-      "value": "Fresh • "
+      "value": "全新 • "
     },
     {
       "type": 1,
@@ -14056,31 +14938,31 @@
   "w0xxAb": [
     {
       "type": 0,
-      "value": "Clear description"
+      "value": "清除说明"
     }
   ],
   "w5FDGY": [
     {
       "type": 0,
-      "value": "Update scheduled task"
+      "value": "更新计划的任务"
     }
   ],
   "w6nz4p": [
     {
       "type": 0,
-      "value": "Open incident triggers"
+      "value": "打开事件触发器"
     }
   ],
   "w87Yom": [
     {
       "type": 0,
-      "value": "Agent tools"
+      "value": "智能体工具"
     }
   ],
   "w8UjdT": [
     {
       "type": 0,
-      "value": "Connect an Azure service MCP server to give the agent more tools to resolve an incident."
+      "value": "连接 Azure 服务 MCP 服务器，以向智能体提供更多工具来解决事件。"
     }
   ],
   "w9tk1A": [
@@ -14092,7 +14974,7 @@
   "wBgTQg": [
     {
       "type": 0,
-      "value": "Author, Test & Evaluate - Full workflow"
+      "value": "创建、测试和评估 - 完整工作流"
     }
   ],
   "wEQDC6": [
@@ -14109,24 +14991,24 @@
   ],
   "wGLrHW": [
     {
-      "type": 0,
-      "value": "User at "
-    },
-    {
       "type": 1,
       "value": "time"
+    },
+    {
+      "type": 0,
+      "value": " 的用户"
     }
   ],
   "wGcWbo": [
     {
       "type": 0,
-      "value": "Active tasks"
+      "value": "活动任务数"
     }
   ],
   "wI+r41": [
     {
       "type": 0,
-      "value": "More tools"
+      "value": "更多工具"
     }
   ],
   "wL7VAE": [
@@ -14148,7 +15030,7 @@
   "wOHH3J": [
     {
       "type": 0,
-      "value": "Describe what "
+      "value": "描述 "
     },
     {
       "type": 1,
@@ -14156,19 +15038,25 @@
     },
     {
       "type": 0,
-      "value": " should do each time it runs."
+      "value": " 每次运行时应执行的操作。"
     }
   ],
   "wQdhYo": [
     {
       "type": 0,
-      "value": "Create a new handoff agent"
+      "value": "创建新的转接智能体"
     }
   ],
   "wSZR47": [
     {
       "type": 0,
       "value": "提交"
+    }
+  ],
+  "wUnPMf": [
+    {
+      "type": 0,
+      "value": "Users without one of the required Azure role-based access control (RBAC) roles will not have access to Azure SRE Agent."
     }
   ],
   "wVpXzO": [
@@ -14186,13 +15074,13 @@
   "wYsv4Z": [
     {
       "type": 0,
-      "value": "Monthly"
+      "value": "每月"
     }
   ],
   "wb/AUH": [
     {
       "type": 0,
-      "value": "Next run times"
+      "value": "下一次运行时间"
     }
   ],
   "wbigtI": [
@@ -14204,7 +15092,7 @@
   "wbwhbH": [
     {
       "type": 0,
-      "value": "Task name"
+      "value": "任务名称"
     }
   ],
   "we4Lby": [
@@ -14222,7 +15110,7 @@
   "wgyFIG": [
     {
       "type": 0,
-      "value": "Polishing…"
+      "value": "润色中…"
     }
   ],
   "wjEBlr": [
@@ -14232,7 +15120,7 @@
     },
     {
       "type": 0,
-      "value": " is at "
+      "value": " 得分为 "
     },
     {
       "type": 1,
@@ -14240,19 +15128,19 @@
     },
     {
       "type": 0,
-      "value": "%. Continue refining to move toward the next tier."
+      "value": "%。继续优化，迈向更高层级。"
     }
   ],
   "wjfh7Z": [
     {
       "type": 0,
-      "value": "Tester - Test your agent"
+      "value": "测试人员 - 测试智能体"
     }
   ],
   "wk6Nft": [
     {
       "type": 0,
-      "value": "Begin editing the current configuration in the playground."
+      "value": "开始在操场中编辑当前配置。"
     }
   ],
   "wkLkeE": [
@@ -14282,19 +15170,19 @@
   "x/7RC2": [
     {
       "type": 0,
-      "value": "Checking trigger setup…"
+      "value": "正在检查触发器设置…"
     }
   ],
   "x1YTqM": [
     {
       "type": 0,
-      "value": "Describe the cadence before we can help."
+      "value": "请先描述节奏，我们才能提供帮助。"
     }
   ],
   "x25AjF": [
     {
       "type": 0,
-      "value": "Tool usage ID"
+      "value": "工具使用情况 ID"
     }
   ],
   "x3aQrV": [
@@ -14306,19 +15194,25 @@
   "x3qvaC": [
     {
       "type": 0,
-      "value": "No runs yet"
+      "value": "尚无运行"
     }
   ],
   "x4OHX9": [
     {
       "type": 0,
-      "value": "Sub-Agent Builder"
+      "value": "子智能体生成器"
     }
   ],
   "xDYr9m": [
     {
       "type": 0,
       "value": "已报告的事件"
+    }
+  ],
+  "xEjqoV": [
+    {
+      "type": 0,
+      "value": "Click here to learn more"
     }
   ],
   "xGPsyJ": [
@@ -14330,13 +15224,13 @@
   "xHpwlo": [
     {
       "type": 0,
-      "value": "File Name"
+      "value": "文件名"
     }
   ],
   "xJLI97": [
     {
       "type": 0,
-      "value": "Hide findings"
+      "value": "隐藏发现"
     }
   ],
   "xK7rmd": [
@@ -14345,10 +15239,22 @@
       "value": "见解"
     }
   ],
+  "xLrAFR": [
+    {
+      "type": 0,
+      "value": "Parameter name"
+    }
+  ],
   "xNC5hG": [
     {
       "type": 0,
-      "value": "Dictionary (group into args)"
+      "value": "字典(分组为参数)"
+    }
+  ],
+  "xPuGYM": [
+    {
+      "type": 0,
+      "value": "No connectors match your search"
     }
   ],
   "xSsto+": [
@@ -14392,7 +15298,7 @@
   "xXHSO2": [
     {
       "type": 0,
-      "value": "Rookie Analyst"
+      "value": "新手分析员"
     }
   ],
   "xXhn+h": [
@@ -14435,10 +15341,16 @@
       "value": "图表数据点不足"
     }
   ],
+  "xet2Cv": [
+    {
+      "type": 0,
+      "value": "Query parameters"
+    }
+  ],
   "xf9BKi": [
     {
       "type": 0,
-      "value": "Ready to test your agent?"
+      "value": "准备好测试智能体了吗?"
     }
   ],
   "xmcVZ0": [
@@ -14474,7 +15386,7 @@
   "xsbZ+Q": [
     {
       "type": 0,
-      "value": "Add a tool"
+      "value": "添加工具"
     }
   ],
   "xtkizV": [
@@ -14486,7 +15398,7 @@
   "xvTDgy": [
     {
       "type": 0,
-      "value": "Search tools…"
+      "value": "搜索工具…"
     }
   ],
   "xxoHVE": [
@@ -14498,7 +15410,7 @@
   "xy47sz": [
     {
       "type": 0,
-      "value": "Unable to parse YAML: "
+      "value": "无法分析 YAML: "
     },
     {
       "type": 1,
@@ -14522,25 +15434,31 @@
     },
     {
       "type": 0,
-      "value": " since last run"
+      "value": " (自上次运行以来)"
     }
   ],
   "y3Uu5i": [
     {
       "type": 0,
-      "value": "No data connectors match your search"
+      "value": "没有数据连接器与你的搜索匹配"
     }
   ],
   "y5oInX": [
     {
       "type": 0,
-      "value": "Incident priority"
+      "value": "事件优先级"
+    }
+  ],
+  "y79eIb": [
+    {
+      "type": 0,
+      "value": "Assign yourself the SRE Agent Admin role."
     }
   ],
   "y87pob": [
     {
       "type": 0,
-      "value": "You are previewing "
+      "value": "你正在预览 "
     },
     {
       "type": 1,
@@ -14548,7 +15466,17 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "。"
+    }
+  ],
+  "yBnHns": [
+    {
+      "type": 0,
+      "value": "Sign in to "
+    },
+    {
+      "type": 1,
+      "value": "service"
     }
   ],
   "yDh8i7": [
@@ -14560,7 +15488,13 @@
   "yFU6JN": [
     {
       "type": 0,
-      "value": "Chat input"
+      "value": "聊天输入"
+    }
+  ],
+  "yJJ/jv": [
+    {
+      "type": 0,
+      "value": "Mute this warning"
     }
   ],
   "yJSwfQ": [
@@ -14572,7 +15506,7 @@
   "yLRKP5": [
     {
       "type": 0,
-      "value": "Handoff description"
+      "value": "转接说明"
     }
   ],
   "yNCGjc": [
@@ -14596,13 +15530,13 @@
   "yX3QcY": [
     {
       "type": 0,
-      "value": "Tool details"
+      "value": "工具详细信息"
     }
   ],
   "yYJHyl": [
     {
       "type": 0,
-      "value": "No tools are linked yet. Add tools on the left to enable testing."
+      "value": "尚未链接任何工具。请在左侧添加工具以启用测试。"
     }
   ],
   "yYK6LR": [
@@ -14632,13 +15566,13 @@
   "yeL9WV": [
     {
       "type": 0,
-      "value": "Design, test, and refine agents without touching production."
+      "value": "设计、测试和优化智能体，无需接触生产环境。"
     }
   ],
   "yf9+0C": [
     {
       "type": 0,
-      "value": "Polished version"
+      "value": "润色后的版本"
     }
   ],
   "yh4G7g": [
@@ -14656,13 +15590,13 @@
   "yhZZjG": [
     {
       "type": 0,
-      "value": "To agent"
+      "value": "至智能体"
     }
   ],
   "yhqGka": [
     {
       "type": 0,
-      "value": "Choose how this trigger should behave and which agent it starts."
+      "value": "选择此触发器的行为方式及其启动的智能体。"
     }
   ],
   "yiAEBc": [
@@ -14680,7 +15614,7 @@
   "ynVolH": [
     {
       "type": 0,
-      "value": "Ask a question or enter a slash(/) to use a command"
+      "value": "提出问题或输入斜杠(/)以使用命令"
     }
   ],
   "yo67XU": [
@@ -14698,7 +15632,7 @@
   "ysBuRt": [
     {
       "type": 0,
-      "value": "Failed to create default incident response plan. Error: "
+      "value": "未能创建默认事件响应计划。错误: "
     },
     {
       "type": 1,
@@ -14720,7 +15654,13 @@
   "z0uI4M": [
     {
       "type": 0,
-      "value": "Run scenario"
+      "value": "运行方案"
+    }
+  ],
+  "z43sTn": [
+    {
+      "type": 0,
+      "value": "View Knowledge Base"
     }
   ],
   "z5cF/O": [
@@ -14732,7 +15672,7 @@
   "z7SGAU": [
     {
       "type": 0,
-      "value": "Scheduled task(s) deleted successfully"
+      "value": "已成功删除计划的任务"
     }
   ],
   "z8ZYoc": [
@@ -14750,19 +15690,19 @@
   "zCp11f": [
     {
       "type": 0,
-      "value": "Query test succeeded."
+      "value": "查询测试成功。"
     }
   ],
   "zDcGyS": [
     {
       "type": 0,
-      "value": "Trigger name"
+      "value": "触发器名称"
     }
   ],
   "zE+jtE": [
     {
       "type": 0,
-      "value": "Rename thread title"
+      "value": "重命名线程标题"
     }
   ],
   "zEg90u": [
@@ -14780,13 +15720,13 @@
   "zHZdPM": [
     {
       "type": 0,
-      "value": "Analyzing configuration for improvement recommendations."
+      "value": "正在分析配置以提出改进建议。"
     }
   ],
   "zMX3td": [
     {
       "type": 0,
-      "value": "Renaming the thread title to '"
+      "value": "正在将线程标题重命名为“"
     },
     {
       "type": 1,
@@ -14794,7 +15734,7 @@
     },
     {
       "type": 0,
-      "value": "'"
+      "value": "”"
     }
   ],
   "zN87hN": [
@@ -14818,7 +15758,7 @@
   "zUNfOA": [
     {
       "type": 0,
-      "value": "Open watcher drawer"
+      "value": "打开观察程序抽屉"
     }
   ],
   "zZsxcQ": [
@@ -14842,7 +15782,7 @@
   "zeJdWA": [
     {
       "type": 0,
-      "value": "Deleting "
+      "value": "正在删除 "
     },
     {
       "type": 1,
@@ -14850,7 +15790,7 @@
     },
     {
       "type": 0,
-      "value": " incidents"
+      "value": " 个事件"
     }
   ],
   "zfM/75": [
@@ -14874,7 +15814,7 @@
   "zhoVUT": [
     {
       "type": 0,
-      "value": "Advanced settings"
+      "value": "高级设置"
     }
   ],
   "zpkKsD": [
@@ -14886,7 +15826,7 @@
   "zr8jA6": [
     {
       "type": 0,
-      "value": "Remove tool "
+      "value": "移除工具 "
     },
     {
       "type": 1,
@@ -14896,7 +15836,7 @@
   "zuQF37": [
     {
       "type": 0,
-      "value": "Review Your tool"
+      "value": "查看你的工具"
     }
   ],
   "zvKOAu": [
@@ -14914,7 +15854,7 @@
   "zxvhnE": [
     {
       "type": 0,
-      "value": "Daily"
+      "value": "每天"
     }
   ]
 }

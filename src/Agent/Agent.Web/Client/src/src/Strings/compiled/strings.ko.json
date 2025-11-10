@@ -1,18 +1,18 @@
 {
   "++2B26": [
     {
-      "type": 0,
-      "value": "Provide values for: "
-    },
-    {
       "type": 1,
       "value": "parameters"
+    },
+    {
+      "type": 0,
+      "value": "에 대한 값 제공"
     }
   ],
   "+/9vVV": [
     {
       "type": 0,
-      "value": "Describe it in natural language"
+      "value": "자연어로 설명"
     }
   ],
   "+/nU/s": [
@@ -72,19 +72,25 @@
   "+Hx789": [
     {
       "type": 0,
-      "value": "Filter by severity level"
+      "value": "심각도 수준으로 필터링"
+    }
+  ],
+  "+Kcoxv": [
+    {
+      "type": 0,
+      "value": "Related incidents"
     }
   ],
   "+KyrhG": [
     {
       "type": 0,
-      "value": "Choose a tool"
+      "value": "도구 선택"
     }
   ],
   "+Pmftr": [
     {
       "type": 0,
-      "value": "Reset draft"
+      "value": "초안 다시 설정"
     }
   ],
   "+S4WAz": [
@@ -96,7 +102,7 @@
   "+TFnQ/": [
     {
       "type": 0,
-      "value": "Extended Tools (Optional)"
+      "value": "확장 도구(선택 사항)"
     }
   ],
   "+TlNdm": [
@@ -112,19 +118,19 @@
     },
     {
       "type": 0,
-      "value": " is read-only in the playground."
+      "value": "은(는) 플레이그라운드에서 읽기 전용입니다."
     }
   ],
   "+U6ozc": [
     {
       "type": 0,
-      "value": "Service"
+      "value": "유형"
     }
   ],
   "+ZdOJt": [
     {
       "type": 0,
-      "value": "Turning off scheduled task(s)"
+      "value": "예약된 작업 끄기"
     }
   ],
   "+bJIWo": [
@@ -142,7 +148,7 @@
   "+h4pn9": [
     {
       "type": 0,
-      "value": "Create new subagent"
+      "value": "새 하위 에이전트 만들기"
     }
   ],
   "+hJd45": [
@@ -154,7 +160,7 @@
   "+hOwpi": [
     {
       "type": 0,
-      "value": "Select a tool to test"
+      "value": "테스트할 도구 선택"
     }
   ],
   "+iCTRd": [
@@ -172,7 +178,7 @@
   "+kmL8g": [
     {
       "type": 0,
-      "value": "Provide instructions for what this scheduled task should do."
+      "value": "이 예약된 작업이 수행해야 하는 작업에 대한 지침을 제공합니다."
     }
   ],
   "+l+XEu": [
@@ -190,13 +196,13 @@
   "+p60ph": [
     {
       "type": 0,
-      "value": "MCP server icon"
+      "value": "MCP 서버 아이콘"
     }
   ],
   "+pmvA0": [
     {
       "type": 0,
-      "value": "Enter a scheduled task name"
+      "value": "예약된 작업 이름 입력"
     }
   ],
   "+uAdUZ": [
@@ -232,7 +238,13 @@
   "/5UY6N": [
     {
       "type": 0,
-      "value": "The maximum AAU limit is 200,000"
+      "value": "최대 AAU 제한은 200,000입니다."
+    }
+  ],
+  "/7GPtw": [
+    {
+      "type": 0,
+      "value": "Go to Incidents"
     }
   ],
   "/8MshI": [
@@ -244,7 +256,7 @@
   "/9FZdx": [
     {
       "type": 0,
-      "value": "this agent"
+      "value": "이 에이전트"
     }
   ],
   "/Br0/Z": [
@@ -256,17 +268,21 @@
   "/F7sHX": [
     {
       "type": 0,
-      "value": "Failed to delete tool "
+      "value": "도구 "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "을(를) 삭제하지 못함"
     }
   ],
   "/GCoTA": [
     {
       "type": 0,
-      "value": "Clear"
+      "value": "지우기"
     }
   ],
   "/ImSqA": [
@@ -278,25 +294,25 @@
   "/N0Usl": [
     {
       "type": 0,
-      "value": "Thread title cannot be empty"
+      "value": "스레드 제목은 비워 둘 수 없음"
     }
   ],
   "/OUWsL": [
     {
       "type": 0,
-      "value": "Get AI recommendations to improve your agent"
+      "value": "에이전트를 개선하기 위한 AI 권장 사항 가져오기"
     }
   ],
   "/RdF9w": [
     {
       "type": 0,
-      "value": "Handoffs"
+      "value": "핸드오프"
     }
   ],
   "/TZk1G": [
     {
       "type": 0,
-      "value": "AAU allocation updated from "
+      "value": "AAU 할당이 "
     },
     {
       "type": 1,
@@ -304,7 +320,7 @@
     },
     {
       "type": 0,
-      "value": " to "
+      "value": "에서 "
     },
     {
       "type": 1,
@@ -312,7 +328,7 @@
     },
     {
       "type": 0,
-      "value": " successfully."
+      "value": "(으)로 업데이트되었습니다."
     }
   ],
   "/VnDMl": [
@@ -330,7 +346,7 @@
   "/WgnYE": [
     {
       "type": 0,
-      "value": "We couldn't understand that description. Try a different phrasing."
+      "value": "해당 설명을 이해할 수 없습니다. 다른 표현을 시도해 보세요."
     }
   ],
   "/WrP/v": [
@@ -342,25 +358,25 @@
   "/XIuIr": [
     {
       "type": 0,
-      "value": "Every minute"
+      "value": "매분"
     }
   ],
   "/Z1fHN": [
     {
       "type": 0,
-      "value": "Tool and subagent activity sent to user"
+      "value": "사용자에게 보낸 도구 및 하위 에이전트 활동"
     }
   ],
   "/bWE45": [
     {
       "type": 0,
-      "value": "Scoring agent quality… fresh quick fixes will land here shortly."
+      "value": "채점 에이전트 품질... 새로운 빠른 수정 사항이 곧 여기에 표시됩니다."
     }
   ],
   "/clOBU": [
     {
       "type": 0,
-      "value": "Weekly"
+      "value": "주별"
     }
   ],
   "/dxZCE": [
@@ -378,7 +394,13 @@
   "/mHau5": [
     {
       "type": 0,
-      "value": "Failed to create connector"
+      "value": "커넥터를 만들지 못했습니다."
+    }
+  ],
+  "/qCaiZ": [
+    {
+      "type": 0,
+      "value": "Incident trigger name"
     }
   ],
   "/rNkXe": [
@@ -390,7 +412,7 @@
   "/tauMV": [
     {
       "type": 0,
-      "value": "e.g., ProductionKusto"
+      "value": "예: ProductionKusto"
     }
   ],
   "/wdD42": [
@@ -444,13 +466,13 @@
   "05Rzkx": [
     {
       "type": 0,
-      "value": "Test Agent"
+      "value": "테스트 에이전트"
     }
   ],
   "08bD52": [
     {
       "type": 0,
-      "value": "Tool created, but attaching to "
+      "value": "도구를 만들었지만 "
     },
     {
       "type": 1,
@@ -458,19 +480,33 @@
     },
     {
       "type": 0,
-      "value": " failed. Retry link."
+      "value": "에 연결하지 못했습니다. 다시 시도 링크"
     }
   ],
   "0BUTMv": [
     {
       "type": 0,
-      "value": "Search..."
+      "value": "검색..."
     }
   ],
   "0D+7fr": [
     {
       "type": 0,
       "value": "Microsoft IcM"
+    }
+  ],
+  "0DUgkZ": [
+    {
+      "type": 0,
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " stopped successfully"
     }
   ],
   "0Dhe75": [
@@ -488,7 +524,7 @@
   "0ICwq5": [
     {
       "type": 0,
-      "value": "Last updated"
+      "value": "마지막 업데이트 날짜"
     }
   ],
   "0KB3lG": [
@@ -500,21 +536,23 @@
   "0Krg21": [
     {
       "type": 0,
-      "value": "Quick fixes"
+      "value": "빠른 수정"
     }
   ],
   "0MhOuN": [
-    {
-      "type": 0,
-      "value": "Are you sure you want to delete task "
-    },
     {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": "? This action cannot be undone."
+      "value": " 작업을 삭제하시겠습니까? 이 작업은 실행 취소할 수 없습니다."
+    }
+  ],
+  "0Qocmw": [
+    {
+      "type": 0,
+      "value": "All tools"
     }
   ],
   "0R+Pet": [
@@ -526,7 +564,7 @@
   "0TOEqZ": [
     {
       "type": 0,
-      "value": "Enter a valid cron expression."
+      "value": "유효한 Cron 식을 입력합니다."
     }
   ],
   "0TkVxX": [
@@ -553,6 +591,12 @@
       "value": "개를 추가하는 중"
     }
   ],
+  "0VVX+G": [
+    {
+      "type": 0,
+      "value": "Connected as"
+    }
+  ],
   "0VuGey": [
     {
       "type": 0,
@@ -561,34 +605,28 @@
   ],
   "0aJxT2": [
     {
-      "type": 0,
-      "value": "Updated "
-    },
-    {
       "type": 1,
       "value": "time"
-    }
-  ],
-  "0aN6iW": [
+    },
     {
       "type": 0,
-      "value": "미리 보기 단계에서 진단, 메트릭, 지식 등에 대한 최적의 에이전트 성능을 얻으려면 Azure Kubernetes Service, Functions, Container Apps 또는 Web Apps의 Azure 컴퓨팅 서비스 중 하나 이상을 포함하는 리소스 그룹을 사용하세요."
+      "value": "에 업데이트됨"
     }
   ],
   "0cEOKu": [
     {
       "type": 0,
-      "value": "Advanced options"
+      "value": "고급 옵션"
     }
   ],
   "0eZALE": [
     {
-      "type": 0,
-      "value": "Last published "
-    },
-    {
       "type": 1,
       "value": "time"
+    },
+    {
+      "type": 0,
+      "value": "에 마지막으로 게시됨"
     }
   ],
   "0fhwgp": [
@@ -597,22 +635,28 @@
       "value": "작업 선택"
     }
   ],
+  "0hpRE4": [
+    {
+      "type": 0,
+      "value": "Enter the parameter name"
+    }
+  ],
   "0i3Qrd": [
     {
       "type": 0,
-      "value": "Agent Response"
+      "value": "에이전트 응답"
     }
   ],
   "0iLXks": [
     {
       "type": 0,
-      "value": "No extended agents available"
+      "value": "사용 가능한 확장 에이전트 없음"
     }
   ],
   "0ltHAS": [
     {
       "type": 0,
-      "value": "e.g., Every weekday at 9am"
+      "value": "예: 평일 오전 9시마다"
     }
   ],
   "0mx8D9": [
@@ -629,19 +673,23 @@
           "value": [
             {
               "type": 0,
-              "value": "Create scheduled tasks to run agents automatically."
+              "value": "예약된 작업을 만들어 에이전트를 자동으로 실행합니다."
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "예약된 작업 "
+            },
+            {
               "type": 1,
               "value": "count"
             },
             {
               "type": 0,
-              "value": " scheduled tasks ready to run agents automatically."
+              "value": "개가 에이전트를 자동으로 실행할 준비가 되어 있습니다."
             }
           ]
         }
@@ -660,7 +708,7 @@
   "0pysPM": [
     {
       "type": 0,
-      "value": "Total insights"
+      "value": "전체 인사이트"
     }
   ],
   "0q6E9l": [
@@ -672,7 +720,7 @@
   "0sA1BF": [
     {
       "type": 0,
-      "value": "Maximum file size: 100MB"
+      "value": "최대 파일 크기: 100MB"
     }
   ],
   "0sIUhe": [
@@ -690,7 +738,7 @@
   "0w+w97": [
     {
       "type": 0,
-      "value": "Edit YAML"
+      "value": "YAML 편집"
     }
   ],
   "0w0iFy": [
@@ -705,10 +753,16 @@
       "value": "작업"
     }
   ],
+  "0zGfOk": [
+    {
+      "type": 0,
+      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+    }
+  ],
   "12GY0h": [
     {
       "type": 0,
-      "value": "Describe the schedule before generating a cron expression."
+      "value": "cron 식을 생성하기 전에 일정을 설명해 주세요."
     }
   ],
   "1389z+": [
@@ -726,25 +780,25 @@
   "15nhHh": [
     {
       "type": 0,
-      "value": "A unique identifier for your agent"
+      "value": "에이전트의 고유 식별자"
     }
   ],
   "17sQau": [
     {
       "type": 0,
-      "value": "Use AI to enhance and validate your task instructions"
+      "value": "AI를 사용하여 작업 지침 강화 및 유효성 검사"
     }
   ],
   "18C/Jh": [
     {
       "type": 0,
-      "value": "Override default meta agent"
+      "value": "기본 메타 에이전트 재정의"
     }
   ],
   "1CcjQj": [
     {
       "type": 0,
-      "value": "Add a response plan to automate incident handling"
+      "value": "인시던트 처리를 자동화하는 응답 계획 추가"
     }
   ],
   "1DDIYv": [
@@ -756,7 +810,7 @@
   "1EnaNQ": [
     {
       "type": 0,
-      "value": "Next run: "
+      "value": "다음 실행: "
     },
     {
       "type": 1,
@@ -766,7 +820,7 @@
   "1FMpZj": [
     {
       "type": 0,
-      "value": "Error loading graph: "
+      "value": "그래프 로드 오류: "
     },
     {
       "type": 1,
@@ -796,7 +850,7 @@
   "1OorZL": [
     {
       "type": 0,
-      "value": "Failed to update connector with error: "
+      "value": "다음 오류로 커넥터를 업데이트하지 못했습니다. "
     },
     {
       "type": 1,
@@ -848,7 +902,7 @@
   "1aNP56": [
     {
       "type": 0,
-      "value": "Connector \""
+      "value": "커넥터 \""
     },
     {
       "type": 1,
@@ -856,7 +910,7 @@
     },
     {
       "type": 0,
-      "value": "\" has been updated successfully"
+      "value": "\"이(가) 업데이트되었습니다."
     }
   ],
   "1dOMiz": [
@@ -868,7 +922,7 @@
   "1eaczG": [
     {
       "type": 0,
-      "value": "Select fix"
+      "value": "수정 선택"
     }
   ],
   "1fNFGt": [
@@ -880,25 +934,25 @@
   "1hiiU/": [
     {
       "type": 0,
-      "value": "Review AI suggestions and warnings"
+      "value": "AI 제안 및 경고 검토"
     }
   ],
   "1hu8Uv": [
     {
       "type": 0,
-      "value": "Alert status"
+      "value": "경고 상태"
     }
   ],
   "1iEPTM": [
     {
       "type": 0,
-      "value": "General"
+      "value": "일반"
     }
   ],
   "1jBkyH": [
     {
       "type": 0,
-      "value": "Last confidence: "
+      "value": "마지막 신뢰도: "
     },
     {
       "type": 1,
@@ -916,11 +970,15 @@
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "도구 "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " tools selected"
+              "value": "개 선택됨"
             }
           ]
         }
@@ -945,13 +1003,13 @@
   "2+TYMx": [
     {
       "type": 0,
-      "value": "Add a trigger"
+      "value": "트리거 추가"
     }
   ],
   "2+atxY": [
     {
       "type": 0,
-      "value": "Handoff"
+      "value": "핸드오프"
     }
   ],
   "2/2yg+": [
@@ -963,7 +1021,7 @@
   "21vNrm": [
     {
       "type": 0,
-      "value": "Validate tool wiring and connector responses in context."
+      "value": "컨텍스트에서 도구 배선 및 커넥터 응답의 유효성을 검사합니다."
     }
   ],
   "235+J4": [
@@ -981,7 +1039,7 @@
   "26Vq1R": [
     {
       "type": 0,
-      "value": "Leave the field blank if there's no limit"
+      "value": "제한이 없으면 필드를 비워 둡니다."
     }
   ],
   "28HRcH": [
@@ -1003,13 +1061,13 @@
   "2Bb4rY": [
     {
       "type": 0,
-      "value": "Failed to update connector"
+      "value": "커넥터 업데이트 실패"
     }
   ],
   "2CSEeq": [
     {
       "type": 0,
-      "value": "Describe the cadence—get the cron"
+      "value": "주기 설명 — Cron 가져오기"
     }
   ],
   "2FLZrG": [
@@ -1033,7 +1091,7 @@
   "2Mm/ie": [
     {
       "type": 0,
-      "value": "Failed to save response plan"
+      "value": "응답 계획을 저장하지 못했습니다."
     }
   ],
   "2OQ6yB": [
@@ -1077,7 +1135,7 @@
   "2YgmBr": [
     {
       "type": 0,
-      "value": "Scheduled task turned off successfully"
+      "value": "예약된 작업이 꺼졌습니다."
     }
   ],
   "2a+ttj": [
@@ -1089,13 +1147,13 @@
   "2ePVf6": [
     {
       "type": 0,
-      "value": "Test your agent in a simple chat interface"
+      "value": "간단한 채팅 인터페이스에서 에이전트 테스트"
     }
   ],
   "2ep4et": [
     {
       "type": 0,
-      "value": "Monthly on day "
+      "value": "매월 "
     },
     {
       "type": 1,
@@ -1103,7 +1161,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": "일 "
     },
     {
       "type": 1,
@@ -1119,19 +1177,25 @@
   "2kRPCZ": [
     {
       "type": 0,
-      "value": "System tools"
+      "value": "시스템 도구"
+    }
+  ],
+  "2l5w5P": [
+    {
+      "type": 0,
+      "value": "Go to Support + Troubleshooting"
     }
   ],
   "2m6oj5": [
     {
       "type": 0,
-      "value": "Get started with the curated scenarios below or craft your own prompts."
+      "value": "아래에서 큐레이팅된 시나리오를 시작하거나 고유한 프롬프트를 작성하세요."
     }
   ],
   "2mMJRv": [
     {
       "type": 0,
-      "value": "Connectors"
+      "value": "커넥터"
     }
   ],
   "2os8R1": [
@@ -1146,6 +1210,12 @@
       "value": "위험"
     }
   ],
+  "2reUcp": [
+    {
+      "type": 0,
+      "value": "Subagent name"
+    }
+  ],
   "2tOWr2": [
     {
       "type": 0,
@@ -1155,7 +1225,7 @@
   "2xE9ci": [
     {
       "type": 0,
-      "value": "Analyse the current prompt, tools, and test runs to get tailored guidance."
+      "value": "현재 프롬프트, 도구 및 테스트 실행을 분석하여 맞춤형 지침을 가져옵니다."
     }
   ],
   "2zi2Yj": [
@@ -1167,7 +1237,7 @@
   "3/wF0G": [
     {
       "type": 0,
-      "value": "Slash commands"
+      "value": "슬래시 명령"
     }
   ],
   "30Ap/Y": [
@@ -1185,19 +1255,19 @@
   "33HEdR": [
     {
       "type": 0,
-      "value": "Tools this agent can call"
+      "value": "이 에이전트가 호출할 수 있는 도구"
     }
   ],
   "35Pxrz": [
     {
       "type": 0,
-      "value": "Enter a name and instructions before creating this agent."
+      "value": "이 에이전트를 만들기 전에 이름과 지침을 입력합니다."
     }
   ],
   "387FD2": [
     {
       "type": 0,
-      "value": "Extended agents"
+      "value": "확장 에이전트"
     }
   ],
   "3BubSI": [
@@ -1215,13 +1285,13 @@
   "3GLH+d": [
     {
       "type": 0,
-      "value": "Examples"
+      "value": "예제"
     }
   ],
   "3H77Ic": [
     {
       "type": 0,
-      "value": "No agents available yet"
+      "value": "아직 사용할 수 있는 에이전트가 없음"
     }
   ],
   "3JVa6k": [
@@ -1239,7 +1309,7 @@
   "3Pq+hf": [
     {
       "type": 0,
-      "value": "Create and connect"
+      "value": "만들기 및 연결"
     }
   ],
   "3PxUNi": [
@@ -1251,7 +1321,7 @@
   "3R3pgd": [
     {
       "type": 0,
-      "value": "No suggestions available"
+      "value": "사용할 수 있는 제안 없음"
     }
   ],
   "3Rh7XU": [
@@ -1269,13 +1339,13 @@
   "3SVI5p": [
     {
       "type": 0,
-      "value": "Warning"
+      "value": "경고"
     }
   ],
   "3VI9mt": [
     {
       "type": 0,
-      "value": "Save Changes"
+      "value": "변경 내용 저장"
     }
   ],
   "3Wq8aM": [
@@ -1299,7 +1369,7 @@
   "3n8o15": [
     {
       "type": 0,
-      "value": "Apply changes"
+      "value": "변경 내용 적용"
     }
   ],
   "3nhWFW": [
@@ -1321,7 +1391,7 @@
   "3sQV42": [
     {
       "type": 0,
-      "value": "Estimated total "
+      "value": "총 "
     },
     {
       "type": 1,
@@ -1329,7 +1399,7 @@
     },
     {
       "type": 0,
-      "value": "% confidence"
+      "value": "% 신뢰도 예상"
     }
   ],
   "3sjbqq": [
@@ -1359,7 +1429,7 @@
   "3yurtF": [
     {
       "type": 0,
-      "value": "Next run"
+      "value": "다음 실행"
     }
   ],
   "3zLsNR": [
@@ -1377,13 +1447,13 @@
   "4/aFfy": [
     {
       "type": 0,
-      "value": "Tree"
+      "value": "트리"
     }
   ],
   "4/nSt8": [
     {
       "type": 0,
-      "value": "Select an existing trigger"
+      "value": "기존 트리거 선택"
     }
   ],
   "40YXE1": [
@@ -1407,25 +1477,25 @@
   "42RAxK": [
     {
       "type": 0,
-      "value": "Start testing"
+      "value": "테스트 시작"
     }
   ],
   "44QmgP": [
     {
       "type": 0,
-      "value": "connector"
+      "value": "커넥터"
     }
   ],
   "44Y8wQ": [
     {
       "type": 0,
-      "value": "No common tools configured."
+      "value": "구성된 일반 도구가 없습니다."
     }
   ],
   "451B6Z": [
     {
       "type": 0,
-      "value": "No agents found"
+      "value": "에이전트를 찾을 수 없음"
     }
   ],
   "477I0g": [
@@ -1443,39 +1513,35 @@
   "47Qksb": [
     {
       "type": 0,
-      "value": "This agent"
+      "value": "이 에이전트"
     }
   ],
   "493R/T": [
     {
       "type": 0,
-      "value": "Share your draft instructions and we’ll tailor them for a scheduled agent run."
+      "value": "초안 지침을 공유하면 예약된 에이전트 실행에 맞게 조정해 드리겠습니다."
     }
   ],
   "498yM3": [
-    {
-      "type": 0,
-      "value": "Runs "
-    },
     {
       "type": 1,
       "value": "description"
     },
     {
       "type": 0,
-      "value": "."
+      "value": "을(를) 실행합니다."
     }
   ],
   "4BVpFN": [
     {
       "type": 0,
-      "value": "YAML must include a spec object."
+      "value": "YAML에는 spec 개체가 포함되어야 합니다."
     }
   ],
   "4C44ie": [
     {
       "type": 0,
-      "value": "Trigger details"
+      "value": "트리거 세부 정보"
     }
   ],
   "4Ez7HI": [
@@ -1487,7 +1553,7 @@
   "4HV6SH": [
     {
       "type": 0,
-      "value": "Alert created"
+      "value": "경고 생성됨"
     }
   ],
   "4MeTpL": [
@@ -1499,7 +1565,7 @@
   "4OCLSf": [
     {
       "type": 0,
-      "value": "Response to user"
+      "value": "사용자에 대한 응답"
     }
   ],
   "4OUjTL": [
@@ -1511,19 +1577,25 @@
   "4Orfd8": [
     {
       "type": 0,
-      "value": "Rename thread"
+      "value": "스레드 이름 바꾸기"
     }
   ],
   "4QLM52": [
     {
       "type": 0,
-      "value": "New agents can take a few seconds to appear in the graph. If you do not see it right away, refresh the list after a brief moment."
+      "value": "새 에이전트가 그래프에 나타나는 데 몇 초 걸릴 수 있습니다. 바로 보이지 않으면 잠시 후 목록을 새로 고칩니다."
     }
   ],
   "4Qhg3L": [
     {
       "type": 0,
-      "value": "Keep the description brief and explain the task’s actions. Include necessary resource identifiers, specify time-sensitive information, and define success/failure signals or required output formats."
+      "value": "설명을 간략하게 유지하고 작업의 내용을 설명하세요. 필요한 리소스 식별자를 포함하고, 시간에 민감한 정보를 지정하고, 성공/실패 신호 또는 필요한 출력 형식을 정의합니다."
+    }
+  ],
+  "4RwjwU": [
+    {
+      "type": 0,
+      "value": "Add handoff from existing agent"
     }
   ],
   "4TnjxL": [
@@ -1535,7 +1607,17 @@
   "4XOvey": [
     {
       "type": 0,
-      "value": "AI Agents"
+      "value": "AI 에이전트"
+    }
+  ],
+  "4Xep39": [
+    {
+      "type": 0,
+      "value": "Failed to stop SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "4ZoIgV": [
@@ -1553,7 +1635,7 @@
   "4fPELu": [
     {
       "type": 0,
-      "value": "Function"
+      "value": "함수"
     }
   ],
   "4ii5zj": [
@@ -1589,19 +1671,13 @@
   "4oK1Me": [
     {
       "type": 0,
-      "value": "Switch to form"
+      "value": "양식으로 전환"
     }
   ],
   "4pJVaS": [
     {
       "type": 0,
-      "value": "Select row"
-    }
-  ],
-  "4uiKBK": [
-    {
-      "type": 0,
-      "value": "Select a Kusto connector"
+      "value": "행 선택"
     }
   ],
   "4upwsn": [
@@ -1613,7 +1689,7 @@
   "4z+NaY": [
     {
       "type": 0,
-      "value": "The type of data source"
+      "value": "데이터 원본의 형식"
     }
   ],
   "5+bQr/": [
@@ -1635,7 +1711,7 @@
     },
     {
       "type": 0,
-      "value": ", I need diagnostics for intermittent latency spikes across AKS clusters eastus & westeurope."
+      "value": " 님, AKS 클러스터 eastus 및 westeurope에서 일시적인 대기 시간 급증에 대한 진단이 필요합니다."
     }
   ],
   "53O1/Z": [
@@ -1647,7 +1723,7 @@
   "53qjcm": [
     {
       "type": 0,
-      "value": "Updating scheduled task"
+      "value": "예약된 작업을 업데이트하는 중"
     }
   ],
   "543Ygw": [
@@ -1659,7 +1735,7 @@
   "54UIcW": [
     {
       "type": 0,
-      "value": "We couldn’t polish the instructions. Try again shortly."
+      "value": "지침을 다듬을 수 없습니다. 잠시 후 다시 시도하세요."
     }
   ],
   "59z+Aj": [
@@ -1681,7 +1757,7 @@
   "5DqOua": [
     {
       "type": 0,
-      "value": "Pick an extended agent to assist you with tasks."
+      "value": "작업에 도움이 되도록 확장 에이전트를 선택하세요."
     }
   ],
   "5GUtRJ": [
@@ -1693,7 +1769,7 @@
   "5Imse3": [
     {
       "type": 0,
-      "value": "Failed to delete connector with error: "
+      "value": "다음 오류로 커넥터를 삭제하지 못했습니다. "
     },
     {
       "type": 1,
@@ -1703,33 +1779,29 @@
   "5Lc8g/": [
     {
       "type": 0,
-      "value": "Preview updated"
+      "value": "미리 보기 업데이트됨"
     }
   ],
   "5M+Mu/": [
     {
       "type": 0,
-      "value": "Close quality watcher"
+      "value": "품질 감시자 닫기"
     }
   ],
   "5MSxYS": [
-    {
-      "type": 0,
-      "value": "Will add as handoff to "
-    },
     {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": "."
+      "value": "에 핸드오프로 추가됩니다."
     }
   ],
   "5POweM": [
     {
       "type": 0,
-      "value": "Create New Entity"
+      "value": "새 엔터티 만들기"
     }
   ],
   "5QYdPU": [
@@ -1747,7 +1819,7 @@
   "5SH2BD": [
     {
       "type": 0,
-      "value": "Weekly on "
+      "value": "매주 "
     },
     {
       "type": 1,
@@ -1755,7 +1827,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " "
     },
     {
       "type": 1,
@@ -1777,7 +1849,7 @@
   "5U04OG": [
     {
       "type": 0,
-      "value": "Data knowledge space"
+      "value": "데이터 지식 공간"
     }
   ],
   "5UfRjw": [
@@ -1823,19 +1895,25 @@
   "5XRsWa": [
     {
       "type": 0,
-      "value": "Agent status"
+      "value": "에이전트 상태"
     }
   ],
   "5Y6lHe": [
     {
       "type": 0,
-      "value": "You can increase or decrease active flow AAUs as needed. If the agent reaches the active flow limit, it continues running only in the always-on flow but is unavailable for chat and actions."
+      "value": "필요에 따라 활성 흐름 AAU를 늘리거나 줄일 수 있습니다. 에이전트가 활성 흐름 제한에 도달하면 상시 흐름에서만 계속 실행되지만 채팅 및 작업에는 사용할 수 없습니다."
     }
   ],
   "5cRddy": [
     {
       "type": 0,
       "value": "사용자가 완화함"
+    }
+  ],
+  "5fVEet": [
+    {
+      "type": 0,
+      "value": "Add tools"
     }
   ],
   "5gEh2M": [
@@ -1875,7 +1953,7 @@
   "5kK+j9": [
     {
       "type": 0,
-      "value": "Restart"
+      "value": "다시 시작"
     }
   ],
   "5kp1Ie": [
@@ -1907,7 +1985,7 @@
   "5q8BxP": [
     {
       "type": 0,
-      "value": "What would you like to create?"
+      "value": "무엇을 만드시겠습니까?"
     }
   ],
   "5sg7KC": [
@@ -1919,7 +1997,7 @@
   "5ukccA": [
     {
       "type": 0,
-      "value": "Run an analysis to see tailored fixes."
+      "value": "분석을 실행하여 맞춤형 수정 사항을 확인합니다."
     }
   ],
   "5w4pim": [
@@ -1943,7 +2021,7 @@
   "5walLE": [
     {
       "type": 0,
-      "value": "Tools · "
+      "value": "도구 · "
     },
     {
       "type": 1,
@@ -1957,7 +2035,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " "
     },
     {
       "type": 1,
@@ -1965,7 +2043,7 @@
     },
     {
       "type": 0,
-      "value": "%. Start experimenting—your upgrade path awaits."
+      "value": "% 실험을 시작합니다. 업그레이드 경로가 기다리고 있습니다."
     }
   ],
   "5y2qWO": [
@@ -2001,7 +2079,7 @@
   "67UmDz": [
     {
       "type": 0,
-      "value": "Parameter syntax:"
+      "value": "매개 변수 구문:"
     }
   ],
   "69FfbB": [
@@ -2018,18 +2096,24 @@
   ],
   "6B0Aua": [
     {
-      "type": 1,
-      "value": "score"
+      "type": 0,
+      "value": "XP "
     },
     {
+      "type": 1,
+      "value": "score"
+    }
+  ],
+  "6BTCPo": [
+    {
       "type": 0,
-      "value": " XP"
+      "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
     }
   ],
   "6CxEZS": [
     {
       "type": 0,
-      "value": "Edit & test live agent"
+      "value": "라이브 에이전트 편집 및 테스트"
     }
   ],
   "6ENgmY": [
@@ -2047,7 +2131,7 @@
   "6KOA0x": [
     {
       "type": 0,
-      "value": "Cleared the composer. Type a new question to begin a fresh chat."
+      "value": "작성기를 만들었습니다. 새 질문을 입력해 새 채팅을 시작합니다."
     }
   ],
   "6LZ2qn": [
@@ -2059,7 +2143,7 @@
   "6Lox/s": [
     {
       "type": 0,
-      "value": "recommendations"
+      "value": "권장 사항"
     }
   ],
   "6OBtew": [
@@ -2083,13 +2167,13 @@
   "6SKklv": [
     {
       "type": 0,
-      "value": "Remove attachment"
+      "value": "첨부 파일 제거"
     }
   ],
   "6TO45V": [
     {
       "type": 0,
-      "value": "No parameters defined."
+      "value": "매개 변수가 정의되지 않았습니다."
     }
   ],
   "6UyZlH": [
@@ -2101,7 +2185,7 @@
   "6Vngei": [
     {
       "type": 0,
-      "value": "Trigger type"
+      "value": "트리거 유형"
     }
   ],
   "6XFO/C": [
@@ -2113,7 +2197,7 @@
   "6Y8rFa": [
     {
       "type": 0,
-      "value": "No change since last run"
+      "value": "마지막 실행 이후 변경 내용 없음"
     }
   ],
   "6YHhH+": [
@@ -2137,7 +2221,7 @@
   "6aH1+U": [
     {
       "type": 0,
-      "value": "Create a scheduled task"
+      "value": "예약된 작업 만들기"
     }
   ],
   "6bkNTl": [
@@ -2149,7 +2233,7 @@
   "6dEJ43": [
     {
       "type": 0,
-      "value": "Cron draft"
+      "value": "Cron 초안"
     }
   ],
   "6dWeUs": [
@@ -2176,6 +2260,24 @@
       "value": "에이전트에서 관리할 최대 20개의 리소스 그룹을 선택할 수 있습니다."
     }
   ],
+  "6tzuXg": [
+    {
+      "type": 0,
+      "value": "Failed to start SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "6u8zJX": [
     {
       "type": 0,
@@ -2185,7 +2287,7 @@
   "6umiRw": [
     {
       "type": 0,
-      "value": "A clear, concise description that helps other agents understand when to delegate work to this specialist agent. This appears in agent handoff decisions and collaboration workflows."
+      "value": "다른 에이전트가 이 전문가 에이전트에 작업을 위임할 시점을 이해하는 데 도움이 되는 명확하고 간결한 설명입니다. 에이전트 전달 결정 및 협업 워크플로에 나타납니다."
     }
   ],
   "6v8Uj+": [
@@ -2201,13 +2303,13 @@
   "6w0QQX": [
     {
       "type": 0,
-      "value": "Apply your edits and refresh insights"
+      "value": "편집 내용을 적용하고 인사이트를 새로 고치세요."
     }
   ],
   "6yuD0y": [
     {
       "type": 0,
-      "value": "Read-only lock"
+      "value": "읽기 전용 잠금"
     }
   ],
   "6zUWZ/": [
@@ -2219,7 +2321,7 @@
   "7+Domh": [
     {
       "type": 0,
-      "value": "Notes"
+      "value": "노트"
     }
   ],
   "7+b0J0": [
@@ -2231,7 +2333,7 @@
   "726zma": [
     {
       "type": 0,
-      "value": "Daily at "
+      "value": "매일 "
     },
     {
       "type": 1,
@@ -2241,7 +2343,7 @@
   "73c47a": [
     {
       "type": 0,
-      "value": "Turn on scheduled task"
+      "value": "예약된 작업 켜기"
     }
   ],
   "74vgSJ": [
@@ -2262,6 +2364,12 @@
       "value": "스트리밍 메시지에서 잘못된 스레드 데이터를 받았습니다."
     }
   ],
+  "79kwlH": [
+    {
+      "type": 0,
+      "value": "No agents available for handoff"
+    }
+  ],
   "7C0xai": [
     {
       "type": 0,
@@ -2271,19 +2379,13 @@
   "7Cy5xk": [
     {
       "type": 0,
-      "value": "Go to Incident management"
+      "value": "인시던트 관리로 이동"
     }
   ],
   "7Eq7I8": [
     {
       "type": 0,
       "value": "검토 모드"
-    }
-  ],
-  "7Hg58U": [
-    {
-      "type": 0,
-      "value": "e.g., QueryKusto"
     }
   ],
   "7M8VZy": [
@@ -2355,31 +2457,31 @@
   "7TVRcx": [
     {
       "type": 0,
-      "value": "Retry link"
+      "value": "다시 시도 링크"
     }
   ],
   "7Uk/61": [
     {
       "type": 0,
-      "value": "Agent configuration"
+      "value": "에이전트 구성"
     }
   ],
   "7Vep/o": [
     {
       "type": 0,
-      "value": "A unique identifier for your connector"
+      "value": "커넥터의 고유 식별자"
     }
   ],
   "7X1tNR": [
     {
       "type": 0,
-      "value": "Create task"
+      "value": "작업 만들기"
     }
   ],
   "7bDMaW": [
     {
       "type": 0,
-      "value": "Delete file?"
+      "value": "파일을 삭제하시겠습니까?"
     }
   ],
   "7cS956": [
@@ -2403,7 +2505,7 @@
   "7nUCu9": [
     {
       "type": 0,
-      "value": "Timezone"
+      "value": "표준 시간대"
     }
   ],
   "7oBAcZ": [
@@ -2414,19 +2516,23 @@
           "value": [
             {
               "type": 0,
-              "value": "No incident response plans yet"
+              "value": "아직 인시던트 응답 계획이 없음"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "인시던트 응답 계획 "
+            },
+            {
               "type": 1,
               "value": "count"
             },
             {
               "type": 0,
-              "value": " incident response plans ready"
+              "value": "개가 준비됨"
             }
           ]
         }
@@ -2451,27 +2557,23 @@
   "7sbcy0": [
     {
       "type": 0,
-      "value": "Confidence is calculated based on your agent prompt, available tools, and chat interactions. Click refresh to get AI-powered recommendations."
+      "value": "신뢰도는 에이전트 프롬프트, 사용 가능한 도구 및 채팅 상호 작용을 기반으로 계산됩니다. 새로 고침을 클릭하여 AI 기반 권장 사항을 가져옵니다."
     }
   ],
   "7smbCB": [
     {
       "type": 0,
-      "value": "Define autonomous agents with custom instructions and capabilities"
+      "value": "사용자 지정 지침 및 기능을 사용하여 자율 에이전트 정의"
     }
   ],
   "7tqXmc": [
-    {
-      "type": 0,
-      "value": "Describe how "
-    },
     {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": " should handle new incidents."
+      "value": "이(가) 새 인시던트를 처리하는 방법을 설명합니다."
     }
   ],
   "7vl63m": [
@@ -2501,7 +2603,7 @@
   "83YwiU": [
     {
       "type": 0,
-      "value": "Tool details · "
+      "value": "도구 세부 정보 · "
     },
     {
       "type": 1,
@@ -2511,7 +2613,7 @@
   "86kOeb": [
     {
       "type": 0,
-      "value": "No matches for the current filters."
+      "value": "현재 필터와 일치하는 항목이 없습니다."
     }
   ],
   "87v+WY": [
@@ -2523,13 +2625,13 @@
   "8AMq3a": [
     {
       "type": 0,
-      "value": "Daily active flow consumption"
+      "value": "일별 활성 흐름 사용량"
     }
   ],
   "8BaLs0": [
     {
       "type": 0,
-      "value": "Select all rows"
+      "value": "모든 행 선택"
     }
   ],
   "8F5cJQ": [
@@ -2541,7 +2643,7 @@
   "8LMIGa": [
     {
       "type": 0,
-      "value": "These will be replaced with actual values at runtime."
+      "value": "이러한 값은 런타임에 실제 값으로 대체됩니다."
     }
   ],
   "8NHZQV": [
@@ -2567,7 +2669,7 @@
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": "일 전"
             }
           ]
         }
@@ -2580,7 +2682,7 @@
   "8Q504V": [
     {
       "type": 0,
-      "value": "Metadata"
+      "value": "메타데이터"
     }
   ],
   "8QX1EO": [
@@ -2592,7 +2694,7 @@
   "8RcpTO": [
     {
       "type": 0,
-      "value": "Describe this connector..."
+      "value": "이 커넥터 설명..."
     }
   ],
   "8RdOD0": [
@@ -2601,16 +2703,32 @@
       "value": "ID 선택"
     }
   ],
+  "8SCDv/": [
+    {
+      "type": 0,
+      "value": "Enter the query for the tool to run"
+    }
+  ],
   "8Vd2Kv": [
     {
       "type": 0,
-      "value": "Update list"
+      "value": "목록 업데이트"
     }
   ],
   "8Wiwkg": [
     {
       "type": 0,
       "value": "지식 그래프 작성 중"
+    }
+  ],
+  "8Zl3PA": [
+    {
+      "type": 0,
+      "value": "Failed to start SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "8aHHLj": [
@@ -2622,23 +2740,19 @@
   "8dASTJ": [
     {
       "type": 0,
-      "value": "Create a handoff sub-agent"
+      "value": "핸드오프 하위 에이전트 만들기"
     }
   ],
   "8dTxSy": [
     {
       "type": 0,
-      "value": "Learn more about how to calculate cost"
+      "value": "비용을 계산하는 방법에 대한 자세한 정보"
     }
   ],
   "8eOoHt": [
     {
-      "type": 0,
-      "value": "This will permanently "
-    },
-    {
       "type": 1,
-      "value": "actionVerb"
+      "value": "itemType"
     },
     {
       "type": 0,
@@ -2650,15 +2764,7 @@
     },
     {
       "type": 0,
-      "value": " "
-    },
-    {
-      "type": 1,
-      "value": "itemType"
-    },
-    {
-      "type": 0,
-      "value": "s. Are you sure you want to "
+      "value": "개가 영구적으로 "
     },
     {
       "type": 1,
@@ -2666,7 +2772,7 @@
     },
     {
       "type": 0,
-      "value": " these "
+      "value": "됩니다. 이 "
     },
     {
       "type": 1,
@@ -2674,13 +2780,27 @@
     },
     {
       "type": 0,
-      "value": "s?"
+      "value": "을(를) "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": "하시겠습니까?"
     }
   ],
   "8fYK1J": [
     {
       "type": 0,
       "value": "실행 시간"
+    }
+  ],
+  "8fw5Cz": [
+    {
+      "type": 0,
+      "value": "Try different search terms or clear your search to see all connectors."
     }
   ],
   "8lCjAM": [
@@ -2698,13 +2818,13 @@
   "8ojA9A": [
     {
       "type": 0,
-      "value": "Let AI polish the instructions"
+      "value": "AI가 지침을 다듬도록 허용"
     }
   ],
   "8oyl6b": [
     {
       "type": 0,
-      "value": "Line chart"
+      "value": "꺾은선형 차트"
     }
   ],
   "8quEg9": [
@@ -2716,7 +2836,7 @@
   "8rNTuV": [
     {
       "type": 0,
-      "value": "Select an agent to hand off to"
+      "value": "전달할 에이전트 선택"
     }
   ],
   "8v0Pyn": [
@@ -2732,7 +2852,7 @@
   "8wQLC0": [
     {
       "type": 0,
-      "value": "Close Todo Plans"
+      "value": "할 일 계획 닫기"
     }
   ],
   "8yyU6n": [
@@ -2750,7 +2870,7 @@
   "9+dRta": [
     {
       "type": 0,
-      "value": "This will permanently delete "
+      "value": "이렇게 하면 에이전트에서 사용하는 기술 원본에서 "
     },
     {
       "type": 1,
@@ -2758,7 +2878,7 @@
     },
     {
       "type": 0,
-      "value": " files from the knowledge sources the agent uses. Are you sure you want to delete these files?"
+      "value": "개의 파일이 영구적으로 삭제됩니다. 이 파일을 삭제하시겠습니까?"
     }
   ],
   "9/ucRx": [
@@ -2788,7 +2908,7 @@
   "94QRkK": [
     {
       "type": 0,
-      "value": "Follow-up questions"
+      "value": "후속작업 질문"
     }
   ],
   "94zF5I": [
@@ -2812,25 +2932,25 @@
   "98A08r": [
     {
       "type": 0,
-      "value": "Learn more about MCP servers"
+      "value": "MCP 서버에 대한 자세한 정보"
     }
   ],
   "98TwgV": [
     {
       "type": 0,
-      "value": "Describe when and why other agents should hand off to this agent..."
+      "value": "다른 에이전트가 이 에이전트에 전달해야 하는 시기와 이유를 설명해 주세요..."
     }
   ],
   "99OdS3": [
     {
       "type": 0,
-      "value": "Planning"
+      "value": "계획"
     }
   ],
   "9Dp2VU": [
     {
       "type": 0,
-      "value": "Save failed: "
+      "value": "저장 실패: "
     },
     {
       "type": 1,
@@ -2840,13 +2960,13 @@
   "9G+4ga": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all data connectors."
+      "value": "다른 검색어를 시도하거나 검색을 지우면 모든 데이터 커넥터를 볼 수 있습니다."
     }
   ],
   "9GSKOR": [
     {
       "type": 0,
-      "value": "This overrides the default meta agent to remove general Azure knowledge and provide a more focused experience."
+      "value": "이렇게 하면 기본 메타 에이전트를 재정의하여 일반적인 Azure 지식을 제거하고 더 집중적인 환경을 제공합니다."
     }
   ],
   "9MPGF8": [
@@ -2858,13 +2978,13 @@
   "9MwJ6v": [
     {
       "type": 0,
-      "value": "e.g., IncidentAnalyzer"
+      "value": "예: IncidentAnalyzer"
     }
   ],
   "9SQWi9": [
     {
       "type": 0,
-      "value": "Configuration target"
+      "value": "구성 대상"
     }
   ],
   "9VUlhV": [
@@ -2876,19 +2996,19 @@
   "9WRlF4": [
     {
       "type": 0,
-      "value": "Send"
+      "value": "보내기"
     }
   ],
   "9X3VEw": [
     {
       "type": 0,
-      "value": "The task will stop running after reaching this number"
+      "value": "이 번호에 도달하면 작업 실행이 중지됩니다."
     }
   ],
   "9XASFm": [
     {
       "type": 0,
-      "value": "Selected files table"
+      "value": "선택한 파일 테이블"
     }
   ],
   "9ZIBMx": [
@@ -2903,20 +3023,10 @@
       "value": "제목"
     }
   ],
-  "9bH3e2": [
-    {
-      "type": 0,
-      "value": "Nodes: "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    }
-  ],
   "9jaWOF": [
     {
       "type": 0,
-      "value": "MCP tools · "
+      "value": "MCP 도구 · "
     },
     {
       "type": 1,
@@ -2926,7 +3036,7 @@
   "9q75fe": [
     {
       "type": 0,
-      "value": "No handoff agents available"
+      "value": "사용 가능한 핸드오프 에이전트 없음"
     }
   ],
   "9sDoY5": [
@@ -2936,7 +3046,7 @@
     },
     {
       "type": 0,
-      "value": " of "
+      "value": "/"
     },
     {
       "type": 1,
@@ -2944,7 +3054,7 @@
     },
     {
       "type": 0,
-      "value": " completed"
+      "value": " 완료됨"
     }
   ],
   "9uOFF3": [
@@ -2956,7 +3066,7 @@
   "9xBQKf": [
     {
       "type": 0,
-      "value": "YAML editing is coming soon for this entity."
+      "value": "이 엔터티에 대한 YAML 편집이 곧 제공될 예정입니다."
     }
   ],
   "A/xTHO": [
@@ -2986,13 +3096,13 @@
   "A3ptul": [
     {
       "type": 0,
-      "value": "Templates"
+      "value": "템플릿"
     }
   ],
   "A4ZrJb": [
     {
       "type": 0,
-      "value": "Playground actions are coming soon."
+      "value": "플레이그라운드 작업이 곧 제공될 예정입니다."
     }
   ],
   "AA/tRJ": [
@@ -3032,7 +3142,7 @@
   "AHQdRU": [
     {
       "type": 0,
-      "value": "Monthly AAU limit:"
+      "value": "월별 AAU 제한:"
     }
   ],
   "ALkPTF": [
@@ -3044,13 +3154,13 @@
   "ASLbZd": [
     {
       "type": 0,
-      "value": "Export analysis"
+      "value": "분석 내보내기"
     }
   ],
   "ATXGa+": [
     {
       "type": 0,
-      "value": "Agent Name"
+      "value": "에이전트 이름"
     }
   ],
   "ATYp8z": [
@@ -3062,13 +3172,13 @@
   "AYrXUB": [
     {
       "type": 0,
-      "value": "No pending configuration changes to apply"
+      "value": "적용할 보류 중인 구성 변경 내용이 없습니다."
     }
   ],
   "AaJ/LU": [
     {
       "type": 0,
-      "value": "Polish the instructions"
+      "value": "지침 다듬기"
     }
   ],
   "AbXVP4": [
@@ -3080,7 +3190,7 @@
   "AbleKr": [
     {
       "type": 0,
-      "value": "data connector"
+      "value": "데이터 커넥터"
     }
   ],
   "AbpmRv": [
@@ -3092,7 +3202,7 @@
   "Ad7J7h": [
     {
       "type": 0,
-      "value": "Failed to delete task: "
+      "value": "작업을 삭제하지 못했습니다. "
     },
     {
       "type": 1,
@@ -3102,7 +3212,7 @@
   "AdRf7Y": [
     {
       "type": 0,
-      "value": "Detected cron: "
+      "value": "검색된 cron: "
     },
     {
       "type": 1,
@@ -3112,7 +3222,7 @@
   "AdnFH8": [
     {
       "type": 0,
-      "value": "The current consumption exceeds the new allocation, which will take effect next month. Until then, the agent will run only in the always-on flow. Chat and actions will be unavailable."
+      "value": "현재 사용량이 새 할당을 초과하여 다음 달에 적용됩니다. 그때까지 에이전트는 상시 흐름에서만 실행됩니다. 채팅 및 작업을 사용할 수 없습니다."
     }
   ],
   "AeWmvh": [
@@ -3130,7 +3240,7 @@
   "Ai/0lk": [
     {
       "type": 0,
-      "value": "A function or capability for agents to use"
+      "value": "에이전트가 사용할 함수 또는 기능"
     }
   ],
   "AmnkPD": [
@@ -3148,7 +3258,7 @@
   "AqVLXi": [
     {
       "type": 0,
-      "value": "Create reusable functions and actions for your agents"
+      "value": "에이전트용 재사용 가능 함수 및 작업 만들기"
     }
   ],
   "AuFOi8": [
@@ -3166,7 +3276,7 @@
   "AzTehW": [
     {
       "type": 0,
-      "value": "Review and edit the full "
+      "value": "전체 "
     },
     {
       "type": 1,
@@ -3174,25 +3284,25 @@
     },
     {
       "type": 0,
-      "value": " YAML."
+      "value": " YAML을 검토하고 편집합니다."
     }
   ],
   "B3Q5mz": [
     {
       "type": 0,
-      "value": "Trigger"
+      "value": "트리거"
     }
   ],
   "B5kyn8": [
     {
       "type": 0,
-      "value": "connectors"
+      "value": "커넥터"
     }
   ],
   "B7EJpi": [
     {
       "type": 0,
-      "value": "Agent Quality"
+      "value": "에이전트 품질"
     }
   ],
   "BEck3n": [
@@ -3216,13 +3326,13 @@
   "BLU3k6": [
     {
       "type": 0,
-      "value": "Edit a scheduled task"
+      "value": "예약된 작업 편집"
     }
   ],
   "BNH9Uy": [
     {
       "type": 0,
-      "value": "Quality "
+      "value": "품질 "
     },
     {
       "type": 1,
@@ -3236,13 +3346,13 @@
   "BP3wUO": [
     {
       "type": 0,
-      "value": "The type of tool functionality"
+      "value": "도구 기능의 유형"
     }
   ],
   "BSQQkf": [
     {
       "type": 0,
-      "value": "Query returned no results"
+      "value": "쿼리가 결과를 반환하지 않음"
     }
   ],
   "BT9p8f": [
@@ -3260,7 +3370,7 @@
   "BV7QgK": [
     {
       "type": 1,
-      "value": "actionVerb"
+      "value": "itemType"
     },
     {
       "type": 0,
@@ -3268,7 +3378,7 @@
     },
     {
       "type": 1,
-      "value": "itemType"
+      "value": "actionVerb"
     },
     {
       "type": 0,
@@ -3284,13 +3394,19 @@
   "BWt4Jj": [
     {
       "type": 0,
-      "value": "Binding"
+      "value": "바인딩"
+    }
+  ],
+  "BakoFg": [
+    {
+      "type": 0,
+      "value": "Select tool"
     }
   ],
   "BbTpTJ": [
     {
       "type": 0,
-      "value": "Using latest YAML changes"
+      "value": "최신 YAML 변경 내용 사용"
     }
   ],
   "BcEbxp": [
@@ -3300,7 +3416,7 @@
     },
     {
       "type": 0,
-      "value": "s"
+      "value": "초"
     }
   ],
   "Bcgdb7": [
@@ -3326,61 +3442,49 @@
   "BgdyiU": [
     {
       "type": 0,
-      "value": "Incident response"
+      "value": "인시던트 응답"
     }
   ],
   "BhRlDa": [
     {
       "type": 0,
-      "value": "Deleting incidents "
+      "value": "인시던트 "
     },
     {
       "type": 1,
       "value": "titles"
-    }
-  ],
-  "BkOSF2": [
+    },
     {
       "type": 0,
-      "value": "Parameters"
+      "value": "을(를) 삭제하는 중"
     }
   ],
   "Bluuk+": [
     {
       "type": 0,
-      "value": "Data type and requirement for validation"
+      "value": "유효성 검사용 데이터 형식 및 요구 사항"
     }
   ],
   "BmEERa": [
-    {
-      "type": 0,
-      "value": "Deleting "
-    },
     {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " data connectors..."
+      "value": "개의 데이터 커넥터를 삭제하는 중..."
     }
   ],
   "BuziI2": [
     {
       "type": 0,
-      "value": "Collapse panel"
+      "value": "패널 축소"
     }
   ],
   "BynA9c": [
     {
       "type": 0,
-      "value": "Optional tweaks"
-    }
-  ],
-  "C2PrxB": [
-    {
-      "type": 0,
-      "value": "SRE 에이전트 관리자 역할을 자신에게 할당하려면 여기를 클릭하세요."
+      "value": "선택적 조정"
     }
   ],
   "C2iTEH": [
@@ -3395,16 +3499,22 @@
       "value": "Logic Apps 기여자"
     }
   ],
+  "C6Jt4c": [
+    {
+      "type": 0,
+      "value": "Scheduled task name"
+    }
+  ],
   "CBHDb1": [
     {
       "type": 0,
-      "value": "Task status"
+      "value": "작업 상태"
     }
   ],
   "CEdEmD": [
     {
       "type": 0,
-      "value": "Creates a draft agent and tool workspace for testing without touching production. Coming soon..."
+      "value": "프로덕션을 건드리지 않고 테스트할 초안 에이전트 및 도구 작업 영역을 만듭니다. 출시 예정..."
     }
   ],
   "CFJ1OD": [
@@ -3416,19 +3526,19 @@
   "CGn7Yd": [
     {
       "type": 0,
-      "value": "Link a tool or create a new one to configure it here."
+      "value": "도구를 연결하거나 새로 만들어 여기에서 구성하세요."
     }
   ],
   "CHt7dX": [
     {
       "type": 0,
-      "value": "MCP Tools (Optional)"
+      "value": "MCP 도구(선택 사항)"
     }
   ],
   "CJ6tzL": [
     {
       "type": 0,
-      "value": "File Source"
+      "value": "파일 원본"
     }
   ],
   "CJEYfo": [
@@ -3452,25 +3562,25 @@
   "CMbKXm": [
     {
       "type": 0,
-      "value": "Playground highlights"
+      "value": "플레이그라운드 하이라이트"
     }
   ],
   "CNd+KS": [
     {
       "type": 0,
-      "value": "Connect related agents and tools"
+      "value": "관련 에이전트 및 도구 연결"
     }
   ],
   "CPsPh7": [
     {
       "type": 0,
-      "value": "How would you like to define the schedule?"
+      "value": "일정을 어떻게 정의하시겠습니까?"
     }
   ],
   "CTRqZs": [
     {
       "type": 0,
-      "value": "Test query"
+      "value": "쿼리 테스트"
     }
   ],
   "CVAKJE": [
@@ -3482,7 +3592,7 @@
   "CX0VFc": [
     {
       "type": 0,
-      "value": "Loading trigger status…"
+      "value": "트리거 상태를 로드하는 중..."
     }
   ],
   "CZ6s9k": [
@@ -3494,19 +3604,19 @@
   "CaZAZZ": [
     {
       "type": 0,
-      "value": "Open scheduled tasks"
+      "value": "예약된 작업 열기"
     }
   ],
   "CbntSG": [
     {
       "type": 0,
-      "value": "Database query connector"
+      "value": "데이터베이스 쿼리 커넥터"
     }
   ],
   "CeDXMM": [
     {
       "type": 0,
-      "value": "Here are the memory search results:"
+      "value": "메모리 검색 결과는 다음과 같습니다."
     }
   ],
   "CfGC/2": [
@@ -3515,20 +3625,20 @@
       "value": "모니터링할 리소스 그룹을 선택하세요."
     }
   ],
-  "ChQQJ0": [
+  "Cfvmd0": [
     {
       "type": 0,
-      "value": "Selected "
-    },
+      "value": "The agent has used 90% of the active flow AAUs. If the limit is reached, the agent will run only in always-on flow and be unavailable for chat and actions."
+    }
+  ],
+  "ChQQJ0": [
     {
       "type": 1,
       "value": "itemType"
-    }
-  ],
-  "CimbUb": [
+    },
     {
       "type": 0,
-      "value": "에이전트가 호스트되는 리소스 그룹에 대한 기여자 또는 소유자 액세스 권한이 있는지 확인합니다. 여전히 액세스 문제가 있는 경우 그룹 기반 역할 할당에 의존하지 않고 계정에 직접 역할을 할당합니다."
+      "value": " 선택됨"
     }
   ],
   "Ck8Kax": [
@@ -3546,19 +3656,19 @@
   "CppiJ4": [
     {
       "type": 0,
-      "value": "Applying your changes"
+      "value": "변경 내용 적용"
     }
   ],
   "Cv2vtV": [
     {
       "type": 0,
-      "value": "moments ago"
+      "value": "잠시 전"
     }
   ],
   "CvGdox": [
     {
       "type": 0,
-      "value": "Add more tools for incident response"
+      "value": "인시던트 응답을 위한 도구 추가"
     }
   ],
   "CvWvf+": [
@@ -3583,6 +3693,12 @@
     {
       "type": 0,
       "value": "설정"
+    }
+  ],
+  "D3rb1K": [
+    {
+      "type": 0,
+      "value": "Azure DevOps"
     }
   ],
   "D473QI": [
@@ -3616,7 +3732,7 @@
   "D7U9Zo": [
     {
       "type": 0,
-      "value": "Custom instructions"
+      "value": "사용자 지정 지침"
     }
   ],
   "D97db3": [
@@ -3634,7 +3750,7 @@
   "DDSwQB": [
     {
       "type": 1,
-      "value": "actionVerb"
+      "value": "itemType"
     },
     {
       "type": 0,
@@ -3646,21 +3762,21 @@
     },
     {
       "type": 0,
-      "value": " "
+      "value": "개 "
     },
     {
       "type": 1,
-      "value": "itemType"
+      "value": "actionVerb"
     },
     {
       "type": 0,
-      "value": "s?"
+      "value": "?"
     }
   ],
   "DF0TNm": [
     {
       "type": 0,
-      "value": "Code optimization insights"
+      "value": "코드 최적화 인사이트"
     }
   ],
   "DFQKku": [
@@ -3669,16 +3785,28 @@
       "value": "Ops Pro"
     }
   ],
+  "DFfvL6": [
+    {
+      "type": 0,
+      "value": "Temporarily stop the agent from all activities."
+    }
+  ],
+  "DIZgr3": [
+    {
+      "type": 0,
+      "value": "Boolean"
+    }
+  ],
   "DJN+DZ": [
     {
       "type": 0,
-      "value": "Choose whether to run deep investigations alongside regular investigations"
+      "value": "정기적인 조사와 함께 심층 조사를 실행할지 여부를 선택하세요."
     }
   ],
   "DMEE1o": [
     {
       "type": 0,
-      "value": "Select a tool to connect"
+      "value": "연결할 도구 선택"
     }
   ],
   "DMd1Ql": [
@@ -3696,7 +3824,7 @@
   "DQfSk8": [
     {
       "type": 0,
-      "value": "Output type"
+      "value": "출력 유형"
     }
   ],
   "DVVbGP": [
@@ -3712,7 +3840,7 @@
     },
     {
       "type": 0,
-      "value": ", audit today’s incidents and draft a leadership update with priority blockers."
+      "value": "님, 오늘 인시던트를 점검하고 우선 순위 차단 항목을 포함한 리더십 업데이트 초안을 작성하세요."
     }
   ],
   "DX7w9O": [
@@ -3724,7 +3852,7 @@
   "Da55kZ": [
     {
       "type": 0,
-      "value": "Select MCP tools from connected servers"
+      "value": "연결된 서버에서 MCP 도구 선택"
     }
   ],
   "DasCIQ": [
@@ -3742,7 +3870,7 @@
   "Df+1hk": [
     {
       "type": 0,
-      "value": "Analysing configuration…"
+      "value": "구성을 분석하는 중..."
     }
   ],
   "Dff3ms": [
@@ -3760,13 +3888,13 @@
   "DhBWKr": [
     {
       "type": 0,
-      "value": "No instructions provided yet."
+      "value": "아직 지침이 제공되지 않았습니다."
     }
   ],
   "Dhy8jb": [
     {
       "type": 0,
-      "value": "A data source connection for tools (e.g., Kusto cluster for running queries)"
+      "value": "도구용 데이터 원본 연결(예: 쿼리 실행을 위한 Kusto 클러스터)"
     }
   ],
   "DlSXUR": [
@@ -3805,10 +3933,16 @@
       "value": "메모리 검색 결과"
     }
   ],
+  "Dvly6A": [
+    {
+      "type": 0,
+      "value": "Failed to create tool"
+    }
+  ],
   "Dw2xIY": [
     {
       "type": 0,
-      "value": "Create a new tool"
+      "value": "새 도구 만들기"
     }
   ],
   "Dx3Xj3": [
@@ -3826,7 +3960,7 @@
   "E+jVAN": [
     {
       "type": 0,
-      "value": "No trace data found for this thread."
+      "value": "이 스레드에 대한 추적 데이터를 찾을 수 없습니다."
     }
   ],
   "E396gv": [
@@ -3841,6 +3975,12 @@
       "value": "선택한 리소스 그룹 중 일부에 필요한 roleAssignments/write 및 Microsoft.ManagedIdentity/userAssignedIdentities/write 권한이 없습니다."
     }
   ],
+  "E9CWuE": [
+    {
+      "type": 0,
+      "value": "Example: where SubscriptionId == \"##SubscriptionId##\""
+    }
+  ],
   "EAO/K+": [
     {
       "type": 0,
@@ -3850,7 +3990,7 @@
   "EBpelF": [
     {
       "type": 0,
-      "value": "No warnings found"
+      "value": "경고를 찾을 수 없음"
     }
   ],
   "ED/jWk": [
@@ -3862,27 +4002,13 @@
   "EEb00g": [
     {
       "type": 0,
-      "value": "Run insights to track confidence and recommended fixes."
+      "value": "인사이트를 실행하여 신뢰도 및 권장 수정 사항을 추적합니다."
     }
   ],
-  "EHyU+4": [
+  "EHy/sj": [
     {
       "type": 0,
-      "value": "Use "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "##ParamName##"
-        }
-      ],
-      "type": 8,
-      "value": "code"
-    },
-    {
-      "type": 0,
-      "value": " in your query to define parameter placeholders."
+      "value": "Enter a number"
     }
   ],
   "EI/cfO": [
@@ -3914,7 +4040,7 @@
   "EN5iMk": [
     {
       "type": 0,
-      "value": "Service type"
+      "value": "서비스 유형"
     }
   ],
   "ENnkRe": [
@@ -3926,7 +4052,13 @@
   "EOt0+9": [
     {
       "type": 0,
-      "value": "Full workflow with quality evaluation"
+      "value": "품질 평가가 포함된 전체 워크플로"
+    }
+  ],
+  "EQa6dK": [
+    {
+      "type": 0,
+      "value": "Built-in Tool"
     }
   ],
   "ESChST": [
@@ -3956,7 +4088,7 @@
   "EbNaDn": [
     {
       "type": 0,
-      "value": "Knowledge Base"
+      "value": "지식 기반"
     }
   ],
   "Ebd6gR": [
@@ -3968,7 +4100,7 @@
   "Ec1M0J": [
     {
       "type": 0,
-      "value": "Action plan"
+      "value": "작업 계획"
     }
   ],
   "EdEthU": [
@@ -3980,7 +4112,7 @@
   "EdZ3pj": [
     {
       "type": 0,
-      "value": "Agent: "
+      "value": "에이전트: "
     },
     {
       "type": 1,
@@ -3990,7 +4122,7 @@
   "EicA1w": [
     {
       "type": 0,
-      "value": "Test the query to continue."
+      "value": "계속하려면 쿼리를 테스트합니다."
     }
   ],
   "ElI1gd": [
@@ -4002,7 +4134,7 @@
   "ElqLuA": [
     {
       "type": 0,
-      "value": "Trace data parsed with warnings."
+      "value": "추적 데이터 구문 분석했지만 경고가 생성되었습니다."
     }
   ],
   "Ep74wA": [
@@ -4023,10 +4155,16 @@
       "value": "Azure SRE Agent"
     }
   ],
+  "Eu772h": [
+    {
+      "type": 0,
+      "value": "Built-in Tools"
+    }
+  ],
   "Euy+fB": [
     {
       "type": 0,
-      "value": "Connect MCP server"
+      "value": "MCP 서버 연결"
     }
   ],
   "EwRIOm": [
@@ -4038,45 +4176,53 @@
   "F4a/f4": [
     {
       "type": 0,
-      "value": "User Permissions"
+      "value": "사용자 권한"
     }
   ],
   "F5b1Mw": [
     {
       "type": 0,
-      "value": "Currently showing "
+      "value": "현재 "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "을(를) 표시하는 중"
     }
   ],
   "F6qYbg": [
     {
       "type": 0,
-      "value": "Select tools this agent can use"
-    }
-  ],
-  "F8R5Bb": [
-    {
-      "type": 0,
-      "value": "Connections: "
-    },
-    {
-      "type": 1,
-      "value": "count"
+      "value": "이 에이전트가 사용할 수 있는 도구를 선택합니다."
     }
   ],
   "F8UOXS": [
     {
       "type": 0,
-      "value": "Relationship preview"
+      "value": "관계 미리 보기"
+    }
+  ],
+  "F8v2Mz": [
+    {
+      "type": 0,
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " started successfully"
     }
   ],
   "F8xMoD": [
     {
       "type": 0,
-      "value": "Loading tool details..."
+      "value": "도구 세부 정보를 로드하는 중..."
     }
   ],
   "F9LrJA": [
@@ -4094,17 +4240,21 @@
   "FE2ukR": [
     {
       "type": 0,
-      "value": "Remove handoff "
+      "value": "핸드오프 "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 제거"
     }
   ],
   "FFFf74": [
     {
       "type": 0,
-      "value": "Last run: "
+      "value": "마지막 실행: "
     },
     {
       "type": 1,
@@ -4120,13 +4270,13 @@
   "FGP0Kd": [
     {
       "type": 0,
-      "value": "CPU usage insights"
+      "value": "CPU 사용량 인사이트"
     }
   ],
   "FLN/px": [
     {
       "type": 0,
-      "value": "Chat diagnostics"
+      "value": "채팅 진단"
     }
   ],
   "FLm/x4": [
@@ -4138,19 +4288,19 @@
   "FNQNS1": [
     {
       "type": 0,
-      "value": "Weekdays at 9am Pacific"
-    }
-  ],
-  "FO/nez": [
-    {
-      "type": 0,
-      "value": "Describe what this tool does..."
+      "value": "평일 오전 9시(태평양 표준시)"
     }
   ],
   "FPdoJ3": [
     {
       "type": 0,
-      "value": "Define how incidents are detected and reviewed, and the instructions for how the agent responds."
+      "value": "인시던트를 검색하고 검토하는 방법과 에이전트가 응답하는 방법에 대한 지침을 정의합니다."
+    }
+  ],
+  "FS0tWa": [
+    {
+      "type": 0,
+      "value": "No source agent specified"
     }
   ],
   "FSYccN": [
@@ -4162,17 +4312,21 @@
   "FSZ5F/": [
     {
       "type": 0,
-      "value": "Deleting scheduled task "
+      "value": "예약된 작업 "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "을(를) 삭제하는 중"
     }
   ],
   "FTWkpv": [
     {
       "type": 0,
-      "value": "Create new entity"
+      "value": "새 엔터티 만들기"
     }
   ],
   "FUQvS0": [
@@ -4184,7 +4338,23 @@
   "FVOAIQ": [
     {
       "type": 0,
-      "value": "Handoff Agents (Optional)"
+      "value": "핸드오프 에이전트(선택 사항)"
+    }
+  ],
+  "FWou/7": [
+    {
+      "type": 0,
+      "value": "Select tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    }
+  ],
+  "FZeQlc": [
+    {
+      "type": 0,
+      "value": "Disconnected"
     }
   ],
   "FZwBv0": [
@@ -4196,13 +4366,13 @@
   "FeBVnC": [
     {
       "type": 0,
-      "value": "You can edit this entity directly or spin up a copy once cloning is available."
+      "value": "복제를 사용할 수 있게 되면 이 엔터티를 직접 편집하거나 복사본을 스핀업할 수 있습니다."
     }
   ],
   "FeBneB": [
     {
       "type": 0,
-      "value": "Probe for multi-step diagnostics to see if the agent can orchestrate tools effectively."
+      "value": "다단계 진단을 검사하여 에이전트가 도구를 효과적으로 오케스트레이션할 수 있는지 확인합니다."
     }
   ],
   "FitglU": [
@@ -4214,7 +4384,7 @@
   "FkvYGq": [
     {
       "type": 0,
-      "value": "System prompt that defines the agent's behavior"
+      "value": "에이전트 동작을 정의하는 시스템 프롬프트"
     }
   ],
   "FnKIAW": [
@@ -4223,10 +4393,30 @@
       "value": "확인됨"
     }
   ],
+  "FpUGgx": [
+    {
+      "type": 0,
+      "value": "Starting SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in progress"
+    }
+  ],
   "Fr5LyM": [
     {
       "type": 0,
       "value": "안전"
+    }
+  ],
+  "FsIud6": [
+    {
+      "type": 0,
+      "value": "Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included."
     }
   ],
   "Fv1ZSz": [
@@ -4244,19 +4434,19 @@
   "FvtGBp": [
     {
       "type": 0,
-      "value": "browse for files"
+      "value": "파일 찾아보기"
     }
   ],
   "FyrC09": [
     {
       "type": 0,
-      "value": "Create trigger"
+      "value": "트리거 만들기"
     }
   ],
   "FzjwEg": [
     {
       "type": 0,
-      "value": "Critic on handoff"
+      "value": "핸드오프의 크리틱"
     }
   ],
   "G+JlQs": [
@@ -4268,7 +4458,7 @@
   "G/YsSs": [
     {
       "type": 0,
-      "value": "Custom cron"
+      "value": "사용자 지정 Cron"
     }
   ],
   "G/yZLu": [
@@ -4279,12 +4469,16 @@
   ],
   "G5JMSn": [
     {
+      "type": 0,
+      "value": "구독 "
+    },
+    {
       "type": 1,
       "value": "0"
     },
     {
       "type": 0,
-      "value": " subscriptions selected"
+      "value": "개 선택됨"
     }
   ],
   "G6vaGg": [
@@ -4299,6 +4493,40 @@
       "value": "모든 인시던트 유형"
     }
   ],
+  "GBLVEV": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "document"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "documents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "GBnvl1": [
     {
       "type": 0,
@@ -4308,7 +4536,7 @@
   "GCQn0j": [
     {
       "type": 0,
-      "value": "Tool testing is unavailable for this entity."
+      "value": "이 엔터티에는 도구 테스트를 사용할 수 없습니다."
     }
   ],
   "GCVHNV": [
@@ -4320,7 +4548,7 @@
   "GCVZ4/": [
     {
       "type": 0,
-      "value": "Successfully deleted "
+      "value": "데이터 커넥터 "
     },
     {
       "type": 1,
@@ -4328,19 +4556,19 @@
     },
     {
       "type": 0,
-      "value": " data connectors"
+      "value": "개를 삭제했습니다."
     }
   ],
   "GCcYpN": [
     {
       "type": 0,
-      "value": "No MCP tools available"
+      "value": "MCP 도구를 사용할 수 없음"
     }
   ],
   "GCmxza": [
     {
       "type": 0,
-      "value": "Back to commands"
+      "value": "명령으로 돌아가기"
     }
   ],
   "GMhzu1": [
@@ -4349,10 +4577,16 @@
       "value": "Response subagent"
     }
   ],
+  "GP/BbQ": [
+    {
+      "type": 0,
+      "value": "Enable Knowledge Base"
+    }
+  ],
   "GSCabm": [
     {
       "type": 0,
-      "value": "MCP tools"
+      "value": "MCP 도구"
     }
   ],
   "GUx4Ld": [
@@ -4364,31 +4598,43 @@
   "GaA28c": [
     {
       "type": 0,
-      "value": "Incident details"
+      "value": "인시던트 세부 정보"
     }
   ],
   "GdgrWi": [
     {
       "type": 0,
-      "value": "Select a tool"
+      "value": "도구 선택"
     }
   ],
   "GkJbiq": [
     {
       "type": 0,
-      "value": "Start a new chat thread."
+      "value": "새 채팅 스레드를 시작하세요."
     }
   ],
   "GkKcbX": [
     {
       "type": 0,
-      "value": "Add a response plan"
+      "value": "응답 계획 추가"
     }
   ],
   "Gl8fnJ": [
     {
       "type": 0,
       "value": "서랍 크기 조정"
+    }
+  ],
+  "GnWmca": [
+    {
+      "type": 0,
+      "value": "Triggers"
+    }
+  ],
+  "Gnbr9F": [
+    {
+      "type": 0,
+      "value": "Select a connector"
     }
   ],
   "GoSIa4": [
@@ -4406,7 +4652,7 @@
   "GpZr9J": [
     {
       "type": 0,
-      "value": "Automatically run "
+      "value": "일정에 따라 "
     },
     {
       "type": 1,
@@ -4414,7 +4660,7 @@
     },
     {
       "type": 0,
-      "value": " on a schedule to keep key systems healthy."
+      "value": "을(를) 자동으로 실행하여 주요 시스템을 정상 상태로 유지합니다."
     }
   ],
   "GroBmn": [
@@ -4436,13 +4682,13 @@
     },
     {
       "type": 0,
-      "value": " params detected"
+      "value": "개의 매개 변수가 검색됨"
     }
   ],
   "H1OQZj": [
     {
       "type": 0,
-      "value": "YAML must include kind: {expectedKind}."
+      "value": "YAML에는 {expectedKind} 종류가 포함되어야 합니다."
     }
   ],
   "H3ooTI": [
@@ -4460,7 +4706,7 @@
   "HADwwN": [
     {
       "type": 0,
-      "value": "Task details"
+      "value": "작업 세부 정보"
     }
   ],
   "HAlOn1": [
@@ -4478,25 +4724,31 @@
   "HFuyFh": [
     {
       "type": 0,
-      "value": "No code optimization recommendations detected."
+      "value": "코드 최적화 권장 사항이 검색되지 않았습니다."
     }
   ],
   "HKlw1J": [
     {
       "type": 0,
-      "value": "This will permanently disconnect this data connector from the agent. Are you sure you want to disconnect this data connector?"
+      "value": "이렇게 하면 에이전트에서 이 데이터 커넥터의 연결이 영구적으로 끊어집니다. 이 데이터 커넥터의 연결을 끊으시겠습니까?"
     }
   ],
   "HMZIeG": [
     {
       "type": 0,
-      "value": "Get AI-powered quality insights and improvement suggestions"
+      "value": "AI 기반 품질 인사이트 및 개선 제안 받기"
+    }
+  ],
+  "HNBpJ4": [
+    {
+      "type": 0,
+      "value": "Metrics"
     }
   ],
   "HNECLT": [
     {
       "type": 0,
-      "value": "Build Your Agent Ecosystem"
+      "value": "에이전트 에코시스템 빌드"
     }
   ],
   "HOJNsf": [
@@ -4508,7 +4760,7 @@
   "HQ4NJ3": [
     {
       "type": 0,
-      "value": "Learn more about response plans"
+      "value": "응답 계획에 대한 자세한 정보"
     }
   ],
   "HQc/Lf": [
@@ -4532,13 +4784,19 @@
   "HUPaMQ": [
     {
       "type": 0,
-      "value": "View findings"
+      "value": "결과 보기"
     }
   ],
   "HWMrXF": [
     {
       "type": 0,
       "value": "리소스 그룹 추가"
+    }
+  ],
+  "HZQtAg": [
+    {
+      "type": 0,
+      "value": "Test values"
     }
   ],
   "HbTFJf": [
@@ -4550,7 +4808,7 @@
   "Hgs+WM": [
     {
       "type": 0,
-      "value": "View trace"
+      "value": "추적 보기"
     }
   ],
   "Hh0q8u": [
@@ -4566,13 +4824,13 @@
   "Hh8It5": [
     {
       "type": 0,
-      "value": "Changes pending analysis"
+      "value": "변경 보류 중인 분석"
     }
   ],
   "HiBsED": [
     {
       "type": 0,
-      "value": "No handoffs added yet."
+      "value": "아직 핸드오프가 추가되지 않았습니다."
     }
   ],
   "HjTHxo": [
@@ -4590,7 +4848,7 @@
   "Hs02Tq": [
     {
       "type": 0,
-      "value": "Loading daily reports"
+      "value": "일일 보고서 로드 중"
     }
   ],
   "HtpD+z": [
@@ -4608,7 +4866,7 @@
   "Hv0XJn": [
     {
       "type": 0,
-      "value": "Suggestions"
+      "value": "제안"
     }
   ],
   "Hv7pA2": [
@@ -4632,13 +4890,19 @@
   "I1tfGG": [
     {
       "type": 0,
-      "value": "View Memory Search Results"
+      "value": "메모리 검색 결과 보기"
+    }
+  ],
+  "I3MA83": [
+    {
+      "type": 0,
+      "value": "String"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "기존 항목 사용"
     }
   ],
   "I7aBF4": [
@@ -4662,7 +4926,7 @@
   "I9W7ey": [
     {
       "type": 0,
-      "value": "Completed runs"
+      "value": "완료된 실행"
     }
   ],
   "IAwPyV": [
@@ -4680,7 +4944,7 @@
   "IEIivr": [
     {
       "type": 0,
-      "value": "Connected tool "
+      "value": "도구 "
     },
     {
       "type": 1,
@@ -4688,7 +4952,7 @@
     },
     {
       "type": 0,
-      "value": " to "
+      "value": "을(를) "
     },
     {
       "type": 1,
@@ -4696,7 +4960,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "에 연결했습니다."
     }
   ],
   "IF3r+X": [
@@ -4714,13 +4978,13 @@
   "IJX2gV": [
     {
       "type": 0,
-      "value": "Connect handoffs and tools"
+      "value": "핸드오프 및 도구 연결"
     }
   ],
   "INiE0x": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "에이전트 품질은 "
     },
     {
       "type": 1,
@@ -4728,13 +4992,13 @@
     },
     {
       "type": 0,
-      "value": "/100 but may be outdated. Refresh to keep guidance current."
+      "value": "/100이지만 오래되었을 수 있습니다. 지침을 최신 상태로 유지하려면 새로 고치세요."
     }
   ],
   "INiSE2": [
     {
       "type": 0,
-      "value": "Tool Name"
+      "value": "도구 이름"
     }
   ],
   "IQaKwH": [
@@ -4790,19 +5054,19 @@
   "IbMKy+": [
     {
       "type": 0,
-      "value": "Use this version"
+      "value": "이 버전 사용"
     }
   ],
   "IcB2fr": [
     {
       "type": 0,
-      "value": "Tool method argument that receives this value"
+      "value": "이 값을 받는 도구 메서드 인수"
     }
   ],
   "IcUakl": [
     {
       "type": 0,
-      "value": "Time zone"
+      "value": "표준 시간대"
     }
   ],
   "IiNwpr": [
@@ -4818,7 +5082,7 @@
   "InWqys": [
     {
       "type": 0,
-      "value": "Optional"
+      "value": "선택적"
     }
   ],
   "IoApza": [
@@ -4830,25 +5094,25 @@
   "IomdzL": [
     {
       "type": 0,
-      "value": "The agent uses predefined queries for structured logs, telemetry, and time series data."
+      "value": "에이전트는 구조화된 로그, 원격 분석 및 시계열 데이터에 대해 미리 정의된 쿼리를 사용합니다."
     }
   ],
   "Ip7Gd3": [
     {
       "type": 0,
-      "value": "Auto-apply"
+      "value": "자동 적용"
     }
   ],
   "IrCHQG": [
     {
       "type": 0,
-      "value": "Select an agent to view its configuration."
+      "value": "에이전트를 선택하여 구성을 봅니다."
     }
   ],
   "ItmLyp": [
     {
       "type": 0,
-      "value": "Connect an incident platform"
+      "value": "인시던트 플랫폼 연결"
     }
   ],
   "IuFETn": [
@@ -4860,7 +5124,7 @@
   "IvKdxU": [
     {
       "type": 0,
-      "value": "System tools · "
+      "value": "시스템 도구 · "
     },
     {
       "type": 1,
@@ -4908,13 +5172,13 @@
   "J7FnS1": [
     {
       "type": 0,
-      "value": "Connect existing items"
+      "value": "기존 항목 연결"
     }
   ],
   "J8u7Xg": [
     {
       "type": 0,
-      "value": "Last Modified"
+      "value": "마지막으로 수정한 날짜"
     }
   ],
   "JAtEuU": [
@@ -4947,16 +5211,28 @@
       "value": "이전"
     }
   ],
+  "JKFypr": [
+    {
+      "type": 0,
+      "value": "Stop agent"
+    }
+  ],
   "JMdyE9": [
     {
       "type": 0,
-      "value": "Use AI to enhance and validate your agent instructions"
+      "value": "AI를 사용하여 에이전트 지침 향상 및 유효성 검사"
     }
   ],
   "JRLN0D": [
     {
       "type": 0,
       "value": "인시던트 응답 계획을 사용하여 에이전트는 일반적인 유형의 인시던트를 관리하는 데 필요한 도구를 선택합니다. 사용자 지정 응답 계획은 사용자가 제공하는 에이전트 관련 지침을 제공하여 이 기능을 대체합니다."
+    }
+  ],
+  "JSW9Xw": [
+    {
+      "type": 0,
+      "value": "Starting SRE Agent"
     }
   ],
   "JT7be1": [
@@ -4991,19 +5267,23 @@
           "value": [
             {
               "type": 0,
-              "value": "No scheduled tasks yet"
+              "value": "아직 예약된 작업이 없음"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "예약된 작업 "
+            },
+            {
               "type": 1,
               "value": "count"
             },
             {
               "type": 0,
-              "value": " scheduled tasks ready"
+              "value": "개가 준비됨"
             }
           ]
         }
@@ -5027,18 +5307,22 @@
   ],
   "JbB2Vb": [
     {
+      "type": 0,
+      "value": "선택한 위치 "
+    },
+    {
       "type": 1,
       "value": "0"
     },
     {
       "type": 0,
-      "value": " locations selected"
+      "value": "개"
     }
   ],
   "JbMs9l": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "에이전트 품질은 "
     },
     {
       "type": 1,
@@ -5046,13 +5330,13 @@
     },
     {
       "type": 0,
-      "value": "/100. No quick fixes right now."
+      "value": "/100입니다. 지금은 빠른 수정이 없습니다."
     }
   ],
   "JbmMWM": [
     {
       "type": 0,
-      "value": "Managed Identity (Agent Space managed identity automatically chosen as Agent Space and compatible connector was found)"
+      "value": "관리 ID(에이전트 공간 관리 ID가 에이전트 공간으로 자동 선택되고 호환되는 커넥터 발견됨)"
     }
   ],
   "JezZlU": [
@@ -5070,7 +5354,7 @@
   "JiENoF": [
     {
       "type": 0,
-      "value": "Hide diff"
+      "value": "Diff 숨기기"
     }
   ],
   "JjKcCj": [
@@ -5088,7 +5372,7 @@
   "JkS37H": [
     {
       "type": 0,
-      "value": "Undo"
+      "value": "실행 취소"
     }
   ],
   "JkbJ/T": [
@@ -5117,16 +5401,34 @@
       "value": "ServiceNow 연결을 끊으시겠습니까?"
     }
   ],
+  "JnDKv3": [
+    {
+      "type": 0,
+      "value": "Failed to stop SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "Jrrm2K": [
     {
       "type": 0,
-      "value": "Click \"Execute Tool\" to test this system tool"
+      "value": "\"도구 실행\"을 클릭하여 이 시스템 도구를 테스트합니다."
     }
   ],
   "Jsy4yb": [
     {
       "type": 0,
-      "value": "Try Evaluation"
+      "value": "평가 사용해 보기"
     }
   ],
   "JwHSD6": [
@@ -5144,19 +5446,19 @@
   "Jz5GjX": [
     {
       "type": 0,
-      "value": "Review Your trigger"
+      "value": "트리거 검토"
     }
   ],
   "JzOvG/": [
     {
       "type": 0,
-      "value": "Assumptions we made"
+      "value": "우리가 세운 가정"
     }
   ],
   "K1h5xo": [
     {
       "type": 0,
-      "value": "Scheduled tasks require an upgrade. Contact your administrator to enable them."
+      "value": "예약된 작업을 사용하려면 업그레이드가 필요합니다. 관리자에게 문의하여 사용하도록 설정하세요."
     }
   ],
   "K3r6DQ": [
@@ -5168,19 +5470,19 @@
   "K7AkdL": [
     {
       "type": 0,
-      "value": "Show"
+      "value": "표시"
     }
   ],
   "K9q4Xw": [
     {
       "type": 0,
-      "value": "MCP servers"
+      "value": "MCP 서버"
     }
   ],
   "KAYnaH": [
     {
       "type": 0,
-      "value": "Auto-applying changes… latest draft will be used for new tests."
+      "value": "변경 내용 자동 적용 중... 최신 초안이 새 테스트에 사용됩니다."
     }
   ],
   "KAYpG9": [
@@ -5192,7 +5494,7 @@
   "KGmQjH": [
     {
       "type": 0,
-      "value": "Highlights"
+      "value": "하이라이트"
     }
   ],
   "KI/Heo": [
@@ -5204,7 +5506,7 @@
   "KJHRU/": [
     {
       "type": 0,
-      "value": "Add existing subagent"
+      "value": "기존 하위 에이전트 추가"
     }
   ],
   "KJuQJ3": [
@@ -5228,7 +5530,7 @@
   "KNwLvk": [
     {
       "type": 0,
-      "value": "Test Parameters"
+      "value": "테스트 매개 변수"
     }
   ],
   "KQ9L9d": [
@@ -5240,7 +5542,7 @@
   "KR79he": [
     {
       "type": 0,
-      "value": "New agent"
+      "value": "새 에이전트"
     }
   ],
   "KS5JHs": [
@@ -5258,7 +5560,7 @@
   "KaLLyk": [
     {
       "type": 0,
-      "value": "Projected +"
+      "value": "예상 + "
     },
     {
       "type": 1,
@@ -5266,7 +5568,7 @@
     },
     {
       "type": 0,
-      "value": " overall"
+      "value": " 전체"
     }
   ],
   "KbCGsK": [
@@ -5275,16 +5577,22 @@
       "value": "'승인'을 클릭하면 이 작업이 여러분의 자격 증명을 사용해 대신 실행됩니다."
     }
   ],
+  "Kfaepo": [
+    {
+      "type": 0,
+      "value": "Learn more about connectors"
+    }
+  ],
   "KgcF6B": [
     {
       "type": 0,
-      "value": "Yes/No"
+      "value": "예/아니요"
     }
   ],
   "KiANnA": [
     {
       "type": 0,
-      "value": "Turn on scheduled task(s)"
+      "value": "예약된 작업 켜기"
     }
   ],
   "Kkc3/u": [
@@ -5296,7 +5604,7 @@
   "Km+WSh": [
     {
       "type": 0,
-      "value": "Map to argument"
+      "value": "인수에 매핑"
     }
   ],
   "KoJ1C+": [
@@ -5316,19 +5624,19 @@
   "KptJSd": [
     {
       "type": 0,
-      "value": "No MCP tools configured."
+      "value": "구성된 MCP 도구가 없습니다."
     }
   ],
   "KqwLPK": [
     {
       "type": 0,
-      "value": "Database indexing connector"
+      "value": "데이터베이스 인덱싱 커넥터"
     }
   ],
   "KryvVM": [
     {
       "type": 0,
-      "value": "Parameter values (for testing)"
+      "value": "매개 변수 값(테스트용)"
     }
   ],
   "KsuM4D": [
@@ -5346,7 +5654,7 @@
   "Kxd0Vr": [
     {
       "type": 0,
-      "value": "Allow parallel tool calls"
+      "value": "병렬 도구 호출 허용"
     }
   ],
   "KyDsjH": [
@@ -5364,13 +5672,13 @@
   "L+ewYY": [
     {
       "type": 0,
-      "value": "AI suggestions discarded"
+      "value": "AI 제안이 삭제됨"
     }
   ],
   "L/i6dy": [
     {
       "type": 0,
-      "value": "We’ll mark this agent as Autonomous automatically so it can run on its own."
+      "value": "이 에이전트를 자율 에이전트로 자동으로 표시해 자체적으로 실행할 수 있게 합니다."
     }
   ],
   "L0KVkI": [
@@ -5390,25 +5698,25 @@
   "L7EoQf": [
     {
       "type": 0,
-      "value": "Auto-apply ON"
+      "value": "자동 적용 켜기"
     }
   ],
   "L7gQfJ": [
     {
       "type": 0,
-      "value": "Welcome to the playground"
+      "value": "플레이그라운드에 오신 것을 환영합니다."
     }
   ],
   "LAHAJH": [
     {
       "type": 0,
-      "value": "No MCP connections available"
+      "value": "사용 가능한 MCP 연결 없음"
     }
   ],
   "LFb8Ku": [
     {
       "type": 0,
-      "value": "recent activity"
+      "value": "최근 활동"
     }
   ],
   "LFn7Ak": [
@@ -5420,17 +5728,17 @@
   "LGZkPZ": [
     {
       "type": 0,
-      "value": "Switch to YAML"
+      "value": "YAML로 전환"
     }
   ],
   "LIm7q8": [
     {
-      "type": 0,
-      "value": "Analysed "
-    },
-    {
       "type": 1,
       "value": "time"
+    },
+    {
+      "type": 0,
+      "value": "에 분석됨"
     }
   ],
   "LLt8Ve": [
@@ -5448,13 +5756,13 @@
   "LPz7Qc": [
     {
       "type": 0,
-      "value": "Tool Type"
+      "value": "도구 유형"
     }
   ],
   "LQ2AtR": [
     {
       "type": 0,
-      "value": "Deleted "
+      "value": "데이터 커넥터 "
     },
     {
       "type": 1,
@@ -5462,7 +5770,15 @@
     },
     {
       "type": 0,
-      "value": " data connectors. Failed to delete "
+      "value": "개를 삭제했습니다. "
+    },
+    {
+      "type": 1,
+      "value": "failedItems"
+    },
+    {
+      "type": 0,
+      "value": " "
     },
     {
       "type": 1,
@@ -5470,11 +5786,7 @@
     },
     {
       "type": 0,
-      "value": ": "
-    },
-    {
-      "type": 1,
-      "value": "failedItems"
+      "value": "개를 삭제하지 못했습니다."
     }
   ],
   "LRJHcs": [
@@ -5492,7 +5804,7 @@
   "LTDPn/": [
     {
       "type": 0,
-      "value": "You have unsaved changes."
+      "value": "저장되지 않은 변경 내용이 있습니다."
     }
   ],
   "LUSiug": [
@@ -5512,7 +5824,7 @@
   "LXOsKd": [
     {
       "type": 0,
-      "value": "We could not generate insights right now. Try again in a moment."
+      "value": "지금은 인사이트를 생성할 수 없습니다. 잠시 후에 다시 시도하세요."
     }
   ],
   "LZyV4T": [
@@ -5521,22 +5833,28 @@
       "value": "필터는 인시던트 응답 계획이 적용되는 인시던트를 정의합니다. 다음 단계에서 미리 보기로 제공되는 인시던트 목록에 적용됩니다."
     }
   ],
+  "LaIt/v": [
+    {
+      "type": 0,
+      "value": "Creating Kusto Tool"
+    }
+  ],
   "LbkJp1": [
     {
       "type": 0,
-      "value": "MCP servers table"
+      "value": "MCP 서버 테이블"
     }
   ],
   "LkUvu/": [
     {
       "type": 0,
-      "value": "Describe the schedule"
+      "value": "일정 설명"
     }
   ],
   "Lm9kBB": [
     {
       "type": 0,
-      "value": "Select an incident."
+      "value": "인시던트를 선택하세요."
     }
   ],
   "LnglaU": [
@@ -5554,7 +5872,7 @@
   "LsGLc0": [
     {
       "type": 0,
-      "value": "Direct argument"
+      "value": "직접 인수"
     }
   ],
   "LupnQU": [
@@ -5568,7 +5886,7 @@
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": "시간 전"
             }
           ]
         }
@@ -5604,12 +5922,12 @@
   ],
   "M+QCSD": [
     {
-      "type": 0,
-      "value": "Enter "
-    },
-    {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 입력"
     }
   ],
   "M/3/kG": [
@@ -5627,7 +5945,7 @@
   "M3159R": [
     {
       "type": 0,
-      "value": "Quick create"
+      "value": "빨리 만들기"
     }
   ],
   "M4emJP": [
@@ -5661,7 +5979,7 @@
     },
     {
       "type": 0,
-      "value": " completed"
+      "value": "이(가) 완료됨"
     }
   ],
   "MI5gZ+": [
@@ -5679,25 +5997,25 @@
   "MJUuF5": [
     {
       "type": 0,
-      "value": "Failed to improve instructions. Please try again."
+      "value": "지침을 개선하지 못했습니다. 다시 시도하세요."
     }
   ],
   "MK8Q9z": [
     {
       "type": 0,
-      "value": "Creating connector"
+      "value": "커넥터를 만드는 중"
     }
   ],
   "MLVVhB": [
     {
       "type": 0,
-      "value": "Dictionary key (map_to)"
+      "value": "사전 키(map_to)"
     }
   ],
   "MOhprT": [
     {
       "type": 0,
-      "value": "Preview diff"
+      "value": "미리 보기 차이"
     }
   ],
   "MOsoTa": [
@@ -5709,7 +6027,7 @@
   "MOttDA": [
     {
       "type": 0,
-      "value": "Yes, override with custom meta agent"
+      "value": "예, 사용자 지정 메타 에이전트로 재정의"
     }
   ],
   "MPzBut": [
@@ -5721,7 +6039,7 @@
   "MQNtQ+": [
     {
       "type": 0,
-      "value": "Data Connectors"
+      "value": "데이터 커넥터"
     }
   ],
   "MSWnaq": [
@@ -5733,25 +6051,19 @@
   "MUVpbF": [
     {
       "type": 0,
-      "value": "The agent generates queries by learning about your logs, telemetry, and time series data."
-    }
-  ],
-  "MWaWoR": [
-    {
-      "type": 0,
-      "value": "2025년 9월 25일부터 필요한 Azure 역할 기반 액세스 제어(RBAC) 역할이 없는 사용자는 Azure SRE Agent에 접근할 수 없습니다."
+      "value": "에이전트는 로그, 원격 분석 및 시계열 데이터를 학습하여 쿼리를 생성합니다."
     }
   ],
   "MaaxCM": [
     {
       "type": 0,
-      "value": "Kusto Configuration"
+      "value": "Kusto 구성"
     }
   ],
   "MgdnPi": [
     {
       "type": 0,
-      "value": "Response"
+      "value": "응답"
     }
   ],
   "MhTfXm": [
@@ -5763,7 +6075,7 @@
   "MjxZUD": [
     {
       "type": 0,
-      "value": "Use natural language—we’ll translate it into a cron schedule."
+      "value": "자연어를 사용하면 cron 일정으로 자동 변환됩니다."
     }
   ],
   "MlX0aZ": [
@@ -5775,7 +6087,7 @@
   "MnlPLt": [
     {
       "type": 0,
-      "value": "Handoffs · "
+      "value": "핸드오프 · "
     },
     {
       "type": 1,
@@ -5785,7 +6097,7 @@
   "MnpUD7": [
     {
       "type": 0,
-      "value": "View details"
+      "value": "세부 정보 보기"
     }
   ],
   "Mnvpbx": [
@@ -5813,7 +6125,7 @@
   "Mx6yYf": [
     {
       "type": 0,
-      "value": "Scheduled task(s) turned off successfully"
+      "value": "예약된 작업이 해제되었습니다."
     }
   ],
   "MxYLKu": [
@@ -5831,7 +6143,7 @@
   "N+XwM+": [
     {
       "type": 0,
-      "value": "Create Your First Entity"
+      "value": "첫 번째 엔터티 만들기"
     }
   ],
   "N+sJfO": [
@@ -5840,24 +6152,26 @@
       "value": "그리드 보기"
     }
   ],
+  "N/CtWu": [
+    {
+      "type": 0,
+      "value": "Unselected"
+    }
+  ],
   "N0d5pM": [
     {
       "type": 0,
-      "value": "AM"
+      "value": "오전"
     }
   ],
   "N0wOFf": [
-    {
-      "type": 0,
-      "value": "Created "
-    },
     {
       "type": 1,
       "value": "toolName"
     },
     {
       "type": 0,
-      "value": " and connected it to "
+      "value": "을(를) 만들고 "
     },
     {
       "type": 1,
@@ -5865,23 +6179,27 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "에 연결했습니다."
     }
   ],
   "N7cqYp": [
     {
       "type": 0,
-      "value": "Turning off scheduled task "
+      "value": "예약된 작업 "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 끄기"
     }
   ],
   "N7lPfx": [
     {
       "type": 0,
-      "value": "Relationships"
+      "value": "관계"
     }
   ],
   "NAAdaF": [
@@ -5899,7 +6217,7 @@
   "NBiLYK": [
     {
       "type": 0,
-      "value": "Drafting…"
+      "value": "초안 작성 중..."
     }
   ],
   "NBxjGE": [
@@ -5917,25 +6235,31 @@
   "NDy5dO": [
     {
       "type": 0,
-      "value": "Agent Type"
+      "value": "에이전트 유형"
     }
   ],
   "NGhUmq": [
     {
       "type": 0,
-      "value": "Refresh insights"
+      "value": "인사이트 새로 고침"
     }
   ],
   "NIrBo5": [
     {
       "type": 0,
-      "value": "Files will be stored in the agent."
+      "value": "파일이 에이전트에 저장됩니다."
     }
   ],
   "NMSoXQ": [
     {
       "type": 0,
       "value": "인시던트 응답 계획을 사용하지 않도록 설정하는 중"
+    }
+  ],
+  "NN4zut": [
+    {
+      "type": 0,
+      "value": "Support + troubleshooting"
     }
   ],
   "NOMbLF": [
@@ -5947,13 +6271,13 @@
   "NPm9R5": [
     {
       "type": 0,
-      "value": "Failed to load MCP tools."
+      "value": "MCP 도구를 로드하지 못했습니다."
     }
   ],
   "NSWNPa": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all files."
+      "value": "다른 검색어를 시도하거나 검색을 지우면 모든 파일을 볼 수 있습니다."
     }
   ],
   "NV14yw": [
@@ -5995,7 +6319,7 @@
   "NlBiTm": [
     {
       "type": 0,
-      "value": "Filtered agent"
+      "value": "필터링된 에이전트"
     }
   ],
   "Nrc9ba": [
@@ -6016,7 +6340,7 @@
             },
             {
               "type": 0,
-              "value": " documents selected"
+              "value": "개 문서 선택됨"
             }
           ]
         }
@@ -6028,16 +6352,12 @@
   ],
   "NwAgjY": [
     {
-      "type": 0,
-      "value": "Every "
-    },
-    {
       "type": 1,
       "value": "minutes"
     },
     {
       "type": 0,
-      "value": " minutes"
+      "value": "분마다"
     }
   ],
   "O+srpo": [
@@ -6084,16 +6404,22 @@
       "value": "count"
     }
   ],
+  "O/gthC": [
+    {
+      "type": 0,
+      "value": "Go to Scheduled Task"
+    }
+  ],
   "O0JI8M": [
     {
       "type": 0,
-      "value": "Overall Quality"
+      "value": "전반적인 품질"
     }
   ],
   "O3Ak71": [
     {
       "type": 0,
-      "value": "You do not have permission to use this feature."
+      "value": "이 기능을 사용할 수 있는 권한이 없습니다."
     }
   ],
   "O79Wpv": [
@@ -6108,16 +6434,22 @@
       "value": "이 SRE 에이전트를 삭제하시겠습니까? 이 작업은 실행 취소할 수 없습니다."
     }
   ],
+  "O9C6j/": [
+    {
+      "type": 0,
+      "value": "Create subagent"
+    }
+  ],
   "OBoUb6": [
     {
       "type": 0,
-      "value": "Fresh"
+      "value": "아침 햇살"
     }
   ],
   "OIWzWF": [
     {
       "type": 0,
-      "value": "Filter by autonomy level"
+      "value": "자율성 수준으로 필터링"
     }
   ],
   "OJ2u8k": [
@@ -6135,7 +6467,7 @@
   "OLSbA3": [
     {
       "type": 0,
-      "value": "Create a plan that starts this agent when a new incident is detected."
+      "value": "새 인시던트가 검색되면 이 에이전트를 시작하는 계획을 만듭니다."
     }
   ],
   "OMp9VI": [
@@ -6158,24 +6490,26 @@
       "value": "할당 대상"
     }
   ],
-  "OO5Y94": [
+  "ONbwY2": [
     {
       "type": 0,
-      "value": "We couldn't find tool "
-    },
+      "value": "Custom Tool"
+    }
+  ],
+  "OO5Y94": [
     {
       "type": 1,
       "value": "toolName"
     },
     {
       "type": 0,
-      "value": ". Refresh and try again."
+      "value": " 도구를 찾을 수 없습니다. 새로 고치고 다시 시도하세요."
     }
   ],
   "OPBqEN": [
     {
       "type": 0,
-      "value": "Trace data parsed with errors."
+      "value": "추적 데이터 구문 분석했지만 오류가 발생했습니다."
     }
   ],
   "ORGv1Q": [
@@ -6199,7 +6533,7 @@
   "OUJuir": [
     {
       "type": 0,
-      "value": "Model details"
+      "value": "모델 세부 정보"
     }
   ],
   "OV0MpG": [
@@ -6229,35 +6563,35 @@
   "OXek0m": [
     {
       "type": 0,
-      "value": "Use standard cron syntax (UTC) to control when the agent runs."
+      "value": "표준 cron 구문(UTC)을 사용해 에이전트 실행 시기를 제어합니다."
     }
   ],
   "OYAXyI": [
     {
       "type": 0,
-      "value": "Provide information the agent will reference when analyzing or answering questions."
+      "value": "에이전트가 질문을 분석하거나 답변할 때 참조할 정보를 제공합니다."
     }
   ],
   "OYKAqF": [
     {
       "type": 0,
-      "value": "Quick start"
+      "value": "빠른 시작"
     }
   ],
   "Oc1AVw": [
     {
-      "type": 0,
-      "value": "Draft synced "
-    },
-    {
       "type": 1,
       "value": "time"
+    },
+    {
+      "type": 0,
+      "value": "에 초안이 동기화됨"
     }
   ],
   "OeU7Xk": [
     {
       "type": 0,
-      "value": "Explain what this scheduled trigger does for "
+      "value": "이 예약된 트리거가 "
     },
     {
       "type": 1,
@@ -6265,7 +6599,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "에 대해 수행하는 작업을 설명합니다."
     }
   ],
   "OlIql8": [
@@ -6280,10 +6614,22 @@
       "value": "모든 모니터링 데이터를 보고 검색할 수 있으며, 모든 Azure 리소스에 대한 Azure Diagnostics 구성 보기 등 모니터링 설정도 확인할 수 있습니다."
     }
   ],
+  "OoxcFC": [
+    {
+      "type": 0,
+      "value": "Select the input type"
+    }
+  ],
+  "OpUvSu": [
+    {
+      "type": 0,
+      "value": "Create Kusto Tool"
+    }
+  ],
   "OrQ4EY": [
     {
       "type": 0,
-      "value": "Expand chat preview"
+      "value": "채팅 미리 보기 확장"
     }
   ],
   "OsIQyM": [
@@ -6295,7 +6641,7 @@
   "Oshix6": [
     {
       "type": 0,
-      "value": "Select an existing agent below to add as a handoff."
+      "value": "핸드오프로 추가할 기존 에이전트를 아래에서 선택합니다."
     }
   ],
   "OvzONl": [
@@ -6325,7 +6671,7 @@
   "P0yf0W": [
     {
       "type": 0,
-      "value": "Search tools by name, category, or description"
+      "value": "이름, 범주 또는 설명으로 도구 검색"
     }
   ],
   "P3qxV2": [
@@ -6337,7 +6683,7 @@
   "P5X8Kw": [
     {
       "type": 0,
-      "value": "Review your trigger configuration before creating"
+      "value": "만들기 전에 트리거 구성 검토"
     }
   ],
   "P7MNl8": [
@@ -6349,7 +6695,7 @@
   "P7PLVj": [
     {
       "type": 0,
-      "value": "Date"
+      "value": "날짜"
     }
   ],
   "P9odAr": [
@@ -6378,10 +6724,16 @@
       "value": "내 최근 프롬프트"
     }
   ],
+  "PF15hb": [
+    {
+      "type": 0,
+      "value": "Input value"
+    }
+  ],
   "PFUTWt": [
     {
       "type": 0,
-      "value": "AI improvements applied to instructions"
+      "value": "지침에 적용된 AI 개선 사항"
     }
   ],
   "PFtMy9": [
@@ -6408,34 +6760,40 @@
       "value": "인시던트 필터링"
     }
   ],
+  "PKvAvF": [
+    {
+      "type": 0,
+      "value": "Extend your agent’s capabilities with connectors"
+    }
+  ],
   "PPrKNq": [
     {
       "type": 0,
-      "value": "Defines how the agent operates"
+      "value": "에이전트 작동 방식 정의"
     }
   ],
   "PQgsh+": [
     {
       "type": 0,
-      "value": "Execute Tool"
+      "value": "실행 도구"
     }
   ],
   "PS7hBo": [
     {
       "type": 0,
-      "value": "Choose the Kusto connector this tool will query"
+      "value": "이 도구가 쿼리할 Kusto 커넥터 선택"
     }
   ],
   "PSfARI": [
     {
       "type": 0,
-      "value": "Loading more rows..."
+      "value": "더 많은 행을 로드하는 중..."
     }
   ],
   "PU1wDo": [
     {
       "type": 0,
-      "value": "Common tools"
+      "value": "일반 도구"
     }
   ],
   "PW+sL4": [
@@ -6448,6 +6806,18 @@
     {
       "type": 0,
       "value": "리소스 분석"
+    }
+  ],
+  "PXJ+oX": [
+    {
+      "type": 0,
+      "value": "To view incidents triggered, go to Incidents"
+    }
+  ],
+  "PXJi2R": [
+    {
+      "type": 0,
+      "value": "No target agent specified"
     }
   ],
   "PXYq8b": [
@@ -6475,7 +6845,13 @@
   "Pa1S0J": [
     {
       "type": 0,
-      "value": "Total active flow consumption"
+      "value": "총 활성 흐름 사용량"
+    }
+  ],
+  "PbaaPs": [
+    {
+      "type": 0,
+      "value": "Add subagent"
     }
   ],
   "Pc+tM3": [
@@ -6537,7 +6913,7 @@
   "PvMAYc": [
     {
       "type": 0,
-      "value": "No system tools match your search."
+      "value": "검색과 일치하는 시스템 도구가 없습니다."
     }
   ],
   "Pwen/L": [
@@ -6555,19 +6931,19 @@
   "Px6I1N": [
     {
       "type": 0,
-      "value": "Total tasks"
+      "value": "총 작업 수"
     }
   ],
   "PxsPJt": [
     {
       "type": 0,
-      "value": "Turning on scheduled task(s)"
+      "value": "예약된 작업 켜기"
     }
   ],
   "PysW/n": [
     {
       "type": 0,
-      "value": "Reset changes"
+      "value": "변경 내용 다시 설정"
     }
   ],
   "PzGaVI": [
@@ -6579,7 +6955,7 @@
   "Q++yMM": [
     {
       "type": 0,
-      "value": "Subagent"
+      "value": "하위 에이전트"
     }
   ],
   "Q/agzh": [
@@ -6591,7 +6967,7 @@
   "Q2CgqG": [
     {
       "type": 0,
-      "value": "Choose your approach below. You can always switch between editing and testing."
+      "value": "아래에서 방법을 선택하세요. 편집과 테스트 간에 언제든지 전환할 수 있습니다."
     }
   ],
   "Q3p3sz": [
@@ -6603,15 +6979,7 @@
   "Q4f1wN": [
     {
       "type": 0,
-      "value": "This will permanently "
-    },
-    {
-      "type": 1,
-      "value": "actionVerb"
-    },
-    {
-      "type": 0,
-      "value": " this "
+      "value": "이 "
     },
     {
       "type": 1,
@@ -6619,7 +6987,7 @@
     },
     {
       "type": 0,
-      "value": ". Are you sure you want to "
+      "value": "은(는) 영구적으로 "
     },
     {
       "type": 1,
@@ -6627,7 +6995,7 @@
     },
     {
       "type": 0,
-      "value": " this "
+      "value": "됩니다. 이 "
     },
     {
       "type": 1,
@@ -6635,13 +7003,27 @@
     },
     {
       "type": 0,
-      "value": "?"
+      "value": "을(를) "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": "하시겠습니까?"
+    }
+  ],
+  "Q6Lw7i": [
+    {
+      "type": 0,
+      "value": "To learn more about permissions, click here."
     }
   ],
   "Q7/1w4": [
     {
       "type": 0,
-      "value": "Required for testing"
+      "value": "테스트에 필요"
     }
   ],
   "Q8Qw5B": [
@@ -6671,7 +7053,7 @@
   "QChoto": [
     {
       "type": 0,
-      "value": "Updating AAU allocation from "
+      "value": "AAU 할당을 "
     },
     {
       "type": 1,
@@ -6679,7 +7061,7 @@
     },
     {
       "type": 0,
-      "value": " to "
+      "value": "에서 "
     },
     {
       "type": 1,
@@ -6687,7 +7069,13 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "(으)로 업데이트하는 중입니다."
+    }
+  ],
+  "QDa8Q+": [
+    {
+      "type": 0,
+      "value": "Add connector"
     }
   ],
   "QEhO+z": [
@@ -6708,10 +7096,16 @@
       "value": "Azure Digital Twins 데이터 소유자"
     }
   ],
+  "QK0vxq": [
+    {
+      "type": 0,
+      "value": "Go to Connectors"
+    }
+  ],
   "QOSRgI": [
     {
       "type": 0,
-      "value": "AAU Consumption"
+      "value": "AAU 사용량"
     }
   ],
   "QQX4Pv": [
@@ -6726,40 +7120,26 @@
       "value": "사용(트리거, 작업)"
     }
   ],
-  "QWEHW2": [
+  "QW+Q5N": [
     {
       "type": 0,
-      "value": "Every "
-    },
+      "value": "Clear all"
+    }
+  ],
+  "QWEHW2": [
     {
       "type": 1,
       "value": "hours"
     },
     {
       "type": 0,
-      "value": " hours"
+      "value": "시간마다"
     }
   ],
   "QY3CEK": [
     {
       "type": 0,
-      "value": "Handoff Description"
-    }
-  ],
-  "Qc3Kdl": [
-    {
-      "type": 0,
-      "value": "Example: "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "where SubscriptionId == \"##SubscriptionId##\""
-        }
-      ],
-      "type": 8,
-      "value": "code"
+      "value": "전달 설명"
     }
   ],
   "QdDYGR": [
@@ -6789,13 +7169,13 @@
   "Ql/5RS": [
     {
       "type": 0,
-      "value": "Scoring…"
+      "value": "채점..."
     }
   ],
   "QlkL14": [
     {
       "type": 0,
-      "value": "Updating connector"
+      "value": "커넥터를 업데이트하는 중"
     }
   ],
   "QlsDcr": [
@@ -6813,7 +7193,7 @@
   "QmOU5t": [
     {
       "type": 0,
-      "value": "Deleting connector \""
+      "value": "커넥터 \""
     },
     {
       "type": 1,
@@ -6821,37 +7201,37 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": "\"을(를) 삭제하는 중"
     }
   ],
   "Qn5bey": [
     {
       "type": 0,
-      "value": "No quick fixes needed."
+      "value": "빠른 수정이 필요하지 않습니다."
     }
   ],
   "Qn8Bok": [
     {
       "type": 0,
-      "value": "Handback"
+      "value": "핸드백"
     }
   ],
   "QomX1y": [
     {
       "type": 0,
-      "value": "e.g., 0 9 * * 1-5"
+      "value": "예: 0 9 * * 1-5"
     }
   ],
   "QpCzB2": [
     {
       "type": 0,
-      "value": "Resize configuration and preview panels"
+      "value": "구성 및 미리 보기 패널 크기 조정"
     }
   ],
   "QrihTZ": [
     {
       "type": 0,
-      "value": "Friday"
+      "value": "금요일"
     }
   ],
   "QwnGVY": [
@@ -6863,7 +7243,7 @@
   "QzM+2e": [
     {
       "type": 0,
-      "value": "Start filling in the fields above to define this tool."
+      "value": "이 도구를 정의하려면 위의 필드 채우기를 시작합니다."
     }
   ],
   "R+J5ox": [
@@ -6903,7 +7283,7 @@
   "R3mMmc": [
     {
       "type": 0,
-      "value": "Monthly AAU limit slider"
+      "value": "월별 AAU 제한 슬라이더"
     }
   ],
   "R7DP3y": [
@@ -6921,13 +7301,19 @@
   "RA3fki": [
     {
       "type": 0,
-      "value": "Missing context"
+      "value": "누락된 컨텍스트"
     }
   ],
   "RAjqKb": [
     {
       "type": 0,
       "value": "패널 닫기"
+    }
+  ],
+  "REOGTJ": [
+    {
+      "type": 0,
+      "value": "Add a connector to give the agent additional tools for automating incident handling."
     }
   ],
   "RH8rNM": [
@@ -6939,33 +7325,29 @@
   "RI59Ed": [
     {
       "type": 0,
-      "value": "Add existing tool"
+      "value": "기존 도구 추가"
     }
   ],
   "RK2Ddg": [
     {
       "type": 0,
-      "value": "Orchestrator"
+      "value": "오케스트레이터"
     }
   ],
   "RK9Ag4": [
-    {
-      "type": 0,
-      "value": "Delete "
-    },
     {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " files?"
+      "value": "개 파일을 삭제하시겠습니까?"
     }
   ],
   "RR+13c": [
     {
       "type": 0,
-      "value": "Replace the default meta agent with a specialized version tailored for this extended agent"
+      "value": "기본 메타 에이전트를 이 확장 에이전트에 맞춘 특수 버전으로 바꾸기"
     }
   ],
   "RSDnlS": [
@@ -7013,7 +7395,7 @@
   "Rk/SSB": [
     {
       "type": 0,
-      "value": "Server error occurred. Please try again in a few moments."
+      "value": "서버 오류가 발생했습니다. 잠시 후 다시 시도하세요."
     }
   ],
   "RpKuX5": [
@@ -7042,19 +7424,23 @@
           "value": [
             {
               "type": 0,
-              "value": "Set up incident response plans to trigger agents automatically."
+              "value": "에이전트를 자동으로 트리거하도록 인시던트 응답 계획을 설정합니다."
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "인시던트 응답 계획 "
+            },
+            {
               "type": 1,
               "value": "count"
             },
             {
               "type": 0,
-              "value": " incident response plans ready to trigger your agents."
+              "value": "개가 에이전트를 트리거할 준비가 되어 있습니다."
             }
           ]
         }
@@ -7067,7 +7453,7 @@
   "S0GneP": [
     {
       "type": 0,
-      "value": "Review Your agent"
+      "value": "에이전트 검토"
     }
   ],
   "S1VBUm": [
@@ -7082,10 +7468,24 @@
       "value": "지난 12시간"
     }
   ],
+  "S2jxf1": [
+    {
+      "type": 0,
+      "value": "No "
+    },
+    {
+      "type": 1,
+      "value": "activeTab"
+    },
+    {
+      "type": 0,
+      "value": " found"
+    }
+  ],
   "S2z35W": [
     {
       "type": 0,
-      "value": "Failed to create connector with error: "
+      "value": "다음 오류로 커넥터를 만들지 못했습니다. "
     },
     {
       "type": 1,
@@ -7101,13 +7501,13 @@
   "S5UkvS": [
     {
       "type": 0,
-      "value": "Playground mode"
+      "value": "플레이그라운드 모드"
     }
   ],
   "S8/4ZI": [
     {
       "type": 0,
-      "value": "More actions"
+      "value": "추가 작업"
     }
   ],
   "SAINuE": [
@@ -7120,6 +7520,12 @@
     {
       "type": 0,
       "value": "Cognitive Services 데이터 뷰어"
+    }
+  ],
+  "SDsdCi": [
+    {
+      "type": 0,
+      "value": "Add existing tools"
     }
   ],
   "SFUZOQ": [
@@ -7169,7 +7575,7 @@
   "SR33a/": [
     {
       "type": 0,
-      "value": "Restart chat conversation"
+      "value": "채팅 대화 다시 시작"
     }
   ],
   "SRf69j": [
@@ -7211,13 +7617,13 @@
   "SXcBLr": [
     {
       "type": 0,
-      "value": "No common prompts added."
+      "value": "일반 프롬프트가 추가되지 않았습니다."
     }
   ],
   "SZMgCd": [
     {
       "type": 0,
-      "value": "Connect a Model Context Protocol (MCP) server to give the agent additional tools and actions for automating incident handling."
+      "value": "MCP(모델 컨텍스트 프로토콜) 서버를 연결하여 에이전트에 인시던트 처리를 자동화하기 위한 추가 도구와 작업을 제공합니다."
     }
   ],
   "Sdc+Dp": [
@@ -7229,7 +7635,7 @@
   "Seanpx": [
     {
       "type": 0,
-      "value": "Required"
+      "value": "필수"
     }
   ],
   "SezWLK": [
@@ -7253,7 +7659,7 @@
   "SmFb5S": [
     {
       "type": 0,
-      "value": "Draft not yet synced"
+      "value": "초안이 아직 동기화되지 않음"
     }
   ],
   "Sr4IbA": [
@@ -7271,7 +7677,7 @@
   "StVmtb": [
     {
       "type": 0,
-      "value": "Generate schedule"
+      "value": "일정 생성"
     }
   ],
   "SuVToZ": [
@@ -7288,30 +7694,22 @@
   ],
   "T+FE9b": [
     {
-      "type": 0,
-      "value": "Interactive testing for "
-    },
-    {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": " is coming soon."
+      "value": "에 대한 대화형 테스트가 곧 제공될 예정입니다."
     }
   ],
   "T/G3bv": [
-    {
-      "type": 0,
-      "value": "Created "
-    },
     {
       "type": 1,
       "value": "handoffName"
     },
     {
       "type": 0,
-      "value": " and added it as a handoff for "
+      "value": "을(를) 만들어 "
     },
     {
       "type": 1,
@@ -7319,7 +7717,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "에 대한 핸드오프로 추가했습니다."
     }
   ],
   "T0/eoE": [
@@ -7343,7 +7741,7 @@
   "T7fzjx": [
     {
       "type": 0,
-      "value": "Save YAML"
+      "value": "YAML 저장"
     }
   ],
   "T8DCV7": [
@@ -7397,7 +7795,7 @@
   "THFIRB": [
     {
       "type": 0,
-      "value": "Incident trigger"
+      "value": "인시던트 트리거"
     }
   ],
   "TIDNOO": [
@@ -7425,7 +7823,7 @@
   "TKsgZu": [
     {
       "type": 0,
-      "value": "Key alerts"
+      "value": "주요 경고"
     }
   ],
   "TMZ2Rq": [
@@ -7437,7 +7835,7 @@
   "TO55dt": [
     {
       "type": 0,
-      "value": "Azure SRE Agent billing is measured in Azure agent units (AAU). Monthly AAU billing reflects both the fixed always-on flow and variable usage from active flow. You can increase or decrease the active flow AAU allocation at any time."
+      "value": "Azure SRE Agent 청구는 AAU(Azure 에이전트 단위)로 측정됩니다. 월간 AAU 청구에는 고정 상시 흐름과 활성 흐름의 변수 사용량이 모두 반영됩니다. 언제든지 활성 흐름 AAU 할당을 늘리거나 줄일 수 있습니다."
     }
   ],
   "TQ0n+a": [
@@ -7447,7 +7845,7 @@
     },
     {
       "type": 0,
-      "value": " lands at "
+      "value": "은(는) "
     },
     {
       "type": 1,
@@ -7455,13 +7853,13 @@
     },
     {
       "type": 0,
-      "value": "%. Sharpen instructions and tools to climb faster."
+      "value": "%입니다. 지침과 도구를 선명하게 하여 더 빠르게 올라가세요."
     }
   ],
   "TRceX/": [
     {
       "type": 0,
-      "value": "No agents-as-tools configured."
+      "value": "에이전트가 도구로 구성되어 있지 않습니다."
     }
   ],
   "TZWmvi": [
@@ -7485,7 +7883,7 @@
   "Tg4Q8g": [
     {
       "type": 0,
-      "value": "Disconnect data connector?"
+      "value": "데이터 커넥터의 연결을 끊으시겠습니까?"
     }
   ],
   "ThSX0k": [
@@ -7503,13 +7901,13 @@
   "Tkn9dK": [
     {
       "type": 0,
-      "value": "Select an agent to manage its relationships."
+      "value": "관계를 관리할 에이전트를 선택합니다."
     }
   ],
   "TmQqXl": [
     {
       "type": 0,
-      "value": "Optional: choose when this schedule should begin running."
+      "value": "선택 사항: 이 일정의 실행을 시작할 시기를 선택합니다."
     }
   ],
   "Tq2F2Y": [
@@ -7518,10 +7916,16 @@
       "value": "응답 계획을 만들 수 있는 권한이 없습니다."
     }
   ],
+  "TrnqJG": [
+    {
+      "type": 0,
+      "value": "Input type"
+    }
+  ],
   "TwMqIK": [
     {
       "type": 0,
-      "value": "Review Your connector"
+      "value": "커넥터 검토"
     }
   ],
   "TyvDrC": [
@@ -7539,7 +7943,13 @@
   "U914O/": [
     {
       "type": 0,
-      "value": "No params needed"
+      "value": "매개 변수가 필요하지 않음"
+    }
+  ],
+  "UBbDNy": [
+    {
+      "type": 0,
+      "value": "No documents in knowledge base. Add some?"
     }
   ],
   "UCYFxr": [
@@ -7571,7 +7981,7 @@
   "UNXega": [
     {
       "type": 0,
-      "value": "From agent"
+      "value": "에이전트에서"
     }
   ],
   "UPybTw": [
@@ -7583,7 +7993,7 @@
   "UQUIP7": [
     {
       "type": 0,
-      "value": "Request error"
+      "value": "요청 오류"
     }
   ],
   "UV4Dx5": [
@@ -7629,7 +8039,7 @@
     },
     {
       "type": 0,
-      "value": " is already a handoff for "
+      "value": "은(는) 이미 "
     },
     {
       "type": 1,
@@ -7637,7 +8047,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "에 대한 핸드오프입니다."
     }
   ],
   "UmEsZF": [
@@ -7667,25 +8077,25 @@
   "V4yeoh": [
     {
       "type": 0,
-      "value": "Peak Usage"
+      "value": "최대 사용량"
     }
   ],
   "V52jNn": [
     {
       "type": 0,
-      "value": "Enabled"
+      "value": "사용"
     }
   ],
   "V5AOl5": [
     {
       "type": 0,
-      "value": "Remove starter agent"
+      "value": "스타터 에이전트 제거"
     }
   ],
   "V5w7/I": [
     {
       "type": 0,
-      "value": "Optimize alert response with an incident platform"
+      "value": "인시던트 플랫폼을 사용하여 경고 응답 최적화"
     }
   ],
   "V9A1Xh": [
@@ -7697,7 +8107,7 @@
   "VA/Z1S": [
     {
       "type": 0,
-      "value": "Hide"
+      "value": "숨기기"
     }
   ],
   "VB+AjJ": [
@@ -7715,13 +8125,13 @@
   "VIYXlx": [
     {
       "type": 0,
-      "value": "Chat preview"
+      "value": "채팅 미리 보기"
     }
   ],
   "VIcJZp": [
     {
       "type": 0,
-      "value": "List View"
+      "value": "목록 보기"
     }
   ],
   "VIgoaE": [
@@ -7742,12 +8152,6 @@
       "value": "연결된 API"
     }
   ],
-  "VMIM8/": [
-    {
-      "type": 0,
-      "value": "분석"
-    }
-  ],
   "VQDmmK": [
     {
       "type": 0,
@@ -7757,29 +8161,35 @@
   "VQlvNn": [
     {
       "type": 0,
-      "value": "Overriding the meta agent is recommended because this extended agent doesn't need the default agent's world knowledge of Azure resources, providing a more focused experience."
+      "value": "이 확장 에이전트는 Azure 리소스에 대한 기본 에이전트의 세계 지식이 필요하지 않으므로 메타 에이전트를 재정의하여 더 집중적인 환경을 제공하는 것이 좋습니다."
     }
   ],
   "VQn8u+": [
     {
       "type": 0,
-      "value": "Select system tools this agent can use"
+      "value": "이 에이전트가 사용할 수 있는 시스템 도구를 선택합니다."
     }
   ],
   "VSWkne": [
     {
       "type": 0,
-      "value": "Warnings"
+      "value": "경고"
     }
   ],
   "VTkRGg": [
     {
-      "type": 0,
-      "value": "Connect relationships for "
-    },
-    {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "에 대한 관계 연결"
+    }
+  ],
+  "VU4BBu": [
+    {
+      "type": 0,
+      "value": "Parameter"
     }
   ],
   "VUHkVQ": [
@@ -7797,13 +8207,13 @@
   "VVy70J": [
     {
       "type": 0,
-      "value": "Quality watcher"
+      "value": "품질 감시자"
     }
   ],
   "VWq2cH": [
     {
       "type": 0,
-      "value": "Playbook Legend"
+      "value": "플레이북 범례"
     }
   ],
   "VYjDXQ": [
@@ -7824,6 +8234,12 @@
       "value": "검토(기본값)"
     }
   ],
+  "Vipo+I": [
+    {
+      "type": 0,
+      "value": "No parameters configured"
+    }
+  ],
   "VlBNux": [
     {
       "type": 0,
@@ -7833,13 +8249,13 @@
   "VnySGb": [
     {
       "type": 0,
-      "value": "A meta agent override already exists in your system."
+      "value": "시스템에 메타 에이전트 재정의가 이미 있습니다."
     }
   ],
   "VpVoQZ": [
     {
       "type": 0,
-      "value": "Tool recommendations"
+      "value": "도구 권장 사항"
     }
   ],
   "VpsD7s": [
@@ -7871,7 +8287,7 @@
   "VvrxSY": [
     {
       "type": 0,
-      "value": "Common prompts"
+      "value": "일반 프롬프트"
     }
   ],
   "VwHnVH": [
@@ -7883,7 +8299,7 @@
   "VzeCzD": [
     {
       "type": 0,
-      "value": "Type for dictionary values"
+      "value": "사전 값에 대한 형식"
     }
   ],
   "VzzYJk": [
@@ -7904,6 +8320,12 @@
       "value": "응답 계획을 찾을 수 없음"
     }
   ],
+  "W1Qs5O": [
+    {
+      "type": 0,
+      "value": "Runs"
+    }
+  ],
   "W2JBdp": [
     {
       "type": 0,
@@ -7913,7 +8335,7 @@
   "W5zi/x": [
     {
       "type": 0,
-      "value": "Please try again or check the console for details."
+      "value": "다시 시도하거나 콘솔에서 자세한 내용을 확인하세요."
     }
   ],
   "W6NO8g": [
@@ -7931,7 +8353,7 @@
   "W8LUUc": [
     {
       "type": 0,
-      "value": "Not analyzed"
+      "value": "분석되지 않음"
     }
   ],
   "W99XAG": [
@@ -7958,6 +8380,12 @@
       "value": "마지막 데이터 캡처 시간"
     }
   ],
+  "WJj+TP": [
+    {
+      "type": 0,
+      "value": "You do not have permission to check incident management connection."
+    }
+  ],
   "WLw9E7": [
     {
       "type": 0,
@@ -7967,7 +8395,7 @@
   "WMNHPh": [
     {
       "type": 0,
-      "value": "Saturday"
+      "value": "토요일"
     }
   ],
   "WTrOy3": [
@@ -7979,7 +8407,7 @@
   "WUV28A": [
     {
       "type": 0,
-      "value": "Saving…"
+      "value": "저장하는 중..."
     }
   ],
   "WVTzuw": [
@@ -8017,13 +8445,13 @@
   "WcnRC1": [
     {
       "type": 0,
-      "value": "Pick an agent to visualize its tools, connectors, and handoffs."
+      "value": "에이전트를 선택하여 도구, 커넥터 및 핸드오프를 시각화합니다."
     }
   ],
   "WdmBr4": [
     {
       "type": 0,
-      "value": "Insight streak: "
+      "value": "인사이트 기록: "
     },
     {
       "type": 1,
@@ -8032,17 +8460,13 @@
   ],
   "Wekzzh": [
     {
-      "type": 0,
-      "value": "Are you sure you want to delete "
-    },
-    {
       "offset": 0,
       "options": {
         "one": {
           "value": [
             {
               "type": 0,
-              "value": "this item"
+              "value": "이 항목"
             }
           ]
         },
@@ -8050,14 +8474,14 @@
           "value": [
             {
               "type": 0,
-              "value": "these "
+              "value": "이 항목 "
             },
             {
               "type": 7
             },
             {
               "type": 0,
-              "value": " items"
+              "value": "개"
             }
           ]
         }
@@ -8068,7 +8492,7 @@
     },
     {
       "type": 0,
-      "value": "? This action cannot be undone."
+      "value": "를 삭제하시겠어요? 이 작업은 실행을 취소할 수 없습니다."
     }
   ],
   "Wf6bDe": [
@@ -8080,19 +8504,25 @@
   "WfXPv6": [
     {
       "type": 0,
-      "value": "New thread for each run"
+      "value": "각 실행에 대한 새 스레드"
     }
   ],
   "WhuvJH": [
     {
       "type": 0,
-      "value": "Auto-apply OFF"
+      "value": "자동 적용 끄기"
+    }
+  ],
+  "WjqsyE": [
+    {
+      "type": 0,
+      "value": "When enabled, the SearchMemory tool and knowledge base prompts will be automatically added"
     }
   ],
   "Wkup5T": [
     {
       "type": 0,
-      "value": "Pending user input"
+      "value": "보류 중인 사용자 입력"
     }
   ],
   "Wn+PVy": [
@@ -8104,19 +8534,19 @@
   "WolNVP": [
     {
       "type": 0,
-      "value": "No recent analysis"
+      "value": "최근 분석 없음"
     }
   ],
   "WsILsq": [
     {
       "type": 0,
-      "value": "Iterate on instructions without impacting production threads."
+      "value": "프로덕션 스레드에 영향을 주지 않고 명령을 반복합니다."
     }
   ],
   "WsJuyI": [
     {
       "type": 0,
-      "value": "Agent playground"
+      "value": "에이전트 플레이그라운드"
     }
   ],
   "Wtf3vL": [
@@ -8140,7 +8570,7 @@
   "WzNnqa": [
     {
       "type": 0,
-      "value": "Ready to start a new chat with extended agent “"
+      "value": "확장 에이전트 \""
     },
     {
       "type": 1,
@@ -8148,7 +8578,7 @@
     },
     {
       "type": 0,
-      "value": "”. Your next message will launch it."
+      "value": "\"과(와) 새 채팅을 시작할 준비가 되었습니다. 다음 메시지가 시작됩니다."
     }
   ],
   "X192re": [
@@ -8160,7 +8590,7 @@
   "X3fjbS": [
     {
       "type": 0,
-      "value": "Context: "
+      "value": "컨텍스트: "
     },
     {
       "type": 1,
@@ -8170,7 +8600,7 @@
   "X3hl5x": [
     {
       "type": 0,
-      "value": "Assumptions"
+      "value": "가정"
     }
   ],
   "X4Y2nv": [
@@ -8192,7 +8622,7 @@
   "X5Q310": [
     {
       "type": 0,
-      "value": "Hide details"
+      "value": "세부 정보 숨기기"
     }
   ],
   "X5UCWb": [
@@ -8210,7 +8640,7 @@
   "X7mXLW": [
     {
       "type": 0,
-      "value": "YAML error"
+      "value": "YAML 오류"
     }
   ],
   "X8SzJ6": [
@@ -8228,27 +8658,29 @@
   "XCfiZ2": [
     {
       "type": 0,
-      "value": "Draft the cron for me"
+      "value": "나를 위해 cron 초안 작성"
     }
   ],
   "XDSe35": [
     {
       "type": 0,
-      "value": "Select an agent or tool to start a playground session."
+      "value": "에이전트 또는 도구를 선택하여 플레이그라운드 세션을 시작합니다."
+    }
+  ],
+  "XDcbqQ": [
+    {
+      "type": 0,
+      "value": "Stopping SRE Agent"
     }
   ],
   "XEB3Fn": [
-    {
-      "type": 0,
-      "value": "Will attach to "
-    },
     {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": " as a tool."
+      "value": "에 도구로 연결됩니다."
     }
   ],
   "XEanEV": [
@@ -8266,23 +8698,27 @@
   "XG++pU": [
     {
       "type": 0,
-      "value": "Delete resource group "
+      "value": "리소스 그룹 "
     },
     {
       "type": 1,
       "value": "resourceGroupName"
+    },
+    {
+      "type": 0,
+      "value": " 삭제"
     }
   ],
   "XHc00z": [
     {
       "type": 0,
-      "value": "Connector Type"
+      "value": "커넥터 유형"
     }
   ],
   "XHoPAJ": [
     {
       "type": 0,
-      "value": "Response plan details"
+      "value": "응답 계획 세부 정보"
     }
   ],
   "XJ+Lww": [
@@ -8300,7 +8736,7 @@
   "XKWCS3": [
     {
       "type": 0,
-      "value": "Removed the starter agent. Next messages will stay in this thread."
+      "value": "스타터 에이전트를 제거했습니다. 다음 메시지는 이 스레드에 유지됩니다."
     }
   ],
   "XKhlZF": [
@@ -8324,13 +8760,13 @@
   "XM+FCY": [
     {
       "type": 0,
-      "value": "Connected tools"
+      "value": "연결된 도구"
     }
   ],
   "XMUseu": [
     {
       "type": 0,
-      "value": "Failed to update AAU allocation. Error: "
+      "value": "AAU 할당을 업데이트하지 못했습니다. 오류: "
     },
     {
       "type": 1,
@@ -8340,7 +8776,7 @@
   "XPR3X/": [
     {
       "type": 0,
-      "value": "Thread title was renamed successfully to '"
+      "value": "스레드 제목의 이름이 '"
     },
     {
       "type": 1,
@@ -8348,7 +8784,7 @@
     },
     {
       "type": 0,
-      "value": "'"
+      "value": "'(으)로 변경되었습니다."
     }
   ],
   "XRdOZL": [
@@ -8357,16 +8793,28 @@
       "value": "인시던트 선택 또는 검색"
     }
   ],
+  "XS8hWM": [
+    {
+      "type": 0,
+      "value": "Enter a boolean"
+    }
+  ],
   "XV8dOu": [
     {
       "type": 0,
-      "value": "Message grouping for updates"
+      "value": "업데이트를 위한 메시지 그룹화"
     }
   ],
   "XVG+T1": [
     {
       "type": 0,
-      "value": "Refining details..."
+      "value": "세부 정보를 구체화하는 중..."
+    }
+  ],
+  "XYIeUc": [
+    {
+      "type": 0,
+      "value": "Agent permissions are determined by its assigned RBAC roles."
     }
   ],
   "XYSJsS": [
@@ -8396,7 +8844,7 @@
   "Xb85sq": [
     {
       "type": 0,
-      "value": "Grid view is coming soon."
+      "value": "약식 표 보기는 출시될 예정입니다."
     }
   ],
   "XbNTkN": [
@@ -8411,6 +8859,20 @@
       "value": "강조된 지점"
     }
   ],
+  "XfAFyQ": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " connectors..."
+    }
+  ],
   "Xkdnen": [
     {
       "type": 0,
@@ -8420,19 +8882,25 @@
   "Xmty/4": [
     {
       "type": 0,
-      "value": "Hide watcher panel"
+      "value": "감시자 패널 숨기기"
     }
   ],
   "XqRXu6": [
     {
       "type": 0,
-      "value": "Playground"
+      "value": "플레이그라운드"
     }
   ],
   "XtnlO8": [
     {
       "type": 0,
       "value": "PostgreSQL 유연한 서버에 대한 장기 보존 백업을 관리합니다."
+    }
+  ],
+  "Xup5P8": [
+    {
+      "type": 0,
+      "value": "What happened"
     }
   ],
   "XvrDTb": [
@@ -8448,13 +8916,13 @@
     },
     {
       "type": 0,
-      "value": ", give me your mission briefing and how you partner with engineers."
+      "value": " 님, 임무 브리핑과 엔지니어와 협력하는 방법을 알려주세요."
     }
   ],
   "Y2PFzA": [
     {
       "type": 0,
-      "value": "Priority fixes"
+      "value": "우선 순위 수정"
     }
   ],
   "Y2QRpS": [
@@ -8466,11 +8934,31 @@
   "Y3qQB0": [
     {
       "type": 0,
-      "value": "Turning on scheduled task "
+      "value": "예약된 작업 "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "을(를) 켜는 중"
+    }
+  ],
+  "Y47Dwm": [
+    {
+      "type": 0,
+      "value": "Kusto tools"
+    }
+  ],
+  "Y5IFiT": [
+    {
+      "type": 1,
+      "value": "service"
+    },
+    {
+      "type": 0,
+      "value": " account"
     }
   ],
   "Y7Lbpf": [
@@ -8482,13 +8970,13 @@
   "Y7RxDE": [
     {
       "type": 0,
-      "value": "Run task now"
+      "value": "지금 작업 실행"
     }
   ],
   "YAgYL6": [
     {
       "type": 0,
-      "value": "Tuesday"
+      "value": "화요일"
     }
   ],
   "YBXVNU": [
@@ -8506,7 +8994,7 @@
   "YCnSYw": [
     {
       "type": 0,
-      "value": "No description provided."
+      "value": "설명이 제공되지 않았습니다."
     }
   ],
   "YE+vjH": [
@@ -8527,16 +9015,30 @@
       "value": "작업 계속"
     }
   ],
+  "YKwGp6": [
+    {
+      "type": 0,
+      "value": "Added tools to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "YMjUWP": [
     {
       "type": 0,
-      "value": "Turn off scheduled task"
+      "value": "예약된 작업 끄기"
     }
   ],
   "YN1/XY": [
     {
       "type": 0,
-      "value": "Stress test"
+      "value": "스트레스 테스트"
     }
   ],
   "YP06jq": [
@@ -8548,21 +9050,17 @@
   "YT6JU9": [
     {
       "type": 0,
-      "value": "Enter a name before creating this item."
+      "value": "이 항목을 만들기 전에 이름을 입력합니다."
     }
   ],
   "YXOz1v": [
-    {
-      "type": 0,
-      "value": "Executing "
-    },
     {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": "..."
+      "value": "을(를) 실행하는 중..."
     }
   ],
   "YZIFAO": [
@@ -8580,7 +9078,7 @@
   "YeKWbP": [
     {
       "type": 0,
-      "value": "Authentication"
+      "value": "인증"
     }
   ],
   "YgyuGj": [
@@ -8628,7 +9126,7 @@
   "YrlQBL": [
     {
       "type": 0,
-      "value": "tool"
+      "value": "도구"
     }
   ],
   "Ys9AIu": [
@@ -8640,7 +9138,7 @@
   "YsFdGq": [
     {
       "type": 0,
-      "value": "Supported file formats: .md and .txt"
+      "value": "지원되는 파일 형식: .md 및 .txt"
     }
   ],
   "Ysew65": [
@@ -8652,19 +9150,19 @@
   "YuvMS0": [
     {
       "type": 0,
-      "value": "Insights not yet analysed"
+      "value": "인사이트가 아직 분석되지 않음"
     }
   ],
   "Z+uDP9": [
     {
       "type": 0,
-      "value": "Add a file or connect an external data source, such as a service or repository, to help the agent generate more informed responses."
+      "value": "에이전트가 정보에 입각한 응답을 생성할 수 있도록 파일을 추가하거나 서비스, 리포지토리 같은 외부 데이터 소스를 연결하세요."
     }
   ],
   "Z+wlsh": [
     {
       "type": 0,
-      "value": "Tool configuration is unavailable for this selection."
+      "value": "이 선택 항목에는 도구 구성을 사용할 수 없습니다."
     }
   ],
   "Z1VHv1": [
@@ -8676,13 +9174,13 @@
   "Z4bt4u": [
     {
       "type": 0,
-      "value": "Auto-generated if left empty"
+      "value": "비어 있는 경우 자동 생성"
     }
   ],
   "Z5ntkd": [
     {
       "type": 0,
-      "value": "Configuration changes are auto-applied (disable auto-apply to use manual apply)"
+      "value": "구성 변경 내용이 자동으로 적용됨(수동 적용을 사용하려면 자동 적용 사용 안 함)"
     }
   ],
   "Z6rVz/": [
@@ -8706,13 +9204,13 @@
   "Z8Y6DE": [
     {
       "type": 0,
-      "value": "Last Synced"
+      "value": "마지막으로 동기화됨"
     }
   ],
   "Z9TajN": [
     {
       "type": 0,
-      "value": "Parsing…"
+      "value": "구문 분석 중..."
     }
   ],
   "Z9pRs5": [
@@ -8724,7 +9222,7 @@
   "ZA4OiK": [
     {
       "type": 0,
-      "value": "Failed to create scheduled task: "
+      "value": "예약된 작업을 만들지 못했습니다. "
     },
     {
       "type": 1,
@@ -8734,7 +9232,7 @@
   "ZBKZDe": [
     {
       "type": 0,
-      "value": "Each "
+      "value": "각 "
     },
     {
       "type": 1,
@@ -8742,19 +9240,19 @@
     },
     {
       "type": 0,
-      "value": " must include a name."
+      "value": "에는 이름이 포함되어야 합니다."
     }
   ],
   "ZBlAho": [
     {
       "type": 0,
-      "value": "Check if the agent introduces itself properly and outlines its capabilities."
+      "value": "에이전트가 자신을 제대로 소개하고 해당 기능을 간략하게 설명하는지 확인합니다."
     }
   ],
   "ZBpAJ/": [
     {
       "type": 0,
-      "value": "Chat restarted with new configuration."
+      "value": "새 구성으로 채팅이 다시 시작되었습니다."
     }
   ],
   "ZCA/Ga": [
@@ -8771,10 +9269,20 @@
       "value": "(으)로 업데이트하는 중"
     }
   ],
+  "ZF9lPS": [
+    {
+      "type": 0,
+      "value": "Remove tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    }
+  ],
   "ZMa6Rh": [
     {
       "type": 0,
-      "value": "Deleting scheduled task(s)"
+      "value": "예약된 작업을 삭제하는 중"
     }
   ],
   "ZNMCbm": [
@@ -8786,19 +9294,19 @@
   "ZOO+kP": [
     {
       "type": 0,
-      "value": "Start on"
+      "value": "시작 날짜"
     }
   ],
   "ZOdb7N": [
     {
       "type": 0,
-      "value": "Visual View"
+      "value": "시각적 개체 보기"
     }
   ],
   "ZPP6n7": [
     {
       "type": 0,
-      "value": "Form editing is coming soon for this entity."
+      "value": "이 엔터티에 대한 양식 편집이 곧 제공될 예정입니다."
     }
   ],
   "ZUXvHE": [
@@ -8821,16 +9329,12 @@
   ],
   "Ze5Ejt": [
     {
-      "type": 0,
-      "value": "Testing for "
-    },
-    {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": " is coming soon. Only Kusto tools are supported right now."
+      "value": "에 대한 테스트가 곧 제공될 예정입니다. 지금은 Kusto 도구만 지원됩니다."
     }
   ],
   "Zh+5A6": [
@@ -8848,7 +9352,7 @@
   "ZjlBPk": [
     {
       "type": 0,
-      "value": "Conclusion"
+      "value": "결론"
     }
   ],
   "Zkjd9I": [
@@ -8860,19 +9364,19 @@
   "ZmlNQ3": [
     {
       "type": 0,
-      "value": "Activity"
+      "value": "활동"
     }
   ],
   "Zo9lK6": [
     {
       "type": 0,
-      "value": "Select an existing tool below to connect."
+      "value": "연결하려면 아래에서 기존 도구를 선택합니다."
     }
   ],
   "Zq5BCQ": [
     {
       "type": 0,
-      "value": "Failed to apply changes"
+      "value": "변경 내용을 적용하지 못함"
     }
   ],
   "ZqVUb5": [
@@ -8882,7 +9386,7 @@
     },
     {
       "type": 0,
-      "value": " scheduled task"
+      "value": " 예약된 작업"
     }
   ],
   "Zqa4dQ": [
@@ -8900,13 +9404,13 @@
   "Zt/L20": [
     {
       "type": 0,
-      "value": "No metadata provided."
+      "value": "메타데이터가 제공되지 않았습니다."
     }
   ],
   "Zu+xDc": [
     {
       "type": 0,
-      "value": "Fetching suggestions..."
+      "value": "제안을 가져오는 중..."
     }
   ],
   "ZukeYV": [
@@ -8926,7 +9430,7 @@
   "Zve9uZ": [
     {
       "type": 0,
-      "value": "Test your Kusto query before saving"
+      "value": "저장하기 전에 Kusto 쿼리 테스트"
     }
   ],
   "ZwYyES": [
@@ -8938,7 +9442,7 @@
   "a1UV+9": [
     {
       "type": 0,
-      "value": "Always-on flow + "
+      "value": "상시 흐름 + 활성 흐름 AAU "
     },
     {
       "style": null,
@@ -8947,13 +9451,13 @@
     },
     {
       "type": 0,
-      "value": " active flow AAUs"
+      "value": "개"
     }
   ],
   "a5dT17": [
     {
       "type": 0,
-      "value": "Search data connectors"
+      "value": "데이터 커넥터 검색"
     }
   ],
   "a5msuh": [
@@ -8977,7 +9481,13 @@
   "a8czK7": [
     {
       "type": 0,
-      "value": "Add a knowledge source"
+      "value": "기술 자료 추가"
+    }
+  ],
+  "a8fWCd": [
+    {
+      "type": 0,
+      "value": "Enter a datetime"
     }
   ],
   "a8l/yJ": [
@@ -8995,7 +9505,7 @@
   "aA8bDw": [
     {
       "type": 0,
-      "value": "Text"
+      "value": "텍스트"
     }
   ],
   "aAADUG": [
@@ -9028,6 +9538,12 @@
       "value": "LUIS에서 읽기 및 테스트 함수에 액세스할 수 있습니다."
     }
   ],
+  "aH3ak4": [
+    {
+      "type": 0,
+      "value": "Build subagent workflows"
+    }
+  ],
   "aH4De2": [
     {
       "type": 0,
@@ -9037,7 +9553,7 @@
   "aKNsTc": [
     {
       "type": 0,
-      "value": "Controls how this value is passed to the tool method"
+      "value": "이 값이 도구 메서드에 전달되는 방식을 제어합니다."
     }
   ],
   "aLBTVj": [
@@ -9051,7 +9567,7 @@
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": "분 전"
             }
           ]
         }
@@ -9094,7 +9610,7 @@
   "aSipXt": [
     {
       "type": 0,
-      "value": "Increase the agent's knowledge of your infrastructure"
+      "value": "인프라에 대한 에이전트의 지식 늘리기"
     }
   ],
   "aTyEZH": [
@@ -9160,13 +9676,13 @@
   "aprHig": [
     {
       "type": 0,
-      "value": "Max reflections"
+      "value": "최대 리플렉션"
     }
   ],
   "aqGaRm": [
     {
       "type": 0,
-      "value": "Provide a short report about the latest signals and note any follow-up actions."
+      "value": "최신 신호에 대한 간단한 보고서를 제공하고 후속 작업을 기록합니다."
     }
   ],
   "aqNZbD": [
@@ -9178,7 +9694,7 @@
   "arE3XO": [
     {
       "type": 0,
-      "value": "Tool test failed but no error details were provided."
+      "value": "도구 테스트에 실패했지만 오류 세부 정보가 제공되지 않았습니다."
     }
   ],
   "auFFJa": [
@@ -9196,13 +9712,13 @@
   "azMsfM": [
     {
       "type": 0,
-      "value": "Monday"
+      "value": "월요일"
     }
   ],
   "b0+PAq": [
     {
       "type": 0,
-      "value": "Audit check"
+      "value": "감사 확인"
     }
   ],
   "b2PyOl": [
@@ -9224,7 +9740,7 @@
   "b3sNCU": [
     {
       "type": 0,
-      "value": "Failed to turn off task: "
+      "value": "작업을 끄지 못했습니다. "
     },
     {
       "type": 1,
@@ -9234,7 +9750,7 @@
   "b5OEXm": [
     {
       "type": 0,
-      "value": "How often should it run?"
+      "value": "얼마나 자주 실행해야 하나요?"
     }
   ],
   "b7D4Lh": [
@@ -9252,19 +9768,19 @@
   "b8PngH": [
     {
       "type": 0,
-      "value": "Loading agents…"
+      "value": "에이전트를 로드하는 중..."
     }
   ],
   "bCzUPd": [
     {
       "type": 0,
-      "value": "Cluster URI"
+      "value": "클러스터 URI"
     }
   ],
   "bK0VQe": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete this Extended Tool? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
+      "value": "이 확장 도구를 삭제하시겠습니까? YAML 구성이 영구적으로 제거되어 복구할 수 없습니다. 이 작업은 실행을 취소할 수 없습니다."
     }
   ],
   "bKgVBL": [
@@ -9288,19 +9804,19 @@
   "baRFiF": [
     {
       "type": 0,
-      "value": "Form"
+      "value": "양식"
     }
   ],
   "bdFY56": [
     {
       "type": 0,
-      "value": "Connector (Optional)"
+      "value": "커넥터(선택 사항)"
     }
   ],
   "bdhTWR": [
     {
       "type": 0,
-      "value": "Name can only contain letters, numbers, or hyphens and must be "
+      "value": "이름은 문자, 숫자, 하이픈만 포함할 수 있으며 "
     },
     {
       "type": 1,
@@ -9308,7 +9824,7 @@
     },
     {
       "type": 0,
-      "value": " characters or fewer."
+      "value": "자 이하여야 합니다."
     }
   ],
   "bect+9": [
@@ -9320,13 +9836,13 @@
   "bjLeN1": [
     {
       "type": 0,
-      "value": "Please restart the chat to see your changes."
+      "value": "변경 내용을 보려면 채팅을 다시 시작하세요."
     }
   ],
   "bjOnWH": [
     {
       "type": 0,
-      "value": "Add your draft instructions before asking for polish."
+      "value": "폴란드어를 요청하기 전에 초안 지침을 추가합니다."
     }
   ],
   "blSyDZ": [
@@ -9338,13 +9854,13 @@
   "blYlGH": [
     {
       "type": 0,
-      "value": "Invalid request. Please check your instructions and try again."
+      "value": "유효하지 않은 요청입니다. 지침을 확인한 후 다시 시도하세요."
     }
   ],
   "bn84V+": [
     {
       "type": 0,
-      "value": "Delete tool"
+      "value": "도구 삭제"
     }
   ],
   "boVrya": [
@@ -9368,17 +9884,21 @@
   "bquSks": [
     {
       "type": 0,
-      "value": "Collapse span with id: "
+      "value": "ID가 "
     },
     {
       "type": 1,
       "value": "id"
+    },
+    {
+      "type": 0,
+      "value": "인 범위 축소"
     }
   ],
   "br2BTb": [
     {
       "type": 0,
-      "value": "Finish setup to enable previews."
+      "value": "미리 보기를 활성화하려면 설정을 마칩니다."
     }
   ],
   "bri0SI": [
@@ -9396,7 +9916,7 @@
   "bs6oPY": [
     {
       "type": 0,
-      "value": "Author agent configuration and test"
+      "value": "에이전트 구성 및 테스트 작성"
     }
   ],
   "bswtOq": [
@@ -9418,7 +9938,7 @@
   "bxSp6r": [
     {
       "type": 0,
-      "value": "No tools match your search."
+      "value": "검색과 일치하는 도구가 없습니다."
     }
   ],
   "bxcc6L": [
@@ -9439,10 +9959,16 @@
       "value": "방금"
     }
   ],
+  "byP6IC": [
+    {
+      "type": 0,
+      "value": "Selected"
+    }
+  ],
   "c/8Uhj": [
     {
       "type": 0,
-      "value": "Here is the To-Do plan:"
+      "value": "할 일 계획은 다음과 같습니다."
     }
   ],
   "c/KktL": [
@@ -9454,13 +9980,13 @@
   "c/bty0": [
     {
       "type": 0,
-      "value": "No system tools configured."
+      "value": "구성된 시스템 도구가 없습니다."
     }
   ],
   "c1ECOO": [
     {
       "type": 0,
-      "value": "Tool testing"
+      "value": "도구 테스트"
     }
   ],
   "c1EiBR": [
@@ -9484,13 +10010,19 @@
   "c3TO1+": [
     {
       "type": 0,
-      "value": "Open in playground"
+      "value": "플레이그라운드에서 열기"
+    }
+  ],
+  "c5hwBU": [
+    {
+      "type": 0,
+      "value": "The agent will resume all activities."
     }
   ],
   "c8Doeq": [
     {
       "type": 0,
-      "value": "Connector \""
+      "value": "커넥터 \""
     },
     {
       "type": 1,
@@ -9498,13 +10030,13 @@
     },
     {
       "type": 0,
-      "value": "\" has been deleted successfully"
+      "value": "\"이(가) 삭제되었습니다."
     }
   ],
   "cBcrgh": [
     {
       "type": 0,
-      "value": "Enter task details"
+      "value": "작업 세부 정보 입력"
     }
   ],
   "cDjhgm": [
@@ -9522,19 +10054,25 @@
   "cG0Q8M": [
     {
       "type": 0,
-      "value": "Temperature"
+      "value": "온도"
     }
   ],
   "cJGGY4": [
     {
       "type": 0,
-      "value": "Your changes are being processed and will appear in the chat preview momentarily."
+      "value": "변경 내용이 처리되고 있으며 잠시 채팅 미리 보기에 표시됩니다."
     }
   ],
   "cLC2fM": [
     {
       "type": 0,
-      "value": "AI chat service is currently unavailable. Please try again later."
+      "value": "AI 채팅 서비스는 현재 사용할 수 없습니다. 나중에 다시 시도하세요."
+    }
+  ],
+  "cLHCHE": [
+    {
+      "type": 0,
+      "value": "Connector status"
     }
   ],
   "cRTR/A": [
@@ -9558,23 +10096,29 @@
   "cYwv8P": [
     {
       "type": 0,
-      "value": "Intent Match"
+      "value": "의도 일치"
     }
   ],
   "ccXLVi": [
     {
       "type": 0,
-      "value": "Category"
+      "value": "범주"
     }
   ],
   "cfbpDd": [
     {
       "type": 0,
-      "value": "Category: "
+      "value": "범주: "
     },
     {
       "type": 1,
       "value": "category"
+    }
+  ],
+  "cg54iX": [
+    {
+      "type": 0,
+      "value": "Kusto tool name"
     }
   ],
   "ciB+oy": [
@@ -9592,19 +10136,19 @@
   "coPQxN": [
     {
       "type": 0,
-      "value": "Filter by custom plan"
+      "value": "사용자 지정 플랜별로 필터링"
     }
   ],
   "coy1iv": [
     {
       "type": 0,
-      "value": "Edit YAML configuration"
+      "value": "YAML 구성 편집"
     }
   ],
   "cqx+Rd": [
     {
       "type": 0,
-      "value": "Manage connectors"
+      "value": "커넥터 관리"
     }
   ],
   "crWYMh": [
@@ -9636,7 +10180,7 @@
   "ctcA0c": [
     {
       "type": 0,
-      "value": "Agent name"
+      "value": "에이전트 이름"
     }
   ],
   "cubQfQ": [
@@ -9671,6 +10215,12 @@
     {
       "type": 0,
       "value": "API Management 작업 영역을 관리합니다."
+    }
+  ],
+  "d2czNd": [
+    {
+      "type": 0,
+      "value": "Datetime"
     }
   ],
   "d3MtwZ": [
@@ -9716,7 +10266,7 @@
   "dGa0bG": [
     {
       "type": 0,
-      "value": "Agent quality not scored yet. Run a check to reveal opportunities."
+      "value": "에이전트 품질의 점수가 아직 매겨지지 않았습니다. 검사를 실행하여 기회를 표시합니다."
     }
   ],
   "dI9gP+": [
@@ -9734,13 +10284,13 @@
   "dLWTUk": [
     {
       "type": 0,
-      "value": "An AI sub-agent with instructions and tools"
+      "value": "지침과 도구가 포함된 AI 하위 에이전트"
     }
   ],
   "dO3eHj": [
     {
       "type": 0,
-      "value": "Make changes to the current agent configuration and test immediately."
+      "value": "현재 에이전트 구성을 변경하고 즉시 테스트합니다."
     }
   ],
   "dQ5/dh": [
@@ -9776,7 +10326,7 @@
   "dWSIqT": [
     {
       "type": 0,
-      "value": "Consumption AAU usage"
+      "value": "사용량 AAU 사용량"
     }
   ],
   "dYwe9B": [
@@ -9788,7 +10338,7 @@
   "daUwAL": [
     {
       "type": 0,
-      "value": "Creating scheduled task"
+      "value": "예약된 작업 생성 중..."
     }
   ],
   "dd6gV2": [
@@ -9800,7 +10350,7 @@
   "dhmpfi": [
     {
       "type": 0,
-      "value": "Delete scheduled task(s)"
+      "value": "예약된 작업 삭제"
     }
   ],
   "dhqlRa": [
@@ -9817,22 +10367,18 @@
   ],
   "djuhEG": [
     {
-      "type": 0,
-      "value": "Enter "
-    },
-    {
       "type": 1,
       "value": "type"
     },
     {
       "type": 0,
-      "value": " value"
+      "value": " 값 입력"
     }
   ],
   "dk4jPW": [
     {
       "type": 0,
-      "value": "Critic prompt"
+      "value": "크리틱 프롬프트"
     }
   ],
   "dkqYUR": [
@@ -9842,7 +10388,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " "
     },
     {
       "type": 1,
@@ -9850,13 +10396,13 @@
     },
     {
       "type": 0,
-      "value": "%—you are outperforming the target confidence. Ship it! 🚀"
+      "value": "% - 목표 신뢰도를 초과합니다. 배포하세요! 🚀"
     }
   ],
   "dkt4ac": [
     {
       "type": 0,
-      "value": "Resolve YAML errors before applying changes"
+      "value": "변경 내용을 적용하기 전에 YAML 오류 해결"
     }
   ],
   "dnXgff": [
@@ -9868,7 +10414,7 @@
   "dtQgfG": [
     {
       "type": 0,
-      "value": "Query Tester"
+      "value": "쿼리 테스터"
     }
   ],
   "du1laW": [
@@ -9880,13 +10426,13 @@
   "dw6Z3b": [
     {
       "type": 0,
-      "value": "What it means"
+      "value": "의미"
     }
   ],
   "dwkMC2": [
     {
       "type": 0,
-      "value": "Score agent quality"
+      "value": "에이전트 품질 점수 매기기"
     }
   ],
   "e0a3XV": [
@@ -9910,7 +10456,7 @@
   "eCZ0j1": [
     {
       "type": 0,
-      "value": "Open Todo Plans"
+      "value": "할 일 계획 열기"
     }
   ],
   "eEu4cm": [
@@ -9958,19 +10504,19 @@
   "eVjPEQ": [
     {
       "type": 0,
-      "value": "Model Generation"
+      "value": "모델 생성"
     }
   ],
   "eYClyG": [
     {
       "type": 0,
-      "value": "Capture AI-driven insights on confidence and next tweaks."
+      "value": "신뢰도 및 다음 조정에 대한 AI 기반 인사이트를 캡처합니다."
     }
   ],
   "eYEnNu": [
     {
       "type": 0,
-      "value": "Run this agent on a repeating schedule."
+      "value": "이 에이전트를 반복 일정에 따라 실행합니다."
     }
   ],
   "eZMksq": [
@@ -9994,17 +10540,21 @@
   "ee4AUg": [
     {
       "type": 0,
-      "value": "Scheduled task turned on successfully"
+      "value": "예약된 작업이 켜졌습니다."
     }
   ],
   "egubDj": [
+    {
+      "type": 0,
+      "value": "신뢰도 "
+    },
     {
       "type": 1,
       "value": "score"
     },
     {
       "type": 0,
-      "value": "% confidence"
+      "value": "%"
     }
   ],
   "ehbsXg": [
@@ -10016,7 +10566,13 @@
   "ehhpyJ": [
     {
       "type": 0,
-      "value": "Add All"
+      "value": "모두 추가"
+    }
+  ],
+  "ekSxhn": [
+    {
+      "type": 0,
+      "value": "Connectors give the agent more tools to take action."
     }
   ],
   "emW/QQ": [
@@ -10028,7 +10584,7 @@
   "ene/8x": [
     {
       "type": 0,
-      "value": "Tune agent behavior in a safe space before you publish changes."
+      "value": "변경 내용을 게시하기 전에 안전한 공간에서 에이전트 동작을 조정합니다."
     }
   ],
   "eq57j2": [
@@ -10052,7 +10608,7 @@
   "et3seW": [
     {
       "type": 0,
-      "value": "New handoff sub-agents start as Autonomous. You can connect tools and other details later."
+      "value": "새 핸드오프 하위 에이전트는 자율 에이전트로 시작합니다. 나중에 도구 및 기타 세부 정보를 연결할 수 있습니다."
     }
   ],
   "euBSDU": [
@@ -10064,7 +10620,7 @@
   "euKVCa": [
     {
       "type": 0,
-      "value": "System tools are built-in tools provided by the platform"
+      "value": "시스템 도구는 플랫폼에서 제공하는 기본 제공 도구입니다."
     }
   ],
   "exofc7": [
@@ -10089,10 +10645,16 @@
       "value": "연결 문자열 또는 엔드포인트 입력"
     }
   ],
+  "f04POI": [
+    {
+      "type": 0,
+      "value": "Tool created successfully"
+    }
+  ],
   "f0LQra": [
     {
       "type": 0,
-      "value": "Improve with AI"
+      "value": "AI를 사용하여 개선"
     }
   ],
   "f0Luxo": [
@@ -10104,7 +10666,7 @@
   "f0Sf6g": [
     {
       "type": 0,
-      "value": "Add a file"
+      "value": "파일 추가"
     }
   ],
   "f0Y4Zr": [
@@ -10122,7 +10684,7 @@
   "f6xT1Y": [
     {
       "type": 0,
-      "value": "Scheduled task(s) turned on successfully"
+      "value": "예약된 작업이 켜졌습니다."
     }
   ],
   "f7Zx3L": [
@@ -10134,13 +10696,19 @@
   "f9xN/g": [
     {
       "type": 0,
-      "value": "Rising Specialist"
+      "value": "라이징 전문가"
+    }
+  ],
+  "fCiXKq": [
+    {
+      "type": 0,
+      "value": "Add scheduled task"
     }
   ],
   "fE5E6W": [
     {
       "type": 0,
-      "value": "How do you want to get started?"
+      "value": "어떻게 시작하시겠나요?"
     }
   ],
   "fEYQWU": [
@@ -10164,13 +10732,13 @@
   "fHE7i7": [
     {
       "type": 0,
-      "value": "Code optimizations"
+      "value": "코드 최적화"
     }
   ],
   "fINN7t": [
     {
       "type": 0,
-      "value": "Insights: "
+      "value": "인사이트: "
     },
     {
       "type": 1,
@@ -10180,7 +10748,7 @@
   "fIQSsD": [
     {
       "type": 0,
-      "value": "Couldn’t draft the cron yet. Refine the description and try again."
+      "value": "아직 cron 초안을 작성할 수 없습니다. 설명을 구체화하고 다시 시도하세요."
     }
   ],
   "fLkL3F": [
@@ -10192,7 +10760,7 @@
   "fT73QI": [
     {
       "type": 0,
-      "value": "New tool"
+      "value": "새 도구"
     }
   ],
   "fUgypu": [
@@ -10210,7 +10778,7 @@
   "fbr20l": [
     {
       "type": 0,
-      "value": "Create & Link"
+      "value": "만들기 및 링크"
     }
   ],
   "fdCjVS": [
@@ -10231,22 +10799,28 @@
       "value": "이 이름의 하위 에이전트가 이미 있습니다."
     }
   ],
+  "fiLH5L": [
+    {
+      "type": 0,
+      "value": "To create a Kusto tool, first add an Azure Data Explorer connector."
+    }
+  ],
   "fio5op": [
     {
       "type": 0,
-      "value": "Output"
+      "value": "출력"
     }
   ],
   "fjOQVZ": [
     {
       "type": 0,
-      "value": "Learn more about incident platform integration"
+      "value": "인시던트 플랫폼 통합에 대한 자세한 정보"
     }
   ],
   "fjgqNG": [
     {
       "type": 0,
-      "value": "Failed to load trace data: "
+      "value": "추적 데이터를 로드하지 못함: "
     },
     {
       "type": 1,
@@ -10262,13 +10836,13 @@
   "fr6Gnj": [
     {
       "type": 0,
-      "value": "Change AAU allocation"
+      "value": "AAU 할당 변경"
     }
   ],
   "fssuHC": [
     {
       "type": 0,
-      "value": "Connect an MCP server"
+      "value": "MCP 서버 연결"
     }
   ],
   "ftDEuE": [
@@ -10316,13 +10890,13 @@
   "g4Dsk6": [
     {
       "type": 0,
-      "value": "Total runs"
+      "value": "총 실행 수"
     }
   ],
   "g4II+z": [
     {
       "type": 0,
-      "value": "e.g. 0 0 * * *"
+      "value": "예: 0 0 * * *"
     }
   ],
   "g7HOVb": [
@@ -10346,19 +10920,19 @@
   "gD6r6x": [
     {
       "type": 0,
-      "value": "Day of week"
+      "value": "요일"
     }
   ],
   "gDVRX+": [
     {
       "type": 0,
-      "value": "Drag files here or"
+      "value": "파일을 여기로 끌어다 놓거나"
     }
   ],
   "gGfQUL": [
     {
       "type": 0,
-      "value": "Warm-up scenario"
+      "value": "준비 시나리오"
     }
   ],
   "gHCL4X": [
@@ -10388,7 +10962,7 @@
   "gP/k0J": [
     {
       "type": 0,
-      "value": "Optional description of what this connector accesses"
+      "value": "이 커넥터가 액세스하는 항목에 대한 선택적 설명"
     }
   ],
   "gUQeKV": [
@@ -10403,10 +10977,16 @@
       "value": "IoT Hub 디바이스 쌍을 관리합니다."
     }
   ],
+  "gclDgn": [
+    {
+      "type": 0,
+      "value": "Create a Kusto tool"
+    }
+  ],
   "gct+2s": [
     {
       "type": 0,
-      "value": "Incident response plan:"
+      "value": "인시던트 응답 계획:"
     }
   ],
   "gdUWAX": [
@@ -10419,6 +10999,12 @@
     {
       "type": 0,
       "value": "스레드 ID"
+    }
+  ],
+  "ghwElt": [
+    {
+      "type": 0,
+      "value": "Visit Support + Troubleshooting to access support resources and troubleshoot issues related to your SRE Agent."
     }
   ],
   "gj6Qc6": [
@@ -10445,10 +11031,16 @@
       "value": "Grafana 대시보드를 설정하려면 권한이 필요합니다."
     }
   ],
+  "gox4oK": [
+    {
+      "type": 0,
+      "value": "Enter the database name"
+    }
+  ],
   "grgDhd": [
     {
       "type": 0,
-      "value": "Failed to load scheduled tasks: "
+      "value": "예약된 작업을 로드하지 못했습니다. "
     },
     {
       "type": 1,
@@ -10458,7 +11050,7 @@
   "gvlNuI": [
     {
       "type": 0,
-      "value": "Start fresh or reuse an existing trigger configuration."
+      "value": "새로 시작하거나 기존 트리거 구성을 다시 사용합니다."
     }
   ],
   "gwSeXa": [
@@ -10522,13 +11114,19 @@
   "h+sisx": [
     {
       "type": 0,
-      "value": "Author and Test - Configure and test"
+      "value": "작성자 및 테스트 - 구성 및 테스트"
+    }
+  ],
+  "h/OQTK": [
+    {
+      "type": 0,
+      "value": "Use ##ParamName## in your query to define parameter placeholders."
     }
   ],
   "h0W8DM": [
     {
       "type": 0,
-      "value": "Time of day"
+      "value": "하루 중 시간"
     }
   ],
   "h4BqRo": [
@@ -10538,13 +11136,13 @@
     },
     {
       "type": 0,
-      "value": " incident response plan"
+      "value": " 인시던트 응답 계획"
     }
   ],
   "h4XDJP": [
     {
       "type": 0,
-      "value": "Symptoms:"
+      "value": "증상:"
     }
   ],
   "h6183G": [
@@ -10567,6 +11165,12 @@
       "value": "\"인 인시던트를 찾을 수 없습니다."
     }
   ],
+  "hF/2EL": [
+    {
+      "type": 0,
+      "value": "Handoff Instructions"
+    }
+  ],
   "hF5T80": [
     {
       "type": 0,
@@ -10576,7 +11180,7 @@
   "hGMSK3": [
     {
       "type": 0,
-      "value": "Apply Suggestions"
+      "value": "제안 적용"
     }
   ],
   "hGQqkW": [
@@ -10600,7 +11204,7 @@
   "hNKm4/": [
     {
       "type": 0,
-      "value": "Sub-Agent"
+      "value": "하위 에이전트"
     }
   ],
   "hO1Iog": [
@@ -10624,13 +11228,13 @@
   "hS+M7h": [
     {
       "type": 0,
-      "value": "Steps to resolution"
+      "value": "해결 단계"
     }
   ],
   "hWVnHh": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete this Extended Agent? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone."
+      "value": "이 확장 에이전트를 삭제하시겠습니까? YAML 구성이 영구적으로 제거되어 복구할 수 없습니다. 이 작업은 실행을 취소할 수 없습니다."
     }
   ],
   "hX5PAb": [
@@ -10654,13 +11258,13 @@
   "haOtj7": [
     {
       "type": 0,
-      "value": "System tools are read-only. View the YAML for reference."
+      "value": "시스템 도구는 읽기 전용입니다. 참조를 위해 YAML을 봅니다."
     }
   ],
   "heMr0D": [
     {
       "type": 0,
-      "value": "How well your agent is meeting user intents based on chat interactions. Updates after conversations."
+      "value": "에이전트가 채팅 상호 작용에 따라 사용자 의도를 얼마나 잘 충족하는지 확인합니다. 대화 후 업데이트."
     }
   ],
   "hfACn+": [
@@ -10684,19 +11288,19 @@
   "hgAzMV": [
     {
       "type": 0,
-      "value": "Remove file"
+      "value": "파일 제거"
     }
   ],
   "hijOHm": [
     {
       "type": 0,
-      "value": "Preview AI recommendations without changing your instructions"
+      "value": "지침을 변경하지 않고 AI 권장 사항 미리 보기"
     }
   ],
   "hkgUC5": [
     {
       "type": 0,
-      "value": "No parameters required for this tool."
+      "value": "이 도구에는 매개 변수가 필요하지 않습니다."
     }
   ],
   "hlmkcL": [
@@ -10709,6 +11313,12 @@
     {
       "type": 0,
       "value": "Grafana 리소스"
+    }
+  ],
+  "hqWr3L": [
+    {
+      "type": 0,
+      "value": "RCA category"
     }
   ],
   "hrdmcd": [
@@ -10726,7 +11336,7 @@
   "hzElIu": [
     {
       "type": 0,
-      "value": "No files match your search"
+      "value": "검색과 일치하는 파일이 없습니다."
     }
   ],
   "hzSNj4": [
@@ -10756,7 +11366,7 @@
   "iDPKM0": [
     {
       "type": 0,
-      "value": "Filter tasks"
+      "value": "작업 필터링"
     }
   ],
   "iDSWYk": [
@@ -10774,19 +11384,27 @@
   "iJ+eDu": [
     {
       "type": 0,
-      "value": "Failed to load data"
+      "value": "데이터를 로드하지 못함"
     }
   ],
   "iJCsVz": [
     {
       "type": 0,
-      "value": "Not yet published"
+      "value": "아직 게시되지 않음"
     }
   ],
-  "iMBgdL": [
+  "iMaY2Q": [
     {
       "type": 0,
-      "value": "Kusto Tool"
+      "value": "Stopping SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in progress"
     }
   ],
   "iNgloh": [
@@ -10798,19 +11416,25 @@
   "iV7LUx": [
     {
       "type": 0,
-      "value": "Create a new trigger with custom settings"
+      "value": "사용자 지정 설정으로 새 트리거 만들기"
     }
   ],
   "iXNbPf": [
     {
       "type": 0,
-      "value": "Rename"
+      "value": "이름 바꾸기"
+    }
+  ],
+  "iY7P1k": [
+    {
+      "type": 0,
+      "value": "Agent Autonomy"
     }
   ],
   "iZDRGO": [
     {
       "type": 0,
-      "value": "Assigned"
+      "value": "할당됨"
     }
   ],
   "iZuO+L": [
@@ -10825,16 +11449,10 @@
       "value": "핵심 애플리케이션 그룹 리소스 이름"
     }
   ],
-  "ic8SAj": [
-    {
-      "type": 0,
-      "value": "또는"
-    }
-  ],
   "icyjmd": [
     {
       "type": 0,
-      "value": "To-Do Plan"
+      "value": "할 일 계획"
     }
   ],
   "ielB5f": [
@@ -10849,16 +11467,22 @@
       "value": "복사 명령"
     }
   ],
+  "ifdupA": [
+    {
+      "type": 0,
+      "value": "To view runs, go to Agent Runs"
+    }
+  ],
   "iihhVc": [
     {
       "type": 0,
-      "value": "Quality Evaluation"
+      "value": "품질 평가"
     }
   ],
   "ijOojL": [
     {
       "type": 0,
-      "value": "Agent created, but linking to "
+      "value": "에이전트를 만들었지만 "
     },
     {
       "type": 1,
@@ -10866,13 +11490,13 @@
     },
     {
       "type": 0,
-      "value": " failed. Retry link."
+      "value": "에 연결하지 못했습니다. 다시 시도 링크"
     }
   ],
   "ipsqxO": [
     {
       "type": 0,
-      "value": "Select an agent"
+      "value": "에이전트 선택"
     }
   ],
   "iqdd9H": [
@@ -10890,13 +11514,13 @@
   "isZXYe": [
     {
       "type": 0,
-      "value": "Applying…"
+      "value": "적용 중..."
     }
   ],
   "it6Lig": [
     {
       "type": 0,
-      "value": "Input"
+      "value": "입력"
     }
   ],
   "it8L1Q": [
@@ -10944,27 +11568,29 @@
   "iydbuT": [
     {
       "type": 0,
-      "value": "e.g., P1 incident response"
+      "value": "예: P1 인시던트 응답"
     }
   ],
   "izQgEq": [
-    {
-      "type": 0,
-      "value": "Creates a handoff for "
-    },
     {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": "."
+      "value": "에 대한 핸드오프를 만듭니다."
     }
   ],
   "j1FyDL": [
     {
       "type": 0,
-      "value": "No extended tools available."
+      "value": "사용 가능한 확장 도구가 없습니다."
+    }
+  ],
+  "j1pB0w": [
+    {
+      "type": 0,
+      "value": "Go to Agent Consumption"
     }
   ],
   "j3bwJQ": [
@@ -10976,7 +11602,7 @@
   "j59lXr": [
     {
       "type": 0,
-      "value": "No matching items yet. Complete the quick create form to add one."
+      "value": "아직 일치하는 항목이 없습니다. 빨리 만들기 양식을 작성하여 양식을 추가합니다."
     }
   ],
   "j5QthH": [
@@ -11000,7 +11626,7 @@
   "jEmOoh": [
     {
       "type": 0,
-      "value": "YourAgent"
+      "value": "내 에이전트"
     }
   ],
   "jHJmjf": [
@@ -11024,7 +11650,7 @@
   "jM/rXB": [
     {
       "type": 0,
-      "value": "Create and connect new items"
+      "value": "새 항목 만들기 및 연결"
     }
   ],
   "jOkfJV": [
@@ -11037,6 +11663,48 @@
     {
       "type": 0,
       "value": "근본 원인 분석 범주를 찾을 수 없습니다."
+    }
+  ],
+  "jSgRib": [
+    {
+      "type": 0,
+      "value": "Your knowledge base has "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "document"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "documents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ". Add more?"
     }
   ],
   "jTQZpk": [
@@ -11055,6 +11723,12 @@
     {
       "type": 0,
       "value": "응답 계획을 편집할 권한이 없습니다."
+    }
+  ],
+  "ja85pV": [
+    {
+      "type": 0,
+      "value": "Add Documents"
     }
   ],
   "jabB4C": [
@@ -11086,7 +11760,7 @@
   "jjTzIr": [
     {
       "type": 0,
-      "value": "Database"
+      "value": "데이터베이스"
     }
   ],
   "jlOO/9": [
@@ -11098,19 +11772,19 @@
   "jqpolM": [
     {
       "type": 0,
-      "value": "No system tools available."
+      "value": "사용 가능한 시스템 도구가 없습니다."
     }
   ],
   "ju7bLp": [
     {
       "type": 0,
-      "value": "No connectors available"
+      "value": "사용할 수 있는 커넥터 없음"
     }
   ],
   "jv8SuZ": [
     {
       "type": 0,
-      "value": "Start time (optional)"
+      "value": "시작 시간(선택 사항)"
     }
   ],
   "jvo0vs": [
@@ -11122,23 +11796,19 @@
   "jw1Wpc": [
     {
       "type": 0,
-      "value": "Deleting incident "
-    },
-    {
-      "type": 1,
-      "value": "title"
+      "value": "인시던트 {title}을(를) 삭제하는 중"
     }
   ],
   "jxYyO2": [
     {
       "type": 0,
-      "value": "YAML must include {collectionName} with at least one entry."
+      "value": "YAML은 항목이 하나 이상 있는 {collectionName}을(를) 포함해야 합니다."
     }
   ],
   "k+3+Dy": [
     {
       "type": 0,
-      "value": "Bar chart"
+      "value": "막대형 차트"
     }
   ],
   "k0VNHX": [
@@ -11154,7 +11824,7 @@
   "k4dB65": [
     {
       "type": 0,
-      "value": "This will create both your agent (\""
+      "value": "그러면 에이전트(\""
     },
     {
       "type": 1,
@@ -11162,13 +11832,13 @@
     },
     {
       "type": 0,
-      "value": "\") and a separate \"meta_agent\" for orchestration."
+      "value": "\")와 오케스트레이션을 위한 별도의 \"meta_agent\"가 만들어집니다."
     }
   ],
   "k5T5VE": [
     {
       "type": 0,
-      "value": "Select a starting agent"
+      "value": "시작 에이전트 선택"
     }
   ],
   "k8ZNgH": [
@@ -11177,10 +11847,16 @@
       "value": "경고 ID"
     }
   ],
+  "kFkPWB": [
+    {
+      "type": 0,
+      "value": "Number"
+    }
+  ],
   "kG0ZtT": [
     {
       "type": 0,
-      "value": "Other cron ideas"
+      "value": "기타 cron 아이디어"
     }
   ],
   "kHIJzq": [
@@ -11192,31 +11868,31 @@
   "kNEmDU": [
     {
       "type": 0,
-      "value": "Goal: 85%+ confidence"
+      "value": "목표: 신뢰도 85%+"
     }
   ],
   "kQAf2d": [
     {
       "type": 0,
-      "value": "Select"
+      "value": "선택"
     }
   ],
   "kQSvkP": [
     {
       "type": 0,
-      "value": "Connector type"
+      "value": "커넥터 유형"
     }
   ],
   "kT9YDi": [
     {
       "type": 0,
-      "value": "You do not have permission to rename this thread."
+      "value": "이 스레드의 이름을 바꿀 수 있는 권한이 없습니다."
     }
   ],
   "kWBrry": [
     {
       "type": 0,
-      "value": "Starting agent"
+      "value": "에이전트를 시작하는 중"
     }
   ],
   "kWs94j": [
@@ -11228,7 +11904,7 @@
   "kX8T8H": [
     {
       "type": 0,
-      "value": "Name of the dictionary this parameter contributes to"
+      "value": "이 매개 변수가 기여하는 사전의 이름"
     }
   ],
   "kbDtEK": [
@@ -11241,10 +11917,16 @@
       "value": "failedFiles"
     }
   ],
+  "ketkP5": [
+    {
+      "type": 0,
+      "value": "Knowledge Base Enabled"
+    }
+  ],
   "khOzXi": [
     {
       "type": 0,
-      "value": "Custom schedule"
+      "value": "사용자 지정 일정"
     }
   ],
   "kn+J82": [
@@ -11300,7 +11982,7 @@
   "ks97gc": [
     {
       "type": 0,
-      "value": "Use an existing trigger configuration"
+      "value": "기존 트리거 구성 사용"
     }
   ],
   "ku+mDU": [
@@ -11312,13 +11994,19 @@
   "kvKWEJ": [
     {
       "type": 0,
-      "value": "Response plan saved successfully"
+      "value": "응답 계획을 저장했습니다."
+    }
+  ],
+  "kxokJj": [
+    {
+      "type": 0,
+      "value": "Agent datagrid"
     }
   ],
   "l+e8nZ": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the selected scheduled task(s)? This action cannot be undone."
+      "value": "선택한 예약된 작업을 삭제하시겠습니까? 이 작업은 실행 취소할 수 없습니다."
     }
   ],
   "l0TtPi": [
@@ -11343,16 +12031,28 @@
       "value": "개를 선택했습니다."
     }
   ],
+  "l0UKyP": [
+    {
+      "type": 0,
+      "value": "Azure Data Explorer"
+    }
+  ],
+  "l0VCdV": [
+    {
+      "type": 0,
+      "value": "Create tool"
+    }
+  ],
   "l2Ni9H": [
     {
       "type": 0,
-      "value": "Chat preview is only available for agents."
+      "value": "채팅 미리 보기는 에이전트에만 사용할 수 있습니다."
     }
   ],
   "l5a3zV": [
     {
       "type": 0,
-      "value": "Make a copy"
+      "value": "복사본 만들기"
     }
   ],
   "l5sNim": [
@@ -11364,7 +12064,7 @@
   "lCsNuL": [
     {
       "type": 0,
-      "value": "Trace data found, but could not parse into spans."
+      "value": "추적 데이터를 찾았지만 범위로 구문 분석할 수 없습니다."
     }
   ],
   "lDMkTI": [
@@ -11380,7 +12080,7 @@
   "lDx7s5": [
     {
       "type": 0,
-      "value": "Agent responses are more concise in this mode."
+      "value": "이 모드에서는 에이전트 응답이 더 간결해집니다."
     }
   ],
   "lKv8ex": [
@@ -11404,7 +12104,7 @@
   "lUAfdH": [
     {
       "type": 0,
-      "value": "MCP server name"
+      "value": "MCP 서버 이름"
     }
   ],
   "lawXja": [
@@ -11454,7 +12154,7 @@
   "lni1id": [
     {
       "type": 0,
-      "value": "Search system tools by name, category, or description"
+      "value": "이름, 범주 또는 설명으로 시스템 도구 검색"
     }
   ],
   "lqgE72": [
@@ -11472,13 +12172,13 @@
   "lxblgl": [
     {
       "type": 0,
-      "value": "Wednesday"
+      "value": "수요일"
     }
   ],
   "m+cdhC": [
     {
       "type": 0,
-      "value": "Recently used"
+      "value": "최근에 사용한 항목"
     }
   ],
   "m0kcbz": [
@@ -11490,7 +12190,13 @@
   "m3Npit": [
     {
       "type": 0,
-      "value": "No tools available. Try creating one or clearing your filters."
+      "value": "사용할 수 있는 도구가 없습니다. 필터를 만들거나 지워 보세요."
+    }
+  ],
+  "m4vqJl": [
+    {
+      "type": 0,
+      "value": "Files"
     }
   ],
   "m57OnF": [
@@ -11508,7 +12214,7 @@
   "m8grMF": [
     {
       "type": 0,
-      "value": "Connector \""
+      "value": "커넥터 \""
     },
     {
       "type": 1,
@@ -11516,19 +12222,19 @@
     },
     {
       "type": 0,
-      "value": "\" has been created successfully"
+      "value": "\"을(를) 만들었습니다."
     }
   ],
   "mAinBm": [
     {
       "type": 0,
-      "value": "Automatically push YAML edits to the agent during testing."
+      "value": "테스트하는 동안 YAML 편집 내용을 에이전트에 자동으로 푸시합니다."
     }
   ],
   "mAyw3x": [
     {
       "type": 0,
-      "value": "QnA Maker 기술 자료를 편집합니다."
+      "value": "QnA Maker 지식 기반을 편집합니다."
     }
   ],
   "mChei1": [
@@ -11540,31 +12246,31 @@
   "mGh+K0": [
     {
       "type": 0,
-      "value": "Owning team ID is required when adding a default response plan."
+      "value": "기본 응답 계획을 추가할 때 소유 팀 ID가 필요합니다."
     }
   ],
   "mHep2R": [
     {
       "type": 0,
-      "value": "Last run"
+      "value": "마지막 실행"
     }
   ],
   "mJR06P": [
     {
       "type": 0,
-      "value": "Sunday"
+      "value": "일요일"
     }
   ],
   "mJXXeS": [
     {
       "type": 0,
-      "value": "No tools connected yet."
+      "value": "아직 연결된 도구가 없습니다."
     }
   ],
   "mMgwbu": [
     {
       "type": 0,
-      "value": "Undo (10s)"
+      "value": "실행 취소(10초)"
     }
   ],
   "mOFG3K": [
@@ -11576,7 +12282,7 @@
   "mRJIzw": [
     {
       "type": 0,
-      "value": "Results ("
+      "value": "결과("
     },
     {
       "type": 1,
@@ -11593,7 +12299,7 @@
           "value": [
             {
               "type": 0,
-              "value": "row"
+              "value": "행"
             }
           ]
         },
@@ -11601,7 +12307,7 @@
           "value": [
             {
               "type": 0,
-              "value": "rows"
+              "value": "행"
             }
           ]
         }
@@ -11618,13 +12324,13 @@
   "mRL9Vh": [
     {
       "type": 0,
-      "value": "Creating..."
+      "value": "만드는 중..."
     }
   ],
   "mSoczp": [
     {
       "type": 0,
-      "value": "YAML spec must include a name for the "
+      "value": "YAML 사양에는 "
     },
     {
       "type": 1,
@@ -11632,7 +12338,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 이름이 포함되어야 합니다."
     }
   ],
   "mV7WX3": [
@@ -11644,7 +12350,7 @@
   "mVkTZZ": [
     {
       "type": 0,
-      "value": "Plugin"
+      "value": "플러그 인"
     }
   ],
   "mZ0R9v": [
@@ -11656,7 +12362,7 @@
   "mZ3wu9": [
     {
       "type": 0,
-      "value": "Tool type"
+      "value": "도구 유형"
     }
   ],
   "makWrV": [
@@ -11668,19 +12374,19 @@
   "mbb8vl": [
     {
       "type": 0,
-      "value": "User prompt"
+      "value": "사용자 프롬프트"
     }
   ],
   "mbtoHb": [
     {
       "type": 0,
-      "value": "How should this trigger be set up?"
+      "value": "이 트리거를 어떻게 설정할까요?"
     }
   ],
   "methez": [
     {
       "type": 0,
-      "value": "Max tier achieved—keep refining to stay ahead."
+      "value": "달성한 최대 계층 - 계속 구체화하여 앞서 나가세요."
     }
   ],
   "mgYBYo": [
@@ -11692,13 +12398,13 @@
   "mgZVf8": [
     {
       "type": 0,
-      "value": "No tools configured."
+      "value": "도구가 구성되지 않았습니다."
     }
   ],
   "mhKk7c": [
     {
       "type": 0,
-      "value": "Create new Kusto tool"
+      "value": "새 Kusto 도구 만들기"
     }
   ],
   "mkhNnB": [
@@ -11716,21 +12422,23 @@
   "mm/uFP": [
     {
       "type": 0,
-      "value": "Filter by mitigated by"
+      "value": "완화된 항목으로 필터링"
+    }
+  ],
+  "moOg2N": [
+    {
+      "type": 0,
+      "value": "Outlook"
     }
   ],
   "mopY52": [
-    {
-      "type": 0,
-      "value": "Created "
-    },
     {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": " and linked it as a handoff for "
+      "value": "을(를) 만들어 "
     },
     {
       "type": 1,
@@ -11738,7 +12446,7 @@
     },
     {
       "type": 0,
-      "value": ". Choose what you’d like to do next."
+      "value": "에 대한 핸드오프로 연결했습니다. 다음에 수행하려는 작업을 선택합니다."
     }
   ],
   "mq/sud": [
@@ -11750,7 +12458,7 @@
   "mrOnjM": [
     {
       "type": 0,
-      "value": "Mode"
+      "value": "모드"
     }
   ],
   "mtr3R4": [
@@ -11780,7 +12488,7 @@
   "n2h/5e": [
     {
       "type": 0,
-      "value": "Dictionary value type"
+      "value": "사전 값 형식"
     }
   ],
   "n5QvJy": [
@@ -11792,7 +12500,7 @@
   "n7yYXG": [
     {
       "type": 0,
-      "value": "Service"
+      "value": "서비스"
     }
   ],
   "nBPow3": [
@@ -11814,7 +12522,7 @@
   "nCowEs": [
     {
       "type": 0,
-      "value": "All agents"
+      "value": "모든 에이전트"
     }
   ],
   "nDyaq/": [
@@ -11832,7 +12540,7 @@
   "nFpcjX": [
     {
       "type": 0,
-      "value": "Auto-generated"
+      "value": "자동 생성됨"
     }
   ],
   "nL/Owh": [
@@ -11872,13 +12580,13 @@
   "nUT0Lv": [
     {
       "type": 0,
-      "value": "Tools"
+      "value": "도구"
     }
   ],
   "nWJtZd": [
     {
       "type": 0,
-      "value": "Connector details · "
+      "value": "커넥터 세부 정보 · "
     },
     {
       "type": 1,
@@ -11888,13 +12596,13 @@
   "ncB14A": [
     {
       "type": 0,
-      "value": "Agent invoked"
+      "value": "에이전트가 호출됨"
     }
   ],
   "nkYx6+": [
     {
       "type": 0,
-      "value": "Disconnect "
+      "value": "데이터 커넥터 "
     },
     {
       "type": 1,
@@ -11902,7 +12610,7 @@
     },
     {
       "type": 0,
-      "value": " data connectors?"
+      "value": "개의 연결을 끊으시겠습니까?"
     }
   ],
   "nmpevl": [
@@ -11920,7 +12628,7 @@
   "noxLT+": [
     {
       "type": 0,
-      "value": "Apply fixes"
+      "value": "수정 적용"
     }
   ],
   "npvxpr": [
@@ -11950,13 +12658,13 @@
   "nx7y+W": [
     {
       "type": 0,
-      "value": "Re-run insights"
+      "value": "인사이트 다시 실행"
     }
   ],
   "nxmZHP": [
     {
       "type": 0,
-      "value": "Configuration saved successfully."
+      "value": "구성을 저장했습니다."
     }
   ],
   "nxvTtg": [
@@ -11968,25 +12676,25 @@
   "nySNrf": [
     {
       "type": 0,
-      "value": "A unique identifier for your tool"
+      "value": "도구의 고유 식별자"
     }
   ],
   "o0pkiK": [
     {
       "type": 0,
-      "value": "Describe what this agent does and how it should behave..."
+      "value": "이 에이전트가 수행하는 작업 및 작동 방식 설명..."
     }
   ],
   "o1g3JC": [
     {
       "type": 0,
-      "value": "No tools linked yet. Add tools so this agent can take action."
+      "value": "아직 연결된 도구가 없습니다. 이 에이전트가 작업할 수 있도록 도구를 추가합니다."
     }
   ],
   "o3uElD": [
     {
       "type": 0,
-      "value": "Add data connector"
+      "value": "데이터 커넥터 추가"
     }
   ],
   "o7TUwc": [
@@ -12010,7 +12718,7 @@
   "oBxxMY": [
     {
       "type": 0,
-      "value": "Failed to delete all "
+      "value": "모든 "
     },
     {
       "type": 1,
@@ -12018,7 +12726,7 @@
     },
     {
       "type": 0,
-      "value": " data connectors"
+      "value": "개의 데이터 커넥터를 삭제하지 못했습니다."
     }
   ],
   "oDI/Rp": [
@@ -12034,7 +12742,7 @@
   "oDVFQr": [
     {
       "type": 0,
-      "value": "Ignore (use static value)"
+      "value": "무시(정적 값 사용)"
     }
   ],
   "oDb8Xv": [
@@ -12049,22 +12757,28 @@
       "value": "Azure 리소스의 활동과 인시던트를 모니터링하고 대응하려면, 에이전트가 여러분이 허용한 특정 구독, 리소스 그룹, 서비스에 접근할 수 있어야 합니다."
     }
   ],
+  "oHGFwy": [
+    {
+      "type": 0,
+      "value": "Sign in with a different account"
+    }
+  ],
   "oKJ0fm": [
     {
       "type": 0,
-      "value": "Nothing to preview yet."
+      "value": "아직 미리 볼 항목이 없습니다."
     }
   ],
   "oM0lfe": [
     {
       "type": 0,
-      "value": "Select a node to see its details."
+      "value": "노드를 선택하여 세부 정보를 봅니다."
     }
   ],
   "oMsZ4g": [
     {
       "type": 0,
-      "value": "Day of month"
+      "value": "월간 일자"
     }
   ],
   "oQ/TUW": [
@@ -12076,7 +12790,7 @@
   "oQJEFn": [
     {
       "type": 0,
-      "value": "Performance Issue"
+      "value": "성능 문제"
     }
   ],
   "oTNrPz": [
@@ -12088,7 +12802,7 @@
   "oTOgOq": [
     {
       "type": 0,
-      "value": "Loading MCP tools..."
+      "value": "MCP 도구를 로드하는 중..."
     }
   ],
   "oUWADl": [
@@ -12118,7 +12832,7 @@
   "ob6s4+": [
     {
       "type": 0,
-      "value": "Deny assignment"
+      "value": "거부 할당"
     }
   ],
   "obRqDQ": [
@@ -12140,7 +12854,7 @@
   "ocTBQX": [
     {
       "type": 0,
-      "value": "Failed to delete connector"
+      "value": "커넥터를 삭제하지 못했습니다."
     }
   ],
   "omHElC": [
@@ -12158,7 +12872,7 @@
   "osuyeD": [
     {
       "type": 0,
-      "value": "Out of date"
+      "value": "만료됨"
     }
   ],
   "ovJ26C": [
@@ -12170,11 +12884,15 @@
   "owa0nd": [
     {
       "type": 0,
-      "value": "Expand span with id: "
+      "value": "ID가 "
     },
     {
       "type": 1,
       "value": "id"
+    },
+    {
+      "type": 0,
+      "value": "인 범위 확장"
     }
   ],
   "ox7DwN": [
@@ -12186,7 +12904,7 @@
   "p/QlSI": [
     {
       "type": 0,
-      "value": "Updating connector \""
+      "value": "커넥터 \""
     },
     {
       "type": 1,
@@ -12194,7 +12912,7 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": "\" 업데이트 중"
     }
   ],
   "p/xAmY": [
@@ -12236,19 +12954,19 @@
   "p7xkho": [
     {
       "type": 0,
-      "value": "Agent consumption"
+      "value": "에이전트 사용량"
     }
   ],
   "p8Ubox": [
     {
       "type": 0,
-      "value": "Connect an incident management platform so the agent will collect, analyze, and respond to alerts."
+      "value": "에이전트가 경고를 수집, 분석 및 응답할 수 있도록 인시던트 관리 플랫폼을 연결합니다."
     }
   ],
   "pA7W9m": [
     {
       "type": 0,
-      "value": "Intent Met Score"
+      "value": "의도 충족 점수"
     }
   ],
   "pAFuFx": [
@@ -12272,13 +12990,13 @@
   "pCRg92": [
     {
       "type": 0,
-      "value": "You do not have permission to add or delete connectors."
+      "value": "커넥터를 추가하거나 삭제할 권한이 없습니다."
     }
   ],
   "pCjcdM": [
     {
       "type": 0,
-      "value": "Prompt highlights"
+      "value": "프롬프트 강조 표시"
     }
   ],
   "pDUFq5": [
@@ -12295,12 +13013,12 @@
   ],
   "pFnETG": [
     {
-      "type": 0,
-      "value": "Failed to rename thread with error: "
-    },
-    {
       "type": 1,
       "value": "errorMessage"
+    },
+    {
+      "type": 0,
+      "value": " 오류로 스레드 이름을 바꾸지 못했습니다."
     }
   ],
   "pPwNx4": [
@@ -12324,7 +13042,7 @@
   "pSeneB": [
     {
       "type": 0,
-      "value": "Each "
+      "value": "각 "
     },
     {
       "type": 1,
@@ -12332,7 +13050,7 @@
     },
     {
       "type": 0,
-      "value": " must include a type."
+      "value": "에는 형식이 포함되어야 합니다."
     }
   ],
   "pSfQh6": [
@@ -12350,7 +13068,7 @@
   "pbpjik": [
     {
       "type": 0,
-      "value": "When you finish creating this agent, we'll automatically add it as a handoff for "
+      "value": "이 에이전트 만들기를 마치면 "
     },
     {
       "type": 1,
@@ -12358,7 +13076,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "에 대한 핸드오프로 자동으로 추가됩니다."
     }
   ],
   "pe7UAe": [
@@ -12370,7 +13088,7 @@
   "peOEU7": [
     {
       "type": 0,
-      "value": "No connectors linked."
+      "value": "연결된 커넥터가 없습니다."
     }
   ],
   "pf5nil": [
@@ -12379,10 +13097,28 @@
       "value": "핵심 애플리케이션 그룹"
     }
   ],
+  "pgIRcn": [
+    {
+      "type": 0,
+      "value": "Enter a string"
+    }
+  ],
   "piCpTn": [
     {
       "type": 0,
       "value": "Grafana 대시보드가 프로비전되고 연결되면 리소스가 대시보드를 완전히 채우는 데 시간이 걸릴 수 있습니다."
+    }
+  ],
+  "plun1b": [
+    {
+      "type": 0,
+      "value": "Hand-off"
+    }
+  ],
+  "pndXMi": [
+    {
+      "type": 0,
+      "value": "Enter a value"
     }
   ],
   "pnlHOZ": [
@@ -12402,15 +13138,11 @@
   "polqL7": [
     {
       "type": 0,
-      "value": "-"
+      "value": "마지막 실행 이후 -"
     },
     {
       "type": 1,
       "value": "delta"
-    },
-    {
-      "type": 0,
-      "value": " since last run"
     }
   ],
   "ppARxn": [
@@ -12422,7 +13154,13 @@
   "ppzeDo": [
     {
       "type": 0,
-      "value": "Link Tool"
+      "value": "도구 연결"
+    }
+  ],
+  "pqedsA": [
+    {
+      "type": 0,
+      "value": "Mute all warnings"
     }
   ],
   "pqgzm0": [
@@ -12434,7 +13172,7 @@
   "pr9fPP": [
     {
       "type": 0,
-      "value": "Alert title"
+      "value": "경고 제목"
     }
   ],
   "psUT6S": [
@@ -12446,7 +13184,7 @@
   "puQ/kF": [
     {
       "type": 0,
-      "value": "Loading chat threads"
+      "value": "채팅 스레드 로드 중"
     }
   ],
   "pyXjlj": [
@@ -12476,19 +13214,31 @@
   "qAhUUO": [
     {
       "type": 0,
-      "value": "Thursday"
+      "value": "목요일"
+    }
+  ],
+  "qB4s5L": [
+    {
+      "type": 0,
+      "value": "Add parameter"
+    }
+  ],
+  "qDwvZ4": [
+    {
+      "type": 0,
+      "value": "Unknown error"
     }
   ],
   "qQh4Xu": [
     {
       "type": 0,
-      "value": "The agent references documentation and files to understand your projects and processes."
+      "value": "에이전트는 설명서 및 파일을 참조하여 프로젝트 및 프로세스를 이해합니다."
     }
   ],
   "qavd9Y": [
     {
       "type": 0,
-      "value": "Tell us how often your agent should run and we’ll draft the cron expression for you."
+      "value": "에이전트가 실행되어야 하는 빈도를 알려주시면 cron 식의 초안을 작성해 드리겠습니다."
     }
   ],
   "qdAlfY": [
@@ -12512,13 +13262,13 @@
   "qf1aUJ": [
     {
       "type": 0,
-      "value": "A connector with this name already exists"
+      "value": "이 이름의 커넥터가 이미 있습니다."
     }
   ],
   "qh9t2U": [
     {
       "type": 0,
-      "value": "Connect to agent"
+      "value": "에이전트에 연결"
     }
   ],
   "qhApmK": [
@@ -12530,7 +13280,7 @@
   "qiY3L8": [
     {
       "type": 0,
-      "value": "Connector Name"
+      "value": "커넥터 이름"
     }
   ],
   "qj1uhz": [
@@ -12542,7 +13292,7 @@
   "qj71j1": [
     {
       "type": 0,
-      "value": "Query"
+      "value": "쿼리"
     }
   ],
   "qlcuNQ": [
@@ -12560,19 +13310,19 @@
   "qquh75": [
     {
       "type": 0,
-      "value": "Select a linked tool to edit"
+      "value": "편집할 연결된 도구 선택"
     }
   ],
   "qs5hhk": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the selected incident thread?"
+      "value": "선택한 인시던트 스레드를 삭제하시겠습니까?"
     }
   ],
   "qvTohT": [
     {
       "type": 0,
-      "value": "No results for \""
+      "value": "\""
     },
     {
       "type": 1,
@@ -12580,19 +13330,19 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": "\"에 대한 결과가 없습니다."
     }
   ],
   "qvviEg": [
     {
       "type": 0,
-      "value": "Add handoff to existing agent"
+      "value": "기존 에이전트에 핸드오프 추가"
     }
   ],
   "qxlJil": [
     {
       "type": 0,
-      "value": "PM"
+      "value": "오후"
     }
   ],
   "qyJtWy": [
@@ -12614,11 +13364,15 @@
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "빠른 수정 "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " quick fixes selected"
+              "value": "개 선택됨"
             }
           ]
         }
@@ -12631,7 +13385,7 @@
   "r2cpCI": [
     {
       "type": 0,
-      "value": "Evaluating agent…"
+      "value": "에이전트를 평가하는 중..."
     }
   ],
   "r2x5ZI": [
@@ -12643,13 +13397,13 @@
   "r8XsCU": [
     {
       "type": 0,
-      "value": "Connector"
+      "value": "커넥터"
     }
   ],
   "rAbWbb": [
     {
       "type": 0,
-      "value": "No description available"
+      "value": "제공되는 설명이 없음"
     }
   ],
   "rBPlLc": [
@@ -12661,7 +13415,7 @@
   "rBhkvO": [
     {
       "type": 0,
-      "value": "This will permanently delete the file from the knowledge sources the agent uses. Are you sure you want to delete this file?"
+      "value": "이렇게 하면 에이전트에서 사용하는 기술 원본에서 파일이 영구적으로 삭제됩니다. 이 파일을 삭제하시겠습니까?"
     }
   ],
   "rELDbB": [
@@ -12678,16 +13432,12 @@
   ],
   "rG1sas": [
     {
-      "type": 0,
-      "value": "Attaches to "
-    },
-    {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": "."
+      "value": "에 연결됩니다."
     }
   ],
   "rI2aPZ": [
@@ -12698,16 +13448,12 @@
   ],
   "rKdPkY": [
     {
-      "type": 0,
-      "value": "Select a "
-    },
-    {
       "type": 1,
       "value": "entityLabel"
     },
     {
       "type": 0,
-      "value": " to edit its configuration YAML."
+      "value": "을 선택하여 구성 YAML을 편집합니다."
     }
   ],
   "rKq4sw": [
@@ -12753,19 +13499,19 @@
   "rTBfGn": [
     {
       "type": 0,
-      "value": "Service type: All"
+      "value": "서비스 유형: 전체"
     }
   ],
   "rU0caB": [
     {
       "type": 0,
-      "value": "Update AAU allocation"
+      "value": "AAU 할당 업데이트"
     }
   ],
   "rVbKiP": [
     {
       "type": 0,
-      "value": "Continue editing"
+      "value": "편집 계속"
     }
   ],
   "rVtn/e": [
@@ -12777,7 +13523,7 @@
   "rXQSJp": [
     {
       "type": 0,
-      "value": "Query test failed: "
+      "value": "쿼리 테스트 실패: "
     },
     {
       "type": 1,
@@ -12805,7 +13551,7 @@
   "rd+inb": [
     {
       "type": 0,
-      "value": "Create AI agents with custom tools and connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector."
+      "value": "사용자 지정 도구와 커넥터를 사용하여 AI 에이전트를 만듭니다. 대화형 그래프에서 연동되는 방식을 시각화합니다. 첫 번째 에이전트, 도구 또는 커넥터를 만들어 시작합니다."
     }
   ],
   "rd6YZk": [
@@ -12814,10 +13560,22 @@
       "value": "에이전트는 작업을 제안할 수 있지만 실행하기 전에 승인이 필요합니다."
     }
   ],
+  "rdsirP": [
+    {
+      "type": 0,
+      "value": "The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and acrtions."
+    }
+  ],
   "rhSI1/": [
     {
       "type": 0,
-      "value": "Model"
+      "value": "모델"
+    }
+  ],
+  "ri3YXY": [
+    {
+      "type": 0,
+      "value": "Add a connector"
     }
   ],
   "riEsC7": [
@@ -12859,7 +13617,7 @@
   "rlwohK": [
     {
       "type": 0,
-      "value": "Documentation connector"
+      "value": "설명서 커넥터"
     }
   ],
   "rpG/Bn": [
@@ -12883,13 +13641,13 @@
   "rrN9ke": [
     {
       "type": 0,
-      "value": "tools"
+      "value": "도구"
     }
   ],
   "rrQX3M": [
     {
       "type": 0,
-      "value": "Score this agent and get tailored fixes."
+      "value": "이 에이전트의 점수를 매기고 맞춤형 수정을 받으세요."
     }
   ],
   "rvirM2": [
@@ -12907,7 +13665,7 @@
   "rxcQLa": [
     {
       "type": 0,
-      "value": "Creating connector \""
+      "value": "커넥터 \""
     },
     {
       "type": 1,
@@ -12915,7 +13673,7 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": "\"을(를) 만드는 중"
     }
   ],
   "ryPHA8": [
@@ -12933,13 +13691,13 @@
   "s00xPm": [
     {
       "type": 0,
-      "value": "Learn more about knowledge sources"
+      "value": "지식 원본에 대한 자세한 정보"
     }
   ],
   "s04Z5U": [
     {
       "type": 0,
-      "value": "This will permanently disconnect "
+      "value": "이렇게 하면 에이전트에서 "
     },
     {
       "type": 1,
@@ -12947,25 +13705,25 @@
     },
     {
       "type": 0,
-      "value": " data connectors from the agent. Are you sure you want to disconnect these data connectors?"
+      "value": "개의 데이터 커넥터의 연결이 영구적으로 끊어집니다. 이 데이터 커넥터의 연결을 끊으시겠습니까?"
     }
   ],
   "s2GWth": [
     {
       "type": 0,
-      "value": "Intent Match (1-5)"
+      "value": "의도 일치(1-5)"
     }
   ],
   "s2XIgr": [
     {
       "type": 0,
-      "value": "Show details"
+      "value": "세부 정보 표시"
     }
   ],
   "s6iZgz": [
     {
       "type": 0,
-      "value": "Description (Optional)"
+      "value": "설명(선택 사항)"
     }
   ],
   "s7DlV0": [
@@ -12977,7 +13735,7 @@
   "s7HLdg": [
     {
       "type": 0,
-      "value": "Run deep investigation autonomously"
+      "value": "자율적으로 심층 조사 실행"
     }
   ],
   "s8HBot": [
@@ -12995,7 +13753,7 @@
   "sAireQ": [
     {
       "type": 0,
-      "value": "Select subscription"
+      "value": "구독 선택"
     }
   ],
   "sH0O5v": [
@@ -13006,16 +13764,12 @@
   ],
   "sHc8w5": [
     {
-      "type": 0,
-      "value": "Created "
-    },
-    {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": ". Pick a next step below to keep building."
+      "value": "을(를) 만들었습니다. 계속 빌드하려면 아래에서 다음 단계를 선택합니다."
     }
   ],
   "sI+CCC": [
@@ -13027,19 +13781,19 @@
   "sI/fs2": [
     {
       "type": 0,
-      "value": "Use same thread"
+      "value": "동일한 스레드 사용"
     }
   ],
   "sILeXv": [
     {
       "type": 0,
-      "value": "Root Cause:"
+      "value": "근본 원인:"
     }
   ],
   "sIMS7i": [
     {
       "type": 0,
-      "value": "Progress"
+      "value": "진행률"
     }
   ],
   "sIwc3/": [
@@ -13049,13 +13803,13 @@
     },
     {
       "type": 0,
-      "value": " is a system tool and cannot be run from the playground yet."
+      "value": "은(는) 시스템 도구이며 아직 플레이그라운드에서 실행할 수 없습니다."
     }
   ],
   "sNofwe": [
     {
       "type": 0,
-      "value": "No, keep default meta agent"
+      "value": "아니요, 기본 메타 에이전트 유지"
     }
   ],
   "sNutPl": [
@@ -13067,13 +13821,13 @@
   "sNuzQE": [
     {
       "type": 0,
-      "value": "No nodes found"
+      "value": "노드를 찾을 수 없음"
     }
   ],
   "sQZhm1": [
     {
       "type": 0,
-      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
+      "value": "이 목록에는 범주별로 정리된 확장 에이전트, 도구, 커넥터가 표시됩니다. 하위 에이전트를 만들고 관리하여 기능을 확장하고, 특정 작업에 맞는 사용자 지정 도구를 추가하고, 외부 리소스에 액세스할 수 있도록 커넥터를 설정합니다."
     }
   ],
   "sQkhYk": [
@@ -13085,7 +13839,7 @@
   "sRU00i": [
     {
       "type": 0,
-      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
+      "value": "구독 간에 에이전트 관리 리소스 그룹을 할당하려면 해당 리소스 그룹에 대한 소유자 또는 사용자 액세스 관리자 권한이 필요합니다. 에이전트 리소스 및 관리되는 리소스 그룹은 서로 다른 지역 및 구독에 있을 수 있습니다."
     }
   ],
   "sRb5P9": [
@@ -13097,19 +13851,19 @@
   "sTodCB": [
     {
       "type": 0,
-      "value": "Link this agent to its handoffs and tools so the relationships are ready when it goes live."
+      "value": "이 에이전트를 핸드오프 및 도구에 연결하여 관계가 실시간으로 준비되도록 합니다."
     }
   ],
   "sUfX4j": [
     {
       "type": 0,
-      "value": "It may take a few seconds for new agents or tools to appear in the graph after they are created."
+      "value": "새 에이전트나 도구가 만들어진 후 그래프에 나타나기까지 몇 초 정도 걸릴 수 있습니다."
     }
   ],
   "sV2v5L": [
     {
       "type": 0,
-      "value": "Instructions"
+      "value": "지침"
     }
   ],
   "sVDrdr": [
@@ -13120,8 +13874,12 @@
   ],
   "sVJ+oz": [
     {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
       "type": 0,
-      "value": "Added handoff to "
+      "value": "에 대한 "
     },
     {
       "type": 1,
@@ -13129,21 +13887,13 @@
     },
     {
       "type": 0,
-      "value": " for "
-    },
-    {
-      "type": 1,
-      "value": "agentName"
-    },
-    {
-      "type": 0,
-      "value": "."
+      "value": "에 핸드오프가 추가되었습니다."
     }
   ],
   "sXiGbo": [
     {
       "type": 0,
-      "value": "Add file"
+      "value": "파일 추가"
     }
   ],
   "sZIoMy": [
@@ -13161,7 +13911,7 @@
   "sdNNv5": [
     {
       "type": 0,
-      "value": "When an incident opens, have "
+      "value": "인시던트가 열리면 "
     },
     {
       "type": 1,
@@ -13169,25 +13919,25 @@
     },
     {
       "type": 0,
-      "value": " investigate and summarize the latest state."
+      "value": "이(가) 최신 상태를 조사하고 요약하도록 합니다."
     }
   ],
   "sdussP": [
     {
       "type": 0,
-      "value": "System Tools (Optional)"
+      "value": "시스템 도구(선택 사항)"
     }
   ],
   "sf6hMj": [
     {
       "type": 0,
-      "value": "Heads-up"
+      "value": "알림"
     }
   ],
   "sjlioi": [
     {
       "type": 0,
-      "value": "Subagent invoked"
+      "value": "하위 에이전트가 호출됨"
     }
   ],
   "slxYbm": [
@@ -13215,13 +13965,19 @@
   "snui0/": [
     {
       "type": 0,
-      "value": "agent"
+      "value": "에이전트"
+    }
+  ],
+  "spEwRf": [
+    {
+      "type": 0,
+      "value": "You have warnings regarding your agent."
     }
   ],
   "sqGM6w": [
     {
       "type": 0,
-      "value": "Delete Items"
+      "value": "항목 삭제"
     }
   ],
   "srG8e2": [
@@ -13239,13 +13995,13 @@
   "ssDQgc": [
     {
       "type": 0,
-      "value": "Tools from Model Context Protocol (MCP) servers. These tools are grouped by connection and loaded from connected servers such."
+      "value": "MCP(모델 컨텍스트 프로토콜) 서버의 도구입니다. 이러한 도구는 연결별로 그룹화되고 연결된 서버에서 로드됩니다."
     }
   ],
   "strvmG": [
     {
       "type": 0,
-      "value": "Every hour"
+      "value": "매시간"
     }
   ],
   "swRudj": [
@@ -13260,6 +14016,12 @@
       "value": "플랫폼이 연결되면 에이전트가 인시던트에 응답할 수 있도록 인시던트 응답 계획 및 사용자 지정 응답 계획을 만듭니다."
     }
   ],
+  "swe9tO": [
+    {
+      "type": 0,
+      "value": "Run a test first to validate the query and ensure the agent can access Azure Data Explorer."
+    }
+  ],
   "sy7vzf": [
     {
       "type": 0,
@@ -13268,12 +14030,12 @@
   ],
   "t+IV9f": [
     {
-      "type": 0,
-      "value": "Agent at "
-    },
-    {
       "type": 1,
       "value": "time"
+    },
+    {
+      "type": 0,
+      "value": "의 에이전트"
     }
   ],
   "t/atZW": [
@@ -13303,7 +14065,7 @@
   "t3n6rd": [
     {
       "type": 0,
-      "value": "AI Suggestions"
+      "value": "AI 제안"
     }
   ],
   "t3wAiN": [
@@ -13315,7 +14077,7 @@
   "t6/9PU": [
     {
       "type": 0,
-      "value": "Relationships (optional)"
+      "value": "관계(선택 사항)"
     }
   ],
   "t9I1dY": [
@@ -13327,7 +14089,7 @@
   "tB02Wz": [
     {
       "type": 0,
-      "value": "Generating…"
+      "value": "생성하는 중…"
     }
   ],
   "tCrMHt": [
@@ -13345,7 +14107,7 @@
   "tGHG7q": [
     {
       "type": 0,
-      "value": "Back to Edit"
+      "value": "편집으로 돌아가기"
     }
   ],
   "tHCvDB": [
@@ -13357,13 +14119,13 @@
   "tJuu1A": [
     {
       "type": 0,
-      "value": "✨ AI Suggested Handoff Description"
+      "value": "✨ AI 추천 전달 설명"
     }
   ],
   "tLYOnZ": [
     {
       "type": 0,
-      "value": "기술 자료"
+      "value": "지식 기반"
     }
   ],
   "tLaLqo": [
@@ -13381,7 +14143,7 @@
   "tRaGqN": [
     {
       "type": 0,
-      "value": "Testing query…"
+      "value": "쿼리를 테스트하는 중..."
     }
   ],
   "tSKi9q": [
@@ -13399,13 +14161,13 @@
   "tTVtNj": [
     {
       "type": 0,
-      "value": "Set a run limit"
+      "value": "실행 제한 설정"
     }
   ],
   "tU3A8E": [
     {
       "type": 0,
-      "value": "Your new "
+      "value": "새 "
     },
     {
       "type": 1,
@@ -13413,7 +14175,7 @@
     },
     {
       "type": 0,
-      "value": " will be ready in a few seconds. Feel free to keep editing while we connect it."
+      "value": "이(가) 몇 초 후에 준비됩니다. 연결하는 동안 자유롭게 편집할 수 있습니다."
     }
   ],
   "tWX1j9": [
@@ -13425,7 +14187,7 @@
   "tZmd+w": [
     {
       "type": 0,
-      "value": "Connect a data source"
+      "value": "데이터 원본에 연결"
     }
   ],
   "tb6uBb": [
@@ -13435,7 +14197,7 @@
     },
     {
       "type": 0,
-      "value": " is already connected to "
+      "value": "이(가) 이미 "
     },
     {
       "type": 1,
@@ -13443,7 +14205,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": "에 연결되어 있습니다."
     }
   ],
   "tbPq1d": [
@@ -13465,7 +14227,7 @@
   "tbxHpV": [
     {
       "type": 0,
-      "value": "Validate how the agent summarizes risk and next steps for leadership updates."
+      "value": "에이전트가 리더십 업데이트에 대한 위험 및 다음 단계를 요약하는 방법을 확인합니다."
     }
   ],
   "tfuXMw": [
@@ -13485,25 +14247,25 @@
   "thOyk5": [
     {
       "type": 0,
-      "value": "Deleting connector"
+      "value": "커넥터를 삭제하는 중"
     }
   ],
   "tjE5Cb": [
     {
       "type": 0,
-      "value": "No handoffs configured."
+      "value": "핸드오프가 구성되지 않았습니다."
     }
   ],
   "tjklHQ": [
     {
       "type": 0,
-      "value": "Experiment with your agent's configuration and see real-time results"
+      "value": "에이전트의 구성을 실험하고 실시간 결과 보기"
     }
   ],
   "tkr5bn": [
     {
       "type": 0,
-      "value": "Turn off scheduled task(s)"
+      "value": "예약된 작업 끄기"
     }
   ],
   "trPabo": [
@@ -13515,7 +14277,7 @@
   "ts7YvN": [
     {
       "type": 0,
-      "value": "Repeat until"
+      "value": "다음까지 반복"
     }
   ],
   "tshYzs": [
@@ -13527,13 +14289,19 @@
   "tthToS": [
     {
       "type": 0,
-      "value": "Disabled"
+      "value": "사용 안 함"
+    }
+  ],
+  "tu6JYo": [
+    {
+      "type": 0,
+      "value": "Start agent"
     }
   ],
   "tujypD": [
     {
       "type": 0,
-      "value": "Agents-as-tools · "
+      "value": "에이전트를 도구로 사용 · "
     },
     {
       "type": 1,
@@ -13543,13 +14311,13 @@
   "tvw8DP": [
     {
       "type": 0,
-      "value": "Select existing tools or create new ones later"
+      "value": "기존 도구를 선택하거나 나중에 새 도구 만들기"
     }
   ],
   "txLniB": [
     {
       "type": 0,
-      "value": "Learn more about code optimizations"
+      "value": "코드 최적화에 대한 자세한 정보"
     }
   ],
   "tyJNW5": [
@@ -13567,7 +14335,7 @@
   "u04DEJ": [
     {
       "type": 0,
-      "value": "There was an error loading the usage data. Please try again later."
+      "value": "사용량 현황 데이터를 로드하는 동안 오류가 발생했습니다. 나중에 다시 시도하세요."
     }
   ],
   "u0xiAh": [
@@ -13579,7 +14347,7 @@
   "u3AxgJ": [
     {
       "type": 0,
-      "value": "Incident status:"
+      "value": "인시던트 상태:"
     }
   ],
   "u4WKBH": [
@@ -13603,7 +14371,7 @@
   "u60c6a": [
     {
       "type": 0,
-      "value": "Run insights to see guidance for this configuration."
+      "value": "인사이트를 실행하여 이 구성에 대한 지침을 확인합니다."
     }
   ],
   "u64mw7": [
@@ -13627,7 +14395,7 @@
   "uFaAgq": [
     {
       "type": 0,
-      "value": "Connect relationships"
+      "value": "관계 연결"
     }
   ],
   "uI0Lmu": [
@@ -13683,7 +14451,7 @@
   "uMF+CT": [
     {
       "type": 0,
-      "value": "Remove extended agent: "
+      "value": "확장 에이전트 제거: "
     },
     {
       "type": 1,
@@ -13693,7 +14461,7 @@
   "uMNRNl": [
     {
       "type": 0,
-      "value": "Agents as tools"
+      "value": "에이전트를 도구로 사용"
     }
   ],
   "uNTENz": [
@@ -13707,7 +14475,7 @@
             },
             {
               "type": 0,
-              "value": " confidence points to reach "
+              "value": " 신뢰도 포인트가 "
             },
             {
               "type": 1,
@@ -13715,7 +14483,7 @@
             },
             {
               "type": 0,
-              "value": "."
+              "value": "에 도달했습니다."
             }
           ]
         }
@@ -13744,25 +14512,31 @@
     },
     {
       "type": 0,
-      "value": " failed"
+      "value": "이(가) 실패함"
     }
   ],
   "uYb82D": [
     {
       "type": 0,
-      "value": "Pick from presets"
+      "value": "사전 설정에서 선택"
     }
   ],
   "ubULuu": [
     {
       "type": 0,
-      "value": "Clear description for agents to understand when to use this tool"
+      "value": "에이전트가 이 도구의 사용 시기를 인식할 수 있도록 설명을 명확히 입력"
     }
   ],
   "udi5I/": [
     {
       "type": 0,
-      "value": "Create incident response plans or scheduled tasks to trigger agents automatically."
+      "value": "에이전트를 자동으로 트리거하는 인시던트 응답 계획 또는 예약된 작업을 만듭니다."
+    }
+  ],
+  "ueVpay": [
+    {
+      "type": 0,
+      "value": "Refining..."
     }
   ],
   "ug01Mk": [
@@ -13774,13 +14548,13 @@
   "ukQpDs": [
     {
       "type": 0,
-      "value": "Folder"
+      "value": "폴더"
     }
   ],
   "uld/2m": [
     {
       "type": 0,
-      "value": "Incident status"
+      "value": "인시던트 상태"
     }
   ],
   "uln7eT": [
@@ -13792,7 +14566,7 @@
   "unj6JR": [
     {
       "type": 0,
-      "value": "Create from template"
+      "value": "템플릿에서 만들기"
     }
   ],
   "unxs9C": [
@@ -13804,25 +14578,25 @@
   "us/IXr": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the selected incident threads?"
+      "value": "선택한 인시던트 스레드를 삭제하시겠습니까?"
     }
   ],
   "uudb6D": [
     {
       "type": 0,
-      "value": "Data Source"
+      "value": "데이터 원본"
     }
   ],
   "uva2Xo": [
     {
       "type": 0,
-      "value": "Get more details about these insights"
+      "value": "인사이트에 대한 자세한 정보 가져오기"
     }
   ],
   "uwY8Nf": [
     {
       "type": 0,
-      "value": "Refine with AI"
+      "value": "AI를 사용하여 구체화"
     }
   ],
   "uyO1AJ": [
@@ -13834,7 +14608,7 @@
   "v/3x6O": [
     {
       "type": 0,
-      "value": "Improving instructions..."
+      "value": "지침을 개선하는 중..."
     }
   ],
   "v0CXYP": [
@@ -13852,7 +14626,13 @@
   "v3xWf6": [
     {
       "type": 0,
-      "value": "Expand configuration panel"
+      "value": "구성 패널 확장"
+    }
+  ],
+  "v6cujo": [
+    {
+      "type": 0,
+      "value": "Kusto tool"
     }
   ],
   "v8cTK0": [
@@ -13876,7 +14656,7 @@
   "vAW30j": [
     {
       "type": 0,
-      "value": "Frequency"
+      "value": "빈도"
     }
   ],
   "vAWzLN": [
@@ -13888,7 +14668,7 @@
   "vB/Cv7": [
     {
       "type": 0,
-      "value": "Memory usage insights"
+      "value": "메모리 사용량 인사이트"
     }
   ],
   "vCAhII": [
@@ -13900,7 +14680,7 @@
   "vCsh17": [
     {
       "type": 0,
-      "value": "Connect to data sources like Kusto for rich agent capabilities"
+      "value": "풍부한 에이전트 기능을 위해 Kusto 같은 데이터 원본에 연결"
     }
   ],
   "vDbj1h": [
@@ -13912,13 +14692,13 @@
   "vG08m6": [
     {
       "type": 0,
-      "value": "Improve your agent prompt to increase confidence"
+      "value": "에이전트 프롬프트를 개선하여 신뢰도 높이기"
     }
   ],
   "vIBOch": [
     {
       "type": 0,
-      "value": "Auto apply"
+      "value": "자동 적용"
     }
   ],
   "vPX3R3": [
@@ -13927,10 +14707,16 @@
       "value": "응답 계획을 끌 권한이 없습니다."
     }
   ],
+  "vS6Lmt": [
+    {
+      "type": 0,
+      "value": "Incident triggers"
+    }
+  ],
   "vSW3OF": [
     {
       "type": 0,
-      "value": "Failed to update task: "
+      "value": "작업을 업데이트하지 못했습니다. "
     },
     {
       "type": 1,
@@ -13940,7 +14726,7 @@
   "vV67Wm": [
     {
       "type": 0,
-      "value": "Failed to turn on task: "
+      "value": "작업을 켜지 못했습니다. "
     },
     {
       "type": 1,
@@ -13950,7 +14736,7 @@
   "vVpzJQ": [
     {
       "type": 0,
-      "value": "Suggested instructions"
+      "value": "추천 지침"
     }
   ],
   "vXCeIi": [
@@ -13968,7 +14754,7 @@
   "vZWQHk": [
     {
       "type": 0,
-      "value": "Edit existing"
+      "value": "기존 항목 편집"
     }
   ],
   "vao/Lv": [
@@ -14004,7 +14790,7 @@
   "vlv+Ch": [
     {
       "type": 0,
-      "value": "Scheduled trigger"
+      "value": "예약된 트리거"
     }
   ],
   "vs8s5B": [
@@ -14016,13 +14802,13 @@
   "vsQnBO": [
     {
       "type": 0,
-      "value": "Blocking usage insights"
+      "value": "사용 현황 인사이트 차단"
     }
   ],
   "vz94UY": [
     {
       "type": 0,
-      "value": "Fresh • "
+      "value": "새로 고침 • "
     },
     {
       "type": 1,
@@ -14044,31 +14830,31 @@
   "w0xxAb": [
     {
       "type": 0,
-      "value": "Clear description"
+      "value": "설명 지우기"
     }
   ],
   "w5FDGY": [
     {
       "type": 0,
-      "value": "Update scheduled task"
+      "value": "예약된 작업 업데이트"
     }
   ],
   "w6nz4p": [
     {
       "type": 0,
-      "value": "Open incident triggers"
+      "value": "인시던트 트리거 열기"
     }
   ],
   "w87Yom": [
     {
       "type": 0,
-      "value": "Agent tools"
+      "value": "에이전트 도구"
     }
   ],
   "w8UjdT": [
     {
       "type": 0,
-      "value": "Connect an Azure service MCP server to give the agent more tools to resolve an incident."
+      "value": "Azure 서비스 MCP 서버를 연결하여 에이전트에 인시던트를 해결하기 위한 추가 도구를 제공합니다."
     }
   ],
   "w9tk1A": [
@@ -14080,7 +14866,7 @@
   "wBgTQg": [
     {
       "type": 0,
-      "value": "Author, Test & Evaluate - Full workflow"
+      "value": "작성자, 테스트 및 평가 - 전체 워크플로"
     }
   ],
   "wEQDC6": [
@@ -14097,24 +14883,24 @@
   ],
   "wGLrHW": [
     {
-      "type": 0,
-      "value": "User at "
-    },
-    {
       "type": 1,
       "value": "time"
+    },
+    {
+      "type": 0,
+      "value": "의 사용자"
     }
   ],
   "wGcWbo": [
     {
       "type": 0,
-      "value": "Active tasks"
+      "value": "활성 작업"
     }
   ],
   "wI+r41": [
     {
       "type": 0,
-      "value": "More tools"
+      "value": "추가 도구"
     }
   ],
   "wL7VAE": [
@@ -14139,28 +14925,30 @@
   ],
   "wOHH3J": [
     {
-      "type": 0,
-      "value": "Describe what "
-    },
-    {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": " should do each time it runs."
+      "value": "이(가) 실행될 때마다 수행해야 하는 작업을 설명합니다."
     }
   ],
   "wQdhYo": [
     {
       "type": 0,
-      "value": "Create a new handoff agent"
+      "value": "새 핸드오프 에이전트 만들기"
     }
   ],
   "wSZR47": [
     {
       "type": 0,
       "value": "제출"
+    }
+  ],
+  "wUnPMf": [
+    {
+      "type": 0,
+      "value": "Users without one of the required Azure role-based access control (RBAC) roles will not have access to Azure SRE Agent."
     }
   ],
   "wVpXzO": [
@@ -14178,13 +14966,13 @@
   "wYsv4Z": [
     {
       "type": 0,
-      "value": "Monthly"
+      "value": "월별"
     }
   ],
   "wb/AUH": [
     {
       "type": 0,
-      "value": "Next run times"
+      "value": "다음 실행 시간"
     }
   ],
   "wbigtI": [
@@ -14196,7 +14984,7 @@
   "wbwhbH": [
     {
       "type": 0,
-      "value": "Task name"
+      "value": "작업 이름"
     }
   ],
   "we4Lby": [
@@ -14214,7 +15002,7 @@
   "wgyFIG": [
     {
       "type": 0,
-      "value": "Polishing…"
+      "value": "다듬는 중..."
     }
   ],
   "wjEBlr": [
@@ -14224,7 +15012,7 @@
     },
     {
       "type": 0,
-      "value": " is at "
+      "value": "은(는) "
     },
     {
       "type": 1,
@@ -14232,19 +15020,19 @@
     },
     {
       "type": 0,
-      "value": "%. Continue refining to move toward the next tier."
+      "value": "%입니다. 다음 계층으로 이동하려면 계속 구체화하세요."
     }
   ],
   "wjfh7Z": [
     {
       "type": 0,
-      "value": "Tester - Test your agent"
+      "value": "테스터 - 에이전트 테스트"
     }
   ],
   "wk6Nft": [
     {
       "type": 0,
-      "value": "Begin editing the current configuration in the playground."
+      "value": "플레이그라운드의 현재 구성 편집을 시작합니다."
     }
   ],
   "wkLkeE": [
@@ -14274,19 +15062,19 @@
   "x/7RC2": [
     {
       "type": 0,
-      "value": "Checking trigger setup…"
+      "value": "트리거 설정을 확인하는 중..."
     }
   ],
   "x1YTqM": [
     {
       "type": 0,
-      "value": "Describe the cadence before we can help."
+      "value": "도움을 드리려면 실행 주기를 설명해 주세요."
     }
   ],
   "x25AjF": [
     {
       "type": 0,
-      "value": "Tool usage ID"
+      "value": "도구 사용 ID"
     }
   ],
   "x3aQrV": [
@@ -14298,19 +15086,25 @@
   "x3qvaC": [
     {
       "type": 0,
-      "value": "No runs yet"
+      "value": "아직 실행이 없음"
     }
   ],
   "x4OHX9": [
     {
       "type": 0,
-      "value": "Sub-Agent Builder"
+      "value": "하위 에이전트 작성기"
     }
   ],
   "xDYr9m": [
     {
       "type": 0,
       "value": "보고된 인시던트"
+    }
+  ],
+  "xEjqoV": [
+    {
+      "type": 0,
+      "value": "Click here to learn more"
     }
   ],
   "xGPsyJ": [
@@ -14322,13 +15116,13 @@
   "xHpwlo": [
     {
       "type": 0,
-      "value": "File Name"
+      "value": "파일 이름"
     }
   ],
   "xJLI97": [
     {
       "type": 0,
-      "value": "Hide findings"
+      "value": "결과 숨기기"
     }
   ],
   "xK7rmd": [
@@ -14337,10 +15131,22 @@
       "value": "인사이트"
     }
   ],
+  "xLrAFR": [
+    {
+      "type": 0,
+      "value": "Parameter name"
+    }
+  ],
   "xNC5hG": [
     {
       "type": 0,
-      "value": "Dictionary (group into args)"
+      "value": "사전(인수로 그룹화)"
+    }
+  ],
+  "xPuGYM": [
+    {
+      "type": 0,
+      "value": "No connectors match your search"
     }
   ],
   "xSsto+": [
@@ -14380,7 +15186,7 @@
   "xXHSO2": [
     {
       "type": 0,
-      "value": "Rookie Analyst"
+      "value": "초보 분석 도구"
     }
   ],
   "xXhn+h": [
@@ -14423,10 +15229,16 @@
       "value": "차트에 대한 데이터 요소가 부족합니다."
     }
   ],
+  "xet2Cv": [
+    {
+      "type": 0,
+      "value": "Query parameters"
+    }
+  ],
   "xf9BKi": [
     {
       "type": 0,
-      "value": "Ready to test your agent?"
+      "value": "에이전트를 테스트할 준비가 되셨나요?"
     }
   ],
   "xmcVZ0": [
@@ -14462,7 +15274,7 @@
   "xsbZ+Q": [
     {
       "type": 0,
-      "value": "Add a tool"
+      "value": "도구 추가"
     }
   ],
   "xtkizV": [
@@ -14474,7 +15286,7 @@
   "xvTDgy": [
     {
       "type": 0,
-      "value": "Search tools…"
+      "value": "도구 검색…"
     }
   ],
   "xxoHVE": [
@@ -14486,7 +15298,7 @@
   "xy47sz": [
     {
       "type": 0,
-      "value": "Unable to parse YAML: "
+      "value": "YAML을 구문 분석 할 수 없음: "
     },
     {
       "type": 1,
@@ -14502,41 +15314,49 @@
   "y0KXuM": [
     {
       "type": 0,
-      "value": "+"
+      "value": "마지막 실행 이후 +"
     },
     {
       "type": 1,
       "value": "delta"
-    },
-    {
-      "type": 0,
-      "value": " since last run"
     }
   ],
   "y3Uu5i": [
     {
       "type": 0,
-      "value": "No data connectors match your search"
+      "value": "검색과 일치하는 데이터 커넥터가 없습니다."
     }
   ],
   "y5oInX": [
     {
       "type": 0,
-      "value": "Incident priority"
+      "value": "인시던트 우선순위"
+    }
+  ],
+  "y79eIb": [
+    {
+      "type": 0,
+      "value": "Assign yourself the SRE Agent Admin role."
     }
   ],
   "y87pob": [
-    {
-      "type": 0,
-      "value": "You are previewing "
-    },
     {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": "."
+      "value": "을(를) 미리 보는 중입니다."
+    }
+  ],
+  "yBnHns": [
+    {
+      "type": 0,
+      "value": "Sign in to "
+    },
+    {
+      "type": 1,
+      "value": "service"
     }
   ],
   "yDh8i7": [
@@ -14548,7 +15368,13 @@
   "yFU6JN": [
     {
       "type": 0,
-      "value": "Chat input"
+      "value": "채팅 입력"
+    }
+  ],
+  "yJJ/jv": [
+    {
+      "type": 0,
+      "value": "Mute this warning"
     }
   ],
   "yJSwfQ": [
@@ -14560,7 +15386,7 @@
   "yLRKP5": [
     {
       "type": 0,
-      "value": "Handoff description"
+      "value": "핸드오프 설명"
     }
   ],
   "yNCGjc": [
@@ -14584,13 +15410,13 @@
   "yX3QcY": [
     {
       "type": 0,
-      "value": "Tool details"
+      "value": "도구 세부 정보"
     }
   ],
   "yYJHyl": [
     {
       "type": 0,
-      "value": "No tools are linked yet. Add tools on the left to enable testing."
+      "value": "아직 연결된 도구가 없습니다. 왼쪽에 도구를 추가하여 테스트를 활성화합니다."
     }
   ],
   "yYK6LR": [
@@ -14620,13 +15446,13 @@
   "yeL9WV": [
     {
       "type": 0,
-      "value": "Design, test, and refine agents without touching production."
+      "value": "프로덕션을 건드리지 않고 에이전트를 디자인, 테스트 및 구체화합니다."
     }
   ],
   "yf9+0C": [
     {
       "type": 0,
-      "value": "Polished version"
+      "value": "다듬은 버전"
     }
   ],
   "yh4G7g": [
@@ -14644,13 +15470,13 @@
   "yhZZjG": [
     {
       "type": 0,
-      "value": "To agent"
+      "value": "에이전트로"
     }
   ],
   "yhqGka": [
     {
       "type": 0,
-      "value": "Choose how this trigger should behave and which agent it starts."
+      "value": "이 트리거의 동작 방식과 트리거가 시작되는 에이전트를 선택합니다."
     }
   ],
   "yiAEBc": [
@@ -14668,7 +15494,7 @@
   "ynVolH": [
     {
       "type": 0,
-      "value": "Ask a question or enter a slash(/) to use a command"
+      "value": "질문을 하거나 슬래시(/)를 입력하여 명령 사용"
     }
   ],
   "yo67XU": [
@@ -14686,7 +15512,7 @@
   "ysBuRt": [
     {
       "type": 0,
-      "value": "Failed to create default incident response plan. Error: "
+      "value": "기본 인시던트 응답 계획을 만들지 못했습니다. 오류: "
     },
     {
       "type": 1,
@@ -14708,7 +15534,13 @@
   "z0uI4M": [
     {
       "type": 0,
-      "value": "Run scenario"
+      "value": "시나리오 실행"
+    }
+  ],
+  "z43sTn": [
+    {
+      "type": 0,
+      "value": "View Knowledge Base"
     }
   ],
   "z5cF/O": [
@@ -14720,7 +15552,7 @@
   "z7SGAU": [
     {
       "type": 0,
-      "value": "Scheduled task(s) deleted successfully"
+      "value": "예약된 작업을 삭제했습니다."
     }
   ],
   "z8ZYoc": [
@@ -14738,19 +15570,19 @@
   "zCp11f": [
     {
       "type": 0,
-      "value": "Query test succeeded."
+      "value": "쿼리 테스트에 성공했습니다."
     }
   ],
   "zDcGyS": [
     {
       "type": 0,
-      "value": "Trigger name"
+      "value": "트리거 이름"
     }
   ],
   "zE+jtE": [
     {
       "type": 0,
-      "value": "Rename thread title"
+      "value": "스레드 제목 바꾸기"
     }
   ],
   "zEg90u": [
@@ -14768,13 +15600,13 @@
   "zHZdPM": [
     {
       "type": 0,
-      "value": "Analyzing configuration for improvement recommendations."
+      "value": "개선 권장 사항에 대한 구성을 분석하는 중입니다."
     }
   ],
   "zMX3td": [
     {
       "type": 0,
-      "value": "Renaming the thread title to '"
+      "value": "스레드 제목의 이름을 '"
     },
     {
       "type": 1,
@@ -14782,7 +15614,7 @@
     },
     {
       "type": 0,
-      "value": "'"
+      "value": "'(으)로 바꾸는 중"
     }
   ],
   "zN87hN": [
@@ -14806,7 +15638,7 @@
   "zUNfOA": [
     {
       "type": 0,
-      "value": "Open watcher drawer"
+      "value": "감시자 서랍 열기"
     }
   ],
   "zZsxcQ": [
@@ -14829,16 +15661,12 @@
   ],
   "zeJdWA": [
     {
-      "type": 0,
-      "value": "Deleting "
-    },
-    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " incidents"
+      "value": "개 인시던트를 삭제하는 중"
     }
   ],
   "zfM/75": [
@@ -14862,7 +15690,7 @@
   "zhoVUT": [
     {
       "type": 0,
-      "value": "Advanced settings"
+      "value": "고급 설정"
     }
   ],
   "zpkKsD": [
@@ -14874,17 +15702,21 @@
   "zr8jA6": [
     {
       "type": 0,
-      "value": "Remove tool "
+      "value": "도구 "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 제거"
     }
   ],
   "zuQF37": [
     {
       "type": 0,
-      "value": "Review Your tool"
+      "value": "도구 검토"
     }
   ],
   "zvKOAu": [
@@ -14902,7 +15734,7 @@
   "zxvhnE": [
     {
       "type": 0,
-      "value": "Daily"
+      "value": "매일"
     }
   ]
 }

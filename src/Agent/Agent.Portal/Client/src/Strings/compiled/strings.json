@@ -59,6 +59,12 @@
       "value": "Cosmos DB Accounts"
     }
   ],
+  "/6/sPX": [
+    {
+      "type": 0,
+      "value": "Docs"
+    }
+  ],
   "/6Fckw": [
     {
       "type": 0,
@@ -109,6 +115,12 @@
       "value": " filter"
     }
   ],
+  "/zFP1/": [
+    {
+      "type": 0,
+      "value": "Start time"
+    }
+  ],
   "01lT1B": [
     {
       "type": 0,
@@ -135,10 +147,22 @@
       "value": "Manage SQL servers and their security policies."
     }
   ],
+  "0oLj/t": [
+    {
+      "type": 0,
+      "value": "Expand"
+    }
+  ],
   "0te2Ra": [
     {
       "type": 0,
       "value": "Manage Azure Data Factory instances."
+    }
+  ],
+  "1Lx9q5": [
+    {
+      "type": 0,
+      "value": "Loading operations..."
     }
   ],
   "1YPTmM": [
@@ -283,6 +307,12 @@
     {
       "type": 0,
       "value": "List cluster admin credential action."
+    }
+  ],
+  "556JQK": [
+    {
+      "type": 0,
+      "value": "Deploy"
     }
   ],
   "5M+hLZ": [
@@ -473,6 +503,12 @@
     {
       "type": 0,
       "value": "Select all"
+    }
+  ],
+  "9M3sYh": [
+    {
+      "type": 0,
+      "value": "Deployment failed"
     }
   ],
   "ABo5XY": [
@@ -789,6 +825,12 @@
       "value": "Function Apps"
     }
   ],
+  "LOghU6": [
+    {
+      "type": 0,
+      "value": "Succeeded"
+    }
+  ],
   "LSaaxU": [
     {
       "type": 0,
@@ -901,10 +943,22 @@
       "value": "Enter name"
     }
   ],
+  "ORGv1Q": [
+    {
+      "type": 0,
+      "value": "Created"
+    }
+  ],
   "OTGHHm": [
     {
       "type": 0,
       "value": "The resources you picked have permissions for these roles."
+    }
+  ],
+  "OjYIuI": [
+    {
+      "type": 0,
+      "value": "Deployment name"
     }
   ],
   "Oom2N7": [
@@ -1041,6 +1095,12 @@
       "value": "Azure Kubernetes Service RBAC Reader"
     }
   ],
+  "S8snIe": [
+    {
+      "type": 0,
+      "value": "Updating"
+    }
+  ],
   "SCjiXP": [
     {
       "type": 0,
@@ -1175,6 +1235,12 @@
     {
       "type": 0,
       "value": "Create"
+    }
+  ],
+  "W/V6+Y": [
+    {
+      "type": 0,
+      "value": "Collapse"
     }
   ],
   "W4H4Z9": [
@@ -1487,6 +1553,12 @@
       "value": "Back"
     }
   ],
+  "czVHN2": [
+    {
+      "type": 0,
+      "value": "Resource operations"
+    }
+  ],
   "d2GmfJ": [
     {
       "type": 0,
@@ -1631,6 +1703,12 @@
     {
       "type": 0,
       "value": "Read, logstream and exec into Container Apps."
+    }
+  ],
+  "gty4jJ": [
+    {
+      "type": 0,
+      "value": "Deployment in progress..."
     }
   ],
   "gzx/k1": [
@@ -1871,6 +1949,12 @@
       "value": "Lets you manage all resources in the cluster."
     }
   ],
+  "nDyaq/": [
+    {
+      "type": 0,
+      "value": "Running"
+    }
+  ],
   "nlPgO8": [
     {
       "type": 1,
@@ -1931,6 +2015,12 @@
     {
       "type": 0,
       "value": "Manage without access. Can't manage security policies or parent SQL servers."
+    }
+  ],
+  "p849eW": [
+    {
+      "type": 0,
+      "value": "Correlation ID"
     }
   ],
   "pAFuFx": [
@@ -2171,6 +2261,18 @@
       "value": "You do not have permission to create resource groups under the currently selected subscription."
     }
   ],
+  "v90qT8": [
+    {
+      "type": 0,
+      "value": "Deployment succeeded"
+    }
+  ],
+  "vXCeIi": [
+    {
+      "type": 0,
+      "value": "Failed"
+    }
+  ],
   "vbdOl/": [
     {
       "type": 0,
@@ -2187,6 +2289,12 @@
     {
       "type": 0,
       "value": "Learn more about Reader and Privileged permissions"
+    }
+  ],
+  "vxVGav": [
+    {
+      "type": 0,
+      "value": "No operations found"
     }
   ],
   "wCtBb6": [
@@ -2253,6 +2361,12 @@
     {
       "type": 0,
       "value": "Can read all monitoring data."
+    }
+  ],
+  "xhfdqv": [
+    {
+      "type": 0,
+      "value": "Creating"
     }
   ],
   "xmcVZ0": [

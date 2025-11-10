@@ -75,6 +75,12 @@
       "value": "Filter by severity level"
     }
   ],
+  "+Kcoxv": [
+    {
+      "type": 0,
+      "value": "Related incidents"
+    }
+  ],
   "+KyrhG": [
     {
       "type": 0,
@@ -235,6 +241,12 @@
       "value": "The maximum AAU limit is 200,000"
     }
   ],
+  "/7GPtw": [
+    {
+      "type": 0,
+      "value": "Go to Incidents"
+    }
+  ],
   "/8MshI": [
     {
       "type": 0,
@@ -381,6 +393,12 @@
       "value": "Failed to create connector"
     }
   ],
+  "/qCaiZ": [
+    {
+      "type": 0,
+      "value": "Incident trigger name"
+    }
+  ],
   "/rNkXe": [
     {
       "type": 0,
@@ -477,6 +495,20 @@
       "value": "Microsoft IcM"
     }
   ],
+  "0DUgkZ": [
+    {
+      "type": 0,
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " stopped successfully"
+    }
+  ],
   "0Dhe75": [
     {
       "type": 0,
@@ -521,6 +553,12 @@
       "value": "? This action cannot be undone."
     }
   ],
+  "0Qocmw": [
+    {
+      "type": 0,
+      "value": "All tools"
+    }
+  ],
   "0R+Pet": [
     {
       "type": 0,
@@ -557,6 +595,12 @@
       "value": " managed resource groups"
     }
   ],
+  "0VVX+G": [
+    {
+      "type": 0,
+      "value": "Connected as"
+    }
+  ],
   "0VuGey": [
     {
       "type": 0,
@@ -571,12 +615,6 @@
     {
       "type": 1,
       "value": "time"
-    }
-  ],
-  "0aN6iW": [
-    {
-      "type": 0,
-      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more during preview, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
     }
   ],
   "0cEOKu": [
@@ -599,6 +637,12 @@
     {
       "type": 0,
       "value": "Select task"
+    }
+  ],
+  "0hpRE4": [
+    {
+      "type": 0,
+      "value": "Enter the parameter name"
     }
   ],
   "0i3Qrd": [
@@ -715,6 +759,12 @@
     {
       "type": 0,
       "value": "Task"
+    }
+  ],
+  "0zGfOk": [
+    {
+      "type": 0,
+      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
     }
   ],
   "12GY0h": [
@@ -1149,6 +1199,12 @@
       "value": "System tools"
     }
   ],
+  "2l5w5P": [
+    {
+      "type": 0,
+      "value": "Go to Support + Troubleshooting"
+    }
+  ],
   "2m6oj5": [
     {
       "type": 0,
@@ -1171,6 +1227,12 @@
     {
       "type": 0,
       "value": "Critical"
+    }
+  ],
+  "2reUcp": [
+    {
+      "type": 0,
+      "value": "Subagent name"
     }
   ],
   "2tOWr2": [
@@ -1553,6 +1615,12 @@
       "value": "Keep the description brief and explain the task’s actions. Include necessary resource identifiers, specify time-sensitive information, and define success/failure signals or required output formats."
     }
   ],
+  "4RwjwU": [
+    {
+      "type": 0,
+      "value": "Add handoff from existing agent"
+    }
+  ],
   "4TnjxL": [
     {
       "type": 0,
@@ -1563,6 +1631,16 @@
     {
       "type": 0,
       "value": "AI Agents"
+    }
+  ],
+  "4Xep39": [
+    {
+      "type": 0,
+      "value": "Failed to stop SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "4ZoIgV": [
@@ -1623,12 +1701,6 @@
     {
       "type": 0,
       "value": "Select row"
-    }
-  ],
-  "4uiKBK": [
-    {
-      "type": 0,
-      "value": "Select a Kusto connector"
     }
   ],
   "4upwsn": [
@@ -1831,20 +1903,6 @@
       "value": "Error loading investigation"
     }
   ],
-  "5WfpGl": [
-    {
-      "type": 0,
-      "value": "This will permanently disconnect "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " connectors from the agent. Are you sure you want to disconnect these connectors?"
-    }
-  ],
   "5Wtjeo": [
     {
       "type": 0,
@@ -1877,6 +1935,12 @@
     {
       "type": 0,
       "value": "Mitigated by user"
+    }
+  ],
+  "5fVEet": [
+    {
+      "type": 0,
+      "value": "Add tools"
     }
   ],
   "5gEh2M": [
@@ -2067,6 +2131,12 @@
       "value": " XP"
     }
   ],
+  "6BTCPo": [
+    {
+      "type": 0,
+      "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
+    }
+  ],
   "6CxEZS": [
     {
       "type": 0,
@@ -2217,6 +2287,24 @@
       "value": "You can choose a maximum of 20 resource groups that the agent will manage."
     }
   ],
+  "6tzuXg": [
+    {
+      "type": 0,
+      "value": "Failed to start SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "6u8zJX": [
     {
       "type": 0,
@@ -2303,6 +2391,12 @@
       "value": "Invalid thread data received from streaming message"
     }
   ],
+  "79kwlH": [
+    {
+      "type": 0,
+      "value": "No agents available for handoff"
+    }
+  ],
   "7C0xai": [
     {
       "type": 0,
@@ -2319,12 +2413,6 @@
     {
       "type": 0,
       "value": "Review mode"
-    }
-  ],
-  "7Hg58U": [
-    {
-      "type": 0,
-      "value": "e.g., QueryKusto"
     }
   ],
   "7M8VZy": [
@@ -2661,6 +2749,12 @@
       "value": "Select identity"
     }
   ],
+  "8SCDv/": [
+    {
+      "type": 0,
+      "value": "Enter the query for the tool to run"
+    }
+  ],
   "8Vd2Kv": [
     {
       "type": 0,
@@ -2671,6 +2765,16 @@
     {
       "type": 0,
       "value": "Building knowledge graph"
+    }
+  ],
+  "8Zl3PA": [
+    {
+      "type": 0,
+      "value": "Failed to start SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "8aHHLj": [
@@ -2967,16 +3071,6 @@
     {
       "type": 0,
       "value": "Title"
-    }
-  ],
-  "9bH3e2": [
-    {
-      "type": 0,
-      "value": "Nodes: "
-    },
-    {
-      "type": 1,
-      "value": "count"
     }
   ],
   "9jaWOF": [
@@ -3353,6 +3447,12 @@
       "value": "Binding"
     }
   ],
+  "BakoFg": [
+    {
+      "type": 0,
+      "value": "Select tool"
+    }
+  ],
   "BbTpTJ": [
     {
       "type": 0,
@@ -3405,12 +3505,6 @@
       "value": "titles"
     }
   ],
-  "BkOSF2": [
-    {
-      "type": 0,
-      "value": "Parameters"
-    }
-  ],
   "Bluuk+": [
     {
       "type": 0,
@@ -3453,6 +3547,12 @@
     {
       "type": 0,
       "value": "Logic App Contributor"
+    }
+  ],
+  "C6Jt4c": [
+    {
+      "type": 0,
+      "value": "Scheduled task name"
     }
   ],
   "CBHDb1": [
@@ -3735,6 +3835,18 @@
       "value": "Ops Pro"
     }
   ],
+  "DFfvL6": [
+    {
+      "type": 0,
+      "value": "Temporarily stop the agent from all activities."
+    }
+  ],
+  "DIZgr3": [
+    {
+      "type": 0,
+      "value": "Boolean"
+    }
+  ],
   "DJN+DZ": [
     {
       "type": 0,
@@ -3871,6 +3983,12 @@
       "value": "Memory Search Results"
     }
   ],
+  "Dvly6A": [
+    {
+      "type": 0,
+      "value": "Failed to create tool"
+    }
+  ],
   "Dw2xIY": [
     {
       "type": 0,
@@ -3907,6 +4025,12 @@
       "value": "Some of the selected resource groups do not have the required roleAssignments/write and Microsoft.ManagedIdentity/userAssignedIdentities/write permissions."
     }
   ],
+  "E9CWuE": [
+    {
+      "type": 0,
+      "value": "Example: where SubscriptionId == \"##SubscriptionId##\""
+    }
+  ],
   "EAO/K+": [
     {
       "type": 0,
@@ -3931,24 +4055,10 @@
       "value": "Run insights to track confidence and recommended fixes."
     }
   ],
-  "EHyU+4": [
+  "EHy/sj": [
     {
       "type": 0,
-      "value": "Use "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "##ParamName##"
-        }
-      ],
-      "type": 8,
-      "value": "code"
-    },
-    {
-      "type": 0,
-      "value": " in your query to define parameter placeholders."
+      "value": "Enter a number"
     }
   ],
   "EI/cfO": [
@@ -3993,6 +4103,12 @@
     {
       "type": 0,
       "value": "Full workflow with quality evaluation"
+    }
+  ],
+  "EQa6dK": [
+    {
+      "type": 0,
+      "value": "Built-in Tool"
     }
   ],
   "ESChST": [
@@ -4089,6 +4205,12 @@
       "value": "Azure SRE Agent"
     }
   ],
+  "Eu772h": [
+    {
+      "type": 0,
+      "value": "Built-in Tools"
+    }
+  ],
   "Euy+fB": [
     {
       "type": 0,
@@ -4123,20 +4245,24 @@
       "value": "Select tools this agent can use"
     }
   ],
-  "F8R5Bb": [
-    {
-      "type": 0,
-      "value": "Connections: "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    }
-  ],
   "F8UOXS": [
     {
       "type": 0,
       "value": "Relationship preview"
+    }
+  ],
+  "F8v2Mz": [
+    {
+      "type": 0,
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " started successfully"
     }
   ],
   "F8xMoD": [
@@ -4207,16 +4333,16 @@
       "value": "Weekdays at 9am Pacific"
     }
   ],
-  "FO/nez": [
-    {
-      "type": 0,
-      "value": "Describe what this tool does..."
-    }
-  ],
   "FPdoJ3": [
     {
       "type": 0,
       "value": "Define how incidents are detected and reviewed, and the instructions for how the agent responds."
+    }
+  ],
+  "FS0tWa": [
+    {
+      "type": 0,
+      "value": "No source agent specified"
     }
   ],
   "FSYccN": [
@@ -4253,6 +4379,22 @@
       "value": "Handoff Agents (Optional)"
     }
   ],
+  "FWou/7": [
+    {
+      "type": 0,
+      "value": "Select tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    }
+  ],
+  "FZeQlc": [
+    {
+      "type": 0,
+      "value": "Disconnected"
+    }
+  ],
   "FZwBv0": [
     {
       "type": 0,
@@ -4287,6 +4429,20 @@
     {
       "type": 0,
       "value": "Acknowledged"
+    }
+  ],
+  "FpUGgx": [
+    {
+      "type": 0,
+      "value": "Starting SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in progress"
     }
   ],
   "Fr5LyM": [
@@ -4503,6 +4659,18 @@
       "value": "Resize drawer"
     }
   ],
+  "GnWmca": [
+    {
+      "type": 0,
+      "value": "Triggers"
+    }
+  ],
+  "Gnbr9F": [
+    {
+      "type": 0,
+      "value": "Select a connector"
+    }
+  ],
   "GoSIa4": [
     {
       "type": 0,
@@ -4605,6 +4773,12 @@
       "value": "Get AI-powered quality insights and improvement suggestions"
     }
   ],
+  "HNBpJ4": [
+    {
+      "type": 0,
+      "value": "Metrics"
+    }
+  ],
   "HNECLT": [
     {
       "type": 0,
@@ -4651,6 +4825,12 @@
     {
       "type": 0,
       "value": "Add resource group"
+    }
+  ],
+  "HZQtAg": [
+    {
+      "type": 0,
+      "value": "Test values"
     }
   ],
   "HbTFJf": [
@@ -4745,6 +4925,12 @@
     {
       "type": 0,
       "value": "View Memory Search Results"
+    }
+  ],
+  "I3MA83": [
+    {
+      "type": 0,
+      "value": "String"
     }
   ],
   "I5k4g/": [
@@ -4931,20 +5117,6 @@
       "value": "."
     }
   ],
-  "ImMx2v": [
-    {
-      "type": 0,
-      "value": "Disconnect "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " connectors?"
-    }
-  ],
   "InWqys": [
     {
       "type": 0,
@@ -5077,6 +5249,12 @@
       "value": "Previous"
     }
   ],
+  "JKFypr": [
+    {
+      "type": 0,
+      "value": "Stop agent"
+    }
+  ],
   "JMdyE9": [
     {
       "type": 0,
@@ -5087,6 +5265,12 @@
     {
       "type": 0,
       "value": "With incident response plans, the agent chooses the tools it needs to manage common types of incidents. Custom response plans replace this capability by giving the agent specific instructions that you provide."
+    }
+  ],
+  "JSW9Xw": [
+    {
+      "type": 0,
+      "value": "Starting SRE Agent"
     }
   ],
   "JT7be1": [
@@ -5253,6 +5437,24 @@
     {
       "type": 0,
       "value": "Disconnect ServiceNow?"
+    }
+  ],
+  "JnDKv3": [
+    {
+      "type": 0,
+      "value": "Failed to stop SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "Jrrm2K": [
@@ -5661,6 +5863,12 @@
       "value": "Filters define which incidents the incident response plan applies to. These apply to the list of incidents previewed in the next step."
     }
   ],
+  "LaIt/v": [
+    {
+      "type": 0,
+      "value": "Creating Kusto Tool"
+    }
+  ],
   "LbkJp1": [
     {
       "type": 0,
@@ -5887,12 +6095,6 @@
       "value": "The agent generates queries by learning about your logs, telemetry, and time series data."
     }
   ],
-  "MWaWoR": [
-    {
-      "type": 0,
-      "value": "Starting September 25th, 2025, users without one of the required Azure role-based access control (RBAC) roles will lose access to Azure SRE Agent."
-    }
-  ],
   "MaaxCM": [
     {
       "type": 0,
@@ -5991,6 +6193,12 @@
       "value": "Grid view"
     }
   ],
+  "N/CtWu": [
+    {
+      "type": 0,
+      "value": "Unselected"
+    }
+  ],
   "N0d5pM": [
     {
       "type": 0,
@@ -6087,6 +6295,12 @@
     {
       "type": 0,
       "value": "Disabling incident response plan"
+    }
+  ],
+  "NN4zut": [
+    {
+      "type": 0,
+      "value": "Support + troubleshooting"
     }
   ],
   "NOMbLF": [
@@ -6247,6 +6461,12 @@
       "value": "count"
     }
   ],
+  "O/gthC": [
+    {
+      "type": 0,
+      "value": "Go to Scheduled Task"
+    }
+  ],
   "O0JI8M": [
     {
       "type": 0,
@@ -6269,6 +6489,12 @@
     {
       "type": 0,
       "value": "Are you sure you want to delete this SRE Agent? This action cannot be undone."
+    }
+  ],
+  "O9C6j/": [
+    {
+      "type": 0,
+      "value": "Create subagent"
     }
   ],
   "OBoUb6": [
@@ -6319,6 +6545,12 @@
     {
       "type": 0,
       "value": "Assigned to"
+    }
+  ],
+  "ONbwY2": [
+    {
+      "type": 0,
+      "value": "Custom Tool"
     }
   ],
   "OO5Y94": [
@@ -6443,6 +6675,18 @@
       "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
     }
   ],
+  "OoxcFC": [
+    {
+      "type": 0,
+      "value": "Select the input type"
+    }
+  ],
+  "OpUvSu": [
+    {
+      "type": 0,
+      "value": "Create Kusto Tool"
+    }
+  ],
   "OrQ4EY": [
     {
       "type": 0,
@@ -6541,6 +6785,12 @@
       "value": "My recent prompts"
     }
   ],
+  "PF15hb": [
+    {
+      "type": 0,
+      "value": "Input value"
+    }
+  ],
   "PFUTWt": [
     {
       "type": 0,
@@ -6575,12 +6825,6 @@
     {
       "type": 0,
       "value": "Extend your agent’s capabilities with connectors"
-    }
-  ],
-  "PMgJpH": [
-    {
-      "type": 0,
-      "value": "This will permanently disconnect this connector from the agent. Are you sure you want to disconnect this connector?"
     }
   ],
   "PPrKNq": [
@@ -6625,6 +6869,18 @@
       "value": "Resource analysis"
     }
   ],
+  "PXJ+oX": [
+    {
+      "type": 0,
+      "value": "To view incidents triggered, go to Incidents"
+    }
+  ],
+  "PXJi2R": [
+    {
+      "type": 0,
+      "value": "No target agent specified"
+    }
+  ],
   "PXYq8b": [
     {
       "type": 0,
@@ -6651,6 +6907,12 @@
     {
       "type": 0,
       "value": "Total active flow consumption"
+    }
+  ],
+  "PbaaPs": [
+    {
+      "type": 0,
+      "value": "Add subagent"
     }
   ],
   "Pc+tM3": [
@@ -6813,6 +7075,12 @@
       "value": "?"
     }
   ],
+  "Q6Lw7i": [
+    {
+      "type": 0,
+      "value": "To learn more about permissions, click here."
+    }
+  ],
   "Q7/1w4": [
     {
       "type": 0,
@@ -6889,6 +7157,12 @@
       "value": "Azure Digital Twins Data Owner"
     }
   ],
+  "QK0vxq": [
+    {
+      "type": 0,
+      "value": "Go to Connectors"
+    }
+  ],
   "QOSRgI": [
     {
       "type": 0,
@@ -6905,6 +7179,12 @@
     {
       "type": 0,
       "value": "Uses (Trigger, Action)"
+    }
+  ],
+  "QW+Q5N": [
+    {
+      "type": 0,
+      "value": "Clear all"
     }
   ],
   "QWEHW2": [
@@ -6925,22 +7205,6 @@
     {
       "type": 0,
       "value": "Handoff Description"
-    }
-  ],
-  "Qc3Kdl": [
-    {
-      "type": 0,
-      "value": "Example: "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "where SubscriptionId == \"##SubscriptionId##\""
-        }
-      ],
-      "type": 8,
-      "value": "code"
     }
   ],
   "QdDYGR": [
@@ -7277,6 +7541,20 @@
       "value": "Last 12 hours"
     }
   ],
+  "S2jxf1": [
+    {
+      "type": 0,
+      "value": "No "
+    },
+    {
+      "type": 1,
+      "value": "activeTab"
+    },
+    {
+      "type": 0,
+      "value": " found"
+    }
+  ],
   "S2z35W": [
     {
       "type": 0,
@@ -7315,6 +7593,12 @@
     {
       "type": 0,
       "value": "Cognitive Services Data Reader"
+    }
+  ],
+  "SDsdCi": [
+    {
+      "type": 0,
+      "value": "Add existing tools"
     }
   ],
   "SFUZOQ": [
@@ -7709,6 +7993,12 @@
       "value": "You do not have permission to create response plans."
     }
   ],
+  "TrnqJG": [
+    {
+      "type": 0,
+      "value": "Input type"
+    }
+  ],
   "TwMqIK": [
     {
       "type": 0,
@@ -7935,12 +8225,6 @@
       "value": "Connected APIs"
     }
   ],
-  "VMIM8/": [
-    {
-      "type": 0,
-      "value": "Analysis"
-    }
-  ],
   "VQDmmK": [
     {
       "type": 0,
@@ -7973,6 +8257,12 @@
     {
       "type": 1,
       "value": "name"
+    }
+  ],
+  "VU4BBu": [
+    {
+      "type": 0,
+      "value": "Parameter"
     }
   ],
   "VUHkVQ": [
@@ -8015,6 +8305,12 @@
     {
       "type": 0,
       "value": "Review (Default)"
+    }
+  ],
+  "Vipo+I": [
+    {
+      "type": 0,
+      "value": "No parameters configured"
     }
   ],
   "VlBNux": [
@@ -8097,6 +8393,12 @@
       "value": "No response plans found"
     }
   ],
+  "W1Qs5O": [
+    {
+      "type": 0,
+      "value": "Runs"
+    }
+  ],
   "W2JBdp": [
     {
       "type": 0,
@@ -8149,6 +8451,12 @@
     {
       "type": 0,
       "value": "Last data capture time"
+    }
+  ],
+  "WJj+TP": [
+    {
+      "type": 0,
+      "value": "You do not have permission to check incident management connection."
     }
   ],
   "WLw9E7": [
@@ -8440,6 +8748,12 @@
       "value": "Select an agent or tool to start a playground session."
     }
   ],
+  "XDcbqQ": [
+    {
+      "type": 0,
+      "value": "Stopping SRE Agent"
+    }
+  ],
   "XEB3Fn": [
     {
       "type": 0,
@@ -8560,6 +8874,12 @@
       "value": "Select or search for an incident"
     }
   ],
+  "XS8hWM": [
+    {
+      "type": 0,
+      "value": "Enter a boolean"
+    }
+  ],
   "XV8dOu": [
     {
       "type": 0,
@@ -8570,6 +8890,12 @@
     {
       "type": 0,
       "value": "Refining details..."
+    }
+  ],
+  "XYIeUc": [
+    {
+      "type": 0,
+      "value": "Agent permissions are determined by its assigned RBAC roles."
     }
   ],
   "XYSJsS": [
@@ -8652,6 +8978,12 @@
       "value": "Manage long-term retention backups for PostgreSQL Flexible Server."
     }
   ],
+  "Xup5P8": [
+    {
+      "type": 0,
+      "value": "What happened"
+    }
+  ],
   "XvrDTb": [
     {
       "type": 0,
@@ -8688,6 +9020,22 @@
     {
       "type": 1,
       "value": "name"
+    }
+  ],
+  "Y47Dwm": [
+    {
+      "type": 0,
+      "value": "Kusto tools"
+    }
+  ],
+  "Y5IFiT": [
+    {
+      "type": 1,
+      "value": "service"
+    },
+    {
+      "type": 0,
+      "value": " account"
     }
   ],
   "Y7Lbpf": [
@@ -8742,6 +9090,20 @@
     {
       "type": 0,
       "value": "Keep working"
+    }
+  ],
+  "YKwGp6": [
+    {
+      "type": 0,
+      "value": "Added tools to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "YMjUWP": [
@@ -8984,6 +9346,16 @@
       "value": "channel"
     }
   ],
+  "ZF9lPS": [
+    {
+      "type": 0,
+      "value": "Remove tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    }
+  ],
   "ZMa6Rh": [
     {
       "type": 0,
@@ -9193,6 +9565,12 @@
       "value": "Add a knowledge source"
     }
   ],
+  "a8fWCd": [
+    {
+      "type": 0,
+      "value": "Enter a datetime"
+    }
+  ],
   "a8l/yJ": [
     {
       "type": 0,
@@ -9239,6 +9617,12 @@
     {
       "type": 0,
       "value": "Has access to Read and Test functions under LUIS."
+    }
+  ],
+  "aH3ak4": [
+    {
+      "type": 0,
+      "value": "Build subagent workflows"
     }
   ],
   "aH4De2": [
@@ -9667,6 +10051,12 @@
       "value": "Just now"
     }
   ],
+  "byP6IC": [
+    {
+      "type": 0,
+      "value": "Selected"
+    }
+  ],
   "c/8Uhj": [
     {
       "type": 0,
@@ -9713,6 +10103,12 @@
     {
       "type": 0,
       "value": "Open in playground"
+    }
+  ],
+  "c5hwBU": [
+    {
+      "type": 0,
+      "value": "The agent will resume all activities."
     }
   ],
   "c8Doeq": [
@@ -9765,6 +10161,12 @@
       "value": "AI chat service is currently unavailable. Please try again later."
     }
   ],
+  "cLHCHE": [
+    {
+      "type": 0,
+      "value": "Connector status"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -9803,6 +10205,12 @@
     {
       "type": 1,
       "value": "category"
+    }
+  ],
+  "cg54iX": [
+    {
+      "type": 0,
+      "value": "Kusto tool name"
     }
   ],
   "ciB+oy": [
@@ -9899,6 +10307,12 @@
     {
       "type": 0,
       "value": "Manage API Management workspaces."
+    }
+  ],
+  "d2czNd": [
+    {
+      "type": 0,
+      "value": "Datetime"
     }
   ],
   "d3MtwZ": [
@@ -10123,12 +10537,6 @@
       "value": "Log Analytics Contributor"
     }
   ],
-  "e3iUbz": [
-    {
-      "type": 0,
-      "value": "Disconnect connector?"
-    }
-  ],
   "e3itcX": [
     {
       "type": 0,
@@ -10329,6 +10737,12 @@
       "value": "Enter connection string or endpoint"
     }
   ],
+  "f04POI": [
+    {
+      "type": 0,
+      "value": "Tool created successfully"
+    }
+  ],
   "f0LQra": [
     {
       "type": 0,
@@ -10375,6 +10789,12 @@
     {
       "type": 0,
       "value": "Rising Specialist"
+    }
+  ],
+  "fCiXKq": [
+    {
+      "type": 0,
+      "value": "Add scheduled task"
     }
   ],
   "fE5E6W": [
@@ -10469,6 +10889,12 @@
     {
       "type": 0,
       "value": "A sub-agent with this name already exists"
+    }
+  ],
+  "fiLH5L": [
+    {
+      "type": 0,
+      "value": "To create a Kusto tool, first add an Azure Data Explorer connector."
     }
   ],
   "fio5op": [
@@ -10643,6 +11069,12 @@
       "value": "Manage IoT Hub device twins."
     }
   ],
+  "gclDgn": [
+    {
+      "type": 0,
+      "value": "Create a Kusto tool"
+    }
+  ],
   "gct+2s": [
     {
       "type": 0,
@@ -10659,6 +11091,12 @@
     {
       "type": 0,
       "value": "Thread ID"
+    }
+  ],
+  "ghwElt": [
+    {
+      "type": 0,
+      "value": "Visit Support + Troubleshooting to access support resources and troubleshoot issues related to your SRE Agent."
     }
   ],
   "gj6Qc6": [
@@ -10683,6 +11121,12 @@
     {
       "type": 0,
       "value": "You need permissions to set up a Grafana dashboard."
+    }
+  ],
+  "gox4oK": [
+    {
+      "type": 0,
+      "value": "Enter the database name"
     }
   ],
   "grgDhd": [
@@ -10773,6 +11217,12 @@
       "value": "Author and Test - Configure and test"
     }
   ],
+  "h/OQTK": [
+    {
+      "type": 0,
+      "value": "Use ##ParamName## in your query to define parameter placeholders."
+    }
+  ],
   "h0W8DM": [
     {
       "type": 0,
@@ -10813,6 +11263,12 @@
     {
       "type": 0,
       "value": "\" was not found"
+    }
+  ],
+  "hF/2EL": [
+    {
+      "type": 0,
+      "value": "Handoff Instructions"
     }
   ],
   "hF5T80": [
@@ -10959,6 +11415,12 @@
       "value": "Grafana resource"
     }
   ],
+  "hqWr3L": [
+    {
+      "type": 0,
+      "value": "RCA category"
+    }
+  ],
   "hrdmcd": [
     {
       "type": 0,
@@ -11031,10 +11493,18 @@
       "value": "Not yet published"
     }
   ],
-  "iMBgdL": [
+  "iMaY2Q": [
     {
       "type": 0,
-      "value": "Kusto Tool"
+      "value": "Stopping SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in progress"
     }
   ],
   "iNgloh": [
@@ -11053,6 +11523,12 @@
     {
       "type": 0,
       "value": "Rename"
+    }
+  ],
+  "iY7P1k": [
+    {
+      "type": 0,
+      "value": "Agent Autonomy"
     }
   ],
   "iZDRGO": [
@@ -11089,6 +11565,12 @@
     {
       "type": 0,
       "value": "Copy command"
+    }
+  ],
+  "ifdupA": [
+    {
+      "type": 0,
+      "value": "To view runs, go to Agent Runs"
     }
   ],
   "iihhVc": [
@@ -11469,6 +11951,12 @@
       "value": "Alert ID"
     }
   ],
+  "kFkPWB": [
+    {
+      "type": 0,
+      "value": "Number"
+    }
+  ],
   "kG0ZtT": [
     {
       "type": 0,
@@ -11613,6 +12101,12 @@
       "value": "Response plan saved successfully"
     }
   ],
+  "kxokJj": [
+    {
+      "type": 0,
+      "value": "Agent datagrid"
+    }
+  ],
   "l+e8nZ": [
     {
       "type": 0,
@@ -11645,6 +12139,12 @@
     {
       "type": 0,
       "value": "Azure Data Explorer"
+    }
+  ],
+  "l0VCdV": [
+    {
+      "type": 0,
+      "value": "Create tool"
     }
   ],
   "l2Ni9H": [
@@ -12029,6 +12529,12 @@
       "value": "Filter by mitigated by"
     }
   ],
+  "moOg2N": [
+    {
+      "type": 0,
+      "value": "Outlook"
+    }
+  ],
   "mopY52": [
     {
       "type": 0,
@@ -12363,6 +12869,12 @@
       "value": "To help monitor and respond to activities and incidents in your Azure resources, the agent needs access to the specific subscriptions, resources groups, and services that you allow."
     }
   ],
+  "oHGFwy": [
+    {
+      "type": 0,
+      "value": "Sign in with a different account"
+    }
+  ],
   "oKJ0fm": [
     {
       "type": 0,
@@ -12693,10 +13205,28 @@
       "value": "Core application group"
     }
   ],
+  "pgIRcn": [
+    {
+      "type": 0,
+      "value": "Enter a string"
+    }
+  ],
   "piCpTn": [
     {
       "type": 0,
       "value": "Once a Grafana dashboard is provisioned and linked, it may take some time for resources to fully populate the dashboard."
+    }
+  ],
+  "plun1b": [
+    {
+      "type": 0,
+      "value": "Hand-off"
+    }
+  ],
+  "pndXMi": [
+    {
+      "type": 0,
+      "value": "Enter a value"
     }
   ],
   "pnlHOZ": [
@@ -12797,6 +13327,18 @@
     {
       "type": 0,
       "value": "Thursday"
+    }
+  ],
+  "qB4s5L": [
+    {
+      "type": 0,
+      "value": "Add parameter"
+    }
+  ],
+  "qDwvZ4": [
+    {
+      "type": 0,
+      "value": "Unknown error"
     }
   ],
   "qQh4Xu": [
@@ -13609,6 +14151,12 @@
       "value": "After the platform is connected, create incident response plans and custom response plans so that the agent can respond to incidents."
     }
   ],
+  "swe9tO": [
+    {
+      "type": 0,
+      "value": "Run a test first to validate the query and ensure the agent can access Azure Data Explorer."
+    }
+  ],
   "sy7vzf": [
     {
       "type": 0,
@@ -13879,6 +14427,12 @@
       "value": "Disabled"
     }
   ],
+  "tu6JYo": [
+    {
+      "type": 0,
+      "value": "Start agent"
+    }
+  ],
   "tujypD": [
     {
       "type": 0,
@@ -14133,6 +14687,12 @@
       "value": "Create incident response plans or scheduled tasks to trigger agents automatically."
     }
   ],
+  "ueVpay": [
+    {
+      "type": 0,
+      "value": "Refining..."
+    }
+  ],
   "ug01Mk": [
     {
       "type": 0,
@@ -14223,6 +14783,12 @@
       "value": "Expand configuration panel"
     }
   ],
+  "v6cujo": [
+    {
+      "type": 0,
+      "value": "Kusto tool"
+    }
+  ],
   "v8cTK0": [
     {
       "type": 0,
@@ -14293,6 +14859,12 @@
     {
       "type": 0,
       "value": "You do not have permission to turn response plans off."
+    }
+  ],
+  "vS6Lmt": [
+    {
+      "type": 0,
+      "value": "Incident triggers"
     }
   ],
   "vSW3OF": [
@@ -14527,6 +15099,12 @@
       "value": "Submit"
     }
   ],
+  "wUnPMf": [
+    {
+      "type": 0,
+      "value": "Users without one of the required Azure role-based access control (RBAC) roles will not have access to Azure SRE Agent."
+    }
+  ],
   "wVpXzO": [
     {
       "type": 0,
@@ -14707,6 +15285,12 @@
       "value": "Insights"
     }
   ],
+  "xLrAFR": [
+    {
+      "type": 0,
+      "value": "Parameter name"
+    }
+  ],
   "xNC5hG": [
     {
       "type": 0,
@@ -14797,6 +15381,12 @@
     {
       "type": 0,
       "value": "Insufficient data points for chart"
+    }
+  ],
+  "xet2Cv": [
+    {
+      "type": 0,
+      "value": "Query parameters"
     }
   ],
   "xf9BKi": [
@@ -14919,6 +15509,16 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "yBnHns": [
+    {
+      "type": 0,
+      "value": "Sign in to "
+    },
+    {
+      "type": 1,
+      "value": "service"
     }
   ],
   "yDh8i7": [

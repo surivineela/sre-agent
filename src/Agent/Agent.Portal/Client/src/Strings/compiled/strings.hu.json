@@ -8,7 +8,7 @@
   "+CwN9C": [
     {
       "type": 0,
-      "value": "System"
+      "value": "Rendszer"
     }
   ],
   "+Ov1f1": [
@@ -50,13 +50,19 @@
   "+uAdUZ": [
     {
       "type": 0,
-      "value": "Resource group"
+      "value": "Erőforráscsoport"
     }
   ],
   "+zgzmq": [
     {
       "type": 0,
       "value": "Cosmos DB Accounts"
+    }
+  ],
+  "/6/sPX": [
+    {
+      "type": 0,
+      "value": "Docs"
     }
   ],
   "/6Fckw": [
@@ -109,6 +115,12 @@
       "value": " filter"
     }
   ],
+  "/zFP1/": [
+    {
+      "type": 0,
+      "value": "Start time"
+    }
+  ],
   "01lT1B": [
     {
       "type": 0,
@@ -135,10 +147,22 @@
       "value": "Manage SQL servers and their security policies."
     }
   ],
+  "0oLj/t": [
+    {
+      "type": 0,
+      "value": "Expand"
+    }
+  ],
   "0te2Ra": [
     {
       "type": 0,
       "value": "Manage Azure Data Factory instances."
+    }
+  ],
+  "1Lx9q5": [
+    {
+      "type": 0,
+      "value": "Loading operations..."
     }
   ],
   "1YPTmM": [
@@ -171,6 +195,12 @@
       "value": "Add"
     }
   ],
+  "2GuZPR": [
+    {
+      "type": 0,
+      "value": "Portal feedback"
+    }
+  ],
   "2LQx4N": [
     {
       "type": 0,
@@ -198,7 +228,7 @@
   "3cc4Ct": [
     {
       "type": 0,
-      "value": "Light"
+      "value": "Világos"
     }
   ],
   "3nhWFW": [
@@ -240,7 +270,7 @@
   "456ixe": [
     {
       "type": 0,
-      "value": "All regions"
+      "value": "Az összes régió"
     }
   ],
   "47FYwb": [
@@ -261,6 +291,12 @@
       "value": "API Management Service Reader Role"
     }
   ],
+  "4USxEK": [
+    {
+      "type": 0,
+      "value": "Remove resource group"
+    }
+  ],
   "4ii5zj": [
     {
       "type": 0,
@@ -271,6 +307,12 @@
     {
       "type": 0,
       "value": "List cluster admin credential action."
+    }
+  ],
+  "556JQK": [
+    {
+      "type": 0,
+      "value": "Deploy"
     }
   ],
   "5M+hLZ": [
@@ -412,7 +454,7 @@
             },
             {
               "type": 0,
-              "value": " day ago"
+              "value": " nappal ezelőtt"
             }
           ]
         },
@@ -423,7 +465,7 @@
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": " nappal ezelőtt"
             }
           ]
         }
@@ -448,7 +490,7 @@
   "8yyU6n": [
     {
       "type": 0,
-      "value": "All subscriptions"
+      "value": "Az összes előfizetés"
     }
   ],
   "9+Ddtu": [
@@ -461,6 +503,12 @@
     {
       "type": 0,
       "value": "Select all"
+    }
+  ],
+  "9M3sYh": [
+    {
+      "type": 0,
+      "value": "Deployment failed"
     }
   ],
   "ABo5XY": [
@@ -502,7 +550,7 @@
   "Avsnjl": [
     {
       "type": 0,
-      "value": "Themes"
+      "value": "Témák"
     }
   ],
   "B6aNdQ": [
@@ -562,7 +610,7 @@
   "Ch3IdZ": [
     {
       "type": 0,
-      "value": "View popular skills"
+      "value": "Népszerű készségek megtekintése"
     }
   ],
   "CrmeG3": [
@@ -574,7 +622,7 @@
   "D3idYv": [
     {
       "type": 0,
-      "value": "Settings"
+      "value": "Beállítások"
     }
   ],
   "DdD2hE": [
@@ -586,7 +634,7 @@
   "DdnNXo": [
     {
       "type": 0,
-      "value": "Privacy & cookies"
+      "value": "Adatvédelem és cookie-k"
     }
   ],
   "Dff3ms": [
@@ -622,7 +670,7 @@
   "Erci0g": [
     {
       "type": 0,
-      "value": "Azure SRE Agent"
+      "value": "Azure SRE-ügynök"
     }
   ],
   "FqRdvb": [
@@ -646,13 +694,13 @@
   "GBnvl1": [
     {
       "type": 0,
-      "value": "Agents"
+      "value": "Ügynökök"
     }
   ],
   "GDEEBE": [
     {
       "type": 0,
-      "value": "We were unable to load the URL "
+      "value": "Nem sikerült betölteni a(z) "
     },
     {
       "type": 1,
@@ -660,7 +708,7 @@
     },
     {
       "type": 0,
-      "value": ". We've detected that your organization has selected Zscaler to protect you from unknown domains. Please speak to your network administrator to remove the restriction on this domain in order to proceed with interacting with your agent."
+      "value": " URL-címet. Azt észleltük, hogy a szervezete a Zscalert választotta az ismeretlen tartományok elleni védelemhez. Kérje meg a hálózati rendszergazdát, hogy távolítsa el a tartományra vonatkozó korlátozást, hogy folytathassa az ügynökkel való kommunikációt."
     }
   ],
   "GWson9": [
@@ -684,7 +732,7 @@
   "H/i1A+": [
     {
       "type": 0,
-      "value": "Create your first Azure SRE Agent"
+      "value": "Az első Azure SRE Agent ügynök létrehozása"
     }
   ],
   "H3ooTI": [
@@ -696,7 +744,7 @@
   "HAlOn1": [
     {
       "type": 0,
-      "value": "Name"
+      "value": "Név"
     }
   ],
   "HCDcpW": [
@@ -714,13 +762,13 @@
   "He4/qi": [
     {
       "type": 0,
-      "value": "Azure SRE Agents"
+      "value": "Azure SRE Agent ügynökök"
     }
   ],
   "I6cq17": [
     {
       "type": 0,
-      "value": "Trademarks"
+      "value": "Védjegyek"
     }
   ],
   "IEFW3Y": [
@@ -741,12 +789,6 @@
       "value": "A resource group with this name already exists in the selected subscription."
     }
   ],
-  "J1ADxz": [
-    {
-      "type": 0,
-      "value": "Delete resource group"
-    }
-  ],
   "KAYpG9": [
     {
       "type": 0,
@@ -762,7 +804,7 @@
   "Kbdzt3": [
     {
       "type": 0,
-      "value": "This subscription is not currently whitelisted to use SRE Agent. Please contact your administrator or support team to request access."
+      "value": "Ez az előfizetés jelenleg nincs engedélyezve az SRE Agent használatára. Kérjen hozzáférést a rendszergazdától vagy a támogatási csoporttól."
     }
   ],
   "Kg6ebk": [
@@ -783,10 +825,10 @@
       "value": "Function Apps"
     }
   ],
-  "LPprqA": [
+  "LOghU6": [
     {
       "type": 0,
-      "value": "Review resource groups"
+      "value": "Succeeded"
     }
   ],
   "LSaaxU": [
@@ -818,7 +860,7 @@
             },
             {
               "type": 0,
-              "value": " hour ago"
+              "value": " órával ezelőtt"
             }
           ]
         },
@@ -829,7 +871,7 @@
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": " órával ezelőtt"
             }
           ]
         }
@@ -854,7 +896,7 @@
   "NAidKb": [
     {
       "type": 0,
-      "value": "Notifications"
+      "value": "Értesítések"
     }
   ],
   "NCTGGm": [
@@ -889,10 +931,22 @@
       "value": "Resource groups list"
     }
   ],
+  "Nrc9ba": [
+    {
+      "type": 0,
+      "value": "Thank you for your feedback!"
+    }
+  ],
   "OJ2u8k": [
     {
       "type": 0,
       "value": "Enter name"
+    }
+  ],
+  "ORGv1Q": [
+    {
+      "type": 0,
+      "value": "Created"
     }
   ],
   "OTGHHm": [
@@ -901,10 +955,10 @@
       "value": "The resources you picked have permissions for these roles."
     }
   ],
-  "OVAsQ8": [
+  "OjYIuI": [
     {
       "type": 0,
-      "value": "Roles and permissions"
+      "value": "Deployment name"
     }
   ],
   "Oom2N7": [
@@ -922,7 +976,7 @@
   "P/DTRU": [
     {
       "type": 0,
-      "value": "Dismiss completed"
+      "value": "Az elvetés befejeződött"
     }
   ],
   "P3qxV2": [
@@ -1008,7 +1062,7 @@
   "R/6nsx": [
     {
       "type": 0,
-      "value": "Subscription"
+      "value": "Előfizetés"
     }
   ],
   "R1RX2a": [
@@ -1020,7 +1074,7 @@
   "RDwKyy": [
     {
       "type": 0,
-      "value": "Directory"
+      "value": "Címtár"
     }
   ],
   "RStTJp": [
@@ -1041,6 +1095,12 @@
       "value": "Azure Kubernetes Service RBAC Reader"
     }
   ],
+  "S8snIe": [
+    {
+      "type": 0,
+      "value": "Updating"
+    }
+  ],
   "SCjiXP": [
     {
       "type": 0,
@@ -1050,7 +1110,7 @@
   "SQJto2": [
     {
       "type": 0,
-      "value": "Sign in"
+      "value": "Bejelentkezés"
     }
   ],
   "Sr4IbA": [
@@ -1086,7 +1146,7 @@
   "TDaF6J": [
     {
       "type": 0,
-      "value": "Dismiss"
+      "value": "Elvetés"
     }
   ],
   "TDoBlx": [
@@ -1098,7 +1158,7 @@
   "TleXgd": [
     {
       "type": 0,
-      "value": "Azure SRE Agents reduce site reliability costs by proactively identifying issues, automating tasks, and preventing downtime."
+      "value": "Az Azure SRE Agent ügynökök a problémák proaktív azonosításával, a feladatok automatizálásával és a leállások megelőzésével csökkentik a webhelyek megbízhatóságával kapcsolatos költségeket."
     }
   ],
   "TzxmIN": [
@@ -1116,7 +1176,7 @@
   "UQUIP7": [
     {
       "type": 0,
-      "value": "Request error"
+      "value": "Kérelemhiba"
     }
   ],
   "UVD6yh": [
@@ -1140,7 +1200,7 @@
   "UrGI9K": [
     {
       "type": 0,
-      "value": "Create agent"
+      "value": "Ügynök létrehozása"
     }
   ],
   "UuzObe": [
@@ -1177,10 +1237,16 @@
       "value": "Create"
     }
   ],
+  "W/V6+Y": [
+    {
+      "type": 0,
+      "value": "Collapse"
+    }
+  ],
   "W4H4Z9": [
     {
       "type": 0,
-      "value": "Notifications will appear here when actions are performed"
+      "value": "Itt jelennek meg az értesítések a műveletek végrehajtásakor"
     }
   ],
   "WE+M5j": [
@@ -1249,16 +1315,6 @@
     {
       "type": 0,
       "value": "SQL Managed Instances"
-    }
-  ],
-  "XG++pU": [
-    {
-      "type": 0,
-      "value": "Delete resource group "
-    },
-    {
-      "type": 1,
-      "value": "resourceGroupName"
     }
   ],
   "XJ+Lww": [
@@ -1380,7 +1436,7 @@
             },
             {
               "type": 0,
-              "value": " minute ago"
+              "value": " perccel ezelőtt"
             }
           ]
         },
@@ -1391,7 +1447,7 @@
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": " perccel ezelőtt"
             }
           ]
         }
@@ -1434,7 +1490,7 @@
   "bPyOFk": [
     {
       "type": 0,
-      "value": "Terms & conditions"
+      "value": "Feltételek és kikötések"
     }
   ],
   "bXkiU5": [
@@ -1446,7 +1502,7 @@
   "bxv59V": [
     {
       "type": 0,
-      "value": "Just now"
+      "value": "Épp most"
     }
   ],
   "c1EiBR": [
@@ -1497,6 +1553,12 @@
       "value": "Back"
     }
   ],
+  "czVHN2": [
+    {
+      "type": 0,
+      "value": "Resource operations"
+    }
+  ],
   "d2GmfJ": [
     {
       "type": 0,
@@ -1517,6 +1579,12 @@
     {
       "type": 0,
       "value": " options"
+    }
+  ],
+  "dHVUaP": [
+    {
+      "type": 0,
+      "value": "Positive"
     }
   ],
   "dKhdkO": [
@@ -1558,7 +1626,7 @@
   "eHNXXp": [
     {
       "type": 0,
-      "value": "Dismiss all"
+      "value": "Az összes bezárása"
     }
   ],
   "eKpamp": [
@@ -1604,7 +1672,7 @@
   "fpexn2": [
     {
       "type": 0,
-      "value": "No notifications"
+      "value": "Nincsenek értesítések"
     }
   ],
   "ftfFhS": [
@@ -1616,7 +1684,7 @@
   "g82HU6": [
     {
       "type": 0,
-      "value": "Operation cancelled"
+      "value": "Művelet megszakítva"
     }
   ],
   "gC4xMY": [
@@ -1635,6 +1703,12 @@
     {
       "type": 0,
       "value": "Read, logstream and exec into Container Apps."
+    }
+  ],
+  "gty4jJ": [
+    {
+      "type": 0,
+      "value": "Deployment in progress..."
     }
   ],
   "gzx/k1": [
@@ -1694,7 +1768,7 @@
   "i50Kb0": [
     {
       "type": 0,
-      "value": "Explore agent skills"
+      "value": "Ügynöki készségek felfedezése"
     }
   ],
   "i5OUQE": [
@@ -1748,7 +1822,7 @@
   "jEU2gk": [
     {
       "type": 0,
-      "value": "All resource groups"
+      "value": "Minden erőforráscsoport"
     }
   ],
   "jHJmjf": [
@@ -1775,10 +1849,16 @@
       "value": "Save"
     }
   ],
+  "kVQ1fo": [
+    {
+      "type": 0,
+      "value": "Negative"
+    }
+  ],
   "kbQZUj": [
     {
       "type": 0,
-      "value": "We were unable to load the URL "
+      "value": "Nem sikerült betölteni a(z) "
     },
     {
       "type": 1,
@@ -1786,7 +1866,7 @@
     },
     {
       "type": 0,
-      "value": ". This may be due to the existence of a firewall or network restrictions placed on the domain of your agent. Please speak to your network administrator to remove this restriction in order to proceed with interacting with your agent."
+      "value": " URL-címet. Ennek oka lehet, hogy tűzfal vagy hálózati korlátozások vannak érvényben az ügynök tartományán. Kérje meg a hálózati rendszergazdát, hogy távolítsa el a korlátozást, hogy folytathassa az ügynökkel való kommunikációt."
     }
   ],
   "kyVg+J": [
@@ -1836,7 +1916,7 @@
   "lnaWo/": [
     {
       "type": 0,
-      "value": "Region"
+      "value": "Régió"
     }
   ],
   "lvNWLS": [
@@ -1869,6 +1949,12 @@
       "value": "Lets you manage all resources in the cluster."
     }
   ],
+  "nDyaq/": [
+    {
+      "type": 0,
+      "value": "Running"
+    }
+  ],
   "nlPgO8": [
     {
       "type": 1,
@@ -1888,7 +1974,7 @@
   "oHGFwy": [
     {
       "type": 0,
-      "value": "Sign in with a different account"
+      "value": "Bejelentkezés másik fiókkal"
     }
   ],
   "oIiHqo": [
@@ -1919,12 +2005,6 @@
       "value": "No"
     }
   ],
-  "ob9EPi": [
-    {
-      "type": 0,
-      "value": "Permissions to assign roles"
-    }
-  ],
   "p/xAmY": [
     {
       "type": 0,
@@ -1935,6 +2015,12 @@
     {
       "type": 0,
       "value": "Manage without access. Can't manage security policies or parent SQL servers."
+    }
+  ],
+  "p849eW": [
+    {
+      "type": 0,
+      "value": "Correlation ID"
     }
   ],
   "pAFuFx": [
@@ -2020,7 +2106,7 @@
   "rbrahO": [
     {
       "type": 0,
-      "value": "Close"
+      "value": "Bezárás"
     }
   ],
   "rjgOC5": [
@@ -2050,7 +2136,7 @@
   "s7mQCK": [
     {
       "type": 0,
-      "value": "Reduce site reliability expenses with Azure SRE Agents"
+      "value": "Az Azure SRE Agent ügynökökkel csökkentheti a webhelyek megbízhatóságával kapcsolatos költségeket"
     }
   ],
   "sI+CCC": [
@@ -2082,7 +2168,7 @@
             },
             {
               "type": 0,
-              "value": " second ago"
+              "value": " másodperccel ezelőtt"
             }
           ]
         },
@@ -2093,7 +2179,7 @@
             },
             {
               "type": 0,
-              "value": " seconds ago"
+              "value": " másodperccel ezelőtt"
             }
           ]
         }
@@ -2124,7 +2210,13 @@
   "tOdNiY": [
     {
       "type": 0,
-      "value": "Dark"
+      "value": "Sötét"
+    }
+  ],
+  "tYoDsC": [
+    {
+      "type": 0,
+      "value": "Share your thoughts about the portal..."
     }
   ],
   "tffS9r": [
@@ -2169,6 +2261,18 @@
       "value": "You do not have permission to create resource groups under the currently selected subscription."
     }
   ],
+  "v90qT8": [
+    {
+      "type": 0,
+      "value": "Deployment succeeded"
+    }
+  ],
+  "vXCeIi": [
+    {
+      "type": 0,
+      "value": "Failed"
+    }
+  ],
   "vbdOl/": [
     {
       "type": 0,
@@ -2187,10 +2291,22 @@
       "value": "Learn more about Reader and Privileged permissions"
     }
   ],
+  "vxVGav": [
+    {
+      "type": 0,
+      "value": "No operations found"
+    }
+  ],
   "wCtBb6": [
     {
       "type": 0,
-      "value": "Try Azure for free"
+      "value": "Az Azure ingyenes kipróbálása"
+    }
+  ],
+  "wSZR47": [
+    {
+      "type": 0,
+      "value": "Submit"
     }
   ],
   "wbigtI": [
@@ -2232,7 +2348,7 @@
   "xXbJso": [
     {
       "type": 0,
-      "value": "Sign out"
+      "value": "Kijelentkezés"
     }
   ],
   "xXhn+h": [
@@ -2247,10 +2363,16 @@
       "value": "Can read all monitoring data."
     }
   ],
+  "xhfdqv": [
+    {
+      "type": 0,
+      "value": "Creating"
+    }
+  ],
   "xmcVZ0": [
     {
       "type": 0,
-      "value": "Search"
+      "value": "Keresés"
     }
   ],
   "xmsrBu": [
@@ -2274,7 +2396,7 @@
   "y1Z3or": [
     {
       "type": 0,
-      "value": "Language"
+      "value": "Nyelv"
     }
   ],
   "yV5oYe": [
@@ -2321,12 +2443,6 @@
     {
       "type": 0,
       "value": "Detected resource types"
-    }
-  ],
-  "zcyAwy": [
-    {
-      "type": 0,
-      "value": "Choose resource groups"
     }
   ],
   "zhHihn": [

@@ -50,13 +50,19 @@
   "+uAdUZ": [
     {
       "type": 0,
-      "value": "Resource group"
+      "value": "Gruppo di risorse"
     }
   ],
   "+zgzmq": [
     {
       "type": 0,
       "value": "Cosmos DB Accounts"
+    }
+  ],
+  "/6/sPX": [
+    {
+      "type": 0,
+      "value": "Docs"
     }
   ],
   "/6Fckw": [
@@ -109,6 +115,12 @@
       "value": " filter"
     }
   ],
+  "/zFP1/": [
+    {
+      "type": 0,
+      "value": "Start time"
+    }
+  ],
   "01lT1B": [
     {
       "type": 0,
@@ -135,10 +147,22 @@
       "value": "Manage SQL servers and their security policies."
     }
   ],
+  "0oLj/t": [
+    {
+      "type": 0,
+      "value": "Expand"
+    }
+  ],
   "0te2Ra": [
     {
       "type": 0,
       "value": "Manage Azure Data Factory instances."
+    }
+  ],
+  "1Lx9q5": [
+    {
+      "type": 0,
+      "value": "Loading operations..."
     }
   ],
   "1YPTmM": [
@@ -169,6 +193,12 @@
     {
       "type": 0,
       "value": "Add"
+    }
+  ],
+  "2GuZPR": [
+    {
+      "type": 0,
+      "value": "Portal feedback"
     }
   ],
   "2LQx4N": [
@@ -261,6 +291,12 @@
       "value": "API Management Service Reader Role"
     }
   ],
+  "4USxEK": [
+    {
+      "type": 0,
+      "value": "Remove resource group"
+    }
+  ],
   "4ii5zj": [
     {
       "type": 0,
@@ -271,6 +307,12 @@
     {
       "type": 0,
       "value": "List cluster admin credential action."
+    }
+  ],
+  "556JQK": [
+    {
+      "type": 0,
+      "value": "Deploy"
     }
   ],
   "5M+hLZ": [
@@ -412,7 +454,7 @@
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": " giorni fa"
             }
           ]
         },
@@ -423,7 +465,7 @@
             },
             {
               "type": 0,
-              "value": " day ago"
+              "value": " giorno fa"
             }
           ]
         },
@@ -434,7 +476,7 @@
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": " giorni fa"
             }
           ]
         }
@@ -459,7 +501,7 @@
   "8yyU6n": [
     {
       "type": 0,
-      "value": "All subscriptions"
+      "value": "Tutte le sottoscrizioni"
     }
   ],
   "9+Ddtu": [
@@ -472,6 +514,12 @@
     {
       "type": 0,
       "value": "Select all"
+    }
+  ],
+  "9M3sYh": [
+    {
+      "type": 0,
+      "value": "Deployment failed"
     }
   ],
   "ABo5XY": [
@@ -585,7 +633,7 @@
   "D3idYv": [
     {
       "type": 0,
-      "value": "Settings"
+      "value": "Impostazioni"
     }
   ],
   "DdD2hE": [
@@ -597,7 +645,7 @@
   "DdnNXo": [
     {
       "type": 0,
-      "value": "Privacy & cookies"
+      "value": "Privacy e cookie"
     }
   ],
   "Dff3ms": [
@@ -633,7 +681,7 @@
   "Erci0g": [
     {
       "type": 0,
-      "value": "Azure SRE Agent"
+      "value": "Agente SRE di Azure"
     }
   ],
   "FqRdvb": [
@@ -657,7 +705,7 @@
   "GBnvl1": [
     {
       "type": 0,
-      "value": "Agents"
+      "value": "Agenti"
     }
   ],
   "GDEEBE": [
@@ -707,7 +755,7 @@
   "HAlOn1": [
     {
       "type": 0,
-      "value": "Name"
+      "value": "Nome"
     }
   ],
   "HCDcpW": [
@@ -731,7 +779,7 @@
   "I6cq17": [
     {
       "type": 0,
-      "value": "Trademarks"
+      "value": "Marchi"
     }
   ],
   "IEFW3Y": [
@@ -750,12 +798,6 @@
     {
       "type": 0,
       "value": "A resource group with this name already exists in the selected subscription."
-    }
-  ],
-  "J1ADxz": [
-    {
-      "type": 0,
-      "value": "Delete resource group"
     }
   ],
   "KAYpG9": [
@@ -794,10 +836,10 @@
       "value": "Function Apps"
     }
   ],
-  "LPprqA": [
+  "LOghU6": [
     {
       "type": 0,
-      "value": "Review resource groups"
+      "value": "Succeeded"
     }
   ],
   "LSaaxU": [
@@ -829,7 +871,7 @@
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": " ore fa"
             }
           ]
         },
@@ -840,7 +882,7 @@
             },
             {
               "type": 0,
-              "value": " hour ago"
+              "value": " ora fa"
             }
           ]
         },
@@ -851,7 +893,7 @@
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": " ore fa"
             }
           ]
         }
@@ -911,10 +953,22 @@
       "value": "Resource groups list"
     }
   ],
+  "Nrc9ba": [
+    {
+      "type": 0,
+      "value": "Thank you for your feedback!"
+    }
+  ],
   "OJ2u8k": [
     {
       "type": 0,
       "value": "Enter name"
+    }
+  ],
+  "ORGv1Q": [
+    {
+      "type": 0,
+      "value": "Created"
     }
   ],
   "OTGHHm": [
@@ -923,10 +977,10 @@
       "value": "The resources you picked have permissions for these roles."
     }
   ],
-  "OVAsQ8": [
+  "OjYIuI": [
     {
       "type": 0,
-      "value": "Roles and permissions"
+      "value": "Deployment name"
     }
   ],
   "Oom2N7": [
@@ -1030,7 +1084,7 @@
   "R/6nsx": [
     {
       "type": 0,
-      "value": "Subscription"
+      "value": "Sottoscrizione"
     }
   ],
   "R1RX2a": [
@@ -1063,6 +1117,12 @@
       "value": "Azure Kubernetes Service RBAC Reader"
     }
   ],
+  "S8snIe": [
+    {
+      "type": 0,
+      "value": "Updating"
+    }
+  ],
   "SCjiXP": [
     {
       "type": 0,
@@ -1072,7 +1132,7 @@
   "SQJto2": [
     {
       "type": 0,
-      "value": "Sign in"
+      "value": "Accedi"
     }
   ],
   "Sr4IbA": [
@@ -1108,7 +1168,7 @@
   "TDaF6J": [
     {
       "type": 0,
-      "value": "Dismiss"
+      "value": "Ignora"
     }
   ],
   "TDoBlx": [
@@ -1138,7 +1198,7 @@
   "UQUIP7": [
     {
       "type": 0,
-      "value": "Request error"
+      "value": "Errore della richiesta"
     }
   ],
   "UVD6yh": [
@@ -1162,7 +1222,7 @@
   "UrGI9K": [
     {
       "type": 0,
-      "value": "Create agent"
+      "value": "Crea agente"
     }
   ],
   "UuzObe": [
@@ -1197,6 +1257,12 @@
     {
       "type": 0,
       "value": "Create"
+    }
+  ],
+  "W/V6+Y": [
+    {
+      "type": 0,
+      "value": "Collapse"
     }
   ],
   "W4H4Z9": [
@@ -1271,16 +1337,6 @@
     {
       "type": 0,
       "value": "SQL Managed Instances"
-    }
-  ],
-  "XG++pU": [
-    {
-      "type": 0,
-      "value": "Delete resource group "
-    },
-    {
-      "type": 1,
-      "value": "resourceGroupName"
     }
   ],
   "XJ+Lww": [
@@ -1402,7 +1458,7 @@
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": " minuti fa"
             }
           ]
         },
@@ -1413,7 +1469,7 @@
             },
             {
               "type": 0,
-              "value": " minute ago"
+              "value": " minuto fa"
             }
           ]
         },
@@ -1424,7 +1480,7 @@
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": " minuti fa"
             }
           ]
         }
@@ -1479,7 +1535,7 @@
   "bxv59V": [
     {
       "type": 0,
-      "value": "Just now"
+      "value": "In questo momento"
     }
   ],
   "c1EiBR": [
@@ -1530,6 +1586,12 @@
       "value": "Back"
     }
   ],
+  "czVHN2": [
+    {
+      "type": 0,
+      "value": "Resource operations"
+    }
+  ],
   "d2GmfJ": [
     {
       "type": 0,
@@ -1550,6 +1612,12 @@
     {
       "type": 0,
       "value": " options"
+    }
+  ],
+  "dHVUaP": [
+    {
+      "type": 0,
+      "value": "Positive"
     }
   ],
   "dKhdkO": [
@@ -1668,6 +1736,12 @@
     {
       "type": 0,
       "value": "Read, logstream and exec into Container Apps."
+    }
+  ],
+  "gty4jJ": [
+    {
+      "type": 0,
+      "value": "Deployment in progress..."
     }
   ],
   "gzx/k1": [
@@ -1808,6 +1882,12 @@
       "value": "Save"
     }
   ],
+  "kVQ1fo": [
+    {
+      "type": 0,
+      "value": "Negative"
+    }
+  ],
   "kbQZUj": [
     {
       "type": 0,
@@ -1869,7 +1949,7 @@
   "lnaWo/": [
     {
       "type": 0,
-      "value": "Region"
+      "value": "Area"
     }
   ],
   "lvNWLS": [
@@ -1902,6 +1982,12 @@
       "value": "Lets you manage all resources in the cluster."
     }
   ],
+  "nDyaq/": [
+    {
+      "type": 0,
+      "value": "Running"
+    }
+  ],
   "nlPgO8": [
     {
       "type": 1,
@@ -1921,7 +2007,7 @@
   "oHGFwy": [
     {
       "type": 0,
-      "value": "Sign in with a different account"
+      "value": "Accedi con un altro account"
     }
   ],
   "oIiHqo": [
@@ -1952,12 +2038,6 @@
       "value": "No"
     }
   ],
-  "ob9EPi": [
-    {
-      "type": 0,
-      "value": "Permissions to assign roles"
-    }
-  ],
   "p/xAmY": [
     {
       "type": 0,
@@ -1968,6 +2048,12 @@
     {
       "type": 0,
       "value": "Manage without access. Can't manage security policies or parent SQL servers."
+    }
+  ],
+  "p849eW": [
+    {
+      "type": 0,
+      "value": "Correlation ID"
     }
   ],
   "pAFuFx": [
@@ -2053,7 +2139,7 @@
   "rbrahO": [
     {
       "type": 0,
-      "value": "Close"
+      "value": "Chiudi"
     }
   ],
   "rjgOC5": [
@@ -2171,6 +2257,12 @@
       "value": "Dark"
     }
   ],
+  "tYoDsC": [
+    {
+      "type": 0,
+      "value": "Share your thoughts about the portal..."
+    }
+  ],
   "tffS9r": [
     {
       "type": 0,
@@ -2213,6 +2305,18 @@
       "value": "You do not have permission to create resource groups under the currently selected subscription."
     }
   ],
+  "v90qT8": [
+    {
+      "type": 0,
+      "value": "Deployment succeeded"
+    }
+  ],
+  "vXCeIi": [
+    {
+      "type": 0,
+      "value": "Failed"
+    }
+  ],
   "vbdOl/": [
     {
       "type": 0,
@@ -2231,10 +2335,22 @@
       "value": "Learn more about Reader and Privileged permissions"
     }
   ],
+  "vxVGav": [
+    {
+      "type": 0,
+      "value": "No operations found"
+    }
+  ],
   "wCtBb6": [
     {
       "type": 0,
-      "value": "Try Azure for free"
+      "value": "Prova Azure gratuitamente"
+    }
+  ],
+  "wSZR47": [
+    {
+      "type": 0,
+      "value": "Submit"
     }
   ],
   "wbigtI": [
@@ -2276,7 +2392,7 @@
   "xXbJso": [
     {
       "type": 0,
-      "value": "Sign out"
+      "value": "Disconnetti"
     }
   ],
   "xXhn+h": [
@@ -2291,10 +2407,16 @@
       "value": "Can read all monitoring data."
     }
   ],
+  "xhfdqv": [
+    {
+      "type": 0,
+      "value": "Creating"
+    }
+  ],
   "xmcVZ0": [
     {
       "type": 0,
-      "value": "Search"
+      "value": "Cerca"
     }
   ],
   "xmsrBu": [
@@ -2318,7 +2440,7 @@
   "y1Z3or": [
     {
       "type": 0,
-      "value": "Language"
+      "value": "Lingua"
     }
   ],
   "yV5oYe": [
@@ -2365,12 +2487,6 @@
     {
       "type": 0,
       "value": "Detected resource types"
-    }
-  ],
-  "zcyAwy": [
-    {
-      "type": 0,
-      "value": "Choose resource groups"
     }
   ],
   "zhHihn": [

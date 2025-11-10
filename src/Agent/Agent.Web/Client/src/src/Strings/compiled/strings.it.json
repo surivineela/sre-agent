@@ -75,10 +75,16 @@
       "value": "Filtra per livello di gravità"
     }
   ],
+  "+Kcoxv": [
+    {
+      "type": 0,
+      "value": "Related incidents"
+    }
+  ],
   "+KyrhG": [
     {
       "type": 0,
-      "value": "Choose a tool"
+      "value": "Scegliere uno strumento"
     }
   ],
   "+Pmftr": [
@@ -112,19 +118,19 @@
     },
     {
       "type": 0,
-      "value": " is read-only in the playground."
+      "value": " è di sola lettura nel playground."
     }
   ],
   "+U6ozc": [
     {
       "type": 0,
-      "value": "Service"
+      "value": "Tipo"
     }
   ],
   "+ZdOJt": [
     {
       "type": 0,
-      "value": "Turning off scheduled task(s)"
+      "value": "Disattivazione delle attività pianificate"
     }
   ],
   "+bJIWo": [
@@ -142,19 +148,19 @@
   "+h4pn9": [
     {
       "type": 0,
-      "value": "Create new subagent"
+      "value": "Crea nuovo agente secondario"
     }
   ],
   "+hJd45": [
     {
       "type": 0,
-      "value": "Edit data connector"
+      "value": "Modifica connettore dati"
     }
   ],
   "+hOwpi": [
     {
       "type": 0,
-      "value": "Select a tool to test"
+      "value": "Selezionare uno strumento da testare"
     }
   ],
   "+iCTRd": [
@@ -196,7 +202,7 @@
   "+pmvA0": [
     {
       "type": 0,
-      "value": "Enter a scheduled task name"
+      "value": "Immettere il nome di un'attività pianificata"
     }
   ],
   "+uAdUZ": [
@@ -235,6 +241,12 @@
       "value": "The maximum AAU limit is 200,000"
     }
   ],
+  "/7GPtw": [
+    {
+      "type": 0,
+      "value": "Go to Incidents"
+    }
+  ],
   "/8MshI": [
     {
       "type": 0,
@@ -244,7 +256,7 @@
   "/9FZdx": [
     {
       "type": 0,
-      "value": "this agent"
+      "value": "questo agente"
     }
   ],
   "/Br0/Z": [
@@ -266,7 +278,7 @@
   "/GCoTA": [
     {
       "type": 0,
-      "value": "Clear"
+      "value": "Cancella"
     }
   ],
   "/ImSqA": [
@@ -278,13 +290,13 @@
   "/N0Usl": [
     {
       "type": 0,
-      "value": "Thread title cannot be empty"
+      "value": "Il titolo del thread non può essere vuoto"
     }
   ],
   "/OUWsL": [
     {
       "type": 0,
-      "value": "Get AI recommendations to improve your agent"
+      "value": "Ottenere raccomandazioni IA per migliorare l'agente"
     }
   ],
   "/RdF9w": [
@@ -296,7 +308,7 @@
   "/TZk1G": [
     {
       "type": 0,
-      "value": "AAU allocation updated from "
+      "value": "L'allocazione AAU è stata aggiornata da "
     },
     {
       "type": 1,
@@ -304,7 +316,7 @@
     },
     {
       "type": 0,
-      "value": " to "
+      "value": " a "
     },
     {
       "type": 1,
@@ -312,7 +324,7 @@
     },
     {
       "type": 0,
-      "value": " successfully."
+      "value": "."
     }
   ],
   "/VnDMl": [
@@ -342,7 +354,7 @@
   "/XIuIr": [
     {
       "type": 0,
-      "value": "Every minute"
+      "value": "Ogni minuto"
     }
   ],
   "/Z1fHN": [
@@ -354,13 +366,13 @@
   "/bWE45": [
     {
       "type": 0,
-      "value": "Scoring agent quality… fresh quick fixes will land here shortly."
+      "value": "Valutazione della qualità dell'agente in corso... a breve arriveranno correzioni rapide nuove."
     }
   ],
   "/clOBU": [
     {
       "type": 0,
-      "value": "Weekly"
+      "value": "Settimanale"
     }
   ],
   "/dxZCE": [
@@ -379,6 +391,12 @@
     {
       "type": 0,
       "value": "Non è stato possibile creare il connettore"
+    }
+  ],
+  "/qCaiZ": [
+    {
+      "type": 0,
+      "value": "Incident trigger name"
     }
   ],
   "/rNkXe": [
@@ -473,6 +491,20 @@
       "value": "Microsoft IcM"
     }
   ],
+  "0DUgkZ": [
+    {
+      "type": 0,
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " stopped successfully"
+    }
+  ],
   "0Dhe75": [
     {
       "type": 0,
@@ -488,7 +520,7 @@
   "0ICwq5": [
     {
       "type": 0,
-      "value": "Last updated"
+      "value": "Ultimo aggiornamento"
     }
   ],
   "0KB3lG": [
@@ -500,13 +532,13 @@
   "0Krg21": [
     {
       "type": 0,
-      "value": "Quick fixes"
+      "value": "Correzioni rapide"
     }
   ],
   "0MhOuN": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete task "
+      "value": "Eliminare l'attività "
     },
     {
       "type": 1,
@@ -514,7 +546,13 @@
     },
     {
       "type": 0,
-      "value": "? This action cannot be undone."
+      "value": "? Questa azione non può essere annullata."
+    }
+  ],
+  "0Qocmw": [
+    {
+      "type": 0,
+      "value": "All tools"
     }
   ],
   "0R+Pet": [
@@ -553,6 +591,12 @@
       "value": " gruppi di risorse gestite"
     }
   ],
+  "0VVX+G": [
+    {
+      "type": 0,
+      "value": "Connected as"
+    }
+  ],
   "0VuGey": [
     {
       "type": 0,
@@ -562,17 +606,11 @@
   "0aJxT2": [
     {
       "type": 0,
-      "value": "Updated "
+      "value": "Aggiornato "
     },
     {
       "type": 1,
       "value": "time"
-    }
-  ],
-  "0aN6iW": [
-    {
-      "type": 0,
-      "value": "Per ottenere prestazioni ottimali dell'agente per diagnostica, metriche, informazioni e altro ancora durante l'anteprima, usare gruppi di risorse che includono uno o più di questi servizi di calcolo di Azure: servizio Azure Kubernetes, Funzioni, App contenitore o App Web."
     }
   ],
   "0cEOKu": [
@@ -584,7 +622,7 @@
   "0eZALE": [
     {
       "type": 0,
-      "value": "Last published "
+      "value": "Ultima pubblicazione : "
     },
     {
       "type": 1,
@@ -595,6 +633,12 @@
     {
       "type": 0,
       "value": "Seleziona attività"
+    }
+  ],
+  "0hpRE4": [
+    {
+      "type": 0,
+      "value": "Enter the parameter name"
     }
   ],
   "0i3Qrd": [
@@ -680,7 +724,7 @@
   "0pysPM": [
     {
       "type": 0,
-      "value": "Total insights"
+      "value": "Totale informazioni dettagliate"
     }
   ],
   "0q6E9l": [
@@ -692,7 +736,7 @@
   "0sA1BF": [
     {
       "type": 0,
-      "value": "Maximum file size: 100MB"
+      "value": "Dimensioni massime del file: 100 MB"
     }
   ],
   "0sIUhe": [
@@ -725,6 +769,12 @@
       "value": "Attività"
     }
   ],
+  "0zGfOk": [
+    {
+      "type": 0,
+      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+    }
+  ],
   "12GY0h": [
     {
       "type": 0,
@@ -752,7 +802,7 @@
   "17sQau": [
     {
       "type": 0,
-      "value": "Use AI to enhance and validate your task instructions"
+      "value": "Usare l'IA per migliorare e convalidare le istruzioni per le attività"
     }
   ],
   "18C/Jh": [
@@ -764,7 +814,7 @@
   "1CcjQj": [
     {
       "type": 0,
-      "value": "Add a response plan to automate incident handling"
+      "value": "Aggiungere un piano di risposta per automatizzare la gestione degli incidenti"
     }
   ],
   "1DDIYv": [
@@ -888,7 +938,7 @@
   "1eaczG": [
     {
       "type": 0,
-      "value": "Select fix"
+      "value": "Seleziona correzione"
     }
   ],
   "1fNFGt": [
@@ -918,7 +968,7 @@
   "1jBkyH": [
     {
       "type": 0,
-      "value": "Last confidence: "
+      "value": "Ultima attendibilità: "
     },
     {
       "type": 1,
@@ -940,7 +990,7 @@
             },
             {
               "type": 0,
-              "value": " tools selected"
+              "value": " strumenti selezionati"
             }
           ]
         },
@@ -951,7 +1001,7 @@
             },
             {
               "type": 0,
-              "value": " tool selected"
+              "value": " strumento selezionato"
             }
           ]
         },
@@ -962,7 +1012,7 @@
             },
             {
               "type": 0,
-              "value": " tools selected"
+              "value": " strumenti selezionati"
             }
           ]
         }
@@ -1005,7 +1055,7 @@
   "21vNrm": [
     {
       "type": 0,
-      "value": "Validate tool wiring and connector responses in context."
+      "value": "Convalidare il cablaggio degli strumenti e le risposte del connettore nel contesto."
     }
   ],
   "235+J4": [
@@ -1023,7 +1073,7 @@
   "26Vq1R": [
     {
       "type": 0,
-      "value": "Leave the field blank if there's no limit"
+      "value": "Lasciare vuoto il campo se non è previsto alcun limite"
     }
   ],
   "28HRcH": [
@@ -1123,7 +1173,7 @@
   "2YgmBr": [
     {
       "type": 0,
-      "value": "Scheduled task turned off successfully"
+      "value": "L'attività pianificata è stata disattivata"
     }
   ],
   "2a+ttj": [
@@ -1135,13 +1185,13 @@
   "2ePVf6": [
     {
       "type": 0,
-      "value": "Test your agent in a simple chat interface"
+      "value": "Testare l'agente in una semplice interfaccia di chat"
     }
   ],
   "2ep4et": [
     {
       "type": 0,
-      "value": "Monthly on day "
+      "value": "Ogni mese il "
     },
     {
       "type": 1,
@@ -1149,7 +1199,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " alle "
     },
     {
       "type": 1,
@@ -1168,10 +1218,16 @@
       "value": "Strumenti di sistema"
     }
   ],
+  "2l5w5P": [
+    {
+      "type": 0,
+      "value": "Go to Support + Troubleshooting"
+    }
+  ],
   "2m6oj5": [
     {
       "type": 0,
-      "value": "Get started with the curated scenarios below or craft your own prompts."
+      "value": "Iniziare a usare gli scenari curati di seguito o creare richieste personali."
     }
   ],
   "2mMJRv": [
@@ -1192,6 +1248,12 @@
       "value": "Critico"
     }
   ],
+  "2reUcp": [
+    {
+      "type": 0,
+      "value": "Subagent name"
+    }
+  ],
   "2tOWr2": [
     {
       "type": 0,
@@ -1201,7 +1263,7 @@
   "2xE9ci": [
     {
       "type": 0,
-      "value": "Analyse the current prompt, tools, and test runs to get tailored guidance."
+      "value": "Analizzare la richiesta, gli strumenti e le esecuzioni di test correnti per ottenere indicazioni personalizzate."
     }
   ],
   "2zi2Yj": [
@@ -1345,7 +1407,7 @@
   "3n8o15": [
     {
       "type": 0,
-      "value": "Apply changes"
+      "value": "Applica modifiche"
     }
   ],
   "3nhWFW": [
@@ -1367,7 +1429,7 @@
   "3sQV42": [
     {
       "type": 0,
-      "value": "Estimated total "
+      "value": "Attendibilità totale stimata del "
     },
     {
       "type": 1,
@@ -1375,7 +1437,7 @@
     },
     {
       "type": 0,
-      "value": "% confidence"
+      "value": "%"
     }
   ],
   "3sjbqq": [
@@ -1453,7 +1515,7 @@
   "42RAxK": [
     {
       "type": 0,
-      "value": "Start testing"
+      "value": "Avvia test"
     }
   ],
   "44QmgP": [
@@ -1557,7 +1619,7 @@
   "4Orfd8": [
     {
       "type": 0,
-      "value": "Rename thread"
+      "value": "Rinomina thread"
     }
   ],
   "4QLM52": [
@@ -1569,7 +1631,13 @@
   "4Qhg3L": [
     {
       "type": 0,
-      "value": "Keep the description brief and explain the task’s actions. Include necessary resource identifiers, specify time-sensitive information, and define success/failure signals or required output formats."
+      "value": "Mantenere breve la descrizione e spiegare le azioni dell'attività. Includere gli identificatori di risorsa necessari, specificare informazioni sensibili al tempo e definire segnali di esito positivo/negativo o formati di output necessari."
+    }
+  ],
+  "4RwjwU": [
+    {
+      "type": 0,
+      "value": "Add handoff from existing agent"
     }
   ],
   "4TnjxL": [
@@ -1582,6 +1650,16 @@
     {
       "type": 0,
       "value": "Agenti IA"
+    }
+  ],
+  "4Xep39": [
+    {
+      "type": 0,
+      "value": "Failed to stop SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "4ZoIgV": [
@@ -1635,19 +1713,13 @@
   "4oK1Me": [
     {
       "type": 0,
-      "value": "Switch to form"
+      "value": "Passa al modulo"
     }
   ],
   "4pJVaS": [
     {
       "type": 0,
       "value": "Seleziona riga"
-    }
-  ],
-  "4uiKBK": [
-    {
-      "type": 0,
-      "value": "Selezionare un connettore Kusto"
     }
   ],
   "4upwsn": [
@@ -1681,7 +1753,7 @@
     },
     {
       "type": 0,
-      "value": ", I need diagnostics for intermittent latency spikes across AKS clusters eastus & westeurope."
+      "value": ", ho bisogno di diagnostica per i picchi di latenza intermittenti nei cluster del servizio Azure Kubernetes eastus e westeurope."
     }
   ],
   "53O1/Z": [
@@ -1693,7 +1765,7 @@
   "53qjcm": [
     {
       "type": 0,
-      "value": "Updating scheduled task"
+      "value": "Aggiornamento dell'attività pianificata"
     }
   ],
   "543Ygw": [
@@ -1749,13 +1821,13 @@
   "5Lc8g/": [
     {
       "type": 0,
-      "value": "Preview updated"
+      "value": "Anteprima aggiornata"
     }
   ],
   "5M+Mu/": [
     {
       "type": 0,
-      "value": "Close quality watcher"
+      "value": "Chiudi controllo qualità"
     }
   ],
   "5MSxYS": [
@@ -1793,7 +1865,7 @@
   "5SH2BD": [
     {
       "type": 0,
-      "value": "Weekly on "
+      "value": "Ogni settimana il "
     },
     {
       "type": 1,
@@ -1801,7 +1873,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " alle "
     },
     {
       "type": 1,
@@ -1823,7 +1895,7 @@
   "5U04OG": [
     {
       "type": 0,
-      "value": "Data knowledge space"
+      "value": "Spazio di conoscenze sui dati"
     }
   ],
   "5UfRjw": [
@@ -1875,13 +1947,19 @@
   "5Y6lHe": [
     {
       "type": 0,
-      "value": "You can increase or decrease active flow AAUs as needed. If the agent reaches the active flow limit, it continues running only in the always-on flow but is unavailable for chat and actions."
+      "value": "È possibile aumentare o ridurre le AAU di flusso attive in base alle esigenze. Se l'agente raggiunge il limite di flusso attivo, continua l'esecuzione solo nel flusso always-on, ma non è disponibile per chat e azioni."
     }
   ],
   "5cRddy": [
     {
       "type": 0,
       "value": "Mitigato dall'utente"
+    }
+  ],
+  "5fVEet": [
+    {
+      "type": 0,
+      "value": "Add tools"
     }
   ],
   "5gEh2M": [
@@ -1965,7 +2043,7 @@
   "5ukccA": [
     {
       "type": 0,
-      "value": "Run an analysis to see tailored fixes."
+      "value": "Eseguire un'analisi per visualizzare correzioni personalizzate."
     }
   ],
   "5w4pim": [
@@ -2003,7 +2081,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " al "
     },
     {
       "type": 1,
@@ -2011,7 +2089,7 @@
     },
     {
       "type": 0,
-      "value": "%. Start experimenting—your upgrade path awaits."
+      "value": "%. Inizia a sperimentare: il percorso di aggiornamento ti aspetta."
     }
   ],
   "5y2qWO": [
@@ -2072,10 +2150,16 @@
       "value": " XP"
     }
   ],
+  "6BTCPo": [
+    {
+      "type": 0,
+      "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
+    }
+  ],
   "6CxEZS": [
     {
       "type": 0,
-      "value": "Edit & test live agent"
+      "value": "Modifica e testa agente live"
     }
   ],
   "6ENgmY": [
@@ -2105,7 +2189,7 @@
   "6Lox/s": [
     {
       "type": 0,
-      "value": "recommendations"
+      "value": "raccomandazioni"
     }
   ],
   "6OBtew": [
@@ -2159,7 +2243,7 @@
   "6Y8rFa": [
     {
       "type": 0,
-      "value": "No change since last run"
+      "value": "Nessuna modifica dall'ultima esecuzione"
     }
   ],
   "6YHhH+": [
@@ -2183,7 +2267,7 @@
   "6aH1+U": [
     {
       "type": 0,
-      "value": "Create a scheduled task"
+      "value": "Creare un'attività pianificata"
     }
   ],
   "6bkNTl": [
@@ -2222,6 +2306,24 @@
       "value": "È possibile scegliere un massimo di 20 gruppi di risorse che verranno gestiti dall'agente."
     }
   ],
+  "6tzuXg": [
+    {
+      "type": 0,
+      "value": "Failed to start SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "6u8zJX": [
     {
       "type": 0,
@@ -2247,13 +2349,13 @@
   "6w0QQX": [
     {
       "type": 0,
-      "value": "Apply your edits and refresh insights"
+      "value": "Applicare le modifiche e aggiornare le informazioni dettagliate"
     }
   ],
   "6yuD0y": [
     {
       "type": 0,
-      "value": "Read-only lock"
+      "value": "Blocco di sola lettura"
     }
   ],
   "6zUWZ/": [
@@ -2265,7 +2367,7 @@
   "7+Domh": [
     {
       "type": 0,
-      "value": "Notes"
+      "value": "Note"
     }
   ],
   "7+b0J0": [
@@ -2277,7 +2379,7 @@
   "726zma": [
     {
       "type": 0,
-      "value": "Daily at "
+      "value": "Ogni giorno alle "
     },
     {
       "type": 1,
@@ -2287,7 +2389,7 @@
   "73c47a": [
     {
       "type": 0,
-      "value": "Turn on scheduled task"
+      "value": "Attiva attività pianificata"
     }
   ],
   "74vgSJ": [
@@ -2308,6 +2410,12 @@
       "value": "I dati del thread ricevuti dal messaggio di streaming non sono validi"
     }
   ],
+  "79kwlH": [
+    {
+      "type": 0,
+      "value": "No agents available for handoff"
+    }
+  ],
   "7C0xai": [
     {
       "type": 0,
@@ -2324,12 +2432,6 @@
     {
       "type": 0,
       "value": "Modalità di revisione"
-    }
-  ],
-  "7Hg58U": [
-    {
-      "type": 0,
-      "value": "ad es., QueryKusto"
     }
   ],
   "7M8VZy": [
@@ -2425,7 +2527,7 @@
   "7bDMaW": [
     {
       "type": 0,
-      "value": "Delete file?"
+      "value": "Eliminare il file?"
     }
   ],
   "7cS956": [
@@ -2517,7 +2619,7 @@
   "7sbcy0": [
     {
       "type": 0,
-      "value": "Confidence is calculated based on your agent prompt, available tools, and chat interactions. Click refresh to get AI-powered recommendations."
+      "value": "L'attendibilità viene calcolata in base alla richiesta dell'agente, agli strumenti disponibili e alle interazioni tramite chat. Fare clic su Aggiorna per ottenere consigli basati sull'intelligenza artificiale."
     }
   ],
   "7smbCB": [
@@ -2589,7 +2691,7 @@
   "8AMq3a": [
     {
       "type": 0,
-      "value": "Daily active flow consumption"
+      "value": "Consumo giornaliero di flussi attivi"
     }
   ],
   "8BaLs0": [
@@ -2633,7 +2735,7 @@
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": " giorni fa"
             }
           ]
         },
@@ -2644,7 +2746,7 @@
             },
             {
               "type": 0,
-              "value": " day ago"
+              "value": " giorno fa"
             }
           ]
         },
@@ -2655,7 +2757,7 @@
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": " giorni fa"
             }
           ]
         }
@@ -2689,16 +2791,32 @@
       "value": "Seleziona identità"
     }
   ],
+  "8SCDv/": [
+    {
+      "type": 0,
+      "value": "Enter the query for the tool to run"
+    }
+  ],
   "8Vd2Kv": [
     {
       "type": 0,
-      "value": "Update list"
+      "value": "Aggiorna elenco"
     }
   ],
   "8Wiwkg": [
     {
       "type": 0,
       "value": "Creazione di un grafico delle conoscenze"
+    }
+  ],
+  "8Zl3PA": [
+    {
+      "type": 0,
+      "value": "Failed to start SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "8aHHLj": [
@@ -2716,13 +2834,13 @@
   "8dTxSy": [
     {
       "type": 0,
-      "value": "Learn more about how to calculate cost"
+      "value": "Altre informazioni su come calcolare i costi"
     }
   ],
   "8eOoHt": [
     {
       "type": 0,
-      "value": "This will permanently "
+      "value": "Verrà/verranno "
     },
     {
       "type": 1,
@@ -2730,7 +2848,7 @@
     },
     {
       "type": 0,
-      "value": " "
+      "value": " definitivamente "
     },
     {
       "type": 1,
@@ -2746,7 +2864,7 @@
     },
     {
       "type": 0,
-      "value": "s. Are you sure you want to "
+      "value": "/i. "
     },
     {
       "type": 1,
@@ -2754,7 +2872,7 @@
     },
     {
       "type": 0,
-      "value": " these "
+      "value": " questo "
     },
     {
       "type": 1,
@@ -2762,13 +2880,19 @@
     },
     {
       "type": 0,
-      "value": "s?"
+      "value": "/i?"
     }
   ],
   "8fYK1J": [
     {
       "type": 0,
       "value": "Ora di esecuzione"
+    }
+  ],
+  "8fw5Cz": [
+    {
+      "type": 0,
+      "value": "Try different search terms or clear your search to see all connectors."
     }
   ],
   "8lCjAM": [
@@ -2820,7 +2944,7 @@
   "8wQLC0": [
     {
       "type": 0,
-      "value": "Close Todo Plans"
+      "value": "Chiudi piani Todo"
     }
   ],
   "8yyU6n": [
@@ -2838,7 +2962,7 @@
   "9+dRta": [
     {
       "type": 0,
-      "value": "This will permanently delete "
+      "value": "Verranno eliminati definitivamente "
     },
     {
       "type": 1,
@@ -2846,7 +2970,7 @@
     },
     {
       "type": 0,
-      "value": " files from the knowledge sources the agent uses. Are you sure you want to delete these files?"
+      "value": " file dalle fonti delle informazioni usate dall'agente. Eliminare questi file?"
     }
   ],
   "9/ucRx": [
@@ -2928,7 +3052,7 @@
   "9G+4ga": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all data connectors."
+      "value": "Provare termini di ricerca diversi o cancellare la ricerca per visualizzare tutti i connettori dati."
     }
   ],
   "9GSKOR": [
@@ -2952,7 +3076,7 @@
   "9SQWi9": [
     {
       "type": 0,
-      "value": "Configuration target"
+      "value": "Destinazione di configurazione"
     }
   ],
   "9VUlhV": [
@@ -2970,13 +3094,13 @@
   "9X3VEw": [
     {
       "type": 0,
-      "value": "The task will stop running after reaching this number"
+      "value": "L'esecuzione dell'attività verrà interrotta dopo aver raggiunto questo numero"
     }
   ],
   "9XASFm": [
     {
       "type": 0,
-      "value": "Selected files table"
+      "value": "Tabella dei file selezionati"
     }
   ],
   "9ZIBMx": [
@@ -2991,20 +3115,10 @@
       "value": "Titolo"
     }
   ],
-  "9bH3e2": [
-    {
-      "type": 0,
-      "value": "Nodi: "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    }
-  ],
   "9jaWOF": [
     {
       "type": 0,
-      "value": "MCP tools · "
+      "value": "Strumenti MCP · "
     },
     {
       "type": 1,
@@ -3014,7 +3128,7 @@
   "9q75fe": [
     {
       "type": 0,
-      "value": "No handoff agents available"
+      "value": "Nessun agente di handoff disponibile"
     }
   ],
   "9sDoY5": [
@@ -3024,7 +3138,7 @@
     },
     {
       "type": 0,
-      "value": " of "
+      "value": " di "
     },
     {
       "type": 1,
@@ -3032,7 +3146,7 @@
     },
     {
       "type": 0,
-      "value": " completed"
+      "value": " completati"
     }
   ],
   "9uOFF3": [
@@ -3044,7 +3158,7 @@
   "9xBQKf": [
     {
       "type": 0,
-      "value": "YAML editing is coming soon for this entity."
+      "value": "La modifica YAML sarà presto disponibile per questa entità."
     }
   ],
   "A/xTHO": [
@@ -3080,7 +3194,7 @@
   "A4ZrJb": [
     {
       "type": 0,
-      "value": "Playground actions are coming soon."
+      "value": "Le azioni del playground saranno presto disponibili."
     }
   ],
   "AA/tRJ": [
@@ -3120,19 +3234,19 @@
   "AHQdRU": [
     {
       "type": 0,
-      "value": "Monthly AAU limit:"
+      "value": "Limite AAU mensile:"
     }
   ],
   "ALkPTF": [
     {
       "type": 0,
-      "value": "No data connectors configured"
+      "value": "Nessun connettore dati configurato"
     }
   ],
   "ASLbZd": [
     {
       "type": 0,
-      "value": "Export analysis"
+      "value": "Esportare l'analisi"
     }
   ],
   "ATXGa+": [
@@ -3150,7 +3264,7 @@
   "AYrXUB": [
     {
       "type": 0,
-      "value": "No pending configuration changes to apply"
+      "value": "Nessuna modifica di configurazione in sospeso da applicare"
     }
   ],
   "AaJ/LU": [
@@ -3168,7 +3282,7 @@
   "AbleKr": [
     {
       "type": 0,
-      "value": "data connector"
+      "value": "connettore dati"
     }
   ],
   "AbpmRv": [
@@ -3180,7 +3294,7 @@
   "Ad7J7h": [
     {
       "type": 0,
-      "value": "Failed to delete task: "
+      "value": "Non è stato possibile eliminare l'attività: "
     },
     {
       "type": 1,
@@ -3200,7 +3314,7 @@
   "AdnFH8": [
     {
       "type": 0,
-      "value": "The current consumption exceeds the new allocation, which will take effect next month. Until then, the agent will run only in the always-on flow. Chat and actions will be unavailable."
+      "value": "Il consumo attuale supera la nuova allocazione, che entrerà in vigore il mese prossimo. Fino ad allora, l'agente verrà eseguito solo nel flusso always-on. La chat e le azioni non saranno disponibili."
     }
   ],
   "AeWmvh": [
@@ -3280,7 +3394,7 @@
   "B7EJpi": [
     {
       "type": 0,
-      "value": "Agent Quality"
+      "value": "Qualità dell'agente"
     }
   ],
   "BEck3n": [
@@ -3304,13 +3418,13 @@
   "BLU3k6": [
     {
       "type": 0,
-      "value": "Edit a scheduled task"
+      "value": "Modificare un'attività pianificata"
     }
   ],
   "BNH9Uy": [
     {
       "type": 0,
-      "value": "Quality "
+      "value": "Qualità "
     },
     {
       "type": 1,
@@ -3375,10 +3489,16 @@
       "value": "Binding"
     }
   ],
+  "BakoFg": [
+    {
+      "type": 0,
+      "value": "Select tool"
+    }
+  ],
   "BbTpTJ": [
     {
       "type": 0,
-      "value": "Using latest YAML changes"
+      "value": "Uso delle modifiche YAML più recenti"
     }
   ],
   "BcEbxp": [
@@ -3420,17 +3540,11 @@
   "BhRlDa": [
     {
       "type": 0,
-      "value": "Deleting incidents "
+      "value": "Eliminazione degli incidenti "
     },
     {
       "type": 1,
       "value": "titles"
-    }
-  ],
-  "BkOSF2": [
-    {
-      "type": 0,
-      "value": "Parametri"
     }
   ],
   "Bluuk+": [
@@ -3442,7 +3556,7 @@
   "BmEERa": [
     {
       "type": 0,
-      "value": "Deleting "
+      "value": "Eliminazione di "
     },
     {
       "type": 1,
@@ -3450,25 +3564,19 @@
     },
     {
       "type": 0,
-      "value": " data connectors..."
+      "value": " connettori dati..."
     }
   ],
   "BuziI2": [
     {
       "type": 0,
-      "value": "Collapse panel"
+      "value": "Comprimi pannello"
     }
   ],
   "BynA9c": [
     {
       "type": 0,
       "value": "Modifiche facoltative"
-    }
-  ],
-  "C2PrxB": [
-    {
-      "type": 0,
-      "value": "Fare clic qui per assegnare a se stessi il ruolo di amministratore dell'agente SRE."
     }
   ],
   "C2iTEH": [
@@ -3483,6 +3591,12 @@
       "value": "Collaboratore per app per la logica"
     }
   ],
+  "C6Jt4c": [
+    {
+      "type": 0,
+      "value": "Scheduled task name"
+    }
+  ],
   "CBHDb1": [
     {
       "type": 0,
@@ -3492,7 +3606,7 @@
   "CEdEmD": [
     {
       "type": 0,
-      "value": "Creates a draft agent and tool workspace for testing without touching production. Coming soon..."
+      "value": "Crea un agente bozza e un'area di lavoro degli strumenti per il test senza toccare la produzione. Disponibile a breve..."
     }
   ],
   "CFJ1OD": [
@@ -3504,19 +3618,19 @@
   "CGn7Yd": [
     {
       "type": 0,
-      "value": "Link a tool or create a new one to configure it here."
+      "value": "Collegare uno strumento o crearne uno nuovo per configurarlo qui."
     }
   ],
   "CHt7dX": [
     {
       "type": 0,
-      "value": "MCP Tools (Optional)"
+      "value": "Strumenti MCP (facoltativo)"
     }
   ],
   "CJ6tzL": [
     {
       "type": 0,
-      "value": "File Source"
+      "value": "Origine file"
     }
   ],
   "CJEYfo": [
@@ -3540,7 +3654,7 @@
   "CMbKXm": [
     {
       "type": 0,
-      "value": "Playground highlights"
+      "value": "Highlights del playground"
     }
   ],
   "CNd+KS": [
@@ -3588,13 +3702,13 @@
   "CbntSG": [
     {
       "type": 0,
-      "value": "Database query connector"
+      "value": "Connettore di query di database"
     }
   ],
   "CeDXMM": [
     {
       "type": 0,
-      "value": "Here are the memory search results:"
+      "value": "Ecco i risultati della ricerca in memoria:"
     }
   ],
   "CfGC/2": [
@@ -3603,20 +3717,20 @@
       "value": "Selezionare i gruppi di risorse da monitorare"
     }
   ],
-  "ChQQJ0": [
+  "Cfvmd0": [
     {
       "type": 0,
-      "value": "Selected "
-    },
+      "value": "The agent has used 90% of the active flow AAUs. If the limit is reached, the agent will run only in always-on flow and be unavailable for chat and actions."
+    }
+  ],
+  "ChQQJ0": [
     {
       "type": 1,
       "value": "itemType"
-    }
-  ],
-  "CimbUb": [
+    },
     {
       "type": 0,
-      "value": "Assicurarsi di avere accesso come collaboratore o proprietario al gruppo di risorse in cui è ospitato l'agente. Se i problemi di accesso persistono, assegnare il ruolo direttamente all'account anziché basarsi su assegnazioni di ruolo basate su gruppo."
+      "value": " selezionato"
     }
   ],
   "Ck8Kax": [
@@ -3634,13 +3748,13 @@
   "CppiJ4": [
     {
       "type": 0,
-      "value": "Applying your changes"
+      "value": "Applicazione delle modifiche"
     }
   ],
   "Cv2vtV": [
     {
       "type": 0,
-      "value": "moments ago"
+      "value": "istanti fa"
     }
   ],
   "CvGdox": [
@@ -3671,6 +3785,12 @@
     {
       "type": 0,
       "value": "Impostazioni"
+    }
+  ],
+  "D3rb1K": [
+    {
+      "type": 0,
+      "value": "Azure DevOps"
     }
   ],
   "D473QI": [
@@ -3704,7 +3824,7 @@
   "D7U9Zo": [
     {
       "type": 0,
-      "value": "Custom instructions"
+      "value": "Istruzioni personalizzate"
     }
   ],
   "D97db3": [
@@ -3748,7 +3868,7 @@
   "DF0TNm": [
     {
       "type": 0,
-      "value": "Code optimization insights"
+      "value": "Informazioni dettagliate sull'ottimizzazione del codice"
     }
   ],
   "DFQKku": [
@@ -3757,10 +3877,22 @@
       "value": "Ops Pro"
     }
   ],
+  "DFfvL6": [
+    {
+      "type": 0,
+      "value": "Temporarily stop the agent from all activities."
+    }
+  ],
+  "DIZgr3": [
+    {
+      "type": 0,
+      "value": "Boolean"
+    }
+  ],
   "DJN+DZ": [
     {
       "type": 0,
-      "value": "Choose whether to run deep investigations alongside regular investigations"
+      "value": "Scegliere se eseguire indagini approfondite insieme a indagini regolari"
     }
   ],
   "DMEE1o": [
@@ -3800,7 +3932,7 @@
     },
     {
       "type": 0,
-      "value": ", audit today’s incidents and draft a leadership update with priority blockers."
+      "value": ", controlla gli incidenti di oggi e creare una bozza di un aggiornamento per la dirigenza con i fattori di blocco prioritari."
     }
   ],
   "DX7w9O": [
@@ -3812,7 +3944,7 @@
   "Da55kZ": [
     {
       "type": 0,
-      "value": "Select MCP tools from connected servers"
+      "value": "Selezionare gli strumenti MCP dai server connessi"
     }
   ],
   "DasCIQ": [
@@ -3830,7 +3962,7 @@
   "Df+1hk": [
     {
       "type": 0,
-      "value": "Analysing configuration…"
+      "value": "Analisi della configurazione in corso..."
     }
   ],
   "Dff3ms": [
@@ -3893,6 +4025,12 @@
       "value": "Risultati della ricerca in memoria"
     }
   ],
+  "Dvly6A": [
+    {
+      "type": 0,
+      "value": "Failed to create tool"
+    }
+  ],
   "Dw2xIY": [
     {
       "type": 0,
@@ -3929,6 +4067,12 @@
       "value": "Alcuni dei gruppi di risorse selezionati non dispongono delle autorizzazioni roleAssignments/write e Microsoft.ManagedIdentity/userAssignedIdentities/write necessarie."
     }
   ],
+  "E9CWuE": [
+    {
+      "type": 0,
+      "value": "Example: where SubscriptionId == \"##SubscriptionId##\""
+    }
+  ],
   "EAO/K+": [
     {
       "type": 0,
@@ -3950,27 +4094,13 @@
   "EEb00g": [
     {
       "type": 0,
-      "value": "Run insights to track confidence and recommended fixes."
+      "value": "Esegui informazioni dettagliate per tenere traccia dell'attendibilità e delle correzioni consigliate."
     }
   ],
-  "EHyU+4": [
+  "EHy/sj": [
     {
       "type": 0,
-      "value": "Usare "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "##ParamName##"
-        }
-      ],
-      "type": 8,
-      "value": "code"
-    },
-    {
-      "type": 0,
-      "value": " nella query per definire i segnaposto dei parametri."
+      "value": "Enter a number"
     }
   ],
   "EI/cfO": [
@@ -4014,7 +4144,13 @@
   "EOt0+9": [
     {
       "type": 0,
-      "value": "Full workflow with quality evaluation"
+      "value": "Flusso di lavoro completo con valutazione della qualità"
+    }
+  ],
+  "EQa6dK": [
+    {
+      "type": 0,
+      "value": "Built-in Tool"
     }
   ],
   "ESChST": [
@@ -4044,7 +4180,7 @@
   "EbNaDn": [
     {
       "type": 0,
-      "value": "Knowledge Base"
+      "value": "Knowledge base"
     }
   ],
   "Ebd6gR": [
@@ -4111,6 +4247,12 @@
       "value": "Agente SRE di Azure"
     }
   ],
+  "Eu772h": [
+    {
+      "type": 0,
+      "value": "Built-in Tools"
+    }
+  ],
   "Euy+fB": [
     {
       "type": 0,
@@ -4126,7 +4268,7 @@
   "F4a/f4": [
     {
       "type": 0,
-      "value": "User Permissions"
+      "value": "Autorizzazioni utente"
     }
   ],
   "F5b1Mw": [
@@ -4145,26 +4287,30 @@
       "value": "Selezionare gli strumenti che l'agente può usare"
     }
   ],
-  "F8R5Bb": [
-    {
-      "type": 0,
-      "value": "Connessioni: "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    }
-  ],
   "F8UOXS": [
     {
       "type": 0,
       "value": "Anteprima relazione"
     }
   ],
+  "F8v2Mz": [
+    {
+      "type": 0,
+      "value": "SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " started successfully"
+    }
+  ],
   "F8xMoD": [
     {
       "type": 0,
-      "value": "Loading tool details..."
+      "value": "Caricamento dei dettagli dello strumento in corso..."
     }
   ],
   "F9LrJA": [
@@ -4208,13 +4354,13 @@
   "FGP0Kd": [
     {
       "type": 0,
-      "value": "CPU usage insights"
+      "value": "Informazioni dettagliate sull'utilizzo della CPU"
     }
   ],
   "FLN/px": [
     {
       "type": 0,
-      "value": "Chat diagnostics"
+      "value": "Diagnostica della chat"
     }
   ],
   "FLm/x4": [
@@ -4229,16 +4375,16 @@
       "value": "Giorni feriali alle 9:00 ora del Pacifico"
     }
   ],
-  "FO/nez": [
-    {
-      "type": 0,
-      "value": "Descrivere le operazioni eseguite da questo strumento..."
-    }
-  ],
   "FPdoJ3": [
     {
       "type": 0,
-      "value": "Define how incidents are detected and reviewed, and the instructions for how the agent responds."
+      "value": "Definire la modalità di rilevamento e revisione degli incidenti e le istruzioni per la risposta dell'agente."
+    }
+  ],
+  "FS0tWa": [
+    {
+      "type": 0,
+      "value": "No source agent specified"
     }
   ],
   "FSYccN": [
@@ -4250,7 +4396,7 @@
   "FSZ5F/": [
     {
       "type": 0,
-      "value": "Deleting scheduled task "
+      "value": "Eliminazione dell'attività pianificata "
     },
     {
       "type": 1,
@@ -4275,6 +4421,22 @@
       "value": "Agenti handoff (facoltativo)"
     }
   ],
+  "FWou/7": [
+    {
+      "type": 0,
+      "value": "Select tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    }
+  ],
+  "FZeQlc": [
+    {
+      "type": 0,
+      "value": "Disconnected"
+    }
+  ],
   "FZwBv0": [
     {
       "type": 0,
@@ -4284,13 +4446,13 @@
   "FeBVnC": [
     {
       "type": 0,
-      "value": "You can edit this entity directly or spin up a copy once cloning is available."
+      "value": "È possibile modificare direttamente questa entità o creare una copia una volta disponibile la clonazione."
     }
   ],
   "FeBneB": [
     {
       "type": 0,
-      "value": "Probe for multi-step diagnostics to see if the agent can orchestrate tools effectively."
+      "value": "Eseguire il probe per la diagnostica in più passaggi per verificare se l'agente è in grado di orchestrare gli strumenti in modo efficace."
     }
   ],
   "FitglU": [
@@ -4311,10 +4473,30 @@
       "value": "Confermato"
     }
   ],
+  "FpUGgx": [
+    {
+      "type": 0,
+      "value": "Starting SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in progress"
+    }
+  ],
   "Fr5LyM": [
     {
       "type": 0,
       "value": "Sicuro"
+    }
+  ],
+  "FsIud6": [
+    {
+      "type": 0,
+      "value": "Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included."
     }
   ],
   "Fv1ZSz": [
@@ -4332,7 +4514,7 @@
   "FvtGBp": [
     {
       "type": 0,
-      "value": "browse for files"
+      "value": "esplora file"
     }
   ],
   "FyrC09": [
@@ -4356,7 +4538,7 @@
   "G/YsSs": [
     {
       "type": 0,
-      "value": "Custom cron"
+      "value": "Cron personalizzato"
     }
   ],
   "G/yZLu": [
@@ -4387,6 +4569,40 @@
       "value": "Tutti i tipi di incidenti"
     }
   ],
+  "GBLVEV": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "document"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "documents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "GBnvl1": [
     {
       "type": 0,
@@ -4396,7 +4612,7 @@
   "GCQn0j": [
     {
       "type": 0,
-      "value": "Tool testing is unavailable for this entity."
+      "value": "Il test degli strumenti non è disponibile per questa entità."
     }
   ],
   "GCVHNV": [
@@ -4407,22 +4623,18 @@
   ],
   "GCVZ4/": [
     {
-      "type": 0,
-      "value": "Successfully deleted "
-    },
-    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " data connectors"
+      "value": " connettori dati sono stati eliminati"
     }
   ],
   "GCcYpN": [
     {
       "type": 0,
-      "value": "No MCP tools available"
+      "value": "Non sono disponibili strumenti MCP"
     }
   ],
   "GCmxza": [
@@ -4437,10 +4649,16 @@
       "value": "Response subagent"
     }
   ],
+  "GP/BbQ": [
+    {
+      "type": 0,
+      "value": "Enable Knowledge Base"
+    }
+  ],
   "GSCabm": [
     {
       "type": 0,
-      "value": "MCP tools"
+      "value": "Strumenti MCP"
     }
   ],
   "GUx4Ld": [
@@ -4458,7 +4676,7 @@
   "GdgrWi": [
     {
       "type": 0,
-      "value": "Select a tool"
+      "value": "Seleziona uno strumento"
     }
   ],
   "GkJbiq": [
@@ -4470,13 +4688,25 @@
   "GkKcbX": [
     {
       "type": 0,
-      "value": "Add a response plan"
+      "value": "Aggiungere un piano di risposta"
     }
   ],
   "Gl8fnJ": [
     {
       "type": 0,
       "value": "Ridimensiona pannello"
+    }
+  ],
+  "GnWmca": [
+    {
+      "type": 0,
+      "value": "Triggers"
+    }
+  ],
+  "Gnbr9F": [
+    {
+      "type": 0,
+      "value": "Select a connector"
     }
   ],
   "GoSIa4": [
@@ -4548,7 +4778,7 @@
   "HADwwN": [
     {
       "type": 0,
-      "value": "Task details"
+      "value": "Dettagli attività"
     }
   ],
   "HAlOn1": [
@@ -4566,19 +4796,25 @@
   "HFuyFh": [
     {
       "type": 0,
-      "value": "No code optimization recommendations detected."
+      "value": "Nessuna raccomandazione per l'ottimizzazione del codice rilevata."
     }
   ],
   "HKlw1J": [
     {
       "type": 0,
-      "value": "This will permanently disconnect this data connector from the agent. Are you sure you want to disconnect this data connector?"
+      "value": "Il connettore dati verrà disconnesso definitivamente dall'agente. Disconnettere questo connettore dati?"
     }
   ],
   "HMZIeG": [
     {
       "type": 0,
-      "value": "Get AI-powered quality insights and improvement suggestions"
+      "value": "Ottieni informazioni dettagliate sulla qualità e suggerimenti per il miglioramento basati su IA"
+    }
+  ],
+  "HNBpJ4": [
+    {
+      "type": 0,
+      "value": "Metrics"
     }
   ],
   "HNECLT": [
@@ -4596,7 +4832,7 @@
   "HQ4NJ3": [
     {
       "type": 0,
-      "value": "Learn more about response plans"
+      "value": "Altre informazioni sui piani di risposta"
     }
   ],
   "HQc/Lf": [
@@ -4620,13 +4856,19 @@
   "HUPaMQ": [
     {
       "type": 0,
-      "value": "View findings"
+      "value": "Visualizza i risultati"
     }
   ],
   "HWMrXF": [
     {
       "type": 0,
       "value": "Aggiungi gruppo di risorse"
+    }
+  ],
+  "HZQtAg": [
+    {
+      "type": 0,
+      "value": "Test values"
     }
   ],
   "HbTFJf": [
@@ -4654,7 +4896,7 @@
   "Hh8It5": [
     {
       "type": 0,
-      "value": "Changes pending analysis"
+      "value": "Analisi delle modifiche in sospeso"
     }
   ],
   "HiBsED": [
@@ -4678,7 +4920,7 @@
   "Hs02Tq": [
     {
       "type": 0,
-      "value": "Loading daily reports"
+      "value": "Caricamento dei report giornalieri"
     }
   ],
   "HtpD+z": [
@@ -4720,7 +4962,13 @@
   "I1tfGG": [
     {
       "type": 0,
-      "value": "View Memory Search Results"
+      "value": "Visualizza i risultati della ricerca in memoria"
+    }
+  ],
+  "I3MA83": [
+    {
+      "type": 0,
+      "value": "String"
     }
   ],
   "I5k4g/": [
@@ -4808,7 +5056,7 @@
   "INiE0x": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "La qualità dell'agente è "
     },
     {
       "type": 1,
@@ -4816,7 +5064,7 @@
     },
     {
       "type": 0,
-      "value": "/100 but may be outdated. Refresh to keep guidance current."
+      "value": "/100, ma potrebbe essere obsoleta. Aggiornare per mantenere aggiornate le indicazioni."
     }
   ],
   "INiSE2": [
@@ -4922,13 +5170,13 @@
   "IomdzL": [
     {
       "type": 0,
-      "value": "The agent uses predefined queries for structured logs, telemetry, and time series data."
+      "value": "L'agente usa query predefinite per i log strutturati, i dati di telemetria e i dati delle serie temporali."
     }
   ],
   "Ip7Gd3": [
     {
       "type": 0,
-      "value": "Auto-apply"
+      "value": "Applica automaticamente"
     }
   ],
   "IrCHQG": [
@@ -4940,7 +5188,7 @@
   "ItmLyp": [
     {
       "type": 0,
-      "value": "Connect an incident platform"
+      "value": "Collega una piattaforma per la gestione degli incidenti"
     }
   ],
   "IuFETn": [
@@ -5002,7 +5250,7 @@
   "J8u7Xg": [
     {
       "type": 0,
-      "value": "Last Modified"
+      "value": "Ultima modifica"
     }
   ],
   "JAtEuU": [
@@ -5043,6 +5291,12 @@
       "value": "Indietro"
     }
   ],
+  "JKFypr": [
+    {
+      "type": 0,
+      "value": "Stop agent"
+    }
+  ],
   "JMdyE9": [
     {
       "type": 0,
@@ -5053,6 +5307,12 @@
     {
       "type": 0,
       "value": "Con i piani di risposta agli incidenti, l'agente sceglie gli strumenti necessari per gestire i tipi comuni di incidenti. I piano di risposta personalizzati sostituiscono questa funzionalità indicando all'agente istruzioni specifiche fornite dall'utente."
+    }
+  ],
+  "JSW9Xw": [
+    {
+      "type": 0,
+      "value": "Starting SRE Agent"
     }
   ],
   "JT7be1": [
@@ -5154,7 +5414,7 @@
   "JbMs9l": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "La qualità dell'agente è "
     },
     {
       "type": 1,
@@ -5162,7 +5422,7 @@
     },
     {
       "type": 0,
-      "value": "/100. No quick fixes right now."
+      "value": "/100. Nessuna correzione rapida al momento."
     }
   ],
   "JbmMWM": [
@@ -5186,7 +5446,7 @@
   "JiENoF": [
     {
       "type": 0,
-      "value": "Hide diff"
+      "value": "Nascondi differenze"
     }
   ],
   "JjKcCj": [
@@ -5233,16 +5493,34 @@
       "value": "Disconnettere ServiceNow?"
     }
   ],
+  "JnDKv3": [
+    {
+      "type": 0,
+      "value": "Failed to stop SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "Jrrm2K": [
     {
       "type": 0,
-      "value": "Click \"Execute Tool\" to test this system tool"
+      "value": "Fare clic su \"Esegui strumento\" per testare questo strumento di sistema"
     }
   ],
   "Jsy4yb": [
     {
       "type": 0,
-      "value": "Try Evaluation"
+      "value": "Prova valutazione"
     }
   ],
   "JwHSD6": [
@@ -5296,7 +5574,7 @@
   "KAYnaH": [
     {
       "type": 0,
-      "value": "Auto-applying changes… latest draft will be used for new tests."
+      "value": "Applicazione automatica delle modifiche in corso... la bozza più recente verrà usata per i nuovi test."
     }
   ],
   "KAYpG9": [
@@ -5320,7 +5598,7 @@
   "KJHRU/": [
     {
       "type": 0,
-      "value": "Add existing subagent"
+      "value": "Aggiungi agente secondario esistente"
     }
   ],
   "KJuQJ3": [
@@ -5344,7 +5622,7 @@
   "KNwLvk": [
     {
       "type": 0,
-      "value": "Test Parameters"
+      "value": "Parametri di test"
     }
   ],
   "KQ9L9d": [
@@ -5374,7 +5652,7 @@
   "KaLLyk": [
     {
       "type": 0,
-      "value": "Projected +"
+      "value": "Previsti +"
     },
     {
       "type": 1,
@@ -5382,13 +5660,19 @@
     },
     {
       "type": 0,
-      "value": " overall"
+      "value": " complessivi"
     }
   ],
   "KbCGsK": [
     {
       "type": 0,
       "value": "Se si fa clic su 'Autorizza', questa operazione verrà eseguita per conto dell'utente usando le sue credenziali."
+    }
+  ],
+  "Kfaepo": [
+    {
+      "type": 0,
+      "value": "Learn more about connectors"
     }
   ],
   "KgcF6B": [
@@ -5400,7 +5684,7 @@
   "KiANnA": [
     {
       "type": 0,
-      "value": "Turn on scheduled task(s)"
+      "value": "Attivare le attività pianificate"
     }
   ],
   "Kkc3/u": [
@@ -5432,13 +5716,13 @@
   "KptJSd": [
     {
       "type": 0,
-      "value": "No MCP tools configured."
+      "value": "Non sono stati configurati strumenti MCP."
     }
   ],
   "KqwLPK": [
     {
       "type": 0,
-      "value": "Database indexing connector"
+      "value": "Connettore di indicizzazione del database"
     }
   ],
   "KryvVM": [
@@ -5506,25 +5790,25 @@
   "L7EoQf": [
     {
       "type": 0,
-      "value": "Auto-apply ON"
+      "value": "Applicazione automatica ON"
     }
   ],
   "L7gQfJ": [
     {
       "type": 0,
-      "value": "Welcome to the playground"
+      "value": "Benvenuto nel playground"
     }
   ],
   "LAHAJH": [
     {
       "type": 0,
-      "value": "No MCP connections available"
+      "value": "Nessuna connessione MCP disponibile"
     }
   ],
   "LFb8Ku": [
     {
       "type": 0,
-      "value": "recent activity"
+      "value": "attività recente"
     }
   ],
   "LFn7Ak": [
@@ -5536,13 +5820,13 @@
   "LGZkPZ": [
     {
       "type": 0,
-      "value": "Switch to YAML"
+      "value": "Passa a YAML"
     }
   ],
   "LIm7q8": [
     {
       "type": 0,
-      "value": "Analysed "
+      "value": "Analizzato "
     },
     {
       "type": 1,
@@ -5570,7 +5854,7 @@
   "LQ2AtR": [
     {
       "type": 0,
-      "value": "Deleted "
+      "value": "Sono stati eliminati "
     },
     {
       "type": 1,
@@ -5578,7 +5862,7 @@
     },
     {
       "type": 0,
-      "value": " data connectors. Failed to delete "
+      "value": " connettori dati. Non è stato possibile eliminare "
     },
     {
       "type": 1,
@@ -5624,13 +5908,19 @@
   "LXOsKd": [
     {
       "type": 0,
-      "value": "We could not generate insights right now. Try again in a moment."
+      "value": "Non è stato possibile generare informazioni dettagliate in questo momento. Riprovare tra qualche istante."
     }
   ],
   "LZyV4T": [
     {
       "type": 0,
       "value": "I filtri definiscono a quali incidenti si applica il piano di risposta agli incidenti. Si applicano all'elenco degli incidenti visualizzati in anteprima nel passaggio successivo."
+    }
+  ],
+  "LaIt/v": [
+    {
+      "type": 0,
+      "value": "Creating Kusto Tool"
     }
   ],
   "LbkJp1": [
@@ -5680,7 +5970,7 @@
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": " ore fa"
             }
           ]
         },
@@ -5691,7 +5981,7 @@
             },
             {
               "type": 0,
-              "value": " hour ago"
+              "value": " ora fa"
             }
           ]
         },
@@ -5702,7 +5992,7 @@
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": " ore fa"
             }
           ]
         }
@@ -5739,7 +6029,7 @@
   "M+QCSD": [
     {
       "type": 0,
-      "value": "Enter "
+      "value": "Immettere "
     },
     {
       "type": 1,
@@ -5831,7 +6121,7 @@
   "MOhprT": [
     {
       "type": 0,
-      "value": "Preview diff"
+      "value": "Anteprima differenze"
     }
   ],
   "MOsoTa": [
@@ -5855,7 +6145,7 @@
   "MQNtQ+": [
     {
       "type": 0,
-      "value": "Data Connectors"
+      "value": "Connettori dati"
     }
   ],
   "MSWnaq": [
@@ -5867,13 +6157,7 @@
   "MUVpbF": [
     {
       "type": 0,
-      "value": "The agent generates queries by learning about your logs, telemetry, and time series data."
-    }
-  ],
-  "MWaWoR": [
-    {
-      "type": 0,
-      "value": "A partire dal 25 settembre 2025, gli utenti senza uno dei ruoli di controllo degli accessi in base al ruolo di Azure necessari perderanno l'accesso ad Agente SRE di Azure."
+      "value": "L'agente genera query apprendendo da log, dati di telemetria e dati delle serie temporali."
     }
   ],
   "MaaxCM": [
@@ -5947,7 +6231,7 @@
   "Mx6yYf": [
     {
       "type": 0,
-      "value": "Scheduled task(s) turned off successfully"
+      "value": "Le attività pianificate sono state disattivate"
     }
   ],
   "MxYLKu": [
@@ -5972,6 +6256,12 @@
     {
       "type": 0,
       "value": "Visualizzazione griglia"
+    }
+  ],
+  "N/CtWu": [
+    {
+      "type": 0,
+      "value": "Unselected"
     }
   ],
   "N0d5pM": [
@@ -6001,7 +6291,7 @@
   "N7cqYp": [
     {
       "type": 0,
-      "value": "Turning off scheduled task "
+      "value": "Disattivazione dell'attività pianificata "
     },
     {
       "type": 1,
@@ -6053,19 +6343,25 @@
   "NGhUmq": [
     {
       "type": 0,
-      "value": "Refresh insights"
+      "value": "Aggiorna informazioni dettagliate"
     }
   ],
   "NIrBo5": [
     {
       "type": 0,
-      "value": "Files will be stored in the agent."
+      "value": "I file verranno archiviati nell'agente."
     }
   ],
   "NMSoXQ": [
     {
       "type": 0,
       "value": "Disabilitazione del piano di risposta agli incidenti"
+    }
+  ],
+  "NN4zut": [
+    {
+      "type": 0,
+      "value": "Support + troubleshooting"
     }
   ],
   "NOMbLF": [
@@ -6077,13 +6373,13 @@
   "NPm9R5": [
     {
       "type": 0,
-      "value": "Failed to load MCP tools."
+      "value": "Non è stato possibile caricare strumenti MCP."
     }
   ],
   "NSWNPa": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all files."
+      "value": "Prova termini di ricerca diversi o cancella la ricerca per visualizzare tutti i file."
     }
   ],
   "NV14yw": [
@@ -6146,7 +6442,7 @@
             },
             {
               "type": 0,
-              "value": " documents selected"
+              "value": " documenti selezionati"
             }
           ]
         },
@@ -6158,7 +6454,7 @@
             },
             {
               "type": 0,
-              "value": " document selected"
+              "value": " documento selezionato"
             }
           ]
         },
@@ -6170,7 +6466,7 @@
             },
             {
               "type": 0,
-              "value": " documents selected"
+              "value": " documenti selezionati"
             }
           ]
         }
@@ -6183,7 +6479,7 @@
   "NwAgjY": [
     {
       "type": 0,
-      "value": "Every "
+      "value": "Ogni "
     },
     {
       "type": 1,
@@ -6191,7 +6487,7 @@
     },
     {
       "type": 0,
-      "value": " minutes"
+      "value": " minuti"
     }
   ],
   "O+srpo": [
@@ -6238,10 +6534,16 @@
       "value": "count"
     }
   ],
+  "O/gthC": [
+    {
+      "type": 0,
+      "value": "Go to Scheduled Task"
+    }
+  ],
   "O0JI8M": [
     {
       "type": 0,
-      "value": "Overall Quality"
+      "value": "Qualità complessiva"
     }
   ],
   "O3Ak71": [
@@ -6262,10 +6564,16 @@
       "value": "Eliminare questo agente SRE? L'azione non può essere annullata."
     }
   ],
+  "O9C6j/": [
+    {
+      "type": 0,
+      "value": "Create subagent"
+    }
+  ],
   "OBoUb6": [
     {
       "type": 0,
-      "value": "Fresh"
+      "value": "Aggiornato"
     }
   ],
   "OIWzWF": [
@@ -6310,6 +6618,12 @@
     {
       "type": 0,
       "value": "Assegnata a"
+    }
+  ],
+  "ONbwY2": [
+    {
+      "type": 0,
+      "value": "Custom Tool"
     }
   ],
   "OO5Y94": [
@@ -6389,19 +6703,19 @@
   "OYAXyI": [
     {
       "type": 0,
-      "value": "Provide information the agent will reference when analyzing or answering questions."
+      "value": "Fornire informazioni a cui l'agente farà riferimento durante l'analisi o la risposta alle domande."
     }
   ],
   "OYKAqF": [
     {
       "type": 0,
-      "value": "Quick start"
+      "value": "Guida introduttiva"
     }
   ],
   "Oc1AVw": [
     {
       "type": 0,
-      "value": "Draft synced "
+      "value": "Bozza sincronizzata "
     },
     {
       "type": 1,
@@ -6434,10 +6748,22 @@
       "value": "Visualizzare e cercare tutti i dati di monitoraggio, nonché visualizzare le impostazioni di monitoraggio, inclusa la visualizzazione della configurazione di Diagnostica di Azure in tutte le risorse di Azure."
     }
   ],
+  "OoxcFC": [
+    {
+      "type": 0,
+      "value": "Select the input type"
+    }
+  ],
+  "OpUvSu": [
+    {
+      "type": 0,
+      "value": "Create Kusto Tool"
+    }
+  ],
   "OrQ4EY": [
     {
       "type": 0,
-      "value": "Expand chat preview"
+      "value": "Espandi l'anteprima della chat"
     }
   ],
   "OsIQyM": [
@@ -6532,6 +6858,12 @@
       "value": "Le mie richieste recenti"
     }
   ],
+  "PF15hb": [
+    {
+      "type": 0,
+      "value": "Input value"
+    }
+  ],
   "PFUTWt": [
     {
       "type": 0,
@@ -6562,6 +6894,12 @@
       "value": "Filtra incidenti"
     }
   ],
+  "PKvAvF": [
+    {
+      "type": 0,
+      "value": "Extend your agent’s capabilities with connectors"
+    }
+  ],
   "PPrKNq": [
     {
       "type": 0,
@@ -6571,7 +6909,7 @@
   "PQgsh+": [
     {
       "type": 0,
-      "value": "Execute Tool"
+      "value": "Esegui strumento"
     }
   ],
   "PS7hBo": [
@@ -6604,6 +6942,18 @@
       "value": "Analisi delle risorse"
     }
   ],
+  "PXJ+oX": [
+    {
+      "type": 0,
+      "value": "To view incidents triggered, go to Incidents"
+    }
+  ],
+  "PXJi2R": [
+    {
+      "type": 0,
+      "value": "No target agent specified"
+    }
+  ],
   "PXYq8b": [
     {
       "type": 0,
@@ -6629,7 +6979,13 @@
   "Pa1S0J": [
     {
       "type": 0,
-      "value": "Total active flow consumption"
+      "value": "Consumo totale flusso attivo"
+    }
+  ],
+  "PbaaPs": [
+    {
+      "type": 0,
+      "value": "Add subagent"
     }
   ],
   "Pc+tM3": [
@@ -6715,7 +7071,7 @@
   "PxsPJt": [
     {
       "type": 0,
-      "value": "Turning on scheduled task(s)"
+      "value": "Attivazione delle attività pianificate"
     }
   ],
   "PysW/n": [
@@ -6745,7 +7101,7 @@
   "Q2CgqG": [
     {
       "type": 0,
-      "value": "Choose your approach below. You can always switch between editing and testing."
+      "value": "Scegliere l'approccio seguente. È sempre possibile passare dalla modifica al test e viceversa."
     }
   ],
   "Q3p3sz": [
@@ -6757,15 +7113,7 @@
   "Q4f1wN": [
     {
       "type": 0,
-      "value": "This will permanently "
-    },
-    {
-      "type": 1,
-      "value": "actionVerb"
-    },
-    {
-      "type": 0,
-      "value": " this "
+      "value": "Questo "
     },
     {
       "type": 1,
@@ -6773,7 +7121,7 @@
     },
     {
       "type": 0,
-      "value": ". Are you sure you want to "
+      "value": " verrà "
     },
     {
       "type": 1,
@@ -6781,7 +7129,15 @@
     },
     {
       "type": 0,
-      "value": " this "
+      "value": " definitivamente. "
+    },
+    {
+      "type": 1,
+      "value": "actionVerb"
+    },
+    {
+      "type": 0,
+      "value": " questo "
     },
     {
       "type": 1,
@@ -6790,6 +7146,12 @@
     {
       "type": 0,
       "value": "?"
+    }
+  ],
+  "Q6Lw7i": [
+    {
+      "type": 0,
+      "value": "To learn more about permissions, click here."
     }
   ],
   "Q7/1w4": [
@@ -6825,7 +7187,7 @@
   "QChoto": [
     {
       "type": 0,
-      "value": "Updating AAU allocation from "
+      "value": "Aggiornamento dell'allocazione di AAU da "
     },
     {
       "type": 1,
@@ -6833,7 +7195,7 @@
     },
     {
       "type": 0,
-      "value": " to "
+      "value": " a "
     },
     {
       "type": 1,
@@ -6842,6 +7204,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "QDa8Q+": [
+    {
+      "type": 0,
+      "value": "Add connector"
     }
   ],
   "QEhO+z": [
@@ -6862,10 +7230,16 @@
       "value": "Proprietario dei dati di Gemelli digitali di Azure"
     }
   ],
+  "QK0vxq": [
+    {
+      "type": 0,
+      "value": "Go to Connectors"
+    }
+  ],
   "QOSRgI": [
     {
       "type": 0,
-      "value": "AAU Consumption"
+      "value": "Consumo AAU"
     }
   ],
   "QQX4Pv": [
@@ -6880,10 +7254,16 @@
       "value": "Usi (trigger, azione)"
     }
   ],
+  "QW+Q5N": [
+    {
+      "type": 0,
+      "value": "Clear all"
+    }
+  ],
   "QWEHW2": [
     {
       "type": 0,
-      "value": "Every "
+      "value": "Ogni "
     },
     {
       "type": 1,
@@ -6891,29 +7271,13 @@
     },
     {
       "type": 0,
-      "value": " hours"
+      "value": " ore"
     }
   ],
   "QY3CEK": [
     {
       "type": 0,
       "value": "Descrizione handoff"
-    }
-  ],
-  "Qc3Kdl": [
-    {
-      "type": 0,
-      "value": "Esempio: "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "where SubscriptionId == \"##SubscriptionId##\""
-        }
-      ],
-      "type": 8,
-      "value": "code"
     }
   ],
   "QdDYGR": [
@@ -6943,7 +7307,7 @@
   "Ql/5RS": [
     {
       "type": 0,
-      "value": "Scoring…"
+      "value": "Assegnazione del punteggio in corso..."
     }
   ],
   "QlkL14": [
@@ -6981,7 +7345,7 @@
   "Qn5bey": [
     {
       "type": 0,
-      "value": "No quick fixes needed."
+      "value": "Non sono necessarie correzioni rapide."
     }
   ],
   "Qn8Bok": [
@@ -6999,13 +7363,13 @@
   "QpCzB2": [
     {
       "type": 0,
-      "value": "Resize configuration and preview panels"
+      "value": "Ridimensiona pannelli configurazione e anteprima"
     }
   ],
   "QrihTZ": [
     {
       "type": 0,
-      "value": "Friday"
+      "value": "Venerdì"
     }
   ],
   "QwnGVY": [
@@ -7017,7 +7381,7 @@
   "QzM+2e": [
     {
       "type": 0,
-      "value": "Start filling in the fields above to define this tool."
+      "value": "Iniziare a compilare i campi precedenti per definire questo strumento."
     }
   ],
   "R+J5ox": [
@@ -7057,7 +7421,7 @@
   "R3mMmc": [
     {
       "type": 0,
-      "value": "Monthly AAU limit slider"
+      "value": "Dispositivo di scorrimento del limite di AAU mensile"
     }
   ],
   "R7DP3y": [
@@ -7084,6 +7448,12 @@
       "value": "Chiudi pannello"
     }
   ],
+  "REOGTJ": [
+    {
+      "type": 0,
+      "value": "Add a connector to give the agent additional tools for automating incident handling."
+    }
+  ],
   "RH8rNM": [
     {
       "type": 0,
@@ -7105,7 +7475,7 @@
   "RK9Ag4": [
     {
       "type": 0,
-      "value": "Delete "
+      "value": "Eliminare "
     },
     {
       "type": 1,
@@ -7113,7 +7483,7 @@
     },
     {
       "type": 0,
-      "value": " files?"
+      "value": " file?"
     }
   ],
   "RR+13c": [
@@ -7256,6 +7626,20 @@
       "value": "Ultime 12 ore"
     }
   ],
+  "S2jxf1": [
+    {
+      "type": 0,
+      "value": "No "
+    },
+    {
+      "type": 1,
+      "value": "activeTab"
+    },
+    {
+      "type": 0,
+      "value": " found"
+    }
+  ],
   "S2z35W": [
     {
       "type": 0,
@@ -7275,13 +7659,13 @@
   "S5UkvS": [
     {
       "type": 0,
-      "value": "Playground mode"
+      "value": "Modalità playground"
     }
   ],
   "S8/4ZI": [
     {
       "type": 0,
-      "value": "More actions"
+      "value": "Altre azioni"
     }
   ],
   "SAINuE": [
@@ -7294,6 +7678,12 @@
     {
       "type": 0,
       "value": "Lettore dati di Servizi cognitivi"
+    }
+  ],
+  "SDsdCi": [
+    {
+      "type": 0,
+      "value": "Add existing tools"
     }
   ],
   "SFUZOQ": [
@@ -7339,7 +7729,7 @@
   "SR33a/": [
     {
       "type": 0,
-      "value": "Restart chat conversation"
+      "value": "Riavvia conversazione chat"
     }
   ],
   "SRf69j": [
@@ -7423,7 +7813,7 @@
   "SmFb5S": [
     {
       "type": 0,
-      "value": "Draft not yet synced"
+      "value": "Bozza non ancora sincronizzata"
     }
   ],
   "Sr4IbA": [
@@ -7459,7 +7849,7 @@
   "T+FE9b": [
     {
       "type": 0,
-      "value": "Interactive testing for "
+      "value": "Il test interattivo per "
     },
     {
       "type": 1,
@@ -7467,7 +7857,7 @@
     },
     {
       "type": 0,
-      "value": " is coming soon."
+      "value": " sarà presto disponibile."
     }
   ],
   "T/G3bv": [
@@ -7603,7 +7993,7 @@
   "TO55dt": [
     {
       "type": 0,
-      "value": "Azure SRE Agent billing is measured in Azure agent units (AAU). Monthly AAU billing reflects both the fixed always-on flow and variable usage from active flow. You can increase or decrease the active flow AAU allocation at any time."
+      "value": "La fatturazione dell'Agente SRE di Azure viene misurata in unità agente di Azure (AAU). La fatturazione AAU mensile riflette sia il flusso always-on attivo fisso che l'utilizzo variabile del flusso attivo. È possibile aumentare o ridurre l'allocazione di AAU di flusso attive in qualsiasi momento."
     }
   ],
   "TQ0n+a": [
@@ -7613,7 +8003,7 @@
     },
     {
       "type": 0,
-      "value": " lands at "
+      "value": " raggiunge il "
     },
     {
       "type": 1,
@@ -7621,7 +8011,7 @@
     },
     {
       "type": 0,
-      "value": "%. Sharpen instructions and tools to climb faster."
+      "value": "%. Perfezionare le istruzioni e gli strumenti per salire più velocemente."
     }
   ],
   "TRceX/": [
@@ -7651,7 +8041,7 @@
   "Tg4Q8g": [
     {
       "type": 0,
-      "value": "Disconnect data connector?"
+      "value": "Disconnettere il connettore dati?"
     }
   ],
   "ThSX0k": [
@@ -7684,6 +8074,12 @@
       "value": "Non sono disponibili le autorizzazioni per creare piani di risposta."
     }
   ],
+  "TrnqJG": [
+    {
+      "type": 0,
+      "value": "Input type"
+    }
+  ],
   "TwMqIK": [
     {
       "type": 0,
@@ -7706,6 +8102,12 @@
     {
       "type": 0,
       "value": "Non sono necessari parametri"
+    }
+  ],
+  "UBbDNy": [
+    {
+      "type": 0,
+      "value": "No documents in knowledge base. Add some?"
     }
   ],
   "UCYFxr": [
@@ -7829,7 +8231,7 @@
   "V4yeoh": [
     {
       "type": 0,
-      "value": "Peak Usage"
+      "value": "Utilizzo massimo"
     }
   ],
   "V52jNn": [
@@ -7847,7 +8249,7 @@
   "V5w7/I": [
     {
       "type": 0,
-      "value": "Optimize alert response with an incident platform"
+      "value": "Ottimizzare la risposta agli avvisi con una piattaforma per la gestione degli incidenti"
     }
   ],
   "V9A1Xh": [
@@ -7877,7 +8279,7 @@
   "VIYXlx": [
     {
       "type": 0,
-      "value": "Chat preview"
+      "value": "Anteprima chat"
     }
   ],
   "VIcJZp": [
@@ -7902,12 +8304,6 @@
     {
       "type": 0,
       "value": "API connesse"
-    }
-  ],
-  "VMIM8/": [
-    {
-      "type": 0,
-      "value": "Analisi"
     }
   ],
   "VQDmmK": [
@@ -7944,6 +8340,12 @@
       "value": "name"
     }
   ],
+  "VU4BBu": [
+    {
+      "type": 0,
+      "value": "Parameter"
+    }
+  ],
   "VUHkVQ": [
     {
       "type": 0,
@@ -7959,13 +8361,13 @@
   "VVy70J": [
     {
       "type": 0,
-      "value": "Quality watcher"
+      "value": "Controllo qualità"
     }
   ],
   "VWq2cH": [
     {
       "type": 0,
-      "value": "Playbook Legend"
+      "value": "Legenda playbook"
     }
   ],
   "VYjDXQ": [
@@ -7986,6 +8388,12 @@
       "value": "Revisione (impostazione predefinita)"
     }
   ],
+  "Vipo+I": [
+    {
+      "type": 0,
+      "value": "No parameters configured"
+    }
+  ],
   "VlBNux": [
     {
       "type": 0,
@@ -8001,7 +8409,7 @@
   "VpVoQZ": [
     {
       "type": 0,
-      "value": "Tool recommendations"
+      "value": "Suggerimenti per gli strumenti"
     }
   ],
   "VpsD7s": [
@@ -8062,6 +8470,12 @@
       "value": "Non sono stati trovati piani di risposta"
     }
   ],
+  "W1Qs5O": [
+    {
+      "type": 0,
+      "value": "Runs"
+    }
+  ],
   "W2JBdp": [
     {
       "type": 0,
@@ -8071,7 +8485,7 @@
   "W5zi/x": [
     {
       "type": 0,
-      "value": "Please try again or check the console for details."
+      "value": "Riprovare o controllare la console per i dettagli."
     }
   ],
   "W6NO8g": [
@@ -8089,7 +8503,7 @@
   "W8LUUc": [
     {
       "type": 0,
-      "value": "Not analyzed"
+      "value": "Non analizzati"
     }
   ],
   "W99XAG": [
@@ -8116,6 +8530,12 @@
       "value": "Ora dell'ultima acquisizione dati"
     }
   ],
+  "WJj+TP": [
+    {
+      "type": 0,
+      "value": "You do not have permission to check incident management connection."
+    }
+  ],
   "WLw9E7": [
     {
       "type": 0,
@@ -8125,7 +8545,7 @@
   "WMNHPh": [
     {
       "type": 0,
-      "value": "Saturday"
+      "value": "Sabato"
     }
   ],
   "WTrOy3": [
@@ -8185,7 +8605,7 @@
   "WdmBr4": [
     {
       "type": 0,
-      "value": "Insight streak: "
+      "value": "Serie di informazioni dettagliate: "
     },
     {
       "type": 1,
@@ -8242,13 +8662,19 @@
   "WfXPv6": [
     {
       "type": 0,
-      "value": "New thread for each run"
+      "value": "Nuovo thread per ogni esecuzione"
     }
   ],
   "WhuvJH": [
     {
       "type": 0,
-      "value": "Auto-apply OFF"
+      "value": "Applicazione automatica OFF"
+    }
+  ],
+  "WjqsyE": [
+    {
+      "type": 0,
+      "value": "When enabled, the SearchMemory tool and knowledge base prompts will be automatically added"
     }
   ],
   "Wkup5T": [
@@ -8266,19 +8692,19 @@
   "WolNVP": [
     {
       "type": 0,
-      "value": "No recent analysis"
+      "value": "Nessuna analisi recente"
     }
   ],
   "WsILsq": [
     {
       "type": 0,
-      "value": "Iterate on instructions without impacting production threads."
+      "value": "Eseguire l'iterazione delle istruzioni senza influire sui thread di produzione."
     }
   ],
   "WsJuyI": [
     {
       "type": 0,
-      "value": "Agent playground"
+      "value": "Playground agente"
     }
   ],
   "Wtf3vL": [
@@ -8354,7 +8780,7 @@
   "X5Q310": [
     {
       "type": 0,
-      "value": "Hide details"
+      "value": "Nascondi dettagli"
     }
   ],
   "X5UCWb": [
@@ -8396,7 +8822,13 @@
   "XDSe35": [
     {
       "type": 0,
-      "value": "Select an agent or tool to start a playground session."
+      "value": "Selezionare un agente o uno strumento per avviare una sessione del playground."
+    }
+  ],
+  "XDcbqQ": [
+    {
+      "type": 0,
+      "value": "Stopping SRE Agent"
     }
   ],
   "XEB3Fn": [
@@ -8428,7 +8860,7 @@
   "XG++pU": [
     {
       "type": 0,
-      "value": "Delete resource group "
+      "value": "Elimina gruppo di risorse "
     },
     {
       "type": 1,
@@ -8444,7 +8876,7 @@
   "XHoPAJ": [
     {
       "type": 0,
-      "value": "Response plan details"
+      "value": "Dettagli del piano di risposta"
     }
   ],
   "XJ+Lww": [
@@ -8492,7 +8924,7 @@
   "XMUseu": [
     {
       "type": 0,
-      "value": "Failed to update AAU allocation. Error: "
+      "value": "Non è stato possibile aggiornare l'allocazione di AAU. Errore: "
     },
     {
       "type": 1,
@@ -8502,7 +8934,7 @@
   "XPR3X/": [
     {
       "type": 0,
-      "value": "Thread title was renamed successfully to '"
+      "value": "Il titolo del thread è stato rinominato correttamente in '"
     },
     {
       "type": 1,
@@ -8519,16 +8951,28 @@
       "value": "Selezionare o cercare un incidente"
     }
   ],
+  "XS8hWM": [
+    {
+      "type": 0,
+      "value": "Enter a boolean"
+    }
+  ],
   "XV8dOu": [
     {
       "type": 0,
-      "value": "Message grouping for updates"
+      "value": "Raggruppamento dei messaggi per gli aggiornamenti"
     }
   ],
   "XVG+T1": [
     {
       "type": 0,
-      "value": "Refining details..."
+      "value": "Affinamento dei dettagli in corso..."
+    }
+  ],
+  "XYIeUc": [
+    {
+      "type": 0,
+      "value": "Agent permissions are determined by its assigned RBAC roles."
     }
   ],
   "XYSJsS": [
@@ -8573,6 +9017,20 @@
       "value": "Punto evidenziato"
     }
   ],
+  "XfAFyQ": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " connectors..."
+    }
+  ],
   "Xkdnen": [
     {
       "type": 0,
@@ -8582,7 +9040,7 @@
   "Xmty/4": [
     {
       "type": 0,
-      "value": "Hide watcher panel"
+      "value": "Nascondi pannello watcher"
     }
   ],
   "XqRXu6": [
@@ -8595,6 +9053,12 @@
     {
       "type": 0,
       "value": "Gestire i backup di conservazione a lungo termine per Server flessibile PostgreSQL."
+    }
+  ],
+  "Xup5P8": [
+    {
+      "type": 0,
+      "value": "What happened"
     }
   ],
   "XvrDTb": [
@@ -8610,13 +9074,13 @@
     },
     {
       "type": 0,
-      "value": ", give me your mission briefing and how you partner with engineers."
+      "value": ", dammi il briefing della missione e come collabori con gli ingegneri."
     }
   ],
   "Y2PFzA": [
     {
       "type": 0,
-      "value": "Priority fixes"
+      "value": "Correzioni prioritarie"
     }
   ],
   "Y2QRpS": [
@@ -8628,11 +9092,27 @@
   "Y3qQB0": [
     {
       "type": 0,
-      "value": "Turning on scheduled task "
+      "value": "Attivazione dell'attività pianificata "
     },
     {
       "type": 1,
       "value": "name"
+    }
+  ],
+  "Y47Dwm": [
+    {
+      "type": 0,
+      "value": "Kusto tools"
+    }
+  ],
+  "Y5IFiT": [
+    {
+      "type": 1,
+      "value": "service"
+    },
+    {
+      "type": 0,
+      "value": " account"
     }
   ],
   "Y7Lbpf": [
@@ -8644,13 +9124,13 @@
   "Y7RxDE": [
     {
       "type": 0,
-      "value": "Run task now"
+      "value": "Esegui attività ora"
     }
   ],
   "YAgYL6": [
     {
       "type": 0,
-      "value": "Tuesday"
+      "value": "Martedì"
     }
   ],
   "YBXVNU": [
@@ -8689,10 +9169,24 @@
       "value": "Mantieni attivo"
     }
   ],
+  "YKwGp6": [
+    {
+      "type": 0,
+      "value": "Added tools to "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "YMjUWP": [
     {
       "type": 0,
-      "value": "Turn off scheduled task"
+      "value": "Disattiva attività pianificata"
     }
   ],
   "YN1/XY": [
@@ -8716,7 +9210,7 @@
   "YXOz1v": [
     {
       "type": 0,
-      "value": "Executing "
+      "value": "Esecuzione di "
     },
     {
       "type": 1,
@@ -8724,7 +9218,7 @@
     },
     {
       "type": 0,
-      "value": "..."
+      "value": " in corso..."
     }
   ],
   "YZIFAO": [
@@ -8802,7 +9296,7 @@
   "YsFdGq": [
     {
       "type": 0,
-      "value": "Supported file formats: .md and .txt"
+      "value": "Formati di file supportati: md e .txt"
     }
   ],
   "Ysew65": [
@@ -8814,19 +9308,19 @@
   "YuvMS0": [
     {
       "type": 0,
-      "value": "Insights not yet analysed"
+      "value": "Informazioni dettagliate non ancora analizzate"
     }
   ],
   "Z+uDP9": [
     {
       "type": 0,
-      "value": "Add a file or connect an external data source, such as a service or repository, to help the agent generate more informed responses."
+      "value": "Aggiungere un file o connettere un'origine dati esterna, ad esempio un servizio o un repository, per consentire all'agente di generare risposte più informate."
     }
   ],
   "Z+wlsh": [
     {
       "type": 0,
-      "value": "Tool configuration is unavailable for this selection."
+      "value": "La configurazione dello strumento non è disponibile per questa selezione."
     }
   ],
   "Z1VHv1": [
@@ -8838,13 +9332,13 @@
   "Z4bt4u": [
     {
       "type": 0,
-      "value": "Auto-generated if left empty"
+      "value": "Generato automaticamente se lasciato vuoto"
     }
   ],
   "Z5ntkd": [
     {
       "type": 0,
-      "value": "Configuration changes are auto-applied (disable auto-apply to use manual apply)"
+      "value": "Le modifiche alla configurazione vengono applicate automaticamente (disabilitare l'applicazione automatica per usare l'applicazione manuale)"
     }
   ],
   "Z6rVz/": [
@@ -8868,7 +9362,7 @@
   "Z8Y6DE": [
     {
       "type": 0,
-      "value": "Last Synced"
+      "value": "Ultima sincronizzazione"
     }
   ],
   "Z9TajN": [
@@ -8886,7 +9380,7 @@
   "ZA4OiK": [
     {
       "type": 0,
-      "value": "Failed to create scheduled task: "
+      "value": "Non è stato possibile creare l'attività pianificata: "
     },
     {
       "type": 1,
@@ -8910,13 +9404,13 @@
   "ZBlAho": [
     {
       "type": 0,
-      "value": "Check if the agent introduces itself properly and outlines its capabilities."
+      "value": "Controllare se l'agente si presenta correttamente e descrive le sue funzionalità."
     }
   ],
   "ZBpAJ/": [
     {
       "type": 0,
-      "value": "Chat restarted with new configuration."
+      "value": "Chat riavviata con la nuova configurazione."
     }
   ],
   "ZCA/Ga": [
@@ -8929,10 +9423,20 @@
       "value": "channel"
     }
   ],
+  "ZF9lPS": [
+    {
+      "type": 0,
+      "value": "Remove tool "
+    },
+    {
+      "type": 1,
+      "value": "toolName"
+    }
+  ],
   "ZMa6Rh": [
     {
       "type": 0,
-      "value": "Deleting scheduled task(s)"
+      "value": "Eliminazione delle attività pianificate"
     }
   ],
   "ZNMCbm": [
@@ -8944,7 +9448,7 @@
   "ZOO+kP": [
     {
       "type": 0,
-      "value": "Start on"
+      "value": "Inizio in data"
     }
   ],
   "ZOdb7N": [
@@ -8956,7 +9460,7 @@
   "ZPP6n7": [
     {
       "type": 0,
-      "value": "Form editing is coming soon for this entity."
+      "value": "La modifica dei moduli sarà presto disponibile per questa entità."
     }
   ],
   "ZUXvHE": [
@@ -8980,7 +9484,7 @@
   "Ze5Ejt": [
     {
       "type": 0,
-      "value": "Testing for "
+      "value": "Il test per "
     },
     {
       "type": 1,
@@ -8988,7 +9492,7 @@
     },
     {
       "type": 0,
-      "value": " is coming soon. Only Kusto tools are supported right now."
+      "value": " sarà presto disponibile. Al momento sono supportati solo gli strumenti Kusto."
     }
   ],
   "Zh+5A6": [
@@ -9006,7 +9510,7 @@
   "ZjlBPk": [
     {
       "type": 0,
-      "value": "Conclusion"
+      "value": "Conclusione"
     }
   ],
   "Zkjd9I": [
@@ -9030,7 +9534,7 @@
   "Zq5BCQ": [
     {
       "type": 0,
-      "value": "Failed to apply changes"
+      "value": "Non è stato possibile applicare le modifiche"
     }
   ],
   "ZqVUb5": [
@@ -9096,7 +9600,7 @@
   "a1UV+9": [
     {
       "type": 0,
-      "value": "Always-on flow + "
+      "value": "Flusso sempre attivo + "
     },
     {
       "style": null,
@@ -9105,13 +9609,13 @@
     },
     {
       "type": 0,
-      "value": " active flow AAUs"
+      "value": " AAU di flusso attive"
     }
   ],
   "a5dT17": [
     {
       "type": 0,
-      "value": "Search data connectors"
+      "value": "Cerca connettori dati"
     }
   ],
   "a5msuh": [
@@ -9135,7 +9639,13 @@
   "a8czK7": [
     {
       "type": 0,
-      "value": "Add a knowledge source"
+      "value": "Aggiungere una fonte delle informazioni"
+    }
+  ],
+  "a8fWCd": [
+    {
+      "type": 0,
+      "value": "Enter a datetime"
     }
   ],
   "a8l/yJ": [
@@ -9186,6 +9696,12 @@
       "value": "Consente l'accesso alle funzionalità di lettura e test in LUIS."
     }
   ],
+  "aH3ak4": [
+    {
+      "type": 0,
+      "value": "Build subagent workflows"
+    }
+  ],
   "aH4De2": [
     {
       "type": 0,
@@ -9209,7 +9725,7 @@
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": " minuti fa"
             }
           ]
         },
@@ -9220,7 +9736,7 @@
             },
             {
               "type": 0,
-              "value": " minute ago"
+              "value": " minuto fa"
             }
           ]
         },
@@ -9231,7 +9747,7 @@
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": " minuti fa"
             }
           ]
         }
@@ -9274,7 +9790,7 @@
   "aSipXt": [
     {
       "type": 0,
-      "value": "Increase the agent's knowledge of your infrastructure"
+      "value": "Aumentare la conoscenza dell'infrastruttura da parte dell'agente"
     }
   ],
   "aTyEZH": [
@@ -9358,7 +9874,7 @@
   "arE3XO": [
     {
       "type": 0,
-      "value": "Tool test failed but no error details were provided."
+      "value": "Il test dello strumento non è riuscito ma non sono stati specificati dettagli sull'errore."
     }
   ],
   "auFFJa": [
@@ -9376,13 +9892,13 @@
   "azMsfM": [
     {
       "type": 0,
-      "value": "Monday"
+      "value": "Lunedì"
     }
   ],
   "b0+PAq": [
     {
       "type": 0,
-      "value": "Audit check"
+      "value": "Controllo audit"
     }
   ],
   "b2PyOl": [
@@ -9408,7 +9924,7 @@
   "b3sNCU": [
     {
       "type": 0,
-      "value": "Failed to turn off task: "
+      "value": "Non è stato possibile disattivare l'attività: "
     },
     {
       "type": 1,
@@ -9472,7 +9988,7 @@
   "baRFiF": [
     {
       "type": 0,
-      "value": "Form"
+      "value": "Modulo"
     }
   ],
   "bdFY56": [
@@ -9504,7 +10020,7 @@
   "bjLeN1": [
     {
       "type": 0,
-      "value": "Please restart the chat to see your changes."
+      "value": "Riavvia la chat per visualizzare le modifiche."
     }
   ],
   "bjOnWH": [
@@ -9562,7 +10078,7 @@
   "br2BTb": [
     {
       "type": 0,
-      "value": "Finish setup to enable previews."
+      "value": "Completare la configurazione per abilitare le anteprime."
     }
   ],
   "bri0SI": [
@@ -9580,7 +10096,7 @@
   "bs6oPY": [
     {
       "type": 0,
-      "value": "Author agent configuration and test"
+      "value": "Creare la configurazione dell'agente e testarla"
     }
   ],
   "bswtOq": [
@@ -9623,10 +10139,16 @@
       "value": "In questo momento"
     }
   ],
+  "byP6IC": [
+    {
+      "type": 0,
+      "value": "Selected"
+    }
+  ],
   "c/8Uhj": [
     {
       "type": 0,
-      "value": "Here is the To-Do plan:"
+      "value": "Ecco il piano ToDo:"
     }
   ],
   "c/KktL": [
@@ -9644,7 +10166,7 @@
   "c1ECOO": [
     {
       "type": 0,
-      "value": "Tool testing"
+      "value": "Test degli strumenti"
     }
   ],
   "c1EiBR": [
@@ -9668,7 +10190,13 @@
   "c3TO1+": [
     {
       "type": 0,
-      "value": "Open in playground"
+      "value": "Apri in playground"
+    }
+  ],
+  "c5hwBU": [
+    {
+      "type": 0,
+      "value": "The agent will resume all activities."
     }
   ],
   "c8Doeq": [
@@ -9688,7 +10216,7 @@
   "cBcrgh": [
     {
       "type": 0,
-      "value": "Enter task details"
+      "value": "Immettere i dettagli dell'attività"
     }
   ],
   "cDjhgm": [
@@ -9712,13 +10240,19 @@
   "cJGGY4": [
     {
       "type": 0,
-      "value": "Your changes are being processed and will appear in the chat preview momentarily."
+      "value": "Le modifiche sono in fase di elaborazione e verranno visualizzate momentaneamente nell'anteprima della chat."
     }
   ],
   "cLC2fM": [
     {
       "type": 0,
       "value": "Il servizio di chat IA non è attualmente disponibile. Riprovare più tardi."
+    }
+  ],
+  "cLHCHE": [
+    {
+      "type": 0,
+      "value": "Connector status"
     }
   ],
   "cRTR/A": [
@@ -9742,13 +10276,13 @@
   "cYwv8P": [
     {
       "type": 0,
-      "value": "Intent Match"
+      "value": "Corrispondenza intento"
     }
   ],
   "ccXLVi": [
     {
       "type": 0,
-      "value": "Category"
+      "value": "Categoria"
     }
   ],
   "cfbpDd": [
@@ -9759,6 +10293,12 @@
     {
       "type": 1,
       "value": "category"
+    }
+  ],
+  "cg54iX": [
+    {
+      "type": 0,
+      "value": "Kusto tool name"
     }
   ],
   "ciB+oy": [
@@ -9857,6 +10397,12 @@
       "value": "Gestire le aree di lavoro di Gestione API."
     }
   ],
+  "d2czNd": [
+    {
+      "type": 0,
+      "value": "Datetime"
+    }
+  ],
   "d3MtwZ": [
     {
       "type": 0,
@@ -9900,7 +10446,7 @@
   "dGa0bG": [
     {
       "type": 0,
-      "value": "Agent quality not scored yet. Run a check to reveal opportunities."
+      "value": "La qualità dell'agente non è ancora stata valutata. Eseguire un controllo per scoprire le opportunità."
     }
   ],
   "dI9gP+": [
@@ -9924,7 +10470,7 @@
   "dO3eHj": [
     {
       "type": 0,
-      "value": "Make changes to the current agent configuration and test immediately."
+      "value": "Apportare modifiche alla configurazione dell'agente corrente e testare immediatamente."
     }
   ],
   "dQ5/dh": [
@@ -9960,7 +10506,7 @@
   "dWSIqT": [
     {
       "type": 0,
-      "value": "Consumption AAU usage"
+      "value": "Utilizzo di AAU a consumo"
     }
   ],
   "dYwe9B": [
@@ -9972,7 +10518,7 @@
   "daUwAL": [
     {
       "type": 0,
-      "value": "Creating scheduled task"
+      "value": "Creazione dell'attività pianificata"
     }
   ],
   "dd6gV2": [
@@ -9984,7 +10530,7 @@
   "dhmpfi": [
     {
       "type": 0,
-      "value": "Delete scheduled task(s)"
+      "value": "Elimina attività pianificate"
     }
   ],
   "dhqlRa": [
@@ -10022,7 +10568,7 @@
     },
     {
       "type": 0,
-      "value": " at "
+      "value": " al "
     },
     {
       "type": 1,
@@ -10030,13 +10576,13 @@
     },
     {
       "type": 0,
-      "value": "%—you are outperforming the target confidence. Ship it! 🚀"
+      "value": "%: stai superando l'attendibilità target. Spedisci! 🚀"
     }
   ],
   "dkt4ac": [
     {
       "type": 0,
-      "value": "Resolve YAML errors before applying changes"
+      "value": "Risolvere gli errori YAML prima di applicare le modifiche"
     }
   ],
   "dnXgff": [
@@ -10066,7 +10612,7 @@
   "dwkMC2": [
     {
       "type": 0,
-      "value": "Score agent quality"
+      "value": "Assegnare un punteggio alla qualità dell'agente"
     }
   ],
   "e0a3XV": [
@@ -10090,7 +10636,7 @@
   "eCZ0j1": [
     {
       "type": 0,
-      "value": "Open Todo Plans"
+      "value": "Apri piani Todo"
     }
   ],
   "eEu4cm": [
@@ -10144,7 +10690,7 @@
   "eYClyG": [
     {
       "type": 0,
-      "value": "Capture AI-driven insights on confidence and next tweaks."
+      "value": "Acquisisci informazioni dettagliate basate su IA sull'attendibilità e sulle prossime modifiche."
     }
   ],
   "eYEnNu": [
@@ -10174,7 +10720,7 @@
   "ee4AUg": [
     {
       "type": 0,
-      "value": "Scheduled task turned on successfully"
+      "value": "L'attività pianificata è stata attivata"
     }
   ],
   "egubDj": [
@@ -10184,7 +10730,7 @@
     },
     {
       "type": 0,
-      "value": "% confidence"
+      "value": "% di attendibilità"
     }
   ],
   "ehbsXg": [
@@ -10199,6 +10745,12 @@
       "value": "Aggiungi tutto"
     }
   ],
+  "ekSxhn": [
+    {
+      "type": 0,
+      "value": "Connectors give the agent more tools to take action."
+    }
+  ],
   "emW/QQ": [
     {
       "type": 0,
@@ -10208,7 +10760,7 @@
   "ene/8x": [
     {
       "type": 0,
-      "value": "Tune agent behavior in a safe space before you publish changes."
+      "value": "Ottimizzare il comportamento dell'agente in uno spazio sicuro prima di pubblicare le modifiche."
     }
   ],
   "eq57j2": [
@@ -10269,6 +10821,12 @@
       "value": "Immettere la stringa di connessione o l'endpoint"
     }
   ],
+  "f04POI": [
+    {
+      "type": 0,
+      "value": "Tool created successfully"
+    }
+  ],
   "f0LQra": [
     {
       "type": 0,
@@ -10284,7 +10842,7 @@
   "f0Sf6g": [
     {
       "type": 0,
-      "value": "Add a file"
+      "value": "Aggiungi un file"
     }
   ],
   "f0Y4Zr": [
@@ -10302,7 +10860,7 @@
   "f6xT1Y": [
     {
       "type": 0,
-      "value": "Scheduled task(s) turned on successfully"
+      "value": "Attività pianificate attivate correttamente"
     }
   ],
   "f7Zx3L": [
@@ -10314,13 +10872,19 @@
   "f9xN/g": [
     {
       "type": 0,
-      "value": "Rising Specialist"
+      "value": "Specialista emergente"
+    }
+  ],
+  "fCiXKq": [
+    {
+      "type": 0,
+      "value": "Add scheduled task"
     }
   ],
   "fE5E6W": [
     {
       "type": 0,
-      "value": "How do you want to get started?"
+      "value": "Come si vuole iniziare?"
     }
   ],
   "fEYQWU": [
@@ -10344,13 +10908,13 @@
   "fHE7i7": [
     {
       "type": 0,
-      "value": "Code optimizations"
+      "value": "Ottimizzazioni del codice"
     }
   ],
   "fINN7t": [
     {
       "type": 0,
-      "value": "Insights: "
+      "value": "Informazioni dettagliate: "
     },
     {
       "type": 1,
@@ -10411,6 +10975,12 @@
       "value": "Esiste già un agente secondario con questo nome"
     }
   ],
+  "fiLH5L": [
+    {
+      "type": 0,
+      "value": "To create a Kusto tool, first add an Azure Data Explorer connector."
+    }
+  ],
   "fio5op": [
     {
       "type": 0,
@@ -10420,7 +10990,7 @@
   "fjOQVZ": [
     {
       "type": 0,
-      "value": "Learn more about incident platform integration"
+      "value": "Altre informazioni sull'integrazione della piattaforma di gestione degli incidenti"
     }
   ],
   "fjgqNG": [
@@ -10442,7 +11012,7 @@
   "fr6Gnj": [
     {
       "type": 0,
-      "value": "Change AAU allocation"
+      "value": "Modifica allocazione AAU"
     }
   ],
   "fssuHC": [
@@ -10502,7 +11072,7 @@
   "g4II+z": [
     {
       "type": 0,
-      "value": "e.g. 0 0 * * *"
+      "value": "Ad es. 0 0 * * *"
     }
   ],
   "g7HOVb": [
@@ -10526,19 +11096,19 @@
   "gD6r6x": [
     {
       "type": 0,
-      "value": "Day of week"
+      "value": "Giorno della settimana"
     }
   ],
   "gDVRX+": [
     {
       "type": 0,
-      "value": "Drag files here or"
+      "value": "Trascinare i file qui o"
     }
   ],
   "gGfQUL": [
     {
       "type": 0,
-      "value": "Warm-up scenario"
+      "value": "Scenario di riscaldamento"
     }
   ],
   "gHCL4X": [
@@ -10583,6 +11153,12 @@
       "value": "Gestire i dispositivi gemelli dell'hub IoT."
     }
   ],
+  "gclDgn": [
+    {
+      "type": 0,
+      "value": "Create a Kusto tool"
+    }
+  ],
   "gct+2s": [
     {
       "type": 0,
@@ -10599,6 +11175,12 @@
     {
       "type": 0,
       "value": "ID thread"
+    }
+  ],
+  "ghwElt": [
+    {
+      "type": 0,
+      "value": "Visit Support + Troubleshooting to access support resources and troubleshoot issues related to your SRE Agent."
     }
   ],
   "gj6Qc6": [
@@ -10625,10 +11207,16 @@
       "value": "Sono necessarie le autorizzazioni per configurare un dashboard di Grafana."
     }
   ],
+  "gox4oK": [
+    {
+      "type": 0,
+      "value": "Enter the database name"
+    }
+  ],
   "grgDhd": [
     {
       "type": 0,
-      "value": "Failed to load scheduled tasks: "
+      "value": "Non è stato possibile caricare le attività pianificate: "
     },
     {
       "type": 1,
@@ -10710,13 +11298,19 @@
   "h+sisx": [
     {
       "type": 0,
-      "value": "Author and Test - Configure and test"
+      "value": "Creazione e test - Configurazione e test"
+    }
+  ],
+  "h/OQTK": [
+    {
+      "type": 0,
+      "value": "Use ##ParamName## in your query to define parameter placeholders."
     }
   ],
   "h0W8DM": [
     {
       "type": 0,
-      "value": "Time of day"
+      "value": "Ora del giorno"
     }
   ],
   "h4BqRo": [
@@ -10732,7 +11326,7 @@
   "h4XDJP": [
     {
       "type": 0,
-      "value": "Symptoms:"
+      "value": "Sintomi:"
     }
   ],
   "h6183G": [
@@ -10753,6 +11347,12 @@
     {
       "type": 0,
       "value": "\" non è stato trovato"
+    }
+  ],
+  "hF/2EL": [
+    {
+      "type": 0,
+      "value": "Handoff Instructions"
     }
   ],
   "hF5T80": [
@@ -10842,13 +11442,13 @@
   "haOtj7": [
     {
       "type": 0,
-      "value": "System tools are read-only. View the YAML for reference."
+      "value": "Gli strumenti di sistema sono di sola lettura. Visualizzare il YAML per riferimento."
     }
   ],
   "heMr0D": [
     {
       "type": 0,
-      "value": "How well your agent is meeting user intents based on chat interactions. Updates after conversations."
+      "value": "L'agente sta rispettando le finalità dell'utente in base alle interazioni tramite chat. Aggiornamenti dopo le conversazioni."
     }
   ],
   "hfACn+": [
@@ -10872,7 +11472,7 @@
   "hgAzMV": [
     {
       "type": 0,
-      "value": "Remove file"
+      "value": "Rimuovi file"
     }
   ],
   "hijOHm": [
@@ -10884,7 +11484,7 @@
   "hkgUC5": [
     {
       "type": 0,
-      "value": "No parameters required for this tool."
+      "value": "Non sono necessari parametri per questo strumento."
     }
   ],
   "hlmkcL": [
@@ -10897,6 +11497,12 @@
     {
       "type": 0,
       "value": "Risorsa di Grafana"
+    }
+  ],
+  "hqWr3L": [
+    {
+      "type": 0,
+      "value": "RCA category"
     }
   ],
   "hrdmcd": [
@@ -10914,7 +11520,7 @@
   "hzElIu": [
     {
       "type": 0,
-      "value": "No files match your search"
+      "value": "Nessun file corrispondente alla ricerca"
     }
   ],
   "hzSNj4": [
@@ -10944,7 +11550,7 @@
   "iDPKM0": [
     {
       "type": 0,
-      "value": "Filter tasks"
+      "value": "Filtrare le attività"
     }
   ],
   "iDSWYk": [
@@ -10962,19 +11568,27 @@
   "iJ+eDu": [
     {
       "type": 0,
-      "value": "Failed to load data"
+      "value": "Non è stato possibile caricare i dati"
     }
   ],
   "iJCsVz": [
     {
       "type": 0,
-      "value": "Not yet published"
+      "value": "Non ancora pubblicato"
     }
   ],
-  "iMBgdL": [
+  "iMaY2Q": [
     {
       "type": 0,
-      "value": "Strumento Kusto"
+      "value": "Stopping SRE Agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " in progress"
     }
   ],
   "iNgloh": [
@@ -10992,7 +11606,13 @@
   "iXNbPf": [
     {
       "type": 0,
-      "value": "Rename"
+      "value": "Rinomina"
+    }
+  ],
+  "iY7P1k": [
+    {
+      "type": 0,
+      "value": "Agent Autonomy"
     }
   ],
   "iZDRGO": [
@@ -11013,16 +11633,10 @@
       "value": "Nome della risorsa del gruppo di applicazioni di base"
     }
   ],
-  "ic8SAj": [
-    {
-      "type": 0,
-      "value": "Oppure"
-    }
-  ],
   "icyjmd": [
     {
       "type": 0,
-      "value": "To-Do Plan"
+      "value": "Piano ToDo"
     }
   ],
   "ielB5f": [
@@ -11037,10 +11651,16 @@
       "value": "Comando copy"
     }
   ],
+  "ifdupA": [
+    {
+      "type": 0,
+      "value": "To view runs, go to Agent Runs"
+    }
+  ],
   "iihhVc": [
     {
       "type": 0,
-      "value": "Quality Evaluation"
+      "value": "Valutazione della qualità"
     }
   ],
   "ijOojL": [
@@ -11078,7 +11698,7 @@
   "isZXYe": [
     {
       "type": 0,
-      "value": "Applying…"
+      "value": "Applicazione in corso…"
     }
   ],
   "it6Lig": [
@@ -11155,6 +11775,12 @@
       "value": "Non sono disponibili strumenti estesi."
     }
   ],
+  "j1pB0w": [
+    {
+      "type": 0,
+      "value": "Go to Agent Consumption"
+    }
+  ],
   "j3bwJQ": [
     {
       "type": 0,
@@ -11227,6 +11853,48 @@
       "value": "Nessuna categoria di analisi della causa principale trovata"
     }
   ],
+  "jSgRib": [
+    {
+      "type": 0,
+      "value": "Your knowledge base has "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "document"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "documents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ". Add more?"
+    }
+  ],
   "jTQZpk": [
     {
       "type": 0,
@@ -11243,6 +11911,12 @@
     {
       "type": 0,
       "value": "Non sono disponibili le autorizzazioni per modificare i piani di risposta."
+    }
+  ],
+  "ja85pV": [
+    {
+      "type": 0,
+      "value": "Add Documents"
     }
   ],
   "jabB4C": [
@@ -11306,7 +11980,7 @@
   "jw1Wpc": [
     {
       "type": 0,
-      "value": "Deleting incident "
+      "value": "Eliminazione dell'incidente "
     },
     {
       "type": 1,
@@ -11338,7 +12012,7 @@
   "k4dB65": [
     {
       "type": 0,
-      "value": "This will create both your agent (\""
+      "value": "Verranno creati sia l'agente (\""
     },
     {
       "type": 1,
@@ -11346,7 +12020,7 @@
     },
     {
       "type": 0,
-      "value": "\") and a separate \"meta_agent\" for orchestration."
+      "value": "\") che un \"meta_agent\" separato per l'orchestrazione."
     }
   ],
   "k5T5VE": [
@@ -11359,6 +12033,12 @@
     {
       "type": 0,
       "value": "ID avviso"
+    }
+  ],
+  "kFkPWB": [
+    {
+      "type": 0,
+      "value": "Number"
     }
   ],
   "kG0ZtT": [
@@ -11376,7 +12056,7 @@
   "kNEmDU": [
     {
       "type": 0,
-      "value": "Goal: 85%+ confidence"
+      "value": "Obiettivo: attendibilità maggiore dell'85%"
     }
   ],
   "kQAf2d": [
@@ -11394,7 +12074,7 @@
   "kT9YDi": [
     {
       "type": 0,
-      "value": "You do not have permission to rename this thread."
+      "value": "Non si è autorizzati a rinominare questo thread."
     }
   ],
   "kWBrry": [
@@ -11425,6 +12105,12 @@
       "value": "failedFiles"
     }
   ],
+  "ketkP5": [
+    {
+      "type": 0,
+      "value": "Knowledge Base Enabled"
+    }
+  ],
   "khOzXi": [
     {
       "type": 0,
@@ -11440,7 +12126,7 @@
   "ko0rr4": [
     {
       "type": 0,
-      "value": "Update the data connector configuration."
+      "value": "Aggiornare la configurazione del connettore dati."
     }
   ],
   "koWZK8": [
@@ -11499,10 +12185,16 @@
       "value": "Response plan saved successfully"
     }
   ],
+  "kxokJj": [
+    {
+      "type": 0,
+      "value": "Agent datagrid"
+    }
+  ],
   "l+e8nZ": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the selected scheduled task(s)? This action cannot be undone."
+      "value": "Eliminare le attività pianificate selezionate? Questa azione non può essere annullata."
     }
   ],
   "l0TtPi": [
@@ -11527,16 +12219,28 @@
       "value": " gruppo di risorse selezionato."
     }
   ],
+  "l0UKyP": [
+    {
+      "type": 0,
+      "value": "Azure Data Explorer"
+    }
+  ],
+  "l0VCdV": [
+    {
+      "type": 0,
+      "value": "Create tool"
+    }
+  ],
   "l2Ni9H": [
     {
       "type": 0,
-      "value": "Chat preview is only available for agents."
+      "value": "L'anteprima della chat è disponibile solo per gli agenti."
     }
   ],
   "l5a3zV": [
     {
       "type": 0,
-      "value": "Make a copy"
+      "value": "Crea una copia"
     }
   ],
   "l5sNim": [
@@ -11656,7 +12360,7 @@
   "lxblgl": [
     {
       "type": 0,
-      "value": "Wednesday"
+      "value": "Mercoledì"
     }
   ],
   "m+cdhC": [
@@ -11675,6 +12379,12 @@
     {
       "type": 0,
       "value": "Non sono disponibili strumenti. Provare a crearne uno o a cancellare i filtri."
+    }
+  ],
+  "m4vqJl": [
+    {
+      "type": 0,
+      "value": "Files"
     }
   ],
   "m57OnF": [
@@ -11706,7 +12416,7 @@
   "mAinBm": [
     {
       "type": 0,
-      "value": "Automatically push YAML edits to the agent during testing."
+      "value": "Eseguire automaticamente il push delle modifiche YAML all'agente durante il test."
     }
   ],
   "mAyw3x": [
@@ -11736,7 +12446,7 @@
   "mJR06P": [
     {
       "type": 0,
-      "value": "Sunday"
+      "value": "Domenica"
     }
   ],
   "mJXXeS": [
@@ -11748,7 +12458,7 @@
   "mMgwbu": [
     {
       "type": 0,
-      "value": "Undo (10s)"
+      "value": "Annulla (10 s)"
     }
   ],
   "mOFG3K": [
@@ -11864,7 +12574,7 @@
   "methez": [
     {
       "type": 0,
-      "value": "Max tier achieved—keep refining to stay ahead."
+      "value": "Livello massimo raggiunto: continua a perfezionare per rimanere al passo."
     }
   ],
   "mgYBYo": [
@@ -11882,7 +12592,7 @@
   "mhKk7c": [
     {
       "type": 0,
-      "value": "Create new Kusto tool"
+      "value": "Creare nuovo strumento Kusto"
     }
   ],
   "mkhNnB": [
@@ -11901,6 +12611,12 @@
     {
       "type": 0,
       "value": "Filtra per mitigazione da"
+    }
+  ],
+  "moOg2N": [
+    {
+      "type": 0,
+      "value": "Outlook"
     }
   ],
   "mopY52": [
@@ -12012,7 +12728,7 @@
   "nFpcjX": [
     {
       "type": 0,
-      "value": "Auto-generated"
+      "value": "Generato automaticamente"
     }
   ],
   "nL/Owh": [
@@ -12074,7 +12790,7 @@
   "nkYx6+": [
     {
       "type": 0,
-      "value": "Disconnect "
+      "value": "Disconnettere "
     },
     {
       "type": 1,
@@ -12082,7 +12798,7 @@
     },
     {
       "type": 0,
-      "value": " data connectors?"
+      "value": " connettori dati?"
     }
   ],
   "nmpevl": [
@@ -12100,7 +12816,7 @@
   "noxLT+": [
     {
       "type": 0,
-      "value": "Apply fixes"
+      "value": "Applica correzioni"
     }
   ],
   "npvxpr": [
@@ -12130,7 +12846,7 @@
   "nx7y+W": [
     {
       "type": 0,
-      "value": "Re-run insights"
+      "value": "Eseguire nuovamente le informazioni dettagliate"
     }
   ],
   "nxmZHP": [
@@ -12166,7 +12882,7 @@
   "o3uElD": [
     {
       "type": 0,
-      "value": "Add data connector"
+      "value": "Aggiungi connettore dati"
     }
   ],
   "o7TUwc": [
@@ -12190,7 +12906,7 @@
   "oBxxMY": [
     {
       "type": 0,
-      "value": "Failed to delete all "
+      "value": "Non è stato possibile eliminare tutti i "
     },
     {
       "type": 1,
@@ -12198,7 +12914,7 @@
     },
     {
       "type": 0,
-      "value": " data connectors"
+      "value": " connettori dati"
     }
   ],
   "oDI/Rp": [
@@ -12229,6 +12945,12 @@
       "value": "Per monitorare e rispondere alle attività e agli incidenti nelle risorse di Azure, l'agente deve accedere alle sottoscrizioni, ai gruppi di risorse e ai servizi specifici consentiti."
     }
   ],
+  "oHGFwy": [
+    {
+      "type": 0,
+      "value": "Sign in with a different account"
+    }
+  ],
   "oKJ0fm": [
     {
       "type": 0,
@@ -12244,7 +12966,7 @@
   "oMsZ4g": [
     {
       "type": 0,
-      "value": "Day of month"
+      "value": "Giorno del mese"
     }
   ],
   "oQ/TUW": [
@@ -12256,7 +12978,7 @@
   "oQJEFn": [
     {
       "type": 0,
-      "value": "Performance Issue"
+      "value": "Problema di prestazioni"
     }
   ],
   "oTNrPz": [
@@ -12268,7 +12990,7 @@
   "oTOgOq": [
     {
       "type": 0,
-      "value": "Loading MCP tools..."
+      "value": "Caricamento degli strumenti MCP in corso..."
     }
   ],
   "oUWADl": [
@@ -12298,7 +13020,7 @@
   "ob6s4+": [
     {
       "type": 0,
-      "value": "Deny assignment"
+      "value": "Assegnazione di rifiuto"
     }
   ],
   "obRqDQ": [
@@ -12338,7 +13060,7 @@
   "osuyeD": [
     {
       "type": 0,
-      "value": "Out of date"
+      "value": "Non aggiornato"
     }
   ],
   "ovJ26C": [
@@ -12422,13 +13144,13 @@
   "p8Ubox": [
     {
       "type": 0,
-      "value": "Connect an incident management platform so the agent will collect, analyze, and respond to alerts."
+      "value": "Connettere una piattaforma di gestione degli incidenti in modo che l'agente raccolga, analizzi e risponda agli avvisi."
     }
   ],
   "pA7W9m": [
     {
       "type": 0,
-      "value": "Intent Met Score"
+      "value": "Punteggio raggiunto finalità"
     }
   ],
   "pAFuFx": [
@@ -12458,7 +13180,7 @@
   "pCjcdM": [
     {
       "type": 0,
-      "value": "Prompt highlights"
+      "value": "Highlights richieste"
     }
   ],
   "pDUFq5": [
@@ -12476,7 +13198,7 @@
   "pFnETG": [
     {
       "type": 0,
-      "value": "Failed to rename thread with error: "
+      "value": "Non è stato possibile rinominare il thread con l'errore: "
     },
     {
       "type": 1,
@@ -12559,10 +13281,28 @@
       "value": "Gruppo di applicazioni di base"
     }
   ],
+  "pgIRcn": [
+    {
+      "type": 0,
+      "value": "Enter a string"
+    }
+  ],
   "piCpTn": [
     {
       "type": 0,
       "value": "Una volta eseguito il provisioning e il collegamento di un dashboard Grafana, il popolamento completo del dashboard da parte delle risorse potrebbe richiedere qualche minuto."
+    }
+  ],
+  "plun1b": [
+    {
+      "type": 0,
+      "value": "Hand-off"
+    }
+  ],
+  "pndXMi": [
+    {
+      "type": 0,
+      "value": "Enter a value"
     }
   ],
   "pnlHOZ": [
@@ -12590,7 +13330,7 @@
     },
     {
       "type": 0,
-      "value": " since last run"
+      "value": " dall'ultima esecuzione"
     }
   ],
   "ppARxn": [
@@ -12603,6 +13343,12 @@
     {
       "type": 0,
       "value": "Collega strumento"
+    }
+  ],
+  "pqedsA": [
+    {
+      "type": 0,
+      "value": "Mute all warnings"
     }
   ],
   "pqgzm0": [
@@ -12626,7 +13372,7 @@
   "puQ/kF": [
     {
       "type": 0,
-      "value": "Loading chat threads"
+      "value": "Caricamento dei thread di chat"
     }
   ],
   "pyXjlj": [
@@ -12656,13 +13402,25 @@
   "qAhUUO": [
     {
       "type": 0,
-      "value": "Thursday"
+      "value": "Giovedì"
+    }
+  ],
+  "qB4s5L": [
+    {
+      "type": 0,
+      "value": "Add parameter"
+    }
+  ],
+  "qDwvZ4": [
+    {
+      "type": 0,
+      "value": "Unknown error"
     }
   ],
   "qQh4Xu": [
     {
       "type": 0,
-      "value": "The agent references documentation and files to understand your projects and processes."
+      "value": "L'agente fa riferimento alla documentazione e ai file per comprendere i progetti e i processi."
     }
   ],
   "qavd9Y": [
@@ -12698,7 +13456,7 @@
   "qh9t2U": [
     {
       "type": 0,
-      "value": "Connect to agent"
+      "value": "Connettersi all'agente"
     }
   ],
   "qhApmK": [
@@ -12740,13 +13498,13 @@
   "qquh75": [
     {
       "type": 0,
-      "value": "Select a linked tool to edit"
+      "value": "Selezionare uno strumento collegato da modificare"
     }
   ],
   "qs5hhk": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the selected incident thread?"
+      "value": "Eliminare il thread di incidenti selezionato?"
     }
   ],
   "qvTohT": [
@@ -12798,7 +13556,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes selected"
+              "value": " correzioni rapide selezionate"
             }
           ]
         },
@@ -12809,7 +13567,7 @@
             },
             {
               "type": 0,
-              "value": " quick fix selected"
+              "value": " correzione rapida selezionata"
             }
           ]
         },
@@ -12820,7 +13578,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes selected"
+              "value": " correzioni rapide selezionate"
             }
           ]
         }
@@ -12833,7 +13591,7 @@
   "r2cpCI": [
     {
       "type": 0,
-      "value": "Evaluating agent…"
+      "value": "Valutazione dell'agente in corso..."
     }
   ],
   "r2x5ZI": [
@@ -12863,7 +13621,7 @@
   "rBhkvO": [
     {
       "type": 0,
-      "value": "This will permanently delete the file from the knowledge sources the agent uses. Are you sure you want to delete this file?"
+      "value": "Il file verrà eliminato definitivamente dalle fonti delle informazioni usate dall'agente. Eliminare questo file?"
     }
   ],
   "rELDbB": [
@@ -12961,13 +13719,13 @@
   "rU0caB": [
     {
       "type": 0,
-      "value": "Update AAU allocation"
+      "value": "Aggiornare l'allocazione di AAU"
     }
   ],
   "rVbKiP": [
     {
       "type": 0,
-      "value": "Continue editing"
+      "value": "Continua modifica"
     }
   ],
   "rVtn/e": [
@@ -13016,10 +13774,22 @@
       "value": "L'agente può proporre azioni ma richiede l'approvazione prima dell'esecuzione"
     }
   ],
+  "rdsirP": [
+    {
+      "type": 0,
+      "value": "The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and acrtions."
+    }
+  ],
   "rhSI1/": [
     {
       "type": 0,
       "value": "Modello"
+    }
+  ],
+  "ri3YXY": [
+    {
+      "type": 0,
+      "value": "Add a connector"
     }
   ],
   "riEsC7": [
@@ -13061,7 +13831,7 @@
   "rlwohK": [
     {
       "type": 0,
-      "value": "Documentation connector"
+      "value": "Connettore della documentazione"
     }
   ],
   "rpG/Bn": [
@@ -13091,7 +13861,7 @@
   "rrQX3M": [
     {
       "type": 0,
-      "value": "Score this agent and get tailored fixes."
+      "value": "Assegnare un punteggio a questo agente e ottenere correzioni personalizzate."
     }
   ],
   "rvirM2": [
@@ -13135,33 +13905,29 @@
   "s00xPm": [
     {
       "type": 0,
-      "value": "Learn more about knowledge sources"
+      "value": "Altre informazioni sulle fonti di informazioni"
     }
   ],
   "s04Z5U": [
-    {
-      "type": 0,
-      "value": "This will permanently disconnect "
-    },
     {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " data connectors from the agent. Are you sure you want to disconnect these data connectors?"
+      "value": " connettori dati verranno disconnessi definitivamente dall'agente. Disconnettere questi connettori dati?"
     }
   ],
   "s2GWth": [
     {
       "type": 0,
-      "value": "Intent Match (1-5)"
+      "value": "Corrispondenza finalità (1-5)"
     }
   ],
   "s2XIgr": [
     {
       "type": 0,
-      "value": "Show details"
+      "value": "Mostra dettagli"
     }
   ],
   "s6iZgz": [
@@ -13179,7 +13945,7 @@
   "s7HLdg": [
     {
       "type": 0,
-      "value": "Run deep investigation autonomously"
+      "value": "Eseguire un'indagine approfondita in modo autonomo"
     }
   ],
   "s8HBot": [
@@ -13225,13 +13991,13 @@
   "sI/fs2": [
     {
       "type": 0,
-      "value": "Use same thread"
+      "value": "Usare lo stesso thread"
     }
   ],
   "sILeXv": [
     {
       "type": 0,
-      "value": "Root Cause:"
+      "value": "Causa principale:"
     }
   ],
   "sIMS7i": [
@@ -13247,7 +14013,7 @@
     },
     {
       "type": 0,
-      "value": " is a system tool and cannot be run from the playground yet."
+      "value": " è uno strumento di sistema e non può ancora essere eseguito dal playground."
     }
   ],
   "sNofwe": [
@@ -13265,7 +14031,7 @@
   "sNuzQE": [
     {
       "type": 0,
-      "value": "No nodes found"
+      "value": "Nessun nodo trovato"
     }
   ],
   "sQZhm1": [
@@ -13283,7 +14049,7 @@
   "sRU00i": [
     {
       "type": 0,
-      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
+      "value": "Per assegnare i gruppi di risorse gestiti dall'agente tra sottoscrizioni, sono necessarie le autorizzazioni di Proprietario o Amministratore accesso utenti per tali gruppi di risorse. Le risorse agente e i gruppi di risorse gestite possono essere in aree e sottoscrizioni diverse."
     }
   ],
   "sRb5P9": [
@@ -13341,7 +14107,7 @@
   "sXiGbo": [
     {
       "type": 0,
-      "value": "Add file"
+      "value": "Aggiungi file"
     }
   ],
   "sZIoMy": [
@@ -13416,6 +14182,12 @@
       "value": "agente"
     }
   ],
+  "spEwRf": [
+    {
+      "type": 0,
+      "value": "You have warnings regarding your agent."
+    }
+  ],
   "sqGM6w": [
     {
       "type": 0,
@@ -13437,13 +14209,13 @@
   "ssDQgc": [
     {
       "type": 0,
-      "value": "Tools from Model Context Protocol (MCP) servers. These tools are grouped by connection and loaded from connected servers such."
+      "value": "Strumenti dai server Model Context Protocol (MCP). Questi strumenti sono raggruppati per connessione e caricati da server connessi, ad esempio."
     }
   ],
   "strvmG": [
     {
       "type": 0,
-      "value": "Every hour"
+      "value": "Ogni ora"
     }
   ],
   "swRudj": [
@@ -13458,6 +14230,12 @@
       "value": "Dopo aver connesso la piattaforma, creare piani di risposta agli incidenti e piani di risposta personalizzati in modo che l'agente possa rispondere agli incidenti."
     }
   ],
+  "swe9tO": [
+    {
+      "type": 0,
+      "value": "Run a test first to validate the query and ensure the agent can access Azure Data Explorer."
+    }
+  ],
   "sy7vzf": [
     {
       "type": 0,
@@ -13467,7 +14245,7 @@
   "t+IV9f": [
     {
       "type": 0,
-      "value": "Agent at "
+      "value": "Agente alle "
     },
     {
       "type": 1,
@@ -13597,7 +14375,7 @@
   "tTVtNj": [
     {
       "type": 0,
-      "value": "Set a run limit"
+      "value": "Impostare un limite di esecuzione"
     }
   ],
   "tU3A8E": [
@@ -13623,7 +14401,7 @@
   "tZmd+w": [
     {
       "type": 0,
-      "value": "Connect a data source"
+      "value": "Connettere un'origine dati"
     }
   ],
   "tb6uBb": [
@@ -13663,7 +14441,7 @@
   "tbxHpV": [
     {
       "type": 0,
-      "value": "Validate how the agent summarizes risk and next steps for leadership updates."
+      "value": "Verificare il modo in cui l'agente riepiloga i rischi e i passaggi successivi per gli aggiornamenti della dirigenza."
     }
   ],
   "tfuXMw": [
@@ -13695,13 +14473,13 @@
   "tjklHQ": [
     {
       "type": 0,
-      "value": "Experiment with your agent's configuration and see real-time results"
+      "value": "Sperimentare la configurazione dell'agente e visualizzare i risultati in tempo reale"
     }
   ],
   "tkr5bn": [
     {
       "type": 0,
-      "value": "Turn off scheduled task(s)"
+      "value": "Disattiva attività pianificate"
     }
   ],
   "trPabo": [
@@ -13713,7 +14491,7 @@
   "ts7YvN": [
     {
       "type": 0,
-      "value": "Repeat until"
+      "value": "Ripeti fino a"
     }
   ],
   "tshYzs": [
@@ -13726,6 +14504,12 @@
     {
       "type": 0,
       "value": "Disabilitato"
+    }
+  ],
+  "tu6JYo": [
+    {
+      "type": 0,
+      "value": "Start agent"
     }
   ],
   "tujypD": [
@@ -13747,7 +14531,7 @@
   "txLniB": [
     {
       "type": 0,
-      "value": "Learn more about code optimizations"
+      "value": "Altre informazioni sulle ottimizzazioni del codice"
     }
   ],
   "tyJNW5": [
@@ -13801,7 +14585,7 @@
   "u60c6a": [
     {
       "type": 0,
-      "value": "Run insights to see guidance for this configuration."
+      "value": "Eseguire informazioni dettagliate per visualizzare le indicazioni per questa configurazione."
     }
   ],
   "u64mw7": [
@@ -13905,7 +14689,7 @@
             },
             {
               "type": 0,
-              "value": " confidence points to reach "
+              "value": " punti di attendibilità per raggiungere "
             },
             {
               "type": 1,
@@ -13924,7 +14708,7 @@
             },
             {
               "type": 0,
-              "value": " confidence point to reach "
+              "value": " punto di attendibilità per raggiungere "
             },
             {
               "type": 1,
@@ -13943,7 +14727,7 @@
             },
             {
               "type": 0,
-              "value": " confidence points to reach "
+              "value": " punti di attendibilità per raggiungere "
             },
             {
               "type": 1,
@@ -14001,6 +14785,12 @@
       "value": "Creare piani di risposta agli incidenti o attività pianificate per attivare automaticamente gli agenti."
     }
   ],
+  "ueVpay": [
+    {
+      "type": 0,
+      "value": "Refining..."
+    }
+  ],
   "ug01Mk": [
     {
       "type": 0,
@@ -14010,7 +14800,7 @@
   "ukQpDs": [
     {
       "type": 0,
-      "value": "Folder"
+      "value": "Cartella"
     }
   ],
   "uld/2m": [
@@ -14040,25 +14830,25 @@
   "us/IXr": [
     {
       "type": 0,
-      "value": "Are you sure you want to delete the selected incident threads?"
+      "value": "Eliminare i thread di incidenti selezionati?"
     }
   ],
   "uudb6D": [
     {
       "type": 0,
-      "value": "Data Source"
+      "value": "Origine dati"
     }
   ],
   "uva2Xo": [
     {
       "type": 0,
-      "value": "Get more details about these insights"
+      "value": "Ottenere altri dettagli su queste informazioni dettagliate"
     }
   ],
   "uwY8Nf": [
     {
       "type": 0,
-      "value": "Refine with AI"
+      "value": "Perfezionare con l'intelligenza artificiale"
     }
   ],
   "uyO1AJ": [
@@ -14088,7 +14878,13 @@
   "v3xWf6": [
     {
       "type": 0,
-      "value": "Expand configuration panel"
+      "value": "Espandere il pannello di configurazione"
+    }
+  ],
+  "v6cujo": [
+    {
+      "type": 0,
+      "value": "Kusto tool"
     }
   ],
   "v8cTK0": [
@@ -14112,7 +14908,7 @@
   "vAW30j": [
     {
       "type": 0,
-      "value": "Frequency"
+      "value": "Frequenza"
     }
   ],
   "vAWzLN": [
@@ -14124,7 +14920,7 @@
   "vB/Cv7": [
     {
       "type": 0,
-      "value": "Memory usage insights"
+      "value": "Informazioni dettagliate sull'utilizzo della memoria"
     }
   ],
   "vCAhII": [
@@ -14148,13 +14944,13 @@
   "vG08m6": [
     {
       "type": 0,
-      "value": "Improve your agent prompt to increase confidence"
+      "value": "Migliorare la richiesta dell'agente per aumentare l'attendibilità"
     }
   ],
   "vIBOch": [
     {
       "type": 0,
-      "value": "Auto apply"
+      "value": "Applica automaticamente"
     }
   ],
   "vPX3R3": [
@@ -14163,10 +14959,16 @@
       "value": "Non sono disponibili le autorizzazioni per disattivare i piani di risposta."
     }
   ],
+  "vS6Lmt": [
+    {
+      "type": 0,
+      "value": "Incident triggers"
+    }
+  ],
   "vSW3OF": [
     {
       "type": 0,
-      "value": "Failed to update task: "
+      "value": "Non è stato possibile aggiornare l'attività: "
     },
     {
       "type": 1,
@@ -14176,7 +14978,7 @@
   "vV67Wm": [
     {
       "type": 0,
-      "value": "Failed to turn on task: "
+      "value": "Non è stato possibile attivare l'attività: "
     },
     {
       "type": 1,
@@ -14204,7 +15006,7 @@
   "vZWQHk": [
     {
       "type": 0,
-      "value": "Edit existing"
+      "value": "Modifica esistente"
     }
   ],
   "vao/Lv": [
@@ -14252,13 +15054,13 @@
   "vsQnBO": [
     {
       "type": 0,
-      "value": "Blocking usage insights"
+      "value": "Blocco delle informazioni dettagliate sull'utilizzo"
     }
   ],
   "vz94UY": [
     {
       "type": 0,
-      "value": "Fresh • "
+      "value": "Nuovo • "
     },
     {
       "type": 1,
@@ -14286,7 +15088,7 @@
   "w5FDGY": [
     {
       "type": 0,
-      "value": "Update scheduled task"
+      "value": "Aggiorna attività pianificata"
     }
   ],
   "w6nz4p": [
@@ -14298,7 +15100,7 @@
   "w87Yom": [
     {
       "type": 0,
-      "value": "Agent tools"
+      "value": "Strumenti per agenti"
     }
   ],
   "w8UjdT": [
@@ -14316,7 +15118,7 @@
   "wBgTQg": [
     {
       "type": 0,
-      "value": "Author, Test & Evaluate - Full workflow"
+      "value": "Creazione, test e valutazione - Flusso di lavoro completo"
     }
   ],
   "wEQDC6": [
@@ -14334,7 +15136,7 @@
   "wGLrHW": [
     {
       "type": 0,
-      "value": "User at "
+      "value": "Utente alle "
     },
     {
       "type": 1,
@@ -14350,7 +15152,7 @@
   "wI+r41": [
     {
       "type": 0,
-      "value": "More tools"
+      "value": "Altri strumenti"
     }
   ],
   "wL7VAE": [
@@ -14395,6 +15197,12 @@
       "value": "Invia"
     }
   ],
+  "wUnPMf": [
+    {
+      "type": 0,
+      "value": "Users without one of the required Azure role-based access control (RBAC) roles will not have access to Azure SRE Agent."
+    }
+  ],
   "wVpXzO": [
     {
       "type": 0,
@@ -14410,7 +15218,7 @@
   "wYsv4Z": [
     {
       "type": 0,
-      "value": "Monthly"
+      "value": "Mensile"
     }
   ],
   "wb/AUH": [
@@ -14428,7 +15236,7 @@
   "wbwhbH": [
     {
       "type": 0,
-      "value": "Task name"
+      "value": "Nome attività"
     }
   ],
   "we4Lby": [
@@ -14456,7 +15264,7 @@
     },
     {
       "type": 0,
-      "value": " is at "
+      "value": " è al "
     },
     {
       "type": 1,
@@ -14464,19 +15272,19 @@
     },
     {
       "type": 0,
-      "value": "%. Continue refining to move toward the next tier."
+      "value": "%. Continuare a perfezionare per passare al livello successivo."
     }
   ],
   "wjfh7Z": [
     {
       "type": 0,
-      "value": "Tester - Test your agent"
+      "value": "Tester - Testare l'agente"
     }
   ],
   "wk6Nft": [
     {
       "type": 0,
-      "value": "Begin editing the current configuration in the playground."
+      "value": "Iniziare a modificare la configurazione corrente nel playground."
     }
   ],
   "wkLkeE": [
@@ -14545,6 +15353,12 @@
       "value": "incidenti segnalati"
     }
   ],
+  "xEjqoV": [
+    {
+      "type": 0,
+      "value": "Click here to learn more"
+    }
+  ],
   "xGPsyJ": [
     {
       "type": 0,
@@ -14554,13 +15368,13 @@
   "xHpwlo": [
     {
       "type": 0,
-      "value": "File Name"
+      "value": "Nome file"
     }
   ],
   "xJLI97": [
     {
       "type": 0,
-      "value": "Hide findings"
+      "value": "Nascondi risultati"
     }
   ],
   "xK7rmd": [
@@ -14569,10 +15383,22 @@
       "value": "Informazioni dettagliate"
     }
   ],
+  "xLrAFR": [
+    {
+      "type": 0,
+      "value": "Parameter name"
+    }
+  ],
   "xNC5hG": [
     {
       "type": 0,
       "value": "Dizionario (raggruppa in argomenti)"
+    }
+  ],
+  "xPuGYM": [
+    {
+      "type": 0,
+      "value": "No connectors match your search"
     }
   ],
   "xSsto+": [
@@ -14612,7 +15438,7 @@
   "xXHSO2": [
     {
       "type": 0,
-      "value": "Rookie Analyst"
+      "value": "Analista principiante"
     }
   ],
   "xXhn+h": [
@@ -14655,10 +15481,16 @@
       "value": "Punti dati insufficienti per il grafico"
     }
   ],
+  "xet2Cv": [
+    {
+      "type": 0,
+      "value": "Query parameters"
+    }
+  ],
   "xf9BKi": [
     {
       "type": 0,
-      "value": "Ready to test your agent?"
+      "value": "Pronto per testare l'agente?"
     }
   ],
   "xmcVZ0": [
@@ -14742,13 +15574,13 @@
     },
     {
       "type": 0,
-      "value": " since last run"
+      "value": " dall'ultima esecuzione"
     }
   ],
   "y3Uu5i": [
     {
       "type": 0,
-      "value": "No data connectors match your search"
+      "value": "Nessun connettore dati corrispondente alla ricerca"
     }
   ],
   "y5oInX": [
@@ -14757,10 +15589,16 @@
       "value": "Priorità dell'incidente"
     }
   ],
+  "y79eIb": [
+    {
+      "type": 0,
+      "value": "Assign yourself the SRE Agent Admin role."
+    }
+  ],
   "y87pob": [
     {
       "type": 0,
-      "value": "You are previewing "
+      "value": "Stai visualizzando in anteprima "
     },
     {
       "type": 1,
@@ -14769,6 +15607,16 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "yBnHns": [
+    {
+      "type": 0,
+      "value": "Sign in to "
+    },
+    {
+      "type": 1,
+      "value": "service"
     }
   ],
   "yDh8i7": [
@@ -14781,6 +15629,12 @@
     {
       "type": 0,
       "value": "Input chat"
+    }
+  ],
+  "yJJ/jv": [
+    {
+      "type": 0,
+      "value": "Mute this warning"
     }
   ],
   "yJSwfQ": [
@@ -14822,7 +15676,7 @@
   "yYJHyl": [
     {
       "type": 0,
-      "value": "No tools are linked yet. Add tools on the left to enable testing."
+      "value": "Non sono ancora collegati strumenti. Aggiungere gli strumenti a sinistra per abilitare i test."
     }
   ],
   "yYK6LR": [
@@ -14852,7 +15706,7 @@
   "yeL9WV": [
     {
       "type": 0,
-      "value": "Design, test, and refine agents without touching production."
+      "value": "Progettare, testare e perfezionare gli agenti senza toccare la produzione."
     }
   ],
   "yf9+0C": [
@@ -14918,7 +15772,7 @@
   "ysBuRt": [
     {
       "type": 0,
-      "value": "Failed to create default incident response plan. Error: "
+      "value": "Non è possibile creare il piano di risposta agli incidenti predefinito. Errore: "
     },
     {
       "type": 1,
@@ -14940,7 +15794,13 @@
   "z0uI4M": [
     {
       "type": 0,
-      "value": "Run scenario"
+      "value": "Scenario di esecuzione"
+    }
+  ],
+  "z43sTn": [
+    {
+      "type": 0,
+      "value": "View Knowledge Base"
     }
   ],
   "z5cF/O": [
@@ -14952,7 +15812,7 @@
   "z7SGAU": [
     {
       "type": 0,
-      "value": "Scheduled task(s) deleted successfully"
+      "value": "Le attività pianificate sono state eliminate"
     }
   ],
   "z8ZYoc": [
@@ -14982,7 +15842,7 @@
   "zE+jtE": [
     {
       "type": 0,
-      "value": "Rename thread title"
+      "value": "Rinominare il titolo del thread"
     }
   ],
   "zEg90u": [
@@ -15000,13 +15860,13 @@
   "zHZdPM": [
     {
       "type": 0,
-      "value": "Analyzing configuration for improvement recommendations."
+      "value": "Analisi della configurazione per le raccomandazioni di miglioramento."
     }
   ],
   "zMX3td": [
     {
       "type": 0,
-      "value": "Renaming the thread title to '"
+      "value": "Ridenominazione del titolo del thread in '"
     },
     {
       "type": 1,
@@ -15038,7 +15898,7 @@
   "zUNfOA": [
     {
       "type": 0,
-      "value": "Open watcher drawer"
+      "value": "Apri pannello watcher"
     }
   ],
   "zZsxcQ": [
@@ -15062,7 +15922,7 @@
   "zeJdWA": [
     {
       "type": 0,
-      "value": "Deleting "
+      "value": "Eliminazione di "
     },
     {
       "type": 1,
@@ -15070,7 +15930,7 @@
     },
     {
       "type": 0,
-      "value": " incidents"
+      "value": " incidenti"
     }
   ],
   "zfM/75": [
@@ -15094,7 +15954,7 @@
   "zhoVUT": [
     {
       "type": 0,
-      "value": "Advanced settings"
+      "value": "Impostazioni avanzate"
     }
   ],
   "zpkKsD": [
@@ -15134,7 +15994,7 @@
   "zxvhnE": [
     {
       "type": 0,
-      "value": "Daily"
+      "value": "Giornaliero"
     }
   ]
 }

@@ -50,13 +50,19 @@
   "+uAdUZ": [
     {
       "type": 0,
-      "value": "Resource group"
+      "value": "Ressourcengruppe"
     }
   ],
   "+zgzmq": [
     {
       "type": 0,
       "value": "Cosmos DB Accounts"
+    }
+  ],
+  "/6/sPX": [
+    {
+      "type": 0,
+      "value": "Docs"
     }
   ],
   "/6Fckw": [
@@ -109,6 +115,12 @@
       "value": " filter"
     }
   ],
+  "/zFP1/": [
+    {
+      "type": 0,
+      "value": "Start time"
+    }
+  ],
   "01lT1B": [
     {
       "type": 0,
@@ -135,10 +147,22 @@
       "value": "Manage SQL servers and their security policies."
     }
   ],
+  "0oLj/t": [
+    {
+      "type": 0,
+      "value": "Expand"
+    }
+  ],
   "0te2Ra": [
     {
       "type": 0,
       "value": "Manage Azure Data Factory instances."
+    }
+  ],
+  "1Lx9q5": [
+    {
+      "type": 0,
+      "value": "Loading operations..."
     }
   ],
   "1YPTmM": [
@@ -171,6 +195,12 @@
       "value": "Add"
     }
   ],
+  "2GuZPR": [
+    {
+      "type": 0,
+      "value": "Portal feedback"
+    }
+  ],
   "2LQx4N": [
     {
       "type": 0,
@@ -198,7 +228,7 @@
   "3cc4Ct": [
     {
       "type": 0,
-      "value": "Light"
+      "value": "Hell"
     }
   ],
   "3nhWFW": [
@@ -240,7 +270,7 @@
   "456ixe": [
     {
       "type": 0,
-      "value": "All regions"
+      "value": "Alle Regionen"
     }
   ],
   "47FYwb": [
@@ -261,6 +291,12 @@
       "value": "API Management Service Reader Role"
     }
   ],
+  "4USxEK": [
+    {
+      "type": 0,
+      "value": "Remove resource group"
+    }
+  ],
   "4ii5zj": [
     {
       "type": 0,
@@ -271,6 +307,12 @@
     {
       "type": 0,
       "value": "List cluster admin credential action."
+    }
+  ],
+  "556JQK": [
+    {
+      "type": 0,
+      "value": "Deploy"
     }
   ],
   "5M+hLZ": [
@@ -408,22 +450,30 @@
         "one": {
           "value": [
             {
+              "type": 0,
+              "value": "Vor "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " day ago"
+              "value": " Tag"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "Vor "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": " Tagen"
             }
           ]
         }
@@ -448,7 +498,7 @@
   "8yyU6n": [
     {
       "type": 0,
-      "value": "All subscriptions"
+      "value": "Alle Abonnements"
     }
   ],
   "9+Ddtu": [
@@ -461,6 +511,12 @@
     {
       "type": 0,
       "value": "Select all"
+    }
+  ],
+  "9M3sYh": [
+    {
+      "type": 0,
+      "value": "Deployment failed"
     }
   ],
   "ABo5XY": [
@@ -502,7 +558,7 @@
   "Avsnjl": [
     {
       "type": 0,
-      "value": "Themes"
+      "value": "Designs"
     }
   ],
   "B6aNdQ": [
@@ -562,7 +618,7 @@
   "Ch3IdZ": [
     {
       "type": 0,
-      "value": "View popular skills"
+      "value": "Beliebte Fähigkeiten anzeigen"
     }
   ],
   "CrmeG3": [
@@ -574,7 +630,7 @@
   "D3idYv": [
     {
       "type": 0,
-      "value": "Settings"
+      "value": "Einstellungen"
     }
   ],
   "DdD2hE": [
@@ -586,7 +642,7 @@
   "DdnNXo": [
     {
       "type": 0,
-      "value": "Privacy & cookies"
+      "value": "Datenschutz und Cookies"
     }
   ],
   "Dff3ms": [
@@ -652,7 +708,7 @@
   "GDEEBE": [
     {
       "type": 0,
-      "value": "We were unable to load the URL "
+      "value": "Die URL "
     },
     {
       "type": 1,
@@ -660,7 +716,7 @@
     },
     {
       "type": 0,
-      "value": ". We've detected that your organization has selected Zscaler to protect you from unknown domains. Please speak to your network administrator to remove the restriction on this domain in order to proceed with interacting with your agent."
+      "value": " konnte nicht geladen werden. Wir haben festgestellt, dass Ihre Organisation Zscaler ausgewählt hat, um Sie vor unbekannten Domänen zu schützen. Wenden Sie sich an Ihre Netzwerkadministration, um die Einschränkung für diese Domäne aufzuheben, damit Sie mit Ihrem Agent interagieren können."
     }
   ],
   "GWson9": [
@@ -684,7 +740,7 @@
   "H/i1A+": [
     {
       "type": 0,
-      "value": "Create your first Azure SRE Agent"
+      "value": "Erstellen Sie Ihren ersten Azure SRE Agent"
     }
   ],
   "H3ooTI": [
@@ -720,7 +776,7 @@
   "I6cq17": [
     {
       "type": 0,
-      "value": "Trademarks"
+      "value": "Marken"
     }
   ],
   "IEFW3Y": [
@@ -741,12 +797,6 @@
       "value": "A resource group with this name already exists in the selected subscription."
     }
   ],
-  "J1ADxz": [
-    {
-      "type": 0,
-      "value": "Delete resource group"
-    }
-  ],
   "KAYpG9": [
     {
       "type": 0,
@@ -762,7 +812,7 @@
   "Kbdzt3": [
     {
       "type": 0,
-      "value": "This subscription is not currently whitelisted to use SRE Agent. Please contact your administrator or support team to request access."
+      "value": "Dieses Abonnement ist derzeit nicht für die Nutzung des SRE Agents freigeschaltet. Wenden Sie sich an Ihren Admin oder das Supportpersonal, um Zugriff zu beantragen."
     }
   ],
   "Kg6ebk": [
@@ -783,10 +833,10 @@
       "value": "Function Apps"
     }
   ],
-  "LPprqA": [
+  "LOghU6": [
     {
       "type": 0,
-      "value": "Review resource groups"
+      "value": "Succeeded"
     }
   ],
   "LSaaxU": [
@@ -814,22 +864,30 @@
         "one": {
           "value": [
             {
+              "type": 0,
+              "value": "Vor "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " hour ago"
+              "value": " Stunde"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "Vor "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": " Stunden"
             }
           ]
         }
@@ -854,7 +912,7 @@
   "NAidKb": [
     {
       "type": 0,
-      "value": "Notifications"
+      "value": "Benachrichtigungen"
     }
   ],
   "NCTGGm": [
@@ -889,10 +947,22 @@
       "value": "Resource groups list"
     }
   ],
+  "Nrc9ba": [
+    {
+      "type": 0,
+      "value": "Thank you for your feedback!"
+    }
+  ],
   "OJ2u8k": [
     {
       "type": 0,
       "value": "Enter name"
+    }
+  ],
+  "ORGv1Q": [
+    {
+      "type": 0,
+      "value": "Created"
     }
   ],
   "OTGHHm": [
@@ -901,10 +971,10 @@
       "value": "The resources you picked have permissions for these roles."
     }
   ],
-  "OVAsQ8": [
+  "OjYIuI": [
     {
       "type": 0,
-      "value": "Roles and permissions"
+      "value": "Deployment name"
     }
   ],
   "Oom2N7": [
@@ -922,7 +992,7 @@
   "P/DTRU": [
     {
       "type": 0,
-      "value": "Dismiss completed"
+      "value": "Als fertig abschließen"
     }
   ],
   "P3qxV2": [
@@ -1008,7 +1078,7 @@
   "R/6nsx": [
     {
       "type": 0,
-      "value": "Subscription"
+      "value": "Abonnement"
     }
   ],
   "R1RX2a": [
@@ -1020,7 +1090,7 @@
   "RDwKyy": [
     {
       "type": 0,
-      "value": "Directory"
+      "value": "Verzeichnis"
     }
   ],
   "RStTJp": [
@@ -1041,6 +1111,12 @@
       "value": "Azure Kubernetes Service RBAC Reader"
     }
   ],
+  "S8snIe": [
+    {
+      "type": 0,
+      "value": "Updating"
+    }
+  ],
   "SCjiXP": [
     {
       "type": 0,
@@ -1050,7 +1126,7 @@
   "SQJto2": [
     {
       "type": 0,
-      "value": "Sign in"
+      "value": "Anmelden"
     }
   ],
   "Sr4IbA": [
@@ -1086,7 +1162,7 @@
   "TDaF6J": [
     {
       "type": 0,
-      "value": "Dismiss"
+      "value": "Schließen"
     }
   ],
   "TDoBlx": [
@@ -1098,7 +1174,7 @@
   "TleXgd": [
     {
       "type": 0,
-      "value": "Azure SRE Agents reduce site reliability costs by proactively identifying issues, automating tasks, and preventing downtime."
+      "value": "Azure SRE Agents senken die Kosten für die Standortzuverlässigkeit, indem sie Probleme proaktiv erkennen, Aufgaben automatisieren und Ausfallzeiten verhindern."
     }
   ],
   "TzxmIN": [
@@ -1116,7 +1192,7 @@
   "UQUIP7": [
     {
       "type": 0,
-      "value": "Request error"
+      "value": "Anforderungsfehler"
     }
   ],
   "UVD6yh": [
@@ -1140,7 +1216,7 @@
   "UrGI9K": [
     {
       "type": 0,
-      "value": "Create agent"
+      "value": "Agent erstellen"
     }
   ],
   "UuzObe": [
@@ -1177,10 +1253,16 @@
       "value": "Create"
     }
   ],
+  "W/V6+Y": [
+    {
+      "type": 0,
+      "value": "Collapse"
+    }
+  ],
   "W4H4Z9": [
     {
       "type": 0,
-      "value": "Notifications will appear here when actions are performed"
+      "value": "Benachrichtigungen erscheinen hier, wenn Aktionen ausgeführt werden."
     }
   ],
   "WE+M5j": [
@@ -1249,16 +1331,6 @@
     {
       "type": 0,
       "value": "SQL Managed Instances"
-    }
-  ],
-  "XG++pU": [
-    {
-      "type": 0,
-      "value": "Delete resource group "
-    },
-    {
-      "type": 1,
-      "value": "resourceGroupName"
     }
   ],
   "XJ+Lww": [
@@ -1376,22 +1448,30 @@
         "one": {
           "value": [
             {
+              "type": 0,
+              "value": "Vor "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " minute ago"
+              "value": " Minute"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "Vor "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": " Minuten"
             }
           ]
         }
@@ -1434,7 +1514,7 @@
   "bPyOFk": [
     {
       "type": 0,
-      "value": "Terms & conditions"
+      "value": "Geschäftsbedingungen"
     }
   ],
   "bXkiU5": [
@@ -1446,7 +1526,7 @@
   "bxv59V": [
     {
       "type": 0,
-      "value": "Just now"
+      "value": "Gerade eben"
     }
   ],
   "c1EiBR": [
@@ -1497,6 +1577,12 @@
       "value": "Back"
     }
   ],
+  "czVHN2": [
+    {
+      "type": 0,
+      "value": "Resource operations"
+    }
+  ],
   "d2GmfJ": [
     {
       "type": 0,
@@ -1517,6 +1603,12 @@
     {
       "type": 0,
       "value": " options"
+    }
+  ],
+  "dHVUaP": [
+    {
+      "type": 0,
+      "value": "Positive"
     }
   ],
   "dKhdkO": [
@@ -1558,7 +1650,7 @@
   "eHNXXp": [
     {
       "type": 0,
-      "value": "Dismiss all"
+      "value": "Alle schließen"
     }
   ],
   "eKpamp": [
@@ -1604,7 +1696,7 @@
   "fpexn2": [
     {
       "type": 0,
-      "value": "No notifications"
+      "value": "Keine Benachrichtigungen"
     }
   ],
   "ftfFhS": [
@@ -1616,7 +1708,7 @@
   "g82HU6": [
     {
       "type": 0,
-      "value": "Operation cancelled"
+      "value": "Vorgang wurde abgebrochen"
     }
   ],
   "gC4xMY": [
@@ -1635,6 +1727,12 @@
     {
       "type": 0,
       "value": "Read, logstream and exec into Container Apps."
+    }
+  ],
+  "gty4jJ": [
+    {
+      "type": 0,
+      "value": "Deployment in progress..."
     }
   ],
   "gzx/k1": [
@@ -1694,7 +1792,7 @@
   "i50Kb0": [
     {
       "type": 0,
-      "value": "Explore agent skills"
+      "value": "Agentenfähigkeiten erkunden"
     }
   ],
   "i5OUQE": [
@@ -1748,7 +1846,7 @@
   "jEU2gk": [
     {
       "type": 0,
-      "value": "All resource groups"
+      "value": "Alle Ressourcengruppen"
     }
   ],
   "jHJmjf": [
@@ -1775,10 +1873,16 @@
       "value": "Save"
     }
   ],
+  "kVQ1fo": [
+    {
+      "type": 0,
+      "value": "Negative"
+    }
+  ],
   "kbQZUj": [
     {
       "type": 0,
-      "value": "We were unable to load the URL "
+      "value": "Die URL "
     },
     {
       "type": 1,
@@ -1786,7 +1890,7 @@
     },
     {
       "type": 0,
-      "value": ". This may be due to the existence of a firewall or network restrictions placed on the domain of your agent. Please speak to your network administrator to remove this restriction in order to proceed with interacting with your agent."
+      "value": " konnte nicht geladen werden. Dies kann an einer Firewall oder Netzwerkeinschränkungen liegen, die für die Domäne Ihres Agents gelten. Wenden Sie sich an Ihre Netzwerkadministration, um diese Einschränkung aufzuheben, damit Sie mit Ihrem Agenten interagieren können."
     }
   ],
   "kyVg+J": [
@@ -1869,6 +1973,12 @@
       "value": "Lets you manage all resources in the cluster."
     }
   ],
+  "nDyaq/": [
+    {
+      "type": 0,
+      "value": "Running"
+    }
+  ],
   "nlPgO8": [
     {
       "type": 1,
@@ -1888,7 +1998,7 @@
   "oHGFwy": [
     {
       "type": 0,
-      "value": "Sign in with a different account"
+      "value": "Mit einem anderen Konto anmelden"
     }
   ],
   "oIiHqo": [
@@ -1919,12 +2029,6 @@
       "value": "No"
     }
   ],
-  "ob9EPi": [
-    {
-      "type": 0,
-      "value": "Permissions to assign roles"
-    }
-  ],
   "p/xAmY": [
     {
       "type": 0,
@@ -1935,6 +2039,12 @@
     {
       "type": 0,
       "value": "Manage without access. Can't manage security policies or parent SQL servers."
+    }
+  ],
+  "p849eW": [
+    {
+      "type": 0,
+      "value": "Correlation ID"
     }
   ],
   "pAFuFx": [
@@ -2020,7 +2130,7 @@
   "rbrahO": [
     {
       "type": 0,
-      "value": "Close"
+      "value": "Schließen"
     }
   ],
   "rjgOC5": [
@@ -2050,7 +2160,7 @@
   "s7mQCK": [
     {
       "type": 0,
-      "value": "Reduce site reliability expenses with Azure SRE Agents"
+      "value": "Reduzieren Sie die Kosten für die Standortzuverlässigkeit mit Azure SRE Agents."
     }
   ],
   "sI+CCC": [
@@ -2078,22 +2188,30 @@
         "one": {
           "value": [
             {
+              "type": 0,
+              "value": "Vor "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " second ago"
+              "value": " Sekunde"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "Vor "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " seconds ago"
+              "value": " Sekunden"
             }
           ]
         }
@@ -2124,7 +2242,13 @@
   "tOdNiY": [
     {
       "type": 0,
-      "value": "Dark"
+      "value": "Dunkel"
+    }
+  ],
+  "tYoDsC": [
+    {
+      "type": 0,
+      "value": "Share your thoughts about the portal..."
     }
   ],
   "tffS9r": [
@@ -2169,6 +2293,18 @@
       "value": "You do not have permission to create resource groups under the currently selected subscription."
     }
   ],
+  "v90qT8": [
+    {
+      "type": 0,
+      "value": "Deployment succeeded"
+    }
+  ],
+  "vXCeIi": [
+    {
+      "type": 0,
+      "value": "Failed"
+    }
+  ],
   "vbdOl/": [
     {
       "type": 0,
@@ -2187,10 +2323,22 @@
       "value": "Learn more about Reader and Privileged permissions"
     }
   ],
+  "vxVGav": [
+    {
+      "type": 0,
+      "value": "No operations found"
+    }
+  ],
   "wCtBb6": [
     {
       "type": 0,
-      "value": "Try Azure for free"
+      "value": "Azure kostenlos testen"
+    }
+  ],
+  "wSZR47": [
+    {
+      "type": 0,
+      "value": "Submit"
     }
   ],
   "wbigtI": [
@@ -2232,7 +2380,7 @@
   "xXbJso": [
     {
       "type": 0,
-      "value": "Sign out"
+      "value": "Abmelden"
     }
   ],
   "xXhn+h": [
@@ -2247,10 +2395,16 @@
       "value": "Can read all monitoring data."
     }
   ],
+  "xhfdqv": [
+    {
+      "type": 0,
+      "value": "Creating"
+    }
+  ],
   "xmcVZ0": [
     {
       "type": 0,
-      "value": "Search"
+      "value": "Suchen"
     }
   ],
   "xmsrBu": [
@@ -2274,7 +2428,7 @@
   "y1Z3or": [
     {
       "type": 0,
-      "value": "Language"
+      "value": "Sprache"
     }
   ],
   "yV5oYe": [
@@ -2321,12 +2475,6 @@
     {
       "type": 0,
       "value": "Detected resource types"
-    }
-  ],
-  "zcyAwy": [
-    {
-      "type": 0,
-      "value": "Choose resource groups"
     }
   ],
   "zhHihn": [

@@ -8,7 +8,7 @@
   "+CwN9C": [
     {
       "type": 0,
-      "value": "System"
+      "value": "시스템"
     }
   ],
   "+Ov1f1": [
@@ -50,13 +50,19 @@
   "+uAdUZ": [
     {
       "type": 0,
-      "value": "Resource group"
+      "value": "리소스 그룹"
     }
   ],
   "+zgzmq": [
     {
       "type": 0,
       "value": "Cosmos DB Accounts"
+    }
+  ],
+  "/6/sPX": [
+    {
+      "type": 0,
+      "value": "Docs"
     }
   ],
   "/6Fckw": [
@@ -109,6 +115,12 @@
       "value": " filter"
     }
   ],
+  "/zFP1/": [
+    {
+      "type": 0,
+      "value": "Start time"
+    }
+  ],
   "01lT1B": [
     {
       "type": 0,
@@ -135,10 +147,22 @@
       "value": "Manage SQL servers and their security policies."
     }
   ],
+  "0oLj/t": [
+    {
+      "type": 0,
+      "value": "Expand"
+    }
+  ],
   "0te2Ra": [
     {
       "type": 0,
       "value": "Manage Azure Data Factory instances."
+    }
+  ],
+  "1Lx9q5": [
+    {
+      "type": 0,
+      "value": "Loading operations..."
     }
   ],
   "1YPTmM": [
@@ -171,6 +195,12 @@
       "value": "Add"
     }
   ],
+  "2GuZPR": [
+    {
+      "type": 0,
+      "value": "Portal feedback"
+    }
+  ],
   "2LQx4N": [
     {
       "type": 0,
@@ -198,7 +228,7 @@
   "3cc4Ct": [
     {
       "type": 0,
-      "value": "Light"
+      "value": "밝게"
     }
   ],
   "3nhWFW": [
@@ -240,7 +270,7 @@
   "456ixe": [
     {
       "type": 0,
-      "value": "All regions"
+      "value": "모든 지역"
     }
   ],
   "47FYwb": [
@@ -261,6 +291,12 @@
       "value": "API Management Service Reader Role"
     }
   ],
+  "4USxEK": [
+    {
+      "type": 0,
+      "value": "Remove resource group"
+    }
+  ],
   "4ii5zj": [
     {
       "type": 0,
@@ -271,6 +307,12 @@
     {
       "type": 0,
       "value": "List cluster admin credential action."
+    }
+  ],
+  "556JQK": [
+    {
+      "type": 0,
+      "value": "Deploy"
     }
   ],
   "5M+hLZ": [
@@ -412,7 +454,7 @@
             },
             {
               "type": 0,
-              "value": " days ago"
+              "value": "일 전"
             }
           ]
         }
@@ -437,7 +479,7 @@
   "8yyU6n": [
     {
       "type": 0,
-      "value": "All subscriptions"
+      "value": "모든 구독"
     }
   ],
   "9+Ddtu": [
@@ -450,6 +492,12 @@
     {
       "type": 0,
       "value": "Select all"
+    }
+  ],
+  "9M3sYh": [
+    {
+      "type": 0,
+      "value": "Deployment failed"
     }
   ],
   "ABo5XY": [
@@ -491,7 +539,7 @@
   "Avsnjl": [
     {
       "type": 0,
-      "value": "Themes"
+      "value": "테마"
     }
   ],
   "B6aNdQ": [
@@ -551,7 +599,7 @@
   "Ch3IdZ": [
     {
       "type": 0,
-      "value": "View popular skills"
+      "value": "인기 기술 보기"
     }
   ],
   "CrmeG3": [
@@ -563,7 +611,7 @@
   "D3idYv": [
     {
       "type": 0,
-      "value": "Settings"
+      "value": "설정"
     }
   ],
   "DdD2hE": [
@@ -575,7 +623,7 @@
   "DdnNXo": [
     {
       "type": 0,
-      "value": "Privacy & cookies"
+      "value": "개인정보처리방침"
     }
   ],
   "Dff3ms": [
@@ -635,13 +683,13 @@
   "GBnvl1": [
     {
       "type": 0,
-      "value": "Agents"
+      "value": "에이전트"
     }
   ],
   "GDEEBE": [
     {
       "type": 0,
-      "value": "We were unable to load the URL "
+      "value": "URL "
     },
     {
       "type": 1,
@@ -649,7 +697,7 @@
     },
     {
       "type": 0,
-      "value": ". We've detected that your organization has selected Zscaler to protect you from unknown domains. Please speak to your network administrator to remove the restriction on this domain in order to proceed with interacting with your agent."
+      "value": "을(를) 로드할 수 없습니다. 조직에서 알 수 없는 도메인으로부터 사용자를 보호하기 위해 Zscaler를 선택한 것이 감지되었습니다. 에이전트와의 상호 작용을 계속하려면 네트워크 관리자에게 문의하여 이 도메인에 대한 제한을 제거하세요."
     }
   ],
   "GWson9": [
@@ -673,7 +721,7 @@
   "H/i1A+": [
     {
       "type": 0,
-      "value": "Create your first Azure SRE Agent"
+      "value": "첫 번째 Azure SRE Agent 만들기"
     }
   ],
   "H3ooTI": [
@@ -685,7 +733,7 @@
   "HAlOn1": [
     {
       "type": 0,
-      "value": "Name"
+      "value": "이름"
     }
   ],
   "HCDcpW": [
@@ -703,13 +751,13 @@
   "He4/qi": [
     {
       "type": 0,
-      "value": "Azure SRE Agents"
+      "value": "Azure SRE Agent"
     }
   ],
   "I6cq17": [
     {
       "type": 0,
-      "value": "Trademarks"
+      "value": "상표"
     }
   ],
   "IEFW3Y": [
@@ -730,12 +778,6 @@
       "value": "A resource group with this name already exists in the selected subscription."
     }
   ],
-  "J1ADxz": [
-    {
-      "type": 0,
-      "value": "Delete resource group"
-    }
-  ],
   "KAYpG9": [
     {
       "type": 0,
@@ -751,7 +793,7 @@
   "Kbdzt3": [
     {
       "type": 0,
-      "value": "This subscription is not currently whitelisted to use SRE Agent. Please contact your administrator or support team to request access."
+      "value": "이 구독은 현재 SRE 에이전트를 사용할 수 있는 허용 목록에 없습니다. 액세스 권한을 요청하려면 관리자 또는 지원 팀에 문의하세요."
     }
   ],
   "Kg6ebk": [
@@ -772,10 +814,10 @@
       "value": "Function Apps"
     }
   ],
-  "LPprqA": [
+  "LOghU6": [
     {
       "type": 0,
-      "value": "Review resource groups"
+      "value": "Succeeded"
     }
   ],
   "LSaaxU": [
@@ -807,7 +849,7 @@
             },
             {
               "type": 0,
-              "value": " hours ago"
+              "value": "시간 전"
             }
           ]
         }
@@ -832,7 +874,7 @@
   "NAidKb": [
     {
       "type": 0,
-      "value": "Notifications"
+      "value": "알림"
     }
   ],
   "NCTGGm": [
@@ -867,10 +909,22 @@
       "value": "Resource groups list"
     }
   ],
+  "Nrc9ba": [
+    {
+      "type": 0,
+      "value": "Thank you for your feedback!"
+    }
+  ],
   "OJ2u8k": [
     {
       "type": 0,
       "value": "Enter name"
+    }
+  ],
+  "ORGv1Q": [
+    {
+      "type": 0,
+      "value": "Created"
     }
   ],
   "OTGHHm": [
@@ -879,10 +933,10 @@
       "value": "The resources you picked have permissions for these roles."
     }
   ],
-  "OVAsQ8": [
+  "OjYIuI": [
     {
       "type": 0,
-      "value": "Roles and permissions"
+      "value": "Deployment name"
     }
   ],
   "Oom2N7": [
@@ -900,7 +954,7 @@
   "P/DTRU": [
     {
       "type": 0,
-      "value": "Dismiss completed"
+      "value": "해제 완료됨"
     }
   ],
   "P3qxV2": [
@@ -986,7 +1040,7 @@
   "R/6nsx": [
     {
       "type": 0,
-      "value": "Subscription"
+      "value": "구독"
     }
   ],
   "R1RX2a": [
@@ -998,7 +1052,7 @@
   "RDwKyy": [
     {
       "type": 0,
-      "value": "Directory"
+      "value": "디렉터리"
     }
   ],
   "RStTJp": [
@@ -1019,6 +1073,12 @@
       "value": "Azure Kubernetes Service RBAC Reader"
     }
   ],
+  "S8snIe": [
+    {
+      "type": 0,
+      "value": "Updating"
+    }
+  ],
   "SCjiXP": [
     {
       "type": 0,
@@ -1028,7 +1088,7 @@
   "SQJto2": [
     {
       "type": 0,
-      "value": "Sign in"
+      "value": "로그인"
     }
   ],
   "Sr4IbA": [
@@ -1064,7 +1124,7 @@
   "TDaF6J": [
     {
       "type": 0,
-      "value": "Dismiss"
+      "value": "해제"
     }
   ],
   "TDoBlx": [
@@ -1076,7 +1136,7 @@
   "TleXgd": [
     {
       "type": 0,
-      "value": "Azure SRE Agents reduce site reliability costs by proactively identifying issues, automating tasks, and preventing downtime."
+      "value": "Azure SRE Agent는 문제를 사전에 식별하고 작업을 자동화하며 가동 중지 시간을 방지하여 사이트 안정성 비용을 줄입니다."
     }
   ],
   "TzxmIN": [
@@ -1094,7 +1154,7 @@
   "UQUIP7": [
     {
       "type": 0,
-      "value": "Request error"
+      "value": "요청 오류"
     }
   ],
   "UVD6yh": [
@@ -1118,7 +1178,7 @@
   "UrGI9K": [
     {
       "type": 0,
-      "value": "Create agent"
+      "value": "에이전트 만들기"
     }
   ],
   "UuzObe": [
@@ -1155,10 +1215,16 @@
       "value": "Create"
     }
   ],
+  "W/V6+Y": [
+    {
+      "type": 0,
+      "value": "Collapse"
+    }
+  ],
   "W4H4Z9": [
     {
       "type": 0,
-      "value": "Notifications will appear here when actions are performed"
+      "value": "작업이 수행되면 여기에 알림이 표시됩니다."
     }
   ],
   "WE+M5j": [
@@ -1227,16 +1293,6 @@
     {
       "type": 0,
       "value": "SQL Managed Instances"
-    }
-  ],
-  "XG++pU": [
-    {
-      "type": 0,
-      "value": "Delete resource group "
-    },
-    {
-      "type": 1,
-      "value": "resourceGroupName"
     }
   ],
   "XJ+Lww": [
@@ -1358,7 +1414,7 @@
             },
             {
               "type": 0,
-              "value": " minutes ago"
+              "value": "분 전"
             }
           ]
         }
@@ -1401,7 +1457,7 @@
   "bPyOFk": [
     {
       "type": 0,
-      "value": "Terms & conditions"
+      "value": "사용 약관"
     }
   ],
   "bXkiU5": [
@@ -1413,7 +1469,7 @@
   "bxv59V": [
     {
       "type": 0,
-      "value": "Just now"
+      "value": "방금"
     }
   ],
   "c1EiBR": [
@@ -1464,6 +1520,12 @@
       "value": "Back"
     }
   ],
+  "czVHN2": [
+    {
+      "type": 0,
+      "value": "Resource operations"
+    }
+  ],
   "d2GmfJ": [
     {
       "type": 0,
@@ -1484,6 +1546,12 @@
     {
       "type": 0,
       "value": " options"
+    }
+  ],
+  "dHVUaP": [
+    {
+      "type": 0,
+      "value": "Positive"
     }
   ],
   "dKhdkO": [
@@ -1525,7 +1593,7 @@
   "eHNXXp": [
     {
       "type": 0,
-      "value": "Dismiss all"
+      "value": "모두 해제"
     }
   ],
   "eKpamp": [
@@ -1571,7 +1639,7 @@
   "fpexn2": [
     {
       "type": 0,
-      "value": "No notifications"
+      "value": "알림 없음"
     }
   ],
   "ftfFhS": [
@@ -1583,7 +1651,7 @@
   "g82HU6": [
     {
       "type": 0,
-      "value": "Operation cancelled"
+      "value": "작업 취소됨"
     }
   ],
   "gC4xMY": [
@@ -1602,6 +1670,12 @@
     {
       "type": 0,
       "value": "Read, logstream and exec into Container Apps."
+    }
+  ],
+  "gty4jJ": [
+    {
+      "type": 0,
+      "value": "Deployment in progress..."
     }
   ],
   "gzx/k1": [
@@ -1661,7 +1735,7 @@
   "i50Kb0": [
     {
       "type": 0,
-      "value": "Explore agent skills"
+      "value": "에이전트 기술 살펴보기"
     }
   ],
   "i5OUQE": [
@@ -1715,7 +1789,7 @@
   "jEU2gk": [
     {
       "type": 0,
-      "value": "All resource groups"
+      "value": "모든 리소스 그룹"
     }
   ],
   "jHJmjf": [
@@ -1742,10 +1816,16 @@
       "value": "Save"
     }
   ],
+  "kVQ1fo": [
+    {
+      "type": 0,
+      "value": "Negative"
+    }
+  ],
   "kbQZUj": [
     {
       "type": 0,
-      "value": "We were unable to load the URL "
+      "value": "URL "
     },
     {
       "type": 1,
@@ -1753,7 +1833,7 @@
     },
     {
       "type": 0,
-      "value": ". This may be due to the existence of a firewall or network restrictions placed on the domain of your agent. Please speak to your network administrator to remove this restriction in order to proceed with interacting with your agent."
+      "value": "을(를) 로드할 수 없습니다. 에이전트의 도메인에 방화벽 또는 네트워크 제한이 있기 때문일 수 있습니다. 에이전트와의 상호 작용을 계속하려면 네트워크 관리자에게 문의하여 이 제한을 제거하세요."
     }
   ],
   "kyVg+J": [
@@ -1803,7 +1883,7 @@
   "lnaWo/": [
     {
       "type": 0,
-      "value": "Region"
+      "value": "지역"
     }
   ],
   "lvNWLS": [
@@ -1836,6 +1916,12 @@
       "value": "Lets you manage all resources in the cluster."
     }
   ],
+  "nDyaq/": [
+    {
+      "type": 0,
+      "value": "Running"
+    }
+  ],
   "nlPgO8": [
     {
       "type": 1,
@@ -1855,7 +1941,7 @@
   "oHGFwy": [
     {
       "type": 0,
-      "value": "Sign in with a different account"
+      "value": "다른 계정으로 로그인"
     }
   ],
   "oIiHqo": [
@@ -1886,12 +1972,6 @@
       "value": "No"
     }
   ],
-  "ob9EPi": [
-    {
-      "type": 0,
-      "value": "Permissions to assign roles"
-    }
-  ],
   "p/xAmY": [
     {
       "type": 0,
@@ -1902,6 +1982,12 @@
     {
       "type": 0,
       "value": "Manage without access. Can't manage security policies or parent SQL servers."
+    }
+  ],
+  "p849eW": [
+    {
+      "type": 0,
+      "value": "Correlation ID"
     }
   ],
   "pAFuFx": [
@@ -1987,7 +2073,7 @@
   "rbrahO": [
     {
       "type": 0,
-      "value": "Close"
+      "value": "닫기"
     }
   ],
   "rjgOC5": [
@@ -2017,7 +2103,7 @@
   "s7mQCK": [
     {
       "type": 0,
-      "value": "Reduce site reliability expenses with Azure SRE Agents"
+      "value": "Azure SRE Agent를 사용하여 사이트 안정성 비용 절감"
     }
   ],
   "sI+CCC": [
@@ -2049,7 +2135,7 @@
             },
             {
               "type": 0,
-              "value": " seconds ago"
+              "value": "초 전"
             }
           ]
         }
@@ -2080,7 +2166,13 @@
   "tOdNiY": [
     {
       "type": 0,
-      "value": "Dark"
+      "value": "어둡게"
+    }
+  ],
+  "tYoDsC": [
+    {
+      "type": 0,
+      "value": "Share your thoughts about the portal..."
     }
   ],
   "tffS9r": [
@@ -2125,6 +2217,18 @@
       "value": "You do not have permission to create resource groups under the currently selected subscription."
     }
   ],
+  "v90qT8": [
+    {
+      "type": 0,
+      "value": "Deployment succeeded"
+    }
+  ],
+  "vXCeIi": [
+    {
+      "type": 0,
+      "value": "Failed"
+    }
+  ],
   "vbdOl/": [
     {
       "type": 0,
@@ -2143,10 +2247,22 @@
       "value": "Learn more about Reader and Privileged permissions"
     }
   ],
+  "vxVGav": [
+    {
+      "type": 0,
+      "value": "No operations found"
+    }
+  ],
   "wCtBb6": [
     {
       "type": 0,
-      "value": "Try Azure for free"
+      "value": "Azure를 체험해 보기"
+    }
+  ],
+  "wSZR47": [
+    {
+      "type": 0,
+      "value": "Submit"
     }
   ],
   "wbigtI": [
@@ -2188,7 +2304,7 @@
   "xXbJso": [
     {
       "type": 0,
-      "value": "Sign out"
+      "value": "로그아웃"
     }
   ],
   "xXhn+h": [
@@ -2203,10 +2319,16 @@
       "value": "Can read all monitoring data."
     }
   ],
+  "xhfdqv": [
+    {
+      "type": 0,
+      "value": "Creating"
+    }
+  ],
   "xmcVZ0": [
     {
       "type": 0,
-      "value": "Search"
+      "value": "검색"
     }
   ],
   "xmsrBu": [
@@ -2230,7 +2352,7 @@
   "y1Z3or": [
     {
       "type": 0,
-      "value": "Language"
+      "value": "언어"
     }
   ],
   "yV5oYe": [
@@ -2277,12 +2399,6 @@
     {
       "type": 0,
       "value": "Detected resource types"
-    }
-  ],
-  "zcyAwy": [
-    {
-      "type": 0,
-      "value": "Choose resource groups"
     }
   ],
   "zhHihn": [
