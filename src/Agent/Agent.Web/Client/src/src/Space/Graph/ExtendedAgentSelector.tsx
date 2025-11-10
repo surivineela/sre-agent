@@ -1,21 +1,23 @@
 import { Button, Combobox, Option, Spinner, Text } from '@fluentui/react-components';
-import { AgentsRegular, ArrowClockwise20Regular } from '@fluentui/react-icons';
+import { ArrowClockwise20Regular } from '@fluentui/react-icons';
 import { Node, useReactFlow } from '@xyflow/react';
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { FilterProps } from '../../Common/Components/PillFilter/Contracts';
 import { PillFilter } from '../../Common/Components/PillFilter/PillFilter';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
-import { ExtendedAgent, ExtendedAgentGraphNode } from '../Contracts/ExtendedAgentGraph';
+import { ExtendedAgent, ExtendedAgentAnchorEntity, ExtendedAgentGraphNode, ExtendedTrigger } from '../Contracts/ExtendedAgentGraph';
 import { useExtendedAgentSelectorStyles } from '../Styles/ExtendedAgentGraph.styles';
+import { EntityIcon } from './EntityIcon';
 import { getNodesMatchingSearchQuery } from './ExtendedAgentGraphUtility';
+
+const iconShorthandStyle = { wrapperSize: 20, iconSize: 16, borderRadius: 6 };
 
 type ExtendedAgentSelectorProps = {
     agents: ExtendedAgent[];
-    selectedAgentName?: string;
-    searchQuery: string;
-    onAgentSelect: (agentName?: string) => void;
-    onSearchQueryChange: (query: string) => void;
+    triggers: ExtendedTrigger[];
+    selectedEntity?: ExtendedAgentAnchorEntity;
+    onEntitySelect: (anchorEntity?: ExtendedAgentAnchorEntity) => void;
     onRefresh: () => void;
     setSelectedNode: React.Dispatch<React.SetStateAction<ExtendedAgentGraphNode | undefined>>;
     isLoading: boolean;
@@ -29,10 +31,9 @@ type ExtendedAgentSelectorProps = {
 export const ExtendedAgentSelector = memo(
     ({
         agents,
-        selectedAgentName,
-        searchQuery,
-        onAgentSelect,
-        onSearchQueryChange,
+        triggers,
+        selectedEntity,
+        onEntitySelect,
         onRefresh,
         setSelectedNode,
         isLoading,
@@ -43,6 +44,7 @@ export const ExtendedAgentSelector = memo(
         const styles = useExtendedAgentSelectorStyles();
         const intl = useIntl();
         const { fitView } = useReactFlow();
+        const [searchQuery, setSearchQuery] = useState('');
 
         const agentOptions = useMemo(
             () =>
@@ -60,12 +62,47 @@ export const ExtendedAgentSelector = memo(
                     return {
                         key: agent.name,
                         label: agent.name,
-                        icon: <AgentsRegular />,
+                        icon: <EntityIcon type="agent" shorthandStyle={iconShorthandStyle} />,
                         sublabel: agentTypeText,
                         type: agent.agentType,
+                        entityType: 'Agent' as const,
                     };
                 }),
             [agents, intl]
+        );
+
+        const incidentTriggerOptions = useMemo(
+            () =>
+                triggers
+                    .filter(trigger => trigger.type === 'incident')
+                    .map(trigger => {
+                        return {
+                            key: trigger.name,
+                            label: trigger.name,
+                            icon: <EntityIcon type="incidentTrigger" shorthandStyle={iconShorthandStyle} />,
+                            sublabel: intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeIncident),
+                            type: trigger.type,
+                            entityType: 'Trigger' as const,
+                        };
+                    }),
+            [triggers, intl]
+        );
+
+        const scheduledTriggerOptions = useMemo(
+            () =>
+                triggers
+                    .filter(trigger => trigger.type === 'scheduled')
+                    .map(trigger => {
+                        return {
+                            key: trigger.name,
+                            label: trigger.name,
+                            icon: <EntityIcon type="scheduledTask" shorthandStyle={iconShorthandStyle} />,
+                            sublabel: intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeScheduled),
+                            type: trigger.type,
+                            entityType: 'Trigger' as const,
+                        };
+                    }),
+            [triggers, intl]
         );
 
         const filteredNodes = useMemo(() => {
@@ -75,20 +112,35 @@ export const ExtendedAgentSelector = memo(
 
         const shouldRenderAgentCombobox = useMemo(() => showAgentPicker && agents.length > 0, [showAgentPicker, agents.length]);
 
-        const incidentTypeFilterProps: FilterProps = useMemo(
+        const entityFilterProps: FilterProps = useMemo(
             () => ({
-                label: intl.formatMessage(ExtendedAgentsGraphResources.subagent),
+                label: intl.formatMessage(
+                    selectedEntity?.entityType === 'Agent' ? ExtendedAgentsGraphResources.subagent : ExtendedAgentsGraphResources.trigger
+                ),
                 disabled: isLoading,
                 labelDelimiter: ':',
                 filterType: 'combobox' as const,
                 showValueAs: 'list',
-                options: agentOptions,
-                onApply: (keys: string[]) => onAgentSelect(keys.length > 0 ? keys[0] : undefined),
-                selectedKeys: selectedAgentName ? [selectedAgentName] : [],
+                options: [...agentOptions, ...incidentTriggerOptions, ...scheduledTriggerOptions],
+                onApply: (keys: string[]) => {
+                    if (keys.length === 0) {
+                        onEntitySelect(undefined);
+                        return;
+                    }
+                    const selectedOption = [...agentOptions, ...incidentTriggerOptions, ...scheduledTriggerOptions].find(
+                        option => option.key === keys[0]
+                    );
+                    if (selectedOption) {
+                        onEntitySelect({ entityType: selectedOption.entityType, entityName: selectedOption.key });
+                    } else {
+                        onEntitySelect(undefined);
+                    }
+                },
+                selectedKeys: selectedEntity ? [selectedEntity.entityName] : [],
                 multiSelect: false,
                 addAllOption: false,
             }),
-            [isLoading, agentOptions, intl, onAgentSelect, selectedAgentName]
+            [isLoading, agentOptions, incidentTriggerOptions, scheduledTriggerOptions, intl, onEntitySelect, selectedEntity]
         );
 
         return (
@@ -105,7 +157,7 @@ export const ExtendedAgentSelector = memo(
                 >
                     {shouldRenderAgentCombobox && (
                         <div style={{ zIndex: 10 }}>
-                            <PillFilter {...incidentTypeFilterProps} />
+                            <PillFilter {...entityFilterProps} />
                         </div>
                     )}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
@@ -114,6 +166,7 @@ export const ExtendedAgentSelector = memo(
                             value={searchQuery}
                             placeholder={intl.formatMessage(ExtendedAgentsGraphResources.searchPlaceholder)}
                             onOptionSelect={(_event, data) => {
+                                setSearchQuery('');
                                 const targetNode = nodes.find(node => node.id === data.optionValue);
                                 if (targetNode) {
                                     setSelectedNode(targetNode.data);
@@ -130,7 +183,7 @@ export const ExtendedAgentSelector = memo(
                             className={styles.searchBox}
                             onInput={event => {
                                 const inputValue = (event.target as any).value as string;
-                                onSearchQueryChange(inputValue);
+                                setSearchQuery(inputValue);
                             }}
                             positioning={{
                                 position: 'below',

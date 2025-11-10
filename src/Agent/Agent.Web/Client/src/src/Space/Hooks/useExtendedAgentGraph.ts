@@ -4,7 +4,7 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import {
     ExtendedAgent,
-    ExtendedAgentFilters,
+    ExtendedAgentAnchorEntity,
     ExtendedAgentGraphEdge,
     ExtendedAgentGraphNode,
     ExtendedConnector,
@@ -30,13 +30,7 @@ export const useExtendedAgentGraph = () => {
     const [selectedNode, setSelectedNode] = useState<ExtendedAgentGraphNode | undefined>();
     const [hoveredNodeId, setHoveredNodeId] = useState<string | undefined>();
 
-    const [filters, setFilters] = useState<ExtendedAgentFilters>({
-        agentName: undefined,
-        agentType: 'All',
-        toolType: 'All',
-        triggerType: 'All',
-        searchQuery: '',
-    });
+    const [anchorEntity, setAnchorEntity] = useState<ExtendedAgentAnchorEntity>();
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -176,21 +170,25 @@ export const useExtendedAgentGraph = () => {
                 }
 
                 if (Array.isArray(incidentHandlers)) {
-                    const incidentTriggers: ExtendedTrigger[] = incidentHandlers.map((handler: any) => {
+                    const incidentTriggers: ExtendedTrigger[] = [];
+                    incidentHandlers.map((handler: any) => {
                         const filter = filters.find(f => f.id === handler.incidentFilterId);
-                        return {
-                            name: handler.name || handler.id,
-                            description: handler.description || 'Incident response handler',
-                            type: 'incident' as const,
-                            agentName: filterAgentMap.get(handler.incidentFilterId) || handler.agentName, // Get agent from filter
-                            status: filter?.enabled ? 'Active' : 'Disabled',
-                            priority: filter?.priority || '-',
-                            incidentType: filter?.incidentType || 'ServiceIssue',
-                            service: filter?.impactedService || '-',
-                            severity: filter?.priority || '-',
-                            enabled: !!filter?.isEnabled,
-                            createdAt: handler.createdAt || new Date().toISOString(),
-                        };
+                        const agentName = filterAgentMap.get(handler.incidentFilterId) || handler.agentName;
+                        if (agentName) {
+                            incidentTriggers.push({
+                                name: handler.name || handler.id,
+                                description: handler.description || 'Incident response handler',
+                                type: 'incident' as const,
+                                agentName: agentName,
+                                status: filter?.enabled ? 'Active' : 'Disabled',
+                                priority: filter?.priority || '-',
+                                incidentType: filter?.incidentType || 'ServiceIssue',
+                                service: filter?.impactedService || '-',
+                                severity: filter?.priority || '-',
+                                enabled: !!filter?.isEnabled,
+                                createdAt: handler.createdAt || new Date().toISOString(),
+                            });
+                        }
                     });
                     allTriggers.push(...incidentTriggers);
                 }
@@ -276,8 +274,8 @@ export const useExtendedAgentGraph = () => {
         let filteredEdges = [...edges];
 
         // Filter by agent selection (and include connected components)
-        if (filters.agentName) {
-            const rootId = `agent_${filters.agentName}`;
+        if (anchorEntity) {
+            const rootId = anchorEntity.entityType === 'Agent' ? `agent_${anchorEntity.entityName}` : `trigger_${anchorEntity.entityName}`;
 
             if (nodes.some(node => node.id === rootId)) {
                 const reachableNodeIds = new Set<string>();
@@ -320,61 +318,8 @@ export const useExtendedAgentGraph = () => {
             }
         }
 
-        // Filter by agent type
-        if (filters.agentType && filters.agentType !== 'All') {
-            const agentNodeIds = filteredNodes.filter(node => node.data?.agentType === filters.agentType).map(node => node.id);
-
-            const connectedNodeIds = new Set(agentNodeIds);
-            filteredEdges.forEach(edge => {
-                if (agentNodeIds.includes(edge.source)) {
-                    connectedNodeIds.add(edge.target);
-                }
-            });
-
-            filteredNodes = filteredNodes.filter(node => connectedNodeIds.has(node.id));
-            filteredEdges = filteredEdges.filter(edge => connectedNodeIds.has(edge.source) && connectedNodeIds.has(edge.target));
-        }
-
-        // Filter by tool type
-        if (filters.toolType && filters.toolType !== 'All') {
-            const toolNodeIds = filteredNodes.filter(node => node.data?.toolType === filters.toolType).map(node => node.id);
-
-            const connectedNodeIds = new Set(toolNodeIds);
-            filteredEdges.forEach(edge => {
-                if (toolNodeIds.includes(edge.target)) {
-                    connectedNodeIds.add(edge.source);
-                }
-                if (toolNodeIds.includes(edge.source)) {
-                    connectedNodeIds.add(edge.target);
-                }
-            });
-
-            filteredNodes = filteredNodes.filter(node => connectedNodeIds.has(node.id));
-            filteredEdges = filteredEdges.filter(edge => connectedNodeIds.has(edge.source) && connectedNodeIds.has(edge.target));
-        }
-
-        // Filter by trigger type
-        if (filters.triggerType && filters.triggerType !== 'All') {
-            const triggerNodeIds = filteredNodes
-                .filter(node => node.data?.triggerType === filters.triggerType || (node.data as any)?.type === filters.triggerType)
-                .map(node => node.id);
-
-            const connectedNodeIds = new Set(triggerNodeIds);
-            filteredEdges.forEach(edge => {
-                if (triggerNodeIds.includes(edge.source)) {
-                    connectedNodeIds.add(edge.target);
-                }
-                if (triggerNodeIds.includes(edge.target)) {
-                    connectedNodeIds.add(edge.source);
-                }
-            });
-
-            filteredNodes = filteredNodes.filter(node => connectedNodeIds.has(node.id));
-            filteredEdges = filteredEdges.filter(edge => connectedNodeIds.has(edge.source) && connectedNodeIds.has(edge.target));
-        }
-
         return { nodes: filteredNodes, edges: filteredEdges };
-    }, [nodes, edges, filters, triggers]);
+    }, [nodes, edges, anchorEntity, triggers]);
 
     // Nodes and edges to highlight
     const { nodesToHighlight, edgesToHighlight } = useMemo(() => {
@@ -425,8 +370,8 @@ export const useExtendedAgentGraph = () => {
         unHoverNode,
         nodesToHighlight,
         edgesToHighlight,
-        filters,
-        setFilters,
+        anchorEntity,
+        setAnchorEntity,
         loading,
         error,
         refetch: async () => {

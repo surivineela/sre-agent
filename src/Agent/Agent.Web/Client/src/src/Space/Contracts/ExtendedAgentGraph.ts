@@ -207,13 +207,9 @@ export class ExtendedAgentNodeSize {
     static readonly triggerHeight = 118;
 }
 
-// Filter Types
-export type ExtendedAgentFilters = {
-    agentName?: string;
-    agentType?: 'Autonomous' | 'Orchestrator' | 'Activity' | 'All';
-    toolType?: string;
-    triggerType?: 'incident' | 'scheduled' | 'All';
-    searchQuery?: string;
+export type ExtendedAgentAnchorEntity = {
+    entityType: 'Agent' | 'Trigger';
+    entityName: string;
 };
 
 export interface PromptImprovementRequest {

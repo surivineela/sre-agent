@@ -20,6 +20,7 @@ import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import {
     AgentQuickAction,
     ExtendedAgent,
+    ExtendedAgentAnchorEntity,
     ExtendedAgentGraphContext,
     ExtendedAgentNodeType,
     ExtendedConnector,
@@ -122,8 +123,8 @@ const ExtendedAgentGraphContent = memo(() => {
         connectors,
         triggers,
         systemTools,
-        filters,
-        setFilters,
+        anchorEntity,
+        setAnchorEntity,
         refetch,
     } = useExtendedAgentGraph();
 
@@ -184,7 +185,7 @@ const ExtendedAgentGraphContent = memo(() => {
     >(undefined);
     const [creationDialogInitialTypeOverride, setCreationDialogInitialTypeOverride] = useState<EntityType | undefined>(undefined);
     const [creationDialogTriggerAgentName, setCreationDialogTriggerAgentName] = useState<string | undefined>(undefined);
-    const [pendingAgentSelection, setPendingAgentSelection] = useState<string | undefined>(undefined);
+    const [pendingEntitySelection, setPendingEntitySelection] = useState<ExtendedAgentAnchorEntity | undefined>(undefined);
     const [linkRetryContext, setLinkRetryContext] = useState<LinkRetryContext | undefined>(undefined);
     const [isRetryingLink, setIsRetryingLink] = useState(false);
     const [isInfoPanelFloating, setIsInfoPanelFloating] = useState(false);
@@ -196,7 +197,7 @@ const ExtendedAgentGraphContent = memo(() => {
 
     const layoutGraph = useExtendedAgentGraphLayout();
 
-    const previousAgentNameRef = useRef<string | undefined>(undefined);
+    const previousEntityRef = useRef<ExtendedAgentAnchorEntity | undefined>(undefined);
     const visualRootRef = useRef<HTMLDivElement>(null);
     const infoPanelRef = useRef<HTMLDivElement>(null);
     const infoPanelDragStateRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
@@ -428,99 +429,140 @@ const ExtendedAgentGraphContent = memo(() => {
     }, [currentView, isLayouting, loading, nodes, reactFlowInstance]);
 
     useEffect(() => {
-        if (!loading && agents.length > 0 && !filters.agentName) {
-            setFilters(prev => ({ ...prev, agentName: agents[0].name }));
-        }
-    }, [loading, agents, filters.agentName, setFilters]);
+        setAnchorEntity(prevAnchorEntity => {
+            if (!loading && !prevAnchorEntity) {
+                if (agents.length > 0) {
+                    return {
+                        entityType: 'Agent',
+                        entityName: agents[0].name,
+                    };
+                }
+                if (triggers.length > 0) {
+                    return {
+                        entityType: 'Trigger',
+                        entityName: triggers[0].name,
+                    };
+                }
+            }
+            return prevAnchorEntity;
+        });
+    }, [loading, agents, triggers, setAnchorEntity]);
 
     useEffect(() => {
         if (loading) {
             return;
         }
 
-        if (!filters.agentName) {
+        if (!anchorEntity) {
             return;
         }
 
-        const hasAgent = agents.some(agent => agent.name === filters.agentName);
+        const hasAgent = anchorEntity.entityType === 'Agent' && agents.some(agent => agent.name === anchorEntity.entityName);
+        const hasTrigger = anchorEntity.entityType === 'Trigger' && triggers.some(trigger => trigger.name === anchorEntity.entityName);
 
-        if (hasAgent) {
+        if (hasAgent || hasTrigger) {
             return;
         }
 
-        if (pendingAgentSelection && pendingAgentSelection === filters.agentName) {
+        if (
+            pendingEntitySelection &&
+            pendingEntitySelection.entityType === anchorEntity.entityType &&
+            pendingEntitySelection.entityName === anchorEntity.entityName
+        ) {
             return;
         }
 
-        if (agents.length === 0) {
-            setFilters(prev => ({ ...prev, agentName: undefined }));
+        if (agents.length === 0 && triggers.length === 0) {
+            setAnchorEntity(undefined);
             return;
         }
 
-        setFilters(prev => ({ ...prev, agentName: agents[0]?.name }));
-    }, [agents, filters.agentName, loading, pendingAgentSelection, setFilters]);
+        if (agents.length > 0) {
+            setAnchorEntity({
+                entityType: 'Agent',
+                entityName: agents[0].name,
+            });
+            return;
+        }
+        if (triggers.length > 0) {
+            setAnchorEntity({
+                entityType: 'Trigger',
+                entityName: triggers[0].name,
+            });
+            return;
+        }
+    }, [agents, loading, pendingEntitySelection, setAnchorEntity]);
 
     useEffect(() => {
-        if (!pendingAgentSelection) {
+        if (!pendingEntitySelection) {
             return;
         }
 
-        if (agents.some(agent => agent.name === pendingAgentSelection)) {
-            setFilters(prev => ({ ...prev, agentName: pendingAgentSelection }));
-            setPendingAgentSelection(undefined);
+        if (pendingEntitySelection.entityType === 'Trigger') {
+            if (triggers.some(trigger => trigger.name === pendingEntitySelection.entityName)) {
+                setAnchorEntity({ entityType: 'Trigger', entityName: pendingEntitySelection.entityName });
+                setPendingEntitySelection(undefined);
+            }
+            return;
         }
-    }, [agents, pendingAgentSelection, setFilters, setPendingAgentSelection]);
+
+        if (pendingEntitySelection.entityType === 'Agent') {
+            if (agents.some(agent => agent.name === pendingEntitySelection.entityName)) {
+                setAnchorEntity({ entityType: 'Agent', entityName: pendingEntitySelection.entityName });
+                setPendingEntitySelection(undefined);
+            }
+        }
+    }, [agents, pendingEntitySelection, setPendingEntitySelection, setAnchorEntity]);
 
     useEffect(() => {
-        const activeAgentName = filters.agentName;
+        setSelectedNode(prevSelectedNode => {
+            const activeEntity = anchorEntity;
 
-        if (!activeAgentName) {
-            previousAgentNameRef.current = undefined;
-            if (selectedNode) {
-                setSelectedNode(undefined);
-            }
-            return;
-        }
-
-        const primaryNode = graphNodes.find(node => node.id === `agent_${activeAgentName}`);
-
-        if (!primaryNode) {
-            if (graphNodes.length === 0) {
-                // Wait for layout to supply nodes before updating selection
-                return;
+            if (!activeEntity) {
+                previousEntityRef.current = undefined;
+                return prevSelectedNode ? undefined : prevSelectedNode;
             }
 
-            previousAgentNameRef.current = activeAgentName;
+            const primaryNode = graphNodes.find(node => {
+                const searchIdPrefix = activeEntity.entityType === 'Agent' ? 'agent_' : 'trigger_';
+                return node.id === `${searchIdPrefix}${activeEntity.entityName}`;
+            });
 
-            if (selectedNode) {
-                setSelectedNode(undefined);
+            if (!primaryNode) {
+                if (graphNodes.length === 0) {
+                    // Wait for layout to supply nodes before updating selection
+                    return;
+                }
+
+                previousEntityRef.current = activeEntity;
+                return prevSelectedNode ? undefined : prevSelectedNode;
             }
 
-            return;
-        }
-
-        const alreadySelectedSameNode = selectedNode?.id === primaryNode.data.id;
-        const agentChanged = previousAgentNameRef.current !== activeAgentName;
-
-        if (selectedNode && selectedNode.type !== ExtendedAgentNodeType.Agent) {
-            previousAgentNameRef.current = activeAgentName;
-
-            if (agentChanged) {
-                setSelectedNode(primaryNode.data);
+            const entityChanged = previousEntityRef.current !== activeEntity;
+            if (
+                prevSelectedNode &&
+                prevSelectedNode.type !== ExtendedAgentNodeType.Agent &&
+                prevSelectedNode.type !== ExtendedAgentNodeType.Trigger
+            ) {
+                previousEntityRef.current = activeEntity;
+                return entityChanged ? primaryNode.data : prevSelectedNode;
             }
 
-            return;
-        }
-
-        if (agentChanged || !alreadySelectedSameNode) {
-            previousAgentNameRef.current = activeAgentName;
-            setSelectedNode(primaryNode.data);
-        }
-    }, [filters.agentName, graphNodes, selectedNode, setSelectedNode]);
+            const alreadySelectedSameNode = prevSelectedNode?.id === primaryNode.data.id;
+            if (entityChanged || !alreadySelectedSameNode) {
+                previousEntityRef.current = activeEntity;
+                return primaryNode.data;
+            }
+            return prevSelectedNode;
+        });
+    }, [anchorEntity, graphNodes, setSelectedNode]);
 
     const selectedAgent = useMemo(
-        () => (filters.agentName ? agents.find(agent => agent.name === filters.agentName) : undefined),
-        [agents, filters.agentName]
+        () =>
+            anchorEntity?.entityType === 'Agent' && anchorEntity?.entityName
+                ? agents.find(agent => agent.name === anchorEntity.entityName)
+                : undefined,
+        [agents, anchorEntity]
     );
 
     const infoPanelAgent = useMemo(() => {
@@ -626,10 +668,16 @@ const ExtendedAgentGraphContent = memo(() => {
         return undefined;
     }, [creationSuccess, intl]);
 
-    const handleAgentSelect = useCallback(
-        (agentName?: string) => {
-            setFilters(prev => ({ ...prev, agentName }));
-            const targetNode = nodes.find(node => node.id === `agent_${agentName}`);
+    const handleEntitySelect = useCallback(
+        (entity?: ExtendedAgentAnchorEntity) => {
+            setAnchorEntity(entity);
+            const entityNodeId = !entity
+                ? undefined
+                : entity.entityType === 'Agent'
+                  ? `agent_${entity.entityName}`
+                  : `trigger_${entity.entityName}`;
+            const targetNode = !entityNodeId ? undefined : nodes.find(node => node.id === entityNodeId);
+            // console.log('handleEntitySelect: entityType=', entity?.entityType, ' entityNodeId=', entityNodeId, ' targetNodeId=', targetNode?.id);
             if (targetNode) {
                 requestAnimationFrame(() => {
                     reactFlowInstance.fitView({
@@ -640,14 +688,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 });
             }
         },
-        [setFilters, nodes, reactFlowInstance]
-    );
-
-    const handleSearchQueryChange = useCallback(
-        (query: string) => {
-            setFilters(prev => ({ ...prev, searchQuery: query }));
-        },
-        [setFilters]
+        [setAnchorEntity, nodes, reactFlowInstance]
     );
 
     const handleRefresh = useCallback(() => {
@@ -764,7 +805,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
-            const previousAgentName = filters.agentName;
+            const previousAgentName = anchorEntity?.entityType === 'Agent' ? anchorEntity?.entityName : undefined;
 
             await applyEntity(data, type, { refreshMode: 'refetch', refetchDelayMs: 2000 });
 
@@ -772,12 +813,12 @@ const ExtendedAgentGraphContent = memo(() => {
                 const agentName = (data as Partial<ExtendedAgent>).name?.trim();
 
                 if (agentName) {
-                    setFilters(prev => ({ ...prev, agentName }));
+                    setAnchorEntity({ entityType: 'Agent', entityName: agentName });
 
                     if (!agents.some(agent => agent.name === agentName)) {
-                        setPendingAgentSelection(agentName);
+                        setPendingEntitySelection({ entityType: 'Agent', entityName: agentName });
                     } else {
-                        setPendingAgentSelection(undefined);
+                        setPendingEntitySelection(undefined);
                     }
 
                     setCreationSuccess({ entityType: 'agent', entityName: agentName });
@@ -789,7 +830,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 const toolName = (data as Partial<ExtendedTool>).name?.trim();
 
                 if (previousAgentName) {
-                    setFilters(prev => ({ ...prev, agentName: previousAgentName }));
+                    setAnchorEntity({ entityType: 'Agent', entityName: previousAgentName });
                 }
 
                 if (toolName && previousAgentName) {
@@ -810,7 +851,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 }
             }
         },
-        [agents, applyEntity, filters.agentName, setCreationSuccess, setFilters, setPendingAgentSelection]
+        [agents, applyEntity, anchorEntity, setCreationSuccess, setAnchorEntity, setPendingEntitySelection]
     );
 
     const addHandoffToAgent = useCallback(
@@ -1065,12 +1106,12 @@ const ExtendedAgentGraphContent = memo(() => {
                 });
 
                 if (agentDraft.name) {
-                    setFilters(prev => ({ ...prev, agentName: agentDraft.name! }));
+                    setAnchorEntity({ entityType: 'Agent', entityName: agentDraft.name! });
 
                     if (!agents.some(agent => agent.name === agentDraft.name)) {
-                        setPendingAgentSelection(agentDraft.name);
+                        setPendingEntitySelection({ entityType: 'Agent', entityName: agentDraft.name });
                     } else {
-                        setPendingAgentSelection(undefined);
+                        setPendingEntitySelection(undefined);
                     }
                 }
 
@@ -1104,7 +1145,7 @@ const ExtendedAgentGraphContent = memo(() => {
                     throw new Error(message);
                 }
 
-                setFilters(prev => ({ ...prev, agentName: sourceAgentName }));
+                setAnchorEntity({ entityType: 'Agent', entityName: sourceAgentName });
 
                 await applyEntity(toolDraft, 'tool', {
                     refreshMode: 'refetch',
@@ -1144,8 +1185,8 @@ const ExtendedAgentGraphContent = memo(() => {
             creationDialogContext,
             handleCreateEntity,
             intl,
-            setFilters,
-            setPendingAgentSelection,
+            setAnchorEntity,
+            setPendingEntitySelection,
         ]
     );
 
@@ -1398,7 +1439,7 @@ const ExtendedAgentGraphContent = memo(() => {
             );
         }
 
-        if (!filters.agentName) {
+        if (!anchorEntity?.entityName) {
             return (
                 <div style={{ padding: '20px' }}>
                     <MessageBar intent="info">
@@ -1462,7 +1503,7 @@ const ExtendedAgentGraphContent = memo(() => {
         intl,
         isLoading,
         error,
-        filters.agentName,
+        anchorEntity,
         hasData,
         currentView,
         nodes,
@@ -1501,7 +1542,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 setHandlerCreateOrEditInfo({
                     subAgentTriggerInfo: {
                         agents: agents.map(a => a.name),
-                        preSelectedAgent: filters.agentName,
+                        preSelectedAgent: anchorEntity?.entityType === 'Agent' ? anchorEntity?.entityName : undefined,
                     },
                 });
                 return;
@@ -1540,7 +1581,7 @@ const ExtendedAgentGraphContent = memo(() => {
             setCreationSuccess,
             setIsCreationDialogOpen,
             agents,
-            filters.agentName,
+            anchorEntity,
         ]
     );
 
@@ -1629,10 +1670,9 @@ const ExtendedAgentGraphContent = memo(() => {
                                 <div className={selectorOverlay}>
                                     <ExtendedAgentSelector
                                         agents={agents}
-                                        selectedAgentName={filters.agentName}
-                                        searchQuery={filters.searchQuery ?? ''}
-                                        onAgentSelect={handleAgentSelect}
-                                        onSearchQueryChange={handleSearchQueryChange}
+                                        triggers={triggers}
+                                        selectedEntity={anchorEntity}
+                                        onEntitySelect={handleEntitySelect}
                                         onRefresh={handleRefresh}
                                         setSelectedNode={setSelectedNode}
                                         isLoading={loading}
@@ -1725,7 +1765,12 @@ const ExtendedAgentGraphContent = memo(() => {
                     value={{
                         createTask,
                         updateTask,
-                        refreshTasks: handleRefresh,
+                        refreshTasks: (anchorEntity?: ExtendedAgentAnchorEntity) =>
+                            handleRefresh().then(() => {
+                                if (anchorEntity) {
+                                    setPendingEntitySelection(anchorEntity);
+                                }
+                            }),
                         pauseTask,
                         resumeTask,
                         deleteTask,
@@ -1763,7 +1808,7 @@ const ExtendedAgentGraphContent = memo(() => {
                     onDismiss={() => setAgentCreateOrEditInfo(undefined)}
                     refresh={(selectedAgent?: string) => {
                         handleRefresh().then(() => {
-                            setPendingAgentSelection(selectedAgent);
+                            setPendingEntitySelection(selectedAgent ? { entityType: 'Agent', entityName: selectedAgent } : undefined);
                         });
                     }}
                     agents={agents}

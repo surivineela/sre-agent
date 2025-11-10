@@ -64,7 +64,11 @@ export const ScheduledTaskCreateOrEditDialog: FC<ScheduledTaskCreateOrEditDialog
                     saveScheduledTaskSettings(values).then(response => {
                         if (response?.isSuccessful) {
                             setIsDialogOpen(false);
-                            refreshTasks();
+                            refreshTasks(
+                                values.subAgent
+                                    ? { entityType: 'Agent', entityName: values.subAgent }
+                                    : { entityType: 'Trigger', entityName: values.name }
+                            );
                         }
                     });
                 }}
