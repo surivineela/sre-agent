@@ -295,7 +295,7 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
             {showSreAgentLogo && (
                 <div className={mergeClasses(chatSuggestionsStyles.brandContainer, alignLeft && chatSuggestionsStyles.leftBrandContainer)}>
                     <Image src="./SreAgent.svg" width={32} height={32} alt={intl.formatMessage(SreAgentResources.sreAgent)} />
-                    <Text size={500} weight="semibold">
+                    <Text as={'h2'} size={500} weight="semibold">
                         {intl.formatMessage(SreAgentResources.sreAgent)}
                     </Text>
                 </div>
