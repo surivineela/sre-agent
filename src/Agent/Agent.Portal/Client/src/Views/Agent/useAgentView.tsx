@@ -182,6 +182,17 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
 
             if (info.state === 'start') {
                 // Start a new notification and track the mapping
+                if (!info.title) {
+                    logEvent({
+                        action: 'updateNotification',
+                        actionModifier: 'failed',
+                        logLevel: LogLevel.Error,
+                        additionalData: {
+                            message: 'Title not provided for notification start',
+                        },
+                    });
+                    return;
+                }
                 const portalNotificationId = start(info.title, info.description);
                 notificationIdMap.current[info.id] = portalNotificationId;
                 return;

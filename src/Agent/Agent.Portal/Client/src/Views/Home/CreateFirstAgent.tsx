@@ -1,5 +1,5 @@
 import { Body2, Button, Image, makeStyles, Title1 } from '@fluentui/react-components';
-import { Add16Regular, Library16Regular } from '@fluentui/react-icons';
+import { Add16Regular } from '@fluentui/react-icons';
 import { useIntl } from 'react-intl';
 import { PortalResources } from '../../Strings/Resources';
 
@@ -42,7 +42,6 @@ export const CreateFirstAgent = ({ onClickCreate }: CreateFirstAgentProps) => {
                 <Button appearance="primary" icon={<Add16Regular />} onClick={onClickCreate}>
                     {intl.formatMessage(PortalResources.createAgent)}
                 </Button>
-                <Button icon={<Library16Regular />}>{intl.formatMessage(PortalResources.viewPopularSkills)}</Button>
             </div>
         </div>
     );

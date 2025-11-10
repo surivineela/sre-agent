@@ -1,5 +1,6 @@
 import { Button, Image, makeStyles, tokens } from '@fluentui/react-components';
 import { useIntl } from 'react-intl';
+import { LearnMoreLinks, TryAzureForFreeLink } from '../../Common/Constants/Links';
 import { PortalResources } from '../../Strings/Resources';
 
 const useStyles = makeStyles({
@@ -57,16 +58,25 @@ export const LandingPage = () => {
                 <h1 className={styles.heading}>{intl.formatMessage(PortalResources.reduceSiteReliabilityExpenses)}</h1>
                 <p className={styles.description}>{intl.formatMessage(PortalResources.reduceSiteReliabilityExpensesDescription)}</p>
                 <div className={styles.buttonContainer}>
-                    <Button appearance="primary" size="large" className={styles.primaryButton}>
+                    <Button
+                        appearance="primary"
+                        size="large"
+                        className={styles.primaryButton}
+                        onClick={() => window.open(TryAzureForFreeLink, '_blank', 'noopener,noreferrer')}
+                    >
                         {intl.formatMessage(PortalResources.tryAzureForFree)}
                     </Button>
-                    <Button size="large" className={styles.secondaryButton}>
+                    <Button
+                        size="large"
+                        className={styles.secondaryButton}
+                        onClick={() => window.open(LearnMoreLinks.sreAgentOverview, '_blank', 'noopener,noreferrer')}
+                    >
                         {intl.formatMessage(PortalResources.exploreAgentSkills)}
                     </Button>
                 </div>
             </div>
 
-            <Image src='SreAgent.svg' width={256} height={256} alt={intl.formatMessage(PortalResources.azureSreAgent)} />
+            <Image src="SreAgent.svg" width={256} height={256} alt={intl.formatMessage(PortalResources.azureSreAgent)} />
         </div>
     );
 };

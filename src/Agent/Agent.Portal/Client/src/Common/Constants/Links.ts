@@ -1,3 +1,5 @@
+export const TryAzureForFreeLink = 'https://go.microsoft.com/fwlink/?linkid=2322223';
+
 export const LearnMoreLinks = {
     privacyAndCookies: 'https://go.microsoft.com/fwlink/?linkid=521839',
     termsAndConditions: 'https://aka.ms/aistudio/terms',

@@ -4,8 +4,9 @@ export const useWizardStyles = makeStyles({
     dialogSurface: {
         padding: '0px',
         maxWidth: '1080px',
-        minHeight: '750px',
-        height: '750px',
+        minHeight: '500px',
+        maxHeight: '75vh',
+        height: 'auto',
     },
     dialogBodyGrid: {
         gap: 0,

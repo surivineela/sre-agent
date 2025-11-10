@@ -61,8 +61,8 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
                 return [
                     {
                         id: generateId(),
-                        title: title ?? notification?.title ?? (status === 'success' ? 'Success' : 'Error'),
-                        description,
+                        title: title || notification?.title || (status === 'success' ? 'Success' : 'Error'),
+                        description: description || notification?.description,
                         status,
                         timestamp: new Date(),
                     },

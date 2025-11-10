@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useIntl } from 'react-intl';
 import { createBrowserRouter, Navigate, Outlet, RouterProvider, useLocation } from 'react-router-dom';
+import { RouteErrorBoundary } from './Common/Components/RouteErrorBoundary';
 import { TelemetrySource } from './Common/Constants/Telemetry';
 import { useAuth } from './Common/Contexts/AuthContext';
 import { useTelemetry } from './Common/Hooks/useTelemetry';
@@ -19,7 +20,7 @@ import { NotificationToastContainer } from './Views/Notifications/NotificationTo
 
 const PortalLayout = () => {
     const intl = useIntl();
-    const { isAuthenticated, isLoading: isLoadingAuth } = useAuth();
+    const { user, isAuthenticated, isLoading: isLoadingAuth } = useAuth();
     const location = useLocation();
     const { logEvent } = useTelemetry(TelemetrySource.PortalLayout, undefined);
 
@@ -44,6 +45,7 @@ const PortalLayout = () => {
                 pathname: location.pathname,
                 referrer: document.referrer,
                 isAuthenticated,
+                userTenantId: user?.tenantId,
             },
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,6 +82,7 @@ const router = createBrowserRouter(
         {
             path: '/',
             element: <PortalLayout />,
+            errorElement: <RouteErrorBoundary />,
             children: [
                 { index: true, element: <HomeBrowseView /> },
                 { path: 'welcome', element: <LandingPage /> },

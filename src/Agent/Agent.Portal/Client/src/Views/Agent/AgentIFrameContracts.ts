@@ -1,4 +1,3 @@
-
 export class AgentSiteToAzPortalVerbs {
     public static readonly readyForData = 'readyForData'; // Portal absorbs the first ready message, so we need our own to indicate when the iframe is ready to receive data
     public static readonly message = 'message';
@@ -30,7 +29,7 @@ export interface IEnvironmentInfo {
 
 export enum IFrameThemeMode {
     Light = 0,
-    Dark = 1
+    Dark = 1,
 }
 
 export interface IFrameTheme {
@@ -64,6 +63,6 @@ export interface IFrameTelemetryInfo {
 export interface INotificationInfo {
     id: string;
     state: 'start' | 'success' | 'fail';
-    title: string;
-    description: string;
+    title?: string;
+    description?: string;
 }

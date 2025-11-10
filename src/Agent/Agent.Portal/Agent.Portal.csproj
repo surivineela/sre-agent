@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ClientRoot>Client\</ClientRoot>
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.SREAgent.Portal</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

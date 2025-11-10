@@ -76,6 +76,8 @@ export const PortalResources = defineMessages({
         defaultMessage: '{count, plural, one {# second ago} other {# seconds ago}}',
         id: 'sYoT7W',
     },
+    unexpectedErrorOccurred: { defaultMessage: 'An unexpected error occurred', id: '3IKub9' },
+    backToHome: { defaultMessage: 'Back to home', id: 'aIRWQB' },
     minutesAgo: {
         defaultMessage: '{count, plural, one {# minute ago} other {# minutes ago}}',
         id: 'aLBTVj',

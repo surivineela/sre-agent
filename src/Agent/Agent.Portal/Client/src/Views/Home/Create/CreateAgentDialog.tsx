@@ -217,7 +217,7 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
             isNextDisabled={isNextDisabled}
             onNext={handleNext}
             cancelButtonText={cancelButtonText}
-            isBackDisabled={isDeploying || (isDeployStep && deploymentSucceeded)}
+            isBackDisabled={isDeployStep}
             isCancelDisabled={isDeploying}
             onBack={() => setCurrentStepIndex(currentStepIndex - 1)}
             keepRendered
