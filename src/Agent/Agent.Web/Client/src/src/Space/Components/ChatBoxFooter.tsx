@@ -34,7 +34,6 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
-    Input,
     makeStyles,
     MenuItem,
     MenuList,
@@ -52,6 +51,7 @@ import {
     Text,
     tokens,
     Tooltip,
+    useAnnounce,
     useRestoreFocusTarget,
 } from '@fluentui/react-components';
 import { ChartMultiple24Regular, ChatWarningRegular, Lightbulb32Regular, SearchSparkle32Regular } from '@fluentui/react-icons';
@@ -63,6 +63,7 @@ import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPorta
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ExtendedAgentClient } from '../../Common/Clients/ExtendedAgentClient';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
+import { SearchBoxWithDebounce } from '../../Common/Components/SearchBox/SearchBoxWithDebounce';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { Guid } from '../../Common/Helpers/Guid';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
@@ -1242,6 +1243,7 @@ const PromptLibraryButton = memo(
         const intl = useIntl();
         const { dialogSurface, dialogBody, dialogContent } = useDialogStyles();
         const { iconWrapper } = useFooterButtonIconStyles();
+        const { announce } = useAnnounce();
 
         const categories = useMemo<string[]>(
             () => ['Get started', 'Azure App Service', 'Azure Container App', 'Azure Kubernetes Service', 'Azure API Management'],
@@ -1431,6 +1433,12 @@ const PromptLibraryButton = memo(
             [sendMessage, logAmplitudeControlEvent, threadId, threadSource]
         );
 
+        useEffect(() => {
+            if (filteredCategories.length === 0) {
+                announce(intl.formatMessage(SreAgentResources.noMatches));
+            }
+        }, [filteredCategories, announce, intl]);
+
         return (
             <Dialog open={open} onOpenChange={(_, data) => setOpen(!!data.open)}>
                 <DialogTrigger disableButtonEnhancement>
@@ -1455,10 +1463,8 @@ const PromptLibraryButton = memo(
                         </DialogTitle>
                         <DialogContent>
                             <div className={dialogContent}>
-                                <Input
-                                    placeholder={intl.formatMessage(SreAgentResources.search)}
-                                    value={query}
-                                    onChange={(_, data) => setQuery(data.value)}
+                                <SearchBoxWithDebounce
+                                    setSearchTerm={setQuery}
                                     disabled={disableInputInteraction || isTyping}
                                     style={{ maxWidth: 470 }}
                                 />
