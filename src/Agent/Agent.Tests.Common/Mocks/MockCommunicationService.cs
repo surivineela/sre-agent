@@ -5,7 +5,6 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
-using Agent.Logging;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -243,6 +242,13 @@ namespace Agent.Tests.Common.Mocks
             _logger?.LogInternalInformation($"ThreadId: {threadId}, MemorySearchResult: {memorySearchResult}");
             Messages.Add(memorySearchResult?.ToString() ?? string.Empty);
             return Task.FromResult(Guid.NewGuid());
+        }
+
+        public Task NotifyIntermediateUpdate(Guid threadId, string message, Guid messageId = default)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, intermediate message {message}");
+            Messages.Add(message);
+            return Task.CompletedTask;
         }
     }
 }

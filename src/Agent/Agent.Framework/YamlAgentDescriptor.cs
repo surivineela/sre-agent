@@ -33,7 +33,7 @@ public class YamlAgentDescriptor : IAgentDescriptor
 
 
     [YamlMember(Alias = "allow_parallel_tool_calls")]
-    public bool AllowParallelToolCalls { get; set; } = false;
+    public bool AllowParallelToolCalls { get; set; } = true;
 
     [YamlMember(Alias = "agents_as_tools")]
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
@@ -82,6 +82,13 @@ public class YamlAgentDescriptor : IAgentDescriptor
 
     [YamlMember(Alias = "vanilla_mode")]
     public bool EnableVanillaMode { get; set; } = false;
+
+    [YamlMember(Alias = "enable_skills")]
+    public bool EnableSkills { get; set; } = false;
+
+    /// <inheritdoc/>
+    [YamlMember(Alias = "add_system_skills")]
+    public bool AddSystemSkills { get; set; } = false;
 
     // === Workflow Agent Support ===
 

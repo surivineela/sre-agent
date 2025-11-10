@@ -60,7 +60,9 @@ public record AgentDocumentModel(
         ParameterExtractionAgent = Spec.ParameterExtractionAgent,
         OrchestrationStartAgents = Spec.OrchestrationStartAgents ?? new List<string>(),
         ResultSummarizationPrompt = Spec.ResultSummarizationPrompt,
-        NextAgentMappings = Spec.NextAgentMappings ?? new List<NextAgentMapping>()
+        NextAgentMappings = Spec.NextAgentMappings ?? new List<NextAgentMapping>(),
+        EnableSkills = Spec.EnableSkills ?? false,
+        AddSystemSkills = Spec.AddSystemSkills ?? false
     };
     # endregion
 }
@@ -175,4 +177,7 @@ public class AgentSpec
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
 
     public string? OutputType { get; set; } = null;
+
+    public bool? EnableSkills { get; set; } = null;
+    public bool? AddSystemSkills { get; set; } = null;
 }

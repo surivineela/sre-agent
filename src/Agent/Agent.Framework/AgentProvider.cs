@@ -35,7 +35,8 @@ public sealed class AgentProvider<TContext> : IAgentProvider<TContext>
         IAgentFactory<TContext> factory,
         IVariantAssigner variantAssigner,
         ILogger<AgentProvider<TContext>> logger,
-        string? instanceId = null)
+        string? instanceId = null,
+        string? runtimeForcedVariants = null)
     {
         _factory = factory;
         _variantAssigner = variantAssigner;
@@ -75,22 +76,30 @@ public sealed class AgentProvider<TContext> : IAgentProvider<TContext>
         // Parse forced experiment variants from environment variable
         // Format: "experiment1=variant1;experiment2=variant2"
         var forcedVariants = Environment.GetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar);
-        if (!string.IsNullOrEmpty(forcedVariants))
+        ParseAndAddForcedVariants(forcedVariants);
+        ParseAndAddForcedVariants(runtimeForcedVariants);
+    }
+
+    private void ParseAndAddForcedVariants(string? forcedVariants)
+    {
+        if (string.IsNullOrEmpty(forcedVariants))
         {
-            var experiments = forcedVariants.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var exp in experiments)
+            return;
+        }
+
+        var experiments = forcedVariants.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var exp in experiments)
+        {
+            var parts = exp.Split('=', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 2)
             {
-                var parts = exp.Split('=', StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length == 2)
-                {
-                    var experimentId = parts[0].Trim();
-                    var variantName = parts[1].Trim();
-                    _forcedVariants[experimentId] = variantName;
-                    _logger.LogInternalInformation(
-                        "Forced experiment variant: {ExperimentId} = {VariantName}",
-                        experimentId,
-                        variantName);
-                }
+                var experimentId = parts[0].Trim();
+                var variantName = parts[1].Trim();
+                _forcedVariants[experimentId] = variantName;
+                _logger.LogInternalInformation(
+                    "Forced experiment variant: {ExperimentId} = {VariantName}",
+                    experimentId,
+                    variantName);
             }
         }
     }

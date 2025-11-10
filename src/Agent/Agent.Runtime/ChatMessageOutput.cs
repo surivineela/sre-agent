@@ -69,7 +69,8 @@ public class ChatMessageOutput : IDisplayModelOutput
         if (chatFinishReason == ChatFinishReason.ToolCalls)
         {
             _messageId = Guid.NewGuid();
-        } else if (chatFinishReason == ChatFinishReason.Stop)
+        }
+        else if (chatFinishReason == ChatFinishReason.Stop)
         {
             _messageId = null;
         }

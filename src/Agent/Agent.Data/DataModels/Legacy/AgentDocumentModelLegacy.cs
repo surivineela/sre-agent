@@ -34,7 +34,9 @@ public record AgentDocumentModelLegacy(
     List<NextAgentMapping> NextAgentMappings,
     string? OutputType,
     YamlMetadata Metadata,
-    string OperationId
+    string OperationId,
+    bool? EnableSkills,
+    bool? AddSystemSkills
 ) : ICosmosDocument, ILegacyModelConverter<AgentDocumentModel>
 {
     public string DocumentType => "ExtendedAgent";
@@ -70,7 +72,9 @@ public record AgentDocumentModelLegacy(
             OrchestrationStartAgents = OrchestrationStartAgents,
             ResultSummarizationPrompt = ResultSummarizationPrompt,
             NextAgentMappings = NextAgentMappings,
-            OutputType = OutputType
+            OutputType = OutputType,
+            EnableSkills = EnableSkills ?? false,
+            AddSystemSkills = AddSystemSkills ?? false
         };
     }
 

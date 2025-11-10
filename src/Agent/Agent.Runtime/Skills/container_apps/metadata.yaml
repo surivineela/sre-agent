@@ -1,0 +1,35 @@
+name: container_apps
+description: |
+  Skill for Azure Container Apps operations: status, configuration, revisions, deployments, logs, metrics, health checks, scaling, HTTP error diagnosis, latency analysis, change propagation, and incident tracking. Handles standard operational queries directly and defers only truly out-of-scope platform or cross-service scenarios to appropriate top-level skills.
+tools:
+  - GetLatestRevision
+  - ListContainerApps
+  - GetContainerAppInfo
+  - ListRevisions
+  - GetContainerAppRequestMetrics
+  - GetContainerAppMemoryMetrics
+  - GetContainerAppCpuMetrics
+  - GetRevisionLogs
+  - GetContainerAppLogs
+  - ScaleContainerApp
+  - GetImageReferenceFromResourceId
+  - VerifyExternalRegistry
+  - ValidateContainerAppHealth
+  - GetDeploymentTimes
+  - CloseAzureMonitorAlert
+  - RollbackToLastKnownWorkingRevision
+  - RestartContainerApp
+  - RemoveNSGRule
+  - UpdateTargetPort
+  - UpdateContainerImage
+  - GetConnectedResources
+  - GetLatencyAnalysis
+  - ModifyContainerAppScaleRule
+  - ListAvailableScalers
+  - GetScalerDetails
+  - CreateGithubIssue
+  - FetchGithubIssue
+  - FindConnectedGitHubRepo
+  - GetIaCForGitHub
+  - DisconnectRepositoryFromResourceForGitHub
+  - FetchGithubIssuesLimited

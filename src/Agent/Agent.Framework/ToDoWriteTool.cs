@@ -4,13 +4,15 @@
 
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
 
-public class ToDoWriteTool : AIToolFunction<ToDoWriteTool>
+public class ToDoWriteTool<TContext> : AIToolFunction<ToDoWriteTool<TContext>, TContext>
+    where TContext : class
 {
     #region AITool overrides
 
@@ -21,6 +23,8 @@ public class ToDoWriteTool : AIToolFunction<ToDoWriteTool>
     #endregion
 
     #region AIFunction overrides
+
+    public override MethodInfo? UnderlyingMethod => typeof(ToDoWriteTool<TContext>).GetMethod(nameof(ToDoWrite));
 
     public override JsonElement JsonSchema { get; } = InputJsonScema;
 
@@ -245,11 +249,13 @@ public class ToDoWriteTool : AIToolFunction<ToDoWriteTool>
          - content: "Fix database connection pool issue"
          - activeForm: "Fixing database connection pool issue"
 
-    When in doubt, use this tool. Being proactive with task management demonstrates attentiveness and ensures you complete all requirements successfully.
+    Being proactive with task management demonstrates attentiveness and ensures you complete all requirements successfully.
+
+    If you find yourself stuck and unable to proceed with your task list, consider requesting additional information from the user rather than cycling through task updates without advancement.
     """;
 
     private static readonly JsonElement InputJsonScema = AIJsonUtilities.CreateFunctionJsonSchema(
-        typeof(ToDoWriteTool).GetMethod(nameof(ToDoWrite))!,
+        typeof(ToDoWriteTool<TContext>).GetMethod(nameof(ToDoWrite))!,
         title: ToolName,
         description: ToolDescription);
 
@@ -257,6 +263,7 @@ public class ToDoWriteTool : AIToolFunction<ToDoWriteTool>
 
     #region Models
 
+    [AgentTool(ToolMode.Auto)]
     public static void ToDoWrite(
         [Description("The updated todo list")]
         List<TodoItem> todos)

@@ -1,0 +1,14 @@
+name: agent_with_skills
+
+system_prompt: |
+  You are a helpful assistant with skills enabled.
+
+handoff_description: "Test agent with skills enabled."
+
+enable_skills: true
+
+tools:
+  - TestAutoTool
+
+common_prompts:
+  - prompt1

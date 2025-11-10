@@ -12,6 +12,7 @@ using Agent.Cli.Helpers;
 using Agent.Cli.Models;
 using Agent.Core.Validation;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -2586,6 +2587,344 @@ public class ApiService : IDisposable
             return false;
         }
     }
+
+    #region Skill Methods
+
+    /// <summary>
+    /// Uploads a skill from a local directory to the server.
+    /// </summary>
+    /// <param name="skillDirectoryPath">Path to the skill directory containing metadata.yaml and SKILL.md</param>
+    /// <returns>Success status and response message</returns>
+    public async Task<(bool Success, string Response)> UploadSkillAsync(string skillDirectoryPath)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            // Read and combine skill files into deployment model
+            var skillYaml = await YamlHelper.ReadSkillFromDirectory(skillDirectoryPath);
+            if (string.IsNullOrEmpty(skillYaml))
+            {
+                return (false, $"Failed to read skill from directory: {skillDirectoryPath}");
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
+            var request = new HttpRequestMessage(HttpMethod.Put, url);
+            request.Content = new StringContent(skillYaml, Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/yaml"));
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, "Skill uploaded successfully");
+            }
+            else
+            {
+                return (false, $"Upload failed: {response.StatusCode} - {content}");
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"UploadSkill failed: {ex.Message}");
+            return (false, $"Failed to upload skill: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Converts an agent to a skill and saves it locally.
+    /// </summary>
+    /// <param name="agentName">Name of the agent to convert</param>
+    /// <param name="topLevelAgents">List of top-level agent names for handoff context</param>
+    /// <param name="outputPath">Output path for the generated skill</param>
+    /// <returns>Success status, SkillSpec, and error message</returns>
+    public async Task<(bool Success, Agent.Framework.Skills.SkillSpec? SkillSpec, string ErrorMessage)> ConvertAgentToSkillAsync(
+        string agentName,
+        List<string> topLevelAgents,
+        string outputPath)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, null, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents/{agentName}/convert-to-skill";
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+            // Create request body
+            var requestBody = new
+            {
+                topLevelAgents = topLevelAgents ?? new List<string>()
+            };
+
+            request.Content = new StringContent(
+                JsonSerializer.Serialize(requestBody, _camelCaseJsonOptions),
+                Encoding.UTF8,
+                "application/json");
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return (false, null, $"Agent '{agentName}' not found");
+                }
+
+                return (false, null, $"Conversion failed: {response.StatusCode} - {content}");
+            }
+
+            // Deserialize the SkillSpec response
+            var skillSpec = JsonSerializer.Deserialize<Agent.Framework.Skills.SkillSpec>(content, _camelCaseJsonOptions);
+            if (skillSpec == null)
+            {
+                return (false, null, "Failed to deserialize skill response");
+            }
+
+            // Save skill to directory
+            await YamlHelper.SaveSkillToDirectory(outputPath, skillSpec);
+
+            return (true, skillSpec, "");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"ConvertAgentToSkill failed: {ex.Message}");
+            return (false, null, $"Failed to convert agent to skill: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Lists skills from the server with pagination and search.
+    /// </summary>
+    /// <param name="page">Page number (1-based)</param>
+    /// <param name="limit">Number of items per page</param>
+    /// <param name="search">Search query for skill name or description</param>
+    /// <returns>Success status, list of skills, total count, and error message</returns>
+    public async Task<(bool Success, List<Agent.Framework.Skills.SkillSpec> Skills, int TotalCount, string ErrorMessage)> ListSkillsAsync(
+        int page = 1,
+        int limit = 50,
+        string? search = null)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, [], 0, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/skills?page={page}&limit={limit}";
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                url += $"&search={Uri.EscapeDataString(search)}";
+            }
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return (false, [], 0, $"Failed to list skills: {response.StatusCode} - {content}");
+            }
+
+            // Parse the paginated response
+            try
+            {
+                var jsonDoc = JsonDocument.Parse(content);
+                var skills = new List<Agent.Framework.Skills.SkillSpec>();
+                int totalCount = 0;
+                JsonElement skillsArray;
+
+                // Try to get total count
+                if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    //skip here, will be assigned below
+                }
+                else if (jsonDoc.RootElement.TryGetProperty("totalCount", out var totalCountEl))
+                {
+                    totalCount = totalCountEl.GetInt32();
+                }
+                else if (jsonDoc.RootElement.TryGetProperty("total_count", out var totalCountSnakeEl))
+                {
+                    totalCount = totalCountSnakeEl.GetInt32();
+                }
+                else
+                {
+                    return (false, [], 0, "Unexpected response format for skills list");
+                }
+
+                // Get the skills array
+                if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    skillsArray = jsonDoc.RootElement;
+                    totalCount = skillsArray.GetArrayLength();
+                }
+                else if (jsonDoc.RootElement.TryGetProperty("data", out var dataEl) && dataEl.ValueKind == JsonValueKind.Array)
+                {
+                    skillsArray = dataEl;
+                }
+                else if (jsonDoc.RootElement.TryGetProperty("skills", out var skillsEl) && skillsEl.ValueKind == JsonValueKind.Array)
+                {
+                    skillsArray = skillsEl;
+                }
+                else
+                {
+                    return (false, [], 0, "Unexpected response format for skills list");
+                }
+
+                // Deserialize each skill
+                foreach (var skillEl in skillsArray.EnumerateArray())
+                {
+                    var skillJson = skillEl.GetRawText();
+                    var skill = JsonSerializer.Deserialize<Agent.Framework.Skills.SkillSpec>(skillJson, _camelCaseJsonOptions);
+                    if (skill != null)
+                    {
+                        skills.Add(skill);
+                    }
+                }
+
+                return (true, skills, totalCount, "");
+            }
+            catch (Exception ex)
+            {
+                return (false, [], 0, $"Failed to parse skills list: {ex.Message} {ex.StackTrace}");
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"ListSkills failed: {ex.Message}");
+            return (false, [], 0, $"Failed to list skills: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Gets a specific skill by name from the server.
+    /// </summary>
+    /// <param name="skillName">Name of the skill to retrieve</param>
+    /// <returns>Success status, SkillSpec, and error message</returns>
+    public async Task<(bool Success, Agent.Framework.Skills.SkillSpec? SkillSpec, string ErrorMessage)> GetSkillByNameAsync(string skillName)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, null, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/skills/{skillName}";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return (false, null, $"Skill '{skillName}' not found");
+                }
+
+                return (false, null, $"Failed to get skill: {response.StatusCode} - {content}");
+            }
+
+            var skillSpec = JsonSerializer.Deserialize<Agent.Framework.Skills.SkillSpec>(content, _camelCaseJsonOptions);
+            if (skillSpec == null)
+            {
+                return (false, null, "Failed to deserialize skill response");
+            }
+
+            return (true, skillSpec, "");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"GetSkillByName failed: {ex.Message}");
+            return (false, null, $"Failed to retrieve skill: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Gets all skill names from the server.
+    /// </summary>
+    /// <returns>Success status, list of skill names, and error message</returns>
+    public async Task<(bool Success, List<string> Names, string Error)> GetSkillNamesAsync()
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, [], "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            // Get all skills (we'll extract names from the full list)
+            var (success, skills, _, errorMessage) = await ListSkillsAsync(1, 1000, null);
+            if (!success)
+            {
+                return (false, [], errorMessage);
+            }
+
+            var names = skills
+                .Select(s => s.Name)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            return (true, names, "");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"GetSkillNames failed: {ex.Message}");
+            return (false, [], $"Failed to get skill names: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Deletes a skill from the server.
+    /// </summary>
+    /// <param name="skillName">Name of the skill to delete</param>
+    /// <returns>Success status and response message</returns>
+    public async Task<(bool Success, string Response)> DeleteSkillAsync(string skillName)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/skills/{skillName}";
+            var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, $"Skill '{skillName}' deleted successfully");
+            }
+            else if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return (false, $"Skill '{skillName}' not found");
+            }
+            else
+            {
+                return (false, $"Failed to delete skill: {response.StatusCode} - {content}");
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"DeleteSkill failed: {ex.Message}");
+            return (false, $"Failed to delete skill: {ex.Message}");
+        }
+    }
+
+    #endregion
 
     public void Dispose()
     {

@@ -15,7 +15,7 @@ public class YamlResourceRouter
         var toolTypeMappings = new Dictionary<string, Type>
         {
             ["KustoTool"] = typeof(KustoToolApiModel),
-            ["LinkTool"]= typeof(LinkToolApiModel),
+            ["LinkTool"] = typeof(LinkToolApiModel),
 
         };
 
@@ -40,6 +40,7 @@ public class YamlResourceRouter
             "CommonToolsList" => yamlDeserializer.Deserialize<CommonToolsListDeploymentModel>(yaml),
             "CommonPrompt" => yamlDeserializer.Deserialize<CommonPromptDeploymentModel>(yaml),
             "PluginConfiguration" => yamlDeserializer.Deserialize<PluginConfigDeploymentModel>(yaml),
+            "Skill" => yamlDeserializer.Deserialize<SkillDeploymentModel>(yaml),
             _ => throw new NotSupportedException($"Unsupported kind: {kind}")
         };
     }

@@ -24,7 +24,7 @@ system_prompt: |
   ## MANDATORY FIRST RESPONSE - DEBUG SEARCH
   **In your ReasoningScratchPad, you MUST document:**
   - What conversation messages you can see
-  - What reasoning messages you can see  
+  - What reasoning messages you can see
   - What context information you can see
   - Any resource information you found
   - Where you found the resource information
@@ -196,7 +196,6 @@ tools:
 - AzureAppServiceSetScmAuthenticationSupport
 - CreateGithubIssue
 - AddIgnoreTagToResource
-- NotifyUser
 - HandoffBack
 
 common_prompts:

@@ -1,0 +1,6 @@
+name: diagnostic_memory
+description: |
+  Diagnose memory issues (leaks, high heap, OOM) for Azure workloads by analyzing dumps: surface top types, GC root chains, sizes, counts, visualization, and remediation guidance.
+tools:
+  - GetMemoryAnalysis
+  - PlotBarChart

@@ -94,4 +94,9 @@ public enum StreamMessageType
     /// Trajectory insights and learnings posted after thread evaluation
     /// </summary>
     TrajectoryInsight,
+
+    /// <summary>
+    /// Intermediate chat updates (tool preambles) sent during agent processing
+    /// </summary>
+    IntermediateUpdate,
 }

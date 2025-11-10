@@ -34,11 +34,19 @@ public interface IToolFactory<TContext> : IAsyncInitializer
     /// Find an AI function by its name.
     /// </summary>
     /// <param name="name"></param>
+    /// <param name="agent">The agent instance for which the tool is being requested</param>
     /// <returns></returns>
     /// <exception cref="KeyNotFoundException">Thrown when the function with the specified name is not found.</exception>
-    public AIFunction GetTool(string name);
+    public AIFunction GetTool(string name, Agent<TContext>? agent = null);
 
-    public AIFunction GetTool(string name, Guid threadId);
+    /// <summary>
+    /// Find an AI function by its name with thread context.
+    /// </summary>
+    /// <param name="name">The name of the tool</param>
+    /// <param name="threadId">The thread ID</param>
+    /// <param name="agent">The agent instance for which the tool is being requested</param>
+    /// <returns></returns>
+    public AIFunction GetTool(string name, Guid threadId, Agent<TContext>? agent = null);
 
     /// <summary>
     /// Find an AI function by its name with agent mode support.
@@ -46,8 +54,9 @@ public interface IToolFactory<TContext> : IAsyncInitializer
     /// <param name="name">The name of the tool</param>
     /// <param name="threadId">The thread ID</param>
     /// <param name="agentMode">The agent mode (e.g., "Chat", "ReadOnly", "Review", "Autonomous")</param>
+    /// <param name="agent">The agent instance for which the tool is being requested</param>
     /// <returns></returns>
-    public AIFunction GetTool(string name, Guid threadId, string? agentMode);
+    public AIFunction GetTool(string name, Guid threadId, string? agentMode, Agent<TContext>? agent = null);
 
     public bool TryFindTool(string name, out AIFunction? function);
 

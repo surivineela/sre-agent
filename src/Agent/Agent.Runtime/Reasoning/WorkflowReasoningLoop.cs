@@ -9,6 +9,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -49,6 +50,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
         AgentMemorySettings agentMemorySettings,
         FeatureConfigModel featureConfig,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
+        ISkillRegistry skillRegistry,
     IncidentManagementSettings incidentManagementSettings,
     CoreSettings coreSettings,
     bool modeSwitchEnabled)
@@ -73,7 +75,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
             agentMemorySettings: agentMemorySettings,
             featureConfig: featureConfig,
             agentRuntimeModifier: agentRuntimeModifier,
-            modeSwitchEnabled: modeSwitchEnabled)
+            modeSwitchEnabled: modeSwitchEnabled,
+            skillRegistry: skillRegistry)
     {
         _workflowOrchestrator = new WorkflowOrchestrator(
             loggerFactory: loggerFactory,
@@ -85,7 +88,9 @@ public class WorkflowReasoningLoop : ReasoningLoop
             toolFactory: toolFactory,
             tracer: tracer,
             incidentManagementSettings: incidentManagementSettings,
-            coreSettings: coreSettings);
+            coreSettings: coreSettings,
+            skillRegistry: skillRegistry);
+
         _logger = loggerFactory.CreateLogger<WorkflowReasoningLoop>();
     }
 

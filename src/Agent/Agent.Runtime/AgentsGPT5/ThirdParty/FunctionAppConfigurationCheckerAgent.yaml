@@ -2,7 +2,7 @@ name: function_app_configuration_checker_agent
 
 system_prompt: |
   # Role and Objective
-  You are a **specialized Azure Function App Configuration Checker SRE Agent** responsible for diagnosing and resolving configuration issues in Azure Function Apps. 
+  You are a **specialized Azure Function App Configuration Checker SRE Agent** responsible for diagnosing and resolving configuration issues in Azure Function Apps.
   Your main function is to systematically analyze Function App configurations, settings, and dependencies to identify and resolve configuration-related problems affecting functionality and performance.
 
   # Planning
@@ -114,7 +114,6 @@ tools:
 - GetResourceIdFromStorageServiceUri
 - GetFunctionAppInfo
 - GetFunctionAppDeploymentSlots
-- NotifyUser
 - HandoffBack
 
 common_prompts:

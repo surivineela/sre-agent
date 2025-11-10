@@ -1,0 +1,7 @@
+name: cdb_general
+description: |
+  Provides comprehensive diagnostics for Azure Cosmos DB-related issues, leveraging Azure Support Center APIs. This skill specializes in product discovery, problem classification, guided diagnostics, and delivering findings with possible causes, exclusively focused on diagnosis without remediation.
+tools:
+  - GetSupportProductsFromArm
+  - GetSupportProblemClassificationsForProduct
+  - GetAzureSupportCenterDiagnosticResultsForQuestion

@@ -1,6 +1,7 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
+
 using System.Reflection;
 using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Agent.Framework.Skills;
 
 namespace Agent.Tests.Unit.Framework;
 
@@ -95,7 +97,18 @@ public class AgentProviderTests
         serviceProvider: _serviceProvider,
         assembliesToScan: [Assembly.GetExecutingAssembly()],
         extensibilityLoader: _mockExtensibilityLoader.Object,
-        mcpToolsRepository: _mockMcpToolsRepository.Object);
+        mcpToolsRepository: _mockMcpToolsRepository.Object,
+        skillRegistry: CreateSkillRegistry()
+    );
+
+    private SkillRegistry CreateSkillRegistry()
+    {
+        return new SkillRegistry(
+            logger: Mock.Of<ILogger<SkillRegistry>>(),
+            systemSkillsDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestSkills"),
+            extensibilityLoader: _mockExtensibilityLoader.Object
+        );
+    }
 
     [Fact]
     public async Task AppliesForcedVariantPromptOverlay()

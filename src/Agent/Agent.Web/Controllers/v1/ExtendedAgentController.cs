@@ -11,11 +11,13 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Validation;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Plugins.Connector;
 using Agent.Plugins.Kusto;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
+using Agent.Runtime.Services;
 using Agent.Web.Authorization;
 using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Request;
@@ -40,6 +42,7 @@ public class ExtendedAgentController : ControllerBase
     private readonly IAuthenticationService _authenticationService;
     private readonly IChatClientProvider _chatClientProvider;
     private readonly IToolFactory<AgentContext> _toolFactory;
+    private readonly AgentToSkillService _agentToSkillService;
 
     public ExtendedAgentController(
         IExtendedAgentService extendedAgentService,
@@ -48,8 +51,9 @@ public class ExtendedAgentController : ControllerBase
         IConnectorResolver connectorResolver,
         IAuthenticationService authenticationService,
         IChatClientProvider chatClientProvider,
-        IToolFactory<AgentContext> toolFactory
-       )
+        IToolFactory<AgentContext> toolFactory,
+        AgentToSkillService agentToSkillService
+    )
     {
         _resourceDeploymentService = agentService;
         _logger = logger;
@@ -58,6 +62,7 @@ public class ExtendedAgentController : ControllerBase
         _authenticationService = authenticationService;
         _chatClientProvider = chatClientProvider;
         _toolFactory = toolFactory;
+        _agentToSkillService = agentToSkillService;
     }
 
     /// <summary>
@@ -216,6 +221,7 @@ public class ExtendedAgentController : ControllerBase
                 case "PluginConfiguration":
                 case "CommonToolsList":
                 case "CommonPrompt":
+                case "Skill":
 
                     // For non-agent resources, use the original approach
                     var resource = YamlResourceRouter.DeserializeResource(generic.Kind!, yaml);
@@ -249,6 +255,12 @@ public class ExtendedAgentController : ControllerBase
                             var promptCount = commonPrompt.Spec?.CommonPrompts?.Count ?? 0;
                             _logger.LogInternalInformation("ApplyAgentConfiguration: Applying common prompt list with {Count} prompts", promptCount);
                             await _resourceDeploymentService.ApplyAsync(commonPrompt);
+                            break;
+
+                        case SkillDeploymentModel skill:
+                            var skillName = skill.Spec.Name ?? "unknown";
+                            _logger.LogInternalInformation("ApplyAgentConfiguration: Applying skill deployment for {SkillName}", skillName);
+                            await _resourceDeploymentService.ApplyAsync(skill);
                             break;
 
                         default:
@@ -397,6 +409,8 @@ public class ExtendedAgentController : ControllerBase
                     Message = $"Agent '{agentName}' not found"
                 });
             }
+
+            await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
 
             return Ok(new ExtendedAgentDeleteResponse
             {
@@ -648,7 +662,7 @@ Optional Elements (suggest ONLY if they add genuine value):
 - Tone/style guidelines
 - Constraints/limitations
 
-Important: Keep simple prompts simple. Do not bloat straightforward prompts, if already good return same prompt back. **You must** add a statement and <seld-reflect> note in the generated prompt about ending the turn when asking user a question, and not repeating the same question.
+Important: Keep simple prompts simple. Do not bloat straightforward prompts, if already good return same prompt back. **You must** add a statement and <self-reflect> note in the generated prompt about ending the turn when asking user a question, and not repeating the same question.
 
 Return ONLY valid JSON with this shape:
 {
@@ -1618,6 +1632,149 @@ If ANY diff fails validation, REWRITE it before returning the response. Do not s
                     }
                 )
             ));
+        }
+    }
+
+    [HttpGet("skills")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
+    [ProducesResponseType(typeof(PaginatedList<SkillSpec>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PaginatedList<SkillSpec>>> ListSkills(
+        [FromQuery][Range(1, 200)] int limit = 50,
+        [FromQuery][Range(1, int.MaxValue)] int page = 1,
+        [FromQuery] string? search = null)
+    {
+        try
+        {
+            var result = await _extendedAgentService.GetSkillsAsync(limit: limit, pageIndex: page, search: search);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in ListSkills");
+            return StatusCode(500, new ExtendedAgentErrorResponse
+            {
+                ErrorCode = "INTERNAL_ERROR",
+                Message = "An internal error occurred while retrieving skills"
+            });
+        }
+    }
+
+    [HttpGet("skills/{skillName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
+    [ProducesResponseType(typeof(SkillSpec), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<SkillSpec>> GetSkillByName([FromRoute] string skillName)
+    {
+        try
+        {
+            var skill = await _extendedAgentService.GetSkillByNameAsync(skillName);
+            if (skill == null)
+            {
+                return NotFound(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "SKILL_NOT_FOUND",
+                    Message = $"Skill '{skillName}' not found"
+                });
+            }
+
+            return Ok(skill);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in GetSkillByName for skill {SkillName}", skillName);
+            return StatusCode(500, new ExtendedAgentErrorResponse
+            {
+                ErrorCode = "INTERNAL_ERROR",
+                Message = "An internal error occurred while retrieving the skill"
+            });
+        }
+    }
+
+    [HttpDelete("skills/{skillName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentDeleteActionId)]
+    [ProducesResponseType(typeof(ExtendedAgentDeleteResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ExtendedAgentDeleteResponse>> DeleteSkill([FromRoute] string skillName)
+    {
+        try
+        {
+            var deleted = await _extendedAgentService.DeleteSkillAsync(skillName);
+
+            if (!deleted)
+            {
+                return NotFound(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "SKILL_NOT_FOUND",
+                    Message = $"Skill '{skillName}' not found"
+                });
+            }
+
+            await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
+
+            return Ok(new ExtendedAgentDeleteResponse
+            {
+                Status = "success",
+                Message = $"Skill '{skillName}' successfully deleted",
+                ResourceName = skillName,
+                ResourceType = "skill"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in DeleteSkill for skill {SkillName}", skillName);
+            return StatusCode(500, new ExtendedAgentErrorResponse
+            {
+                ErrorCode = "INTERNAL_ERROR",
+                Message = "An internal error occurred while deleting the skill"
+            });
+        }
+    }
+
+    [HttpPost("agents/{agentName}/convert-to-skill")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
+    [ProducesResponseType(typeof(SkillSpec), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<SkillSpec>> ConvertToSkill(
+        [FromRoute] string agentName,
+        [FromBody] ConvertToSkillRequest request
+    )
+    {
+        try
+        {
+            var extendedAgent = await _extendedAgentService.GetAgentByNameAsync(agentName);
+            if (extendedAgent == null)
+            {
+                return NotFound(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "AGENT_NOT_FOUND",
+                    Message = $"Agent '{agentName}' not found"
+                });
+            }
+
+            var skill = await _agentToSkillService.ConvertAgentToSkillAsync(agentName, request.TopLevelAgents);
+
+            // create skill in DB
+            await _resourceDeploymentService.ApplyAsync(new SkillDeploymentModel
+            {
+                Spec = skill,
+            });
+
+            _logger.LogInternalInformation("Skill '{SkillName}' created successfully from agent '{AgentName}'", skill.Name, agentName);
+
+            return Ok(skill);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in ConvertToSkill for agent {AgentName}", agentName);
+            return StatusCode(500, new ExtendedAgentErrorResponse
+            {
+                ErrorCode = "INTERNAL_ERROR",
+                Message = "An internal error occurred while converting the agent to a skill"
+            });
         }
     }
 }

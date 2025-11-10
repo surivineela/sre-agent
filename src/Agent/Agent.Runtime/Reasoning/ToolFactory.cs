@@ -5,6 +5,7 @@
 using System.Reflection;
 using Agent.Core.Configuration;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Tools;
@@ -32,10 +33,11 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     private readonly ILogger<ToolFactory<TContext>> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly IEnumerable<Assembly> _assemblies;
-    private readonly Dictionary<string, IDeferredToolFunction> _tools = new();
+    private readonly Dictionary<string, IDeferredToolFunction<TContext>> _tools = new();
     private readonly HashSet<string> _disabledTools = new();
     private readonly IExtensibilityLoader? _extensibilityLoader;
     private readonly IMcpConnectable _mcpToolsRepository;
+    private readonly ISkillRegistry _skillRegistry;
     private readonly bool _handoffReasoningEnabled;
 
     public int RegisteredToolCount => _tools.Count;
@@ -45,7 +47,8 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         IServiceProvider serviceProvider,
         IEnumerable<Assembly> assembliesToScan,
         IExtensibilityLoader? extensibilityLoader,
-        IMcpConnectable mcpToolsRepository
+        IMcpConnectable mcpToolsRepository,
+        ISkillRegistry skillRegistry
     )
     {
         _logger = logger;
@@ -53,6 +56,7 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         _assemblies = assembliesToScan;
         _extensibilityLoader = extensibilityLoader;
         _mcpToolsRepository = mcpToolsRepository;
+        _skillRegistry = skillRegistry;
 
         // enable handoff reasoning for dev envs
         var hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
@@ -306,7 +310,13 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         }
 
         // Register the ToDo Write tool
-        RegisterTool(ToDoWriteTool.Instance, onNameConflict);
+        RegisterTool(ToDoWriteTool<TContext>.GetInstance(), onNameConflict);
+
+        // Register skills as tools if enabled
+        RegisterTool(
+            ReadSkillFileTool<TContext>.ToolName,
+            new AIDynamicTool<TContext>((threadId, agentMode, agent) => new ReadSkillFileTool<TContext>(_skillRegistry, agent)),
+            onNameConflict);
 
         if (_mcpToolsRepository != null)
         {
@@ -329,7 +339,7 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         }
     }
 
-    public AIFunction GetTool(string name)
+    public AIFunction GetTool(string name, Agent<TContext>? agent = null)
     {
         return DoFindAIFunction(name, null);
     }
@@ -368,11 +378,11 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
 
     public bool RegisterTool(AIFunction function, BehaviorOnNameConflict onNameConflict)
     {
-        var deferredFunction = new AIToolAdapter(function);
+        var deferredFunction = new AIToolAdapter<TContext>(function);
         return RegisterTool(function.Name, deferredFunction, onNameConflict);
     }
 
-    public bool RegisterTool(string name, IDeferredToolFunction function, BehaviorOnNameConflict onNameConflict)
+    public bool RegisterTool(string name, IDeferredToolFunction<TContext> function, BehaviorOnNameConflict onNameConflict)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -458,7 +468,7 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
             // Register each MCP tool using AIToolAdapter to wrap the AIFunction
             foreach (var function in mcpFunctions)
             {
-                var toolAdapter = new AIToolAdapter(function);
+                var toolAdapter = new AIToolAdapter<TContext>(function);
                 _tools[function.Name] = toolAdapter;
 
                 _logger.LogInternalDebug("Registered MCP tool: {ToolName}", function.Name);
@@ -542,23 +552,23 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         return string.Equals(actualValue, expectedValue, StringComparison.OrdinalIgnoreCase);
     }
 
-    public AIFunction GetTool(string name, Guid threadId)
+    public AIFunction GetTool(string name, Guid threadId, Agent<TContext>? agent = null)
     {
-        return DoFindAIFunction(name, threadId);
+        return DoFindAIFunction(name, threadId, agent: agent);
     }
 
-    public AIFunction GetTool(string name, Guid threadId, string? agentMode)
+    public AIFunction GetTool(string name, Guid threadId, string? agentMode, Agent<TContext>? agent = null)
     {
-        return DoFindAIFunction(name, threadId, agentMode);
+        return DoFindAIFunction(name, threadId, agentMode, agent: agent);
     }
 
-    private AIFunction DoFindAIFunction(string name, Guid? threadId = null, string? agentMode = null)
+    private AIFunction DoFindAIFunction(string name, Guid? threadId = null, string? agentMode = null, Agent<TContext>? agent = null)
     {
         if (_tools.TryGetValue(name, out var function))
         {
             try
             {
-                return function.GetToolFunction(threadId, agentMode);
+                return function.GetToolFunction(threadId, agentMode, agent);
             }
             catch (Exception ex)
             {

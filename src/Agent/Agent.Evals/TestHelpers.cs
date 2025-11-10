@@ -10,6 +10,7 @@ using Agent.Data.AgentMemory;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Logging;
 using Agent.Plugins;
@@ -39,6 +40,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.TeamFoundation.Build.WebApi;
 using Moq;
 using OpenTelemetry.Trace;
 
@@ -338,6 +340,14 @@ public static class TestHelpers
             builder.Services.AddSingleton<IAgentModeConfigurator<AgentContext>, DefaultAgentModeConfigurator<AgentContext>>();
         }
 
+        builder.Services.AddSingleton<ISkillRegistry>(sp =>
+        {
+            return new SkillRegistry(
+                logger: sp.GetRequiredService<ILogger<SkillRegistry>>(),
+                systemSkillsDirectory: Path.Combine(AppContext.BaseDirectory, "Skills"),
+                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
+        });
+
         builder.Services.AddSingleton<IToolFactory<AgentContext>>(sp =>
         {
             var inner = new ToolFactory<AgentContext>(
@@ -347,7 +357,8 @@ public static class TestHelpers
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
                 mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>(),
-                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
+                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>(),
+                skillRegistry: sp.GetRequiredService<ISkillRegistry>());
 
             var replay = new ReplayToolFactory<AgentContext>(inner, toolReplaySerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
             return replay;
@@ -395,7 +406,7 @@ public static class TestHelpers
                 instanceId: instanceId);
         });
 
-        builder.Services.ConfigureAsyncInitializers();
+        builder.Services.ConfigureFrameworkAsyncInitializers<AgentContext>();
 
         // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
         builder.Services.AddSingleton<IAgentsFactory>(sp =>

@@ -16,7 +16,7 @@ namespace Agent.Runtime.Reasoning;
 /// <summary>
 /// Creates a tool from reflection (a MethodInfo)
 /// </summary>
-public sealed class DeferredToolFunction<TContext> : IDeferredToolFunction where TContext : class
+public sealed class DeferredToolFunction<TContext> : IDeferredToolFunction<TContext> where TContext : class
 {
     // Common fields
     private readonly IServiceProvider _sp;
@@ -66,15 +66,15 @@ public sealed class DeferredToolFunction<TContext> : IDeferredToolFunction where
     /// <summary>
     /// Creates the AIFunction based on the source information (Reflection or YAML).
     /// </summary>
-    public AIFunction GetToolFunction(Guid? threadId = null)
+    public AIFunction GetToolFunction(Guid? threadId = null, Agent<TContext>? agent = null)
     {
-        return GetToolFunction(threadId, null);
+        return GetToolFunction(threadId, null, agent);
     }
 
     /// <summary>
     /// Creates the AIFunction based on the source information (Reflection or YAML) with agent mode support.
     /// </summary>
-    public AIFunction GetToolFunction(Guid? threadId, string? agentMode)
+    public AIFunction GetToolFunction(Guid? threadId, string? agentMode, Agent<TContext>? agent = null)
     {
         // Case 1: The tool was defined by reflecting over source code.
         if (_methodInfo is not null)

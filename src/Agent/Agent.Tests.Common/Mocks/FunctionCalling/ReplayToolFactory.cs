@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
+using ReverseMarkdown.Converters;
 
 namespace Agent.Tests.Common.Mocks.FunctionCalling;
 
@@ -51,7 +52,7 @@ public sealed class ReplayToolFactory<TContext> : AsyncInitializerBase, IToolFac
     /// Gets a tool (AIFunction) by name, returning a replayed version if available,
     /// otherwise falls back to the inner factory.
     /// </summary>
-    public AIFunction GetTool(string name)
+    public AIFunction GetTool(string name, Agent<TContext>? agent = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -59,13 +60,13 @@ public sealed class ReplayToolFactory<TContext> : AsyncInitializerBase, IToolFac
         }
 
         // Get the original function from the inner factory
-        var originalFunction = _innerFactory.GetTool(name);
+        var originalFunction = _innerFactory.GetTool(name, agent);
 
         // Use CreateReplayWrapper to wrap it with replay functionality if appropriate
         return _replayCore.CreateReplayWrapper(name, originalFunction);
     }
 
-    public AIFunction GetTool(string name, Guid threadId)
+    public AIFunction GetTool(string name, Guid threadId, Agent<TContext>? agent = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -73,13 +74,13 @@ public sealed class ReplayToolFactory<TContext> : AsyncInitializerBase, IToolFac
         }
 
         // Get the original function from the inner factory
-        var originalFunction = _innerFactory.GetTool(name, threadId);
+        var originalFunction = _innerFactory.GetTool(name, threadId, agent);
 
         // Use CreateReplayWrapper to wrap it with replay functionality if appropriate
         return _replayCore.CreateReplayWrapper(name, originalFunction);
     }
 
-    public AIFunction GetTool(string name, Guid threadId, string? agentMode)
+    public AIFunction GetTool(string name, Guid threadId, string? agentMode, Agent<TContext>? agent = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -87,7 +88,7 @@ public sealed class ReplayToolFactory<TContext> : AsyncInitializerBase, IToolFac
         }
 
         // Get the original function from the inner factory with agent mode
-        var originalFunction = _innerFactory.GetTool(name, threadId, agentMode);
+        var originalFunction = _innerFactory.GetTool(name, threadId, agentMode, agent);
 
         // Use CreateReplayWrapper to wrap it with replay functionality if appropriate
         return _replayCore.CreateReplayWrapper(name, originalFunction);

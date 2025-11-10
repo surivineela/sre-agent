@@ -1,0 +1,11 @@
+name: scheduled_task
+description: |
+  Load this skill when the user asks to create, list, inspect, pause, resume, cancel, or view history for a recurring monitoring / maintenance task, OR requests help shaping an autonomous scheduled agent workflow (e.g. "set up a task to watch latency every 15 minutes" / "pause my daily cleanup job").
+  Do NOT load for one-off ad-hoc queries or simple immediate checks; answer those directly. Load only once per thread unless tasks context is explicitly cleared. Align responses with the main system prompt: start with the direct answer (1-2 sentences), then supporting task details—do NOT emit a preliminary checklist.
+tools:
+  - CreateScheduledMonitoringTask
+  - ListScheduledTasks
+  - PauseScheduledTask
+  - ResumeScheduledTask
+  - CancelScheduledTask
+  - GetTaskExecutionHistory

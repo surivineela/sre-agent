@@ -1,13 +1,13 @@
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
+using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Runtime.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
-using Agent.Data;
-using Agent.Framework;
 
 namespace Agent.Cli.UnitTests.Validations;
 
@@ -25,7 +25,8 @@ public class ServerSideYamlValidationTests
             mockLogger.Object,
             mockAgentFactory.Object,
             mockToolFactory.Object,
-            mockRepository.Object
+            mockRepository.Object,
+            new EmptySkillRegistry()
         );
 
         return service.ValidateYamlStructure(rootDocument);

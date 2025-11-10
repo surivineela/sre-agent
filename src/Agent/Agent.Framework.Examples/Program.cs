@@ -15,6 +15,7 @@ using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
+using Agent.Framework.Skills;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
@@ -233,7 +234,8 @@ class Program
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
                 mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>(),
-                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
+                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>(),
+                skillRegistry: new EmptySkillRegistry());
         });
 
         builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
@@ -335,6 +337,7 @@ class Program
                 {
                     ChatClient = chatClient,
                     LoggerFactory = host.Services.GetRequiredService<ILoggerFactory>(),
+                    SkillRegistry = new EmptySkillRegistry()
                 },
                 context: new CustomContext()
             );
@@ -379,7 +382,8 @@ class Program
             config: new RunConfig
             {
                 ChatClient = chatClient,
-                LoggerFactory = loggerFactory
+                LoggerFactory = loggerFactory,
+                SkillRegistry = new EmptySkillRegistry()
             },
             context: new CustomContext()
         );
@@ -433,7 +437,8 @@ class Program
             config: new RunConfig
             {
                 ChatClient = chatClient,
-                LoggerFactory = loggerFactory
+                LoggerFactory = loggerFactory,
+                SkillRegistry = new EmptySkillRegistry()
             },
             context: new CustomContext()
         );
@@ -492,7 +497,8 @@ class Program
                 config: new RunConfig
                 {
                     ChatClient = chatClient,
-                    LoggerFactory = loggerFactory
+                    LoggerFactory = loggerFactory,
+                    SkillRegistry = new EmptySkillRegistry()
                 },
                 context: context
             );

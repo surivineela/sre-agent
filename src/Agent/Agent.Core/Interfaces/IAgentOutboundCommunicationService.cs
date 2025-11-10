@@ -75,6 +75,11 @@ public interface IAgentOutboundCommunicationService
     Task NotifyApprovalUpdate(Guid threadId, Approval approval, Guid messageId = default);
 
     /// <summary>
+    /// Notifies about an intermediate update (tool preamble text)
+    /// </summary>
+    Task NotifyIntermediateUpdate(Guid threadId, string message, Guid messageId = default);
+
+    /// <summary>
     /// Notifies about an update to a Kubectl execution
     /// </summary>
     Task NotifyKubectlUpdate(Guid threadId, KubectlExecution execution, Guid messageId = default);

@@ -10,35 +10,61 @@ namespace Agent.Framework;
 /// <summary>
 /// Creates a tool from AIFunction
 /// </summary>
-public abstract class AIToolFunction<T> : AIFunction, IDeferredToolFunction
-    where T : AIToolFunction<T>, new()
+public abstract class AIToolFunction<T, TInitializationParameter, TContext> : AIFunction, IDeferredToolFunction<TContext>
+    where T : AIToolFunction<T, TInitializationParameter, TContext>, new()
+    where TInitializationParameter : class?
+    where TContext : class
 {
-    public static T Instance { get; } = new T();
+    private static T Instance { get; } = new T();
 
-    MethodInfo? IDeferredToolFunction.MethodInfo => default;
+    public static T GetInstance(TInitializationParameter? initializationParameter)
+    {
+        if (initializationParameter != null)
+        {
+            Instance.Initialize(initializationParameter);
+        }
 
-    string IDeferredToolFunction.GetPluginCategory()
+        return Instance;
+    }
+
+    public virtual void Initialize(TInitializationParameter? initializationParameter)
+    {
+    }
+
+    MethodInfo? IDeferredToolFunction<TContext>.MethodInfo => default;
+
+    string IDeferredToolFunction<TContext>.GetPluginCategory()
     {
         return string.Empty;
     }
 
-    string IDeferredToolFunction.GetPluginName()
+    string IDeferredToolFunction<TContext>.GetPluginName()
     {
         return Instance.Name;
     }
 
-    string IDeferredToolFunction.GetPluginResourceType()
+    string IDeferredToolFunction<TContext>.GetPluginResourceType()
     {
         return string.Empty;
     }
 
-    AIFunction IDeferredToolFunction.GetToolFunction(Guid? threadId)
+    AIFunction IDeferredToolFunction<TContext>.GetToolFunction(Guid? threadId, Agent<TContext>? agent)
     {
         return Instance;
     }
 
-    AIFunction IDeferredToolFunction.GetToolFunction(Guid? threadId, string? agentMode)
+    AIFunction IDeferredToolFunction<TContext>.GetToolFunction(Guid? threadId, string? agentMode, Agent<TContext>? agent)
     {
         return Instance;
+    }
+}
+
+public abstract class AIToolFunction<T, TContext> : AIToolFunction<T, object?, TContext>
+    where T : AIToolFunction<T, TContext>, new()
+    where TContext : class
+{
+    public static T GetInstance()
+    {
+        return GetInstance(null);
     }
 }

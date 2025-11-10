@@ -61,6 +61,19 @@ public static class CommandBuilder
             CreateProfileDeleteCommand()
         };
 
+        var skill = new Command("skill", "Skill management commands. Upload and manage custom skills for agents to use, or convert an existing agent into a skill.")
+        {
+            CreateSkillCreateCommand(),
+            CreateSkillUploadCommand(),
+            CreateSkillConvertCommand(),
+            CreateSkillListCommand(),
+            CreateSkillDownloadCommand(),
+            CreateSkillDeleteCommand()
+        };
+
+        // Add default action for skill command to show formatted help
+        skill.SetAction(pr => ShowFormattedSkillHelp(skill));
+
         // Add default action for profile command to show formatted help
         profile.SetAction(pr => ShowFormattedProfileHelp(profile));
 
@@ -95,7 +108,7 @@ public static class CommandBuilder
         {
             welcomeCommand, helpCommand, statusCommand, interactiveCommand, versionCommand,
             initCommand, syncCommand, listCommand, applyYamlCommand, threadCommand, chatCommand,
-            agent, tool, doc, profile, incidentHandler, scheduledTask
+            agent, tool, doc, profile, skill, incidentHandler, scheduledTask
         };
 
         // Single root action (runs when no verb provided)
@@ -105,6 +118,208 @@ public static class CommandBuilder
         root.AddGlobalOptionsCompat(GlobalOptions.Debug, GlobalOptions.Quiet);
 
         return root;
+    }
+
+    private static Command CreateSkillCreateCommand()
+    {
+        var cmd = new Command("create", "Create a new skill directory with template files")
+        {
+            SkillCommandOptions.CreateNameOption,
+            SkillCommandOptions.CreateOutputPathOption,
+            SkillCommandOptions.DebugOption
+        };
+
+        cmd.SetAction(pr =>
+        {
+            if (IsHelpRequested(pr))
+            {
+                return ShowFormattedSubcommandHelp(
+                    "Skill Create",
+                    "Create a new skill directory with metadata.yaml and SKILL.md template files",
+                    cmd,
+                    [
+                        "# Create a new skill",
+                        "srectl skill create --name my-skill",
+                        "",
+                        "# Create to a custom path",
+                        "srectl skill create --name my-skill --output-path custom/path"
+                    ]
+                );
+            }
+
+            return SkillCommandHandlers.HandleCreateCommand(pr);
+        });
+
+        return cmd;
+    }
+
+    private static Command CreateSkillUploadCommand()
+    {
+        var cmd = new Command("upload", "Upload a custom skill or multiple skills from a directory")
+        {
+            SkillCommandOptions.UploadPathOption,
+            SkillCommandOptions.UploadFolderOption,
+            SkillCommandOptions.DebugOption
+        };
+
+        cmd.SetAction(pr =>
+        {
+            if (IsHelpRequested(pr))
+            {
+                return ShowFormattedSubcommandHelp(
+                    "Skill Upload",
+                    "Upload one or more skills to the server",
+                    cmd,
+                    [
+                        "# Upload a single skill directory",
+                        "srectl skill upload --path skills/my-skill",
+                        "",
+                        "# Upload all skills from a folder",
+                        "srectl skill upload --folder skills"
+                    ]
+                );
+            }
+
+            return SkillCommandHandlers.HandleUploadCommand(pr);
+        });
+
+        return cmd;
+    }
+
+    private static Command CreateSkillConvertCommand()
+    {
+        var cmd = new Command("convert", "Convert an existing agent to a skill")
+        {
+            SkillCommandOptions.ConvertAgentNameOption,
+            SkillCommandOptions.ConvertTopLevelAgentsOption,
+            SkillCommandOptions.ConvertOutputPathOption,
+            SkillCommandOptions.DebugOption
+        };
+
+        cmd.SetAction(pr =>
+        {
+            if (IsHelpRequested(pr))
+            {
+                return ShowFormattedSubcommandHelp(
+                    "Skill Convert",
+                    "Convert an existing agent into a reusable skill",
+                    cmd,
+                    [
+                        "# Convert an agent to a skill",
+                        "srectl skill convert --agent-name my-agent",
+                        "",
+                        "# Convert with specific top-level agents for context",
+                        "srectl skill convert --agent-name my-agent --top-level-agents triage-agent support-agent",
+                        "",
+                        "# Specify custom output path",
+                        "srectl skill convert --agent-name my-agent --output-path custom/path"
+                    ]
+                );
+            }
+
+            return SkillCommandHandlers.HandleConvertCommand(pr);
+        });
+
+        return cmd;
+    }
+
+    private static Command CreateSkillListCommand()
+    {
+        var cmd = new Command("list", "List all available skills")
+        {
+            SkillCommandOptions.ListLimitOption,
+            SkillCommandOptions.ListPageOption,
+            SkillCommandOptions.ListSearchOption,
+            SkillCommandOptions.DebugOption
+        };
+
+        cmd.SetAction(pr =>
+        {
+            if (IsHelpRequested(pr))
+            {
+                return ShowFormattedSubcommandHelp(
+                    "Skill List",
+                    "List all skills available on the server",
+                    cmd,
+                    [
+                        "# List all skills",
+                        "srectl skill list",
+                        "",
+                        "# List with pagination",
+                        "srectl skill list --page 2 --limit 25",
+                        "",
+                        "# Search for specific skills",
+                        "srectl skill list --search database"
+                    ]
+                );
+            }
+
+            return SkillCommandHandlers.HandleListCommand(pr);
+        });
+
+        return cmd;
+    }
+
+    private static Command CreateSkillDownloadCommand()
+    {
+        var cmd = new Command("download", "Download a skill from the server")
+        {
+            SkillCommandOptions.DownloadNameOption,
+            SkillCommandOptions.DownloadOutputPathOption,
+            SkillCommandOptions.DebugOption
+        };
+
+        cmd.SetAction(pr =>
+        {
+            if (IsHelpRequested(pr))
+            {
+                return ShowFormattedSubcommandHelp(
+                    "Skill Download",
+                    "Download a skill from the server to a local directory",
+                    cmd,
+                    [
+                        "# Download a skill",
+                        "srectl skill download --name my-skill",
+                        "",
+                        "# Download to a specific path",
+                        "srectl skill download --name my-skill --output-path custom/path"
+                    ]
+                );
+            }
+
+            return SkillCommandHandlers.HandleDownloadCommand(pr);
+        });
+
+        return cmd;
+    }
+
+    private static Command CreateSkillDeleteCommand()
+    {
+        var cmd = new Command("delete", "Delete a skill from the server")
+        {
+            SkillCommandOptions.DeleteNameOption,
+            SkillCommandOptions.DebugOption
+        };
+
+        cmd.SetAction(pr =>
+        {
+            if (IsHelpRequested(pr))
+            {
+                return ShowFormattedSubcommandHelp(
+                    "Skill Delete",
+                    "Delete a skill from the server",
+                    cmd,
+                    [
+                        "# Delete a skill",
+                        "srectl skill delete --name my-skill"
+                    ]
+                );
+            }
+
+            return SkillCommandHandlers.HandleDeleteCommand(pr);
+        });
+
+        return cmd;
     }
 
     private static Command CreateSyncCommand()
@@ -152,7 +367,9 @@ public static class CommandBuilder
             AgentCommandOptions.TemperatureOption,
             AgentCommandOptions.OutputTypeOption,
             AgentCommandOptions.VanillaModeOption,
-            AgentCommandOptions.SmartOption
+            AgentCommandOptions.SmartOption,
+            AgentCommandOptions.EnableSkillsOption,
+            AgentCommandOptions.AddSystemSkillsOption
         };
 
         cmd.SetAction(pr =>
@@ -1034,6 +1251,46 @@ public static class CommandBuilder
             profileCommand,
             null, // Single group for all commands
             null, // No group descriptions for single group
+            examples);
+
+        return Task.CompletedTask;
+    }
+
+    private static Task ShowFormattedSkillHelp(Command skillCommand)
+    {
+        var commandGroups = new Dictionary<string, string[]>
+        {
+            ["Skill Creation"] = ["create", "convert"],
+            ["Skill Lifecycle"] = ["upload", "download", "delete"],
+            ["Skill Discovery"] = ["list"]
+        };
+
+        var groupDescriptions = new Dictionary<string, string>
+        {
+            ["Skill Creation"] = "Create new skills or convert existing agents to skills",
+            ["Skill Lifecycle"] = "Upload, download, and remove custom skills",
+            ["Skill Discovery"] = "List and discover available skills"
+        };
+
+        var examples = new[]
+        {
+            "srectl skill create --name my-skill",
+            "srectl skill convert --agent-name my-agent",
+            "srectl skill upload --path skills/my-skill",
+            "srectl skill upload --folder skills",
+            "srectl skill list",
+            "srectl skill list --search database",
+            "srectl skill download --name my-skill",
+            "srectl skill delete --name my-skill"
+        };
+
+        StandardHelpFormatter.ShowCommandGroupHelp(
+            "Skill Commands",
+            "Manage custom skills for agents",
+            ConsoleColor.Magenta,
+            skillCommand,
+            commandGroups,
+            groupDescriptions,
             examples);
 
         return Task.CompletedTask;

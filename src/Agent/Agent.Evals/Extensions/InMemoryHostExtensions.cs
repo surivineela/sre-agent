@@ -13,7 +13,7 @@ public static class AgentExtensions
         List<AITool> tools = [];
         tools.AddRange(agent.Tools);
         tools.AddRange(agent.FactoryTools
-            .Select(host.ToolFactory.GetTool));
+            .Select(ft => host.ToolFactory.GetTool(ft)));
         tools.AddRange(agent.Handoffs);
 
         return new ChatOptions

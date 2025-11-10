@@ -24,6 +24,7 @@ namespace Agent.Runtime
             if (isDevelopment)
             {
                 builder.Configuration.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true); // load local dev settings one more time to override Azure App Configuration
+                builder.Configuration.AddJsonFile("appsettings.user.json", optional: true, reloadOnChange: true); // load local overrides
             }
             else
             {
@@ -47,6 +48,7 @@ namespace Agent.Runtime
             {
                 AddFromAppConfig(builder);
                 builder.Configuration.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true); // load local dev settings one more time to override Azure App Configuration
+                builder.Configuration.AddJsonFile("appsettings.user.json", optional: true, reloadOnChange: true); // load local overrides
             }
             builder.Configuration.AddEnvironmentVariables();
         }

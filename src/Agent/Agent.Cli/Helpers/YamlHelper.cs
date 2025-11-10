@@ -7,6 +7,7 @@ using System.Text;
 using Agent.Cli.Models;
 using Agent.Cli.Services;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -144,6 +145,161 @@ public static class YamlHelper
         // Other scalars: keep as-is
         return node;
     }
+
+    #region Skill Helper Methods
+
+    /// <summary>
+    /// Validates if a directory contains the required skill files (metadata.yaml and SKILL.md).
+    /// </summary>
+    /// <param name="directoryPath">Path to the skill directory</param>
+    /// <returns>True if the directory contains required skill files, false otherwise</returns>
+    public static bool IsValidSkillDirectory(string directoryPath)
+    {
+        if (!Directory.Exists(directoryPath))
+        {
+            return false;
+        }
+
+        var metadataPath = Path.Combine(directoryPath, "metadata.yaml");
+        var skillMdPath = Path.Combine(directoryPath, "SKILL.md");
+
+        return File.Exists(metadataPath) && File.Exists(skillMdPath);
+    }
+
+    /// <summary>
+    /// Saves a SkillSpec to a directory with metadata.yaml, SKILL.md, and additional files.
+    /// </summary>
+    /// <param name="directoryPath">Path to save the skill</param>
+    /// <param name="skillSpec">The skill specification to save</param>
+    public static async Task SaveSkillToDirectory(string directoryPath, SkillSpec skillSpec)
+    {
+        Directory.CreateDirectory(directoryPath);
+
+        // Write metadata.yaml (contains name, description, tools from YamlSkillDescriptor)
+        var metadataPath = Path.Combine(directoryPath, "metadata.yaml");
+        var metadata = new YamlSkillDescriptor
+        {
+            Name = skillSpec.Name,
+            Description = skillSpec.Description,
+            Tools = skillSpec.Tools ?? []
+        };
+
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
+            .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull)
+            .Build();
+
+        var metadataYaml = serializer.Serialize(metadata);
+        await File.WriteAllTextAsync(metadataPath, metadataYaml, Encoding.UTF8);
+
+        // Write SKILL.md (main skill content)
+        var skillMdPath = Path.Combine(directoryPath, "SKILL.md");
+        await File.WriteAllTextAsync(skillMdPath, skillSpec.SkillMdContent ?? string.Empty, Encoding.UTF8);
+
+        // Write additional files if any
+        if (skillSpec.AdditionalFiles != null)
+        {
+            foreach (var additionalFile in skillSpec.AdditionalFiles)
+            {
+                var filePath = Path.Combine(directoryPath, additionalFile.FilePath);
+                await File.WriteAllTextAsync(filePath, additionalFile.Content ?? string.Empty, Encoding.UTF8);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reads a skill from a directory and converts it to YAML format for uploading.
+    /// </summary>
+    /// <param name="directoryPath">Path to the skill directory</param>
+    /// <returns>YAML content representing the skill deployment</returns>
+    public static async Task<string> ReadSkillFromDirectory(string directoryPath)
+    {
+        if (!IsValidSkillDirectory(directoryPath))
+        {
+            throw new InvalidOperationException($"Invalid skill directory: {directoryPath}. Must contain 'metadata.yaml' and 'SKILL.md'");
+        }
+
+        // Read metadata.yaml
+        var metadataPath = Path.Combine(directoryPath, "metadata.yaml");
+        var metadataYaml = await File.ReadAllTextAsync(metadataPath, Encoding.UTF8);
+
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
+            .IgnoreUnmatchedProperties()
+            .Build();
+
+        var skillDescriptor = deserializer.Deserialize<YamlSkillDescriptor>(metadataYaml);
+
+        // Read SKILL.md
+        var skillMdPath = Path.Combine(directoryPath, "SKILL.md");
+        var skillMdContent = await File.ReadAllTextAsync(skillMdPath, Encoding.UTF8);
+
+        // Find additional files (all .md files except SKILL.md and metadata.yaml)
+        var additionalFiles = new List<SkillSubFile>();
+        var allFiles = Directory.GetFiles(directoryPath, "*.md", SearchOption.AllDirectories);
+        foreach (var file in allFiles)
+        {
+            var fileName = Path.GetFileName(file);
+            if (fileName.Equals("SKILL.md", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var content = await File.ReadAllTextAsync(file, Encoding.UTF8);
+            additionalFiles.Add(new SkillSubFile
+            {
+                FileName = fileName,
+                FilePath = Path.GetRelativePath(directoryPath, file), // Relative path within skill directory
+                Content = content
+            });
+        }
+
+        // Create skill deployment model using proper types
+        var skillSpec = new SkillSpec
+        {
+            Name = skillDescriptor?.Name ?? Path.GetFileName(directoryPath),
+            Description = skillDescriptor?.Description ?? string.Empty,
+            Tools = skillDescriptor?.Tools ?? [],
+            SkillMdContent = skillMdContent,
+            AdditionalFiles = additionalFiles
+        };
+
+        var skillDeployment = new CliSkillDeploymentModel
+        {
+            ApiVersion = "azuresre.ai/v1",
+            Kind = "Skill",
+            Metadata = new Framework.YamlMetadata(),
+            Spec = skillSpec
+        };
+
+        // Serialize to YAML
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
+            .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull)
+            .Build();
+
+        return serializer.Serialize(skillDeployment);
+    }
+
+    /// <summary>
+    /// Local deployment model for CLI skill serialization (mirrors Agent.Web.Models.ExtendedAgents.SkillDeploymentModel)
+    /// </summary>
+    private class CliSkillDeploymentModel
+    {
+        [YamlMember(Alias = "api_version")]
+        public string ApiVersion { get; set; } = "azuresre.ai/v1";
+
+        [YamlMember(Alias = "kind")]
+        public string Kind { get; set; } = "Skill";
+
+        [YamlMember(Alias = "metadata")]
+        public Framework.YamlMetadata Metadata { get; set; } = new();
+
+        [YamlMember(Alias = "spec")]
+        public SkillSpec Spec { get; set; } = new();
+    }
+
+    #endregion
 }
 
 /// <summary>
@@ -240,6 +396,5 @@ public class KeepImportantPropertiesVisitor : ChainedObjectGraphVisitor
 
         return base.EnterMapping(key, value, context, serializer);
     }
-
 
 }

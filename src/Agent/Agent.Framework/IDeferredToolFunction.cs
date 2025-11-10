@@ -11,14 +11,14 @@ namespace Agent.Framework;
 /// <summary>
 /// Defines the contract for a deferred tool function.
 /// </summary>
-public interface IDeferredToolFunction
+public interface IDeferredToolFunction<TContext> where TContext : class
 {
     /// <summary>
     /// Creates and returns the executable AIFunction.
     /// </summary>
     /// <param name="threadId">The optional thread ID for context.</param>
     /// <returns>An <see cref="AIFunction"/>.</returns>
-    AIFunction GetToolFunction(Guid? threadId = null);
+    AIFunction GetToolFunction(Guid? threadId = null, Agent<TContext>? agent = null);
 
     /// <summary>
     /// Creates and returns the executable AIFunction with agent mode support.
@@ -26,7 +26,7 @@ public interface IDeferredToolFunction
     /// <param name="threadId">The optional thread ID for context.</param>
     /// <param name="agentMode">The agent mode (e.g., "Chat", "ReadOnly", "Review", "Autonomous").</param>
     /// <returns>An <see cref="AIFunction"/>.</returns>
-    AIFunction GetToolFunction(Guid? threadId, string? agentMode);
+    AIFunction GetToolFunction(Guid? threadId, string? agentMode, Agent<TContext>? agent = null);
 
     string GetPluginCategory();
     string GetPluginResourceType();

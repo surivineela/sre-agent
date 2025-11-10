@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Framework.Skills;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
@@ -13,6 +14,7 @@ public class SingleStepResult<TContext> where TContext : class
     public List<ChatMessage> PreStepItems { get; set; } = [];
     public List<ChatMessage> NewStepItems { get; set; } = [];
     public required NextStep<TContext> NextStep { get; set; }
+    public required SkillList NewActivatedSkills { get; set; }
 
     public List<ChatMessage> GeneratedItems => [.. PreStepItems, .. NewStepItems];
 }

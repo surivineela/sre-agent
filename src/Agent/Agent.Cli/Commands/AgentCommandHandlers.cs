@@ -39,6 +39,8 @@ public static class AgentCommandHandlers
         var outputType = parseResult.GetValue(AgentCommandOptions.OutputTypeOption);
         var vanillaMode = parseResult.GetValue(AgentCommandOptions.VanillaModeOption);
         var useSmart = parseResult.GetValue(AgentCommandOptions.SmartOption);
+        var enableSkills = parseResult.GetValue(AgentCommandOptions.EnableSkillsOption);
+        var addSystemSkills = parseResult.GetValue(AgentCommandOptions.AddSystemSkillsOption);
 
         DebugLogger.Debug("Parameters", $"Name: {name}, Smart: {useSmart}, Tools: {tools?.Length ?? 0} items");
 
@@ -123,6 +125,8 @@ public static class AgentCommandHandlers
             Temperature = temperature,
             OutputType = outputType,
             EnableVanillaMode = vanillaMode,
+            EnableSkills = enableSkills,
+            AddSystemSkills = addSystemSkills
         };
 
         // Validate tool existence before creating the agent

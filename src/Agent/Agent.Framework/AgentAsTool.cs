@@ -6,6 +6,7 @@ using System.Text.Json;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
+
 public class AgentAsTool<TContext> : AIFunction where TContext : class
 {
     private readonly Agent<TContext> _targetAgent;
@@ -116,9 +117,9 @@ public class AgentAsTool<TContext> : AIFunction where TContext : class
 
         var runHooks = new RunHooks<TContext>();
 
-        runHooks.ResolveFactoryTools += async (context, agent) =>
+        runHooks.ResolveFactoryTools += async (context, agent, additionalToolNames) =>
         {
-            var tools = await RunHooks.OnResolveFactoryTools(context, _targetAgent);
+            var tools = await RunHooks.OnResolveFactoryTools(context, _targetAgent, additionalToolNames);
             // Validate and filter tools - only allow auto tools in agent-as-tool context
             var autoTools = new List<AIFunction>();
 

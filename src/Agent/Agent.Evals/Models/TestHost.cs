@@ -1,5 +1,6 @@
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,6 +20,7 @@ public sealed record TestHost(
         {
             ChatClient = host.Services.GetRequiredService<IChatClientProvider>().DefaultModel,
             LoggerFactory = host.Services.GetRequiredService<ILoggerFactory>(),
+            SkillRegistry = host.Services.GetRequiredService<ISkillRegistry>(),
         };
 
         return new(

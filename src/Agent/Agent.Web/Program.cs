@@ -15,6 +15,7 @@ using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Crawler.Metrics;
@@ -67,11 +68,13 @@ using Agent.Runtime.TrajectoryEvaluator;
 using Agent.ScheduledTasks.Services;
 using Agent.Web.Authorization;
 using Agent.Web.Services;
+using Agent.Web.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
@@ -80,7 +83,6 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using Agent.Web.Validation;
 
 namespace Agent.Web;
 
@@ -88,7 +90,7 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        WebApplication app = CreateWebApplicationBuilder(args).Build();
+        WebApplication app = CreateWebApplicationBuilder(new WebApplicationOptions { Args = args }).Build();
 
         var metricsService = app.Services.GetRequiredService<IGremlinMetricsService>();
 
@@ -176,16 +178,16 @@ public class Program
         await app.RunAsync();
     }
 
-    public static WebApplicationBuilder CreateWebApplicationBuilder(string[] args)
+    public static WebApplicationBuilder CreateWebApplicationBuilder(WebApplicationOptions options)
     {
-        return CreatePreliminaryWebApplicationBuilder(args);
+        return CreatePreliminaryWebApplicationBuilder(options);
     }
 
-    private static WebApplicationBuilder CreatePreliminaryWebApplicationBuilder(string[] args)
+    private static WebApplicationBuilder CreatePreliminaryWebApplicationBuilder(WebApplicationOptions options)
     {
-        var builder = WebApplication.CreateBuilder(args);
+        var builder = WebApplication.CreateBuilder(options);
 
-        bool isAcaFirstPartyAgent = IsAcaFirstParty(args);
+        bool isAcaFirstPartyAgent = IsAcaFirstParty(options.Args ?? []);
 
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
 
@@ -294,7 +296,7 @@ public class Program
         // Register ApplensDetectorPlugin and its definition
         builder.Services.AddSingleton<Agent.Plugins.Interface.IApplensDetectorPlugin, Agent.Plugins.Implementation.ApplensDetectorPlugin>();
         builder.Services.AddTransient<Agent.Plugins.Definitions.ApplensDetectorPluginDefinition>();
-        // Register DGrepPlugin client and definition  
+        // Register DGrepPlugin client and definition
         builder.Services.AddSingleton<Agent.Plugins.Interface.IDGrepPluginClient, Agent.Plugins.Implementation.DGrepPluginClient>();
         builder.Services.AddTransient<Agent.Plugins.DGrepPluginDefinition>();
         // Add ExternalSettings registration after the other settings registrations
@@ -599,7 +601,8 @@ public class Program
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                         .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
                     extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>(),
-                    mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>()
+                    mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>(),
+                    skillRegistry: sp.GetRequiredService<ISkillRegistry>()
                     );
             })
             .AddSingleton<IToolFactory<AgentContext>, ToolFactory<AgentContext>>(sp =>
@@ -607,7 +610,16 @@ public class Program
                 return sp.GetRequiredService<ToolFactory<AgentContext>>();
             })
             .AddSingleton<IAuthenticationService, AuthenticationService>()
+            .AddSingleton<AgentToSkillService>()
             .AddCosmosClient();
+
+        builder.Services.AddSingleton<ISkillRegistry>(sp =>
+        {
+            return new SkillRegistry(
+                logger: sp.GetRequiredService<ILogger<SkillRegistry>>(),
+                systemSkillsDirectory: Path.Combine(AppContext.BaseDirectory, "Skills"),
+                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
+        });
 
         builder.Services.AddSingleton<IAgentFactory<AgentContext>>(sp =>
         {
@@ -652,7 +664,14 @@ public class Program
                 extensibiltyLoader: extensibilityLoader,
                 gpt5Enabled: isGPT5Enabled,
                 agentMemoryRetrievalEnabled: agentMemoryRetrievalEnabled,
-                scheduledTasksEnabled: isScheduledTaskEnabled);
+                scheduledTasksEnabled: isScheduledTaskEnabled,
+                dynamicAgentDescriptors: [
+                    () =>
+                    {
+                        var dynamicIncidentManagementAgent = sp.GetRequiredService<DynamicIncidentManagementAgent>();
+                        return dynamicIncidentManagementAgent.GetIncidentManagementAgentDescriptor();
+                    }
+                ]);
         });
 
         // Register AgentProvider as singleton for per-thread experiment variant support
@@ -663,17 +682,26 @@ public class Program
             var logger = sp.GetRequiredService<ILogger<AgentProvider<AgentContext>>>();
             var instanceId = Environment.GetEnvironmentVariable("AGENT_NAME") ?? Core.Constants.DefaultAgentName;
 
+            string? forceEnabledExperiments = null;
+
+            if (ShouldForceEnableSkills(builder))
+            {
+                logger.LogInternalInformation("Forcing skill enablement.");
+                forceEnabledExperiments = "agent_skills=single_agent_with_skills";
+            }
+
             return new AgentProvider<AgentContext>(
                 factory: agentFactory,
                 variantAssigner: variantAssigner,
                 logger: logger,
-                instanceId: instanceId);
+                instanceId: instanceId,
+                runtimeForcedVariants: forceEnabledExperiments);
         });
 
         // Register IVariantAssigner
         builder.Services.AddSingleton<IVariantAssigner, HashVariantAssigner>();
 
-        builder.Services.ConfigureAsyncInitializers();
+        builder.Services.ConfigureFrameworkAsyncInitializers<AgentContext>();
 
         builder.Services
             .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()
@@ -1648,6 +1676,16 @@ public class Program
             && !string.IsNullOrEmpty(settings.AzureAISearchName)
             && !string.IsNullOrEmpty(settings.AzureAISearchIndexName)
             && !string.IsNullOrEmpty(settings.ManagedIdentityResourceId);
+    }
+
+    private static bool ShouldForceEnableSkills(WebApplicationBuilder builder)
+    {
+        // TODO: this is a temporary way to enable skills for e2e testing of 3p skills w/o changing default agent configs
+
+        var agentName = AgentNameHelper.GetCustomerAgentName(isProd: builder.Environment.IsProduction());
+        var configSet = builder.Configuration.GetValue<bool>("Enable3PSkills");
+
+        return agentName.Contains("enable-3p-skills", StringComparison.InvariantCultureIgnoreCase) || configSet;
     }
 }
 

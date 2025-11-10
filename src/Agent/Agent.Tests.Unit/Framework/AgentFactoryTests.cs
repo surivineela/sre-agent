@@ -9,6 +9,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Framework.Models;
+using Agent.Framework.Skills;
 using Agent.Plugins;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
@@ -202,14 +203,14 @@ public class AgentFactoryTests
         Assert.Equal(typeof(string), agent.OutputType);
         Assert.False(agent.CriticOnHandOff);
         Assert.Equal(0, agent.MaxReflectionCount);
-        Assert.Contains(ToDoWriteTool.ToolName, agent.FactoryTools);
+        Assert.Contains(ToDoWriteTool<AgentContext>.ToolName, agent.FactoryTools);
 
         var instructions = agent.Instructions.ToString();
         Assert.Contains("You are a vanilla agent with minimal instructions.", instructions);
         Assert.DoesNotContain("# Handoff System Context", instructions);
         Assert.DoesNotContain(TestCommonPrompt.PromptText, instructions);
         // todo prompt automatically added
-        Assert.Contains(ToDoWriteTool.ToolName, instructions);
+        Assert.Contains(ToDoWriteTool<AgentContext>.ToolName, instructions);
     }
 
     [Fact]
@@ -700,6 +701,7 @@ handoffs: []
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             modeConfigurator: _mockAgentModeConfigurator.Object,
             assembliesToScan: [],
+
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools")
@@ -769,6 +771,137 @@ handoffs: []
         Assert.True(subscriber2Received, "Second subscriber should receive event");
     }
 
+    [Fact]
+    public async Task AgentWithEnableSkillsTrueAddsReadSkillFileTool()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [typeof(TestAgentWithSkillsEnabledDescriptor).Assembly],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null
+        );
+        await agentFactory.InitializeAsync();
+
+        // Act
+        var agent = agentFactory.GetAgent("TestAgentWithSkillsEnabled");
+
+        // Assert
+        Assert.NotNull(agent);
+        Assert.True(agent.EnableSkills);
+        Assert.Contains(ReadSkillFileTool<AgentContext>.ToolName, agent.FactoryTools);
+    }
+
+    [Fact]
+    public async Task AgentWithEnableSkillsFalseDoesNotAddReadSkillFileTool()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null
+        );
+        await agentFactory.InitializeAsync();
+
+        // Act
+        var agent = agentFactory.GetAgent("TestAgent1");
+
+        // Assert
+        Assert.NotNull(agent);
+        Assert.False(agent.EnableSkills);
+        Assert.DoesNotContain(ReadSkillFileTool<AgentContext>.ToolName, agent.FactoryTools);
+    }
+
+    [Fact]
+    public async Task AgentLoadedFromYamlWithEnableSkillsTrueAddsReadSkillFileTool()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools")
+        );
+        await agentFactory.InitializeAsync();
+
+        // Act
+        var agent = agentFactory.GetAgent("agent_with_skills");
+
+        // Assert
+        Assert.NotNull(agent);
+        Assert.True(agent.EnableSkills);
+        Assert.Contains(ReadSkillFileTool<AgentContext>.ToolName, agent.FactoryTools);
+    }
+
+    [Fact]
+    public async Task AgentLoadedFromYamlWithEnableSkillsFalseDoesNotAddReadSkillFileTool()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools")
+        );
+        await agentFactory.InitializeAsync();
+
+        // Act
+        var agent = agentFactory.GetAgent("agent1");
+
+        // Assert
+        Assert.NotNull(agent);
+        Assert.False(agent.EnableSkills);
+        Assert.DoesNotContain(ReadSkillFileTool<AgentContext>.ToolName, agent.FactoryTools);
+    }
+
+    [Fact]
+    public async Task ReadSkillFileToolIsAutomaticallyAddedOnlyOnce()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [typeof(TestAgentWithSkillsAndReadSkillFileToolDescriptor).Assembly],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null
+        );
+        await agentFactory.InitializeAsync();
+
+        // Act
+        var agent = agentFactory.GetAgent("TestAgentWithSkillsAndReadSkillFileTool");
+
+        // Assert
+        Assert.NotNull(agent);
+        Assert.True(agent.EnableSkills);
+        // Should only contain the tool once, even though it's in the agent's tools list
+        var readSkillFileCount = agent.FactoryTools.Count(t => t == ReadSkillFileTool<AgentContext>.ToolName);
+        Assert.Equal(1, readSkillFileCount);
+    }
+
     private ToolFactory<AgentContext> CreateToolFactory()
     {
         var toolFactory = new ToolFactory<AgentContext>(
@@ -776,10 +909,20 @@ handoffs: []
             serviceProvider: _serviceProvider,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             extensibilityLoader: _mockExtendedAgentRepository.Object,
-            mcpToolsRepository: _mockMcpToolsRepository.Object
+            mcpToolsRepository: _mockMcpToolsRepository.Object,
+            skillRegistry: new EmptySkillRegistry()
         );
 
         return toolFactory;
+    }
+
+    private SkillRegistry CreateSkillRegistry()
+    {
+        return new SkillRegistry(
+            logger: Mock.Of<ILogger<SkillRegistry>>(),
+            systemSkillsDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestSkills"),
+            extensibilityLoader: _mockExtendedAgentRepository.Object
+        );
     }
 }
 
@@ -813,6 +956,8 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public List<string> OrchestrationStartAgents { get; set; } = [];
     public string? ResultSummarizationPrompt { get; set; } = string.Empty;
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+    public bool EnableSkills { get; set; } = false;
+    public bool AddSystemSkills { get; set; } = false;
 }
 
 public class TestAgent2Descriptor : IAgentDescriptor
@@ -845,6 +990,8 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public List<string> OrchestrationStartAgents { get; set; } = [];
     public string? ResultSummarizationPrompt { get; set; } = string.Empty;
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+    public bool EnableSkills { get; set; } = false;
+    public bool AddSystemSkills { get; set; } = false;
 }
 
 public class TestAgent3WithOptionalToolsDescriptor : IAgentDescriptor
@@ -876,6 +1023,8 @@ public class TestAgent3WithOptionalToolsDescriptor : IAgentDescriptor
     public List<string> OrchestrationStartAgents { get; set; } = [];
     public string? ResultSummarizationPrompt { get; set; } = string.Empty;
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+    public bool EnableSkills { get; set; } = false;
+    public bool AddSystemSkills { get; set; } = false;
 }
 
 public class TestAgent4WithOptionalToolsOnlyDescriptor : IAgentDescriptor
@@ -907,6 +1056,8 @@ public class TestAgent4WithOptionalToolsOnlyDescriptor : IAgentDescriptor
     public List<string> OrchestrationStartAgents { get; set; } = [];
     public string? ResultSummarizationPrompt { get; set; } = string.Empty;
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+    public bool EnableSkills { get; set; } = false;
+    public bool AddSystemSkills { get; set; } = false;
 }
 
 public class TestTodoWritePrompt : IPromptDescriptor
@@ -946,6 +1097,8 @@ public class TestAgent5WithMultipleOptionalToolsDescriptor : IAgentDescriptor
     public List<string> OrchestrationStartAgents { get; set; } = [];
     public string? ResultSummarizationPrompt { get; set; } = string.Empty;
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+    public bool EnableSkills { get; set; } = false;
+    public bool AddSystemSkills { get; set; } = false;
 }
 
 public class TestAgent6WithEmptyConditionDescriptor : IAgentDescriptor
@@ -977,6 +1130,8 @@ public class TestAgent6WithEmptyConditionDescriptor : IAgentDescriptor
     public List<string> OrchestrationStartAgents { get; set; } = [];
     public string? ResultSummarizationPrompt { get; set; } = string.Empty;
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+    public bool EnableSkills { get; set; } = false;
+    public bool AddSystemSkills { get; set; } = false;
 }
 
 public class TestAgent7WithDataConnectorConditionDescriptor : IAgentDescriptor
@@ -1008,6 +1163,8 @@ public class TestAgent7WithDataConnectorConditionDescriptor : IAgentDescriptor
     public List<string> OrchestrationStartAgents { get; set; } = [];
     public string? ResultSummarizationPrompt { get; set; } = string.Empty;
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+    public bool EnableSkills { get; set; } = false;
+    public bool AddSystemSkills { get; set; } = false;
 }
 
 public class TestAgent8WithMissingDataConnectorDescriptor : IAgentDescriptor
@@ -1039,6 +1196,8 @@ public class TestAgent8WithMissingDataConnectorDescriptor : IAgentDescriptor
     public List<string> OrchestrationStartAgents { get; set; } = [];
     public string? ResultSummarizationPrompt { get; set; } = string.Empty;
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+    public bool EnableSkills { get; set; } = false;
+    public bool AddSystemSkills { get; set; } = false;
 }
 
 public class TestCommonPrompt : IPromptDescriptor
@@ -1055,6 +1214,72 @@ public class TestReadOnlyPrompt : IPromptDescriptor
 
     public string Name { get; set; } = "readonly";
     public string Prompt { get; set; } = PromptText;
+}
+
+public class TestAgentWithSkillsEnabledDescriptor : IAgentDescriptor
+{
+    public string Name { get; set; } = "TestAgentWithSkillsEnabled";
+    public string Instructions { get; set; } = "Test Instructions for agent with skills enabled";
+    public string? HandoffDescription { get; set; } = "Test Handoff Description";
+    public List<string> Handoffs { get; set; } = [];
+    public List<string> Tools { get; set; } = ["TestAutoTool"];
+    public List<string> McpTools { get; set; } = [];
+    public bool AllowParallelToolCalls { get; set; } = false;
+    public int MaxReflectionCount { get; set; } = 0;
+    public string CustomReflectionNote { get; set; } = string.Empty;
+    public List<string> CommonPrompts { get; set; } = [];
+    public List<string> CommonTools { get; set; } = [];
+    public string CriticPromptPath { get; set; } = string.Empty;
+    public bool CriticOnHandOff { get; set; } = false;
+    public float? Temperature { get; set; } = null;
+    public string? LlmModelName { get; set; } = null;
+    public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
+    public string? OutputType { get; set; } = null;
+    public string? UserPromptOverride { get; set; } = null;
+    public bool DisableDocumentRetrieval { get; set; } = false;
+    public bool EnableHandoffPromptOverride { get; set; } = false;
+    public bool DisableCommonPrompts { get; set; } = false;
+    public bool EnableSkills { get; set; } = true; // Skills enabled
+    public bool AddSystemSkills { get; set; } = true;
+    public AgentType AgentType { get; set; } = AgentType.Autonomous;
+    public string? ParameterExtractionAgent { get; set; } = string.Empty;
+    public List<string> OrchestrationStartAgents { get; set; } = [];
+    public string? ResultSummarizationPrompt { get; set; } = string.Empty;
+    public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+    public bool EnableVanillaMode { get; set; } = false;
+}
+
+public class TestAgentWithSkillsAndReadSkillFileToolDescriptor : IAgentDescriptor
+{
+    public string Name { get; set; } = "TestAgentWithSkillsAndReadSkillFileTool";
+    public string Instructions { get; set; } = "Test Instructions";
+    public string? HandoffDescription { get; set; } = "Test Handoff Description";
+    public List<string> Handoffs { get; set; } = [];
+    public List<string> Tools { get; set; } = ["TestAutoTool", ReadSkillFileTool<AgentContext>.ToolName];
+    public List<string> McpTools { get; set; } = [];
+    public bool AllowParallelToolCalls { get; set; } = false;
+    public int MaxReflectionCount { get; set; } = 0;
+    public string CustomReflectionNote { get; set; } = string.Empty;
+    public List<string> CommonPrompts { get; set; } = [];
+    public List<string> CommonTools { get; set; } = [];
+    public string CriticPromptPath { get; set; } = string.Empty;
+    public bool CriticOnHandOff { get; set; } = false;
+    public float? Temperature { get; set; } = null;
+    public string? LlmModelName { get; set; } = null;
+    public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
+    public string? OutputType { get; set; } = null;
+    public string? UserPromptOverride { get; set; } = null;
+    public bool DisableDocumentRetrieval { get; set; } = false;
+    public bool EnableHandoffPromptOverride { get; set; } = false;
+    public bool DisableCommonPrompts { get; set; } = false;
+    public bool EnableSkills { get; set; } = true; // Skills enabled, and tool already in list
+    public bool AddSystemSkills { get; set; } = true;
+    public AgentType AgentType { get; set; } = AgentType.Autonomous;
+    public string? ParameterExtractionAgent { get; set; } = string.Empty;
+    public List<string> OrchestrationStartAgents { get; set; } = [];
+    public string? ResultSummarizationPrompt { get; set; } = string.Empty;
+    public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+    public bool EnableVanillaMode { get; set; } = false;
 }
 
 [AgentToolPlugin(EnabledIf = "TestFeature:Enabled")]

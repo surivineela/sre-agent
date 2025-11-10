@@ -19,7 +19,18 @@ public class SinkService
         _logger = logger;
     }
 
-    public async Task<Guid> SinkAgentMessageAsync(Guid threadId, string messageText, bool isImageContent = false, Approval? approval = null, Guid agentResponseMessageId = default, DateTime? recordedDateTime = null, AgentTaskInfo? agentTaskInfo = null, MemorySearchResult? memorySearchResult = null, TodoInfo? todoInfo = null, bool isComplete = true)
+    public async Task<Guid> SinkAgentMessageAsync(
+        Guid threadId,
+        string messageText,
+        bool isImageContent = false,
+        Approval? approval = null,
+        Guid agentResponseMessageId = default,
+        DateTime? recordedDateTime = null,
+        AgentTaskInfo? agentTaskInfo = null,
+        MemorySearchResult? memorySearchResult = null,
+        TodoInfo? todoInfo = null,
+        bool isComplete = true,
+        StreamMessageType? messageType = null)
     {
         var messageId = agentResponseMessageId == default ? Guid.NewGuid() : agentResponseMessageId;
         // Always construct a fresh message object for the initial add scenario.
@@ -34,7 +45,8 @@ public class SinkService
             AgentTaskInfo: agentTaskInfo,
             MemorySearchResult: memorySearchResult,
             TodoInfo: todoInfo,
-            IsComplete: isComplete
+            IsComplete: isComplete,
+            MessageType: messageType
         );
 
         try

@@ -40,4 +40,11 @@ public interface IExtendedAgentApiService
     Task<ApiCommandResult<CommonToolsListDocumentModel>> CreateOrUpdateCommonToolListAsync(string listName, CommonToolsListDocumentModel model, bool dryRun = false);
     Task<ApiCommandResult<CommonToolsListDocumentModel>> DeleteCommonToolListAsync(string listName, bool dryRun = false);
     Task<ApiCommandResult<CommonToolsListDocumentModel[]>> GetCommonToolListsAsync(int limit = 50, string? search = null);
+
+    // Skill operations
+    Task<ApiCommandResult<SkillDocumentModel>> GetSkillAsync(string skillName);
+    Task<ApiCommandResult<SkillDocumentModel>> CreateOrUpdateSkillAsync(string skillName, SkillDocumentModel model);
+    Task<ApiCommandResult<SkillDocumentModel>> DeleteSkillAsync(string skillName);
+    Task<ApiCommandResult<SkillDocumentModel[]>> GetSkillsAsync(int limit = 50, string? search = null);
+    Task<ApiCommandResult<SkillDocumentModel>> ConvertAgentToSkillAsync(string agentName, List<string> topLevelAgents);
 }

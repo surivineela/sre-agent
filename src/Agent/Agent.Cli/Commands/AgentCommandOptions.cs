@@ -155,6 +155,19 @@ public static class AgentCommandOptions
         Description = "Show inline diff instead of launching external tool"
     };
 
+    // skills options
+    public static readonly Option<bool> EnableSkillsOption = new("--enable-skills")
+    {
+        Description = "Enable skills for the agent",
+        DefaultValueFactory = _ => false
+    };
+
+    public static readonly Option<bool> AddSystemSkillsOption = new("--add-system-skills")
+    {
+        Description = "Add system skills to the agent. Only applicable if skills are enabled with --enable-skills. This is not recommended for custom meta-agents as system skills may interfere with intended behavior.",
+        DefaultValueFactory = _ => false
+    };
+
     // Completion services disabled - System.CommandLine version doesn't support AddCompletions method
     // These services are implemented but not compatible with current CLI framework version
 }

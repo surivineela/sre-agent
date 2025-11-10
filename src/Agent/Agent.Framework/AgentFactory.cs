@@ -4,6 +4,7 @@
 
 using System.Reflection;
 using Microsoft.Extensions.AI;
+using Agent.Framework.Skills;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -90,6 +91,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly bool _enableHandoffReasoning;
     private readonly IExtensibilityLoader? _extensibiltyLoader;
     private PromptTemplateResolver? _templateResolver;
+    private readonly IEnumerable<Func<IAgentDescriptor?>> _dynamicAgentDescriptors = [];
 
     /// <summary>
     /// Gets whether handoff reasoning is enabled for agents created by this factory.
@@ -129,7 +131,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         IExtensibilityLoader? extensibiltyLoader = null,
         bool gpt5Enabled = false,
         bool agentMemoryRetrievalEnabled = false,
-        bool scheduledTasksEnabled = false
+        bool scheduledTasksEnabled = false,
+        IEnumerable<Func<IAgentDescriptor?>>? dynamicAgentDescriptors = null
     )
     {
         _toolFactory = toolFactory;
@@ -149,6 +152,11 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         _gpt5Enabled = gpt5Enabled;
         _agentMemoryRetrievalEnabled = agentMemoryRetrievalEnabled;
         _scheduledTasksEnabled = scheduledTasksEnabled;
+
+        if (dynamicAgentDescriptors is not null)
+        {
+            _dynamicAgentDescriptors = dynamicAgentDescriptors;
+        }
     }
 
     protected override async Task InitializeAsyncCore()
@@ -222,14 +230,15 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             Handoffs = [], // Will be populated later to avoid circular references
             CriticOnHandOff = agentDescriptor.CriticOnHandOff,
             FactoryTools = [.. agentDescriptor.Tools, .. agentDescriptor.McpTools],
-            // TODO: parallel tool calls not supported in the framework yet, ignore agent-level overrides
-            AllowParallelToolCalls = true, // agentDescriptor.AllowParallelToolCalls,
+            AllowParallelToolCalls = agentDescriptor.AllowParallelToolCalls,
             OutputType = GetOutputType(agentDescriptor),
             UserPromptOverride = agentDescriptor.UserPromptOverride,
             DisableDocumentRetrieval = agentDescriptor.DisableDocumentRetrieval,
             EnableHandoffPromptOverride = agentDescriptor.EnableHandoffPromptOverride,
             DisableCommonPrompts = agentDescriptor.DisableCommonPrompts,
             IsExtended = isCustomAgent,
+            EnableSkills = agentDescriptor.EnableSkills,
+            AddSystemSkills = agentDescriptor.AddSystemSkills,
 
             // === Workflow Agent Properties ===
             AgentType = agentDescriptor.AgentType,
@@ -241,9 +250,15 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
         agent.ApplyVanillaMode(agentDescriptor.EnableVanillaMode);
 
-        if (!agent.FactoryTools.Contains(ToDoWriteTool.ToolName))
+        if (!agent.FactoryTools.Contains(ToDoWriteTool<TContext>.ToolName))
         {
-            agent.FactoryTools.Add(ToDoWriteTool.ToolName);
+            agent.FactoryTools.Add(ToDoWriteTool<TContext>.ToolName);
+        }
+
+        // Automatically add read_skill_file tool if skills are enabled
+        if (agent.EnableSkills && !agent.FactoryTools.Contains(ReadSkillFileTool<TContext>.ToolName))
+        {
+            agent.FactoryTools.Add(ReadSkillFileTool<TContext>.ToolName);
         }
 
         // Add common tools to the agent
@@ -331,10 +346,10 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
 
         // add todo common prompt to agent if todo tool is added
-        if (agent.FactoryTools.Contains(ToDoWriteTool.ToolName)
-            && !agentDescriptor.CommonPrompts.Contains(ToDoWriteTool.CommonPromptName))
+        if (agent.FactoryTools.Contains(ToDoWriteTool<TContext>.ToolName)
+            && !agentDescriptor.CommonPrompts.Contains(ToDoWriteTool<TContext>.CommonPromptName))
         {
-            agentDescriptor.CommonPrompts.Add(ToDoWriteTool.CommonPromptName);
+            agentDescriptor.CommonPrompts.Add(ToDoWriteTool<TContext>.CommonPromptName);
         }
 
         foreach (var commonPromptName in agentDescriptor.CommonPrompts)
@@ -491,7 +506,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
             LoadAgentFromAssembly();
             LoadAgentFromYaml();
-            LoadDynamicIncidentManagementAgent();
+            LoadDynamicAgentDescriptors();
+
             if (_gpt5Enabled)
             {
                 var path = Path.Combine(AppContext.BaseDirectory, "AgentsGPT5");
@@ -535,6 +551,31 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         {
             _logger.LogInternalError(ex, "[AgentFactory:INIT_AGENTS] Failure during agent initialization pipeline");
             throw;
+        }
+    }
+
+    private void LoadDynamicAgentDescriptors()
+    {
+        foreach (var getAgentDescriptor in _dynamicAgentDescriptors)
+        {
+            try
+            {
+                var agentDescriptor = getAgentDescriptor();
+                if (agentDescriptor is null)
+                {
+                    _logger.LogInternalInformation("Dynamic agent descriptor function returned null, skipping.");
+                    continue;
+                }
+
+                AddAgentDescriptor(agentDescriptor, false);
+                _logger.LogInternalInformation(
+                    "Successfully loaded dynamic agent descriptor '{agentName}'.",
+                    agentDescriptor.Name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Failed to load dynamic agent descriptor.");
+            }
         }
     }
 
@@ -629,82 +670,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
     }
 
-    private void LoadDynamicIncidentManagementAgent()
-    {
-        try
-        {
-            // Get the DynamicIncidentManagementAgent service from the service provider
-            // We access it through the ToolFactory's service provider since AgentFactory doesn't have direct access
-            var serviceProvider = GetServiceProvider();
-
-            if (serviceProvider == null)
-            {
-                _logger.LogInternalWarning("ServiceProvider not accessible. Skipping dynamic agent loading.");
-                return;
-            }
-
-            // Use reflection to get the service by type name to avoid hard assembly reference
-            var serviceTypeName = "Agent.Runtime.Services.DynamicIncidentManagementAgent";
-            var serviceType = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a => a.GetTypes())
-                .FirstOrDefault(t => t.FullName == serviceTypeName);
-
-            if (serviceType == null)
-            {
-                _logger.LogInternalWarning("DynamicIncidentManagementAgent type not found. Skipping dynamic agent loading.");
-                return;
-            }
-
-            var dynamicAgentService = serviceProvider.GetService(serviceType);
-            if (dynamicAgentService == null)
-            {
-                _logger.LogInternalWarning("DynamicIncidentManagementAgent service not registered. Skipping dynamic agent loading.");
-                return;
-            }
-
-            // Call GetIncidentManagementAgentDescriptor() method via reflection
-            var getDescriptorMethod = serviceType.GetMethod("GetIncidentManagementAgentDescriptor");
-            if (getDescriptorMethod == null)
-            {
-                _logger.LogInternalError("GetIncidentManagementAgentDescriptor method not found on DynamicIncidentManagementAgent.");
-                return;
-            }
-
-            var agentDescriptor = getDescriptorMethod.Invoke(dynamicAgentService, null);
-            if (agentDescriptor != null)
-            {
-                var agent = AddAgentDescriptor((IAgentDescriptor)agentDescriptor, false);
-                _logger.LogInternalInformation(
-                    "Successfully loaded dynamic incident management agent as '{agentName}'.",
-                    agent.Name);
-            }
-            else
-            {
-                _logger.LogInternalInformation("No dynamic incident management agent loaded (incident management disabled or not configured).");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Failed to load dynamic incident management agent.");
-        }
-    }
-
-    private IServiceProvider? GetServiceProvider()
-    {
-        // Access service provider through reflection from ToolFactory
-        // This is a bit hacky but necessary since AgentFactory doesn't have direct access to service provider
-        try
-        {
-            var toolFactoryType = _toolFactory.GetType();
-            var serviceProviderField = toolFactoryType.GetField("_serviceProvider", BindingFlags.NonPublic | BindingFlags.Instance);
-            return serviceProviderField?.GetValue(_toolFactory) as IServiceProvider;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
     public Agent<TContext> LoadAgentFromYamlContent(string yamlContent, bool isCustomAgent)
     {
         try
@@ -747,7 +712,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                     yamlFile);
             }
         }
-        _logger.LogInformation("Loaded {count} agents from folder {folderPath}.", _agents.Count, folderPath);
+        _logger.LogInternalInformation("Loaded {count} agents from folder {folderPath}.", _agents.Count, folderPath);
     }
 
     public static YamlAgentDescriptor LoadAgentFromYaml(string yamlContent)
@@ -1102,6 +1067,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
     private void ApplyPromptOverlay(Agent<TContext> agent, PromptOverlay overlay)
     {
+        if (agent.IsExtended)
+        {
+            // do not apply prompt overlays to extended agents
+            return;
+        }
+
         if (overlay.ReplaceSystemPrompt != null)
         {
             // Resolve inline templates in the replacement prompt
@@ -1173,10 +1144,21 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                 agent.Instructions.AddCommonPrompt(commonPrompt.Prompt);
             }
         }
+
+        if (overlay.UserPromptOverride != null)
+        {
+            agent.UserPromptOverride = overlay.UserPromptOverride;
+        }
     }
 
     private static void ApplyToolOverlay(Agent<TContext> agent, ToolOverlay overlay)
     {
+        if (agent.IsExtended)
+        {
+            // do not apply prompt overlays to extended agents
+            return;
+        }
+
         if (overlay.ReplaceTools != null)
         {
             agent.FactoryTools = [.. overlay.ReplaceTools];
@@ -1196,12 +1178,19 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             foreach (var tool in overlay.RemoveTools)
             {
                 agent.FactoryTools.Remove(tool);
+                agent.Tools.RemoveAll(t => t.Name == tool);
             }
         }
     }
 
     private void ApplyHandoffOverlay(Agent<TContext> agent, HandoffOverlay overlay, Dictionary<string, Agent<TContext>>? agentGraph = null)
     {
+        if (agent.IsExtended)
+        {
+            // do not apply prompt overlays to extended agents
+            return;
+        }
+
         var agents = agentGraph ?? _agents;
 
         if (overlay.ReplaceHandoffs != null)
@@ -1239,6 +1228,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
     private void ApplyParamOverlay(Agent<TContext> agent, ParamOverlay overlay)
     {
+        if (agent.IsExtended)
+        {
+            // do not apply prompt overlays to extended agents
+            return;
+        }
+
         if (overlay.ModelName != null && _chatClientProvider.IsModelSupported(overlay.ModelName))
         {
             agent.ChatClient = _chatClientProvider.GetModelByKey<IChatClient>(overlay.ModelName);
@@ -1261,6 +1256,18 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                     ?? throw new InvalidOperationException(
                         $"Output type {overlay.OutputType} not found in assemblies {string.Join(", ", _assembliesToScan.Select(a => a.GetName().Name))}.");
             }
+        }
+        if (overlay.EnableSkills.HasValue)
+        {
+            agent.EnableSkills = overlay.EnableSkills.Value;
+        }
+        if (overlay.AddSystemSkills.HasValue)
+        {
+            agent.AddSystemSkills = overlay.AddSystemSkills.Value;
+        }
+        if (overlay.AllowParallelToolCalls.HasValue)
+        {
+            agent.AllowParallelToolCalls = overlay.AllowParallelToolCalls.Value;
         }
     }
 

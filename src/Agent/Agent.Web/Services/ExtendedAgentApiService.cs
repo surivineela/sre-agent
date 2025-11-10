@@ -1,8 +1,10 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Validation;
 using Agent.Data.DataModels;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Interfaces;
+using Agent.Runtime.Services;
 using Agent.Web.ApiResources;
 using Agent.Web.Validation;
 using Microsoft.AspNetCore.Mvc;
@@ -15,18 +17,21 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     private readonly IExtendedAgentService _extendedAgentService;
     private readonly IExtendedAgentRepository _repository;
     private readonly IExtendedAgentValidator _validator;
+    private readonly AgentToSkillService _agentToSkillService;
 
     public ExtendedAgentApiService(
         ILogger<ExtendedAgentApiService> logger,
         IExtendedAgentService extendedAgentService,
         IExtendedAgentRepository repository,
-        IExtendedAgentValidator validator
+        IExtendedAgentValidator validator,
+        AgentToSkillService agentToSkillService
     )
     {
         _logger = logger;
         _extendedAgentService = extendedAgentService;
         _repository = repository;
         _validator = validator;
+        _agentToSkillService = agentToSkillService;
     }
 
     public async Task<ApiCommandResult<AgentDocumentModel>> CreateOrUpdateAgentAsync(string agentName, AgentDocumentModel model, bool dryRun = false)
@@ -623,6 +628,132 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error occurred while listing common tool lists");
+            throw;
+        }
+    }
+
+    // Skill operations
+    public async Task<ApiCommandResult<SkillDocumentModel>> CreateOrUpdateSkillAsync(string skillName, SkillDocumentModel model)
+    {
+        try
+        {
+            var operationId = Guid.NewGuid().ToString();
+            _logger.LogInternalInformation("Creating or updating skill: {SkillName}, OperationId: {OperationId}", skillName, operationId);
+            var skill = await _repository.UpsertSkillDocumentAsync(model, operationId);
+            await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
+
+            return new ApiCommandResult<SkillDocumentModel>(skill, operationId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error occurred while creating or updating skill: {SkillName}", skillName);
+            throw;
+        }
+    }
+
+    public async Task<ApiCommandResult<SkillDocumentModel>> DeleteSkillAsync(string skillName)
+    {
+        try
+        {
+            var operationId = Guid.NewGuid().ToString();
+            _logger.LogInternalInformation("Deleting skill: {SkillName}, OperationId: {OperationId}", skillName, operationId);
+
+            var skill = await _repository.GetSkillByNameAsync(skillName);
+            if (skill == null)
+            {
+                return new ApiCommandResult<SkillDocumentModel>(new NoContentResult());
+            }
+
+            await _repository.DeleteSkillAsync(skillName);
+            await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
+
+            return new ApiCommandResult<SkillDocumentModel>(skill, operationId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error occurred while deleting skill: {SkillName}", skillName);
+            throw;
+        }
+    }
+
+    public async Task<ApiCommandResult<SkillDocumentModel>> GetSkillAsync(string skillName)
+    {
+        try
+        {
+            var operationId = Guid.NewGuid().ToString();
+            _logger.LogInternalInformation("Retrieving skill: {SkillName}, OperationId: {OperationId}", skillName, operationId);
+
+            var skill = await _repository.GetSkillByNameAsync(skillName);
+            if (skill == null)
+            {
+                return new ApiCommandResult<SkillDocumentModel>(new NotFoundResult());
+            }
+
+            return new ApiCommandResult<SkillDocumentModel>(skill);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error occurred while retrieving skill: {SkillName}", skillName);
+            throw;
+        }
+    }
+
+    public async Task<ApiCommandResult<SkillDocumentModel[]>> GetSkillsAsync(int limit = 50, string? search = null)
+    {
+        try
+        {
+            var operationId = Guid.NewGuid().ToString();
+            _logger.LogInternalInformation("Getting skills, Limit: {Limit}, Search: {Search}, OperationId: {OperationId}", limit, search, operationId);
+
+            var skills = await _repository.GetSkillsAsync(limit, search);
+
+            return new ApiCommandResult<SkillDocumentModel[]>(skills.ToArray());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error occurred while listing skills");
+            throw;
+        }
+    }
+
+    public async Task<ApiCommandResult<SkillDocumentModel>> ConvertAgentToSkillAsync(string agentName, List<string> topLevelAgents)
+    {
+        try
+        {
+            var operationId = Guid.NewGuid().ToString();
+            _logger.LogInternalInformation("Converting agent to skill: {AgentName}, OperationId: {OperationId}", agentName, operationId);
+
+            // Check if agent exists
+            var agent = await _repository.GetAgentByNameAsync(agentName);
+            if (agent == null)
+            {
+                return new ApiCommandResult<SkillDocumentModel>(new NotFoundResult());
+            }
+
+            // Convert agent to skill
+            var skill = await _agentToSkillService.ConvertAgentToSkillAsync(agentName, topLevelAgents);
+
+            // Create skill document model
+            var skillDocumentModel = new SkillDocumentModel(
+                Metadata: new ResourceMetadata
+                {
+                    CreatedAt = DateTime.UtcNow,
+                    Version = "v2",
+                },
+                Spec: skill
+            );
+
+            // Save skill to database
+            var createdSkill = await _repository.UpsertSkillDocumentAsync(skillDocumentModel, operationId);
+            await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
+
+            _logger.LogInternalInformation("Skill '{SkillName}' created successfully from agent '{AgentName}'", skill.Name, agentName);
+
+            return new ApiCommandResult<SkillDocumentModel>(createdSkill, operationId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error occurred while converting agent to skill: {AgentName}", agentName);
             throw;
         }
     }

@@ -20,6 +20,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
@@ -52,6 +53,7 @@ public class ReasoningLoop : IDisposable
     private readonly FeatureConfigModel _featureConfig;
     private readonly bool _modeSwitchEnabled;
     private readonly ModeSwitchHandler? _modeSwitchHandler; // encapsulates /mode conversation|workflow switching (feature-flag gated)
+    private readonly ISkillRegistry _skillRegistry;
 
     // feature properties
     private readonly bool _enableDocumentRetrieval;
@@ -66,7 +68,6 @@ public class ReasoningLoop : IDisposable
 
     private TelemetrySpan? _rootSpan;
     private TelemetrySpan? _currentAgentSpan;
-    // private TelemetrySpan? _currentToolSpan;
     private readonly ConcurrentDictionary<string, TelemetrySpan?> _toolSpans = new();
     private TelemetrySpan? _currentGenerationSpan;
     private Stopwatch? _currentGenerationStopwatch;
@@ -111,6 +112,9 @@ public class ReasoningLoop : IDisposable
     private const string ForgetMarker = "#forget";
     private const string CompactMarker = "/compact";
 
+    // user-required action tracking
+    private ReasoningLoopIterationResult? LastIterationResult { get; set; } = null;
+
     public ReasoningLoop(
         ILoggerFactory loggerFactory,
         IChatClientProvider chatClientProvider,
@@ -132,6 +136,7 @@ public class ReasoningLoop : IDisposable
         AgentMemorySettings agentMemorySettings,
         FeatureConfigModel featureConfig,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
+        ISkillRegistry skillRegistry,
         bool modeSwitchEnabled = false)
     {
         _loggerFactory = loggerFactory;
@@ -164,6 +169,7 @@ public class ReasoningLoop : IDisposable
         _agentMemoryEnabled = featureConfig.AgentMemoryEnabled;
         _agentRuntimeModifier = agentRuntimeModifier;
         _modeSwitchEnabled = modeSwitchEnabled;
+        _skillRegistry = skillRegistry;
         if (_modeSwitchEnabled)
         {
             // Initialize handler only when feature flag enabled to keep overhead minimal for other agents
@@ -593,6 +599,12 @@ public class ReasoningLoop : IDisposable
                         continue;
                 }
 
+                if (LastIterationResult != null && !LastIterationResult.AreUserActionsCompleted)
+                {
+                    // there are pending user actions from the last iteration, do not continue
+                    return;
+                }
+
                 iterationResult = await RunInternalAsync(agentChatHistory, cancellationToken);
                 currentIterationCount++;
 
@@ -650,6 +662,8 @@ public class ReasoningLoop : IDisposable
                 {
                     await ChangeAgentContextStateAsync(ContextStateEnum.Idle);
                 }
+
+                LastIterationResult = iterationResult;
             }
         }
 
@@ -755,8 +769,11 @@ public class ReasoningLoop : IDisposable
             ChatClient = _chatClientProvider.DefaultModel,
             LoggerFactory = _loggerFactory,
             EnableDebugOutput = _enableReasoningDebugOutput,
-            ThreadId = _context.ThreadId
+            ThreadId = _context.ThreadId,
+            SkillRegistry = _skillRegistry
         };
+
+        List<UserActionRequiredResult> userActionRequiredResults = [];
 
         try
         {
@@ -774,14 +791,15 @@ public class ReasoningLoop : IDisposable
                 context: _context,
                 hooks: runHooks,
                 displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _context, Guid.NewGuid()),
+                activeSkills: GetActiveSkills(_currentAgent),
                 cancellationToken: cancellationToken
             );
 
             await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
 
             _currentAgent = runResult.LastAgent;
-            _context = _context with { CurrentAgent = _currentAgent.Name };
-            _context = await _threadRepository.UpdateAgentContextAsync(_context) ?? _context with { CurrentAgent = _currentAgent.Name }; // avoid context is null
+            _context = _context with { CurrentAgent = _currentAgent.Name, ActiveSkills = [.. runResult.ActiveSkills.Select(s => s.Name)] };
+            _context = await _threadRepository.UpdateAgentContextAsync(_context) ?? _context with { CurrentAgent = _currentAgent.Name, ActiveSkills = [.. runResult.ActiveSkills.Select(s => s.Name)] }; // avoid context is null
 
             // handle manual tool calls
             while (runResult.ManualToolCalls != null && runResult.ManualToolCalls.Count > 0)
@@ -976,7 +994,7 @@ public class ReasoningLoop : IDisposable
 
                         await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
                         _currentAgent = runResult.LastAgent;
-                        _context = _context with { CurrentAgent = _currentAgent.Name };
+                        _context = _context with { CurrentAgent = _currentAgent.Name, ActiveSkills = [.. runResult.ActiveSkills.Select(s => s.Name)] };
                         _context = await _threadRepository.UpdateAgentContextAsync(_context);
                     }
                     else
@@ -1052,6 +1070,7 @@ public class ReasoningLoop : IDisposable
                             return new ReasoningLoopIterationResult
                             {
                                 IsContinuation = true,
+                                UserActionRequiredResults = userActionRequiredResults
                             };
                         }
                         else
@@ -1065,7 +1084,8 @@ public class ReasoningLoop : IDisposable
 
                         return new ReasoningLoopIterationResult
                         {
-                            IsContinuation = true
+                            IsContinuation = true,
+                            UserActionRequiredResults = userActionRequiredResults
                         };
                     }
                     else if (needsReiteration)
@@ -1078,7 +1098,8 @@ public class ReasoningLoop : IDisposable
 
                         return new ReasoningLoopIterationResult
                         {
-                            IsContinuation = true
+                            IsContinuation = true,
+                            UserActionRequiredResults = userActionRequiredResults
                         };
                     }
                 }
@@ -1236,7 +1257,11 @@ public class ReasoningLoop : IDisposable
             _currentAgentSpan = null;
         }
 
-        return new ReasoningLoopIterationResult { IsContinuation = false };
+        return new ReasoningLoopIterationResult
+        {
+            IsContinuation = false,
+            UserActionRequiredResults = userActionRequiredResults
+        };
     }
 
     private static string GetHandoffBackTransferMessage(ManualToolCall toolCall)
@@ -1252,6 +1277,20 @@ public class ReasoningLoop : IDisposable
 
         return Handoff<AgentContext>.GetTransferMessage(handoffReasoning);
     }
+
+    // private Task DisplayModelResponse(string t, ModelOutputType responseType)
+    // {
+    //     if (responseType == ModelOutputType.IntermediateOutput || responseType == ModelOutputType.Debug || responseType == ModelOutputType.ReasoningSummary)
+    //     {
+    //         return _outboundCommunicationService.NotifyIntermediateUpdate(
+    //             _context.ThreadId,
+    //             t);
+    //     }
+
+    //     return _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+    //         _context,
+    //         new ChatMessage(ChatRole.Assistant, t));
+    // }
 
     private RunHooks<AgentContext> CreateRunHooks()
     {
@@ -1275,11 +1314,13 @@ public class ReasoningLoop : IDisposable
             return Task.CompletedTask;
         };
 
-        hooks.ResolveFactoryTools += (context, agent) =>
+        hooks.ResolveFactoryTools += (context, agent, additionalToolNames) =>
         {
             List<AIFunction> tools = [];
 
-            foreach (var toolName in agent.FactoryTools)
+            List<string> allToolNames = [.. agent.FactoryTools, .. additionalToolNames];
+
+            foreach (var toolName in allToolNames.Distinct())
             {
                 // Skip disabled tools (those that don't meet EnabledIf condition)
                 if (_toolFactory.IsToolDisabled(toolName))
@@ -1288,7 +1329,7 @@ public class ReasoningLoop : IDisposable
                     continue;
                 }
 
-                var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
+                var tool = _toolFactory.GetTool(toolName, _context.ThreadId, agent);
 
                 tools.Add(tool);
             }
@@ -1305,7 +1346,7 @@ public class ReasoningLoop : IDisposable
                 {
                     try
                     {
-                        var searchMemoryTool = _toolFactory.GetTool(SearchMemoryToolName, _context.ThreadId);
+                        var searchMemoryTool = _toolFactory.GetTool(SearchMemoryToolName, _context.ThreadId, agent);
                         tools.Add(searchMemoryTool);
                         _logger.LogInternalInformation("Injected SearchMemory tool for agent {AgentName} (per-turn injection)", agent.Name);
                     }
@@ -1393,7 +1434,7 @@ public class ReasoningLoop : IDisposable
                 featureConfig: WebJsonSerializer.Serialize(_featureConfig));
 
             // Store todo arguments if this is a ToDoWrite tool
-            if (tool.Name == ToDoWriteTool.ToolName)
+            if (tool.Name == ToDoWriteTool<AgentContext>.ToolName)
             {
                 _currentTodoArguments = input;
             }
@@ -1441,7 +1482,7 @@ public class ReasoningLoop : IDisposable
             LogToolExecution(tool, output);
 
             // Handle todo plan persistence and streaming if this was a ToDoWrite tool
-            if (tool.Name == ToDoWriteTool.ToolName && _currentTodoArguments != null)
+            if (tool.Name == ToDoWriteTool<AgentContext>.ToolName && _currentTodoArguments != null)
             {
                 var currentTodoArgument = _currentTodoArguments;
                 _ = Task.Run(async () => await ProcessTodoPersistenceAndStreamingAsync(currentTodoArgument, _context.ThreadId));
@@ -1890,11 +1931,13 @@ public class ReasoningLoop : IDisposable
     {
         AIFunction? tool = null;
 
+        var skills = GetActiveSkills(_currentAgent);
+
         if (_currentAgent.StandardToolNames.Contains(name))
         {
             tool = _currentAgent.Tools.FirstOrDefault(aiTool => aiTool.Name == name);
         }
-        else if (_currentAgent.FactoryTools.Contains(name))
+        else if (_currentAgent.FactoryTools.Contains(name) || skills.AllToolNames.Contains(name))
         {
             tool = _toolFactory.GetTool(name, _context.ThreadId);
         }
@@ -2133,6 +2176,8 @@ public class ReasoningLoop : IDisposable
         await ExecuteWithRetryAsync(
             () => _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage),
             $"AddReasoningMessageToChatHistory for message {reasoningMessage.Id}");
+
+        RecordUserActionResults(chatMessage);
     }
 
     private async Task PersistReasoningMessagesAsync(AgentChatHistory agentChatHistory, IEnumerable<ChatMessage> chatMessages)
@@ -2152,6 +2197,21 @@ public class ReasoningLoop : IDisposable
         await ExecuteWithRetryAsync(
             () => _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessages),
             $"AddReasoningMessagesToChatHistory for {reasoningMessages.Count} messages");
+
+        RecordUserActionResults(chatMessages);
+    }
+
+    private void RecordUserActionResults(params IEnumerable<ChatMessage> chatMessages)
+    {
+        if (LastIterationResult == null || LastIterationResult.AreUserActionsCompleted)
+        {
+            return;
+        }
+
+        foreach (var toolResult in chatMessages.SelectMany(m => m.Contents.OfType<FunctionResultContent>()))
+        {
+            LastIterationResult.SetResultForCallId(toolResult.CallId, toolResult);
+        }
     }
 
     private async Task HandleRememberCommandAsync(AgentChatHistory agentChatHistory, string userMessage, CancellationToken cancellationToken)
@@ -2426,7 +2486,7 @@ public class ReasoningLoop : IDisposable
         {
             Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
             Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
-            Core.ToolStatic.AsyncLocalToolTraceSpan.Value = _toolSpans.GetValueOrDefault(toolCall.Tool!.Name);
+            Core.ToolStatic.AsyncLocalToolTraceSpan.Value = _toolSpans.GetValueOrDefault(toolCall.FunctionCall.CallId);
 
             return await toolCall.Tool.InvokeAsync(new AIFunctionArguments(toolCall.FunctionCall.Arguments), cancellationToken);
         }
@@ -2666,7 +2726,8 @@ public class ReasoningLoop : IDisposable
                 ChatClient = _chatClientProvider.DefaultModel,
                 LoggerFactory = _loggerFactory,
                 EnableDebugOutput = _enableReasoningDebugOutput,
-                ThreadId = _context.ThreadId
+                ThreadId = _context.ThreadId,
+                SkillRegistry = _skillRegistry,
             };
 
             try
@@ -2735,6 +2796,7 @@ public class ReasoningLoop : IDisposable
                         context: _context,
                         hooks: runHooks,
                         displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _context, Guid.NewGuid()),
+                        allowParallelToolCalls: true,
                         cancellationToken: cancellationToken
                     );
 
@@ -2949,6 +3011,22 @@ public class ReasoningLoop : IDisposable
         throw new ArgumentException($"Unsupported CliToolType: {toolType}");
     }
 
+
+    private SkillList GetActiveSkills(Agent<AgentContext> agent)
+    {
+        var skillList = new SkillList();
+
+        foreach (var skillName in _context.ActiveSkills ?? [])
+        {
+            var skill = _skillRegistry.GetSkillByName(skillName, agent.AddSystemSkills);
+            if (skill != null)
+            {
+                skillList.Enqueue(skill);
+            }
+        }
+
+        return skillList;
+    }
 
     private static async Task<TodoPlan?> FindTodoPlanWithSameContentAsync(List<TodoItem> newTodoItems, Guid threadId, IThreadRepository threadRepository)
     {

@@ -4,6 +4,7 @@
 
 using Agent.Web.ApiResources;
 using Agent.Web.Authorization;
+using Agent.Web.Models.ExtendedAgents.Request;
 using Agent.Web.Services;
 using Agent.Web.Views.v2;
 using Microsoft.AspNetCore.Mvc;
@@ -1032,6 +1033,194 @@ public class ExtendedAgentApiController : ControllerBase
         }
 
         return Accepted();
+    }
+
+    // Skill endpoints
+    [HttpPut("skills/{skillName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
+    [Consumes("application/json")]
+    [ProducesResponseType(typeof(ApiRequestEnvelope<SkillView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateOrUpdateSkillAsync(
+        string skillName,
+        [FromBody] ApiRequestEnvelope<SkillView> request)
+    {
+        if (request.Type != null && request.Type != "Skill")
+        {
+            return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
+        }
+
+        if (skillName != request.Name)
+        {
+            return BadRequest(ErrorMap.ObjectNameMismatch.CreateErrorEntity(skillName, request.Name));
+        }
+
+        var existingSkillResult = await _extendedAgentApiService.GetSkillAsync(skillName);
+
+        var model = SkillView.CreateModel(request, existingSkillResult.Response?.Metadata, null);
+
+        var result = await _extendedAgentApiService.CreateOrUpdateSkillAsync(skillName, model);
+
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+
+        if (result.IsAsyncCreated)
+        {
+            return Accepted(SkillView.CreateApiResponseEnvelope(result.Response));
+        }
+
+        if (result.IsSyncObjectResult)
+        {
+            return Ok(SkillView.CreateApiResponseEnvelope(result.Response));
+        }
+
+        return UnexpectedError();
+    }
+
+    [HttpPatch("skills/{skillName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
+    [Consumes("application/json")]
+    [ProducesResponseType(typeof(ApiRequestEnvelope<SkillView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> PatchSkillAsync(
+        string skillName,
+        [FromBody] ApiRequestEnvelope<SkillView> request)
+    {
+        if (request.Type != null && request.Type != "Skill")
+        {
+            return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
+        }
+
+        if (skillName != request.Name)
+        {
+            return BadRequest(ErrorMap.ObjectNameMismatch.CreateErrorEntity(skillName, request.Name));
+        }
+
+        var baseModelResult = await _extendedAgentApiService.GetSkillAsync(skillName);
+        if (baseModelResult.IsStatusCodeResult)
+        {
+            return baseModelResult.ActionResult;
+        }
+
+        var model = SkillView.CreateModel(request, baseModel: baseModelResult.Response);
+
+        var result = await _extendedAgentApiService.CreateOrUpdateSkillAsync(skillName, model);
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+
+        if (result.IsAsyncCreated)
+        {
+            return Accepted(SkillView.CreateApiResponseEnvelope(result.Response));
+        }
+
+        if (result.IsSyncObjectResult)
+        {
+            return Ok(SkillView.CreateApiResponseEnvelope(result.Response));
+        }
+
+        return UnexpectedError();
+    }
+
+    [HttpDelete("skills/{skillName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentDeleteActionId)]
+    [ProducesResponseType(typeof(void), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteSkillAsync(string skillName)
+    {
+        var result = await _extendedAgentApiService.DeleteSkillAsync(skillName);
+
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+
+        return Accepted();
+    }
+
+    [HttpGet("skills")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ListSkillsAsync(
+        [FromQuery] int limit = 50,
+        [FromQuery] string? search = null)
+    {
+        var result = await _extendedAgentApiService.GetSkillsAsync(limit, search);
+
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+
+        if (result.IsSyncObjectResult)
+        {
+            var responseEnvelope = new ApiCollectionEnvelope<SkillView>
+            {
+                Value = result.Response.Select(SkillView.CreateApiResponseEnvelope).ToArray()
+            };
+            return Ok(responseEnvelope);
+        }
+
+        return UnexpectedError();
+    }
+
+    [HttpGet("skills/{skillName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
+    [Consumes("application/json")]
+    [ProducesResponseType(typeof(ApiRequestEnvelope<SkillView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetSkillAsync(string skillName)
+    {
+        var result = await _extendedAgentApiService.GetSkillAsync(skillName);
+
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+
+        if (result.IsSyncObjectResult)
+        {
+            return Ok(SkillView.CreateApiResponseEnvelope(result.Response));
+        }
+
+        return UnexpectedError();
+    }
+
+    [HttpPost("agents/{agentName}/convert-to-skill")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
+    [ProducesResponseType(typeof(ApiRequestEnvelope<SkillView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ConvertToSkillAsync(
+        string agentName,
+        [FromBody] ConvertToSkillRequest request)
+    {
+        var result = await _extendedAgentApiService.ConvertAgentToSkillAsync(agentName, request.TopLevelAgents);
+
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+
+        if (result.IsSyncObjectResult)
+        {
+            return Ok(SkillView.CreateApiResponseEnvelope(result.Response));
+        }
+
+        return UnexpectedError();
     }
 
     private IActionResult UnexpectedError()

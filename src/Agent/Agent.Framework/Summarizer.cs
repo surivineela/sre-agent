@@ -125,6 +125,10 @@ public static class Summarizer
             ToolMode = ChatToolMode.None,
             Temperature = 0,
             ResponseFormat = ChatResponseFormat.Text,
+            AdditionalProperties = new AdditionalPropertiesDictionary
+            {
+                { "reasoning_effort", "low" }
+            }
         };
 
         var chatSummary = await chatClient.GetResponseAsync(summarizerChat, summarizerChatOptions);

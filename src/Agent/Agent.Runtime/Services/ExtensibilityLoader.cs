@@ -3,8 +3,8 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Interfaces;
-using Agent.Data;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
@@ -154,6 +154,36 @@ public class ExtensibilityLoader : IExtensibilityLoader
         {
             _logger.LogInternalError(ex, "failed to load extended agents and tools");
             return new List<YamlAgentDescriptor>();
+        }
+    }
+
+    public async Task<List<SkillSpec>> LoadExtendedSkillsAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalInformation("Starting custom skill files download...");
+        List<SkillSpec> loadedExtendedSkills = [];
+        try
+        {
+            var extendedSkills = await _extendedAgentRepository.GetSkillsAsync(limit: 1000);
+            foreach (var extendedSkill in extendedSkills)
+            {
+                try
+                {
+                    var concreteSkill = extendedSkill.ToRuntimeModel();
+
+                    loadedExtendedSkills.Add(concreteSkill);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to load extended skill from Cosmos: {SkillName}", extendedSkill.Id);
+                }
+            }
+            return loadedExtendedSkills;
+            // load tools stored in Cosmos
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "failed to load extended skills");
+            return [];
         }
     }
 }

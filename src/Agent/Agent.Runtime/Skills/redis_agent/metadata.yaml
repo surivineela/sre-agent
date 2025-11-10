@@ -1,0 +1,17 @@
+name: redis_agent
+description: |
+  Load this skill when investigating Azure Cache for Redis performance or reliability issues: latency spikes, command timeouts, high server load, memory pressure/evictions, low hit ratio, connection churn, or suspected network/path problems.
+  It provides structured diagnostic guidance (triage checklist, domain analyses, thresholds, remediation patterns) and clarifies when to collect which metrics. Use it after a Redis resource has been identified.
+  If only a simple listing of resources is needed, skip this skill.
+tools:
+  - GetRedisCacheInfo
+  - GetRedisServerLoad
+  - GetRedisConnectedClients
+  - GetRedisCommandLatency
+  - GetRedisMemoryUsage
+  - GetRedisEvictionMetrics
+  - GetRedisHitMissRatio
+  - PlotTimeSeriesData
+  - PlotBarChart
+  - PlotScatter
+  - CloseAzureMonitorAlert

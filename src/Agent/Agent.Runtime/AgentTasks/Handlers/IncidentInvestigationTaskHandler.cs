@@ -17,6 +17,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.Repositories;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Logging;
 using Agent.Runtime.AgentTasks.Agents;
 using Agent.Runtime.Helpers;
@@ -264,11 +265,13 @@ public sealed class IncidentInvestigationTaskHandler(
             // Register the step completion hook once at the beginning
             runHooks.ToolStart += HandleReportStepCompletionToolCallAsync;
 
-            runHooks.ResolveFactoryTools += (runContext, agent) =>
+            runHooks.ResolveFactoryTools += (runContext, agent, additionalToolNames) =>
             {
                 List<AIFunction> tools = [];
 
-                foreach (var toolName in agent.FactoryTools)
+                List<string> allToolNames = [.. agent.FactoryTools, .. additionalToolNames];
+
+                foreach (var toolName in allToolNames.Distinct())
                 {
                     // Skip disabled tools (those that don't meet EnabledIf condition)
                     if ((toolFactory as ToolFactory<AgentContext>)!.IsToolDisabled(toolName))
@@ -277,7 +280,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         continue;
                     }
 
-                    var tool = (toolFactory as ToolFactory<AgentContext>)!.GetTool(toolName, context.ThreadId);
+                    var tool = (toolFactory as ToolFactory<AgentContext>)!.GetTool(toolName, context.ThreadId, agent);
 
                     tools.Add(tool);
                 }
@@ -1348,6 +1351,7 @@ public sealed class IncidentInvestigationTaskHandler(
                 {
                     ChatClient = chatClientProvider.DefaultModel,
                     LoggerFactory = loggerFactory,
+                    SkillRegistry = new EmptySkillRegistry()
                 };
 
                 // Inject tool call history into the chat input

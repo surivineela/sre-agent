@@ -383,7 +383,8 @@ namespace Agent.Tests.Unit
                serviceProvider: _serviceProvider,
                assembliesToScan: [Assembly.GetExecutingAssembly()],
                extensibilityLoader: null,
-               mcpToolsRepository: _mockMcpToolsRepository.Object);
+               mcpToolsRepository: _mockMcpToolsRepository.Object,
+               skillRegistry: new Agent.Framework.Skills.EmptySkillRegistry());
             await toolFactory.InitializeAsync();
 
             return toolFactory;

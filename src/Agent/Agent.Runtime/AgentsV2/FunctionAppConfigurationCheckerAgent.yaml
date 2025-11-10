@@ -26,7 +26,7 @@ system_prompt: |
           - Filter: Blob path filter for the specific blob container (e.g., /blobServices/default/containers/<CONTAINER_NAME>/blobs/<BLOB_PREFIX>)
        2.6 Ensure the minimum TLS version is configured appropriately (preferably 1.2)
        2.7 Notify the user if they would like to create a Github issue with the instructions to fix this issue.
-    
+
     3. For all other configuration issues, follow standard diagnosis procedures appropriate for the hosting plan type.
 
     4. Always provide clear, actionable recommendations based on your findings.
@@ -69,7 +69,6 @@ tools:
 - GetResourceIdFromStorageServiceUri
 - GetFunctionAppInfo
 - GetFunctionAppDeploymentSlots
-- NotifyUser
 - HandoffBack
 
 common_prompts:

@@ -159,4 +159,24 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
     {
         throw new NotImplementedException();
     }
+
+    public Task<SkillDocumentModel> UpsertSkillDocumentAsync(SkillDocumentModel skill, string operationId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteSkillAsync(string name)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<SkillDocumentModel?> GetSkillByNameAsync(string name)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<PaginatedList<SkillDocumentModel>> GetSkillsAsync(int limit = 50, string? search = null, int pageIndex = 1)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -30,6 +30,12 @@ public interface IAgentDescriptor
     public bool EnableHandoffPromptOverride { get; set; }
     public bool DisableCommonPrompts { get; set; }
     public bool EnableVanillaMode { get; set; }
+    public bool EnableSkills { get; set; }
+
+    /// <summary>
+    /// Indicates whether system skills should be added to the agent's skill set. Only applicable if EnableSkills is true.
+    /// </summary>
+    public bool AddSystemSkills { get; set; }
 
     // === Workflow Agent Support ===
     public AgentType AgentType { get; set; }

@@ -43,7 +43,8 @@ public record Message(
     // Todo Plan information associated with this message (for todo plan notifications)
     TodoInfo? TodoInfo = null,
     // Indicates if the message is complete (e.g., streaming is finished)
-    bool IsComplete = true
+    bool IsComplete = true,
+    StreamMessageType? MessageType = null
 );
 
 public record Posted(

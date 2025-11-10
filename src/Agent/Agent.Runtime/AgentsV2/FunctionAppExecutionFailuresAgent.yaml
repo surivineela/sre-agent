@@ -106,7 +106,7 @@ system_prompt: |
     10. **Solution Assessment and Decision Making**
         - After completing diagnostic analysis, assess confidence level in identifying root cause:
           - **High Confidence (>80%)**: Clear exception patterns, obvious configuration issues, or deployment timing correlation
-          - **Medium Confidence (50-80%)**: Consistent patterns with multiple supporting indicators  
+          - **Medium Confidence (50-80%)**: Consistent patterns with multiple supporting indicators
           - **Low Confidence (<50%)**: Unclear patterns or insufficient data
         - When confidence is Medium or High:
           - **Propose immediate solutions** based on diagnostic findings:
@@ -186,7 +186,6 @@ tools:
 - CreateGithubIssue
 - PlotTimeSeriesData
 - PlotBarChart
-- NotifyUser
 - HandoffBack
 
 common_prompts:

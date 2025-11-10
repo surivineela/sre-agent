@@ -313,8 +313,12 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         - Get logs from a pod: 'kubectl logs my-pod -n default --container my-container --tail 100'
         ADVANCED EXAMPLES:
         - Complete security info: 'kubectl get pods -o custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace,PRIVILEGED:.spec.containers[*].securityContext.privileged,HOST_NETWORK:.spec.hostNetwork,HOST_PID:.spec.hostPID,CAPABILITIES:.spec.containers[*].securityContext.capabilities.add'
+        - JSONPath filtering: 'kubectl get pods -o jsonpath="{range .items[?(@.status.phase=='Running')]}{.metadata.name}{'\n'}{end}" -n default'
         BEST PRACTICES:
         - Always specify the namespace you care about: 'kubectl get pods -n default'
+        - PREFER using '-o name', '-o wide', '-o jsonpath', or '-o custom-columns' to limit output size and avoid overwhelming responses. For example, if you only need a few fields of a pod, DO NOT request full YAML/JSON output. Use custom-columns or jsonpath to extract just the fields you need.
+        - DO NOT use '-o yaml' or '-o json' unless absolutely necessary, as they can produce very large outputs.
+        - NEVER use '-o yaml' or '-o json' with plural resources (e.g. 'kubectl get pods -n production -o json'), as they will return too much data. You may use these options with singular resources (e.g. 'kubectl get pod my-pod -n production -o yaml'), but prefer more concise output formats when possible.
         """)]
         [AgentTool(ToolMode.Manual)]
         public async Task<CliToolExecutionResult> RunKubectlReadCommandAsync(

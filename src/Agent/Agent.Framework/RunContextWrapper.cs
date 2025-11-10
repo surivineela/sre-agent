@@ -10,7 +10,8 @@ public class RunContextWrapper<TContext>
 {
     public TContext? Context { get; }
     public Dictionary<string, object> Metadata { get; } = new();
-    public UsageDetails UsageDetails { get; } = new();
+    public UsageDetails TotalUsageDetails { get; } = new();
+    public UsageDetails CurrentStepUsageDetails { get; set; } = new();
 
     public RunContextWrapper(TContext? context)
     {

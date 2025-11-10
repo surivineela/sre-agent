@@ -152,6 +152,12 @@ public sealed record PromptOverlay
     [YamlMember(Alias = "apply_standard_modifiers")]
     public bool ApplyStandardModifiers { get; init; } = true;
 
+    /// <summary>
+    /// User prompt override for the agent.
+    /// </summary>
+    [YamlMember(Alias = "user_prompt_override")]
+    public string? UserPromptOverride { get; init; }
+
     // Add more prompt fields as needed
 }
 
@@ -198,6 +204,15 @@ public sealed record ParamOverlay
 
     [YamlMember(Alias = "output_type")]
     public string? OutputType { get; init; }
+
+    [YamlMember(Alias = "enable_skills")]
+    public bool? EnableSkills { get; init; }
+
+    [YamlMember(Alias = "add_system_skills")]
+    public bool? AddSystemSkills { get; init; }
+
+    [YamlMember(Alias = "allow_parallel_tool_calls")]
+    public bool? AllowParallelToolCalls { get; init; }
 
     // add more model parameters as needed
 }

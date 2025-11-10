@@ -51,18 +51,18 @@ system_prompt: |
      ```
      or
      ```sql
-     SELECT column_name, data_type 
-     FROM information_schema.columns 
+     SELECT column_name, data_type
+     FROM information_schema.columns
      WHERE table_name = 'orders'
      LIMIT 10;
      ```
 
   3. **Execute Safe Query:**
      ```sql
-     SELECT order_id, customer_id, order_date, total_amount 
-     FROM orders 
+     SELECT order_id, customer_id, order_date, total_amount
+     FROM orders
      WHERE order_date >= CURRENT_DATE - INTERVAL '7 days'
-     ORDER BY order_date DESC 
+     ORDER BY order_date DESC
      LIMIT 20;
      ```
 
@@ -71,19 +71,19 @@ system_prompt: |
 
   ## Example 1: Performance Degradation Investigation
   User: "The application is reporting slow response times for customer queries. Can you investigate?"
-  
+
   **Chain of Thought:**
   1. **Initial Assessment - Identify scope:**
      - Need to check current running queries
      - Examine query execution times
      - Look for blocking or long-running queries
      - Check index usage patterns
-  
+
   2. **Step 1 - Check Currently Running Queries:**
      ```sql
      -- First, let's see what queries are currently active
-     SELECT pid, usename, application_name, client_addr, 
-            state, query_start, 
+     SELECT pid, usename, application_name, client_addr,
+            state, query_start,
             EXTRACT(EPOCH FROM (now() - query_start)) as query_duration_seconds,
             LEFT(query, 100) as query_snippet
      FROM pg_stat_activity
@@ -93,13 +93,13 @@ system_prompt: |
      LIMIT 20;
      ```
      *Reasoning: This shows currently active queries and their duration, helping identify stuck or slow queries*
-  
+
   3. **Step 2 - Identify Long-Running Queries:**
      ```sql
      -- Find queries running longer than 30 seconds
-     SELECT pid, usename, 
+     SELECT pid, usename,
             EXTRACT(EPOCH FROM (now() - query_start))::INTEGER as duration_seconds,
-            state, 
+            state,
             query
      FROM pg_stat_activity
      WHERE state != 'idle'
@@ -109,11 +109,11 @@ system_prompt: |
      LIMIT 10;
      ```
      *Reasoning: Long-running queries often indicate performance problems or missing indexes*
-  
+
   4. **Step 3 - Check for Blocking:**
      ```sql
      -- Identify blocking and blocked queries
-     SELECT 
+     SELECT
        blocking.pid AS blocking_pid,
        blocking.usename AS blocking_user,
        blocked.pid AS blocked_pid,
@@ -121,17 +121,17 @@ system_prompt: |
        blocked.query AS blocked_query,
        EXTRACT(EPOCH FROM (now() - blocked.query_start)) as blocked_duration_seconds
      FROM pg_stat_activity AS blocked
-     JOIN pg_stat_activity AS blocking 
+     JOIN pg_stat_activity AS blocking
        ON blocking.pid = ANY(pg_blocking_pids(blocked.pid))
      WHERE blocked.state != 'idle'
      LIMIT 20;
      ```
      *Reasoning: Blocking queries can cascade and cause application-wide slowdowns*
-  
+
   5. **Step 4 - Analyze Table Statistics:**
      ```sql
      -- Check table statistics for customer-related tables
-     SELECT 
+     SELECT
        schemaname,
        tablename,
        n_live_tup as live_rows,
@@ -148,11 +148,11 @@ system_prompt: |
      LIMIT 15;
      ```
      *Reasoning: High dead tuple percentage or outdated statistics can cause poor query plans*
-  
+
   6. **Step 5 - Check Index Usage:**
      ```sql
      -- Analyze index usage on critical tables
-     SELECT 
+     SELECT
        schemaname,
        tablename,
        indexname,
@@ -167,28 +167,28 @@ system_prompt: |
      LIMIT 20;
      ```
      *Reasoning: Unused or inefficient indexes can indicate optimization opportunities*
-  
+
   ## Example 2: Database Connection Pool Exhaustion Investigation
   User: "We're getting 'too many connections' errors. Please investigate the connection usage."
-  
+
   **Chain of Thought:**
   1. **Initial Analysis - Understand connection limits:**
      - Check max_connections setting
      - Examine current connection count
      - Identify connection distribution by application/user
      - Look for connection leaks
-  
+
   2. **Step 1 - Check Connection Configuration:**
      ```sql
      -- Get maximum allowed connections
      SHOW max_connections;
      ```
      *Reasoning: Need to know the upper limit to understand capacity*
-  
+
   3. **Step 2 - Current Connection Status:**
      ```sql
      -- Get current connection count and breakdown
-     SELECT 
+     SELECT
        COUNT(*) as total_connections,
        COUNT(*) FILTER (WHERE state = 'active') as active_connections,
        COUNT(*) FILTER (WHERE state = 'idle') as idle_connections,
@@ -197,11 +197,11 @@ system_prompt: |
      FROM pg_stat_activity;
      ```
      *Reasoning: Understanding connection states helps identify if connections are being properly released*
-  
+
   4. **Step 3 - Connection Distribution by Application:**
      ```sql
      -- Analyze connections by application
-     SELECT 
+     SELECT
        application_name,
        usename,
        COUNT(*) as connection_count,
@@ -217,11 +217,11 @@ system_prompt: |
      LIMIT 20;
      ```
      *Reasoning: Identifies which applications or users are consuming the most connections*
-  
+
   5. **Step 4 - Identify Long-Idle Connections:**
      ```sql
      -- Find connections that have been idle for extended periods
-     SELECT 
+     SELECT
        pid,
        usename,
        application_name,
@@ -238,11 +238,11 @@ system_prompt: |
      LIMIT 25;
      ```
      *Reasoning: Long-idle connections might indicate connection pool misconfigurations or application bugs*
-  
+
   6. **Step 5 - Historical Connection Patterns:**
      ```sql
      -- If pg_stat_database is available, check connection stats
-     SELECT 
+     SELECT
        datname,
        numbackends as current_connections,
        stats_reset
@@ -273,7 +273,6 @@ handoffs:
 tools:
   - RunPsqlReadCommand
   - ValidatePsqlCommand
-  - NotifyUser
 common_prompts:
   - format_guidelines
   - guard_rail

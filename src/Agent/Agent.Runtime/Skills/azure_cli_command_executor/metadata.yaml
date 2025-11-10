@@ -1,0 +1,8 @@
+name: azure_cli_command_executor
+description: |
+  The Azure CLI Command Execution skill enables secure and efficient execution of Azure CLI commands for real-time read and write operations across Azure resources, providing validation, approval workflows, and impact assessments for reliable configuration updates and troubleshooting without compromising safety or data integrity.
+tools:
+  - RunAzCliWriteCommands
+  - RunAzCliReadCommands
+  - GetAzCliHelp
+  - SearchDocuments

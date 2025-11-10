@@ -184,4 +184,21 @@ public static class ApiToRuntimeMapper
         },
         _ => throw new NotSupportedException($"Unknown tool document type: {tool.Type}")
     };
+
+    public static SkillDocumentModel ToDocumentSkill(SkillDeploymentModel skill, string operationId)
+    {
+        return new SkillDocumentModel(
+            Metadata: new ResourceMetadata
+            {
+                Id = $"skill_{skill.Spec.Name}",
+                OperationId = operationId,
+                Owner = skill.Metadata.Owner,
+                Version = skill.Metadata.Version,
+                Tags = skill.Metadata.Tags,
+                UpdatedAt = skill.Metadata.UpdatedAt,
+                CreatedAt = skill.Metadata.CreatedAt
+            },
+            Spec: skill.Spec
+        );
+    }
 }

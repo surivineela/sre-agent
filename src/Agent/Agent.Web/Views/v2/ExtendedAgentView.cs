@@ -49,6 +49,10 @@ public class ExtendedAgentView
 
     public Settable<bool?> EnableVanillaMode { get; set; }
 
+    public Settable<bool?> EnableSkills { get; set; }
+
+    public Settable<bool?> AddSystemSkills { get; set; }
+
 
     public static ApiResponseEnvelope<ExtendedAgentView> CreateApiResponseEnvelope(AgentDocumentModel agentDoc)
     {
@@ -84,6 +88,8 @@ public class ExtendedAgentView
         agentView.Temperature = agent.Temperature;
         agentView.LlmModelName = agent.LlmModelName;
         agentView.EnableVanillaMode = agent.EnableVanillaMode;
+        agentView.EnableSkills = agent.EnableSkills;
+        agentView.AddSystemSkills = agent.AddSystemSkills;
 
         ApiResponseEnvelope<ExtendedAgentView> apiResponse = new()
         {
@@ -166,6 +172,8 @@ public class ExtendedAgentView
             properties.Temperature.ApplyTo(value => result.Spec.Temperature = value);
             properties.LlmModelName.ApplyTo(value => result.Spec.LlmModelName = value);
             properties.EnableVanillaMode.ApplyTo(value => result.Spec.EnableVanillaMode = value ?? false);
+            properties.EnableSkills.ApplyTo(value => result.Spec.EnableSkills = value);
+            properties.AddSystemSkills.ApplyTo(value => result.Spec.AddSystemSkills = value);
         });
 
         return result;

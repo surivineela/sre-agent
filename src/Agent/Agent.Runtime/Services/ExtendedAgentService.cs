@@ -7,6 +7,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Runtime.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -18,17 +19,21 @@ public class ExtendedAgentService : IExtendedAgentService
     private readonly IAgentFactory<AgentContext> _agentFactory;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IExtendedAgentRepository _extendedAgentRepository;
+    private readonly ISkillRegistry _skillRegistry;
 
     public ExtendedAgentService(
         ILogger<ExtendedAgentService> logger,
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory<AgentContext> toolFactory,
-        IExtendedAgentRepository extendedAgentRepository
+        IExtendedAgentRepository extendedAgentRepository,
+        ISkillRegistry skillRegistry
         )
     {
         _logger = logger;
         _agentFactory = agentFactory;
         _toolFactory = toolFactory;
+        _extendedAgentRepository = extendedAgentRepository;
+        _skillRegistry = skillRegistry;
         _extendedAgentRepository = extendedAgentRepository;
     }
 
@@ -48,6 +53,17 @@ public class ExtendedAgentService : IExtendedAgentService
             .Select(c => c.ToYamlAgentDescriptor());
 
         return PaginatedList<YamlAgentDescriptor>.Create(mapped, pageIndex, limit);
+    }
+
+    public async Task<YamlAgentDescriptor?> GetAgentByNameAsync(string agentName)
+    {
+        var agentDocument = await _extendedAgentRepository.GetAgentByNameAsync(agentName);
+        if (agentDocument == null)
+        {
+            return null;
+        }
+
+        return agentDocument.ToYamlAgentDescriptor();
     }
 
     public async Task<PaginatedList<YamlToolDefinitionBase>> GetToolsAsync(int pageIndex, int limit, string? search)
@@ -153,6 +169,20 @@ public class ExtendedAgentService : IExtendedAgentService
         {
             _logger.LogInternalError(ex, "failed to load extended agents and tools");
             return;
+        }
+
+        try
+        {
+            if (_skillRegistry is SkillRegistry skillRegistryImpl)
+            {
+                await skillRegistryImpl.LoadSkillsFromExtensibilityAsync();
+                _logger.LogInternalInformation("Completed loading extended skills from extensibility");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to load extended skills from extensibility");
+            throw;
         }
     }
 
@@ -311,6 +341,53 @@ public class ExtendedAgentService : IExtendedAgentService
         {
             _logger.LogInternalError(ex, "failed to load extended agents and tools");
             return;
+        }
+    }
+
+    public async Task<PaginatedList<SkillSpec>> GetSkillsAsync(int pageIndex, int limit, string? search)
+    {
+        var allSkillDocuments = await _extendedAgentRepository.GetSkillsAsync(limit: limit, search: search, pageIndex: pageIndex);
+
+        var mapped = allSkillDocuments
+            .Select(doc => doc.ToRuntimeModel());
+
+        return new PaginatedList<SkillSpec>(mapped, allSkillDocuments.Count, allSkillDocuments.PageIndex, allSkillDocuments.PageSize);
+    }
+
+    public async Task<SkillSpec?> GetSkillByNameAsync(string skillName)
+    {
+        var skillDocument = await _extendedAgentRepository.GetSkillByNameAsync(skillName);
+        if (skillDocument == null)
+        {
+            return null;
+        }
+
+        return skillDocument.ToRuntimeModel();
+    }
+
+    public async Task<bool> DeleteSkillAsync(string skillName)
+    {
+        try
+        {
+            _logger.LogInternalInformation("Deleting skill {SkillName}", skillName);
+
+            var deleted = await _extendedAgentRepository.DeleteSkillAsync(skillName);
+
+            if (deleted)
+            {
+                _logger.LogInternalInformation("Successfully deleted skill {SkillName} from repository", skillName);
+            }
+            else
+            {
+                _logger.LogInternalWarning("Skill {SkillName} not found for deletion", skillName);
+            }
+
+            return deleted;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to delete skill {SkillName}", skillName);
+            throw;
         }
     }
 

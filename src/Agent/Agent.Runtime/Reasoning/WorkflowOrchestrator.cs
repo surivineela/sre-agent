@@ -11,6 +11,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Logging;
 using Agent.Runtime.Workflow;
 using Microsoft.Extensions.AI;
@@ -38,6 +39,7 @@ public class WorkflowOrchestrator : IDisposable
     private readonly IncidentManagementSettings _incidentManagementSettings;
     private readonly CoreSettings _coreSettings;
     private readonly ModeSwitchHandler _modeSwitchHandler;
+    private readonly ISkillRegistry _skillRegistry;
 
     // Telemetry spans for workflow tracing
     private TelemetrySpan? _rootSpan;
@@ -66,9 +68,10 @@ public class WorkflowOrchestrator : IDisposable
         AgentContext context,
         IAgentProvider<AgentContext> agentProvider,
         IToolFactory<AgentContext> toolFactory,
-    Tracer tracer,
-    IncidentManagementSettings incidentManagementSettings,
-    CoreSettings coreSettings)
+        Tracer tracer,
+        IncidentManagementSettings incidentManagementSettings,
+        CoreSettings coreSettings,
+        ISkillRegistry skillRegistry)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<WorkflowOrchestrator>();
@@ -81,6 +84,7 @@ public class WorkflowOrchestrator : IDisposable
         _tracer = tracer;
         _incidentManagementSettings = incidentManagementSettings;
         _coreSettings = coreSettings;
+        _skillRegistry = skillRegistry;
 
         // Initialize mode switch handler (kept minimal; only active if feature flag enabled)
         _modeSwitchHandler = new ModeSwitchHandler(
@@ -219,7 +223,8 @@ public class WorkflowOrchestrator : IDisposable
                 new RunConfig
                 {
                     ChatClient = _chatClientProvider.DefaultModel,
-                    LoggerFactory = _loggerFactory
+                    LoggerFactory = _loggerFactory,
+                    SkillRegistry = _skillRegistry
                 },
                 context: _context,
                 hooks: runHooks,
@@ -564,7 +569,8 @@ public class WorkflowOrchestrator : IDisposable
                 new RunConfig
                 {
                     ChatClient = _chatClientProvider.DefaultModel,
-                    LoggerFactory = _loggerFactory
+                    LoggerFactory = _loggerFactory,
+                    SkillRegistry = _skillRegistry
                 },
                 context: _context,
                 hooks: runHooks,
@@ -632,7 +638,8 @@ public class WorkflowOrchestrator : IDisposable
                 new RunConfig
                 {
                     ChatClient = _chatClientProvider.DefaultModel,
-                    LoggerFactory = _loggerFactory
+                    LoggerFactory = _loggerFactory,
+                    SkillRegistry = _skillRegistry
                 },
                 context: _context,
                 hooks: runHooks,
@@ -932,7 +939,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
             {
                 try
                 {
-                    var postTool = _toolFactory.GetTool("PostIcmRcaSummary", _context.ThreadId);
+                    var postTool = _toolFactory.GetTool("PostIcmRcaSummary", _context.ThreadId, orchestratorAgent);
                     if (postTool != null) tools.Add(postTool);
                 }
                 catch { /* Tool might not be registered; proceed without it */ }
@@ -1150,11 +1157,12 @@ Please consolidate the findings, identify key insights, and provide actionable r
     {
         var hooks = new RunHooks<AgentContext>();
 
-        hooks.ResolveFactoryTools += (context, agent) =>
+        hooks.ResolveFactoryTools += (context, agent, additionalToolNames) =>
         {
             List<AIFunction> tools = [];
+            List<string> allToolNames = [.. agent.FactoryTools, .. additionalToolNames];
 
-            foreach (var toolName in agent.FactoryTools)
+            foreach (var toolName in allToolNames.Distinct())
             {
                 // Skip disabled tools (those that don't meet EnabledIf condition)
                 if (_toolFactory.IsToolDisabled(toolName))
@@ -1163,7 +1171,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                     continue;
                 }
 
-                var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
+                var tool = _toolFactory.GetTool(toolName, _context.ThreadId, agent);
                 tools.Add(tool);
             }
 

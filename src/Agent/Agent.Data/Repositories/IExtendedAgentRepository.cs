@@ -41,4 +41,12 @@ public interface IExtendedAgentRepository
     Task<PaginatedList<ConnectorDocumentModel>> GetConnectorsAsync(int limit = 50, string? search = null);
 
     Task<bool> DeleteConnectorAsync(string name);
+
+    Task<SkillDocumentModel> UpsertSkillDocumentAsync(SkillDocumentModel skill, string operationId);
+
+    Task<bool> DeleteSkillAsync(string name);
+
+    Task<SkillDocumentModel?> GetSkillByNameAsync(string name);
+
+    Task<PaginatedList<SkillDocumentModel>> GetSkillsAsync(int limit = 50, string? search = null, int pageIndex = 1);
 }

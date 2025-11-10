@@ -30,7 +30,8 @@ public record MessageDocument(
     // Todo Plan information associated with this message (for todo plan notifications)
     TodoInfo? TodoInfo = null,
     // Indicates if the message is complete (e.g., streaming is finished)
-    bool IsComplete = true
+    bool IsComplete = true,
+    StreamMessageType? MessageType = null
 ) : ICosmosDocument
 {
     public string DocumentType => "Message";
@@ -56,7 +57,8 @@ public record MessageDocument(
             message.AgentTaskInfo ?? null,
             message.MemorySearchResult ?? null,
             message.TodoInfo ?? null,
-            message.IsComplete
+            message.IsComplete,
+            message.MessageType
         );
 
     public Message ToDomainModel(Approval? approval = null, bool isDailyReport = false) =>
@@ -76,6 +78,7 @@ public record MessageDocument(
             AgentTaskInfo,
             MemorySearchResult: MemorySearchResult,
             TodoInfo: TodoInfo,
-            IsComplete: IsComplete
+            IsComplete: IsComplete,
+            MessageType: MessageType
         );
 }

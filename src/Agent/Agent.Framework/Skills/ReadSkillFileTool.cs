@@ -1,0 +1,177 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
+using System.Text.Json;
+using Microsoft.Extensions.AI;
+
+namespace Agent.Framework.Skills;
+
+/// <summary>
+/// Tool for reading skill files to load domain-specific knowledge
+/// </summary>
+public class ReadSkillFileTool<TContext>(
+    ISkillRegistry skillRegistry,
+    Agent<TContext>? agent = null) : AIFunction where TContext : class
+{
+    public const string SkillNameParam = "skill_name";
+    public const string FilePathParam = "file_path";
+
+    #region AITool overrides
+
+    public override string Name { get; } = ToolName;
+
+    public override string Description => $"""
+    <skills_instructions>
+    When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively.
+    Skills help you gain domain-specific expertise and knowledge.
+    You MUST load and utilize the relevant skills to inform your actions and decisions. Do not attempt to answer domain-specific questions without first loading the appropriate skill(s).
+
+    Skills contain detailed instructions, examples, and best practices for specific domains such as:
+    - Kubernetes cluster management and troubleshooting
+    - PostgreSQL performance diagnostics and optimization
+    - Azure Container Apps autoscaling and diagnostics
+    - Azure Monitor metrics analysis and visualization
+    - And many other specialized domains
+
+    How to use skills effectively:
+    1. **Start with SKILL.md**: ALWAYS begin by reading the main SKILL.md file from a skill. This file is guaranteed to exist and contains the primary skill instructions.
+       Example: read_skill_file(skill_name="kubernetes_skill", file_path="SKILL.md")
+       Result: (The content of SKILL.md)
+
+    2. **Read referenced files**: The content of SKILL.md may reference additional files for detailed information for specific topics. Read these files as needed based on the task at hand.
+       Example: If SKILL.md within `kubernetes_skill` mentions "troubleshooting.md", read it with:
+       read_skill_file(skill_name="kubernetes_skill", file_path="troubleshooting.md")
+
+    3. **Load skills progressively**: Only read what you need, when you need it
+       - Start with SKILL.md to get the core expertise
+       - Load detailed files that are referenced only as the task requires
+
+    When to use skills:
+    - You need domain-specific expertise (e.g., "How do I diagnose PostgreSQL slow queries?")
+    - The task requires specialized knowledge beyond general capabilities
+    - You want to follow best practices for a specific technology or platform
+    - You need examples of how to solve domain-specific problems
+
+    Important:
+    - Only use skills listed in <available_skills> below
+    - Do not attempt to read files that are not part of the skill set
+    - Do not read metadata.yaml
+    - Do not read skill files more than once per task to avoid redundancy
+    </skills_instructions>
+
+    <example_decision_flows>
+    <note>
+    These are examples of how to decide when to load skills based on user requests. Always analyze the user's specific request to determine the appropriate skills to load.
+    Your specific available skills may differ; use this as a general guide.
+    </note>
+    <example_context>
+    <sample_skills>
+    - metrics_and_chart_visualization: Skill for analyzing and visualizing metrics with charts
+    - scheduled_task: Skill for setting up recurring monitoring tasks
+    - logs_resource_discovery: Skill for discovering monitoring resources
+    - aks_general: Skill for general AKS operations
+    - container_apps: Skill for managing Azure Container Apps
+    - web_app_down: Skill for diagnosing web app downtime
+    - function_app: Skill for managing Azure Functions
+    - logic_app: Skill for managing Azure Logic Apps
+    - postgresql: Skill for managing Azure PostgreSQL databases
+    - cannot_connect_to_vm: Skill for diagnosing VM connectivity issues
+    </sample_skills>
+    <decisions>
+    - User: "Show CPU metrics for X" → Assistant: Load `metrics_and_chart_visualization` skill → Execute analysis
+    - User: "Can you keep monitoring my resource foo?" → Assistant: Load `scheduled_task` skill for recurring monitoring setup
+    - User: "What changed at 2 PM?" → Assistant: Discover resources → Analyze activity logs
+    - User: "What monitoring resources are associated to a resource?" → Assistant: Load `logs_resource_discovery` skill
+    - User: "AKS: list deployments" → Assistant: Load `aks_general` skill → Execute kubectl commands per skill guidance
+    - User: "Container App network issues" → Assistant: Load `container_apps` skill → Apply networking troubleshooting procedures
+    - User: "Web App errors" → Assistant: Load `web_app_down` skill → Diagnose using skill best practices
+    - User: "Function App is down" → Assistant: Load `function_app` skill → Execute diagnostic procedures
+    - User: "Logic Apps recommendations" → Assistant: Load `logic_app` skill
+    - User: "PostgreSQL performance" → Assistant: Load `postgresql` skill → Apply performance diagnostics
+    - User: "Cannot connect to VM" → Assistant: Load `cannot_connect_to_vm` skill → Execute connectivity diagnostics
+    </decisions>
+    </example_context>
+    </example_decision_flows>
+
+    <skill_file_structure>
+    Each skill directory follows this pattern:
+    ```
+    Skills/
+    └── <skill_name>/
+        ├── SKILL.md              (Core domain expertise - read this first)
+        ├── [additional].md       (Optional supplementary files)
+        └── metadata.yaml         (Skill metadata - not for direct reading)
+    ```
+    </skill_file_structure>
+
+    <available_skills>
+    {skillRegistry.GetSkillsMetadataForPrompt(includeSystemSkills: agent?.AddSystemSkills ?? true)}
+    </available_skills>
+    """;
+
+    #endregion
+
+    #region AIFunction overrides
+
+    public override JsonElement JsonSchema { get; } = InputJsonSchema;
+
+    public override MethodInfo? UnderlyingMethod => typeof(ReadSkillFileTool<TContext>).GetMethod(nameof(ReadSkillFile));
+
+    protected override ValueTask<object?> InvokeCoreAsync(
+        AIFunctionArguments arguments,
+        CancellationToken cancellationToken)
+    {
+        if (!arguments.TryGetValue(SkillNameParam, out var skillNameObj) || skillNameObj is null)
+        {
+            return new("Error: skill_name parameter is required");
+        }
+
+        if (!arguments.TryGetValue(FilePathParam, out var filePathObj) || filePathObj is null)
+        {
+            return new("Error: file_path parameter is required");
+        }
+
+        var skillName = skillNameObj.ToString() ?? string.Empty;
+        var filePath = filePathObj.ToString() ?? string.Empty;
+
+        if (string.IsNullOrEmpty(skillName) || string.IsNullOrEmpty(filePath))
+        {
+            return new("Error: skill_name and file_path cannot be empty");
+        }
+
+        var result = skillRegistry.ReadSkillFile(skillName, filePath, includeSystemSkills: agent?.AddSystemSkills ?? true);
+        return new(result);
+    }
+
+    #endregion
+
+    #region Statics
+
+    public const string ToolName = "read_skill_file";
+
+    private static readonly JsonElement InputJsonSchema = AIJsonUtilities.CreateFunctionJsonSchema(
+        typeof(ReadSkillFileTool<TContext>).GetMethod(nameof(ReadSkillFile))!,
+        title: string.Empty,
+        description: string.Empty);
+
+    #endregion
+
+    #region Schema Method
+
+    [AgentTool(ToolMode.Auto)]
+    public static void ReadSkillFile(
+        [Description("The name of the skill to read from (e.g., 'kubernetes_skill', 'postgresql_skill')")]
+        [MinLength(1)]
+        string skill_name,
+
+        [Description("The relative path to the file within the skill directory. Always start with 'SKILL.md' to load core expertise.")]
+        [MinLength(1)]
+        string file_path)
+    { }
+
+    #endregion
+}

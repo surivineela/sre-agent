@@ -402,6 +402,26 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
+    public async Task NotifyIntermediateUpdate(Guid threadId, string message, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            Guid resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
+
+            await _sinkService.SinkAgentMessageAsync(threadId, message, agentResponseMessageId: resolvedMessageId, messageType: StreamMessageType.IntermediateUpdate);
+            await AppendAgentStreamMessage(threadId, message, StreamMessageType.IntermediateUpdate, resolvedMessageId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream intermediate update for thread {ThreadId}", threadId);
+        }
+    }
+
     public async Task NotifyIncidentStatusMetrics(Guid threadId, IncidentStatusMetrics metrics, Guid? messageId = null)
     {
         try

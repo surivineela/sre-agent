@@ -6,7 +6,7 @@ using Agent.Plugins.Tools;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 
-public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext : class
+public class YamlToolFunction<TContext> : IDeferredToolFunction<TContext> where TContext : class
 {
     private readonly IServiceProvider _sp;
     private readonly IEnumerable<Assembly> _assemblies;
@@ -22,12 +22,12 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext :
 
     public MethodInfo? MethodInfo => null;
 
-    public AIFunction GetToolFunction(Guid? threadId = null)
+    public AIFunction GetToolFunction(Guid? threadId = null, Agent<TContext>? agent = null)
     {
-        return GetToolFunction(threadId, null);
+        return GetToolFunction(threadId, null, agent);
     }
 
-    public AIFunction GetToolFunction(Guid? threadId, string? agentMode)
+    public AIFunction GetToolFunction(Guid? threadId, string? agentMode, Agent<TContext>? agent = null)
     {
         _threadId = threadId;
         // For now, YAML tools don't support agent mode, so we ignore the agentMode parameter
@@ -50,7 +50,7 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext :
         // Return our custom AIFunction implementation that handles YAML parameters properly
         return new YamlAwareAIFunction<TContext>(instance, _toolDef);
     }
-    
+
     public async Task<string?> ExecuteCore(Dictionary<string, object?> parameterValues, CancellationToken cancellationToken)
     {
         var pluginType = _assemblies
@@ -64,7 +64,7 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext :
         var instance = _sp.GetRequiredService(pluginType);
 
         var flatArgs = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
-        
+
         // Copy the provided parameters
         foreach (var kvp in parameterValues)
         {
@@ -176,7 +176,7 @@ internal class YamlAwareAIFunction<TContext> : AIFunction where TContext : class
         {
             argsDict[arg.Key] = arg.Value;
         }
-        
+
         return await _yamlFunction.ExecuteCore(argsDict, cancellationToken);
     }
 
@@ -191,7 +191,7 @@ internal class YamlAwareAIFunction<TContext> : AIFunction where TContext : class
             var paramType = param.Type switch
             {
                 "int" => "integer",
-                "bool" => "boolean", 
+                "bool" => "boolean",
                 "double" => "number",
                 _ => "string"
             };

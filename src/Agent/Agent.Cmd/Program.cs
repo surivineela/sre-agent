@@ -2,34 +2,27 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Cmd.Commands;
 using Agent.Core.Clients.Chat;
 using Agent.Core.Configuration;
-using Agent.Core.Extensions;
-using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
-using Agent.Core.Services;
-using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Data.Repositories;
-using Agent.Graph.Crawler.ARM;
-using Agent.Graph.Interfaces;
-using Agent.Graph.Services;
+using Agent.Framework;
 using Agent.Runtime;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using OpenAI;
 
 namespace Agent.Cmd
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            HostApplicationBuilder builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = Environments.Development });
-            builder.LoadAppSettings();
+            var builder = Web.Program.CreateWebApplicationBuilder(new WebApplicationOptions { EnvironmentName = Environments.Development });
+            builder.LoadAppSettings(isDevelopment: true);
             builder.ValidateAndRegisterAppSettings<AppSettings>();
 
             // Register DI dependencies using builder.Services
@@ -37,27 +30,9 @@ namespace Agent.Cmd
             {
                 loggingBuilder.AddConsole();
             });
-            builder.Services.AddSingleton<IGraphDatabaseClient, GremlinGraphDatabaseClient>();
-            builder.Services.AddSingleton<ArmResourceCrawlerFactory>();
-            builder.Services.AddSingleton<AzureResourceGraphClient>();
-            builder.Services.AddSingleton<ICrawlerService, ResourceGraphCrawlerService>();
-            builder.Services.AddKeyedSingleton<IWatchEventService, ActivityLogService>("ActivityLog");
-            builder.Services.AddKeyedSingleton<IWatchEventService, KubernetesWatchService>("Kubernetes");
-            builder.Services.AddSingleton<ICrawlerTriggerService, CrawlerTriggerService>();
-            builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
-            builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
-            builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
-            builder.Services.AddKeyedSingleton<IKubernetesService, CrawlerKubernetesService>("Crawler");
-            builder.Services.AddSingleton<CrawlerCommand>();
-            builder.Services.AddSingleton<GraphCommand>();
-            builder.Services.AddSingleton<ScenarioCommand>();
+
             builder.Services.AddSingleton<GenerateEvalCommand>();
-            builder.Services.AddSingleton<IAzureDevOpsService, AzureDevOpsService>();
-            builder.Services.AddSingleton<IGitHubService, GitHubService>();
-
-
-            builder.Services.AddCrawlerHttpClient();
-            builder.Services.AddHttpClient();
+            builder.Services.AddSingleton<ConvertToSkillCommand>();
 
             string? llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
             if (string.IsNullOrEmpty(llmDeploymentName))
@@ -73,126 +48,47 @@ namespace Agent.Cmd
                 .Use(next => new ReasoningChatClient(next))
                 .UseFunctionInvocation();
 
-            var host = builder.Build();
+            var webapp = builder.Build();
+
+            var asyncInitializerService = webapp.Services.GetRequiredService<AsyncInitializerService>() as IHostedService;
+            await asyncInitializerService.StartAsync(CancellationToken.None);
+
             CommandLineApplication commandLineApplication = new(throwOnUnexpectedArg: true);
             commandLineApplication.HelpOption("-?|-h|--help");
-
-            commandLineApplication.Command("Crawl",
-                (command) =>
-                {
-                    var cmd = host.Services.GetRequiredService<CrawlerCommand>();
-                    cmd.CrawlResourceId(command);
-                });
-
-            commandLineApplication.Command("CrawlRepo",
-                (command) =>
-                {
-                    var cmd = host.Services.GetRequiredService<CrawlerCommand>();
-                    cmd.CrawlSourceCodeRepo(command);
-                });
-
-            commandLineApplication.Command("CrawlActivityLog",
-                (command) =>
-                {
-                    var cmd = host.Services.GetRequiredService<CrawlerCommand>();
-                    cmd.CrawlFromActivityLog(command);
-                });
-
-            commandLineApplication.Command("ExportGraph",
-                (command) =>
-                {
-                    var cmd = host.Services.GetRequiredService<GraphCommand>();
-                    cmd.ExportGraph(command);
-                });
-
-            commandLineApplication.Command("ExportGraphML",
-                (command) =>
-                {
-                    var cmd = host.Services.GetRequiredService<GraphCommand>();
-                    cmd.ExportGraphML(command);
-                });
-
-            commandLineApplication.Command("RunScenario",
-                (command) =>
-                {
-                    var cmd = host.Services.GetRequiredService<ScenarioCommand>();
-                    cmd.RunScenario(command);
-                });
-
-            commandLineApplication.Command("RunTask",
-                (command) =>
-                {
-                    try
-                    {
-                        var agentTasksRepository = host.Services.GetRequiredService<IAgentTasksRepository>();
-                        var properties = new IncidentInvestigationTaskProperties
-                        {
-                            InitialInvestigation = new InitialInvestigationProperties()
-                            {
-                                Status = InitialInvestigationStatus.InProgress,
-                                Summary = string.Empty,
-                                IncidentDescription = string.Empty,
-                                TimeFrame = string.Empty,
-                                AffectedResources = new List<string>(),
-                                KeyFindings = string.Empty,
-                                Details = string.Empty,
-                                GatheringContext = new GatheringContextProperties()
-                                {
-                                    Status = InitialInvestigationStatus.NotStarted,
-                                }
-                            },
-                            FormingHypothesis = new FormingHypothesisProperties()
-                            {
-                                Status = FormingHypothesisStatus.NotStarted
-                            },
-                            Conclusion = new ConclusionProperties()
-                            {
-                                Summary = string.Empty,
-                                Title = string.Empty,
-                            }
-                        };
-
-                        var task = new AgentTask
-                        {
-                            Id = Guid.NewGuid(),
-                            Title = "test task title",
-                            Type = AgentTaskType.IncidentInvestigation,
-                            Status = AgentTaskStatus.InProgress,
-                            ThreadId = Guid.NewGuid(),
-                            Properties = properties,
-                            InputData = new IncidentInvestigationTaskInputData
-                            {
-                                IncidentDescription = "test incident description"
-                            }
-                        };
-
-                        try
-                        {
-                            task = agentTasksRepository.CreateAgentTaskAsync(task).Result;
-
-                            var newTasks = agentTasksRepository.GetAgentTasksAsync(task.ThreadId).Result;
-
-                            foreach (var t in newTasks)
-                            {
-                                Console.WriteLine(JsonConvert.SerializeObject(t));
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error running task: {ex}");
-                    }
-                });
 
             commandLineApplication.Command("GenerateEval",
                 (command) =>
                 {
-                    var cmd = host.Services.GetRequiredService<GenerateEvalCommand>();
+                    var cmd = webapp.Services.GetRequiredService<GenerateEvalCommand>();
                     cmd.GenerateEval(command);
+                });
+
+            commandLineApplication.Command("convert-to-skill",
+                (command) =>
+                {
+                    var cmd = webapp.Services.GetRequiredService<ConvertToSkillCommand>();
+
+                    command.HelpOption("-?|-h|--help");
+
+                    var agentName = command.Option(
+                        "--agent-name",
+                        "The name of the agent to convert to a skill.",
+                        CommandOptionType.SingleValue);
+
+                    var outputDirectory = command.Option(
+                        "--output-directory",
+                        "The directory to output the converted skill files.",
+                        CommandOptionType.SingleValue);
+
+                    command.OnExecute(async () =>
+                    {
+                        await cmd.ExecuteAsync(
+                            command,
+                            agentName: agentName.Value(),
+                            outputDirectory: outputDirectory.Value());
+
+                        return 0;
+                    });
                 });
 
             commandLineApplication.OnExecute(() =>

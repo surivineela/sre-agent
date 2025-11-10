@@ -2,7 +2,6 @@ using System.Net;
 using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
 using Agent.Data.DataModels.Legacy;
-using Agent.Data.Helpers;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
@@ -508,6 +507,104 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         catch (CosmosException ex)
         {
             _logger.LogInternalError(ex, "Failed to delete extended agent connector {ConnectorName}", name);
+            throw;
+        }
+    }
+
+    #endregion
+
+    #region Skill Operations
+
+    public async Task<SkillDocumentModel> UpsertSkillDocumentAsync(SkillDocumentModel skill, string operationId)
+    {
+        try
+        {
+            var container = _cosmosClient.GetContainer(_databaseName, SkillDocumentModel.ContainerName);
+            var response = await container.UpsertItemAsync(skill, new PartitionKey(skill.PartitionKey));
+            _logger.LogInternalInformation("Successfully updated skill document {SkillName} for operation {OperationId}", skill.Spec.Name, operationId);
+            return response.Resource;
+        }
+        catch (CosmosException ex)
+        {
+            _logger.LogInternalError(ex, "Failed to update skill document {SkillName} for operation {OperationId}", skill.Spec.Name, operationId);
+            throw;
+        }
+    }
+
+    public async Task<bool> DeleteSkillAsync(string name)
+    {
+        try
+        {
+            var container = _cosmosClient.GetContainer(_databaseName, SkillDocumentModel.ContainerName);
+
+            await container.DeleteItemAsync<SkillDocumentModel>(
+                $"skill_{name}",
+                new PartitionKey(name));
+
+            return true;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+        catch (CosmosException ex)
+        {
+            _logger.LogInternalError(ex, "Failed to delete skill {SkillName}", name);
+            throw;
+        }
+    }
+
+    public async Task<SkillDocumentModel?> GetSkillByNameAsync(string name)
+    {
+        try
+        {
+            var container = _cosmosClient.GetContainer(_databaseName, SkillDocumentModel.ContainerName);
+            var response = await container.ReadItemAsync<SkillDocumentModel>(
+                $"skill_{name}",
+                new PartitionKey(name));
+            return response.Resource;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+        catch (CosmosException ex)
+        {
+            _logger.LogInternalError(ex, "Failed to retrieve skill {SkillName}", name);
+            throw;
+        }
+    }
+
+    public async Task<PaginatedList<SkillDocumentModel>> GetSkillsAsync(int limit = 50, string? search = null, int pageIndex = 1)
+    {
+        try
+        {
+            var container = _cosmosClient.GetContainer(_databaseName, SkillDocumentModel.ContainerName);
+            var query = container.GetItemLinqQueryable<SkillDocumentModel>()
+                .Where(d => d.DocumentType == "Skill");
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(d =>
+                    d.Spec.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    d.Spec.Description.Contains(search, StringComparison.OrdinalIgnoreCase));
+            }
+
+            using var iterator = query.Skip((pageIndex - 1) * limit).Take(limit).ToFeedIterator();
+            var results = new List<SkillDocumentModel>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response.Resource);
+            }
+
+            _logger.LogInternalInformation("Retrieved {Count} skills with search '{Search}'", results.Count, search ?? "none");
+            return new PaginatedList<SkillDocumentModel>(results, results.Count, pageIndex, limit);
+        }
+        catch (CosmosException ex)
+        {
+            _logger.LogInternalError(ex, "Failed to retrieve skills with search '{Search}'", search ?? "none");
             throw;
         }
     }

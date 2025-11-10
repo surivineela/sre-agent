@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Diagnostics.CodeAnalysis;
+using Agent.Framework.Skills;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
@@ -50,6 +51,8 @@ public abstract class RunResultBase<TContext> where TContext : class
     public abstract Agent<TContext> LastAgent { get; }
 
     public required Trajectory Trajectory { get; init; }
+
+    public required SkillList ActiveSkills { get; init; }
 }
 
 public class RunResult<TContext>(Agent<TContext> agent) : RunResultBase<TContext> where TContext : class
@@ -77,7 +80,8 @@ public class RunResult<TContext>(Agent<TContext> agent) : RunResultBase<TContext
             ContextWrapper = ContextWrapper,
             ManualToolCalls = ManualToolCalls,
             Trajectory = Trajectory,
-            OldAgent = this.LastAgent
+            OldAgent = this.LastAgent,
+            ActiveSkills = ActiveSkills
         };
     }
 }

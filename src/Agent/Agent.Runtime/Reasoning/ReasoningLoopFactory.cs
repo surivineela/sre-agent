@@ -9,6 +9,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
@@ -38,6 +39,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IncidentManagementSettings _incidentManagementSettings;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly CustomerLogger _customerLogger;
+    private readonly ISkillRegistry _skillRegistry;
 
     private readonly Tracer _tracer;
 
@@ -72,7 +74,9 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
         IMeterFactory meterFactory,
-        IncidentManagementSettings incidentManagementSettings)
+        IncidentManagementSettings incidentManagementSettings,
+        ISkillRegistry skillRegistry
+        )
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoopFactory>();
@@ -94,6 +98,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _agentMemoryClient = agentMemoryClient;
         _searchIndexService = searchIndexService;
         _incidentManagementSettings = incidentManagementSettings;
+        _skillRegistry = skillRegistry;
 
         // enable handoff reasoning for developer envs
         var enableHandoffReasoning = coreSettings.Experimental?.EnableHandoffReasoning
@@ -182,7 +187,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     toolFactory: _toolFactory,
                     tracer: _tracer,
                     incidentManagementSettings: _incidentManagementSettings,
-                    coreSettings: _coreSettings);
+                    coreSettings: _coreSettings,
+                    skillRegistry: _skillRegistry);
 
                 await workflowOrchestrator.LoadChatHistoryAsync();
 
@@ -211,7 +217,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     agentRuntimeModifier: _agentRuntimeModifier,
                     incidentManagementSettings: _incidentManagementSettings,
                     coreSettings: _coreSettings,
-                    modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings));
+                    modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings),
+                    skillRegistry: _skillRegistry);
 
             }
             catch (Exception ex)
@@ -242,7 +249,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             agentMemorySettings: _coreSettings.AgentMemory,
             featureConfig: _featureConfig,
             agentRuntimeModifier: _agentRuntimeModifier,
-            modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings));
+            modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings),
+            skillRegistry: _skillRegistry);
 
         await loop.LoadChatHistoryAsync();
         return loop;

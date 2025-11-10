@@ -1,0 +1,17 @@
+name: source_code_analysis
+description: |
+  Load this skill when the user asks to:
+    - Locate where functionality is implemented (features, functions, classes, API handlers)
+    - Explain code behavior, data flow, architectural relationships, or design patterns
+    - Correlate errors, stack traces, or logs with source locations and probable root causes
+    - Assess code quality (coupling, duplication, error handling) or propose targeted refactors
+    - Map runtime symptoms to specific files, functions, configuration, or dependency edges
+tools:
+  - QuerySourceBySemanticSearch
+  - CorrelateErrorsWithSourceCode
+  - CreateGithubIssue
+  - FetchGithubIssue
+  - FindConnectedGitHubRepo
+  - GetIaCForGitHub
+  - DisconnectRepositoryFromResourceForGitHub
+  - FetchGithubIssuesLimited

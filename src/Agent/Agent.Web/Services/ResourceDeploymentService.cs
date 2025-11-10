@@ -140,7 +140,9 @@ public class ResourceDeploymentService : IResourceDeploymentService
                 OrchestrationStartAgents = agentSpec.OrchestrationStartAgents,
                 ResultSummarizationPrompt = agentSpec.ResultSummarizationPrompt,
                 NextAgentMappings = agentSpec.NextAgentMappings,
-                OutputType = agentSpec.OutputType
+                OutputType = agentSpec.OutputType,
+                EnableSkills = agentSpec.EnableSkills,
+                AddSystemSkills = agentSpec.AddSystemSkills,
             };
 
             var metadata = ResourceMetadata.FromYamlMetadata(yamlMetadata, agentName, operationId);
@@ -324,5 +326,30 @@ public class ResourceDeploymentService : IResourceDeploymentService
 
             return new ObjectResult($"Failed to apply configuration: {ex.Message}") { StatusCode = 500 };
         }
+    }
+
+    public async Task<IActionResult> ApplyAsync(SkillDeploymentModel skillDeployment)
+    {
+        var operationId = Guid.NewGuid().ToString();
+
+        var skillDocument = ApiToRuntimeMapper.ToDocumentSkill(skillDeployment, operationId);
+
+        await _repository.UpsertSkillDocumentAsync(skillDocument, operationId);
+
+        await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
+
+        var result = new ExtendedAgentApply
+        {
+            Status = ExtendedAgentApplyStatus.Accepted,
+            Message = "Skill deployment initiated",
+            OperationId = operationId,
+            Timestamp = DateTime.UtcNow,
+            Details = new ExtendedAgentApplyDetails
+            {
+                SkillName = skillDeployment.Spec.Name,
+            }
+        };
+
+        return new OkObjectResult(result);
     }
 }

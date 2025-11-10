@@ -10,7 +10,7 @@ namespace Agent.Framework;
 /// <summary>
 /// Creates a tool from AIFunction
 /// </summary>
-public class AIToolAdapter : AIFunction, IDeferredToolFunction
+public class AIToolAdapter<TContext> : AIFunction, IDeferredToolFunction<TContext> where TContext : class
 {
     public readonly AIFunction _function;
 
@@ -19,29 +19,29 @@ public class AIToolAdapter : AIFunction, IDeferredToolFunction
         _function = function;
     }
 
-    MethodInfo? IDeferredToolFunction.MethodInfo => default;
+    MethodInfo? IDeferredToolFunction<TContext>.MethodInfo => default;
 
-    string IDeferredToolFunction.GetPluginCategory()
+    string IDeferredToolFunction<TContext>.GetPluginCategory()
     {
         return string.Empty;
     }
 
-    string IDeferredToolFunction.GetPluginName()
+    string IDeferredToolFunction<TContext>.GetPluginName()
     {
         return _function.Name;
     }
 
-    string IDeferredToolFunction.GetPluginResourceType()
+    string IDeferredToolFunction<TContext>.GetPluginResourceType()
     {
         return string.Empty;
     }
 
-    AIFunction IDeferredToolFunction.GetToolFunction(Guid? threadId)
+    AIFunction IDeferredToolFunction<TContext>.GetToolFunction(Guid? threadId, Agent<TContext>? agent)
     {
         return _function;
     }
 
-    AIFunction IDeferredToolFunction.GetToolFunction(Guid? threadId, string? agentMode)
+    AIFunction IDeferredToolFunction<TContext>.GetToolFunction(Guid? threadId, string? agentMode, Agent<TContext>? agent)
     {
         return _function;
     }

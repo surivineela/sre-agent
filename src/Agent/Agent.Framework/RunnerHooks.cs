@@ -13,7 +13,7 @@ public class RunHooks<TContext> where TContext : class
     public delegate Task ToolStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, FunctionCallContent functionCallContent, AIFunction tool, IEnumerable<KeyValuePair<string, object?>>? arguments);
     public delegate Task ToolEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, FunctionCallContent functionCallContent, AIFunction tool, object? result);
     public delegate Task HandoffDelegate(RunContextWrapper<TContext> context, Agent<TContext> fromAgent, Agent<TContext> toAgent, string handoffReasoning);
-    public delegate Task<List<AIFunction>> ResolveFactoryToolsDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent);
+    public delegate Task<List<AIFunction>> ResolveFactoryToolsDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, IEnumerable<string> additionalToolNames);
     public delegate Task ModelGenerationStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, IEnumerable<ChatMessage> chatMessages, ChatOptions chatOption);
     public delegate Task ModelGenerationEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, ChatResponse response);
     public delegate Task SummarizerStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent);
@@ -43,7 +43,7 @@ public class RunHooks<TContext> where TContext : class
     public Task OnToolStart(RunContextWrapper<TContext> context, Agent<TContext> agent, FunctionCallContent functionCallContent, AIFunction tool, IEnumerable<KeyValuePair<string, object?>>? arguments) => ToolStart?.Invoke(context, agent, functionCallContent, tool, arguments) ?? Task.CompletedTask;
     public Task OnToolEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, FunctionCallContent functionCallContent, AIFunction tool, object? result) => ToolEnd?.Invoke(context, agent, functionCallContent, tool, result) ?? Task.CompletedTask;
     public Task OnHandoff(RunContextWrapper<TContext> context, Agent<TContext> fromAgent, Agent<TContext> toAgent, string handoffReasoning) => Handoff?.Invoke(context, fromAgent, toAgent, handoffReasoning) ?? Task.CompletedTask;
-    public Task<List<AIFunction>> OnResolveFactoryTools(RunContextWrapper<TContext> context, Agent<TContext> agent) => ResolveFactoryTools?.Invoke(context, agent) ?? Task.FromResult(new List<AIFunction>());
+    public Task<List<AIFunction>> OnResolveFactoryTools(RunContextWrapper<TContext> context, Agent<TContext> agent, IEnumerable<string> additionalToolNames) => ResolveFactoryTools?.Invoke(context, agent, additionalToolNames) ?? Task.FromResult(new List<AIFunction>());
     public Task OnModelGenerationStart(RunContextWrapper<TContext> context, Agent<TContext> agent, IEnumerable<ChatMessage> chatMessages, ChatOptions chatOption) => ModelGenerationStart?.Invoke(context, agent, chatMessages, chatOption) ?? Task.CompletedTask;
     public Task OnModelGenerationEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, ChatResponse response) => ModelGenerationEnd?.Invoke(context, agent, response) ?? Task.CompletedTask;
     public Task OnSummarizerStart(RunContextWrapper<TContext> context, Agent<TContext> agent) => SummarizerStart?.Invoke(context, agent) ?? Task.CompletedTask;

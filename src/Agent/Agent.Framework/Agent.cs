@@ -50,7 +50,7 @@ public class Agent<TContext>(string name) where TContext : class
 
     public bool CriticOnHandOff { get; set; } = false;
 
-    public bool AllowParallelToolCalls { get; set; } = false;
+    public bool AllowParallelToolCalls { get; set; } = true;
 
     public string? UserPromptOverride { get; set; } = null;
 
@@ -67,6 +67,16 @@ public class Agent<TContext>(string name) where TContext : class
     /// Indicates whether this agent is an extended (custom) agent loaded from the extensibility system.
     /// </summary>
     public bool IsExtended { get; set; } = false;
+
+    /// <summary>
+    /// When true, enables the skills system for this agent and automatically adds the read_skill_file tool.
+    /// </summary>
+    public bool EnableSkills { get; set; } = false;
+
+    /// <summary>
+    /// Only applies when EnableSkills is true. When true, system skills are automatically added to the agent.
+    /// </summary>
+    public bool AddSystemSkills { get; set; } = true;
 
     public virtual ChatToolMode ChatToolMode { get; set; } = ChatToolMode.Auto;
 
@@ -125,6 +135,11 @@ public class Agent<TContext>(string name) where TContext : class
         }
     }
 
+    public int GetAllToolsCount()
+    {
+        return FactoryTools.Count + Tools.Count + CustomTools.Count + Handoffs.Count; // agents as tools are included in 'Tools'
+    }
+
     /// <summary>
     /// Creates a shallow clone of this agent. Collections are copied but not deeply cloned.
     /// Handoffs are initialized as empty and should be populated by the caller (e.g., AgentGraphCloner).
@@ -150,22 +165,25 @@ public class Agent<TContext>(string name) where TContext : class
             ReasoningEffortLevel = ReasoningEffortLevel,
 
             // Clone collections
-            FactoryTools = new List<string>(FactoryTools),
-            Tools = new List<AIFunction>(Tools),
-            CustomTools = new List<AIFunction>(CustomTools),
+            FactoryTools = [.. FactoryTools],
+            Tools = [.. Tools],
+            CustomTools = [.. CustomTools],
             Handoffs = [], // Will be populated by AgentGraphCloner
             AgentsAsTools = [], // Will be populated by AgentGraphCloner
 
             // Workflow properties
             AgentType = AgentType,
             ParameterExtractionAgent = ParameterExtractionAgent,
-            OrchestrationStartAgents = new List<string>(OrchestrationStartAgents),
+            OrchestrationStartAgents = [.. OrchestrationStartAgents],
             ResultSummarizationPrompt = ResultSummarizationPrompt,
-            NextAgentMappings = new List<NextAgentMapping>(NextAgentMappings),
+            NextAgentMappings = [.. NextAgentMappings],
 
             OutputType = OutputType,
             ChatClient = ChatClient,
-            Hooks = Hooks // Hooks can be shared across clones
+            Hooks = Hooks, // Hooks can be shared across clones
+
+            EnableSkills = EnableSkills,
+            AddSystemSkills = AddSystemSkills,
         };
     }
 }

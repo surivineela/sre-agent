@@ -11,7 +11,7 @@ prompt: |
 
     <example>
     user: Run health checks and fix any failing services
-    assistant: I'm going to use the TodoWrite tool to write the following items to the todo list: 
+    assistant: I'm going to use the TodoWrite tool to write the following items to the todo list:
     - Run health checks across all services
     - Fix any failing services
 
@@ -49,5 +49,3 @@ prompt: |
     </example>
 
     - Tool results and user messages may include <system-reminder> tags. <system-reminder> tags contain useful information and reminders. They are NOT part of the user's provided input or the tool result.
-
-    IMPORTANT: Always use the TodoWrite tool to plan and track tasks throughout the conversation.

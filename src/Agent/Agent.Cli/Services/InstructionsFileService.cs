@@ -72,6 +72,14 @@ public static class InstructionsFileService
         sb.AppendLine("   - [tool apply](#tool-apply-command)");
         sb.AppendLine("   - [tool show-types](#tool-show-types-command)");
         sb.AppendLine("   - [tool show-connectors](#tool-show-connectors-command)");
+        sb.AppendLine("5. [Skills Commands](#skills-commands)");
+        sb.AppendLine("   - [skill create](#skill-create-command)");
+        sb.AppendLine("   - [skill upload](#skill-upload-command)");
+        sb.AppendLine("   - [skill list](#skill-list-command)");
+        sb.AppendLine("   - [skill delete](#skill-delete-command)");
+        sb.AppendLine("   - [skill convert](#skill-convert-command)");
+        sb.AppendLine("   - [skill download](#skill-download-command)");
+
         sb.AppendLine();
 
         // Command definitions with help outputs
@@ -93,7 +101,14 @@ public static class InstructionsFileService
             new { Section = "", Title = "tool validate Command", Command = "srectl tool validate --help" },
             new { Section = "", Title = "tool apply Command", Command = "srectl tool apply --help" },
             new { Section = "", Title = "tool show-types Command", Command = "srectl tool show-types --help" },
-            new { Section = "", Title = "tool show-connectors Command", Command = "srectl tool show-connectors --help" }
+            new { Section = "", Title = "tool show-connectors Command", Command = "srectl tool show-connectors --help" },
+            new { Section = "Skills Commands", Title = "skill Command", Command = "srectl skill --help" },
+            new { Section = "", Title = "skill create Command", Command = "srectl skill create --help" },
+            new { Section = "", Title = "skill upload Command", Command = "srectl skill upload --help" },
+            new { Section = "", Title = "skill list Command", Command = "srectl skill list --help" },
+            new { Section = "", Title = "skill delete Command", Command = "srectl skill delete --help" },
+            new { Section = "", Title = "skill convert Command", Command = "srectl skill convert --help" },
+            new { Section = "", Title = "skill download Command", Command = "srectl skill download --help" },
         };
 
         foreach (var cmd in commands)
@@ -165,6 +180,27 @@ public static class InstructionsFileService
         sb.AppendLine("# Smart generation with custom guidance");
         sb.AppendLine("srectl agent create --name \"DatabasePerformanceIssue\" --smart \\");
         sb.AppendLine("  --instructions \"Focus on PostgreSQL performance optimization\"");
+        sb.AppendLine("```");
+        sb.AppendLine();
+
+        sb.AppendLine("### Working with Skills");
+        sb.AppendLine();
+        sb.AppendLine("```bash");
+        sb.AppendLine("# Create a new skill with template files");
+        sb.AppendLine("srectl skill create --name my-skill");
+        sb.AppendLine();
+        sb.AppendLine("# Edit the generated files:");
+        sb.AppendLine("# - skills/my-skill/metadata.yaml (add tools and description)");
+        sb.AppendLine("# - skills/my-skill/SKILL.md (add instructions and workflows)");
+        sb.AppendLine();
+        sb.AppendLine("# Upload the skill to the server");
+        sb.AppendLine("srectl skill upload --path skills/my-skill");
+        sb.AppendLine();
+        sb.AppendLine("# Convert an existing agent to a skill");
+        sb.AppendLine("srectl skill convert --agent-name my-agent");
+        sb.AppendLine();
+        sb.AppendLine("# List all available skills");
+        sb.AppendLine("srectl skill list");
         sb.AppendLine("```");
         sb.AppendLine();
 

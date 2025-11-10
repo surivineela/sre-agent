@@ -4,6 +4,7 @@
 
 using System.Text;
 using System.Text.Json;
+using Agent.Framework.Skills;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -37,6 +38,7 @@ public static class Runner
     private const int DefaultMaxTurns = 50;
     private const int Gpt5InputWindow = 272000;
     private const int TokenThreshold = Gpt5InputWindow * 4 / 10;
+    private const int ToolCountHardMax = 128;
     public static async Task<RunResult<TContext>> ResumeFromManualToolsAsync<TContext>(
         RunResult<TContext> previousResult,
         List<ManualToolCallResult> manualToolResults,
@@ -88,6 +90,7 @@ public static class Runner
             startingAgent: previousResult.LastAgent,
             input: input,
             config: config,
+            activeSkills: previousResult.ActiveSkills,
             runtimeModifier: runtimeModifier,
             newGeneratedItems: functionCallMessages,
             context: context,
@@ -107,6 +110,7 @@ public static class Runner
         Agent<TContext> startingAgent,
         List<ChatMessage> input,
         RunConfig config,
+        SkillList? activeSkills = null,
         IAgentRuntimeModifier<TContext>? runtimeModifier = null,
         TContext? context = null,
         int maxTurns = DefaultMaxTurns,
@@ -121,6 +125,7 @@ public static class Runner
             startingAgent: startingAgent,
             input: input,
             config: config,
+            activeSkills: activeSkills ?? [],
             runtimeModifier: runtimeModifier,
             context: context,
             maxTurns: maxTurns,
@@ -140,6 +145,7 @@ public static class Runner
         Agent<TContext> startingAgent,
         List<ChatMessage> input,
         RunConfig config,
+        SkillList? activeSkills = null,
         IAgentRuntimeModifier<TContext>? runtimeModifier = null,
         TContext? context = null,
         int maxTurns = DefaultMaxTurns,
@@ -168,6 +174,7 @@ public static class Runner
                 startingAgent: startingAgent,
                 input: input,
                 config: config,
+                activeSkills: activeSkills ?? [],
                 runtimeModifier: runtimeModifier,
                 context: context,
                 maxTurns: maxTurns,
@@ -197,6 +204,7 @@ public static class Runner
         Agent<TContext> startingAgent,
         List<ChatMessage> input,
         RunConfig config,
+        SkillList activeSkills,
         IAgentRuntimeModifier<TContext>? runtimeModifier = null,
         List<ChatMessage>? newGeneratedItems = null,
         TContext? context = null,
@@ -253,6 +261,7 @@ public static class Runner
                         MaxTurns = maxTurns,
                         RawResponses = rawResponses,
                         Trajectory = trajectory,
+                        ActiveSkills = activeSkills
                     };
 
                     throw new TurnLimitReachedException<TContext>(
@@ -266,6 +275,7 @@ public static class Runner
                     originalInput: originalInput,
                     generatedMessages: generatedMessages,
                     config: config,
+                    activeSkills: activeSkills,
                     runtimeModifier: runtimeModifier,
                     contextWrapper: contextWrapper,
                     hooks: hooks,
@@ -282,6 +292,12 @@ public static class Runner
                 originalInput = turnResult.OriginalInput;
                 generatedMessages = turnResult.GeneratedItems;
                 rawResponses.Add(turnResult.ModelResponse);
+
+                var activeAgent = turnResult.NextStep.Type == NextStepType.Handoff && turnResult.NextStep.Agent is not null
+                    ? turnResult.NextStep.Agent
+                    : currentAgent;
+
+                ProcessActiveSkills(activeSkills, turnResult.NewActivatedSkills, activeAgent, config);
 
                 if (config.EnableDebugOutput)
                 {
@@ -318,6 +334,7 @@ public static class Runner
                         config,
                         runtimeModifier,
                         hooks,
+                        activeSkills,
                         trajectory,
                         displayModelOutput,
                         currentAgent,
@@ -332,12 +349,13 @@ public static class Runner
                     }
 
                     // Auto-compact chat history if needed
-                    await CompactChatHistory(
+                    var compacted = await CompactChatHistory(
                         currentAgent,
                         originalInput,
                         generatedMessages,
                         contextWrapper,
                         currentAgent.GetChatClient(config),
+                        activeSkills,
                         hooks);
 
                     await hooks.OnAgentEnd(contextWrapper, currentAgent, turnResult.NextStep.Output);
@@ -355,6 +373,7 @@ public static class Runner
                         MaxTurns = maxTurns,
                         RawResponses = rawResponses,
                         Trajectory = trajectory,
+                        ActiveSkills = activeSkills
                     };
                 }
                 else if (turnResult.NextStep.Type == NextStepType.Handoff
@@ -369,6 +388,7 @@ public static class Runner
                         generatedMessages,
                         contextWrapper,
                         currentAgent.GetChatClient(config),
+                        activeSkills,
                         hooks);
 
                     // we should not reset the trajectory, as it may contain important information for critic as handoff is very cheap frequent behavior.
@@ -390,7 +410,8 @@ public static class Runner
                         CurrentTurn = currentTurn,
                         MaxTurns = maxTurns,
                         RawResponses = rawResponses,
-                        Trajectory = trajectory
+                        Trajectory = trajectory,
+                        ActiveSkills = activeSkills
                     };
                 }
                 else
@@ -416,6 +437,7 @@ public static class Runner
         RunConfig config,
         IAgentRuntimeModifier<TContext>? runtimeModifier,
         RunHooks<TContext> hooks,
+        SkillList activeSkills,
         Trajectory trajectory,
         IDisplayModelOutput? displayModelOutput,
         Agent<TContext> currentAgent,
@@ -466,7 +488,7 @@ public static class Runner
 
             var trajectoryString = trajectory.GetFilteredTrajectory();
 
-            var agentTools = await hooks.OnResolveFactoryTools(contextWrapper, currentAgent);
+            var agentTools = await hooks.OnResolveFactoryTools(contextWrapper, currentAgent, activeSkills.AllToolNames);
 
             var criticResult = await Critic.CriticAsync(
                 currentAgent,
@@ -550,6 +572,7 @@ public static class Runner
         List<ChatMessage> originalInput,
         List<ChatMessage> generatedMessages,
         RunConfig config,
+        SkillList activeSkills,
         IAgentRuntimeModifier<TContext>? runtimeModifier,
         RunContextWrapper<TContext> contextWrapper,
         RunHooks<TContext> hooks,
@@ -585,17 +608,19 @@ public static class Runner
 
         List<AIFunction> tools = [];
         tools.AddRange(agent.Tools);
-        tools.AddRange(await hooks.OnResolveFactoryTools(contextWrapper, agent));
+        tools.AddRange(await hooks.OnResolveFactoryTools(contextWrapper, agent, activeSkills.AllToolNames));
         tools.AddRange(agent.Handoffs);
 
         tools = ValidateTools(tools, logger);
+
+        bool allowMultipleToolCalls = allowParallelToolCalls && agent.AllowParallelToolCalls;
 
         var chatOptions = new ChatOptions
         {
             Tools = tools.Cast<AITool>().ToList(),
             ToolMode = agent.ChatToolMode,
             Temperature = agent.Temperature,
-            AllowMultipleToolCalls = tools.Count > 0 ? allowParallelToolCalls : null
+            AllowMultipleToolCalls = tools.Count > 0 ? allowMultipleToolCalls : null
         };
 
         var chatClient = agent.GetChatClient(config);
@@ -623,7 +648,10 @@ public static class Runner
         }
 
         // add plan reminder as required
-        AddPlanReminderIfNeeded(modelInput, tools);
+        AddPlanReminderIfNeeded<TContext>(modelInput, tools);
+
+        // Add skills reminder if required
+        AddSkillsReminderIfNeeded(modelInput, agent, activeSkills);
 
         // tool invocations like metrics query depend on current time
         modelInput.Add(new ChatMessage(ChatRole.System, $"The current date is {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}"));
@@ -668,7 +696,8 @@ public static class Runner
 
         if (response.Usage != null)
         {
-            contextWrapper.UsageDetails.Add(response.Usage);
+            contextWrapper.TotalUsageDetails.Add(response.Usage);
+            contextWrapper.CurrentStepUsageDetails = response.Usage;
         }
 
         return await ExecuteToolsAndHandoffsAsync(
@@ -684,6 +713,7 @@ public static class Runner
             runConfig: config,
             tools: tools,
             trajectory: trajectory,
+            activeSkills: activeSkills,
             logger: logger,
             displayModelOutput: displayModelOutput,
             toolResultCache: toolResultCache
@@ -703,6 +733,7 @@ public static class Runner
         RunConfig runConfig,
         List<AIFunction> tools,
         Trajectory trajectory,
+        SkillList activeSkills,
         ILogger logger,
         ToolResultCache? toolResultCache = null,
         IDisplayModelOutput? displayModelOutput = null
@@ -714,6 +745,7 @@ public static class Runner
         List<FunctionResultContent> functionResults = [];
         bool handoffOccurred = false;
         Agent<TContext>? handoffNewAgent = null;
+        SkillList newActivatedSkills = [];
 
         // validate tool calling
         // if parallel tool calling is enabled, handoffs must still be called alone
@@ -745,7 +777,8 @@ public static class Runner
                 NextStep = new NextStep<TContext>
                 {
                     Type = NextStepType.RunAgain,
-                }
+                },
+                NewActivatedSkills = []
             };
         }
 
@@ -793,6 +826,7 @@ public static class Runner
                             config,
                             runtimeModifier,
                             hooks,
+                            activeSkills,
                             trajectory,
                             displayModelOutput,
                             agent,
@@ -833,6 +867,7 @@ public static class Runner
                             config,
                             runtimeModifier,
                             hooks,
+                            activeSkills,
                             trajectory,
                             displayModelOutput,
                             agent,
@@ -891,6 +926,33 @@ public static class Runner
                 if (tool is ContextAIFunction<TContext> contextTool)
                 {
                     contextTool.SetContext(contextWrapper.Context);
+                }
+
+                // track newly activated skills
+                if (runConfig.SkillRegistry is not null
+                    && agent.EnableSkills
+                    && tool?.Name == ReadSkillFileTool<TContext>.ToolName
+                    && tool is ReadSkillFileTool<TContext> readSkillFileTool)
+                {
+                    var skillName = functionCall.Arguments?.TryGetValue(ReadSkillFileTool<TContext>.SkillNameParam, out var skillNameObj) == true
+                        ? skillNameObj?.ToString()
+                        : null;
+
+                    var filePath = functionCall.Arguments?.TryGetValue(ReadSkillFileTool<TContext>.FilePathParam, out var filePathObj) == true
+                        ? filePathObj?.ToString()
+                        : null;
+
+                    if (!string.IsNullOrEmpty(skillName)
+                        && !string.IsNullOrEmpty(filePath)
+                        && filePath.Contains("SKILL.md") // reading top level skill file
+                        && activeSkills.GetSkillByName(skillName) is null) // skill not already active
+                    {
+                        var skill = runConfig.SkillRegistry.GetSkillByName(skillName, agent.AddSystemSkills);
+                        if (skill is not null)
+                        {
+                            newActivatedSkills.Enqueue(skill);
+                        }
+                    }
                 }
 
                 if (tool is not null)
@@ -1018,7 +1080,8 @@ public static class Runner
                 {
                     Type = NextStepType.Handoff,
                     Agent = handoffNewAgent
-                }
+                },
+                NewActivatedSkills = [] // activated skills are not transferred during handoff
             };
         }
         else if (anyToolsCalled)
@@ -1035,7 +1098,8 @@ public static class Runner
                     {
                         Type = NextStepType.ManualTool,
                         ManualToolCalls = manualToolCalls
-                    }
+                    },
+                    NewActivatedSkills = newActivatedSkills
                 };
             }
 
@@ -1049,7 +1113,8 @@ public static class Runner
                 NextStep = new NextStep<TContext>
                 {
                     Type = NextStepType.RunAgain
-                }
+                },
+                NewActivatedSkills = newActivatedSkills
             };
         }
 
@@ -1069,7 +1134,8 @@ public static class Runner
                 {
                     Type = NextStepType.FinalOutput,
                     Output = structuredOutput
-                }
+                },
+                NewActivatedSkills = newActivatedSkills
             };
         }
         else
@@ -1084,7 +1150,8 @@ public static class Runner
                 {
                     Type = NextStepType.FinalOutput,
                     Output = modelResponse.Text
-                }
+                },
+                NewActivatedSkills = newActivatedSkills
             };
         }
     }
@@ -1294,12 +1361,13 @@ public static class Runner
     </system-reminder>
     """;
 
-    private static void AddPlanReminderIfNeeded(
+    private static void AddPlanReminderIfNeeded<TContext>(
         List<ChatMessage> modelInput,
-        IReadOnlyList<AIFunction> tools)
+        IReadOnlyList<AIFunction> tools
+    ) where TContext : class
     {
         var needsPlan = tools
-            .Any(t => string.Equals(ToDoWriteTool.ToolName, t.Name, StringComparison.OrdinalIgnoreCase));
+            .Any(t => string.Equals(ToDoWriteTool<TContext>.ToolName, t.Name, StringComparison.OrdinalIgnoreCase));
         if (!needsPlan)
         {
             return;
@@ -1307,7 +1375,7 @@ public static class Runner
 
         var lastPlanMessage = modelInput.LastOrDefault(
             m => m.Role == ChatRole.Assistant
-            && m.Contents.Any(IsToDoWriteCall));
+            && m.Contents.Any(IsToDoWriteCall<TContext>));
 
         // if no active plan, add reminder and return
         if (lastPlanMessage is null)
@@ -1317,8 +1385,8 @@ public static class Runner
         }
 
         // if there is active plan, always add reminder
-        var lastPlanContent = lastPlanMessage.Contents.Last(IsToDoWriteCall) as FunctionCallContent;
-        var lastPlanTodos = ToDoWriteTool.TryExtractTodos(new(lastPlanContent!.Arguments));
+        var lastPlanContent = lastPlanMessage.Contents.Last(IsToDoWriteCall<TContext>) as FunctionCallContent;
+        var lastPlanTodos = ToDoWriteTool<TContext>.TryExtractTodos(new(lastPlanContent!.Arguments));
         if (lastPlanTodos is not null)
         {
             var sb = new StringBuilder();
@@ -1338,10 +1406,10 @@ public static class Runner
         }
     }
 
-    private static bool IsToDoWriteCall(AIContent content)
+    private static bool IsToDoWriteCall<TContext>(AIContent content) where TContext : class
     {
         return content is FunctionCallContent f
-            && string.Equals(f.Name, ToDoWriteTool.ToolName, StringComparison.OrdinalIgnoreCase);
+            && string.Equals(f.Name, ToDoWriteTool<TContext>.ToolName, StringComparison.OrdinalIgnoreCase);
     }
 
     private static List<AIFunction> ValidateTools(List<AIFunction> tools, ILogger logger)
@@ -1379,13 +1447,14 @@ public static class Runner
         List<ChatMessage> generatedMessages,
         RunContextWrapper<TContext> contextWrapper,
         IChatClient chatClient,
-         RunHooks<TContext>? hooks = null,
+        SkillList activeSkills,
+        RunHooks<TContext>? hooks = null,
         string? additionalInstructions = null,
         bool autoHandOffEnabled = false)
         where TContext : class
     {
 
-        if (contextWrapper.UsageDetails.InputTokenCount > TokenThreshold)
+        if (contextWrapper.CurrentStepUsageDetails.InputTokenCount > TokenThreshold)
         {
             if (hooks != null)
             {
@@ -1411,6 +1480,19 @@ public static class Runner
             {
                 await hooks.OnCompactionEnd(contextWrapper, startingAgent);
             }
+
+            // reset active skills after compact
+            if (activeSkills.Count > 0)
+            {
+                activeSkills.Clear();
+                generatedMessages.Add(new ChatMessage(ChatRole.User, """
+                    <system_notice>
+                    Your active skills have been cleared.
+                    You must re-evaluate which skills are currently needed (if any), and re-activate them by using the 'read_skill_file' tool.
+                    </system_notice>
+                    """));
+            }
+
             return true;
         }
 
@@ -1432,4 +1514,65 @@ public static class Runner
         return result;
     }
 
+    private static void ProcessActiveSkills<TContext>(
+        SkillList activeSkills,
+        SkillList newActivatedSkills,
+        Agent<TContext> agent,
+        RunConfig runConfig
+    ) where TContext : class
+    {
+        if (activeSkills.Count == 0 && newActivatedSkills.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var skill in newActivatedSkills)
+        {
+            activeSkills.Enqueue(skill);
+        }
+
+        // remove oldest active skills until under limit
+        while (activeSkills.Count > runConfig.MaxActiveSkills
+            || (activeSkills.AllToolNames.Count() + agent.GetAllToolsCount()) > ToolCountHardMax)
+        {
+            activeSkills.TryDequeue(out var removedSkill);
+        }
+    }
+
+    private static void AddSkillsReminderIfNeeded<TContext>(
+        IList<ChatMessage> modelInput,
+        Agent<TContext> agent,
+        SkillList activeSkills
+    ) where TContext : class
+    {
+        if (!agent.EnableSkills)
+        {
+            return;
+        }
+
+        var sb = new StringBuilder();
+
+        sb.AppendLine("<system-reminder>");
+
+        if (activeSkills.Count == 0)
+        {
+            sb.AppendLine("You currently have no active skills. If you need to use any skills to assist with the user's request, please use the 'read_skill_file' tool to activate the necessary skills.");
+            sb.AppendLine("Remember to only activate skills that are relevant to the current user's request.");
+        }
+        else
+        {
+            sb.AppendLine("These are your currently active skills:");
+            foreach (var skill in activeSkills)
+            {
+                sb.AppendLine($"- {skill.Name}: {skill.Description}");
+            }
+            sb.AppendLine("Make sure to use the appropriate skills as needed.");
+        }
+
+        sb.AppendLine("</system-reminder>");
+
+        var skillsReminder = sb.ToString();
+
+        modelInput.Add(new ChatMessage(ChatRole.User, skillsReminder));
+    }
 }

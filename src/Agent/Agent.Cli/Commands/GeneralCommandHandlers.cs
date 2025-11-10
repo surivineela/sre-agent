@@ -39,24 +39,27 @@ public static class GeneralCommandHandlers
             // Ensure folders exist
             Directory.CreateDirectory("agents");
             Directory.CreateDirectory("tools");
+            Directory.CreateDirectory("skills");
 
             using var api = new ApiService();
 
             // Fetch names
-            ConsoleUI.WriteInfo("Fetching remote inventory (agents, tools)...", ConsoleColor.Cyan);
+            ConsoleUI.WriteInfo("Fetching remote inventory (agents, tools, skills)...", ConsoleColor.Cyan);
             var (agentsOk, agentNames, agentsMsg) = await api.GetAgentNamesAsync();
             var (toolsOk, toolNames, toolsMsg) = await api.GetToolNamesAsync();
+            var (skillsOk, skillNames, skillsMsg) = await api.GetSkillNamesAsync();
 
-            if (!agentsOk && !toolsOk)
+            if (!agentsOk && !toolsOk && !skillsOk)
             {
-                ConsoleUI.WriteStatus(false, "Failed to list agents and tools from server.");
+                ConsoleUI.WriteStatus(false, "Failed to list agents, tools, and skills from server.");
                 if (!string.IsNullOrWhiteSpace(agentsMsg)) ConsoleUI.WriteBullet($"Agents: {agentsMsg}", ConsoleColor.Yellow);
                 if (!string.IsNullOrWhiteSpace(toolsMsg)) ConsoleUI.WriteBullet($"Tools: {toolsMsg}", ConsoleColor.Yellow);
+                if (!string.IsNullOrWhiteSpace(skillsMsg)) ConsoleUI.WriteBullet($"Skills: {skillsMsg}", ConsoleColor.Yellow);
                 Environment.Exit(1);
                 return;
             }
 
-            int syncedAgents = 0, syncedTools = 0;
+            int syncedAgents = 0, syncedTools = 0, syncedSkills = 0;
 
             // Sync agents
             if (agentsOk && agentNames.Count > 0)
@@ -122,7 +125,7 @@ public static class GeneralCommandHandlers
                             YamlToolDefinitionBase tool = toolType switch
                             {
                                 "KustoTool" => deserializer.Deserialize<KustoToolDefinition>(yaml),
-                                "LinkTool" => deserializer.Deserialize<LinkToolDefinition>(yaml), 
+                                "LinkTool" => deserializer.Deserialize<LinkToolDefinition>(yaml),
                                 _ => throw new NotSupportedException($"Unknown tool type: {toolType}")
                             };
 
@@ -151,12 +154,45 @@ public static class GeneralCommandHandlers
                 ConsoleUI.WriteInfo("No tools found on remote or failed to fetch.", ConsoleColor.Yellow);
             }
 
+            // Sync skills
+            if (skillsOk && skillNames.Count > 0)
+            {
+                ConsoleUI.WriteSection($"Skills ({skillNames.Count})");
+                foreach (var name in skillNames.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(n => n))
+                {
+                    try
+                    {
+                        var (ok, skillSpec, err) = await api.GetSkillByNameAsync(name);
+                        if (!ok || skillSpec == null)
+                        {
+                            ConsoleUI.WriteBullet($"Skip {name}: {err}", ConsoleColor.Yellow);
+                            continue;
+                        }
+
+                        // Save skill to directory
+                        var skillPath = Path.Combine("skills", name);
+                        await YamlHelper.SaveSkillToDirectory(skillPath, skillSpec);
+                        ConsoleUI.WriteBullet($"Wrote {skillPath}/metadata.yaml and {skillPath}/SKILL.md", ConsoleColor.Green);
+                        syncedSkills++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleUI.WriteBullet($"Failed {name}: {ex.Message}", ConsoleColor.Yellow);
+                    }
+                }
+            }
+            else
+            {
+                ConsoleUI.WriteInfo("No skills found on remote or failed to fetch.", ConsoleColor.Yellow);
+            }
+
             Console.WriteLine();
             ConsoleUI.WriteSection("Summary");
             ConsoleUI.WriteKeyValue("Agents", syncedAgents.ToString(), 10);
             ConsoleUI.WriteKeyValue("Tools", syncedTools.ToString(), 10);
+            ConsoleUI.WriteKeyValue("Skills", syncedSkills.ToString(), 10);
             Console.WriteLine();
-            ConsoleUI.WriteInfo("Tip: edit YAML locally and use 'srectl apply-yaml --file <path>' or 'srectl agent/tool apply' to push updates.", ConsoleColor.Gray);
+            ConsoleUI.WriteInfo("Tip: edit YAML locally and use 'srectl apply-yaml --file <path>' or 'srectl agent/tool/skill apply' to push updates.", ConsoleColor.Gray);
 
             Environment.Exit(0);
         }
@@ -198,6 +234,7 @@ public static class GeneralCommandHandlers
             // Create directory structure
             Directory.CreateDirectory("agents");
             Directory.CreateDirectory("tools");
+            Directory.CreateDirectory("skills");
             Directory.CreateDirectory("scheduledtasks");
 
             // Copy example files
@@ -209,7 +246,7 @@ public static class GeneralCommandHandlers
             ConsoleUI.WriteStatus(true, "SREAgent CLI initialized successfully!");
             ConsoleUI.WriteBullet($"Resource URL: {resourceUrl}", ConsoleColor.White);
             ConsoleUI.WriteBullet($"Auth Required: {config.AuthRequired}", ConsoleColor.White);
-            ConsoleUI.WriteBullet("Created directories: agents/, tools/, .github/", ConsoleColor.White);
+            ConsoleUI.WriteBullet("Created directories: agents/, tools/, skills/, scheduledtasks/, .github/", ConsoleColor.White);
             ConsoleUI.WriteBullet("Added example files: example_agent.yaml, example_tool.yaml", ConsoleColor.White);
             ConsoleUI.WriteBullet("Created comprehensive instructions file: .github/instructions.md", ConsoleColor.White);
 

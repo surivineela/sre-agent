@@ -279,13 +279,5 @@ namespace Agent.Runtime
                 return client.GetEmbeddingClient(embeddingModelName).AsIEmbeddingGenerator();
             });
         }
-
-        public static IServiceCollection ConfigureAsyncInitializers(this IServiceCollection services)
-        {
-            return services
-                .AddSingleton<IAsyncInitializer>(sp => sp.GetRequiredService<IToolFactory<AgentContext>>())
-                .AddSingleton<IAsyncInitializer>(sp => sp.GetRequiredService<IAgentFactory<AgentContext>>())
-                .AddHostedService<AsyncInitializerService>();
-        }
     }
 }

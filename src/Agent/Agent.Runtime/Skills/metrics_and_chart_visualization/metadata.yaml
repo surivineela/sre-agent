@@ -1,0 +1,25 @@
+name: metrics_and_chart_visualization
+description: |
+  Load this skill when the user asks to:
+    - List or explore available Azure Monitor metrics for one or more resources
+    - Analyze utilization, performance trends, seasonality, spikes, or anomalies
+    - Compare metrics across resources or time windows (e.g., last week vs prior week)
+    - Produce or refine visual charts (time-series, bar, pie, scatter, heatmap, correlation)
+    - Generate actionable optimization or capacity recommendations from metric patterns
+
+  Do NOT load for tasks focused on configuration, troubleshooting root cause, or remediation; defer those to the relevant service-specific diagnostic skills. If the request mixes diagnostics with metric visualization, load this skill alongside the diagnostic skill.
+
+  Minimal prerequisites before metric querying:
+    1. Valid resource IDs or resolvable names
+    2. Time range explicitly defined or inferable (default to a recent, representative window if unspecified—e.g., last 24h)
+    3. Metric names verified via a single ListAvailableMetrics call per resource type
+
+tools:
+  - ListAvailableMetrics
+  - GetMetricTimeSeriesElementsForAzureResource
+  - PlotTimeSeriesData
+  - PlotPieChart
+  - PlotBarChart
+  - PlotScatter
+  - PlotAreaChartWithCorrelation
+  - PlotHeatmap
