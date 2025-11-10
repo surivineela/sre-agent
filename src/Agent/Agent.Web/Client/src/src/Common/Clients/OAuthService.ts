@@ -8,8 +8,9 @@ export const popupId = 'ms-sreagent-oauthpopup';
 export const getRedirectUrl = () => {
     // Use the current origin to support both dev (localhost:5173) and production
     const baseUrl = window.location.origin;
-    // In production, the base is /static, in dev it's also /static due to vite config
-    return `${baseUrl}/static/authredirect.html?pid=${popupId}`;
+    // In dev (localhost), use /static/ path; in production, use root path
+    const path = baseUrl.includes('localhost') ? '/static/authredirect.html' : '/authredirect.html';
+    return `${baseUrl}${path}?pid=${popupId}`;
 };
 
 interface ConsentUrlOptions {
