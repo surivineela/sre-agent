@@ -307,6 +307,7 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
                             key={suggestion}
                             onClick={() => handleCategoryClick(suggestion)}
                             appearance={clickedKey === suggestion ? 'primary' : 'secondary'}
+                            aria-selected={clickedKey === suggestion}
                             icon={iconMap[suggestion]}
                         >
                             <Text size={200} weight={'medium'}>
