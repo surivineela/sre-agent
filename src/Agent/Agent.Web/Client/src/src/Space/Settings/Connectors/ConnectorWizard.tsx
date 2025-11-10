@@ -6,13 +6,14 @@ import { StepStatus } from '../../../Common/Components/Wizard/WizardStepper';
 import { MsiIdentity } from '../../../Common/Contracts/Azure/ArmObj';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 import { ConnectorsResources } from '../../../Strings/SREAgentResources';
-import { AzureConnectorForm } from './AzureConnectorForm';
 import { ConnectorPicker } from './ConnectorPicker';
-import { ConnectorType } from './ConnectorType';
 import { useConnectorWizardStyles } from './ConnectorWizard.styles';
 import { ConnectorFormProps } from './ConnectorWizardFormik';
-import { OutlookTeamsConnectorForm } from './OutlookTeamsConnectorForm';
 import { ReviewAndAdd } from './ReviewAndAdd';
+import { ConnectorType } from './Wizard/Common/ConnectorType';
+import { AzureConnectorForm } from './Wizard/SetupForm/AzureConnectorForm';
+import { McpServerForm } from './Wizard/SetupForm/McpServerForm';
+import { OutlookTeamsConnectorForm } from './Wizard/SetupForm/OutlookTeamsConnectorForm';
 
 interface ConnectorsWizardProps {
     isDialogOpen: boolean;
@@ -41,7 +42,6 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
         agentIdentity,
         agentLocation,
         existingConnectors,
-        selectedConnector,
         currentStep,
         setCurrentStep,
         refreshAgent,
@@ -129,7 +129,6 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
                         userAssignedIdentities={userAssignedIdentityOptions}
                         agentIdentity={agentIdentity}
                         existingConnectors={existingConnectors}
-                        selectedConnector={selectedConnector}
                         refreshAgent={refreshAgent}
                     />
                 );
@@ -142,23 +141,19 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
                         agentLocation={agentLocation}
                         agentIdentity={agentIdentity}
                         existingConnectors={existingConnectors}
-                        selectedConnector={selectedConnector}
                         refreshAgent={refreshAgent}
                     />
                 );
+            case ConnectorType.McpServer:
+                return <McpServerForm existingConnectors={existingConnectors} />;
             default:
                 return null;
         }
-    }, [
-        values.connectorType,
-        userAssignedIdentityOptions,
-        agentIdentity,
-        existingConnectors,
-        selectedConnector,
-        refreshAgent,
-        agentName,
-        agentLocation,
-    ]);
+    }, [values.connectorType, userAssignedIdentityOptions, agentIdentity, existingConnectors, refreshAgent, agentName, agentLocation]);
+
+    const goToNextStep = useCallback(() => {
+        setCurrentStep(currentStep + 1);
+    }, [currentStep, setCurrentStep]);
 
     return (
         <WizardDialog
@@ -173,7 +168,9 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
             onCancel={onCancel}
         >
             <div className={styles.wizardContentContainer}>
-                {currentStep === StepKey.ConnectorPicker && <ConnectorPicker existingConnectors={existingConnectors} />}
+                {currentStep === StepKey.ConnectorPicker && (
+                    <ConnectorPicker existingConnectors={existingConnectors} goToNextStep={goToNextStep} />
+                )}
                 {currentStep === StepKey.Setup && setupForm}
                 {currentStep === StepKey.ReviewAndAdd && <ReviewAndAdd userAssignedIdentities={userAssignedIdentityOptions} />}
             </div>

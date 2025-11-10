@@ -3,27 +3,36 @@ import { CheckmarkCircle20Filled } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
 import { useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { OAuthPopup } from '../../../Common/Clients/OAuthPopupClient';
-import { OAuthServiceClient } from '../../../Common/Clients/OAuthService';
-import { FieldWrapper } from '../../../Common/Components/Field/FieldWrapper';
-import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
-import { resolveResourceIcon } from '../../../Common/Helpers/Resources';
-import { ConnectorsResources } from '../../../Strings/SREAgentResources';
-import { ConnectorType } from './ConnectorType';
-import { ConnectorWithManagedIdentityFormBase, ConnectorWithManagedIdentityFormBaseProps } from './ConnectorWithManagedIdentityFormBase';
-import { useConnectorWizardStyles } from './ConnectorWizard.styles';
-import { ConnectorFormProps } from './ConnectorWizardFormik';
-import { useApiConnection } from './useApiConnection';
-import { useConsentLink } from './useConsentLink';
+import { EnvironmentContext } from '../../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { OAuthPopup } from '../../../../../Common/Clients/OAuthPopupClient';
+import { OAuthServiceClient } from '../../../../../Common/Clients/OAuthService';
+import { FieldWrapper } from '../../../../../Common/Components/Field/FieldWrapper';
+import { MsiIdentity } from '../../../../../Common/Contracts/Azure/ArmObj';
+import { Connector } from '../../../../../Common/Contracts/Azure/SreAgent';
+import { ArmResourceDescriptor } from '../../../../../Common/Helpers/ResourceDescriptors';
+import { resolveResourceIcon } from '../../../../../Common/Helpers/Resources';
+import { ConnectorsResources } from '../../../../../Strings/SREAgentResources';
+import { useConnectorWizardStyles } from '../../ConnectorWizard.styles';
+import { ConnectorFormProps } from '../../ConnectorWizardFormik';
+import { useApiConnection } from '../../useApiConnection';
+import { useConsentLink } from '../../useConsentLink';
+import { ConnectorType } from '../Common/ConnectorType';
+import { ManagedIdentityDropdownWithValidation } from '../Common/ManagedIdentityDropdownWithValidation';
+import { NameInputWithValidation } from '../Common/NameInputWithValidation';
+import { SetupConnectorFormWrapper } from '../Common/SetupConnectorFormWrapper';
 
-export type OutlookTeamsConnectorFormProps = Omit<ConnectorWithManagedIdentityFormBaseProps, 'children'> & {
-    agentName?: string;
-    agentLocation?: string;
-};
+interface OutlookTeamsConnectorFormProps {
+    userAssignedIdentities: { id: string; name: string }[];
+    agentName: string | undefined;
+    agentLocation: string | undefined;
+    agentIdentity: MsiIdentity | undefined;
+    existingConnectors: Connector[] | undefined;
+    refreshAgent: () => void;
+    isEditMode?: boolean;
+}
 
 export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps> = props => {
-    const { selectedConnector, agentName, agentIdentity, agentLocation } = props;
+    const { agentName, agentIdentity, agentLocation, existingConnectors, userAssignedIdentities, isEditMode = false } = props;
 
     const intl = useIntl();
     const styles = useConnectorWizardStyles();
@@ -33,9 +42,7 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
 
     const { subscription, resourceGroup } = new ArmResourceDescriptor(resourceId);
 
-    const connectorType = useMemo(() => {
-        return selectedConnector ? (selectedConnector.dataConnectorType as ConnectorType) : (values.connectorType as ConnectorType);
-    }, [selectedConnector, values.connectorType]);
+    const connectorType = useMemo(() => values.connectorType as ConnectorType, [values.connectorType]);
 
     const connectorService = useMemo(() => {
         return connectorType === ConnectorType.OutlookSendEmail
@@ -118,7 +125,8 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
     );
 
     return (
-        <ConnectorWithManagedIdentityFormBase {...props}>
+        <SetupConnectorFormWrapper>
+            <NameInputWithValidation disabled={isEditMode} existingConnectors={existingConnectors} />
             <FieldWrapper
                 label={intl.formatMessage(ConnectorsResources.serviceAccount, { service: connectorService })}
                 required
@@ -151,6 +159,11 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
                     </>
                 )}
             </FieldWrapper>
-        </ConnectorWithManagedIdentityFormBase>
+            <ManagedIdentityDropdownWithValidation
+                userAssignedIdentities={userAssignedIdentities}
+                agentIdentity={agentIdentity}
+                refreshAgent={props.refreshAgent}
+            />
+        </SetupConnectorFormWrapper>
     );
 };

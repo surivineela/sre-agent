@@ -3,6 +3,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { MsiIdentity } from '../../../Common/Contracts/Azure/ArmObj';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 import { ConnectorWizard, StepKey } from './ConnectorWizard';
+import { ConnectorType } from './Wizard/Common/ConnectorType';
+import { getBearerTokenConnectionString, getCustomHeadersConnectionString } from './Wizard/Common/CustomConnector';
 
 interface ConnectorsWizardFormikProps {
     isDialogOpen: boolean;
@@ -16,12 +18,25 @@ interface ConnectorsWizardFormikProps {
     existingConnectors?: Connector[];
 }
 
+export enum AuthType {
+    BearerToken = 'BearerToken',
+    CustomHeaders = 'CustomHeaders',
+}
+
+export interface CustomHeader {
+    key: string;
+    value: string;
+}
+
 export interface ConnectorFormProps {
     connectorType: string;
     name: string;
     url: string;
     identity: string;
     email?: string;
+    authType?: AuthType;
+    patOrApiKey?: string;
+    customHeaders?: CustomHeader[];
 }
 
 export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = props => {
@@ -36,6 +51,7 @@ export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = prop
                 name: selectedConnector.name,
                 url: selectedConnector.dataSource || '',
                 identity: selectedConnector.identity,
+                customHeaders: [{ key: '', value: '' }],
             };
         }
         return {
@@ -43,15 +59,29 @@ export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = prop
             name: '',
             url: '',
             identity: '',
+            customHeaders: [{ key: '', value: '' }],
         };
     }, [selectedConnector]);
 
     const handleSubmit = useCallback(
         async (values: ConnectorFormProps, formikHelpers: FormikHelpers<ConnectorFormProps>) => {
+            const connectorType = values.connectorType as ConnectorType;
+
+            let dataSource: string;
+            if (connectorType !== ConnectorType.McpServer) {
+                dataSource = values.url;
+            } else {
+                if (values.authType === AuthType.BearerToken) {
+                    dataSource = getBearerTokenConnectionString(values.url, values.patOrApiKey || '');
+                } else {
+                    dataSource = getCustomHeadersConnectionString(values.url, values.customHeaders || []);
+                }
+            }
+
             const dataConnector: Connector = {
                 name: values.name,
                 dataConnectorType: values.connectorType?.toString() || '',
-                dataSource: values.url,
+                dataSource: dataSource,
                 identity: values.identity,
             };
             setIsDialogOpen(false);

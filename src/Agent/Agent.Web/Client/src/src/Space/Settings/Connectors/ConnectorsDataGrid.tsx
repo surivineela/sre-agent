@@ -25,8 +25,8 @@ import { useIntl } from 'react-intl';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { useConnectorsStyles } from './Connectors.styles';
-import { ConnectorType, getConnectorIcon, getConnectorName, getConnectorService } from './ConnectorType';
 import EmptyState, { EmptyStateType } from './EmptyState';
+import { ConnectorType, getConnectorIcon, getConnectorName, getConnectorService } from './Wizard/Common/ConnectorType';
 
 type ConnectorWithService = Connector & { service: string };
 
@@ -77,11 +77,8 @@ export const ConnectorsDataGrid = ({
         if (isLoading || isRefreshing) {
             return createShimmerData(SHIMMER_ITEMS_COUNT);
         }
-        return connectors.map(connector => ({
-            ...connector,
-            service: getConnectorService(connector.dataConnectorType as ConnectorType, intl),
-        }));
-    }, [isLoading, isRefreshing, connectors, intl]);
+        return connectors;
+    }, [isLoading, isRefreshing, connectors]);
 
     const createShimmerCell = useCallback(
         (skeletonItems: { width: string; height: string; marginBottom?: string }[]) => (
@@ -158,7 +155,11 @@ export const ConnectorsDataGrid = ({
                                             src={getConnectorIcon(connectorType, intl)}
                                             alt={getConnectorName(connectorType, intl)}
                                         />
-                                        <Text>{getConnectorService(connectorType, intl)}</Text>
+                                        <Text>
+                                            {connectorType !== ConnectorType.McpServer
+                                                ? getConnectorService(connectorType, intl)
+                                                : intl.formatMessage(ConnectorsResources.mcpServer)}
+                                        </Text>
                                     </div>
                                 </TableCellLayout>
                             );

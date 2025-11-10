@@ -268,6 +268,10 @@ const DataConnectors: FC = () => {
                 isResizable: true,
                 onRender: (item: Connector) => {
                     if (typeof item.identity === 'string') {
+                        if (!item.identity) {
+                            return '';
+                        }
+
                         if (item.identity.toLowerCase() === IdentityKeys.system) {
                             return intl.formatMessage(SreAgentResources.systemAssigned);
                         }

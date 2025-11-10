@@ -1,8 +1,15 @@
 import { makeStyles, tokens } from '@fluentui/react-components';
 
 export const useConnectorWizardStyles = makeStyles({
+    searchBarContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: tokens.spacingHorizontalMNudge,
+    },
     searchBox: {
-        width: '350px',
+        maxWidth: '100%',
+        flexGrow: 5,
     },
     cardContainer: {
         padding: '10px 0',
@@ -72,6 +79,8 @@ export const useConnectorWizardStyles = makeStyles({
     reviewAndAddSectionValue: {
         fontSize: tokens.fontSizeBase300,
         fontWeight: tokens.fontWeightRegular,
+        wordBreak: 'break-all',
+        overflowWrap: 'break-word',
     },
     outlookTeamsButton: {
         maxWidth: 'fit-content',

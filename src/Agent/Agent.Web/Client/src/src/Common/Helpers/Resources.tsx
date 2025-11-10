@@ -68,6 +68,9 @@ const ICON_LOOKUP: Record<string, string> = {
     outlook: 'Outlook.svg',
     teams: 'Teams.svg',
 
+    //mcp
+    customconnector: 'MCP server.svg',
+
     // Others Azure Resource Types
     'microsoft.documentdb/databaseaccounts': 'CosmosDB.svg',
     'microsoft.eventgrid/topics': 'EventGridTopic.svg',

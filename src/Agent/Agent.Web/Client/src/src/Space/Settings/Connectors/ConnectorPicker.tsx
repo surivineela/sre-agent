@@ -1,4 +1,5 @@
-import { Card, CardHeader, Text } from '@fluentui/react-components';
+import { Button, Card, CardHeader, Text } from '@fluentui/react-components';
+import { Add20Regular } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -6,15 +7,17 @@ import { SearchBoxWithDebounce } from '../../../Common/Components/SearchBox/Sear
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 import { AntUxStringComparison, equals } from '../../../Common/Helpers/Strings';
 import { ConnectorsResources } from '../../../Strings/SREAgentResources';
-import { ConnectorType, ConnectorTypeOption, connectorTypeOptions } from './ConnectorType';
 import { useConnectorWizardStyles } from './ConnectorWizard.styles';
 import { ConnectorFormProps } from './ConnectorWizardFormik';
+import { ConnectorType, ConnectorTypeOption, connectorTypeOptions } from './Wizard/Common/ConnectorType';
 
 interface ConnectorPickerProps {
     existingConnectors?: Connector[];
+    goToNextStep: () => void;
 }
 
 export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
+    const { existingConnectors, goToNextStep } = props;
     const intl = useIntl();
     const styles = useConnectorWizardStyles();
     const { values, setFieldValue } = useFormikContext<ConnectorFormProps>();
@@ -45,16 +48,32 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
         [setFieldValue]
     );
 
+    const onCustomMcpAdd = useCallback(() => {
+        onConnectorSelected({
+            id: ConnectorType.McpServer,
+            name: '',
+            service: '',
+            description: '',
+            img: '',
+        });
+        goToNextStep();
+    }, [onConnectorSelected, goToNextStep]);
+
     return (
         <>
             <h2 className={`${styles.title} ${styles.connectorPickerTitle}`}>{intl.formatMessage(ConnectorsResources.chooseAConnector)}</h2>
-            <SearchBoxWithDebounce setSearchTerm={setSearchTerm} className={styles.searchBox} />
+            <div className={styles.searchBarContainer}>
+                <SearchBoxWithDebounce setSearchTerm={setSearchTerm} className={styles.searchBox} />
+                <Button appearance="secondary" icon={<Add20Regular />} onClick={onCustomMcpAdd}>
+                    {intl.formatMessage(ConnectorsResources.addMcpServer)}
+                </Button>
+            </div>
             <div className={styles.cardContainer}>
                 <div className={styles.cardGrid}>
                     {filteredConnectorOptions.map((connector: ConnectorTypeOption, index: number) => {
                         const disabled =
                             (connector.id === ConnectorType.OutlookSendEmail || connector.id === ConnectorType.TeamsSendNotificaton) &&
-                            props.existingConnectors?.some(existing =>
+                            existingConnectors?.some(existing =>
                                 equals(existing.dataConnectorType, connector.id, AntUxStringComparison.IgnoreCase)
                             );
                         const selected = !disabled && connector.id === values.connectorType;

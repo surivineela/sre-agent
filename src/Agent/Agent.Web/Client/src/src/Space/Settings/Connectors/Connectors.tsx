@@ -12,8 +12,8 @@ import { useSreAgent } from '../Hooks/useSreAgent';
 import { useConnectorsStyles } from './Connectors.styles';
 import { ConnectorsDataGrid } from './ConnectorsDataGrid';
 import ConnectorsToolbar from './ConnectorsToolbar';
-import { ConnectorType } from './ConnectorType';
 import { ConnectorWizardFormik } from './ConnectorWizardFormik';
+import { ConnectorType } from './Wizard/Common/ConnectorType';
 
 export const Connectors = () => {
     const intl = useIntl();

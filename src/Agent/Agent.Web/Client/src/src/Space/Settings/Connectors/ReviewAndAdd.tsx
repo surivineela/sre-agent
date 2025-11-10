@@ -4,9 +4,10 @@ import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { IdentityKeys } from '../../Contracts/Identity';
-import { connectorTypeOptions } from './ConnectorType';
 import { useConnectorWizardStyles } from './ConnectorWizard.styles';
-import { ConnectorFormProps } from './ConnectorWizardFormik';
+import { AuthType, ConnectorFormProps } from './ConnectorWizardFormik';
+import { ConnectorType, getConnectorIcon, getConnectorName, getConnectorService } from './Wizard/Common/ConnectorType';
+import { getBearerTokenConnectionString, getCustomHeadersConnectionString } from './Wizard/Common/CustomConnector';
 
 export interface ReviewAndAddProps {
     userAssignedIdentities: { id: string; name: string }[];
@@ -17,9 +18,50 @@ export const ReviewAndAdd: React.FC<ReviewAndAddProps> = ({ userAssignedIdentiti
     const styles = useConnectorWizardStyles();
     const { values } = useFormikContext<ConnectorFormProps>();
 
-    const selectedConnector = useMemo(() => {
-        return connectorTypeOptions(intl).find(opt => opt.id === values.connectorType);
-    }, [intl, values.connectorType]);
+    const selectedConnector = useMemo(() => values.connectorType as ConnectorType, [values.connectorType]);
+
+    const contentList = useMemo(() => {
+        const labelValuePairs: { label: string; value: string }[] = [];
+        if (selectedConnector === ConnectorType.McpServer) {
+            if (values.authType === AuthType.BearerToken) {
+                labelValuePairs.push({
+                    label: intl.formatMessage(ConnectorsResources.authenticationMethod),
+                    value: intl.formatMessage(ConnectorsResources.bearerToken),
+                });
+                labelValuePairs.push({
+                    label: intl.formatMessage(ConnectorsResources.compiledConnectionString),
+                    value: getBearerTokenConnectionString(values.url, values.patOrApiKey || ''),
+                });
+            } else {
+                labelValuePairs.push({
+                    label: intl.formatMessage(ConnectorsResources.authenticationMethod),
+                    value: intl.formatMessage(ConnectorsResources.customHeaders),
+                });
+                labelValuePairs.push({
+                    label: intl.formatMessage(ConnectorsResources.compiledConnectionString),
+                    value: getCustomHeadersConnectionString(values.url, values.customHeaders || []),
+                });
+            }
+        } else {
+            if (values.email) {
+                labelValuePairs.push({ label: intl.formatMessage(ConnectorsResources.outlookAccount), value: values.email });
+            } else if (values.url) {
+                labelValuePairs.push({ label: intl.formatMessage(ConnectorsResources.repositoryUrl), value: values.url });
+            }
+
+            if (values.identity) {
+                labelValuePairs.push({
+                    label: intl.formatMessage(ConnectorsResources.managedIdentity),
+                    value:
+                        values.identity === IdentityKeys.system
+                            ? intl.formatMessage(SreAgentResources.systemAssigned)
+                            : userAssignedIdentities.find(option => option.id === values.identity)?.name || '',
+                });
+            }
+        }
+
+        return labelValuePairs;
+    }, [values, userAssignedIdentities, intl, selectedConnector]);
 
     return (
         <div className={styles.reviewAndAddContainer}>
@@ -28,11 +70,11 @@ export const ReviewAndAdd: React.FC<ReviewAndAddProps> = ({ userAssignedIdentiti
                 {selectedConnector && (
                     <Card>
                         <CardHeader
-                            image={<img src={selectedConnector.img} alt={selectedConnector.name} />}
+                            image={<img src={getConnectorIcon(selectedConnector, intl)} alt={getConnectorName(selectedConnector, intl)} />}
                             header={
                                 <div className={styles.reviewAndAddCardContent}>
-                                    <Text weight="semibold">{selectedConnector.name}</Text>
-                                    <Text className={styles.reviewAndAddSectionValue}>{selectedConnector.service}</Text>
+                                    <Text weight="semibold">{getConnectorName(selectedConnector, intl)}</Text>
+                                    <Text className={styles.reviewAndAddSectionValue}>{getConnectorService(selectedConnector, intl)}</Text>
                                 </div>
                             }
                         />
@@ -42,22 +84,11 @@ export const ReviewAndAdd: React.FC<ReviewAndAddProps> = ({ userAssignedIdentiti
             <VerticalLabelWithContent label={intl.formatMessage(SreAgentResources.name)}>
                 <Text className={styles.reviewAndAddSectionValue}>{values.name || '-'}</Text>
             </VerticalLabelWithContent>
-            {values.email ? (
-                <VerticalLabelWithContent label={intl.formatMessage(ConnectorsResources.outlookAccount)}>
-                    <Text className={styles.reviewAndAddSectionValue}>{values.email}</Text>
+            {contentList.map(({ label, value }) => (
+                <VerticalLabelWithContent label={label}>
+                    <Text className={styles.reviewAndAddSectionValue}>{value}</Text>
                 </VerticalLabelWithContent>
-            ) : values.url ? (
-                <VerticalLabelWithContent label={intl.formatMessage(ConnectorsResources.repositoryUrl)}>
-                    <Text className={styles.reviewAndAddSectionValue}>{values.url}</Text>
-                </VerticalLabelWithContent>
-            ) : undefined}
-            <VerticalLabelWithContent label={intl.formatMessage(ConnectorsResources.managedIdentity)}>
-                <Text className={styles.reviewAndAddSectionValue}>
-                    {values.identity === IdentityKeys.system
-                        ? intl.formatMessage(SreAgentResources.systemAssigned)
-                        : userAssignedIdentities.find(option => option.id === values.identity)?.name || ''}
-                </Text>
-            </VerticalLabelWithContent>
+            ))}
         </div>
     );
 };

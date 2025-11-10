@@ -1,5 +1,5 @@
-import { resolveResourceIcon } from '../../../Common/Helpers/Resources';
-import { ConnectorsResources } from '../../../Strings/SREAgentResources';
+import { resolveResourceIcon } from '../../../../../Common/Helpers/Resources';
+import { ConnectorsResources } from '../../../../../Strings/SREAgentResources';
 
 export enum ConnectorType {
     AzureDataExplorerQuery = 'Kusto',
@@ -7,6 +7,7 @@ export enum ConnectorType {
     AzureDevOpsDocumentation = 'TsgCrawler',
     OutlookSendEmail = 'SendOutlookEmail',
     TeamsSendNotificaton = 'Teams',
+    McpServer = 'Mcp',
 }
 
 export interface ConnectorTypeOption {
@@ -56,16 +57,28 @@ export const connectorTypeOptions = (intl: any): ConnectorTypeOption[] => [
 ];
 
 export const getConnectorName = (connectorType: ConnectorType, intl: any): string => {
+    if (connectorType === ConnectorType.McpServer) {
+        return intl.formatMessage(ConnectorsResources.mcpServer);
+    }
+
     const option = connectorTypeOptions(intl).find(opt => opt.id === connectorType);
     return option ? option.name : connectorType;
 };
 
 export const getConnectorService = (connectorType: ConnectorType, intl: any): string => {
+    if (connectorType === ConnectorType.McpServer) {
+        return intl.formatMessage(ConnectorsResources.userProvidedConnector);
+    }
+
     const option = connectorTypeOptions(intl).find(opt => opt.id === connectorType);
     return option ? option.service : '';
 };
 
 export const getConnectorIcon = (connectorType: ConnectorType, intl: any): string => {
+    if (connectorType === ConnectorType.McpServer) {
+        return resolveResourceIcon('CustomConnector');
+    }
+
     const option = connectorTypeOptions(intl).find(opt => opt.id === connectorType);
     return option ? option.img : '';
 };
