@@ -5,23 +5,66 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ClientRoot>Client\</ClientRoot>
+
+    <!-- NuGet Package Configuration -->
     <IsPackable>true</IsPackable>
+    <Title>SRE Agent Portal</Title>
+    <Description>SRE Agent Portal web application</Description>
     <PackageId>Microsoft.SREAgent.Portal</PackageId>
+    <Version>$(Version)</Version>
+    <RepositoryUrl>https://github.com/serverless-paas-balam/sreagent-runtime</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/serverless-paas-balam/sreagent-runtime</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- Include the Client folder in the project -->
     <Content Remove="$(ClientRoot)**" />
-    <None Remove="$(ClientRoot)**" />
+    <None Remo-ve="$(ClientRoot)**" />
     <None Include="$(ClientRoot)**" Exclude="$(ClientRoot)node_modules\**" />
+
+    <!-- Exclude wwwroot from auto-inclusion during build (only include during pack) -->
+    <Content Remove="wwwroot\**" />
   </ItemGroup>
 
-  <Target Name="BuildClient" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'">
+  <!-- Build Client for local development and blob deployment (outputs to Client/dist) -->
+  <Target Name="BuildClient" BeforeTargets="Build" Condition="'$(SkipClientBuild)' != 'true' And ('$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release')">
     <Message Importance="high" Text="Restoring npm dependencies for Client..." />
     <Exec WorkingDirectory="$(ClientRoot)" Command="npm install" />
 
-    <Message Importance="high" Text="Building Client application..." />
+    <Message Importance="high" Text="Building Client application to Client/dist..." />
     <Exec WorkingDirectory="$(ClientRoot)" Command="npm run build" />
+  </Target>
+
+  <!-- Packaging targets: Copy Client/dist to wwwroot for NuGet package consumption -->
+  <Target Name="PrepareStaticWebAssetsForPackaging" BeforeTargets="GenerateNuspec" Condition="'$(IsPackable)' == 'true'">
+    <Message Importance="high" Text="Preparing static web assets for NuGet packaging..." />
+
+    <!-- Ensure Client is built first -->
+    <CallTarget Targets="BuildClient" Condition="!Exists('$(ClientRoot)dist')" />
+
+    <!-- Copy Client/dist contents to wwwroot for packaging -->
+    <ItemGroup>
+      <DistFiles Include="$(ClientRoot)dist\**\*.*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(DistFiles)"
+          DestinationFolder="wwwroot\%(RecursiveDir)"
+          SkipUnchangedFiles="true" />
+
+    <Message Importance="high" Text="Copied Client/dist to wwwroot for NuGet packaging" />
+  </Target>
+
+  <!-- Include wwwroot in package as static web assets -->
+  <ItemGroup>
+    <Content Include="wwwroot\**\*.*" Pack="true" BuildAction="Content" CopyToOutputDirectory="PreserveNewest" Condition="Exists('wwwroot')" />
+  </ItemGroup>
+
+  <!-- Clean up wwwroot after packaging to keep repository clean -->
+  <Target Name="CleanPackagingArtifacts" AfterTargets="Pack" Condition="'$(IsPackable)' == 'true'">
+    <Message Importance="high" Text="Cleaning up packaging artifacts..." />
+    <RemoveDir Directories="wwwroot" Condition="Exists('wwwroot')" />
+    <Message Importance="high" Text="Removed wwwroot folder" />
   </Target>
 
 </Project>

@@ -35,10 +35,12 @@ if (!string.IsNullOrEmpty(viteDevServerUrl))
 
 app.UseHttpsRedirection();
 
-// Serve static files from Client/dist folder
+// Serve static files - handles both local dev (Client/dist) and NuGet consumption (wwwroot/static web assets)
 var clientDistPath = Path.Combine(app.Environment.ContentRootPath, "Client", "dist");
 if (Directory.Exists(clientDistPath))
 {
+    // Local development or direct deployment: serve from Client/dist
+    app.Logger.LogInformation("Serving static files from Client/dist folder");
     app.UseStaticFiles(new StaticFileOptions
     {
         FileProvider = new PhysicalFileProvider(clientDistPath),
@@ -47,15 +49,26 @@ if (Directory.Exists(clientDistPath))
 }
 else
 {
-    app.Logger.LogWarning("Client dist folder not found at: {Path}. Run 'npm run build' in the Client folder.", clientDistPath);
+    // NuGet package consumption: serve from wwwroot or static web assets
+    app.Logger.LogInformation("Serving static files from wwwroot/static web assets");
+    app.UseStaticFiles();
 }
 
 app.MapControllers();
 
 // Fallback to index.html for client-side routing (but not for API routes)
-app.MapFallbackToFile("index.html", new StaticFileOptions
+if (Directory.Exists(clientDistPath))
 {
-    FileProvider = new PhysicalFileProvider(clientDistPath)
-});
+    // Local development: serve from Client/dist
+    app.MapFallbackToFile("index.html", new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(clientDistPath)
+    });
+}
+else
+{
+    // NuGet package consumption: serve from wwwroot
+    app.MapFallbackToFile("index.html").AllowAnonymous();
+}
 
 app.Run();

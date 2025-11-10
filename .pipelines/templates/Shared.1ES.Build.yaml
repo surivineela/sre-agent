@@ -16,6 +16,10 @@ parameters:
   displayName: 'Enables or Disables an Official build and its configuration (signing and other build steps)'
   type: boolean
   default: false
+- name: 'isNugetPublish'
+  displayName: 'Enables publishing NuGet packages to Azure Artifacts'
+  type: boolean
+  default: false
 
 resources:
   repositories:
@@ -240,6 +244,30 @@ extends:
             arguments: '--no-restore --output $(ArtifactDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
             includeNuGetOrg: false
             zipAfterPublish: false
+
+        #
+        # Pack and Publish Agent.Portal NuGet Package
+        # Only runs on Official builds when isNugetPublish is enabled
+        #
+        - ${{ if and(eq(parameters.isNugetPublish, true), eq(parameters.isOfficialBuild, true)) }}:
+          - task: DotNetCoreCLI@2
+            displayName: '📦 Pack Agent.Portal NuGet Package'
+            inputs:
+              command: 'pack'
+              packagesToPack: '.\src\Agent\Agent.Portal\Agent.Portal.csproj'
+              configuration: '$(BuildConfiguration)'
+              packDirectory: '$(Build.ArtifactStagingDirectory)\packages'
+              versioningScheme: 'byBuildNumber'
+              includeNuGetOrg: false
+
+          - task: NuGetCommand@2
+            displayName: '📤 Publish Agent.Portal to Azure Artifacts'
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Build.ArtifactStagingDirectory)\packages\Microsoft.SREAgent.Portal.*.nupkg'
+              nuGetFeedType: 'internal'
+              publishVstsFeed: 'Antares/antares-websites'
+              allowPackageConflicts: false
 
         # keep roslynanalyzers task separate from dotnet build, otherwise compile-time LoggerMessage autogen partial classes will result in build error CS8795
         - task: RoslynAnalyzers@3

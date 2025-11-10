@@ -16,6 +16,10 @@ parameters:
   displayName: 'Enables or Disables an Official build and its configuration (signing and other build steps)'
   type: boolean
   default: false
+- name: 'isNugetPublish'
+  displayName: 'Enables publishing NuGet packages to Azure Artifacts'
+  type: boolean
+  default: false
 
 resources:
   repositories:
@@ -256,6 +260,14 @@ extends:
 
         
         
+        #
+        # Agent.Portal - Authenticate NPM registry (required for building React client)
+        #
+        - task: npmAuthenticate@0
+          displayName: 'Agent.Portal - Auth'
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Agent\Agent.Portal\Client\.npmrc'
+
         #  Need to run npmAuthenticate again for the FirstPartyAgent.Web project first
         #  Due to Client React app also build during whole solution build phase
         - task: npmAuthenticate@0
@@ -283,6 +295,30 @@ extends:
             arguments: '--no-restore --output $(ob_outputDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
             includeNuGetOrg: false
             zipAfterPublish: false
+
+        #
+        # Pack and Publish Agent.Portal NuGet Package
+        # Only runs on Official builds when isNugetPublish is enabled
+        #
+        - ${{ if and(eq(parameters.isNugetPublish, true), eq(parameters.isOfficialBuild, true)) }}:
+          - task: DotNetCoreCLI@2
+            displayName: '📦 Pack Agent.Portal NuGet Package'
+            inputs:
+              command: 'pack'
+              packagesToPack: '.\src\Agent\Agent.Portal\Agent.Portal.csproj'
+              configuration: '$(BuildConfiguration)'
+              packDirectory: '$(Build.ArtifactStagingDirectory)\packages'
+              versioningScheme: 'byBuildNumber'
+              includeNuGetOrg: false
+
+          - task: NuGetCommand@2
+            displayName: '📤 Publish Agent.Portal to Azure Artifacts'
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Build.ArtifactStagingDirectory)\packages\Microsoft.SREAgent.Portal.*.nupkg'
+              nuGetFeedType: 'internal'
+              publishVstsFeed: 'Antares/antares-websites'
+              allowPackageConflicts: false
 
         # Add runtime test for Agent.Web
         # Commenting this out for now, since running this project depends on settings being present
