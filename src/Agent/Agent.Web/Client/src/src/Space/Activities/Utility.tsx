@@ -567,6 +567,7 @@ export const createChatMessageContentFromStreamingMessage = (streamingMessage: S
     const isImage = isImageStreamingMessageType(streamingMessage);
 
     const chatMessageContent: ChatMessageContent = {
+        messageId: streamingMessage.additionalProperties?.messageId || '',
         text,
         isImage,
         approval,
@@ -676,28 +677,32 @@ export const constructUserMessageFromStreamingMessage = (streamingMessage: Strea
     const { additionalProperties, authorName, createdAt } = streamingMessage;
     const { messageId, userId } = additionalProperties || {};
 
+    const id = messageId || Guid.newGuid();
+
     return {
-        id: messageId || Guid.newGuid(),
+        id: id,
         timeStamp: createdAt || new Date().toISOString(),
         author: {
             role: 'User',
             userId: userId || DefaultUserIdAndDisplayName.userId,
             displayName: authorName || DefaultUserIdAndDisplayName.displayName,
         },
-        contents: [{ text: getStreamingMessageText(streamingMessage) }],
+        contents: [{ messageId: id, text: getStreamingMessageText(streamingMessage) }],
     };
 };
 
 export const composeUserMessage = (userId: string, userDisplayName: string, message: string): ChatMessage => {
+    const id = Guid.newGuid();
+
     return {
-        id: Guid.newGuid(),
+        id,
         timeStamp: new Date().toISOString(),
         author: {
             role: 'User',
             userId: userId,
             displayName: userDisplayName,
         },
-        contents: [{ text: message }],
+        contents: [{ messageId: id, text: message, isComplete: true }],
     };
 };
 
@@ -717,7 +722,10 @@ export const isChatMessageContentNonImageText = (chatMessageContent: ChatMessage
         !chatMessageContent.kubectlExecution &&
         !chatMessageContent.psqlExecution &&
         !chatMessageContent.memorySearchResult &&
-        !chatMessageContent.isImage
+        !chatMessageContent.isImage &&
+        !chatMessageContent.todoInfo &&
+        !chatMessageContent.deepInvestigationStatus &&
+        !chatMessageContent.changeDiff
     );
 };
 
@@ -727,18 +735,20 @@ export const shouldGroupWithPreviousMessage = (currentChatMessage?: ChatMessage,
         !!currentChatMessage &&
         !previousMessage.contents[0]?.deepInvestigationStatus &&
         !currentChatMessage.contents[0]?.deepInvestigationStatus &&
-        currentChatMessage.author.userId === previousMessage.author.userId &&
-        getSafeDateTime(currentChatMessage.timeStamp).getTime() - getSafeDateTime(previousMessage.timeStamp).getTime() <= 5 * 60 * 1000
+        currentChatMessage.author.userId === previousMessage.author.userId
     );
 };
 
 export const getDefaultDeepInvestigationStatusChatMessage = (isDeepInvestigationTurnedOn: boolean): ChatMessage => {
+    const id = Guid.newGuid();
+
     return {
-        id: Guid.newGuid(),
+        id,
         timeStamp: new Date().toISOString(),
         author: getDefaultSREAgentAuthor(),
         contents: [
             {
+                messageId: id,
                 text: '',
                 deepInvestigationStatus: {
                     enabled: isDeepInvestigationTurnedOn,
@@ -874,6 +884,7 @@ export const convertMessageToChatMessage = (message: Message): ChatMessage => {
         title: message.title,
         contents: [
             {
+                messageId: message.id,
                 text: message.text,
                 approval: message.approval,
                 azCliExecution: message.azCliExecution,
@@ -884,6 +895,7 @@ export const convertMessageToChatMessage = (message: Message): ChatMessage => {
                 agentTaskInfo: message.agentTaskInfo,
                 memorySearchResult: message.memorySearchResult,
                 todoInfo: message.todoInfo,
+                isComplete: message.isComplete,
             },
         ],
     };

@@ -29,14 +29,13 @@ import {
     isChatMessageContentAnApprovalOrCliMessageContent,
     isChatMessageContentNonImageText,
     isChatMessageEmpty,
-    isDefaultStreamingMessageType,
     isFinalStreamingMessage,
     isInitialState,
     isUpdatedCliOrApprovalStreamingMessage,
     isUserStreamingMessage,
     shouldGroupWithPreviousMessage,
 } from '../Activities/Utility';
-import { ChatMessage, MessageTypingCharactersPer10Ms, MessageTypingSpeedInMilliseconds, SendMessageOptions } from '../Contracts/Activities';
+import { ChatMessage, SendMessageOptions } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 import { useChatHistory } from './useChatHistory';
@@ -84,21 +83,22 @@ export const useChatBox = (
     const streamingMessageTimestampFilterRef = useRef<string | null>(null);
 
     const messageChunkQueue = useRef<StreamingMessage[]>([]);
-    const isTypingChars = useRef<boolean>(false);
-    const typingCharIndex = useRef<number>(0);
-    const typingCharsTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
+    const isHandlingStreamingMessage = useRef<boolean>(false);
     const isCancellingStreamingRef = useRef<boolean>(false);
     const addThreadRef = useRef(addThread);
     const responseEndLoggedRef = useRef<boolean>(false);
     const isDeepInvestigationTurnedOnRef = useRef<boolean>(isDeepInvestigationTurnedOn);
 
+    const prepareForAddingChatHistory = () => {
+        currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
+    };
     const { chatHistoryLength, isLoadingInitialChatHistory, loadOlderMessagesRef, newestMessageTimestampInOldMessages } = useChatHistory(
-        messages,
         setMessages,
         threadId,
-        () => {
-            currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
-        }
+        prepareForAddingChatHistory,
+        setStreamingMessage,
+        setIsAgentTyping,
+        setIsWaitingForStreamingMessages
     );
 
     const isNewAndCleanThread = useMemo(
@@ -163,11 +163,8 @@ export const useChatBox = (
         setIsCancellingStreaming(false);
 
         messageChunkQueue.current = [];
-        isTypingChars.current = false;
-        typingCharIndex.current = 0;
+        isHandlingStreamingMessage.current = false;
         responseEndLoggedRef.current = false;
-
-        clearTimeout(typingCharsTimeout.current);
     };
 
     const cancelStreaming = useCallback(() => {
@@ -397,6 +394,34 @@ export const useChatBox = (
         const appendMessageInTheStreamingMessage = () => {
             setStreamingMessage(prev => {
                 const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
+
+                const latestContent = newStreamingMessage.contents[newStreamingMessage.contents.length - 1];
+                const latestContentText = latestContent?.text;
+                const latestContentId = latestContent?.messageId;
+                const currentContentText = chatMessageContent.text;
+                const currentContentId = chatMessageContent.messageId;
+
+                if (
+                    latestContent &&
+                    latestContentText &&
+                    latestContentId &&
+                    currentContentText &&
+                    currentContentId &&
+                    isChatMessageContentNonImageText(latestContent) &&
+                    isChatMessageContentNonImageText(chatMessageContent) &&
+                    latestContentId === currentContentId
+                ) {
+                    return {
+                        ...newStreamingMessage,
+                        contents: [
+                            ...newStreamingMessage.contents.slice(0, -1),
+                            {
+                                ...latestContent,
+                                text: latestContentText + currentContentText,
+                            },
+                        ],
+                    };
+                }
                 return {
                     ...newStreamingMessage,
                     contents: [...newStreamingMessage.contents, chatMessageContent],
@@ -452,7 +477,7 @@ export const useChatBox = (
 
     const handleMessageTyping = () => {
         if (messageChunkQueue.current.length === 0) {
-            isTypingChars.current = false;
+            isHandlingStreamingMessage.current = false;
             setIsWaitingForStreamingMessages(true);
             return;
         }
@@ -479,8 +504,7 @@ export const useChatBox = (
             }
         };
 
-        isTypingChars.current = true;
-        typingCharIndex.current = 0;
+        isHandlingStreamingMessage.current = true;
         const currentMessageChunk = messageChunkQueue.current[0];
         const currentMessageText = getStreamingMessageText(currentMessageChunk);
         const currentToolCallText = getToolCallText(currentMessageChunk);
@@ -508,73 +532,28 @@ export const useChatBox = (
             const userMessage = constructUserMessageFromStreamingMessage(currentMessageChunk);
             setTemporaryUserMessage(null);
             setMessages(prev => [...prev, userMessage]);
-
-            handleCompletedMessageChunk(currentMessageChunk);
         } else if (isUpdatedCliOrApprovalStreamingMessage(currentMessageChunk)) {
             processChatMessageContents(currentMessageChunk);
-            handleCompletedMessageChunk(currentMessageChunk);
         } else {
             setIsAgentTyping(true);
             setIsWaitingForStreamingMessages(false);
             setToolCallText(isCancellingStreamingRef.current ? null : currentToolCallText);
 
             if (currentMessageText && !isCancellingStreamingRef.current) {
-                if (isDefaultStreamingMessageType(currentMessageChunk)) {
-                    const typeChar = () => {
-                        if (typingCharIndex.current < currentMessageText.length && !isCancellingStreamingRef.current) {
-                            const charIndex = typingCharIndex.current;
-                            typingCharIndex.current += MessageTypingCharactersPer10Ms;
-                            const newText = currentMessageText.slice(
-                                charIndex,
-                                Math.min(charIndex + MessageTypingCharactersPer10Ms, currentMessageText.length)
-                            );
-
-                            setStreamingMessage(prev => {
-                                const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
-                                const latestContent = newStreamingMessage.contents[newStreamingMessage.contents.length - 1];
-
-                                if (charIndex !== 0 && latestContent && isChatMessageContentNonImageText(latestContent)) {
-                                    // Append text to the lastest text messsage
-                                    const updatedLatestContent = {
-                                        ...latestContent,
-                                        text: latestContent.text + newText,
-                                    };
-                                    return {
-                                        ...newStreamingMessage,
-                                        contents: [...newStreamingMessage.contents.slice(0, -1), updatedLatestContent],
-                                    };
-                                } else {
-                                    // Start a new content
-                                    return {
-                                        ...newStreamingMessage,
-                                        contents: [
-                                            ...newStreamingMessage.contents,
-                                            {
-                                                text: newText,
-                                            },
-                                        ],
-                                    };
-                                }
-                            });
-                            typingCharsTimeout.current = setTimeout(() => typeChar(), MessageTypingSpeedInMilliseconds);
-                        } else {
-                            handleCompletedMessageChunk(currentMessageChunk);
-                        }
-                    };
-                    typeChar();
-                } else {
-                    processChatMessageContents(currentMessageChunk);
-                    handleCompletedMessageChunk(currentMessageChunk);
-                }
-            } else {
-                handleCompletedMessageChunk(currentMessageChunk);
+                processChatMessageContents(currentMessageChunk);
             }
         }
+
+        handleCompletedMessageChunk(currentMessageChunk);
     };
 
     const attemptToProcessMessageChunk = () => {
-        if (!isTypingChars.current && streamingMessageTimestampFilterRef.current !== null && messageChunkQueue.current.length > 0) {
-            isTypingChars.current = true;
+        if (
+            !isHandlingStreamingMessage.current &&
+            streamingMessageTimestampFilterRef.current !== null &&
+            messageChunkQueue.current.length > 0
+        ) {
+            isHandlingStreamingMessage.current = true;
             handleMessageTyping();
         }
     };

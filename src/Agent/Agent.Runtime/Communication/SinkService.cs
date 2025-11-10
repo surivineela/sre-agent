@@ -19,9 +19,10 @@ public class SinkService
         _logger = logger;
     }
 
-    public async Task<Guid> SinkAgentMessageAsync(Guid threadId, string messageText, bool isImageContent = false, Approval? approval = null, Guid agentResponseMessageId = default, DateTime? recordedDateTime = null, AgentTaskInfo? agentTaskInfo = null, MemorySearchResult? memorySearchResult = null, TodoInfo? todoInfo = null)
+    public async Task<Guid> SinkAgentMessageAsync(Guid threadId, string messageText, bool isImageContent = false, Approval? approval = null, Guid agentResponseMessageId = default, DateTime? recordedDateTime = null, AgentTaskInfo? agentTaskInfo = null, MemorySearchResult? memorySearchResult = null, TodoInfo? todoInfo = null, bool isComplete = true)
     {
         var messageId = agentResponseMessageId == default ? Guid.NewGuid() : agentResponseMessageId;
+        // Always construct a fresh message object for the initial add scenario.
         var agentMessage = new Message(
             Id: messageId,
             TimeStamp: recordedDateTime ?? DateTime.UtcNow,
@@ -32,16 +33,39 @@ public class SinkService
             Approval: approval,
             AgentTaskInfo: agentTaskInfo,
             MemorySearchResult: memorySearchResult,
-            TodoInfo: todoInfo
+            TodoInfo: todoInfo,
+            IsComplete: isComplete
         );
 
         try
         {
-            await _repository.AddMessageAsync(threadId, agentMessage);
+            // Check if message already exists; if so, update it instead of replacing.
+            var existingMessage = await _repository.GetMessageAsync(threadId, messageId);
+            if (existingMessage != null)
+            {
+                // Append directly without inserting any newline separator.
+                var baseText = existingMessage.Text ?? string.Empty;
+                var appendedText = baseText + messageText;
+
+                // Create updated message with new text, task info, and IsComplete flag
+                var updatedMessage = existingMessage with
+                {
+                    Text = appendedText,
+                    AgentTaskInfo = agentTaskInfo ?? existingMessage.AgentTaskInfo,
+                    IsComplete = isComplete
+                };
+
+                // Use full update API to update the entire message
+                await _repository.UpdateMessageAsync(threadId, updatedMessage);
+            }
+            else
+            {
+                await _repository.AddMessageAsync(threadId, agentMessage);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError("Error adding agent message: {Message}", ex.Message);
+            _logger.LogInternalError("Error adding/appending agent message: {Message}", ex.Message);
             throw;
         }
 

@@ -41,7 +41,9 @@ public record Message(
     // Memory search results from agent memory plugin
     MemorySearchResult? MemorySearchResult = null,
     // Todo Plan information associated with this message (for todo plan notifications)
-    TodoInfo? TodoInfo = null
+    TodoInfo? TodoInfo = null,
+    // Indicates if the message is complete (e.g., streaming is finished)
+    bool IsComplete = true
 );
 
 public record Posted(

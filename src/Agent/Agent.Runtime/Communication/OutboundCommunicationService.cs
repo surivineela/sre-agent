@@ -180,7 +180,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     }
 
     // over load method that also takes agent context
-    public async Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null)
+    public async Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null, bool isComplete = true)
     {
         _logger.LogExternalInformation("Agent context {AgentContextId} of type {AgentType} message to thread {ThreadId}: {message}",
             context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
@@ -199,7 +199,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         Guid agentMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
         await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, null, agentMessageId, recordedDateTime);
-        await _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime);
+        await _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime, isComplete: isComplete);
     }
 
     public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default)

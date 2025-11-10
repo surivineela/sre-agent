@@ -239,6 +239,12 @@ public class Constants
         public const string SearchIndexKeyFieldName = "id";
     }
 
+    public static class Messages
+    {
+        // Timeout in seconds for incomplete messages - if thread hasn't been modified in this time, remove incomplete messages
+        public const int IncompleteMessageTimeoutSeconds = 180; // 3 minutes
+    }
+
     public static class ErrorMessages
     {
         public const string ContentFilterTriggered =

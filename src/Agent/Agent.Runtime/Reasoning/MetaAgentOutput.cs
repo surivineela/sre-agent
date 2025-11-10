@@ -3,18 +3,13 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Framework;
 
 namespace Agent.Runtime.Reasoning;
 
 public sealed class MetaAgentOutput : IAgentOutput
 {
-    [Description(
-        """
-        Use this space to think step-by-step about the problem you're solving, formulate a plan, your current trajectory, reflecting on agent handoff outputs, and deciding next steps.
-        You may mention other agents, tool names, handoffs etc in this field.
-        """)]
-    public required string ReasoningScratchPad { get; set; }
-
+    [StreamableContent]
     [Description(
         """
         Presented to the user. Use this space to keep the user posted of your activity. It may be summary of your plan, handoffs, ask for guidance, ask for option selection, or final answer to their query.
@@ -23,6 +18,13 @@ public sealed class MetaAgentOutput : IAgentOutput
         You must NOT mention other agents or the flow of control or handoffs or tool names in this field.
         """)]
     public required string NotifyUserMessage { get; set; }
+
+    [Description(
+        """
+        Use this space to think step-by-step about the problem you're solving, formulate a plan, your current trajectory, reflecting on agent handoff outputs, and deciding next steps.
+        You may mention other agents, tool names, handoffs etc in this field.
+        """)]
+    public required string ReasoningScratchPad { get; set; }
 
     [Description(
         """

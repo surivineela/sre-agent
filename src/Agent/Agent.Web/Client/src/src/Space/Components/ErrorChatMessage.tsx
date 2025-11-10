@@ -20,6 +20,7 @@ const ErrorChatMessage = ({
         const agentMessage = composeDefaultAgentMessage();
         agentMessage.contents = [
             {
+                messageId: '',
                 text: '',
                 error,
             },

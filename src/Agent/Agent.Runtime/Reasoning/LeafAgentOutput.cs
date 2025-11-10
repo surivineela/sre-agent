@@ -3,11 +3,21 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Framework;
 
 namespace Agent.Runtime.Reasoning;
 
 public sealed class LeafAgentOutput : IAgentOutput
 {
+
+    [StreamableContent]
+    [Description(
+        """
+        Presented to the user. Use this space to keep the user posted of your activity. It may be summary of your plan, tool results, ask for guidance, ask for option selection, or final answer to their query. It should be concise, to the point, and relevant to the user query investigation.
+        You must NOT mention handoffs in this field.
+        """)]
+    public required string NotifyUserMessage { get; set; }
+
     [Description(
         """
         Use this space to think step-by-step about the problem you're solving, formulate a plan, your current trajectory, reflecting on tool call outputs, and deciding next steps.
@@ -15,13 +25,6 @@ public sealed class LeafAgentOutput : IAgentOutput
         """)]
     public required string ReasoningScratchPad { get; set; }
 
-    [Description(
-        """
-        Presented to the user. Use this space to keep the user posted of your activity. It may be summary of your plan, tool results, ask for guidance, ask for option selection, or final answer to their query. It should be concise, to the point, and relevant to the user query investigation.
-        You must NOT mention handoffs in this field.
-        """)]
-
-    public required string NotifyUserMessage { get; set; }
 
     [Description(
         """

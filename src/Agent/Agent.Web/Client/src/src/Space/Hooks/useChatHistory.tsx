@@ -1,14 +1,21 @@
 import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
-import { convertMessageToChatMessage, getIntervalBetweenLoading, isTrajectoryInsightMessageType } from '../Activities/Utility';
+import {
+    convertMessageToChatMessage,
+    getIntervalBetweenLoading,
+    isTrajectoryInsightMessageType,
+    shouldGroupWithPreviousMessage,
+} from '../Activities/Utility';
 import { ChatMessage, MessageLoadingCounts } from '../Contracts/Activities';
 
 export const useChatHistory = (
-    messages: ChatMessage[],
     setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
     threadId: string | null | undefined,
-    prepareForAddingChatHistory: () => void
+    prepareForAddingChatHistory: () => void,
+    setStreamingMessage: Dispatch<SetStateAction<ChatMessage | null | undefined>>,
+    setIsAgentTyping: Dispatch<React.SetStateAction<boolean | undefined>>,
+    setIsWaitingForStreamingMessages: Dispatch<React.SetStateAction<boolean | undefined>>
 ) => {
     const [newestMessageTimestampInOldMessages, setNewestMessageTimestampInOldMessages] = useState<string | null>(null);
     const [isLoadingInitialChatHistory, setIsLoadingInitialChatHistory] = useState<boolean>(true);
@@ -19,8 +26,7 @@ export const useChatHistory = (
     const loadOlderMessagesRef = useRef<(() => void) | null>(null);
     const isFetchingPreviousPage = useRef<boolean>(false);
     const hasPreviousPage = useRef<boolean>(true);
-    const timestampCutOffForFetchingLatestMessagesRef = useRef<string | undefined | null>(null);
-    timestampCutOffForFetchingLatestMessagesRef.current = messages[0]?.timeStamp;
+    const timestampCutOffForFetchingOlderMessagesRef = useRef<string | undefined | null>(null);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const messageClient = MessageClient.getInstance(sreAgentEndpoint);
@@ -59,7 +65,7 @@ export const useChatHistory = (
             isLoadingInitialChatHistory ||
             isFetchingPreviousPage.current ||
             !hasPreviousPage.current ||
-            !timestampCutOffForFetchingLatestMessagesRef.current
+            !timestampCutOffForFetchingOlderMessagesRef.current
         ) {
             return;
         }
@@ -68,13 +74,16 @@ export const useChatHistory = (
 
         timeout.current = setTimeout(async () => {
             isFetchingPreviousPage.current = true;
-            const newPage = await fetchPage(threadId, timestampCutOffForFetchingLatestMessagesRef.current);
+            const newPage = await fetchPage(threadId, timestampCutOffForFetchingOlderMessagesRef.current);
             if (!newPage) {
                 exponentialBackoffDepth.current += 1;
             } else {
                 if (newPage.length > 0) {
                     prepareForAddingChatHistory();
                     setMessages(prev => [...newPage, ...prev]);
+                    if (newPage.length > 0) {
+                        timestampCutOffForFetchingOlderMessagesRef.current = newPage[0].timeStamp;
+                    }
                     setChatHistoryLength(prev => prev + newPage.length);
                 }
                 exponentialBackoffDepth.current = -1; // Reset on successful fetch
@@ -88,12 +97,43 @@ export const useChatHistory = (
             const loadInitialPage = async () => {
                 setIsLoadingInitialChatHistory(true);
                 setMessages([]);
+                timestampCutOffForFetchingOlderMessagesRef.current = null;
                 setChatHistoryLength(0);
+
                 const initialPage = await fetchPage(threadId, undefined);
+
                 if (initialPage && initialPage.length > 0) {
+                    const lastMessage = initialPage?.[initialPage.length - 1];
+                    const initialChatHistory = [];
+                    // If the last message is incomplete, group it with the previous agent messages to construct
+                    // a streaming message.
+                    if (lastMessage && lastMessage.contents.length > 0 && lastMessage.contents[0].isComplete === false) {
+                        let startIndex = initialPage.length - 2;
+                        while (startIndex >= 0) {
+                            if (shouldGroupWithPreviousMessage(lastMessage, initialPage[startIndex])) {
+                                startIndex--;
+                            } else {
+                                break;
+                            }
+                        }
+
+                        const currentStreamingMessages = initialPage.slice(startIndex + 1);
+                        const streamingMessage: ChatMessage = {
+                            ...currentStreamingMessages[0],
+                            contents: currentStreamingMessages.flatMap(msg => msg.contents),
+                        };
+                        setStreamingMessage(streamingMessage);
+                        setIsAgentTyping(true);
+                        setIsWaitingForStreamingMessages(true);
+                        initialChatHistory.push(...initialPage.slice(0, startIndex + 1));
+                    } else {
+                        initialChatHistory.push(...initialPage);
+                    }
+
                     prepareForAddingChatHistory();
-                    setMessages([...initialPage]);
-                    setChatHistoryLength(initialPage.length);
+                    setMessages([...initialChatHistory]);
+                    setChatHistoryLength(initialChatHistory.length);
+                    timestampCutOffForFetchingOlderMessagesRef.current = initialPage[0].timeStamp;
                 }
                 setNewestMessageTimestampInOldMessages(initialPage?.[initialPage.length - 1]?.timeStamp || '');
                 setIsLoadingInitialChatHistory(false);
@@ -104,6 +144,7 @@ export const useChatHistory = (
             setNewestMessageTimestampInOldMessages('');
             setIsLoadingInitialChatHistory(false);
             setMessages([]);
+            timestampCutOffForFetchingOlderMessagesRef.current = null;
             setChatHistoryLength(0);
             hasPreviousPage.current = false;
         }

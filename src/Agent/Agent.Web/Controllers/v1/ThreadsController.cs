@@ -5,6 +5,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
+using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -135,7 +136,55 @@ namespace Agent.Web.Controllers.v1
 
             var messages = await repository.GetMessagesAsync(threadId, queryOptions);
 
-            return Ok(new PagedResponseWithState<Message, ContextStateEnum?>(Value: messages, State: ctx?.ContextState));
+            // Filter incomplete messages:
+            // 1. Remove incomplete User messages (Role == 0) that are not the last message
+            // 2. Keep incomplete messages if they are the last message
+            // 3. If the last message is incomplete and thread hasn't been modified in the timeout period, remove it
+            var filteredMessages = FilterIncompleteMessages(messages, thread);
+
+            return Ok(new PagedResponseWithState<Message, ContextStateEnum?>(Value: filteredMessages, State: ctx?.ContextState));
+        }
+
+        private IEnumerable<Message> FilterIncompleteMessages(IEnumerable<Message> messages, Thread thread)
+        {
+            var messageList = messages.ToList();
+            if (messageList.Count == 0)
+            {
+                return messageList;
+            }
+
+            var filteredMessages = new List<Message>();
+            for (int i = 0; i < messageList.Count; i++)
+            {
+                var message = messageList[i];
+                // Latest message is at index 0 (front of the list)
+                bool isLatestMessage = i == 0;
+
+                // If it's incomplete and it's a Agent message (Role == 0) and NOT the latest message, skip it
+                if (!message.IsComplete && message.Author.Role == Role.SREAgent && !isLatestMessage)
+                {
+                    continue;
+                }
+
+                // If it's the latest message and incomplete, check if thread hasn't been modified in the timeout period
+                if (isLatestMessage && !message.IsComplete)
+                {
+                    var timeSinceLastModification = DateTime.UtcNow - thread.ModifiedTimestamp;
+                    if (timeSinceLastModification.TotalSeconds >= Constants.Messages.IncompleteMessageTimeoutSeconds)
+                    {
+                        logger.LogInternalInformation(
+                            "Removing incomplete latest message {MessageId} from thread {ThreadId} - thread not modified for {Seconds} seconds",
+                            message.Id,
+                            thread.Id,
+                            timeSinceLastModification.TotalSeconds);
+                        continue; // Skip this message (remove it)
+                    }
+                }
+
+                filteredMessages.Add(message);
+            }
+
+            return filteredMessages;
         }
 
         [HttpGet("{threadId}/messages/{messageId}")]

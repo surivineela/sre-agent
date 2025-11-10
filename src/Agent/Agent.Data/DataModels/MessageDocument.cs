@@ -28,7 +28,9 @@ public record MessageDocument(
     // Memory search results from agent memory plugin
     MemorySearchResult? MemorySearchResult = null,
     // Todo Plan information associated with this message (for todo plan notifications)
-    TodoInfo? TodoInfo = null
+    TodoInfo? TodoInfo = null,
+    // Indicates if the message is complete (e.g., streaming is finished)
+    bool IsComplete = true
 ) : ICosmosDocument
 {
     public string DocumentType => "Message";
@@ -53,7 +55,8 @@ public record MessageDocument(
             message.IsDailyReport,
             message.AgentTaskInfo ?? null,
             message.MemorySearchResult ?? null,
-            message.TodoInfo ?? null
+            message.TodoInfo ?? null,
+            message.IsComplete
         );
 
     public Message ToDomainModel(Approval? approval = null, bool isDailyReport = false) =>
@@ -72,6 +75,7 @@ public record MessageDocument(
             IsDailyReport,
             AgentTaskInfo,
             MemorySearchResult: MemorySearchResult,
-            TodoInfo: TodoInfo
+            TodoInfo: TodoInfo,
+            IsComplete: IsComplete
         );
 }

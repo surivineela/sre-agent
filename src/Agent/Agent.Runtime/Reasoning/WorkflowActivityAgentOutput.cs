@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using Agent.Runtime.Workflow;
+using Agent.Framework;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -15,20 +16,21 @@ namespace Agent.Runtime.Reasoning;
 public sealed class WorkflowActivityAgentOutput : IAgentOutput, IWorkflowActivityOutput
 {
     // === IAgentOutput Properties (for compatibility) ===
-    
-    [Description(
-        """
-        Use this space to think step-by-step about the problem you're solving, formulate a plan, your current trajectory, reflecting on tool call outputs, and deciding next steps.
-        This is for internal reasoning and will not be shown to the user.
-        """)]
-    public required string ReasoningScratchPad { get; set; }
 
+    [StreamableContent]
     [Description(
         """
         Presented to the user. Use this space to keep the user posted of your activity. It may be summary of your plan, tool results, or findings from your analysis. It should be concise, to the point, and relevant to the task you were assigned.
         This should focus on the specific analysis or task you performed within the workflow.
         """)]
     public required string NotifyUserMessage { get; set; }
+
+    [Description(
+        """
+        Use this space to think step-by-step about the problem you're solving, formulate a plan, your current trajectory, reflecting on tool call outputs, and deciding next steps.
+        This is for internal reasoning and will not be shown to the user.
+        """)]
+    public required string ReasoningScratchPad { get; set; }
 
     [Description(
         """
@@ -154,7 +156,7 @@ public sealed class WorkflowActivityAgentOutput : IAgentOutput, IWorkflowActivit
             NextSteps = llmOutput.NextSteps,
             Analysis = llmOutput.Analysis,
             Parameters = llmOutput.Parameters,
-            
+
             // Set from parameters
             ReasoningScratchPad = reasoningScratchPad,
             NotifyUserMessage = notifyUserMessage,
@@ -166,7 +168,7 @@ public sealed class WorkflowActivityAgentOutput : IAgentOutput, IWorkflowActivit
 
         // Parse parameters immediately
         output.ParseParameters();
-        
+
         return output;
     }
 }

@@ -36,6 +36,68 @@ public static partial class ChatClientExtensions
 
     private static readonly Regex _invalidNameCharsRegex = InvalidNameCharsRegex();
 
+    /// <summary>
+    /// Gets a chat response without structured output using streaming
+    /// </summary>
+    public static async Task<ChatResponse> GetResponseAsync(
+        this IChatClient client,
+        IEnumerable<ChatMessage> messages,
+        ChatOptions? options = null,
+        IStreamContentHandler? streamHandler = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        List<ChatResponseUpdate> chatResponseUpdates = [];
+        string modelId = string.Empty;
+
+        try
+        {
+            // Check for cancellation
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await foreach (var update in client.GetStreamingResponseAsync(messages, options, cancellationToken))
+            {
+                // Capture model ID from updates
+                var tempModelId = (update.RawRepresentation as OpenAI.Chat.StreamingChatCompletionUpdate)?.Model;
+                if (!string.IsNullOrEmpty(tempModelId))
+                {
+                    modelId = tempModelId;
+                }
+
+                chatResponseUpdates.Add(update);
+                if (!string.IsNullOrEmpty(update.Text))
+                {
+                    // Await IStreamContentHandler to ensure DB writes complete before next update
+                    if (streamHandler != null)
+                    {
+                        await streamHandler.AppendAsync(update.Text);
+                    }
+                }
+            }
+
+            var response = chatResponseUpdates.ToChatResponse();
+            response.ModelId = modelId;
+
+            if (streamHandler != null)
+            {
+                await streamHandler.CompleteAsync(response.FinishReason);
+            }
+
+            return response;
+        }
+        catch (OperationCanceledException)
+        {
+            if (streamHandler != null)
+            {
+                await streamHandler.IncompleteAsync();
+            }
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Gets a chat response with structured output using streaming
+    /// </summary>
     public static async Task<(ChatResponse response, object? result)> GetResponseAsync(
         this IChatClient client,
         IEnumerable<ChatMessage> messages,
@@ -45,6 +107,8 @@ public static partial class ChatClientExtensions
         CancellationToken cancellationToken = default
     )
     {
+        // Check for cancellation before starting
+        cancellationToken.ThrowIfCancellationRequested();
         var schemaElement = AIJsonUtilities.CreateJsonSchema(
             type: outputType,
             serializerOptions: _jsonSerializerOptions,
@@ -149,8 +213,6 @@ public static partial class ChatClientExtensions
         CancellationToken cancellationToken)
     {
         var start = DateTime.UtcNow;
-        // Use a 60s internal deadline because the caller may retry once for schema/JSON issues,
-        // keeping the overall worst-case retry window to ~120s.
         var deadline = start.AddSeconds(60);
         var attempt = 0;
         bool nonRateLimitRetried = false;
@@ -160,11 +222,15 @@ public static partial class ChatClientExtensions
             attempt++;
             try
             {
+                // Check for cancellation
+                cancellationToken.ThrowIfCancellationRequested();
+
                 List<ChatResponseUpdate> chatResponseUpdates = [];
                 string modelId = string.Empty;
 
                 await foreach (var update in client.GetStreamingResponseAsync(messages, options, cancellationToken))
                 {
+
                     // Capture model ID from updates
                     var tempModelId = (update.RawRepresentation as OpenAI.Chat.StreamingChatCompletionUpdate)?.Model;
                     if (!string.IsNullOrEmpty(tempModelId))
@@ -173,17 +239,25 @@ public static partial class ChatClientExtensions
                     }
 
                     chatResponseUpdates.Add(update);
+
                     if (!string.IsNullOrEmpty(update.Text))
                     {
-                        // Use IStreamContentHandler to process streaming content
-                        streamHandler?.Append(update.Text);
+                        // Await IStreamContentHandler to ensure DB writes complete before next update
+                        if (streamHandler != null)
+                        {
+                            await streamHandler.AppendAsync(update.Text);
+                        }
                     }
                 }
 
-                streamHandler?.Complete();
-
                 var response = chatResponseUpdates.ToChatResponse();
                 response.ModelId = modelId;
+
+                if (streamHandler != null)
+                {
+                    await streamHandler.CompleteAsync(response.FinishReason);
+                }
+
                 return response;
             }
             catch (System.ClientModel.ClientResultException ex) when (IsRateLimit(ex))
@@ -223,6 +297,15 @@ public static partial class ChatClientExtensions
                     nonRateLimitRetried = true;
                     await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken);
                     continue;
+                }
+                throw;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // User explicitly requested cancellation
+                if (streamHandler != null)
+                {
+                    await streamHandler.IncompleteAsync();
                 }
                 throw;
             }

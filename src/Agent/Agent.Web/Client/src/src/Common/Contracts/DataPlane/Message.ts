@@ -21,6 +21,7 @@ export interface MessageContent {
     agentTaskInfo?: AgentTaskMetaData;
     memorySearchResult?: MemorySearchResult;
     todoInfo?: TodoInfo;
+    isComplete?: boolean;
 }
 
 export interface Message extends MessageMetaData, MessageContent {}

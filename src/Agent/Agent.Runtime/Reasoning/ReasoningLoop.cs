@@ -751,7 +751,7 @@ public class ReasoningLoop : IDisposable
                 runtimeModifier: _agentRuntimeModifier,
                 context: _context,
                 hooks: runHooks,
-                displayModelOutput: DisplayModelResponse,
+                displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _context, Guid.NewGuid()),
                 cancellationToken: cancellationToken
             );
 
@@ -943,7 +943,7 @@ public class ReasoningLoop : IDisposable
                             config: runConfig,
                             context: _context,
                             hooks: runHooks,
-                            displayModelOutput: DisplayModelResponse,
+                            displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _context, Guid.NewGuid()),
                             cancellationToken: cancellationToken
                         );
 
@@ -1229,13 +1229,6 @@ public class ReasoningLoop : IDisposable
         }
 
         return Handoff<AgentContext>.GetTransferMessage(handoffReasoning);
-    }
-
-    private Task DisplayModelResponse(string t)
-    {
-        return _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-            _context,
-            new ChatMessage(ChatRole.Assistant, t));
     }
 
     private RunHooks<AgentContext> CreateRunHooks()
@@ -2666,7 +2659,7 @@ public class ReasoningLoop : IDisposable
                     runtimeModifier: _agentRuntimeModifier,
                     context: _context,
                     hooks: runHooks,
-                    displayModelOutput: DisplayModelResponse,
+                    displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _context, Guid.NewGuid()),
                     cancellationToken: cancellationToken);
 
                 _logger.LogInternalInformation("[{threadId}]Modifier agent completed execution", _context.ThreadId);
@@ -2719,7 +2712,7 @@ public class ReasoningLoop : IDisposable
                         config: runConfig,
                         context: _context,
                         hooks: runHooks,
-                        displayModelOutput: DisplayModelResponse,
+                        displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _context, Guid.NewGuid()),
                         cancellationToken: cancellationToken
                     );
 

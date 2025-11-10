@@ -210,7 +210,7 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
-        public Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null)
+        public Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null, bool isComplete = true)
         {
             _logger?.LogInternalInformation($"ThreadId: {context.ThreadId}, Message: {message.Text}");
             Messages.Add(message.Text);

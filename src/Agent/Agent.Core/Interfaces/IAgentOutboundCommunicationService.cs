@@ -22,7 +22,7 @@ public interface IAgentOutboundCommunicationService
     /// <summary>
     /// Updates a thread with a message from an agent with agent context
     /// </summary>
-    Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null);
+    Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null, bool isComplete = true);
 
     /// <summary>
     /// Updates a thread with a message from an agent and contains agent task info

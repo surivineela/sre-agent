@@ -44,7 +44,7 @@ public static class Runner
         IAgentRuntimeModifier<TContext>? runtimeModifier = null,
         TContext? context = null,
         RunHooks<TContext>? hooks = null,
-        Func<string, Task>? displayModelOutput = null,
+        IDisplayModelOutput? displayModelOutput = null,
         bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
         CancellationToken cancellationToken = default
@@ -70,7 +70,7 @@ public static class Runner
             {
                 if (displayModelOutput is not null)
                 {
-                    await displayModelOutput($"[DEBUG]\n\nCompleted Manually Invoked Tool: {manualToolCall.FunctionCall.Name}");
+                    await displayModelOutput.OnDisplay($"[DEBUG]\n\nCompleted Manually Invoked Tool: {manualToolCall.FunctionCall.Name}");
                 }
             }
 
@@ -111,7 +111,7 @@ public static class Runner
         TContext? context = null,
         int maxTurns = DefaultMaxTurns,
         RunHooks<TContext>? hooks = null,
-        Func<string, Task>? displayModelOutput = null,
+        IDisplayModelOutput? displayModelOutput = null,
         bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
         CancellationToken cancellationToken = default
@@ -144,7 +144,7 @@ public static class Runner
         TContext? context = null,
         int maxTurns = DefaultMaxTurns,
         RunHooks<TContext>? hooks = null,
-        Func<string, Task>? displayModelOutput = null,
+        IDisplayModelOutput? displayModelOutput = null,
         bool allowParallelToolCalls = true,
         CancellationToken cancellationToken = default
     ) where TContext : class
@@ -204,7 +204,7 @@ public static class Runner
         int maxTurns = DefaultMaxTurns,
         RunHooks<TContext>? hooks = null,
         Trajectory? trajectory = null,
-        Func<string, Task>? displayModelOutput = null,
+        IDisplayModelOutput? displayModelOutput = null,
         bool _shouldRunAgentStartHooks = true,
         bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
@@ -274,25 +274,14 @@ public static class Runner
                     logger: logger,
                     allowParallelToolCalls: allowParallelToolCalls,
                     displayModelOutput: displayModelOutput,
-                    toolResultCache: toolResultCache
+                    toolResultCache: toolResultCache,
+                    cancellationToken: cancellationToken
                 );
 
                 shouldRunAgentStartHooks = false;
                 originalInput = turnResult.OriginalInput;
                 generatedMessages = turnResult.GeneratedItems;
                 rawResponses.Add(turnResult.ModelResponse);
-
-                if (displayModelOutput is not null)
-                {
-                    foreach (var message in turnResult.ModelResponse.Messages)
-                    {
-                        foreach (var content in message.Contents.OfType<TextContent>())
-                        {
-                            var text = Summarizer.ExtractNotifyUserMessage(content.Text);
-                            await displayModelOutput(text);
-                        }
-                    }
-                }
 
                 if (config.EnableDebugOutput)
                 {
@@ -304,11 +293,11 @@ public static class Runner
                             {
                                 if (content is TextContent t)
                                 {
-                                    await displayModelOutput($"[DEBUG]\n\nAgent: {currentAgent.Name}\n\nResponse:{t.Text}");
+                                    await displayModelOutput.OnDisplay($"[DEBUG]\n\nAgent: {currentAgent.Name}\n\nResponse:{t.Text}");
                                 }
                                 else if (content is FunctionCallContent f)
                                 {
-                                    await displayModelOutput($"[DEBUG]\n\nAgent: {currentAgent.Name}"
+                                    await displayModelOutput.OnDisplay($"[DEBUG]\n\nAgent: {currentAgent.Name}"
                                         + $"\n\nFunction Call: {f.Name}"
                                         + $"\n\nParameters: {f.GetSerializedArguments()}");
                                 }
@@ -428,7 +417,7 @@ public static class Runner
         IAgentRuntimeModifier<TContext>? runtimeModifier,
         RunHooks<TContext> hooks,
         Trajectory trajectory,
-        Func<string, Task>? displayModelOutput,
+        IDisplayModelOutput? displayModelOutput,
         Agent<TContext> currentAgent,
         List<ChatMessage> originalInput,
         List<ChatMessage> generatedMessages,
@@ -453,7 +442,7 @@ public static class Runner
             {
                 if (displayModelOutput is not null)
                 {
-                    await displayModelOutput($"[DEBUG]\n\nGathering critique: Agent: {currentAgent.Name}. Turn #{criticCount}/{currentAgent.MaxReflectionCount}");
+                    await displayModelOutput.OnDisplay($"[DEBUG]\n\nGathering critique: Agent: {currentAgent.Name}. Turn #{criticCount}/{currentAgent.MaxReflectionCount}");
                 }
             }
 
@@ -469,7 +458,7 @@ public static class Runner
             {
                 if (displayModelOutput is not null)
                 {
-                    await displayModelOutput($"[DEBUG]\n\nSummarized User Query: {userQuery}");
+                    await displayModelOutput.OnDisplay($"[DEBUG]\n\nSummarized User Query: {userQuery}");
                 }
             }
 
@@ -500,7 +489,7 @@ public static class Runner
                 {
                     if (displayModelOutput is not null)
                     {
-                        await displayModelOutput($"[DEBUG]\n\nCritic failed the turn:\n\n{criticResult}");
+                        await displayModelOutput.OnDisplay($"[DEBUG]\n\nCritic failed the turn:\n\n{criticResult}");
                     }
                 }
 
@@ -530,7 +519,7 @@ public static class Runner
                 {
                     if (displayModelOutput is not null)
                     {
-                        await displayModelOutput($"[DEBUG]\n\nCritic approved the turn.");
+                        await displayModelOutput.OnDisplay($"[DEBUG]\n\nCritic approved the turn.");
                     }
                 }
             }
@@ -569,7 +558,8 @@ public static class Runner
         ILogger logger,
         bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
-        Func<string, Task>? displayModelOutput = null
+        IDisplayModelOutput? displayModelOutput = null,
+        CancellationToken cancellationToken = default
     ) where TContext : class
     {
         logger.LogInformation("Running agent {AgentName} with runtime modifier {HasRuntimeModifier}", agent.Name, runtimeModifier != null);
@@ -648,17 +638,27 @@ public static class Runner
             // deserialize sometimes fail with missing field, falls back to non-structured response path
             try
             {
-                (response, structuredOutput) = await chatClient.GetResponseAsync(modelInput, agent.OutputType, chatOptions);
+                var streamHandler = displayModelOutput is not null
+                    ? new JsonStreamContentHandler(agent.OutputType, displayModelOutput)
+                    : null;
+
+                (response, structuredOutput) = await chatClient.GetResponseAsync(
+                    modelInput,
+                    agent.OutputType,
+                    chatOptions,
+                    streamHandler,
+                    cancellationToken);
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("Failed to deserialize the response"))
             {
                 logger.LogWarning(ex, "Failed to deserialize structured output for agent {AgentName}. Falling back to non-structured response.", agent.Name);
-                response = await chatClient.GetResponseAsync(modelInput, chatOptions);
+                response = await chatClient.GetResponseAsync(modelInput, chatOptions, cancellationToken);
             }
         }
         else
         {
-            response = await chatClient.GetResponseAsync(modelInput, chatOptions);
+            var streamHandler = new TextStreamContentHandler(displayModelOutput);
+            response = await chatClient.GetResponseAsync(modelInput, chatOptions, streamHandler, cancellationToken);
         }
 
         await hooks.OnModelGenerationEnd(contextWrapper, agent, response);
@@ -704,7 +704,7 @@ public static class Runner
         Trajectory trajectory,
         ILogger logger,
         ToolResultCache? toolResultCache = null,
-        Func<string, Task>? displayModelOutput = null
+        IDisplayModelOutput? displayModelOutput = null
     ) where TContext : class
     {
         List<ChatMessage> newStepItems = [];
@@ -769,7 +769,7 @@ public static class Runner
                     {
                         if (displayModelOutput is not null)
                         {
-                            await displayModelOutput($"[DEBUG]\n\nUsing cached result for tool: {functionCall.Name}");
+                            await displayModelOutput.OnDisplay($"[DEBUG]\n\nUsing cached result for tool: {functionCall.Name}");
                         }
                     }
 
@@ -875,7 +875,7 @@ public static class Runner
                     {
                         if (displayModelOutput is not null)
                         {
-                            await displayModelOutput($"[DEBUG]\n\nHandoff Completed. Previous Agent: {agent.Name} -> New Agent: {newAgent.Name}.");
+                            await displayModelOutput.OnDisplay($"[DEBUG]\n\nHandoff Completed. Previous Agent: {agent.Name} -> New Agent: {newAgent.Name}.");
                         }
                     }
 
@@ -919,7 +919,7 @@ public static class Runner
                         {
                             if (displayModelOutput is not null)
                             {
-                                await displayModelOutput($"[DEBUG]\n\nCompleted Agent Invocation as Tool: {tool.Name}");
+                                await displayModelOutput.OnDisplay($"[DEBUG]\n\nCompleted Agent Invocation as Tool: {tool.Name}");
                             }
                         }
 
@@ -955,7 +955,7 @@ public static class Runner
                         {
                             if (displayModelOutput is not null)
                             {
-                                await displayModelOutput($"[DEBUG]\n\nCompleted Auto Invoked Tool: {tool.Name}");
+                                await displayModelOutput.OnDisplay($"[DEBUG]\n\nCompleted Auto Invoked Tool: {tool.Name}");
                             }
                         }
 
