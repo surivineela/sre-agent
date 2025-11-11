@@ -170,7 +170,7 @@ public partial class ApiServiceTests
             Directory.SetCurrentDirectory(testDirectory);
 
             // Act
-            var (Success, Response) = await _apiService.ApplyAgentAsync(agentName);
+            var (Success, Response) = await _apiService.ApplyOrValidateAgentAsync(agentName, dryRun: false);
 
             // Assert
             Assert.False(Success);
@@ -235,7 +235,7 @@ spec:
             Directory.SetCurrentDirectory(testDirectory);
 
             // Act
-            var (Success, Response) = await _apiService.ApplyAgentAsync(agentName);
+            var (Success, Response) = await _apiService.ApplyOrValidateAgentAsync(agentName, dryRun: false);
 
             // Assert
             // The method should find the file and proceed to make HTTP call

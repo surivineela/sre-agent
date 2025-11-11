@@ -300,25 +300,18 @@ public static class AgentCommandHandlers
         DebugLogger.Debug("Command", "Starting agent apply command");
 
         var name = parseResult.GetValue(AgentCommandOptions.ApplyNameOption);
-        var dryRun = parseResult.GetValue(AgentCommandOptions.ApplyDryRunOption);
 
-        DebugLogger.Debug("Parameters", $"Name: {name}, DryRun: {dryRun}");
-
-        if (dryRun)
-        {
-            await HandleAgentApplyDryRun(name!);
-            return;
-        }
+        DebugLogger.Debug("Parameters", $"Name: {name}");
 
         using var apiService = new ApiService();
-        var (success, response) = await apiService.ApplyAgentAsync(name!);
+        var (success, response) = await apiService.ApplyOrValidateAgentAsync(name!, dryRun: false);
 
         ConsoleUI.WriteInfo(response, success ? ConsoleColor.Green : ConsoleColor.Red);
         Environment.Exit(success ? 0 : 1);
     }
 
     /// <summary>
-    /// Validates all agent YAML files in the agents directory.
+    /// Validates all agent YAML files in the agents directory
     /// </summary>
     private static async Task ValidateAllAgentsAsync(bool checkTools = false)
     {
@@ -336,95 +329,29 @@ public static class AgentCommandHandlers
             Environment.Exit(1);
         }
 
-        ToolAvailabilityService? toolService = null;
-        ApiService? apiService = null;
-
-        // Always validate configuration first to catch corrupted config files
-        try
-        {
-            var configService = new CliConfigurationService();
-            var config = await configService.LoadConfigurationAsync();
-
-            if (checkTools)
-            {
-                if (config == null)
-                {
-                    ConsoleUI.WriteStatus(false, "Configuration not found. Run 'srectl init' first.");
-                    Environment.Exit(1);
-                    return;
-                }
-
-                // Validate URL format
-                if (!Uri.TryCreate(config.ResourceUrl, UriKind.Absolute, out _))
-                {
-                    ConsoleUI.WriteStatus(false, $"Invalid resource URL format in configuration: {config.ResourceUrl}");
-                    Environment.Exit(1);
-                    return;
-                }
-
-                apiService = new ApiService();
-                toolService = new ToolAvailabilityService(apiService);
-            }
-        }
-        catch (Exception ex)
-        {
-            // Check if this is a configuration corruption issue
-            if (ex.Message.Contains("Configuration file") && ex.Message.Contains("corrupted"))
-            {
-                ConsoleUI.WriteStatus(false, "Configuration corrupted");
-                Environment.Exit(1);
-                return;
-            }
-            ConsoleUI.WriteStatus(false, $"Configuration error: {ex.Message}");
-            Environment.Exit(1);
-            return;
-        }
+        ConsoleUI.WriteSection($"Validating {files.Length} agent(s)");
+        Console.WriteLine();
 
         bool allValid = true;
-
-        // Set up tool availability checker if needed
-        IToolAvailabilityChecker? toolChecker = null;
-        if (checkTools && toolService != null)
-        {
-            toolChecker = new CliToolAvailabilityChecker(toolService);
-        }
-
-        var validationService = new AgentValidationService(toolChecker);
 
         foreach (var file in files)
         {
             try
             {
-                var yaml = File.ReadAllText(file, Encoding.UTF8);
+                ConsoleUI.WriteInfo($"Validating {Path.GetFileName(file)}...", ConsoleColor.Cyan);
 
-                // Use the unified AgentValidationService
-                var validationResult = await validationService.ValidateYamlAsync(yaml, checkTools);
+                // Use ValidateSingleAgentAsync which calls the v2 API with dryRun=true
+                await ValidateSingleAgentAsync(file, checkTools);
 
-                if (validationResult.IsValid)
-                {
-                    ConsoleUI.WriteStatus(true, $"{file}: Validation succeeded");
-                }
-                else
-                {
-                    allValid = false;
-                    ConsoleUI.WriteStatus(false, $"{file}: Validation failed");
-                    foreach (var error in validationResult.Errors)
-                        ConsoleUI.WriteBullet(error, ConsoleColor.Red);
-
-                    // Also show warnings if any
-                    foreach (var warning in validationResult.Warnings)
-                        ConsoleUI.WriteBullet($"Warning: {warning}", ConsoleColor.Yellow);
-                }
+                Console.WriteLine();
             }
             catch (Exception ex)
             {
                 allValid = false;
                 ConsoleUI.WriteStatus(false, $"{file}: Exception during validation: {ex.Message}");
+                Console.WriteLine();
             }
         }
-
-        // Dispose the API service if we created one
-        apiService?.Dispose();
 
         if (allValid)
         {
@@ -445,33 +372,45 @@ public static class AgentCommandHandlers
             Environment.Exit(1);
         }
 
-        // Always validate configuration first to catch corrupted config files
-        ToolAvailabilityService? toolService = null;
+        // Extract agent name from file path
+        var agentName = Path.GetFileNameWithoutExtension(filePath);
+        
         ApiService? apiService = null;
         try
         {
             var configService = new CliConfigurationService();
             var config = await configService.LoadConfigurationAsync();
 
-            if (checkTools)
+            if (config == null)
             {
-                if (config == null)
-                {
-                    ConsoleUI.WriteStatus(false, "Configuration not found. Run 'srectl init' first.");
-                    Environment.Exit(1);
-                    return;
-                }
+                ConsoleUI.WriteStatus(false, "Configuration not found. Run 'srectl init' first.");
+                Environment.Exit(1);
+                return;
+            }
 
-                // Validate URL format
-                if (!Uri.TryCreate(config.ResourceUrl, UriKind.Absolute, out _))
-                {
-                    ConsoleUI.WriteStatus(false, $"Invalid resource URL in configuration: {config.ResourceUrl}");
-                    Environment.Exit(1);
-                    return;
-                }
+            // Validate URL format
+            if (!Uri.TryCreate(config.ResourceUrl, UriKind.Absolute, out _))
+            {
+                ConsoleUI.WriteStatus(false, $"Invalid resource URL in configuration: {config.ResourceUrl}");
+                Environment.Exit(1);
+                return;
+            }
 
-                apiService = new ApiService();
-                toolService = new ToolAvailabilityService(apiService);
+            apiService = new ApiService();
+            
+            // Call server-side validation using v2 API with dryRun=true
+            ConsoleUI.WriteInfo($"Validating agent '{agentName}' against server...", ConsoleColor.Yellow);
+            
+            var (success, response) = await apiService.ApplyOrValidateAgentAsync(agentName, dryRun: true);
+
+            if (success)
+            {
+                ConsoleUI.WriteStatus(true, response);
+            }
+            else
+            {
+                ConsoleUI.WriteStatus(false, response);
+                Environment.Exit(1);
             }
         }
         catch (Exception ex)
@@ -486,43 +425,6 @@ public static class AgentCommandHandlers
             ConsoleUI.WriteStatus(false, $"Configuration error: {ex.Message}");
             Environment.Exit(1);
             return;
-        }
-
-        try
-        {
-            var yaml = File.ReadAllText(filePath, Encoding.UTF8);
-
-            // Use the unified AgentValidationService instead of AgentDescriptorValidation
-            IToolAvailabilityChecker? toolChecker = null;
-            if (checkTools && toolService != null)
-            {
-                toolChecker = new CliToolAvailabilityChecker(toolService);
-            }
-
-            var validationService = new AgentValidationService(toolChecker);
-            var validationResult = await validationService.ValidateYamlAsync(yaml, checkTools);
-
-            if (validationResult.IsValid)
-            {
-                ConsoleUI.WriteStatus(true, "Agent validation succeeded");
-            }
-            else
-            {
-                ConsoleUI.WriteStatus(false, "Agent validation failed");
-                foreach (var error in validationResult.Errors)
-                    ConsoleUI.WriteBullet(error, ConsoleColor.Red);
-
-                // Also show warnings if any
-                foreach (var warning in validationResult.Warnings)
-                    ConsoleUI.WriteBullet($"Warning: {warning}", ConsoleColor.Yellow);
-
-                Environment.Exit(1);
-            }
-        }
-        catch (Exception ex)
-        {
-            ConsoleUI.WriteStatus(false, $"Exception during validation: {ex.Message}");
-            Environment.Exit(1);
         }
         finally
         {
@@ -677,131 +579,6 @@ public static class AgentCommandHandlers
     /// <summary>
     /// Handles dry-run for agent apply command.
     /// </summary>
-    private static async Task HandleAgentApplyDryRun(string agentName)
-    {
-        try
-        {
-            ConsoleUI.WriteInfo($"DRY RUN: Agent apply for '{agentName}'", ConsoleColor.Cyan);
-            ConsoleUI.WriteInfo("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", ConsoleColor.DarkGray);
-
-            // Find and validate agent file exists
-            var agentFilePath = FindAgentFile(agentName);
-            if (agentFilePath == null)
-            {
-                ConsoleUI.WriteStatus(false, $"Agent file not found for '{agentName}'");
-                ConsoleUI.WriteInfo($"Expected: agents/{agentName}/{agentName}.yaml", ConsoleColor.Gray);
-                Environment.Exit(1);
-                return;
-            }
-
-            ConsoleUI.WriteKeyValue("Agent file", agentFilePath);
-
-            // Read and parse the YAML file
-            var yamlContent = await File.ReadAllTextAsync(agentFilePath);
-            ConsoleUI.WriteKeyValue("Content size", $"{yamlContent.Length} characters");
-
-            // Validate using unified AgentValidationService
-            var validationService = new AgentValidationService();
-            var validationResult = await validationService.ValidateYamlAsync(yamlContent, false);
-
-            if (!validationResult.IsValid)
-            {
-                ConsoleUI.WriteStatus(false, "Agent validation failed");
-                foreach (var error in validationResult.Errors)
-                    ConsoleUI.WriteBullet(error, ConsoleColor.Red);
-
-                foreach (var warning in validationResult.Warnings)
-                    ConsoleUI.WriteBullet($"Warning: {warning}", ConsoleColor.Yellow);
-
-                Environment.Exit(1);
-                return;
-            }
-
-            ConsoleUI.WriteStatus(true, "Agent validation successful");
-
-            // Parse for display purposes
-            try
-            {
-                var agent = AgentYamlParser.ParseAgentYaml(yamlContent);
-                if (agent != null)
-                {
-                    Console.WriteLine();
-                    ConsoleUI.WriteSection("Agent Details");
-                    ConsoleUI.WriteKeyValue("Name", agent.Name);
-                    ConsoleUI.WriteKeyValue("Instructions length", $"{agent.Instructions?.Length ?? 0} characters");
-
-                    if (agent.Tools?.Count > 0)
-                    {
-                        ConsoleUI.WriteKeyValue("Tools", $"({agent.Tools.Count}): {string.Join(", ", agent.Tools)}");
-
-                        // Check if referenced tools exist locally
-                        var missingTools = new List<string>();
-                        foreach (var tool in agent.Tools)
-                        {
-                            var toolPath = ToolCommandHandlers.FindToolFile(tool);
-                            if (toolPath == null)
-                            {
-                                missingTools.Add(tool);
-                            }
-                        }
-
-                        if (missingTools.Count != 0)
-                        {
-                            ConsoleUI.WriteInfo($"Missing local tool files: {string.Join(", ", missingTools)}", ConsoleColor.Yellow);
-                        }
-                        else
-                        {
-                            ConsoleUI.WriteInfo("All referenced tools found locally", ConsoleColor.Green);
-                        }
-                    }
-
-                    if (agent.Handoffs?.Count > 0)
-                    {
-                        ConsoleUI.WriteKeyValue("Handoffs", $"({agent.Handoffs.Count}): {string.Join(", ", agent.Handoffs)}");
-                    }
-
-                    if (agent.Temperature.HasValue)
-                        ConsoleUI.WriteKeyValue("Temperature", agent.Temperature.Value.ToString());
-
-                    ConsoleUI.WriteKeyValue("Max reflection count", agent.MaxReflectionCount.ToString());
-                }
-            }
-            catch (Exception ex)
-            {
-                ConsoleUI.WriteInfo($"Could not parse agent details for display: {ex.Message}", ConsoleColor.Yellow);
-            }
-
-            // Check server connectivity
-            var configService = new CliConfigurationService();
-            var config = await configService.LoadConfigurationAsync();
-            if (config == null)
-            {
-                ConsoleUI.WriteStatus(false, "Configuration not found. Run 'srectl init' first.");
-                Environment.Exit(1);
-                return;
-            }
-
-            ConsoleUI.WriteKeyValue("Target server", config.ResourceUrl);
-            ConsoleUI.WriteKeyValue("Auth required", config.AuthRequired.ToString());
-
-            Console.WriteLine();
-            ConsoleUI.WriteStatus(true, "DRY RUN COMPLETE");
-            Console.WriteLine();
-            ConsoleUI.WriteSection("Summary");
-            ConsoleUI.WriteBullet($"Agent '{agentName}' configuration is valid", ConsoleColor.Green);
-            ConsoleUI.WriteBullet("YAML file can be parsed successfully", ConsoleColor.Green);
-            ConsoleUI.WriteBullet("Server configuration is available", ConsoleColor.Green);
-            ConsoleUI.WriteBullet($"Would apply to: {config.ResourceUrl}", ConsoleColor.Green);
-            Console.WriteLine();
-            ConsoleUI.WriteCommand("To apply", $"srectl agent apply --name {agentName}");
-        }
-        catch (Exception ex)
-        {
-            ConsoleUI.WriteStatus(false, $"DRY RUN FAILED: {ex.Message}");
-            Environment.Exit(1);
-        }
-    }
-
     /// <summary>
     /// Handles the agent diff command to compare local and remote configurations.
     /// </summary>

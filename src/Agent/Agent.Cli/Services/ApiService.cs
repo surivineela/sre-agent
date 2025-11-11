@@ -56,6 +56,153 @@ public class ApiService : IDisposable
     }
 
     /// <summary>
+    /// Converts snake case YAML content to JsonNode with camelCase property names and proper types.
+    /// YamlDotNet's untyped deserialization treats all scalars as strings, so we convert them
+    /// back to proper types (booleans, numbers) during the camelCase conversion.
+    /// </summary>
+    /// <param name="yamlContent">The YAML content to convert</param>
+    /// <returns>JsonNode with camelCase property names and proper types, or null if parsing fails</returns>
+    private static JsonNode? ConvertYamlToJsonNode(string yamlContent)
+    {
+        // YamlDotNet untyped deserialization: YAML scalars become strings
+        DebugLogger.Debug("yamlcontent", $"{yamlContent}");
+
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
+            .Build();
+        var yamlObject = deserializer.Deserialize(new StringReader(yamlContent));
+
+        var jsonSerializer = new SerializerBuilder()
+            .JsonCompatible()
+            .Build();
+        var jsonContent = jsonSerializer.Serialize(yamlObject);
+
+        DebugLogger.Debug("jsoncontent", $"{jsonContent}");
+
+        // Parse with System.Text.Json (preserves proper types: booleans, numbers)
+        var jsonNode = JsonNode.Parse(jsonContent);
+        if (jsonNode == null)
+        {
+            return null;
+        }
+
+        // Recursively convert all property names to camelCase
+        return ConvertPropertyNamesToCamelCase(jsonNode);
+    }
+
+    /// <summary>
+    /// Recursively converts all property names in a JsonNode to camelCase.
+    /// Also converts string values to proper types since YamlDotNet's untyped deserialization
+    /// treats all scalars as strings (e.g., YAML 'false' becomes string "false").
+    /// Uses a custom converter to avoid maintaining CLI-side POCOs that mirror API models.
+    /// </summary>
+    private static JsonNode? ConvertPropertyNamesToCamelCase(JsonNode? node)
+    {
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node is JsonObject obj)
+        {
+            var newObj = new JsonObject();
+            foreach (var prop in obj)
+            {
+                var camelCaseKey = ToCamelCase(prop.Key);
+                var convertedValue = ConvertPropertyNamesToCamelCase(prop.Value);
+                newObj[camelCaseKey] = convertedValue?.DeepClone();
+            }
+            return newObj;
+        }
+        else if (node is JsonArray arr)
+        {
+            var newArr = new JsonArray();
+            foreach (var item in arr)
+            {
+                var convertedItem = ConvertPropertyNamesToCamelCase(item);
+                if (convertedItem != null)
+                {
+                    newArr.Add(convertedItem.DeepClone());
+                }
+            }
+            return newArr;
+        }
+        else if (node is JsonValue val)
+        {
+            // YamlDotNet's untyped deserialization converts all scalars to strings.
+            // Convert string representations back to proper types.
+            try
+            {
+                var stringValue = val.GetValue<string>();
+
+                // Convert boolean strings
+                if (stringValue == "true")
+                {
+                    return JsonValue.Create(true);
+                }
+                if (stringValue == "false")
+                {
+                    return JsonValue.Create(false);
+                }
+
+                // Convert integer strings
+                if (int.TryParse(stringValue, out var intValue))
+                {
+                    return JsonValue.Create(intValue);
+                }
+
+                // Convert decimal strings
+                if (decimal.TryParse(stringValue, out var decimalValue))
+                {
+                    return JsonValue.Create(decimalValue);
+                }
+
+                // Return string as-is if not convertible
+                return node.DeepClone();
+            }
+            catch
+            {
+                // Not a string type, return as-is (e.g., already a bool/number from JSON parsing)
+                return node.DeepClone();
+            }
+        }
+        else
+        {
+            // Other JsonValue types - return as-is
+            return node.DeepClone();
+        }
+    }
+
+    /// <summary>
+    /// Converts a snake_case string to camelCase
+    /// </summary>
+    private static string ToCamelCase(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return input;
+        }
+
+        var parts = input.Split('_');
+        if (parts.Length == 1)
+        {
+            // No underscores, just lowercase first letter
+            return char.ToLowerInvariant(input[0]) + input.Substring(1);
+        }
+
+        // First part is all lowercase, rest are capitalized
+        var result = parts[0].ToLowerInvariant();
+        for (int i = 1; i < parts.Length; i++)
+        {
+            if (!string.IsNullOrEmpty(parts[i]))
+            {
+                result += char.ToUpperInvariant(parts[i][0]) + parts[i].Substring(1).ToLowerInvariant();
+            }
+        }
+        return result;
+    }
+
+    /// <summary>
     /// Makes an HTTP request with comprehensive debug logging
     /// </summary>
     private async Task<(HttpResponseMessage Response, string Content, long ResponseTimeMs)> MakeHttpRequestAsync(HttpRequestMessage request)
@@ -295,12 +442,19 @@ public class ApiService : IDisposable
         return errorMessage;
     }
 
-    public async Task<(bool Success, string Response)> ApplyAgentAsync(string agentName)
+    /// <summary>
+    /// Applies or validates an agent configuration
+    /// </summary>
+    /// <param name="agentName">The name of the agent to apply or validate</param>
+    /// <param name="dryRun">When true, validates without applying changes (dryRun=true); when false, applies changes</param>
+    public async Task<(bool Success, string Response)> ApplyOrValidateAgentAsync(string agentName, bool dryRun = false)
     {
         var stopwatch = Stopwatch.StartNew();
+        var operation = dryRun ? "validation" : "apply";
+        
         try
         {
-            DebugLogger.Debug("ApplyAgent", $"Starting agent apply for '{agentName}'");
+            DebugLogger.Debug($"{operation}", $"Starting agent {operation} for '{agentName}'");
 
             var config = await _configService.LoadConfigurationAsync();
             if (config == null)
@@ -310,11 +464,10 @@ public class ApiService : IDisposable
 
             DebugLogger.LogConfig("ResourceUrl", config.ResourceUrl);
 
-            // Check if agent YAML file exists
+            // Find agent YAML file
             var agentFilePath = Path.Combine("agents", $"{agentName}.yaml");
             if (!File.Exists(agentFilePath))
             {
-                // Try the subdirectory structure
                 var agentFilePathSubdir = Path.Combine("agents", agentName, $"{agentName}.yaml");
                 if (!File.Exists(agentFilePathSubdir))
                 {
@@ -331,215 +484,119 @@ public class ApiService : IDisposable
             var agentYamlContent = await File.ReadAllTextAsync(agentFilePath);
             DebugLogger.LogFile("READ", agentFilePath, $"Content size: {agentYamlContent.Length} characters");
 
-            // Parse the agent YAML to extract the tools list
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                .Build();
-
-            DebugLogger.Debug("YAML", "Deserializing agent YAML content");
-
-            // Parse agent data and extract tools using shared helper
-            var agentData = deserializer.Deserialize<object>(agentYamlContent);
-            var toolNames = Core.Helpers.ExtendedAgents.AgentYamlParser.ExtractToolNames(agentYamlContent);
-
-            DebugLogger.Debug("Tools", $"Agent references {toolNames.Count} tools: {string.Join(", ", toolNames)}");
-
-            // Validate agent descriptor structure before proceeding
-            try
+            // Convert YAML (snake_case) to JSON (camelCase)
+            DebugLogger.Debug("YAML", "Converting YAML to JSON with naming convention change");
+            var jsonNode = ConvertYamlToJsonNode(agentYamlContent);
+            if (jsonNode == null)
             {
-                var validationService = new AgentValidationService();
-                var validationResult = await validationService.ValidateYamlAsync(agentYamlContent, false);
-
-                if (!validationResult.IsValid)
-                {
-                    ConsoleUI.WriteStatus(false, "Agent validation failed");
-                    foreach (var error in validationResult.Errors)
-                        ConsoleUI.WriteBullet(error, ConsoleColor.Red);
-
-                    foreach (var warning in validationResult.Warnings)
-                        ConsoleUI.WriteBullet($"Warning: {warning}", ConsoleColor.Yellow);
-
-                    Environment.Exit(1);
-                    return (false, $"❌ Failed to Apply Yaml. Agent yaml validation failed");
-                }
-
-                DebugLogger.Debug("Validation", "Agent descriptor validation passed");
-            }
-            catch (Exception ex)
-            {
-                DebugLogger.Debug("Validation", $"Agent descriptor parsing failed: {ex.Message}");
-                return (false, $"❌ Failed to parse agent descriptor: {ex.Message}");
+                return (false, "❌ Failed to parse YAML content as JSON");
             }
 
-            // Get available tools from local and remote sources
-            var toolAvailabilityService = new ToolAvailabilityService(this);
-            var (localTools, remoteTools, errors) = await toolAvailabilityService.GetAvailableToolsAsync();
+            DebugLogger.Debug("JSON", $"{jsonNode.ToJsonString()}");
+            DebugLogger.Debug("JSON", $"Generated JSON content size: {jsonNode.ToJsonString().Length} characters");
 
-            // Log the results using debug logger
-            DebugLogger.Debug("Tools", $"Found {localTools.Count} local tools: {string.Join(", ", localTools.Take(5))}{(localTools.Count > 5 ? "..." : "")}");
-            DebugLogger.Debug("Tools", $"Found {remoteTools.Count} remote tools: {string.Join(", ", remoteTools.Take(5))}{(remoteTools.Count > 5 ? "..." : "")}");
-            if (errors.Count != 0)
+            var extendedAgentJsonObj = jsonNode.AsObject();
+
+            // create api request envelope
+            string? owner = null;
+            List<string>? tags = null;
+
+            // get metadata info and set in the envelope 
+            if (extendedAgentJsonObj.TryGetPropertyValue("metadata", out var metadataNode) && metadataNode is JsonObject metadataObj)
             {
-                DebugLogger.Debug("Tools", $"Errors: {string.Join("; ", errors)}");
-            }
-
-            // Load available tool YAML files locally and track missing tools
-            var toolsData = new List<object>();
-            var missingLocallyButRemote = new List<string>();
-            var completelyMissingTools = new List<string>();
-
-            foreach (var toolName in toolNames)
-            {
-                // Check if tool exists locally first
-                if (localTools.Contains(toolName))
+                if (metadataObj.TryGetPropertyValue("owner", out var ownerNode))
                 {
-                    var toolFilePath = Path.Combine("tools", $"{toolName}.yaml");
-                    if (!File.Exists(toolFilePath))
-                    {
-                        // Try the subdirectory structure
-                        toolFilePath = Path.Combine("tools", toolName, $"{toolName}.yaml");
-                    }
-
-                    if (File.Exists(toolFilePath))
-                    {
-                        DebugLogger.LogFile("READ", toolFilePath, "Loading tool YAML");
-                        var toolYamlContent = await File.ReadAllTextAsync(toolFilePath);
-                        var toolData = deserializer.Deserialize<object>(toolYamlContent);
-                        toolsData.Add(toolData);
-                        DebugLogger.Debug("Tools", $"📦 Loaded tool: {toolName}");
-                        // Always show loaded tools message for user feedback
-                        ConsoleUI.WriteBullet($"Loaded tool: {toolName}", ConsoleColor.Green);
-                    }
+                    owner = ownerNode?.GetValue<string>();
                 }
-                else if (remoteTools.Contains(toolName))
+
+                if (metadataObj.TryGetPropertyValue("tags", out var tagsNode) && tagsNode is JsonArray tagsArray)
                 {
-                    // Tool exists on server but not locally - this is okay
-                    missingLocallyButRemote.Add(toolName);
-                    DebugLogger.Debug("Tools", $"🌐 Tool '{toolName}' exists on server (not loading locally)");
-                }
-                else
-                {
-                    // Tool doesn't exist locally or remotely
-                    completelyMissingTools.Add(toolName);
-                    DebugLogger.Debug("Tools", $"⚠️  Tool '{toolName}' not found locally or on server");
+                    tags = tagsArray.Select(t => t?.GetValue<string>() ?? "").Where(t => !string.IsNullOrEmpty(t)).ToList();
                 }
             }
 
-            // Only fail if tools are completely missing (not available locally or remotely)
-            if (completelyMissingTools.Count > 0)
+            JsonObject extendedAgentProperties;
+            if (extendedAgentJsonObj.TryGetPropertyValue("spec", out var specNode) && specNode is JsonObject specObj)
             {
-                var missingToolsList = string.Join(", ", completelyMissingTools);
-                DebugLogger.Debug("Tools", $"Missing tools validation failed: {missingToolsList}");
-                return (false, $"❌ Cannot apply agent '{agentName}': Referenced tools not found: {missingToolsList}. Please create the missing tools first or ensure they exist on the server.");
-            }
+                extendedAgentProperties = specObj.Deserialize<JsonObject>()!;
 
-            DebugLogger.Debug("YAML", "Using agent YAML content directly (structured format)");
-
-            // Clean up empty datetime strings in metadata before sending
-            var wrappedYamlContent = agentYamlContent;
-
-            // Parse YAML to check and fix metadata datetime fields
-            try
-            {
-                var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(agentYamlContent);
-
-                if (yamlDict != null && yamlDict.TryGetValue("metadata", out var metadataObj))
+                // Handle deprecated field names (YAML uses system_prompt → API expects instructions)
+                if (extendedAgentProperties.TryGetPropertyValue("systemPrompt", out var systemPromptNode))
                 {
-                    var metadataDict = metadataObj as Dictionary<object, object>;
-                    if (metadataDict != null)
-                    {
-                        bool needsReserialization = false;
+                    ConsoleUI.WriteInfo($"⚠️  Warning: 'system_prompt' is deprecated in v2 API. Use 'instructions' instead.");
+                    ConsoleUI.WriteInfo($"   Automatically mapping 'system_prompt' → 'instructions' for this request.");
+                    ConsoleUI.WriteInfo($"   Run 'srectl agent sync {agentName}' after srectl agent apply to update your local YAML file.");
 
-                        // Check and remove empty updated_at
-                        if (metadataDict.TryGetValue("updated_at", out var updatedAt) &&
-                            updatedAt is string updatedAtStr &&
-                            string.IsNullOrWhiteSpace(updatedAtStr))
-                        {
-                            metadataDict.Remove("updated_at");
-                            needsReserialization = true;
-                            DebugLogger.Debug("YAML", "Removed empty updated_at from metadata");
-                        }
-
-                        // Check and remove empty created_at
-                        if (metadataDict.TryGetValue("created_at", out var createdAt) &&
-                            createdAt is string createdAtStr &&
-                            string.IsNullOrWhiteSpace(createdAtStr))
-                        {
-                            metadataDict.Remove("created_at");
-                            needsReserialization = true;
-                            DebugLogger.Debug("YAML", "Removed empty created_at from metadata");
-                        }
-
-                        // Re-serialize if we made changes
-                        if (needsReserialization)
-                        {
-                            var serializer = new SerializerBuilder()
-                                .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                                .Build();
-                            wrappedYamlContent = serializer.Serialize(yamlDict);
-                            DebugLogger.Debug("YAML", "Re-serialized YAML after cleaning metadata datetime fields");
-                        }
-                    }
+                    extendedAgentProperties["instructions"] = systemPromptNode?.DeepClone();
+                    extendedAgentProperties.Remove("systemPrompt");
                 }
+
+                // Remove fields that belong at envelope level, not in properties
+                extendedAgentProperties.Remove("name"); 
             }
-            catch (Exception ex)
+            else
             {
-                DebugLogger.Debug("YAML", $"Warning: Failed to clean metadata datetime fields: {ex.Message}. Using original content.");
-                wrappedYamlContent = agentYamlContent;
+                return (false, "❌ missing spec on agent YAML. Please run validate before applying.");
             }
 
-            DebugLogger.Debug("YAML", $"Generated YAML content size: {wrappedYamlContent.Length} characters");
-
-            // Create the request
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
-            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl)
+            var envelope = new JsonObject
             {
-                Content = new StringContent(wrappedYamlContent, Encoding.UTF8, "application/yaml")
+                ["name"] = agentName,
+                ["type"] = "ExtendedAgent",
+                ["properties"] = extendedAgentProperties
             };
 
-            DebugLogger.Debug("Request", $"Making apply request to {requestUrl}");
+            if (owner != null)
+            {
+                envelope["owner"] = owner;
+            }
+
+            if (tags != null && tags.Count > 0)
+            {
+                envelope["tags"] = new JsonArray(tags.Select(t => JsonValue.Create(t)).ToArray());
+            }
+
+            var apiRequestBody = envelope.ToJsonString(new JsonSerializerOptions
+            {
+                WriteIndented = false
+            });
+
+            DebugLogger.Debug("API Payload", $"Wrapped in ApiRequestEnvelope format, size: {apiRequestBody.Length} characters");
+
+            // Call v2 API with optional dryRun parameter
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v2/extendedAgent/agents/{agentName}";
+            if (dryRun)
+            {
+                requestUrl += "?dryRun=true";
+            }
+            
+            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl)
+            {
+                Content = new StringContent(apiRequestBody, Encoding.UTF8, "application/json")
+            };
+
+            DebugLogger.Debug("Request", $"Making {operation} request to {requestUrl}");
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
-                var localToolCount = toolsData.Count;
-                var remoteToolCount = missingLocallyButRemote.Count;
-                var totalToolCount = localToolCount + remoteToolCount;
-
-                var toolsMessage = "";
-                if (totalToolCount > 0)
-                {
-                    if (localToolCount > 0 && remoteToolCount > 0)
-                    {
-                        toolsMessage = $" with {localToolCount} local tool(s) and {remoteToolCount} server tool(s)";
-                    }
-                    else if (localToolCount > 0)
-                    {
-                        toolsMessage = $" and {localToolCount} referenced tool(s)";
-                    }
-                    else if (remoteToolCount > 0)
-                    {
-                        toolsMessage = $" with {remoteToolCount} server tool(s)";
-                    }
-                }
-
                 stopwatch.Stop();
-                DebugLogger.LogTiming("ApplyAgent", stopwatch.Elapsed);
-                return (true, $"✅ Agent '{agentName}'{toolsMessage} applied successfully!");
+                DebugLogger.LogTiming($"{operation}", stopwatch.Elapsed);
+                return (true, $"✅ Agent '{agentName}' {operation} successful!");
             }
             else
             {
                 stopwatch.Stop();
-                DebugLogger.LogTiming("ApplyAgent (failed)", stopwatch.Elapsed);
-                return (false, $"❌ Failed to apply agent: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+                DebugLogger.LogTiming($"{operation} (failed)", stopwatch.Elapsed);
+                return (false, $"❌ {(dryRun ? "Agent validation" : "Failed to apply agent")}: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            DebugLogger.Debug("Exception", $"ApplyAgent failed: {ex.Message}");
-            DebugLogger.LogTiming("ApplyAgent (exception)", stopwatch.Elapsed);
-            return (false, $"❌ Failed to apply agent: {ex.Message}");
+            DebugLogger.Debug("Exception", $"{operation} failed: {ex.Message}");
+            DebugLogger.LogTiming($"{operation} (exception)", stopwatch.Elapsed);
+            return (false, $"❌ Failed to {operation} agent: {ex.Message}");
         }
     }
 
@@ -553,71 +610,44 @@ public class ApiService : IDisposable
                 return (false, "Configuration not found. Please run 'srectl init' first.");
             }
 
-            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents";
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v2/extendedAgent/agents";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
-                // Parse the response to get agent information from different possible structures
                 var jsonDoc = JsonDocument.Parse(content);
 
-                JsonElement agents = default;
-                bool foundAgents = false;
-
-                // Try different response structure patterns
-                if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement))
+                // v2 API returns: { "value": [ { "name": "...", "type": "ExtendedAgent", "properties": {...} }, ... ], "nextLink": "..." }
+                if (!jsonDoc.RootElement.TryGetProperty("value", out var valueElement) || valueElement.ValueKind != JsonValueKind.Array)
                 {
-                    // Pattern 1: { "data": { "agents": [...] } } - ExtendedAgentsListResponse style
-                    if (dataElement.ValueKind == JsonValueKind.Object &&
-                        dataElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
-                    {
-                        foundAgents = true;
-                    }
-                    // Pattern 2: { "data": [...] } - PaginatedResponse style (actual current API)
-                    else if (dataElement.ValueKind == JsonValueKind.Array)
-                    {
-                        agents = dataElement;
-                        foundAgents = true;
-                    }
-                }
-                // Pattern 3: { "agents": [...] } - Direct agents property
-                else if (jsonDoc.RootElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
-                {
-                    foundAgents = true;
-                }
-                // Pattern 4: [...] - Direct array (legacy)
-                else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
-                {
-                    agents = jsonDoc.RootElement;
-                    foundAgents = true;
-                }
-
-                if (!foundAgents)
-                {
-                    return (false, $"Unexpected response format - no agents array found: {content}");
+                    return (false, $"Unexpected response format - no 'value' array found: {content}");
                 }
 
                 var agentList = new List<string>();
 
-                foreach (var agent in agents.EnumerateArray())
+                foreach (var agentEnvelope in valueElement.EnumerateArray())
                 {
-                    var name = agent.TryGetProperty("name", out var nameElement) ? nameElement.GetString() ?? "Unknown" : "Unknown";
+                    // Extract name from envelope
+                    var name = agentEnvelope.TryGetProperty("name", out var nameElement) ? nameElement.GetString() ?? "Unknown" : "Unknown";
 
-                    // Try both 'system_prompt' and 'instructions' fields
-                    var systemPrompt = "";
-                    if (agent.TryGetProperty("system_prompt", out var systemPromptElement))
+                    // Extract properties from envelope
+                    if (!agentEnvelope.TryGetProperty("properties", out var propertiesElement))
                     {
-                        systemPrompt = systemPromptElement.GetString() ?? "";
-                    }
-                    else if (agent.TryGetProperty("instructions", out var instructionsElement))
-                    {
-                        systemPrompt = instructionsElement.GetString() ?? "";
+                        continue;
                     }
 
-                    var handoffDescription = agent.TryGetProperty("handoffDescription", out var handoffElement) ? handoffElement.GetString() : "";
-                    var createdAt = agent.TryGetProperty("created_at", out var createdElement) ? createdElement.GetString() : "";
+                    // Extract instructions (formerly system_prompt)
+                    var instructions = propertiesElement.TryGetProperty("instructions", out var instructionsElement) ? instructionsElement.GetString() ?? "" : "";
+                    var handoffDescription = propertiesElement.TryGetProperty("handoffDescription", out var handoffElement) ? handoffElement.GetString() : "";
+
+                    // Extract metadata for created timestamp
+                    var createdAt = "";
+                    if (agentEnvelope.TryGetProperty("metadata", out var metadataElement))
+                    {
+                        createdAt = metadataElement.TryGetProperty("createdAt", out var createdElement) ? createdElement.GetString() : "";
+                    }
 
                     var agentOutput = ConsoleUI.CaptureOutput(() =>
                     {
@@ -629,11 +659,11 @@ public class ApiService : IDisposable
                             ConsoleUI.WriteKeyValue("  Description", handoffDescription, 13, ConsoleColor.Gray, ConsoleColor.White);
                         }
 
-                        if (!string.IsNullOrEmpty(systemPrompt))
+                        if (!string.IsNullOrEmpty(instructions))
                         {
-                            // Truncate system prompt if it's too long for display
-                            var displayPrompt = systemPrompt.Length > 100 ? systemPrompt.Substring(0, 100) + "..." : systemPrompt;
-                            ConsoleUI.WriteKeyValue("  System Prompt", displayPrompt, 13, ConsoleColor.Gray, ConsoleColor.White);
+                            // Truncate instructions if too long for display
+                            var displayPrompt = instructions.Length > 100 ? instructions.Substring(0, 100) + "..." : instructions;
+                            ConsoleUI.WriteKeyValue("  Instructions", displayPrompt, 13, ConsoleColor.Gray, ConsoleColor.White);
                         }
 
                         if (!string.IsNullOrEmpty(createdAt))
@@ -642,7 +672,7 @@ public class ApiService : IDisposable
                         }
 
                         // Get tools
-                        if (agent.TryGetProperty("tools", out var toolsElement) && toolsElement.ValueKind == JsonValueKind.Array)
+                        if (propertiesElement.TryGetProperty("tools", out var toolsElement) && toolsElement.ValueKind == JsonValueKind.Array)
                         {
                             var tools = toolsElement.EnumerateArray().Select(t => t.GetString()).Where(t => !string.IsNullOrEmpty(t)).ToList();
                             if (tools.Count != 0)
@@ -652,7 +682,7 @@ public class ApiService : IDisposable
                         }
 
                         // Get handoffs
-                        if (agent.TryGetProperty("handoffs", out var handoffsElement) && handoffsElement.ValueKind == JsonValueKind.Array)
+                        if (propertiesElement.TryGetProperty("handoffs", out var handoffsElement) && handoffsElement.ValueKind == JsonValueKind.Array)
                         {
                             var handoffs = handoffsElement.EnumerateArray().Select(h => h.GetString()).Where(h => !string.IsNullOrEmpty(h)).ToList();
                             if (handoffs.Count != 0)
@@ -664,72 +694,19 @@ public class ApiService : IDisposable
                     agentList.Add(agentOutput);
                 }
 
-                if (agents.GetArrayLength() == 0)
+                if (valueElement.GetArrayLength() == 0)
                 {
                     agentList.Add("\nNo agents found on the server.");
                 }
                 else
                 {
-                    // Get pagination info from different response structures
-                    int totalCount = agents.GetArrayLength();
-                    bool hasMore = false;
-                    int pageSize = 50;
-                    int pageIndex = 0;
-
-                    // Try to get pagination info from PaginatedResponse structure
-                    if (jsonDoc.RootElement.TryGetProperty("total_count", out var totalCountElement))
-                    {
-                        totalCount = totalCountElement.GetInt32();
-                    }
-                    if (jsonDoc.RootElement.TryGetProperty("has_next_page", out var hasMoreElement))
-                    {
-                        hasMore = hasMoreElement.GetBoolean();
-                    }
-                    if (jsonDoc.RootElement.TryGetProperty("page_size", out var pageSizeElement))
-                    {
-                        pageSize = pageSizeElement.GetInt32();
-                    }
-                    if (jsonDoc.RootElement.TryGetProperty("page_index", out var pageIndexElement))
-                    {
-                        pageIndex = pageIndexElement.GetInt32();
-                    }
-                    // Legacy pagination format (only if data is an object, not an array)
-                    else if (jsonDoc.RootElement.TryGetProperty("data", out var legacyDataElement) &&
-                             legacyDataElement.ValueKind == JsonValueKind.Object &&
-                             legacyDataElement.TryGetProperty("pagination", out var legacyPaginationElement))
-                    {
-                        if (legacyPaginationElement.TryGetProperty("total_count", out var legacyTotalElement))
-                        {
-                            totalCount = legacyTotalElement.GetInt32();
-                        }
-                        if (legacyPaginationElement.TryGetProperty("has_more", out var legacyHasMoreElement))
-                        {
-                            hasMore = legacyHasMoreElement.GetBoolean();
-                        }
-                        if (legacyPaginationElement.TryGetProperty("limit", out var legacyLimitElement))
-                        {
-                            pageSize = legacyLimitElement.GetInt32();
-                        }
-                        if (legacyPaginationElement.TryGetProperty("offset", out var legacyOffsetElement))
-                        {
-                            pageIndex = legacyOffsetElement.GetInt32() / pageSize; // Convert offset to page index
-                        }
-                    }
-
+                    var totalCount = valueElement.GetArrayLength();
                     agentList.Add($"\nTotal: {totalCount} agent(s)");
 
-                    // Add pagination info if available and we have actual results to show
-                    if ((hasMore || pageIndex > 0) && agents.GetArrayLength() > 0)
+                    // Check for nextLink pagination
+                    if (jsonDoc.RootElement.TryGetProperty("nextLink", out var nextLinkElement) && !string.IsNullOrEmpty(nextLinkElement.GetString()))
                     {
-                        var currentPageAgents = agents.GetArrayLength();
-                        var actualOffset = pageIndex * pageSize;
-                        var startIndex = actualOffset + 1;
-                        var endIndex = actualOffset + currentPageAgents;
-                        // Only show pagination if it makes sense
-                        if (startIndex <= totalCount)
-                        {
-                            agentList.Add($"Showing agents {startIndex}-{endIndex} of {totalCount} (page {pageIndex + 1})");
-                        }
+                        agentList.Add($"More results available (use API pagination to retrieve)");
                     }
                 }
 
@@ -759,7 +736,7 @@ public class ApiService : IDisposable
                 return (false, new List<string>(), "Configuration not found. Please run 'srectl init' first.");
             }
 
-            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents";
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v2/extendedAgent/agents";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
             var (response, content, _) = await MakeHttpRequestAsync(request);
@@ -768,72 +745,26 @@ public class ApiService : IDisposable
                 return (false, new List<string>(), $"Failed to list agents: {response.StatusCode} - {content}");
             }
 
-            // Prefer typed deserialization matching controller's PaginatedResponse<T>
-            try
-            {
-                // Case 1: PaginatedResponse<AgentListItem>
-                var paged = JsonSerializer.Deserialize<PaginatedResponse<AgentListItem>>(content, _jsonOptions);
-                if (paged?.Data != null && paged.Data.Count > 0)
-                {
-                    var namesTyped = paged.Data
-                        .Select(a => a.Name)
-                        .Where(n => !string.IsNullOrWhiteSpace(n))
-                        .Select(n => n!)
-                        .Distinct(StringComparer.OrdinalIgnoreCase)
-                        .ToList();
-                    return (true, namesTyped, "");
-                }
-
-                // Case 2: bare array [ { name: ... } ]
-                var bare = JsonSerializer.Deserialize<List<AgentListItem>>(content, _jsonOptions);
-                if (bare != null && bare.Count > 0)
-                {
-                    var namesBare = bare
-                        .Select(a => a.Name)
-                        .Where(n => !string.IsNullOrWhiteSpace(n))
-                        .Select(n => n!)
-                        .Distinct(StringComparer.OrdinalIgnoreCase)
-                        .ToList();
-                    return (true, namesBare, "");
-                }
-            }
-            catch
-            {
-                // Fall back to robust JSON parsing below
-            }
-
-            // Fallback: robust parsing of multiple shapes
             try
             {
                 var names = new List<string>();
                 var jsonDoc = JsonDocument.Parse(content);
-                JsonElement agents;
-                if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement) && dataElement.ValueKind == JsonValueKind.Array)
+                
+                // v2 API returns: { "value": [ { "name": "...", "type": "ExtendedAgent", "properties": {...} }, ... ] }
+                if (!jsonDoc.RootElement.TryGetProperty("value", out var valueElement) || valueElement.ValueKind != JsonValueKind.Array)
                 {
-                    agents = dataElement;
-                }
-                else if (jsonDoc.RootElement.TryGetProperty("agents", out var agentsElement) && agentsElement.ValueKind == JsonValueKind.Array)
-                {
-                    agents = agentsElement;
-                }
-                else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
-                {
-                    agents = jsonDoc.RootElement;
-                }
-                else
-                {
-                    return (false, new List<string>(), "Unexpected response format for agents list");
+                    return (false, new List<string>(), "Unexpected response format - no 'value' array found");
                 }
 
-                foreach (var agent in agents.EnumerateArray())
+                foreach (var agentEnvelope in valueElement.EnumerateArray())
                 {
-                    if (agent.TryGetProperty("name", out var nameEl))
+                    if (agentEnvelope.TryGetProperty("name", out var nameEl))
                     {
                         var n = nameEl.GetString();
                         if (!string.IsNullOrWhiteSpace(n)) names.Add(n);
                     }
                 }
-                return (true, names, "");
+                return (true, names.Distinct(StringComparer.OrdinalIgnoreCase).ToList(), "");
             }
             catch (Exception ex)
             {
@@ -2253,56 +2184,23 @@ public class ApiService : IDisposable
                 return (false, "Configuration not found. Please run 'srectl init' first.");
             }
 
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents/{agentName}";
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v2/extendedAgent/agents/{agentName}";
             var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
-                return (true, $"Agent '{agentName}' deleted successfully");
-            }
-            else if (response.StatusCode == HttpStatusCode.Conflict)
-            {
-                // Parse conflict response to show dependent agents
-                try
-                {
-                    var conflictData = JsonSerializer.Deserialize<JsonElement>(content);
-                    if (conflictData.TryGetProperty("dependentAgents", out var dependentAgentsElement))
-                    {
-                        var dependentAgents = dependentAgentsElement.EnumerateArray()
-                            .Select(x => x.GetString())
-                            .Where(x => !string.IsNullOrEmpty(x))
-                            .ToList();
-
-                        var agentList = dependentAgents.Count != 0 ? string.Join(", ", dependentAgents) : "unknown agents";
-                        return (false, $"Cannot delete agent '{agentName}': it is used by the following agents: {agentList}");
-                    }
-
-                    if (conflictData.TryGetProperty("message", out var messageElement))
-                    {
-                        return (false, messageElement.GetString() ?? $"Conflict deleting agent '{agentName}'");
-                    }
-                }
-                catch
-                {
-                    // Fall back to generic conflict message if parsing fails
-                }
-
-                return (false, $"Cannot delete agent '{agentName}': it is being used by other agents or tools");
-            }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return (false, $"Agent '{agentName}' not found");
+                return (true, $"✅ Agent '{agentName}' deleted successfully!");
             }
             else
             {
-                return (false, $"Failed to delete agent: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+                return (false, $"❌ Failed to delete agent: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
         {
-            return (false, $"Failed to delete agent: {ex.Message}");
+            return (false, $"❌ Failed to delete agent: {ex.Message}");
         }
     }
 

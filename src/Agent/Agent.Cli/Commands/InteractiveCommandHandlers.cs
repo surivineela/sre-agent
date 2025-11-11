@@ -1915,7 +1915,7 @@ description: A {type} tool created interactively";
             {
                 // Use agent apply endpoint - same as regular "srectl agent apply --name {name}" command
                 using var apiService = new ApiService();
-                var (success, response) = await apiService.ApplyAgentAsync(name);
+                var (success, response) = await apiService.ApplyOrValidateAgentAsync(name, dryRun: false);
 
                 if (success)
                 {
