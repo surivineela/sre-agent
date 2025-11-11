@@ -116,6 +116,8 @@ public class EventHubLogExporter : BaseExporter<LogRecord>
             ["LogLevel"] = logRecord.LogLevel.ToString(),
             ["Message"] = logRecord.FormattedMessage ?? logRecord.Body?.ToString() ?? string.Empty,
             ["Exception"] = logRecord.Exception?.ToString() ?? string.Empty,
+            ["TraceId"] = logRecord.TraceId.ToString(),
+            ["SpanId"] = logRecord.SpanId.ToString(),
         };
 
         try
