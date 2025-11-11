@@ -43,7 +43,7 @@ namespace Agent.Plugins.Interface
             DateTime startTime,
             DateTime endTime,
             DimensionFilter[] filters,
-            string aggregation,
+            AggregationType aggregation,
             string? resourceId = null);
     }
 }

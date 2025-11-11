@@ -2,7 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Charts;
+using Microsoft.Extensions.Logging;
 using ScottPlot;
 
 namespace Agent.Core.Helpers;
@@ -391,6 +395,67 @@ public static class ChartHelper
         string base64 = ConvertImageToBase64String(imageFile);
         File.Delete(imageFile);
         return base64;
+    }
+
+    /// <summary>
+    /// Determines the appropriate time format based on the date range
+    /// </summary>
+    public static string DetermineTimeFormat(DateTime earliestDate, DateTime latestDate)
+    {
+        var timeDelta = latestDate - earliestDate;
+
+        if (timeDelta.TotalDays <= 0)
+        {
+            return "HH:mm:ss"; // Within a day
+        }
+        else if (timeDelta.TotalDays <= 7)
+        {
+            return "MM-dd HH:mm"; // Within a week
+        }
+        else if (timeDelta.TotalDays <= 30)
+        {
+            return "MM-dd HH"; // Between 7 and 30 days
+        }
+        else
+        {
+            return "yyyy-MM-dd HH"; // Above 30 days
+        }
+    }
+
+    /// <summary>
+    /// Posts chart data to the thread in a format the frontend can render
+    /// </summary>
+    public static async Task<string> PostChartDataAsync(
+        Guid threadId,
+        object chartData,
+        string description,
+        IAgentOutboundCommunicationService outboundService,
+        ILogger? logger = null)
+    {
+        try
+        {
+            // Serialize chart data to JSON
+            var chartDataJson = JsonSerializer.Serialize(chartData);
+            logger?.LogInternalInformation("Posting chart data to thread {ThreadId}", threadId);
+
+            // Create the chart message format that the front-end will recognize
+            var chartMessage = $"```chart-data\n{chartDataJson}\n```\n{description}";
+
+            Guid chartMessageId = Guid.NewGuid();
+
+            // Save to database via the outbound service
+            await outboundService.AppendAgentImageMessage(threadId, chartMessage, chartMessageId);
+
+            // Stream the chart data directly to bypass tool call limitations
+            await outboundService.AppendAgentStreamMessage(threadId, chartMessage, StreamMessageType.Chart, chartMessageId);
+
+            return $"Successfully generated the chart data, description: {description}";
+        }
+        catch (Exception ex)
+        {
+            logger?.LogInternalError(ex, "Failed to post chart data");
+            return $"ERROR: Chart data processing failed: {ex.Message}";
+        }
     }
 }
 

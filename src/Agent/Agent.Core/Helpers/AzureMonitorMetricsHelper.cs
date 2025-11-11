@@ -46,6 +46,7 @@ public class AzureMonitorMetricsHelper
         DateTimeOffset startTime,
         DateTimeOffset endTime,
         TimeSpan granularity,
+        MetricAggregationType aggregationType = MetricAggregationType.Average,
         string? dimensionFilter = null)
     {
         var client = new MetricsQueryClient(await _authService.GetArmOperationCredential());
@@ -54,7 +55,7 @@ public class AzureMonitorMetricsHelper
         {
             TimeRange = new QueryTimeRange(startTime, endTime),
             Granularity = granularity,
-            Aggregations = { MetricAggregationType.Average },
+            Aggregations = { aggregationType },
             MetricNamespace = metricNamespace
         };
 

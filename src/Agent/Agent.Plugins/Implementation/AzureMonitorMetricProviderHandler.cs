@@ -6,6 +6,7 @@ using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using AzureMetricDefinition = Azure.Monitor.Query.Models.MetricDefinition;
 using AzureMetricTimeSeriesElement = Azure.Monitor.Query.Models.MetricTimeSeriesElement;
+using AzureMetricAggregationType = Azure.Monitor.Query.Models.MetricAggregationType;
 using TimeSeriesDataPoint = Agent.Plugins.Models.TimeSeriesDataPoint;
 
 namespace Agent.Plugins.Implementation
@@ -91,7 +92,7 @@ namespace Agent.Plugins.Implementation
             DateTime startTime,
             DateTime endTime,
             DimensionFilter[] filters,
-            string aggregation,
+            AggregationType aggregation,
             string? resourceId = null)
         {
             if (resourceId == null)
@@ -126,7 +127,8 @@ namespace Agent.Plugins.Implementation
                 metricName,
                 new DateTimeOffset(startTime),
                 new DateTimeOffset(endTime),
-                dimensionFilter);
+                dimensionFilter,
+                MapToAzureMetricAggregationType(aggregation));
 
             // Convert to our generic TimeSeries format
             return ConvertAzureMonitorTimeSeriesElements(timeSeriesElements, metricName, metricDefinition.Unit?.ToString() ?? string.Empty, aggregation);
@@ -139,7 +141,7 @@ namespace Agent.Plugins.Implementation
             IReadOnlyList<AzureMetricTimeSeriesElement> timeSeriesElements,
             string metricName,
             string? unit,
-            string aggregation)
+            AggregationType aggregation)
         {
             if (timeSeriesElements == null || timeSeriesElements.Count == 0)
             {
@@ -147,7 +149,6 @@ namespace Agent.Plugins.Implementation
             }
 
             var result = new List<TimeSeries>();
-            var aggregationMethod = ConvertAggregationToEnum(aggregation);
 
             foreach (var element in timeSeriesElements)
             {
@@ -166,13 +167,13 @@ namespace Agent.Plugins.Implementation
                 foreach (var value in element.Values)
                 {
                     // Get the appropriate aggregated value based on the requested aggregation
-                    double? metricValue = aggregation.ToLowerInvariant() switch
+                    double? metricValue = aggregation switch
                     {
-                        "average" => value.Average,
-                        "sum" => value.Total,
-                        "maximum" => value.Maximum,
-                        "minimum" => value.Minimum,
-                        "count" => value.Count,
+                        AggregationType.Average => value.Average,
+                        AggregationType.Sum => value.Total,
+                        AggregationType.Max => value.Maximum,
+                        AggregationType.Min => value.Minimum,
+                        AggregationType.Count => value.Count,
                         _ => value.Average
                     };
 
@@ -187,7 +188,7 @@ namespace Agent.Plugins.Implementation
                 result.Add(new TimeSeries(
                     metricName,
                     unit ?? string.Empty,
-                    aggregationMethod,
+                    aggregation,
                     dimensions,
                     dataPoints));
             }
@@ -196,18 +197,18 @@ namespace Agent.Plugins.Implementation
         }
 
         /// <summary>
-        /// Converts aggregation string to AggregationMethod enum
+        /// Maps our generic AggregationType enum to Azure Monitor's MetricAggregationType enum
         /// </summary>
-        private AggregationMethod ConvertAggregationToEnum(string aggregation)
+        private static AzureMetricAggregationType MapToAzureMetricAggregationType(AggregationType aggregation)
         {
-            return aggregation.ToLowerInvariant() switch
+            return aggregation switch
             {
-                "average" => AggregationMethod.Average,
-                "sum" => AggregationMethod.Sum,
-                "maximum" => AggregationMethod.Max,
-                "minimum" => AggregationMethod.Min,
-                "count" => AggregationMethod.Count,
-                _ => AggregationMethod.Average
+                AggregationType.Average => AzureMetricAggregationType.Average,
+                AggregationType.Sum => AzureMetricAggregationType.Total,
+                AggregationType.Max => AzureMetricAggregationType.Maximum,
+                AggregationType.Min => AzureMetricAggregationType.Minimum,
+                AggregationType.Count => AzureMetricAggregationType.Count,
+                _ => AzureMetricAggregationType.Average
             };
         }
     }

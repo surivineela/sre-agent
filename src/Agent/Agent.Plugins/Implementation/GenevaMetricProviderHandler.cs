@@ -8,6 +8,7 @@ using Agent.Plugins.Connector;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Microsoft.Cloud.Metrics.Client.Query;
+using AggregationType = Agent.Plugins.Models.AggregationType;
 using MdmSamplingType = Microsoft.Cloud.Metrics.Client.Metrics.SamplingType;
 using TimeSeriesDataPoint = Agent.Plugins.Models.TimeSeriesDataPoint;
 
@@ -68,7 +69,7 @@ namespace Agent.Plugins.Implementation
             DateTime startTime,
             DateTime endTime,
             DimensionFilter[] filters,
-            string aggregation,
+            AggregationType aggregation,
             string? resourceId = null)
         {
             var connector = GetGenevaMetricsConnector();
@@ -78,7 +79,7 @@ namespace Agent.Plugins.Implementation
             string metricNamespace = connector.MetricNamespace;
 
             // Convert aggregation string to sampling type
-            string samplingType = ConvertAggregationToSamplingType(aggregation);
+            var samplingType = ConvertAggregationToSamplingTypeEnum(aggregation);
 
             // Build dimension filters for MDM query
             var dimensionFilters = filters
@@ -112,25 +113,9 @@ namespace Agent.Plugins.Implementation
         }
 
         /// <summary>
-        /// Converts aggregation type to MDM sampling type
-        /// </summary>
-        private string ConvertAggregationToSamplingType(string aggregation)
-        {
-            return aggregation.ToLowerInvariant() switch
-            {
-                "average" => "Average",
-                "sum" => "Sum",
-                "maximum" => "Maximum",
-                "minimum" => "Minimum",
-                "count" => "Count",
-                _ => "Average"
-            };
-        }
-
-        /// <summary>
         /// Converts IQueryResultListV3 to TimeSeries array
         /// </summary>
-        private TimeSeries[] ConvertMdmResponseToTimeSeries(IQueryResultListV3 mdmResponse, string metricName, string aggregation)
+        private TimeSeries[] ConvertMdmResponseToTimeSeries(IQueryResultListV3 mdmResponse, string metricName, AggregationType aggregation)
         {
             if (mdmResponse == null || mdmResponse.Results == null)
             {
@@ -138,9 +123,8 @@ namespace Agent.Plugins.Implementation
             }
 
             var result = new List<TimeSeries>();
-            var aggregationMethod = ConvertAggregationToEnum(aggregation);
 
-            // Convert aggregation string to SamplingType enum
+            // Convert aggregation to SamplingType enum
             var samplingType = ConvertAggregationToSamplingTypeEnum(aggregation);
 
             // Calculate timestamps based on start time and resolution
@@ -179,41 +163,25 @@ namespace Agent.Plugins.Implementation
                     }
                 }
 
-                result.Add(new TimeSeries(metricName, string.Empty, aggregationMethod, queryResult.DimensionList.ToDictionary(), dataPoints));
+                result.Add(new TimeSeries(metricName, string.Empty, aggregation, queryResult.DimensionList.ToDictionary(), dataPoints));
             }
 
             return result.ToArray();
         }
 
         /// <summary>
-        /// Converts aggregation string to SamplingType enum for MDM queries
+        /// Converts aggregation type to SamplingType enum for MDM queries
         /// </summary>
-        private MdmSamplingType ConvertAggregationToSamplingTypeEnum(string aggregation)
+        private MdmSamplingType ConvertAggregationToSamplingTypeEnum(AggregationType aggregation)
         {
-            return aggregation.ToLowerInvariant() switch
+            return aggregation switch
             {
-                "average" => MdmSamplingType.Average,
-                "sum" => MdmSamplingType.Sum,
-                "maximum" => MdmSamplingType.Max,
-                "minimum" => MdmSamplingType.Min,
-                "count" => MdmSamplingType.Count,
+                AggregationType.Average => MdmSamplingType.Average,
+                AggregationType.Sum => MdmSamplingType.Sum,
+                AggregationType.Max => MdmSamplingType.Max,
+                AggregationType.Min => MdmSamplingType.Min,
+                AggregationType.Count => MdmSamplingType.Count,
                 _ => MdmSamplingType.Average
-            };
-        }
-
-        /// <summary>
-        /// Converts aggregation string to AggregationMethod enum
-        /// </summary>
-        private AggregationMethod ConvertAggregationToEnum(string aggregation)
-        {
-            return aggregation.ToLowerInvariant() switch
-            {
-                "average" => AggregationMethod.Average,
-                "sum" => AggregationMethod.Sum,
-                "maximum" => AggregationMethod.Max,
-                "minimum" => AggregationMethod.Min,
-                "count" => AggregationMethod.Count,
-                _ => AggregationMethod.Average
             };
         }
 

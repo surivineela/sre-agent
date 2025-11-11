@@ -3,13 +3,12 @@
 // ------------------------------------------------------------
 
 using System.Globalization;
-using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Charts;
-using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using ScottPlot;
+using Agent.Core.Helpers;
 
 namespace Agent.Plugins
 {
@@ -348,34 +347,9 @@ namespace Agent.Plugins
             string timeFormat = "yyyy-MM-dd HH:mm:ss"; // Default format
             if (groupedByTimestamp.Count > 0)
             {
-                var earliestDate = groupedByTimestamp.First().Key.Date;
-                var latestDate = groupedByTimestamp.Last().Key.Date;
-
-                var timeDelta = latestDate - earliestDate;
-
-                // Within a day.
-                if (timeDelta.TotalDays <= 0)
-                {
-                    timeFormat = "HH:mm:ss"; // Use shorter time-only format if all points are on the same day
-                }
-
-                // Within a week.
-                else if (timeDelta.TotalDays > 0 && timeDelta.TotalDays <= 7)
-                {
-                    timeFormat = "MM-dd HH:mm"; // Use shorter time-only format if all points are on the same day
-                }
-
-                // Between 7 and 30 days.
-                else if (timeDelta.TotalDays > 7 && timeDelta.TotalDays <= 30)
-                {
-                    timeFormat = "MM-dd HH"; // Use shorter time-only format if all points are on the same day
-                }
-
-                // Above 30 days.
-                else
-                {
-                    timeFormat = "yyyy-MM-dd HH"; // Use shorter time-only format if all points are on the same day
-                }
+                var earliestDate = groupedByTimestamp.First().Key;
+                var latestDate = groupedByTimestamp.Last().Key;
+                timeFormat = ChartHelper.DetermineTimeFormat(earliestDate, latestDate);
             }
 
             // Create frontend-friendly data format
@@ -432,15 +406,7 @@ namespace Agent.Plugins
 
                 if (firstDate != null && lastDate != null)
                 {
-                    var delta = lastDate.Value - firstDate.Value;
-                    if (delta.TotalDays < 1)
-                        timeFormat = "HH:mm:ss";
-                    else if (delta.TotalDays < 7)
-                        timeFormat = "MM-dd HH:mm";
-                    else if (delta.TotalDays < 30)
-                        timeFormat = "MM-dd HH";
-                    else
-                        timeFormat = "yyyy-MM-dd HH";
+                    timeFormat = ChartHelper.DetermineTimeFormat(firstDate.Value, lastDate.Value);
                 }
 
                 // Apply the time format to all areaChartData Category fields that are valid DateTimes
@@ -554,36 +520,12 @@ namespace Agent.Plugins
                 return "ERROR: Context is null.";
             }
 
-            try
-            {
-                var threadId = ThreadId.ToString();
-                if (string.IsNullOrEmpty(threadId))
-                {
-                    return "ERROR: No thread ID available for posting the chart data.";
-                }
-
-                // Serialize chart data to JSON
-                var chartDataJson = JsonSerializer.Serialize(chartData);
-                _logger?.LogInternalInformation("Posting chart data to thread {ThreadId}: {ChartData}", threadId, chartDataJson);
-
-                // Create the chart message format that the front-end will recognize
-                var chartMessage = $"```chart-data\n{chartDataJson}\n```\n{description}";
-
-                Guid chartMessageId = Guid.NewGuid();
-
-                // Save to database via the outbound service
-                await _outboundService.AppendAgentImageMessage(ThreadId.Value, chartMessage, chartMessageId);
-
-                // Stream the chart data directly to bypass tool call limitations
-                await _outboundService.AppendAgentStreamMessage(ThreadId.Value, chartMessage, StreamMessageType.Chart, chartMessageId);
-
-                return $"Successfully generated the chart data, description: {description}";
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogInternalError(ex, "Failed to save and post chart data");
-                return $"ERROR: Chart data processing failed: {ex.Message}";
-            }
+            return await ChartHelper.PostChartDataAsync(
+                ThreadId.Value,
+                chartData,
+                description,
+                _outboundService,
+                _logger);
         }
     }
 }

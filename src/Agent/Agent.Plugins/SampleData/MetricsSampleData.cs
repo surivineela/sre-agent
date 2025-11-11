@@ -17,7 +17,7 @@ namespace Agent.Plugins.SampleData
         public static TimeSeries CpuUsagePeak = new(
             MetricName: "cpu_usage",
             Unit: "percent",
-            Aggregation: AggregationMethod.Average,
+            Aggregation: AggregationType.Average,
             Dimensions: new Dictionary<string, string>()
             {
                 { "AppName", "test-app" }
@@ -95,7 +95,7 @@ namespace Agent.Plugins.SampleData
         public static TimeSeries ResponseLatencyWithSpikes = new(
             MetricName: "response_latency",
             Unit: "milliseconds",
-            Aggregation: AggregationMethod.Max,
+            Aggregation: AggregationType.Max,
             Dimensions: new Dictionary<string, string>()
             {
                 { "AppName", "test-app" }
@@ -171,7 +171,7 @@ namespace Agent.Plugins.SampleData
         public static TimeSeries ResponseLatencyWithSpikesLarge = new(
             MetricName: "response_latency",
             Unit: "milliseconds",
-            Aggregation: AggregationMethod.Max,
+            Aggregation: AggregationType.Max,
             Dimensions: new Dictionary<string, string>()
             {
                 { "AppName", "test-app" }

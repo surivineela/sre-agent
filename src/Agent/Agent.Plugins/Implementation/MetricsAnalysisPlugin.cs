@@ -3,23 +3,21 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
-using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
 using ScottPlot;
 
 namespace Agent.Plugins.Implementation
 {
     public class MetricsAnalysisPlugin : IMetricsAnalysisPlugin
     {
-        private readonly IChatCompletionService _chatCompletionService;
+        private readonly IChatClientProvider _chatClientProvider;
         private readonly IAgentOutboundCommunicationService _outboundService;
         private readonly ILogger<MetricsAnalysisPlugin> _logger;
         private readonly ISessionPoolService _sessionPoolService;
@@ -29,13 +27,13 @@ namespace Agent.Plugins.Implementation
         public Guid? ThreadId { get; set; }
 
         public MetricsAnalysisPlugin(
-            IChatCompletionService chatCompletionService,
+            IChatClientProvider chatClientProvider,
             IAgentOutboundCommunicationService outboundService,
             ILogger<MetricsAnalysisPlugin> logger,
             ISessionPoolService sessionPoolService,
             IHostEnvironment hostEnvironment)
         {
-            _chatCompletionService = chatCompletionService;
+            _chatClientProvider = chatClientProvider;
             _outboundService = outboundService;
             _logger = logger;
             _sessionPoolService = sessionPoolService;
@@ -87,11 +85,8 @@ If no relevant filters can be determined from the symptoms, return an empty arra
 
 Return ONLY the JSON array, no additional text or explanation.";
 
-                var chatHistory = new ChatHistory();
-                chatHistory.AddUserMessage(prompt);
-
-                var response = await _chatCompletionService.GetChatMessageContentAsync(chatHistory);
-                var responseText = response.Content?.Trim() ?? "[]";
+                var response = await _chatClientProvider.SmallFastModel.GetResponseAsync([new ChatMessage(ChatRole.User, prompt)]);
+                var responseText = response.Text?.Trim() ?? "[]";
 
                 // Remove markdown code blocks if present
                 if (responseText.StartsWith("```json"))
@@ -135,6 +130,15 @@ Return ONLY the JSON array, no additional text or explanation.";
 
             try
             {
+                if (timeSeries == null || timeSeries.Length == 0)
+                {
+                    _logger.LogInternalWarning("No time series data provided for analysis");
+                    return new MetricsAnalysisResult(
+                        "",
+                        "",
+                        "",
+                        "No time series data provided.");
+                }
                 var metricsToCheck = timeSeries.Select(ts => ts.MetricName).ToArray();
 
                 // Step 1: Serialize time series data
@@ -191,7 +195,9 @@ Return ONLY the JSON array, no additional text or explanation.";
         {
             _logger.LogInternalInformation("Performing direct LLM analysis");
 
-            var prompt = $@"You are an expert metrics analyst. Analyze the following metrics data and provide insights.
+            try
+            {
+                var prompt = $@"You are an expert metrics analyst. Analyze the following metrics data and provide insights.
 
 **Symptoms**: {symptoms}
 
@@ -204,10 +210,16 @@ Return ONLY the JSON array, no additional text or explanation.";
 
 Please provide general insights about the metrics patterns. Use bullets and be as concise as possible.";
 
-            var response = await _chatCompletionService.GetChatMessageContentAsync(prompt);
-            var content = response?.Content ?? "No analysis available";
+                var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync([new ChatMessage(ChatRole.User, prompt)]);
+                var content = response?.Text ?? "No analysis available";
 
-            return content;
+                return content;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error performing direct LLM analysis");
+                return "Error performing direct LLM analysis. Unable to generate insights.";
+            }
         }
 
         private async Task<string> PerformStatisticalAnalysisAsync(
@@ -217,23 +229,25 @@ Please provide general insights about the metrics patterns. Use bullets and be a
         {
             _logger.LogInternalInformation("Performing statistical analysis with Python code generation");
 
-            // Upload the metrics JSON file to the session
-            var identifier = BuildIdentifier();
-            var filename = "metrics_data.json";
-            var jsonBytes = System.Text.Encoding.UTF8.GetBytes(metricsJson);
-
             try
             {
-                await _sessionPoolService.UploadSessionFileAsync(identifier, filename, jsonBytes);
-                _logger.LogInternalInformation($"Uploaded metrics data file to session: {filename}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "Failed to upload metrics data file");
-                throw;
-            }
+                // Upload the metrics JSON file to the session
+                var identifier = BuildIdentifier();
+                var filename = "metrics_data.json";
+                var jsonBytes = System.Text.Encoding.UTF8.GetBytes(metricsJson);
 
-            var prompt = $@"You are an expert data scientist. Generate Python code to perform statistical and machine learning analysis on metrics data.
+                try
+                {
+                    await _sessionPoolService.UploadSessionFileAsync(identifier, filename, jsonBytes);
+                    _logger.LogInternalInformation($"Uploaded metrics data file to session: {filename}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to upload metrics data file");
+                    throw;
+                }
+
+                var prompt = $@"You are an expert data scientist. Generate Python code to perform statistical and machine learning analysis on metrics data.
 
 **Symptoms**: {symptoms}
 
@@ -286,13 +300,19 @@ Requirements:
 
 Return ONLY the Python code, no explanations.";
 
-            var codeResponse = await _chatCompletionService.GetChatMessageContentAsync(prompt);
-            var pythonCode = ExtractPythonCode(codeResponse?.Content ?? "");
+                var codeResponse = await _chatClientProvider.ReasoningHeavyModel.GetResponseAsync([new ChatMessage(ChatRole.User, prompt)]);
+                var pythonCode = ExtractPythonCode(codeResponse?.Text ?? "");
 
-            // Execute the Python code
-            var executionOutput = await ExecutePythonCodeAsync(pythonCode);
+                // Execute the Python code
+                var executionOutput = await ExecutePythonCodeAsync(pythonCode);
 
-            return executionOutput;
+                return executionOutput;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error performing statistical analysis");
+                return "Error performing statistical analysis. Unable to generate insights from Python code execution.";
+            }
         }
 
         private async Task<string> PerformVisualizationAnalysisAsync(
@@ -301,10 +321,19 @@ Return ONLY the Python code, no explanations.";
         {
             _logger.LogInternalInformation("Performing visualization and multimodal analysis");
 
-            var metricsToCheck = timeSeries.Select(ts => ts.MetricName).ToArray();
+            try
+            {
+                var metricsToCheck = timeSeries.Select(ts => ts.MetricName).ToArray();
 
-            // Analyze the chart with multimodal LLM (GPT-4o)
-            var multimodalPrompt = $@"You are an expert metrics analyst. Analyze this metrics visualization chart.
+                // Generate line chart using ScottPlot
+                var chartPath = Path.Combine(_tempDirectory, $"metrics_chart_{Guid.NewGuid()}.png");
+                var chartBytes = GenerateLineChart(timeSeries, chartPath);
+
+                // Post chart data to the user
+                await PostChartData(timeSeries);
+
+                // Analyze the chart with multimodal LLM (GPT-4o)
+                var multimodalPrompt = $@"You are an expert metrics analyst. Analyze this metrics visualization chart.
 
 **Symptoms**: {symptoms}
 
@@ -316,46 +345,103 @@ Please identify:
 3. Any concerning patterns related to the symptoms
 
 ONLY state factual observations based on what you see in the chart. Don't provide any recommendations.";
-            var messages = new ChatMessageContentItemCollection
+                var message = new ChatMessage(ChatRole.User, multimodalPrompt);
+                message.Contents.Add(new DataContent(chartBytes, "image/png"));
+                var multimodalResponse = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync([message]);
+                var response = multimodalResponse?.Text ?? "No visual analysis available";
+
+                return response;
+            }
+            catch (Exception ex)
             {
-                new TextContent(multimodalPrompt)
-            };
-
-            // Generate line chart using ScottPlot
-            var chartPath = Path.Combine(_tempDirectory, $"metrics_chart_{Guid.NewGuid()}.png");
-            var chartBytes = GenerateLineChart(timeSeries, chartPath);
-            messages.Add(new ImageContent(chartBytes, "image/png"));
-            await PostChartImage(chartBytes);
-
-            var chatHistory = new ChatHistory();
-            chatHistory.AddUserMessage(messages);
-
-            var multimodalResponse = await _chatCompletionService.GetChatMessageContentAsync(chatHistory);
-            var response = multimodalResponse?.Content ?? "No visual analysis available";
-
-            return response;
+                _logger.LogInternalError(ex, "Error performing visualization analysis");
+                return "Error performing visualization analysis. Unable to generate insights from chart data.";
+            }
         }
 
-        private async Task PostChartImage(byte[] imageBytes)
+        private async Task PostChartData(TimeSeries[] timeSeries)
         {
-            var threadId = ToolStatic.AsyncLocalThreadId.Value;
+            var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
             if (threadId == Guid.Empty)
             {
-                _logger.LogInternalWarning("ThreadId is null, cannot post chart image");
+                _logger.LogInternalWarning("ThreadId is null, cannot post chart data");
                 return;
             }
 
-            // Convert image to base64
-            var base64Image = "data:image/png;base64," + Convert.ToBase64String(imageBytes);
-            var chartMessage = $"![Chart Graph]({base64Image})\r";
+            if (timeSeries.Length == 0)
+            {
+                _logger.LogInternalWarning("No time series data to post");
+                return;
+            }
 
-            Guid messageId = Guid.NewGuid();
+            // Convert time series data to frontend-friendly format
+            var chartData = new
+            {
+                type = "line",
+                title = timeSeries[0].MetricName + (string.IsNullOrEmpty(timeSeries[0].Unit) ? string.Empty : $" ({timeSeries[0].Unit})"),
+                xAxisLabel = "Time",
+                yAxisLabel = "Value",
+                data = ConvertTimeSeriesDataToFrontendFormat(timeSeries)
+            };
 
-            // Save to database via the outbound service
-            await _outboundService.AppendAgentImageMessage(threadId, chartMessage, messageId);
+            // Post chart data using ChartHelper
+            await ChartHelper.PostChartDataAsync(
+                threadId,
+                chartData,
+                "Metrics visualization for analysis",
+                _outboundService,
+                _logger);
+        }
 
-            // Stream the complete image message directly to bypass tool call limitations
-            await _outboundService.AppendAgentStreamMessage(threadId, chartMessage, StreamMessageType.Image, messageId);
+        private List<object> ConvertTimeSeriesDataToFrontendFormat(TimeSeries[] timeSeries)
+        {
+            // Group all data points by timestamp
+            var allDataPoints = timeSeries
+                .SelectMany(ts => ts.DataPoints.Select(dp => new
+                {
+                    Timestamp = dp.Timestamp,
+                    Value = dp.Value,
+                    SeriesName = ts.FormatDimensions()
+                }))
+                .GroupBy(dp => dp.Timestamp)
+                .OrderBy(g => g.Key)
+                .ToList();
+
+            // Get unique series names
+            var seriesNames = timeSeries
+                .Select(ts => ts.FormatDimensions())
+                .Distinct()
+                .ToList();
+
+            // Determine time format based on date range using ChartHelper
+            string timeFormat = "yyyy-MM-dd HH:mm:ss";
+            if (allDataPoints.Count > 0)
+            {
+                var earliestDate = allDataPoints.First().Key;
+                var latestDate = allDataPoints.Last().Key;
+                timeFormat = ChartHelper.DetermineTimeFormat(earliestDate, latestDate);
+            }
+
+            // Create frontend-friendly data format
+            var result = new List<object>();
+            foreach (var group in allDataPoints)
+            {
+                var dataPoint = new Dictionary<string, object>
+                {
+                    { "name", group.Key.ToString(timeFormat) }
+                };
+
+                // Add value for each series
+                foreach (var seriesName in seriesNames)
+                {
+                    var point = group.FirstOrDefault(dp => dp.SeriesName == seriesName);
+                    dataPoint[seriesName] = point?.Value ?? 0;
+                }
+
+                result.Add(dataPoint);
+            }
+
+            return result;
         }
 
         private byte[] GenerateLineChart(
@@ -444,8 +530,8 @@ Format your response as:
 - [Observation 2]
 ...";
 
-            var response = await _chatCompletionService.GetChatMessageContentAsync(prompt);
-            var content = response?.Content ?? "";
+            var response = await _chatClientProvider.SmallFastModel.GetResponseAsync([new ChatMessage(ChatRole.User, prompt)]);
+            var content = response?.Text ?? "";
 
             return content;
         }
@@ -491,9 +577,6 @@ Format your response as:
             var threadId = ThreadId?.ToString() ?? Guid.NewGuid().ToString();
             return _sessionPoolService.BuildSessionIdentifier(agentName, threadId, false);
         }
-
-        private static string Truncate(string value, int max)
-            => value.Length <= max ? value : value.Substring(0, max) + "...<truncated>";
 
         private string ExtractPythonCode(string llmResponse)
         {

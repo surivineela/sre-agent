@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
-using Agent.Core.Interfaces;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Azure.Core;
@@ -48,7 +47,8 @@ public class AzureMonitorMetricsPlugin : IAzureMonitorMetricsPlugin
     }
 
     public async Task<IReadOnlyList<MetricTimeSeriesElement>> QueryMetricValuesForAzureResource(
-        string resourceId, string metricNamespace, string metricName, DateTimeOffset startTime, DateTimeOffset endTime, string dimensionFilter = "")
+        string resourceId, string metricNamespace, string metricName, DateTimeOffset startTime, DateTimeOffset endTime,
+        string dimensionFilter = "", MetricAggregationType aggregationType = MetricAggregationType.Average)
     {
         var duration = endTime - startTime;
 
@@ -64,7 +64,7 @@ public class AzureMonitorMetricsPlugin : IAzureMonitorMetricsPlugin
             : supportedBuckets.Last(); // fallback to 1 day if all buckets are smaller
 
         var metricsQueryResult = await _azureMonitorMetricsHelper.QueryResourceMetricAsync(
-            resourceId, metricNamespace, metricName, startTime, endTime, roundedGranularity, dimensionFilter);
+            resourceId, metricNamespace, metricName, startTime, endTime, roundedGranularity, aggregationType, dimensionFilter);
 
         return metricsQueryResult.Metrics[0].TimeSeries;
     }

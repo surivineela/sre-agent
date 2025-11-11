@@ -19,14 +19,14 @@ namespace Agent.Plugins.Models
     public sealed record TimeSeries(
         string MetricName,
         string Unit,
-        AggregationMethod Aggregation,
+        AggregationType Aggregation,
         IDictionary<string, string> Dimensions,
         IReadOnlyList<TimeSeriesDataPoint> DataPoints);
 
     /// <summary>
     /// Aggregation methods for resampling
     /// </summary>
-    public enum AggregationMethod
+    public enum AggregationType
     {
         Average,
         Sum,

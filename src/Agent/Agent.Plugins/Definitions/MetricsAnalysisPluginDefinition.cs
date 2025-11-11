@@ -84,8 +84,8 @@ namespace Agent.Plugins.Definitions
             DateTime startTime,
             [Description("End time for the metric query in ISO 8601 format (e.g., '2024-01-01T23:59:59+04:00')")]
             DateTime endTime,
-            [Description("Aggregation type to apply to the metric data (e.g., 'Average', 'Sum', 'Maximum', 'Minimum', 'Count')")]
-            string aggregation)
+            [Description("Aggregation type to apply to the metric data. Supported values: 'Average', 'Sum', 'Min', 'Max', 'Count'")]
+            AggregationType aggregation)
         {
             // Resolve the handler from the metricProvider parameter
             var handler = _metricProviderHandlers.FirstOrDefault(h =>
