@@ -9,16 +9,8 @@ type CustomArrowMarkerProps = {
 
 const CustomArrowMarker = ({ id, color, size }: CustomArrowMarkerProps) => (
     <defs>
-        <marker
-            id={id}
-            viewBox="-5 -5 10 10"
-            refX="0"
-            refY="0"
-            markerWidth={size ?? 30}
-            markerHeight={size ?? 30}
-            orient="auto-start-reverse"
-        >
-            <path d="M -5,-5 L 0,0 L -5,5 z" fill={color || DEFAULT_MARKER_COLOR} />
+        <marker id={id} refX="8" refY="5" markerWidth={size || 10} markerHeight={size || 10} orient="auto-start-reverse">
+            <path d="M2,8 L8,5 L2,2" stroke={color || DEFAULT_MARKER_COLOR} strokeWidth="1" fill="none" />
         </marker>
     </defs>
 );

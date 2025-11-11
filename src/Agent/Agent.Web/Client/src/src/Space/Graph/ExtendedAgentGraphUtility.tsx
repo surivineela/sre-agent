@@ -4,12 +4,12 @@ import {
     ExtendedAgentGraphEdge,
     ExtendedAgentGraphNode,
     ExtendedAgentNodeType,
-    ExtendedAgentRelationType,
     ExtendedConnector,
     ExtendedTool,
     ExtendedTrigger,
     SystemTool,
 } from '../Contracts/ExtendedAgentGraph';
+import { EntityType } from './ExtendedAgentCreationDialog/types';
 
 export const EXTENDED_AGENT_CARD_TYPE = 'ExtendedAgentCard';
 export const TOOL_CARD_TYPE = 'ToolCard';
@@ -95,8 +95,8 @@ export const createSystemToolNode = (systemTool: SystemTool): Node<ExtendedAgent
 export const createExtendedAgentEdge = (
     sourceId: string,
     targetId: string,
-    relationType: ExtendedAgentRelationType,
-    label?: string
+    sourceType: EntityType,
+    targetType: EntityType
 ): Edge<ExtendedAgentGraphEdge> => {
     const edgeId = `${sourceId}-${targetId}`;
 
@@ -105,12 +105,11 @@ export const createExtendedAgentEdge = (
         type: EXTENDED_AGENT_EDGE_TYPE,
         source: sourceId,
         target: targetId,
-        label: label,
         data: {
             source: sourceId,
             target: targetId,
-            label: label,
-            relationType: relationType,
+            sourceType: sourceType,
+            targetType: targetType,
         },
     };
 };
@@ -170,7 +169,7 @@ export const buildExtendedAgentGraph = (
                 }
 
                 // Create edge from agent to tool
-                const edge = createExtendedAgentEdge(`agent_${agent.name}`, `tool_${toolName}`, ExtendedAgentRelationType.UsesTool, 'uses');
+                const edge = createExtendedAgentEdge(`agent_${agent.name}`, `tool_${toolName}`, 'agent', 'tool');
                 edges.push(edge);
 
                 // Create connector node and edge if tool has a connector
@@ -186,8 +185,8 @@ export const buildExtendedAgentGraph = (
                         const connectorEdge = createExtendedAgentEdge(
                             `tool_${toolName}`,
                             `connector_${tool.connector}`,
-                            ExtendedAgentRelationType.ToolUsesConnector,
-                            'connects to'
+                            'tool',
+                            'connector'
                         );
                         edges.push(connectorEdge);
                     }
@@ -224,14 +223,7 @@ export const buildExtendedAgentGraph = (
 
             const edgeId = getEdgeId(`agent_${agent.name}`, `systemtool_${systemToolName}`);
             if (!systemToolEdgesCreated.has(edgeId)) {
-                edges.push(
-                    createExtendedAgentEdge(
-                        `agent_${agent.name}`,
-                        `systemtool_${systemToolName}`,
-                        ExtendedAgentRelationType.UsesSystemTool,
-                        'uses'
-                    )
-                );
+                edges.push(createExtendedAgentEdge(`agent_${agent.name}`, `systemtool_${systemToolName}`, 'agent', 'tool'));
                 systemToolEdgesCreated.add(edgeId);
             }
         });
@@ -240,12 +232,7 @@ export const buildExtendedAgentGraph = (
         agent.agentsAsTools?.forEach(agentAsToolRef => {
             const targetAgent = agentMap.get(agentAsToolRef.agentName);
             if (targetAgent) {
-                const edge = createExtendedAgentEdge(
-                    `agent_${agent.name}`,
-                    `agent_${agentAsToolRef.agentName}`,
-                    ExtendedAgentRelationType.AgentAsTool,
-                    agentAsToolRef.toolName || 'uses as tool'
-                );
+                const edge = createExtendedAgentEdge(`agent_${agent.name}`, `agent_${agentAsToolRef.agentName}`, 'agent', 'agent');
                 edges.push(edge);
             }
         });
@@ -254,12 +241,7 @@ export const buildExtendedAgentGraph = (
         agent.handoffs?.forEach(handoffAgentName => {
             const targetAgent = agentMap.get(handoffAgentName);
             if (targetAgent) {
-                const edge = createExtendedAgentEdge(
-                    `agent_${agent.name}`,
-                    `agent_${handoffAgentName}`,
-                    ExtendedAgentRelationType.HandoffTo,
-                    'hands off to'
-                );
+                const edge = createExtendedAgentEdge(`agent_${agent.name}`, `agent_${handoffAgentName}`, 'agent', 'agent');
                 edges.push(edge);
             }
         });
@@ -277,12 +259,7 @@ export const buildExtendedAgentGraph = (
         if (trigger.agentName) {
             const targetAgent = agentMap.get(trigger.agentName);
             if (targetAgent) {
-                const edge = createExtendedAgentEdge(
-                    `trigger_${trigger.name}`,
-                    `agent_${trigger.agentName}`,
-                    ExtendedAgentRelationType.TriggerStartsAgent,
-                    'starts'
-                );
+                const edge = createExtendedAgentEdge(`trigger_${trigger.name}`, `agent_${trigger.agentName}`, 'trigger', 'agent');
                 edges.push(edge);
             }
         }
@@ -293,12 +270,7 @@ export const buildExtendedAgentGraph = (
     if (overriddenMetaAgent) {
         agents.forEach(agent => {
             if (agent.name !== 'meta-agent') {
-                const edge = createExtendedAgentEdge(
-                    `agent_${overriddenMetaAgent.name}`,
-                    `agent_${agent.name}`,
-                    ExtendedAgentRelationType.MetaAgentConnectsTo,
-                    'provides context to'
-                );
+                const edge = createExtendedAgentEdge(`agent_${overriddenMetaAgent.name}`, `agent_${agent.name}`, 'agent', 'agent');
                 edges.push(edge);
             }
         });
@@ -309,27 +281,6 @@ export const buildExtendedAgentGraph = (
 
 export const getEdgeId = (sourceId: string, targetId: string): string => {
     return `${sourceId}-${targetId}`;
-};
-
-export const getRelationshipLabel = (relationType: ExtendedAgentRelationType): string => {
-    switch (relationType) {
-        case ExtendedAgentRelationType.UsesTool:
-            return 'uses';
-        case ExtendedAgentRelationType.UsesSystemTool:
-            return 'uses system tool';
-        case ExtendedAgentRelationType.ToolUsesConnector:
-            return 'connects to';
-        case ExtendedAgentRelationType.AgentAsTool:
-            return 'uses as tool';
-        case ExtendedAgentRelationType.HandoffTo:
-            return 'hands off to';
-        case ExtendedAgentRelationType.TriggerStartsAgent:
-            return 'starts';
-        case ExtendedAgentRelationType.MetaAgentConnectsTo:
-            return 'provides context to';
-        default:
-            return '';
-    }
 };
 
 export const filterGraphBySearch = (

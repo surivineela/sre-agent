@@ -133,7 +133,7 @@ export const useExtendedAgentNodeStyles = makeStyles({
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
-        gap: '8px',
+        gap: '16px',
         position: 'relative',
     },
     agentCard: {
@@ -499,29 +499,6 @@ export const useConnectorNodeStyles = makeStyles({
         border: tokens.colorNeutralStroke2,
         color: tokens.colorNeutralForeground3,
         zIndex: 1,
-    },
-});
-
-// Edge Styles
-export const useExtendedAgentEdgeStyles = makeStyles({
-    highlightedEdge: {
-        stroke: `${tokens.colorBrandForegroundLinkHover} !important`,
-        strokeWidth: '2px !important',
-    },
-    usesToolEdge: {
-        stroke: tokens.colorPaletteBlueForeground2,
-    },
-    systemToolEdge: {
-        stroke: tokens.colorPaletteGoldForeground2,
-    },
-    connectorEdge: {
-        stroke: tokens.colorPaletteGreenForeground2,
-    },
-    agentAsToolEdge: {
-        stroke: tokens.colorPalettePurpleForeground2,
-    },
-    handoffEdge: {
-        stroke: tokens.colorPaletteDarkOrangeForeground2,
     },
 });
 

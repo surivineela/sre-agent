@@ -48,7 +48,6 @@ self.onmessage = async (event: MessageEvent<{ nodes: Node<ExtendedAgentGraphNode
                     id: edge.id,
                     sources: [edge.source],
                     targets: [edge.target],
-                    labels: [{ text: edge.data?.label ?? '' }],
                 })),
             },
             {

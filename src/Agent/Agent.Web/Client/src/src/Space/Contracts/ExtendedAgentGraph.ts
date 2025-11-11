@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import { EntityType } from '../Graph/ExtendedAgentCreationDialog/types';
 
 // Extended Agent Types
 export type ExtendedAgent = {
@@ -141,22 +142,11 @@ export type ExtendedAgentGraphNode = {
     data?: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger | SystemTool;
 };
 
-// Graph Edge Types
-export enum ExtendedAgentRelationType {
-    UsesTool = 'USES_TOOL',
-    UsesSystemTool = 'USES_SYSTEM_TOOL',
-    ToolUsesConnector = 'TOOL_USES_CONNECTOR',
-    AgentAsTool = 'AGENT_AS_TOOL',
-    HandoffTo = 'HANDOFF_TO',
-    TriggerStartsAgent = 'TRIGGER_STARTS_AGENT',
-    MetaAgentConnectsTo = 'META_AGENT_CONNECTS_TO',
-}
-
 export type ExtendedAgentGraphEdge = {
     source: string;
     target: string;
-    label?: string;
-    relationType: ExtendedAgentRelationType;
+    sourceType: EntityType;
+    targetType: EntityType;
 };
 
 export type AgentQuickAction =
