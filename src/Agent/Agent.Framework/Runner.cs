@@ -658,39 +658,44 @@ public static class Runner
 
         await hooks.OnModelGenerationStart(contextWrapper, agent, modelInput, chatOptions);
 
-        ChatResponse response;
+        ChatResponse? response = null;
         object? structuredOutput = null;
 
-        if (agent.HasStructuredOutput
-            && modelSupportsStructuredOutput)
+        try
         {
-            // deserialize sometimes fail with missing field, falls back to non-structured response path
-            try
+            if (agent.HasStructuredOutput
+                && modelSupportsStructuredOutput)
             {
-                var streamHandler = displayModelOutput is not null
-                    ? new JsonStreamContentHandler(agent.OutputType, displayModelOutput)
-                    : null;
+                // deserialize sometimes fail with missing field, falls back to non-structured response path
+                try
+                {
+                    var streamHandler = displayModelOutput is not null
+                        ? new JsonStreamContentHandler(agent.OutputType, displayModelOutput)
+                        : null;
 
-                (response, structuredOutput) = await chatClient.GetResponseAsync(
-                    modelInput,
-                    agent.OutputType,
-                    chatOptions,
-                    streamHandler,
-                    cancellationToken);
+                    (response, structuredOutput) = await chatClient.GetResponseAsync(
+                        modelInput,
+                        agent.OutputType,
+                        chatOptions,
+                        streamHandler,
+                        cancellationToken);
+                }
+                catch (InvalidOperationException ex) when (ex.Message.Contains("Failed to deserialize the response"))
+                {
+                    logger.LogWarning(ex, "Failed to deserialize structured output for agent {AgentName}. Falling back to non-structured response.", agent.Name);
+                    response = await chatClient.GetResponseAsync(modelInput, chatOptions, cancellationToken);
+                }
             }
-            catch (InvalidOperationException ex) when (ex.Message.Contains("Failed to deserialize the response"))
+            else
             {
-                logger.LogWarning(ex, "Failed to deserialize structured output for agent {AgentName}. Falling back to non-structured response.", agent.Name);
-                response = await chatClient.GetResponseAsync(modelInput, chatOptions, cancellationToken);
+                var streamHandler = new TextStreamContentHandler(displayModelOutput);
+                response = await chatClient.GetResponseAsync(modelInput, chatOptions, streamHandler, cancellationToken);
             }
         }
-        else
+        finally
         {
-            var streamHandler = new TextStreamContentHandler(displayModelOutput);
-            response = await chatClient.GetResponseAsync(modelInput, chatOptions, streamHandler, cancellationToken);
+            await hooks.OnModelGenerationEnd(contextWrapper, agent, response);
         }
-
-        await hooks.OnModelGenerationEnd(contextWrapper, agent, response);
 
         trajectory.Append(response);
 

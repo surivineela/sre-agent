@@ -7,6 +7,7 @@ using System.ClientModel.Primitives;
 using Agent.Core;
 using Agent.Core.Clients.Chat;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
@@ -80,8 +81,8 @@ namespace Agent.Runtime
                         RetryPolicy = new ClientRetryPolicy(2)
                     };
 
-                    // register a pipeline policy that logs 429 responses
-                    options.AddPolicy(new AzureOpenAILoggingPolicy(logger), PipelinePosition.PerCall);
+                    // register a pipeline policy that logs LLM Http request details
+                    options.AddPolicy(new AzureOpenAILoggingPolicy(logger), PipelinePosition.PerTry);
 
                     // TODO: remove api key after CP is deployed
                     if (!string.IsNullOrEmpty(openAISettings.ApiKey))
@@ -154,39 +155,207 @@ namespace Agent.Runtime
 
             public override void Process(PipelineMessage message, IReadOnlyList<PipelinePolicy> pipeline, int index)
             {
-                // Invoke next policy in pipeline
-                ProcessNext(message, pipeline, index);
+                var threadId = Core.ToolStatic.AsyncLocalThreadId.Value.ToString();
+                long requestContentLength = -1;
+                message.Request.Content?.TryComputeLength(out requestContentLength);
 
                 try
                 {
-                    if (message.Response != null && message.Response.Status == 429)
+                    // Invoke next policy in pipeline
+                    ProcessNext(message, pipeline, index);
+
+                    var responseContentLength = -1;
+                    ExecuteAndSwallowException(() =>
                     {
-                        _logger.LogAgentActionError(new Exception("Azure OpenAI returned 429 Too Many Requests"),
-                            AgentActionEvents.GenerateModelResponse, string.Empty, "429", 0, string.Empty);
+                        responseContentLength = message.Response?.Content?.Length ?? -1;
                     }
+                    );
+                    ExecuteAndSwallowException(() =>
+                        _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
+                            string.Empty, "Success", 0, threadId,
+                            actionMetadata: WebJsonSerializer.Serialize(new
+                            {
+                                HttpMethod = message.Request.Method,
+                                Host = message.Request.Uri?.Host.ToString(),
+                                Path = message.Request.Uri?.AbsolutePath.ToString(),
+                                RequestBodySize = requestContentLength,
+                                StatusCode = message.Response?.Status,
+                                ResponseSize = responseContentLength,
+                            }))
+                    );
                 }
-                catch
+                catch (TaskCanceledException) when (!message.CancellationToken.IsCancellationRequested)
                 {
-                    // Swallow logging errors so we don't affect the caller
+                    ExecuteAndSwallowException(() =>
+                        _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
+                            string.Empty, "Timeout", 0, threadId,
+                            actionMetadata: WebJsonSerializer.Serialize(new
+                            {
+                                HttpMethod = message.Request.Method,
+                                Host = message.Request.Uri?.Host.ToString(),
+                                Path = message.Request.Uri?.AbsolutePath.ToString(),
+                                RequestBodySize = requestContentLength,
+                            }))
+                    );
+                    throw;
                 }
+                catch (TimeoutException)
+                {
+                    ExecuteAndSwallowException(() =>
+                        _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
+                            string.Empty, "Timeout", 0, threadId,
+                            actionMetadata: WebJsonSerializer.Serialize(new
+                            {
+                                HttpMethod = message.Request.Method,
+                                Host = message.Request.Uri?.Host.ToString(),
+                                Path = message.Request.Uri?.AbsolutePath.ToString(),
+                                RequestBodySize = requestContentLength,
+                            }))
+                    );
+                    throw;
+                }
+                catch (OperationCanceledException) when (!message.CancellationToken.IsCancellationRequested)
+                {
+                    ExecuteAndSwallowException(() =>
+                        _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
+                            string.Empty, "Timeout", 0, threadId,
+                            actionMetadata: WebJsonSerializer.Serialize(new
+                            {
+                                HttpMethod = message.Request.Method,
+                                Host = message.Request.Uri?.Host.ToString(),
+                                Path = message.Request.Uri?.AbsolutePath.ToString(),
+                                RequestBodySize = requestContentLength,
+                            }))
+                    );
+                    throw;
+                }
+
+                ExecuteAndSwallowException(() =>
+                {
+                    if (message.Response != null && message.Response.Status >= 400)
+                    {
+
+                        _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
+                            string.Empty, message.Response.Status.ToString(), 0, threadId,
+                            actionMetadata: WebJsonSerializer.Serialize(new
+                            {
+                                HttpMethod = message.Request.Method,
+                                Host = message.Request.Uri?.Host.ToString(),
+                                Path = message.Request.Uri?.AbsolutePath.ToString(),
+                                StatusCode = message.Response.Status,
+                                RequestBodySize = requestContentLength,
+                            }
+                        ));
+                    }
+                });
             }
 
             public override async ValueTask ProcessAsync(PipelineMessage message, IReadOnlyList<PipelinePolicy> pipeline, int index)
             {
-                await ProcessNextAsync(message, pipeline, index).ConfigureAwait(false);
+                var threadId = Core.ToolStatic.AsyncLocalThreadId.Value.ToString();
+                long requestContentLength = -1;
+                message.Request.Content?.TryComputeLength(out requestContentLength);
 
                 try
                 {
+                    // Invoke next policy in pipeline
+                    await ProcessNextAsync(message, pipeline, index).ConfigureAwait(false);
 
-                    if (message.Response != null && message.Response.Status == 429)
+                    var responseContentLength = -1;
+                    ExecuteAndSwallowException(() =>
                     {
-                        _logger.LogAgentActionError(new Exception("Azure OpenAI returned 429 Too Many Requests"),
-                            AgentActionEvents.GenerateModelResponse, string.Empty, "429", 0, string.Empty);
+                        responseContentLength = message.Response?.Content?.Length ?? -1;
                     }
+                    );
+                    ExecuteAndSwallowException(() =>
+                        _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
+                            string.Empty, "Success", 0, threadId,
+                            actionMetadata: WebJsonSerializer.Serialize(new
+                            {
+                                HttpMethod = message.Request.Method,
+                                Host = message.Request.Uri?.Host.ToString(),
+                                Path = message.Request.Uri?.AbsolutePath.ToString(),
+                                RequestBodySize = requestContentLength,
+                                StatusCode = message.Response?.Status,
+                                ResponseSize = responseContentLength,
+                            }))
+                    );
+                }
+                catch (TaskCanceledException) when (!message.CancellationToken.IsCancellationRequested)
+                {
+                    ExecuteAndSwallowException(() =>
+                        _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
+                            string.Empty, "Timeout", 0, threadId,
+                            actionMetadata: WebJsonSerializer.Serialize(new
+                            {
+                                HttpMethod = message.Request.Method,
+                                Host = message.Request.Uri?.Host.ToString(),
+                                Path = message.Request.Uri?.AbsolutePath.ToString(),
+                                RequestBodySize = requestContentLength,
+                            }))
+                    );
+                    throw;
+                }
+                catch (TimeoutException)
+                {
+                    ExecuteAndSwallowException(() =>
+                        _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
+                            string.Empty, "Timeout", 0, threadId,
+                            actionMetadata: WebJsonSerializer.Serialize(new
+                            {
+                                HttpMethod = message.Request.Method,
+                                Host = message.Request.Uri?.Host.ToString(),
+                                Path = message.Request.Uri?.AbsolutePath.ToString(),
+                                RequestBodySize = requestContentLength,
+                            }))
+                    );
+                    throw;
+                }
+                catch (OperationCanceledException) when (!message.CancellationToken.IsCancellationRequested)
+                {
+                    ExecuteAndSwallowException(() =>
+                        _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
+                            string.Empty, "Timeout", 0, threadId,
+                            actionMetadata: WebJsonSerializer.Serialize(new
+                            {
+                                HttpMethod = message.Request.Method,
+                                Host = message.Request.Uri?.Host.ToString(),
+                                Path = message.Request.Uri?.AbsolutePath.ToString(),
+                                RequestBodySize = requestContentLength,
+                            }))
+                    );
+                    throw;
+                }
+
+                ExecuteAndSwallowException(() =>
+                    {
+                        if (message.Response != null && message.Response.Status >= 400)
+                        {
+                            _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
+                                string.Empty, message.Response.Status.ToString(), 0, threadId,
+                                actionMetadata: WebJsonSerializer.Serialize(new
+                                {
+                                    HttpMethod = message.Request.Method,
+                                    Host = message.Request.Uri?.Host.ToString(),
+                                    Path = message.Request.Uri?.AbsolutePath.ToString(),
+                                    StatusCode = message.Response.Status,
+                                    RequestBodySize = requestContentLength,
+                                }
+                            ));
+                        }
+                    }
+                );
+            }
+
+            private void ExecuteAndSwallowException(System.Action action)
+            {
+                try
+                {
+                    action();
                 }
                 catch
                 {
-                    // ignore
+                    // Swallow logging errors so we don't affect the caller
                 }
             }
         }

@@ -1614,7 +1614,7 @@ public class ReasoningLoop : IDisposable
             _logger.LogAgentAction(
                 action: AgentActionEvents.GenerateModelResponse,
                 parameter: response?.ModelId?.ToString() ?? string.Empty,
-                status: AgentActionStatus.Success,
+                status: response is not null ? AgentActionStatus.Success : AgentActionStatus.Fail,
                 duration: durationMs,
                 threadId: _context.ThreadId.ToString(),
                 subAgentName: agent?.Name ?? "Unknown",
