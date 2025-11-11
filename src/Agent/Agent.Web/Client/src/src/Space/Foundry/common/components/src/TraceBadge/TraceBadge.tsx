@@ -2,7 +2,8 @@ import {
     AgentsRegular,
     ArrowTurnDownRightRegular,
     ArrowTurnUpLeftRegular,
-    BrainCircuitRegular,
+    ChatRegular,
+    CubeRegular,
     Person12Regular,
     Warning12Regular,
     Wrench16Regular,
@@ -72,7 +73,7 @@ export const TraceBadge = forwardRef<HTMLDivElement, ITraceBadgeProps>(({ type }
                 };
             case 'agentHandback':
                 return {
-                    label: intl.formatMessage(ThreadTraceResources.agentHandback),
+                    label: intl.formatMessage(ThreadTraceResources.agentHandoff),
                     className: styles.agentHandoff,
                     icon: <ArrowTurnUpLeftRegular aria-hidden="true" />,
                 };
@@ -80,13 +81,13 @@ export const TraceBadge = forwardRef<HTMLDivElement, ITraceBadgeProps>(({ type }
                 return {
                     label: intl.formatMessage(ThreadTraceResources.modelGeneration),
                     className: styles.modelGeneration,
-                    icon: <BrainCircuitRegular aria-hidden="true" />,
+                    icon: <CubeRegular aria-hidden="true" />,
                 };
             case 'agentResponse':
                 return {
                     label: intl.formatMessage(ThreadTraceResources.agentResponse),
                     className: styles.agentResponse,
-                    icon: <AgentsRegular aria-hidden="true" />,
+                    icon: <ChatRegular aria-hidden="true" />,
                 };
             default:
                 return {

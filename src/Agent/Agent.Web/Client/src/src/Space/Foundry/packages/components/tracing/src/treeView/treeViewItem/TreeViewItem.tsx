@@ -8,7 +8,7 @@ import { Button } from '../../../../../../common/components/src/Button/Button';
 import { MetricsBadge } from '../../../../../../common/components/src/MetricsBadge/MetricsBadge';
 import { TraceBadge } from '../../../../../../common/components/src/TraceBadge/TraceBadge';
 import type { ISpanTreeNode } from '../../types/trace';
-import { getBadgeType, getSpanDurationSeconds, getSpanTitle, getSpanTotalTokens } from '../../utils/traceHelper';
+import { getBadgeType, getSpanDurationSeconds, getSpanTitle } from '../../utils/traceHelper';
 import { useTreeViewItemStyles } from './TreeViewItem.Styles';
 
 interface ITreeViewItem {
@@ -26,11 +26,8 @@ export function TreeViewItem({ span, isOpen, isSelected, onToggleOpen, thread }:
 
     const title = useMemo(() => getSpanTitle(span, thread), [span, thread]);
     const id = useMemo(() => span.context?.span_id ?? '', [span.context?.span_id]);
-    // const hasError = useMemo(() => span.status?.status_code === 'ERROR', [span.status?.status_code]);
-    // const completed = useMemo(() => !hasError, [hasError]);
 
     const seconds = useMemo(() => getSpanDurationSeconds(span), [span]);
-    const tokens = useMemo(() => getSpanTotalTokens(span), [span]);
     const badgeType = useMemo(() => getBadgeType(span), [span]);
 
     const renderCollapseButton = () => (
@@ -71,24 +68,9 @@ export function TreeViewItem({ span, isOpen, isSelected, onToggleOpen, thread }:
                 {badgeType ? <TraceBadge type={badgeType} /> : null}
                 <div className={styles.itemTitleContainer}>
                     <Caption1 className={styles.itemTitle}>{title}</Caption1>
-                    {/* {completed ? (
-                        <CheckmarkCircle16Regular
-                            aria-label={intl.formatMessage(ThreadTraceResources.spanIdCompleted, { id })}
-                            className={styles.checkmark}
-                        />
-                    ) : null} */}
-                    {/* {hasError ? (
-                        <ErrorCircle16Regular
-                            aria-label={intl.formatMessage(ThreadTraceResources.spanIdFailed, { id })}
-                            className={styles.errorMark}
-                        />
-                    ) : null} */}
                 </div>
                 {seconds !== undefined && seconds !== 0 ? (
                     <MetricsBadge label={intl.formatMessage(ThreadTraceResources.secondsWithLabel, { seconds })} />
-                ) : null}
-                {tokens !== undefined && tokens !== 0 ? (
-                    <MetricsBadge label={intl.formatMessage(ThreadTraceResources.tokensWithLabel, { tokens })} />
                 ) : null}
             </div>
         </TreeItemLayout>

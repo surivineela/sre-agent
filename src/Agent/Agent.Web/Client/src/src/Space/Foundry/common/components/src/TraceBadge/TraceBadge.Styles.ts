@@ -6,20 +6,20 @@ export const useTraceBadgeStyles = makeStyles({
         backgroundColor: tokens.colorPaletteCranberryBackground2,
     },
     agent: {
-        color: tokens.colorPaletteCornflowerForeground2,
-        backgroundColor: tokens.colorPaletteCornflowerBackground2,
+        color: tokens.colorPaletteBlueForeground2,
+        backgroundColor: tokens.colorPaletteBlueBackground2,
     },
     agentResponse: {
-        color: tokens.colorPaletteNavyForeground2,
-        backgroundColor: tokens.colorPaletteNavyBackground2,
+        color: tokens.colorPaletteSeafoamForeground2,
+        backgroundColor: tokens.colorPaletteSeafoamBackground2,
     },
     agentHandoff: {
-        color: tokens.colorPaletteGoldForeground2,
-        backgroundColor: tokens.colorPaletteGoldBackground2,
+        color: tokens.colorPaletteMarigoldForeground2,
+        backgroundColor: tokens.colorPaletteMarigoldBackground2,
     },
     modelGeneration: {
-        color: tokens.colorPaletteRoyalBlueForeground2,
-        backgroundColor: tokens.colorPaletteRoyalBlueBackground2,
+        color: tokens.colorPalettePinkForeground2,
+        backgroundColor: tokens.colorPalettePinkBackground2,
     },
     subagent: {
         color: tokens.colorPaletteLavenderForeground2,

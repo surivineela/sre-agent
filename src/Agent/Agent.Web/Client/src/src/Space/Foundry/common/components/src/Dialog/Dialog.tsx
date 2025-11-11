@@ -13,7 +13,6 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
-    Divider,
     Dialog as FluentDialog,
     mergeClasses,
     Subtitle1,
@@ -324,7 +323,6 @@ export const Dialog = forwardRef<HTMLDivElement, IDialogProps>(
                                                     {titleActions}
                                                     {showCloseButton && (
                                                         <div className={styles.closeButtonAndDivider}>
-                                                            <Divider vertical={true} className={styles.titleDivider} />
                                                             <DialogTrigger action="close">
                                                                 <Button
                                                                     appearance="subtle"

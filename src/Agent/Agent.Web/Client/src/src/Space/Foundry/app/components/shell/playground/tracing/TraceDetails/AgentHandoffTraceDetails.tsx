@@ -25,9 +25,7 @@ export const AgentHandoffTraceDetails: FC<AgentHandoffTraceDetailsProps> = ({ sp
     const { icon, header } = useMemo(
         () => ({
             icon: isHandback ? <ArrowTurnUpLeftRegular aria-hidden={true} /> : <ArrowTurnDownRightRegular aria-hidden={true} />,
-            header: isHandback
-                ? intl.formatMessage(ThreadTraceResources.agentHandback)
-                : intl.formatMessage(ThreadTraceResources.agentHandoff),
+            header: intl.formatMessage(ThreadTraceResources.agentHandoff),
         }),
         [intl, isHandback]
     );
