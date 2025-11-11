@@ -278,7 +278,7 @@ export const IncidentsAndGuidanceStep = () => {
                     onClick={() => {
                         generateInstructions();
                     }}
-                    disabled={!handlerLoaded || generatingInstructions}
+                    disabled={!handlerLoaded || generatingInstructions || (!values.customInstructions && selectedIncidents?.length === 0)}
                 >
                     {intl.formatMessage(IncidentHandlerCreateResources.generate)}
                 </Button>
