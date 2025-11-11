@@ -35,7 +35,7 @@ public class AIDynamicTool<TContext> : IDeferredToolFunction<TContext> where TCo
 
     AIFunction IDeferredToolFunction<TContext>.GetToolFunction(Guid? threadId, Agent<TContext>? agent)
     {
-        return _functionFactory(threadId, string.Empty, agent!);
+        return _functionFactory(threadId, string.Empty, agent);
     }
 
     AIFunction IDeferredToolFunction<TContext>.GetToolFunction(Guid? threadId, string? agentMode, Agent<TContext>? agent)
