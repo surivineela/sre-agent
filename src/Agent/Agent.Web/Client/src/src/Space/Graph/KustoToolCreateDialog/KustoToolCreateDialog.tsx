@@ -14,7 +14,7 @@ import {
 } from '@fluentui/react-components';
 import { Dismiss24Regular, WarningFilled } from '@fluentui/react-icons';
 import { Formik } from 'formik';
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router-dom';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
@@ -37,9 +37,10 @@ export const KustoToolCreateDialog: FC<KustoToolCreateDialogProps> = ({ isDialog
     const navigate = useNavigate();
     const styles = useKustoToolCreateDialogStyles();
     const { initialValues, validationSchema, save } = useKustoToolSettings();
+    const [hasSuccessRunTest, setHasSuccessRunTest] = useState<boolean>(false);
 
     return (
-        <Dialog open={isDialogOpen} onOpenChange={(_, data) => setIsDialogOpen(data.open)}>
+        <Dialog open={isDialogOpen} onOpenChange={(_, data) => setIsDialogOpen(data.open)} modalType="alert">
             <Formik<KustoToolFormProps> initialValues={initialValues} validationSchema={validationSchema} onSubmit={save}>
                 {({ submitForm, dirty, isValid }) => {
                     return (
@@ -90,13 +91,20 @@ export const KustoToolCreateDialog: FC<KustoToolCreateDialogProps> = ({ isDialog
                                         </div>
                                         <div className={styles.toolFormDivider}></div>
                                         <div className={styles.toolFormRight}>
-                                            <KustoToolTestPanel />
+                                            <KustoToolTestPanel
+                                                hasSuccessRunTest={hasSuccessRunTest}
+                                                setHasSuccessRunTest={setHasSuccessRunTest}
+                                            />
                                         </div>
                                     </div>
                                 </DialogContent>
                                 <DialogActions className={styles.dialogActions}>
                                     <DialogTrigger disableButtonEnhancement>
-                                        <Button appearance="primary" onClick={submitForm} disabled={!dirty || !isValid}>
+                                        <Button
+                                            appearance="primary"
+                                            onClick={submitForm}
+                                            disabled={!dirty || !isValid || !hasSuccessRunTest}
+                                        >
                                             {intl.formatMessage(ExtendedAgentsGraphResources.createTool)}
                                         </Button>
                                     </DialogTrigger>

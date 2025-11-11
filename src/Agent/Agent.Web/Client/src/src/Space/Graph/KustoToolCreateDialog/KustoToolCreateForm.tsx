@@ -46,7 +46,12 @@ export const KustoToolCreateForm: FC<CreateFormProps> = ({ connectors }) => {
                     value={values.connector || ''}
                     selectedOptions={values.connector ? [values.connector] : []}
                     onOptionSelect={(_, data: OptionOnSelectData) => {
-                        setFieldValue('connector', data.selectedOptions[0] || '');
+                        const connectorName = data.selectedOptions[0];
+                        const connector = connectors.find(c => c.name === connectorName);
+                        // TODO: Check if dataSource parsing is correct
+                        const databaseName = connector?.dataSource.split('.kusto.windows.net/')[1] || '';
+                        setFieldValue('connector', connectorName || '');
+                        setFieldValue('database', databaseName || '');
                     }}
                     onBlur={() => {
                         setFieldTouched('connector', true);
@@ -63,9 +68,9 @@ export const KustoToolCreateForm: FC<CreateFormProps> = ({ connectors }) => {
             <InputFormik
                 name="database"
                 label={intl.formatMessage(ExtendedAgentsGraphResources.kustoDatabaseLabel)}
-                placeholder={intl.formatMessage(ExtendedAgentsGraphResources.databasePlaceholder)}
+                placeholder={intl.formatMessage(ExtendedAgentsGraphResources.connectorPlaceholder)}
                 orientation="vertical"
-                required
+                disabled
             />
             <TextareaFormik
                 name="query"

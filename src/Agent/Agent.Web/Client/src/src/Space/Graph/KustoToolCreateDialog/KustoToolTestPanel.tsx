@@ -11,14 +11,18 @@ import { TestValueAccordion } from './Common/TestValueAccordion';
 import { useKustoToolCreateDialogStyles } from './KustoToolCreateDialog.Styles';
 import { KustoToolFormProps } from './KustoToolUtilities';
 
-export const KustoToolTestPanel: FC = () => {
+interface KustoToolTestPanelProps {
+    hasSuccessRunTest: boolean;
+    setHasSuccessRunTest: (hasSuccess: boolean) => void;
+}
+
+export const KustoToolTestPanel: FC<KustoToolTestPanelProps> = ({ hasSuccessRunTest, setHasSuccessRunTest }) => {
     const intl = useIntl();
     const styles = useKustoToolCreateDialogStyles();
     const { values, isValid, dirty } = useFormikContext<KustoToolFormProps>();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const extendedAgentClient = ExtendedAgentClient.getInstance(sreAgentEndpoint);
     const [isRunning, setIsRunning] = useState(false);
-    const [hasSuccessRunTest, setHasSuccessRunTest] = useState<boolean>(false);
     const [testError, setTestError] = useState<string | null>(null);
 
     const onRunTest = useCallback(async () => {

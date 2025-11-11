@@ -1236,7 +1236,12 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
-            if (action === 'createAgent' || action === 'createTool') {
+            if (action === 'createTool') {
+                setIsToolDialogOpen(true);
+                return;
+            }
+
+            if (action === 'createAgent') {
                 setCreationDialogContext({
                     kind: 'linkFromAgent',
                     sourceAgentName: agentName,
@@ -1554,16 +1559,16 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
+            if (itemType === 'tool') {
+                setIsToolDialogOpen(true);
+                return;
+            }
+
             if (itemType === 'agent') {
                 setAgentCreateOrEditInfo({
                     agent: undefined,
                     mode: 'create',
                 });
-                return;
-            }
-
-            if (itemType === 'tool') {
-                setIsToolDialogOpen(true);
                 return;
             }
 
