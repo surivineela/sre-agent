@@ -34,6 +34,7 @@ public interface IExtendedAgentRepository
 
     Task<ConnectorDocumentModel?> GetConnectorByNameAsync(string name);
 
+    Task<CommonPromptDocumentModel?> GetCommonPromptByNameAsync(string name);
     Task<PaginatedList<CommonPromptDocumentModel>> GetCommonPromptsAsync(int limit = 50, string? search = null);
 
     Task<PaginatedList<CommonToolsListDocumentModel>> GetCommonToolsListsAsync(int limit = 50, string? search = null);

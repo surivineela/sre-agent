@@ -334,6 +334,23 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         return new PaginatedList<CommonToolsListDocumentModel>(results, results.Count, 1, results.Count);
     }
 
+    public async Task<CommonPromptDocumentModel?> GetCommonPromptByNameAsync(string name)
+    {
+        try
+        {
+            var container = _cosmosClient.GetContainer(_databaseName, CommonPromptDocumentModel.ContainerName);
+            var response = await container.ReadItemAsync<CommonPromptDocumentModel>(
+                $"commonPrompt_{name}",
+                new PartitionKey(name));
+
+            return response.Resource;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
     public async Task<PaginatedList<CommonPromptDocumentModel>> GetCommonPromptsAsync(int limit = 50, string? search = null)
     {
         var container = _cosmosClient.GetContainer(_databaseName, CommonPromptDocumentModel.ContainerName);

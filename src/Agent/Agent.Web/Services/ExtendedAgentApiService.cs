@@ -451,16 +451,20 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     }
 
     // CommonPrompt operations
-    public Task<ApiCommandResult<CommonPromptDocumentModel>> GetCommonPromptAsync(string promptName)
+    public async Task<ApiCommandResult<CommonPromptDocumentModel>> GetCommonPromptAsync(string promptName)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
             _logger.LogInternalInformation("Retrieving common prompt: {PromptName}, OperationId: {OperationId}", promptName, operationId);
 
-            // Note: Repository doesn't have GetCommonPromptByNameAsync, so we return NotFound for now
-            // This might need to be implemented in the repository if needed
-            return Task.FromResult(new ApiCommandResult<CommonPromptDocumentModel>(new NotFoundResult()));
+            var prompt = await _repository.GetCommonPromptByNameAsync(promptName);
+            if (prompt == null)
+            {
+                return new ApiCommandResult<CommonPromptDocumentModel>(new NotFoundResult());
+            }
+
+            return new ApiCommandResult<CommonPromptDocumentModel>(prompt);
         }
         catch (Exception ex)
         {

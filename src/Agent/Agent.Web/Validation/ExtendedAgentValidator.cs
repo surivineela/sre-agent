@@ -2,8 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Interfaces;
 using Agent.Core.Validation;
 using Agent.Data.DataModels;
+using Agent.Web.Services;
 
 namespace Agent.Web.Validation;
 
@@ -15,23 +17,30 @@ namespace Agent.Web.Validation;
 public class ExtendedAgentValidator : IExtendedAgentValidator
 {
     private readonly ILogger<ExtendedAgentValidator> _logger;
+    private readonly IExtendedAgentRepository _repository;
 
-    public ExtendedAgentValidator(ILogger<ExtendedAgentValidator> logger)
+    // use a predefined set to control which system common prompts we'd like to expose
+    private readonly HashSet<string> _systemCommonPrompts = new HashSet<string>
+    {
+    };
+
+    public ExtendedAgentValidator(ILogger<ExtendedAgentValidator> logger, IExtendedAgentRepository repository)
     {
         _logger = logger;
+        _repository = repository;
     }
 
     /// <inheritdoc/>
-    public Task<AgentValidationResult> ValidateAgentAsync(AgentDocumentModel model)
+    public async Task<AgentValidationResult> ValidateAgentAsync(AgentDocumentModel model)
     {
         _logger.LogDebug("Validating AgentDocumentModel: {AgentName}", model.Name);
 
         var result = new AgentValidationResult();
 
         ValidateResourceMetadata(model.Metadata, result);
-        ValidateAgentSpec(model.Spec, result);
+        await ValidateAgentSpec(model.Spec, result);
 
-        return Task.FromResult(result);
+        return result;
     }
 
     /// <inheritdoc/>
@@ -96,16 +105,12 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
 
     private void ValidateResourceMetadata(ResourceMetadata metadata, AgentValidationResult result)
     {
-
-        if (string.IsNullOrEmpty(metadata.Id))
-        {
-            result.Errors.Add("Id must not be empty.");
-        }
+        // add validations if necessary
     }
 
     // Ported from src\Agent\Agent.Core\Validation\AgentValidationService.cs
     // Not reusing it directly because it does not validate against the model
-    private void ValidateAgentSpec(AgentSpec spec, AgentValidationResult result)
+    private async Task ValidateAgentSpec(AgentSpec spec, AgentValidationResult result)
     {
         if (string.IsNullOrEmpty(spec.Name))
         {
@@ -186,50 +191,71 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
         // Validate handoff names
         if (spec.Handoffs?.Count > 0)
         {
-            foreach (var handoff in spec.Handoffs)
+            foreach (var handoffAgent in spec.Handoffs)
             {
-                if (string.IsNullOrWhiteSpace(handoff))
+                if (string.IsNullOrWhiteSpace(handoffAgent))
                 {
                     result.AddError("Handoff name cannot be empty.");
                 }
-                else if (handoff.Any(char.IsWhiteSpace))
+                else if (handoffAgent.Any(char.IsWhiteSpace))
                 {
-                    result.AddError($"Handoff name '{handoff}' must not contain whitespace.");
+                    result.AddError($"Handoff name '{handoffAgent}' must not contain whitespace.");
+                }
+
+                if (handoffAgent == "meta_agent")
+                {
+                    continue;
+                }
+
+                var agent = await _repository.GetAgentByNameAsync(handoffAgent);
+                if (agent is null)
+                {
+                    result.AddError($"Handoff agent '{handoffAgent}' does not exist.");
                 }
             }
-        }
 
-        // Validate common prompts
-        if (spec.CommonPrompts?.Count > 0)
-        {
-            foreach (var prompt in spec.CommonPrompts)
+            // Validate common prompts
+            if (spec.CommonPrompts?.Count > 0)
             {
-                if (string.IsNullOrWhiteSpace(prompt))
+                foreach (var promptName in spec.CommonPrompts)
                 {
-                    result.AddError("Common prompt name cannot be empty.");
+                    if (string.IsNullOrWhiteSpace(promptName))
+                    {
+                        result.AddError("Common prompt name cannot be empty.");
+                    }
+
+                    if (_systemCommonPrompts.Contains(promptName))
+                    {
+                        continue;
+                    }
+
+                    var prompt = await _repository.GetCommonPromptByNameAsync(promptName);
+                    if (prompt is null)
+                    {
+                        result.AddError($"Common prompt '{promptName}' does not exist.");
+                    }
                 }
             }
-        }
 
-        // Validate agents as tools
-        if (spec.AgentsAsTools?.Count > 0)
-        {
-            foreach (var agentTool in spec.AgentsAsTools)
+            // Validate agents as tools
+            if (spec.AgentsAsTools?.Count > 0)
             {
-                if (string.IsNullOrWhiteSpace(agentTool.AgentName))
+                foreach (var agentTool in spec.AgentsAsTools)
                 {
-                    result.AddError("Agent name in agents_as_tools cannot be empty.");
-                }
-                if (string.IsNullOrWhiteSpace(agentTool.ToolName))
-                {
-                    result.AddError("Tool name in agents_as_tools cannot be empty.");
-                }
-                if (string.IsNullOrWhiteSpace(agentTool.ToolDescription))
-                {
-                    result.AddError("Tool description in agents_as_tools cannot be empty.");
+                    if (string.IsNullOrWhiteSpace(agentTool.AgentName))
+                    {
+                        result.AddError("Agent name in agents_as_tools cannot be empty.");
+                    }
+                    if (string.IsNullOrWhiteSpace(agentTool.ToolName))
+                    {
+                        result.AddError("Tool name in agents_as_tools cannot be empty.");
+                    }
+                    if (string.IsNullOrWhiteSpace(agentTool.ToolDescription))
+                    {
+                        result.AddError("Tool description in agents_as_tools cannot be empty.");
+                    }
                 }
             }
         }
     }
 }
-

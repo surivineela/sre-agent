@@ -179,4 +179,9 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
     {
         throw new NotImplementedException();
     }
+
+    public Task<CommonPromptDocumentModel?> GetCommonPromptByNameAsync(string name)
+    {
+        throw new NotImplementedException();
+    }
 }
