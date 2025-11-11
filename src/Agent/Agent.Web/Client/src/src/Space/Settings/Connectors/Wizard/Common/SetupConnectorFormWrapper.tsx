@@ -23,7 +23,12 @@ export const SetupConnectorFormWrapper: React.FC<SetupConnectorFormWrapperProps>
     return (
         <form className={styles.form}>
             <h2 className={styles.title}>
-                {intl.formatMessage(ConnectorsResources.setupTitle, { service: getConnectorService(connectorType, intl) })}
+                {intl.formatMessage(ConnectorsResources.setupTitle, {
+                    service:
+                        connectorType !== ConnectorType.McpServer
+                            ? getConnectorService(connectorType, intl)
+                            : intl.formatMessage(ConnectorsResources.mcpServer),
+                })}
             </h2>
             {children}
         </form>

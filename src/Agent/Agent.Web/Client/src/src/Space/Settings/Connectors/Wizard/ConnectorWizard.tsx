@@ -144,6 +144,7 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
                     />
                 );
             case ConnectorType.McpServer:
+            case ConnectorType.GitHub:
                 return <McpServerForm />;
             default:
                 return null;

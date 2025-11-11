@@ -5109,6 +5109,12 @@ export const ConnectorsResources = defineMessages({
     },
     azureDataExplorer: { defaultMessage: 'Azure Data Explorer', id: 'l0UKyP' },
     azureDevops: { defaultMessage: 'Azure DevOps', id: 'D3rb1K' },
+    gitHub: { defaultMessage: 'GitHub', id: 'wO9wb5' },
+    gitHubMcpServer: { defaultMessage: 'GitHub MCP server', id: 'y/m6Ep' },
+    githubDescription: {
+        defaultMessage: 'The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests.',
+        id: 'BBT3jd',
+    },
     authentication: { defaultMessage: 'Authentication', id: 'YeKWbP' },
     authenticationMethod: { defaultMessage: 'Authentication method', id: 'Vs3jMi' },
     status: { defaultMessage: 'Status', id: 'tzMNF3' },

@@ -9,7 +9,7 @@ import { AntUxStringComparison, equals } from '../../../../Common/Helpers/String
 import { ConnectorsResources } from '../../../../Strings/SREAgentResources';
 import { ConnectorType, ConnectorTypeOption, connectorTypeOptions } from './Common/ConnectorType';
 import { useConnectorWizardStyles } from './ConnectorWizard.styles';
-import { ConnectorFormProps } from './ConnectorWizardFormik';
+import { AuthType, ConnectorFormProps } from './ConnectorWizardFormik';
 
 interface ConnectorPickerProps {
     existingConnectors?: Connector[];
@@ -40,8 +40,14 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
     const onConnectorSelected = useCallback(
         (connector: ConnectorTypeOption) => {
             setFieldValue('connectorType', connector.id);
+            if (connector.id === ConnectorType.GitHub) {
+                setFieldValue('url', 'https://api.githubcopilot.com/mcp/');
+                setFieldValue('authType', AuthType.BearerToken);
+            } else {
+                setFieldValue('url', '');
+                setFieldValue('authType', '');
+            }
             setFieldValue('name', '');
-            setFieldValue('url', '');
             setFieldValue('identity', '');
             setFieldValue('email', '');
             setFieldValue('teamsChannelLink', '');

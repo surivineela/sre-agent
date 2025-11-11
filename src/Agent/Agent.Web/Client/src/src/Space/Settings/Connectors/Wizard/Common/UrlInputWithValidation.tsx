@@ -16,7 +16,7 @@ export const UrlInputWithValidation: React.FC = () => {
     const connectorType = useMemo(() => values.connectorType as ConnectorType, [values.connectorType]);
 
     const urlLabel = useMemo(() => {
-        if (connectorType === ConnectorType.McpServer) {
+        if (connectorType === ConnectorType.McpServer || connectorType === ConnectorType.GitHub) {
             return intl.formatMessage(ConnectorsResources.url);
         }
 

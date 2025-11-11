@@ -7,6 +7,7 @@ export enum ConnectorType {
     AzureDevOpsDocumentation = 'TsgCrawler',
     OutlookSendEmail = 'Outlook',
     TeamsSendNotification = 'Teams',
+    GitHub = 'GitHub',
     McpServer = 'Mcp',
 }
 
@@ -39,6 +40,13 @@ export const connectorTypeOptions = (intl: any): ConnectorTypeOption[] => [
         service: intl.formatMessage(ConnectorsResources.azureDevops),
         description: intl.formatMessage(ConnectorsResources.documentationDescription),
         img: resolveResourceIcon('AzureDevOps'),
+    },
+    {
+        id: ConnectorType.GitHub,
+        name: intl.formatMessage(ConnectorsResources.gitHubMcpServer),
+        service: intl.formatMessage(ConnectorsResources.gitHub),
+        description: intl.formatMessage(ConnectorsResources.githubDescription),
+        img: resolveResourceIcon('GitHub'),
     },
     {
         id: ConnectorType.OutlookSendEmail,

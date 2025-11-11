@@ -76,7 +76,12 @@ export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = prop
 
     const handleSubmit = useCallback(
         async (values: ConnectorFormProps, formikHelpers: FormikHelpers<ConnectorFormProps>) => {
-            const connectorType = values.connectorType as ConnectorType;
+            let connectorType = values.connectorType as ConnectorType;
+            // Note: GitHub is not supported as a first-party mcp server by the backend
+            // the underlying implementation is essentially just an MCP server
+            if (connectorType === ConnectorType.GitHub) {
+                connectorType = ConnectorType.McpServer;
+            }
 
             let dataSource: string;
             if (connectorType !== ConnectorType.McpServer) {
@@ -190,14 +195,14 @@ export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = prop
                 authType: string()
                     .ensure()
                     .when('connectorType', {
-                        is: (connectorType: string) => connectorType === ConnectorType.McpServer,
+                        is: (connectorType: string) => connectorType === ConnectorType.McpServer || connectorType === ConnectorType.GitHub,
                         then: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
                         otherwise: schema => schema.notRequired(),
                     }),
                 patOrApiKey: string()
                     .ensure()
                     .when('connectorType', {
-                        is: (connectorType: string) => connectorType === ConnectorType.McpServer,
+                        is: (connectorType: string) => connectorType === ConnectorType.McpServer || connectorType === ConnectorType.GitHub,
                         then: schema =>
                             schema.when('authType', {
                                 is: (authType: string) => authType === AuthType.BearerToken,
@@ -218,7 +223,13 @@ export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = prop
                             }),
                         otherwise: schema => schema.notRequired(),
                     }),
-                identity: string().ensure().required(intl.formatMessage(SreAgentResources.fieldRequired)),
+                identity: string()
+                    .ensure()
+                    .when('connectorType', {
+                        is: (connectorType: string) => connectorType !== ConnectorType.McpServer && connectorType !== ConnectorType.GitHub,
+                        then: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
+                        otherwise: schema => schema.notRequired(),
+                    }),
             }),
         [intl, existingConnectors]
     );

@@ -7,6 +7,7 @@ import { OptionType } from '../../../../../Common/Components/Dropdown/DropdownNo
 import EditableGridFormik from '../../../../../Common/Components/EditableGrid/EditableGridFormik';
 import InputFormik from '../../../../../Common/Components/Input/InputFormik';
 import { ConnectorsResources } from '../../../../../Strings/SREAgentResources';
+import { ConnectorType } from '../Common/ConnectorType';
 import { NameInputWithValidation } from '../Common/NameInputWithValidation';
 import { SetupConnectorFormWrapper } from '../Common/SetupConnectorFormWrapper';
 import { UrlInputWithValidation } from '../Common/UrlInputWithValidation';
@@ -22,6 +23,8 @@ export const McpServerForm: React.FC<McpServerFormProps> = props => {
     const intl = useIntl();
 
     const { values } = useFormikContext<ConnectorFormProps>();
+
+    const connectorType = useMemo(() => values.connectorType as ConnectorType, [values.connectorType]);
 
     const authOptions = [
         {
@@ -83,7 +86,15 @@ export const McpServerForm: React.FC<McpServerFormProps> = props => {
                 required
                 orientation="vertical"
                 options={authOptions}
+                value={
+                    !values.authType
+                        ? undefined
+                        : values.authType === AuthType.BearerToken
+                          ? intl.formatMessage(ConnectorsResources.bearerToken)
+                          : intl.formatMessage(ConnectorsResources.customHeaders)
+                }
                 placeholder={intl.formatMessage(ConnectorsResources.authenticationMethodPlaceholder)}
+                disabled={connectorType === ConnectorType.GitHub}
             />
             {values.authType === AuthType.BearerToken && (
                 <InputFormik

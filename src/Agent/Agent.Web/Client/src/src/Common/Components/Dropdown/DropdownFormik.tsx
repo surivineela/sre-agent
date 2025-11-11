@@ -55,6 +55,7 @@ const DropdownFormik = <T extends DropdownOptionBase | string = DropdownOptionBa
 
     return (
         <DropdownNoFormik
+            value={field.value}
             selectedOptions={selectedOptions}
             error={meta.touched || showUntouchedFieldError ? meta.error : undefined}
             onBlur={onBlur}

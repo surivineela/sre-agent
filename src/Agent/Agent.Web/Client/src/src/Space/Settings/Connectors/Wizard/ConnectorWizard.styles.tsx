@@ -76,6 +76,10 @@ export const useConnectorWizardStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
     },
+    reviewAndAddCardImage: {
+        maxWidth: '32px',
+        maxHeight: '32px',
+    },
     reviewAndAddSectionValue: {
         fontSize: tokens.fontSizeBase300,
         fontWeight: tokens.fontWeightRegular,

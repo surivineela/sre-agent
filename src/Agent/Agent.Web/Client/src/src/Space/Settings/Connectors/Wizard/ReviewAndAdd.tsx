@@ -23,7 +23,7 @@ export const ReviewAndAdd: React.FC<ReviewAndAddProps> = ({ userAssignedIdentiti
 
     const contentList = useMemo(() => {
         const labelValuePairs: { label: string; value: string }[] = [];
-        if (selectedConnector === ConnectorType.McpServer) {
+        if (selectedConnector === ConnectorType.McpServer || selectedConnector === ConnectorType.GitHub) {
             if (values.authType === AuthType.BearerToken) {
                 labelValuePairs.push({
                     label: intl.formatMessage(ConnectorsResources.authenticationMethod),
@@ -79,7 +79,13 @@ export const ReviewAndAdd: React.FC<ReviewAndAddProps> = ({ userAssignedIdentiti
                 {selectedConnector && (
                     <Card>
                         <CardHeader
-                            image={<img src={getConnectorIcon(selectedConnector, intl)} alt={getConnectorName(selectedConnector, intl)} />}
+                            image={
+                                <img
+                                    src={getConnectorIcon(selectedConnector, intl)}
+                                    alt={getConnectorName(selectedConnector, intl)}
+                                    className={styles.reviewAndAddCardImage}
+                                />
+                            }
                             header={
                                 <div className={styles.reviewAndAddCardContent}>
                                     <Text weight="semibold">{getConnectorName(selectedConnector, intl)}</Text>
