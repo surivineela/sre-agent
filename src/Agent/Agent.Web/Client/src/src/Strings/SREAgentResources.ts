@@ -2044,6 +2044,10 @@ export const UsageResources = defineMessages({
         defaultMessage: 'Change AAU allocation',
         id: 'fr6Gnj',
     },
+    monthlyActiveFlowAAUsLabel: {
+        defaultMessage: 'Monthly active flow AAUs',
+        id: 'SoBWeV',
+    },
     monthlyAAULimitLabel: {
         defaultMessage: 'Monthly AAU limit:',
         id: 'AHQdRU',
@@ -2077,9 +2081,9 @@ export const UsageResources = defineMessages({
             'You can increase or decrease active flow AAUs as needed. If the agent reaches the active flow limit, it continues running only in the always-on flow but is unavailable for chat and actions.',
         id: '5Y6lHe',
     },
-    usageLimitSliderAriaLabel: {
-        defaultMessage: 'Monthly AAU limit slider',
-        id: 'R3mMmc',
+    usageLimitInputFieldInfo: {
+        defaultMessage: 'Maximum 200,000 AAUs',
+        id: 'LSqcaU',
     },
     usageLimitErrorMessage: {
         defaultMessage: 'The maximum AAU limit is 200,000',

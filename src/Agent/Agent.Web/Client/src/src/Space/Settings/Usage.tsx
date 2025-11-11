@@ -111,6 +111,9 @@ const useStyles = makeStyles({
     dailyConsumptionLoader: {
         height: '550px',
     },
+    dialog: {
+        maxWidth: '700px',
+    },
     dialogDescription: {
         padding: `${tokens.spacingVerticalM} 0px`,
     },
@@ -544,7 +547,7 @@ const AllocationChangeDialog = ({
                 onOpenChange(data.open);
             }}
         >
-            <DialogSurface>
+            <DialogSurface className={styles.dialog}>
                 <DialogTitle>{intl.formatMessage(UsageResources.changeAAUAllocationText)}</DialogTitle>
                 <div className={styles.dialogDescription}>
                     <Body1>{intl.formatMessage(UsageResources.dialogDescription)}</Body1>
@@ -558,12 +561,12 @@ const AllocationChangeDialog = ({
                 )}
                 <div className={styles.section}>
                     <Field
-                        label={intl.formatMessage(UsageResources.monthlyAAULimitLabel)}
+                        label={intl.formatMessage(UsageResources.monthlyActiveFlowAAUsLabel)}
                         orientation={'horizontal'}
                         required
                         validationState={errorMessage ? 'error' : undefined}
                         validationMessage={errorMessage}
-                        hint={'Maximum 200,000 AAUs'}
+                        hint={intl.formatMessage(UsageResources.usageLimitInputFieldInfo)}
                     >
                         <Input
                             type={'number'}
