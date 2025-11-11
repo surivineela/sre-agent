@@ -678,6 +678,26 @@ export const useConsolidatedCreateIncidentHandler = (
         };
     }, [incidentHandlerClient, incidentHandlerClient.listTools]);
 
+    // This useEffect MUST come before the useEffect below that loads the incidents.
+    useEffect(() => {
+        incidentsInitialized.current = false;
+    }, [
+        // This MUST exactly match the dependencies of the useEffect below that loads the incidents, but with selectedTimespan removed.
+        setFieldValue,
+        incidentHandlerClient,
+        handlerMode,
+        initialSelectedIncidentIds,
+        incidentPlatformType,
+        values.impactedService,
+        values.priority,
+        values.incidentType,
+        values.titleContains,
+        values.owningTeamId,
+        values.createdBy,
+        values.monitorId,
+    ]);
+
+    // This useEffect MUST come after the useEffect above that resets incidentsInitialized.
     useEffect(() => {
         let subscribed = true;
 
@@ -754,6 +774,7 @@ export const useConsolidatedCreateIncidentHandler = (
             subscribed = false;
         };
     }, [
+        // This MUST exactly match the dependencies of the useEffect above that resets incidentsInitialized, but with selectedTimespan added.
         setFieldValue,
         incidentHandlerClient,
         selectedTimespan,
