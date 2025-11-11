@@ -688,8 +688,8 @@ export const AgentTaskResources = defineMessages({
     deepInvestigation: { defaultMessage: 'Deep investigation', id: '2a+ttj' },
     chatMessageIntro: { defaultMessage: 'Here is your deep investigation:', id: 'tLaLqo' },
     deepInvestigationTurnedOnMessage: {
-        defaultMessage: 'Your next question will be analyzed with deep investigation',
-        id: 'rucpw1',
+        defaultMessage: 'Deep investigation is turned on',
+        id: 'cDjhgm',
     },
     deepInvestigationTurnedOffMessage: {
         defaultMessage: 'Deep investigation is turned off',

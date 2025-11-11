@@ -202,7 +202,6 @@ export const useChatBox = (
         setIsWaitingForStreamingMessages(false);
         setToolCallText(null);
         setIsCancellingStreaming(false);
-        setIsDeepInvestigationTurnedOn(false);
 
         messageChunkQueue.current = [];
         isHandlingStreamingMessage.current = false;
