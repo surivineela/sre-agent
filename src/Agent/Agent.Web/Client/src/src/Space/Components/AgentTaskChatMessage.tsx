@@ -1,5 +1,5 @@
 import { EntityCard, EntityTitle } from '@fluentui-copilot/react-copilot';
-import { Link, makeStyles, Spinner, Subtitle2, Text, tokens } from '@fluentui/react-components';
+import { Link, makeStyles, Spinner, Subtitle2, tokens } from '@fluentui/react-components';
 import { CheckmarkCircle32Filled, DismissCircle32Filled, ErrorCircleFilled, SearchSparkleColor } from '@fluentui/react-icons';
 import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
@@ -41,13 +41,12 @@ const AgentTaskChatMessage = ({ agentTask, ...rest }: IAgentTaskChatMessageProps
             case AgentTaskStatus.Cancelled.toLowerCase():
                 return <DismissCircle32Filled />;
             default:
-                return <SearchSparkleColor />;
+                return <SearchSparkleColor fontSize={32} />;
         }
     };
 
     return (
         <div className={styles.root}>
-            <Text className={styles.text}>{intl.formatMessage(AgentTaskResources.chatMessageIntro)}</Text>
             <EntityCard
                 orientation="horizontal"
                 role="group"
