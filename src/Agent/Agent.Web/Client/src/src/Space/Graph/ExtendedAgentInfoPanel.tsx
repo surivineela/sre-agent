@@ -40,6 +40,7 @@ import { useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { resolveResourceIcon } from '../../Common/Helpers/Resources';
+import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import {
     ConnectorsResources,
     ExtendedAgentsGraphResources,
@@ -116,6 +117,7 @@ export const ExtendedAgentInfoPanel = memo(
         onOpenPlayground,
         onClose,
     }: ExtendedAgentInfoPanelProps) => {
+        const showAgentBuilderPlayground = useConfigSetting(SettingNames.ShowAgentBuilderPlayground);
         const styles = useExtendedAgentInfoStyles();
         const intl = useIntl();
         const navigate = useNavigate();
@@ -941,7 +943,7 @@ export const ExtendedAgentInfoPanel = memo(
                                         title={intl.formatMessage(ExtendedAgentsGraphResources.yamlOpenButton)}
                                     />
                                 )}
-                                {(playgroundTarget ||
+                                {((playgroundTarget && showAgentBuilderPlayground) ||
                                     (headerEditContext?.type === 'agent' && isAgentContext && selectedAgent) ||
                                     (headerEditContext?.type === 'tool' && selectedTool)) && (
                                     <Menu>
@@ -950,7 +952,7 @@ export const ExtendedAgentInfoPanel = memo(
                                         </MenuTrigger>
                                         <MenuPopover>
                                             <MenuList>
-                                                {playgroundTarget && (
+                                                {showAgentBuilderPlayground && playgroundTarget && (
                                                     <MenuItem icon={<Beaker20Regular />} onClick={handleOpenPlaygroundClick}>
                                                         {intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
                                                     </MenuItem>
@@ -961,7 +963,7 @@ export const ExtendedAgentInfoPanel = memo(
                                                         onClick={() => handleDeleteClick('agent', selectedAgent)}
                                                         disabled={isDeleting}
                                                     >
-                                                        {intl.formatMessage(SreAgentResources.deleteAgentTitle)}
+                                                        {intl.formatMessage(SreAgentResources.deleteSubagentTitle)}
                                                     </MenuItem>
                                                 )}
                                                 {headerEditContext?.type === 'tool' && selectedTool && (
@@ -1025,7 +1027,7 @@ export const ExtendedAgentInfoPanel = memo(
                             <DialogTitle>
                                 {deleteContext?.type === 'tool'
                                     ? intl.formatMessage(SreAgentResources.deleteToolTitle)
-                                    : intl.formatMessage(SreAgentResources.deleteAgentTitle)}
+                                    : intl.formatMessage(SreAgentResources.deleteSubagentTitle)}
                             </DialogTitle>
                             <DialogContent>
                                 <Text>

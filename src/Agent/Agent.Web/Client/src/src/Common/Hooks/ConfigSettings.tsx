@@ -13,6 +13,7 @@ export enum SettingNames {
     ShowSubAgentsItemInSettings = 'showSubAgentsItemInSettings',
     McpServer = 'McpServer',
     ShowThreadTraceUI = 'showThreadTraceUI',
+    ShowAgentBuilderPlayground = 'showAgentBuilderPlayground',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
@@ -25,12 +26,14 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowThreadTraceUI]: true,
         [SettingNames.DataConnectors]: false,
         [SettingNames.Connectors]: true,
+        [SettingNames.ShowAgentBuilderPlayground]: true,
     },
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.ForUnitTests]: true,
         [SettingNames.ShowThreadTraceUI]: true,
         [SettingNames.DataConnectors]: false,
+        [SettingNames.ShowAgentBuilderPlayground]: true,
         [SettingNames.Connectors]: true,
     },
 };

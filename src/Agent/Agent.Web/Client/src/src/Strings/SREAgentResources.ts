@@ -122,6 +122,10 @@ export const SreAgentResources = defineMessages({
         id: 'bn84V+',
         defaultMessage: 'Delete tool',
     },
+    deleteSubagentTitle: {
+        id: 'dqkJF6',
+        defaultMessage: 'Delete subagent',
+    },
     deleteToolNotificationError: {
         id: '/F7sHX',
         defaultMessage: 'Failed to delete tool {name}',
