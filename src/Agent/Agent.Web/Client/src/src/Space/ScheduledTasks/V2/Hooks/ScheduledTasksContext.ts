@@ -7,6 +7,7 @@ export interface ScheduledTasksContextProps {
     refreshTasks: (anchorEntity?: ExtendedAgentAnchorEntity) => Promise<void>;
     createTask: (task: CreateScheduledTaskRequest) => Promise<Response<{ taskId: string }>>;
     updateTask: (id: string, task: CreateScheduledTaskRequest) => Promise<Response<void>>;
+    runTask: (id: string) => Promise<Response<void>>;
     pauseTask: (id: string) => Promise<Response<void>>;
     resumeTask: (id: string) => Promise<Response<void>>;
     deleteTask: (id: string) => Promise<Response<void>>;

@@ -4,6 +4,7 @@ import {
     ArrowClockwise20Regular,
     ArrowClockwiseRegular,
     DeleteRegular,
+    PlayRegular,
     RecordStopRegular,
     ReplayRegular,
 } from '@fluentui/react-icons';
@@ -41,7 +42,7 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
     const intl = useIntl();
     const styles = useScheduledTasksStyles();
     const azPortalContext = useContext(AzPortalContext);
-    const { refreshTasks, pauseTask, resumeTask, deleteTask, isOperationInProgress, setIsOperationInProgress } =
+    const { refreshTasks, pauseTask, resumeTask, runTask, deleteTask, isOperationInProgress, setIsOperationInProgress } =
         useContext(ScheduledTasksContext);
     const [lastUpdated, setLastUpdated] = useState<string>();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
@@ -55,6 +56,11 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
         const hasPausedTaskSelected = selectedTasks?.some(task => task.status === ScheduledTaskStatus.Paused);
         return !hasPausedTaskSelected || isLoading || isOperationInProgress;
     }, [isLoading, isOperationInProgress, selectedTasks]);
+
+    const isRunButtonDisabled = useMemo(
+        () => selectedTasks?.length === 0 || isLoading || isOperationInProgress,
+        [isLoading, isOperationInProgress, selectedTasks?.length]
+    );
 
     const isDeleteButtonDisabled = useMemo(
         () => selectedTasks?.length === 0 || isLoading || isOperationInProgress,
@@ -98,6 +104,38 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
             setIsOperationInProgress(false);
         }
     }, [azPortalContext, intl, pauseTask, refreshTasks, selectedTasks, setIsOperationInProgress]);
+
+    const onRunTasks = useCallback(async () => {
+        const notificationId = azPortalContext.startNotification(
+            intl.formatMessage(ScheduledTasksResources.runTasksTitle),
+            intl.formatMessage(ScheduledTasksResources.runTasksInProgress)
+        );
+
+        try {
+            setIsOperationInProgress(true);
+            const responses = await Promise.all(selectedTasks?.map(task => runTask(task.id)) || []);
+            if (responses.some(response => response.isSuccessful)) {
+                await refreshTasks();
+                azPortalContext.stopNotification(notificationId, true, intl.formatMessage(ScheduledTasksResources.tasksRanSuccessfully));
+            } else {
+                azPortalContext.stopNotification(
+                    notificationId,
+                    false,
+                    intl.formatMessage(ScheduledTasksResources.failedToRunTask, {
+                        errorMessage: responses.find(r => !r.isSuccessful)?.error,
+                    })
+                );
+            }
+        } catch (error) {
+            azPortalContext.stopNotification(
+                notificationId,
+                false,
+                intl.formatMessage(ScheduledTasksResources.failedToRunTask, { errorMessage: getErrorMessageOrStringify(error) })
+            );
+        } finally {
+            setIsOperationInProgress(false);
+        }
+    }, [azPortalContext, intl, refreshTasks, runTask, selectedTasks, setIsOperationInProgress]);
 
     const onResumeTasks = useCallback(async () => {
         const pausedTasks = selectedTasks?.filter(task => task.status === ScheduledTaskStatus.Paused) || [];
@@ -213,6 +251,14 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
                     >
                         {intl.formatMessage(ScheduledTasksResources.turnOn)}
                     </ToolbarButton>
+                    <ToolbarButton
+                        className={styles.toolbarButton}
+                        icon={<PlayRegular />}
+                        onClick={onRunTasks}
+                        disabled={isRunButtonDisabled}
+                    >
+                        {intl.formatMessage(ScheduledTasksResources.runTaskNow)}
+                    </ToolbarButton>
                     <ScheduledTaskDeleteDialog
                         dialogTrigger={
                             <ToolbarButton className={styles.toolbarButton} icon={<DeleteRegular />} disabled={isDeleteButtonDisabled}>
@@ -267,8 +313,8 @@ const ScheduledTasksFilters: FC<ScheduledTasksFiltersProps> = ({ searchQuery, se
                 label: intl.formatMessage(ScheduledTasksResources.off),
             },
             {
-                key: TaskStatusFilterKey.Completed,
-                label: intl.formatMessage(ScheduledTasksResources.completed),
+                key: TaskStatusFilterKey.Ended,
+                label: intl.formatMessage(ScheduledTasksResources.ended),
             },
         ],
         [intl]

@@ -22,7 +22,7 @@ import {
     TableColumnId,
     Text,
 } from '@fluentui/react-components';
-import { DeleteRegular, MoreHorizontalRegular, PauseRegular, ReplayRegular } from '@fluentui/react-icons';
+import { DeleteRegular, MoreHorizontalRegular, PauseRegular, PlayRegular, ReplayRegular } from '@fluentui/react-icons';
 import { Link } from '@fluentui/react/lib/Link';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -57,7 +57,7 @@ interface ScheduledTasksDataGridProps {
 export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ scheduledTasks, selectedTaskIds, setSelectedTaskIds }) => {
     const intl = useIntl();
     const azPortalContext = useContext(AzPortalContext);
-    const { refreshTasks, pauseTask, resumeTask, deleteTask, isOperationInProgress, setIsOperationInProgress } =
+    const { refreshTasks, pauseTask, resumeTask, runTask, deleteTask, isOperationInProgress, setIsOperationInProgress } =
         useContext(ScheduledTasksContext);
     const [editDialogTaskId, setEditDialogTaskId] = useState<string | null>(null);
 
@@ -66,6 +66,32 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
             setSelectedTaskIds(Array.from(data.selectedItems) as string[]);
         },
         [setSelectedTaskIds]
+    );
+
+    const onRunTask = useCallback(
+        async (task: ScheduledTask) => {
+            const { id, name } = task;
+
+            const notificationId = azPortalContext.startNotification(
+                intl.formatMessage(ScheduledTasksResources.runTaskTitle),
+                intl.formatMessage(ScheduledTasksResources.runTaskInProgress, { name: name ?? id })
+            );
+
+            setIsOperationInProgress(true);
+            const response = await runTask(id);
+            if (response.isSuccessful) {
+                await refreshTasks();
+                azPortalContext.stopNotification(notificationId, true, intl.formatMessage(ScheduledTasksResources.taskRanSuccessfully));
+            } else {
+                azPortalContext.stopNotification(
+                    notificationId,
+                    false,
+                    intl.formatMessage(ScheduledTasksResources.failedToRunTask, { errorMessage: response.error })
+                );
+            }
+            setIsOperationInProgress(false);
+        },
+        [azPortalContext, intl, setIsOperationInProgress, runTask, refreshTasks]
     );
 
     const onPauseTask = useCallback(
@@ -226,6 +252,9 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                                             {intl.formatMessage(ScheduledTasksResources.turnOn)}
                                         </MenuItem>
                                     ))}
+                                <MenuItem icon={<PlayRegular />} onClick={() => onRunTask(item)}>
+                                    {intl.formatMessage(ScheduledTasksResources.runTaskNow)}
+                                </MenuItem>
                                 <DialogTrigger disableButtonEnhancement>
                                     <MenuItem icon={<DeleteRegular />}>{intl.formatMessage(SreAgentResources.delete)}</MenuItem>
                                 </DialogTrigger>
@@ -241,7 +270,7 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                 </Dialog>
             );
         },
-        [intl, isOperationInProgress, onDeleteTask, onPauseTask, onResumeTask]
+        [intl, isOperationInProgress, onDeleteTask, onPauseTask, onResumeTask, onRunTask]
     );
 
     const onRenderStatus = useCallback(
@@ -263,7 +292,7 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                 case ScheduledTaskStatus.Completed:
                     return (
                         <Badge appearance="tint" color="informative">
-                            {intl.formatMessage(ScheduledTasksResources.completed)}
+                            {intl.formatMessage(ScheduledTasksResources.ended)}
                         </Badge>
                     );
                 default:

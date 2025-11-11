@@ -139,6 +139,7 @@ const ExtendedAgentGraphContent = memo(() => {
         deleteTask,
         pauseTask,
         resumeTask,
+        runTask,
     } = useScheduledTasksV2();
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
@@ -1779,6 +1780,7 @@ const ExtendedAgentGraphContent = memo(() => {
                         pauseTask,
                         resumeTask,
                         deleteTask,
+                        runTask,
                         isOperationInProgress,
                         setIsOperationInProgress,
                     }}

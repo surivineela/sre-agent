@@ -1,25 +1,12 @@
-import {
-    Button,
-    Dropdown,
-    Field,
-    InfoLabel,
-    Input,
-    Option,
-    OptionOnSelectData,
-    Spinner,
-    Textarea,
-    Tooltip,
-} from '@fluentui/react-components';
+import { Dropdown, Field, InfoLabel, Input, Option, OptionOnSelectData } from '@fluentui/react-components';
 import { DatePicker } from '@fluentui/react-datepicker-compat';
-import { ArrowUndo16Regular, PenSparkle16Regular } from '@fluentui/react-icons';
 import { formatDateToTimeString, TimePicker } from '@fluentui/react-timepicker-compat';
 import { useFormikContext } from 'formik';
-import { FC, useCallback, useContext, useMemo, useState } from 'react';
+import { FC, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
+import { ScheduledTasksResources } from '../../../../Strings/SREAgentResources';
+import { AgentPromptTextarea } from '../../../Components/AgentPromptTextarea';
 import { ExtendedAgent } from '../../../Contracts/ExtendedAgentGraph';
-import { improvePrompt } from '../../../Graph/ExtendedAgentCreationDialog/services/promptImprovementService';
 import { useScheduledTasksStyles } from '../ScheduledTasks.styles';
 import { DayOfTheWeek, getDaysOfTheWeek, GroupMessageKey, ScheduledTaskFormProps, TaskFrequencyKey } from '../ScheduledTasksUtilities';
 
@@ -31,9 +18,6 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
     const intl = useIntl();
     const styles = useScheduledTasksStyles();
     const { values, setFieldValue, errors, setFieldTouched, touched } = useFormikContext<ScheduledTaskFormProps>();
-    const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const [previousDetails, setPreviousDetails] = useState<string | null>();
-    const [isApplyingImprovement, setIsApplyingImprovement] = useState<boolean>(false);
 
     const frequencyOptions = useMemo(
         () => ({
@@ -62,26 +46,6 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
         }),
         [intl]
     );
-
-    const onClickRefineWithAI = useCallback(async () => {
-        setPreviousDetails(values.details);
-        setIsApplyingImprovement(true);
-        try {
-            const result = await improvePrompt(sreAgentEndpoint, values.details);
-            if (result?.improvedPrompt) {
-                setFieldValue('details', result.improvedPrompt);
-            }
-        } catch (error) {
-            console.log('Failed to apply AI improvements:', error);
-        } finally {
-            setIsApplyingImprovement(false);
-        }
-    }, [setFieldValue, sreAgentEndpoint, values.details]);
-
-    const onClickUndo = useCallback(() => {
-        setFieldValue('details', previousDetails);
-        setPreviousDetails(null);
-    }, [previousDetails, setFieldValue]);
 
     return (
         <div className={styles.taskForm}>
@@ -121,73 +85,18 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
                         </Dropdown>
                     </Field>
                 )}
-                <Field
-                    label={
-                        <div className={styles.fieldLabelRow}>
-                            <span>
-                                {intl.formatMessage(ScheduledTasksResources.taskDetails)}
-                                <span className={styles.fieldRequiredStar} aria-hidden="true">
-                                    {' '}
-                                    *
-                                </span>
-                            </span>
-                            <div className={styles.fieldActionGroup}>
-                                <Button
-                                    appearance="subtle"
-                                    size="small"
-                                    disabled={isApplyingImprovement || !previousDetails}
-                                    onClick={onClickUndo}
-                                    className={styles.promptImprovementButton}
-                                >
-                                    <>
-                                        <ArrowUndo16Regular />
-                                        {intl.formatMessage(SreAgentResources.undo)}
-                                    </>
-                                </Button>
-                                <Tooltip
-                                    content={intl.formatMessage(ScheduledTasksResources.refineWithAiTooltip)}
-                                    relationship="description"
-                                >
-                                    <Button
-                                        appearance="subtle"
-                                        size="small"
-                                        disabled={!values.details?.trim() || isApplyingImprovement}
-                                        onClick={onClickRefineWithAI}
-                                        className={styles.promptImprovementButton}
-                                    >
-                                        {isApplyingImprovement ? (
-                                            <>
-                                                <Spinner size="extra-tiny" />
-                                                {intl.formatMessage(ScheduledTasksResources.refining)}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <PenSparkle16Regular />
-                                                {intl.formatMessage(ScheduledTasksResources.refineWithAi)}
-                                            </>
-                                        )}
-                                    </Button>
-                                </Tooltip>
-                            </div>
-                        </div>
-                    }
-                    hint={intl.formatMessage(ScheduledTasksResources.taskDetailsTip)}
-                    validationState={touched.details && errors.details ? 'error' : undefined}
-                    validationMessage={touched.details ? errors.details : undefined}
-                >
-                    <Textarea
-                        style={{ height: '200px' }}
-                        placeholder={intl.formatMessage(ScheduledTasksResources.taskDetailsPlaceholder)}
-                        value={values.details}
-                        onChange={(_, data) => {
-                            setFieldValue('details', data.value);
-                        }}
-                        onBlur={() => {
-                            setFieldTouched('details', true);
-                        }}
-                        disabled={isApplyingImprovement}
-                    />
-                </Field>
+                <AgentPromptTextarea
+                    label={intl.formatMessage(ScheduledTasksResources.taskDetails)}
+                    placeholder={intl.formatMessage(ScheduledTasksResources.taskDetailsPlaceholder)}
+                    prompt={values.details ?? ''}
+                    setPrompt={(details: string) => setFieldValue('details', details)}
+                    orientation="vertical"
+                    fieldProps={{
+                        hint: intl.formatMessage(ScheduledTasksResources.taskDetailsTip),
+                    }}
+                    style={{ height: '200px' }}
+                    required
+                />
             </div>
 
             <div className={styles.taskFormDivider}></div>
@@ -260,7 +169,7 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
                             <TimePicker
                                 style={{ minWidth: 'initial', gridTemplateColumns: 'minmax(0, 1fr) auto' }}
                                 increment={15}
-                                value={formatDateToTimeString(values.timeOfDay)}
+                                value={values.timeOfDay ? formatDateToTimeString(values.timeOfDay) : ''}
                                 selectedTime={values.timeOfDay}
                                 onTimeChange={(_, data) => {
                                     setFieldValue('timeOfDay', data.selectedTime);

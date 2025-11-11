@@ -34,6 +34,8 @@ export const useScheduledTasksV2 = () => {
         setLoading(false);
     }, [scheduledTasksClient]);
 
+    const runTask = useCallback((id: string) => scheduledTasksClient.runScheduledTask(id), [scheduledTasksClient]);
+
     const deleteTask = useCallback((id: string) => scheduledTasksClient.deleteScheduledTask(id), [scheduledTasksClient]);
 
     const pauseTask = useCallback((id: string) => scheduledTasksClient.pauseScheduledTask(id), [scheduledTasksClient]);
@@ -51,6 +53,7 @@ export const useScheduledTasksV2 = () => {
         createTask,
         updateTask,
         refreshTasks,
+        runTask,
         deleteTask,
         pauseTask,
         resumeTask,

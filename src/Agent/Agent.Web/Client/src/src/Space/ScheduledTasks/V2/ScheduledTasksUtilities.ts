@@ -7,7 +7,7 @@ export enum TaskStatusFilterKey {
     All = 'All',
     On = 'On',
     Off = 'Off',
-    Completed = 'Completed',
+    Ended = 'Ended',
 }
 
 export enum TaskFrequencyKey {
@@ -54,7 +54,7 @@ export const getFilterKeyFromScheduledTaskStatus = (status: ScheduledTaskStatus)
         case ScheduledTaskStatus.Paused:
             return TaskStatusFilterKey.Off;
         case ScheduledTaskStatus.Completed:
-            return TaskStatusFilterKey.Completed;
+            return TaskStatusFilterKey.Ended;
         default:
             return TaskStatusFilterKey.All;
     }

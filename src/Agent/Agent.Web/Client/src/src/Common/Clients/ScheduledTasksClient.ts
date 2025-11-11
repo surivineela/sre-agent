@@ -175,4 +175,30 @@ export class ScheduledTasksClient extends DataPlaneClient {
             };
         }
     }
+
+    public async runScheduledTask(id: string): Promise<Response<void>> {
+        const url = this.getRequestUrl(`/api/v1/scheduledtasks/${id}/execute`);
+        try {
+            const response = await axios.post(url, undefined, {
+                headers: getAgentHeaders(),
+            });
+
+            return {
+                isSuccessful: true,
+                content: response.data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            this._log?.({
+                logLevel: 'error',
+                action: 'runScheduledTask',
+                actionModifier: 'failed',
+                data: `Failed to run scheduled task: ${errorMessage}`,
+            });
+            return {
+                isSuccessful: false,
+                error: errorMessage,
+            };
+        }
+    }
 }

@@ -79,12 +79,12 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                         ? normalizeCronExpression(values.customCron ?? '')
                         : getCronExpression({
                               frequency: values.frequency,
-                              timeOfDay: values.timeOfDay,
+                              timeOfDay: values.timeOfDay ?? date.current,
                               dayOfWeek: values.dayOfWeek,
                               dayOfMonth: values.dayOfMonth,
                           }),
-                startTime: new Date(values.startOn.setHours(23, 59, 59, 999)).toISOString(),
-                endTime: values.repeatUntil ? new Date(values.repeatUntil.setHours(23, 59, 59, 999)).toISOString() : undefined,
+                startTime: values.startOn?.toISOString(),
+                endTime: values.repeatUntil?.toISOString(),
                 threadId: values.groupMessages === GroupMessageKey.SameThread ? Guid.newGuid() : undefined,
                 maxExecutions: Number(values.runLimit),
             };
