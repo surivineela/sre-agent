@@ -1,4 +1,4 @@
-import { Caption1, createMotionComponent, makeStyles, tokens } from '@fluentui/react-components';
+import { Body1, createMotionComponent, makeStyles, tokens } from '@fluentui/react-components';
 import { SearchSparkle24Regular } from '@fluentui/react-icons';
 import { memo } from 'react';
 import { FormattedMessage } from 'react-intl';
@@ -33,13 +33,13 @@ const DeepInvestigationStatusMessage = ({ isDeepInvestigationTurnedOn }: { isDee
             <DropIn>
                 <div className={styles.item}>
                     <SearchSparkle24Regular />
-                    <Caption1>
+                    <Body1>
                         {isDeepInvestigationTurnedOn ? (
                             <FormattedMessage {...AgentTaskResources.deepInvestigationTurnedOnMessage} />
                         ) : (
                             <FormattedMessage {...AgentTaskResources.deepInvestigationTurnedOffMessage} />
                         )}
-                    </Caption1>
+                    </Body1>
                 </div>
             </DropIn>
         </div>

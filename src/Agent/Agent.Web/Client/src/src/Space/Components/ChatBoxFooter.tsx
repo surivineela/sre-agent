@@ -1195,15 +1195,12 @@ const DeepInvestigationButton = memo(
         const tooltipContentWhenNoPermission = isDeepInvestigationTurnedOn
             ? intl.formatMessage(AgentTaskResources.deepInvestigationNoPermissionTurnedOnMessage)
             : intl.formatMessage(AgentTaskResources.deepInvestigationNoPermissionTurnedOffMessage);
-        const stateTooltip = isDeepInvestigationTurnedOn
-            ? intl.formatMessage(AgentTaskResources.deepInvestigationTurnedOnMessage)
-            : intl.formatMessage(AgentTaskResources.deepInvestigationTurnedOffMessage);
 
         return (
             <PermissionedButton
                 canPerform={canWriteThreads}
                 noPermissionTooltip={canWriteThreads ? '' : tooltipContentWhenNoPermission}
-                allowedTooltip={stateTooltip}
+                allowedTooltip={intl.formatMessage(AgentTaskResources.deepInvestigation)}
                 icon={
                     <span className={iconWrapper}>
                         <SearchSparkle32Regular />

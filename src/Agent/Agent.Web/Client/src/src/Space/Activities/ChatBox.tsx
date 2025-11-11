@@ -4,6 +4,7 @@ import { useTheme } from '@fluentui/react/lib/Theme';
 import { forwardRef, memo, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
+import ChatBoxDeepInvestigationDialog from '../Components/Chat/ChatBoxDeepInvestigationDialog';
 import ChatBoxSidePanel, { IChatBoxSidePanelProps } from '../Components/Chat/ChatBoxSidePanel';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
@@ -69,8 +70,12 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         getGroupedChatMessages,
         updateApprovalOrCliMessageInStreamingMessage,
         userDefinedThreadIdRef,
+
         isDeepInvestigationButtonEnabled,
         isDeepInvestigationTurnedOn,
+        isDeepInvestigationDialogVisible,
+        setIsDeepInvestigationDialogVisible,
+        onClickDeepInvestigationDialogActionButton,
         onClickDeepInvestigationButton,
     } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource);
 
@@ -307,6 +312,11 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                                 )}
                             </ChatBoxSidePanel>
                         </div>
+                        <ChatBoxDeepInvestigationDialog
+                            isOpen={isDeepInvestigationDialogVisible}
+                            setIsOpen={setIsDeepInvestigationDialogVisible}
+                            onClickDeepInvestigationDialogActionButton={onClickDeepInvestigationDialogActionButton}
+                        />
                     </ThreadAgentModeContext.Provider>
                 </ChatBoxSidePanelContext.Provider>
             </ChatBoxContext.Provider>

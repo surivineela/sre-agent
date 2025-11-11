@@ -685,8 +685,8 @@ export const AgentTaskResources = defineMessages({
     deepInvestigation: { defaultMessage: 'Deep investigation', id: '2a+ttj' },
     chatMessageIntro: { defaultMessage: 'Here is your deep investigation:', id: 'tLaLqo' },
     deepInvestigationTurnedOnMessage: {
-        defaultMessage: 'Deep investigation is turned on',
-        id: 'cDjhgm',
+        defaultMessage: 'Your next question will be analyzed with deep investigation',
+        id: 'rucpw1',
     },
     deepInvestigationTurnedOffMessage: {
         defaultMessage: 'Deep investigation is turned off',
@@ -707,6 +707,15 @@ export const AgentTaskResources = defineMessages({
     conclusionNodeText: {
         defaultMessage: 'Conclusion',
         id: 'ZjlBPk',
+    },
+    deepInvestigationDialogContent: {
+        defaultMessage:
+            'Deep investigations require significant time to run and might result in high AAU consumption. Do you want to proceed?',
+        id: '3e2NSB',
+    },
+    deepInvestigationDismissCheckboxLabel: {
+        defaultMessage: "Don't show this message again",
+        id: 'Vaj9nj',
     },
 });
 

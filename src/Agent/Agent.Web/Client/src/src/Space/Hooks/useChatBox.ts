@@ -40,6 +40,8 @@ import { StreamingContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 import { useChatHistory } from './useChatHistory';
 
+const DEEP_INVESTIGATION_CONFIRM_DISMISSED_KEY = 'sreagent.deepInvestigationConfirmDismissed';
+
 export const useChatBox = (
     addThread: (threadId: string) => void,
     updateThreadLastReadTime: (threadId: string) => void,
@@ -68,8 +70,19 @@ export const useChatBox = (
     const [isWaitingForStreamingMessages, setIsWaitingForStreamingMessages] = useState<boolean | undefined>();
 
     const [downButtonState, setDownButtonState] = useState<{ visible: boolean; flash: boolean }>({ visible: false, flash: false });
+
     const [isDeepInvestigationButtonEnabled, setIsDeepInvestigationButtonEnabled] = useState<boolean>(false);
     const [isDeepInvestigationTurnedOn, setIsDeepInvestigationTurnedOn] = useState<boolean>(false);
+    const [isDeepInvestigationDialogVisible, setIsDeepInvestigationDialogVisible] = useState<boolean>(false);
+    const [isDeepInvestigationDialogDismissedForCurrentAgent, setIsDeepInvestigationDialogDismissedForCurrentAgent] = useState<boolean>(
+        () => {
+            try {
+                return localStorage.getItem(DEEP_INVESTIGATION_CONFIRM_DISMISSED_KEY) === 'true';
+            } catch {
+                return false;
+            }
+        }
+    );
 
     const messagesDivRef = useRef<HTMLDivElement>(null);
     const intersectionObserverRef = useRef<HTMLDivElement>(null);
@@ -88,6 +101,7 @@ export const useChatBox = (
     const addThreadRef = useRef(addThread);
     const responseEndLoggedRef = useRef<boolean>(false);
     const isDeepInvestigationTurnedOnRef = useRef<boolean>(isDeepInvestigationTurnedOn);
+    isDeepInvestigationTurnedOnRef.current = isDeepInvestigationTurnedOn;
 
     const prepareForAddingChatHistory = () => {
         currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
@@ -134,33 +148,61 @@ export const useChatBox = (
         setDownButtonState({ visible: false, flash: false });
     };
 
+    const changeDeepInvestigationStatus = useCallback(
+        (on: boolean) => {
+            setIsDeepInvestigationTurnedOn(on);
+
+            pushCurrentStreamingMessageToNewMessages();
+            setMessages(prev => [...prev, getDefaultDeepInvestigationStatusChatMessage(on)]);
+
+            proxy.logAmplitudeControlEvent({
+                targetType: 'button',
+                targetAction: 'clicked',
+                targetName: 'deepInvestigationMode',
+                targetFriendlyName: 'Deep investigation mode',
+                valueObjectName: SpecialControlValue.DoAction,
+                valueObjectFriendlyName: SpecialControlValue.DoAction,
+            });
+
+            requestAnimationFrame(() => {
+                scrollToBottom(false);
+            });
+        },
+        [proxy]
+    );
+
     const onClickDeepInvestigationButton = useCallback(() => {
-        const currentValue = isDeepInvestigationTurnedOnRef.current;
-        isDeepInvestigationTurnedOnRef.current = !currentValue;
-        setIsDeepInvestigationTurnedOn(!currentValue);
+        if (!isDeepInvestigationTurnedOn && !isDeepInvestigationDialogDismissedForCurrentAgent) {
+            setIsDeepInvestigationDialogVisible(true);
+        } else {
+            changeDeepInvestigationStatus(!isDeepInvestigationTurnedOn);
+        }
+    }, [changeDeepInvestigationStatus, isDeepInvestigationTurnedOn, isDeepInvestigationDialogDismissedForCurrentAgent]);
 
-        pushCurrentStreamingMessageToNewMessages();
-        setMessages(prev => [...prev, getDefaultDeepInvestigationStatusChatMessage(!currentValue)]);
+    const onClickDeepInvestigationDialogActionButton = useCallback(
+        (dismissDialog: boolean, yes: boolean) => {
+            if (yes) {
+                changeDeepInvestigationStatus(true);
+            }
 
-        proxy.logAmplitudeControlEvent({
-            targetType: 'button',
-            targetAction: 'clicked',
-            targetName: 'deepInvestigationMode',
-            targetFriendlyName: 'Deep investigation mode',
-            valueObjectName: SpecialControlValue.DoAction,
-            valueObjectFriendlyName: SpecialControlValue.DoAction,
-        });
-
-        requestAnimationFrame(() => {
-            scrollToBottom(false);
-        });
-    }, []);
+            if (dismissDialog) {
+                try {
+                    localStorage.setItem(DEEP_INVESTIGATION_CONFIRM_DISMISSED_KEY, 'true');
+                } catch {
+                    // Ignore localStorage errors
+                }
+                setIsDeepInvestigationDialogDismissedForCurrentAgent(true);
+            }
+        },
+        [changeDeepInvestigationStatus]
+    );
 
     const finishStreaming = () => {
         setIsAgentTyping(false);
         setIsWaitingForStreamingMessages(false);
         setToolCallText(null);
         setIsCancellingStreaming(false);
+        setIsDeepInvestigationTurnedOn(false);
 
         messageChunkQueue.current = [];
         isHandlingStreamingMessage.current = false;
@@ -738,8 +780,12 @@ export const useChatBox = (
         getGroupedChatMessages,
         updateApprovalOrCliMessageInStreamingMessage,
         userDefinedThreadIdRef,
+
         isDeepInvestigationButtonEnabled,
         isDeepInvestigationTurnedOn,
+        isDeepInvestigationDialogVisible,
+        setIsDeepInvestigationDialogVisible,
+        onClickDeepInvestigationDialogActionButton,
         onClickDeepInvestigationButton,
     };
 };
