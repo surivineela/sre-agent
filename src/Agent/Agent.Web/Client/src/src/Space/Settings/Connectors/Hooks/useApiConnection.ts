@@ -1,13 +1,13 @@
 import { useCallback, useContext, useState } from 'react';
-import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { getErrorMessage } from '../../../Common/Clients/ArmClient';
+import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { getErrorMessage } from '../../../../Common/Clients/ArmClient';
 import {
     Connector,
     ConnectorService,
     GetConnectorOptions,
     PutConnectorAccessPoliciesOptions,
     PutConnectorOptions,
-} from '../../../Common/Clients/ConnectorService';
+} from '../../../../Common/Clients/ConnectorService';
 
 export const useApiConnection = () => {
     const { log } = useContext(AzPortalContext);

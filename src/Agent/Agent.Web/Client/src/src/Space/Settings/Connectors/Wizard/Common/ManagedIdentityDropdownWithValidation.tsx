@@ -11,8 +11,8 @@ import { MsiIdentity } from '../../../../../Common/Contracts/Azure/ArmObj';
 import { ConnectorsResources, SreAgentResources } from '../../../../../Strings/SREAgentResources';
 import { IdentityKeys, IdentityType } from '../../../../Contracts/Identity';
 import { IdentityStatus } from '../../../Identity.ReactView';
-import { useConnectorWizardStyles } from '../../ConnectorWizard.styles';
-import { ConnectorFormProps } from '../../ConnectorWizardFormik';
+import { useConnectorWizardStyles } from '../ConnectorWizard.styles';
+import { ConnectorFormProps } from '../ConnectorWizardFormik';
 
 interface ManagedIdentityDropdownWithValidationProps {
     userAssignedIdentities: { id: string; name: string }[];

@@ -1,4 +1,4 @@
-import { CustomHeader } from '../../ConnectorWizardFormik';
+import { CustomHeader } from '../ConnectorWizardFormik';
 
 export const BearerTokenConnectionString = 'Endpoint={0};AuthType=BearerToken;BearerToken={1};';
 export const CustomHeadersConnectionString = 'Endpoint={0};AuthType=CustomHeaders;';

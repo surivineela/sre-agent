@@ -1,12 +1,12 @@
 import { useFormikContext } from 'formik';
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import InputFormik from '../../../../../Common/Components/Input/InputFormik';
-import { ConnectorsResources, SreAgentResources } from '../../../../../Strings/SREAgentResources';
-import { ConnectorFormProps } from '../../ConnectorWizardFormik';
+import { ConnectorsResources } from '../../../../../Strings/SREAgentResources';
+import { ConnectorFormProps } from '../ConnectorWizardFormik';
 import { ConnectorType, getConnectorService } from './ConnectorType';
 
-const kustoDataSourceExample = 'https://cluster-url/database-name';
+export const kustoDataSourceExample = 'https://cluster-url/database-name';
 
 export const UrlInputWithValidation: React.FC = () => {
     const intl = useIntl();
@@ -14,28 +14,6 @@ export const UrlInputWithValidation: React.FC = () => {
     const { values } = useFormikContext<ConnectorFormProps>();
 
     const connectorType = useMemo(() => values.connectorType as ConnectorType, [values.connectorType]);
-
-    const validateUrl = useCallback(
-        (url: string) => {
-            if (!url) {
-                return intl.formatMessage(SreAgentResources.fieldRequired);
-            }
-
-            let isValidUri = false;
-            try {
-                const urlFormat = new URL(url);
-                isValidUri =
-                    urlFormat.protocol === 'https:' && !!urlFormat.host.trim() && !!urlFormat.pathname && urlFormat.pathname.trim() !== '/';
-            } catch {
-                isValidUri = false;
-            }
-
-            return !isValidUri
-                ? intl.formatMessage(ConnectorsResources.urlKustoFormatError, { format: kustoDataSourceExample })
-                : undefined;
-        },
-        [intl]
-    );
 
     const urlLabel = useMemo(() => {
         if (connectorType === ConnectorType.McpServer) {
@@ -55,14 +33,5 @@ export const UrlInputWithValidation: React.FC = () => {
         return intl.formatMessage(ConnectorsResources.urlPlaceholder);
     }, [connectorType, intl]);
 
-    return (
-        <InputFormik
-            name="url"
-            label={urlLabel}
-            required
-            orientation="vertical"
-            placeholder={urlPlaceholder}
-            validate={url => validateUrl(url)}
-        />
-    );
+    return <InputFormik name="url" label={urlLabel} required orientation="vertical" placeholder={urlPlaceholder} />;
 };

@@ -2,8 +2,8 @@ import { useFormikContext } from 'formik';
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { ConnectorsResources } from '../../../../../Strings/SREAgentResources';
-import { useConnectorWizardStyles } from '../../ConnectorWizard.styles';
-import { ConnectorFormProps } from '../../ConnectorWizardFormik';
+import { useConnectorWizardStyles } from '../ConnectorWizard.styles';
+import { ConnectorFormProps } from '../ConnectorWizardFormik';
 import { ConnectorType, getConnectorService } from './ConnectorType';
 
 export interface SetupConnectorFormWrapperProps {

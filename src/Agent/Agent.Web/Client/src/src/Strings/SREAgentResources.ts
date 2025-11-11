@@ -5002,6 +5002,15 @@ export const ConnectorsResources = defineMessages({
     customHeadersKeyPlaceholder: { defaultMessage: 'Enter custom header key', id: '6CrAJC' },
     customHeadersValuePlaceholder: { defaultMessage: 'Enter custom header value', id: 'r5UlDs' },
     compiledConnectionString: { defaultMessage: 'Compiled connection string', id: 'OP7f9a' },
+    teamsChannelLink: { defaultMessage: 'Teams channel link', id: 'AvHD3R' },
+    provideChannelLinkError: { defaultMessage: 'Please provide a channel link', id: 'fyaE5g' },
+    channelId: { defaultMessage: 'Channel ID', id: 'DgsR1U' },
+    teamsGroupId: { defaultMessage: 'Teams group ID', id: 'ErUgLz' },
+    connectorNameValidationMessage: {
+        defaultMessage:
+            'Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than {maxLength} characters.',
+        id: 'DK708b',
+    },
     authenticationMethodPlaceholder: { defaultMessage: 'Select authentication method', id: 'v1LtqB' },
     patOrApiKey: { defaultMessage: 'Personal access token (PAT) or API key', id: 'ooDMAp' },
     patOrApiKeyPlaceholder: { defaultMessage: 'Enter your PAT or API key', id: 'FMDuHb' },

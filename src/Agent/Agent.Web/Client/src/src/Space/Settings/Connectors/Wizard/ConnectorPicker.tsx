@@ -3,13 +3,13 @@ import { Add20Regular } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { SearchBoxWithDebounce } from '../../../Common/Components/SearchBox/SearchBoxWithDebounce';
-import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
-import { AntUxStringComparison, equals } from '../../../Common/Helpers/Strings';
-import { ConnectorsResources } from '../../../Strings/SREAgentResources';
+import { SearchBoxWithDebounce } from '../../../../Common/Components/SearchBox/SearchBoxWithDebounce';
+import { Connector } from '../../../../Common/Contracts/Azure/SreAgent';
+import { AntUxStringComparison, equals } from '../../../../Common/Helpers/Strings';
+import { ConnectorsResources } from '../../../../Strings/SREAgentResources';
+import { ConnectorType, ConnectorTypeOption, connectorTypeOptions } from './Common/ConnectorType';
 import { useConnectorWizardStyles } from './ConnectorWizard.styles';
 import { ConnectorFormProps } from './ConnectorWizardFormik';
-import { ConnectorType, ConnectorTypeOption, connectorTypeOptions } from './Wizard/Common/ConnectorType';
 
 interface ConnectorPickerProps {
     existingConnectors?: Connector[];
@@ -20,7 +20,7 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
     const { existingConnectors, goToNextStep } = props;
     const intl = useIntl();
     const styles = useConnectorWizardStyles();
-    const { values, setFieldValue } = useFormikContext<ConnectorFormProps>();
+    const { values, setFieldValue, setTouched, setErrors } = useFormikContext<ConnectorFormProps>();
 
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -44,8 +44,13 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
             setFieldValue('url', '');
             setFieldValue('identity', '');
             setFieldValue('email', '');
+            setFieldValue('teamsChannelLink', '');
+            setFieldValue('patOrApiKey', '');
+            setFieldValue('customHeaders', [{ key: '', value: '' }]);
+            setTouched({});
+            setErrors({});
         },
-        [setFieldValue]
+        [setErrors, setFieldValue, setTouched]
     );
 
     const onCustomMcpAdd = useCallback(() => {
@@ -72,7 +77,7 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
                 <div className={styles.cardGrid}>
                     {filteredConnectorOptions.map((connector: ConnectorTypeOption, index: number) => {
                         const disabled =
-                            (connector.id === ConnectorType.OutlookSendEmail || connector.id === ConnectorType.TeamsSendNotificaton) &&
+                            (connector.id === ConnectorType.OutlookSendEmail || connector.id === ConnectorType.TeamsSendNotification) &&
                             existingConnectors?.some(existing =>
                                 equals(existing.dataConnectorType, connector.id, AntUxStringComparison.IgnoreCase)
                             );

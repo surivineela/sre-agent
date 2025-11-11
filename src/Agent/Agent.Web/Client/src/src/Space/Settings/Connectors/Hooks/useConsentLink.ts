@@ -1,10 +1,10 @@
 import { useCallback, useContext, useState } from 'react';
-import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getErrorMessage } from '../../../Common/Clients/ArmClient';
-import { OAuthServiceClient } from '../../../Common/Clients/OAuthService';
-import { ConsentLink } from '../../../Common/Contracts/Azure/ConsentLinks';
-import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
+import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { getErrorMessage } from '../../../../Common/Clients/ArmClient';
+import { OAuthServiceClient } from '../../../../Common/Clients/OAuthService';
+import { ConsentLink } from '../../../../Common/Contracts/Azure/ConsentLinks';
+import { ArmResourceDescriptor } from '../../../../Common/Helpers/ResourceDescriptors';
 
 export const useConsentLink = (connectionName: string) => {
     const { log } = useContext(AzPortalContext);

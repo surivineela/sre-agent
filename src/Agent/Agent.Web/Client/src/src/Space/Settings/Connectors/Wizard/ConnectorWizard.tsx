@@ -1,19 +1,19 @@
 import { useFormikContext } from 'formik';
 import { useCallback, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { WizardDialog } from '../../../Common/Components/Wizard/WizardDialogFormik';
-import { StepStatus } from '../../../Common/Components/Wizard/WizardStepper';
-import { MsiIdentity } from '../../../Common/Contracts/Azure/ArmObj';
-import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
-import { ConnectorsResources } from '../../../Strings/SREAgentResources';
+import { WizardDialog } from '../../../../Common/Components/Wizard/WizardDialogFormik';
+import { StepStatus } from '../../../../Common/Components/Wizard/WizardStepper';
+import { MsiIdentity } from '../../../../Common/Contracts/Azure/ArmObj';
+import { Connector } from '../../../../Common/Contracts/Azure/SreAgent';
+import { ConnectorsResources } from '../../../../Strings/SREAgentResources';
+import { ConnectorType } from './Common/ConnectorType';
 import { ConnectorPicker } from './ConnectorPicker';
 import { useConnectorWizardStyles } from './ConnectorWizard.styles';
 import { ConnectorFormProps } from './ConnectorWizardFormik';
 import { ReviewAndAdd } from './ReviewAndAdd';
-import { ConnectorType } from './Wizard/Common/ConnectorType';
-import { AzureConnectorForm } from './Wizard/SetupForm/AzureConnectorForm';
-import { McpServerForm } from './Wizard/SetupForm/McpServerForm';
-import { OutlookTeamsConnectorForm } from './Wizard/SetupForm/OutlookTeamsConnectorForm';
+import { AzureConnectorForm } from './SetupForm/AzureConnectorForm';
+import { McpServerForm } from './SetupForm/McpServerForm';
+import { OutlookTeamsConnectorForm } from './SetupForm/OutlookTeamsConnectorForm';
 
 interface ConnectorsWizardProps {
     isDialogOpen: boolean;
@@ -46,9 +46,10 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
         setCurrentStep,
         refreshAgent,
     } = props;
+
     const intl = useIntl();
     const styles = useConnectorWizardStyles();
-    const { values, isValid, dirty, resetForm } = useFormikContext<ConnectorFormProps>();
+    const { values, isValidating, isValid, dirty, resetForm } = useFormikContext<ConnectorFormProps>();
 
     const title = useMemo(() => {
         return intl.formatMessage(ConnectorsResources.addAConnector);
@@ -91,10 +92,10 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
         if (currentStep === StepKey.ConnectorPicker) {
             return !values.connectorType;
         } else if (currentStep === StepKey.Setup) {
-            return !isValid || !dirty;
+            return isValidating || !isValid || !dirty;
         }
         return false;
-    }, [currentStep, values, isValid, dirty]);
+    }, [currentStep, values.connectorType, isValidating, isValid, dirty]);
 
     const onCancel = useCallback(() => {
         resetForm();
@@ -128,28 +129,26 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
                     <AzureConnectorForm
                         userAssignedIdentities={userAssignedIdentityOptions}
                         agentIdentity={agentIdentity}
-                        existingConnectors={existingConnectors}
                         refreshAgent={refreshAgent}
                     />
                 );
             case ConnectorType.OutlookSendEmail:
-            case ConnectorType.TeamsSendNotificaton:
+            case ConnectorType.TeamsSendNotification:
                 return (
                     <OutlookTeamsConnectorForm
                         userAssignedIdentities={userAssignedIdentityOptions}
                         agentName={agentName}
                         agentLocation={agentLocation}
                         agentIdentity={agentIdentity}
-                        existingConnectors={existingConnectors}
                         refreshAgent={refreshAgent}
                     />
                 );
             case ConnectorType.McpServer:
-                return <McpServerForm existingConnectors={existingConnectors} />;
+                return <McpServerForm />;
             default:
                 return null;
         }
-    }, [values.connectorType, userAssignedIdentityOptions, agentIdentity, existingConnectors, refreshAgent, agentName, agentLocation]);
+    }, [values.connectorType, userAssignedIdentityOptions, agentIdentity, refreshAgent, agentName, agentLocation]);
 
     const goToNextStep = useCallback(() => {
         setCurrentStep(currentStep + 1);

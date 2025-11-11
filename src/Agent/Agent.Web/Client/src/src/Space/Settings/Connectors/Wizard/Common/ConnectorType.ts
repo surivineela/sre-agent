@@ -5,8 +5,8 @@ export enum ConnectorType {
     AzureDataExplorerQuery = 'Kusto',
     AzureDataExplorerIndexing = 'KustoDataIndexer',
     AzureDevOpsDocumentation = 'TsgCrawler',
-    OutlookSendEmail = 'SendOutlookEmail',
-    TeamsSendNotificaton = 'Teams',
+    OutlookSendEmail = 'Outlook',
+    TeamsSendNotification = 'Teams',
     McpServer = 'Mcp',
 }
 
@@ -48,7 +48,7 @@ export const connectorTypeOptions = (intl: any): ConnectorTypeOption[] => [
         img: resolveResourceIcon('Outlook'),
     },
     {
-        id: ConnectorType.TeamsSendNotificaton,
+        id: ConnectorType.TeamsSendNotification,
         name: intl.formatMessage(ConnectorsResources.sendNotification),
         service: intl.formatMessage(ConnectorsResources.microsoftTeams),
         description: intl.formatMessage(ConnectorsResources.sendNotificationDescription),

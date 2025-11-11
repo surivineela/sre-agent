@@ -2,12 +2,13 @@ import { Card, CardHeader, Label, Text } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
-import { IdentityKeys } from '../../Contracts/Identity';
+import { ConnectorsResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
+import { IdentityKeys } from '../../../Contracts/Identity';
+import { ConnectorType, getConnectorIcon, getConnectorName, getConnectorService } from './Common/ConnectorType';
+import { getBearerTokenConnectionString, getCustomHeadersConnectionString } from './Common/CustomConnectorHelper';
+import { parseTeamsChannelLink } from './Common/TeamsConnectorHelper';
 import { useConnectorWizardStyles } from './ConnectorWizard.styles';
 import { AuthType, ConnectorFormProps } from './ConnectorWizardFormik';
-import { ConnectorType, getConnectorIcon, getConnectorName, getConnectorService } from './Wizard/Common/ConnectorType';
-import { getBearerTokenConnectionString, getCustomHeadersConnectionString } from './Wizard/Common/CustomConnector';
 
 export interface ReviewAndAddProps {
     userAssignedIdentities: { id: string; name: string }[];
@@ -47,6 +48,14 @@ export const ReviewAndAdd: React.FC<ReviewAndAddProps> = ({ userAssignedIdentiti
                 labelValuePairs.push({ label: intl.formatMessage(ConnectorsResources.outlookAccount), value: values.email });
             } else if (values.url) {
                 labelValuePairs.push({ label: intl.formatMessage(ConnectorsResources.repositoryUrl), value: values.url });
+            }
+
+            if (values.teamsChannelLink) {
+                const teamsInfo = parseTeamsChannelLink(values.teamsChannelLink);
+                if (teamsInfo) {
+                    labelValuePairs.push({ label: intl.formatMessage(ConnectorsResources.channelId), value: teamsInfo.channelId });
+                    labelValuePairs.push({ label: intl.formatMessage(ConnectorsResources.teamsGroupId), value: teamsInfo.teamsGroupId });
+                }
             }
 
             if (values.identity) {

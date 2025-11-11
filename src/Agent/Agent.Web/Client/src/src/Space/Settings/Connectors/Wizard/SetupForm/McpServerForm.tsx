@@ -6,20 +6,18 @@ import DropdownFormik from '../../../../../Common/Components/Dropdown/DropdownFo
 import { OptionType } from '../../../../../Common/Components/Dropdown/DropdownNoFormik';
 import EditableGridFormik from '../../../../../Common/Components/EditableGrid/EditableGridFormik';
 import InputFormik from '../../../../../Common/Components/Input/InputFormik';
-import { Connector } from '../../../../../Common/Contracts/Azure/SreAgent';
 import { ConnectorsResources } from '../../../../../Strings/SREAgentResources';
-import { AuthType, ConnectorFormProps, CustomHeader } from '../../ConnectorWizardFormik';
 import { NameInputWithValidation } from '../Common/NameInputWithValidation';
 import { SetupConnectorFormWrapper } from '../Common/SetupConnectorFormWrapper';
 import { UrlInputWithValidation } from '../Common/UrlInputWithValidation';
+import { AuthType, ConnectorFormProps, CustomHeader } from '../ConnectorWizardFormik';
 
 interface McpServerFormProps {
-    existingConnectors: Connector[] | undefined;
     isEditMode?: false;
 }
 
 export const McpServerForm: React.FC<McpServerFormProps> = props => {
-    const { existingConnectors, isEditMode = false } = props;
+    const { isEditMode = false } = props;
 
     const intl = useIntl();
 
@@ -77,7 +75,7 @@ export const McpServerForm: React.FC<McpServerFormProps> = props => {
 
     return (
         <SetupConnectorFormWrapper>
-            <NameInputWithValidation disabled={isEditMode} existingConnectors={existingConnectors} />
+            <NameInputWithValidation disabled={isEditMode} />
             <UrlInputWithValidation />
             <DropdownFormik
                 name="authType"

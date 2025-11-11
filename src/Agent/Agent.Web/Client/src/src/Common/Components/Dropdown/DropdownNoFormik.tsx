@@ -13,7 +13,6 @@ export type DropdownNoFormikProps<T extends DropdownOptionBase | string> = Dropd
     Omit<FieldWrapperProps, 'children'> & {
         options: T[];
         disabled?: boolean;
-        withLabel?: boolean;
         isLoading?: boolean;
         sublabel?: React.ReactNode;
     };
