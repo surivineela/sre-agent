@@ -33,6 +33,12 @@
       "value": "Thread verwijderen?"
     }
   ],
+  "+6/51l": [
+    {
+      "type": 0,
+      "value": "Creating meta agent"
+    }
+  ],
   "+7PjfV": [
     {
       "type": 0,
@@ -43,6 +49,12 @@
     {
       "type": 0,
       "value": "IcM is niet verbonden."
+    }
+  ],
+  "+ASm/B": [
+    {
+      "type": 0,
+      "value": "Submit Feedback"
     }
   ],
   "+Aon83": [
@@ -127,6 +139,30 @@
       "value": "Type"
     }
   ],
+  "+XtuWl": [
+    {
+      "type": 0,
+      "value": "This insight needs improvement"
+    }
+  ],
+  "+Y8m6A": [
+    {
+      "type": 0,
+      "value": "Added handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    }
+  ],
   "+ZdOJt": [
     {
       "type": 0,
@@ -187,6 +223,12 @@
       "value": "Kan werkmappen lezen."
     }
   ],
+  "+nnQeH": [
+    {
+      "type": 0,
+      "value": "Created meta agent"
+    }
+  ],
   "+nt4l9": [
     {
       "type": 0,
@@ -211,6 +253,12 @@
       "value": "Resourcegroep"
     }
   ],
+  "/+WtRc": [
+    {
+      "type": 0,
+      "value": "Enter handoff instructions"
+    }
+  ],
   "//Zb9l": [
     {
       "type": 0,
@@ -227,6 +275,12 @@
     {
       "type": 0,
       "value": "Een platform kiezen"
+    }
+  ],
+  "/3OCn6": [
+    {
+      "type": 0,
+      "value": "Insights have not been generated for this thread yet."
     }
   ],
   "/4tOwT": [
@@ -465,6 +519,12 @@
     {
       "type": 1,
       "value": "totalCount"
+    }
+  ],
+  "03qRza": [
+    {
+      "type": 0,
+      "value": "View AI suggestions"
     }
   ],
   "05Rzkx": [
@@ -801,6 +861,12 @@
     {
       "type": 0,
       "value": "Standaardmeta-agent overschrijven"
+    }
+  ],
+  "19xydZ": [
+    {
+      "type": 0,
+      "value": "You do not have permission to generate insights for this thread."
     }
   ],
   "1CcjQj": [
@@ -1361,6 +1427,12 @@
       "value": "Warning"
     }
   ],
+  "3SsYXO": [
+    {
+      "type": 0,
+      "value": "Open GitHub issue page with pre-filled information above"
+    }
+  ],
   "3VI9mt": [
     {
       "type": 0,
@@ -1379,10 +1451,22 @@
       "value": "Actief"
     }
   ],
+  "3dsWh5": [
+    {
+      "type": 0,
+      "value": "Add MCP server"
+    }
+  ],
   "3jPMQI": [
     {
       "type": 0,
       "value": "Meer toevoegen"
+    }
+  ],
+  "3k7JQw": [
+    {
+      "type": 0,
+      "value": "Issue description is required."
     }
   ],
   "3n8o15": [
@@ -1567,6 +1651,12 @@
       "value": "Triggerdetails"
     }
   ],
+  "4CcHuj": [
+    {
+      "type": 0,
+      "value": "Share your thoughts about this insight... (optional)"
+    }
+  ],
   "4Ez7HI": [
     {
       "type": 0,
@@ -1613,6 +1703,12 @@
     {
       "type": 0,
       "value": "Houd de beschrijving kort en leg de acties van de taak uit. Voeg benodigde resource-id's toe, vermeld tijdgevoelige informatie en definieer succes- of faalsignalen of vereiste uitvoerformaten."
+    }
+  ],
+  "4Rhz/i": [
+    {
+      "type": 0,
+      "value": "User provided connector"
     }
   ],
   "4RwjwU": [
@@ -1689,6 +1785,16 @@
     {
       "type": 0,
       "value": "Een incidentreactieplan definieert welke incidenten de agent moet afhandelen door je filtercriteria toe te passen, zodat reacties op de vereiste set incidenten worden gegarandeerd."
+    }
+  ],
+  "4lv5gO": [
+    {
+      "type": 0,
+      "value": "Create subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "4oK1Me": [
@@ -2137,6 +2243,12 @@
       "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
     }
   ],
+  "6CrAJC": [
+    {
+      "type": 0,
+      "value": "Enter custom header key"
+    }
+  ],
   "6CxEZS": [
     {
       "type": 0,
@@ -2183,6 +2295,16 @@
     {
       "type": 0,
       "value": "Opnieuw genereren"
+    }
+  ],
+  "6RNwei": [
+    {
+      "type": 0,
+      "value": "Update subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "6S2zmX": [
@@ -2273,6 +2395,12 @@
     {
       "type": 0,
       "value": "Resourcerapport"
+    }
+  ],
+  "6gD0ie": [
+    {
+      "type": 0,
+      "value": "Generate Session Insights"
     }
   ],
   "6m5Ba0": [
@@ -2379,6 +2507,12 @@
       "value": "Tijdsbereik"
     }
   ],
+  "751M54": [
+    {
+      "type": 0,
+      "value": "Generating insights..."
+    }
+  ],
   "75lAeu": [
     {
       "type": 0,
@@ -2479,6 +2613,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "7Rnjmx": [
+    {
+      "type": 0,
+      "value": "Expected Behavior"
     }
   ],
   "7TVRcx": [
@@ -2889,6 +3029,12 @@
       "value": "Selecteer een agent om aan over te dragen"
     }
   ],
+  "8u2W0L": [
+    {
+      "type": 0,
+      "value": "Handoff instructions"
+    }
+  ],
   "8v0Pyn": [
     {
       "type": 0,
@@ -3043,6 +3189,12 @@
       "value": "Voeg een beschrijving toe over deze resource om de agent te helpen bij groeperingen en inzichten."
     }
   ],
+  "9WBhPZ": [
+    {
+      "type": 0,
+      "value": "Session Insights"
+    }
+  ],
   "9WRlF4": [
     {
       "type": 0,
@@ -3153,6 +3305,12 @@
     {
       "type": 0,
       "value": "Playground-acties zijn binnenkort beschikbaar."
+    }
+  ],
+  "A9cgAa": [
+    {
+      "type": 0,
+      "value": "No insight selected"
     }
   ],
   "AA/tRJ": [
@@ -3321,6 +3479,12 @@
       "value": "REST API-toegangssleutel"
     }
   ],
+  "AvHD3R": [
+    {
+      "type": 0,
+      "value": "Teams channel link"
+    }
+  ],
   "AxMhQr": [
     {
       "type": 0,
@@ -3357,6 +3521,12 @@
     {
       "type": 0,
       "value": "Agentkwaliteit"
+    }
+  ],
+  "BD+V8L": [
+    {
+      "type": 0,
+      "value": "This insight was helpful"
     }
   ],
   "BEck3n": [
@@ -3525,6 +3695,24 @@
       "value": " gegevensconnectors verwijderen..."
     }
   ],
+  "Bn/txo": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "BuziI2": [
     {
       "type": 0,
@@ -3585,6 +3773,16 @@
       "value": "MCP-hulpprogramma's (optioneel)"
     }
   ],
+  "CIAL+k": [
+    {
+      "type": 0,
+      "value": "Created subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "CJ6tzL": [
     {
       "type": 0,
@@ -3625,6 +3823,18 @@
     {
       "type": 0,
       "value": "Hoe wilt u de planning definiëren?"
+    }
+  ],
+  "CQ0CLu": [
+    {
+      "type": 0,
+      "value": "Session insights"
+    }
+  ],
+  "CQisjK": [
+    {
+      "type": 0,
+      "value": "What actually happened?"
     }
   ],
   "CTRqZs": [
@@ -3853,6 +4063,20 @@
       "value": "Kies of je diepgaande onderzoeken wilt uitvoeren naast reguliere onderzoeken"
     }
   ],
+  "DK708b": [
+    {
+      "type": 0,
+      "value": "Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than "
+    },
+    {
+      "type": 1,
+      "value": "maxLength"
+    },
+    {
+      "type": 0,
+      "value": " characters."
+    }
+  ],
   "DMEE1o": [
     {
       "type": 0,
@@ -3899,6 +4123,12 @@
       "value": "Geselecteerde incidenten"
     }
   ],
+  "DYp/nK": [
+    {
+      "type": 0,
+      "value": "Session Insight"
+    }
+  ],
   "Da55kZ": [
     {
       "type": 0,
@@ -3927,6 +4157,12 @@
     {
       "type": 0,
       "value": "Cognitive Services-bijdrager"
+    }
+  ],
+  "DgsR1U": [
+    {
+      "type": 0,
+      "value": "Channel ID"
     }
   ],
   "Dh9oJp": [
@@ -4117,6 +4353,12 @@
       "value": "Filternaam invoeren"
     }
   ],
+  "ETRyBL": [
+    {
+      "type": 0,
+      "value": "Rating"
+    }
+  ],
   "EWrExf": [
     {
       "type": 0,
@@ -4153,6 +4395,12 @@
       "value": "Actieplan"
     }
   ],
+  "EcglP9": [
+    {
+      "type": 0,
+      "value": "Key"
+    }
+  ],
   "EdEthU": [
     {
       "type": 0,
@@ -4173,6 +4421,12 @@
     {
       "type": 0,
       "value": "Test de query om door te gaan."
+    }
+  ],
+  "Ejhdi4": [
+    {
+      "type": 0,
+      "value": "Feedback"
     }
   ],
   "ElI1gd": [
@@ -4197,6 +4451,12 @@
     {
       "type": 0,
       "value": "https://github.com/owner/repo-name of https://dev.azure.com/organization/project/_git/repo of https://organization.visualstudio.com/project/_git/repository-name"
+    }
+  ],
+  "ErUgLz": [
+    {
+      "type": 0,
+      "value": "Teams group ID"
     }
   ],
   "Erci0g": [
@@ -4329,6 +4589,12 @@
     {
       "type": 0,
       "value": "Verbinding met opslagplaats"
+    }
+  ],
+  "FMDuHb": [
+    {
+      "type": 0,
+      "value": "Enter your PAT or API key"
     }
   ],
   "FNQNS1": [
@@ -4523,6 +4789,12 @@
       "value": " abonnementen geselecteerd"
     }
   ],
+  "G6XRkU": [
+    {
+      "type": 0,
+      "value": "Steps to Reproduce"
+    }
+  ],
   "G6vaGg": [
     {
       "type": 0,
@@ -4607,6 +4879,12 @@
     {
       "type": 0,
       "value": "Terug naar opdrachten"
+    }
+  ],
+  "GGr/yS": [
+    {
+      "type": 0,
+      "value": "Feedback submitted on threads will appear here"
     }
   ],
   "GMhzu1": [
@@ -4701,10 +4979,34 @@
       "value": " automatisch volgens een schema draaien om belangrijke systemen gezond te houden."
     }
   ],
+  "GpcNV2": [
+    {
+      "type": 0,
+      "value": "Failed to update subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "GroBmn": [
     {
       "type": 0,
       "value": "waarschuwingen voor opslagplaats gevonden"
+    }
+  ],
+  "GufXy5": [
+    {
+      "type": 0,
+      "value": "Value"
     }
   ],
   "Gvxoji": [
@@ -4763,6 +5065,12 @@
     {
       "type": 0,
       "value": "Er zijn geen aanbevelingen voor codeoptimalisatie gedetecteerd."
+    }
+  ],
+  "HJ7ZeR": [
+    {
+      "type": 0,
+      "value": "Issue Description"
     }
   ],
   "HKlw1J": [
@@ -4935,6 +5243,12 @@
     {
       "type": 0,
       "value": "String"
+    }
+  ],
+  "I4PbZq": [
+    {
+      "type": 0,
+      "value": "Create a subagent"
     }
   ],
   "I5k4g/": [
@@ -5189,6 +5503,12 @@
     {
       "type": 0,
       "value": "Klik om de waarde weer te geven"
+    }
+  ],
+  "J0rs+f": [
+    {
+      "type": 0,
+      "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
   "J3Y8Sm": [
@@ -5479,6 +5799,12 @@
     {
       "type": 0,
       "value": "Evaluatie proberen"
+    }
+  ],
+  "JvYXxh": [
+    {
+      "type": 0,
+      "value": "MCP server"
     }
   ],
   "JwHSD6": [
@@ -5883,6 +6209,12 @@
       "value": "Tabel met MCP-servers"
     }
   ],
+  "Li/Qrf": [
+    {
+      "type": 0,
+      "value": "Custom headers"
+    }
+  ],
   "LkUvu/": [
     {
       "type": 0,
@@ -5911,6 +6243,12 @@
     {
       "type": 0,
       "value": "Direct argument"
+    }
+  ],
+  "LuHM0/": [
+    {
+      "type": 0,
+      "value": "Actual Behavior"
     }
   ],
   "LupnQU": [
@@ -6579,6 +6917,12 @@
       "value": " niet vinden. Vernieuw en probeer het opnieuw."
     }
   ],
+  "OP7f9a": [
+    {
+      "type": 0,
+      "value": "Compiled connection string"
+    }
+  ],
   "OPBqEN": [
     {
       "type": 0,
@@ -6915,6 +7259,12 @@
       "value": " t"
     }
   ],
+  "PZvrnY": [
+    {
+      "type": 0,
+      "value": "Title is required."
+    }
+  ],
   "Pa1S0J": [
     {
       "type": 0,
@@ -7181,6 +7531,16 @@
       "value": "AAU-verbruik"
     }
   ],
+  "QP91Js": [
+    {
+      "type": 0,
+      "value": "Updated subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "QQX4Pv": [
     {
       "type": 0,
@@ -7217,6 +7577,12 @@
     {
       "type": 0,
       "value": "Beschrijving van overdracht"
+    }
+  ],
+  "QYiU4f": [
+    {
+      "type": 0,
+      "value": "1. Describe the action you took 2. Mention the resource or service involved"
     }
   ],
   "QdDYGR": [
@@ -7363,6 +7729,12 @@
       "value": "Schuifregelaar voor maandelijkse AAU-limiet"
     }
   ],
+  "R4Blzb": [
+    {
+      "type": 0,
+      "value": "No Feedback Yet"
+    }
+  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -7419,6 +7791,32 @@
     {
       "type": 0,
       "value": " bestanden verwijderen?"
+    }
+  ],
+  "RMD0Mj": [
+    {
+      "type": 0,
+      "value": "Failed to add handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "RR+13c": [
@@ -7597,6 +7995,16 @@
       "value": "Ga naar Azure Managed Grafana"
     }
   ],
+  "SB7SRx": [
+    {
+      "type": 0,
+      "value": "Creating subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "SCjiXP": [
     {
       "type": 0,
@@ -7613,6 +8021,20 @@
     {
       "type": 0,
       "value": "Incident is gemaakt"
+    }
+  ],
+  "SIW6OB": [
+    {
+      "type": 0,
+      "value": "Threads with Insights ("
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ")"
     }
   ],
   "SL+c5a": [
@@ -7801,10 +8223,26 @@
       "value": "."
     }
   ],
+  "T/nqbo": [
+    {
+      "type": 0,
+      "value": "Feedback ID"
+    }
+  ],
   "T0/eoE": [
     {
       "type": 0,
       "value": "Geplande taakuitvoering"
+    }
+  ],
+  "T0e6Lh": [
+    {
+      "type": 0,
+      "value": "Remove "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "T5+AEf": [
@@ -7961,6 +8399,18 @@
       "value": "Resourcetoewijzing"
     }
   ],
+  "TdvJVw": [
+    {
+      "type": 0,
+      "value": "Suggested improvements"
+    }
+  ],
+  "TexFnY": [
+    {
+      "type": 0,
+      "value": "This insight does not have markdown content."
+    }
+  ],
   "Tg4Q8g": [
     {
       "type": 0,
@@ -8037,6 +8487,12 @@
     {
       "type": 0,
       "value": "Configuratiewijzigingen"
+    }
+  ],
+  "UImEMW": [
+    {
+      "type": 0,
+      "value": "Briefly describe the problem or request."
     }
   ],
   "UKMPBH": [
@@ -8181,6 +8637,12 @@
       "value": "U bent niet gemachtigd om deze agent te verwijderen."
     }
   ],
+  "V9GGMu": [
+    {
+      "type": 0,
+      "value": "No threads with session insights found."
+    }
+  ],
   "VA/Z1S": [
     {
       "type": 0,
@@ -8197,6 +8659,12 @@
     {
       "type": 0,
       "value": "Door gebruiker toegewezen"
+    }
+  ],
+  "VBAOA8": [
+    {
+      "type": 0,
+      "value": "Select subagents for handoff"
     }
   ],
   "VIYXlx": [
@@ -8343,6 +8811,30 @@
     {
       "type": 1,
       "value": "channel"
+    }
+  ],
+  "Vs/db/": [
+    {
+      "type": 0,
+      "value": "Adding handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    }
+  ],
+  "Vs3jMi": [
+    {
+      "type": 0,
+      "value": "Authentication method"
     }
   ],
   "VtBCjG": [
@@ -8882,12 +9374,6 @@
       "value": "Berichtgroepering voor updates"
     }
   ],
-  "XVG+T1": [
-    {
-      "type": 0,
-      "value": "Details verfijnen..."
-    }
-  ],
   "XYIeUc": [
     {
       "type": 0,
@@ -8986,6 +9472,12 @@
       "value": "Uitgever van metrische bewakingsgegevens"
     }
   ],
+  "XyUQa7": [
+    {
+      "type": 0,
+      "value": "Improved instructions"
+    }
+  ],
   "Y0BC+F": [
     {
       "type": 1,
@@ -9054,6 +9546,16 @@
     {
       "type": 0,
       "value": "Dinsdag"
+    }
+  ],
+  "YBHvOV": [
+    {
+      "type": 0,
+      "value": "Updating subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "YBXVNU": [
@@ -9344,16 +9846,6 @@
     {
       "type": 0,
       "value": "..."
-    }
-  ],
-  "ZF9lPS": [
-    {
-      "type": 0,
-      "value": "Remove tool "
-    },
-    {
-      "type": 1,
-      "value": "toolName"
     }
   ],
   "ZMa6Rh": [
@@ -9873,6 +10365,12 @@
       "value": "Cluster-URI"
     }
   ],
+  "bICPAQ": [
+    {
+      "type": 0,
+      "value": "Thread Feedback"
+    }
+  ],
   "bK0VQe": [
     {
       "type": 0,
@@ -9895,6 +10393,12 @@
     {
       "type": 0,
       "value": "Nieuw"
+    }
+  ],
+  "bWjdfa": [
+    {
+      "type": 0,
+      "value": "URL"
     }
   ],
   "baRFiF": [
@@ -10149,6 +10653,12 @@
       "value": "Temperatuur"
     }
   ],
+  "cHKA8f": [
+    {
+      "type": 0,
+      "value": "No insight content available"
+    }
+  ],
   "cJGGY4": [
     {
       "type": 0,
@@ -10195,6 +10705,12 @@
     {
       "type": 0,
       "value": "Categorie"
+    }
+  ],
+  "cesI6Z": [
+    {
+      "type": 0,
+      "value": "No feedback selected"
     }
   ],
   "cfbpDd": [
@@ -10505,6 +11021,12 @@
     {
       "type": 0,
       "value": "Verholpen"
+    }
+  ],
+  "dqkJF6": [
+    {
+      "type": 0,
+      "value": "Delete subagent"
     }
   ],
   "dtQgfG": [
@@ -10961,10 +11483,22 @@
       "value": "Er moet eerst een Grafana-resource worden gemaakt."
     }
   ],
+  "fuHqFL": [
+    {
+      "type": 0,
+      "value": "No session insights found."
+    }
+  ],
   "fvK8Qi": [
     {
       "type": 0,
       "value": "Alle statussen"
+    }
+  ],
+  "fyaE5g": [
+    {
+      "type": 0,
+      "value": "Please provide a channel link"
     }
   ],
   "g+9csc": [
@@ -11405,6 +11939,12 @@
     {
       "type": 0,
       "value": "Grafana-resource"
+    }
+  ],
+  "hoHnYn": [
+    {
+      "type": 0,
+      "value": "Improved handoff instructions"
     }
   ],
   "hqWr3L": [
@@ -12027,6 +12567,12 @@
       "value": "Knowledge Base Enabled"
     }
   ],
+  "khI1mJ": [
+    {
+      "type": 0,
+      "value": "Edit subagent"
+    }
+  ],
   "khOzXi": [
     {
       "type": 0,
@@ -12451,6 +12997,24 @@
       "value": "Incidentreactieplannen"
     }
   ],
+  "mVB9Bd": [
+    {
+      "type": 0,
+      "value": "Add handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    }
+  ],
   "mVkTZZ": [
     {
       "type": 0,
@@ -12503,6 +13067,12 @@
     {
       "type": 0,
       "value": "Er zijn geen hulpprogramma's ingesteld."
+    }
+  ],
+  "mgtFKh": [
+    {
+      "type": 0,
+      "value": "Create GitHub issue"
     }
   ],
   "mhKk7c": [
@@ -12867,6 +13437,12 @@
       "value": "Sign in with a different account"
     }
   ],
+  "oIm1Fb": [
+    {
+      "type": 0,
+      "value": "GitHub logo"
+    }
+  ],
   "oKJ0fm": [
     {
       "type": 0,
@@ -12907,6 +13483,12 @@
     {
       "type": 0,
       "value": "MCP-hulpprogramma's laden..."
+    }
+  ],
+  "oTxjU2": [
+    {
+      "type": 0,
+      "value": "Handoff subagents"
     }
   ],
   "oUWADl": [
@@ -12971,6 +13553,12 @@
     {
       "type": 0,
       "value": "Incidenten zoeken"
+    }
+  ],
+  "ooDMAp": [
+    {
+      "type": 0,
+      "value": "Personal access token (PAT) or API key"
     }
   ],
   "osuyeD": [
@@ -13291,6 +13879,16 @@
       "value": "Chatthreads laden"
     }
   ],
+  "pw1ueF": [
+    {
+      "type": 0,
+      "value": "Failed to create meta agent. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "pyXjlj": [
     {
       "type": 0,
@@ -13307,6 +13905,12 @@
     {
       "type": 0,
       "value": "Wordt uitgevoerd"
+    }
+  ],
+  "q3e4cf": [
+    {
+      "type": 0,
+      "value": "Bearer token"
     }
   ],
   "q4EmsW": [
@@ -13417,6 +14021,12 @@
       "value": "Selecteer een gekoppeld hulpprogramma om te bewerken"
     }
   ],
+  "qrs+1B": [
+    {
+      "type": 0,
+      "value": "Create meta agent"
+    }
+  ],
   "qs5hhk": [
     {
       "type": 0,
@@ -13495,6 +14105,12 @@
     {
       "type": 0,
       "value": "Hiermee wordt de verbinding met PagerDuty definitief verbroken. De agent kan geen tickets meer beheren. Weet je zeker dat je de verbinding wilt verbreken?"
+    }
+  ],
+  "r5UlDs": [
+    {
+      "type": 0,
+      "value": "Enter custom header value"
     }
   ],
   "r8XsCU": [
@@ -13653,6 +14269,12 @@
       "value": "Inzender voor API Management-services"
     }
   ],
+  "raexxM": [
+    {
+      "type": 0,
+      "value": "Submitted"
+    }
+  ],
   "rbrahO": [
     {
       "type": 0,
@@ -13785,6 +14407,12 @@
     {
       "type": 0,
       "value": " maken..."
+    }
+  ],
+  "ryAzxy": [
+    {
+      "type": 0,
+      "value": "Issue"
     }
   ],
   "ryPHA8": [
@@ -14389,6 +15017,12 @@
       "value": "Geen geplande taken gevonden"
     }
   ],
+  "trhBLG": [
+    {
+      "type": 0,
+      "value": "No insights available"
+    }
+  ],
   "ts7YvN": [
     {
       "type": 0,
@@ -14399,6 +15033,12 @@
     {
       "type": 0,
       "value": "Regio selecteren"
+    }
+  ],
+  "ttWUo6": [
+    {
+      "type": 0,
+      "value": "Click to view session analysis and insights"
     }
   ],
   "tthToS": [
@@ -14709,6 +15349,12 @@
       "value": "Hulpprogramma's geselecteerd voor incidentreactie"
     }
   ],
+  "urxxsP": [
+    {
+      "type": 0,
+      "value": "Agent Performance"
+    }
+  ],
   "us/IXr": [
     {
       "type": 0,
@@ -14755,6 +15401,12 @@
     {
       "type": 0,
       "value": "Alles samenvouwen"
+    }
+  ],
+  "v1LtqB": [
+    {
+      "type": 0,
+      "value": "Select authentication method"
     }
   ],
   "v3xWf6": [
@@ -14949,6 +15601,12 @@
       "value": "time"
     }
   ],
+  "vzH0q5": [
+    {
+      "type": 0,
+      "value": "Choose tools"
+    }
+  ],
   "w+XRP2": [
     {
       "type": 0,
@@ -15001,6 +15659,12 @@
     {
       "type": 0,
       "value": "Auteur, testen en evalueren - volledige werkstroom"
+    }
+  ],
+  "wBh+z3": [
+    {
+      "type": 0,
+      "value": "No additional comments provided"
     }
   ],
   "wEQDC6": [
@@ -15773,10 +16437,22 @@
       "value": "Alle"
     }
   ],
+  "zRv1ks": [
+    {
+      "type": 0,
+      "value": "What should happen?"
+    }
+  ],
   "zUNfOA": [
     {
       "type": 0,
       "value": "Watcher-lade openen"
+    }
+  ],
+  "zWkvNO": [
+    {
+      "type": 0,
+      "value": "Timeline"
     }
   ],
   "zZsxcQ": [
@@ -15835,20 +16511,6 @@
     {
       "type": 0,
       "value": "Overzicht van incidenten"
-    }
-  ],
-  "zr8jA6": [
-    {
-      "type": 0,
-      "value": "Hulpprogramma "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " verwijderen"
     }
   ],
   "zuQF37": [

@@ -225,6 +225,12 @@
       "value": "Select resource groups dialog"
     }
   ],
+  "3IKub9": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred"
+    }
+  ],
   "3cc4Ct": [
     {
       "type": 0,
@@ -307,6 +313,12 @@
     {
       "type": 0,
       "value": "List cluster admin credential action."
+    }
+  ],
+  "4l6vz1": [
+    {
+      "type": 0,
+      "value": "Copy"
     }
   ],
   "556JQK": [
@@ -811,6 +823,12 @@
     {
       "type": 0,
       "value": "Toggle to show only recommended resource groups"
+    }
+  ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
     }
   ],
   "KzMCPo": [
@@ -1419,10 +1437,22 @@
       "value": "Yes"
     }
   ],
+  "aCdAsI": [
+    {
+      "type": 0,
+      "value": "Copy to clipboard"
+    }
+  ],
   "aGL+Qo": [
     {
       "type": 0,
       "value": "Has access to Read and Test functions under LUIS."
+    }
+  ],
+  "aIRWQB": [
+    {
+      "type": 0,
+      "value": "Back to home"
     }
   ],
   "aLBTVj": [
@@ -1473,6 +1503,12 @@
     {
       "type": 0,
       "value": "You can choose a maximum of 100 resource groups that the agent will manage."
+    }
+  ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
     }
   ],
   "b43a5F": [
@@ -2009,6 +2045,12 @@
     {
       "type": 0,
       "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
+    }
+  ],
+  "p556q3": [
+    {
+      "type": 0,
+      "value": "Copied"
     }
   ],
   "p5T+zv": [

@@ -2,7 +2,7 @@
   "+/nU/s": [
     {
       "type": 0,
-      "value": "Gives you read access to management and content operations, but does not allow making changes."
+      "value": "Olvasási hozzáférést biztosít a felügyeleti és a tartalmi műveletekhez, de nem teszi lehetővé módosítások végrehajtását."
     }
   ],
   "+CwN9C": [
@@ -14,7 +14,7 @@
   "+Ov1f1": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have policies that will cause the deployment to fail."
+      "value": "Néhány kiválasztott erőforráscsoport olyan szabályzatokkal rendelkezik, amelyek az üzembe helyezés sikertelenségét okozzák."
     }
   ],
   "+TlNdm": [
@@ -26,25 +26,25 @@
   "+YDzOd": [
     {
       "type": 0,
-      "value": "Name must be between 2 and 32 characters"
+      "value": "A névnek 2–32 karakter hosszúnak kell lennie"
     }
   ],
   "+bJIWo": [
     {
       "type": 0,
-      "value": "Agent permissions level"
+      "value": "Ügynök jogosultsági szintje"
     }
   ],
   "+k5t/y": [
     {
       "type": 0,
-      "value": "Contributor"
+      "value": "Közreműködő"
     }
   ],
   "+l+XEu": [
     {
       "type": 0,
-      "value": "Can read workbooks."
+      "value": "Olvasási engedélye van a munkafüzetekhez."
     }
   ],
   "+uAdUZ": [
@@ -56,7 +56,7 @@
   "+zgzmq": [
     {
       "type": 0,
-      "value": "Cosmos DB Accounts"
+      "value": "Cosmos DB-fiókok"
     }
   ],
   "/6/sPX": [
@@ -68,43 +68,43 @@
   "/6Fckw": [
     {
       "type": 0,
-      "value": "Provisioning SRE Agent"
+      "value": "SRE-ügynök kiépítése folyamatban"
     }
   ],
   "/8MshI": [
     {
       "type": 0,
-      "value": "Manage SQL Managed Instances."
+      "value": "Felügyelt Azure SQL-példányok kezelése."
     }
   ],
   "/WrP/v": [
     {
       "type": 0,
-      "value": "Container Apps Operator"
+      "value": "Tárolóalkalmazások operátora"
     }
   ],
   "/dxZCE": [
     {
       "type": 0,
-      "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
+      "value": "Az ügynök autonóm módban működik. Az alábbi engedélyek szükségesek ahhoz, hogy az ügynök tudást építsen az Ön erőforrásairól. Az ügynök ezek közül néhány engedélyt arra használ, hogy az Ön kérései alapján önállóan végezzen írási műveleteket."
     }
   ],
   "/gCtdO": [
     {
       "type": 0,
-      "value": "Manage Custom Vision projects."
+      "value": "Custom Vision-projektek kezelése."
     }
   ],
   "/wY7pG": [
     {
       "type": 0,
-      "value": "PostgreSQL Servers"
+      "value": "PostgreSQL-kiszolgálók"
     }
   ],
   "/ytgXm": [
     {
       "type": 0,
-      "value": "Remove "
+      "value": "A(z) "
     },
     {
       "type": 1,
@@ -112,7 +112,7 @@
     },
     {
       "type": 0,
-      "value": " filter"
+      "value": " szűrő eltávolítása"
     }
   ],
   "/zFP1/": [
@@ -124,7 +124,7 @@
   "01lT1B": [
     {
       "type": 0,
-      "value": "Lets you read, enable and disable logic app."
+      "value": "Lehetővé teszi logikai alkalmazások olvasását, engedélyezését és letiltását."
     }
   ],
   "01sZoP": [
@@ -134,7 +134,7 @@
     },
     {
       "type": 0,
-      "value": " of "
+      "value": "/"
     },
     {
       "type": 1,
@@ -144,7 +144,7 @@
   "0Dhe75": [
     {
       "type": 0,
-      "value": "Manage SQL servers and their security policies."
+      "value": "SQL-kiszolgálók és a biztonsági szabályzataik kezelése."
     }
   ],
   "0oLj/t": [
@@ -156,7 +156,7 @@
   "0te2Ra": [
     {
       "type": 0,
-      "value": "Manage Azure Data Factory instances."
+      "value": "Azure Data Factory-példányok kezelése."
     }
   ],
   "1Lx9q5": [
@@ -168,49 +168,49 @@
   "1YPTmM": [
     {
       "type": 0,
-      "value": "Web Plan Contributor"
+      "value": "Webes tarifacsomagok közreműködője"
     }
   ],
   "1ZgrhW": [
     {
       "type": 0,
-      "value": "Role"
+      "value": "Szerepkör"
     }
   ],
   "1myzs4": [
     {
       "type": 0,
-      "value": "PostgreSQL Flexible Servers"
+      "value": "Rugalmas PostgreSQL-kiszolgálók"
     }
   ],
   "1t2BaF": [
     {
       "type": 0,
-      "value": "Geneva actions configuration"
+      "value": "Geneva-műveletek konfigurálása"
     }
   ],
   "2/2yg+": [
     {
       "type": 0,
-      "value": "Add"
+      "value": "Hozzáadás"
     }
   ],
   "2GuZPR": [
     {
       "type": 0,
-      "value": "Portal feedback"
+      "value": "Portállal kapcsolatos visszajelzés"
     }
   ],
   "2LQx4N": [
     {
       "type": 0,
-      "value": "Manage App Configuration stores."
+      "value": "App Configuration tárolók kezelése."
     }
   ],
   "2PnnDB": [
     {
       "type": 0,
-      "value": "Manage IoT Hub device registry."
+      "value": "IoT Hub eszközregisztrációs adatbázis kezelése."
     }
   ],
   "2do8JC": [
@@ -222,7 +222,13 @@
   "2xRon3": [
     {
       "type": 0,
-      "value": "Select resource groups dialog"
+      "value": "Válasszon erőforráscsoportokat párbeszédpanel"
+    }
+  ],
+  "3IKub9": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred"
     }
   ],
   "3cc4Ct": [
@@ -234,37 +240,37 @@
   "3nhWFW": [
     {
       "type": 0,
-      "value": "Reader"
+      "value": "Olvasó"
     }
   ],
   "3t/IhV": [
     {
       "type": 0,
-      "value": "Can view cost data and configuration (e.g. budgets, exports)."
+      "value": "Megtekintheti a költségadatokat és a konfigurációt (például költségvetés, exportok)."
     }
   ],
   "3tJfza": [
     {
       "type": 0,
-      "value": "The agent has permissions to take approved actions on resources and resource types detected in its assigned resource groups."
+      "value": "Az ügynök jogosultsággal rendelkezik jóváhagyott műveletek végrehajtására a hozzárendelt erőforráscsoportjaiban észlelt erőforrásokon és erőforrástípusokon."
     }
   ],
   "3zLsNR": [
     {
       "type": 0,
-      "value": "Manage websites, but not web plans. Does not allow you to assign roles."
+      "value": "Webhelyeket kezelhet, de a webes csomagokat nem. Nem engedélyezi szerepkörök hozzárendelését."
     }
   ],
   "43mD/Y": [
     {
       "type": 0,
-      "value": "Storage Blob Containers"
+      "value": "Storage Blob-tárolók"
     }
   ],
   "450Fty": [
     {
       "type": 0,
-      "value": "None"
+      "value": "Nincs"
     }
   ],
   "456ixe": [
@@ -276,19 +282,19 @@
   "47FYwb": [
     {
       "type": 0,
-      "value": "Cancel"
+      "value": "Mégse"
     }
   ],
   "4MeTpL": [
     {
       "type": 0,
-      "value": "Workbook Contributor"
+      "value": "Munkafüzet-közreműködő"
     }
   ],
   "4TnjxL": [
     {
       "type": 0,
-      "value": "API Management Service Reader Role"
+      "value": "Az API Management szolgáltatás olvasói szerepköre"
     }
   ],
   "4USxEK": [
@@ -300,13 +306,13 @@
   "4ii5zj": [
     {
       "type": 0,
-      "value": "Allows for read access to Azure Storage blob containers and data."
+      "value": "Azure Storage-blobtárolók és -adatok olvasási hozzáférésének engedélyezése."
     }
   ],
   "4kCXiz": [
     {
       "type": 0,
-      "value": "List cluster admin credential action."
+      "value": "Fürtfelügyelői hitelesítő művelet listázása."
     }
   ],
   "556JQK": [
@@ -318,43 +324,43 @@
   "5M+hLZ": [
     {
       "type": 0,
-      "value": "User permissions"
+      "value": "Felhasználói engedélyek"
     }
   ],
   "5Sc5rT": [
     {
       "type": 0,
-      "value": "IoT Hub Twin Contributor"
+      "value": "IoT Hub ikerpéldány-közreműködő"
     }
   ],
   "5UUKxL": [
     {
       "type": 0,
-      "value": "Storage Accounts"
+      "value": "Tárfiókok"
     }
   ],
   "5UfRjw": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Contributor"
+      "value": "Device Provisioning Service – adat közreműködője"
     }
   ],
   "5V+Txp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster User Role"
+      "value": "Azure Kubernetes Service – fürtfelhasználó szerepkör"
     }
   ],
   "5WK7jL": [
     {
       "type": 0,
-      "value": "Create new"
+      "value": "Új létrehozása"
     }
   ],
   "5j5HnL": [
     {
       "type": 0,
-      "value": "Editor to filter the results by column value. "
+      "value": "Szerkesztő az eredmények oszlopérték szerinti szűréséhez. "
     },
     {
       "type": 1,
@@ -376,13 +382,13 @@
   "5wGcN7": [
     {
       "type": 0,
-      "value": "Cost Management Reader"
+      "value": "Cost Management-olvasó"
     }
   ],
   "64zSh3": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Writer"
+      "value": "Cognitive Services LUIS-író"
     }
   ],
   "69g7If": [
@@ -394,31 +400,39 @@
   "6B5Jtu": [
     {
       "type": 0,
-      "value": "This field is required."
+      "value": "A mező kitöltése kötelező."
     }
   ],
   "6YXj/s": [
     {
       "type": 0,
-      "value": "Contribute to Speech service resources."
+      "value": "Hozzájárulás a Beszédfelismerési szolgáltatás erőforrásaihoz."
     }
   ],
   "6zUWZ/": [
     {
       "type": 0,
-      "value": "Read all monitoring data and edit monitoring settings."
+      "value": "Olvashatja az összes figyelési adatot, és szerkesztheti a figyelési beállításokat."
     }
   ],
   "7+b0J0": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Contributor"
+      "value": "Cognitive Services – Custom Vision-közreműködő"
     }
   ],
   "75IWbW": [
     {
       "type": 0,
-      "value": "Deployment to this resource group will be blocked by policy: {field} not allowed. Policy Assignment ID: "
+      "value": "Az üzembe helyezést ebben az erőforráscsoportban a következő szabályzat letiltja: A(z) "
+    },
+    {
+      "type": 1,
+      "value": "field"
+    },
+    {
+      "type": 0,
+      "value": " nem engedélyezett. Szabályzat-hozzárendelés azonosítója: "
     },
     {
       "type": 1,
@@ -428,19 +442,19 @@
   "7N87nD": [
     {
       "type": 0,
-      "value": "Manage Device Provisioning Service data."
+      "value": "Eszközregisztrációs szolgáltatás adatainak kezelése."
     }
   ],
   "87v+WY": [
     {
       "type": 0,
-      "value": "Full access to Azure Digital Twins data."
+      "value": "Teljes hozzáférés az Azure Digital Twins adataihoz."
     }
   ],
   "8NHZQV": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Reader"
+      "value": "Cognitive Services-nyelvolvasó"
     }
   ],
   "8OCpdQ": [
@@ -478,13 +492,13 @@
   "8aHHLj": [
     {
       "type": 0,
-      "value": "Read-only access to service and APIs."
+      "value": "Írásvédett hozzáférés a szolgáltatáshoz és az API-khoz."
     }
   ],
   "8nBFW4": [
     {
       "type": 0,
-      "value": "Redis Cache Contributor"
+      "value": "Redis gyorsítótárak közreműködője"
     }
   ],
   "8yyU6n": [
@@ -496,13 +510,13 @@
   "9+Ddtu": [
     {
       "type": 0,
-      "value": "Next"
+      "value": "Következő"
     }
   ],
   "94Fg25": [
     {
       "type": 0,
-      "value": "Select all"
+      "value": "Az összes kijelölése"
     }
   ],
   "9M3sYh": [
@@ -514,37 +528,37 @@
   "ABo5XY": [
     {
       "type": 0,
-      "value": "DocumentDB Account Contributor"
+      "value": "DocumentDB-fiókközreműködő"
     }
   ],
   "ASEuj4": [
     {
       "type": 0,
-      "value": "Denied by policy"
+      "value": "Szabályzat által megtagadva"
     }
   ],
   "AVMCsG": [
     {
       "type": 0,
-      "value": "Machine Learning Workspaces"
+      "value": "Machine Learning-munkaterületek"
     }
   ],
   "Ab4TgE": [
     {
       "type": 0,
-      "value": "Agent permissions and roles table"
+      "value": "Ügynökengedélyek és szerepkörök táblázata"
     }
   ],
   "AeWmvh": [
     {
       "type": 0,
-      "value": "Lets you manage virtual machines, but not access to them, and not the virtual network or storage account they are connected to."
+      "value": "Lehetővé teszi a virtuális gépek kezelését, az azokhoz való hozzáférés nélkül, és nem teszi lehetővé a virtuális gépekhez hozzárendelt virtuális hálózatok és tárfiókok elérését sem."
     }
   ],
   "AhdXRl": [
     {
       "type": 0,
-      "value": "Max agent count"
+      "value": "Ügynökök maximális száma"
     }
   ],
   "Avsnjl": [
@@ -556,55 +570,55 @@
   "B6aNdQ": [
     {
       "type": 0,
-      "value": "The name must begin and end with a lowercase letter, and contain only lowercase letters, numbers, and hyphens. It cannot contain consecutive hyphens."
+      "value": "A névnek kisbetűvel kell kezdődnie és végződnie, és csak kisbetűket, számokat és kötőjeleket tartalmazhat. Nem tartalmazhat egymást követő kötőjeleket."
     }
   ],
   "BKSv0l": [
     {
       "type": 0,
-      "value": "Azure Center for SAP solutions reader"
+      "value": "Az Azure Center for SAP solutions olvasója"
     }
   ],
   "Bcx/Gz": [
     {
       "type": 0,
-      "value": "List cluster user credential action."
+      "value": "Fürtfelhasználói hitelesítő művelet listázása."
     }
   ],
   "C0ZRdE": [
     {
       "type": 0,
-      "value": "The agent has read-only permissions on the resource groups it manages. It takes the user's permissions temporarily for approved actions."
+      "value": "Az ügynök csak olvasási jogosultságokkal rendelkezik az általa kezelt erőforráscsoportokon. A jóváhagyott műveletekhez ideiglenesen a felhasználó jogosultságait veszi át."
     }
   ],
   "C3PGqj": [
     {
       "type": 0,
-      "value": "Logic App Contributor"
+      "value": "A logikai alkalmazás közreműködője"
     }
   ],
   "C8z3QQ": [
     {
       "type": 0,
-      "value": "Data Factories"
+      "value": "Adat-előállítók"
     }
   ],
   "CFJ1OD": [
     {
       "type": 0,
-      "value": "Read-only role for Digital Twins data-plane properties."
+      "value": "Csak olvasható szerepkör a Digital Twins adatsík tulajdonságaihoz."
     }
   ],
   "CMaDRa": [
     {
       "type": 0,
-      "value": "Write access to Language service resources."
+      "value": "Írási hozzáférés a nyelvi szolgáltatás erőforrásaihoz."
     }
   ],
   "CfGC/2": [
     {
       "type": 0,
-      "value": "Select resource groups to monitor"
+      "value": "Figyelni kívánt erőforráscsoportok kiválasztása"
     }
   ],
   "Ch3IdZ": [
@@ -616,7 +630,7 @@
   "CrmeG3": [
     {
       "type": 0,
-      "value": "This resource group contains resources supported by SRE Agent"
+      "value": "Ez az erőforráscsoport az SRE-ügynök által támogatott erőforrásokat tartalmaz"
     }
   ],
   "D3idYv": [
@@ -628,7 +642,7 @@
   "DdD2hE": [
     {
       "type": 0,
-      "value": "Filter items..."
+      "value": "Elemek szűrése..."
     }
   ],
   "DdnNXo": [
@@ -640,31 +654,31 @@
   "Dff3ms": [
     {
       "type": 0,
-      "value": "Cognitive Services Contributor"
+      "value": "Cognitive Services-közreműködő"
     }
   ],
   "Dx3Xj3": [
     {
       "type": 0,
-      "value": "Let's you read and test a KB only."
+      "value": "Csak a tudásbázisok olvasását és tesztelését teszi lehetővé."
     }
   ],
   "ENnkRe": [
     {
       "type": 0,
-      "value": "Grants permission for read operations for App Configuration resources."
+      "value": "Engedélyt ad olvasási műveletekhez az App Configuration-erőforrások esetén."
     }
   ],
   "EWw/tK": [
     {
       "type": 0,
-      "value": "Apply"
+      "value": "Alkalmazás"
     }
   ],
   "EdEthU": [
     {
       "type": 0,
-      "value": "API Management Workspace Contributor"
+      "value": "API Management-munkaterület közreműködője"
     }
   ],
   "Erci0g": [
@@ -676,19 +690,19 @@
   "FqRdvb": [
     {
       "type": 0,
-      "value": "AKS Clusters"
+      "value": "AKS-fürtök"
     }
   ],
   "G1xeUt": [
     {
       "type": 0,
-      "value": "Approval Required"
+      "value": "Jóváhagyás szükséges"
     }
   ],
   "G7yB8N": [
     {
       "type": 0,
-      "value": "Registration failed"
+      "value": "A regisztráció nem sikerült"
     }
   ],
   "GBnvl1": [
@@ -714,19 +728,19 @@
   "GWson9": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have deny assignments that prevent deployments."
+      "value": "Néhány kiválasztott erőforráscsoport olyan megtagadási beállításokkal rendelkezik, amelyek megakadályozzák az üzembe helyezést."
     }
   ],
   "GmzN3r": [
     {
       "type": 0,
-      "value": "We were unable to register the Microsoft.App RP due to a lack of permissions which may cause your deployment to fail. Ensure that you have Contributor permissions to this subscription or have your subscription administrator register the RP for you."
+      "value": "Nem sikerült regisztrálni a Microsoft.App RP-t a jogosultságok hiánya miatt, ami az üzembe helyezés sikertelenségét okozhatja. Győződjön meg róla, hogy rendelkezik Közreműködő jogosultsággal az előfizetésen, vagy kérje az előfizetés rendszergazdáját, hogy regisztrálja az RP-t."
     }
   ],
   "GoSIa4": [
     {
       "type": 0,
-      "value": "Minimal permission to view Cognitive Services usages."
+      "value": "Minimális engedély a Cognitive Services használati adatok megtekintéséhez."
     }
   ],
   "H/i1A+": [
@@ -738,7 +752,7 @@
   "H3ooTI": [
     {
       "type": 0,
-      "value": "Azure Service Bus Data Owner"
+      "value": "Azure Service Bus-adattulajdonos"
     }
   ],
   "HAlOn1": [
@@ -750,13 +764,13 @@
   "HCDcpW": [
     {
       "type": 0,
-      "value": "Workbooks"
+      "value": "Munkafüzetek"
     }
   ],
   "HQhDfV": [
     {
       "type": 0,
-      "value": "Cognitive Services OpenAI Contributor"
+      "value": "Cognitive Services OpenAI-közreműködő"
     }
   ],
   "He4/qi": [
@@ -774,25 +788,25 @@
   "IEFW3Y": [
     {
       "type": 0,
-      "value": "App Configuration Contributor"
+      "value": "App Configuration-közreműködő"
     }
   ],
   "IQaKwH": [
     {
       "type": 0,
-      "value": "Lets you read Cognitive Services data."
+      "value": "Cognitive Services-kulcsok olvasását teszi lehetővé."
     }
   ],
   "If+Q1B": [
     {
       "type": 0,
-      "value": "A resource group with this name already exists in the selected subscription."
+      "value": "A kiválasztott előfizetésben már van egy ugyanilyen nevű erőforráscsoport."
     }
   ],
   "KAYpG9": [
     {
       "type": 0,
-      "value": "Allows for full read access to IoT Hub data-plane properties."
+      "value": "Teljes olvasási hozzáférést biztosít az IoT Hub adatsík tulajdonságaihoz."
     }
   ],
   "KJGQ1f": [
@@ -810,19 +824,19 @@
   "Kg6ebk": [
     {
       "type": 0,
-      "value": "Toggle to show only recommended resource groups"
+      "value": "Váltás csak az ajánlott erőforráscsoportok megjelenítéséhez"
     }
   ],
   "KzMCPo": [
     {
       "type": 0,
-      "value": "Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries."
+      "value": "Teljes hozzáférést biztosít az összes erőforrás kezeléséhez, de nem teszi lehetővé szerepkörök hozzárendelését az Azure RBAC-ben, a hozzárendelések kezelését az Azure Blueprintsben, illetve képtárak megosztását."
     }
   ],
   "L31yBb": [
     {
       "type": 0,
-      "value": "Function Apps"
+      "value": "Függvényalkalmazások"
     }
   ],
   "LOghU6": [
@@ -834,19 +848,19 @@
   "LSaaxU": [
     {
       "type": 0,
-      "value": "View all resources, but does not allow you to make any changes."
+      "value": "Megtekintheti az összes erőforrást, de nem végezhet módosításokat."
     }
   ],
   "LkSPVW": [
     {
       "type": 0,
-      "value": "Select an existing resource group"
+      "value": "Meglévő erőforráscsoport kiválasztása"
     }
   ],
   "LrnSHG": [
     {
       "type": 0,
-      "value": "Select a subscription"
+      "value": "Válasszon ki egy előfizetést"
     }
   ],
   "LupnQU": [
@@ -884,13 +898,13 @@
   "Mnvpbx": [
     {
       "type": 0,
-      "value": "Full management of Container Apps, including creation, deletion, and updates."
+      "value": "A Container Apps teljes körű kezelése, beleértve a létrehozást, törlést és frissítéseket."
     }
   ],
   "NAAdaF": [
     {
       "type": 0,
-      "value": "This role provides read access to all capabilities of Azure Center for SAP solutions."
+      "value": "Ez a szerepkör olvasási hozzáférést biztosít az Azure Center for SAP solutions összes funkciójához."
     }
   ],
   "NAidKb": [
@@ -902,7 +916,7 @@
   "NCTGGm": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "A(z) "
     },
     {
       "type": 1,
@@ -910,37 +924,37 @@
     },
     {
       "type": 0,
-      "value": " creation validation succeeded"
+      "value": " SRE-ügynök létrehozásának érvényesítése sikerült"
     }
   ],
   "ND2EUR": [
     {
       "type": 0,
-      "value": "Storage Blob Data Contributor"
+      "value": "Storage-blobadatok közreműködője"
     }
   ],
   "NcxGiD": [
     {
       "type": 0,
-      "value": "HDInsight on AKS Cluster Admin"
+      "value": "HDInsight on AKS Cluster-rendszergazda"
     }
   ],
   "Ngsqgf": [
     {
       "type": 0,
-      "value": "Resource groups list"
+      "value": "Erőforráscsoportok listája"
     }
   ],
   "Nrc9ba": [
     {
       "type": 0,
-      "value": "Thank you for your feedback!"
+      "value": "Köszönjük visszajelzését!"
     }
   ],
   "OJ2u8k": [
     {
       "type": 0,
-      "value": "Enter name"
+      "value": "Név megadása"
     }
   ],
   "ORGv1Q": [
@@ -952,7 +966,7 @@
   "OTGHHm": [
     {
       "type": 0,
-      "value": "The resources you picked have permissions for these roles."
+      "value": "Az Ön által kiválasztott erőforrások rendelkeznek engedélyekkel ezekhez a szerepkörökhöz."
     }
   ],
   "OjYIuI": [
@@ -964,13 +978,13 @@
   "Oom2N7": [
     {
       "type": 0,
-      "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
+      "value": "Megtekintheti az összes figyelési adatot, és kereshet azokban, valamint megtekintheti a figyelési beállításokat, beleértve az összes Azure-erőforrás Azure-beli diagnosztikájának konfigurációját is."
     }
   ],
   "OsTw6c": [
     {
       "type": 0,
-      "value": "Validating SRE Agent creation"
+      "value": "SRE-ügynök létrehozásának érvényesítése folyamatban"
     }
   ],
   "P/DTRU": [
@@ -982,67 +996,67 @@
   "P3qxV2": [
     {
       "type": 0,
-      "value": "Search Service Contributor"
+      "value": "Search szolgáltatás közreműködője"
     }
   ],
   "P9odAr": [
     {
       "type": 0,
-      "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
+      "value": "Az ügynök írásvédett módban van. Az alábbi engedélyek szükségesek ahhoz, hogy az ügynök tudást építsen az Ön erőforrásairól. Az adott szolgáltatások közreműködői szerepköreit nem használjuk írási műveletekhez."
     }
   ],
   "PXg8+x": [
     {
       "type": 0,
-      "value": "Virtual Machine Contributor"
+      "value": "Virtuális gépek közreműködője"
     }
   ],
   "Phji5P": [
     {
       "type": 0,
-      "value": "Edit Healthcare APIs agent configurations."
+      "value": "Egészségügyi API-k ügynökkonfigurációinak szerkesztése."
     }
   ],
   "PrFU82": [
     {
       "type": 0,
-      "value": "Can read all monitoring data and update monitoring settings."
+      "value": "Olvashatja az összes figyelési adatot, és frissítheti a figyelési beállításokat."
     }
   ],
   "Pwen/L": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Reader"
+      "value": "Cognitive Services LUIS olvasó"
     }
   ],
   "Q3p3sz": [
     {
       "type": 0,
-      "value": "Storage Blob Data Reader"
+      "value": "Storage-blobadatok olvasója"
     }
   ],
   "Q8Qw5B": [
     {
       "type": 0,
-      "value": "Description"
+      "value": "Leírás"
     }
   ],
   "QIY3dQ": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Owner"
+      "value": "Azure Digital Twins – adattulajdonos"
     }
   ],
   "Qly58H": [
     {
       "type": 0,
-      "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+      "value": "Az ügynök szerepköreinek és engedélyeinek megtekintéséhez válassza ki az ügynök által kezelendő erőforráscsoportokat."
     }
   ],
   "QwVQbw": [
     {
       "type": 0,
-      "value": "Failed to register Microsoft.App RP for SRE Agent "
+      "value": "Nem sikerült regisztrálni a Microsoft.App RP-t a(z) "
     },
     {
       "type": 1,
@@ -1050,13 +1064,13 @@
     },
     {
       "type": 0,
-      "value": " creation. Please ensure you have Contributor permissions on the subscription or contact your subscription administrator to register the RP for you."
+      "value": " SRE-ügynök létrehozásához. Győződjön meg róla, hogy rendelkezik Közreműködő jogosultsággal az előfizetésben, vagy forduljon az előfizetés rendszergazdájához az RP regisztrálásához."
     }
   ],
   "R+J5ox": [
     {
       "type": 0,
-      "value": "Review"
+      "value": "Áttekintés"
     }
   ],
   "R/6nsx": [
@@ -1068,7 +1082,7 @@
   "R1RX2a": [
     {
       "type": 0,
-      "value": "Full access to IoT Hub data."
+      "value": "Teljes hozzáférés az IoT Hub adataihoz."
     }
   ],
   "RDwKyy": [
@@ -1080,7 +1094,7 @@
   "RStTJp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster Admin"
+      "value": "Azure Kubernetes Service Cluster rendszergazdája"
     }
   ],
   "RVf7gC": [
@@ -1092,7 +1106,7 @@
   "RrsyUh": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service RBAC Reader"
+      "value": "Azure Kubernetes Service – RBAC-olvasó"
     }
   ],
   "S8snIe": [
@@ -1104,7 +1118,7 @@
   "SCjiXP": [
     {
       "type": 0,
-      "value": "Cognitive Services Data Reader"
+      "value": "Cognitive Services Adatolvasó"
     }
   ],
   "SQJto2": [
@@ -1116,31 +1130,31 @@
   "Sr4IbA": [
     {
       "type": 0,
-      "value": "Monitoring Reader"
+      "value": "Figyelési olvasó"
     }
   ],
   "SuVToZ": [
     {
       "type": 0,
-      "value": "SQL Managed Instance Contributor"
+      "value": "SQL Managed Instance-közreműködő"
     }
   ],
   "T5+AEf": [
     {
       "type": 0,
-      "value": "Logic App Operator"
+      "value": "Logikai alkalmazás operátora"
     }
   ],
   "TAm7bB": [
     {
       "type": 0,
-      "value": "Monitoring Contributor"
+      "value": "Figyelési közreműködő"
     }
   ],
   "TB6bkn": [
     {
       "type": 0,
-      "value": "Get more info"
+      "value": "További információ"
     }
   ],
   "TDaF6J": [
@@ -1152,7 +1166,7 @@
   "TDoBlx": [
     {
       "type": 0,
-      "value": "Privileged"
+      "value": "Kiemelt jogosultsággal rendelkező"
     }
   ],
   "TleXgd": [
@@ -1170,7 +1184,7 @@
   "U5+MBC": [
     {
       "type": 0,
-      "value": "Client ID"
+      "value": "Ügyfélazonosító"
     }
   ],
   "UQUIP7": [
@@ -1188,13 +1202,13 @@
   "UZS12+": [
     {
       "type": 0,
-      "value": "Has read-only access to entities in the workspace. This role should be assigned on the workspace scope."
+      "value": "Írásvédett hozzáférése van a munkaterületen lévő entitásokhoz. Ezt a szerepkört a munkaterület hatókörében kell hozzárendelni."
     }
   ],
   "UoL653": [
     {
       "type": 0,
-      "value": "Show only recommended"
+      "value": "Csak az ajánlottak megjelenítése"
     }
   ],
   "UrGI9K": [
@@ -1206,7 +1220,7 @@
   "UuzObe": [
     {
       "type": 0,
-      "value": "Failed to setup Managed Identity with the error: "
+      "value": "Nem sikerült beállítani a felügyelt identitást. Hiba: "
     },
     {
       "type": 1,
@@ -1216,25 +1230,25 @@
   "V/rQci": [
     {
       "type": 0,
-      "value": "Managed resource groups table"
+      "value": "Felügyelt erőforráscsoportok táblázata"
     }
   ],
   "VlBNux": [
     {
       "type": 0,
-      "value": "Application Insights Component Contributor"
+      "value": "Application Insights-összetevők közreműködője"
     }
   ],
   "VssvTa": [
     {
       "type": 0,
-      "value": "Invalid template or unable to fetch the template."
+      "value": "Érvénytelen sablon, vagy nem sikerült beolvasni a sablont."
     }
   ],
   "VzzYJk": [
     {
       "type": 0,
-      "value": "Create"
+      "value": "Létrehozás"
     }
   ],
   "W/V6+Y": [
@@ -1252,7 +1266,7 @@
   "WE+M5j": [
     {
       "type": 0,
-      "value": "Failed to load SRE Agent locations. Please try again later."
+      "value": "Nem sikerült betölteni az SRE-ügynök helyeit. Próbálkozzon újra később."
     }
   ],
   "WFo96A": [
@@ -1264,13 +1278,13 @@
   "WLw9E7": [
     {
       "type": 0,
-      "value": "PostgreSQL Flexible Server Long Term Retention Backup Role"
+      "value": "A PostgreSQL rugalmas kiszolgáló hosszú távú megőrzési biztonsági mentéseinek szerepköre"
     }
   ],
   "WODKUB": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "A(z) "
     },
     {
       "type": 1,
@@ -1278,79 +1292,79 @@
     },
     {
       "type": 0,
-      "value": " creation succeeded"
+      "value": " SRE-ügynök létrehozása sikerült"
     }
   ],
   "Wc5b/J": [
     {
       "type": 0,
-      "value": "AzureML Compute Operator"
+      "value": "AzureML Compute operátor"
     }
   ],
   "Wf6bDe": [
     {
       "type": 0,
-      "value": "Agent details"
+      "value": "Ügynök adatai"
     }
   ],
   "WlHVBb": [
     {
       "type": 0,
-      "value": "Log Analytics Workspaces"
+      "value": "Log Analytics-munkaterületek"
     }
   ],
   "Wtf3vL": [
     {
       "type": 0,
-      "value": "Data Factory Contributor"
+      "value": "Data Factory közreműködője"
     }
   ],
   "WygVDv": [
     {
       "type": 0,
-      "value": "Administer HDInsight cluster pools."
+      "value": "HDInsight-fürtkészletek felügyelete."
     }
   ],
   "X0e0bZ": [
     {
       "type": 0,
-      "value": "SQL Managed Instances"
+      "value": "Felügyelt SQL-példányok"
     }
   ],
   "XJ+Lww": [
     {
       "type": 0,
-      "value": "Lets you read and modify HDInsight cluster configurations."
+      "value": "Lehetővé teszi a HDInsight-fürtök konfigurációjának olvasását és módosítását."
     }
   ],
   "XYSJsS": [
     {
       "type": 0,
-      "value": "API Management Workspace Reader"
+      "value": "API Management-munkaterület olvasója"
     }
   ],
   "Xh85Ml": [
     {
       "type": 0,
-      "value": "Current agent count"
+      "value": "Ügynökök aktuális száma"
     }
   ],
   "XtnlO8": [
     {
       "type": 0,
-      "value": "Manage long-term retention backups for PostgreSQL Flexible Server."
+      "value": "A PostgreSQL rugalmas kiszolgáló hosszú távú megőrzési biztonsági mentéseinek kezelése."
     }
   ],
   "Y2QRpS": [
     {
       "type": 0,
-      "value": "equals"
+      "value": "egyenlő a következővel"
     }
   ],
   "YYWhEp": [
     {
       "type": 0,
-      "value": "Failed to create the SRE agent "
+      "value": "Nem sikerült létrehozni a(z) "
     },
     {
       "type": 1,
@@ -1358,7 +1372,7 @@
     },
     {
       "type": 0,
-      "value": " with the error: "
+      "value": " SRE-ügynököt. Hiba: "
     },
     {
       "type": 1,
@@ -1368,61 +1382,67 @@
   "YYx7ap": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have a read only lock on the resource group."
+      "value": "Néhány kiválasztott erőforráscsoport írásvédett zárolással rendelkezik az erőforráscsoporton."
     }
   ],
   "YZIFAO": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service RBAC Cluster Admin"
+      "value": "Azure Kubernetes Service – RBAC-fürtrendszergazda"
     }
   ],
   "Yk6Co7": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Reader"
+      "value": "Cognitive Services – QnA Maker-olvasó"
     }
   ],
   "Yp7NCi": [
     {
       "type": 0,
-      "value": "Azure Center for SAP solutions administrator"
+      "value": "Azure Center for SAP solutions-rendszergazda"
     }
   ],
   "Z2WgoK": [
     {
       "type": 0,
-      "value": "Authentication mode"
+      "value": "Hitelesítési mód"
     }
   ],
   "Z7Aj91": [
     {
       "type": 0,
-      "value": "Manage Azure Monitor workbooks."
+      "value": "Azure Monitor-munkafüzetek kezelése."
     }
   ],
   "ZNMCbm": [
     {
       "type": 0,
-      "value": "Manage Logic Apps."
+      "value": "A Logic Apps kezelése."
     }
   ],
   "ZsLOg3": [
     {
       "type": 0,
-      "value": "Manage Azure OpenAI resources."
+      "value": "Azure OpenAI-erőforrások kezelése."
     }
   ],
   "a5msuh": [
     {
       "type": 0,
-      "value": "Yes"
+      "value": "Igen"
     }
   ],
   "aGL+Qo": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under LUIS."
+      "value": "Eléréssel rendelkezik a LUIS olvasási és tesztelési funkcióihoz."
+    }
+  ],
+  "aIRWQB": [
+    {
+      "type": 0,
+      "value": "Back to home"
     }
   ],
   "aLBTVj": [
@@ -1460,31 +1480,31 @@
   "aqNZbD": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Writer"
+      "value": "Cognitive Services-nyelvíró"
     }
   ],
   "arLfuy": [
     {
       "type": 0,
-      "value": "Chat with agent"
+      "value": "Csevegés ügynökkel"
     }
   ],
   "axbDHG": [
     {
       "type": 0,
-      "value": "You can choose a maximum of 100 resource groups that the agent will manage."
+      "value": "Legfeljebb 100 erőforráscsoportot választhat ki, amelyeket az ügynök kezelni fog."
     }
   ],
   "b43a5F": [
     {
       "type": 0,
-      "value": "SAP Virtual Instances"
+      "value": "Virtuális SAP-példányok"
     }
   ],
   "bN0x+w": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Reader"
+      "value": "Device Provisioning Service – adatolvasó"
     }
   ],
   "bPyOFk": [
@@ -1496,7 +1516,7 @@
   "bXkiU5": [
     {
       "type": 0,
-      "value": "SQL Databases"
+      "value": "SQL-adatbázisok"
     }
   ],
   "bxv59V": [
@@ -1508,31 +1528,31 @@
   "c1EiBR": [
     {
       "type": 0,
-      "value": "Cognitive Services Usages Reader"
+      "value": "Cognitive Services használati olvasó"
     }
   ],
   "cRTR/A": [
     {
       "type": 0,
-      "value": "Write access to LUIS applications."
+      "value": "Írási hozzáférés a LUIS-alkalmazásokhoz."
     }
   ],
   "cTzjJg": [
     {
       "type": 0,
-      "value": "Storage Account Contributor"
+      "value": "Tárfiók-közreműködő"
     }
   ],
   "ceCESY": [
     {
       "type": 0,
-      "value": "An agent with this name already exists in the selected resource group."
+      "value": "Már létezik ilyen nevű ügynök a kiválasztott erőforráscsoportban."
     }
   ],
   "ciB+oy": [
     {
       "type": 0,
-      "value": "Operate Azure Machine Learning compute resources."
+      "value": "Azure Machine Learning számítási erőforrások üzemeltetése."
     }
   ],
   "cmUVb9": [
@@ -1544,13 +1564,13 @@
   "ctcA0c": [
     {
       "type": 0,
-      "value": "Agent name"
+      "value": "Ügynök neve"
     }
   ],
   "cyR7Kh": [
     {
       "type": 0,
-      "value": "Back"
+      "value": "Vissza"
     }
   ],
   "czVHN2": [
@@ -1562,13 +1582,13 @@
   "d2GmfJ": [
     {
       "type": 0,
-      "value": "Manage API Management workspaces."
+      "value": "API Management-munkaterületek kezelése."
     }
   ],
   "d8dECB": [
     {
       "type": 0,
-      "value": "IoT Hub Data Reader"
+      "value": "IoT Hub adatolvasó"
     }
   ],
   "dDk23i": [
@@ -1578,49 +1598,49 @@
     },
     {
       "type": 0,
-      "value": " options"
+      "value": " beállításai"
     }
   ],
   "dHVUaP": [
     {
       "type": 0,
-      "value": "Positive"
+      "value": "Pozitív"
     }
   ],
   "dKhdkO": [
     {
       "type": 0,
-      "value": "Select up to 100 resource groups to monitor"
+      "value": "Válasszon ki legfeljebb 100 erőforráscsoportot a figyeléshez"
     }
   ],
   "dQ5/dh": [
     {
       "type": 0,
-      "value": "Allows for full read access to Device Provisioning Service data-plane properties."
+      "value": "Teljes olvasási hozzáférést biztosít a Device Provisioning Service adatsík-tulajdonságaihoz."
     }
   ],
   "dR8VUW": [
     {
       "type": 0,
-      "value": "Manage API Management services."
+      "value": "Az API Management Services kezelése."
     }
   ],
   "e0a3XV": [
     {
       "type": 0,
-      "value": "Log Analytics Contributor"
+      "value": "Log Analytics-közreműködő"
     }
   ],
   "e3itcX": [
     {
       "type": 0,
-      "value": "Device Update Administrator"
+      "value": "Eszközfrissítési rendszergazda"
     }
   ],
   "eBvTo6": [
     {
       "type": 0,
-      "value": "Read-only actions in the project. Readers can't create or update the project."
+      "value": "Csak olvasási műveleteket végezhet az adott projektben. Az olvasók nem hozhatnak létre illetve frissíthetnek projekteket."
     }
   ],
   "eHNXXp": [
@@ -1632,13 +1652,13 @@
   "eKpamp": [
     {
       "type": 0,
-      "value": "Template error"
+      "value": "Sablonhiba"
     }
   ],
   "ecG+OD": [
     {
       "type": 0,
-      "value": "Manage Azure Search services."
+      "value": "Azure Search-szolgáltatások kezelése."
     }
   ],
   "egr0Oj": [
@@ -1648,19 +1668,19 @@
     },
     {
       "type": 0,
-      "value": " resource groups selected"
+      "value": " erőforráscsoport kiválasztva"
     }
   ],
   "fFyuVF": [
     {
       "type": 0,
-      "value": "Cognitive Services Speech Contributor"
+      "value": "Cognitive Services beszédfelismerési közreműködője"
     }
   ],
   "fIp46f": [
     {
       "type": 0,
-      "value": "Read only lock"
+      "value": "Írásvédett zárolás"
     }
   ],
   "fSFDgd": [
@@ -1678,7 +1698,7 @@
   "ftfFhS": [
     {
       "type": 0,
-      "value": "Select resource groups"
+      "value": "Válasszon erőforráscsoportokat"
     }
   ],
   "g82HU6": [
@@ -1690,19 +1710,19 @@
   "gC4xMY": [
     {
       "type": 0,
-      "value": "Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces."
+      "value": "Csak olvasási hozzáférést biztosít az adott névtér legtöbb objektumához. Ez a szerepkör nem teszi lehetővé a szerepkörök vagy szerepkörkötések megtekintését vagy módosítását, sem a titkos kódok megtekintését, mivel a titkos kódok megtekintési engedélye hozzáférést biztosít a névtér szolgáltatásfiókjaihoz tartozó hitelesítő adatokhoz is, ezáltal API-hozzáférést engedélyezne a névtér bármely szolgáltatásfiókjához (a jogosultságemelés egy formájaként). Ha a fürt hatókörében alkalmazza a szerepkört, azzal minden névtér esetében hozzáférést biztosít."
     }
   ],
   "gZ5fZs": [
     {
       "type": 0,
-      "value": "Manage IoT Hub device twins."
+      "value": "IoT Hub ikereszközök kezelése."
     }
   ],
   "gn/nvJ": [
     {
       "type": 0,
-      "value": "Read, logstream and exec into Container Apps."
+      "value": "Olvasás, naplófolyam és végrehajtás a Container Apps-ben."
     }
   ],
   "gty4jJ": [
@@ -1714,13 +1734,13 @@
   "gzx/k1": [
     {
       "type": 0,
-      "value": "PostgreSQL Contributor"
+      "value": "PostgreSQL-közreműködő"
     }
   ],
   "hF5T80": [
     {
       "type": 0,
-      "value": "Administer Device Update accounts."
+      "value": "Device Update-fiókok felügyelete."
     }
   ],
   "hGmeVK": [
@@ -1732,37 +1752,37 @@
   "hO1Iog": [
     {
       "type": 0,
-      "value": "Manage without access."
+      "value": "Kezelés hozzáférés nélkül."
     }
   ],
   "hPj49L": [
     {
       "type": 0,
-      "value": "Workbook Reader"
+      "value": "Munkafüzet-olvasó"
     }
   ],
   "hX5PAb": [
     {
       "type": 0,
-      "value": "No results found"
+      "value": "Nincs találat"
     }
   ],
   "hfIdUs": [
     {
       "type": 0,
-      "value": "SQL DB Contributor"
+      "value": "SQL-adatbázisok közreműködője"
     }
   ],
   "hrdmcd": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Reader"
+      "value": "Azure Digital Twins – adatolvasó"
     }
   ],
   "hswM/b": [
     {
       "type": 0,
-      "value": "Assign the agent a level of permissions for the resource groups it manages. The agent can still manage its assigned resources with Reader permissions."
+      "value": "Adja meg az ügynök számára az általa kezelt erőforráscsoportokhoz szükséges jogosultsági szintet. Az ügynök továbbra is kezelheti a hozzárendelt erőforrásokat olvasói jogosultsággal."
     }
   ],
   "i50Kb0": [
@@ -1774,31 +1794,31 @@
   "i5OUQE": [
     {
       "type": 0,
-      "value": "Container Apps Contributor"
+      "value": "Container Apps-közreműködő"
     }
   ],
   "i6cLLM": [
     {
       "type": 0,
-      "value": "Perform data science tasks in Azure Machine Learning."
+      "value": "Adatelemzési feladatok végrehajtása az Azure Machine Learningben."
     }
   ],
   "iFsDVR": [
     {
       "type": 0,
-      "value": "Loading"
+      "value": "Betöltés folyamatban"
     }
   ],
   "iM9JZL": [
     {
       "type": 0,
-      "value": "Deny assignments"
+      "value": "Megtagadási hozzárendelések"
     }
   ],
   "itC9lG": [
     {
       "type": 0,
-      "value": "Basics"
+      "value": "Alapadatok"
     }
   ],
   "iv5NrP": [
@@ -1810,13 +1830,13 @@
   "ixb1SP": [
     {
       "type": 0,
-      "value": "Administer HDInsight clusters on AKS."
+      "value": "HDInsight-fürtök felügyelete az AKS-en."
     }
   ],
   "j5Yfyr": [
     {
       "type": 0,
-      "value": "Search Index Data Reader"
+      "value": "Keresési index adatolvasója"
     }
   ],
   "jEU2gk": [
@@ -1828,31 +1848,31 @@
   "jHJmjf": [
     {
       "type": 0,
-      "value": "No results"
+      "value": "Nincs eredmény"
     }
   ],
   "jJE3xY": [
     {
       "type": 0,
-      "value": "Lets you manage the web plans for websites, but not access to them."
+      "value": "Lehetővé teszi a webes tarifacsomagok kezelését, az azokhoz való hozzáférés nélkül."
     }
   ],
   "jjUD0v": [
     {
       "type": 0,
-      "value": "Resource group creation failed."
+      "value": "Nem sikerült létrehozni az erőforráscsoportot."
     }
   ],
   "jvo0vs": [
     {
       "type": 0,
-      "value": "Save"
+      "value": "Mentés"
     }
   ],
   "kVQ1fo": [
     {
       "type": 0,
-      "value": "Negative"
+      "value": "Negatív"
     }
   ],
   "kbQZUj": [
@@ -1872,19 +1892,19 @@
   "kyVg+J": [
     {
       "type": 0,
-      "value": "Choose at least 1 resource group that you have Owner or User Access Administrator permissions on."
+      "value": "Válasszon ki legalább egy olyan erőforráscsoportot, amelyhez tulajdonosi vagy felhasználói hozzáférési rendszergazdai jogosultsággal rendelkezik."
     }
   ],
   "l5sNim": [
     {
       "type": 0,
-      "value": "AzureML Data Scientist"
+      "value": "AzureML adattudós"
     }
   ],
   "lNehTG": [
     {
       "type": 0,
-      "value": "Failed to validate SRE Agent "
+      "value": "Nem sikerült érvényesíteni a(z) "
     },
     {
       "type": 1,
@@ -1892,7 +1912,7 @@
     },
     {
       "type": 0,
-      "value": " creation with the error: "
+      "value": " SRE-ügynök létrehozását. Hiba: "
     },
     {
       "type": 1,
@@ -1902,7 +1922,7 @@
   "lcvC4k": [
     {
       "type": 0,
-      "value": "Validating SRE Agent "
+      "value": "A(z) "
     },
     {
       "type": 1,
@@ -1910,7 +1930,7 @@
     },
     {
       "type": 0,
-      "value": " creation in progress"
+      "value": " SRE-ügynök létrehozásának érvényesítése folyamatban van"
     }
   ],
   "lnaWo/": [
@@ -1922,31 +1942,31 @@
   "lvNWLS": [
     {
       "type": 0,
-      "value": "IoT Hub Registry Contributor"
+      "value": "IoT Hub beállításjegyzék-közreműködő"
     }
   ],
   "mAyw3x": [
     {
       "type": 0,
-      "value": "Edit QnA Maker knowledge bases."
+      "value": "QnA Maker-tudásbázisok szerkesztése."
     }
   ],
   "mkhNnB": [
     {
       "type": 0,
-      "value": "Read and write Azure Monitor monitoring settings and data."
+      "value": "Azure Monitor figyelési beállítások és adatok olvasása és írása."
     }
   ],
   "n/e5Mg": [
     {
       "type": 0,
-      "value": "Allowed Actions"
+      "value": "Engedélyezett műveletek"
     }
   ],
   "nBPow3": [
     {
       "type": 0,
-      "value": "Lets you manage all resources in the cluster."
+      "value": "Lehetővé tesz a fürt összes erőforrásának kezelését."
     }
   ],
   "nDyaq/": [
@@ -1962,13 +1982,13 @@
     },
     {
       "type": 0,
-      "value": " resource group selected"
+      "value": " erőforráscsoport kiválasztva"
     }
   ],
   "nrAnZy": [
     {
       "type": 0,
-      "value": "Full access to Azure Service Bus data."
+      "value": "Teljes hozzáférés az Azure Service Bus adataihoz."
     }
   ],
   "oHGFwy": [
@@ -1980,19 +2000,19 @@
   "oIiHqo": [
     {
       "type": 0,
-      "value": "Extension name"
+      "value": "Bővítmény neve"
     }
   ],
   "oQ/TUW": [
     {
       "type": 0,
-      "value": "Cost Management Contributor"
+      "value": "Cost Management-közreműködő"
     }
   ],
   "oThNc4": [
     {
       "type": 0,
-      "value": "Failed to setup Log Analytics Workspace with the error: "
+      "value": "Nem sikerült beállítani a Log Analytics-munkaterületet. Hiba: "
     },
     {
       "type": 1,
@@ -2002,19 +2022,19 @@
   "oUWADl": [
     {
       "type": 0,
-      "value": "No"
+      "value": "Nem"
     }
   ],
   "p/xAmY": [
     {
       "type": 0,
-      "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
+      "value": "Az ügynök felülvizsgálati módban van. Az alábbi engedélyek szükségesek ahhoz, hogy az ügynök tudást építsen az Ön erőforrásairól. Az ügynök ezek közül néhány engedélyt arra használ, hogy az Ön kérései alapján az Ön jóváhagyásával végezzen írási műveleteket."
     }
   ],
   "p5T+zv": [
     {
       "type": 0,
-      "value": "Manage without access. Can't manage security policies or parent SQL servers."
+      "value": "Kezelés hozzáférés nélkül. Nem kezelhetők biztonsági házirendek vagy szülő SQL-kiszolgálók."
     }
   ],
   "p849eW": [
@@ -2026,37 +2046,37 @@
   "pAFuFx": [
     {
       "type": 0,
-      "value": "HDInsight on AKS Cluster Pool Admin"
+      "value": "HDInsight on AKS-fürtkészlet rendszergazdája"
     }
   ],
   "pDUFq5": [
     {
       "type": 0,
-      "value": "App Configuration Reader"
+      "value": "App Configuration-olvasó"
     }
   ],
   "pM3DKw": [
     {
       "type": 0,
-      "value": "ACIS endpoint"
+      "value": "ACIS-végpont"
     }
   ],
   "pMlVvA": [
     {
       "type": 0,
-      "value": "Search resource groups"
+      "value": "Erőforráscsoportok keresése"
     }
   ],
   "pSfQh6": [
     {
       "type": 0,
-      "value": "Grants read access to Azure Cognitive Search index data."
+      "value": "Olvasási hozzáférést biztosít az Azure Cognitive Search-indexadatokhoz."
     }
   ],
   "pVF2EE": [
     {
       "type": 0,
-      "value": "We've started provisioning your SRE Agent "
+      "value": "Megkezdtük a(z) "
     },
     {
       "type": 1,
@@ -2064,43 +2084,43 @@
     },
     {
       "type": 0,
-      "value": " to manage your selected resource groups."
+      "value": " SRE-ügynök kiépítését a kiválasztott erőforráscsoportok kezelésére."
     }
   ],
   "pW5vuU": [
     {
       "type": 0,
-      "value": "Resource group creation"
+      "value": "Erőforráscsoport létrehozása"
     }
   ],
   "pqgzm0": [
     {
       "type": 0,
-      "value": "Manage Application Insights components."
+      "value": "Application Insights-összetevők kezelése."
     }
   ],
   "q7CVBv": [
     {
       "type": 0,
-      "value": "Loading resource types..."
+      "value": "Erőforrástípusok betöltése..."
     }
   ],
   "qGXY+e": [
     {
       "type": 0,
-      "value": "Agent permissions"
+      "value": "Ügynökengedélyek"
     }
   ],
   "r0gBch": [
     {
       "type": 0,
-      "value": "The subscription you have selected has not been registered to use SRE Agent. Please email us with your subscription ID on sreagentteam@microsoft.com for getting registered."
+      "value": "A kiválasztott előfizetés nincs regisztrálva az SRE-ügynök használatára. A regisztrációhoz küldjön e-mailt az előfizetési azonosítójával az sreagentteam@microsoft.com címre."
     }
   ],
   "rZaqtB": [
     {
       "type": 0,
-      "value": "API Management Service Contributor"
+      "value": "API Management szolgáltatás közreműködője"
     }
   ],
   "rbrahO": [
@@ -2112,13 +2132,13 @@
   "rjgOC5": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Editor"
+      "value": "Cognitive Services – QnA Maker-szerkesztő"
     }
   ],
   "ru0BPw": [
     {
       "type": 0,
-      "value": "Learn more about permissions for managed resource groups"
+      "value": "További információ a felügyelt erőforráscsoportokra vonatkozó engedélyekről"
     }
   ],
   "s0xRD+": [
@@ -2130,7 +2150,7 @@
   "s2jhon": [
     {
       "type": 0,
-      "value": "Certificate SAN"
+      "value": "Tanúsítvány SAN"
     }
   ],
   "s7mQCK": [
@@ -2142,19 +2162,19 @@
   "sI+CCC": [
     {
       "type": 0,
-      "value": "Log Analytics Reader"
+      "value": "Log Analytics-olvasó"
     }
   ],
   "sRU00i": [
     {
       "type": 0,
-      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
+      "value": "Az ügynök által felügyelt erőforráscsoportok előfizetések közötti hozzárendeléséhez tulajdonosi vagy felhasználói hozzáférés-rendszergazdai engedélyekre van szükség ezeken az erőforráscsoportokon. Az ügynökerőforrás és a felügyelt erőforráscsoportok különböző régiókban és előfizetésekben lehetnek."
     }
   ],
   "sRb5P9": [
     {
       "type": 0,
-      "value": "Manage cost analysis and budgets."
+      "value": "Költségelemzés és költségvetések kezelése."
     }
   ],
   "sYoT7W": [
@@ -2192,19 +2212,19 @@
   "ss/NWY": [
     {
       "type": 0,
-      "value": "SQL Server Contributor"
+      "value": "SQL Server közreműködője"
     }
   ],
   "t3D4PH": [
     {
       "type": 0,
-      "value": "Device Update Reader"
+      "value": "Eszközfrissítési olvasó"
     }
   ],
   "t9I1dY": [
     {
       "type": 0,
-      "value": "Healthcare Agent Editor"
+      "value": "Egészségügyi ügynök szerkesztője"
     }
   ],
   "tOdNiY": [
@@ -2216,49 +2236,49 @@
   "tYoDsC": [
     {
       "type": 0,
-      "value": "Share your thoughts about the portal..."
+      "value": "Ossza meg gondolatait a portállal kapcsolatban..."
     }
   ],
   "tffS9r": [
     {
       "type": 0,
-      "value": "Open resource group"
+      "value": "Erőforráscsoport megnyitása"
     }
   ],
   "tshYzs": [
     {
       "type": 0,
-      "value": "Select region"
+      "value": "Válasszon régiót"
     }
   ],
   "u0xiAh": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Reader"
+      "value": "Cognitive Services – Custom Vision-olvasó"
     }
   ],
   "uRMqBi": [
     {
       "type": 0,
-      "value": "Read, write, and delete Azure Storage containers and blobs."
+      "value": "Azure Storage-tárolók és -blobok olvasása, írása és törlése."
     }
   ],
   "ufonOZ": [
     {
       "type": 0,
-      "value": "Search Services"
+      "value": "Keresőszolgáltatások"
     }
   ],
   "uh732n": [
     {
       "type": 0,
-      "value": "IoT Hubs"
+      "value": "IoT-központok"
     }
   ],
   "uqyJPP": [
     {
       "type": 0,
-      "value": "You do not have permission to create resource groups under the currently selected subscription."
+      "value": "Nincs engedélye erőforráscsoportok létrehozására az aktuálisan kiválasztott előfizetésben."
     }
   ],
   "v90qT8": [
@@ -2276,19 +2296,19 @@
   "vbdOl/": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under Language portal."
+      "value": "Eléréssel rendelkezik az olvasási és tesztelési funkciókhoz a nyelvi portálon."
     }
   ],
   "vfndow": [
     {
       "type": 0,
-      "value": "Can read Azure Cosmos DB account data."
+      "value": "Olvashatja Azure Cosmos DB fiókadatait."
     }
   ],
   "vu2LMl": [
     {
       "type": 0,
-      "value": "Learn more about Reader and Privileged permissions"
+      "value": "További információ az Olvasó és a Kiemelt engedélyekről"
     }
   ],
   "vxVGav": [
@@ -2306,43 +2326,43 @@
   "wSZR47": [
     {
       "type": 0,
-      "value": "Submit"
+      "value": "Beküldés"
     }
   ],
   "wbigtI": [
     {
       "type": 0,
-      "value": "Administer SAP workloads on Azure."
+      "value": "SAP számítási feladatok felügyelete az Azure-ban."
     }
   ],
   "wxlJSs": [
     {
       "type": 0,
-      "value": "Manage Cognitive Services accounts."
+      "value": "Cognitive Services fiókok kezelése."
     }
   ],
   "x2Qj1F": [
     {
       "type": 0,
-      "value": "Geneva Actions Certificate Name"
+      "value": "Geneva-műveletek tanúsítványának neve"
     }
   ],
   "xGPsyJ": [
     {
       "type": 0,
-      "value": "HDInsight Cluster Operator"
+      "value": "HDInsight-fürt operátora"
     }
   ],
   "xHDoP8": [
     {
       "type": 0,
-      "value": "Do you want to continue?"
+      "value": "Szeretne továbblépni?"
     }
   ],
   "xVPoso": [
     {
       "type": 0,
-      "value": "Resource group name"
+      "value": "Erőforráscsoport neve"
     }
   ],
   "xXbJso": [
@@ -2354,13 +2374,13 @@
   "xXhn+h": [
     {
       "type": 0,
-      "value": "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data."
+      "value": "Lehetővé teszi a tárfiókok kezelését, beleértve a tárfiókok kulcsait, melyek teljes hozzáférést biztosítanak a tárfiók adataihoz."
     }
   ],
   "xdMkcg": [
     {
       "type": 0,
-      "value": "Can read all monitoring data."
+      "value": "Olvashatja az összes figyelési adatot."
     }
   ],
   "xhfdqv": [
@@ -2378,19 +2398,19 @@
   "xmsrBu": [
     {
       "type": 0,
-      "value": "Operate API Management services."
+      "value": "API Management-szolgáltatások üzemeltetése."
     }
   ],
   "xqwf/7": [
     {
       "type": 0,
-      "value": "IoT Hub Data Contributor"
+      "value": "IoT Hub-adatközreműködő"
     }
   ],
   "xtkizV": [
     {
       "type": 0,
-      "value": "Website Contributor"
+      "value": "Webhelyek közreműködője"
     }
   ],
   "y1Z3or": [
@@ -2402,19 +2422,19 @@
   "yV5oYe": [
     {
       "type": 0,
-      "value": "Policies"
+      "value": "Házirendek"
     }
   ],
   "yilQrD": [
     {
       "type": 0,
-      "value": "Managed resource groups"
+      "value": "Felügyelt erőforráscsoportok"
     }
   ],
   "yo67XU": [
     {
       "type": 0,
-      "value": "API Management Service Operator Role"
+      "value": "Az API Management szolgáltatás operátori szerepköre"
     }
   ],
   "zEk9h3": [
@@ -2426,7 +2446,7 @@
   "zJ+8HW": [
     {
       "type": 0,
-      "value": "(new) "
+      "value": "(új) "
     },
     {
       "type": 1,
@@ -2436,19 +2456,19 @@
   "zQvVDJ": [
     {
       "type": 0,
-      "value": "All"
+      "value": "Az összes"
     }
   ],
   "zacv31": [
     {
       "type": 0,
-      "value": "Detected resource types"
+      "value": "Észlelt erőforrástípusok"
     }
   ],
   "zhHihn": [
     {
       "type": 0,
-      "value": "SQL Servers"
+      "value": "SQL-kiszolgálók"
     }
   ]
 }

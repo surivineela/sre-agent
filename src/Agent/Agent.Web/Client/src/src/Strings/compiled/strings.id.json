@@ -33,6 +33,12 @@
       "value": "Hapus utas?"
     }
   ],
+  "+6/51l": [
+    {
+      "type": 0,
+      "value": "Creating meta agent"
+    }
+  ],
   "+7PjfV": [
     {
       "type": 0,
@@ -43,6 +49,12 @@
     {
       "type": 0,
       "value": "IcM tidak terhubung."
+    }
+  ],
+  "+ASm/B": [
+    {
+      "type": 0,
+      "value": "Submit Feedback"
     }
   ],
   "+Aon83": [
@@ -127,6 +139,30 @@
       "value": "Tipe"
     }
   ],
+  "+XtuWl": [
+    {
+      "type": 0,
+      "value": "This insight needs improvement"
+    }
+  ],
+  "+Y8m6A": [
+    {
+      "type": 0,
+      "value": "Added handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    }
+  ],
   "+ZdOJt": [
     {
       "type": 0,
@@ -187,6 +223,12 @@
       "value": "Dapat membaca buku kerja."
     }
   ],
+  "+nnQeH": [
+    {
+      "type": 0,
+      "value": "Created meta agent"
+    }
+  ],
   "+nt4l9": [
     {
       "type": 0,
@@ -211,6 +253,12 @@
       "value": "Grup sumber daya"
     }
   ],
+  "/+WtRc": [
+    {
+      "type": 0,
+      "value": "Enter handoff instructions"
+    }
+  ],
   "//Zb9l": [
     {
       "type": 0,
@@ -227,6 +275,12 @@
     {
       "type": 0,
       "value": "Pilih platform"
+    }
+  ],
+  "/3OCn6": [
+    {
+      "type": 0,
+      "value": "Insights have not been generated for this thread yet."
     }
   ],
   "/4tOwT": [
@@ -457,6 +511,12 @@
     {
       "type": 1,
       "value": "totalCount"
+    }
+  ],
+  "03qRza": [
+    {
+      "type": 0,
+      "value": "View AI suggestions"
     }
   ],
   "05Rzkx": [
@@ -789,6 +849,12 @@
     {
       "type": 0,
       "value": "Timpa agen meta default"
+    }
+  ],
+  "19xydZ": [
+    {
+      "type": 0,
+      "value": "You do not have permission to generate insights for this thread."
     }
   ],
   "1CcjQj": [
@@ -1338,6 +1404,12 @@
       "value": "Peringatan"
     }
   ],
+  "3SsYXO": [
+    {
+      "type": 0,
+      "value": "Open GitHub issue page with pre-filled information above"
+    }
+  ],
   "3VI9mt": [
     {
       "type": 0,
@@ -1356,10 +1428,22 @@
       "value": "Aktif"
     }
   ],
+  "3dsWh5": [
+    {
+      "type": 0,
+      "value": "Add MCP server"
+    }
+  ],
   "3jPMQI": [
     {
       "type": 0,
       "value": "Tambahkan Lainnya"
+    }
+  ],
+  "3k7JQw": [
+    {
+      "type": 0,
+      "value": "Issue description is required."
     }
   ],
   "3n8o15": [
@@ -1544,6 +1628,12 @@
       "value": "Detail pemicu"
     }
   ],
+  "4CcHuj": [
+    {
+      "type": 0,
+      "value": "Share your thoughts about this insight... (optional)"
+    }
+  ],
   "4Ez7HI": [
     {
       "type": 0,
@@ -1590,6 +1680,12 @@
     {
       "type": 0,
       "value": "Buat deskripsi tetap singkat dan jelaskan tindakan tugas. Sertakan pengidentifikasi sumber daya yang diperlukan, tentukan informasi yang sensitif terhadap waktu, dan tentukan sinyal keberhasilan/kegagalan atau format output yang diperlukan."
+    }
+  ],
+  "4Rhz/i": [
+    {
+      "type": 0,
+      "value": "User provided connector"
     }
   ],
   "4RwjwU": [
@@ -1666,6 +1762,16 @@
     {
       "type": 0,
       "value": "Rencana respons insiden menentukan insiden yang harus ditangani agen dengan menerapkan kriteria filter Anda, guna memastikan kumpulan insiden yang diperlukan mendapat respons."
+    }
+  ],
+  "4lv5gO": [
+    {
+      "type": 0,
+      "value": "Create subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "4oK1Me": [
@@ -2114,6 +2220,12 @@
       "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
     }
   ],
+  "6CrAJC": [
+    {
+      "type": 0,
+      "value": "Enter custom header key"
+    }
+  ],
   "6CxEZS": [
     {
       "type": 0,
@@ -2160,6 +2272,16 @@
     {
       "type": 0,
       "value": "Regenerasi"
+    }
+  ],
+  "6RNwei": [
+    {
+      "type": 0,
+      "value": "Update subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "6S2zmX": [
@@ -2250,6 +2372,12 @@
     {
       "type": 0,
       "value": "Laporan Sumber Daya"
+    }
+  ],
+  "6gD0ie": [
+    {
+      "type": 0,
+      "value": "Generate Session Insights"
     }
   ],
   "6m5Ba0": [
@@ -2356,6 +2484,12 @@
       "value": "Rentang waktu"
     }
   ],
+  "751M54": [
+    {
+      "type": 0,
+      "value": "Generating insights..."
+    }
+  ],
   "75lAeu": [
     {
       "type": 0,
@@ -2456,6 +2590,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "7Rnjmx": [
+    {
+      "type": 0,
+      "value": "Expected Behavior"
     }
   ],
   "7TVRcx": [
@@ -2847,6 +2987,12 @@
       "value": "Pilih agen tujuan untuk penyerahan"
     }
   ],
+  "8u2W0L": [
+    {
+      "type": 0,
+      "value": "Handoff instructions"
+    }
+  ],
   "8v0Pyn": [
     {
       "type": 0,
@@ -3001,6 +3147,12 @@
       "value": "Tambahkan deskripsi tentang sumber daya ini untuk membantu agen dalam pengelompokan dan wawasan."
     }
   ],
+  "9WBhPZ": [
+    {
+      "type": 0,
+      "value": "Session Insights"
+    }
+  ],
   "9WRlF4": [
     {
       "type": 0,
@@ -3111,6 +3263,12 @@
     {
       "type": 0,
       "value": "Tindakan playground akan segera hadir."
+    }
+  ],
+  "A9cgAa": [
+    {
+      "type": 0,
+      "value": "No insight selected"
     }
   ],
   "AA/tRJ": [
@@ -3275,6 +3433,12 @@
       "value": "Kunci akses REST API"
     }
   ],
+  "AvHD3R": [
+    {
+      "type": 0,
+      "value": "Teams channel link"
+    }
+  ],
   "AxMhQr": [
     {
       "type": 0,
@@ -3311,6 +3475,12 @@
     {
       "type": 0,
       "value": "Kualitas Agen"
+    }
+  ],
+  "BD+V8L": [
+    {
+      "type": 0,
+      "value": "This insight was helpful"
     }
   ],
   "BEck3n": [
@@ -3483,6 +3653,24 @@
       "value": " konektor data..."
     }
   ],
+  "Bn/txo": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "BuziI2": [
     {
       "type": 0,
@@ -3543,6 +3731,16 @@
       "value": "Alat MCP (Opsional)"
     }
   ],
+  "CIAL+k": [
+    {
+      "type": 0,
+      "value": "Created subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "CJ6tzL": [
     {
       "type": 0,
@@ -3583,6 +3781,18 @@
     {
       "type": 0,
       "value": "Bagaimana Anda ingin menentukan jadwal?"
+    }
+  ],
+  "CQ0CLu": [
+    {
+      "type": 0,
+      "value": "Session insights"
+    }
+  ],
+  "CQisjK": [
+    {
+      "type": 0,
+      "value": "What actually happened?"
     }
   ],
   "CTRqZs": [
@@ -3811,6 +4021,20 @@
       "value": "Pilih apakah akan menjalankan penyelidikan mendalam bersamaan dengan penyelidikan reguler"
     }
   ],
+  "DK708b": [
+    {
+      "type": 0,
+      "value": "Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than "
+    },
+    {
+      "type": 1,
+      "value": "maxLength"
+    },
+    {
+      "type": 0,
+      "value": " characters."
+    }
+  ],
   "DMEE1o": [
     {
       "type": 0,
@@ -3857,6 +4081,12 @@
       "value": "Insiden yang dipilih"
     }
   ],
+  "DYp/nK": [
+    {
+      "type": 0,
+      "value": "Session Insight"
+    }
+  ],
   "Da55kZ": [
     {
       "type": 0,
@@ -3885,6 +4115,12 @@
     {
       "type": 0,
       "value": "Kontributor Cognitive Services"
+    }
+  ],
+  "DgsR1U": [
+    {
+      "type": 0,
+      "value": "Channel ID"
     }
   ],
   "Dh9oJp": [
@@ -4075,6 +4311,12 @@
       "value": "Masukkan nama filter"
     }
   ],
+  "ETRyBL": [
+    {
+      "type": 0,
+      "value": "Rating"
+    }
+  ],
   "EWrExf": [
     {
       "type": 0,
@@ -4111,6 +4353,12 @@
       "value": "Rencana tindakan"
     }
   ],
+  "EcglP9": [
+    {
+      "type": 0,
+      "value": "Key"
+    }
+  ],
   "EdEthU": [
     {
       "type": 0,
@@ -4131,6 +4379,12 @@
     {
       "type": 0,
       "value": "Uji kueri untuk melanjutkan."
+    }
+  ],
+  "Ejhdi4": [
+    {
+      "type": 0,
+      "value": "Feedback"
     }
   ],
   "ElI1gd": [
@@ -4155,6 +4409,12 @@
     {
       "type": 0,
       "value": "https://github.com/owner/repo-name atau https://dev.azure.com/organization/project/_git/repo atau https://organization.visualstudio.com/project/_git/repository-name"
+    }
+  ],
+  "ErUgLz": [
+    {
+      "type": 0,
+      "value": "Teams group ID"
     }
   ],
   "Erci0g": [
@@ -4283,6 +4543,12 @@
     {
       "type": 0,
       "value": "Koneksi repositori"
+    }
+  ],
+  "FMDuHb": [
+    {
+      "type": 0,
+      "value": "Enter your PAT or API key"
     }
   ],
   "FNQNS1": [
@@ -4473,6 +4739,12 @@
       "value": " langganan dipilih"
     }
   ],
+  "G6XRkU": [
+    {
+      "type": 0,
+      "value": "Steps to Reproduce"
+    }
+  ],
   "G6vaGg": [
     {
       "type": 0,
@@ -4557,6 +4829,12 @@
     {
       "type": 0,
       "value": "Kembali ke perintah"
+    }
+  ],
+  "GGr/yS": [
+    {
+      "type": 0,
+      "value": "Feedback submitted on threads will appear here"
     }
   ],
   "GMhzu1": [
@@ -4651,10 +4929,34 @@
       "value": " secara otomatis sesuai jadwal untuk menjaga kesehatan sistem utama."
     }
   ],
+  "GpcNV2": [
+    {
+      "type": 0,
+      "value": "Failed to update subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "GroBmn": [
     {
       "type": 0,
       "value": "ditemukan peringatan repositori"
+    }
+  ],
+  "GufXy5": [
+    {
+      "type": 0,
+      "value": "Value"
     }
   ],
   "Gvxoji": [
@@ -4713,6 +5015,12 @@
     {
       "type": 0,
       "value": "Tidak ada rekomendasi optimalisasi kode yang terdeteksi."
+    }
+  ],
+  "HJ7ZeR": [
+    {
+      "type": 0,
+      "value": "Issue Description"
     }
   ],
   "HKlw1J": [
@@ -4885,6 +5193,12 @@
     {
       "type": 0,
       "value": "String"
+    }
+  ],
+  "I4PbZq": [
+    {
+      "type": 0,
+      "value": "Create a subagent"
     }
   ],
   "I5k4g/": [
@@ -5139,6 +5453,12 @@
     {
       "type": 0,
       "value": "Klik untuk menampilkan nilai"
+    }
+  ],
+  "J0rs+f": [
+    {
+      "type": 0,
+      "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
   "J3Y8Sm": [
@@ -5417,6 +5737,12 @@
     {
       "type": 0,
       "value": "Coba Evaluasi"
+    }
+  ],
+  "JvYXxh": [
+    {
+      "type": 0,
+      "value": "MCP server"
     }
   ],
   "JwHSD6": [
@@ -5825,6 +6151,12 @@
       "value": "Tabel server MCP"
     }
   ],
+  "Li/Qrf": [
+    {
+      "type": 0,
+      "value": "Custom headers"
+    }
+  ],
   "LkUvu/": [
     {
       "type": 0,
@@ -5853,6 +6185,12 @@
     {
       "type": 0,
       "value": "Argumen langsung"
+    }
+  ],
+  "LuHM0/": [
+    {
+      "type": 0,
+      "value": "Actual Behavior"
     }
   ],
   "LupnQU": [
@@ -6490,6 +6828,12 @@
       "value": ". Refresh dan coba lagi."
     }
   ],
+  "OP7f9a": [
+    {
+      "type": 0,
+      "value": "Compiled connection string"
+    }
+  ],
   "OPBqEN": [
     {
       "type": 0,
@@ -6826,6 +7170,12 @@
       "value": " t"
     }
   ],
+  "PZvrnY": [
+    {
+      "type": 0,
+      "value": "Title is required."
+    }
+  ],
   "Pa1S0J": [
     {
       "type": 0,
@@ -7092,6 +7442,16 @@
       "value": "Konsumsi AAU"
     }
   ],
+  "QP91Js": [
+    {
+      "type": 0,
+      "value": "Updated subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "QQX4Pv": [
     {
       "type": 0,
@@ -7128,6 +7488,12 @@
     {
       "type": 0,
       "value": "Deskripsi Penyerahan"
+    }
+  ],
+  "QYiU4f": [
+    {
+      "type": 0,
+      "value": "1. Describe the action you took 2. Mention the resource or service involved"
     }
   ],
   "QdDYGR": [
@@ -7274,6 +7640,12 @@
       "value": "Penggeser batas AAU bulanan"
     }
   ],
+  "R4Blzb": [
+    {
+      "type": 0,
+      "value": "No Feedback Yet"
+    }
+  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -7334,6 +7706,32 @@
     {
       "type": 0,
       "value": " file?"
+    }
+  ],
+  "RMD0Mj": [
+    {
+      "type": 0,
+      "value": "Failed to add handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "RR+13c": [
@@ -7504,6 +7902,16 @@
       "value": "Buka Azure Managed Grafana"
     }
   ],
+  "SB7SRx": [
+    {
+      "type": 0,
+      "value": "Creating subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "SCjiXP": [
     {
       "type": 0,
@@ -7520,6 +7928,20 @@
     {
       "type": 0,
       "value": "Insiden dibuat"
+    }
+  ],
+  "SIW6OB": [
+    {
+      "type": 0,
+      "value": "Threads with Insights ("
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ")"
     }
   ],
   "SL+c5a": [
@@ -7708,10 +8130,26 @@
       "value": "."
     }
   ],
+  "T/nqbo": [
+    {
+      "type": 0,
+      "value": "Feedback ID"
+    }
+  ],
   "T0/eoE": [
     {
       "type": 0,
       "value": "Eksekusi Tugas Terjadwal"
+    }
+  ],
+  "T0e6Lh": [
+    {
+      "type": 0,
+      "value": "Remove "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "T5+AEf": [
@@ -7868,6 +8306,18 @@
       "value": "Pemetaan sumber daya"
     }
   ],
+  "TdvJVw": [
+    {
+      "type": 0,
+      "value": "Suggested improvements"
+    }
+  ],
+  "TexFnY": [
+    {
+      "type": 0,
+      "value": "This insight does not have markdown content."
+    }
+  ],
   "Tg4Q8g": [
     {
       "type": 0,
@@ -7944,6 +8394,12 @@
     {
       "type": 0,
       "value": "Perubahan Konfigurasi"
+    }
+  ],
+  "UImEMW": [
+    {
+      "type": 0,
+      "value": "Briefly describe the problem or request."
     }
   ],
   "UKMPBH": [
@@ -8088,6 +8544,12 @@
       "value": "Anda tidak memiliki izin untuk menghapus agen ini."
     }
   ],
+  "V9GGMu": [
+    {
+      "type": 0,
+      "value": "No threads with session insights found."
+    }
+  ],
   "VA/Z1S": [
     {
       "type": 0,
@@ -8104,6 +8566,12 @@
     {
       "type": 0,
       "value": "Pengguna yang ditetapkan"
+    }
+  ],
+  "VBAOA8": [
+    {
+      "type": 0,
+      "value": "Select subagents for handoff"
     }
   ],
   "VIYXlx": [
@@ -8250,6 +8718,30 @@
     {
       "type": 1,
       "value": "channel"
+    }
+  ],
+  "Vs/db/": [
+    {
+      "type": 0,
+      "value": "Adding handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    }
+  ],
+  "Vs3jMi": [
+    {
+      "type": 0,
+      "value": "Authentication method"
     }
   ],
   "VtBCjG": [
@@ -8789,12 +9281,6 @@
       "value": "Pengelompokan pesan untuk pembaruan"
     }
   ],
-  "XVG+T1": [
-    {
-      "type": 0,
-      "value": "Menyempurnakan detail..."
-    }
-  ],
   "XYIeUc": [
     {
       "type": 0,
@@ -8893,6 +9379,12 @@
       "value": "Penerbit metrik pemantauan"
     }
   ],
+  "XyUQa7": [
+    {
+      "type": 0,
+      "value": "Improved instructions"
+    }
+  ],
   "Y0BC+F": [
     {
       "type": 1,
@@ -8957,6 +9449,16 @@
     {
       "type": 0,
       "value": "Selasa"
+    }
+  ],
+  "YBHvOV": [
+    {
+      "type": 0,
+      "value": "Updating subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "YBXVNU": [
@@ -9247,16 +9749,6 @@
     {
       "type": 1,
       "value": "channel"
-    }
-  ],
-  "ZF9lPS": [
-    {
-      "type": 0,
-      "value": "Remove tool "
-    },
-    {
-      "type": 1,
-      "value": "toolName"
     }
   ],
   "ZMa6Rh": [
@@ -9765,6 +10257,12 @@
       "value": "URI kluster"
     }
   ],
+  "bICPAQ": [
+    {
+      "type": 0,
+      "value": "Thread Feedback"
+    }
+  ],
   "bK0VQe": [
     {
       "type": 0,
@@ -9787,6 +10285,12 @@
     {
       "type": 0,
       "value": "Baru"
+    }
+  ],
+  "bWjdfa": [
+    {
+      "type": 0,
+      "value": "URL"
     }
   ],
   "baRFiF": [
@@ -10041,6 +10545,12 @@
       "value": "Temperatur"
     }
   ],
+  "cHKA8f": [
+    {
+      "type": 0,
+      "value": "No insight content available"
+    }
+  ],
   "cJGGY4": [
     {
       "type": 0,
@@ -10087,6 +10597,12 @@
     {
       "type": 0,
       "value": "Kategori"
+    }
+  ],
+  "cesI6Z": [
+    {
+      "type": 0,
+      "value": "No feedback selected"
     }
   ],
   "cfbpDd": [
@@ -10397,6 +10913,12 @@
     {
       "type": 0,
       "value": "Dimitigasi"
+    }
+  ],
+  "dqkJF6": [
+    {
+      "type": 0,
+      "value": "Delete subagent"
     }
   ],
   "dtQgfG": [
@@ -10857,10 +11379,22 @@
       "value": "Pertama, sumber daya Grafana perlu dibuat."
     }
   ],
+  "fuHqFL": [
+    {
+      "type": 0,
+      "value": "No session insights found."
+    }
+  ],
   "fvK8Qi": [
     {
       "type": 0,
       "value": "Semua status"
+    }
+  ],
+  "fyaE5g": [
+    {
+      "type": 0,
+      "value": "Please provide a channel link"
     }
   ],
   "g+9csc": [
@@ -11301,6 +11835,12 @@
     {
       "type": 0,
       "value": "Sumber daya Grafana"
+    }
+  ],
+  "hoHnYn": [
+    {
+      "type": 0,
+      "value": "Improved handoff instructions"
     }
   ],
   "hqWr3L": [
@@ -11919,6 +12459,12 @@
       "value": "Knowledge Base Enabled"
     }
   ],
+  "khI1mJ": [
+    {
+      "type": 0,
+      "value": "Edit subagent"
+    }
+  ],
   "khOzXi": [
     {
       "type": 0,
@@ -12343,6 +12889,24 @@
       "value": "Rencana respons insiden"
     }
   ],
+  "mVB9Bd": [
+    {
+      "type": 0,
+      "value": "Add handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    }
+  ],
   "mVkTZZ": [
     {
       "type": 0,
@@ -12395,6 +12959,12 @@
     {
       "type": 0,
       "value": "Tidak ada alat yang dikonfigurasi."
+    }
+  ],
+  "mgtFKh": [
+    {
+      "type": 0,
+      "value": "Create GitHub issue"
     }
   ],
   "mhKk7c": [
@@ -12763,6 +13333,12 @@
       "value": "Sign in with a different account"
     }
   ],
+  "oIm1Fb": [
+    {
+      "type": 0,
+      "value": "GitHub logo"
+    }
+  ],
   "oKJ0fm": [
     {
       "type": 0,
@@ -12803,6 +13379,12 @@
     {
       "type": 0,
       "value": "Memuat alat MCP..."
+    }
+  ],
+  "oTxjU2": [
+    {
+      "type": 0,
+      "value": "Handoff subagents"
     }
   ],
   "oUWADl": [
@@ -12867,6 +13449,12 @@
     {
       "type": 0,
       "value": "Cari insiden"
+    }
+  ],
+  "ooDMAp": [
+    {
+      "type": 0,
+      "value": "Personal access token (PAT) or API key"
     }
   ],
   "osuyeD": [
@@ -13187,6 +13775,16 @@
       "value": "Memuat utas obrolan"
     }
   ],
+  "pw1ueF": [
+    {
+      "type": 0,
+      "value": "Failed to create meta agent. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "pyXjlj": [
     {
       "type": 0,
@@ -13203,6 +13801,12 @@
     {
       "type": 0,
       "value": "Dalam proses"
+    }
+  ],
+  "q3e4cf": [
+    {
+      "type": 0,
+      "value": "Bearer token"
     }
   ],
   "q4EmsW": [
@@ -13313,6 +13917,12 @@
       "value": "Pilih alat tertaut untuk diedit"
     }
   ],
+  "qrs+1B": [
+    {
+      "type": 0,
+      "value": "Create meta agent"
+    }
+  ],
   "qs5hhk": [
     {
       "type": 0,
@@ -13388,6 +13998,12 @@
     {
       "type": 0,
       "value": "Tindakan ini akan menghapus koneksi ke PagerDuty secara permanen. Agen tidak lagi dapat mengelola tiket. Yakin ingin memutuskan sambungan?"
+    }
+  ],
+  "r5UlDs": [
+    {
+      "type": 0,
+      "value": "Enter custom header value"
     }
   ],
   "r8XsCU": [
@@ -13546,6 +14162,12 @@
       "value": "Kontributor Layanan API Management"
     }
   ],
+  "raexxM": [
+    {
+      "type": 0,
+      "value": "Submitted"
+    }
+  ],
   "rbrahO": [
     {
       "type": 0,
@@ -13678,6 +14300,12 @@
     {
       "type": 0,
       "value": "\""
+    }
+  ],
+  "ryAzxy": [
+    {
+      "type": 0,
+      "value": "Issue"
     }
   ],
   "ryPHA8": [
@@ -14278,6 +14906,12 @@
       "value": "Tidak ditemukan tugas terjadwal"
     }
   ],
+  "trhBLG": [
+    {
+      "type": 0,
+      "value": "No insights available"
+    }
+  ],
   "ts7YvN": [
     {
       "type": 0,
@@ -14288,6 +14922,12 @@
     {
       "type": 0,
       "value": "Pilih wilayah"
+    }
+  ],
+  "ttWUo6": [
+    {
+      "type": 0,
+      "value": "Click to view session analysis and insights"
     }
   ],
   "tthToS": [
@@ -14579,6 +15219,12 @@
       "value": "Alat yang dipilih untuk respons insiden"
     }
   ],
+  "urxxsP": [
+    {
+      "type": 0,
+      "value": "Agent Performance"
+    }
+  ],
   "us/IXr": [
     {
       "type": 0,
@@ -14625,6 +15271,12 @@
     {
       "type": 0,
       "value": "Ciutkan semua"
+    }
+  ],
+  "v1LtqB": [
+    {
+      "type": 0,
+      "value": "Select authentication method"
     }
   ],
   "v3xWf6": [
@@ -14819,6 +15471,12 @@
       "value": "time"
     }
   ],
+  "vzH0q5": [
+    {
+      "type": 0,
+      "value": "Choose tools"
+    }
+  ],
   "w+XRP2": [
     {
       "type": 0,
@@ -14871,6 +15529,12 @@
     {
       "type": 0,
       "value": "Pembuatan, Pengujian, dan Evaluasi - Alur kerja lengkap"
+    }
+  ],
+  "wBh+z3": [
+    {
+      "type": 0,
+      "value": "No additional comments provided"
     }
   ],
   "wEQDC6": [
@@ -15647,10 +16311,22 @@
       "value": "Semua"
     }
   ],
+  "zRv1ks": [
+    {
+      "type": 0,
+      "value": "What should happen?"
+    }
+  ],
   "zUNfOA": [
     {
       "type": 0,
       "value": "Buka panel pengamat"
+    }
+  ],
+  "zWkvNO": [
+    {
+      "type": 0,
+      "value": "Timeline"
     }
   ],
   "zZsxcQ": [
@@ -15713,16 +16389,6 @@
     {
       "type": 0,
       "value": "Ringkasan insiden"
-    }
-  ],
-  "zr8jA6": [
-    {
-      "type": 0,
-      "value": "Hapus alat "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "zuQF37": [

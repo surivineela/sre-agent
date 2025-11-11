@@ -2,7 +2,7 @@
   "+/nU/s": [
     {
       "type": 0,
-      "value": "Gives you read access to management and content operations, but does not allow making changes."
+      "value": "관리 및 콘텐츠 작업에 대한 읽기 권한을 제공하지만 변경은 허용하지 않습니다."
     }
   ],
   "+CwN9C": [
@@ -14,7 +14,7 @@
   "+Ov1f1": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have policies that will cause the deployment to fail."
+      "value": "선택한 리소스 그룹 중 일부에 배포 실패를 유발하는 정책이 있습니다."
     }
   ],
   "+TlNdm": [
@@ -26,25 +26,25 @@
   "+YDzOd": [
     {
       "type": 0,
-      "value": "Name must be between 2 and 32 characters"
+      "value": "이름은 2자에서 32자 사이여야 합니다."
     }
   ],
   "+bJIWo": [
     {
       "type": 0,
-      "value": "Agent permissions level"
+      "value": "에이전트 사용 권한 수준"
     }
   ],
   "+k5t/y": [
     {
       "type": 0,
-      "value": "Contributor"
+      "value": "기여자"
     }
   ],
   "+l+XEu": [
     {
       "type": 0,
-      "value": "Can read workbooks."
+      "value": "통합 문서를 읽을 수 있습니다."
     }
   ],
   "+uAdUZ": [
@@ -56,7 +56,7 @@
   "+zgzmq": [
     {
       "type": 0,
-      "value": "Cosmos DB Accounts"
+      "value": "Cosmos DB 계정"
     }
   ],
   "/6/sPX": [
@@ -68,51 +68,47 @@
   "/6Fckw": [
     {
       "type": 0,
-      "value": "Provisioning SRE Agent"
+      "value": "SRE 에이전트 프로비저닝"
     }
   ],
   "/8MshI": [
     {
       "type": 0,
-      "value": "Manage SQL Managed Instances."
+      "value": "SQL Managed Instance를 관리합니다."
     }
   ],
   "/WrP/v": [
     {
       "type": 0,
-      "value": "Container Apps Operator"
+      "value": "Container Apps 운영자"
     }
   ],
   "/dxZCE": [
     {
       "type": 0,
-      "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
+      "value": "에이전트가 자치 모드에 있습니다. 에이전트가 리소스에 대한 정보를 구축하려면 다음 권한이 필요합니다. 에이전트는 이러한 권한 중 일부를 사용하여 요청에 따라 자율적으로 쓰기 작업을 수행합니다."
     }
   ],
   "/gCtdO": [
     {
       "type": 0,
-      "value": "Manage Custom Vision projects."
+      "value": "Custom Vision 프로젝트를 관리합니다."
     }
   ],
   "/wY7pG": [
     {
       "type": 0,
-      "value": "PostgreSQL Servers"
+      "value": "PostgreSQL 서버"
     }
   ],
   "/ytgXm": [
-    {
-      "type": 0,
-      "value": "Remove "
-    },
     {
       "type": 1,
       "value": "columnName"
     },
     {
       "type": 0,
-      "value": " filter"
+      "value": " 필터 제거"
     }
   ],
   "/zFP1/": [
@@ -124,7 +120,7 @@
   "01lT1B": [
     {
       "type": 0,
-      "value": "Lets you read, enable and disable logic app."
+      "value": "Logic Apps을 읽을 수 있으며 사용하거나 사용하지 않도록 설정할 수 있습니다."
     }
   ],
   "01sZoP": [
@@ -134,7 +130,7 @@
     },
     {
       "type": 0,
-      "value": " of "
+      "value": " / "
     },
     {
       "type": 1,
@@ -144,7 +140,7 @@
   "0Dhe75": [
     {
       "type": 0,
-      "value": "Manage SQL servers and their security policies."
+      "value": "SQL 서버 및 해당 보안 정책을 관리합니다."
     }
   ],
   "0oLj/t": [
@@ -156,7 +152,7 @@
   "0te2Ra": [
     {
       "type": 0,
-      "value": "Manage Azure Data Factory instances."
+      "value": "Azure Data Factory 인스턴스를 관리합니다."
     }
   ],
   "1Lx9q5": [
@@ -168,49 +164,49 @@
   "1YPTmM": [
     {
       "type": 0,
-      "value": "Web Plan Contributor"
+      "value": "웹 플랜 기여자"
     }
   ],
   "1ZgrhW": [
     {
       "type": 0,
-      "value": "Role"
+      "value": "역할"
     }
   ],
   "1myzs4": [
     {
       "type": 0,
-      "value": "PostgreSQL Flexible Servers"
+      "value": "PostgreSQL 유연한 서버"
     }
   ],
   "1t2BaF": [
     {
       "type": 0,
-      "value": "Geneva actions configuration"
+      "value": "Geneva 작업 구성"
     }
   ],
   "2/2yg+": [
     {
       "type": 0,
-      "value": "Add"
+      "value": "추가"
     }
   ],
   "2GuZPR": [
     {
       "type": 0,
-      "value": "Portal feedback"
+      "value": "포털 피드백"
     }
   ],
   "2LQx4N": [
     {
       "type": 0,
-      "value": "Manage App Configuration stores."
+      "value": "App Configuration 저장소를 관리합니다."
     }
   ],
   "2PnnDB": [
     {
       "type": 0,
-      "value": "Manage IoT Hub device registry."
+      "value": "IoT Hub 디바이스 레지스트리를 관리합니다."
     }
   ],
   "2do8JC": [
@@ -222,7 +218,13 @@
   "2xRon3": [
     {
       "type": 0,
-      "value": "Select resource groups dialog"
+      "value": "리소스 그룹 선택 대화 상자 선택"
+    }
+  ],
+  "3IKub9": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred"
     }
   ],
   "3cc4Ct": [
@@ -234,37 +236,37 @@
   "3nhWFW": [
     {
       "type": 0,
-      "value": "Reader"
+      "value": "뷰어"
     }
   ],
   "3t/IhV": [
     {
       "type": 0,
-      "value": "Can view cost data and configuration (e.g. budgets, exports)."
+      "value": "비용 데이터 및 구성(예: 예산, 내보내기)을 볼 수 있습니다."
     }
   ],
   "3tJfza": [
     {
       "type": 0,
-      "value": "The agent has permissions to take approved actions on resources and resource types detected in its assigned resource groups."
+      "value": "에이전트에는 할당된 리소스 그룹에서 검색된 리소스 및 리소스 유형에 대해 승인된 작업을 수행할 수 있는 권한이 있습니다."
     }
   ],
   "3zLsNR": [
     {
       "type": 0,
-      "value": "Manage websites, but not web plans. Does not allow you to assign roles."
+      "value": "웹 사이트를 관리하지만 웹 계획은 관리하지 않습니다. 역할을 할당할 수 없습니다."
     }
   ],
   "43mD/Y": [
     {
       "type": 0,
-      "value": "Storage Blob Containers"
+      "value": "Storage Blob 컨테이너"
     }
   ],
   "450Fty": [
     {
       "type": 0,
-      "value": "None"
+      "value": "없음"
     }
   ],
   "456ixe": [
@@ -276,19 +278,19 @@
   "47FYwb": [
     {
       "type": 0,
-      "value": "Cancel"
+      "value": "취소"
     }
   ],
   "4MeTpL": [
     {
       "type": 0,
-      "value": "Workbook Contributor"
+      "value": "통합 문서 기여자"
     }
   ],
   "4TnjxL": [
     {
       "type": 0,
-      "value": "API Management Service Reader Role"
+      "value": "API Management 서비스 독자 역할"
     }
   ],
   "4USxEK": [
@@ -300,13 +302,13 @@
   "4ii5zj": [
     {
       "type": 0,
-      "value": "Allows for read access to Azure Storage blob containers and data."
+      "value": "Azure Storage Blob 컨테이너 및 데이터에 대한 읽기 액세스를 허용합니다."
     }
   ],
   "4kCXiz": [
     {
       "type": 0,
-      "value": "List cluster admin credential action."
+      "value": "클러스터 관리 자격 증명 작업을 나열합니다."
     }
   ],
   "556JQK": [
@@ -318,43 +320,43 @@
   "5M+hLZ": [
     {
       "type": 0,
-      "value": "User permissions"
+      "value": "사용자 권한"
     }
   ],
   "5Sc5rT": [
     {
       "type": 0,
-      "value": "IoT Hub Twin Contributor"
+      "value": "IoT Hub 트윈 기여자"
     }
   ],
   "5UUKxL": [
     {
       "type": 0,
-      "value": "Storage Accounts"
+      "value": "스토리지 계정"
     }
   ],
   "5UfRjw": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Contributor"
+      "value": "디바이스 프로비저닝 서비스 데이터 기여자"
     }
   ],
   "5V+Txp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster User Role"
+      "value": "Azure Kubernetes Service 클러스터 사용자 역할"
     }
   ],
   "5WK7jL": [
     {
       "type": 0,
-      "value": "Create new"
+      "value": "새로 만들기"
     }
   ],
   "5j5HnL": [
     {
       "type": 0,
-      "value": "Editor to filter the results by column value. "
+      "value": "열을 기준으로 결과를 필터링하는 편집기입니다. "
     },
     {
       "type": 1,
@@ -376,13 +378,13 @@
   "5wGcN7": [
     {
       "type": 0,
-      "value": "Cost Management Reader"
+      "value": "Cost Management 읽기 권한자"
     }
   ],
   "64zSh3": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Writer"
+      "value": "Cognitive Services LUIS 작성기"
     }
   ],
   "69g7If": [
@@ -394,31 +396,31 @@
   "6B5Jtu": [
     {
       "type": 0,
-      "value": "This field is required."
+      "value": "필수 입력 필드입니다."
     }
   ],
   "6YXj/s": [
     {
       "type": 0,
-      "value": "Contribute to Speech service resources."
+      "value": "Speech Service 리소스에 기여합니다."
     }
   ],
   "6zUWZ/": [
     {
       "type": 0,
-      "value": "Read all monitoring data and edit monitoring settings."
+      "value": "모든 모니터링 데이터를 읽고 모니터링 설정을 편집합니다."
     }
   ],
   "7+b0J0": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Contributor"
+      "value": "Cognitive Services Custom Vision 기여자"
     }
   ],
   "75IWbW": [
     {
       "type": 0,
-      "value": "Deployment to this resource group will be blocked by policy: {field} not allowed. Policy Assignment ID: "
+      "value": "{field} 허용 안 함 정책에 의해 이 리소스 그룹에 대한 배포가 차단됩니다. 정책 할당 ID: "
     },
     {
       "type": 1,
@@ -428,19 +430,19 @@
   "7N87nD": [
     {
       "type": 0,
-      "value": "Manage Device Provisioning Service data."
+      "value": "디바이스 프로비저닝 서비스 데이터를 관리합니다."
     }
   ],
   "87v+WY": [
     {
       "type": 0,
-      "value": "Full access to Azure Digital Twins data."
+      "value": "Azure Digital Twins 데이터에 대한 모든 권한입니다."
     }
   ],
   "8NHZQV": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Reader"
+      "value": "Cognitive Services 언어 읽기 권한자"
     }
   ],
   "8OCpdQ": [
@@ -467,13 +469,13 @@
   "8aHHLj": [
     {
       "type": 0,
-      "value": "Read-only access to service and APIs."
+      "value": "서비스 및 API에 대한 읽기 전용 액세스."
     }
   ],
   "8nBFW4": [
     {
       "type": 0,
-      "value": "Redis Cache Contributor"
+      "value": "Redis Cache 기여자"
     }
   ],
   "8yyU6n": [
@@ -485,13 +487,13 @@
   "9+Ddtu": [
     {
       "type": 0,
-      "value": "Next"
+      "value": "다음"
     }
   ],
   "94Fg25": [
     {
       "type": 0,
-      "value": "Select all"
+      "value": "모두 선택"
     }
   ],
   "9M3sYh": [
@@ -503,37 +505,37 @@
   "ABo5XY": [
     {
       "type": 0,
-      "value": "DocumentDB Account Contributor"
+      "value": "DocumentDB 계정 기여자"
     }
   ],
   "ASEuj4": [
     {
       "type": 0,
-      "value": "Denied by policy"
+      "value": "정책에 의해 거부됨"
     }
   ],
   "AVMCsG": [
     {
       "type": 0,
-      "value": "Machine Learning Workspaces"
+      "value": "Machine Learning 작업 영역"
     }
   ],
   "Ab4TgE": [
     {
       "type": 0,
-      "value": "Agent permissions and roles table"
+      "value": "에이전트 권한 및 역할 테이블"
     }
   ],
   "AeWmvh": [
     {
       "type": 0,
-      "value": "Lets you manage virtual machines, but not access to them, and not the virtual network or storage account they are connected to."
+      "value": "가상 컴퓨터를 관리할 수 있지만 가상 컴퓨터나 가상 컴퓨터가 연결된 가상 네트워크 또는 저장소 계정에 액세스할 수는 없습니다."
     }
   ],
   "AhdXRl": [
     {
       "type": 0,
-      "value": "Max agent count"
+      "value": "최대 에이전트 수"
     }
   ],
   "Avsnjl": [
@@ -545,55 +547,55 @@
   "B6aNdQ": [
     {
       "type": 0,
-      "value": "The name must begin and end with a lowercase letter, and contain only lowercase letters, numbers, and hyphens. It cannot contain consecutive hyphens."
+      "value": "이름은 소문자로 시작하고 끝나야 하며 소문자, 숫자 및 하이픈만 포함해야 합니다. 연속 하이픈을 포함할 수 없습니다."
     }
   ],
   "BKSv0l": [
     {
       "type": 0,
-      "value": "Azure Center for SAP solutions reader"
+      "value": "Azure Center for SAP solutions 뷰어"
     }
   ],
   "Bcx/Gz": [
     {
       "type": 0,
-      "value": "List cluster user credential action."
+      "value": "클러스터 사용자 자격 증명 작업을 나열합니다."
     }
   ],
   "C0ZRdE": [
     {
       "type": 0,
-      "value": "The agent has read-only permissions on the resource groups it manages. It takes the user's permissions temporarily for approved actions."
+      "value": "에이전트가 관리하는 리소스 그룹에 대한 읽기 전용 권한이 에이전트에 있습니다. 승인된 작업에 대한 사용자의 권한을 일시적으로 사용합니다."
     }
   ],
   "C3PGqj": [
     {
       "type": 0,
-      "value": "Logic App Contributor"
+      "value": "Logic Apps 기여자"
     }
   ],
   "C8z3QQ": [
     {
       "type": 0,
-      "value": "Data Factories"
+      "value": "데이터 팩터리"
     }
   ],
   "CFJ1OD": [
     {
       "type": 0,
-      "value": "Read-only role for Digital Twins data-plane properties."
+      "value": "Digital Twins 데이터 평면 속성에 대한 읽기 전용 역할."
     }
   ],
   "CMaDRa": [
     {
       "type": 0,
-      "value": "Write access to Language service resources."
+      "value": "언어 서비스 리소스에 대한 쓰기 권한입니다."
     }
   ],
   "CfGC/2": [
     {
       "type": 0,
-      "value": "Select resource groups to monitor"
+      "value": "모니터링할 리소스 그룹을 선택하세요."
     }
   ],
   "Ch3IdZ": [
@@ -605,7 +607,7 @@
   "CrmeG3": [
     {
       "type": 0,
-      "value": "This resource group contains resources supported by SRE Agent"
+      "value": "이 리소스 그룹에는 SRE 에이전트에서 지원하는 리소스가 포함되어 있습니다."
     }
   ],
   "D3idYv": [
@@ -617,7 +619,7 @@
   "DdD2hE": [
     {
       "type": 0,
-      "value": "Filter items..."
+      "value": "항목 필터링..."
     }
   ],
   "DdnNXo": [
@@ -629,31 +631,31 @@
   "Dff3ms": [
     {
       "type": 0,
-      "value": "Cognitive Services Contributor"
+      "value": "Cognitive Services 기여자"
     }
   ],
   "Dx3Xj3": [
     {
       "type": 0,
-      "value": "Let's you read and test a KB only."
+      "value": "KB만 읽고 테스트할 수 있습니다."
     }
   ],
   "ENnkRe": [
     {
       "type": 0,
-      "value": "Grants permission for read operations for App Configuration resources."
+      "value": "App Configuration 리소스에 대한 읽기 작업에 대한 권한을 부여합니다."
     }
   ],
   "EWw/tK": [
     {
       "type": 0,
-      "value": "Apply"
+      "value": "적용"
     }
   ],
   "EdEthU": [
     {
       "type": 0,
-      "value": "API Management Workspace Contributor"
+      "value": "API Management 작업 영역 기여자"
     }
   ],
   "Erci0g": [
@@ -665,19 +667,19 @@
   "FqRdvb": [
     {
       "type": 0,
-      "value": "AKS Clusters"
+      "value": "AKS 클러스터"
     }
   ],
   "G1xeUt": [
     {
       "type": 0,
-      "value": "Approval Required"
+      "value": "승인 필요"
     }
   ],
   "G7yB8N": [
     {
       "type": 0,
-      "value": "Registration failed"
+      "value": "등록 실패"
     }
   ],
   "GBnvl1": [
@@ -703,19 +705,19 @@
   "GWson9": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have deny assignments that prevent deployments."
+      "value": "선택한 리소스 그룹 중 일부에는 배포를 방지하는 거부 할당이 있습니다."
     }
   ],
   "GmzN3r": [
     {
       "type": 0,
-      "value": "We were unable to register the Microsoft.App RP due to a lack of permissions which may cause your deployment to fail. Ensure that you have Contributor permissions to this subscription or have your subscription administrator register the RP for you."
+      "value": "권한 부족으로 인해 Microsoft.App RP를 등록하지 못했으며 배포가 실패할 수 있습니다. 이 구독에 대한 기여자 권한이 있거나 구독 관리자가 RP를 등록해야 합니다."
     }
   ],
   "GoSIa4": [
     {
       "type": 0,
-      "value": "Minimal permission to view Cognitive Services usages."
+      "value": "Cognitive Services 사용량을 볼 수 있는 최소 권한입니다."
     }
   ],
   "H/i1A+": [
@@ -727,7 +729,7 @@
   "H3ooTI": [
     {
       "type": 0,
-      "value": "Azure Service Bus Data Owner"
+      "value": "Azure Service Bus 데이터 소유자"
     }
   ],
   "HAlOn1": [
@@ -739,13 +741,13 @@
   "HCDcpW": [
     {
       "type": 0,
-      "value": "Workbooks"
+      "value": "통합 문서"
     }
   ],
   "HQhDfV": [
     {
       "type": 0,
-      "value": "Cognitive Services OpenAI Contributor"
+      "value": "Cognitive Services OpenAI 기여자"
     }
   ],
   "He4/qi": [
@@ -763,25 +765,25 @@
   "IEFW3Y": [
     {
       "type": 0,
-      "value": "App Configuration Contributor"
+      "value": "App Configuration 기여자"
     }
   ],
   "IQaKwH": [
     {
       "type": 0,
-      "value": "Lets you read Cognitive Services data."
+      "value": "Cognitive Services 데이터를 읽을 수 있습니다."
     }
   ],
   "If+Q1B": [
     {
       "type": 0,
-      "value": "A resource group with this name already exists in the selected subscription."
+      "value": "이름의 리소스 그룹이 선택한 구독에 이미 있습니다."
     }
   ],
   "KAYpG9": [
     {
       "type": 0,
-      "value": "Allows for full read access to IoT Hub data-plane properties."
+      "value": "IoT Hub 데이터 평면 속성에 대한 모든 읽기 권한을 허용합니다."
     }
   ],
   "KJGQ1f": [
@@ -799,19 +801,19 @@
   "Kg6ebk": [
     {
       "type": 0,
-      "value": "Toggle to show only recommended resource groups"
+      "value": "권장 리소스 그룹만 표시하도록 설정/해제"
     }
   ],
   "KzMCPo": [
     {
       "type": 0,
-      "value": "Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries."
+      "value": "모든 리소스를 관리할 수 있는 모든 권한을 부여하지만 Azure RBAC에서 역할 할당, Azure Blueprints에서 할당 관리 또는 이미지 갤러리 공유를 허용하지 않습니다."
     }
   ],
   "L31yBb": [
     {
       "type": 0,
-      "value": "Function Apps"
+      "value": "함수 앱"
     }
   ],
   "LOghU6": [
@@ -823,19 +825,19 @@
   "LSaaxU": [
     {
       "type": 0,
-      "value": "View all resources, but does not allow you to make any changes."
+      "value": "모든 리소스를 볼 수 있지만 변경할 수는 없습니다."
     }
   ],
   "LkSPVW": [
     {
       "type": 0,
-      "value": "Select an existing resource group"
+      "value": "기존 리소스 그룹 선택"
     }
   ],
   "LrnSHG": [
     {
       "type": 0,
-      "value": "Select a subscription"
+      "value": "구독 선택"
     }
   ],
   "LupnQU": [
@@ -862,13 +864,13 @@
   "Mnvpbx": [
     {
       "type": 0,
-      "value": "Full management of Container Apps, including creation, deletion, and updates."
+      "value": "만들기, 삭제 및 업데이트를 비롯한 Container Apps의 전체 관리"
     }
   ],
   "NAAdaF": [
     {
       "type": 0,
-      "value": "This role provides read access to all capabilities of Azure Center for SAP solutions."
+      "value": "이 역할은 Azure Center for SAP solutions의 모든 기능에 대한 읽기 액세스를 제공합니다."
     }
   ],
   "NAidKb": [
@@ -880,7 +882,7 @@
   "NCTGGm": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "SRE 에이전트 "
     },
     {
       "type": 1,
@@ -888,37 +890,37 @@
     },
     {
       "type": 0,
-      "value": " creation validation succeeded"
+      "value": " 만들기 유효성 검사에 성공했습니다."
     }
   ],
   "ND2EUR": [
     {
       "type": 0,
-      "value": "Storage Blob Data Contributor"
+      "value": "Storage Blob 데이터 Contributor"
     }
   ],
   "NcxGiD": [
     {
       "type": 0,
-      "value": "HDInsight on AKS Cluster Admin"
+      "value": "AKS 클러스터 관리자의 HDInsight"
     }
   ],
   "Ngsqgf": [
     {
       "type": 0,
-      "value": "Resource groups list"
+      "value": "리소스 그룹 목록"
     }
   ],
   "Nrc9ba": [
     {
       "type": 0,
-      "value": "Thank you for your feedback!"
+      "value": "피드백을 보내 주셔서 감사합니다."
     }
   ],
   "OJ2u8k": [
     {
       "type": 0,
-      "value": "Enter name"
+      "value": "이름 입력"
     }
   ],
   "ORGv1Q": [
@@ -930,7 +932,7 @@
   "OTGHHm": [
     {
       "type": 0,
-      "value": "The resources you picked have permissions for these roles."
+      "value": "선택한 리소스에는 이러한 역할에 대한 권한이 있습니다."
     }
   ],
   "OjYIuI": [
@@ -942,13 +944,13 @@
   "Oom2N7": [
     {
       "type": 0,
-      "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
+      "value": "모든 모니터링 데이터를 보고 검색할 수 있으며, 모든 Azure 리소스에 대한 Azure Diagnostics 구성 보기 등 모니터링 설정도 확인할 수 있습니다."
     }
   ],
   "OsTw6c": [
     {
       "type": 0,
-      "value": "Validating SRE Agent creation"
+      "value": "SRE 에이전트 만들기 유효성 검사"
     }
   ],
   "P/DTRU": [
@@ -960,67 +962,67 @@
   "P3qxV2": [
     {
       "type": 0,
-      "value": "Search Service Contributor"
+      "value": "Search Service 기여자"
     }
   ],
   "P9odAr": [
     {
       "type": 0,
-      "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
+      "value": "에이전트가 읽기 전용 모드에 있습니다. 에이전트가 리소스에 대한 정보를 구축하려면 다음 권한이 필요합니다. 특정 서비스에 대한 기여자 역할은 쓰기 작업을 수행하는 데 사용되지 않습니다."
     }
   ],
   "PXg8+x": [
     {
       "type": 0,
-      "value": "Virtual Machine Contributor"
+      "value": "가상 머신 기여자"
     }
   ],
   "Phji5P": [
     {
       "type": 0,
-      "value": "Edit Healthcare APIs agent configurations."
+      "value": "의료 API 에이전트 구성을 편집합니다."
     }
   ],
   "PrFU82": [
     {
       "type": 0,
-      "value": "Can read all monitoring data and update monitoring settings."
+      "value": "모든 모니터링 데이터를 읽고 모니터링 설정을 업데이트할 수 있습니다."
     }
   ],
   "Pwen/L": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Reader"
+      "value": "Cognitive Services LUIS 읽기 권한자"
     }
   ],
   "Q3p3sz": [
     {
       "type": 0,
-      "value": "Storage Blob Data Reader"
+      "value": "Storage Blob 데이터 Reader"
     }
   ],
   "Q8Qw5B": [
     {
       "type": 0,
-      "value": "Description"
+      "value": "설명"
     }
   ],
   "QIY3dQ": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Owner"
+      "value": "Azure Digital Twins 데이터 소유자"
     }
   ],
   "Qly58H": [
     {
       "type": 0,
-      "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+      "value": "에이전트에 부여할 역할 및 권한을 보려면 에이전트에서 관리할 리소스 그룹을 선택합니다."
     }
   ],
   "QwVQbw": [
     {
       "type": 0,
-      "value": "Failed to register Microsoft.App RP for SRE Agent "
+      "value": "SRE 에이전트 "
     },
     {
       "type": 1,
@@ -1028,13 +1030,13 @@
     },
     {
       "type": 0,
-      "value": " creation. Please ensure you have Contributor permissions on the subscription or contact your subscription administrator to register the RP for you."
+      "value": " 만들기에 대한 Microsoft.App RP를 등록하지 못했습니다. 구독에 대한 기여자 권한이 있는지 확인하거나 구독 관리자에게 문의하여 RP를 등록하세요."
     }
   ],
   "R+J5ox": [
     {
       "type": 0,
-      "value": "Review"
+      "value": "검토"
     }
   ],
   "R/6nsx": [
@@ -1046,7 +1048,7 @@
   "R1RX2a": [
     {
       "type": 0,
-      "value": "Full access to IoT Hub data."
+      "value": "IoT Hub 데이터에 대한 모든 권한입니다."
     }
   ],
   "RDwKyy": [
@@ -1058,7 +1060,7 @@
   "RStTJp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster Admin"
+      "value": "Azure Kubernetes Service 클러스터 관리자"
     }
   ],
   "RVf7gC": [
@@ -1070,7 +1072,7 @@
   "RrsyUh": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service RBAC Reader"
+      "value": "Azure Kubernetes Service RBAC 읽기 권한자"
     }
   ],
   "S8snIe": [
@@ -1082,7 +1084,7 @@
   "SCjiXP": [
     {
       "type": 0,
-      "value": "Cognitive Services Data Reader"
+      "value": "Cognitive Services 데이터 뷰어"
     }
   ],
   "SQJto2": [
@@ -1094,7 +1096,7 @@
   "Sr4IbA": [
     {
       "type": 0,
-      "value": "Monitoring Reader"
+      "value": "모니터링 읽기 권한자"
     }
   ],
   "SuVToZ": [
@@ -1106,19 +1108,19 @@
   "T5+AEf": [
     {
       "type": 0,
-      "value": "Logic App Operator"
+      "value": "Logic Apps 연산자"
     }
   ],
   "TAm7bB": [
     {
       "type": 0,
-      "value": "Monitoring Contributor"
+      "value": "모니터링 기여자"
     }
   ],
   "TB6bkn": [
     {
       "type": 0,
-      "value": "Get more info"
+      "value": "자세한 정보 보기"
     }
   ],
   "TDaF6J": [
@@ -1130,7 +1132,7 @@
   "TDoBlx": [
     {
       "type": 0,
-      "value": "Privileged"
+      "value": "권한 있음"
     }
   ],
   "TleXgd": [
@@ -1148,7 +1150,7 @@
   "U5+MBC": [
     {
       "type": 0,
-      "value": "Client ID"
+      "value": "클라이언트 ID"
     }
   ],
   "UQUIP7": [
@@ -1166,13 +1168,13 @@
   "UZS12+": [
     {
       "type": 0,
-      "value": "Has read-only access to entities in the workspace. This role should be assigned on the workspace scope."
+      "value": "작업 영역의 엔터티에 대한 읽기 전용 액세스 권한이 있습니다. 이 역할은 작업 영역 범위에 할당되어야 합니다."
     }
   ],
   "UoL653": [
     {
       "type": 0,
-      "value": "Show only recommended"
+      "value": "권장만 표시"
     }
   ],
   "UrGI9K": [
@@ -1183,36 +1185,36 @@
   ],
   "UuzObe": [
     {
-      "type": 0,
-      "value": "Failed to setup Managed Identity with the error: "
-    },
-    {
       "type": 1,
       "value": "error"
+    },
+    {
+      "type": 0,
+      "value": " 오류로 관리 ID를 설정하지 못했습니다."
     }
   ],
   "V/rQci": [
     {
       "type": 0,
-      "value": "Managed resource groups table"
+      "value": "관리되는 리소스 그룹 테이블"
     }
   ],
   "VlBNux": [
     {
       "type": 0,
-      "value": "Application Insights Component Contributor"
+      "value": "Application Insights 구성 요소 참가자"
     }
   ],
   "VssvTa": [
     {
       "type": 0,
-      "value": "Invalid template or unable to fetch the template."
+      "value": "템플릿이 잘못되었거나 템플릿을 가져올 수 없습니다."
     }
   ],
   "VzzYJk": [
     {
       "type": 0,
-      "value": "Create"
+      "value": "만들기"
     }
   ],
   "W/V6+Y": [
@@ -1230,7 +1232,7 @@
   "WE+M5j": [
     {
       "type": 0,
-      "value": "Failed to load SRE Agent locations. Please try again later."
+      "value": "SRE 에이전트 위치를 로드하지 못했습니다. 나중에 다시 시도하세요."
     }
   ],
   "WFo96A": [
@@ -1242,13 +1244,13 @@
   "WLw9E7": [
     {
       "type": 0,
-      "value": "PostgreSQL Flexible Server Long Term Retention Backup Role"
+      "value": "PostgreSQL 유연한 서버 장기 보존 백업 역할"
     }
   ],
   "WODKUB": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "SRE 에이전트 "
     },
     {
       "type": 1,
@@ -1256,79 +1258,83 @@
     },
     {
       "type": 0,
-      "value": " creation succeeded"
+      "value": " 만들기에 성공했습니다."
     }
   ],
   "Wc5b/J": [
     {
       "type": 0,
-      "value": "AzureML Compute Operator"
+      "value": "AzureML Compute 운영자"
     }
   ],
   "Wf6bDe": [
     {
       "type": 0,
-      "value": "Agent details"
+      "value": "에이전트 세부 정보"
     }
   ],
   "WlHVBb": [
     {
       "type": 0,
-      "value": "Log Analytics Workspaces"
+      "value": "Log Analytics 작업 영역"
     }
   ],
   "Wtf3vL": [
     {
       "type": 0,
-      "value": "Data Factory Contributor"
+      "value": "Data Factory 기여자"
     }
   ],
   "WygVDv": [
     {
       "type": 0,
-      "value": "Administer HDInsight cluster pools."
+      "value": "HDInsight 클러스터 풀을 관리합니다."
     }
   ],
   "X0e0bZ": [
     {
       "type": 0,
-      "value": "SQL Managed Instances"
+      "value": "SQL Managed Instance"
     }
   ],
   "XJ+Lww": [
     {
       "type": 0,
-      "value": "Lets you read and modify HDInsight cluster configurations."
+      "value": "HDInsight 클러스터 구성을 읽고 수정할 수 있습니다."
     }
   ],
   "XYSJsS": [
     {
       "type": 0,
-      "value": "API Management Workspace Reader"
+      "value": "API Management 작업 영역 뷰어"
     }
   ],
   "Xh85Ml": [
     {
       "type": 0,
-      "value": "Current agent count"
+      "value": "현재 에이전트 수"
     }
   ],
   "XtnlO8": [
     {
       "type": 0,
-      "value": "Manage long-term retention backups for PostgreSQL Flexible Server."
+      "value": "PostgreSQL 유연한 서버에 대한 장기 보존 백업을 관리합니다."
     }
   ],
   "Y2QRpS": [
     {
       "type": 0,
-      "value": "equals"
+      "value": "같음"
     }
   ],
   "YYWhEp": [
     {
+      "type": 1,
+      "value": "error"
+    },
+    {
       "type": 0,
-      "value": "Failed to create the SRE agent "
+      "value": " 오류로 SRE 에이전트 "
     },
     {
       "type": 1,
@@ -1336,71 +1342,73 @@
     },
     {
       "type": 0,
-      "value": " with the error: "
-    },
-    {
-      "type": 1,
-      "value": "error"
+      "value": "을(를) 만들지 못했습니다."
     }
   ],
   "YYx7ap": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have a read only lock on the resource group."
+      "value": "선택한 리소스 그룹 중 일부에는 리소스 그룹에 대한 읽기 전용 잠금이 있습니다."
     }
   ],
   "YZIFAO": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service RBAC Cluster Admin"
+      "value": "Azure Kubernetes Service RBAC 클러스터 관리자"
     }
   ],
   "Yk6Co7": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Reader"
+      "value": "Cognitive Services QnA Maker 읽기 권한자"
     }
   ],
   "Yp7NCi": [
     {
       "type": 0,
-      "value": "Azure Center for SAP solutions administrator"
+      "value": "Azure Center for SAP solutions 관리자"
     }
   ],
   "Z2WgoK": [
     {
       "type": 0,
-      "value": "Authentication mode"
+      "value": "인증 모드"
     }
   ],
   "Z7Aj91": [
     {
       "type": 0,
-      "value": "Manage Azure Monitor workbooks."
+      "value": "Azure Monitor 통합 문서를 관리합니다."
     }
   ],
   "ZNMCbm": [
     {
       "type": 0,
-      "value": "Manage Logic Apps."
+      "value": "Logic App를 관리합니다."
     }
   ],
   "ZsLOg3": [
     {
       "type": 0,
-      "value": "Manage Azure OpenAI resources."
+      "value": "Azure OpenAI 리소스를 관리합니다."
     }
   ],
   "a5msuh": [
     {
       "type": 0,
-      "value": "Yes"
+      "value": "예"
     }
   ],
   "aGL+Qo": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under LUIS."
+      "value": "LUIS에서 읽기 및 테스트 함수에 액세스할 수 있습니다."
+    }
+  ],
+  "aIRWQB": [
+    {
+      "type": 0,
+      "value": "Back to home"
     }
   ],
   "aLBTVj": [
@@ -1427,31 +1435,31 @@
   "aqNZbD": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Writer"
+      "value": "Cognitive Services 언어 작성기"
     }
   ],
   "arLfuy": [
     {
       "type": 0,
-      "value": "Chat with agent"
+      "value": "에이전트와 채팅"
     }
   ],
   "axbDHG": [
     {
       "type": 0,
-      "value": "You can choose a maximum of 100 resource groups that the agent will manage."
+      "value": "에이전트에서 관리할 최대 100개의 리소스 그룹을 선택할 수 있습니다."
     }
   ],
   "b43a5F": [
     {
       "type": 0,
-      "value": "SAP Virtual Instances"
+      "value": "SAP 가상 인스턴스"
     }
   ],
   "bN0x+w": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Reader"
+      "value": "디바이스 프로비전 서비스 데이터 읽기 권한자"
     }
   ],
   "bPyOFk": [
@@ -1463,7 +1471,7 @@
   "bXkiU5": [
     {
       "type": 0,
-      "value": "SQL Databases"
+      "value": "SQL 데이터베이스"
     }
   ],
   "bxv59V": [
@@ -1475,31 +1483,31 @@
   "c1EiBR": [
     {
       "type": 0,
-      "value": "Cognitive Services Usages Reader"
+      "value": "Cognitive Services 사용량 뷰어"
     }
   ],
   "cRTR/A": [
     {
       "type": 0,
-      "value": "Write access to LUIS applications."
+      "value": "LUIS 애플리케이션에 대한 쓰기 권한입니다."
     }
   ],
   "cTzjJg": [
     {
       "type": 0,
-      "value": "Storage Account Contributor"
+      "value": "스토리지 계정 기여자"
     }
   ],
   "ceCESY": [
     {
       "type": 0,
-      "value": "An agent with this name already exists in the selected resource group."
+      "value": "이 이름을 사용하는 에이전트가 이미 선택한 리소스 그룹에 존재합니다."
     }
   ],
   "ciB+oy": [
     {
       "type": 0,
-      "value": "Operate Azure Machine Learning compute resources."
+      "value": "Azure Machine Learning 컴퓨팅 리소스를 작동합니다."
     }
   ],
   "cmUVb9": [
@@ -1511,13 +1519,13 @@
   "ctcA0c": [
     {
       "type": 0,
-      "value": "Agent name"
+      "value": "에이전트 이름"
     }
   ],
   "cyR7Kh": [
     {
       "type": 0,
-      "value": "Back"
+      "value": "뒤로"
     }
   ],
   "czVHN2": [
@@ -1529,13 +1537,13 @@
   "d2GmfJ": [
     {
       "type": 0,
-      "value": "Manage API Management workspaces."
+      "value": "API Management 작업 영역을 관리합니다."
     }
   ],
   "d8dECB": [
     {
       "type": 0,
-      "value": "IoT Hub Data Reader"
+      "value": "IoT Hub 데이터 읽기 권한자"
     }
   ],
   "dDk23i": [
@@ -1545,49 +1553,49 @@
     },
     {
       "type": 0,
-      "value": " options"
+      "value": " 옵션"
     }
   ],
   "dHVUaP": [
     {
       "type": 0,
-      "value": "Positive"
+      "value": "긍정적"
     }
   ],
   "dKhdkO": [
     {
       "type": 0,
-      "value": "Select up to 100 resource groups to monitor"
+      "value": "모니터링할 리소스 그룹을 최대 100개까지 선택합니다."
     }
   ],
   "dQ5/dh": [
     {
       "type": 0,
-      "value": "Allows for full read access to Device Provisioning Service data-plane properties."
+      "value": "디바이스 프로비전 서비스 데이터 평면 속성에 대한 전체 읽기 액세스를 허용합니다."
     }
   ],
   "dR8VUW": [
     {
       "type": 0,
-      "value": "Manage API Management services."
+      "value": "API Management 서비스를 관리합니다."
     }
   ],
   "e0a3XV": [
     {
       "type": 0,
-      "value": "Log Analytics Contributor"
+      "value": "Log Analytics 기여자"
     }
   ],
   "e3itcX": [
     {
       "type": 0,
-      "value": "Device Update Administrator"
+      "value": "디바이스 업데이트 관리자"
     }
   ],
   "eBvTo6": [
     {
       "type": 0,
-      "value": "Read-only actions in the project. Readers can't create or update the project."
+      "value": "프로젝트의 읽기 전용 작업입니다. 읽기 권한자는 프로젝트를 만들거나 업데이트할 수 없습니다."
     }
   ],
   "eHNXXp": [
@@ -1599,13 +1607,13 @@
   "eKpamp": [
     {
       "type": 0,
-      "value": "Template error"
+      "value": "템플릿 오류"
     }
   ],
   "ecG+OD": [
     {
       "type": 0,
-      "value": "Manage Azure Search services."
+      "value": "Azure Search 서비스를 관리합니다."
     }
   ],
   "egr0Oj": [
@@ -1615,19 +1623,19 @@
     },
     {
       "type": 0,
-      "value": " resource groups selected"
+      "value": " 리소스 그룹 선택됨"
     }
   ],
   "fFyuVF": [
     {
       "type": 0,
-      "value": "Cognitive Services Speech Contributor"
+      "value": "Cognitive Services 음성 기여자"
     }
   ],
   "fIp46f": [
     {
       "type": 0,
-      "value": "Read only lock"
+      "value": "읽기 전용 잠금"
     }
   ],
   "fSFDgd": [
@@ -1645,7 +1653,7 @@
   "ftfFhS": [
     {
       "type": 0,
-      "value": "Select resource groups"
+      "value": "리소스 그룹 선택"
     }
   ],
   "g82HU6": [
@@ -1657,19 +1665,19 @@
   "gC4xMY": [
     {
       "type": 0,
-      "value": "Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces."
+      "value": "네임스페이스에 있는 대부분의 개체를 볼 수 있는 읽기 전용 권한을 허용합니다. 역할 또는 역할 바인딩을 볼 수는 없습니다. 해당 역할은 비밀을 읽을 수 없습니다. 비밀의 내용을 읽으면 네임스페이스의 ServiceAccount 자격 증명에 액세스할 수 있게 되므로 네임스페이스의 ServiceAccount로 API 액세스가 허용될 수 있기 때문입니다(일종의 권한 상승). 클러스터 범위에 이 역할을 적용하면 모든 네임스페이스에서 액세스 권한이 부여됩니다."
     }
   ],
   "gZ5fZs": [
     {
       "type": 0,
-      "value": "Manage IoT Hub device twins."
+      "value": "IoT Hub 디바이스 쌍을 관리합니다."
     }
   ],
   "gn/nvJ": [
     {
       "type": 0,
-      "value": "Read, logstream and exec into Container Apps."
+      "value": "Container Apps로 읽고, 로그스트림하고, 실행합니다."
     }
   ],
   "gty4jJ": [
@@ -1681,55 +1689,55 @@
   "gzx/k1": [
     {
       "type": 0,
-      "value": "PostgreSQL Contributor"
+      "value": "PostgreSQL 기여자"
     }
   ],
   "hF5T80": [
     {
       "type": 0,
-      "value": "Administer Device Update accounts."
+      "value": "디바이스 업데이트 계정을 관리합니다."
     }
   ],
   "hGmeVK": [
     {
       "type": 0,
-      "value": "App Insights"
+      "value": "앱 인사이트"
     }
   ],
   "hO1Iog": [
     {
       "type": 0,
-      "value": "Manage without access."
+      "value": "액세스 권한 없이 관리합니다."
     }
   ],
   "hPj49L": [
     {
       "type": 0,
-      "value": "Workbook Reader"
+      "value": "통합 문서 읽기 권한자"
     }
   ],
   "hX5PAb": [
     {
       "type": 0,
-      "value": "No results found"
+      "value": "결과 없음"
     }
   ],
   "hfIdUs": [
     {
       "type": 0,
-      "value": "SQL DB Contributor"
+      "value": "SQL DB 기여자"
     }
   ],
   "hrdmcd": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Reader"
+      "value": "Azure Digital Twins 데이터 읽기 권한자"
     }
   ],
   "hswM/b": [
     {
       "type": 0,
-      "value": "Assign the agent a level of permissions for the resource groups it manages. The agent can still manage its assigned resources with Reader permissions."
+      "value": "에이전트가 관리하는 리소스 그룹에 대한 사용 권한 수준을 에이전트에 할당합니다. 에이전트는 여전히 읽기 권한으로 할당된 리소스를 관리할 수 있습니다."
     }
   ],
   "i50Kb0": [
@@ -1741,31 +1749,31 @@
   "i5OUQE": [
     {
       "type": 0,
-      "value": "Container Apps Contributor"
+      "value": "Container Apps 기여자"
     }
   ],
   "i6cLLM": [
     {
       "type": 0,
-      "value": "Perform data science tasks in Azure Machine Learning."
+      "value": "Azure Machine Learning에서 데이터 과학 작업을 수행하세요."
     }
   ],
   "iFsDVR": [
     {
       "type": 0,
-      "value": "Loading"
+      "value": "로드 중"
     }
   ],
   "iM9JZL": [
     {
       "type": 0,
-      "value": "Deny assignments"
+      "value": "거부 할당"
     }
   ],
   "itC9lG": [
     {
       "type": 0,
-      "value": "Basics"
+      "value": "기본"
     }
   ],
   "iv5NrP": [
@@ -1777,13 +1785,13 @@
   "ixb1SP": [
     {
       "type": 0,
-      "value": "Administer HDInsight clusters on AKS."
+      "value": "AKS에서 HDInsight 클러스터를 관리합니다."
     }
   ],
   "j5Yfyr": [
     {
       "type": 0,
-      "value": "Search Index Data Reader"
+      "value": "검색 인덱스 데이터 읽기 권한자"
     }
   ],
   "jEU2gk": [
@@ -1795,31 +1803,31 @@
   "jHJmjf": [
     {
       "type": 0,
-      "value": "No results"
+      "value": "결과 없음"
     }
   ],
   "jJE3xY": [
     {
       "type": 0,
-      "value": "Lets you manage the web plans for websites, but not access to them."
+      "value": "웹 사이트의 웹 계획을 관리할 수 있지만 액세스할 수는 없습니다."
     }
   ],
   "jjUD0v": [
     {
       "type": 0,
-      "value": "Resource group creation failed."
+      "value": "리소스 그룹을 만들지 못했습니다."
     }
   ],
   "jvo0vs": [
     {
       "type": 0,
-      "value": "Save"
+      "value": "저장"
     }
   ],
   "kVQ1fo": [
     {
       "type": 0,
-      "value": "Negative"
+      "value": "부정적"
     }
   ],
   "kbQZUj": [
@@ -1839,19 +1847,23 @@
   "kyVg+J": [
     {
       "type": 0,
-      "value": "Choose at least 1 resource group that you have Owner or User Access Administrator permissions on."
+      "value": "소유자 또는 사용자 액세스 관리자 권한이 있는 리소스 그룹을 하나 이상 선택하세요."
     }
   ],
   "l5sNim": [
     {
       "type": 0,
-      "value": "AzureML Data Scientist"
+      "value": "AzureML 데이터 과학자"
     }
   ],
   "lNehTG": [
     {
+      "type": 1,
+      "value": "error"
+    },
+    {
       "type": 0,
-      "value": "Failed to validate SRE Agent "
+      "value": " 오류로 SRE 에이전트 "
     },
     {
       "type": 1,
@@ -1859,17 +1871,13 @@
     },
     {
       "type": 0,
-      "value": " creation with the error: "
-    },
-    {
-      "type": 1,
-      "value": "error"
+      "value": " 만들기의 유효성을 검사하지 못했습니다."
     }
   ],
   "lcvC4k": [
     {
       "type": 0,
-      "value": "Validating SRE Agent "
+      "value": "SRE 에이전트 "
     },
     {
       "type": 1,
@@ -1877,7 +1885,7 @@
     },
     {
       "type": 0,
-      "value": " creation in progress"
+      "value": " 만들기의 유효성을 검사하는 중"
     }
   ],
   "lnaWo/": [
@@ -1889,31 +1897,31 @@
   "lvNWLS": [
     {
       "type": 0,
-      "value": "IoT Hub Registry Contributor"
+      "value": "IoT Hub 레지스트리 기여자"
     }
   ],
   "mAyw3x": [
     {
       "type": 0,
-      "value": "Edit QnA Maker knowledge bases."
+      "value": "QnA Maker 지식 기반을 편집합니다."
     }
   ],
   "mkhNnB": [
     {
       "type": 0,
-      "value": "Read and write Azure Monitor monitoring settings and data."
+      "value": "Azure Monitor 모니터링 설정과 데이터를 읽고 씁니다."
     }
   ],
   "n/e5Mg": [
     {
       "type": 0,
-      "value": "Allowed Actions"
+      "value": "허용된 작업:"
     }
   ],
   "nBPow3": [
     {
       "type": 0,
-      "value": "Lets you manage all resources in the cluster."
+      "value": "클러스터의 모든 리소스를 관리할 수 있습니다."
     }
   ],
   "nDyaq/": [
@@ -1929,13 +1937,13 @@
     },
     {
       "type": 0,
-      "value": " resource group selected"
+      "value": " 리소스 그룹 선택됨"
     }
   ],
   "nrAnZy": [
     {
       "type": 0,
-      "value": "Full access to Azure Service Bus data."
+      "value": "Azure Service Bus 데이터에 대한 모든 권한입니다."
     }
   ],
   "oHGFwy": [
@@ -1947,41 +1955,41 @@
   "oIiHqo": [
     {
       "type": 0,
-      "value": "Extension name"
+      "value": "확장 이름"
     }
   ],
   "oQ/TUW": [
     {
       "type": 0,
-      "value": "Cost Management Contributor"
+      "value": "Cost Management 기여자"
     }
   ],
   "oThNc4": [
     {
-      "type": 0,
-      "value": "Failed to setup Log Analytics Workspace with the error: "
-    },
-    {
       "type": 1,
       "value": "error"
+    },
+    {
+      "type": 0,
+      "value": " 오류로 Log Analytics 작업 영역을 설정하지 못했습니다."
     }
   ],
   "oUWADl": [
     {
       "type": 0,
-      "value": "No"
+      "value": "아니요"
     }
   ],
   "p/xAmY": [
     {
       "type": 0,
-      "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
+      "value": "에이전트가 검토 모드에 있습니다. 에이전트가 리소스에 대한 정보를 구축하려면 다음 권한이 필요합니다. 에이전트는 이러한 권한 중 일부를 사용하여 요청에 따라 승인으로 쓰기 작업을 수행합니다."
     }
   ],
   "p5T+zv": [
     {
       "type": 0,
-      "value": "Manage without access. Can't manage security policies or parent SQL servers."
+      "value": "액세스 권한 없이 관리합니다. 보안 정책 또는 부모 SQL 서버를 관리할 수 없습니다."
     }
   ],
   "p849eW": [
@@ -1993,37 +2001,37 @@
   "pAFuFx": [
     {
       "type": 0,
-      "value": "HDInsight on AKS Cluster Pool Admin"
+      "value": "AKS 클러스터 풀 관리자의 HDInsight"
     }
   ],
   "pDUFq5": [
     {
       "type": 0,
-      "value": "App Configuration Reader"
+      "value": "App Configuration 읽기 권한자"
     }
   ],
   "pM3DKw": [
     {
       "type": 0,
-      "value": "ACIS endpoint"
+      "value": "ACIS 엔드포인트"
     }
   ],
   "pMlVvA": [
     {
       "type": 0,
-      "value": "Search resource groups"
+      "value": "리소스 그룹 검색"
     }
   ],
   "pSfQh6": [
     {
       "type": 0,
-      "value": "Grants read access to Azure Cognitive Search index data."
+      "value": "Azure Cognitive Search 인덱스 데이터에 대한 읽기 권한을 부여합니다."
     }
   ],
   "pVF2EE": [
     {
       "type": 0,
-      "value": "We've started provisioning your SRE Agent "
+      "value": "선택한 리소스 그룹을 관리하기 위해 SRE 에이전트 "
     },
     {
       "type": 1,
@@ -2031,43 +2039,43 @@
     },
     {
       "type": 0,
-      "value": " to manage your selected resource groups."
+      "value": "을(를) 프로비전하기 시작했습니다."
     }
   ],
   "pW5vuU": [
     {
       "type": 0,
-      "value": "Resource group creation"
+      "value": "리소스 그룹 만들기"
     }
   ],
   "pqgzm0": [
     {
       "type": 0,
-      "value": "Manage Application Insights components."
+      "value": "Application Insights 구성 요소를 관리합니다."
     }
   ],
   "q7CVBv": [
     {
       "type": 0,
-      "value": "Loading resource types..."
+      "value": "리소스 유형을 로드하는 중..."
     }
   ],
   "qGXY+e": [
     {
       "type": 0,
-      "value": "Agent permissions"
+      "value": "에이전트 권한"
     }
   ],
   "r0gBch": [
     {
       "type": 0,
-      "value": "The subscription you have selected has not been registered to use SRE Agent. Please email us with your subscription ID on sreagentteam@microsoft.com for getting registered."
+      "value": "선택한 구독이 SRE 에이전트를 사용하도록 등록되지 않았습니다. 등록하려면 구독 ID를 이메일(sreagentteam@microsoft.com)로 보내주세요."
     }
   ],
   "rZaqtB": [
     {
       "type": 0,
-      "value": "API Management Service Contributor"
+      "value": "API Management 참가자"
     }
   ],
   "rbrahO": [
@@ -2079,13 +2087,13 @@
   "rjgOC5": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Editor"
+      "value": "Cognitive Services QnA Maker 편집기"
     }
   ],
   "ru0BPw": [
     {
       "type": 0,
-      "value": "Learn more about permissions for managed resource groups"
+      "value": "관리되는 리소스 그룹의 사용 권한에 대한 자세한 정보"
     }
   ],
   "s0xRD+": [
@@ -2097,7 +2105,7 @@
   "s2jhon": [
     {
       "type": 0,
-      "value": "Certificate SAN"
+      "value": "인증서 SAN"
     }
   ],
   "s7mQCK": [
@@ -2109,19 +2117,19 @@
   "sI+CCC": [
     {
       "type": 0,
-      "value": "Log Analytics Reader"
+      "value": "Log Analytics 읽기 권한자"
     }
   ],
   "sRU00i": [
     {
       "type": 0,
-      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
+      "value": "구독 간에 에이전트 관리 리소스 그룹을 할당하려면 해당 리소스 그룹에 대한 소유자 또는 사용자 액세스 관리자 권한이 필요합니다. 에이전트 리소스 및 관리되는 리소스 그룹은 서로 다른 지역 및 구독에 있을 수 있습니다."
     }
   ],
   "sRb5P9": [
     {
       "type": 0,
-      "value": "Manage cost analysis and budgets."
+      "value": "비용 분석 및 예산을 관리합니다."
     }
   ],
   "sYoT7W": [
@@ -2148,19 +2156,19 @@
   "ss/NWY": [
     {
       "type": 0,
-      "value": "SQL Server Contributor"
+      "value": "SQL Server 기여자"
     }
   ],
   "t3D4PH": [
     {
       "type": 0,
-      "value": "Device Update Reader"
+      "value": "디바이스 업데이트 읽기 권한자"
     }
   ],
   "t9I1dY": [
     {
       "type": 0,
-      "value": "Healthcare Agent Editor"
+      "value": "의료 에이전트 편집기"
     }
   ],
   "tOdNiY": [
@@ -2172,49 +2180,49 @@
   "tYoDsC": [
     {
       "type": 0,
-      "value": "Share your thoughts about the portal..."
+      "value": "포털에 대한 의견을 공유해 주세요..."
     }
   ],
   "tffS9r": [
     {
       "type": 0,
-      "value": "Open resource group"
+      "value": "리소스 그룹 열기"
     }
   ],
   "tshYzs": [
     {
       "type": 0,
-      "value": "Select region"
+      "value": "지역 선택"
     }
   ],
   "u0xiAh": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Reader"
+      "value": "Cognitive Services Custom Vision 읽기 권한자"
     }
   ],
   "uRMqBi": [
     {
       "type": 0,
-      "value": "Read, write, and delete Azure Storage containers and blobs."
+      "value": "Azure Storage 컨테이너 및 Blob을 읽고, 쓰고, 삭제합니다."
     }
   ],
   "ufonOZ": [
     {
       "type": 0,
-      "value": "Search Services"
+      "value": "검색 서비스"
     }
   ],
   "uh732n": [
     {
       "type": 0,
-      "value": "IoT Hubs"
+      "value": "IoT Hub"
     }
   ],
   "uqyJPP": [
     {
       "type": 0,
-      "value": "You do not have permission to create resource groups under the currently selected subscription."
+      "value": "현재 선택한 구독에서 리소스 그룹을 만들 수 있는 권한이 없습니다."
     }
   ],
   "v90qT8": [
@@ -2232,19 +2240,19 @@
   "vbdOl/": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under Language portal."
+      "value": "언어 포털에서 읽기 및 테스트 함수에 대한 액세스 권한 있음."
     }
   ],
   "vfndow": [
     {
       "type": 0,
-      "value": "Can read Azure Cosmos DB account data."
+      "value": "Azure Cosmos DB 계정 데이터를 읽을 수 있습니다."
     }
   ],
   "vu2LMl": [
     {
       "type": 0,
-      "value": "Learn more about Reader and Privileged permissions"
+      "value": "읽기 권한 및 권한 있는 높은 권한에 대한 자세한 정보"
     }
   ],
   "vxVGav": [
@@ -2262,43 +2270,43 @@
   "wSZR47": [
     {
       "type": 0,
-      "value": "Submit"
+      "value": "제출"
     }
   ],
   "wbigtI": [
     {
       "type": 0,
-      "value": "Administer SAP workloads on Azure."
+      "value": "Azure에서 SAP 워크로드를 관리합니다."
     }
   ],
   "wxlJSs": [
     {
       "type": 0,
-      "value": "Manage Cognitive Services accounts."
+      "value": "Cognitive Services 계정을 관리합니다."
     }
   ],
   "x2Qj1F": [
     {
       "type": 0,
-      "value": "Geneva Actions Certificate Name"
+      "value": "Geneva 작업 인증서 이름"
     }
   ],
   "xGPsyJ": [
     {
       "type": 0,
-      "value": "HDInsight Cluster Operator"
+      "value": "HDInsight 클러스터 운영자"
     }
   ],
   "xHDoP8": [
     {
       "type": 0,
-      "value": "Do you want to continue?"
+      "value": "계속하시겠습니까?"
     }
   ],
   "xVPoso": [
     {
       "type": 0,
-      "value": "Resource group name"
+      "value": "리소스 그룹 이름"
     }
   ],
   "xXbJso": [
@@ -2310,13 +2318,13 @@
   "xXhn+h": [
     {
       "type": 0,
-      "value": "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data."
+      "value": "스토리지 계정 데이터에 대한 전체 액세스를 스토리지 저장소 계정 키 액세스를 포함하여 스토리지 계정을 관리할 수 있습니다."
     }
   ],
   "xdMkcg": [
     {
       "type": 0,
-      "value": "Can read all monitoring data."
+      "value": "모든 모니터링 데이터를 읽을 수 있습니다."
     }
   ],
   "xhfdqv": [
@@ -2334,19 +2342,19 @@
   "xmsrBu": [
     {
       "type": 0,
-      "value": "Operate API Management services."
+      "value": "API Management 서비스를 작동합니다."
     }
   ],
   "xqwf/7": [
     {
       "type": 0,
-      "value": "IoT Hub Data Contributor"
+      "value": "IoT Hub 데이터 기여자"
     }
   ],
   "xtkizV": [
     {
       "type": 0,
-      "value": "Website Contributor"
+      "value": "웹 사이트 기여자"
     }
   ],
   "y1Z3or": [
@@ -2358,31 +2366,31 @@
   "yV5oYe": [
     {
       "type": 0,
-      "value": "Policies"
+      "value": "정책"
     }
   ],
   "yilQrD": [
     {
       "type": 0,
-      "value": "Managed resource groups"
+      "value": "관리되는 리소스 그룹"
     }
   ],
   "yo67XU": [
     {
       "type": 0,
-      "value": "API Management Service Operator Role"
+      "value": "API Management 서비스 연산자 역할"
     }
   ],
   "zEk9h3": [
     {
       "type": 0,
-      "value": "Virtual Machines"
+      "value": "가상 머신"
     }
   ],
   "zJ+8HW": [
     {
       "type": 0,
-      "value": "(new) "
+      "value": "(신규) "
     },
     {
       "type": 1,
@@ -2392,19 +2400,19 @@
   "zQvVDJ": [
     {
       "type": 0,
-      "value": "All"
+      "value": "모두"
     }
   ],
   "zacv31": [
     {
       "type": 0,
-      "value": "Detected resource types"
+      "value": "검색된 리소스 유형"
     }
   ],
   "zhHihn": [
     {
       "type": 0,
-      "value": "SQL Servers"
+      "value": "SQL Server"
     }
   ]
 }

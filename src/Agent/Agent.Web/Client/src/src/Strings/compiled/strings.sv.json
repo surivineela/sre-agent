@@ -33,6 +33,12 @@
       "value": "Ta bort tråd?"
     }
   ],
+  "+6/51l": [
+    {
+      "type": 0,
+      "value": "Creating meta agent"
+    }
+  ],
   "+7PjfV": [
     {
       "type": 0,
@@ -43,6 +49,12 @@
     {
       "type": 0,
       "value": "IcM är inte anslutet."
+    }
+  ],
+  "+ASm/B": [
+    {
+      "type": 0,
+      "value": "Submit Feedback"
     }
   ],
   "+Aon83": [
@@ -127,6 +139,30 @@
       "value": "Typ"
     }
   ],
+  "+XtuWl": [
+    {
+      "type": 0,
+      "value": "This insight needs improvement"
+    }
+  ],
+  "+Y8m6A": [
+    {
+      "type": 0,
+      "value": "Added handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    }
+  ],
   "+ZdOJt": [
     {
       "type": 0,
@@ -187,6 +223,12 @@
       "value": "Kan läsa arbetsböcker."
     }
   ],
+  "+nnQeH": [
+    {
+      "type": 0,
+      "value": "Created meta agent"
+    }
+  ],
   "+nt4l9": [
     {
       "type": 0,
@@ -211,6 +253,12 @@
       "value": "Resursgrupp"
     }
   ],
+  "/+WtRc": [
+    {
+      "type": 0,
+      "value": "Enter handoff instructions"
+    }
+  ],
   "//Zb9l": [
     {
       "type": 0,
@@ -227,6 +275,12 @@
     {
       "type": 0,
       "value": "Välj en plattform"
+    }
+  ],
+  "/3OCn6": [
+    {
+      "type": 0,
+      "value": "Insights have not been generated for this thread yet."
     }
   ],
   "/4tOwT": [
@@ -457,6 +511,12 @@
     {
       "type": 1,
       "value": "totalCount"
+    }
+  ],
+  "03qRza": [
+    {
+      "type": 0,
+      "value": "View AI suggestions"
     }
   ],
   "05Rzkx": [
@@ -797,6 +857,12 @@
     {
       "type": 0,
       "value": "Åsidosätt standardmetaagent"
+    }
+  ],
+  "19xydZ": [
+    {
+      "type": 0,
+      "value": "You do not have permission to generate insights for this thread."
     }
   ],
   "1CcjQj": [
@@ -1357,6 +1423,12 @@
       "value": "Varning"
     }
   ],
+  "3SsYXO": [
+    {
+      "type": 0,
+      "value": "Open GitHub issue page with pre-filled information above"
+    }
+  ],
   "3VI9mt": [
     {
       "type": 0,
@@ -1375,10 +1447,22 @@
       "value": "Aktiv"
     }
   ],
+  "3dsWh5": [
+    {
+      "type": 0,
+      "value": "Add MCP server"
+    }
+  ],
   "3jPMQI": [
     {
       "type": 0,
       "value": "Lägg till fler"
+    }
+  ],
+  "3k7JQw": [
+    {
+      "type": 0,
+      "value": "Issue description is required."
     }
   ],
   "3n8o15": [
@@ -1563,6 +1647,12 @@
       "value": "Information om utlösare"
     }
   ],
+  "4CcHuj": [
+    {
+      "type": 0,
+      "value": "Share your thoughts about this insight... (optional)"
+    }
+  ],
   "4Ez7HI": [
     {
       "type": 0,
@@ -1609,6 +1699,12 @@
     {
       "type": 0,
       "value": "Ange en kort beskrivning och förklara uppgiftens åtgärder. Uppge nödvändiga resursidentifierare, ange tidskänslig information och definiera signaler för framgång eller misslyckande samt önskade utdataformat."
+    }
+  ],
+  "4Rhz/i": [
+    {
+      "type": 0,
+      "value": "User provided connector"
     }
   ],
   "4RwjwU": [
@@ -1685,6 +1781,16 @@
     {
       "type": 0,
       "value": "En plan för svar på incident definierar vilka incidenter agenten ska hantera genom att tillämpa dina filtervillkor, så att svaren avser rätt uppsättning incidenter."
+    }
+  ],
+  "4lv5gO": [
+    {
+      "type": 0,
+      "value": "Create subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "4oK1Me": [
@@ -2133,6 +2239,12 @@
       "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
     }
   ],
+  "6CrAJC": [
+    {
+      "type": 0,
+      "value": "Enter custom header key"
+    }
+  ],
   "6CxEZS": [
     {
       "type": 0,
@@ -2179,6 +2291,16 @@
     {
       "type": 0,
       "value": "Återskapa"
+    }
+  ],
+  "6RNwei": [
+    {
+      "type": 0,
+      "value": "Update subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "6S2zmX": [
@@ -2269,6 +2391,12 @@
     {
       "type": 0,
       "value": "Resursrapport"
+    }
+  ],
+  "6gD0ie": [
+    {
+      "type": 0,
+      "value": "Generate Session Insights"
     }
   ],
   "6m5Ba0": [
@@ -2375,6 +2503,12 @@
       "value": "Tidsintervall"
     }
   ],
+  "751M54": [
+    {
+      "type": 0,
+      "value": "Generating insights..."
+    }
+  ],
   "75lAeu": [
     {
       "type": 0,
@@ -2475,6 +2609,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "7Rnjmx": [
+    {
+      "type": 0,
+      "value": "Expected Behavior"
     }
   ],
   "7TVRcx": [
@@ -2885,6 +3025,12 @@
       "value": "Välj en agent att lämna över till"
     }
   ],
+  "8u2W0L": [
+    {
+      "type": 0,
+      "value": "Handoff instructions"
+    }
+  ],
   "8v0Pyn": [
     {
       "type": 0,
@@ -3039,6 +3185,12 @@
       "value": "Lägg till en beskrivning av den här resursen för att hjälpa agenten med grupperingar och insikter."
     }
   ],
+  "9WBhPZ": [
+    {
+      "type": 0,
+      "value": "Session Insights"
+    }
+  ],
   "9WRlF4": [
     {
       "type": 0,
@@ -3149,6 +3301,12 @@
     {
       "type": 0,
       "value": "Testplatsaktiviteter kommer snart."
+    }
+  ],
+  "A9cgAa": [
+    {
+      "type": 0,
+      "value": "No insight selected"
     }
   ],
   "AA/tRJ": [
@@ -3313,6 +3471,12 @@
       "value": "REST API-åtkomstnyckel"
     }
   ],
+  "AvHD3R": [
+    {
+      "type": 0,
+      "value": "Teams channel link"
+    }
+  ],
   "AxMhQr": [
     {
       "type": 0,
@@ -3349,6 +3513,12 @@
     {
       "type": 0,
       "value": "Agentkvalitet"
+    }
+  ],
+  "BD+V8L": [
+    {
+      "type": 0,
+      "value": "This insight was helpful"
     }
   ],
   "BEck3n": [
@@ -3521,6 +3691,24 @@
       "value": " dataanslutningar..."
     }
   ],
+  "Bn/txo": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "BuziI2": [
     {
       "type": 0,
@@ -3581,6 +3769,16 @@
       "value": "MCP-verktyg (valfritt)"
     }
   ],
+  "CIAL+k": [
+    {
+      "type": 0,
+      "value": "Created subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "CJ6tzL": [
     {
       "type": 0,
@@ -3621,6 +3819,18 @@
     {
       "type": 0,
       "value": "Hur vill du definiera schemat?"
+    }
+  ],
+  "CQ0CLu": [
+    {
+      "type": 0,
+      "value": "Session insights"
+    }
+  ],
+  "CQisjK": [
+    {
+      "type": 0,
+      "value": "What actually happened?"
     }
   ],
   "CTRqZs": [
@@ -3849,6 +4059,20 @@
       "value": "Välj om djupgående undersökningar ska köras parallellt med vanliga undersökningar"
     }
   ],
+  "DK708b": [
+    {
+      "type": 0,
+      "value": "Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than "
+    },
+    {
+      "type": 1,
+      "value": "maxLength"
+    },
+    {
+      "type": 0,
+      "value": " characters."
+    }
+  ],
   "DMEE1o": [
     {
       "type": 0,
@@ -3895,6 +4119,12 @@
       "value": "Valda incidenter"
     }
   ],
+  "DYp/nK": [
+    {
+      "type": 0,
+      "value": "Session Insight"
+    }
+  ],
   "Da55kZ": [
     {
       "type": 0,
@@ -3923,6 +4153,12 @@
     {
       "type": 0,
       "value": "Cognitive Services-deltagare"
+    }
+  ],
+  "DgsR1U": [
+    {
+      "type": 0,
+      "value": "Channel ID"
     }
   ],
   "Dh9oJp": [
@@ -4109,6 +4345,12 @@
       "value": "Ange filternamn"
     }
   ],
+  "ETRyBL": [
+    {
+      "type": 0,
+      "value": "Rating"
+    }
+  ],
   "EWrExf": [
     {
       "type": 0,
@@ -4145,6 +4387,12 @@
       "value": "Åtgärdsplan"
     }
   ],
+  "EcglP9": [
+    {
+      "type": 0,
+      "value": "Key"
+    }
+  ],
   "EdEthU": [
     {
       "type": 0,
@@ -4165,6 +4413,12 @@
     {
       "type": 0,
       "value": "Testa frågan för att fortsätta."
+    }
+  ],
+  "Ejhdi4": [
+    {
+      "type": 0,
+      "value": "Feedback"
     }
   ],
   "ElI1gd": [
@@ -4189,6 +4443,12 @@
     {
       "type": 0,
       "value": "https://github.com/owner/repo-name or https://dev.azure.com/organization/project/_git/repo or https://organization.visualstudio.com/project/_git/repository-name"
+    }
+  ],
+  "ErUgLz": [
+    {
+      "type": 0,
+      "value": "Teams group ID"
     }
   ],
   "Erci0g": [
@@ -4317,6 +4577,12 @@
     {
       "type": 0,
       "value": "Lagringsplatsanslutning"
+    }
+  ],
+  "FMDuHb": [
+    {
+      "type": 0,
+      "value": "Enter your PAT or API key"
     }
   ],
   "FNQNS1": [
@@ -4507,6 +4773,12 @@
       "value": " prenumerationer har valts"
     }
   ],
+  "G6XRkU": [
+    {
+      "type": 0,
+      "value": "Steps to Reproduce"
+    }
+  ],
   "G6vaGg": [
     {
       "type": 0,
@@ -4591,6 +4863,12 @@
     {
       "type": 0,
       "value": "Tillbaka till kommandon"
+    }
+  ],
+  "GGr/yS": [
+    {
+      "type": 0,
+      "value": "Feedback submitted on threads will appear here"
     }
   ],
   "GMhzu1": [
@@ -4685,10 +4963,34 @@
       "value": " enligt ett schema för att hålla nyckelsystemen i gott skick."
     }
   ],
+  "GpcNV2": [
+    {
+      "type": 0,
+      "value": "Failed to update subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "GroBmn": [
     {
       "type": 0,
       "value": "lagringsplatsaviseringar hittades"
+    }
+  ],
+  "GufXy5": [
+    {
+      "type": 0,
+      "value": "Value"
     }
   ],
   "Gvxoji": [
@@ -4755,6 +5057,12 @@
     {
       "type": 0,
       "value": "Inga rekommendationer för kodoptimering har hittats."
+    }
+  ],
+  "HJ7ZeR": [
+    {
+      "type": 0,
+      "value": "Issue Description"
     }
   ],
   "HKlw1J": [
@@ -4927,6 +5235,12 @@
     {
       "type": 0,
       "value": "String"
+    }
+  ],
+  "I4PbZq": [
+    {
+      "type": 0,
+      "value": "Create a subagent"
     }
   ],
   "I5k4g/": [
@@ -5181,6 +5495,12 @@
     {
       "type": 0,
       "value": "Klicka för att visa värdet"
+    }
+  ],
+  "J0rs+f": [
+    {
+      "type": 0,
+      "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
   "J3Y8Sm": [
@@ -5463,6 +5783,12 @@
     {
       "type": 0,
       "value": "Prova utvärdering"
+    }
+  ],
+  "JvYXxh": [
+    {
+      "type": 0,
+      "value": "MCP server"
     }
   ],
   "JwHSD6": [
@@ -5867,6 +6193,12 @@
       "value": "Tabell för MCP-servrar"
     }
   ],
+  "Li/Qrf": [
+    {
+      "type": 0,
+      "value": "Custom headers"
+    }
+  ],
   "LkUvu/": [
     {
       "type": 0,
@@ -5895,6 +6227,12 @@
     {
       "type": 0,
       "value": "Direkt argument"
+    }
+  ],
+  "LuHM0/": [
+    {
+      "type": 0,
+      "value": "Actual Behavior"
     }
   ],
   "LupnQU": [
@@ -6555,6 +6893,12 @@
       "value": ". Uppdatera och försök igen."
     }
   ],
+  "OP7f9a": [
+    {
+      "type": 0,
+      "value": "Compiled connection string"
+    }
+  ],
   "OPBqEN": [
     {
       "type": 0,
@@ -6891,6 +7235,12 @@
       "value": "t"
     }
   ],
+  "PZvrnY": [
+    {
+      "type": 0,
+      "value": "Title is required."
+    }
+  ],
   "Pa1S0J": [
     {
       "type": 0,
@@ -7153,6 +7503,16 @@
       "value": "AAE-förbrukning"
     }
   ],
+  "QP91Js": [
+    {
+      "type": 0,
+      "value": "Updated subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "QQX4Pv": [
     {
       "type": 0,
@@ -7189,6 +7549,12 @@
     {
       "type": 0,
       "value": "Beskrivning av överlämning"
+    }
+  ],
+  "QYiU4f": [
+    {
+      "type": 0,
+      "value": "1. Describe the action you took 2. Mention the resource or service involved"
     }
   ],
   "QdDYGR": [
@@ -7335,6 +7701,12 @@
       "value": "Skjutreglage för månatlig AAE-gräns"
     }
   ],
+  "R4Blzb": [
+    {
+      "type": 0,
+      "value": "No Feedback Yet"
+    }
+  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -7395,6 +7767,32 @@
     {
       "type": 0,
       "value": " filer?"
+    }
+  ],
+  "RMD0Mj": [
+    {
+      "type": 0,
+      "value": "Failed to add handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "RR+13c": [
@@ -7573,6 +7971,16 @@
       "value": "Gå till Azure Managed Grafana"
     }
   ],
+  "SB7SRx": [
+    {
+      "type": 0,
+      "value": "Creating subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "SCjiXP": [
     {
       "type": 0,
@@ -7589,6 +7997,20 @@
     {
       "type": 0,
       "value": "Incidenten har skapats"
+    }
+  ],
+  "SIW6OB": [
+    {
+      "type": 0,
+      "value": "Threads with Insights ("
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ")"
     }
   ],
   "SL+c5a": [
@@ -7781,10 +8203,26 @@
       "value": "."
     }
   ],
+  "T/nqbo": [
+    {
+      "type": 0,
+      "value": "Feedback ID"
+    }
+  ],
   "T0/eoE": [
     {
       "type": 0,
       "value": "Schemalagd körning av uppgift"
+    }
+  ],
+  "T0e6Lh": [
+    {
+      "type": 0,
+      "value": "Remove "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "T5+AEf": [
@@ -7941,6 +8379,18 @@
       "value": "Resursmappning"
     }
   ],
+  "TdvJVw": [
+    {
+      "type": 0,
+      "value": "Suggested improvements"
+    }
+  ],
+  "TexFnY": [
+    {
+      "type": 0,
+      "value": "This insight does not have markdown content."
+    }
+  ],
   "Tg4Q8g": [
     {
       "type": 0,
@@ -8017,6 +8467,12 @@
     {
       "type": 0,
       "value": "Konfigurationsändringar"
+    }
+  ],
+  "UImEMW": [
+    {
+      "type": 0,
+      "value": "Briefly describe the problem or request."
     }
   ],
   "UKMPBH": [
@@ -8161,6 +8617,12 @@
       "value": "Du har inte behörighet att ta bort den här agenten."
     }
   ],
+  "V9GGMu": [
+    {
+      "type": 0,
+      "value": "No threads with session insights found."
+    }
+  ],
   "VA/Z1S": [
     {
       "type": 0,
@@ -8177,6 +8639,12 @@
     {
       "type": 0,
       "value": "Användartilldelad"
+    }
+  ],
+  "VBAOA8": [
+    {
+      "type": 0,
+      "value": "Select subagents for handoff"
     }
   ],
   "VIYXlx": [
@@ -8323,6 +8791,30 @@
     {
       "type": 1,
       "value": "channel"
+    }
+  ],
+  "Vs/db/": [
+    {
+      "type": 0,
+      "value": "Adding handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    }
+  ],
+  "Vs3jMi": [
+    {
+      "type": 0,
+      "value": "Authentication method"
     }
   ],
   "VtBCjG": [
@@ -8862,12 +9354,6 @@
       "value": "Meddelandegruppering för uppdateringar"
     }
   ],
-  "XVG+T1": [
-    {
-      "type": 0,
-      "value": "Förfinar detaljer..."
-    }
-  ],
   "XYIeUc": [
     {
       "type": 0,
@@ -8966,6 +9452,12 @@
       "value": "Utgivare av övervakningsmått"
     }
   ],
+  "XyUQa7": [
+    {
+      "type": 0,
+      "value": "Improved instructions"
+    }
+  ],
   "Y0BC+F": [
     {
       "type": 1,
@@ -9030,6 +9522,16 @@
     {
       "type": 0,
       "value": "Tisdag"
+    }
+  ],
+  "YBHvOV": [
+    {
+      "type": 0,
+      "value": "Updating subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "YBXVNU": [
@@ -9320,16 +9822,6 @@
     {
       "type": 1,
       "value": "channel"
-    }
-  ],
-  "ZF9lPS": [
-    {
-      "type": 0,
-      "value": "Remove tool "
-    },
-    {
-      "type": 1,
-      "value": "toolName"
     }
   ],
   "ZMa6Rh": [
@@ -9849,6 +10341,12 @@
       "value": "Kluster-URI"
     }
   ],
+  "bICPAQ": [
+    {
+      "type": 0,
+      "value": "Thread Feedback"
+    }
+  ],
   "bK0VQe": [
     {
       "type": 0,
@@ -9871,6 +10369,12 @@
     {
       "type": 0,
       "value": "Nytt"
+    }
+  ],
+  "bWjdfa": [
+    {
+      "type": 0,
+      "value": "URL"
     }
   ],
   "baRFiF": [
@@ -10125,6 +10629,12 @@
       "value": "Temperatur"
     }
   ],
+  "cHKA8f": [
+    {
+      "type": 0,
+      "value": "No insight content available"
+    }
+  ],
   "cJGGY4": [
     {
       "type": 0,
@@ -10171,6 +10681,12 @@
     {
       "type": 0,
       "value": "Kategori"
+    }
+  ],
+  "cesI6Z": [
+    {
+      "type": 0,
+      "value": "No feedback selected"
     }
   ],
   "cfbpDd": [
@@ -10481,6 +10997,12 @@
     {
       "type": 0,
       "value": "Åtgärdat"
+    }
+  ],
+  "dqkJF6": [
+    {
+      "type": 0,
+      "value": "Delete subagent"
     }
   ],
   "dtQgfG": [
@@ -10937,10 +11459,22 @@
       "value": "Först måste en Grafana-resurs skapas."
     }
   ],
+  "fuHqFL": [
+    {
+      "type": 0,
+      "value": "No session insights found."
+    }
+  ],
   "fvK8Qi": [
     {
       "type": 0,
       "value": "Alla statusar"
+    }
+  ],
+  "fyaE5g": [
+    {
+      "type": 0,
+      "value": "Please provide a channel link"
     }
   ],
   "g+9csc": [
@@ -11381,6 +11915,12 @@
     {
       "type": 0,
       "value": "Grafana-resurs"
+    }
+  ],
+  "hoHnYn": [
+    {
+      "type": 0,
+      "value": "Improved handoff instructions"
     }
   ],
   "hqWr3L": [
@@ -11995,6 +12535,12 @@
       "value": "Knowledge Base Enabled"
     }
   ],
+  "khI1mJ": [
+    {
+      "type": 0,
+      "value": "Edit subagent"
+    }
+  ],
   "khOzXi": [
     {
       "type": 0,
@@ -12419,6 +12965,24 @@
       "value": "Planer för svar på incident"
     }
   ],
+  "mVB9Bd": [
+    {
+      "type": 0,
+      "value": "Add handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    }
+  ],
   "mVkTZZ": [
     {
       "type": 0,
@@ -12471,6 +13035,12 @@
     {
       "type": 0,
       "value": "Inga verktyg är konfigurerade."
+    }
+  ],
+  "mgtFKh": [
+    {
+      "type": 0,
+      "value": "Create GitHub issue"
     }
   ],
   "mhKk7c": [
@@ -12839,6 +13409,12 @@
       "value": "Sign in with a different account"
     }
   ],
+  "oIm1Fb": [
+    {
+      "type": 0,
+      "value": "GitHub logo"
+    }
+  ],
   "oKJ0fm": [
     {
       "type": 0,
@@ -12879,6 +13455,12 @@
     {
       "type": 0,
       "value": "Läser in MCP-verktyg..."
+    }
+  ],
+  "oTxjU2": [
+    {
+      "type": 0,
+      "value": "Handoff subagents"
     }
   ],
   "oUWADl": [
@@ -12943,6 +13525,12 @@
     {
       "type": 0,
       "value": "Sök incidenter"
+    }
+  ],
+  "ooDMAp": [
+    {
+      "type": 0,
+      "value": "Personal access token (PAT) or API key"
     }
   ],
   "osuyeD": [
@@ -13259,6 +13847,16 @@
       "value": "Läser in chattrådar"
     }
   ],
+  "pw1ueF": [
+    {
+      "type": 0,
+      "value": "Failed to create meta agent. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "pyXjlj": [
     {
       "type": 0,
@@ -13275,6 +13873,12 @@
     {
       "type": 0,
       "value": "Pågår"
+    }
+  ],
+  "q3e4cf": [
+    {
+      "type": 0,
+      "value": "Bearer token"
     }
   ],
   "q4EmsW": [
@@ -13385,6 +13989,12 @@
       "value": "Välj ett länkat verktyg för att redigera"
     }
   ],
+  "qrs+1B": [
+    {
+      "type": 0,
+      "value": "Create meta agent"
+    }
+  ],
   "qs5hhk": [
     {
       "type": 0,
@@ -13467,6 +14077,12 @@
     {
       "type": 0,
       "value": "Med den här åtgärden raderas anslutningen till PagerDuty permanent. Agenten kommer inte längre att kunna hantera ärenden. Vill du frånkoppla?"
+    }
+  ],
+  "r5UlDs": [
+    {
+      "type": 0,
+      "value": "Enter custom header value"
     }
   ],
   "r8XsCU": [
@@ -13625,6 +14241,12 @@
       "value": "API Management-tjänstdeltagare"
     }
   ],
+  "raexxM": [
+    {
+      "type": 0,
+      "value": "Submitted"
+    }
+  ],
   "rbrahO": [
     {
       "type": 0,
@@ -13757,6 +14379,12 @@
     {
       "type": 0,
       "value": "\""
+    }
+  ],
+  "ryAzxy": [
+    {
+      "type": 0,
+      "value": "Issue"
     }
   ],
   "ryPHA8": [
@@ -14365,6 +14993,12 @@
       "value": "Inga schemalagda uppgifter hittades"
     }
   ],
+  "trhBLG": [
+    {
+      "type": 0,
+      "value": "No insights available"
+    }
+  ],
   "ts7YvN": [
     {
       "type": 0,
@@ -14375,6 +15009,12 @@
     {
       "type": 0,
       "value": "Välj region"
+    }
+  ],
+  "ttWUo6": [
+    {
+      "type": 0,
+      "value": "Click to view session analysis and insights"
     }
   ],
   "tthToS": [
@@ -14685,6 +15325,12 @@
       "value": "Verktyg valda för incidentsvar"
     }
   ],
+  "urxxsP": [
+    {
+      "type": 0,
+      "value": "Agent Performance"
+    }
+  ],
   "us/IXr": [
     {
       "type": 0,
@@ -14731,6 +15377,12 @@
     {
       "type": 0,
       "value": "Dölj allt"
+    }
+  ],
+  "v1LtqB": [
+    {
+      "type": 0,
+      "value": "Select authentication method"
     }
   ],
   "v3xWf6": [
@@ -14925,6 +15577,12 @@
       "value": "time"
     }
   ],
+  "vzH0q5": [
+    {
+      "type": 0,
+      "value": "Choose tools"
+    }
+  ],
   "w+XRP2": [
     {
       "type": 0,
@@ -14977,6 +15635,12 @@
     {
       "type": 0,
       "value": "Skapa, testa och utvärdera – komplett arbetsflöde"
+    }
+  ],
+  "wBh+z3": [
+    {
+      "type": 0,
+      "value": "No additional comments provided"
     }
   ],
   "wEQDC6": [
@@ -15753,10 +16417,22 @@
       "value": "Alla"
     }
   ],
+  "zRv1ks": [
+    {
+      "type": 0,
+      "value": "What should happen?"
+    }
+  ],
   "zUNfOA": [
     {
       "type": 0,
       "value": "Öppna övervakarlådan"
+    }
+  ],
+  "zWkvNO": [
+    {
+      "type": 0,
+      "value": "Timeline"
     }
   ],
   "zZsxcQ": [
@@ -15819,16 +16495,6 @@
     {
       "type": 0,
       "value": "Sammanfattning av incidenter"
-    }
-  ],
-  "zr8jA6": [
-    {
-      "type": 0,
-      "value": "Ta bort verktyget "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "zuQF37": [

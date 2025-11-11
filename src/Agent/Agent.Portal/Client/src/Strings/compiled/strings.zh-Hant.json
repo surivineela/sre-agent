@@ -2,7 +2,7 @@
   "+/nU/s": [
     {
       "type": 0,
-      "value": "Gives you read access to management and content operations, but does not allow making changes."
+      "value": "授與您管理與內容作業的讀取存取權，但不允許變更。"
     }
   ],
   "+CwN9C": [
@@ -14,37 +14,37 @@
   "+Ov1f1": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have policies that will cause the deployment to fail."
+      "value": "某些選取的資源群組具有會導致部署失敗的原則。"
     }
   ],
   "+TlNdm": [
     {
       "type": 0,
-      "value": "Container Apps"
+      "value": "容器應用程式"
     }
   ],
   "+YDzOd": [
     {
       "type": 0,
-      "value": "Name must be between 2 and 32 characters"
+      "value": "名稱必須介於 2 到 32 個字元之間"
     }
   ],
   "+bJIWo": [
     {
       "type": 0,
-      "value": "Agent permissions level"
+      "value": "代理程序權限等級"
     }
   ],
   "+k5t/y": [
     {
       "type": 0,
-      "value": "Contributor"
+      "value": "參與者"
     }
   ],
   "+l+XEu": [
     {
       "type": 0,
-      "value": "Can read workbooks."
+      "value": "可以讀取活頁簿。"
     }
   ],
   "+uAdUZ": [
@@ -56,7 +56,7 @@
   "+zgzmq": [
     {
       "type": 0,
-      "value": "Cosmos DB Accounts"
+      "value": "Cosmos DB 帳戶"
     }
   ],
   "/6/sPX": [
@@ -68,43 +68,43 @@
   "/6Fckw": [
     {
       "type": 0,
-      "value": "Provisioning SRE Agent"
+      "value": "正在佈建 SRE Agent"
     }
   ],
   "/8MshI": [
     {
       "type": 0,
-      "value": "Manage SQL Managed Instances."
+      "value": "管理 SQL 受控執行個體。"
     }
   ],
   "/WrP/v": [
     {
       "type": 0,
-      "value": "Container Apps Operator"
+      "value": "容器應用程式運算子"
     }
   ],
   "/dxZCE": [
     {
       "type": 0,
-      "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
+      "value": "您的代理程式目前為自主模式。代理程式需要下列權限，才能建立您資源的知識。代理程式會根據您的要求，使用其中一些權限自動執行寫入作業。"
     }
   ],
   "/gCtdO": [
     {
       "type": 0,
-      "value": "Manage Custom Vision projects."
+      "value": "管理自訂視覺專案。"
     }
   ],
   "/wY7pG": [
     {
       "type": 0,
-      "value": "PostgreSQL Servers"
+      "value": "PostgreSQL 伺服器"
     }
   ],
   "/ytgXm": [
     {
       "type": 0,
-      "value": "Remove "
+      "value": "移除 "
     },
     {
       "type": 1,
@@ -112,7 +112,7 @@
     },
     {
       "type": 0,
-      "value": " filter"
+      "value": " 篩選"
     }
   ],
   "/zFP1/": [
@@ -124,7 +124,7 @@
   "01lT1B": [
     {
       "type": 0,
-      "value": "Lets you read, enable and disable logic app."
+      "value": "可讓您讀取、啟用及停用邏輯應用程式。"
     }
   ],
   "01sZoP": [
@@ -134,7 +134,7 @@
     },
     {
       "type": 0,
-      "value": " of "
+      "value": "/"
     },
     {
       "type": 1,
@@ -144,7 +144,7 @@
   "0Dhe75": [
     {
       "type": 0,
-      "value": "Manage SQL servers and their security policies."
+      "value": "管理 SQL 伺服器及其安全性原則。"
     }
   ],
   "0oLj/t": [
@@ -156,7 +156,7 @@
   "0te2Ra": [
     {
       "type": 0,
-      "value": "Manage Azure Data Factory instances."
+      "value": "管理 Azure Data Factory 執行個體。"
     }
   ],
   "1Lx9q5": [
@@ -168,49 +168,49 @@
   "1YPTmM": [
     {
       "type": 0,
-      "value": "Web Plan Contributor"
+      "value": "Web 方案參與者"
     }
   ],
   "1ZgrhW": [
     {
       "type": 0,
-      "value": "Role"
+      "value": "角色"
     }
   ],
   "1myzs4": [
     {
       "type": 0,
-      "value": "PostgreSQL Flexible Servers"
+      "value": "PostgreSQL 彈性伺服器"
     }
   ],
   "1t2BaF": [
     {
       "type": 0,
-      "value": "Geneva actions configuration"
+      "value": "Geneva 動作設定"
     }
   ],
   "2/2yg+": [
     {
       "type": 0,
-      "value": "Add"
+      "value": "新增"
     }
   ],
   "2GuZPR": [
     {
       "type": 0,
-      "value": "Portal feedback"
+      "value": "入口網站意見反應"
     }
   ],
   "2LQx4N": [
     {
       "type": 0,
-      "value": "Manage App Configuration stores."
+      "value": "管理應用程式組態存放區。"
     }
   ],
   "2PnnDB": [
     {
       "type": 0,
-      "value": "Manage IoT Hub device registry."
+      "value": "管理 IoT 中樞裝置登錄。"
     }
   ],
   "2do8JC": [
@@ -222,7 +222,13 @@
   "2xRon3": [
     {
       "type": 0,
-      "value": "Select resource groups dialog"
+      "value": "選取資源群組對話方塊"
+    }
+  ],
+  "3IKub9": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred"
     }
   ],
   "3cc4Ct": [
@@ -234,37 +240,37 @@
   "3nhWFW": [
     {
       "type": 0,
-      "value": "Reader"
+      "value": "讀者"
     }
   ],
   "3t/IhV": [
     {
       "type": 0,
-      "value": "Can view cost data and configuration (e.g. budgets, exports)."
+      "value": "可以檢視成本資料及設定 (例如: 預算、匯出)。"
     }
   ],
   "3tJfza": [
     {
       "type": 0,
-      "value": "The agent has permissions to take approved actions on resources and resource types detected in its assigned resource groups."
+      "value": "代理程式有權對在其獲指派的資源群組中偵測到的資源和資源類型採取核准的動作。"
     }
   ],
   "3zLsNR": [
     {
       "type": 0,
-      "value": "Manage websites, but not web plans. Does not allow you to assign roles."
+      "value": "管理網站，但不管理 Web 方案。不允許您指派角色。"
     }
   ],
   "43mD/Y": [
     {
       "type": 0,
-      "value": "Storage Blob Containers"
+      "value": "儲存體 Blob 容器"
     }
   ],
   "450Fty": [
     {
       "type": 0,
-      "value": "None"
+      "value": "無"
     }
   ],
   "456ixe": [
@@ -276,19 +282,19 @@
   "47FYwb": [
     {
       "type": 0,
-      "value": "Cancel"
+      "value": "取消"
     }
   ],
   "4MeTpL": [
     {
       "type": 0,
-      "value": "Workbook Contributor"
+      "value": "活頁簿參與者"
     }
   ],
   "4TnjxL": [
     {
       "type": 0,
-      "value": "API Management Service Reader Role"
+      "value": "API 管理服務讀者角色"
     }
   ],
   "4USxEK": [
@@ -300,13 +306,13 @@
   "4ii5zj": [
     {
       "type": 0,
-      "value": "Allows for read access to Azure Storage blob containers and data."
+      "value": "允許 Azure 儲存體 Blob 容器與資料的讀取存取。"
     }
   ],
   "4kCXiz": [
     {
       "type": 0,
-      "value": "List cluster admin credential action."
+      "value": "列出叢集管理員認證動作。"
     }
   ],
   "556JQK": [
@@ -318,43 +324,43 @@
   "5M+hLZ": [
     {
       "type": 0,
-      "value": "User permissions"
+      "value": "使用者權限"
     }
   ],
   "5Sc5rT": [
     {
       "type": 0,
-      "value": "IoT Hub Twin Contributor"
+      "value": "IoT 中樞對應項參與者"
     }
   ],
   "5UUKxL": [
     {
       "type": 0,
-      "value": "Storage Accounts"
+      "value": "儲存體帳戶"
     }
   ],
   "5UfRjw": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Contributor"
+      "value": "裝置佈建服務資料參與者"
     }
   ],
   "5V+Txp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster User Role"
+      "value": "Azure Kubernetes Service 叢集使用者角色"
     }
   ],
   "5WK7jL": [
     {
       "type": 0,
-      "value": "Create new"
+      "value": "新建"
     }
   ],
   "5j5HnL": [
     {
       "type": 0,
-      "value": "Editor to filter the results by column value. "
+      "value": "編輯器可依欄值篩選結果。"
     },
     {
       "type": 1,
@@ -376,49 +382,57 @@
   "5wGcN7": [
     {
       "type": 0,
-      "value": "Cost Management Reader"
+      "value": "成本管理讀者"
     }
   ],
   "64zSh3": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Writer"
+      "value": "認知服務 LUIS 寫入器"
     }
   ],
   "69g7If": [
     {
       "type": 0,
-      "value": "Cost Management"
+      "value": "成本管理"
     }
   ],
   "6B5Jtu": [
     {
       "type": 0,
-      "value": "This field is required."
+      "value": "這是必要欄位。"
     }
   ],
   "6YXj/s": [
     {
       "type": 0,
-      "value": "Contribute to Speech service resources."
+      "value": "參與語音服務資源。"
     }
   ],
   "6zUWZ/": [
     {
       "type": 0,
-      "value": "Read all monitoring data and edit monitoring settings."
+      "value": "讀取所有監視資料並編輯監視設定。"
     }
   ],
   "7+b0J0": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Contributor"
+      "value": "認知服務自訂視覺參與者"
     }
   ],
   "75IWbW": [
     {
       "type": 0,
-      "value": "Deployment to this resource group will be blocked by policy: {field} not allowed. Policy Assignment ID: "
+      "value": "對此資源群組的部署將會由原則封鎖:「不允許 "
+    },
+    {
+      "type": 1,
+      "value": "field"
+    },
+    {
+      "type": 0,
+      "value": "」。原則指派識別碼: "
     },
     {
       "type": 1,
@@ -428,19 +442,19 @@
   "7N87nD": [
     {
       "type": 0,
-      "value": "Manage Device Provisioning Service data."
+      "value": "管理裝置佈建服務資料。"
     }
   ],
   "87v+WY": [
     {
       "type": 0,
-      "value": "Full access to Azure Digital Twins data."
+      "value": "Azure Digital Twins 資料的完整存取。"
     }
   ],
   "8NHZQV": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Reader"
+      "value": "認知服務語言讀取器"
     }
   ],
   "8OCpdQ": [
@@ -467,13 +481,13 @@
   "8aHHLj": [
     {
       "type": 0,
-      "value": "Read-only access to service and APIs."
+      "value": "服務與 API 的唯讀存取權。"
     }
   ],
   "8nBFW4": [
     {
       "type": 0,
-      "value": "Redis Cache Contributor"
+      "value": "Redis 快取參與者"
     }
   ],
   "8yyU6n": [
@@ -485,13 +499,13 @@
   "9+Ddtu": [
     {
       "type": 0,
-      "value": "Next"
+      "value": "下一個"
     }
   ],
   "94Fg25": [
     {
       "type": 0,
-      "value": "Select all"
+      "value": "全選"
     }
   ],
   "9M3sYh": [
@@ -503,37 +517,37 @@
   "ABo5XY": [
     {
       "type": 0,
-      "value": "DocumentDB Account Contributor"
+      "value": "DocumentDB 帳戶參與者"
     }
   ],
   "ASEuj4": [
     {
       "type": 0,
-      "value": "Denied by policy"
+      "value": "遭到原則拒絕"
     }
   ],
   "AVMCsG": [
     {
       "type": 0,
-      "value": "Machine Learning Workspaces"
+      "value": "Machine Learning 工作區"
     }
   ],
   "Ab4TgE": [
     {
       "type": 0,
-      "value": "Agent permissions and roles table"
+      "value": "代理程式權限和角色表格"
     }
   ],
   "AeWmvh": [
     {
       "type": 0,
-      "value": "Lets you manage virtual machines, but not access to them, and not the virtual network or storage account they are connected to."
+      "value": "可讓您管理虛擬機器 (不含虛擬機器所連接的虛擬網路或儲存體帳戶)，但無法加以存取。"
     }
   ],
   "AhdXRl": [
     {
       "type": 0,
-      "value": "Max agent count"
+      "value": "代理程式計數上限"
     }
   ],
   "Avsnjl": [
@@ -545,55 +559,55 @@
   "B6aNdQ": [
     {
       "type": 0,
-      "value": "The name must begin and end with a lowercase letter, and contain only lowercase letters, numbers, and hyphens. It cannot contain consecutive hyphens."
+      "value": "名稱的開頭和結尾必須為小寫字母，且只包含小寫字母、數字和連字號。它不能包含連續的連字號。"
     }
   ],
   "BKSv0l": [
     {
       "type": 0,
-      "value": "Azure Center for SAP solutions reader"
+      "value": "Azure SAP 解決方案中心讀者"
     }
   ],
   "Bcx/Gz": [
     {
       "type": 0,
-      "value": "List cluster user credential action."
+      "value": "列出叢集使用者認證動作。"
     }
   ],
   "C0ZRdE": [
     {
       "type": 0,
-      "value": "The agent has read-only permissions on the resource groups it manages. It takes the user's permissions temporarily for approved actions."
+      "value": "代理程式具有其管理的資源群組的唯讀權限。它會暫時使用使用者的權限進行核准的動作。"
     }
   ],
   "C3PGqj": [
     {
       "type": 0,
-      "value": "Logic App Contributor"
+      "value": "邏輯應用程式參與者"
     }
   ],
   "C8z3QQ": [
     {
       "type": 0,
-      "value": "Data Factories"
+      "value": "Data Factory"
     }
   ],
   "CFJ1OD": [
     {
       "type": 0,
-      "value": "Read-only role for Digital Twins data-plane properties."
+      "value": "Digital Twins 資料平面屬性的唯讀角色。"
     }
   ],
   "CMaDRa": [
     {
       "type": 0,
-      "value": "Write access to Language service resources."
+      "value": "語言服務資源的寫入權限。"
     }
   ],
   "CfGC/2": [
     {
       "type": 0,
-      "value": "Select resource groups to monitor"
+      "value": "選取要監視的資源群組"
     }
   ],
   "Ch3IdZ": [
@@ -605,7 +619,7 @@
   "CrmeG3": [
     {
       "type": 0,
-      "value": "This resource group contains resources supported by SRE Agent"
+      "value": "此資源群組包含 SRE Agent 支援的資源"
     }
   ],
   "D3idYv": [
@@ -617,7 +631,7 @@
   "DdD2hE": [
     {
       "type": 0,
-      "value": "Filter items..."
+      "value": "篩選項目..."
     }
   ],
   "DdnNXo": [
@@ -629,31 +643,31 @@
   "Dff3ms": [
     {
       "type": 0,
-      "value": "Cognitive Services Contributor"
+      "value": "認知服務參與者"
     }
   ],
   "Dx3Xj3": [
     {
       "type": 0,
-      "value": "Let's you read and test a KB only."
+      "value": "僅能讀取及測試 KB。"
     }
   ],
   "ENnkRe": [
     {
       "type": 0,
-      "value": "Grants permission for read operations for App Configuration resources."
+      "value": "授予對應用程式設定資源進行讀取作業的權限。"
     }
   ],
   "EWw/tK": [
     {
       "type": 0,
-      "value": "Apply"
+      "value": "套用"
     }
   ],
   "EdEthU": [
     {
       "type": 0,
-      "value": "API Management Workspace Contributor"
+      "value": "APIM 工作區參與者"
     }
   ],
   "Erci0g": [
@@ -665,19 +679,19 @@
   "FqRdvb": [
     {
       "type": 0,
-      "value": "AKS Clusters"
+      "value": "AKS 叢集"
     }
   ],
   "G1xeUt": [
     {
       "type": 0,
-      "value": "Approval Required"
+      "value": "需要核准"
     }
   ],
   "G7yB8N": [
     {
       "type": 0,
-      "value": "Registration failed"
+      "value": "註冊失敗"
     }
   ],
   "GBnvl1": [
@@ -703,19 +717,19 @@
   "GWson9": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have deny assignments that prevent deployments."
+      "value": "某些選取的資源群組具有會防止部署的拒絕指派。"
     }
   ],
   "GmzN3r": [
     {
       "type": 0,
-      "value": "We were unable to register the Microsoft.App RP due to a lack of permissions which may cause your deployment to fail. Ensure that you have Contributor permissions to this subscription or have your subscription administrator register the RP for you."
+      "value": "由於缺乏權限，我們無法登錄 Microsoft.App RP，這可能導致您的部署失敗。確保您具有此訂用帳戶的參與者權限，或請訂用帳戶管理員為您註冊 RP。"
     }
   ],
   "GoSIa4": [
     {
       "type": 0,
-      "value": "Minimal permission to view Cognitive Services usages."
+      "value": "檢視認知服務使用量的最低權限。"
     }
   ],
   "H/i1A+": [
@@ -727,7 +741,7 @@
   "H3ooTI": [
     {
       "type": 0,
-      "value": "Azure Service Bus Data Owner"
+      "value": "Azure 服務匯流排資料擁有者"
     }
   ],
   "HAlOn1": [
@@ -739,13 +753,13 @@
   "HCDcpW": [
     {
       "type": 0,
-      "value": "Workbooks"
+      "value": "活頁簿"
     }
   ],
   "HQhDfV": [
     {
       "type": 0,
-      "value": "Cognitive Services OpenAI Contributor"
+      "value": "認知服務 OpenAI 參與者"
     }
   ],
   "He4/qi": [
@@ -763,31 +777,31 @@
   "IEFW3Y": [
     {
       "type": 0,
-      "value": "App Configuration Contributor"
+      "value": "應用程式組態參與者"
     }
   ],
   "IQaKwH": [
     {
       "type": 0,
-      "value": "Lets you read Cognitive Services data."
+      "value": "讓您可讀取認知服務資料。"
     }
   ],
   "If+Q1B": [
     {
       "type": 0,
-      "value": "A resource group with this name already exists in the selected subscription."
+      "value": "所選訂用帳戶中已有此名稱的資源群組。"
     }
   ],
   "KAYpG9": [
     {
       "type": 0,
-      "value": "Allows for full read access to IoT Hub data-plane properties."
+      "value": "允許對 IoT 中樞資料平面屬性的完全讀取存取權。"
     }
   ],
   "KJGQ1f": [
     {
       "type": 0,
-      "value": "App Configuration"
+      "value": "應用程式組態"
     }
   ],
   "Kbdzt3": [
@@ -799,19 +813,19 @@
   "Kg6ebk": [
     {
       "type": 0,
-      "value": "Toggle to show only recommended resource groups"
+      "value": "切換為只顯示建議的資源群組"
     }
   ],
   "KzMCPo": [
     {
       "type": 0,
-      "value": "Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries."
+      "value": "授與管理所有資源的完整存取權，但不允許您指派 Azure RBAC 的角色、管理 Azure 藍圖的指派作業，或共用影像庫。"
     }
   ],
   "L31yBb": [
     {
       "type": 0,
-      "value": "Function Apps"
+      "value": "函數應用程式"
     }
   ],
   "LOghU6": [
@@ -823,19 +837,19 @@
   "LSaaxU": [
     {
       "type": 0,
-      "value": "View all resources, but does not allow you to make any changes."
+      "value": "可檢視所有資源，但無法變更。"
     }
   ],
   "LkSPVW": [
     {
       "type": 0,
-      "value": "Select an existing resource group"
+      "value": "選取現有的資源群組"
     }
   ],
   "LrnSHG": [
     {
       "type": 0,
-      "value": "Select a subscription"
+      "value": "選取訂用帳戶"
     }
   ],
   "LupnQU": [
@@ -862,13 +876,13 @@
   "Mnvpbx": [
     {
       "type": 0,
-      "value": "Full management of Container Apps, including creation, deletion, and updates."
+      "value": "容器應用程式的完整管理，包括建立、刪除和更新。"
     }
   ],
   "NAAdaF": [
     {
       "type": 0,
-      "value": "This role provides read access to all capabilities of Azure Center for SAP solutions."
+      "value": "此角色提供 Azure SAP 解決方案中心所有功能的讀取存取。"
     }
   ],
   "NAidKb": [
@@ -888,37 +902,37 @@
     },
     {
       "type": 0,
-      "value": " creation validation succeeded"
+      "value": " 建立驗證成功"
     }
   ],
   "ND2EUR": [
     {
       "type": 0,
-      "value": "Storage Blob Data Contributor"
+      "value": "儲存體 Blob 資料參與者"
     }
   ],
   "NcxGiD": [
     {
       "type": 0,
-      "value": "HDInsight on AKS Cluster Admin"
+      "value": "AKS 上的 HDInsight 叢集管理員"
     }
   ],
   "Ngsqgf": [
     {
       "type": 0,
-      "value": "Resource groups list"
+      "value": "資源群組清單"
     }
   ],
   "Nrc9ba": [
     {
       "type": 0,
-      "value": "Thank you for your feedback!"
+      "value": "感謝您提供寶貴的意見反應！"
     }
   ],
   "OJ2u8k": [
     {
       "type": 0,
-      "value": "Enter name"
+      "value": "輸入名稱"
     }
   ],
   "ORGv1Q": [
@@ -930,7 +944,7 @@
   "OTGHHm": [
     {
       "type": 0,
-      "value": "The resources you picked have permissions for these roles."
+      "value": "您挑選的資源具有這些角色的權限。"
     }
   ],
   "OjYIuI": [
@@ -942,13 +956,13 @@
   "Oom2N7": [
     {
       "type": 0,
-      "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
+      "value": "檢視及搜尋所有監視資料，並能檢視監視設定，包括檢視所有 Azure 資源上的 Azure 診斷設定。"
     }
   ],
   "OsTw6c": [
     {
       "type": 0,
-      "value": "Validating SRE Agent creation"
+      "value": "正在驗證 SRE Agent 建立"
     }
   ],
   "P/DTRU": [
@@ -960,67 +974,67 @@
   "P3qxV2": [
     {
       "type": 0,
-      "value": "Search Service Contributor"
+      "value": "搜尋服務參與者"
     }
   ],
   "P9odAr": [
     {
       "type": 0,
-      "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
+      "value": "您的代理程式處於唯讀模式。代理程式需要下列權限，才能建立您資源的知識。特定服務的參與者角色將不會用於執行任何寫入作業。"
     }
   ],
   "PXg8+x": [
     {
       "type": 0,
-      "value": "Virtual Machine Contributor"
+      "value": "虛擬機器參與者"
     }
   ],
   "Phji5P": [
     {
       "type": 0,
-      "value": "Edit Healthcare APIs agent configurations."
+      "value": "編輯醫療保健 API 代理程式組態。"
     }
   ],
   "PrFU82": [
     {
       "type": 0,
-      "value": "Can read all monitoring data and update monitoring settings."
+      "value": "可讀取所有監視資料及更新監視設定。"
     }
   ],
   "Pwen/L": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Reader"
+      "value": "認知服務 LUIS 讀取者"
     }
   ],
   "Q3p3sz": [
     {
       "type": 0,
-      "value": "Storage Blob Data Reader"
+      "value": "儲存體 Blob 資料讀者"
     }
   ],
   "Q8Qw5B": [
     {
       "type": 0,
-      "value": "Description"
+      "value": "描述"
     }
   ],
   "QIY3dQ": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Owner"
+      "value": "Azure Digital Twins 資料擁有者"
     }
   ],
   "Qly58H": [
     {
       "type": 0,
-      "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+      "value": "若要檢視代理程式將擁有的角色和權限，請選擇要由代理程式管理的資源群組。"
     }
   ],
   "QwVQbw": [
     {
       "type": 0,
-      "value": "Failed to register Microsoft.App RP for SRE Agent "
+      "value": "無法登錄 Microsoft.App RP 以進行 SRE Agent "
     },
     {
       "type": 1,
@@ -1028,13 +1042,13 @@
     },
     {
       "type": 0,
-      "value": " creation. Please ensure you have Contributor permissions on the subscription or contact your subscription administrator to register the RP for you."
+      "value": " 建立。請確保您具有訂用帳戶上的參與者權限，或請與您的訂用帳戶管理員連絡，以為您註冊 RP。"
     }
   ],
   "R+J5ox": [
     {
       "type": 0,
-      "value": "Review"
+      "value": "檢閱"
     }
   ],
   "R/6nsx": [
@@ -1046,7 +1060,7 @@
   "R1RX2a": [
     {
       "type": 0,
-      "value": "Full access to IoT Hub data."
+      "value": "IoT 中樞資料的完整存取。"
     }
   ],
   "RDwKyy": [
@@ -1058,7 +1072,7 @@
   "RStTJp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster Admin"
+      "value": "Azure Kubernetes Service 叢集管理員"
     }
   ],
   "RVf7gC": [
@@ -1070,7 +1084,7 @@
   "RrsyUh": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service RBAC Reader"
+      "value": "Azure Kubernetes Service RBAC 讀者"
     }
   ],
   "S8snIe": [
@@ -1082,7 +1096,7 @@
   "SCjiXP": [
     {
       "type": 0,
-      "value": "Cognitive Services Data Reader"
+      "value": "認知服務資料讀者"
     }
   ],
   "SQJto2": [
@@ -1094,31 +1108,31 @@
   "Sr4IbA": [
     {
       "type": 0,
-      "value": "Monitoring Reader"
+      "value": "監視讀者"
     }
   ],
   "SuVToZ": [
     {
       "type": 0,
-      "value": "SQL Managed Instance Contributor"
+      "value": "SQL 受控執行個體參與者"
     }
   ],
   "T5+AEf": [
     {
       "type": 0,
-      "value": "Logic App Operator"
+      "value": "邏輯應用程式運算子"
     }
   ],
   "TAm7bB": [
     {
       "type": 0,
-      "value": "Monitoring Contributor"
+      "value": "監視參與者"
     }
   ],
   "TB6bkn": [
     {
       "type": 0,
-      "value": "Get more info"
+      "value": "取得更多資訊"
     }
   ],
   "TDaF6J": [
@@ -1130,7 +1144,7 @@
   "TDoBlx": [
     {
       "type": 0,
-      "value": "Privileged"
+      "value": "特殊權限"
     }
   ],
   "TleXgd": [
@@ -1148,7 +1162,7 @@
   "U5+MBC": [
     {
       "type": 0,
-      "value": "Client ID"
+      "value": "用戶端識別碼"
     }
   ],
   "UQUIP7": [
@@ -1160,19 +1174,19 @@
   "UVD6yh": [
     {
       "type": 0,
-      "value": "App Services"
+      "value": "應用程式服務"
     }
   ],
   "UZS12+": [
     {
       "type": 0,
-      "value": "Has read-only access to entities in the workspace. This role should be assigned on the workspace scope."
+      "value": "具有工作區中實體的唯讀存取權。此角色應在工作區範圍進行指派。"
     }
   ],
   "UoL653": [
     {
       "type": 0,
-      "value": "Show only recommended"
+      "value": "僅顯示建議的項目"
     }
   ],
   "UrGI9K": [
@@ -1184,7 +1198,7 @@
   "UuzObe": [
     {
       "type": 0,
-      "value": "Failed to setup Managed Identity with the error: "
+      "value": "無法設定受控身分識別，發生錯誤: "
     },
     {
       "type": 1,
@@ -1194,25 +1208,25 @@
   "V/rQci": [
     {
       "type": 0,
-      "value": "Managed resource groups table"
+      "value": "受控資源群組資料表"
     }
   ],
   "VlBNux": [
     {
       "type": 0,
-      "value": "Application Insights Component Contributor"
+      "value": "Application Insights 元件參與者"
     }
   ],
   "VssvTa": [
     {
       "type": 0,
-      "value": "Invalid template or unable to fetch the template."
+      "value": "範本無效或無法擷取範本。"
     }
   ],
   "VzzYJk": [
     {
       "type": 0,
-      "value": "Create"
+      "value": "建立"
     }
   ],
   "W/V6+Y": [
@@ -1230,7 +1244,7 @@
   "WE+M5j": [
     {
       "type": 0,
-      "value": "Failed to load SRE Agent locations. Please try again later."
+      "value": "無法載入 SRE Agent 位置。請稍後再試。"
     }
   ],
   "WFo96A": [
@@ -1242,7 +1256,7 @@
   "WLw9E7": [
     {
       "type": 0,
-      "value": "PostgreSQL Flexible Server Long Term Retention Backup Role"
+      "value": "PostgreSQL 彈性伺服器長期保留備份角色"
     }
   ],
   "WODKUB": [
@@ -1256,79 +1270,79 @@
     },
     {
       "type": 0,
-      "value": " creation succeeded"
+      "value": " 建立成功"
     }
   ],
   "Wc5b/J": [
     {
       "type": 0,
-      "value": "AzureML Compute Operator"
+      "value": "AzureML 計算運算子"
     }
   ],
   "Wf6bDe": [
     {
       "type": 0,
-      "value": "Agent details"
+      "value": "代理程式詳細資料"
     }
   ],
   "WlHVBb": [
     {
       "type": 0,
-      "value": "Log Analytics Workspaces"
+      "value": "Log Analytics 工作區"
     }
   ],
   "Wtf3vL": [
     {
       "type": 0,
-      "value": "Data Factory Contributor"
+      "value": "Data Factory 參與者"
     }
   ],
   "WygVDv": [
     {
       "type": 0,
-      "value": "Administer HDInsight cluster pools."
+      "value": "管理 HDInsight 叢集集區。"
     }
   ],
   "X0e0bZ": [
     {
       "type": 0,
-      "value": "SQL Managed Instances"
+      "value": "SQL 受控執行個體"
     }
   ],
   "XJ+Lww": [
     {
       "type": 0,
-      "value": "Lets you read and modify HDInsight cluster configurations."
+      "value": "可讓您讀取及修改 HDInsight 叢集設定。"
     }
   ],
   "XYSJsS": [
     {
       "type": 0,
-      "value": "API Management Workspace Reader"
+      "value": "APIM 工作區讀者"
     }
   ],
   "Xh85Ml": [
     {
       "type": 0,
-      "value": "Current agent count"
+      "value": "目前的代理程式計數"
     }
   ],
   "XtnlO8": [
     {
       "type": 0,
-      "value": "Manage long-term retention backups for PostgreSQL Flexible Server."
+      "value": "管理 PostgreSQL 彈性伺服器的長期保留備份。"
     }
   ],
   "Y2QRpS": [
     {
       "type": 0,
-      "value": "equals"
+      "value": "等於"
     }
   ],
   "YYWhEp": [
     {
       "type": 0,
-      "value": "Failed to create the SRE agent "
+      "value": "無法建立 SRE Agent "
     },
     {
       "type": 1,
@@ -1336,7 +1350,7 @@
     },
     {
       "type": 0,
-      "value": " with the error: "
+      "value": "，發生錯誤: "
     },
     {
       "type": 1,
@@ -1346,61 +1360,67 @@
   "YYx7ap": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have a read only lock on the resource group."
+      "value": "某些選取的資源群組在資源群組上具有唯讀鎖定。"
     }
   ],
   "YZIFAO": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service RBAC Cluster Admin"
+      "value": "Azure Kubernetes Service RBAC 叢集系統管理員"
     }
   ],
   "Yk6Co7": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Reader"
+      "value": "認知服務 QnA Maker 讀者"
     }
   ],
   "Yp7NCi": [
     {
       "type": 0,
-      "value": "Azure Center for SAP solutions administrator"
+      "value": "Azure SAP 解決方案中心系統管理員"
     }
   ],
   "Z2WgoK": [
     {
       "type": 0,
-      "value": "Authentication mode"
+      "value": "驗證模式"
     }
   ],
   "Z7Aj91": [
     {
       "type": 0,
-      "value": "Manage Azure Monitor workbooks."
+      "value": "管理 Azure Monitor 活頁簿。"
     }
   ],
   "ZNMCbm": [
     {
       "type": 0,
-      "value": "Manage Logic Apps."
+      "value": "管理 Logic Apps。"
     }
   ],
   "ZsLOg3": [
     {
       "type": 0,
-      "value": "Manage Azure OpenAI resources."
+      "value": "管理 Azure OpenAI 資源。"
     }
   ],
   "a5msuh": [
     {
       "type": 0,
-      "value": "Yes"
+      "value": "是"
     }
   ],
   "aGL+Qo": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under LUIS."
+      "value": "可以存取 LUIS 下的 [讀取] 和 [測試] 功能。"
+    }
+  ],
+  "aIRWQB": [
+    {
+      "type": 0,
+      "value": "Back to home"
     }
   ],
   "aLBTVj": [
@@ -1427,31 +1447,31 @@
   "aqNZbD": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Writer"
+      "value": "認知服務語言寫入器"
     }
   ],
   "arLfuy": [
     {
       "type": 0,
-      "value": "Chat with agent"
+      "value": "與代理程式聊天"
     }
   ],
   "axbDHG": [
     {
       "type": 0,
-      "value": "You can choose a maximum of 100 resource groups that the agent will manage."
+      "value": "您最多可以選擇代理程式將管理的 100 個資源群組。"
     }
   ],
   "b43a5F": [
     {
       "type": 0,
-      "value": "SAP Virtual Instances"
+      "value": "SAP 虛擬執行個體"
     }
   ],
   "bN0x+w": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Reader"
+      "value": "裝置佈建服務資料讀取者"
     }
   ],
   "bPyOFk": [
@@ -1463,7 +1483,7 @@
   "bXkiU5": [
     {
       "type": 0,
-      "value": "SQL Databases"
+      "value": "SQL 資料庫"
     }
   ],
   "bxv59V": [
@@ -1475,31 +1495,31 @@
   "c1EiBR": [
     {
       "type": 0,
-      "value": "Cognitive Services Usages Reader"
+      "value": "認知服務使用量讀者"
     }
   ],
   "cRTR/A": [
     {
       "type": 0,
-      "value": "Write access to LUIS applications."
+      "value": "LUIS 應用程式的寫入權限。"
     }
   ],
   "cTzjJg": [
     {
       "type": 0,
-      "value": "Storage Account Contributor"
+      "value": "儲存體帳戶參與者"
     }
   ],
   "ceCESY": [
     {
       "type": 0,
-      "value": "An agent with this name already exists in the selected resource group."
+      "value": "具有此名稱的代理程式已存在於選取的資源群組中。"
     }
   ],
   "ciB+oy": [
     {
       "type": 0,
-      "value": "Operate Azure Machine Learning compute resources."
+      "value": "操作 Azure Machine Learning 計算資源。"
     }
   ],
   "cmUVb9": [
@@ -1511,13 +1531,13 @@
   "ctcA0c": [
     {
       "type": 0,
-      "value": "Agent name"
+      "value": "代理程式名稱"
     }
   ],
   "cyR7Kh": [
     {
       "type": 0,
-      "value": "Back"
+      "value": "返回"
     }
   ],
   "czVHN2": [
@@ -1529,13 +1549,13 @@
   "d2GmfJ": [
     {
       "type": 0,
-      "value": "Manage API Management workspaces."
+      "value": "管理 APIM 工作區。"
     }
   ],
   "d8dECB": [
     {
       "type": 0,
-      "value": "IoT Hub Data Reader"
+      "value": "IoT 中樞資料讀取器"
     }
   ],
   "dDk23i": [
@@ -1545,49 +1565,49 @@
     },
     {
       "type": 0,
-      "value": " options"
+      "value": " 選項"
     }
   ],
   "dHVUaP": [
     {
       "type": 0,
-      "value": "Positive"
+      "value": "正面"
     }
   ],
   "dKhdkO": [
     {
       "type": 0,
-      "value": "Select up to 100 resource groups to monitor"
+      "value": "選取最多 100 個資源群組來監視"
     }
   ],
   "dQ5/dh": [
     {
       "type": 0,
-      "value": "Allows for full read access to Device Provisioning Service data-plane properties."
+      "value": "允許對裝置佈建服務資料平面屬性的完全讀取權。"
     }
   ],
   "dR8VUW": [
     {
       "type": 0,
-      "value": "Manage API Management services."
+      "value": "管理 Azure APIM 服務。"
     }
   ],
   "e0a3XV": [
     {
       "type": 0,
-      "value": "Log Analytics Contributor"
+      "value": "Log Analytics 參與者"
     }
   ],
   "e3itcX": [
     {
       "type": 0,
-      "value": "Device Update Administrator"
+      "value": "裝置更新系統管理員"
     }
   ],
   "eBvTo6": [
     {
       "type": 0,
-      "value": "Read-only actions in the project. Readers can't create or update the project."
+      "value": "專案中的唯讀動作。讀者無法建立或更新專案。"
     }
   ],
   "eHNXXp": [
@@ -1599,41 +1619,45 @@
   "eKpamp": [
     {
       "type": 0,
-      "value": "Template error"
+      "value": "範本錯誤"
     }
   ],
   "ecG+OD": [
     {
       "type": 0,
-      "value": "Manage Azure Search services."
+      "value": "管理 Azure 搜尋服務服務。"
     }
   ],
   "egr0Oj": [
+    {
+      "type": 0,
+      "value": "已選取 "
+    },
     {
       "type": 1,
       "value": "0"
     },
     {
       "type": 0,
-      "value": " resource groups selected"
+      "value": " 個資源群組"
     }
   ],
   "fFyuVF": [
     {
       "type": 0,
-      "value": "Cognitive Services Speech Contributor"
+      "value": "認知服務語音參與者"
     }
   ],
   "fIp46f": [
     {
       "type": 0,
-      "value": "Read only lock"
+      "value": "唯讀鎖定"
     }
   ],
   "fSFDgd": [
     {
       "type": 0,
-      "value": "Cognitive Services"
+      "value": "認知服務"
     }
   ],
   "fpexn2": [
@@ -1645,7 +1669,7 @@
   "ftfFhS": [
     {
       "type": 0,
-      "value": "Select resource groups"
+      "value": "選取資源群組"
     }
   ],
   "g82HU6": [
@@ -1657,19 +1681,19 @@
   "gC4xMY": [
     {
       "type": 0,
-      "value": "Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces."
+      "value": "允許唯讀存取權以查看命名空間的大多數物件。但不允許檢視角色或角色繫結。此角色不允許檢視祕密，原因是讀取祕密內容可存取命名空間的 ServiceAccount 認證，這可能讓 API 存取權成為命名空間中的任何 ServiceAccount (某種形式的權限提升) 。在叢集範圍套用此角色，會授與所有命名空間的存取權。"
     }
   ],
   "gZ5fZs": [
     {
       "type": 0,
-      "value": "Manage IoT Hub device twins."
+      "value": "管理 IoT 中樞裝置對應項。"
     }
   ],
   "gn/nvJ": [
     {
       "type": 0,
-      "value": "Read, logstream and exec into Container Apps."
+      "value": "讀取、記錄串流與執行至容器應用程式。"
     }
   ],
   "gty4jJ": [
@@ -1681,55 +1705,55 @@
   "gzx/k1": [
     {
       "type": 0,
-      "value": "PostgreSQL Contributor"
+      "value": "PostgreSQL 參與者"
     }
   ],
   "hF5T80": [
     {
       "type": 0,
-      "value": "Administer Device Update accounts."
+      "value": "管理裝置更新帳戶。"
     }
   ],
   "hGmeVK": [
     {
       "type": 0,
-      "value": "App Insights"
+      "value": "應用程式深入解析"
     }
   ],
   "hO1Iog": [
     {
       "type": 0,
-      "value": "Manage without access."
+      "value": "無需存取權即可管理。"
     }
   ],
   "hPj49L": [
     {
       "type": 0,
-      "value": "Workbook Reader"
+      "value": "活頁簿讀者"
     }
   ],
   "hX5PAb": [
     {
       "type": 0,
-      "value": "No results found"
+      "value": "找不到任何結果"
     }
   ],
   "hfIdUs": [
     {
       "type": 0,
-      "value": "SQL DB Contributor"
+      "value": "SQL DB 參與者"
     }
   ],
   "hrdmcd": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Reader"
+      "value": "Azure Digital Twins 資料讀者"
     }
   ],
   "hswM/b": [
     {
       "type": 0,
-      "value": "Assign the agent a level of permissions for the resource groups it manages. The agent can still manage its assigned resources with Reader permissions."
+      "value": "為代理程式指派其管理的資源群組的權限等級。代理程式仍可使用讀取者權限管理其獲指派的資源。"
     }
   ],
   "i50Kb0": [
@@ -1741,49 +1765,49 @@
   "i5OUQE": [
     {
       "type": 0,
-      "value": "Container Apps Contributor"
+      "value": "容器應用程式參與者"
     }
   ],
   "i6cLLM": [
     {
       "type": 0,
-      "value": "Perform data science tasks in Azure Machine Learning."
+      "value": "在 Azure Machine Learning 中執行資料科學工作。"
     }
   ],
   "iFsDVR": [
     {
       "type": 0,
-      "value": "Loading"
+      "value": "正在載入"
     }
   ],
   "iM9JZL": [
     {
       "type": 0,
-      "value": "Deny assignments"
+      "value": "拒絕指派"
     }
   ],
   "itC9lG": [
     {
       "type": 0,
-      "value": "Basics"
+      "value": "基本資料"
     }
   ],
   "iv5NrP": [
     {
       "type": 0,
-      "value": "API Management"
+      "value": "APIM"
     }
   ],
   "ixb1SP": [
     {
       "type": 0,
-      "value": "Administer HDInsight clusters on AKS."
+      "value": "管理 AKS 上的 HDInsight 叢集。"
     }
   ],
   "j5Yfyr": [
     {
       "type": 0,
-      "value": "Search Index Data Reader"
+      "value": "搜尋索引資料讀取者"
     }
   ],
   "jEU2gk": [
@@ -1795,31 +1819,31 @@
   "jHJmjf": [
     {
       "type": 0,
-      "value": "No results"
+      "value": "沒有結果"
     }
   ],
   "jJE3xY": [
     {
       "type": 0,
-      "value": "Lets you manage the web plans for websites, but not access to them."
+      "value": "可讓您管理網站的 Web 方案，但無法加以存取。"
     }
   ],
   "jjUD0v": [
     {
       "type": 0,
-      "value": "Resource group creation failed."
+      "value": "建立資源群組失敗。"
     }
   ],
   "jvo0vs": [
     {
       "type": 0,
-      "value": "Save"
+      "value": "儲存"
     }
   ],
   "kVQ1fo": [
     {
       "type": 0,
-      "value": "Negative"
+      "value": "負面"
     }
   ],
   "kbQZUj": [
@@ -1839,19 +1863,19 @@
   "kyVg+J": [
     {
       "type": 0,
-      "value": "Choose at least 1 resource group that you have Owner or User Access Administrator permissions on."
+      "value": "選擇至少 1 個您具有擁有者或使用者存取系統管理員權限的資源群組。"
     }
   ],
   "l5sNim": [
     {
       "type": 0,
-      "value": "AzureML Data Scientist"
+      "value": "AzureML 資料科學家"
     }
   ],
   "lNehTG": [
     {
       "type": 0,
-      "value": "Failed to validate SRE Agent "
+      "value": "無法驗證 SRE Agent "
     },
     {
       "type": 1,
@@ -1859,7 +1883,7 @@
     },
     {
       "type": 0,
-      "value": " creation with the error: "
+      "value": " 建立，發生錯誤: "
     },
     {
       "type": 1,
@@ -1869,7 +1893,7 @@
   "lcvC4k": [
     {
       "type": 0,
-      "value": "Validating SRE Agent "
+      "value": "驗證 SRE Agent "
     },
     {
       "type": 1,
@@ -1877,7 +1901,7 @@
     },
     {
       "type": 0,
-      "value": " creation in progress"
+      "value": " 建立進行中"
     }
   ],
   "lnaWo/": [
@@ -1889,31 +1913,31 @@
   "lvNWLS": [
     {
       "type": 0,
-      "value": "IoT Hub Registry Contributor"
+      "value": "IoT 中樞登錄參與者"
     }
   ],
   "mAyw3x": [
     {
       "type": 0,
-      "value": "Edit QnA Maker knowledge bases."
+      "value": "編輯 QnA Maker 知識庫。"
     }
   ],
   "mkhNnB": [
     {
       "type": 0,
-      "value": "Read and write Azure Monitor monitoring settings and data."
+      "value": "讀取和寫入 Azure 監視器監視設定和資料。"
     }
   ],
   "n/e5Mg": [
     {
       "type": 0,
-      "value": "Allowed Actions"
+      "value": "允許的動作"
     }
   ],
   "nBPow3": [
     {
       "type": 0,
-      "value": "Lets you manage all resources in the cluster."
+      "value": "可讓您管理叢集中的所有資源。"
     }
   ],
   "nDyaq/": [
@@ -1924,18 +1948,22 @@
   ],
   "nlPgO8": [
     {
+      "type": 0,
+      "value": "已選取 "
+    },
+    {
       "type": 1,
       "value": "0"
     },
     {
       "type": 0,
-      "value": " resource group selected"
+      "value": " 個資源群組"
     }
   ],
   "nrAnZy": [
     {
       "type": 0,
-      "value": "Full access to Azure Service Bus data."
+      "value": "Azure 服務匯流排資料的完整存取。"
     }
   ],
   "oHGFwy": [
@@ -1947,19 +1975,19 @@
   "oIiHqo": [
     {
       "type": 0,
-      "value": "Extension name"
+      "value": "延伸模組名稱"
     }
   ],
   "oQ/TUW": [
     {
       "type": 0,
-      "value": "Cost Management Contributor"
+      "value": "成本管理參與者"
     }
   ],
   "oThNc4": [
     {
       "type": 0,
-      "value": "Failed to setup Log Analytics Workspace with the error: "
+      "value": "無法設定 Log Analytics 工作區，發生錯誤: "
     },
     {
       "type": 1,
@@ -1969,19 +1997,19 @@
   "oUWADl": [
     {
       "type": 0,
-      "value": "No"
+      "value": "否"
     }
   ],
   "p/xAmY": [
     {
       "type": 0,
-      "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
+      "value": "您的代理程式處於檢閱模式。代理程式需要下列權限，才能建立您資源的知識。代理程式會在您核准後，根據請求使用部分權限執行寫入作業。"
     }
   ],
   "p5T+zv": [
     {
       "type": 0,
-      "value": "Manage without access. Can't manage security policies or parent SQL servers."
+      "value": "無需存取權即可管理。無法管理安全性原則或父代 SQL 伺服器。"
     }
   ],
   "p849eW": [
@@ -1993,37 +2021,37 @@
   "pAFuFx": [
     {
       "type": 0,
-      "value": "HDInsight on AKS Cluster Pool Admin"
+      "value": "AKS 上的 HDInsight 叢集集區管理員"
     }
   ],
   "pDUFq5": [
     {
       "type": 0,
-      "value": "App Configuration Reader"
+      "value": "應用程式組態讀者"
     }
   ],
   "pM3DKw": [
     {
       "type": 0,
-      "value": "ACIS endpoint"
+      "value": "ACIS 端點"
     }
   ],
   "pMlVvA": [
     {
       "type": 0,
-      "value": "Search resource groups"
+      "value": "搜尋資源群組"
     }
   ],
   "pSfQh6": [
     {
       "type": 0,
-      "value": "Grants read access to Azure Cognitive Search index data."
+      "value": "授與對 Azure 認知搜尋索引資料的讀取權。"
     }
   ],
   "pVF2EE": [
     {
       "type": 0,
-      "value": "We've started provisioning your SRE Agent "
+      "value": "我們已開始佈建您的 SRE Agent "
     },
     {
       "type": 1,
@@ -2031,43 +2059,43 @@
     },
     {
       "type": 0,
-      "value": " to manage your selected resource groups."
+      "value": "，以管理您選取的資源群組。"
     }
   ],
   "pW5vuU": [
     {
       "type": 0,
-      "value": "Resource group creation"
+      "value": "資源群組建立"
     }
   ],
   "pqgzm0": [
     {
       "type": 0,
-      "value": "Manage Application Insights components."
+      "value": "管理 Application Insights 元件。"
     }
   ],
   "q7CVBv": [
     {
       "type": 0,
-      "value": "Loading resource types..."
+      "value": "正在載入資源類型..."
     }
   ],
   "qGXY+e": [
     {
       "type": 0,
-      "value": "Agent permissions"
+      "value": "代理程式權限"
     }
   ],
   "r0gBch": [
     {
       "type": 0,
-      "value": "The subscription you have selected has not been registered to use SRE Agent. Please email us with your subscription ID on sreagentteam@microsoft.com for getting registered."
+      "value": "您選取的訂用帳戶尚未註冊為使用 SRE Agent。請將您的訂用帳戶識別碼透過電子郵件寄送至 sreagentteam@microsoft.com 以進行註冊。"
     }
   ],
   "rZaqtB": [
     {
       "type": 0,
-      "value": "API Management Service Contributor"
+      "value": "API 管理服務參與者"
     }
   ],
   "rbrahO": [
@@ -2079,25 +2107,25 @@
   "rjgOC5": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Editor"
+      "value": "認知服務 QnA Maker 編輯器"
     }
   ],
   "ru0BPw": [
     {
       "type": 0,
-      "value": "Learn more about permissions for managed resource groups"
+      "value": "深入了解受控資源群組的權限"
     }
   ],
   "s0xRD+": [
     {
       "type": 0,
-      "value": "Service Bus"
+      "value": "服務匯流排"
     }
   ],
   "s2jhon": [
     {
       "type": 0,
-      "value": "Certificate SAN"
+      "value": "憑證 SAN"
     }
   ],
   "s7mQCK": [
@@ -2109,19 +2137,19 @@
   "sI+CCC": [
     {
       "type": 0,
-      "value": "Log Analytics Reader"
+      "value": "Log Analytics 閱讀程式"
     }
   ],
   "sRU00i": [
     {
       "type": 0,
-      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
+      "value": "若要在多個訂用帳戶中指派代理程式受控資源群組，您必須有這些資源群組的 [擁有者] 或 [使用者存取系統管理員] 權限。代理程式資源與受控資源群組可以位於不同的區域與訂用帳戶中。"
     }
   ],
   "sRb5P9": [
     {
       "type": 0,
-      "value": "Manage cost analysis and budgets."
+      "value": "管理成本分析與預算。"
     }
   ],
   "sYoT7W": [
@@ -2148,19 +2176,19 @@
   "ss/NWY": [
     {
       "type": 0,
-      "value": "SQL Server Contributor"
+      "value": "SQL Server 參與者"
     }
   ],
   "t3D4PH": [
     {
       "type": 0,
-      "value": "Device Update Reader"
+      "value": "裝置更新讀取者"
     }
   ],
   "t9I1dY": [
     {
       "type": 0,
-      "value": "Healthcare Agent Editor"
+      "value": "醫療保健代理程式編輯器"
     }
   ],
   "tOdNiY": [
@@ -2172,49 +2200,49 @@
   "tYoDsC": [
     {
       "type": 0,
-      "value": "Share your thoughts about the portal..."
+      "value": "分享您對於入口網站的想法..."
     }
   ],
   "tffS9r": [
     {
       "type": 0,
-      "value": "Open resource group"
+      "value": "開啟資源群組"
     }
   ],
   "tshYzs": [
     {
       "type": 0,
-      "value": "Select region"
+      "value": "選取區域"
     }
   ],
   "u0xiAh": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Reader"
+      "value": "認知服務自訂視覺讀者"
     }
   ],
   "uRMqBi": [
     {
       "type": 0,
-      "value": "Read, write, and delete Azure Storage containers and blobs."
+      "value": "讀取、寫入及刪除 Azure 儲存體容器和 Blob。"
     }
   ],
   "ufonOZ": [
     {
       "type": 0,
-      "value": "Search Services"
+      "value": "搜尋服務"
     }
   ],
   "uh732n": [
     {
       "type": 0,
-      "value": "IoT Hubs"
+      "value": "IoT 中樞"
     }
   ],
   "uqyJPP": [
     {
       "type": 0,
-      "value": "You do not have permission to create resource groups under the currently selected subscription."
+      "value": "您沒有權限可在目前選取的訂用帳戶下建立資源群組。"
     }
   ],
   "v90qT8": [
@@ -2232,19 +2260,19 @@
   "vbdOl/": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under Language portal."
+      "value": "擁有語言入口網站下的 [讀取] 和 [測試] 功能存取權。"
     }
   ],
   "vfndow": [
     {
       "type": 0,
-      "value": "Can read Azure Cosmos DB account data."
+      "value": "可讀取 Azure Cosmos DB 帳戶資料。"
     }
   ],
   "vu2LMl": [
     {
       "type": 0,
-      "value": "Learn more about Reader and Privileged permissions"
+      "value": "深入了解讀取者與特殊權限"
     }
   ],
   "vxVGav": [
@@ -2262,43 +2290,43 @@
   "wSZR47": [
     {
       "type": 0,
-      "value": "Submit"
+      "value": "提交"
     }
   ],
   "wbigtI": [
     {
       "type": 0,
-      "value": "Administer SAP workloads on Azure."
+      "value": "在 Azure 上管理 SAP 工作負載。"
     }
   ],
   "wxlJSs": [
     {
       "type": 0,
-      "value": "Manage Cognitive Services accounts."
+      "value": "管理認知服務帳戶。"
     }
   ],
   "x2Qj1F": [
     {
       "type": 0,
-      "value": "Geneva Actions Certificate Name"
+      "value": "Geneva 動作憑證名稱"
     }
   ],
   "xGPsyJ": [
     {
       "type": 0,
-      "value": "HDInsight Cluster Operator"
+      "value": "HDInsight 叢集操作員"
     }
   ],
   "xHDoP8": [
     {
       "type": 0,
-      "value": "Do you want to continue?"
+      "value": "是否要繼續?"
     }
   ],
   "xVPoso": [
     {
       "type": 0,
-      "value": "Resource group name"
+      "value": "資源群組名稱"
     }
   ],
   "xXbJso": [
@@ -2310,13 +2338,13 @@
   "xXhn+h": [
     {
       "type": 0,
-      "value": "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data."
+      "value": "讓您管理儲存體帳戶，包括存取提供儲存體帳號之完整存取權的儲存體帳戶金鑰。"
     }
   ],
   "xdMkcg": [
     {
       "type": 0,
-      "value": "Can read all monitoring data."
+      "value": "可讀取所有監視資料。"
     }
   ],
   "xhfdqv": [
@@ -2334,19 +2362,19 @@
   "xmsrBu": [
     {
       "type": 0,
-      "value": "Operate API Management services."
+      "value": "運作 API 管理服務。"
     }
   ],
   "xqwf/7": [
     {
       "type": 0,
-      "value": "IoT Hub Data Contributor"
+      "value": "IoT 中樞資料參與者"
     }
   ],
   "xtkizV": [
     {
       "type": 0,
-      "value": "Website Contributor"
+      "value": "網站參與者"
     }
   ],
   "y1Z3or": [
@@ -2358,31 +2386,31 @@
   "yV5oYe": [
     {
       "type": 0,
-      "value": "Policies"
+      "value": "原則"
     }
   ],
   "yilQrD": [
     {
       "type": 0,
-      "value": "Managed resource groups"
+      "value": "受控資源群組"
     }
   ],
   "yo67XU": [
     {
       "type": 0,
-      "value": "API Management Service Operator Role"
+      "value": "API 管理服務運算子角色"
     }
   ],
   "zEk9h3": [
     {
       "type": 0,
-      "value": "Virtual Machines"
+      "value": "虛擬機器"
     }
   ],
   "zJ+8HW": [
     {
       "type": 0,
-      "value": "(new) "
+      "value": "(新增) "
     },
     {
       "type": 1,
@@ -2392,19 +2420,19 @@
   "zQvVDJ": [
     {
       "type": 0,
-      "value": "All"
+      "value": "所有"
     }
   ],
   "zacv31": [
     {
       "type": 0,
-      "value": "Detected resource types"
+      "value": "偵測到的資源類型"
     }
   ],
   "zhHihn": [
     {
       "type": 0,
-      "value": "SQL Servers"
+      "value": "SQL Server"
     }
   ]
 }

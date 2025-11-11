@@ -2,7 +2,7 @@
   "+/nU/s": [
     {
       "type": 0,
-      "value": "Gives you read access to management and content operations, but does not allow making changes."
+      "value": "Uděluje oprávnění ke čtení operací pro správu a obsah, ale neumožňuje provádět změny."
     }
   ],
   "+CwN9C": [
@@ -14,7 +14,7 @@
   "+Ov1f1": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have policies that will cause the deployment to fail."
+      "value": "Některé z vybraných skupin prostředků mají zásady, které způsobí selhání nasazení."
     }
   ],
   "+TlNdm": [
@@ -26,25 +26,25 @@
   "+YDzOd": [
     {
       "type": 0,
-      "value": "Name must be between 2 and 32 characters"
+      "value": "Název musí mít 2 až 32 znaků."
     }
   ],
   "+bJIWo": [
     {
       "type": 0,
-      "value": "Agent permissions level"
+      "value": "Úroveň oprávnění agenta"
     }
   ],
   "+k5t/y": [
     {
       "type": 0,
-      "value": "Contributor"
+      "value": "Přispěvatel"
     }
   ],
   "+l+XEu": [
     {
       "type": 0,
-      "value": "Can read workbooks."
+      "value": "Může číst sešity."
     }
   ],
   "+uAdUZ": [
@@ -56,7 +56,7 @@
   "+zgzmq": [
     {
       "type": 0,
-      "value": "Cosmos DB Accounts"
+      "value": "Účty Cosmos DB"
     }
   ],
   "/6/sPX": [
@@ -68,51 +68,47 @@
   "/6Fckw": [
     {
       "type": 0,
-      "value": "Provisioning SRE Agent"
+      "value": "Zřizování agenta SRE"
     }
   ],
   "/8MshI": [
     {
       "type": 0,
-      "value": "Manage SQL Managed Instances."
+      "value": "Spravujte spravované instance Azure SQL."
     }
   ],
   "/WrP/v": [
     {
       "type": 0,
-      "value": "Container Apps Operator"
+      "value": "Operátor Container Apps"
     }
   ],
   "/dxZCE": [
     {
       "type": 0,
-      "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
+      "value": "Váš agent je v autonomním režimu. Pro to, aby agent mohl vytvářet znalosti o vašich prostředcích, jsou vyžadována následující oprávnění. Agent některá z těchto oprávnění použije k autonomnímu provádění operací zápisu na základě vašich požadavků."
     }
   ],
   "/gCtdO": [
     {
       "type": 0,
-      "value": "Manage Custom Vision projects."
+      "value": "Spravujte projekty Custom Vision."
     }
   ],
   "/wY7pG": [
     {
       "type": 0,
-      "value": "PostgreSQL Servers"
+      "value": "Servery PostgreSQL"
     }
   ],
   "/ytgXm": [
     {
       "type": 0,
-      "value": "Remove "
+      "value": "Odebrat filtr "
     },
     {
       "type": 1,
       "value": "columnName"
-    },
-    {
-      "type": 0,
-      "value": " filter"
     }
   ],
   "/zFP1/": [
@@ -124,7 +120,7 @@
   "01lT1B": [
     {
       "type": 0,
-      "value": "Lets you read, enable and disable logic app."
+      "value": "Umožňuje číst, povolovat a zakazovat aplikaci logiky."
     }
   ],
   "01sZoP": [
@@ -134,7 +130,7 @@
     },
     {
       "type": 0,
-      "value": " of "
+      "value": " z "
     },
     {
       "type": 1,
@@ -144,7 +140,7 @@
   "0Dhe75": [
     {
       "type": 0,
-      "value": "Manage SQL servers and their security policies."
+      "value": "Spravujte servery SQL a jejich zásady zabezpečení."
     }
   ],
   "0oLj/t": [
@@ -156,7 +152,7 @@
   "0te2Ra": [
     {
       "type": 0,
-      "value": "Manage Azure Data Factory instances."
+      "value": "Spravujte instance Azure Data Factory."
     }
   ],
   "1Lx9q5": [
@@ -168,7 +164,7 @@
   "1YPTmM": [
     {
       "type": 0,
-      "value": "Web Plan Contributor"
+      "value": "Přispěvatel webových plánů"
     }
   ],
   "1ZgrhW": [
@@ -180,37 +176,37 @@
   "1myzs4": [
     {
       "type": 0,
-      "value": "PostgreSQL Flexible Servers"
+      "value": "Flexibilní servery PostgreSQL"
     }
   ],
   "1t2BaF": [
     {
       "type": 0,
-      "value": "Geneva actions configuration"
+      "value": "Konfigurace akcí Geneva"
     }
   ],
   "2/2yg+": [
     {
       "type": 0,
-      "value": "Add"
+      "value": "Přidat"
     }
   ],
   "2GuZPR": [
     {
       "type": 0,
-      "value": "Portal feedback"
+      "value": "Zpětná vazba k portálu"
     }
   ],
   "2LQx4N": [
     {
       "type": 0,
-      "value": "Manage App Configuration stores."
+      "value": "Spravovat úložiště App Configuration."
     }
   ],
   "2PnnDB": [
     {
       "type": 0,
-      "value": "Manage IoT Hub device registry."
+      "value": "Spravujte registr zařízení IoT Hub."
     }
   ],
   "2do8JC": [
@@ -222,7 +218,13 @@
   "2xRon3": [
     {
       "type": 0,
-      "value": "Select resource groups dialog"
+      "value": "Dialogové okno Vybrat skupiny prostředků"
+    }
+  ],
+  "3IKub9": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred"
     }
   ],
   "3cc4Ct": [
@@ -234,31 +236,31 @@
   "3nhWFW": [
     {
       "type": 0,
-      "value": "Reader"
+      "value": "Čtenář"
     }
   ],
   "3t/IhV": [
     {
       "type": 0,
-      "value": "Can view cost data and configuration (e.g. budgets, exports)."
+      "value": "Může zobrazovat data a konfiguraci nákladů (například rozpočty, exporty)."
     }
   ],
   "3tJfza": [
     {
       "type": 0,
-      "value": "The agent has permissions to take approved actions on resources and resource types detected in its assigned resource groups."
+      "value": "Agent má oprávnění provádět schválené akce u prostředků a typů prostředků zjištěných v jeho přiřazených skupinách prostředků."
     }
   ],
   "3zLsNR": [
     {
       "type": 0,
-      "value": "Manage websites, but not web plans. Does not allow you to assign roles."
+      "value": "Umožňuje spravovat weby, ale ne webové plány. Neumožňuje přiřazovat role."
     }
   ],
   "43mD/Y": [
     {
       "type": 0,
-      "value": "Storage Blob Containers"
+      "value": "Kontejnery objektů blob úložiště"
     }
   ],
   "450Fty": [
@@ -276,19 +278,19 @@
   "47FYwb": [
     {
       "type": 0,
-      "value": "Cancel"
+      "value": "Zrušit"
     }
   ],
   "4MeTpL": [
     {
       "type": 0,
-      "value": "Workbook Contributor"
+      "value": "Přispěvatel sešitů"
     }
   ],
   "4TnjxL": [
     {
       "type": 0,
-      "value": "API Management Service Reader Role"
+      "value": "Role Čtenář služby API Management"
     }
   ],
   "4USxEK": [
@@ -300,13 +302,13 @@
   "4ii5zj": [
     {
       "type": 0,
-      "value": "Allows for read access to Azure Storage blob containers and data."
+      "value": "Umožňuje číst kontejnery a data objektů blob služby Azure Storage."
     }
   ],
   "4kCXiz": [
     {
       "type": 0,
-      "value": "List cluster admin credential action."
+      "value": "Akce výpisu přihlašovacích údajů správce clusteru"
     }
   ],
   "556JQK": [
@@ -318,43 +320,43 @@
   "5M+hLZ": [
     {
       "type": 0,
-      "value": "User permissions"
+      "value": "Uživatelská oprávnění"
     }
   ],
   "5Sc5rT": [
     {
       "type": 0,
-      "value": "IoT Hub Twin Contributor"
+      "value": "Spolupřispěvatel služby IoT Hub"
     }
   ],
   "5UUKxL": [
     {
       "type": 0,
-      "value": "Storage Accounts"
+      "value": "Účty úložiště"
     }
   ],
   "5UfRjw": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Contributor"
+      "value": "Přispěvatel dat služby Device Provisioning Service"
     }
   ],
   "5V+Txp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster User Role"
+      "value": "Role uživatele clusteru služby Azure Kubernetes Service"
     }
   ],
   "5WK7jL": [
     {
       "type": 0,
-      "value": "Create new"
+      "value": "Vytvořit nový"
     }
   ],
   "5j5HnL": [
     {
       "type": 0,
-      "value": "Editor to filter the results by column value. "
+      "value": "Editor pro filtrování výsledků podle hodnoty sloupce. "
     },
     {
       "type": 1,
@@ -376,13 +378,13 @@
   "5wGcN7": [
     {
       "type": 0,
-      "value": "Cost Management Reader"
+      "value": "Čtenář Cost Management"
     }
   ],
   "64zSh3": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Writer"
+      "value": "Zapisovač Cognitive Services LUIS"
     }
   ],
   "69g7If": [
@@ -394,31 +396,39 @@
   "6B5Jtu": [
     {
       "type": 0,
-      "value": "This field is required."
+      "value": "Toto pole je povinné."
     }
   ],
   "6YXj/s": [
     {
       "type": 0,
-      "value": "Contribute to Speech service resources."
+      "value": "Přispějte k prostředkům služby Speech."
     }
   ],
   "6zUWZ/": [
     {
       "type": 0,
-      "value": "Read all monitoring data and edit monitoring settings."
+      "value": "Umožňuje číst všechna data monitorování a upravovat nastavení monitorování."
     }
   ],
   "7+b0J0": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Contributor"
+      "value": "Přispěvatel služby Cognitive Services Custom Vision"
     }
   ],
   "75IWbW": [
     {
       "type": 0,
-      "value": "Deployment to this resource group will be blocked by policy: {field} not allowed. Policy Assignment ID: "
+      "value": "Nasazení do této skupiny prostředků bude zablokováno zásadou: "
+    },
+    {
+      "type": 1,
+      "value": "field"
+    },
+    {
+      "type": 0,
+      "value": " se nepovoluje. ID přiřazení zásady: "
     },
     {
       "type": 1,
@@ -428,19 +438,19 @@
   "7N87nD": [
     {
       "type": 0,
-      "value": "Manage Device Provisioning Service data."
+      "value": "Spravujte data služby Device Provisioning Service."
     }
   ],
   "87v+WY": [
     {
       "type": 0,
-      "value": "Full access to Azure Digital Twins data."
+      "value": "Úplný přístup k datům Azure Digital Twins."
     }
   ],
   "8NHZQV": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Reader"
+      "value": "Čtečka jazyka Cognitive Services"
     }
   ],
   "8OCpdQ": [
@@ -516,13 +526,13 @@
   "8aHHLj": [
     {
       "type": 0,
-      "value": "Read-only access to service and APIs."
+      "value": "Přístup ke službě a rozhraním API jen ke čtení."
     }
   ],
   "8nBFW4": [
     {
       "type": 0,
-      "value": "Redis Cache Contributor"
+      "value": "Přispěvatel služby Redis Cache"
     }
   ],
   "8yyU6n": [
@@ -534,13 +544,13 @@
   "9+Ddtu": [
     {
       "type": 0,
-      "value": "Next"
+      "value": "Další"
     }
   ],
   "94Fg25": [
     {
       "type": 0,
-      "value": "Select all"
+      "value": "Vybrat vše"
     }
   ],
   "9M3sYh": [
@@ -552,37 +562,37 @@
   "ABo5XY": [
     {
       "type": 0,
-      "value": "DocumentDB Account Contributor"
+      "value": "Přispěvatel účtů DocumentDB"
     }
   ],
   "ASEuj4": [
     {
       "type": 0,
-      "value": "Denied by policy"
+      "value": "Odmítnuto zásadou"
     }
   ],
   "AVMCsG": [
     {
       "type": 0,
-      "value": "Machine Learning Workspaces"
+      "value": "Pracovní prostory Machine Learning"
     }
   ],
   "Ab4TgE": [
     {
       "type": 0,
-      "value": "Agent permissions and roles table"
+      "value": "Tabulka oprávnění a rolí agenta"
     }
   ],
   "AeWmvh": [
     {
       "type": 0,
-      "value": "Lets you manage virtual machines, but not access to them, and not the virtual network or storage account they are connected to."
+      "value": "Umožňuje správu virtuálních počítačů, ale ne přístup k nim ani k virtuální síti nebo účtu úložiště, ke kterým jsou připojené."
     }
   ],
   "AhdXRl": [
     {
       "type": 0,
-      "value": "Max agent count"
+      "value": "Maximální počet agentů"
     }
   ],
   "Avsnjl": [
@@ -594,55 +604,55 @@
   "B6aNdQ": [
     {
       "type": 0,
-      "value": "The name must begin and end with a lowercase letter, and contain only lowercase letters, numbers, and hyphens. It cannot contain consecutive hyphens."
+      "value": "Název musí začínat a končit malým písmenem a může obsahovat jenom malá písmena, číslice a spojovníky. Nemůže obsahovat po sobě jdoucí spojovníky."
     }
   ],
   "BKSv0l": [
     {
       "type": 0,
-      "value": "Azure Center for SAP solutions reader"
+      "value": "Čtenář Azure Center for SAP solutions"
     }
   ],
   "Bcx/Gz": [
     {
       "type": 0,
-      "value": "List cluster user credential action."
+      "value": "Akce výpisu přihlašovacích údajů uživatele clusteru"
     }
   ],
   "C0ZRdE": [
     {
       "type": 0,
-      "value": "The agent has read-only permissions on the resource groups it manages. It takes the user's permissions temporarily for approved actions."
+      "value": "Agent má u skupin prostředků, které spravuje, oprávnění jen pro čtení. Dočasně převezme oprávnění uživatele pro schválené akce."
     }
   ],
   "C3PGqj": [
     {
       "type": 0,
-      "value": "Logic App Contributor"
+      "value": "Přispěvatel aplikace logiky"
     }
   ],
   "C8z3QQ": [
     {
       "type": 0,
-      "value": "Data Factories"
+      "value": "Datové továrny"
     }
   ],
   "CFJ1OD": [
     {
       "type": 0,
-      "value": "Read-only role for Digital Twins data-plane properties."
+      "value": "Role s oprávněním jen pro čtení pro vlastnosti roviny dat Digital Twins."
     }
   ],
   "CMaDRa": [
     {
       "type": 0,
-      "value": "Write access to Language service resources."
+      "value": "Přístup pro zápis k prostředkům jazykové služby."
     }
   ],
   "CfGC/2": [
     {
       "type": 0,
-      "value": "Select resource groups to monitor"
+      "value": "Vyberte skupiny prostředků, které chcete monitorovat."
     }
   ],
   "Ch3IdZ": [
@@ -654,7 +664,7 @@
   "CrmeG3": [
     {
       "type": 0,
-      "value": "This resource group contains resources supported by SRE Agent"
+      "value": "Tato skupina prostředků obsahuje prostředky podporované agentem SRE."
     }
   ],
   "D3idYv": [
@@ -666,7 +676,7 @@
   "DdD2hE": [
     {
       "type": 0,
-      "value": "Filter items..."
+      "value": "Filtrovat položky..."
     }
   ],
   "DdnNXo": [
@@ -678,31 +688,31 @@
   "Dff3ms": [
     {
       "type": 0,
-      "value": "Cognitive Services Contributor"
+      "value": "Přispěvatel Cognitive Services"
     }
   ],
   "Dx3Xj3": [
     {
       "type": 0,
-      "value": "Let's you read and test a KB only."
+      "value": "Umožňuje číst a testovat jen znalostní bázi."
     }
   ],
   "ENnkRe": [
     {
       "type": 0,
-      "value": "Grants permission for read operations for App Configuration resources."
+      "value": "Uděluje oprávnění pro operace čtení u prostředků App Configuration."
     }
   ],
   "EWw/tK": [
     {
       "type": 0,
-      "value": "Apply"
+      "value": "Použít"
     }
   ],
   "EdEthU": [
     {
       "type": 0,
-      "value": "API Management Workspace Contributor"
+      "value": "Přispěvatel pracovního prostoru služby API Management"
     }
   ],
   "Erci0g": [
@@ -714,19 +724,19 @@
   "FqRdvb": [
     {
       "type": 0,
-      "value": "AKS Clusters"
+      "value": "Clustery AKS"
     }
   ],
   "G1xeUt": [
     {
       "type": 0,
-      "value": "Approval Required"
+      "value": "Vyžaduje se schválení"
     }
   ],
   "G7yB8N": [
     {
       "type": 0,
-      "value": "Registration failed"
+      "value": "Registrace nebyla úspěšná"
     }
   ],
   "GBnvl1": [
@@ -752,19 +762,19 @@
   "GWson9": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have deny assignments that prevent deployments."
+      "value": "Některé z vybraných skupin prostředků mají přiřazení odmítnutí, která brání nasazením."
     }
   ],
   "GmzN3r": [
     {
       "type": 0,
-      "value": "We were unable to register the Microsoft.App RP due to a lack of permissions which may cause your deployment to fail. Ensure that you have Contributor permissions to this subscription or have your subscription administrator register the RP for you."
+      "value": "Z důvodu nedostatku oprávnění se nám nepodařilo zaregistrovat poskytovatele prostředků Microsoft.App, což může způsobit selhání nasazení. Ujistěte se, že máte u tohoto předplatného oprávnění přispěvatele, nebo požádejte správce předplatného, aby za vás zaregistroval poskytovatele prostředků (RP)."
     }
   ],
   "GoSIa4": [
     {
       "type": 0,
-      "value": "Minimal permission to view Cognitive Services usages."
+      "value": "Minimální oprávnění pro zobrazení využití Cognitive Services."
     }
   ],
   "H/i1A+": [
@@ -776,7 +786,7 @@
   "H3ooTI": [
     {
       "type": 0,
-      "value": "Azure Service Bus Data Owner"
+      "value": "Vlastník dat Azure Service Bus"
     }
   ],
   "HAlOn1": [
@@ -788,13 +798,13 @@
   "HCDcpW": [
     {
       "type": 0,
-      "value": "Workbooks"
+      "value": "Sešity"
     }
   ],
   "HQhDfV": [
     {
       "type": 0,
-      "value": "Cognitive Services OpenAI Contributor"
+      "value": "Přispěvatel služby Cognitive Services OpenAI"
     }
   ],
   "He4/qi": [
@@ -812,25 +822,25 @@
   "IEFW3Y": [
     {
       "type": 0,
-      "value": "App Configuration Contributor"
+      "value": "Přispěvatel v App Configuration"
     }
   ],
   "IQaKwH": [
     {
       "type": 0,
-      "value": "Lets you read Cognitive Services data."
+      "value": "Umožní vám čtení dat Cognitive Services."
     }
   ],
   "If+Q1B": [
     {
       "type": 0,
-      "value": "A resource group with this name already exists in the selected subscription."
+      "value": "Skupina prostředků s tímto názvem už ve vybraném předplatném existuje."
     }
   ],
   "KAYpG9": [
     {
       "type": 0,
-      "value": "Allows for full read access to IoT Hub data-plane properties."
+      "value": "Poskytuje úplné oprávnění ke čtení vlastností roviny dat IoT Hub."
     }
   ],
   "KJGQ1f": [
@@ -848,19 +858,19 @@
   "Kg6ebk": [
     {
       "type": 0,
-      "value": "Toggle to show only recommended resource groups"
+      "value": "Přepnutím zobrazíte pouze doporučené skupiny prostředků."
     }
   ],
   "KzMCPo": [
     {
       "type": 0,
-      "value": "Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries."
+      "value": "Uděluje úplný přístup ke správě všech prostředků, ale neumožňuje přiřazovat role v Azure RBAC, spravovat přiřazení v Azure Blueprints ani sdílet galerie imagí."
     }
   ],
   "L31yBb": [
     {
       "type": 0,
-      "value": "Function Apps"
+      "value": "Aplikace funkcí"
     }
   ],
   "LOghU6": [
@@ -872,19 +882,19 @@
   "LSaaxU": [
     {
       "type": 0,
-      "value": "View all resources, but does not allow you to make any changes."
+      "value": "Umožňuje zobrazit všechny prostředky, ale neumožňuje provádět žádné změny."
     }
   ],
   "LkSPVW": [
     {
       "type": 0,
-      "value": "Select an existing resource group"
+      "value": "Vyberte existující skupinu prostředků."
     }
   ],
   "LrnSHG": [
     {
       "type": 0,
-      "value": "Select a subscription"
+      "value": "Vyberte předplatné"
     }
   ],
   "LupnQU": [
@@ -960,13 +970,13 @@
   "Mnvpbx": [
     {
       "type": 0,
-      "value": "Full management of Container Apps, including creation, deletion, and updates."
+      "value": "Úplná správa aplikací Container Apps, včetně vytváření, odstraňování a aktualizací."
     }
   ],
   "NAAdaF": [
     {
       "type": 0,
-      "value": "This role provides read access to all capabilities of Azure Center for SAP solutions."
+      "value": "Tato role poskytuje přístup pro čtení ke všem funkcím služby Azure Center for SAP solutions."
     }
   ],
   "NAidKb": [
@@ -978,7 +988,7 @@
   "NCTGGm": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "Ověření vytvoření agenta SRE "
     },
     {
       "type": 1,
@@ -986,37 +996,37 @@
     },
     {
       "type": 0,
-      "value": " creation validation succeeded"
+      "value": " proběhlo úspěšně."
     }
   ],
   "ND2EUR": [
     {
       "type": 0,
-      "value": "Storage Blob Data Contributor"
+      "value": "Přispěvatel dat v objektech blob služby Storage"
     }
   ],
   "NcxGiD": [
     {
       "type": 0,
-      "value": "HDInsight on AKS Cluster Admin"
+      "value": "Správce clusteru HDInsight v AKS"
     }
   ],
   "Ngsqgf": [
     {
       "type": 0,
-      "value": "Resource groups list"
+      "value": "Seznam skupin prostředků"
     }
   ],
   "Nrc9ba": [
     {
       "type": 0,
-      "value": "Thank you for your feedback!"
+      "value": "Děkujeme vám za váš názor!"
     }
   ],
   "OJ2u8k": [
     {
       "type": 0,
-      "value": "Enter name"
+      "value": "Zadejte název"
     }
   ],
   "ORGv1Q": [
@@ -1028,7 +1038,7 @@
   "OTGHHm": [
     {
       "type": 0,
-      "value": "The resources you picked have permissions for these roles."
+      "value": "Prostředky, které jste vybrali, mají oprávnění k těmto rolím."
     }
   ],
   "OjYIuI": [
@@ -1040,13 +1050,13 @@
   "Oom2N7": [
     {
       "type": 0,
-      "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
+      "value": "Umožňuje zobrazit a prohledávat všechna data monitorování a zobrazit nastavení monitorování, včetně zobrazení konfigurace diagnostiky Azure ve všech prostředcích Azure."
     }
   ],
   "OsTw6c": [
     {
       "type": 0,
-      "value": "Validating SRE Agent creation"
+      "value": "Ověřuje se vytvoření agenta SRE"
     }
   ],
   "P/DTRU": [
@@ -1058,67 +1068,67 @@
   "P3qxV2": [
     {
       "type": 0,
-      "value": "Search Service Contributor"
+      "value": "Přispěvatel služby Search"
     }
   ],
   "P9odAr": [
     {
       "type": 0,
-      "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
+      "value": "Váš agent je v režimu jen pro čtení. Pro to, aby agent mohl vytvářet znalosti o vašich prostředcích, jsou vyžadována následující oprávnění. Role přispěvatele pro konkrétní služby nebudou použity k provádění žádných operací zápisu."
     }
   ],
   "PXg8+x": [
     {
       "type": 0,
-      "value": "Virtual Machine Contributor"
+      "value": "Přispěvatel virtuálních počítačů"
     }
   ],
   "Phji5P": [
     {
       "type": 0,
-      "value": "Edit Healthcare APIs agent configurations."
+      "value": "Upravujte konfigurace agenta rozhraní API pro zdravotnictví."
     }
   ],
   "PrFU82": [
     {
       "type": 0,
-      "value": "Can read all monitoring data and update monitoring settings."
+      "value": "Může číst všechna data monitorování a aktualizovat jeho nastavení."
     }
   ],
   "Pwen/L": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Reader"
+      "value": "Čtenář Cognitive Services LUIS"
     }
   ],
   "Q3p3sz": [
     {
       "type": 0,
-      "value": "Storage Blob Data Reader"
+      "value": "Čtenář dat v objektech blob služby Storage "
     }
   ],
   "Q8Qw5B": [
     {
       "type": 0,
-      "value": "Description"
+      "value": "Popis"
     }
   ],
   "QIY3dQ": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Owner"
+      "value": "Vlastník dat služby Azure Digital Twins"
     }
   ],
   "Qly58H": [
     {
       "type": 0,
-      "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+      "value": "Pokud chcete zobrazit role a oprávnění, které agent bude mít, zvolte skupiny prostředků, které má agent spravovat."
     }
   ],
   "QwVQbw": [
     {
       "type": 0,
-      "value": "Failed to register Microsoft.App RP for SRE Agent "
+      "value": "Registrace poskytovatele prostředků Microsoft.App pro vytvoření agenta SRE "
     },
     {
       "type": 1,
@@ -1126,13 +1136,13 @@
     },
     {
       "type": 0,
-      "value": " creation. Please ensure you have Contributor permissions on the subscription or contact your subscription administrator to register the RP for you."
+      "value": " se nezdařila. Ujistěte se, že máte u předplatného oprávnění přispěvatele, nebo požádejte správce předplatného, aby za vás zaregistroval poskytovatele prostředků (RP)."
     }
   ],
   "R+J5ox": [
     {
       "type": 0,
-      "value": "Review"
+      "value": "Zkontrolovat"
     }
   ],
   "R/6nsx": [
@@ -1144,7 +1154,7 @@
   "R1RX2a": [
     {
       "type": 0,
-      "value": "Full access to IoT Hub data."
+      "value": "Úplný přístup k datům služby IoT Hub."
     }
   ],
   "RDwKyy": [
@@ -1156,7 +1166,7 @@
   "RStTJp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster Admin"
+      "value": "Správce clusteru služby Azure Kubernetes Service"
     }
   ],
   "RVf7gC": [
@@ -1168,7 +1178,7 @@
   "RrsyUh": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service RBAC Reader"
+      "value": "Čtenář RBAC služby Azure Kubernetes Service"
     }
   ],
   "S8snIe": [
@@ -1180,7 +1190,7 @@
   "SCjiXP": [
     {
       "type": 0,
-      "value": "Cognitive Services Data Reader"
+      "value": "Čtenář dat Cognitive Services"
     }
   ],
   "SQJto2": [
@@ -1192,31 +1202,31 @@
   "Sr4IbA": [
     {
       "type": 0,
-      "value": "Monitoring Reader"
+      "value": "Čtenář monitorování"
     }
   ],
   "SuVToZ": [
     {
       "type": 0,
-      "value": "SQL Managed Instance Contributor"
+      "value": "Přispěvatel Spravované instance SQL"
     }
   ],
   "T5+AEf": [
     {
       "type": 0,
-      "value": "Logic App Operator"
+      "value": "Operátor aplikace logiky"
     }
   ],
   "TAm7bB": [
     {
       "type": 0,
-      "value": "Monitoring Contributor"
+      "value": "Přispěvatel monitorování"
     }
   ],
   "TB6bkn": [
     {
       "type": 0,
-      "value": "Get more info"
+      "value": "Získat další informace"
     }
   ],
   "TDaF6J": [
@@ -1228,7 +1238,7 @@
   "TDoBlx": [
     {
       "type": 0,
-      "value": "Privileged"
+      "value": "Privilegované"
     }
   ],
   "TleXgd": [
@@ -1240,13 +1250,13 @@
   "TzxmIN": [
     {
       "type": 0,
-      "value": "Logic Apps"
+      "value": "Aplikace logiky"
     }
   ],
   "U5+MBC": [
     {
       "type": 0,
-      "value": "Client ID"
+      "value": "ID klienta"
     }
   ],
   "UQUIP7": [
@@ -1264,13 +1274,13 @@
   "UZS12+": [
     {
       "type": 0,
-      "value": "Has read-only access to entities in the workspace. This role should be assigned on the workspace scope."
+      "value": "Má přístup jen pro čtení k entitám v pracovním prostoru. Tato role by měla být přiřazena v rámci oboru pracovního prostoru."
     }
   ],
   "UoL653": [
     {
       "type": 0,
-      "value": "Show only recommended"
+      "value": "Zobrazit jen doporučené"
     }
   ],
   "UrGI9K": [
@@ -1282,7 +1292,7 @@
   "UuzObe": [
     {
       "type": 0,
-      "value": "Failed to setup Managed Identity with the error: "
+      "value": "Nepovedlo se nastavit spravovanou identitu s chybou: "
     },
     {
       "type": 1,
@@ -1292,25 +1302,25 @@
   "V/rQci": [
     {
       "type": 0,
-      "value": "Managed resource groups table"
+      "value": "Tabulka spravovaných skupin prostředků"
     }
   ],
   "VlBNux": [
     {
       "type": 0,
-      "value": "Application Insights Component Contributor"
+      "value": "Přispěvatel součástí Application Insights"
     }
   ],
   "VssvTa": [
     {
       "type": 0,
-      "value": "Invalid template or unable to fetch the template."
+      "value": "Šablona je neplatná nebo se ji nepovedlo načíst."
     }
   ],
   "VzzYJk": [
     {
       "type": 0,
-      "value": "Create"
+      "value": "Vytvořit"
     }
   ],
   "W/V6+Y": [
@@ -1328,7 +1338,7 @@
   "WE+M5j": [
     {
       "type": 0,
-      "value": "Failed to load SRE Agent locations. Please try again later."
+      "value": "Nepovedlo se načíst umístění agenta SRE. Zkuste to znovu později."
     }
   ],
   "WFo96A": [
@@ -1340,13 +1350,13 @@
   "WLw9E7": [
     {
       "type": 0,
-      "value": "PostgreSQL Flexible Server Long Term Retention Backup Role"
+      "value": "Role zálohování dlouhodobého uchovávání pro flexibilní server PostgreSQL"
     }
   ],
   "WODKUB": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "Vytvoření agenta SRE "
     },
     {
       "type": 1,
@@ -1354,79 +1364,79 @@
     },
     {
       "type": 0,
-      "value": " creation succeeded"
+      "value": " proběhlo úspěšně."
     }
   ],
   "Wc5b/J": [
     {
       "type": 0,
-      "value": "AzureML Compute Operator"
+      "value": "Operátor výpočtů AzureML"
     }
   ],
   "Wf6bDe": [
     {
       "type": 0,
-      "value": "Agent details"
+      "value": "Podrobnosti o agentovi"
     }
   ],
   "WlHVBb": [
     {
       "type": 0,
-      "value": "Log Analytics Workspaces"
+      "value": "Pracovní prostory služby Log Analytics"
     }
   ],
   "Wtf3vL": [
     {
       "type": 0,
-      "value": "Data Factory Contributor"
+      "value": "Přispěvatel Data Factory"
     }
   ],
   "WygVDv": [
     {
       "type": 0,
-      "value": "Administer HDInsight cluster pools."
+      "value": "Spravujte fondy clusterů HDInsight."
     }
   ],
   "X0e0bZ": [
     {
       "type": 0,
-      "value": "SQL Managed Instances"
+      "value": "Spravované instance SQL"
     }
   ],
   "XJ+Lww": [
     {
       "type": 0,
-      "value": "Lets you read and modify HDInsight cluster configurations."
+      "value": "Umožňuje číst a upravovat konfigurace clusteru HDInsight."
     }
   ],
   "XYSJsS": [
     {
       "type": 0,
-      "value": "API Management Workspace Reader"
+      "value": "Čtenář pracovního prostoru API Management"
     }
   ],
   "Xh85Ml": [
     {
       "type": 0,
-      "value": "Current agent count"
+      "value": "Aktuální počet agentů"
     }
   ],
   "XtnlO8": [
     {
       "type": 0,
-      "value": "Manage long-term retention backups for PostgreSQL Flexible Server."
+      "value": "Spravujte dlouhodobé zálohy uchovávání dat pro flexibilní server PostgreSQL."
     }
   ],
   "Y2QRpS": [
     {
       "type": 0,
-      "value": "equals"
+      "value": "rovná se"
     }
   ],
   "YYWhEp": [
     {
       "type": 0,
-      "value": "Failed to create the SRE agent "
+      "value": "Nepovedlo se vytvořit agenta SRE "
     },
     {
       "type": 1,
@@ -1434,7 +1444,7 @@
     },
     {
       "type": 0,
-      "value": " with the error: "
+      "value": ". Chyba: "
     },
     {
       "type": 1,
@@ -1444,61 +1454,67 @@
   "YYx7ap": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have a read only lock on the resource group."
+      "value": "Některé z vybraných skupin prostředků mají u skupiny prostředků zámek jen pro čtení."
     }
   ],
   "YZIFAO": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service RBAC Cluster Admin"
+      "value": "Správce clusteru RBAC služby Azure Kubernetes Service"
     }
   ],
   "Yk6Co7": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Reader"
+      "value": "Čtenář služby Cognitive Services QnA Maker"
     }
   ],
   "Yp7NCi": [
     {
       "type": 0,
-      "value": "Azure Center for SAP solutions administrator"
+      "value": "Správce Azure Center for SAP solutions"
     }
   ],
   "Z2WgoK": [
     {
       "type": 0,
-      "value": "Authentication mode"
+      "value": "Režim ověřování"
     }
   ],
   "Z7Aj91": [
     {
       "type": 0,
-      "value": "Manage Azure Monitor workbooks."
+      "value": "Spravujte sešity Azure Monitoru."
     }
   ],
   "ZNMCbm": [
     {
       "type": 0,
-      "value": "Manage Logic Apps."
+      "value": "Spravujte Logic Apps."
     }
   ],
   "ZsLOg3": [
     {
       "type": 0,
-      "value": "Manage Azure OpenAI resources."
+      "value": "Spravujte prostředky Azure OpenAI."
     }
   ],
   "a5msuh": [
     {
       "type": 0,
-      "value": "Yes"
+      "value": "Ano"
     }
   ],
   "aGL+Qo": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under LUIS."
+      "value": "Má přístup k funkcím pro čtení a testování v rámci LUIS."
+    }
+  ],
+  "aIRWQB": [
+    {
+      "type": 0,
+      "value": "Back to home"
     }
   ],
   "aLBTVj": [
@@ -1574,31 +1590,31 @@
   "aqNZbD": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Writer"
+      "value": "Zapisovač jazyka Cognitive Services"
     }
   ],
   "arLfuy": [
     {
       "type": 0,
-      "value": "Chat with agent"
+      "value": "Chatovat s agentem"
     }
   ],
   "axbDHG": [
     {
       "type": 0,
-      "value": "You can choose a maximum of 100 resource groups that the agent will manage."
+      "value": "Můžete zvolit maximálně 100 skupin prostředků, které bude agent spravovat."
     }
   ],
   "b43a5F": [
     {
       "type": 0,
-      "value": "SAP Virtual Instances"
+      "value": "Virtuální instance SAP"
     }
   ],
   "bN0x+w": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Reader"
+      "value": "Čtenář dat služby Device Provisioning"
     }
   ],
   "bPyOFk": [
@@ -1610,7 +1626,7 @@
   "bXkiU5": [
     {
       "type": 0,
-      "value": "SQL Databases"
+      "value": "Databáze SQL"
     }
   ],
   "bxv59V": [
@@ -1622,31 +1638,31 @@
   "c1EiBR": [
     {
       "type": 0,
-      "value": "Cognitive Services Usages Reader"
+      "value": "Čtenář použití Cognitive Services"
     }
   ],
   "cRTR/A": [
     {
       "type": 0,
-      "value": "Write access to LUIS applications."
+      "value": "Oprávnění k zápisu do aplikací LUIS."
     }
   ],
   "cTzjJg": [
     {
       "type": 0,
-      "value": "Storage Account Contributor"
+      "value": "Přispěvatel účtů úložiště"
     }
   ],
   "ceCESY": [
     {
       "type": 0,
-      "value": "An agent with this name already exists in the selected resource group."
+      "value": "Agent s tímto názvem už ve vybrané skupině prostředků existuje."
     }
   ],
   "ciB+oy": [
     {
       "type": 0,
-      "value": "Operate Azure Machine Learning compute resources."
+      "value": "Provozujte výpočetní prostředky služby Machine Learning."
     }
   ],
   "cmUVb9": [
@@ -1658,13 +1674,13 @@
   "ctcA0c": [
     {
       "type": 0,
-      "value": "Agent name"
+      "value": "Název agenta"
     }
   ],
   "cyR7Kh": [
     {
       "type": 0,
-      "value": "Back"
+      "value": "Zpět"
     }
   ],
   "czVHN2": [
@@ -1676,65 +1692,65 @@
   "d2GmfJ": [
     {
       "type": 0,
-      "value": "Manage API Management workspaces."
+      "value": "Spravujte pracovní prostory API Management."
     }
   ],
   "d8dECB": [
     {
       "type": 0,
-      "value": "IoT Hub Data Reader"
+      "value": "Čtečka dat IoT Hub"
     }
   ],
   "dDk23i": [
     {
-      "type": 1,
-      "value": "fieldName"
+      "type": 0,
+      "value": "Možnosti pole "
     },
     {
-      "type": 0,
-      "value": " options"
+      "type": 1,
+      "value": "fieldName"
     }
   ],
   "dHVUaP": [
     {
       "type": 0,
-      "value": "Positive"
+      "value": "Pozitivní"
     }
   ],
   "dKhdkO": [
     {
       "type": 0,
-      "value": "Select up to 100 resource groups to monitor"
+      "value": "Vyberte až 100 skupin prostředků, které chcete monitorovat."
     }
   ],
   "dQ5/dh": [
     {
       "type": 0,
-      "value": "Allows for full read access to Device Provisioning Service data-plane properties."
+      "value": "Má oprávnění ke čtení vlastností roviny dat služby zřizování zařízení Device Provisioning."
     }
   ],
   "dR8VUW": [
     {
       "type": 0,
-      "value": "Manage API Management services."
+      "value": "Spravujte služby API Management."
     }
   ],
   "e0a3XV": [
     {
       "type": 0,
-      "value": "Log Analytics Contributor"
+      "value": "Přispěvatel Log Analytics"
     }
   ],
   "e3itcX": [
     {
       "type": 0,
-      "value": "Device Update Administrator"
+      "value": "Správce služby Device Update"
     }
   ],
   "eBvTo6": [
     {
       "type": 0,
-      "value": "Read-only actions in the project. Readers can't create or update the project."
+      "value": "Akce v projektu určené je pro čtení. Čtenáři nemůžou vytvořit ani aktualizovat projekt."
     }
   ],
   "eHNXXp": [
@@ -1746,35 +1762,35 @@
   "eKpamp": [
     {
       "type": 0,
-      "value": "Template error"
+      "value": "Chyba šablony"
     }
   ],
   "ecG+OD": [
     {
       "type": 0,
-      "value": "Manage Azure Search services."
+      "value": "Spravujte služby Azure Search."
     }
   ],
   "egr0Oj": [
     {
-      "type": 1,
-      "value": "0"
+      "type": 0,
+      "value": "Počet vybraných skupin prostředků: "
     },
     {
-      "type": 0,
-      "value": " resource groups selected"
+      "type": 1,
+      "value": "0"
     }
   ],
   "fFyuVF": [
     {
       "type": 0,
-      "value": "Cognitive Services Speech Contributor"
+      "value": "Přispěvatel služby Speech pro Cognitive Services"
     }
   ],
   "fIp46f": [
     {
       "type": 0,
-      "value": "Read only lock"
+      "value": "Zámek jen pro čtení"
     }
   ],
   "fSFDgd": [
@@ -1792,7 +1808,7 @@
   "ftfFhS": [
     {
       "type": 0,
-      "value": "Select resource groups"
+      "value": "Vyberte skupiny prostředků"
     }
   ],
   "g82HU6": [
@@ -1804,19 +1820,19 @@
   "gC4xMY": [
     {
       "type": 0,
-      "value": "Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces."
+      "value": "Umožňuje přístup jen pro čtení, se kterým je možné si zobrazit většinu objektů v oboru názvů. Neumožňuje zobrazovat role ani vazby rolí. Tato role nepovoluje zobrazování tajných kódů, protože čtení obsahu tajných kódů umožňuje přístup k přihlašovacím údajům ServiceAccount v oboru názvů, což by umožnilo přístup k rozhraní API jako jakýkoli účet ServiceAccount v oboru názvů (ve formě elevace oprávnění). Když se tato role zavede v oboru clusteru, udělí se přístup ve všech oborech názvů."
     }
   ],
   "gZ5fZs": [
     {
       "type": 0,
-      "value": "Manage IoT Hub device twins."
+      "value": "Spravujte dvojčata zařízení IoT Hub."
     }
   ],
   "gn/nvJ": [
     {
       "type": 0,
-      "value": "Read, logstream and exec into Container Apps."
+      "value": "Čtení, streamování protokolů a spouštění příkazů v aplikacích Container Apps."
     }
   ],
   "gty4jJ": [
@@ -1828,13 +1844,13 @@
   "gzx/k1": [
     {
       "type": 0,
-      "value": "PostgreSQL Contributor"
+      "value": "Přispěvatel PostgreSQL"
     }
   ],
   "hF5T80": [
     {
       "type": 0,
-      "value": "Administer Device Update accounts."
+      "value": "Spravujte účty služby Device Update."
     }
   ],
   "hGmeVK": [
@@ -1846,37 +1862,37 @@
   "hO1Iog": [
     {
       "type": 0,
-      "value": "Manage without access."
+      "value": "Provádějte správu bez přístupu."
     }
   ],
   "hPj49L": [
     {
       "type": 0,
-      "value": "Workbook Reader"
+      "value": "Čtenář sešitů"
     }
   ],
   "hX5PAb": [
     {
       "type": 0,
-      "value": "No results found"
+      "value": "Nebyly nalezeny žádné výsledky."
     }
   ],
   "hfIdUs": [
     {
       "type": 0,
-      "value": "SQL DB Contributor"
+      "value": "Přispěvatel databází SQL"
     }
   ],
   "hrdmcd": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Reader"
+      "value": "Čtenář dat služby Azure Digital Twins"
     }
   ],
   "hswM/b": [
     {
       "type": 0,
-      "value": "Assign the agent a level of permissions for the resource groups it manages. The agent can still manage its assigned resources with Reader permissions."
+      "value": "Přiřaďte agentovi úroveň oprávnění pro skupiny prostředků, které spravuje. Agent může i nadále spravovat své přiřazené prostředky s oprávněními čtenáře."
     }
   ],
   "i50Kb0": [
@@ -1888,31 +1904,31 @@
   "i5OUQE": [
     {
       "type": 0,
-      "value": "Container Apps Contributor"
+      "value": "Přispěvatel Container Apps"
     }
   ],
   "i6cLLM": [
     {
       "type": 0,
-      "value": "Perform data science tasks in Azure Machine Learning."
+      "value": "Provádějte úlohy datové vědy v Azure Machine Learning."
     }
   ],
   "iFsDVR": [
     {
       "type": 0,
-      "value": "Loading"
+      "value": "Načítání"
     }
   ],
   "iM9JZL": [
     {
       "type": 0,
-      "value": "Deny assignments"
+      "value": "Přiřazení odmítnutí"
     }
   ],
   "itC9lG": [
     {
       "type": 0,
-      "value": "Basics"
+      "value": "Základní informace"
     }
   ],
   "iv5NrP": [
@@ -1924,13 +1940,13 @@
   "ixb1SP": [
     {
       "type": 0,
-      "value": "Administer HDInsight clusters on AKS."
+      "value": "Správa clusterů HDInsight v AKS."
     }
   ],
   "j5Yfyr": [
     {
       "type": 0,
-      "value": "Search Index Data Reader"
+      "value": "Čtenář dat vyhledávacího indexu"
     }
   ],
   "jEU2gk": [
@@ -1942,31 +1958,31 @@
   "jHJmjf": [
     {
       "type": 0,
-      "value": "No results"
+      "value": "Žádné výsledky"
     }
   ],
   "jJE3xY": [
     {
       "type": 0,
-      "value": "Lets you manage the web plans for websites, but not access to them."
+      "value": "Umožňuje správu webových plánů pro weby, ale ne přístup k nim."
     }
   ],
   "jjUD0v": [
     {
       "type": 0,
-      "value": "Resource group creation failed."
+      "value": "Skupinu prostředků se nepovedlo vytvořit."
     }
   ],
   "jvo0vs": [
     {
       "type": 0,
-      "value": "Save"
+      "value": "Uložit"
     }
   ],
   "kVQ1fo": [
     {
       "type": 0,
-      "value": "Negative"
+      "value": "Negativní"
     }
   ],
   "kbQZUj": [
@@ -1986,19 +2002,19 @@
   "kyVg+J": [
     {
       "type": 0,
-      "value": "Choose at least 1 resource group that you have Owner or User Access Administrator permissions on."
+      "value": "Zvolte alespoň 1 skupinu prostředků, ke které máte oprávnění vlastníka nebo správce uživatelských přístupů."
     }
   ],
   "l5sNim": [
     {
       "type": 0,
-      "value": "AzureML Data Scientist"
+      "value": "Datový vědec AzureML"
     }
   ],
   "lNehTG": [
     {
       "type": 0,
-      "value": "Failed to validate SRE Agent "
+      "value": "Nepovedlo se ověřit vytvoření agenta SRE "
     },
     {
       "type": 1,
@@ -2006,7 +2022,7 @@
     },
     {
       "type": 0,
-      "value": " creation with the error: "
+      "value": ". Chyba: "
     },
     {
       "type": 1,
@@ -2016,7 +2032,7 @@
   "lcvC4k": [
     {
       "type": 0,
-      "value": "Validating SRE Agent "
+      "value": "Ověřuje se vytvoření agenta SRE "
     },
     {
       "type": 1,
@@ -2024,7 +2040,7 @@
     },
     {
       "type": 0,
-      "value": " creation in progress"
+      "value": "."
     }
   ],
   "lnaWo/": [
@@ -2036,31 +2052,31 @@
   "lvNWLS": [
     {
       "type": 0,
-      "value": "IoT Hub Registry Contributor"
+      "value": "Přispěvatel registru služby IoT Hub"
     }
   ],
   "mAyw3x": [
     {
       "type": 0,
-      "value": "Edit QnA Maker knowledge bases."
+      "value": "Upravte znalostní báze QnA Maker."
     }
   ],
   "mkhNnB": [
     {
       "type": 0,
-      "value": "Read and write Azure Monitor monitoring settings and data."
+      "value": "Čtení a zápis nastavení a dat monitorování v Azure Monitoru."
     }
   ],
   "n/e5Mg": [
     {
       "type": 0,
-      "value": "Allowed Actions"
+      "value": "Povolené akce"
     }
   ],
   "nBPow3": [
     {
       "type": 0,
-      "value": "Lets you manage all resources in the cluster."
+      "value": "Umožňuje spravovat všechny prostředky v clusteru."
     }
   ],
   "nDyaq/": [
@@ -2076,13 +2092,13 @@
     },
     {
       "type": 0,
-      "value": " resource group selected"
+      "value": " vybraná skupina prostředků"
     }
   ],
   "nrAnZy": [
     {
       "type": 0,
-      "value": "Full access to Azure Service Bus data."
+      "value": "Úplný přístup k datům Azure Service Bus."
     }
   ],
   "oHGFwy": [
@@ -2094,41 +2110,45 @@
   "oIiHqo": [
     {
       "type": 0,
-      "value": "Extension name"
+      "value": "Název rozšíření"
     }
   ],
   "oQ/TUW": [
     {
       "type": 0,
-      "value": "Cost Management Contributor"
+      "value": "Přispěvatel Cost Management"
     }
   ],
   "oThNc4": [
     {
       "type": 0,
-      "value": "Failed to setup Log Analytics Workspace with the error: "
+      "value": "Nepodařilo se nastavit pracovní prostor služby Log Analytics kvůli chybě: "
     },
     {
       "type": 1,
       "value": "error"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "oUWADl": [
     {
       "type": 0,
-      "value": "No"
+      "value": "Ne"
     }
   ],
   "p/xAmY": [
     {
       "type": 0,
-      "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
+      "value": "Váš agent je v režimu kontroly. Pro to, aby agent mohl vytvářet znalosti o vašich prostředcích, jsou vyžadována následující oprávnění. Agent některá z těchto oprávnění použije k provádění operací zápisu s vaším schválením na základě vašich požadavků."
     }
   ],
   "p5T+zv": [
     {
       "type": 0,
-      "value": "Manage without access. Can't manage security policies or parent SQL servers."
+      "value": "Provádějte správu bez přístupu. Nelze spravovat zásady zabezpečení ani nadřazené servery SQL."
     }
   ],
   "p849eW": [
@@ -2140,37 +2160,37 @@
   "pAFuFx": [
     {
       "type": 0,
-      "value": "HDInsight on AKS Cluster Pool Admin"
+      "value": "Správce fondů clusterů HDInsight v AKS"
     }
   ],
   "pDUFq5": [
     {
       "type": 0,
-      "value": "App Configuration Reader"
+      "value": "Čtenář App Configuration"
     }
   ],
   "pM3DKw": [
     {
       "type": 0,
-      "value": "ACIS endpoint"
+      "value": "Koncový bod ACIS"
     }
   ],
   "pMlVvA": [
     {
       "type": 0,
-      "value": "Search resource groups"
+      "value": "Hledejte ve skupinách prostředků"
     }
   ],
   "pSfQh6": [
     {
       "type": 0,
-      "value": "Grants read access to Azure Cognitive Search index data."
+      "value": "Uděluje oprávnění ke čtení dat indexu Azure Cognitive Search."
     }
   ],
   "pVF2EE": [
     {
       "type": 0,
-      "value": "We've started provisioning your SRE Agent "
+      "value": "Začali jsme zřizovat vašeho agenta SRE "
     },
     {
       "type": 1,
@@ -2178,43 +2198,43 @@
     },
     {
       "type": 0,
-      "value": " to manage your selected resource groups."
+      "value": " pro správu vybraných skupin prostředků."
     }
   ],
   "pW5vuU": [
     {
       "type": 0,
-      "value": "Resource group creation"
+      "value": "Vytvoření skupiny prostředků"
     }
   ],
   "pqgzm0": [
     {
       "type": 0,
-      "value": "Manage Application Insights components."
+      "value": "Spravujte součásti Application Insights."
     }
   ],
   "q7CVBv": [
     {
       "type": 0,
-      "value": "Loading resource types..."
+      "value": "Načítání typů prostředků..."
     }
   ],
   "qGXY+e": [
     {
       "type": 0,
-      "value": "Agent permissions"
+      "value": "Oprávnění agenta"
     }
   ],
   "r0gBch": [
     {
       "type": 0,
-      "value": "The subscription you have selected has not been registered to use SRE Agent. Please email us with your subscription ID on sreagentteam@microsoft.com for getting registered."
+      "value": "Předplatné, které jste vybrali, nebylo zaregistrováno pro použití agenta SRE. Pošlete nám prosím e-mail s ID předplatného na sreagentteam@microsoft.com, abyste se mohli zaregistrovat."
     }
   ],
   "rZaqtB": [
     {
       "type": 0,
-      "value": "API Management Service Contributor"
+      "value": "Přispěvatel služby API Management"
     }
   ],
   "rbrahO": [
@@ -2226,13 +2246,13 @@
   "rjgOC5": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Editor"
+      "value": "Editor služby Cognitive Services QnA Maker"
     }
   ],
   "ru0BPw": [
     {
       "type": 0,
-      "value": "Learn more about permissions for managed resource groups"
+      "value": "Další informace o oprávněních pro spravované skupiny prostředků"
     }
   ],
   "s0xRD+": [
@@ -2244,7 +2264,7 @@
   "s2jhon": [
     {
       "type": 0,
-      "value": "Certificate SAN"
+      "value": "Síť SAN certifikátu"
     }
   ],
   "s7mQCK": [
@@ -2256,19 +2276,19 @@
   "sI+CCC": [
     {
       "type": 0,
-      "value": "Log Analytics Reader"
+      "value": "Čtenář Log Analytics"
     }
   ],
   "sRU00i": [
     {
       "type": 0,
-      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
+      "value": "K přiřazení skupin prostředků spravovaných agentem napříč předplatnými potřebujete oprávnění Vlastník nebo Správce uživatelského přístupu pro tyto skupiny prostředků. Prostředek agenta a spravované skupiny prostředků můžou být v různých oblastech a předplatných."
     }
   ],
   "sRb5P9": [
     {
       "type": 0,
-      "value": "Manage cost analysis and budgets."
+      "value": "Spravujte analýzu nákladů a rozpočty."
     }
   ],
   "sYoT7W": [
@@ -2344,19 +2364,19 @@
   "ss/NWY": [
     {
       "type": 0,
-      "value": "SQL Server Contributor"
+      "value": "Přispěvatel SQL Serveru"
     }
   ],
   "t3D4PH": [
     {
       "type": 0,
-      "value": "Device Update Reader"
+      "value": "Čtenář služby Device Update"
     }
   ],
   "t9I1dY": [
     {
       "type": 0,
-      "value": "Healthcare Agent Editor"
+      "value": "Editor agenta pro zdravotnictví"
     }
   ],
   "tOdNiY": [
@@ -2368,49 +2388,49 @@
   "tYoDsC": [
     {
       "type": 0,
-      "value": "Share your thoughts about the portal..."
+      "value": "Podělte se o své názory na portál..."
     }
   ],
   "tffS9r": [
     {
       "type": 0,
-      "value": "Open resource group"
+      "value": "Otevřít skupinu prostředků"
     }
   ],
   "tshYzs": [
     {
       "type": 0,
-      "value": "Select region"
+      "value": "Vyberte oblast"
     }
   ],
   "u0xiAh": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Reader"
+      "value": "Čtenář služby Cognitive Services Custom Vision"
     }
   ],
   "uRMqBi": [
     {
       "type": 0,
-      "value": "Read, write, and delete Azure Storage containers and blobs."
+      "value": "Čtěte, zapisujte a odstraňujte kontejnery Azure Storage a objekty blob."
     }
   ],
   "ufonOZ": [
     {
       "type": 0,
-      "value": "Search Services"
+      "value": "Služby Search"
     }
   ],
   "uh732n": [
     {
       "type": 0,
-      "value": "IoT Hubs"
+      "value": "Centra IoT"
     }
   ],
   "uqyJPP": [
     {
       "type": 0,
-      "value": "You do not have permission to create resource groups under the currently selected subscription."
+      "value": "Nemáte oprávnění vytvářet skupiny prostředků v rámci aktuálně vybraného předplatného."
     }
   ],
   "v90qT8": [
@@ -2428,19 +2448,19 @@
   "vbdOl/": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under Language portal."
+      "value": "Má přístup k funkcím pro čtení a testování na jazykovém portálu."
     }
   ],
   "vfndow": [
     {
       "type": 0,
-      "value": "Can read Azure Cosmos DB account data."
+      "value": "Může číst data účtů Azure Cosmos DB."
     }
   ],
   "vu2LMl": [
     {
       "type": 0,
-      "value": "Learn more about Reader and Privileged permissions"
+      "value": "Další informace o oprávněních čtenáře a privilegovaných oprávněních"
     }
   ],
   "vxVGav": [
@@ -2458,43 +2478,43 @@
   "wSZR47": [
     {
       "type": 0,
-      "value": "Submit"
+      "value": "Odeslat"
     }
   ],
   "wbigtI": [
     {
       "type": 0,
-      "value": "Administer SAP workloads on Azure."
+      "value": "Spravujte úlohy SAP v Azure."
     }
   ],
   "wxlJSs": [
     {
       "type": 0,
-      "value": "Manage Cognitive Services accounts."
+      "value": "Spravujte účty služby Cognitive Services."
     }
   ],
   "x2Qj1F": [
     {
       "type": 0,
-      "value": "Geneva Actions Certificate Name"
+      "value": "Název certifikátu akcí Geneva"
     }
   ],
   "xGPsyJ": [
     {
       "type": 0,
-      "value": "HDInsight Cluster Operator"
+      "value": "Operátor clusteru HDInsight"
     }
   ],
   "xHDoP8": [
     {
       "type": 0,
-      "value": "Do you want to continue?"
+      "value": "Chcete pokračovat?"
     }
   ],
   "xVPoso": [
     {
       "type": 0,
-      "value": "Resource group name"
+      "value": "Název skupiny prostředků"
     }
   ],
   "xXbJso": [
@@ -2506,13 +2526,13 @@
   "xXhn+h": [
     {
       "type": 0,
-      "value": "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data."
+      "value": "Umožňuje spravovat účty úložiště, včetně přístupu ke klíčům účtů úložiště, které nabízejí úplný přístup k datům účtů úložiště."
     }
   ],
   "xdMkcg": [
     {
       "type": 0,
-      "value": "Can read all monitoring data."
+      "value": "Může číst všechna data monitorování."
     }
   ],
   "xhfdqv": [
@@ -2530,19 +2550,19 @@
   "xmsrBu": [
     {
       "type": 0,
-      "value": "Operate API Management services."
+      "value": "Provozujte služby API Management."
     }
   ],
   "xqwf/7": [
     {
       "type": 0,
-      "value": "IoT Hub Data Contributor"
+      "value": "Přispěvatel dat služby IoT Hub"
     }
   ],
   "xtkizV": [
     {
       "type": 0,
-      "value": "Website Contributor"
+      "value": "Přispěvatel webů"
     }
   ],
   "y1Z3or": [
@@ -2554,31 +2574,31 @@
   "yV5oYe": [
     {
       "type": 0,
-      "value": "Policies"
+      "value": "Zásady"
     }
   ],
   "yilQrD": [
     {
       "type": 0,
-      "value": "Managed resource groups"
+      "value": "Skupiny spravovaných prostředků"
     }
   ],
   "yo67XU": [
     {
       "type": 0,
-      "value": "API Management Service Operator Role"
+      "value": "Role Operátor služby API Management"
     }
   ],
   "zEk9h3": [
     {
       "type": 0,
-      "value": "Virtual Machines"
+      "value": "Virtuální počítače"
     }
   ],
   "zJ+8HW": [
     {
       "type": 0,
-      "value": "(new) "
+      "value": "(nové) "
     },
     {
       "type": 1,
@@ -2588,19 +2608,19 @@
   "zQvVDJ": [
     {
       "type": 0,
-      "value": "All"
+      "value": "Vše"
     }
   ],
   "zacv31": [
     {
       "type": 0,
-      "value": "Detected resource types"
+      "value": "Zjištěné typy prostředků"
     }
   ],
   "zhHihn": [
     {
       "type": 0,
-      "value": "SQL Servers"
+      "value": "Servery SQL"
     }
   ]
 }

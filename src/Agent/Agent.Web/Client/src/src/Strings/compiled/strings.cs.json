@@ -33,6 +33,12 @@
       "value": "Chcete odstranit vlákno?"
     }
   ],
+  "+6/51l": [
+    {
+      "type": 0,
+      "value": "Creating meta agent"
+    }
+  ],
   "+7PjfV": [
     {
       "type": 0,
@@ -43,6 +49,12 @@
     {
       "type": 0,
       "value": "IcM není připojen."
+    }
+  ],
+  "+ASm/B": [
+    {
+      "type": 0,
+      "value": "Submit Feedback"
     }
   ],
   "+Aon83": [
@@ -127,6 +139,30 @@
       "value": "Typ"
     }
   ],
+  "+XtuWl": [
+    {
+      "type": 0,
+      "value": "This insight needs improvement"
+    }
+  ],
+  "+Y8m6A": [
+    {
+      "type": 0,
+      "value": "Added handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    }
+  ],
   "+ZdOJt": [
     {
       "type": 0,
@@ -187,6 +223,12 @@
       "value": "Může číst sešity."
     }
   ],
+  "+nnQeH": [
+    {
+      "type": 0,
+      "value": "Created meta agent"
+    }
+  ],
   "+nt4l9": [
     {
       "type": 0,
@@ -211,6 +253,12 @@
       "value": "Skupina prostředků"
     }
   ],
+  "/+WtRc": [
+    {
+      "type": 0,
+      "value": "Enter handoff instructions"
+    }
+  ],
   "//Zb9l": [
     {
       "type": 0,
@@ -227,6 +275,12 @@
     {
       "type": 0,
       "value": "Zvolit platformu"
+    }
+  ],
+  "/3OCn6": [
+    {
+      "type": 0,
+      "value": "Insights have not been generated for this thread yet."
     }
   ],
   "/4tOwT": [
@@ -461,6 +515,12 @@
     {
       "type": 1,
       "value": "totalCount"
+    }
+  ],
+  "03qRza": [
+    {
+      "type": 0,
+      "value": "View AI suggestions"
     }
   ],
   "05Rzkx": [
@@ -825,6 +885,12 @@
     {
       "type": 0,
       "value": "Přepsat výchozího metaagenta"
+    }
+  ],
+  "19xydZ": [
+    {
+      "type": 0,
+      "value": "You do not have permission to generate insights for this thread."
     }
   ],
   "1CcjQj": [
@@ -1407,6 +1473,12 @@
       "value": "Upozornění"
     }
   ],
+  "3SsYXO": [
+    {
+      "type": 0,
+      "value": "Open GitHub issue page with pre-filled information above"
+    }
+  ],
   "3VI9mt": [
     {
       "type": 0,
@@ -1425,10 +1497,22 @@
       "value": "Aktivní"
     }
   ],
+  "3dsWh5": [
+    {
+      "type": 0,
+      "value": "Add MCP server"
+    }
+  ],
   "3jPMQI": [
     {
       "type": 0,
       "value": "Přidat další"
+    }
+  ],
+  "3k7JQw": [
+    {
+      "type": 0,
+      "value": "Issue description is required."
     }
   ],
   "3n8o15": [
@@ -1613,6 +1697,12 @@
       "value": "Podrobnosti triggeru"
     }
   ],
+  "4CcHuj": [
+    {
+      "type": 0,
+      "value": "Share your thoughts about this insight... (optional)"
+    }
+  ],
   "4Ez7HI": [
     {
       "type": 0,
@@ -1659,6 +1749,12 @@
     {
       "type": 0,
       "value": "Udržujte popis stručný a vysvětlete akce úkolu. Zahrňte potřebné identifikátory zdrojů, uveďte časově citlivé informace a definujte signály úspěchu/selhání nebo požadované formáty výstupu."
+    }
+  ],
+  "4Rhz/i": [
+    {
+      "type": 0,
+      "value": "User provided connector"
     }
   ],
   "4RwjwU": [
@@ -1735,6 +1831,16 @@
     {
       "type": 0,
       "value": "Plán reakcí na incidenty definuje, které incidenty má agent zpracovávat na základě vašich kritérií filtrování, a zajišťuje tak reakce na požadovanou sadu incidentů."
+    }
+  ],
+  "4lv5gO": [
+    {
+      "type": 0,
+      "value": "Create subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "4oK1Me": [
@@ -2183,6 +2289,12 @@
       "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
     }
   ],
+  "6CrAJC": [
+    {
+      "type": 0,
+      "value": "Enter custom header key"
+    }
+  ],
   "6CxEZS": [
     {
       "type": 0,
@@ -2229,6 +2341,16 @@
     {
       "type": 0,
       "value": "Znovu vygenerovat"
+    }
+  ],
+  "6RNwei": [
+    {
+      "type": 0,
+      "value": "Update subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "6S2zmX": [
@@ -2319,6 +2441,12 @@
     {
       "type": 0,
       "value": "Sestava zdrojů"
+    }
+  ],
+  "6gD0ie": [
+    {
+      "type": 0,
+      "value": "Generate Session Insights"
     }
   ],
   "6m5Ba0": [
@@ -2425,6 +2553,12 @@
       "value": "Časový rozsah"
     }
   ],
+  "751M54": [
+    {
+      "type": 0,
+      "value": "Generating insights..."
+    }
+  ],
   "75lAeu": [
     {
       "type": 0,
@@ -2525,6 +2659,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "7Rnjmx": [
+    {
+      "type": 0,
+      "value": "Expected Behavior"
     }
   ],
   "7TVRcx": [
@@ -2997,6 +3137,12 @@
       "value": "Výběr agenta pro předání"
     }
   ],
+  "8u2W0L": [
+    {
+      "type": 0,
+      "value": "Handoff instructions"
+    }
+  ],
   "8v0Pyn": [
     {
       "type": 0,
@@ -3151,6 +3297,12 @@
       "value": "Přidejte popis tohoto prostředku, který agentovi pomůže se seskupováním a přehledy."
     }
   ],
+  "9WBhPZ": [
+    {
+      "type": 0,
+      "value": "Session Insights"
+    }
+  ],
   "9WRlF4": [
     {
       "type": 0,
@@ -3261,6 +3413,12 @@
     {
       "type": 0,
       "value": "Akce testovacího prostředí budou brzy k dispozici."
+    }
+  ],
+  "A9cgAa": [
+    {
+      "type": 0,
+      "value": "No insight selected"
     }
   ],
   "AA/tRJ": [
@@ -3425,6 +3583,12 @@
       "value": "Přístupový klíč k REST API"
     }
   ],
+  "AvHD3R": [
+    {
+      "type": 0,
+      "value": "Teams channel link"
+    }
+  ],
   "AxMhQr": [
     {
       "type": 0,
@@ -3461,6 +3625,12 @@
     {
       "type": 0,
       "value": "Kvalita agenta"
+    }
+  ],
+  "BD+V8L": [
+    {
+      "type": 0,
+      "value": "This insight was helpful"
     }
   ],
   "BEck3n": [
@@ -3633,6 +3803,24 @@
       "value": " datových konektorů..."
     }
   ],
+  "Bn/txo": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "BuziI2": [
     {
       "type": 0,
@@ -3693,6 +3881,16 @@
       "value": "Nástroje MCP (volitelné)"
     }
   ],
+  "CIAL+k": [
+    {
+      "type": 0,
+      "value": "Created subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "CJ6tzL": [
     {
       "type": 0,
@@ -3733,6 +3931,18 @@
     {
       "type": 0,
       "value": "Jak chcete definovat plán?"
+    }
+  ],
+  "CQ0CLu": [
+    {
+      "type": 0,
+      "value": "Session insights"
+    }
+  ],
+  "CQisjK": [
+    {
+      "type": 0,
+      "value": "What actually happened?"
     }
   ],
   "CTRqZs": [
@@ -3961,6 +4171,20 @@
       "value": "Zvolte, jestli se má provádět hloubkové prověřování společně s pravidelnými prověřováními"
     }
   ],
+  "DK708b": [
+    {
+      "type": 0,
+      "value": "Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than "
+    },
+    {
+      "type": 1,
+      "value": "maxLength"
+    },
+    {
+      "type": 0,
+      "value": " characters."
+    }
+  ],
   "DMEE1o": [
     {
       "type": 0,
@@ -4007,6 +4231,12 @@
       "value": "Vybrané incidenty"
     }
   ],
+  "DYp/nK": [
+    {
+      "type": 0,
+      "value": "Session Insight"
+    }
+  ],
   "Da55kZ": [
     {
       "type": 0,
@@ -4035,6 +4265,12 @@
     {
       "type": 0,
       "value": "Přispěvatel Cognitive Services"
+    }
+  ],
+  "DgsR1U": [
+    {
+      "type": 0,
+      "value": "Channel ID"
     }
   ],
   "Dh9oJp": [
@@ -4221,6 +4457,12 @@
       "value": "Zadejte název filtru."
     }
   ],
+  "ETRyBL": [
+    {
+      "type": 0,
+      "value": "Rating"
+    }
+  ],
   "EWrExf": [
     {
       "type": 0,
@@ -4257,6 +4499,12 @@
       "value": "Plán akcí"
     }
   ],
+  "EcglP9": [
+    {
+      "type": 0,
+      "value": "Key"
+    }
+  ],
   "EdEthU": [
     {
       "type": 0,
@@ -4277,6 +4525,12 @@
     {
       "type": 0,
       "value": "Pokračujte otestováním dotazu."
+    }
+  ],
+  "Ejhdi4": [
+    {
+      "type": 0,
+      "value": "Feedback"
     }
   ],
   "ElI1gd": [
@@ -4301,6 +4555,12 @@
     {
       "type": 0,
       "value": "https://github.com/owner/repo-name nebo https://dev.azure.com/organization/project/_git/repo nebo https://organization.visualstudio.com/project/_git/repository-name"
+    }
+  ],
+  "ErUgLz": [
+    {
+      "type": 0,
+      "value": "Teams group ID"
     }
   ],
   "Erci0g": [
@@ -4429,6 +4689,12 @@
     {
       "type": 0,
       "value": "Připojení úložiště"
+    }
+  ],
+  "FMDuHb": [
+    {
+      "type": 0,
+      "value": "Enter your PAT or API key"
     }
   ],
   "FNQNS1": [
@@ -4619,6 +4885,12 @@
       "value": "0"
     }
   ],
+  "G6XRkU": [
+    {
+      "type": 0,
+      "value": "Steps to Reproduce"
+    }
+  ],
   "G6vaGg": [
     {
       "type": 0,
@@ -4707,6 +4979,12 @@
     {
       "type": 0,
       "value": "Zpět na příkazy"
+    }
+  ],
+  "GGr/yS": [
+    {
+      "type": 0,
+      "value": "Feedback submitted on threads will appear here"
     }
   ],
   "GMhzu1": [
@@ -4801,10 +5079,34 @@
       "value": " podle plánu, aby klíčové systémy zůstaly v pořádku."
     }
   ],
+  "GpcNV2": [
+    {
+      "type": 0,
+      "value": "Failed to update subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "GroBmn": [
     {
       "type": 0,
       "value": "nalezená upozornění úložiště"
+    }
+  ],
+  "GufXy5": [
+    {
+      "type": 0,
+      "value": "Value"
     }
   ],
   "Gvxoji": [
@@ -4871,6 +5173,12 @@
     {
       "type": 0,
       "value": "Nebyla zjištěna žádná doporučení pro optimalizaci kódu."
+    }
+  ],
+  "HJ7ZeR": [
+    {
+      "type": 0,
+      "value": "Issue Description"
     }
   ],
   "HKlw1J": [
@@ -5043,6 +5351,12 @@
     {
       "type": 0,
       "value": "String"
+    }
+  ],
+  "I4PbZq": [
+    {
+      "type": 0,
+      "value": "Create a subagent"
     }
   ],
   "I5k4g/": [
@@ -5297,6 +5611,12 @@
     {
       "type": 0,
       "value": "Kliknutím zobrazíte hodnotu."
+    }
+  ],
+  "J0rs+f": [
+    {
+      "type": 0,
+      "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
   "J3Y8Sm": [
@@ -5611,6 +5931,12 @@
     {
       "type": 0,
       "value": "Vyzkoušet hodnocení"
+    }
+  ],
+  "JvYXxh": [
+    {
+      "type": 0,
+      "value": "MCP server"
     }
   ],
   "JwHSD6": [
@@ -6019,6 +6345,12 @@
       "value": "Tabulka serverů MCP"
     }
   ],
+  "Li/Qrf": [
+    {
+      "type": 0,
+      "value": "Custom headers"
+    }
+  ],
   "LkUvu/": [
     {
       "type": 0,
@@ -6047,6 +6379,12 @@
     {
       "type": 0,
       "value": "Přímý argument"
+    }
+  ],
+  "LuHM0/": [
+    {
+      "type": 0,
+      "value": "Actual Behavior"
     }
   ],
   "LupnQU": [
@@ -6769,6 +7107,12 @@
       "value": ". Aktualizujte zobrazení a zkuste to znovu."
     }
   ],
+  "OP7f9a": [
+    {
+      "type": 0,
+      "value": "Compiled connection string"
+    }
+  ],
   "OPBqEN": [
     {
       "type": 0,
@@ -7105,6 +7449,12 @@
       "value": "t"
     }
   ],
+  "PZvrnY": [
+    {
+      "type": 0,
+      "value": "Title is required."
+    }
+  ],
   "Pa1S0J": [
     {
       "type": 0,
@@ -7367,6 +7717,16 @@
       "value": "Spotřeba AAU"
     }
   ],
+  "QP91Js": [
+    {
+      "type": 0,
+      "value": "Updated subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "QQX4Pv": [
     {
       "type": 0,
@@ -7403,6 +7763,12 @@
     {
       "type": 0,
       "value": "Popis předání"
+    }
+  ],
+  "QYiU4f": [
+    {
+      "type": 0,
+      "value": "1. Describe the action you took 2. Mention the resource or service involved"
     }
   ],
   "QdDYGR": [
@@ -7545,6 +7911,12 @@
       "value": "Posuvník měsíčního limitu AAU"
     }
   ],
+  "R4Blzb": [
+    {
+      "type": 0,
+      "value": "No Feedback Yet"
+    }
+  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -7605,6 +7977,32 @@
     {
       "type": 0,
       "value": " souborů?"
+    }
+  ],
+  "RMD0Mj": [
+    {
+      "type": 0,
+      "value": "Failed to add handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "RR+13c": [
@@ -7807,6 +8205,16 @@
       "value": "Přejít na službu Azure Managed Grafana"
     }
   ],
+  "SB7SRx": [
+    {
+      "type": 0,
+      "value": "Creating subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
+    }
+  ],
   "SCjiXP": [
     {
       "type": 0,
@@ -7823,6 +8231,20 @@
     {
       "type": 0,
       "value": "Incident se vytvořil."
+    }
+  ],
+  "SIW6OB": [
+    {
+      "type": 0,
+      "value": "Threads with Insights ("
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ")"
     }
   ],
   "SL+c5a": [
@@ -8019,10 +8441,26 @@
       "value": "."
     }
   ],
+  "T/nqbo": [
+    {
+      "type": 0,
+      "value": "Feedback ID"
+    }
+  ],
   "T0/eoE": [
     {
       "type": 0,
       "value": "Spuštění naplánované úlohy"
+    }
+  ],
+  "T0e6Lh": [
+    {
+      "type": 0,
+      "value": "Remove "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "T5+AEf": [
@@ -8179,6 +8617,18 @@
       "value": "Mapování prostředků"
     }
   ],
+  "TdvJVw": [
+    {
+      "type": 0,
+      "value": "Suggested improvements"
+    }
+  ],
+  "TexFnY": [
+    {
+      "type": 0,
+      "value": "This insight does not have markdown content."
+    }
+  ],
   "Tg4Q8g": [
     {
       "type": 0,
@@ -8255,6 +8705,12 @@
     {
       "type": 0,
       "value": "Změny konfigurace"
+    }
+  ],
+  "UImEMW": [
+    {
+      "type": 0,
+      "value": "Briefly describe the problem or request."
     }
   ],
   "UKMPBH": [
@@ -8403,6 +8859,12 @@
       "value": "K odstranění tohoto agenta nemáte oprávnění."
     }
   ],
+  "V9GGMu": [
+    {
+      "type": 0,
+      "value": "No threads with session insights found."
+    }
+  ],
   "VA/Z1S": [
     {
       "type": 0,
@@ -8419,6 +8881,12 @@
     {
       "type": 0,
       "value": "Přiřazeno uživatelem"
+    }
+  ],
+  "VBAOA8": [
+    {
+      "type": 0,
+      "value": "Select subagents for handoff"
     }
   ],
   "VIYXlx": [
@@ -8569,6 +9037,30 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "Vs/db/": [
+    {
+      "type": 0,
+      "value": "Adding handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    }
+  ],
+  "Vs3jMi": [
+    {
+      "type": 0,
+      "value": "Authentication method"
     }
   ],
   "VtBCjG": [
@@ -9138,12 +9630,6 @@
       "value": "Seskupování zpráv pro aktualizace"
     }
   ],
-  "XVG+T1": [
-    {
-      "type": 0,
-      "value": "Upřesňování podrobností..."
-    }
-  ],
   "XYIeUc": [
     {
       "type": 0,
@@ -9242,6 +9728,12 @@
       "value": "Vydavatel metrik monitorování"
     }
   ],
+  "XyUQa7": [
+    {
+      "type": 0,
+      "value": "Improved instructions"
+    }
+  ],
   "Y0BC+F": [
     {
       "type": 1,
@@ -9306,6 +9798,16 @@
     {
       "type": 0,
       "value": "úterý"
+    }
+  ],
+  "YBHvOV": [
+    {
+      "type": 0,
+      "value": "Updating subagent "
+    },
+    {
+      "type": 1,
+      "value": "agentName"
     }
   ],
   "YBXVNU": [
@@ -9596,16 +10098,6 @@
     {
       "type": 1,
       "value": "channel"
-    }
-  ],
-  "ZF9lPS": [
-    {
-      "type": 0,
-      "value": "Remove tool "
-    },
-    {
-      "type": 1,
-      "value": "toolName"
     }
   ],
   "ZMa6Rh": [
@@ -10163,6 +10655,12 @@
       "value": "Identifikátor URI clusteru"
     }
   ],
+  "bICPAQ": [
+    {
+      "type": 0,
+      "value": "Thread Feedback"
+    }
+  ],
   "bK0VQe": [
     {
       "type": 0,
@@ -10185,6 +10683,12 @@
     {
       "type": 0,
       "value": "Nové"
+    }
+  ],
+  "bWjdfa": [
+    {
+      "type": 0,
+      "value": "URL"
     }
   ],
   "baRFiF": [
@@ -10439,6 +10943,12 @@
       "value": "Teplota"
     }
   ],
+  "cHKA8f": [
+    {
+      "type": 0,
+      "value": "No insight content available"
+    }
+  ],
   "cJGGY4": [
     {
       "type": 0,
@@ -10485,6 +10995,12 @@
     {
       "type": 0,
       "value": "Kategorie"
+    }
+  ],
+  "cesI6Z": [
+    {
+      "type": 0,
+      "value": "No feedback selected"
     }
   ],
   "cfbpDd": [
@@ -10791,6 +11307,12 @@
     {
       "type": 0,
       "value": "Zmírněno"
+    }
+  ],
+  "dqkJF6": [
+    {
+      "type": 0,
+      "value": "Delete subagent"
     }
   ],
   "dtQgfG": [
@@ -11251,10 +11773,22 @@
       "value": "Nejprve je potřeba vytvořit prostředek Grafana."
     }
   ],
+  "fuHqFL": [
+    {
+      "type": 0,
+      "value": "No session insights found."
+    }
+  ],
   "fvK8Qi": [
     {
       "type": 0,
       "value": "Všechny stavy"
+    }
+  ],
+  "fyaE5g": [
+    {
+      "type": 0,
+      "value": "Please provide a channel link"
     }
   ],
   "g+9csc": [
@@ -11706,6 +12240,12 @@
     {
       "type": 0,
       "value": "Prostředek Grafana"
+    }
+  ],
+  "hoHnYn": [
+    {
+      "type": 0,
+      "value": "Improved handoff instructions"
     }
   ],
   "hqWr3L": [
@@ -12332,6 +12872,12 @@
       "value": "Knowledge Base Enabled"
     }
   ],
+  "khI1mJ": [
+    {
+      "type": 0,
+      "value": "Edit subagent"
+    }
+  ],
   "khOzXi": [
     {
       "type": 0,
@@ -12764,6 +13310,24 @@
       "value": "Plány reakcí na incidenty"
     }
   ],
+  "mVB9Bd": [
+    {
+      "type": 0,
+      "value": "Add handoff from "
+    },
+    {
+      "type": 1,
+      "value": "sourceAgent"
+    },
+    {
+      "type": 0,
+      "value": " to subagent "
+    },
+    {
+      "type": 1,
+      "value": "targetAgent"
+    }
+  ],
   "mVkTZZ": [
     {
       "type": 0,
@@ -12816,6 +13380,12 @@
     {
       "type": 0,
       "value": "Nejsou nakonfigurované žádné nástroje."
+    }
+  ],
+  "mgtFKh": [
+    {
+      "type": 0,
+      "value": "Create GitHub issue"
     }
   ],
   "mhKk7c": [
@@ -13188,6 +13758,12 @@
       "value": "Sign in with a different account"
     }
   ],
+  "oIm1Fb": [
+    {
+      "type": 0,
+      "value": "GitHub logo"
+    }
+  ],
   "oKJ0fm": [
     {
       "type": 0,
@@ -13228,6 +13804,12 @@
     {
       "type": 0,
       "value": "Načítají se nástroje MCP..."
+    }
+  ],
+  "oTxjU2": [
+    {
+      "type": 0,
+      "value": "Handoff subagents"
     }
   ],
   "oUWADl": [
@@ -13292,6 +13874,12 @@
     {
       "type": 0,
       "value": "Hledat incidenty"
+    }
+  ],
+  "ooDMAp": [
+    {
+      "type": 0,
+      "value": "Personal access token (PAT) or API key"
     }
   ],
   "osuyeD": [
@@ -13604,6 +14192,16 @@
       "value": "Načítají se vlákna chatu"
     }
   ],
+  "pw1ueF": [
+    {
+      "type": 0,
+      "value": "Failed to create meta agent. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "pyXjlj": [
     {
       "type": 0,
@@ -13620,6 +14218,12 @@
     {
       "type": 0,
       "value": "Probíhající"
+    }
+  ],
+  "q3e4cf": [
+    {
+      "type": 0,
+      "value": "Bearer token"
     }
   ],
   "q4EmsW": [
@@ -13730,6 +14334,12 @@
       "value": "Vyberte propojený nástroj k úpravě"
     }
   ],
+  "qrs+1B": [
+    {
+      "type": 0,
+      "value": "Create meta agent"
+    }
+  ],
   "qs5hhk": [
     {
       "type": 0,
@@ -13838,6 +14448,12 @@
     {
       "type": 0,
       "value": "Tím se trvale odstraní připojení k PagerDuty. Agent už nebude moct spravovat lístky. Opravdu se chcete odpojit?"
+    }
+  ],
+  "r5UlDs": [
+    {
+      "type": 0,
+      "value": "Enter custom header value"
     }
   ],
   "r8XsCU": [
@@ -13996,6 +14612,12 @@
       "value": "Přispěvatel služby API Management"
     }
   ],
+  "raexxM": [
+    {
+      "type": 0,
+      "value": "Submitted"
+    }
+  ],
   "rbrahO": [
     {
       "type": 0,
@@ -14124,6 +14746,12 @@
     {
       "type": 1,
       "value": "name"
+    }
+  ],
+  "ryAzxy": [
+    {
+      "type": 0,
+      "value": "Issue"
     }
   ],
   "ryPHA8": [
@@ -14732,6 +15360,12 @@
       "value": "Nenašly se žádné naplánované úlohy."
     }
   ],
+  "trhBLG": [
+    {
+      "type": 0,
+      "value": "No insights available"
+    }
+  ],
   "ts7YvN": [
     {
       "type": 0,
@@ -14742,6 +15376,12 @@
     {
       "type": 0,
       "value": "Vyberte oblast"
+    }
+  ],
+  "ttWUo6": [
+    {
+      "type": 0,
+      "value": "Click to view session analysis and insights"
     }
   ],
   "tthToS": [
@@ -15090,6 +15730,12 @@
       "value": "Nástroje vybrané pro reakci na incidenty"
     }
   ],
+  "urxxsP": [
+    {
+      "type": 0,
+      "value": "Agent Performance"
+    }
+  ],
   "us/IXr": [
     {
       "type": 0,
@@ -15136,6 +15782,12 @@
     {
       "type": 0,
       "value": "Sbalit vše"
+    }
+  ],
+  "v1LtqB": [
+    {
+      "type": 0,
+      "value": "Select authentication method"
     }
   ],
   "v3xWf6": [
@@ -15330,6 +15982,12 @@
       "value": "time"
     }
   ],
+  "vzH0q5": [
+    {
+      "type": 0,
+      "value": "Choose tools"
+    }
+  ],
   "w+XRP2": [
     {
       "type": 0,
@@ -15382,6 +16040,12 @@
     {
       "type": 0,
       "value": "Vytváření, testování a hodnocení – úplný pracovní postup"
+    }
+  ],
+  "wBh+z3": [
+    {
+      "type": 0,
+      "value": "No additional comments provided"
     }
   ],
   "wEQDC6": [
@@ -16158,10 +16822,22 @@
       "value": "Vše"
     }
   ],
+  "zRv1ks": [
+    {
+      "type": 0,
+      "value": "What should happen?"
+    }
+  ],
   "zUNfOA": [
     {
       "type": 0,
       "value": "Otevřít panel sledování"
+    }
+  ],
+  "zWkvNO": [
+    {
+      "type": 0,
+      "value": "Timeline"
     }
   ],
   "zZsxcQ": [
@@ -16224,16 +16900,6 @@
     {
       "type": 0,
       "value": "Souhrn incidentů"
-    }
-  ],
-  "zr8jA6": [
-    {
-      "type": 0,
-      "value": "Odebrat nástroj "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "zuQF37": [

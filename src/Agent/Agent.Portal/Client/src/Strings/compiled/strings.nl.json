@@ -225,6 +225,12 @@
       "value": "Select resource groups dialog"
     }
   ],
+  "3IKub9": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred"
+    }
+  ],
   "3cc4Ct": [
     {
       "type": 0,
@@ -1423,6 +1429,12 @@
     {
       "type": 0,
       "value": "Has access to Read and Test functions under LUIS."
+    }
+  ],
+  "aIRWQB": [
+    {
+      "type": 0,
+      "value": "Back to home"
     }
   ],
   "aLBTVj": [
