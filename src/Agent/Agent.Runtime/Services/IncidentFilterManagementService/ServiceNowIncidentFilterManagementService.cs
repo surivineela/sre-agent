@@ -19,11 +19,12 @@ public class ServiceNowIncidentFilterManagementService : IncidentFilterManagemen
         CosmosDBSettings cosmosDbSettings,
         IncidentManagementSettings incidentManagementSettings,
         IServiceNowAPIClient serviceNowAPIClient,
-        ILogger<ServiceNowIncidentFilterManagementService> logger)
+        ILogger<ServiceNowIncidentFilterManagementService> logger,
+        IIncidentHandlerManagementService incidentHandlerManagementService)
         : base(cosmosClient.GetContainer(
             cosmosDbSettings.Docs.Database,
             AgentDataConfiguration.ThreadContainerName
-        ), logger, incidentManagementSettings)
+        ), logger, incidentManagementSettings, incidentHandlerManagementService)
     {
         _serviceNowAPIClient = serviceNowAPIClient;
     }

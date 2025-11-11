@@ -44,15 +44,18 @@ namespace Agent.Runtime.Services
         protected readonly Container _container;
         protected readonly string DocumentType;
         protected readonly ILogger _logger;
+        protected readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
 
         public IncidentFilterManagementServiceBase(
             Container container,
             ILogger logger,
-            IncidentManagementSettings incidentManagementSettings)
+            IncidentManagementSettings incidentManagementSettings,
+            IIncidentHandlerManagementService incidentHandlerManagementService)
         {
             _container = container;
             _logger = logger;
             DocumentType = IncidentFilterDocumentUtilities.GetDocumentTypeName(incidentManagementSettings.Type);
+            _incidentHandlerManagementService = incidentHandlerManagementService;
         }
 
         public abstract Task<bool> CheckConnectivity();
@@ -206,16 +209,29 @@ namespace Agent.Runtime.Services
                 _logger.LogInternalWarning("DeleteIncidentFilter: No filter found to delete for FilterId: {FilterId}", filterId);
                 return false;
             }
-            //filter.IsDeleted = true;
-            //filter.UpdatedAt = DateTime.UtcNow;
-            filter = filter with { IsDeleted = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+
             try
             {
+                // Find and delete all related handlers BEFORE deleting the filter
+                var allHandlers = await _incidentHandlerManagementService.ListIncidentHandlers();
+                var relatedHandlers = allHandlers.Where(h => h.IncidentFilterId == filterId).ToList();
+
+                _logger.LogInternalInformation("DeleteIncidentFilter: Found {HandlerCount} related handlers for FilterId: {FilterId}", relatedHandlers.Count, filterId);
+
+                // Delete each related handler
+                foreach (var handler in relatedHandlers)
+                {
+                    _logger.LogInternalInformation("DeleteIncidentFilter: Deleting related handler {HandlerId} for FilterId: {FilterId}", handler.Id, filterId);
+                    await _incidentHandlerManagementService.DeleteIncidentHandler(handler.Id);
+                }
+
+                // Now delete the filter
+                filter = filter with { IsDeleted = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
                 var response = await _container.UpsertItemAsync(filter, new PartitionKey(filter.PartitionKey ?? filter.Id));
                 bool success = response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == System.Net.HttpStatusCode.Created;
                 if (success)
                 {
-                    _logger.LogInternalInformation("DeleteIncidentFilter: Successfully soft-deleted filter with FilterId: {FilterId}", filterId);
+                    _logger.LogInternalInformation("DeleteIncidentFilter: Successfully soft-deleted filter with FilterId: {FilterId} and {HandlerCount} related handlers", filterId, relatedHandlers.Count);
                 }
                 else
                 {

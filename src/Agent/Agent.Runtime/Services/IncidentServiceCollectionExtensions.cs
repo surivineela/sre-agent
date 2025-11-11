@@ -43,6 +43,10 @@ public static class IncidentServiceCollectionExtensions
 
         var serviceProvider = services.BuildServiceProvider();
         var incidentManagementSettings = serviceProvider.GetRequiredService<IncidentManagementSettings>();
+
+        // Register IIncidentHandlerManagementService before filter services that depend on it
+        services.AddSingleton<IIncidentHandlerManagementService, IncidentHandlerManagementService>();
+
         //Overwrite ApiClient and IIncidentScanner
         switch (incidentManagementSettings.Type)
         {
@@ -94,7 +98,6 @@ public static class IncidentServiceCollectionExtensions
                 break;
         }
 
-        services.AddSingleton<IIncidentHandlerManagementService, IncidentHandlerManagementService>();
         services.AddSingleton<IInstructionGenerationService, InstructionGenerationService>();
         services.AddSingleton<IIncidentStatusMetricsService, IncidentStatusMetricsService>();
         services.AddSingleton<IPublishedToolsService, PublishedToolsService>();

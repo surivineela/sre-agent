@@ -20,11 +20,12 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
         CosmosDBSettings cosmosDbSettings,
         IncidentManagementSettings incidentManagementSettings,
         ILogger<IcmIncidentFilterManagementService> logger,
-        IICMAPIClient icmApiClient)
+        IICMAPIClient icmApiClient,
+        IIncidentHandlerManagementService incidentHandlerManagementService)
         : base(cosmosClient.GetContainer(
             cosmosDbSettings.Docs.Database,
             AgentDataConfiguration.ThreadContainerName
-        ), logger, incidentManagementSettings)
+        ), logger, incidentManagementSettings, incidentHandlerManagementService)
     {
         _icmApiClient = icmApiClient;
     }

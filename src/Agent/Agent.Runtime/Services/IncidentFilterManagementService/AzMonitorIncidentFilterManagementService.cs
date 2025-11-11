@@ -20,11 +20,12 @@ public class AzMonitorIncidentFilterManagementService : IncidentFilterManagement
         CosmosDBSettings cosmosDbSettings,
         IncidentManagementSettings incidentManagementSettings,
         ILogger<AzMonitorIncidentFilterManagementService> logger,
-        IAzMonitorAlertService azMonitorAlertService)
+        IAzMonitorAlertService azMonitorAlertService,
+        IIncidentHandlerManagementService incidentHandlerManagementService)
         : base(cosmosClient.GetContainer(
             cosmosDbSettings.Docs.Database,
             AgentDataConfiguration.ThreadContainerName
-        ), logger, incidentManagementSettings)
+        ), logger, incidentManagementSettings, incidentHandlerManagementService)
     {
         _azMonitorAlertService = azMonitorAlertService;
     }
