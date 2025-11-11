@@ -8,6 +8,10 @@ interface AuthenticatedUser {
     username: string;
     email: string;
     tenantId: string;
+    /**
+     * `homeAccountId`: `{oid}.{tid}` - A unique identifier for the user across tenants
+     * `localAccountId`: `{oid}` - guaranteed to be the same as the JWT OID claim (`idTokenClaims.oid`)
+     */
     objectId: string;
 }
 

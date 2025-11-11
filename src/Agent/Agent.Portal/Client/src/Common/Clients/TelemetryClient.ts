@@ -1,5 +1,7 @@
+import { msalInstance } from '../Auth/msalConfig';
 import { LogLevel, TelemetryEvent } from '../Contracts/Telemetry';
 import { acquireAccessToken } from '../Utilities/Client';
+import { getSessionId } from '../Utilities/SessionManager';
 
 enum ApiLogLevel {
     Trace = 0,
@@ -45,6 +47,17 @@ export class TelemetryClient {
         const eventWithBaselineData = {
             version: import.meta.env.SRE_AGENT_PORTAL_VERSION,
             hostname: window.location.hostname,
+            pathname: window.location.pathname,
+            sessionId: getSessionId(),
+            // Portal uses the legacy hexadecimal cross-tenant PUID, but this is a potential privacy concern due to cross-tenant user tracking
+            userId: msalInstance.getActiveAccount()?.homeAccountId || 'anonymous',
+            tenantId: msalInstance.getActiveAccount()?.tenantId || 'anonymous',
+            userAgent: navigator.userAgent,
+            screenDimensions: { width: window.screen.width, height: window.screen.height },
+            theme: document.documentElement.getAttribute('data-theme') || 'unknown', // TODO: From UserPrefs
+            locale: navigator.language, // TODO: from UserPrefs
+            clientTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            // Potential additions: ScrubbedClientIP, ServerId, JourneyId, Region/DataCenterId, BrowserId
             ...event,
         };
 

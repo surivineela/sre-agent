@@ -34,6 +34,7 @@ import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext, useAzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
+import { RouteErrorBoundary } from '../Common/Components/RouteErrorBoundary';
 import WarningBanner from '../Common/Components/WarningBanner';
 import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
@@ -103,7 +104,7 @@ const FeedbackIcon = bundleIcon(PersonFeedbackFilled, PersonFeedbackRegular);
 const OpenSupportTicketIcon = bundleIcon(OpenFilled, OpenRegular);
 
 // Directly use SVG for more control over colors
-const GithubIssueIcon = () => {
+export const GithubIssueIcon = () => {
     return (
         <svg width="20" height="20" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
             <path
@@ -199,6 +200,21 @@ const TabsListWrapper: FC = () => {
     const showIncidentManagementTeachingPopover = useMemo(() => {
         return isIncidentManagementTeachingPopoverDismissed !== 'true';
     }, [isIncidentManagementTeachingPopoverDismissed]);
+
+    // Log route/view changes
+    useEffect(() => {
+        azPortalProxy.log({
+            action: 'route-navigation',
+            actionModifier: 'view',
+            resourceId,
+            data: {
+                hostname: window.location.hostname,
+                pathname: location.pathname,
+                hash: location.hash,
+                referrer: document.referrer,
+            },
+        });
+    }, [location, azPortalProxy, resourceId]);
 
     // Show scheduled tasks tab and extended agents graph tab based on backend feature flag only
     const { features } = useFeatureFlags();
@@ -399,6 +415,7 @@ const router = createHashRouter([
     {
         path: '/',
         element: <TabsListWrapper />,
+        errorElement: <RouteErrorBoundary />,
         children: [
             { index: true, element: <Activities /> },
             { path: 'views/settings/:menuItem', element: <Settings /> },

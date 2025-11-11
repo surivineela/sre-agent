@@ -82,17 +82,20 @@ export const buildBladeUrl = (bladeInfo: IOpenBladeInfo): string => {
 };
 
 export const openResourceGroupOverviewInNewTab = (rscId: string) => {
+    const { portal } = getCloudEndpoints();
     const armId = parseArmId(rscId);
-    const portalUrl = `${window.location.origin}/#resource/subscriptions/${armId.subscription}/resourceGroups/${
-        armId.resourceGroup
-    }/overview`;
-    window.open(portalUrl, '_blank');
+    const portalUrl = `${portal}#resource/subscriptions/${armId.subscription}/resourceGroups/${armId.resourceGroup}/overview`;
+
+    window.open(portalUrl, '_blank', 'noopener,noreferrer');
 };
 
 export const openSubscriptionOverviewInNewTab = (subscriptionId: string) => {
     if (!subscriptionId) {
         return;
     }
-    const portalUrl = `${window.location.origin}/#resource/subscriptions/${subscriptionId}/overview`;
-    window.open(portalUrl, '_blank');
+    const { portal } = getCloudEndpoints();
+
+    const portalUrl = `${portal}#resource/subscriptions/${subscriptionId}/overview`;
+
+    window.open(portalUrl, '_blank', 'noopener,noreferrer');
 };

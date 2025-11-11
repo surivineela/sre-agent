@@ -1,12 +1,15 @@
 import { Button, makeStyles, Text, tokens } from '@fluentui/react-components';
-import { ErrorCircleRegular } from '@fluentui/react-icons';
-import { useEffect, useMemo } from 'react';
+import { ChatHelpRegular, HomeRegular, WarningRegular } from '@fluentui/react-icons';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { useNavigate, useRouteError } from 'react-router-dom';
 import { PortalResources } from '../../Strings/Resources';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { LogLevel } from '../Contracts/Telemetry';
 import { useTelemetry } from '../Hooks/useTelemetry';
+import { getSessionId } from '../Utilities/SessionManager';
+import { buildBladeUrl, IOpenBladeInfo } from '../Utilities/Url';
+import { CopyButton } from './CopyButton';
 
 const useStyles = makeStyles({
     root: {
@@ -22,7 +25,24 @@ const useStyles = makeStyles({
         backgroundColor: tokens.colorNeutralBackground2,
     },
     icon: {
-        color: tokens.colorPaletteRedForeground1,
+        color: tokens.colorNeutralForegroundDisabled,
+    },
+    sessionIdContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
+        padding: tokens.spacingVerticalM,
+        backgroundColor: tokens.colorNeutralBackground3,
+        borderRadius: tokens.borderRadiusMedium,
+    },
+    sessionIdText: {
+        fontFamily: 'monospace',
+        color: tokens.colorNeutralForeground2,
+        fontSize: '14px',
+    },
+    buttonContainer: {
+        display: 'flex',
+        gap: tokens.spacingHorizontalM,
     },
 });
 
@@ -37,6 +57,29 @@ export const RouteErrorBoundary = () => {
         return typeof error?.message === 'string' ? error.message : JSON.stringify(error);
     }, [error]);
 
+    const handleOpenSupport = useCallback(() => {
+        const resourceId = ''; // TODO
+
+        let bladeUrl = '';
+        if (resourceId) {
+            const bladeInfo: IOpenBladeInfo = {
+                extension: 'Microsoft_Azure_Support',
+                detailBlade: 'Aurora.ReactView',
+                detailBladeInputs: { resourceId },
+            };
+            bladeUrl = buildBladeUrl(bladeInfo);
+        } else {
+            const bladeInfo: IOpenBladeInfo = {
+                extension: 'Microsoft_Azure_Support',
+                detailBlade: 'HelpPane.ReactView',
+                detailBladeInputs: {},
+            };
+            bladeUrl = buildBladeUrl(bladeInfo);
+        }
+
+        window.open(bladeUrl, '_blank', 'noopener,noreferrer');
+    }, []);
+
     useEffect(() => {
         console.error(error);
         logEvent({
@@ -45,23 +88,36 @@ export const RouteErrorBoundary = () => {
             logLevel: LogLevel.Error,
             additionalData: {
                 error,
-                pathname: window.location.pathname,
             },
         });
     }, [error, logEvent]);
 
     return (
         <div className={styles.root} role="alert" aria-live="assertive">
-            <ErrorCircleRegular className={styles.icon} fontSize={128} aria-hidden="true" />
-            <Text size={900} weight="semibold" as="h1">
+            <WarningRegular className={styles.icon} fontSize={104} aria-hidden="true" />
+            <Text size={500} weight="semibold" as="h2" style={{ margin: 0 }}>
                 {intl.formatMessage(PortalResources.unexpectedErrorOccurred)}
             </Text>
-            <Text size={400} style={{ color: tokens.colorNeutralForeground2, maxWidth: '600px' }}>
+            <Text size={400} style={{ color: tokens.colorNeutralForeground2, maxWidth: '600px', textAlign: 'center' }}>
                 {errorMessage}
             </Text>
-            <Button appearance="primary" onClick={() => navigate('/')}>
-                {intl.formatMessage(PortalResources.backToHome)}
-            </Button>
+            <div className={styles.sessionIdContainer}>
+                <Text size={300} style={{ color: tokens.colorNeutralForeground3 }}>
+                    {intl.formatMessage(PortalResources.sessionId)}:
+                </Text>
+                <Text size={300} className={styles.sessionIdText}>
+                    {getSessionId()}
+                </Text>
+                <CopyButton textToCopy={getSessionId()} buttonAppearance="subtle" />
+            </div>
+            <div className={styles.buttonContainer}>
+                <Button appearance="primary" onClick={() => navigate('/')} icon={<HomeRegular />}>
+                    {intl.formatMessage(PortalResources.backToHome)}
+                </Button>
+                <Button onClick={handleOpenSupport} icon={<ChatHelpRegular />}>
+                    {intl.formatMessage(PortalResources.getSupport)}
+                </Button>
+            </div>
         </div>
     );
 };

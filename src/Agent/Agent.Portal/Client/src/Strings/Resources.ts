@@ -143,6 +143,11 @@ export const PortalResources = defineMessages({
         defaultMessage: 'You do not have permission to create resource groups under the currently selected subscription.',
         id: 'uqyJPP',
     },
+    copy: { defaultMessage: 'Copy', id: '4l6vz1' },
+    copied: { defaultMessage: 'Copied', id: 'p556q3' },
+    copyToClipboard: { defaultMessage: 'Copy to clipboard', id: 'aCdAsI' },
+    sessionId: { defaultMessage: 'Session ID', id: 'b0v+Pu' },
+    getSupport: { defaultMessage: 'Get support', id: 'Km7x3v' },
     newItemFormat: { defaultMessage: '(new) {item}', id: 'zJ+8HW' },
     resourceGroupAlreadyExistsInSubscription: {
         defaultMessage: 'A resource group with this name already exists in the selected subscription.',

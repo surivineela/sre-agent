@@ -24,7 +24,7 @@ import { PortalResources } from '../../../Strings/Resources';
 import { TelemetrySource } from '../../Constants/Telemetry';
 import { ResourceGroup, Subscription } from '../../Contracts/Arm';
 import { getUserFriendlyLocation } from '../../Utilities/Location';
-import { openResourceGroupOverviewInNewTab } from '../../Utilities/Url';
+import { openResourceGroupOverviewInNewTab, openSubscriptionOverviewInNewTab } from '../../Utilities/Url';
 import { PillFilter } from '../PillFilter/PillFilter';
 import { useFilteredResourceGroups } from './Hooks/useFilteredResourceGroups';
 import { ResourceGroupWithSelection, useResourceGroupsFromMultipleSubscriptions } from './Hooks/useResourceGroupsFromMultipleSubscriptions';
@@ -247,7 +247,13 @@ export const ResourceGroupPicker: FC<ResourceGroupPickerProps> = ({
                 renderCell: item => {
                     const subscriptionId = item.id.split('/')[2];
                     const subscription = subscriptionOptions.find(sub => sub.key === subscriptionId);
-                    return <TableCellLayout>{subscription?.text || subscriptionId}</TableCellLayout>;
+                    return (
+                        <TableCellLayout>
+                            <Link onClick={() => openSubscriptionOverviewInNewTab(subscriptionId)}>
+                                {subscription?.text || subscriptionId}
+                            </Link>
+                        </TableCellLayout>
+                    );
                 },
             }),
             createTableColumn<ResourceGroupWithSelection>({

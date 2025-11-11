@@ -35,6 +35,7 @@ import { useSubscriptions } from '../../Common/Contexts/SubscriptionsContext';
 import { SreAgentArgItem } from '../../Common/Contracts/SreAgent';
 import { LogLevel } from '../../Common/Contracts/Telemetry';
 import { useTelemetry } from '../../Common/Hooks/useTelemetry';
+import { openResourceGroupOverviewInNewTab, openSubscriptionOverviewInNewTab } from '../../Common/Utilities/Url';
 import { PortalResources } from '../../Strings/Resources';
 import { AgentListSkeleton } from './AgentListSkeleton';
 import { CreateAgentDialog } from './Create/CreateAgentDialog';
@@ -91,7 +92,7 @@ export const HomeBrowseView = () => {
     const { isAuthenticated } = useAuth();
     const { logEvent } = useTelemetry(TelemetrySource.HomeBrowseView, undefined);
     const navigate = useNavigate();
-    const { selectedSubscriptions } = useSubscriptions();
+    const { selectedSubscriptions, subscriptions } = useSubscriptions();
 
     const sreAgentClient = useMemo(() => SreAgentClient.getInstance(TelemetrySource.HomeBrowseView), []);
 
@@ -105,39 +106,55 @@ export const HomeBrowseView = () => {
     const [selectedSubscriptionIds, setSelectedSubscriptionIds] = useState<string[]>(selectedSubscriptions.map(sub => sub.subscriptionId));
     const [selectedResourceGroupNames, setSelectedResourceGroupNames] = useState<string[]>([]);
 
-    const columns: TableColumnDefinition<SreAgentArgItem>[] = [
-        createTableColumn<SreAgentArgItem>({
-            columnId: 'name',
-            compare: (a, b) => a.name.localeCompare(b.name),
-            renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.name)}</Text>,
-            renderCell: item => (
-                <TableCellLayout
-                    media={<Image src="SreAgent.svg" width={16} height={16} alt={intl.formatMessage(PortalResources.azureSreAgent)} />}
-                >
-                    <Link onClick={() => navigate(`/agents/${encodeURIComponent(item.id)}`)}>{item.name}</Link>
-                </TableCellLayout>
-            ),
-        }),
-        createTableColumn<SreAgentArgItem>({
-            columnId: 'subscription',
-            compare: (a, b) => a.subscriptionId.localeCompare(b.subscriptionId),
-            renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.subscription)}</Text>,
-            // TODO: Subscription displayName
-            renderCell: item => <TableCellLayout>{item.subscriptionId}</TableCellLayout>,
-        }),
-        createTableColumn<SreAgentArgItem>({
-            columnId: 'resourceGroup',
-            compare: (a, b) => a.resourceGroup.localeCompare(b.resourceGroup),
-            renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.resourceGroup)}</Text>,
-            renderCell: item => <TableCellLayout>{item.resourceGroup}</TableCellLayout>,
-        }),
-        createTableColumn<SreAgentArgItem>({
-            columnId: 'region',
-            compare: (a, b) => a.location.localeCompare(b.location),
-            renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.region)}</Text>,
-            renderCell: item => <TableCellLayout>{item.location}</TableCellLayout>,
-        }),
-    ];
+    const subscriptionDisplayNameMap = useMemo(() => {
+        return new Map(subscriptions.map(sub => [sub.subscriptionId, sub.displayName]));
+    }, [subscriptions]);
+
+    const columns: TableColumnDefinition<SreAgentArgItem>[] = useMemo(
+        () => [
+            createTableColumn<SreAgentArgItem>({
+                columnId: 'name',
+                compare: (a, b) => a.name.localeCompare(b.name),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.name)}</Text>,
+                renderCell: item => (
+                    <TableCellLayout
+                        media={<Image src="SreAgent.svg" width={16} height={16} alt={intl.formatMessage(PortalResources.azureSreAgent)} />}
+                    >
+                        <Link onClick={() => navigate(`/agents/${encodeURIComponent(item.id)}`)}>{item.name}</Link>
+                    </TableCellLayout>
+                ),
+            }),
+            createTableColumn<SreAgentArgItem>({
+                columnId: 'subscription',
+                compare: (a, b) => a.subscriptionId.localeCompare(b.subscriptionId),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.subscription)}</Text>,
+                renderCell: item => (
+                    <TableCellLayout>
+                        <Link onClick={() => openSubscriptionOverviewInNewTab(item.subscriptionId)}>
+                            {subscriptionDisplayNameMap.get(item.subscriptionId) || item.subscriptionId}
+                        </Link>
+                    </TableCellLayout>
+                ),
+            }),
+            createTableColumn<SreAgentArgItem>({
+                columnId: 'resourceGroup',
+                compare: (a, b) => a.resourceGroup.localeCompare(b.resourceGroup),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.resourceGroup)}</Text>,
+                renderCell: item => (
+                    <TableCellLayout>
+                        <Link onClick={() => openResourceGroupOverviewInNewTab(item.id)}>{item.resourceGroup}</Link>
+                    </TableCellLayout>
+                ),
+            }),
+            createTableColumn<SreAgentArgItem>({
+                columnId: 'region',
+                compare: (a, b) => a.location.localeCompare(b.location),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.region)}</Text>,
+                renderCell: item => <TableCellLayout>{item.location}</TableCellLayout>,
+            }),
+        ],
+        [intl, navigate, subscriptionDisplayNameMap]
+    );
 
     const filteredAgents = useMemo(() => {
         if (!searchQuery) return agents;
