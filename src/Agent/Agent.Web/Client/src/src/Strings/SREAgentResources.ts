@@ -3814,6 +3814,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     builtInTool: { defaultMessage: 'Built-in Tool', id: 'EQa6dK' },
     customTool: { defaultMessage: 'Custom Tool', id: 'ONbwY2' },
     builtInTools: { defaultMessage: 'Built-in Tools', id: 'Eu772h' },
+    url: { defaultMessage: 'URL', id: 'bWjdfa' },
 
     // Relationship Builder
     relationshipNameRequired: { defaultMessage: 'Enter a name before creating this item.', id: 'YT6JU9' },

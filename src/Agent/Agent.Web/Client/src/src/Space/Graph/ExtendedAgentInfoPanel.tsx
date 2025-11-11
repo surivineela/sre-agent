@@ -94,6 +94,28 @@ type DeleteContext = {
 
 const EMPTY_DISPLAY = '-' as const;
 
+const getConnectorTypeInfo = (connectorType: string, intl: any) => {
+    switch (connectorType) {
+        case 'SendOutlookEmail':
+            return {
+                iconSrc: resolveResourceIcon('Outlook'),
+                displayText: intl.formatMessage(ConnectorsResources.outlook),
+            };
+        case 'Teams':
+            return {
+                iconSrc: resolveResourceIcon('Teams'),
+                displayText: intl.formatMessage(ConnectorsResources.microsoftTeams),
+            };
+        case 'Kusto':
+            return {
+                iconSrc: resolveResourceIcon('AzureDataExplorer'),
+                displayText: intl.formatMessage(ConnectorsResources.azureDataExplorer),
+            };
+        default:
+            return null;
+    }
+};
+
 const SERVICE_TYPE = {
     AZURE_DATA_EXPLORER: 'Azure Data Explorer (Kusto)',
     CUSTOM_TOOL: 'Custom Tool',
@@ -316,10 +338,17 @@ export const ExtendedAgentInfoPanel = memo(
                 intl,
                 styles.metadataRow,
                 styles.metadataKey,
-                styles.sectionTitle,
-                styles.subtitle,
-                styles.emptyState,
+                styles.flexRowCenter,
+                styles.smallIcon,
+                styles.successIcon,
+                styles.errorIcon,
+                styles.paddingVertical10,
                 styles.subSection,
+                styles.sectionTitle,
+                styles.marginBottom8,
+                styles.subText,
+                styles.paddingBottom10,
+                styles.emptyState,
             ]
         );
 
@@ -449,45 +478,16 @@ export const ExtendedAgentInfoPanel = memo(
             },
             [
                 intl,
-                styles.badgeRow,
-                styles.sectionTitle,
-                styles.subSection,
                 styles.metadataRow,
                 styles.metadataKey,
-                styles.neutralBadge,
-                styles.textArea,
-                styles.subtitle,
+                styles.badgeRow,
+                styles.instructionsSection,
+                styles.sectionTitle,
+                styles.instructions,
+                styles.subSection,
+                styles.marginBottom8,
                 styles.actionButton,
             ]
-        );
-
-        const renderConnectorDetails = useCallback(
-            (connector: ExtendedConnector) => (
-                <>
-                    <div className={styles.badgeRow}>
-                        <Badge appearance={(connector.enabled ?? true) ? 'tint' : 'outline'} size="small">
-                            {(connector.enabled ?? true)
-                                ? intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusEnabled)
-                                : intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusDisabled)}
-                        </Badge>
-                    </div>
-                    <div className={styles.subSection}>
-                        <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.connectorTypeLabel)}</Text>
-                        <Text>{connector.type}</Text>
-                    </div>
-                    <div className={styles.subSection}>
-                        <Text className={styles.sectionTitle}>
-                            {intl.formatMessage(ExtendedAgentsGraphResources.connectorDescriptionLabel)}
-                        </Text>
-                        <Text>{connector.description ?? intl.formatMessage(ExtendedAgentsGraphResources.noDescription)}</Text>
-                    </div>
-                    <div className={styles.subSection}>
-                        <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.connectorAuthLabel)}</Text>
-                        <Text>{connector.auth?.type ?? intl.formatMessage(SreAgentResources.NA)}</Text>
-                    </div>
-                </>
-            ),
-            [intl, styles.badgeRow, styles.sectionTitle, styles.subSection]
         );
 
         const handleDeleteClick = useCallback(
@@ -550,6 +550,52 @@ export const ExtendedAgentInfoPanel = memo(
             selectedNode?.type === ExtendedAgentNodeType.Connector ? (selectedNode.data as ExtendedConnector) : undefined;
         const selectedTrigger = selectedNode?.type === ExtendedAgentNodeType.Trigger ? (selectedNode.data as ExtendedTrigger) : undefined;
         const selectedSystemTool = selectedNode?.type === ExtendedAgentNodeType.SystemTool ? (selectedNode.data as SystemTool) : undefined;
+
+        const connectorTypeInfo = useMemo(() => {
+            if (!selectedConnector?.connectorType) return null;
+            return getConnectorTypeInfo(selectedConnector.connectorType, intl);
+        }, [selectedConnector?.connectorType, intl]);
+
+        const renderConnectorDetails = useCallback(
+            (connector: ExtendedConnector) => (
+                <>
+                    {connector.connectorType && (
+                        <div className={styles.metadataRow}>
+                            <Text className={styles.metadataKey}>{intl.formatMessage(ExtendedAgentsGraphResources.service)}</Text>
+                            <div className={styles.flexRowCenter}>
+                                {connectorTypeInfo ? (
+                                    <>
+                                        <img
+                                            src={connectorTypeInfo.iconSrc}
+                                            alt={connectorTypeInfo.displayText}
+                                            className={styles.smallIcon}
+                                        />
+                                        <Text>{connectorTypeInfo.displayText}</Text>
+                                    </>
+                                ) : (
+                                    <Text>{connector.connectorType}</Text>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {connector.dataSource && (
+                        <div className={styles.metadataRow}>
+                            <Text className={styles.metadataKey}>{intl.formatMessage(ExtendedAgentsGraphResources.url)}</Text>
+                            <Text>{connector.dataSource}</Text>
+                        </div>
+                    )}
+
+                    {connector.identity && (
+                        <div className={styles.metadataRow}>
+                            <Text className={styles.metadataKey}>{intl.formatMessage(SreAgentResources.managedIdentity)}</Text>
+                            <Text>{connector.identity}</Text>
+                        </div>
+                    )}
+                </>
+            ),
+            [connectorTypeInfo, intl, styles.metadataRow, styles.metadataKey, styles.flexRowCenter, styles.smallIcon]
+        );
 
         const isAgentContext = !selectedTool && !selectedConnector && !selectedTrigger && !selectedSystemTool;
 
@@ -929,6 +975,9 @@ export const ExtendedAgentInfoPanel = memo(
                                         )}
                                         {selectedSystemTool && (
                                             <Caption1>{intl.formatMessage(ExtendedAgentsGraphResources.builtInTool)}</Caption1>
+                                        )}
+                                        {selectedConnector && (
+                                            <Caption1>{intl.formatMessage(ExtendedAgentsGraphResources.connector)}</Caption1>
                                         )}
                                     </div>
                                 </div>
