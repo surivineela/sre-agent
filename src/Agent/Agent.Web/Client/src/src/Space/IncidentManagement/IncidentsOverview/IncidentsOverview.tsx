@@ -351,6 +351,10 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     const timeRangeOptions: TimeRangeKeyLabelPair[] = useMemo(
         () => [
             {
+                key: TimespanKeys.All,
+                label: intl.formatMessage(IncidentManagementResources.all),
+            },
+            {
                 key: TimespanKeys.OneHour,
                 label: intl.formatMessage(IncidentManagementResources.lastHour),
             },
@@ -631,7 +635,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 addCustomOption: true,
             },
             onApply: setSelectedTimeRange,
-            selectedValue: selectedTimeRange || { key: TimespanKeys.SevenDays },
+            selectedValue: selectedTimeRange || { key: TimespanKeys.All },
         }),
         [disableAllControls, intl, selectedTimeRange, selectedThreadInfo, timeRangeOptions]
     );

@@ -1459,6 +1459,7 @@ export const IncidentManagementResources = defineMessages({
     allImpactedServices: { defaultMessage: 'All impacted services', id: 'MlX0aZ' },
     allPriorities: { defaultMessage: 'All priorities', id: 'uCkn4+' },
     baseIncident: { defaultMessage: 'Base incident', id: 'UjETJe' },
+    all: { defaultMessage: 'All', id: 'zQvVDJ' },
     last30Days: { defaultMessage: 'Last 30 days', id: 'Rfvi9/' },
     last7Days: { defaultMessage: 'Last 7 days', id: 'irFBKn' },
     last3Days: { defaultMessage: 'Last 3 days', id: 'gUQeKV' },

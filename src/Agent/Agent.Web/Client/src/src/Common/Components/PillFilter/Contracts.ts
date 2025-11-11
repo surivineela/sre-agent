@@ -40,6 +40,7 @@ export interface TimeRangeValue {
 }
 
 export enum TimespanKeys {
+    All = 'All',
     OneHour = 'OneHour',
     SixHours = 'SixHours',
     TwelveHours = 'TwelveHours',
