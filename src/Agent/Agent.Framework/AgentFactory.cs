@@ -402,8 +402,22 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
     public void UpdateHandoffs()
     {
+        Agent<TContext>? metaAgent = null;
+
+        List<Agent<TContext>> extendedAgents = [];
+
         foreach (var agent in _agents.Values)
         {
+            if (agent.IsExtended)
+            {
+                extendedAgents.Add(agent);
+            }
+
+            if (agent.Name == "meta_agent")
+            {
+                metaAgent = agent;
+            }
+
             var agentDescriptor = _agentDescriptors[agent.Name];
 
             // If agentDescriptor.Handoffs is null, set agent.Handoffs to empty list
@@ -421,15 +435,32 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                     _logger.LogInternalWarning(warning);
                 }
             }
+
             // Populate handoffs with existing agents only to avoid startup issues
             // Filter out scheduled_task_agent handoffs when scheduled tasks are disabled
-            agent.Handoffs = agentDescriptor.Handoffs
-              .Where(h => _agents.ContainsKey(h))
-              .Where(h => _scheduledTasksEnabled || h != "scheduled_task_agent")
-              .Select(h => Handoff<TContext>.Create(
-                  agent: _agents[h],
-                  enableHandoffReasoning: _enableHandoffReasoning))
-              .ToList();
+            agent.Handoffs = [.. agentDescriptor.Handoffs
+                .Where(_agents.ContainsKey)
+                .Where(h => _scheduledTasksEnabled || h != "scheduled_task_agent")
+                .Select(h => Handoff<TContext>.Create(
+                    agent: _agents[h],
+                    enableHandoffReasoning: _enableHandoffReasoning))];
+        }
+
+        if (metaAgent != null)
+        {
+            // Ensure all extended agents are included in meta agent handoffs
+            foreach (var extendedAgent in extendedAgents)
+            {
+                if (!metaAgent.Handoffs.Any(h => h.AgentName == extendedAgent.Name))
+                {
+                    metaAgent.Handoffs.Add(Handoff<TContext>.Create(
+                        agent: extendedAgent,
+                        enableHandoffReasoning: _enableHandoffReasoning));
+
+                    _logger.LogInternalInformation("Added extended agent {extendedAgent} to meta agent handoffs.",
+                        extendedAgent.Name);
+                }
+            }
         }
     }
 
@@ -579,24 +610,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
     }
 
-    private void AddAgentToMetaAgentHandoffs(string agentName)
-    {
-        if (!_agentDescriptors.ContainsKey("meta_agent"))
-        {
-            return;
-        }
-        var metaAgentDescriptor = _agentDescriptors["meta_agent"];
-        if (metaAgentDescriptor != null)
-        {
-            if (!metaAgentDescriptor.Handoffs.Contains(agentName))
-            {
-                metaAgentDescriptor.Handoffs.Add(agentName);
-            }
-
-            _agentDescriptors["meta_agent"] = metaAgentDescriptor;
-        }
-    }
-
     private void LoadAgentFromAssembly()
     {
         var agentDescriptorType = typeof(IAgentDescriptor);
@@ -676,10 +689,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         {
             var agentDescriptor = YamlAgentDescriptor.FromYaml(yamlContent);
             var agent = AddAgentDescriptor(agentDescriptor, isCustomAgent);
-            if (isCustomAgent)
-            {
-                AddAgentToMetaAgentHandoffs(agent.Name);
-            }
             return agent;
         }
         catch (Exception ex)
@@ -923,11 +932,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         try
         {
             var agent = AddAgentDescriptor(agentDescriptor, isCustomAgent);
-            if (isCustomAgent
-                && agentDescriptor.Name != "meta_agent")
-            {
-                AddAgentToMetaAgentHandoffs(agent.Name);
-            }
             return agent;
         }
         catch (Exception ex)
