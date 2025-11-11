@@ -316,10 +316,6 @@ export const parseCronExpression = (cronExpression: string): string => {
         return `Monthly on 1st at ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
     }
 
-    if (minute !== '*' && hour !== '*' && day === '*' && month === '*' && dayOfWeek === '*') {
-        return `Daily at ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-    }
-
     if (minute.includes('/')) {
         const interval = minute.split('/')[1];
         return `Every ${interval} minutes`;
@@ -327,6 +323,10 @@ export const parseCronExpression = (cronExpression: string): string => {
     if (hour.includes('/')) {
         const interval = hour.split('/')[1];
         return `Every ${interval} hours`;
+    }
+
+    if (minute !== '*' && hour !== '*' && day === '*' && month === '*' && dayOfWeek === '*') {
+        return `Daily at ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
     }
 
     if (dayOfWeek !== '*' && day === '*') {
