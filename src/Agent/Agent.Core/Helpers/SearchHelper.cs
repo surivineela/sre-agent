@@ -125,7 +125,7 @@ public class SearchHelper
                 span.SetAttribute(TraceAttribute.ThreadId, threadId);
                 span.SetAttribute(TraceAttribute.OperationName, "retrieval.llm.rerank");
             }
-            var reranked = await DocumentRetrieval.RerankWithLLM(_chatClientProvider.DefaultModel, searchText, optimizedResults, _logger);
+            var reranked = await DocumentRetrieval.RerankWithLLM(_chatClientProvider.GeneralPurposeModel, searchText, optimizedResults, _logger);
             span?.End();
             span = null;
 

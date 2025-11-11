@@ -173,7 +173,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                         new ChatMessage(ChatRole.System, prompt),
                         new ChatMessage(ChatRole.User, messageText)
                     };
-                    var quickResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(_chats);
+                    var quickResponse = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(_chats);
                     var text = quickResponse.GetMessage().Text;
                     if (text == null || text.Contains("SKIP"))
                     {

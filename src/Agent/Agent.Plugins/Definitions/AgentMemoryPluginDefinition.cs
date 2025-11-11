@@ -571,7 +571,7 @@ Create a summary under {maxLength} characters that:
 Summary:")
         };
 
-            var response = await chatClient.FastModel.GetResponseAsync(messages, new ChatOptions
+            var response = await chatClient.SmallFastModel.GetResponseAsync(messages, new ChatOptions
             {
                 Temperature = (float?)0.3 // Lower temperature for more consistent summaries
             });

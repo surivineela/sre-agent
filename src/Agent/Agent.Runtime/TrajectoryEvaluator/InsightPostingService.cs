@@ -257,7 +257,7 @@ public class InsightPostingService
                 new(ChatRole.User, chatTranscript)
             };
 
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(
                 messages,
                 new ChatOptions
                 {

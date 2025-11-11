@@ -871,7 +871,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 };
 
                 // Call the LLM to get the summary
-                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
+                var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, options);
                 var summary = response.Messages.Count > 0 ? response.Messages[0].Text : "Unable to generate summary from dashboards.";
                 try
                 {
@@ -974,7 +974,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     }
                 };
 
-                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, typeof(RecommendedActionsAndObservations), options);
+                var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, typeof(RecommendedActionsAndObservations), options);
                 try
                 {
                     var result = (RecommendedActionsAndObservations?)response.result;
@@ -1884,7 +1884,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                         }
                     };
 
-                    var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, typeof(IncidentAnalysisResult), options);
+                    var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, typeof(IncidentAnalysisResult), options);
                     try
                     {
                         var result = (IncidentAnalysisResult?)response.result;

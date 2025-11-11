@@ -75,16 +75,53 @@ public class AgentProviderTests
         });
 
         var modelNames = "gpt-5,gpt-5-mini";
-        foreach (var name in modelNames.Split(','))
+        List<string> models = modelNames.Split(',').ToList();
+        var firstMode = models.First();
+        foreach (var name in models)
         {
             _services.AddKeyedSingleton(name, Mock.Of<IChatClient>());
         }
         var embeddingModelName = "text-embedding-3-large";
         _services.Configure<ChatClientProviderSettings>(o =>
         {
-            o.ModelNames = modelNames;
-            o.DefaultModelName = modelNames.Split(',').First();
-            o.EmbeddingModelName = embeddingModelName;
+            o.ScenarioConfiguration = new ModelScenarioConfiguration
+            {
+                [ModelScenarioType.GeneralPurpose] = new ModelScenarioPriority
+                {
+                    PriorityModels = models,
+                    DefaultModel = firstMode
+                },
+                [ModelScenarioType.ReasoningHeavy] = new ModelScenarioPriority
+                {
+                    PriorityModels = models,
+                    DefaultModel = firstMode
+                },
+                [ModelScenarioType.ReasoningFast] = new ModelScenarioPriority
+                {
+                    PriorityModels = models,
+                    DefaultModel = firstMode
+                },
+                [ModelScenarioType.SmallFast] = new ModelScenarioPriority
+                {
+                    PriorityModels = models,
+                    DefaultModel = firstMode
+                },
+                [ModelScenarioType.LongContext] = new ModelScenarioPriority
+                {
+                    PriorityModels = models,
+                    DefaultModel = firstMode
+                },
+                [ModelScenarioType.Eval] = new ModelScenarioPriority
+                {
+                    PriorityModels = models,
+                    DefaultModel = firstMode
+                },
+                [ModelScenarioType.Embedding] = new ModelScenarioPriority
+                {
+                    PriorityModels = new List<string> { embeddingModelName },
+                    DefaultModel = embeddingModelName
+                }
+            };
         });
         _services.Configure<OpenAISettings>(o =>
         {

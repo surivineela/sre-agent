@@ -679,7 +679,7 @@ User Prompt To Improve (between <<< and >>>):
             var prompt = systemPrompt + request.Prompt + "\n>>>";
 
             var chatOptions = new ChatOptions { Temperature = 1.0f };
-            var chatResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
+            var chatResponse = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
             var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
 
             // Log the raw content for debugging
@@ -1371,7 +1371,7 @@ If ANY diff fails validation, REWRITE it before returning the response. Do not s
 
             var chatOptions = new ChatOptions { Temperature = 0.2f };
             var prompt = builder.ToString();
-            var chatResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
+            var chatResponse = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
             var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
 
             _logger.LogInternalInformation("Playground insights raw content: {Content}", content);

@@ -1311,7 +1311,7 @@ public sealed class IncidentInvestigationTaskHandler(
                 {
                     var docs = new List<SearchDocument>();
                     string query = await DocumentRetrieval.GenerateSearchQuery(
-                        chatClientProvider.DefaultModel,
+                        chatClientProvider.GeneralPurposeModel,
                         [inputMessage],
                         "How to investigate this issue?",
                         logger);
@@ -1349,7 +1349,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
                 var runConfig = new RunConfig
                 {
-                    ChatClient = chatClientProvider.DefaultModel,
+                    ChatClient = chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = loggerFactory,
                     SkillRegistry = new EmptySkillRegistry()
                 };

@@ -430,7 +430,7 @@ public class RagEvaluator : IRagEvaluator
             new(ChatRole.System, OutputInstructions),
         ];
 
-        var result = await _chatClientProvider.DefaultModel.GetResponseAsync<RetrievalEvaluationResult>(evaluationInstructions);
+        var result = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync<RetrievalEvaluationResult>(evaluationInstructions);
         return result.Result;
     }
 

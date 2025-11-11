@@ -942,6 +942,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
     public string? LlmModelName { get; set; } = null;
+    public ModelScenarioType? LlmScenarioType { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     List<string> IAgentDescriptor.Tools { get; set; } = [];
@@ -977,6 +978,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
     public string? LlmModelName { get; set; } = null;
+    public ModelScenarioType? LlmScenarioType { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     List<string> IAgentDescriptor.Tools { get; set; } = [];
@@ -1011,6 +1013,7 @@ public class TestAgent3WithOptionalToolsDescriptor : IAgentDescriptor
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
     public string? LlmModelName { get; set; } = null;
+    public ModelScenarioType? LlmScenarioType { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     public string? UserPromptOverride { get; set; } = null;
@@ -1044,6 +1047,7 @@ public class TestAgent4WithOptionalToolsOnlyDescriptor : IAgentDescriptor
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
     public string? LlmModelName { get; set; } = null;
+    public ModelScenarioType? LlmScenarioType { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     public string? UserPromptOverride { get; set; } = null;
@@ -1085,6 +1089,7 @@ public class TestAgent5WithMultipleOptionalToolsDescriptor : IAgentDescriptor
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
     public string? LlmModelName { get; set; } = null;
+    public ModelScenarioType? LlmScenarioType { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     public string? UserPromptOverride { get; set; } = null;
@@ -1118,6 +1123,7 @@ public class TestAgent6WithEmptyConditionDescriptor : IAgentDescriptor
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
     public string? LlmModelName { get; set; } = null;
+    public ModelScenarioType? LlmScenarioType { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     public string? UserPromptOverride { get; set; } = null;
@@ -1151,6 +1157,7 @@ public class TestAgent7WithDataConnectorConditionDescriptor : IAgentDescriptor
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
     public string? LlmModelName { get; set; } = null;
+    public ModelScenarioType? LlmScenarioType { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     public string? UserPromptOverride { get; set; } = null;
@@ -1184,6 +1191,7 @@ public class TestAgent8WithMissingDataConnectorDescriptor : IAgentDescriptor
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
     public string? LlmModelName { get; set; } = null;
+    public ModelScenarioType? LlmScenarioType { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     public string? UserPromptOverride { get; set; } = null;
@@ -1233,6 +1241,7 @@ public class TestAgentWithSkillsEnabledDescriptor : IAgentDescriptor
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
     public string? LlmModelName { get; set; } = null;
+    public ModelScenarioType? LlmScenarioType { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     public string? UserPromptOverride { get; set; } = null;
@@ -1266,6 +1275,7 @@ public class TestAgentWithSkillsAndReadSkillFileToolDescriptor : IAgentDescripto
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
     public string? LlmModelName { get; set; } = null;
+    public ModelScenarioType? LlmScenarioType { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     public string? UserPromptOverride { get; set; } = null;

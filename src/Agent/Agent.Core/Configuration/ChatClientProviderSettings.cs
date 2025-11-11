@@ -12,32 +12,18 @@ namespace Agent.Core.Configuration
         /// <summary>
         /// Comma-separated list of model deployment names to register
         /// Example: "gpt-4.1,gpt-5"
+        /// This is for backward compatibility; Once we have available models discovery in place, this can be deprecated.
         /// </summary>
         public string ModelNames { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Default model name for general-purpose tasks
-        /// </summary>
-        public string DefaultModelName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Model name optimized for reasoning tasks
-        /// </summary>
-        public string ReasoningModelName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Model name for fast responses
-        /// </summary>
-        public string FastModelName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Model name optimized for large context windows
-        /// </summary>
-        public string LargeContextModelName { get; set; } = string.Empty;
 
         /// <summary>
         /// Embedding model name for vector generation
         /// </summary>
         public string EmbeddingModelName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Configuration for model selection based on scenario types.
+        /// </summary>
+        public ModelScenarioConfiguration ScenarioConfiguration { get; set; } = new();
     }
 }

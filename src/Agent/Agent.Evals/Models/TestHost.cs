@@ -18,7 +18,7 @@ public sealed record TestHost(
     {
         var runConfig = new RunConfig
         {
-            ChatClient = host.Services.GetRequiredService<IChatClientProvider>().DefaultModel,
+            ChatClient = host.Services.GetRequiredService<IChatClientProvider>().GeneralPurposeModel,
             LoggerFactory = host.Services.GetRequiredService<ILoggerFactory>(),
             SkillRegistry = host.Services.GetRequiredService<ISkillRegistry>(),
         };

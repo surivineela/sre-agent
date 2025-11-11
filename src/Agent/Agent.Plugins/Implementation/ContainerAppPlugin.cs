@@ -594,7 +594,7 @@ namespace Agent.Plugins.Implementation
                 }
             };
 
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, options);
             return response.Text;
         }
 
@@ -2168,7 +2168,7 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
+                var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, options);
                 string result = response.Text.Trim().ToLowerInvariant();
 
                 return result == "true";
@@ -2364,7 +2364,7 @@ Here are the logs in JSON format:
 
 {logsJson}";
 
-                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
+                var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt);
                 return response.Text;
             }
             catch (Exception ex)

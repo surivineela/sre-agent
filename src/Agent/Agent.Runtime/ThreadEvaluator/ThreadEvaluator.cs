@@ -583,7 +583,7 @@ public partial class ThreadEvaluator
             {
                 Temperature = 0
             };
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(chatMessages, chatOptions, cancellationToken: cancellationToken);
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(chatMessages, chatOptions, cancellationToken: cancellationToken);
             var jsonResponse = response.GetMessage().Text?.Trim();
             if (string.IsNullOrEmpty(jsonResponse))
             {
@@ -821,7 +821,7 @@ public partial class ThreadEvaluator
                 ResponseFormat = ChatResponseFormat.Text,
             };
 
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(chatMessages, chatOptions);
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(chatMessages, chatOptions);
             var jsonResponse = response.GetMessage().Text?.Trim();
 
             if (string.IsNullOrEmpty(jsonResponse))
@@ -1058,7 +1058,7 @@ public partial class ThreadEvaluator
                 Temperature = 0
             };
 
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(chatMessages, chatOptions, cancellationToken: cancellationToken);
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(chatMessages, chatOptions, cancellationToken: cancellationToken);
             var jsonResponse = response.GetMessage().Text?.Trim();
             if (string.IsNullOrEmpty(jsonResponse))
             {

@@ -98,21 +98,58 @@ public static class TestHelpers
                 throw new InvalidOperationException("OpenAI Embedding Model name is missing. Pass it as a TestRunParameter.");
             }
 
-            // instantiate openAiSettings from the env vars
-            builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+            // Build configuration dictionary with flattened ScenarioConfiguration
+            var configDictionary = new Dictionary<string, string?>
             {
                 ["AppSettings:Core:Azure:OpenAI:Endpoint"] = aiEndpoint,
                 ["AppSettings:Core:Azure:OpenAI:ApiKey"] = apiKey,
                 ["AppSettings:Core:Azure:OpenAI:EmbeddingGeneratorDeploymentName"] = embeddingModelName,
                 ["AppSettings:Core:ChatClientProvider:ModelNames"] = modelNames,
-                ["AppSettings:Core:ChatClientProvider:DefaultModelName"] = defaultModelName,
+                ["AppSettings:Core:AgentModel:AvailableModels"] = modelNames,
                 ["AppSettings:Core:ChatClientProvider:EmbeddingModelName"] = embeddingModelName,
-            });
-            builder.Services.Configure<ChatClientProviderSettings>(o =>
+            };
+
+            // Add flattened ScenarioConfiguration to configuration
+            // For each scenario type, set DefaultModel and PriorityModels
+            var scenarioTypes = Enum.GetValues<ModelScenarioType>();
+            foreach (var scenarioType in scenarioTypes)
+            {
+                var scenarioKey = $"AppSettings:Core:ChatClientProvider:ScenarioConfiguration:{scenarioType}";
+
+                if (scenarioType == ModelScenarioType.Embedding)
+                {
+                    configDictionary[$"{scenarioKey}:DefaultModel"] = embeddingModelName;
+                    configDictionary[$"{scenarioKey}:PriorityModels:0"] = embeddingModelName;
+                }
+                else
+                {
+                    configDictionary[$"{scenarioKey}:DefaultModel"] = defaultModelName;
+                    configDictionary[$"{scenarioKey}:PriorityModels:0"] = defaultModelName;
+                }
+            }
+
+            // Add all configuration values at once
+            builder.Configuration.AddInMemoryCollection(configDictionary);
+
+            var scenarioConfig = new ModelScenarioConfiguration();
+            foreach (var kv in scenarioConfig)
+            {
+                if (kv.Key == ModelScenarioType.Embedding)
+                {
+                    kv.Value.DefaultModel = embeddingModelName;
+                    kv.Value.PriorityModels.Add(embeddingModelName);
+                }
+                else
+                {
+                    kv.Value.DefaultModel = defaultModelName;
+                    kv.Value.PriorityModels.Add(defaultModelName);
+                }
+            }
+            builder.Services.PostConfigure<ChatClientProviderSettings>(o =>
             {
                 o.ModelNames = modelNames;
-                o.DefaultModelName = defaultModelName;
                 o.EmbeddingModelName = embeddingModelName;
+                o.ScenarioConfiguration = scenarioConfig;
             });
         }
         else

@@ -14,6 +14,7 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Services;
 using Azure.AI.OpenAI;
+using Kusto.Cloud.Platform.Utils;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -192,6 +193,8 @@ namespace Agent.Runtime
 
         public static IServiceCollection ConfigureIChatClient(this IServiceCollection services, IConfiguration configuration)
         {
+            // backward compatibility
+            // TODO: Will remove these settings once AvailableModels is fully rolled out
             var chatClientProviderSettings = configuration.GetSection("AppSettings:Core:ChatClientProvider").Get<ChatClientProviderSettings>();
             // register keyed IChatClient for all models in ChatClientProviderSettings.ModelNames
             if (chatClientProviderSettings != null && !string.IsNullOrWhiteSpace(chatClientProviderSettings.ModelNames))
@@ -202,6 +205,21 @@ namespace Agent.Runtime
                     .Where(m => !string.IsNullOrWhiteSpace(m))
                     .Distinct()
                     .ToList();
+
+                foreach (var modelName in modelNames)
+                {
+                    services.AddKeyedSingleton(modelName, (sp, _) =>
+                    {
+                        return sp.CreateChatClientBuilder(openAiDeploymentName: modelName).Build();
+                    });
+                }
+            }
+
+            var agentModelSettings = configuration.GetSection("AppSettings:Core:AgentModel").Get<AgentModelSettings>();
+            // register keyed IChatClient for all models in AgentModel.AvailableModels
+            if (agentModelSettings != null)
+            {
+                var modelNames = agentModelSettings.AvailableModelList;
 
                 foreach (var modelName in modelNames)
                 {

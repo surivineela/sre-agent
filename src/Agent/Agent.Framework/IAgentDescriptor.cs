@@ -24,6 +24,7 @@ public interface IAgentDescriptor
     public List<string> CommonTools { get; set; }
     public float? Temperature { get; set; }
     public string? LlmModelName { get; set; }
+    public ModelScenarioType? LlmScenarioType { get; set; }
     public string? OutputType { get; set; }
     public string? UserPromptOverride { get; set; }
     public bool DisableDocumentRetrieval { get; set; }

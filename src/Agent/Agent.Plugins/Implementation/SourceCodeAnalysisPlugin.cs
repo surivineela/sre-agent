@@ -591,7 +591,7 @@ Output:
             new ChatMessage(ChatRole.User, query)
         ];
 
-        var chatResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(messages);
+        var chatResponse = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages);
         var searchQueries = chatResponse.Messages[0].Text?.Trim();
 
         var allResults = new List<string>();

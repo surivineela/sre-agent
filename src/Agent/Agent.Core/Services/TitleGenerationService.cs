@@ -46,7 +46,7 @@ public class TitleGenerationService : ITitleGenerationService
                 new ChatMessage(ChatRole.User, message)
             };
 
-            var response = await _chatClientProvider.FastModel.GetResponseAsync(chats);
+            var response = await _chatClientProvider.SmallFastModel.GetResponseAsync(chats);
             string title = response.GetMessage().Text?.Trim() ?? "";
 
             // Validate the response

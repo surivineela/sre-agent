@@ -596,7 +596,7 @@ Here are the logs in JSON format:
 
 Please provide a highly concise summary with sections for each of the above points. Focus on who made changes (mention the name), when they were made, and what kinds of changes were made. Identify patterns and potential issues. Remember the summary should be very concise and to the point. Respond in a **minimalist, structured format** with no fluff. Using fewer words per point while preserving clarity.";
 
-                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
+                var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt);
                 return response.Text;
             }
             catch (Exception ex)
@@ -637,7 +637,7 @@ Here are the failed deployments in JSON format:
 
 Focus on actionable troubleshooting steps. Extract specific error codes, resource conflicts, permission issues, or template problems. Provide clear next steps for resolving each type of failure. Be concise but thorough in your analysis.";
 
-                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
+                var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt);
                 return response.Text;
             }
             catch (Exception ex)
@@ -951,7 +951,7 @@ Provide:
 {resourceChangesJson}
 
 Respond in a concise, structured format with bullet points and short sentences.";
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt);
             return response.Text;
         }
 

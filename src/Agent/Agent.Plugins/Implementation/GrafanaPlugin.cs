@@ -213,7 +213,7 @@ namespace Agent.Plugins.Implementation
             };
 
             // Make the LLM call
-            var llmResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, chatOptions);
+            var llmResponse = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, chatOptions);
             if (llmResponse.Messages.Count == 0)
             {
                 throw new Exception("No response from LLM.");

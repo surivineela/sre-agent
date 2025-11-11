@@ -216,7 +216,7 @@ public class TrajectoryEvaluator
             // todo: pass in autohandoff from the thread info
             var startAgent = agentContext.AgentHandoffChain.FirstOrDefault(defaultValue: "meta_agent");
             var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
-                chatClient: _chatClientProvider.DefaultModel,
+                chatClient: _chatClientProvider.GeneralPurposeModel,
                 chatMessages: chatMessages,
                 startAgent: startAgent,
                 cancellationToken: cancellationToken);

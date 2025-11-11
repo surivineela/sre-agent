@@ -28,7 +28,7 @@ namespace Agent.Core.Models
         public SubAgent(string name, IChatClientProvider chatClientProvider, bool isSkippingInitChatHistory = false)
         {
             Name = name;
-            _chatClient = chatClientProvider.DefaultModel
+            _chatClient = chatClientProvider.GeneralPurposeModel
                 .AsBuilder()
                 .UseFunctionInvocation()
                 .Build();

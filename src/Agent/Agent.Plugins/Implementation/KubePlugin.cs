@@ -670,7 +670,7 @@ namespace Agent.Plugins
             try
             {
                 var chatResponse = await ChatClientHelper.ExecuteWithRetryAsync(
-                    async () => await _chatClientProvider.DefaultModel.GetResponseAsync(prompt, new ChatOptions
+                    async () => await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt, new ChatOptions
                     {
                         Temperature = 0.5f,
                     }),

@@ -484,7 +484,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
             new ChatMessage(ChatRole.User, payloadJson)
         };
 
-        var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options).ConfigureAwait(false);
+        var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, options).ConfigureAwait(false);
 
         _logger.LogInternalInformation("[MdmMetricsPlugin] [GetTimeSeriesAnalysisAsync] - Analysis generated successfully");
         return response.Text;

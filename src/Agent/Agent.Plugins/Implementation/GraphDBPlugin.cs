@@ -296,7 +296,7 @@ Strict Requirements:
 Input JSON:
 {jsonResult}
 """;
-                    var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt, new ChatOptions { Temperature = 0.2f });
+                    var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt, new ChatOptions { Temperature = 0.2f });
                     var mermaidSpec = response.Text;
                     _logger.LogInternalInformation($"Generated Mermaid specification successfully: {mermaidSpec}");
 
@@ -411,7 +411,7 @@ graph LR
     A[Resource1] --> B[Resource2]
     B --> C[Resource3]
 Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'. Do not include any markdown formatting, code fences, or additional text.";
-                    var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
+                    var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt);
                     var mermaidSpec = response.Text;
                     _logger.LogInternalInformation("Generated Mermaid specification successfully");
 
@@ -2057,7 +2057,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                     }
                 };
 
-                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
+                var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, options);
                 string summary = response.Text;
 
                 _logger.LogInternalInformation("Dashboard summary generated successfully for {DashboardUrl}", dashboardUrl);
@@ -2295,7 +2295,7 @@ Provide:
 {resourceChangesJson}
 
 Respond in a concise, structured format with bullet points and short sentences.";
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt);
             return response.Text;
         }
 
@@ -2662,7 +2662,7 @@ Provide a detailed analysis including:
 
 Focus on extracting actionable information about what specifically changed. Look for patterns in the HTTP requests, operation names, and properties. Identify the business impact of these changes and any potential issues or rollback scenarios.";
 
-                var response = await _chatClientProvider.DefaultModel.GetResponseAsync(prompt);
+                var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt);
                 return response.Text;
             }
             catch (Exception ex)

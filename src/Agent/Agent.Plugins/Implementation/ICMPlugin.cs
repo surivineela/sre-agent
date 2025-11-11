@@ -47,7 +47,7 @@ public class ICMPlugin : IICMPlugin
         AgentName = AgentNameHelper.GetAgentName(!hostEnvironment.IsDevelopment());
 
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        _chatCompletionService = chatClientProvider.DefaultModel.AsChatCompletionService();
+        _chatCompletionService = chatClientProvider.GeneralPurposeModel.AsChatCompletionService();
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
     }

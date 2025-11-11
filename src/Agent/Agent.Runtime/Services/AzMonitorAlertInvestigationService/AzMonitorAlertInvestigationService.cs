@@ -405,7 +405,7 @@ CRITICAL:
                 Temperature = (float)0.1
             };
 
-            var relevantQueriesJson = await _chatClientProvider.DefaultModel.GetResponseAsync(
+            var relevantQueriesJson = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(
                 relevantQueriesPrompt,
                 options);
 
@@ -753,7 +753,7 @@ BEGIN by calling ListAvailableMetrics now.";
                 }
             };
 
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(new List<ChatMessage> { message }, options);
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(new List<ChatMessage> { message }, options);
             return response.Text;
         }
         catch (Exception ex)
@@ -780,7 +780,7 @@ BEGIN by calling ListAvailableMetrics now.";
                 }
             };
 
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(new List<ChatMessage> { message }, options);
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(new List<ChatMessage> { message }, options);
             return response.Text;
         }
         catch (Exception ex)

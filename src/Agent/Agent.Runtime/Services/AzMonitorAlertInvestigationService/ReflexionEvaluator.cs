@@ -56,7 +56,7 @@ public class ReflexionEvaluator : IReflexionEvaluator
                     ["response_format"] = "json"
                 }
             };
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(
                 new List<ChatMessage> { new ChatMessage(ChatRole.System, prompt) },
                 options);
             return DeserializeReflexionResponse(response.Text, context);

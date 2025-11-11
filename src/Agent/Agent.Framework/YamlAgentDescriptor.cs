@@ -77,6 +77,9 @@ public class YamlAgentDescriptor : IAgentDescriptor
     [YamlMember(Alias = "llm_model_name")]
     public string? LlmModelName { get; set; } = null;
 
+    [YamlMember(Alias = "llm_scenario_type")]
+    public ModelScenarioType? LlmScenarioType { get; set; } = null;
+
     [YamlMember(Alias = "disable_common_prompts")]
     public bool DisableCommonPrompts { get; set; } = false;
 

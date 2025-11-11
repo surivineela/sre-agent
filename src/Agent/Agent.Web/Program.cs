@@ -248,6 +248,10 @@ public class Program
         builder.Services.Configure<ChatClientProviderSettings>(
             builder.Configuration.GetSection("AppSettings:Core:ChatClientProvider"));
 
+        // Configure AgentModel settings
+        builder.Services.Configure<AgentModelSettings>(
+            builder.Configuration.GetSection("AppSettings:Core:AgentModel"));
+
         builder.Services.Configure<OpenAISettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:OpenAI"));
 

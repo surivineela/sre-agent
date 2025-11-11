@@ -590,7 +590,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClientProvider.DefaultModel, ex.Message);
+                var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClientProvider.GeneralPurposeModel, ex.Message);
                 return executionResult;
             }
         }

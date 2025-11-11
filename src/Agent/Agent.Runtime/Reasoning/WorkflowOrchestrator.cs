@@ -222,7 +222,7 @@ public class WorkflowOrchestrator : IDisposable
                 _chatHistory,
                 new RunConfig
                 {
-                    ChatClient = _chatClientProvider.DefaultModel,
+                    ChatClient = _chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = _loggerFactory,
                     SkillRegistry = _skillRegistry
                 },
@@ -568,7 +568,7 @@ public class WorkflowOrchestrator : IDisposable
                 _chatHistory,
                 new RunConfig
                 {
-                    ChatClient = _chatClientProvider.DefaultModel,
+                    ChatClient = _chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = _loggerFactory,
                     SkillRegistry = _skillRegistry
                 },
@@ -637,7 +637,7 @@ public class WorkflowOrchestrator : IDisposable
                 messages,
                 new RunConfig
                 {
-                    ChatClient = _chatClientProvider.DefaultModel,
+                    ChatClient = _chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = _loggerFactory,
                     SkillRegistry = _skillRegistry
                 },
@@ -997,7 +997,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 ? threadPath
                 : $"{baseUrl!.TrimEnd('/')}{threadPath}";
 
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(summaryMessages, options: chatOptions, cancellationToken: cancellationToken);
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(summaryMessages, options: chatOptions, cancellationToken: cancellationToken);
 
             // The first response will likely be a tool-call; get the final summary after tool execution
             string? finalSummaryFromToolFlow = null;
@@ -1482,7 +1482,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                     followup.Add(assistant);              // assistant message that called the tool
                     followup.Add(new ChatMessage(ChatRole.Tool, aiContents)); // tool result
 
-                    var followupResponse = await _chatClientProvider.DefaultModel.GetResponseAsync(followup, cancellationToken: ct);
+                    var followupResponse = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(followup, cancellationToken: ct);
                     var text = TryGetAssistantText(followupResponse);
                     if (!string.IsNullOrWhiteSpace(text))
                     {

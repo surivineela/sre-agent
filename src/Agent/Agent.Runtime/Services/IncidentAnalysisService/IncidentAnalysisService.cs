@@ -432,7 +432,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             Temperature = 0.2f,
         };
 
-        var (response, result) = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, typeof(AIRootCauseResponse), options);
+        var (response, result) = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, typeof(AIRootCauseResponse), options);
 
         if (result is AIRootCauseResponse rootCauseResponse)
         {
@@ -463,7 +463,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
         };
 
-        var reply = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
+        var reply = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, options);
         return reply.Text;
     }
 
@@ -483,7 +483,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
         };
 
-        var reply = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
+        var reply = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, options);
         return reply.Text;
     }
 

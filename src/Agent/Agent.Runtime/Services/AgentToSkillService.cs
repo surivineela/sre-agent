@@ -160,7 +160,7 @@ public class AgentToSkillService(
     public async Task<string> GenerateSkillDescriptionAsync(
         Agent<AgentContext> agent)
     {
-        var chatClient = chatClientProvider.FastModel;
+        var chatClient = chatClientProvider.SmallFastModel;
 
         List<ChatMessage> input = [
             new ChatMessage(ChatRole.System, AgentConversionSkillDescriptionPrompt),
@@ -198,7 +198,7 @@ public class AgentToSkillService(
         Agent<AgentContext> agent,
         IEnumerable<string> topLevelAgentSkills)
     {
-        var chatClient = chatClientProvider.DefaultModel;
+        var chatClient = chatClientProvider.SmallFastModel;
 
         // The agent's system prompt becomes the main content of SKILL.md.
         // We will use the LLM to help extract and organize the content, and to scrub any references to "handoffs" or "sub-agents".
@@ -277,7 +277,7 @@ public class AgentToSkillService(
         Agent<AgentContext> handoffAgent,
         IEnumerable<string> topLevelAgentSkills)
     {
-        var chatClient = chatClientProvider.DefaultModel;
+        var chatClient = chatClientProvider.SmallFastModel;
 
         List<ChatMessage> input = [
             new ChatMessage(ChatRole.System, AgentConversionHandoffMdPrompt),

@@ -282,7 +282,7 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
                 }
             };
 
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(
                 new List<ChatMessage> { new ChatMessage(ChatRole.System, summarizePrompt) },
                 options);
 

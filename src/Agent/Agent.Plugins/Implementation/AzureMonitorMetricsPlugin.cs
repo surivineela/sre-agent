@@ -137,7 +137,7 @@ public class AzureMonitorMetricsPlugin : IAzureMonitorMetricsPlugin
             new ChatMessage(ChatRole.User, JsonSerializer.Serialize(timeSeriesElements, JsonSerializerOptions.Web))
         };
 
-        var response = await _chatClientProvider.DefaultModel.GetResponseAsync(messages, options);
+        var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, options);
 
         return response.Text;
     }

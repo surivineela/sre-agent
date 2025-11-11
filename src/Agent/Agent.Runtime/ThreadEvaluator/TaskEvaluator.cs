@@ -187,7 +187,7 @@ public partial class ThreadEvaluator
                 ResponseFormat = ChatResponseFormat.Json,
             };
 
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(chatMessages, chatOptions);
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(chatMessages, chatOptions);
             var jsonResponse = response.GetMessage().Text?.Trim();
 
             if (string.IsNullOrEmpty(jsonResponse))

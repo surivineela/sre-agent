@@ -199,7 +199,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             && !_chatClientProvider.IsModelSupported(agentDescriptor.LlmModelName))
         {
             throw new Exception($"Agent descriptor {agentDescriptor.Name} refers unsupported model deployment: {agentDescriptor.LlmModelName}." +
-                $"Supported LLM Model Names are: {string.Join(", ", _chatClientProvider.GetSupportedModels())}");
+                $"Supported LLM Model Names are: {string.Join(", ", _chatClientProvider.GetAvailableModels())}");
         }
 
         if (agentDescriptor.McpTools != null && agentDescriptor.McpTools.Any(tool => !_toolFactory.HasTool(tool)))
@@ -290,7 +290,11 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             agent.Temperature = agentDescriptor.Temperature.Value;
         }
 
-        if (!string.IsNullOrEmpty(agentDescriptor.LlmModelName))
+        if (agentDescriptor.LlmScenarioType is not null)
+        {
+            agent.ChatClient = _chatClientProvider.GetBestModelByScenario(agentDescriptor.LlmScenarioType.Value);
+        }
+        else if (!string.IsNullOrEmpty(agentDescriptor.LlmModelName))
         {
             agent.ChatClient = _chatClientProvider.GetModelByKey<IChatClient>(agentDescriptor.LlmModelName);
         }

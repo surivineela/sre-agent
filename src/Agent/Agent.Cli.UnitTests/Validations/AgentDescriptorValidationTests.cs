@@ -538,6 +538,7 @@ public class AgentDescriptorValidationTests
             CommonTools = new List<string>(),
             Temperature = 1.0f,
             LlmModelName = null,
+            LlmScenarioType = null,
             OutputType = null,
             UserPromptOverride = null,
             DisableDocumentRetrieval = false,

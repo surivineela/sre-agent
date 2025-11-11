@@ -766,7 +766,7 @@ public class ReasoningLoop : IDisposable
     {
         var runConfig = new RunConfig
         {
-            ChatClient = _chatClientProvider.DefaultModel,
+            ChatClient = _chatClientProvider.GeneralPurposeModel,
             LoggerFactory = _loggerFactory,
             EnableDebugOutput = _enableReasoningDebugOutput,
             ThreadId = _context.ThreadId,
@@ -2399,7 +2399,7 @@ public class ReasoningLoop : IDisposable
 
             chatMessages.Add(new(ChatRole.User, prompt));
 
-            var response = await _chatClientProvider.DefaultModel.GetResponseAsync(chatMessages, cancellationToken: cancellationToken);
+            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(chatMessages, cancellationToken: cancellationToken);
             var responseText = response.GetMessage().Text ?? "I couldn't generate a response from your memories.";
 
             var responseMessage = new ChatMessage(ChatRole.Assistant, responseText);
@@ -2436,7 +2436,7 @@ public class ReasoningLoop : IDisposable
                 chatHistory: _chatHistory!,
                 startingAgent: _defaultStartingAgent.Name,
                 autoHandOffEnabled: _autoHandOffEnabled,
-                chatClient: _chatClientProvider.DefaultModel);
+                chatClient: _chatClientProvider.GeneralPurposeModel);
 
             // modify chat history
             var compactedChatMessage = new ChatMessage(ChatRole.User, compactedChat);
@@ -2723,7 +2723,7 @@ public class ReasoningLoop : IDisposable
             // Set up RunConfig for direct agent invocation
             var runConfig = new RunConfig
             {
-                ChatClient = _chatClientProvider.DefaultModel,
+                ChatClient = _chatClientProvider.GeneralPurposeModel,
                 LoggerFactory = _loggerFactory,
                 EnableDebugOutput = _enableReasoningDebugOutput,
                 ThreadId = _context.ThreadId,

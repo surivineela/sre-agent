@@ -633,7 +633,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
 
         try
         {
-            var response = await chatClientProvider.DefaultModel.GetResponseAsync<List<string>>(messages, options);
+            var response = await chatClientProvider.GeneralPurposeModel.GetResponseAsync<List<string>>(messages, options);
             return response.Result;
         }
         catch (Exception ex)

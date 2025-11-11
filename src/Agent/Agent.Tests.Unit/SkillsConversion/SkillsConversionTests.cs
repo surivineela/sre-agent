@@ -46,7 +46,7 @@ public class SkillsConversionTests
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
                 commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
-                promptEnders: [Core.Constants.SREAgentFinalInstructions],
+                promptEnders: [Agent.Core.Constants.SREAgentFinalInstructions],
                 defaultOutputType: typeof(DefaultAgentOutput),
                 enableHandoffReasoning: true,
                 gpt5Enabled: true,
