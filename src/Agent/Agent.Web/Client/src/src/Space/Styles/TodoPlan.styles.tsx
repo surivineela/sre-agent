@@ -38,46 +38,13 @@ export const useTodoPlanDrawerStyles = makeStyles({
     headerButton: {
         flex: '0 1 auto',
     },
-    resizer: {
-        width: '2px',
-        height: '100%',
-        position: 'absolute',
-        top: '0',
-        left: '0',
-        bottom: '0',
-        cursor: 'col-resize',
-        border: 'none',
-        minWidth: '0px',
-
-        '&:before': {
-            width: '2px',
-            content: '""',
-            position: 'absolute',
-            borderLeft: `1px solid ${tokens.colorNeutralBackground5}`,
-            height: '100%',
-        },
-        ':hover': {
-            cursor: 'col-resize',
-        },
-        ':hover:active': {
-            cursor: 'col-resize',
-            userSelect: 'none',
-        },
-    },
-    content: {
-        padding: '12px',
-        height: '100%',
-    },
     emptyStateContainer: {
-        position: 'fixed',
-        top: '30%',
-        left: '50%',
-        transform: 'translate(-30%, -50%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         gap: tokens.spacingVerticalM,
+        height: '100%',
     },
     emptyStateIcon: {
         fontSize: '60px',

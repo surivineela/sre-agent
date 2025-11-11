@@ -1,10 +1,11 @@
 import { Caption1, Subtitle2 } from '@fluentui-copilot/react-copilot';
-import { Button, DrawerHeader, Text } from '@fluentui/react-components';
+import { Button, DrawerBody, DrawerHeader, Text } from '@fluentui/react-components';
 import { ChatWarningRegular, Dismiss24Regular, TaskListLtrRegular } from '@fluentui/react-icons';
 import { memo, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { TodoInfo, TodoItemStatus, TodoPlan as TodoPlanObject } from '../../../Common/Contracts/DataPlane/TodoPlan';
 import { AntUxStringComparison, equals } from '../../../Common/Helpers/Strings';
+import { useScrollableComponentStyles } from '../../../Common/Styles/Scrollable';
 import { SreAgentResources, ToDoPlanResources } from '../../../Strings/SREAgentResources';
 import { useTodoPlanDrawerStyles } from '../../Styles/TodoPlan.styles';
 import TodoPlanContent from './TodoPlanContent';
@@ -22,6 +23,7 @@ const TodoPlan = (props: ITodoPlanProps) => {
 
     const intl = useIntl();
     const styles = useTodoPlanDrawerStyles();
+    const { scrollable } = useScrollableComponentStyles();
 
     // Show latest plan by default, but allow selection of specific plans via TodoPlanChatMessage clicks
     const selectedPlan = useMemo(() => {
@@ -69,8 +71,7 @@ const TodoPlan = (props: ITodoPlanProps) => {
                     </div>
                 </div>
             </DrawerHeader>
-
-            <div className={styles.content}>
+            <DrawerBody className={scrollable}>
                 {selectedPlan ? (
                     <TodoPlanContent plan={selectedPlan} />
                 ) : (
@@ -79,7 +80,7 @@ const TodoPlan = (props: ITodoPlanProps) => {
                         <Text>{intl.formatMessage(ToDoPlanResources.noTodoPlanAvailable)}</Text>
                     </div>
                 )}
-            </div>
+            </DrawerBody>
         </>
     );
 };
