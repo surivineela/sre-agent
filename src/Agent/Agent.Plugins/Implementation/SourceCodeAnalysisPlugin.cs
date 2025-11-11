@@ -2,25 +2,26 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Text.Json;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Framework;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Octokit;
-using Agent.Framework;
 
 namespace Agent.Plugins.Implementation;
 
 public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
 {
-    private readonly GitHubClient _gitHubClient;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
     private readonly IAzureDevOpsSourceCodeSearch _azureDevOpsSourceCodeSearch;
     private readonly IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin;
     private readonly ILogger<SourceCodeAnalysisPlugin> _logger;
     private readonly IChatClientProvider _chatClientProvider;
+    private readonly IThreadRepository _threadRepository;
+    private readonly GitHubSettings _gitHubSettings;
     private static readonly HttpClient _httpClient = new();
 
     private const string SYSTEM_PROMPT = @"
@@ -199,19 +200,90 @@ Output:
         "Set-Cookie"
     };
 
-    public SourceCodeAnalysisPlugin(Models.GitHubClient gitHubClient,
-                                    ILogger<SourceCodeAnalysisPlugin> logger,
+    public SourceCodeAnalysisPlugin(ILogger<SourceCodeAnalysisPlugin> logger,
                                     IGithubIssuePlugin githubIssuePlugin,
                                     IAzureDevOpsSourceCodeSearch azureDevOpsSourceCodeSearch,
                                     IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin,
-                                    IChatClientProvider chatClientProvider)
+                                    IChatClientProvider chatClientProvider,
+                                    IThreadRepository threadRepository,
+                                    GitHubSettings gitHubSettings)
     {
-        _gitHubClient = gitHubClient.Client;
         _githubIssuePlugin = githubIssuePlugin;
         _azureDevOpsWorkItemPlugin = azureDevOpsWorkItemPlugin;
         _azureDevOpsSourceCodeSearch = azureDevOpsSourceCodeSearch;
         _logger = logger;
         _chatClientProvider = chatClientProvider;
+        _threadRepository = threadRepository;
+        _gitHubSettings = gitHubSettings;
+    }
+
+    /// <summary>
+    /// Gets the client application name for GitHub API headers.
+    /// Always includes MS-SRE-Agent, with optional AGENT_NAME appended.
+    /// </summary>
+    private static string GetClientApplicationName()
+    {
+        string baseAgent = "MS-SRE-Agent";
+        string? agentName = Environment.GetEnvironmentVariable("AGENT_NAME");
+        
+        if (!string.IsNullOrEmpty(agentName))
+        {
+            // Replace spaces with hyphens for header compatibility
+            agentName = agentName.Replace(" ", "-");
+            return $"{baseAgent}-{agentName}";
+        }
+        
+        return baseAgent;
+    }
+
+    /// <summary>
+    /// Gets the client application version string.
+    /// </summary>
+    private static string GetClientApplicationVersion() => "1.0";
+
+    /// <summary>
+    /// Creates and configures an HttpRequestMessage with standard GitHub API headers.
+    /// </summary>
+    private async Task<HttpRequestMessage> CreateGitHubRequestAsync(HttpMethod method, string url, string feature)
+    {
+        string accessToken = await GetGitHubAccessTokenAsync();
+        string clientApp = GetClientApplicationName();
+        string clientVersion = GetClientApplicationVersion();
+
+        var request = new HttpRequestMessage(method, url);
+        request.Headers.UserAgent.Add(new ProductInfoHeaderValue(clientApp, clientVersion));
+        
+        // Only add API version header for semantic search
+        if (feature == "semantic-search")
+        {
+            request.Headers.Add("X-GitHub-Api-Version", "2024-05-14");
+        }
+        
+        request.Headers.Add("X-Client-Application", $"{clientApp}/{clientVersion}");
+        request.Headers.Add("X-Client-Source", "source-code-analysis");
+        request.Headers.Add("X-Client-Feature", feature);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        return request;
+    }
+
+    /// <summary>
+    /// Gets the GitHub access token without modifying the shared GitHubClient instance.
+    /// </summary>
+    private async Task<string> GetGitHubAccessTokenAsync()
+    {
+        if (!string.IsNullOrEmpty(_gitHubSettings.PatTokenOverride))
+        {
+            return _gitHubSettings.PatTokenOverride;
+        }
+
+        var token = await _threadRepository.GetGitHubAccessTokenAsync();
+        if (token == null)
+        {
+            throw new InvalidOperationException("GitHub credentials are not set. Please authenticate with GitHub.");
+        }
+
+        return token.AccessToken;
     }
 
     public async Task<string> QueryRepositoryBasedOnError(string resourceId, string errorDescription)
@@ -329,22 +401,26 @@ Output:
 
         // This method throws. 
         var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
-        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.github.com/embeddings/code/search");
-        request.Headers.UserAgent.Add(new ProductInfoHeaderValue("MS-SRE-Agent", "1.0"));
+        
+        using var request = await CreateGitHubRequestAsync(HttpMethod.Post, "https://api.github.com/embeddings/code/search", "semantic-search");
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        request.Headers.Add("X-GitHub-Api-Version", "2024-05-14");
-        string password = _gitHubClient.Credentials?.Password ?? throw new InvalidOperationException($"GitHub credentials are not set - please ensure the GitHub repository {repoUrl} is connected.");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", password);
 
-        request.Content = new StringContent(JsonSerializer.Serialize(new SemanticSearchRequest
+        var requestBody = new SemanticSearchRequest
         {
             Prompt = query,
             ScopingQuery = $"repo:{owner}/{repo}",
             IncludeEmbeddings = false
-        }), Encoding.UTF8, "application/json");
+        };
+
+        var requestBodyJson = JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { WriteIndented = true });
+        _logger.LogInternalInformation("GitHub Embeddings API Request - Body: {RequestBody}", requestBodyJson);
+
+        request.Content = new StringContent(requestBodyJson, Encoding.UTF8, "application/json");
 
         try
         {
+            _logger.LogInternalInformation("Triggering GitHub Embeddings API call for repo: {Owner}/{Repo}, query: {Query}", owner, repo, query);
+            
             var response = await _httpClient.SendAsync(request);
             var responseString = await response.Content.ReadAsStringAsync();
 
@@ -375,10 +451,7 @@ Output:
 
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
-            request.Headers.UserAgent.ParseAdd("MS-SRE-Agent/1.0");
-            string password = _gitHubClient.Credentials?.Password ?? throw new InvalidOperationException($"GitHub credentials are not set - please ensure the GitHub repository {repoUrl} is connected.");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", password);
+            using var request = await CreateGitHubRequestAsync(HttpMethod.Get, endpoint, "check-index-status");
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
 
@@ -389,6 +462,9 @@ Output:
             {
                 var indexStatus = JsonSerializer.Deserialize<JsonElement>(responseContent);
                 bool semanticCodeSearchOk = indexStatus.TryGetProperty("semantic_code_search_ok", out var searchOkProp) && searchOkProp.GetBoolean();
+                
+                _logger.LogInternalInformation("IsRepositoryIndexed result for {Owner}/{Repo}: {IsIndexed}", owner, repo, semanticCodeSearchOk);
+                
                 return (semanticCodeSearchOk, string.Empty);
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -431,11 +507,7 @@ Output:
         string endpoint = $"https://api.github.com/repos/{owner}/{repo}/copilot_internal/embeddings_index";
         try
         {
-            // GitHub API requires User-Agent and Authorization headers
-            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-            request.Headers.UserAgent.ParseAdd("MS-SRE-Agent/1.0");
-            string password = _gitHubClient.Credentials?.Password ?? throw new InvalidOperationException($"GitHub credentials are not set - please ensure the GitHub repository {repoUrl} is connected.");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", password);
+            using var request = await CreateGitHubRequestAsync(HttpMethod.Post, endpoint, "trigger-indexing");
 
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
