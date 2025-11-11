@@ -136,6 +136,7 @@ handoff_description: |
 
 tools:
   - SearchMemory
+  - SearchIncidentKnowledge
   - SendOutlookEmail
   - PostTeamsMessage
   - GetTeamsMessages

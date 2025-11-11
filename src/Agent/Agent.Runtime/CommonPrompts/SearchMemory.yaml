@@ -1,0 +1,10 @@
+name: search_memory
+
+prompt: |
+  Call SearchMemory when the user asks a **substantive question** that would benefit from grounding in specific organizational knowledge, past experiences, user-provided data, or technical documentation - rather than relying solely on your general training. The principle: if there's likely relevant information stored in knowledge bases (customer's Azure architecture, past incident resolutions, uploaded documents, technical runbooks, or learned patterns), search for it to provide more accurate, context-aware answers.
+
+  **Search when**: The user seeks information about technical topics, their infrastructure, troubleshooting guidance, asks about content they've shared, or needs SRE-relevant knowledge.
+
+  **Don't search for**: Simple conversational exchanges (greetings, acknowledgments, clarifications) or meta questions about the agent itself that don't require external knowledge.
+
+  When you search, use comprehensive queries with technical terms and context - the richer your query, the better the semantic matching. The tool filters results by quality and relevance, so you receive only high-value information including past incident trajectories, user memories, and documentation with relevance scores and metadata.

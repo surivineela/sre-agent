@@ -13,6 +13,8 @@ using Agent.Data;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Plugins.Definitions;
+using Agent.Runtime.Interfaces;
+using Agent.Runtime.Services.Mcp;
 using Agent.Runtime.ThreadEvaluator;
 using Agent.Tests.Common.Mocks;
 using Microsoft.Extensions.AI;
@@ -137,6 +139,8 @@ public static class RagTestHelpers
         });
         builder.Services.AddSingleton<ISearchIndexingClient, SearchIndexingClient>();
         builder.Services.AddSingleton<IAzureBlobStorageClient, AzureBlobStorageClient>();
+        builder.Services.AddSingleton<IMcpConnectionEventManager, McpConnectionEventManager>();
+        builder.Services.AddSingleton<IMcpAuthenticationService, McpAuthenticationService>();
         builder.RegisterDataConnectors();
         builder.Services.AddTransient<AgentMemoryPluginDefinition>();
         builder.Services.AddSingleton<RagEvaluator>();

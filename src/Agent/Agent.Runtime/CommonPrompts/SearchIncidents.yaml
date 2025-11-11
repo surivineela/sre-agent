@@ -1,0 +1,10 @@
+name: search_incidents
+
+prompt: |
+  Call SearchIncidentKnowledge when the user is experiencing or investigating an **active service incident, failure, error, or operational problem** with their Azure infrastructure. This is distinct from SearchMemory - use this tool specifically for troubleshooting active issues where historical incident resolution knowledge is most valuable.
+
+  **Use this when**: The user reports service degradation, errors, failures, performance problems, or is investigating why something broke. The tool specializes in retrieving past incident trajectories with resolution steps, root causes identified, and pitfalls to avoid.
+
+  **Key principle**: If there's an Azure resource involved, always provide its full resource ID - past incidents on the same resource have the highest relevance. For symptoms, be extremely specific with error codes, service names, failure scenarios, and technical indicators to enable semantic matching against similar past issues.
+
+  The tool applies quality filtering based on investigation completeness and outcome success, returning structured information to guide your troubleshooting approach with proven resolution patterns rather than trial-and-error diagnostics.

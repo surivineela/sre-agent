@@ -178,19 +178,3 @@ public class McpAuthenticationService : IMcpAuthenticationService
         }
     }
 }
-
-/// <summary>
-/// No-op implementation when authentication is disabled.
-/// </summary>
-public class NoOpMcpAuthenticationService : IMcpAuthenticationService
-{
-    public Task ApplyAuthenticationAsync(HttpClient httpClient, McpAuthenticationConfig? authConfig)
-    {
-        return Task.CompletedTask;
-    }
-
-    public Task<McpAuthenticationConfig> ResolveCredentialsAsync(McpAuthenticationConfig authConfig)
-    {
-        return Task.FromResult(authConfig);
-    }
-}

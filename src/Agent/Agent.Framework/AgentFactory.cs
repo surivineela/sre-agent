@@ -3,8 +3,8 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using Microsoft.Extensions.AI;
 using Agent.Framework.Skills;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -250,16 +250,16 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
         agent.ApplyVanillaMode(agentDescriptor.EnableVanillaMode);
 
-        if (!agent.FactoryTools.Contains(ToDoWriteTool<TContext>.ToolName))
-        {
-            agent.FactoryTools.Add(ToDoWriteTool<TContext>.ToolName);
-        }
+        AugmentToDoWrite(agentDescriptor, agent);
 
         // Automatically add read_skill_file tool if skills are enabled
         if (agent.EnableSkills && !agent.FactoryTools.Contains(ReadSkillFileTool<TContext>.ToolName))
         {
             agent.FactoryTools.Add(ReadSkillFileTool<TContext>.ToolName);
         }
+
+        // Add memory tools and common prompts
+        AugmentMemoryTools(agentDescriptor, agent);
 
         // Add common tools to the agent
         if (agentDescriptor.CommonTools is not null
@@ -317,6 +317,57 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         return agent;
     }
 
+    private void AugmentMemoryTools(IAgentDescriptor agentDescriptor, Agent<TContext> agent)
+    {
+        const string SearchMemoryTool = "SearchMemory";
+        const string SearchMemoryCommonPrompt = "search_memory";
+        const string SearchIncidentsTool = "SearchIncidentKnowledge";
+        const string SearchIncidentsCommonPrompt = "search_incidents";
+
+        // Add SearchMemory and SearchIncidents automatically to meta if enabled
+        if (_agentMemoryRetrievalEnabled
+            && (string.Equals(agent.Name, "meta_agent", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(agent.Name, "rca_meta_agent", StringComparison.OrdinalIgnoreCase)))
+        {
+            // Check if SearchMemory is not already in the tools list
+            if (!agent.FactoryTools.Contains(SearchMemoryTool))
+            {
+                agent.FactoryTools.Add(SearchMemoryTool);
+            }
+            if (!agent.FactoryTools.Contains(SearchIncidentsTool))
+            {
+                agent.FactoryTools.Add(SearchIncidentsTool);
+            }
+        }
+
+        // Add memory common prompts to agents if tools are added
+        if (agent.FactoryTools.Contains(SearchMemoryTool)
+            && !agentDescriptor.CommonPrompts.Contains(SearchMemoryCommonPrompt))
+        {
+            agentDescriptor.CommonPrompts.Add(SearchMemoryCommonPrompt);
+        }
+        if (agent.FactoryTools.Contains(SearchIncidentsTool)
+            && !agentDescriptor.CommonPrompts.Contains(SearchIncidentsCommonPrompt))
+        {
+            agentDescriptor.CommonPrompts.Add(SearchIncidentsCommonPrompt);
+        }
+    }
+
+    private static void AugmentToDoWrite(IAgentDescriptor agentDescriptor, Agent<TContext> agent)
+    {
+        // add todo tool all agents
+        if (!agent.FactoryTools.Contains(ToDoWriteTool<TContext>.ToolName))
+        {
+            agent.FactoryTools.Add(ToDoWriteTool<TContext>.ToolName);
+        }
+
+        // add todo common prompt to agent if todo tool is added
+        if (agent.FactoryTools.Contains(ToDoWriteTool<TContext>.ToolName)
+            && !agentDescriptor.CommonPrompts.Contains(ToDoWriteTool<TContext>.CommonPromptName))
+        {
+            agentDescriptor.CommonPrompts.Add(ToDoWriteTool<TContext>.CommonPromptName);
+        }
+    }
 
     private void ConfigureAgentInstructions(Agent<TContext> agent, IAgentDescriptor agentDescriptor)
     {
@@ -349,12 +400,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             _modeConfigurator.ConfigureAgent(agent, agentDescriptor, _promptDescriptors);
         }
 
-        // add todo common prompt to agent if todo tool is added
-        if (agent.FactoryTools.Contains(ToDoWriteTool<TContext>.ToolName)
-            && !agentDescriptor.CommonPrompts.Contains(ToDoWriteTool<TContext>.CommonPromptName))
-        {
-            agentDescriptor.CommonPrompts.Add(ToDoWriteTool<TContext>.CommonPromptName);
-        }
+
 
         foreach (var commonPromptName in agentDescriptor.CommonPrompts)
         {
@@ -539,8 +585,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                 }
             }
 
-            LoadAgentFromAssembly();
-            LoadAgentFromYaml();
+            LoadAgentsFromAssembly();
+            LoadAgentsFromYaml();
             LoadDynamicAgentDescriptors();
 
             if (_gpt5Enabled)
@@ -614,7 +660,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
     }
 
-    private void LoadAgentFromAssembly()
+    private void LoadAgentsFromAssembly()
     {
         var agentDescriptorType = typeof(IAgentDescriptor);
         var aiExcludeType = typeof(AiExcludeAttribute);
@@ -653,7 +699,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
     }
 
-    private void LoadAgentFromYaml()
+    private void LoadAgentsFromYaml()
     {
         if (_agentsYamlDirectory is null)
         {

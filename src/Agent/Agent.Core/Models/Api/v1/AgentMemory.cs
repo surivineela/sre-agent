@@ -7,10 +7,10 @@ namespace Agent.Core.Models.Api.v1;
 public record MemorySearchResult(
     string ResourceId,
     string Symptoms,
-    List<TrajectoryResult> SameResourceTrajectories,
-    List<TrajectoryResult> SimilarSymptomsTrajectories,
-    List<string> UserMemories,
-    List<DocumentResult> Documents,
+    IReadOnlyList<TrajectoryResult> SameResourceTrajectories,
+    IReadOnlyList<TrajectoryResult> SimilarSymptomsTrajectories,
+    IReadOnlyList<string> UserMemories,
+    IReadOnlyList<DocumentResult> Documents,
     DateTime Timestamp,
     int TotalResults
 );

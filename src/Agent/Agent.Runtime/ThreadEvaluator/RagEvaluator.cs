@@ -115,7 +115,8 @@ public class RagEvaluator : IRagEvaluator
             var functionCallContents = message.Contents.OfType<FunctionCallContent>().ToList();
             foreach (var call in functionCallContents)
             {
-                if (call.Name == "SearchMemory")
+                if (call.Name == "SearchMemory"
+                    || call.Name == "SearchIncidentKnowledge")
                 {
                     var searchMemoryCall = ExtractSearchMemoryCall(call);
                     if (searchMemoryCall != null)
@@ -171,10 +172,20 @@ public class RagEvaluator : IRagEvaluator
 
             var resourceId = call.Arguments.TryGetValue("resourceId", out var resourceIdValue)
                 ? resourceIdValue?.ToString() ?? "" : "";
-            var symptoms = call.Arguments.TryGetValue("symptoms", out var symptomsValue)
-                ? symptomsValue?.ToString() ?? "" : "";
+            // old format:
+            var extractedSymptoms = call.Arguments.TryGetValue("symptoms", out var symptomsValue)
+                ? symptomsValue?.ToString()
+                : null;
+            // new format:
+            var extractedQuery = call.Arguments.TryGetValue("query", out var queryValue)
+                ? queryValue?.ToString()
+                : null;
+            var query = extractedQuery ?? extractedSymptoms ?? string.Empty;
 
-            return new SearchMemoryCall(call.CallId, resourceId, symptoms);
+            return new SearchMemoryCall(
+                CallId: call.CallId,
+                ResourceId: resourceId,
+                Query: query);
         }
         catch (Exception ex)
         {
@@ -206,7 +217,7 @@ public class RagEvaluator : IRagEvaluator
                 AgentContextId: agentContext.Id,
                 CallId: call.CallId,
                 ResourceId: call.ResourceId,
-                SearchQuery: call.Symptoms,
+                SearchQuery: call.Query,
                 RetrievalScore: -1, // Use -1 to indicate skipped evaluation
                 Precision: -1,
                 Recall: null,
@@ -238,7 +249,7 @@ public class RagEvaluator : IRagEvaluator
                 AgentContextId: agentContext.Id,
                 CallId: call.CallId,
                 ResourceId: call.ResourceId,
-                SearchQuery: call.Symptoms,
+                SearchQuery: call.Query,
                 RetrievalScore: averageRelevanceScore,
                 Precision: precision,
                 Recall: null, // Will be populated when we implement recall calculation
@@ -258,7 +269,7 @@ public class RagEvaluator : IRagEvaluator
                 AgentContextId: agentContext.Id,
                 CallId: call.CallId,
                 ResourceId: call.ResourceId,
-                SearchQuery: call.Symptoms,
+                SearchQuery: call.Query,
                 RetrievalScore: -1,
                 Precision: -1,
                 Recall: null,
@@ -446,9 +457,9 @@ public class RagEvaluator : IRagEvaluator
             queryBuilder.AppendLine($"Resource: {call.ResourceId}");
         }
 
-        if (!string.IsNullOrEmpty(call.Symptoms))
+        if (!string.IsNullOrEmpty(call.Query))
         {
-            queryBuilder.AppendLine($"Symptoms: {call.Symptoms}");
+            queryBuilder.AppendLine($"Symptoms: {call.Query}");
         }
 
         return queryBuilder.ToString().Trim();
@@ -461,7 +472,7 @@ public class RagEvaluator : IRagEvaluator
 public record SearchMemoryCall(
     string CallId,
     string ResourceId,
-    string Symptoms
+    string Query
 );
 
 /// <summary>

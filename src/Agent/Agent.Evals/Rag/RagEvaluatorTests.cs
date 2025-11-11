@@ -85,7 +85,7 @@ public class RagEvaluatorTests
         TestContext.WriteLine($"Expected relevant trajectory titles: {string.Join(", ", testCase.RelevantTrajectoryTitles)}");
 
         // Act - Execute search using the plugin abstraction layer (the way agent would use it)
-        var searchResultText = await plugin.SearchMemoryAsync(
+        var searchResultText = await plugin.SearchIncidentKnowledgeAsync(
             resourceId: testCase.ResourceId,
             symptoms: testCase.Query);
 
@@ -117,7 +117,7 @@ public class RagEvaluatorTests
         var searchCall = new SearchMemoryCall(
             CallId: string.Empty,
             ResourceId: testCase.ResourceId,
-            Symptoms: testCase.Query);
+            Query: testCase.Query);
 
         var evalResult = await ragEvaluator.EvaluateRetrievalScore(searchCall, searchResultText);
 

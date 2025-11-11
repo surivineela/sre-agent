@@ -257,6 +257,10 @@
     {
       "name": "SearchMemory",
       "version": "latest"
+    },
+    {
+      "name": "SearchIncidentKnowledge",
+      "version": "latest"
     }
   ]
 }

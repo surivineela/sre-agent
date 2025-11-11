@@ -8,6 +8,7 @@ using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
@@ -18,7 +19,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Definitions;
 
-[AgentToolPlugin]
+[AgentToolPlugin(Category = ToolCategories.KnowledgeBase)]
 public class AgentMemoryPluginDefinition(
     IAgentMemoryClient agentMemoryClient,
     AgentMemorySettings agentMemorySettings,
@@ -33,10 +34,43 @@ public class AgentMemoryPluginDefinition(
     public const string NoUserMemoriesMessage = "No relevant user memories found";
     public const string NoDocumentsMessage = "No relevant documents found";
 
-    [Description(@"Retrieves knowledge from past memories to assist with current incident resolution")]
+    [Description(@"Searches across all agent memory knowledge bases to retrieve relevant information for any query or task. This tool performs a comprehensive search across three distinct knowledge sources: past incident trajectories (resolution steps and root causes from previous incidents), user memories (explicit facts and preferences saved by users), and documentation (TSG guides, runbooks, and technical documentation). Use this tool proactively at the start of any new conversation or when exploring a topic to ground your response in historical knowledge and learned patterns. This is your primary tool for leveraging organizational knowledge and past learnings to inform current decisions.")]
     public async Task<string> SearchMemoryAsync(
-        [Description("The Azure resource id of the affected resource experiencing the incident")] string resourceId,
-        [Description("A detailed description of the current incident symptoms, error messages, or observed behaviors")] string symptoms
+       [Description("A comprehensive search query describing the topic, symptoms, error messages, or concepts you want to find information about. Be specific and detailed - include relevant technical terms, error codes, service names, or behavior descriptions. The query will be used to semantically search across all knowledge bases, so richer context leads to better results. Examples: 'Function app cold start performance issues', 'HTTP 503 errors in Azure App Service', 'Best practices for configuring Azure Redis cache'.")] string query
+   )
+    {
+        if (!agentMemorySettings.Enabled)
+        {
+            return "Agent memory is disabled, disregard this method call from the agent's context";
+        }
+
+        // no resource involved here
+        var resourceId = string.Empty;
+        var trajectorySearch = SearchTrajectoriesAsync(resourceId, query);
+        var userMemorySearch = SearchUserMemoryAsync(query);
+        var documentSearch = SearchDocumentAsync(query);
+        await Task.WhenAll(trajectorySearch, userMemorySearch, documentSearch);
+        var trajectories = await trajectorySearch;
+        var userMemories = await userMemorySearch;
+        var documents = await documentSearch;
+
+        var result = BuildMemoryResponse(
+            documents: documents,
+            userMemories: userMemories,
+            trajectories: trajectories
+        );
+
+        // Push the memory search results to the agent chat interface
+        var displayMessage = new ChatMessage(ChatRole.Tool, result);
+        await PushMemoryResultToChat(displayMessage, documents, userMemories, trajectories, resourceId, query);
+
+        return result;
+    }
+
+    [Description(@"Retrieves specialized incident resolution knowledge from past experiences to assist with diagnosing and resolving Azure resource incidents. This tool performs targeted searches across three knowledge sources with a focus on incident resolution: past incident trajectories (especially those on the same resource or with similar symptoms), user memories relevant to troubleshooting, and technical documentation. When a resourceId is provided, it prioritizes incidents that occurred on that exact resource, which have the highest likelihood of being relevant. The search returns structured information including symptoms observed, resolution steps taken, root causes identified, and pitfalls to avoid. Use this tool when investigating service incidents, troubleshooting failures, or when you need historical context about how similar problems were resolved.")]
+    public async Task<string> SearchIncidentKnowledgeAsync(
+        [Description("The full Azure resource ID of the affected resource (e.g., '/subscriptions/{sub-id}/resourceGroups/{rg}/providers/Microsoft.Web/sites/{app-name}'). This is used to find past incidents that occurred on the exact same resource, which have the highest relevance. If you have a resource ID, always provide it - even partial matches can help. Leave empty if the query is not resource-specific.")] string resourceId,
+        [Description("A detailed description of the current incident's symptoms, error messages, failure patterns, or observed behaviors. Be as specific as possible - include error codes, HTTP status codes, service names, timestamps, failure scenarios, or any technical indicators. Rich symptom descriptions enable semantic matching against past incidents with similar characteristics. Examples: 'Application returning 502 Bad Gateway after deployment', 'Database connection timeouts during peak hours', 'Container app crashes with OutOfMemory exceptions'.")] string symptoms
     )
     {
         if (!agentMemorySettings.Enabled)
@@ -66,8 +100,8 @@ public class AgentMemoryPluginDefinition(
     }
 
     private string BuildMemoryResponse(
-        List<DocumentResult> documents,
-        List<string> userMemories,
+        IReadOnlyList<DocumentResult> documents,
+        IReadOnlyList<string> userMemories,
         TrajectorySearchResult trajectories)
     {
         var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
@@ -170,7 +204,7 @@ public class AgentMemoryPluginDefinition(
         return sb.ToString();
     }
 
-    private async Task<List<DocumentResult>> SearchDocumentAsync(string symptoms)
+    private async Task<IReadOnlyList<DocumentResult>> SearchDocumentAsync(string symptoms)
     {
         if (!agentMemorySettings.DocumentRetrievalEnabled)
         {
@@ -200,7 +234,8 @@ public class AgentMemoryPluginDefinition(
 
         // Apply additional filtering based on reranker score
         var filteredUserDocumentsData = allUserDocuments
-            .Where(d => d.SearchResult.Document.RerankerScore.HasValue && d.SearchResult.Document.RerankerScore >= agentMemorySettings.MinimumRerankerScoreThreshold)
+            .Where(d => d.SearchResult.Document.RerankerScore.HasValue
+                && d.SearchResult.Document.RerankerScore >= agentMemorySettings.MinimumRerankerScoreThreshold)
             .ToList();
 
         // Generate LLM summaries in parallel for user documents
@@ -303,7 +338,7 @@ public class AgentMemoryPluginDefinition(
         return deduplicatedDocuments;
     }
 
-    private async Task<List<string>> SearchUserMemoryAsync(string symptoms)
+    private async Task<IReadOnlyList<string>> SearchUserMemoryAsync(string symptoms)
     {
         if (!agentMemorySettings.UserMemoryRetrievalEnabled)
         {
@@ -312,7 +347,11 @@ public class AgentMemoryPluginDefinition(
         }
 
         var memories = await agentMemoryClient.SearchUserMemoriesAsync(new SearchParams(
-            Query: symptoms, K: 5, EnableHybridSearch: true, EnableSemanticSearch: true, VectorSimilarityThreshold: agentMemorySettings.UserMemoryVectorSimilarityThreshold));
+            Query: symptoms,
+            K: 5,
+            EnableHybridSearch: true,
+            EnableSemanticSearch: true,
+            VectorSimilarityThreshold: agentMemorySettings.UserMemoryVectorSimilarityThreshold));
         if (memories.Count == 0)
         {
             return [];
@@ -361,16 +400,45 @@ public class AgentMemoryPluginDefinition(
 
             return Math.Max(0, score);
         }
+
+        public static Trajectory FromSearchDocument(SearchDocumentResult searchDocument)
+        {
+            return new(
+                Id: searchDocument.Id,
+                Title: searchDocument.Title,
+                InitialSymptoms: searchDocument.InitialSymptoms,
+                SymptomsObserved: searchDocument.SymptomsObserved,
+                StepsFollowed: searchDocument.StepsFollowed,
+                RootCause: searchDocument.RootCause,
+                Pitfalls: searchDocument.Pitfalls,
+                IncidentId: searchDocument.IncidentId ?? string.Empty,
+                InvestigationCompleteness: searchDocument.InvestigationCompleteness ?? 0, // Default to 0 for old trajectories
+                InvestigationOutcome: searchDocument.InvestigationOutcome ?? string.Empty,
+                IndexedAt: searchDocument.IndexedAt.HasValue ? new DateTimeOffset(searchDocument.IndexedAt.Value) : null,
+                RerankerScore: searchDocument.RerankerScore);
+        }
+
+        public static TrajectoryResult ToTrajectoryResult(Trajectory trajectory)
+        {
+            return new(
+                Id: trajectory.Id,
+                Title: trajectory.Title,
+                InitialSymptoms: trajectory.InitialSymptoms,
+                SymptomsObserved: trajectory.SymptomsObserved,
+                StepsFollowed: trajectory.StepsFollowed,
+                RootCause: trajectory.RootCause,
+                Pitfalls: trajectory.Pitfalls);
+        }
     };
 
     private record TrajectorySearchResult(
-        List<Trajectory> SameResourceTrajectories,
-        List<Trajectory> SimilarSymptomsTrajectories
+        IReadOnlyList<Trajectory> SameResourceTrajectories,
+        IReadOnlyList<Trajectory> SimilarSymptomsTrajectories
     );
 
     private async Task<TrajectorySearchResult> SearchTrajectoriesAsync(
         string resourceId,
-        string symptoms)
+        string query)
     {
         if (!agentMemorySettings.TrajectoryRetrievalEnabled)
         {
@@ -380,19 +448,22 @@ public class AgentMemoryPluginDefinition(
 
         // Search with vector similarity thresholds to filter out irrelevant results
         var similarSymptoms = agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(
-            Query: symptoms,
+            Query: query,
             K: 5,
             EnableHybridSearch: true,
             EnableSemanticSearch: true,
             VectorSimilarityThreshold: agentMemorySettings.TrajectoryVectorSimilarityThreshold));
-        var pastIncidents = agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(
-            Query: resourceId,
-            K: 5,
-            EnableHybridSearch: true,
-            EnableSemanticSearch: true,
-            Filter: "resource_ids/any(id: id eq '" + resourceId + "')", // todo: use case insensitive comparison if possible
-            VectorSimilarityThreshold: agentMemorySettings.TrajectoryVectorSimilarityThresholdForSameResource
-        ));
+        var pastIncidents = Task.FromResult<IList<SearchDocumentResult>>([]);
+        if (!string.IsNullOrEmpty(resourceId))
+        {
+            pastIncidents = agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(
+                Query: resourceId,
+                K: 5,
+                EnableHybridSearch: true,
+                EnableSemanticSearch: true,
+                Filter: "resource_ids/any(id: id eq '" + resourceId + "')", // todo: use case insensitive comparison if possible
+                VectorSimilarityThreshold: agentMemorySettings.TrajectoryVectorSimilarityThresholdForSameResource));
+        }
 
         var retrieved = await Task.WhenAll(similarSymptoms, pastIncidents);
         var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
@@ -411,19 +482,7 @@ public class AgentMemoryPluginDefinition(
         // Additional filtering based on reranker scores
         var sameResourceTrajectories = retrieved[1]
             .Where(x => x.RerankerScore >= agentMemorySettings.MinimumRerankerScoreThreshold)
-            .Select(x => new Trajectory(
-                Id: x.Id,
-                Title: x.Title,
-                InitialSymptoms: x.InitialSymptoms,
-                SymptomsObserved: x.SymptomsObserved,
-                StepsFollowed: x.StepsFollowed,
-                RootCause: x.RootCause,
-                Pitfalls: x.Pitfalls,
-                IncidentId: x.IncidentId ?? string.Empty,
-                InvestigationCompleteness: x.InvestigationCompleteness ?? 0, // Default to 0 for old trajectories
-                InvestigationOutcome: x.InvestigationOutcome ?? string.Empty,
-                IndexedAt: x.IndexedAt.HasValue ? new DateTimeOffset(x.IndexedAt.Value) : null,
-                RerankerScore: x.RerankerScore))
+            .Select(Trajectory.FromSearchDocument)
             .ToList();
 
         // Log filtering results for same resource trajectories
@@ -438,19 +497,7 @@ public class AgentMemoryPluginDefinition(
         var similarSymptomsTrajectories = retrieved[0]
             .Where(x => !sameResourceTrajectories.Any(t => t.Id == x.Id)) // avoid duplicates
             .Where(x => x.RerankerScore >= agentMemorySettings.MinimumRerankerScoreThreshold)
-            .Select(x => new Trajectory(
-                Id: x.Id,
-                Title: x.Title,
-                InitialSymptoms: x.InitialSymptoms,
-                SymptomsObserved: x.SymptomsObserved,
-                StepsFollowed: x.StepsFollowed,
-                RootCause: x.RootCause,
-                Pitfalls: x.Pitfalls,
-                IncidentId: x.IncidentId ?? string.Empty,
-                InvestigationCompleteness: x.InvestigationCompleteness ?? 0, // Default to 0 for old trajectories
-                InvestigationOutcome: x.InvestigationOutcome ?? string.Empty,
-                IndexedAt: x.IndexedAt.HasValue ? new DateTimeOffset(x.IndexedAt.Value) : null,
-                RerankerScore: x.RerankerScore))
+            .Select(Trajectory.FromSearchDocument)
             .ToList();
 
         // Log filtering results for similar symptoms trajectories
@@ -463,6 +510,7 @@ public class AgentMemoryPluginDefinition(
                 threadId, duplicatesRemoved, scoreFiltered);
         }
 
+        // ToDo: Unify the 2 categories
         // Deduplicate trajectories by IncidentId - keep only the highest quality trajectory per incident
         var deduplicatedSameResource = DeduplicateByIncident(sameResourceTrajectories, threadId.ToString(), logger, "same resource");
         var deduplicatedSimilarSymptoms = DeduplicateByIncident(similarSymptomsTrajectories, threadId.ToString(), logger, "similar symptoms");
@@ -496,7 +544,9 @@ public class AgentMemoryPluginDefinition(
             .Select(group =>
             {
                 if (group.Count() == 1)
+                {
                     return group.First();
+                }
 
                 // Multiple trajectories for same incident - select best one
                 var best = group
@@ -601,7 +651,13 @@ Summary:")
     /// Pushes memory search results to the agent chat interface using streaming pattern.
     /// Creates MemorySearchResult and streams it to frontend for real-time rendering.
     /// </summary>
-    private async Task PushMemoryResultToChat(ChatMessage msg, List<DocumentResult> documents, List<string> userMemories, TrajectorySearchResult trajectories, string resourceId, string symptoms)
+    private async Task PushMemoryResultToChat(
+        ChatMessage msg,
+        IReadOnlyList<DocumentResult> documents,
+        IReadOnlyList<string> userMemories,
+        TrajectorySearchResult trajectories,
+        string resourceId,
+        string symptoms)
     {
         var agentTaskId = Core.ToolStatic.AsyncLocalAgentTaskId.Value;
         var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
@@ -619,24 +675,12 @@ Summary:")
             var memorySearchResult = new MemorySearchResult(
                 ResourceId: resourceId,
                 Symptoms: symptoms,
-                SameResourceTrajectories: trajectories.SameResourceTrajectories.Select(t => new TrajectoryResult(
-                    Id: t.Id,
-                    Title: t.Title,
-                    InitialSymptoms: t.InitialSymptoms,
-                    SymptomsObserved: t.SymptomsObserved,
-                    StepsFollowed: t.StepsFollowed,
-                    RootCause: t.RootCause,
-                    Pitfalls: t.Pitfalls
-                )).ToList(),
-                SimilarSymptomsTrajectories: trajectories.SimilarSymptomsTrajectories.Select(t => new TrajectoryResult(
-                    Id: t.Id,
-                    Title: t.Title,
-                    InitialSymptoms: t.InitialSymptoms,
-                    SymptomsObserved: t.SymptomsObserved,
-                    StepsFollowed: t.StepsFollowed,
-                    RootCause: t.RootCause,
-                    Pitfalls: t.Pitfalls
-                )).ToList(),
+                SameResourceTrajectories: trajectories.SameResourceTrajectories
+                    .Select(Trajectory.ToTrajectoryResult)
+                    .ToList(),
+                SimilarSymptomsTrajectories: trajectories.SimilarSymptomsTrajectories
+                    .Select(Trajectory.ToTrajectoryResult)
+                    .ToList(),
                 UserMemories: userMemories,
                 Documents: documents,
                 Timestamp: DateTime.UtcNow,

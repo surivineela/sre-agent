@@ -24,7 +24,6 @@ using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
-using Azure.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
@@ -890,7 +889,8 @@ public sealed class IncidentInvestigationTaskHandler(
                 "GetIncidentInfoRCAContainerApp",
                 "SearchContainerAppsResourcesByName",
                 "SearchDesignDocs",
-                "SearchMemory"
+                "SearchMemory",
+                "SearchIncidentKnowledge",
             ]);
         }
         else
@@ -905,9 +905,10 @@ public sealed class IncidentInvestigationTaskHandler(
                 "ListResourcesByType",
                 "SearchDesignDocs",
                 "SearchMemory",
+                "SearchIncidentKnowledge",
                 "GetApplicationComponentsSummary",
                 "GetMetricsTimeSeriesAnalysis",
-                "ListAvailableMetrics"
+                "ListAvailableMetrics",
             ]);
 
             //if (toolNames.Contains("GetMetricsTimeSeriesAnalysis") || toolNames.Contains("GetMetricTimeSeriesElementsForAzureResource"))

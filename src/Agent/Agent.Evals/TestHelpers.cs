@@ -9,6 +9,7 @@ using Agent.Data;
 using Agent.Data.AgentMemory;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
+using Agent.Evals.Rag;
 using Agent.Framework;
 using Agent.Framework.Skills;
 using Agent.Graph.Crawler.Metrics;
@@ -40,7 +41,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.TeamFoundation.Build.WebApi;
 using Moq;
 using OpenTelemetry.Trace;
 
@@ -155,6 +155,10 @@ public static class TestHelpers
         else
         {
             Console.WriteLine("Eval pipeline is using appsettings. Please make sure you have proper values in appsettings.json.");
+
+            // Configure ChatClientProvider settings
+            builder.Services.Configure<ChatClientProviderSettings>(
+                builder.Configuration.GetSection("AppSettings:Core:ChatClientProvider"));
         }
 
         builder.Services
@@ -308,7 +312,6 @@ public static class TestHelpers
         });
         builder.Services.AddTransient<IAgent, MetaAgent>();
         builder.Services.AddSingleton<ChartPluginDefinition>();
-        builder.Services.AddSingleton(Mock.Of<IAuthenticationService>());
         builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
 
         builder.Services.AddSingleton<IGraphDBPlugin, GraphDBPlugin>();
@@ -547,7 +550,10 @@ public static class TestHelpers
     public static async Task<TestHost> InitializeTestHost()
     {
         var builder = BuildTestApp(out var _);
-        builder.RegisterDefaultServices();
+        builder
+            .RegisterDefaultServices()
+            .ConfigureAgentMemory()
+            .AddAgentMemoryPlugin();
         builder.RegisterServicesForAgentFrameworkEval();
         // Ensure repositories required by runtime services are available for tests.
         // Some services validate the full service graph at Host build time and expect IAgentTasksRepository.
