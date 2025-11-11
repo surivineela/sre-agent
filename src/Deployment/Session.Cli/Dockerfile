@@ -19,6 +19,8 @@ RUN apt-get update && \
     rm kubectl
 
 RUN az extension add --allow-preview -y --system --name containerapp && \
+    az extension add --allow-preview -y --system --name log-analytics && \
+    az extension add --allow-preview -y --system --name kusto && \
     az extension add --allow-preview -y --system --name vm-repair
 
 WORKDIR /app
