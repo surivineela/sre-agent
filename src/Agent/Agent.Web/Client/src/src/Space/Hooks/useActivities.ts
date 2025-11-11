@@ -42,12 +42,13 @@ export const useActivities = () => {
             setSelectedThread(thread);
             setThreadContentAndActionKey(Guid.newGuid());
             setActiveThreadId(thread?.id || '');
+            setLastVisitedThreadId(thread?.id || '');
             navigate({
                 ...location,
                 pathname: thread?.id ? `/views/activities/threads/${thread.id}` : '/views/activities/',
             });
         },
-        [navigate, location]
+        [navigate, location, setLastVisitedThreadId]
     );
 
     const addThread = useCallback(
@@ -57,11 +58,12 @@ export const useActivities = () => {
             if (newThreadToSelect) {
                 selectThread(newThreadToSelect);
             } else {
+                setLastVisitedThreadId(threadId);
                 setActiveThreadId(threadId);
                 navigate({ ...location, pathname: `/views/activities/threads/${threadId}` });
             }
         },
-        [navigate, location, selectThread]
+        [navigate, location, selectThread, setLastVisitedThreadId]
     );
 
     const deleteThread = useCallback(
@@ -243,15 +245,6 @@ export const useActivities = () => {
             isSubscribed = false;
         };
     }, [initialThreadId, activeThreadId, selectThread, threadClient, proxy]);
-
-    useEffect(() => {
-        return () => {
-            // Update the last visited thread id when navigating away from Activities tab
-            if (activeThreadIdRef.current) {
-                setLastVisitedThreadId(activeThreadIdRef.current);
-            }
-        };
-    }, []);
 
     return {
         selectedThread,

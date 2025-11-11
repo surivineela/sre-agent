@@ -2119,6 +2119,74 @@ export const FeedbackResources = defineMessages({
     },
 });
 
+export const GithubIssueResources = defineMessages({
+    createGithubIssueTitle: { defaultMessage: 'Create GitHub issue', id: 'mgtFKh' },
+    createGithubIssueLinkText: {
+        defaultMessage: 'Open GitHub issue page with pre-filled information above',
+        id: '3SsYXO',
+    },
+    titleError: {
+        defaultMessage: 'Title is required.',
+        id: 'PZvrnY',
+    },
+    issueDescriptionError: {
+        defaultMessage: 'Issue description is required.',
+        id: '3k7JQw',
+    },
+    titleField: {
+        defaultMessage: 'Title',
+        id: '9a9+ww',
+    },
+    issueDescriptionField: {
+        defaultMessage: 'Issue Description',
+        id: 'HJ7ZeR',
+    },
+    threadIdField: {
+        defaultMessage: 'Thread ID',
+        id: 'ggVnjB',
+    },
+    stepsToReproduceField: {
+        defaultMessage: 'Steps to Reproduce',
+        id: 'G6XRkU',
+    },
+    expectedBehaviorField: {
+        defaultMessage: 'Expected Behavior',
+        id: '7Rnjmx',
+    },
+    actualBehaviorField: {
+        defaultMessage: 'Actual Behavior',
+        id: 'LuHM0/',
+    },
+    titlePrefix: {
+        defaultMessage: 'Issue',
+        id: 'ryAzxy',
+    },
+    issueDescriptionPlaceholder: {
+        defaultMessage: 'Briefly describe the problem or request.',
+        id: 'UImEMW',
+    },
+    threadIdPlaceholder: {
+        defaultMessage: 'Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)',
+        id: 'J0rs+f',
+    },
+    stepsToReproducePlaceholder: {
+        defaultMessage: '1. Describe the action you took\n2. Mention the resource or service involved',
+        id: 'QYiU4f',
+    },
+    expectedBehaviorPlaceholder: {
+        defaultMessage: 'What should happen?',
+        id: 'zRv1ks',
+    },
+    actualBehaviorPlaceholder: {
+        defaultMessage: 'What actually happened?',
+        id: 'CQisjK',
+    },
+    githubImageAltText: {
+        defaultMessage: 'GitHub logo',
+        id: 'oIm1Fb',
+    },
+});
+
 export const GraphResources = defineMessages({
     resourceSelectorDescription: {
         defaultMessage:
