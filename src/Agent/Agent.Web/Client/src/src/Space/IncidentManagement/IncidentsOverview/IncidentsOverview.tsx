@@ -19,6 +19,7 @@ import {
     TableColumnDefinition,
     TableColumnId,
     tokens,
+    Tooltip,
     useRestoreFocusSource,
 } from '@fluentui/react-components';
 import { ArrowClockwise16Regular, Branch16Regular } from '@fluentui/react-icons';
@@ -418,17 +419,20 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
 
     const onRenderTitle = useCallback(
         (item: Thread) => {
+            const titleText = getColumnInfo(IncidentsListColumnKey.title).getColumnValue(item) as string;
             return (
-                <Link
-                    className={localStyles.titleLink}
-                    onClick={e => {
-                        e.stopPropagation();
-                        openThreadDrawer(item);
-                    }}
-                    disabled={disableAllControls}
-                >
-                    {getColumnInfo(IncidentsListColumnKey.title).getColumnValue(item)}
-                </Link>
+                <Tooltip content={titleText} relationship="label">
+                    <Link
+                        className={localStyles.titleLink}
+                        onClick={e => {
+                            e.stopPropagation();
+                            openThreadDrawer(item);
+                        }}
+                        disabled={disableAllControls}
+                    >
+                        {titleText}
+                    </Link>
+                </Tooltip>
             );
         },
         [localStyles, openThreadDrawer, disableAllControls]
@@ -447,19 +451,21 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                     <span style={{ fontWeight: 600 }}>{intl.formatMessage(platformSpecificStrings.incidentOrAlertIdLabel)}</span>
                 ),
                 renderCell: item => {
-                    const incidentId = getColumnInfo(IncidentsListColumnKey.incidentId).getColumnValue(item);
+                    const incidentId = getColumnInfo(IncidentsListColumnKey.incidentId).getColumnValue(item) as string;
                     // We assume this is an ICM incident if the current platform type is ICM and the incident ID is numeric
                     const isIcmIncident = incidentPlatformType === IncidentManagementType.Icm && incidentId && /^\d+$/.test(incidentId);
                     const icmIncidentUrl = isIcmIncident ? format(icmIncidentUrlTemplate, incidentId) : undefined;
                     return (
-                        <TableCellLayout>
-                            {icmIncidentUrl ? (
-                                <Link href={icmIncidentUrl} target="_blank" rel="noopener noreferrer">
-                                    {incidentId}
-                                </Link>
-                            ) : (
-                                incidentId
-                            )}
+                        <TableCellLayout truncate>
+                            <Tooltip content={incidentId} relationship="label">
+                                {icmIncidentUrl ? (
+                                    <Link href={icmIncidentUrl} target="_blank" rel="noopener noreferrer">
+                                        {incidentId}
+                                    </Link>
+                                ) : (
+                                    <span>{incidentId}</span>
+                                )}
+                            </Tooltip>
                         </TableCellLayout>
                     );
                 },
@@ -474,7 +480,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 renderHeaderCell: () => (
                     <span style={{ fontWeight: 600 }}>{intl.formatMessage(platformSpecificStrings.incidentOrAlertTitleLabel)}</span>
                 ),
-                renderCell: item => <TableCellLayout>{onRenderTitle(item)}</TableCellLayout>,
+                renderCell: item => <TableCellLayout truncate>{onRenderTitle(item)}</TableCellLayout>,
             }),
             createTableColumn<Thread>({
                 columnId: IncidentsListColumnKey.priority,
@@ -486,9 +492,16 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 renderHeaderCell: () => (
                     <span style={{ fontWeight: 600 }}>{intl.formatMessage(platformSpecificStrings.severityOrPriorityLabel)}</span>
                 ),
-                renderCell: item => (
-                    <TableCellLayout>{getColumnInfo(IncidentsListColumnKey.priority).getColumnValue(item)}</TableCellLayout>
-                ),
+                renderCell: item => {
+                    const priorityText = getColumnInfo(IncidentsListColumnKey.priority).getColumnValue(item) as string;
+                    return (
+                        <Tooltip content={priorityText} relationship="label">
+                            <TableCellLayout truncate>
+                                <span>{priorityText}</span>
+                            </TableCellLayout>
+                        </Tooltip>
+                    );
+                },
             }),
             createTableColumn<Thread>({
                 columnId: IncidentsListColumnKey.incidentStatus,
@@ -500,11 +513,13 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 renderHeaderCell: () => (
                     <span style={{ fontWeight: 600 }}>{intl.formatMessage(platformSpecificStrings.incidentOrAlertStatusLabel)}</span>
                 ),
-                renderCell: item => (
-                    <TableCellLayout>
-                        <StatusLabel type="incidentStatus" status={item.status?.incidentStatus?.status as IncidentStatus} />
-                    </TableCellLayout>
-                ),
+                renderCell: item => {
+                    return (
+                        <TableCellLayout truncate>
+                            <StatusLabel type="incidentStatus" status={item.status?.incidentStatus?.status as IncidentStatus} />
+                        </TableCellLayout>
+                    );
+                },
             }),
             createTableColumn<Thread>({
                 columnId: IncidentsListColumnKey.agentStatus,
@@ -517,7 +532,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                     <span style={{ fontWeight: 600 }}>{intl.formatMessage(IncidentManagementResources.agentStatus)}</span>
                 ),
                 renderCell: item => (
-                    <TableCellLayout>
+                    <TableCellLayout truncate>
                         {item.incidentDetails?.investigationStatus ? (
                             <StatusLabel type="investigationStatus" status={item.incidentDetails?.investigationStatus} />
                         ) : (
@@ -536,9 +551,16 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 renderHeaderCell: () => (
                     <span style={{ fontWeight: 600 }}>{intl.formatMessage(IncidentManagementResources.incidentCreated)}</span>
                 ),
-                renderCell: item => (
-                    <TableCellLayout>{getColumnInfo(IncidentsListColumnKey.createdTimestamp).getColumnValue(item)}</TableCellLayout>
-                ),
+                renderCell: item => {
+                    const timestampText = getColumnInfo(IncidentsListColumnKey.createdTimestamp).getColumnValue(item) as string;
+                    return (
+                        <Tooltip content={timestampText} relationship="label">
+                            <TableCellLayout truncate>
+                                <span>{timestampText}</span>
+                            </TableCellLayout>
+                        </Tooltip>
+                    );
+                },
             }),
         ];
 
@@ -554,9 +576,16 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                     renderHeaderCell: () => (
                         <span style={{ fontWeight: 600 }}>{intl.formatMessage(IncidentManagementResources.impactedService)}</span>
                     ),
-                    renderCell: item => (
-                        <TableCellLayout>{getColumnInfo(IncidentsListColumnKey.impactedService).getColumnValue(item)}</TableCellLayout>
-                    ),
+                    renderCell: item => {
+                        const serviceText = getColumnInfo(IncidentsListColumnKey.impactedService).getColumnValue(item) as string;
+                        return (
+                            <Tooltip content={serviceText} relationship="label">
+                                <TableCellLayout truncate>
+                                    <span>{serviceText}</span>
+                                </TableCellLayout>
+                            </Tooltip>
+                        );
+                    },
                 })
             );
         }
@@ -572,7 +601,16 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 renderHeaderCell: () => (
                     <span style={{ fontWeight: 600 }}>{intl.formatMessage(IncidentManagementResources.responsePlanName)}</span>
                 ),
-                renderCell: item => <TableCellLayout>{getColumnInfo(IncidentsListColumnKey.handler).getColumnValue(item)}</TableCellLayout>,
+                renderCell: item => {
+                    const handlerText = getColumnInfo(IncidentsListColumnKey.handler).getColumnValue(item) as string;
+                    return (
+                        <TableCellLayout truncate>
+                            <Tooltip content={handlerText} relationship="label">
+                                <span>{handlerText}</span>
+                            </Tooltip>
+                        </TableCellLayout>
+                    );
+                },
             })
         );
 
@@ -945,6 +983,11 @@ const useIncidentsOverviewStyles = makeStyles({
     },
     titleLink: {
         fontSize: '13px',
+        overflow: 'hidden',
+        width: '100%',
+        '> a': {
+            textOverflow: 'ellipsis',
+        },
     },
     fullHeightFlexContainer: {
         width: '100%',
