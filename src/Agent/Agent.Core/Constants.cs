@@ -242,6 +242,16 @@ public class Constants
     {
         // Timeout in seconds for incomplete messages - if thread hasn't been modified in this time, remove incomplete messages
         public const int IncompleteMessageTimeoutSeconds = 180; // 3 minutes
+
+        /// <summary>
+        /// How often the in-memory message cleanup timer runs (default: 1 day)
+        /// </summary>
+        public static readonly TimeSpan InMemoryCleanupTimerInterval = TimeSpan.FromDays(1);
+
+        /// <summary>
+        /// How long an in-memory message can stay before being considered stale (default: 1 hour)
+        /// </summary>
+        public static readonly TimeSpan InMemoryMessageTimeoutDuration = TimeSpan.FromHours(1);
     }
 
     public static class ErrorMessages

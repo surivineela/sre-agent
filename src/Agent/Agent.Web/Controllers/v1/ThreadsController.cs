@@ -18,6 +18,7 @@ using Agent.Plugins.Services.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Runtime.TrajectoryEvaluator;
+using Agent.Runtime.Communication;
 using Agent.Web.Authorization;
 using Agent.Web.Models.WelcomeMessage;
 using Microsoft.AspNetCore.Mvc;
@@ -54,7 +55,8 @@ namespace Agent.Web.Controllers.v1
         ActionSettings actionSettings,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
         TrajectoryEvaluator trajectoryEvaluator,
-        ISessionInsightRepository sessionInsightRepository) : ControllerBase
+        ISessionInsightRepository sessionInsightRepository,
+        InMemoryMessageStorageService inMemoryMessageStorageService) : ControllerBase
     {
         // By default, returns threads ordered by timestamp in ascending order.
         // Pagination can be achieve by using `top` and `skip` query options. https://learn.microsoft.com/en-us/odata/client/pagination#client-driven-paging
@@ -140,24 +142,25 @@ namespace Agent.Web.Controllers.v1
             // 1. Remove incomplete User messages (Role == 0) that are not the last message
             // 2. Keep incomplete messages if they are the last message
             // 3. If the last message is incomplete and thread hasn't been modified in the timeout period, remove it
-            var filteredMessages = FilterIncompleteMessages(messages, thread);
+            var mergedMessages = await MergeAndFilterMessages(messages, thread);
 
-            return Ok(new PagedResponseWithState<Message, ContextStateEnum?>(Value: filteredMessages, State: ctx?.ContextState));
+            return Ok(new PagedResponseWithState<Message, ContextStateEnum?>(Value: mergedMessages, State: ctx?.ContextState));
         }
 
-        private IEnumerable<Message> FilterIncompleteMessages(IEnumerable<Message> messages, Thread thread)
+        /// <summary>
+        /// Filters and merges DB messages with incomplete in-memory messages.
+        /// </summary>
+        private async Task<List<Message>> MergeAndFilterMessages(IEnumerable<Message> dbMessages, Thread thread)
         {
-            var messageList = messages.ToList();
-            if (messageList.Count == 0)
-            {
-                return messageList;
-            }
-
+            var messageList = dbMessages.ToList();
             var filteredMessages = new List<Message>();
+            if (messageList.Count == 0)
+                return filteredMessages;
+
+            // Filter messages: only get complete SREAgent messages, and all other role messages with existing filtering rules
             for (int i = 0; i < messageList.Count; i++)
             {
                 var message = messageList[i];
-                // Latest message is at index 0 (front of the list)
                 bool isLatestMessage = i == 0;
 
                 // If it's incomplete and it's a Agent message (Role == 0) and NOT the latest message, skip it
@@ -166,25 +169,13 @@ namespace Agent.Web.Controllers.v1
                     continue;
                 }
 
-                // If it's the latest message and incomplete, check if thread hasn't been modified in the timeout period
-                if (isLatestMessage && !message.IsComplete)
-                {
-                    var timeSinceLastModification = DateTime.UtcNow - thread.ModifiedTimestamp;
-                    if (timeSinceLastModification.TotalSeconds >= Constants.Messages.IncompleteMessageTimeoutSeconds)
-                    {
-                        logger.LogInternalInformation(
-                            "Removing incomplete latest message {MessageId} from thread {ThreadId} - thread not modified for {Seconds} seconds",
-                            message.Id,
-                            thread.Id,
-                            timeSinceLastModification.TotalSeconds);
-                        continue; // Skip this message (remove it)
-                    }
-                }
-
                 filteredMessages.Add(message);
             }
 
-            return filteredMessages;
+            // Delegate merge logic to the service
+            var mergedMessages = await inMemoryMessageStorageService.MergeIncompleteMessagesAsync(thread.Id, filteredMessages);
+
+            return mergedMessages;
         }
 
         [HttpGet("{threadId}/messages/{messageId}")]
@@ -268,6 +259,9 @@ namespace Agent.Web.Controllers.v1
             var agentContext = agentContexts.First();
             reasoningLoopManager.CancelCurrentOperation(agentContext);
 
+            // Clean up incomplete in-memory messages for this thread
+            await inMemoryMessageStorageService.ClearThreadMessagesAsync(threadId);
+
             return AcceptedAtAction(nameof(CancelThreadExecution), new { threadId }, "Cancellation in progress");
         }
 
@@ -305,7 +299,7 @@ namespace Agent.Web.Controllers.v1
                 ThreadId: threadId,
                 MessageFeedbackId: messageFeedbackId,
                 IsPositive: request.IsPositive,
-                FeedbackText: request.FeedbackText! 
+                FeedbackText: request.FeedbackText!
             ));
 
             return CreatedAtAction(
@@ -404,6 +398,9 @@ namespace Agent.Web.Controllers.v1
 
             if (thread == null)
                 return NotFound();
+
+            // Clean up in-memory messages for this thread
+            await inMemoryMessageStorageService.ClearThreadMessagesAsync(threadId);
 
             // Delete all agent contexts and their related data
             var agentContexts = await repository.GetAgentContextsForThreadAsync(threadId);
@@ -1133,7 +1130,7 @@ namespace Agent.Web.Controllers.v1
             try
             {
                 var insight = await sessionInsightRepository.GetSessionInsightAsync(threadId.ToString());
-                
+
                 if (insight == null)
                 {
                     return NotFound();

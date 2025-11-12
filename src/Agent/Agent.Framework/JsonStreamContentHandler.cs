@@ -17,7 +17,6 @@ public class JsonStreamContentHandler : IStreamContentHandler
     private readonly IDisplayModelOutput _displayModelOutput;
     private readonly string? _streamableContentPropertyName;
     private StreamExtractor? _streamExtractor;
-    private System.Text.StringBuilder? _contentCache;
     private bool _hasStreamedContent;
 
     /// <summary>
@@ -48,8 +47,7 @@ public class JsonStreamContentHandler : IStreamContentHandler
             return;
         }
 
-        // Always initialize the content cache to buffer extracted content
-        _contentCache = new System.Text.StringBuilder();
+        // Initialize the stream extractor
         _streamExtractor = new StreamExtractor(_streamableContentPropertyName!, OnStreamContentAsync);
     }
 
@@ -68,27 +66,13 @@ public class JsonStreamContentHandler : IStreamContentHandler
 
     /// <summary>
     /// Callback invoked when streamable content is extracted by StreamExtractor.
-    /// Buffers the content and flushes when threshold is reached.
+    /// Outputs the content directly without buffering.
     /// </summary>
     /// <param name="content">The extracted content from the streamable property.</param>
     private async Task OnStreamContentAsync(string content)
     {
-        if (_contentCache is null)
-        {
-            return;
-        }
-
-        _contentCache.Append(content);
-
-        // Check if cache has reached threshold and flush if needed
-        if (_contentCache.Length >= IStreamContentHandler.ContentCacheThreshold)
-        {
-            var contentToDisplay = _contentCache.ToString();
-            _contentCache.Clear();
-
-            // Await OnDisplay to complete before continuing
-            await _displayModelOutput.OnDisplay(contentToDisplay);
-        }
+        // Output directly without buffering
+        await _displayModelOutput.OnDisplay(content);
     }
 
     /// <summary>
@@ -112,16 +96,13 @@ public class JsonStreamContentHandler : IStreamContentHandler
     /// <param name="finishReason">The reason why the streaming completed</param>
     public async Task CompleteAsync(ChatFinishReason? finishReason)
     {
-        if (!_hasStreamedContent || _contentCache is null)
+        if (!_hasStreamedContent)
         {
             return;
         }
 
-        var contentToDisplay = _contentCache.ToString();
-        _contentCache.Clear();
-
         // Await OnComplete to ensure DB write completes
-        await _displayModelOutput.OnComplete(contentToDisplay, finishReason);
+        await _displayModelOutput.OnComplete(string.Empty, finishReason);
     }
 
     /// <summary>

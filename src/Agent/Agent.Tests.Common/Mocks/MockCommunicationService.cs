@@ -180,7 +180,10 @@ namespace Agent.Tests.Common.Mocks
             Messages.Add($"AgentTask_Memory:{chatMessageContent}");
             return Task.CompletedTask;
         }
+        public void LogMessage(AgentContext context, string content, Guid? messageId = null)
+        {
 
+        }
         public Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null)
         {
             _logger?.LogInternalInformation($"ThreadId: {threadId}, OrchestrationInstanceId: {orchestrationInstanceId}, Message: {message.Text}");

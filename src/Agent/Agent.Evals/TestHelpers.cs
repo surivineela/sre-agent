@@ -187,6 +187,8 @@ public static class TestHelpers
         builder.Services.AddSingleton<IInstanceManagementRepository, InMemoryInstanceManagementRepository>();
         builder.Services.AddSingleton<ThreadService>();
         builder.Services.AddSingleton<SinkService>();
+        builder.Services.AddSingleton<IInMemoryMessageRepository, InMemoryMessageRepository>();
+        builder.Services.AddSingleton<InMemoryMessageStorageService>();
         // NOTE: use mock for teams plugin as we don't rely on teams for Agent Eval.
         builder.Services.AddSingleton(sp => new Mock<IPostToTeamsPlugin>().Object);
 

@@ -11,6 +11,7 @@ using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Framework.Skills;
 using Agent.Logging;
+using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -30,6 +31,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly ILogger<ReasoningLoopFactory> _logger;
     private readonly IChatClientProvider _chatClientProvider;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
+    private readonly InMemoryMessageStorageService _inMemoryMessageService;
     private readonly IAgentProvider<AgentContext> _agentProvider;
     private readonly IAgentRuntimeModifier<AgentContext> _agentRuntimeModifier;
     private readonly IToolFactory<AgentContext> _toolFactory;
@@ -59,6 +61,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         ILoggerFactory loggerFactory,
         IChatClientProvider chatClientProvider,
         IAgentOutboundCommunicationService outboundCommunicationService,
+        InMemoryMessageStorageService inMemoryMessageService,
         IThreadRepository threadRepository,
         IAgentProvider<AgentContext> agentProvider,
         IToolFactory<AgentContext> toolFactory,
@@ -82,6 +85,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _logger = _loggerFactory.CreateLogger<ReasoningLoopFactory>();
         _chatClientProvider = chatClientProvider;
         _outboundCommunicationService = outboundCommunicationService;
+        _inMemoryMessageService = inMemoryMessageService;
         _agentProvider = agentProvider;
         _agentRuntimeModifier = agentRuntimeModifier;
         _threadRepository = threadRepository;
@@ -198,6 +202,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     loggerFactory: _loggerFactory,
                     chatClientProvider: _chatClientProvider,
                     outboundCommunicationService: _outboundCommunicationService,
+                    inMemoryMessageService: _inMemoryMessageService,
                     defaultStartingAgent: dispatchedAgent,
                     startingAgent: dispatchedAgent,
                     threadRepository: _threadRepository,
@@ -232,6 +237,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             loggerFactory: _loggerFactory,
             chatClientProvider: _chatClientProvider,
             outboundCommunicationService: _outboundCommunicationService,
+            inMemoryMessageService: _inMemoryMessageService,
             defaultStartingAgent: defaultStartingAgent,
             startingAgent: currentStartingAgent,
             threadRepository: _threadRepository,

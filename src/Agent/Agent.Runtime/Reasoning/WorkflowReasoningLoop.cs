@@ -11,6 +11,7 @@ using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Framework.Skills;
 using Agent.Logging;
+using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
@@ -33,6 +34,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
         ILoggerFactory loggerFactory,
         IChatClientProvider chatClientProvider,
         IAgentOutboundCommunicationService outboundCommunicationService,
+        InMemoryMessageStorageService inMemoryMessageService,
         Agent<AgentContext> defaultStartingAgent,
         Agent<AgentContext> startingAgent,
         IThreadRepository threadRepository,
@@ -58,6 +60,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
             loggerFactory: loggerFactory,
             chatClientProvider: chatClientProvider,
             outboundCommunicationService: outboundCommunicationService,
+            inMemoryMessageService: inMemoryMessageService,
             defaultStartingAgent: defaultStartingAgent,
             startingAgent: startingAgent,
             threadRepository: threadRepository,

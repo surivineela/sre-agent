@@ -4,7 +4,7 @@
 
 using Agent.Framework;
 using Agent.Runtime.Models;
-using Agent.Runtime.Services;
+using Agent.Runtime.Communication;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.AI;
@@ -17,24 +17,18 @@ namespace Agent.Runtime;
 public class ChatMessageOutput : IDisplayModelOutput
 {
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
+    private readonly InMemoryMessageStorageService _inMemoryMessageService;
     private readonly AgentContext _context;
     private Guid? _messageId;
 
     public ChatMessageOutput(
         IAgentOutboundCommunicationService outboundCommunicationService,
-        AgentContext context)
-    {
-        _outboundCommunicationService = outboundCommunicationService ?? throw new ArgumentNullException(nameof(outboundCommunicationService));
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-        _messageId = null;
-    }
-
-    public ChatMessageOutput(
-        IAgentOutboundCommunicationService outboundCommunicationService,
+        InMemoryMessageStorageService inMemoryMessageService,
         AgentContext context,
         Guid messageId)
     {
         _outboundCommunicationService = outboundCommunicationService ?? throw new ArgumentNullException(nameof(outboundCommunicationService));
+        _inMemoryMessageService = inMemoryMessageService ?? throw new ArgumentNullException(nameof(inMemoryMessageService));
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _messageId = messageId;
     }
@@ -44,27 +38,23 @@ public class ChatMessageOutput : IDisplayModelOutput
     /// </summary>
     /// <param name="content">The content to display</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    public Task OnDisplay(string content)
+    public async Task OnDisplay(string content)
     {
-        return _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+        await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
             _context,
             new ChatMessage(ChatRole.Assistant, content),
             _messageId,
-            false);
+            isComplete: false);
     }
 
     public async Task OnComplete(string? content, ChatFinishReason? chatFinishReason)
     {
-        if (_messageId == null)
-        {
-            return;
-        }
-
+        // Mark as complete and save to DB through outbound service
         await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
             _context,
             new ChatMessage(ChatRole.Assistant, content),
-                _messageId, true);
-
+            _messageId,
+            isComplete: true);
 
         if (chatFinishReason == ChatFinishReason.ToolCalls)
         {
@@ -83,10 +73,8 @@ public class ChatMessageOutput : IDisplayModelOutput
             return;
         }
 
-        await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-            _context,
-            new ChatMessage(ChatRole.Assistant, ""),
-                _messageId, true);
+        // Remove from in-memory storage without persisting to DB
+        await _inMemoryMessageService.DeleteMessageAsync(_context.ThreadId, _messageId);
         _messageId = null;
     }
 }

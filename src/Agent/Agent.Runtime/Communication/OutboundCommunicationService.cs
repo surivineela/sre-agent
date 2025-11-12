@@ -32,6 +32,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     private readonly IAgentTasksRepository _agentTaskRepository;
     private readonly IThreadRepository _threadRepository;
     private readonly AgentTaskToolResultHelper _agentTaskHelper;
+    private readonly InMemoryMessageStorageService _inMemoryMessageService;
     private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -56,7 +57,8 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         IStreamingService streamingService,
         IAgentTasksRepository agentTaskRepository,
         IThreadRepository threadRepository,
-        AgentTaskToolResultHelper agentTaskHelper)
+        AgentTaskToolResultHelper agentTaskHelper,
+        InMemoryMessageStorageService inMemoryMessageService)
     {
         _mappingManager = mappingManager;
         _logger = logger;
@@ -67,6 +69,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _agentTaskRepository = agentTaskRepository;
         _threadRepository = threadRepository;
         _agentTaskHelper = agentTaskHelper;
+        _inMemoryMessageService = inMemoryMessageService;
         _azCliKubectlSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
@@ -198,8 +201,39 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
         Guid agentMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
+        
+        // Stream the message
         await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, null, agentMessageId, recordedDateTime);
-        await _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime, isComplete: isComplete);
+
+        // Handle in-memory storage based on isComplete flag
+        if (!isComplete)
+        {
+            // Store or update content in in-memory service
+            await _inMemoryMessageService.UpdateMessageContentAsync(context.ThreadId, agentMessageId, message.Text ?? string.Empty);
+        }
+        else
+        {
+            // Get existing message from in-memory service
+            var existingMessage = await _inMemoryMessageService.GetMessageAsync(context.ThreadId, agentMessageId);
+            
+            string finalText;
+            if (existingMessage != null)
+            {
+                // Append the passed content to existing message
+                finalText = existingMessage.Text + (message.Text ?? string.Empty);
+                
+                // Delete from in-memory storage since we're saving to DB
+                await _inMemoryMessageService.DeleteMessageAsync(context.ThreadId, agentMessageId);
+            }
+            else
+            {
+                // No existing message, use the passed content
+                finalText = message.Text ?? string.Empty;
+            }
+
+            // Persist to DB when complete
+            await _sinkService.SinkAgentMessageAsync(context.ThreadId, finalText, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime, isComplete: true);
+        }
     }
 
     public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default)

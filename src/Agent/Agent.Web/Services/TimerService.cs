@@ -67,6 +67,7 @@ public class TimerService : IHostedService, IDisposable
     private readonly IThreadRepository _repository;
     private readonly SinkService _sinkService;
     private readonly HeartbeatReporter _heartbeatReporter;
+    private readonly InMemoryMessageStorageService _inMemoryMessageStorageService;
 
     private CrawlerSettings _settings;
     private TimerSettings _timerSettings;
@@ -151,6 +152,9 @@ public class TimerService : IHostedService, IDisposable
     private bool _heartbeatTimerIsRunning = false;
     private TimeSpan _heartbeatTimerInterval = TimeSpan.FromMinutes(30);
 
+    private Timer? _inMemoryMessageCleanupTimer = null;
+    private bool _inMemoryMessageCleanupTimerIsRunning = false;
+
     private List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
 
     private bool _pagerDutyWelcomeSent = false;
@@ -186,7 +190,8 @@ public class TimerService : IHostedService, IDisposable
         IIncidentScanner incidentScanner,
         LocalAuthScanner localAuthScanner,
         HeartbeatReporter heartbeatReporter,
-        ScheduledTasks.Services.ScheduledTaskExecutionService scheduledTaskExecutionService)
+        ScheduledTasks.Services.ScheduledTaskExecutionService scheduledTaskExecutionService,
+        InMemoryMessageStorageService inMemoryMessageStorageService)
     {
         _logger = logger;
         _crawlerService = crawlerService;
@@ -216,6 +221,7 @@ public class TimerService : IHostedService, IDisposable
     _heartbeatReporter = heartbeatReporter;
         _scheduledTaskExecutionService = scheduledTaskExecutionService;
         _agentMemorySettings = agentMemorySettings;
+        _inMemoryMessageStorageService = inMemoryMessageStorageService;
 
         _customerAuditLogger = customerAuditLogger;
     }
@@ -242,6 +248,7 @@ public class TimerService : IHostedService, IDisposable
         _agentInboundCommunicationService = default!;
         _sinkService = default!;
         _heartbeatReporter = default!;
+        _inMemoryMessageStorageService = default!;
         _settings = default!;
         _timerSettings = default!;
         _incidentManagementSettings = default!;
@@ -326,6 +333,9 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Starting heartbeat reporter timer...");
         StartHeartbeatTimer(cancellationToken);
 
+        _logger.LogInternalInformation("Starting in-memory message cleanup timer...");
+        StartInMemoryMessageCleanupTimer(cancellationToken);
+
         if (!string.IsNullOrEmpty(_incidentManagementSettings.Type?.ToString()))
         {
             _logger.LogInternalInformation($"Starting {_incidentManagementSettings.Type} Scanner timer ...");
@@ -345,6 +355,7 @@ public class TimerService : IHostedService, IDisposable
         _localAuthScannerTimer?.Change(Timeout.Infinite, 0); // Stop the Local Auth scanner timer
         _scheduledTaskTimer?.Change(Timeout.Infinite, 0); // Stop the Scheduled Task timer
     _heartbeatTimer?.Change(Timeout.Infinite, 0); // Stop the Heartbeat timer
+        _inMemoryMessageCleanupTimer?.Change(Timeout.Infinite, 0); // Stop the In-Memory Message Cleanup timer
 
         // Stop all generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)
@@ -1017,6 +1028,38 @@ public class TimerService : IHostedService, IDisposable
         }, null, TimeSpan.Zero, _heartbeatTimerInterval);
     }
 
+    public void StartInMemoryMessageCleanupTimer(CancellationToken cancellationToken)
+    {
+        _inMemoryMessageCleanupTimer = new Timer(async _ =>
+        {
+            if (_inMemoryMessageCleanupTimerIsRunning)
+            {
+                _logger.LogInternalInformation("In-memory message cleanup is already running. Skip this round.");
+                return;
+            }
+
+            try
+            {
+                _inMemoryMessageCleanupTimerIsRunning = true;
+                var deletedCount = await _inMemoryMessageStorageService.DeleteStaleMessagesAsync(
+                    Agent.Core.Constants.Messages.InMemoryMessageTimeoutDuration);
+
+                if (deletedCount > 0)
+                {
+                    _logger.LogInternalInformation("In-memory message cleanup deleted {DeletedCount} stale messages", deletedCount);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error executing in-memory message cleanup timer.");
+            }
+            finally
+            {
+                _inMemoryMessageCleanupTimerIsRunning = false;
+            }
+        }, null, TimeSpan.FromMinutes(5), Agent.Core.Constants.Messages.InMemoryCleanupTimerInterval);
+    }
+
     public void Dispose()
     {
         _logger.LogInternalInformation("Disposing Azure Resource Crawler Worker");
@@ -1026,6 +1069,7 @@ public class TimerService : IHostedService, IDisposable
         _localAuthScannerTimer?.Dispose();
         _scheduledTaskTimer?.Dispose();
         _heartbeatTimer?.Dispose();
+        _inMemoryMessageCleanupTimer?.Dispose();
 
         // Dispose generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)

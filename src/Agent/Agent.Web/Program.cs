@@ -14,6 +14,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.Repositories;
 using Agent.Framework;
 using Agent.Framework.Skills;
 using Agent.Graph.Crawler;
@@ -563,6 +564,8 @@ public class Program
             .AddSingleton<IMcpConnectable, McpToolsRepository>()
             .AddSingleton<IThreadOrchestrationManager, CosmosThreadOrchestrationManager>()
             .AddSingleton<SinkService>()
+            .AddSingleton<IInMemoryMessageRepository, InMemoryMessageRepository>()
+            .AddSingleton<InMemoryMessageStorageService>()
             .AddSingleton<ThreadService>()
             .AddSingleton<ThreadManagementService>()
             .AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>()
