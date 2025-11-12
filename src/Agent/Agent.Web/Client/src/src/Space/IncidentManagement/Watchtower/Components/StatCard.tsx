@@ -53,7 +53,7 @@ export const StatCard = ({ title, subtitle, data, isLoading }: StatCardProps) =>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '150px' }}>
                     <div>
                         <Title2>{data.currentValue}</Title2>
-                        {data.maxValue && <Subtitle2>/{data.maxValue}</Subtitle2>}
+                        {data.maxValue !== undefined && <Subtitle2>/{data.maxValue}</Subtitle2>}
                     </div>
 
                     <div>

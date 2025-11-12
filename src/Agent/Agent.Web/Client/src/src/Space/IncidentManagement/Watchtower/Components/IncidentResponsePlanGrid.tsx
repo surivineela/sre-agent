@@ -336,7 +336,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
             <div className={styles.incidentFiltersContainer} style={{ marginBottom: 0 }}>
                 <SearchBox
                     className={styles.searchBox}
-                    placeholder={intl.formatMessage(IncidentManagementResources.searchResponsePlans)}
+                    placeholder={intl.formatMessage(IncidentManagementResources.filterByResponsePlanName)}
                     value={searchText}
                     onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
                     disabled={disabled}
