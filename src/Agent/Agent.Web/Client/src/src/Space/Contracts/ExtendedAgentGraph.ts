@@ -85,6 +85,7 @@ export type ExtendedTrigger = {
     severity?: string;
     service?: string;
     impactedService?: string;
+    titleContains?: string;
     cronExpression?: string;
     schedule?: string;
     timezone?: string;
@@ -162,6 +163,11 @@ export type AgentQuickAction =
     | 'editAgent'
     | 'createTool';
 
+export enum ExtendedAgentGraphView {
+    Grid = 'grid',
+    Visual = 'visual',
+}
+
 // Graph Context
 interface ExtendedAgentGraphContextProps {
     selectedNode?: ExtendedAgentGraphNode;
@@ -172,7 +178,9 @@ interface ExtendedAgentGraphContextProps {
     nodesToHighlight: string[];
     edgesToHighlight: string[];
     openRelationshipDialog?: (agentName: string) => void;
-    triggerAgentQuickAction?: (agentName: string, action: AgentQuickAction) => void;
+    triggerAgentQuickAction: (agentName: string, action: AgentQuickAction) => void;
+    onEntitySelect: (anchorEntity?: ExtendedAgentAnchorEntity | undefined) => void;
+    onViewChange: (viewType: ExtendedAgentGraphView) => void;
 }
 
 export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContextProps>({
@@ -183,6 +191,8 @@ export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContext
     edgesToHighlight: [],
     openRelationshipDialog: () => {},
     triggerAgentQuickAction: () => {},
+    onEntitySelect: () => {},
+    onViewChange: () => {},
 });
 
 // Node Size Configuration

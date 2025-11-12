@@ -3789,6 +3789,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     },
     incidentTriggerNameTitle: { id: '/qCaiZ', defaultMessage: 'Incident trigger name' },
     incidentImpactedService: { id: 'fdCjVS', defaultMessage: 'Impacted service' },
+    incidentTitleContains: { id: 'brxlTt', defaultMessage: 'Title contains' },
     scheduledTriggerNameTitle: { id: 'C6Jt4c', defaultMessage: 'Scheduled task name' },
     scheduleTitle: { id: 'hGQqkW', defaultMessage: 'Schedule' },
     kustoToolName: { id: 'cg54iX', defaultMessage: 'Kusto tool name' },
@@ -4132,6 +4133,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'Failed to add handoff from {sourceAgent} to subagent {targetAgent}. Error: {errorMessage}',
         id: 'RMD0Mj',
     },
+    openInVisualView: { defaultMessage: 'Open in visual view', id: 'L/ct40' },
 });
 
 export const PlaygroundResources = defineMessages({

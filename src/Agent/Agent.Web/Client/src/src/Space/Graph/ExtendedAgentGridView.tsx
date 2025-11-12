@@ -48,8 +48,10 @@ import {
     ArrowClockwise16Regular,
     CheckmarkCircle20Regular,
     Delete16Regular,
+    Edit20Regular,
     ErrorCircle20Regular,
     MoreHorizontal16Regular,
+    Whiteboard16Regular,
 } from '@fluentui/react-icons';
 import debounce from 'lodash/debounce';
 import { FC, useCallback, useContext, useMemo, useRef, useState } from 'react';
@@ -69,8 +71,7 @@ import {
 import {
     ExtendedAgent,
     ExtendedAgentGraphContext,
-    ExtendedAgentGraphNode,
-    ExtendedAgentNodeType,
+    ExtendedAgentGraphView,
     ExtendedConnector,
     ExtendedTool,
     ExtendedTrigger,
@@ -80,8 +81,6 @@ import PlaygroundModal, { PlaygroundTarget } from '../Playground/PlaygroundModal
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { EntityIcon } from './EntityIcon';
 import { ExtendedAgentInfoPanel } from './ExtendedAgentInfoPanel';
-import { ExtendedEntityYamlEditor } from './ExtendedAgentYamlEditor';
-import { ExtendedEntityType } from './ExtendedAgentYamlUtils';
 import { parseCronExpression } from './Utility';
 
 const useListViewStyles = makeStyles({
@@ -151,6 +150,10 @@ const useListViewStyles = makeStyles({
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
+    },
+    tableCellActionsWrapper: {
+        display: 'flex',
+        gap: '8px',
     },
     transparentButton: {
         padding: 0,
@@ -233,6 +236,7 @@ type IncidentTriggerItem = {
     incidentType: string;
     impactedService: string;
     description: string;
+    titleContains: string;
     data: ExtendedTrigger;
 };
 
@@ -278,6 +282,7 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
 }) => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const azPortalContext = useContext(AzPortalContext);
+    const extendedAgentGraphContext = useContext(ExtendedAgentGraphContext);
     const intl = useIntl();
     const { infoPanelContainer, infoPanelFloating } = useExtendedAgentGraphStyles();
 
@@ -285,11 +290,8 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
     const [searchText, setSearchText] = useState<string>('');
 
     const [selectedDrawerItem, setSelectedDrawerItem] = useState<any>(undefined);
-    const [selectedNode, setSelectedNode] = useState<ExtendedAgentGraphNode | undefined>(undefined);
 
     const [showDeleteConfirmationDialog, setShowDeleteConfirmationDialog] = useState(false);
-    const [yamlEditorEntity, setYamlEditorEntity] = useState<ExtendedAgent | ExtendedTool | ExtendedConnector | undefined>();
-    const [yamlEditorType, setYamlEditorType] = useState<ExtendedEntityType>('agent');
     const [isDeleting, setIsDeleting] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
@@ -404,6 +406,7 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
             incidentType: trigger.incidentType || EMPTY_DISPLAY,
             impactedService: trigger.service || EMPTY_DISPLAY,
             description: trigger.description || EMPTY_DISPLAY,
+            titleContains: trigger.titleContains || EMPTY_DISPLAY,
             data: trigger,
         }));
     }, [incidentTriggers, searchText]);
@@ -641,48 +644,16 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
 
     const styles = useListViewStyles();
 
-    const handleEditAgentYaml = useCallback((agent: ExtendedAgent) => {
-        setYamlEditorEntity(agent);
-        setYamlEditorType('agent');
-    }, []);
-
     const handleOpenInfoPanel = useCallback(
         (item: any) => {
             if (activeTab === 'agents') {
                 const fullAgent = agents.find(agent => agent.name === item.name);
                 setSelectedDrawerItem(fullAgent);
-                setSelectedNode({
-                    id: fullAgent?.name || item.name,
-                    name: fullAgent?.name || item.name,
-                    type: ExtendedAgentNodeType.Agent,
-                    data: fullAgent || item,
-                });
             } else if (activeTab === 'kustoTools') {
                 const toolData = item.data;
                 setSelectedDrawerItem(toolData);
-                setSelectedNode({
-                    id: toolData?.name || item.name,
-                    name: toolData?.name || item.name,
-                    type: ExtendedAgentNodeType.Tool,
-                    data: toolData || item,
-                });
             } else {
                 setSelectedDrawerItem(item);
-                let nodeType: ExtendedAgentNodeType;
-                switch (activeTab) {
-                    case 'incidentTriggers':
-                    case 'scheduledTasks':
-                        nodeType = ExtendedAgentNodeType.Trigger;
-                        break;
-                    default:
-                        nodeType = ExtendedAgentNodeType.Agent;
-                }
-                setSelectedNode({
-                    id: item.name,
-                    name: item.name,
-                    type: nodeType,
-                    data: item,
-                });
             }
         },
         [activeTab, agents]
@@ -690,13 +661,11 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
 
     const handleCloseInfoPanel = useCallback(() => {
         setSelectedDrawerItem(undefined);
-        setSelectedNode(undefined);
     }, []);
 
     const handleCardClick = useCallback((cardType: TabValue) => {
         setActiveTab(cardType);
         setSelectedDrawerItem(undefined);
-        setSelectedNode(undefined);
     }, []);
 
     const handleOpenPlayground = useCallback((target: PlaygroundTarget) => {
@@ -857,7 +826,7 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
                             {intl.formatMessage(ExtendedAgentsGraphResources.incidentImpactedService)}
                         </TableHeaderCell>
                         <TableHeaderCell className={styles.tableHeader}>
-                            {intl.formatMessage(ExtendedAgentsGraphResources.descriptionColumn)}
+                            {intl.formatMessage(ExtendedAgentsGraphResources.incidentTitleContains)}
                         </TableHeaderCell>
                     </>
                 );
@@ -968,7 +937,7 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
                             <Text>{incidentItem.impactedService}</Text>
                         </TableCell>
                         <TableCell tabIndex={0} role="gridcell">
-                            <Text>{incidentItem.description}</Text>
+                            <Text>{incidentItem.titleContains}</Text>
                         </TableCell>
                     </>
                 );
@@ -1068,7 +1037,7 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
                 const agentItem = item as AgentItem;
                 return (
                     <>
-                        <TableCell tabIndex={0} role="gridcell">
+                        <TableCell role="gridcell">
                             <div className={styles.tableCellContent}>
                                 <Button
                                     appearance="transparent"
@@ -1077,18 +1046,41 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
                                 >
                                     <Text className={styles.clickableText}>{agentItem.name}</Text>
                                 </Button>
-                                <Menu>
-                                    <MenuTrigger disableButtonEnhancement>
-                                        <MenuButton appearance="subtle" size="small" icon={<MoreHorizontal16Regular />} />
-                                    </MenuTrigger>
-                                    <MenuPopover>
-                                        <MenuList>
-                                            <MenuItem onClick={() => handleEditAgentYaml(agentItem.data)}>
-                                                {intl.formatMessage(SreAgentResources.edit)}
-                                            </MenuItem>
-                                        </MenuList>
-                                    </MenuPopover>
-                                </Menu>
+                                <div className={styles.tableCellActionsWrapper}>
+                                    <MenuButton
+                                        appearance="subtle"
+                                        size="small"
+                                        icon={<Whiteboard16Regular />}
+                                        aria-label={intl.formatMessage(ExtendedAgentsGraphResources.openInVisualView)}
+                                        onClick={() => {
+                                            extendedAgentGraphContext.onEntitySelect({ entityType: 'Agent', entityName: agentItem.name });
+                                            extendedAgentGraphContext.onViewChange(ExtendedAgentGraphView.Visual);
+                                        }}
+                                    />
+                                    <Menu>
+                                        <MenuTrigger disableButtonEnhancement>
+                                            <MenuButton
+                                                appearance="subtle"
+                                                size="small"
+                                                icon={<MoreHorizontal16Regular />}
+                                                aria-label={intl.formatMessage(ExtendedAgentsGraphResources.openInVisualView)}
+                                            />
+                                        </MenuTrigger>
+                                        <MenuPopover>
+                                            <MenuList>
+                                                <MenuItem
+                                                    icon={<Edit20Regular />}
+                                                    aria-label={intl.formatMessage(SreAgentResources.edit)}
+                                                    onClick={() =>
+                                                        extendedAgentGraphContext.triggerAgentQuickAction(agentItem.name, 'editAgent')
+                                                    }
+                                                >
+                                                    {intl.formatMessage(SreAgentResources.edit)}
+                                                </MenuItem>
+                                            </MenuList>
+                                        </MenuPopover>
+                                    </Menu>
+                                </div>
                             </div>
                         </TableCell>
                         <TableCell tabIndex={0} role="gridcell">
@@ -1226,7 +1218,6 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
                     onTabSelect={(_event, data) => {
                         setActiveTab(data.value as TabValue);
                         setSelectedDrawerItem(undefined);
-                        setSelectedNode(undefined);
                     }}
                 >
                     <Tab id="agents" value="agents">
@@ -1350,19 +1341,6 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
                     </DialogSurface>
                 </Dialog>
 
-                {/* YAML Editor */}
-                <ExtendedEntityYamlEditor
-                    entity={yamlEditorEntity}
-                    entityType={yamlEditorType}
-                    sreAgentEndpoint={sreAgentEndpoint}
-                    isOpen={!!yamlEditorEntity}
-                    onClose={() => setYamlEditorEntity(undefined)}
-                    onApplied={async () => {
-                        await onRefresh();
-                        setYamlEditorEntity(undefined);
-                    }}
-                />
-
                 {/* Playground Modal */}
                 <PlaygroundModal
                     open={isPlaygroundOpen}
@@ -1382,37 +1360,23 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
                     className={mergeClasses(infoPanelContainer, isInfoPanelFloating && infoPanelFloating, styles.infoPanelAbsolute)}
                     style={infoPanelStyle}
                 >
-                    <ExtendedAgentGraphContext.Provider
-                        value={{
-                            selectedNode,
-                            setSelectedNode,
-                            hoverNode: () => {},
-                            unHoverNode: () => {},
-                            hoveredNodeId: undefined,
-                            nodesToHighlight: [],
-                            edgesToHighlight: [],
-                            openRelationshipDialog: () => {},
-                            triggerAgentQuickAction: () => {},
-                        }}
-                    >
-                        <ExtendedAgentInfoPanel
-                            agents={agents}
-                            selectedAgent={selectedDrawerItem}
-                            tools={tools}
-                            connectors={connectors}
-                            triggers={triggers}
-                            systemTools={systemTools}
-                            sreAgentEndpoint={sreAgentEndpoint}
-                            onRefresh={onRefresh}
-                            onDragHandlePointerDown={handleInfoPanelPointerDown}
-                            onResizeHandlePointerDown={handleInfoPanelResizePointerDown}
-                            width={infoPanelWidth}
-                            minWidth={INFO_PANEL_MIN_WIDTH}
-                            maxWidth={INFO_PANEL_MAX_WIDTH}
-                            onOpenPlayground={handleOpenPlayground}
-                            onClose={handleCloseInfoPanel}
-                        />
-                    </ExtendedAgentGraphContext.Provider>
+                    <ExtendedAgentInfoPanel
+                        agents={agents}
+                        selectedAgent={selectedDrawerItem}
+                        tools={tools}
+                        connectors={connectors}
+                        triggers={triggers}
+                        systemTools={systemTools}
+                        sreAgentEndpoint={sreAgentEndpoint}
+                        onRefresh={onRefresh}
+                        onDragHandlePointerDown={handleInfoPanelPointerDown}
+                        onResizeHandlePointerDown={handleInfoPanelResizePointerDown}
+                        width={infoPanelWidth}
+                        minWidth={INFO_PANEL_MIN_WIDTH}
+                        maxWidth={INFO_PANEL_MAX_WIDTH}
+                        onOpenPlayground={handleOpenPlayground}
+                        onClose={handleCloseInfoPanel}
+                    />
                 </div>
             )}
         </div>

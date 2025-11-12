@@ -22,6 +22,7 @@ import {
     ExtendedAgent,
     ExtendedAgentAnchorEntity,
     ExtendedAgentGraphContext,
+    ExtendedAgentGraphView,
     ExtendedAgentNodeType,
     ExtendedConnector,
     ExtendedTool,
@@ -79,11 +80,6 @@ const ExtendedAgentGraph = () => {
         </ReactFlowProvider>
     );
 };
-
-export enum ExtendedAgentGraphView {
-    Grid = 'grid',
-    Visual = 'visual',
-}
 
 type OperationResult = {
     success: boolean;
@@ -1603,6 +1599,8 @@ const ExtendedAgentGraphContent = memo(() => {
                 edgesToHighlight,
                 openRelationshipDialog,
                 triggerAgentQuickAction: handleAgentQuickAction,
+                onViewChange: onChangeViewType,
+                onEntitySelect: handleEntitySelect,
             }}
         >
             <div className={rootContainer}>

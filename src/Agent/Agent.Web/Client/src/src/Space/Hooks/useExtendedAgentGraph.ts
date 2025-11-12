@@ -186,6 +186,7 @@ export const useExtendedAgentGraph = () => {
                                 incidentType: filter?.incidentType || 'ServiceIssue',
                                 service: filter?.impactedService || '-',
                                 severity: filter?.priority || '-',
+                                titleContains: filter?.titleContains || '-',
                                 enabled: !!filter?.isEnabled,
                                 createdAt: handler.createdAt || new Date().toISOString(),
                             });
