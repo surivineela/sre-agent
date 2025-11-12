@@ -1,4 +1,4 @@
-import { Button, makeStyles, shorthands, Text, tokens } from '@fluentui/react-components';
+import { Button, makeStyles, mergeClasses, shorthands, Text, tokens } from '@fluentui/react-components';
 import { Open20Regular, ThumbDislikeRegular, ThumbLikeRegular } from '@fluentui/react-icons';
 import { FC, useCallback } from 'react';
 import { FormattedMessage } from 'react-intl';
@@ -149,7 +149,7 @@ const FeedbackDetailPanel: FC<FeedbackDetailPanelProps> = ({ feedback }) => {
             <div className={styles.content}>
                 <div className={styles.feedbackSection}>
                     <div className={styles.sectionTitle}>
-                        <span className={`${styles.ratingIcon} ${feedback.isPositive ? styles.positive : styles.negative}`}>
+                        <span className={mergeClasses(styles.ratingIcon, feedback.isPositive ? styles.positive : styles.negative)}>
                             {feedback.isPositive ? <ThumbLikeRegular /> : <ThumbDislikeRegular />}
                         </span>
                         <Text>{feedback.isPositive ? 'Positive Feedback' : 'Negative Feedback'}</Text>

@@ -1176,9 +1176,9 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
 
     return (
         <div ref={containerRef} className={styles.containerWrapper}>
-            <div className={`${styles.container} ${styles.containerFlex}`}>
+            <div className={mergeClasses(styles.container, styles.containerFlex)}>
                 <div className={styles.cardsContainer}>
-                    <Card className={`${styles.card} ${styles.clickableCard}`} onClick={() => handleCardClick('agents')}>
+                    <Card className={mergeClasses(styles.card, styles.clickableCard)} onClick={() => handleCardClick('agents')}>
                         <div className={styles.cardHeader}>
                             <div className={styles.cardTitleSection}>
                                 <EntityIcon type="agent" shorthandStyle={{ wrapperSize: 36, iconSize: 22, borderRadius: 6 }} />
@@ -1188,7 +1188,7 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
                         </div>
                     </Card>
 
-                    <Card className={`${styles.card} ${styles.clickableCard}`} onClick={() => handleCardClick('incidentTriggers')}>
+                    <Card className={mergeClasses(styles.card, styles.clickableCard)} onClick={() => handleCardClick('incidentTriggers')}>
                         <div className={styles.cardHeader}>
                             <div className={styles.cardTitleSection}>
                                 <EntityIcon type="incidentTrigger" shorthandStyle={{ wrapperSize: 36, iconSize: 22, borderRadius: 6 }} />
@@ -1200,7 +1200,7 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
                         </div>
                     </Card>
 
-                    <Card className={`${styles.card} ${styles.clickableCard}`} onClick={() => handleCardClick('scheduledTasks')}>
+                    <Card className={mergeClasses(styles.card, styles.clickableCard)} onClick={() => handleCardClick('scheduledTasks')}>
                         <div className={styles.cardHeader}>
                             <div className={styles.cardTitleSection}>
                                 <EntityIcon type="scheduledTask" shorthandStyle={{ wrapperSize: 36, iconSize: 22, borderRadius: 6 }} />
@@ -1210,7 +1210,7 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
                         </div>
                     </Card>
 
-                    <Card className={`${styles.card} ${styles.clickableCard}`} onClick={() => handleCardClick('kustoTools')}>
+                    <Card className={mergeClasses(styles.card, styles.clickableCard)} onClick={() => handleCardClick('kustoTools')}>
                         <div className={styles.cardHeader}>
                             <div className={styles.cardTitleSection}>
                                 <EntityIcon type="toolWithGear" shorthandStyle={{ wrapperSize: 36, iconSize: 22, borderRadius: 6 }} />

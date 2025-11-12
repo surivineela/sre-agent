@@ -1,4 +1,4 @@
-import { makeStyles, shorthands, Text, tokens } from '@fluentui/react-components';
+import { makeStyles, mergeClasses, shorthands, Text, tokens } from '@fluentui/react-components';
 import { ThumbDislikeRegular, ThumbLikeRegular } from '@fluentui/react-icons';
 import { FC, useCallback } from 'react';
 import { FormattedMessage } from 'react-intl';
@@ -159,18 +159,19 @@ const FeedbackList: FC<FeedbackListProps> = ({ feedbacks, selectedFeedbackId, on
             <div className={styles.header}>
                 <Text className={styles.headerText}>Feedback ({feedbacks.length})</Text>
             </div>
-            <div className={`${styles.list} ${scrollable}`}>
+            <div className={mergeClasses(styles.list, scrollable)}>
                 {feedbacks.map(feedback => (
                     <div
                         key={feedback.messageFeedbackId}
-                        className={`${styles.feedbackItem} ${
-                            selectedFeedbackId === feedback.messageFeedbackId ? styles.feedbackItemSelected : ''
-                        }`}
+                        className={mergeClasses(
+                            styles.feedbackItem,
+                            selectedFeedbackId === feedback.messageFeedbackId && styles.feedbackItemSelected
+                        )}
                         onClick={() => onFeedbackSelect(feedback.messageFeedbackId)}
                     >
                         <div className={styles.feedbackHeader}>
                             <Text className={styles.threadTitle}>{feedback.threadTitle}</Text>
-                            <span className={`${styles.feedbackIcon} ${feedback.isPositive ? styles.positive : styles.negative}`}>
+                            <span className={mergeClasses(styles.feedbackIcon, feedback.isPositive ? styles.positive : styles.negative)}>
                                 {feedback.isPositive ? <ThumbLikeRegular /> : <ThumbDislikeRegular />}
                             </span>
                         </div>

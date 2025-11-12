@@ -6,6 +6,7 @@ import {
     AccordionToggleEventHandler,
     Button,
     makeStyles,
+    mergeClasses,
     Subtitle2,
     tokens,
 } from '@fluentui/react-components';
@@ -219,7 +220,7 @@ const AgentTaskDetailsPanel = ({ node, isOpen, onClose }: IAgentTaskDetailsPanel
                     />
                 </DialogTitle>
                 <DialogBody className={styles.dialogBody}>
-                    <DialogContent className={`${scrollable} ${styles.dialogContent}`}>
+                    <DialogContent className={mergeClasses(scrollable, styles.dialogContent)}>
                         <div className={styles.root}>
                             <div className={styles.summaryRoot}>
                                 <div className={styles.insightsTitle}>

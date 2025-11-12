@@ -9,6 +9,7 @@ import {
     Text,
     Textarea,
     makeStyles,
+    mergeClasses,
     tokens,
 } from '@fluentui/react-components';
 import {
@@ -186,7 +187,7 @@ const SessionInsightCard = ({ insightText, onRequestRefinement }: SessionInsight
 
     return (
         <Card className={styles.card}>
-            <div className={`${styles.headerRow} ${isExpanded ? styles.headerRowExpanded : ''}`} onClick={toggleExpanded}>
+            <div className={mergeClasses(styles.headerRow, isExpanded && styles.headerRowExpanded)} onClick={toggleExpanded}>
                 <Lightbulb24Regular className={styles.icon} />
                 <Text className={styles.title}>
                     <FormattedMessage {...SreAgentResources.sessionInsight} />
@@ -236,7 +237,7 @@ const SessionInsightCard = ({ insightText, onRequestRefinement }: SessionInsight
                             {/* Feedback Section */}
                             <div className={styles.feedbackSection}>
                                 <div
-                                    className={`${styles.feedbackHeader} ${!feedbackExpanded ? styles.feedbackHeaderCollapsed : ''}`}
+                                    className={mergeClasses(styles.feedbackHeader, !feedbackExpanded && styles.feedbackHeaderCollapsed)}
                                     onClick={toggleFeedback}
                                 >
                                     <Text className={styles.feedbackTitle}>

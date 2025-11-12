@@ -1,4 +1,4 @@
-import { makeStyles, shorthands, Text, tokens } from '@fluentui/react-components';
+import { makeStyles, mergeClasses, shorthands, Text, tokens } from '@fluentui/react-components';
 import { FC } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
@@ -129,7 +129,7 @@ const ThreadsList: FC<ThreadsListProps> = ({ threads, selectedThreadId, onThread
                     return (
                         <div
                             key={thread.id}
-                            className={`${styles.threadItem} ${isSelected ? styles.threadItemSelected : ''}`}
+                            className={mergeClasses(styles.threadItem, isSelected && styles.threadItemSelected)}
                             onClick={() => onThreadSelect(thread.id)}
                             role="button"
                             tabIndex={0}

@@ -1,4 +1,4 @@
-import { makeStyles, shorthands, Text, tokens } from '@fluentui/react-components';
+import { makeStyles, mergeClasses, shorthands, Text, tokens } from '@fluentui/react-components';
 import { FC } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
@@ -140,7 +140,7 @@ const InsightsList: FC<InsightsListProps> = ({ insights, selectedInsightId, onIn
                     return (
                         <div
                             key={insight.threadId}
-                            className={`${styles.insightCard} ${isSelected ? styles.insightCardSelected : ''}`}
+                            className={mergeClasses(styles.insightCard, isSelected && styles.insightCardSelected)}
                             onClick={() => onInsightSelect(insight.threadId)}
                             role="button"
                             tabIndex={0}

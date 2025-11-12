@@ -1,5 +1,5 @@
 import { FontWeights, Text, useTheme } from '@fluentui/react';
-import { makeStyles, tokens } from '@fluentui/react-components';
+import { makeStyles, mergeClasses, tokens } from '@fluentui/react-components';
 import React, { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentAlertResources } from '../../Strings/SREAgentResources';
@@ -227,8 +227,8 @@ const IncidentAlert: React.FC<IncidentAlertProps> = ({ messageText }) => {
                     </Text>
                 </div>
                 <div className={styles.badgeContainer}>
-                    <span className={`status-badge ${getSeverityClass(severity)}`}>{severity}</span>
-                    <span className={`status-badge ${getConditionClass(monitorCondition)}`}>{monitorCondition}</span>
+                    <span className={mergeClasses('status-badge', getSeverityClass(severity))}>{severity}</span>
+                    <span className={mergeClasses('status-badge', getConditionClass(monitorCondition))}>{monitorCondition}</span>
                 </div>
             </div>
             <div className={styles.body}>

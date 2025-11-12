@@ -1,4 +1,4 @@
-import { Button, makeStyles, shorthands, Spinner, Text, Textarea, tokens } from '@fluentui/react-components';
+import { Button, makeStyles, mergeClasses, shorthands, Spinner, Text, Textarea, tokens } from '@fluentui/react-components';
 import {
     ArrowSyncRegular,
     ChatMultiple20Regular,
@@ -478,7 +478,7 @@ const InsightsPanel: FC<InsightsPanelProps> = ({ thread, onInsightsGenerated }) 
 
                         <div className={styles.feedbackSection}>
                             <div
-                                className={`${styles.feedbackHeader} ${!feedbackExpanded ? styles.feedbackHeaderCollapsed : ''}`}
+                                className={mergeClasses(styles.feedbackHeader, !feedbackExpanded && styles.feedbackHeaderCollapsed)}
                                 onClick={toggleFeedback}
                             >
                                 <Text className={styles.feedbackTitle}>

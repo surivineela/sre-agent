@@ -9,6 +9,7 @@ import {
     DialogTitle,
     InputOnChangeData,
     Link,
+    mergeClasses,
     SearchBox,
     SearchBoxChangeEvent,
     Table,
@@ -227,7 +228,7 @@ const KnowledgeBase: FC = () => {
                             <Text>{intl.formatMessage(KnowledgeBaseResources.filesStoredIn)}</Text>
 
                             <div
-                                className={`${styles.dropZone} ${isDragOver ? styles.dropZoneDragOver : styles.dropZoneIdle}`}
+                                className={mergeClasses(styles.dropZone, isDragOver ? styles.dropZoneDragOver : styles.dropZoneIdle)}
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}

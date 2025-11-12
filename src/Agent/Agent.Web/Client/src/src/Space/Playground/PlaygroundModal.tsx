@@ -4237,7 +4237,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                                 )}
                                 {/* Right Panel - Chat Preview */}
                                 <div
-                                    className={`${styles.rightColumn} ${rightPanelCollapsed ? styles.rightColumnCollapsed : ''}`}
+                                    className={mergeClasses(styles.rightColumn, rightPanelCollapsed && styles.rightColumnCollapsed)}
                                     style={{
                                         flex:
                                             viewMode === 'tester' || focusMode || leftPanelCollapsed
