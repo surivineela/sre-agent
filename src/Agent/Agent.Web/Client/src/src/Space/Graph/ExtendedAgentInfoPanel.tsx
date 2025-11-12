@@ -1068,39 +1068,39 @@ export const ExtendedAgentInfoPanel = memo(
                                     {((playgroundTarget && showAgentBuilderPlayground) ||
                                         (headerEditContext?.type === 'agent' && isAgentContext && selectedAgent) ||
                                         (headerEditContext?.type === 'tool' && selectedTool)) && (
-                                        <Menu>
-                                            <MenuTrigger disableButtonEnhancement>
-                                                <MenuButton appearance="subtle" size="small" icon={<MoreHorizontal20Regular />} />
-                                            </MenuTrigger>
-                                            <MenuPopover>
-                                                <MenuList>
-                                                    {showAgentBuilderPlayground && playgroundTarget && (
-                                                        <MenuItem icon={<Beaker20Regular />} onClick={handleOpenPlaygroundClick}>
-                                                            {intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
-                                                        </MenuItem>
-                                                    )}
-                                                    {headerEditContext?.type === 'agent' && isAgentContext && selectedAgent && (
-                                                        <MenuItem
-                                                            icon={<Delete20Regular />}
-                                                            onClick={() => handleDeleteClick('agent', selectedAgent)}
-                                                            disabled={isDeleting}
-                                                        >
-                                                            {intl.formatMessage(SreAgentResources.deleteSubagentTitle)}
-                                                        </MenuItem>
-                                                    )}
-                                                    {headerEditContext?.type === 'tool' && selectedTool && (
-                                                        <MenuItem
-                                                            icon={<Delete20Regular />}
-                                                            onClick={() => handleDeleteClick('tool', selectedTool)}
-                                                            disabled={isDeleting}
-                                                        >
-                                                            {intl.formatMessage(SreAgentResources.deleteToolTitle)}
-                                                        </MenuItem>
-                                                    )}
-                                                </MenuList>
-                                            </MenuPopover>
-                                        </Menu>
-                                    )}
+                                            <Menu>
+                                                <MenuTrigger disableButtonEnhancement>
+                                                    <MenuButton appearance="subtle" size="small" icon={<MoreHorizontal20Regular />} />
+                                                </MenuTrigger>
+                                                <MenuPopover>
+                                                    <MenuList>
+                                                        {showAgentBuilderPlayground && playgroundTarget && (
+                                                            <MenuItem icon={<Beaker20Regular />} onClick={handleOpenPlaygroundClick}>
+                                                                {intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
+                                                            </MenuItem>
+                                                        )}
+                                                        {headerEditContext?.type === 'agent' && isAgentContext && selectedAgent && (
+                                                            <MenuItem
+                                                                icon={<Delete20Regular />}
+                                                                onClick={() => handleDeleteClick('agent', selectedAgent)}
+                                                                disabled={isDeleting}
+                                                            >
+                                                                {intl.formatMessage(SreAgentResources.deleteSubagentTitle)}
+                                                            </MenuItem>
+                                                        )}
+                                                        {headerEditContext?.type === 'tool' && selectedTool && (
+                                                            <MenuItem
+                                                                icon={<Delete20Regular />}
+                                                                onClick={() => handleDeleteClick('tool', selectedTool)}
+                                                                disabled={isDeleting}
+                                                            >
+                                                                {intl.formatMessage(SreAgentResources.deleteToolTitle)}
+                                                            </MenuItem>
+                                                        )}
+                                                    </MenuList>
+                                                </MenuPopover>
+                                            </Menu>
+                                        )}
                                     {onClose && (
                                         <Button
                                             appearance="subtle"

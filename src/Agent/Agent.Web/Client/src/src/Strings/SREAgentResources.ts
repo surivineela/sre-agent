@@ -4176,6 +4176,22 @@ export const ExtendedAgentsGraphResources = defineMessages({
         id: 'RMD0Mj',
     },
     openInVisualView: { defaultMessage: 'Open in visual view', id: 'L/ct40' },
+    subAgentCreateMenuLabel: { defaultMessage: 'Subagent', id: 'Q++yMM' },
+    subAgentCreateMenuDescription: { defaultMessage: 'Performs specialized tasks on behalf of the SRE Agent.', id: 'stbbGt' },
+    metaAgentCreateMenuLabel: { defaultMessage: 'SRE Agent', id: '+WRusC' },
+    metaAgentCreateMenuDescription: { defaultMessage: 'Allow subagent capabilities to override the SRE Agent.', id: 'ocQGCd' },
+    incidentTriggerCreateMenuLabel: { defaultMessage: 'Incident trigger', id: 'THFIRB' },
+    incidentTriggerCreateMenuDescription: {
+        defaultMessage: 'Automatically starts a subagent in response to an incident or alert.',
+        id: 'hdfKe+',
+    },
+    scheduledTaskTriggerCreateMenuLabel: { defaultMessage: 'Scheduled task trigger', id: 'ioRcwS' },
+    scheduledTaskTriggerCreateMenuDescription: { defaultMessage: 'Starts a task at a defined time or interval.', id: 'JA/VO+' },
+    kustoToolCreateMenuLabel: { defaultMessage: 'Kusto tool', id: 'v6cujo' },
+    kustoToolCreateMenuDescription: {
+        defaultMessage: 'Query tool the subagent uses to collect data from Azure Data Explorer.',
+        id: 'iYJ/Ha',
+    },
 });
 
 export const PlaygroundResources = defineMessages({

@@ -88,7 +88,10 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
                 <Card onClick={() => (setSelectedNode(data), expandInfoPanel())} className={cardStyles}>
                     <div className={cardContent}>
                         <div className={titleRow}>
-                            <EntityIcon type="agent" iconStyle={{ height: '24px', width: '24px' }} />
+                            <EntityIcon
+                                type={agent?.name === 'meta_agent' ? 'metaAgent' : 'agent'}
+                                iconStyle={{ height: '24px', width: '24px' }}
+                            />
                             <div className={nameBlock}>
                                 <Text className={nameText}>{data?.name}</Text>
                                 <Text className={subtitleText}>

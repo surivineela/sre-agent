@@ -24,12 +24,17 @@ interface AgentCreateInfoWithoutHandoff {
     agent: undefined;
 }
 
+interface MetaAgentCreateInfo {
+    mode: 'createMetaAgent';
+    agent: undefined;
+}
+
 interface AgentEditInfo {
     mode: 'edit';
     agent: ExtendedAgent;
 }
 
-export type AgentCreateOrEditInfo = AgentCreateInfoWithHandoff | AgentCreateInfoWithoutHandoff | AgentEditInfo;
+export type AgentCreateOrEditInfo = AgentCreateInfoWithHandoff | AgentCreateInfoWithoutHandoff | MetaAgentCreateInfo | AgentEditInfo;
 
 export interface AgentCreateDialogProps extends Omit<AgentCreateDialogFormikProps, 'excludedHandoffAgent'> {
     refresh: (selectedAgent?: string) => void;
@@ -42,7 +47,9 @@ export interface AgentCreateDialogFormikProps {
     existingTools?: ExtendedTool[];
     systemTools?: SystemTool[];
     excludedHandoffAgent?: string;
+    additionalHandoffAgents?: string[];
     isEditScenario?: boolean;
+    isOverrideScenario?: boolean;
 }
 
 export interface FormViewProps {
@@ -54,6 +61,7 @@ export interface FormViewProps {
     openPanel: (panel: PanelType) => void;
     closePanel: () => void;
     isEditScenario?: boolean;
+    isOverrideScenario?: boolean;
 }
 
 export interface YamlViewProps {

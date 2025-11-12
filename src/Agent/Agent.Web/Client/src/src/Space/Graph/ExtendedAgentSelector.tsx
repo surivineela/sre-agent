@@ -64,7 +64,7 @@ export const ExtendedAgentSelector = memo(
                     return {
                         key: agent.name,
                         label: agent.name,
-                        icon: <EntityIcon type="agent" shorthandStyle={iconShorthandStyle} />,
+                        icon: <EntityIcon type={agent.name === 'meta_agent' ? 'metaAgent' : 'agent'} shorthandStyle={iconShorthandStyle} />,
                         sublabel: agentTypeText,
                         type: agent.agentType,
                         entityType: 'Agent' as const,
@@ -114,8 +114,11 @@ export const ExtendedAgentSelector = memo(
 
         const shouldRenderAgentCombobox = useMemo(() => showAgentPicker && agents.length > 0, [showAgentPicker, agents.length]);
 
-        const entityFilterProps: FilterProps = useMemo(
-            () => ({
+        const entityFilterProps: FilterProps = useMemo(() => {
+            const metaAgentOption = agentOptions.find(option => option.key === 'meta_agent');
+            const subagentOptions = agentOptions.filter(option => option.key !== 'meta_agent');
+            const allAgentOptions = metaAgentOption ? [metaAgentOption, ...subagentOptions] : subagentOptions;
+            return {
                 label: intl.formatMessage(
                     selectedEntity?.entityType === 'Agent' ? ExtendedAgentsGraphResources.subagent : ExtendedAgentsGraphResources.trigger
                 ),
@@ -123,13 +126,13 @@ export const ExtendedAgentSelector = memo(
                 labelDelimiter: ':',
                 filterType: 'combobox' as const,
                 showValueAs: 'list',
-                options: [...agentOptions, ...incidentTriggerOptions, ...scheduledTriggerOptions],
+                options: [...allAgentOptions, ...incidentTriggerOptions, ...scheduledTriggerOptions],
                 onApply: (keys: string[]) => {
                     if (keys.length === 0) {
                         onEntitySelect(undefined);
                         return;
                     }
-                    const selectedOption = [...agentOptions, ...incidentTriggerOptions, ...scheduledTriggerOptions].find(
+                    const selectedOption = [...allAgentOptions, ...incidentTriggerOptions, ...scheduledTriggerOptions].find(
                         option => option.key === keys[0]
                     );
                     if (selectedOption) {
@@ -141,9 +144,8 @@ export const ExtendedAgentSelector = memo(
                 selectedKeys: selectedEntity ? [selectedEntity.entityName] : [],
                 multiSelect: false,
                 addAllOption: false,
-            }),
-            [isLoading, agentOptions, incidentTriggerOptions, scheduledTriggerOptions, intl, onEntitySelect, selectedEntity]
-        );
+            };
+        }, [isLoading, agentOptions, incidentTriggerOptions, scheduledTriggerOptions, intl, onEntitySelect, selectedEntity]);
 
         return (
             <div>

@@ -14,6 +14,7 @@ export enum SettingNames {
     McpServer = 'McpServer',
     ShowThreadTraceUI = 'showThreadTraceUI',
     ShowAgentBuilderPlayground = 'showAgentBuilderPlayground',
+    AllowMetaAgentOverride = 'allowMetaAgentOverride',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
@@ -27,6 +28,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.DataConnectors]: false,
         [SettingNames.Connectors]: true,
         [SettingNames.ShowAgentBuilderPlayground]: true,
+        [SettingNames.AllowMetaAgentOverride]: true,
     },
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
@@ -34,6 +36,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowThreadTraceUI]: true,
         [SettingNames.DataConnectors]: false,
         [SettingNames.ShowAgentBuilderPlayground]: true,
+        [SettingNames.AllowMetaAgentOverride]: true,
         [SettingNames.Connectors]: true,
     },
 };

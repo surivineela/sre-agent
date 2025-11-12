@@ -1573,6 +1573,14 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
+            if (itemType === 'metaAgent') {
+                setAgentCreateOrEditInfo({
+                    agent: undefined,
+                    mode: 'createMetaAgent',
+                });
+                return;
+            }
+
             setCreationDialogContext(undefined);
             setCreationDialogInitialTypeOverride(itemType);
             setCreationDialogTriggerAgentName(undefined);
@@ -1590,6 +1598,10 @@ const ExtendedAgentGraphContent = memo(() => {
             anchorEntity,
         ]
     );
+
+    const hasMetaAgentOverride = useMemo(() => {
+        return agents.some(agent => agent.name === 'meta_agent');
+    }, [agents]);
 
     return (
         <ExtendedAgentGraphContext.Provider
@@ -1610,7 +1622,11 @@ const ExtendedAgentGraphContent = memo(() => {
         >
             <div className={rootContainer}>
                 <div className={toolbarWrapper}>
-                    <CreateButton handleCreateItemStandalone={handleCreateItemStandalone} disabled={isLoading || !hasData} />
+                    <CreateButton
+                        handleCreateItemStandalone={handleCreateItemStandalone}
+                        disableCreateMetaAgent={hasMetaAgentOverride}
+                        disabled={isLoading || !hasData}
+                    />
                     <RadioGroup
                         value={currentView}
                         layout="horizontal"

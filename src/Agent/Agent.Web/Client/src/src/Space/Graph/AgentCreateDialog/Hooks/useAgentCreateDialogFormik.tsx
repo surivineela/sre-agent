@@ -17,7 +17,10 @@ export const useAgentCreateDialogFormik = (
     agents: ExtendedAgent[] | undefined,
     existingTools: ExtendedTool[] | undefined,
     systemTools: SystemTool[] | undefined,
-    excludedHandoffAgent: string | undefined
+    excludedHandoffAgent: string | undefined,
+    additionalHandoffAgents: string[] | undefined,
+    isEditScenario: boolean = false,
+    isOverrideScenario: boolean = false
 ) => {
     const { values, setFieldValue, setValues, isValid, dirty, submitForm, resetForm } = useFormikContext<AgentCreateFormValues>();
 
@@ -30,7 +33,8 @@ export const useAgentCreateDialogFormik = (
         values.handoffSubagents,
         (value: string[]) => setFieldValue('handoffSubagents', value),
         agents,
-        excludedHandoffAgent
+        excludedHandoffAgent,
+        additionalHandoffAgents
     );
 
     const toolsPickerHook = useToolsPicker({
@@ -75,7 +79,7 @@ export const useAgentCreateDialogFormik = (
         (newYaml: string | undefined) => {
             if (!newYaml) {
                 setValues({
-                    agentName: '',
+                    agentName: isOverrideScenario ? values.agentName : '',
                     instructions: '',
                     handoffInstructions: '',
                     handoffSubagents: [],
@@ -90,7 +94,7 @@ export const useAgentCreateDialogFormik = (
             if (!parsedYaml.error && parsedYaml.agent) {
                 const agent = parsedYaml.agent;
                 setValues({
-                    agentName: agent.name || '',
+                    agentName: isOverrideScenario ? values.agentName : agent.name || '',
                     instructions: agent.instructions || '',
                     handoffInstructions: agent.handoffDescription || '',
                     handoffSubagents: agent.handoffs || [],
@@ -98,7 +102,7 @@ export const useAgentCreateDialogFormik = (
                 });
             }
         },
-        [values, setValues, setYamlContent]
+        [values, setValues, setYamlContent, isOverrideScenario]
     );
 
     const onDiscard = useCallback(() => {
@@ -119,7 +123,7 @@ export const useAgentCreateDialogFormik = (
         improvementsAndSuggestionsHook,
         disableControls,
         handleYamlChange,
-        saveDisabled: !isValid || !dirty || disableControls,
+        saveDisabled: !isValid || (!isOverrideScenario && !isEditScenario && !dirty) || disableControls,
         discardDisabled: !dirty || disableControls,
         onSubmit: submitForm,
         onDiscard: onDiscard,

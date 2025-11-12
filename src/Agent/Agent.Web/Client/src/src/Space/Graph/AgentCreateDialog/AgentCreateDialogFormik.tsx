@@ -15,7 +15,9 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
     existingTools,
     systemTools,
     excludedHandoffAgent,
+    additionalHandoffAgents,
     isEditScenario,
+    isOverrideScenario,
 }) => {
     const intl = useIntl();
     const styles = useAgentCreateDialogStyles();
@@ -34,7 +36,15 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
         discardDisabled,
         onSubmit,
         onDiscard,
-    } = useAgentCreateDialogFormik(agents, existingTools, systemTools, excludedHandoffAgent);
+    } = useAgentCreateDialogFormik(
+        agents,
+        existingTools,
+        systemTools,
+        excludedHandoffAgent,
+        additionalHandoffAgents,
+        isEditScenario,
+        isOverrideScenario
+    );
 
     return (
         <DialogSurface className={styles.dialogSurface}>
@@ -86,6 +96,7 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
                         openPanel={setOpenedPanel}
                         closePanel={() => setOpenedPanel(undefined)}
                         isEditScenario={isEditScenario}
+                        isOverrideScenario={isOverrideScenario}
                     />
                 ) : (
                     <YamlView yamlContent={yamlContent} handleYamlChange={handleYamlChange} disabled={disableControls} />

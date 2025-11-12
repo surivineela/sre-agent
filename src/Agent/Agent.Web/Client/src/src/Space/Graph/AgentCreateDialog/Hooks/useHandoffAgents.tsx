@@ -17,7 +17,8 @@ export const useHandoffAgents = (
     selectedAgentNames: string[],
     setSelectedAgentNames: (names: string[]) => void,
     agents: ExtendedAgent[] | undefined,
-    excludedAgentName: string | undefined
+    excludedAgentName: string | undefined,
+    additionalHandoffAgents: string[] | undefined
 ): UseHandoffAgentsReturn => {
     const intl = useIntl();
 
@@ -36,9 +37,13 @@ export const useHandoffAgents = (
         if (!agents) {
             return [];
         }
-        const filteredAgents = agents.filter(agent => !excludedAgentName || excludedAgentName !== agent.name);
-        return filteredAgents.map(agent => agent.name);
-    }, [agents, excludedAgentName]);
+        const filteredAgents = agents.filter(agent => !excludedAgentName || excludedAgentName !== agent.name).map(agent => agent.name);
+        if (additionalHandoffAgents && additionalHandoffAgents.length > 0) {
+            const combinedAgents = Array.from(new Set([...filteredAgents, ...additionalHandoffAgents]));
+            return combinedAgents;
+        }
+        return filteredAgents;
+    }, [agents, excludedAgentName, additionalHandoffAgents]);
 
     const dropdownDisplay = useMemo(() => {
         if (selectedAgentNames.length === 0) {

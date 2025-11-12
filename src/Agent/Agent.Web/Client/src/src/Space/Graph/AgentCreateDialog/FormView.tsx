@@ -22,6 +22,7 @@ export const FormView: FC<FormViewProps> = ({
     closePanel,
     openPanel,
     isEditScenario,
+    isOverrideScenario,
 }) => {
     const intl = useIntl();
     const styles = useAgentCreateDialogStyles();
@@ -38,10 +39,10 @@ export const FormView: FC<FormViewProps> = ({
                 <div className={styles.formSection}>
                     <InputFormik
                         name="agentName"
-                        required
+                        required={!isOverrideScenario}
                         label={intl.formatMessage(ExtendedAgentsGraphResources.subagentName)}
                         placeholder={intl.formatMessage(ExtendedAgentsGraphResources.subagentNamePlaceholder)}
-                        disabled={disableControls || isEditScenario}
+                        disabled={disableControls || isEditScenario || isOverrideScenario}
                         className={styles.formControl}
                         orientation="vertical"
                     />
