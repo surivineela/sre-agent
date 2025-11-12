@@ -148,6 +148,8 @@ public class KustoToolView : ToolView
 
     public Settable<string> ClusterUri { get; set; }
 
+    public Settable<KustoDisplayOptionsDefinition> DisplayOptions { get; set; }
+
     public static ApiResponseEnvelope<KustoToolView> CreateApiResponseEnvelope(KustoToolDocumentModel toolDoc)
     {
         var tool = toolDoc.Spec;
@@ -182,6 +184,7 @@ public class KustoToolView : ToolView
         toolView.ClusterHint = tool.ClusterHint;
         toolView.RegionalClusterGroups = tool.RegionalClusterGroups;
         toolView.ClusterUri = tool.ClusterUri;
+        toolView.DisplayOptions = tool.DisplayOptions;
 
         ApiResponseEnvelope<KustoToolView> apiResponse = new()
         {
@@ -259,6 +262,7 @@ public class KustoToolView : ToolView
             properties.ClusterHint.ApplyTo(value => result.Spec.ClusterHint = value);
             properties.RegionalClusterGroups.ApplyTo(value => result.Spec.RegionalClusterGroups = value!);
             properties.ClusterUri.ApplyTo(value => result.Spec.ClusterUri = value);
+            properties.DisplayOptions.ApplyTo(value => result.Spec.DisplayOptions = value);
         });
 
         return result;

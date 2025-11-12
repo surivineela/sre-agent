@@ -2,11 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Generic;
 using Agent.Data.DataModels;
 using Agent.Data.Tools;
 using Agent.Framework;
 using Agent.Plugins.Connector;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Tools;
 
@@ -61,7 +63,13 @@ namespace Agent.Plugins.Kusto.Tools
             switch (_definition.Mode)
             {
                 case KustoExecutionMode.Function:
-                    return await kustoChat.ExecuteLocalFunctionOnClusterAsync(_definition.Function!, connector.ClusterUrl, _definition.Database, args);
+                    var displayOptions = ConvertDisplayOptions(_definition.DisplayOptions);
+                    return await kustoChat.ExecuteLocalFunctionOnClusterAsync(
+                        _definition.Function!,
+                        connector.ClusterUrl,
+                        _definition.Database,
+                        args,
+                        displayOptions);
 
                 case KustoExecutionMode.Query:
                     // Region parameter is not used in Query mode, as the cluster is defined in the connector
@@ -71,6 +79,25 @@ namespace Agent.Plugins.Kusto.Tools
                 default:
                     return string.Empty;
             }
+        }
+
+        private static KustoDisplayOptions? ConvertDisplayOptions(KustoDisplayOptionsDefinition? definition)
+        {
+            if (definition is null)
+            {
+                return null;
+            }
+
+            return new KustoDisplayOptions
+            {
+                ShowTable = definition.ShowTable,
+                ShowChart = definition.ShowChart,
+                MaxTableRows = definition.MaxTableRows ?? 50,
+                MaxChartPoints = definition.MaxChartPoints ?? 200,
+                ChartTitle = definition.ChartTitle,
+                XField = definition.XField,
+                SeriesFields = definition.SeriesFields
+            };
         }
 
 

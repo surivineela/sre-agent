@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text.Json;
 using Agent.Framework;
@@ -71,6 +73,17 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction<TContext> where 
             flatArgs[kvp.Key] = kvp.Value;
         }
 
+        foreach (var parameter in _toolDef.Parameters)
+        {
+            // prefill missing arguments with YAML-defined defaults so downstream normalizers/validators see them
+            if (parameter.Value is not null && !flatArgs.ContainsKey(parameter.Name))
+            {
+                flatArgs[parameter.Name] = parameter.Value;
+            }
+        }
+
+        ValidateAndNormalizeParameters(flatArgs);
+
         flatArgs["threadId"] = _threadId;
         flatArgs["toolName"] = _toolDef.Name;
 
@@ -131,6 +144,95 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction<TContext> where 
             _ => value.GetRawText()
         };
 
+    private void ValidateAndNormalizeParameters(Dictionary<string, object?> flatArgs)
+    {
+        // Enforce YAML validation contracts: pick parameters with validation metadata, normalize string inputs,
+        // and reject values that fail regex checks so downstream plugin code only sees sanitized arguments.
+        foreach (var parameter in _toolDef.Parameters)
+        {
+            if (parameter.Validation is null)
+            {
+                continue;
+            }
+
+            if (!flatArgs.TryGetValue(parameter.Name, out var rawValue))
+            {
+                continue;
+            }
+
+            if (rawValue is JsonElement jsonElement)
+            {
+                rawValue = ConvertJsonValue(jsonElement);
+            }
+
+            if (!string.Equals(parameter.Type, "string", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var stringValue = rawValue?.ToString();
+            if (stringValue is null)
+            {
+                continue;
+            }
+
+            var normalizedValue = ApplyNormalizers(stringValue, parameter.Validation.Normalize);
+
+            if (parameter.Validation.HasRegex)
+            {
+                var regex = parameter.Validation.BuildRegex();
+                if (regex is not null && !regex.IsMatch(normalizedValue))
+                {
+                    var message = parameter.Validation.ErrorMessage ?? $"Parameter '{parameter.Name}' failed validation.";
+                    throw new ValidationException(message);
+                }
+            }
+
+            flatArgs[parameter.Name] = normalizedValue;
+        }
+    }
+
+    private static string ApplyNormalizers(string value, IReadOnlyCollection<string>? normalizers)
+    {
+        if (normalizers is null || normalizers.Count == 0)
+        {
+            return value;
+        }
+
+        var result = value;
+
+        foreach (var normalizer in normalizers)
+        {
+            if (string.IsNullOrWhiteSpace(normalizer))
+            {
+                continue;
+            }
+
+            switch (normalizer.Trim().ToLowerInvariant())
+            {
+                case "trim":
+                    result = result.Trim();
+                    break;
+                case "trimstart":
+                    result = result.TrimStart();
+                    break;
+                case "trimend":
+                    result = result.TrimEnd();
+                    break;
+                case "lower":
+                case "lowerinvariant":
+                    result = result.ToLowerInvariant();
+                    break;
+                case "upper":
+                case "upperinvariant":
+                    result = result.ToUpperInvariant();
+                    break;
+            }
+        }
+
+        return result;
+    }
+
     public string GetPluginCategory()
     {
         return _toolDef.Type;
@@ -183,7 +285,7 @@ internal class YamlAwareAIFunction<TContext> : AIFunction where TContext : class
     private JsonElement CreateCustomSchema()
     {
         // Create a schema that includes the YAML parameter descriptions
-        var properties = new Dictionary<string, object>();
+        var properties = new Dictionary<string, object?>();
         var required = new List<string>();
 
         foreach (var param in _toolDef.Parameters)
@@ -196,11 +298,18 @@ internal class YamlAwareAIFunction<TContext> : AIFunction where TContext : class
                 _ => "string"
             };
 
-            properties[param.Name] = new
+            var propertyDefinition = new Dictionary<string, object?>
             {
-                type = paramType,
-                description = param.Description ?? $"Parameter {param.Name}"
+                ["type"] = paramType,
+                ["description"] = param.Description ?? $"Parameter {param.Name}"
             };
+
+            if (param.Validation?.HasRegex == true && !string.IsNullOrWhiteSpace(param.Validation.Regex))
+            {
+                propertyDefinition["pattern"] = param.Validation.Regex;
+            }
+
+            properties[param.Name] = propertyDefinition;
 
             if (param.Required)
             {

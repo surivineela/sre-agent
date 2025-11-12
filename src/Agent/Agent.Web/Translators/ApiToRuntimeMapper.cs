@@ -38,7 +38,8 @@ public static class ApiToRuntimeMapper
                 File = k.File,
                 Database = k.Database,
                 ClusterHint = k.ClusterHint,
-                RegionalClusterGroups = k.RegionalClusterGroups
+                RegionalClusterGroups = k.RegionalClusterGroups,
+                DisplayOptions = k.DisplayOptions
             }),
         LinkToolApiModel link => new LinkToolDocumentModel(
             new ResourceMetadata
@@ -170,7 +171,8 @@ public static class ApiToRuntimeMapper
             Query = k.Query,
             File = k.File,
             Database = k.Database,
-            ClusterHint = k.ClusterHint
+            ClusterHint = k.ClusterHint,
+            DisplayOptions = k.DisplayOptions
         },
         LinkToolDefinition linkToolDefinition => new LinkToolApiModel
         {

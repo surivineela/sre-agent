@@ -35,6 +35,16 @@ export type AgentAsToolReference = {
 };
 
 // Tool Types
+export type KustoDisplayOptions = {
+    showTable?: boolean;
+    showChart?: boolean;
+    maxTableRows?: number;
+    maxChartPoints?: number;
+    chartTitle?: string;
+    xField?: string;
+    seriesFields?: string[];
+};
+
 export type ExtendedTool = {
     name: string;
     type: string;
@@ -51,6 +61,7 @@ export type ExtendedTool = {
     database?: string;
     clusterUri?: string;
     regionalClusterGroups?: Record<string, string[]>;
+    displayOptions?: KustoDisplayOptions;
     // Link tool specific
     template?: string;
 };

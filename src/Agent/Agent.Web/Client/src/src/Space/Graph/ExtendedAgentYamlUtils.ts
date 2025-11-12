@@ -188,6 +188,20 @@ export const buildToolListYaml = (tool: Partial<ExtendedTool>): string => {
         toolRecord.regional_cluster_groups = sanitizeRecord(regionalClusterGroups);
     }
 
+    const rawDisplayOptions =
+        tool.displayOptions ?? (extendedTool['displayOptions'] as unknown) ?? (extendedTool['display_options'] as unknown);
+    if (rawDisplayOptions !== undefined && rawDisplayOptions !== null) {
+        const sanitizedDisplayOptions = sanitizeRecord(rawDisplayOptions);
+        if (
+            typeof sanitizedDisplayOptions === 'object' &&
+            sanitizedDisplayOptions !== null &&
+            !Array.isArray(sanitizedDisplayOptions) &&
+            Object.keys(sanitizedDisplayOptions as Record<string, unknown>).length > 0
+        ) {
+            toolRecord.display_options = sanitizedDisplayOptions;
+        }
+    }
+
     const finalRecord = sanitizeRecord(toolRecord) as Record<string, unknown>;
 
     const metadata = tool.metadata ? sanitizeRecord(tool.metadata) : undefined;

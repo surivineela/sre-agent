@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Agent.Data.Tools;
 using Agent.Framework;
@@ -45,6 +46,7 @@ public record KustoToolDocumentModel : ToolDocumentModel
             File = Spec.File,
             Database = Spec.Database,
             ClusterHint = Spec.ClusterHint,
+            DisplayOptions = Spec.DisplayOptions
         };
     }
 }
@@ -63,4 +65,5 @@ public class KustoToolSpec : ToolSpec
     public string? ClusterHint { get; set; }
     public List<KustoRegionalGroupSettings>? RegionalClusterGroups { get; set; }
     public string? ClusterUri { get; set; }
+    public KustoDisplayOptionsDefinition? DisplayOptions { get; set; }
 }

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text.Json;
 using Agent.Framework;
@@ -28,6 +29,7 @@ namespace Agent.Tests.Unit
             _services = new ServiceCollection();
             _services.AddTransient<TestYamlPlugin>();
             _services.AddTransient<ComplexTestYamlPlugin>();
+            _services.AddTransient<ValidationTestYamlPlugin>();
             _serviceProvider = _services.BuildServiceProvider();
 
             _assemblies = new[] { typeof(YamlToolFunctionTests).Assembly };
@@ -459,6 +461,119 @@ namespace Agent.Tests.Unit
             Assert.DoesNotContain("directParam", requiredList);
         }
 
+        [Fact]
+        public async Task YamlToolFunction_WithRegexValidationFailure_ShouldThrowValidationException()
+        {
+            var toolDef = new TestYamlToolDefinition
+            {
+                Name = "ValidationTool",
+                Type = "ValidationTestYamlPlugin",
+                Description = "Tool with validation",
+                Parameters = new List<YamlParameter>
+                {
+                    new()
+                    {
+                        Name = "stamp",
+                        Type = "string",
+                        Required = true,
+                        Description = "Stamp name",
+                        Target = "direct",
+                        MapTo = "value",
+                        Validation = new YamlParameterValidation
+                        {
+                            Regex = "^waws-prod-[a-zA-Z0-9]+-[a-zA-Z0-9]+$",
+                            ErrorMessage = "Invalid stamp format",
+                            Normalize = new List<string> { "trim", "lowerInvariant" }
+                        }
+                    }
+                }
+            };
+
+            var yamlToolFunction = new YamlToolFunction<object>(_serviceProvider, _assemblies, toolDef);
+            var aiFunction = yamlToolFunction.GetToolFunction();
+
+            var arguments = new AIFunctionArguments
+            {
+                ["stamp"] = "invalid-stamp"
+            };
+
+            await Assert.ThrowsAsync<ValidationException>(async () => await aiFunction.InvokeAsync(arguments));
+        }
+
+        [Fact]
+        public async Task YamlToolFunction_WithNormalization_ShouldApplyTransformations()
+        {
+            var toolDef = new TestYamlToolDefinition
+            {
+                Name = "ValidationTool",
+                Type = "ValidationTestYamlPlugin",
+                Description = "Tool with validation",
+                Parameters = new List<YamlParameter>
+                {
+                    new()
+                    {
+                        Name = "stamp",
+                        Type = "string",
+                        Required = true,
+                        Description = "Stamp name",
+                        Target = "direct",
+                        MapTo = "value",
+                        Validation = new YamlParameterValidation
+                        {
+                            Regex = "^waws-prod-[a-zA-Z0-9]+-[a-zA-Z0-9]+$",
+                            Normalize = new List<string> { "trim", "lowerInvariant" }
+                        }
+                    }
+                }
+            };
+
+            var yamlToolFunction = new YamlToolFunction<object>(_serviceProvider, _assemblies, toolDef);
+            var aiFunction = yamlToolFunction.GetToolFunction();
+
+            var arguments = new AIFunctionArguments
+            {
+                ["stamp"] = "  WAWS-PROD-DEF-456   "
+            };
+
+            var result = await aiFunction.InvokeAsync(arguments);
+            Assert.Equal("Processed: waws-prod-def-456", result?.ToString());
+        }
+
+        [Fact]
+        public void JsonSchema_ShouldIncludePattern_WhenValidationRegexProvided()
+        {
+            var toolDef = new TestYamlToolDefinition
+            {
+                Name = "ValidationTool",
+                Type = "ValidationTestYamlPlugin",
+                Description = "Tool with validation",
+                Parameters = new List<YamlParameter>
+                {
+                    new()
+                    {
+                        Name = "stamp",
+                        Type = "string",
+                        Required = true,
+                        Description = "Stamp name",
+                        Target = "direct",
+                        MapTo = "value",
+                        Validation = new YamlParameterValidation
+                        {
+                            Regex = "^waws-prod-[a-zA-Z0-9]+-[a-zA-Z0-9]+$"
+                        }
+                    }
+                }
+            };
+
+            var yamlToolFunction = new YamlToolFunction<object>(_serviceProvider, _assemblies, toolDef);
+            var aiFunction = yamlToolFunction.GetToolFunction();
+            var schema = aiFunction.JsonSchema;
+
+            Assert.True(schema.TryGetProperty("properties", out var properties));
+            var stamp = properties.GetProperty("stamp");
+            Assert.Equal("^waws-prod-[a-zA-Z0-9]+-[a-zA-Z0-9]+$", stamp.GetProperty("pattern").GetString());
+        }
+
         private static TestYamlToolDefinition CreateTestToolDefinition()
         {
             return new TestYamlToolDefinition
@@ -576,6 +691,15 @@ namespace Agent.Tests.Unit
         {
             if (value == null) return 0.0;
             try { return Convert.ToDouble(value); } catch { return 0.0; }
+        }
+    }
+
+    [ToolType("ValidationTestYamlPlugin")]
+    public class ValidationTestYamlPlugin
+    {
+        public Task<string> Run(string value)
+        {
+            return Task.FromResult($"Processed: {value}");
         }
     }
 

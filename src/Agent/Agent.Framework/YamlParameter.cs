@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using YamlDotNet.Serialization;
 
 /// <summary>
@@ -34,6 +36,9 @@ public sealed class YamlParameter
     [YamlMember(Alias = "value")]
     public object? Value { get; set; }
 
+    [YamlMember(Alias = "validation")]
+    public YamlParameterValidation? Validation { get; set; }
+
     // New: Parsed dictionary info
     public bool IsDictionaryTarget =>
         Target.StartsWith("dictionary:", StringComparison.OrdinalIgnoreCase);
@@ -44,5 +49,41 @@ public sealed class YamlParameter
         var parts = Target.Split(':');
         if (parts.Length < 3) return (parts[1], "string"); // default to string
         return (parts[1], parts[2]);
+    }
+}
+
+public sealed class YamlParameterValidation
+{
+    [YamlMember(Alias = "regex")]
+    public string? Regex { get; set; }
+
+    [YamlMember(Alias = "error_message")]
+    public string? ErrorMessage { get; set; }
+
+    [YamlMember(Alias = "normalize")]
+    public List<string>? Normalize { get; set; }
+
+    public bool HasRegex => !string.IsNullOrWhiteSpace(Regex);
+
+    [YamlIgnore]
+    private Regex? _cachedRegex;
+
+    [YamlIgnore]
+    private string? _cachedPattern;
+
+    public Regex? BuildRegex()
+    {
+        if (!HasRegex)
+        {
+            return null;
+        }
+
+        if (_cachedRegex == null || !string.Equals(_cachedPattern, Regex, StringComparison.Ordinal))
+        {
+            _cachedRegex = new Regex(Regex!, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            _cachedPattern = Regex;
+        }
+
+        return _cachedRegex;
     }
 }

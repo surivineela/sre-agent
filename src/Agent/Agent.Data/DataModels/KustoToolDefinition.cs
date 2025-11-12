@@ -5,6 +5,7 @@
 using Agent.Data.DataModels;
 using Agent.Framework;
 using YamlDotNet.Serialization;
+
 namespace Agent.Data.Tools
 {
     /// <summary>
@@ -33,6 +34,9 @@ namespace Agent.Data.Tools
         [YamlMember(Alias = "print_query")]
         public bool PrintQuery { get; set; } = true;
 
+        [YamlMember(Alias = "display_options")]
+        public KustoDisplayOptionsDefinition? DisplayOptions { get; set; }
+
         public override void Validate()
         {
             if (string.IsNullOrWhiteSpace(Database))
@@ -57,6 +61,11 @@ namespace Agent.Data.Tools
 
                 default:
                     throw new InvalidOperationException($"Unsupported execution mode: {Mode}");
+            }
+
+            if (DisplayOptions is not null)
+            {
+                DisplayOptions.Validate();
             }
         }
     }
