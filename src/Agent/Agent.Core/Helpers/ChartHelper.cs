@@ -428,7 +428,7 @@ public static class ChartHelper
     public static async Task<string> PostChartDataAsync(
         Guid threadId,
         object chartData,
-        string description,
+        string? description,
         IAgentOutboundCommunicationService outboundService,
         ILogger? logger = null)
     {
@@ -439,7 +439,7 @@ public static class ChartHelper
             logger?.LogInternalInformation("Posting chart data to thread {ThreadId}", threadId);
 
             // Create the chart message format that the front-end will recognize
-            var chartMessage = $"```chart-data\n{chartDataJson}\n```\n{description}";
+            var chartMessage = $"```chart-data\n{chartDataJson}\n```" + (string.IsNullOrEmpty(description) ? "" : $"\n{description}");
 
             Guid chartMessageId = Guid.NewGuid();
 

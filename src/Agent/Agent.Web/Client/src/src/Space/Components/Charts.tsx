@@ -388,19 +388,6 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                     iconSize={8}
                                 />
 
-                                {/* First render area fills with low opacity behind the lines */}
-                                {seriesNames.map((dataKey, _) => (
-                                    <Area
-                                        key={`area-${dataKey}-${isZoomedView ? 'zoomed' : 'normal'}`}
-                                        type="monotone"
-                                        dataKey={dataKey}
-                                        strokeWidth={0}
-                                        fill={`url(#color-${dataKey}-${isZoomedView ? 'zoomed' : 'normal'})`}
-                                        fillOpacity={0.5}
-                                        isAnimationActive={true}
-                                    />
-                                ))}
-
                                 {/* Then render the actual lines on top with greater prominence */}
                                 {seriesNames.map((dataKey, index) => (
                                     <Line

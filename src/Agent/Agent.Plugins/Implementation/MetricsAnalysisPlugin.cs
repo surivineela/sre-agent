@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
@@ -140,6 +141,8 @@ Return ONLY the JSON array, no additional text or explanation.";
                         "No time series data provided.");
                 }
                 var metricsToCheck = timeSeries.Select(ts => ts.MetricName).ToArray();
+                var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
+                await _outboundService.NotifyIntermediateUpdate(threadId, "Analyzing the metric: " + timeSeries[0].MetricName);
 
                 // Step 1: Serialize time series data
                 var metricsJson = SerializeTimeSeries(timeSeries);
@@ -159,6 +162,8 @@ Return ONLY the JSON array, no additional text or explanation.";
                     directAnalysis,
                     statisticalAnalysis,
                     visualizationAnalysis);
+
+                await _outboundService.NotifyIntermediateUpdate(threadId, combined);
 
                 var result = new MetricsAnalysisResult(
                     directAnalysis,
@@ -388,7 +393,7 @@ ONLY state factual observations based on what you see in the chart. Don't provid
             await ChartHelper.PostChartDataAsync(
                 threadId,
                 chartData,
-                "Metrics visualization for analysis",
+                null,
                 _outboundService,
                 _logger);
         }
@@ -516,9 +521,9 @@ ONLY state factual observations based on what you see in the chart. Don't provid
 </visualization_analysis>
 
 Please provide:
-1. A concise summary that synthesizes all three analyses
-2. A list of factual observations that are supported by the data
-3. If there are conflicting findings, note them clearly
+1. A concise summary that synthesizes all three analyses (at most 100 words).
+2. A list of factual observations that are supported by the data. Show at most 5 most important items.
+3. If there are conflicting findings, note them clearly. Otherwise don't mention this.
 
 Format your response as:
 
