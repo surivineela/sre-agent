@@ -31,11 +31,11 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
     }
 
     /// <inheritdoc/>
-    public async Task<AgentValidationResult> ValidateAgentAsync(AgentDocumentModel model)
+    public async Task<ApiValidationResult> ValidateAgentAsync(AgentDocumentModel model)
     {
         _logger.LogDebug("Validating AgentDocumentModel: {AgentName}", model.Name);
 
-        var result = new AgentValidationResult();
+        var result = new ApiValidationResult();
 
         ValidateResourceMetadata(model.Metadata, result);
         await ValidateAgentSpec(model.Spec, result);
@@ -44,11 +44,11 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
     }
 
     /// <inheritdoc/>
-    public Task<AgentValidationResult> ValidateToolAsync(ToolDocumentModel model)
+    public Task<ApiValidationResult> ValidateToolAsync(ToolDocumentModel model)
     {
         _logger.LogDebug("Validating ToolDocumentModel: {ToolName}", model.Name);
 
-        var result = new AgentValidationResult();
+        var result = new ApiValidationResult();
 
         ValidateResourceMetadata(model.Metadata, result);
 
@@ -56,11 +56,11 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
     }
 
     /// <inheritdoc/>
-    public Task<AgentValidationResult> ValidateConnectorAsync(ConnectorDocumentModel model)
+    public Task<ApiValidationResult> ValidateConnectorAsync(ConnectorDocumentModel model)
     {
         _logger.LogDebug("Validating ConnectorDocumentModel: {ConnectorName}", model.Name);
 
-        var result = new AgentValidationResult();
+        var result = new ApiValidationResult();
 
         ValidateResourceMetadata(model.Metadata, result);
 
@@ -68,11 +68,11 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
     }
 
     /// <inheritdoc/>
-    public Task<AgentValidationResult> ValidatePluginConfigAsync(PlugInConfigDocumentModel model)
+    public Task<ApiValidationResult> ValidatePluginConfigAsync(PlugInConfigDocumentModel model)
     {
         _logger.LogDebug("Validating PlugInConfigDocumentModel: {PluginName}", model.Name);
 
-        var result = new AgentValidationResult();
+        var result = new ApiValidationResult();
 
         ValidateResourceMetadata(model.Metadata, result);
 
@@ -80,11 +80,11 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
     }
 
     /// <inheritdoc/>
-    public Task<AgentValidationResult> ValidateCommonPromptAsync(CommonPromptDocumentModel model)
+    public Task<ApiValidationResult> ValidateCommonPromptAsync(CommonPromptDocumentModel model)
     {
         _logger.LogDebug("Validating CommonPromptDocumentModel: {PromptName}", model.Name);
 
-        var result = new AgentValidationResult();
+        var result = new ApiValidationResult();
 
         ValidateResourceMetadata(model.Metadata, result);
 
@@ -92,25 +92,25 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
     }
 
     /// <inheritdoc/>
-    public Task<AgentValidationResult> ValidateCommonToolsListAsync(CommonToolsListDocumentModel model)
+    public Task<ApiValidationResult> ValidateCommonToolsListAsync(CommonToolsListDocumentModel model)
     {
         _logger.LogDebug("Validating CommonToolsListDocumentModel: {ListName}", model.Name);
 
-        var result = new AgentValidationResult();
+        var result = new ApiValidationResult();
 
         ValidateResourceMetadata(model.Metadata, result);
 
         return Task.FromResult(result);
     }
 
-    private void ValidateResourceMetadata(ResourceMetadata metadata, AgentValidationResult result)
+    private void ValidateResourceMetadata(ResourceMetadata metadata, ApiValidationResult result)
     {
         // add validations if necessary
     }
 
     // Ported from src\Agent\Agent.Core\Validation\AgentValidationService.cs
     // Not reusing it directly because it does not validate against the model
-    private async Task ValidateAgentSpec(AgentSpec spec, AgentValidationResult result)
+    private async Task ValidateAgentSpec(AgentSpec spec, ApiValidationResult result)
     {
         if (string.IsNullOrEmpty(spec.Name))
         {

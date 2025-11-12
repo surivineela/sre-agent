@@ -459,7 +459,7 @@ export const useConsolidatedCreateIncidentHandler = (
             }
         }
 
-        if (!saveUpdateOrDeleteHandlerAction) {
+        if (!saveUpdateOrDeleteHandlerAction || isSubagentTrigger) {
             azPortalContext.stopNotification(notificationId, true, intl.formatMessage(notificationSuccessMessage));
             exitToHome();
             return;
@@ -540,6 +540,7 @@ export const useConsolidatedCreateIncidentHandler = (
         handlerCreateOrEditInfo?.filter,
         handler,
         incidentPlatformType,
+        isSubagentTrigger,
         values.filterName,
         values.incidentType,
         values.impactedService,

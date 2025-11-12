@@ -18,41 +18,41 @@ public interface IExtendedAgentValidator
     /// Validates an AgentDocumentModel.
     /// </summary>
     /// <param name="model">The agent model to validate.</param>
-    /// <returns>ApiCommandResult indicating success or validation errors.</returns>
-    Task<AgentValidationResult> ValidateAgentAsync(AgentDocumentModel model);
+    /// <returns>ApiValidationResult indicating success or validation errors.</returns>
+    Task<ApiValidationResult> ValidateAgentAsync(AgentDocumentModel model);
 
     /// <summary>
     /// Validates a ToolDocumentModel.
     /// </summary>
     /// <param name="model">The tool model to validate.</param>
-    /// <returns>ApiCommandResult indicating success or validation errors.</returns>
-    Task<AgentValidationResult> ValidateToolAsync(ToolDocumentModel model);
+    /// <returns>ApiValidationResult indicating success or validation errors.</returns>
+    Task<ApiValidationResult> ValidateToolAsync(ToolDocumentModel model);
 
     /// <summary>
     /// Validates a ConnectorDocumentModel.
     /// </summary>
     /// <param name="model">The connector model to validate.</param>
-    /// <returns>ApiCommandResult indicating success or validation errors.</returns>
-    Task<AgentValidationResult> ValidateConnectorAsync(ConnectorDocumentModel model);
+    /// <returns>ApiValidationResult indicating success or validation errors.</returns>
+    Task<ApiValidationResult> ValidateConnectorAsync(ConnectorDocumentModel model);
 
     /// <summary>
     /// Validates a PlugInConfigDocumentModel.
     /// </summary>
     /// <param name="model">The plugin config model to validate.</param>
-    /// <returns>ApiCommandResult indicating success or validation errors.</returns>
-    Task<AgentValidationResult> ValidatePluginConfigAsync(PlugInConfigDocumentModel model);
+    /// <returns>ApiValidationResult indicating success or validation errors.</returns>
+    Task<ApiValidationResult> ValidatePluginConfigAsync(PlugInConfigDocumentModel model);
 
     /// <summary>
     /// Validates a CommonPromptDocumentModel.
     /// </summary>
     /// <param name="model">The common prompt model to validate.</param>
-    /// <returns>ApiCommandResult indicating success or validation errors.</returns>
-    Task<AgentValidationResult> ValidateCommonPromptAsync(CommonPromptDocumentModel model);
+    /// <returns>ApiValidationResult indicating success or validation errors.</returns>
+    Task<ApiValidationResult> ValidateCommonPromptAsync(CommonPromptDocumentModel model);
 
     /// <summary>
     /// Validates a CommonToolsListDocumentModel.
     /// </summary>
     /// <param name="model">The common tools list model to validate.</param>
-    /// <returns>ApiCommandResult indicating success or validation errors.</returns>
-    Task<AgentValidationResult> ValidateCommonToolsListAsync(CommonToolsListDocumentModel model);
+    /// <returns>ApiValidationResult indicating success or validation errors.</returns>
+    Task<ApiValidationResult> ValidateCommonToolsListAsync(CommonToolsListDocumentModel model);
 }

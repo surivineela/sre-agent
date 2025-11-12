@@ -30,9 +30,9 @@ public class AgentValidationService
     /// <param name="agentDescriptor">The agent descriptor to validate</param>
     /// <param name="checkToolAvailability">Whether to check if referenced tools are available</param>
     /// <returns>Validation result with success status and any errors</returns>
-    public async Task<AgentValidationResult> ValidateAgentAsync(IAgentDescriptor? agentDescriptor, bool checkToolAvailability = false)
+    public async Task<ApiValidationResult> ValidateAgentAsync(IAgentDescriptor? agentDescriptor, bool checkToolAvailability = false)
     {
-        var result = new AgentValidationResult();
+        var result = new ApiValidationResult();
 
         if (agentDescriptor == null)
         {
@@ -63,9 +63,9 @@ public class AgentValidationService
     /// <param name="yamlContent">The YAML content to validate</param>
     /// <param name="checkToolAvailability">Whether to check tool availability</param>
     /// <returns>Combined parsing and validation result</returns>
-    public async Task<AgentValidationResult> ValidateYamlAsync(string yamlContent, bool checkToolAvailability = false)
+    public async Task<ApiValidationResult> ValidateYamlAsync(string yamlContent, bool checkToolAvailability = false)
     {
-        var result = new AgentValidationResult();
+        var result = new ApiValidationResult();
 
         try
         {
@@ -114,7 +114,7 @@ public class AgentValidationService
     /// <summary>
     /// Validates basic agent structure and required fields.
     /// </summary>
-    private static void ValidateBasicStructure(IAgentDescriptor agent, AgentValidationResult result)
+    private static void ValidateBasicStructure(IAgentDescriptor agent, ApiValidationResult result)
     {
         if (string.IsNullOrWhiteSpace(agent.Name))
         {
@@ -134,7 +134,7 @@ public class AgentValidationService
     /// <summary>
     /// Validates agent constraints and business rules.
     /// </summary>
-    private static void ValidateConstraints(IAgentDescriptor agent, AgentValidationResult result)
+    private static void ValidateConstraints(IAgentDescriptor agent, ApiValidationResult result)
     {
         // Validate instructions length
         if (!string.IsNullOrWhiteSpace(agent.Instructions))
@@ -251,7 +251,7 @@ public class AgentValidationService
     /// <summary>
     /// Validates that all referenced tools are available.
     /// </summary>
-    private async Task ValidateToolAvailabilityAsync(List<string> toolNames, AgentValidationResult result)
+    private async Task ValidateToolAvailabilityAsync(List<string> toolNames, ApiValidationResult result)
     {
         if (_toolChecker == null)
         {
@@ -358,7 +358,7 @@ public class GenericResourceModel
 /// <summary>
 /// Result of agent validation containing success status and any errors/warnings.
 /// </summary>
-public class AgentValidationResult
+public class ApiValidationResult
 {
     public bool IsValid => Errors.Count == 0;
     public List<string> Errors { get; } = new();
@@ -374,7 +374,7 @@ public class AgentValidationResult
         Warnings.Add(warning);
     }
 
-    public void MergeWith(AgentValidationResult other)
+    public void MergeWith(ApiValidationResult other)
     {
         Errors.AddRange(other.Errors);
         Warnings.AddRange(other.Warnings);

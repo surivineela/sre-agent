@@ -5,6 +5,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
+using Agent.Core.Validation;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Framework;
@@ -172,6 +173,15 @@ public class IncidentPlaygroundController : ControllerBase
             _logger.LogInternalWarning("CreateIncidentHandler: Invalid incident handler document");
             return BadRequest("Invalid incident handler document");
         }
+
+        var validationResult = ValidateIncidentHandler(document);
+        if (!validationResult.IsValid)
+        {
+            _logger.LogInternalInformation("CreateIncidentHandler: Validation failed for HandlerId: {HandlerId} with errors: {Errors}",
+                document.Id, string.Join(", ", validationResult.Errors));
+            return BadRequest($"Validation failed: {validationResult}");
+        }
+
         var existingHandler = await _incidentHandlerManagementService.GetIncidentHandler(document.Id);
         if (existingHandler != null)
         {
@@ -206,6 +216,15 @@ public class IncidentPlaygroundController : ControllerBase
             _logger.LogInternalWarning("SaveIncidentHandler: Invalid incident handler document");
             return BadRequest("Invalid incident handler document");
         }
+
+        var validationResult = ValidateIncidentHandler(document);
+        if (!validationResult.IsValid)
+        {
+            _logger.LogInternalInformation("CreateIncidentHandler: Validation failed for HandlerId: {HandlerId} with errors: {Errors}",
+                document.Id, string.Join(", ", validationResult.Errors));
+            return BadRequest($"Validation failed: {validationResult}");
+        }
+
         var existingHandler = await _incidentHandlerManagementService.GetIncidentHandler(document.Id);
         if (existingHandler == null)
         {
@@ -620,5 +639,17 @@ public class IncidentPlaygroundController : ControllerBase
                 target[property.Key] = property.Value.DeepClone();
             }
         }
+    }
+
+    private ApiValidationResult ValidateIncidentHandler(IncidentHandlerDocumentPayload payload)
+    {
+        var result = new ApiValidationResult();
+
+        if (payload.Tools?.Count > 30)
+        {
+            result.AddError("Incident handler cannot have more than 30 tools.");
+        }
+
+        return result;
     }
 }
