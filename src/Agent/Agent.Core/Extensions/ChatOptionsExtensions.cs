@@ -4,6 +4,7 @@
 
 using System.ClientModel.Primitives;
 using System.Text.Json;
+using Agent.Framework;
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 
@@ -18,12 +19,7 @@ public static class ChatOptionsExtensions
 
     public const string ParallelToolCallKey = "AllowParallelToolCalls";
 
-    public const string ReasoningEffortKey = "reasoning_effort";
-    public const string MinimalReasoningEffort = "minimal";
-    public const string LowReasoningEffort = "low";
-    public const string MediumReasoningEffort = "medium";
-    public const string HighReasoningEffort = "high";
-    public const string DefaultReasoningEffort = LowReasoningEffort;
+    public const string DefaultReasoningEffort = ReasoningConstants.LowReasoningEffort;
 
     public const string VerbosityKey = "verbosity";
     public const string DefaultVerbosityLevel = "low";
@@ -44,15 +40,13 @@ public static class ChatOptionsExtensions
         // handle properties for reasoning models
         // update options to reflect in logging
         var clientMetadata = chatClient.GetService<ChatClientMetadata>();
-        if (clientMetadata?.DefaultModelId is not null
-            && clientMetadata.DefaultModelId.Contains("gpt-5", StringComparison.OrdinalIgnoreCase)
-            && !clientMetadata.DefaultModelId.Contains("gpt-5-chat", StringComparison.OrdinalIgnoreCase))
+        if (IsReasoningModel(clientMetadata?.DefaultModelId))
         {
             // temperature not supported in reasoning models
             options.Temperature = 1;
 
             // use default reasoning effort if not specified in existing properties
-            options.AdditionalProperties.TryAdd(ReasoningEffortKey, DefaultReasoningEffort);
+            options.AdditionalProperties.TryAdd(FrameworkConstants.ReasoningEffortKey, DefaultReasoningEffort);
 
             // set to default verbosity level
             options.AdditionalProperties.TryAdd(VerbosityKey, DefaultVerbosityLevel);
@@ -84,27 +78,27 @@ public static class ChatOptionsExtensions
                 }
 
                 // reasoning effort: only supported for gpt-5 or other reasoning models
-                if (additionalProperties.TryGetValue(ReasoningEffortKey, out string? reasoningEffort)
+                if (additionalProperties.TryGetValue(FrameworkConstants.ReasoningEffortKey, out string? reasoningEffort)
                     && clientMetadata?.DefaultModelId is not null
                     && clientMetadata.DefaultModelId.Contains("gpt-5", StringComparison.OrdinalIgnoreCase)
                     && !clientMetadata.DefaultModelId.Contains("gpt-5-chat", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (string.Equals(LowReasoningEffort, reasoningEffort, StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(ReasoningConstants.LowReasoningEffort, reasoningEffort, StringComparison.OrdinalIgnoreCase))
                     {
                         completionOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Low;
                     }
-                    else if (string.Equals(HighReasoningEffort, reasoningEffort, StringComparison.OrdinalIgnoreCase))
+                    else if (string.Equals(ReasoningConstants.HighReasoningEffort, reasoningEffort, StringComparison.OrdinalIgnoreCase))
                     {
                         completionOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.High;
                     }
-                    else if (string.Equals(MediumReasoningEffort, reasoningEffort, StringComparison.OrdinalIgnoreCase))
+                    else if (string.Equals(ReasoningConstants.MediumReasoningEffort, reasoningEffort, StringComparison.OrdinalIgnoreCase))
                     {
                         completionOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Medium;
                     }
-                    else if (string.Equals(MinimalReasoningEffort, reasoningEffort, StringComparison.OrdinalIgnoreCase))
+                    else if (string.Equals(ReasoningConstants.MinimalReasoningEffort, reasoningEffort, StringComparison.OrdinalIgnoreCase))
                     {
                         // minimal reasoning is new, SDK hasn't yet updated to add a default for it
-                        completionOptions.ReasoningEffortLevel = new(MinimalReasoningEffort);
+                        completionOptions.ReasoningEffortLevel = new(ReasoningConstants.MinimalReasoningEffort);
                     }
                     else
                     {
@@ -164,6 +158,13 @@ public static class ChatOptionsExtensions
         options.Tools = selectedTools;
         options.ToolMode = ChatToolMode.Auto;
         return options;
+    }
+
+    public static bool IsReasoningModel(string? modelId)
+    {
+        return !string.IsNullOrEmpty(modelId)
+            && modelId.Contains("gpt-5", StringComparison.OrdinalIgnoreCase)
+            && !modelId.Contains("gpt-5-chat", StringComparison.OrdinalIgnoreCase);
     }
 
     // workaround for missing values in SDK

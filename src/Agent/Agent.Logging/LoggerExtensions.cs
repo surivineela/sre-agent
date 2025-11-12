@@ -242,7 +242,7 @@ public static partial class LoggerExtensions
     [LoggerMessage(
         EventId = 2001,
         Level = LogLevel.Information,
-        Message = "LLM Token Consumption: model: {Model}, modelVersion: {ModelVersion}, inputTokenUsed: {InputTokenUsed}, outputTokenUsed: {OutputTokenUsed}, cachedTokenUsed: {CachedTokenUsed}, reasoningTokenUsed: {ReasoningTokenUsed}")]
+        Message = "LLM Token Consumption: model: {Model}, modelVersion: {ModelVersion}, inputTokenUsed: {InputTokenUsed}, outputTokenUsed: {OutputTokenUsed}, cachedTokenUsed: {CachedTokenUsed}, reasoningTokenUsed: {ReasoningTokenUsed}, reasoningEffort: {ReasoningEffort}")]
     public static partial void LogTokenConsumption(
         this ILogger logger,
         string model,
@@ -250,5 +250,6 @@ public static partial class LoggerExtensions
         long inputTokenUsed,
         long outputTokenUsed,
         long cachedTokenUsed,
-        long reasoningTokenUsed);
+        long reasoningTokenUsed,
+        string reasoningEffort);
 }

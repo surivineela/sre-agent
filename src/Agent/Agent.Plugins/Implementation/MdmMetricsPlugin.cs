@@ -4,9 +4,10 @@
 
 using System.Globalization;
 using System.Text.Json;
+using Agent.Core;
 using Agent.Core.Configuration;
-using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Microsoft.Cloud.Metrics.Client;
@@ -17,7 +18,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Agent.Framework;
 using DimensionFilter = Microsoft.Cloud.Metrics.Client.Metrics.DimensionFilter;
 
 namespace Agent.Plugins;
@@ -472,7 +472,7 @@ public class MdmMetricsPlugin : IMdmMetricsPlugin
             Temperature = 0.2f,
             AdditionalProperties = new AdditionalPropertiesDictionary
             {
-                { ChatOptionsExtensions.ReasoningEffortKey, ChatOptionsExtensions.MinimalReasoningEffort }
+                { FrameworkConstants.ReasoningEffortKey, ReasoningConstants.MinimalReasoningEffort }
             }
         };
 

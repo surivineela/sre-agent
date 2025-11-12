@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
+using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
 using Agent.Core.Exceptions;
@@ -1419,14 +1420,14 @@ public class ReasoningLoop : IDisposable
             // Stream auto tools to avoid missing them (manual tools are handled separately)
             if (tool.GetToolMode() == ToolMode.Auto)
             {
-                var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
+                var callId = Framework.ToolStatic.AsyncLocalFunctionCallId.Value;
                 if (!string.IsNullOrEmpty(callId))
                 {
                     _logger.LogInternalInformation("Streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
                     var toolCallMessageId = Guid.NewGuid();
                     await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, (AIFunction)tool, toolCallMessageId, callId);
                     // Store the message ID for OnToolEnd to use
-                    ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
+                    Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
                 }
             }
         };
@@ -1443,16 +1444,16 @@ public class ReasoningLoop : IDisposable
             // Stream auto tool results to complete the streaming flow
             if (tool.GetToolMode() == ToolMode.Auto)
             {
-                var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
-                var toolCallMessageId = ToolStatic.AsyncLocalToolCallMessageId.Value;
+                var callId = Framework.ToolStatic.AsyncLocalFunctionCallId.Value;
+                var toolCallMessageId = Framework.ToolStatic.AsyncLocalToolCallMessageId.Value;
                 if (!string.IsNullOrEmpty(callId) && toolCallMessageId.HasValue)
                 {
                     _logger.LogInternalInformation("Streaming auto tool result: {ToolName} with CallId: {CallId}", tool.Name, callId);
                     var result = new FunctionResultContent(callId, output);
                     await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId.Value);
                     // Clear the stored IDs for next tool
-                    ToolStatic.AsyncLocalFunctionCallId.Value = null;
-                    ToolStatic.AsyncLocalToolCallMessageId.Value = null;
+                    Framework.ToolStatic.AsyncLocalFunctionCallId.Value = null;
+                    Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = null;
                 }
             }
 
@@ -1550,13 +1551,22 @@ public class ReasoningLoop : IDisposable
                 _logger.LogInternalWarning(ex, "Failed to parse output reasoning token count from AdditionalCounts");
             }
 
-            var tokenUsageObj = new
+            // get the effective reasoning effort for the request
+            var effectiveReasoningEffort = ReasoningConstants.NonReasoningModel;
+            if (ChatOptionsExtensions.IsReasoningModel(response?.ModelId))
             {
-                InputTokenCount = response?.Usage?.InputTokenCount ?? 0,
-                OutputTokenCount = response?.Usage?.OutputTokenCount ?? 0,
-                CachedTokenCount = cachedTokenCount,
-                ReasoningTokenCount = reasoningTokenCount,
-            };
+                effectiveReasoningEffort = string.IsNullOrEmpty(agent?.ReasoningEffortLevel)
+                    ? ChatOptionsExtensions.DefaultReasoningEffort
+                    : agent.ReasoningEffortLevel;
+            }
+
+            var tokenUsageObj = new TokenUsageParameters(
+                InputTokenCount: response?.Usage?.InputTokenCount ?? 0,
+                OutputTokenCount: response?.Usage?.OutputTokenCount ?? 0,
+                CachedTokenCount: cachedTokenCount,
+                ReasoningTokenCount: reasoningTokenCount,
+                ReasoningEffort: effectiveReasoningEffort
+            );
 
             _logger.LogAgentAction(
                 action: AgentActionEvents.GenerateModelResponse,
@@ -1671,6 +1681,13 @@ public class ReasoningLoop : IDisposable
 
         return message;
     }
+
+    public sealed record TokenUsageParameters(
+        long InputTokenCount,
+        long OutputTokenCount,
+        long CachedTokenCount,
+        long ReasoningTokenCount,
+        string ReasoningEffort);
 
     public sealed record ExecutionResult(
         bool RequiresApproval,
@@ -3009,7 +3026,7 @@ public class ReasoningLoop : IDisposable
             Id = Guid.NewGuid(),
             Title = title,
             ThreadId = threadId,
-            TriggerMessageId = ToolStatic.AsyncLocalToolCallMessageId.Value ?? Guid.NewGuid(),
+            TriggerMessageId = Framework.ToolStatic.AsyncLocalToolCallMessageId.Value ?? Guid.NewGuid(),
             Status = DeterminePlanStatus(todoItems),
             Items = todoItems,
             CreatedAt = now,

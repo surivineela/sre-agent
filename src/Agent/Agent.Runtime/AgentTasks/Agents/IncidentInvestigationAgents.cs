@@ -4,7 +4,7 @@
 
 using System.ComponentModel;
 using System.Text.Json;
-using Agent.Core.Extensions;
+using Agent.Core;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Runtime.AgentTasks.Handlers;
@@ -166,7 +166,7 @@ public static class IncidentInvestigationAgents
         {
             Instructions = GatheringContext.GetToolSelectionInstructions(toolFactory, is1PAgent, toolAllowList),
             OutputType = typeof(List<string>),
-            ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
+            ReasoningEffortLevel = ReasoningConstants.MinimalReasoningEffort
         };
     }
 
@@ -182,7 +182,7 @@ public static class IncidentInvestigationAgents
         {
             Instructions = HypothesisValidation.GetToolSelectionInstructions(toolFactory, incidentDescription, initialInvestigationSummary, toolAllowList),
             OutputType = typeof(List<string>),
-            ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
+            ReasoningEffortLevel = ReasoningConstants.MinimalReasoningEffort
         };
     }
 
@@ -268,7 +268,7 @@ public static class IncidentInvestigationAgents
                 FactoryTools = ["ToDoWrite", .. toolNames],
                 //FactoryTools = toolNames,
                 OutputType = typeof(InitialInvestigationResult),
-                ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
+                ReasoningEffortLevel = ReasoningConstants.MinimalReasoningEffort
             };
         }
 
@@ -363,7 +363,7 @@ public static class IncidentInvestigationAgents
                 </output>
                 """,
                 OutputType = typeof(List<HypothesisGenerationResult>),
-                ReasoningEffortLevel = ChatOptionsExtensions.LowReasoningEffort
+                ReasoningEffortLevel = ReasoningConstants.LowReasoningEffort
             };
         }
 
@@ -520,7 +520,7 @@ public static class IncidentInvestigationAgents
             """,
             FactoryTools = allTools,
             OutputType = typeof(HypothesisValidationResultV2),
-            ReasoningEffortLevel = ChatOptionsExtensions.LowReasoningEffort
+            ReasoningEffortLevel = ReasoningConstants.LowReasoningEffort
         };
     }
 
@@ -588,7 +588,7 @@ public static class IncidentInvestigationAgents
                 </output>
                 """,
                 OutputType = typeof(HypothesisValidationPlanOutput),
-                ReasoningEffortLevel = ChatOptionsExtensions.LowReasoningEffort
+                ReasoningEffortLevel = ReasoningConstants.LowReasoningEffort
             };
         }
 
@@ -769,7 +769,7 @@ public static class IncidentInvestigationAgents
                 """,
                 FactoryTools = toolNames,
                 OutputType = typeof(HypothesisPlanStepExecutionResult),
-                ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
+                ReasoningEffortLevel = ReasoningConstants.MinimalReasoningEffort
             };
         }
 
@@ -930,7 +930,7 @@ public static class IncidentInvestigationAgents
                 </output>
                 """,
                 OutputType = typeof(HypothesisResultSummaryOutput),
-                ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
+                ReasoningEffortLevel = ReasoningConstants.MinimalReasoningEffort
             };
         }
 
@@ -1054,7 +1054,7 @@ public static class IncidentInvestigationAgents
                 </output>
                 """,
                 OutputType = typeof(ConclusionResult),
-                ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
+                ReasoningEffortLevel = ReasoningConstants.MinimalReasoningEffort
             };
         }
 

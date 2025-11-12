@@ -4,7 +4,7 @@
 
 using System.Collections.Concurrent;
 using System.Text.Json;
-using Agent.Core.Extensions;
+using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Framework;
 using Agent.Plugins.Interface;
@@ -127,7 +127,7 @@ public class AzureMonitorMetricsPlugin : IAzureMonitorMetricsPlugin
             Temperature = (float)0.2,
             AdditionalProperties = new AdditionalPropertiesDictionary
             {
-                { ChatOptionsExtensions.ReasoningEffortKey, ChatOptionsExtensions.MinimalReasoningEffort }
+                { FrameworkConstants.ReasoningEffortKey, ReasoningConstants.MinimalReasoningEffort }
             }
         };
 

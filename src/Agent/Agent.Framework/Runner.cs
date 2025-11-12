@@ -630,7 +630,7 @@ public static class Runner
         if (chatClientMetaData?.DefaultModelId?.StartsWith("gpt-5") == true)
         {
             chatOptions.AdditionalProperties ??= [];
-            chatOptions.AdditionalProperties["reasoning_effort"] = agent.ReasoningEffortLevel;
+            chatOptions.AdditionalProperties[FrameworkConstants.ReasoningEffortKey] = agent.ReasoningEffortLevel;
         }
 
         // Anthropic models don't support structured outputs

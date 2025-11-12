@@ -1,9 +1,6 @@
+using Agent.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Agent.Data.AgentMemory;
 
@@ -64,7 +61,8 @@ public static class AgentMemoryEmbeddingGeneratorExtensions
                         generated.Usage.InputTokenCount ?? 0,
                         generated.Usage.OutputTokenCount ?? 0,
                         0, // CachedTokenCount not available on this Usage type
-                        0); // ReasoningTokenCount not available on this Usage type
+                        0, // ReasoningTokenCount not available on this Usage type
+                        ReasoningConstants.NonReasoningModel);
                 }
                 catch
                 {

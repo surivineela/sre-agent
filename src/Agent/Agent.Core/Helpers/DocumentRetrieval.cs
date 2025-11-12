@@ -1,10 +1,7 @@
-using System;
-using System.ComponentModel;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.AI;
-using Agent.Logging;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Helpers;
 
@@ -97,7 +94,8 @@ public static class DocumentRetrieval
                         generated.Usage.InputTokenCount ?? 0,
                         generated.Usage.OutputTokenCount ?? 0,
                         0, // CachedTokenCount not available on this Usage type
-                        0); // ReasoningTokenCount not available on this Usage type
+                        0, // ReasoningTokenCount not available on this Usage type
+                        ReasoningConstants.NonReasoningModel);
                 }
                 catch
                 {

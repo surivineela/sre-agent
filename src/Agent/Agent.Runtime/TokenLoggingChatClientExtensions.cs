@@ -2,6 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core;
+using Agent.Core.Extensions;
+using Agent.Framework;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -99,8 +102,10 @@ namespace Agent.Runtime
                     }
                 }
 
+                var effectiveReasoningEffort = GetEffectiveReasoningEffort(options, model);
+
                 // Log token consumption (structured record with model and modelVersion)
-                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, reasoningTokens);
+                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, reasoningTokens, effectiveReasoningEffort);
             }
             catch (Exception ex)
             {
@@ -110,10 +115,33 @@ namespace Agent.Runtime
             // Ensure we never return null to satisfy callers expecting a ChatResponse
             if (response == null)
             {
-                return new ChatResponse(new List<ChatMessage>());
+                return new ChatResponse([]);
             }
 
             return response;
+        }
+
+        private static string GetEffectiveReasoningEffort(ChatOptions? options, string model)
+        {
+            var effectiveReasoningEffort = ReasoningConstants.NonReasoningModel;
+            if (ChatOptionsExtensions.IsReasoningModel(model))
+            {
+                var reasoningEffortValue = default(object);
+                var reasoningKeyFound = options?.AdditionalProperties?.TryGetValue(FrameworkConstants.ReasoningEffortKey, out reasoningEffortValue) ?? false;
+                if (reasoningKeyFound
+                    && reasoningEffortValue is string effort
+                    && !string.IsNullOrEmpty(effort))
+                {
+                    effectiveReasoningEffort = effort;
+                }
+                else
+                {
+                    // if not provided, gpt models default to medium reasoning
+                    effectiveReasoningEffort = ReasoningConstants.MediumReasoningEffort;
+                }
+            }
+
+            return effectiveReasoningEffort;
         }
 
         public object? GetService(Type serviceType, object? serviceKey = null)
@@ -218,8 +246,10 @@ namespace Agent.Runtime
                     }
                 }
 
+                var effectiveReasoningEffort = GetEffectiveReasoningEffort(options, model);
+
                 // Log token consumption (structured record with model and modelVersion)
-                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, reasoningTokens);
+                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, reasoningTokens, effectiveReasoningEffort);
             }
             catch (Exception ex)
             {

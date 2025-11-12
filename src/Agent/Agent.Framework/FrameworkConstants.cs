@@ -20,4 +20,8 @@ public static class FrameworkConstants
     /// Format: "experiment1;experiment2"
     /// </summary>
     public const string ForceDisableExperimentsEnvVar = "FORCE_DISABLE_EXPERIMENTS";
+
+    // Reasoning effort for GPT-5 and other reasoning model calls
+    // Supported Values: minimal / low / medium / high
+    public const string ReasoningEffortKey = "reasoning_effort";
 }
