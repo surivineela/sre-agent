@@ -2,11 +2,11 @@ import { useIntl } from 'react-intl';
 import InputFormik from '../../../../../Common/Components/Input/InputFormik';
 import { ConnectorsResources, SreAgentResources } from '../../../../../Strings/SREAgentResources';
 
-interface NameInputWithValidationProps {
+interface NameInputProps {
     disabled: boolean;
 }
 
-export const NameInputWithValidation: React.FC<NameInputWithValidationProps> = ({ disabled }) => {
+export const NameInput: React.FC<NameInputProps> = ({ disabled }) => {
     const intl = useIntl();
 
     return (

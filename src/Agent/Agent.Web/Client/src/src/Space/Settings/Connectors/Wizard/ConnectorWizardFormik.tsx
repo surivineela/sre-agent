@@ -9,7 +9,7 @@ import { ConnectorsResources, SreAgentResources } from '../../../../Strings/SREA
 import { ConnectorType } from './Common/ConnectorType';
 import { getBearerTokenConnectionString, getCustomHeadersConnectionString } from './Common/CustomConnectorHelper';
 import { parseTeamsChannelLink } from './Common/TeamsConnectorHelper';
-import { kustoDataSourceExample } from './Common/UrlInputWithValidation';
+import { kustoDataSourceExample } from './Common/UrlInput';
 import { ConnectorWizard, StepKey } from './ConnectorWizard';
 
 const ENTITY_NAME_MAX_LENGTH = 64;

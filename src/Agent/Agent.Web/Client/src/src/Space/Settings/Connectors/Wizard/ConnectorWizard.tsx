@@ -82,7 +82,7 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
             },
             {
                 id: StepKey.ReviewAndAdd,
-                title: intl.formatMessage(ConnectorsResources.reviewAndCreate),
+                title: intl.formatMessage(ConnectorsResources.reviewAndAdd),
                 status: getStatus(StepKey.ReviewAndAdd),
             },
         ];

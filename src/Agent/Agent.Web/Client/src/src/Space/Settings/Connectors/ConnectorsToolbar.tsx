@@ -32,36 +32,21 @@ const ConnectorsToolbar: FC<ConnectorsToolbarProps> = ({
 
     return (
         <div className={styles.toolbar}>
-            <div className={styles.toolbarLeft}>
-                <PermissionedButton
-                    icon={<Add16Regular />}
-                    appearance="transparent"
-                    className={styles.button}
-                    canPerform={canWriteAgent}
-                    disabledReason={isOperationInProgress}
-                    noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionDataConnectors)}
-                    onClick={() => onNewConnectorClick()}
-                >
-                    {intl.formatMessage(ConnectorsResources.addConnector)}
-                </PermissionedButton>
-                <PermissionedButton
-                    icon={<Delete16Regular />}
-                    appearance="transparent"
-                    className={styles.button}
-                    canPerform={canWriteAgent}
-                    disabledReason={!isConnectorSelected || isOperationInProgress}
-                    noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionDataConnectors)}
-                    onClick={() => onDeleteConnectorClick()}
-                >
-                    {intl.formatMessage(SreAgentResources.remove)}
-                </PermissionedButton>
-                <Divider vertical />
-                <SearchBoxWithDebounce className={styles.searchBox} setSearchTerm={setSearchTerm} />
-            </div>
+            <PermissionedButton
+                icon={<Add16Regular />}
+                appearance="transparent"
+                className={styles.button}
+                canPerform={canWriteAgent}
+                disabledReason={isOperationInProgress}
+                noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionDataConnectors)}
+                onClick={() => onNewConnectorClick()}
+            >
+                {intl.formatMessage(ConnectorsResources.addConnector)}
+            </PermissionedButton>
             <Button
                 icon={<ArrowClockwise16Regular />}
                 appearance="transparent"
-                //className={styles.toolbarRefresh}
+                className={styles.button}
                 onClick={() => {
                     onRefreshClick();
                 }}
@@ -69,6 +54,19 @@ const ConnectorsToolbar: FC<ConnectorsToolbarProps> = ({
             >
                 {intl.formatMessage(SreAgentResources.refresh)}
             </Button>
+            <PermissionedButton
+                icon={<Delete16Regular />}
+                appearance="transparent"
+                className={styles.button}
+                canPerform={canWriteAgent}
+                disabledReason={!isConnectorSelected || isOperationInProgress}
+                noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionDataConnectors)}
+                onClick={() => onDeleteConnectorClick()}
+            >
+                {intl.formatMessage(SreAgentResources.remove)}
+            </PermissionedButton>
+            <Divider vertical className={styles.divider} />
+            <SearchBoxWithDebounce className={styles.searchBox} setSearchTerm={setSearchTerm} />
         </div>
     );
 };

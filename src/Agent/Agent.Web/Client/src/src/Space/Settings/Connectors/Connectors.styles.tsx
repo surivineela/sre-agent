@@ -19,16 +19,11 @@ export const useConnectorsStyles = makeStyles({
     toolbar: {
         display: 'flex',
         flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    toolbarLeft: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'start',
+        justifyContent: 'flex-start',
         gap: tokens.spacingHorizontalM,
     },
-    toolbarRefresh: {
-        minWidth: '20px',
+    divider: {
+        flexGrow: 0,
     },
     button: {
         fontWeight: tokens.fontWeightRegular,

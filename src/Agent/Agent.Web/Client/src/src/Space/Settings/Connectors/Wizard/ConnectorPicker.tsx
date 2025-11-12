@@ -1,4 +1,4 @@
-import { Button, Card, CardHeader, Text } from '@fluentui/react-components';
+import { Button, Card, CardHeader, mergeClasses, Text } from '@fluentui/react-components';
 import { Add20Regular } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
 import { useCallback, useMemo, useState } from 'react';
@@ -72,7 +72,9 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
 
     return (
         <>
-            <h2 className={`${styles.title} ${styles.connectorPickerTitle}`}>{intl.formatMessage(ConnectorsResources.chooseAConnector)}</h2>
+            <h2 className={mergeClasses(styles.title, styles.connectorPickerTitle)}>
+                {intl.formatMessage(ConnectorsResources.chooseAConnector)}
+            </h2>
             <div className={styles.searchBarContainer}>
                 <SearchBoxWithDebounce setSearchTerm={setSearchTerm} className={styles.searchBox} />
                 <Button appearance="secondary" icon={<Add20Regular />} onClick={onCustomMcpAdd}>

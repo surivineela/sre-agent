@@ -16,7 +16,7 @@ import { useApiConnection } from '../../Hooks/useApiConnection';
 import { useConsentLink } from '../../Hooks/useConsentLink';
 import { ConnectorType } from '../Common/ConnectorType';
 import { ManagedIdentityDropdownWithValidation } from '../Common/ManagedIdentityDropdownWithValidation';
-import { NameInputWithValidation } from '../Common/NameInputWithValidation';
+import { NameInput } from '../Common/NameInput';
 import { SetupConnectorFormWrapper } from '../Common/SetupConnectorFormWrapper';
 import { useConnectorWizardStyles } from '../ConnectorWizard.styles';
 import { ConnectorFormProps } from '../ConnectorWizardFormik';
@@ -125,7 +125,7 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
 
     return (
         <SetupConnectorFormWrapper>
-            <NameInputWithValidation disabled={isEditMode} />
+            <NameInput disabled={isEditMode} />
             <FieldWrapper
                 label={intl.formatMessage(ConnectorsResources.serviceAccount, { service: connectorService })}
                 required

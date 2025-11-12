@@ -122,7 +122,7 @@ export const ConnectorsDataGrid = ({
             createTableColumn<ConnectorWithService>({
                 columnId: 'name',
                 compare: (a, b) => a.name.localeCompare(b.name),
-                renderHeaderCell: () => intl.formatMessage(SreAgentResources.name),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(SreAgentResources.name)}</Text>,
                 renderCell: item =>
                     renderCellWithShimmer(item, [{ width: '200px', height: '16px' }], item => (
                         <TableCellLayout>
@@ -142,7 +142,7 @@ export const ConnectorsDataGrid = ({
             createTableColumn<ConnectorWithService>({
                 columnId: 'service',
                 compare: (a, b) => a.service.localeCompare(b.service),
-                renderHeaderCell: () => intl.formatMessage(ConnectorsResources.service),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ConnectorsResources.service)}</Text>,
                 renderCell: item =>
                     renderCellWithShimmer(item, [{ width: '100px', height: '14px' }], item => {
                         const connectorType = item.dataConnectorType as ConnectorType;
@@ -170,7 +170,7 @@ export const ConnectorsDataGrid = ({
             createTableColumn<ConnectorWithService>({
                 columnId: 'status',
                 compare: (_a, _b) => 0, // No sorting for now since data not available
-                renderHeaderCell: () => intl.formatMessage(ConnectorsResources.status),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ConnectorsResources.status)}</Text>,
                 renderCell: item =>
                     renderCellWithShimmer(item, [{ width: '90px', height: '16px' }], () => (
                         <TableCellLayout>
@@ -301,7 +301,7 @@ const ItemActionsMenu = ({ connector, onEdit, onDelete }: ItemActionsMenuProps) 
                             onEdit(connector);
                         }}
                     >
-                        {intl.formatMessage(SreAgentResources.edit)}
+                        {intl.formatMessage(ConnectorsResources.editConnector)}
                     </MenuItem>
                     <MenuItem
                         icon={<Delete16Regular />}
@@ -310,7 +310,7 @@ const ItemActionsMenu = ({ connector, onEdit, onDelete }: ItemActionsMenuProps) 
                             onDelete(connector.name);
                         }}
                     >
-                        {intl.formatMessage(SreAgentResources.delete)}
+                        {intl.formatMessage(ConnectorsResources.deleteConnector)}
                     </MenuItem>
                 </MenuList>
             </MenuPopover>

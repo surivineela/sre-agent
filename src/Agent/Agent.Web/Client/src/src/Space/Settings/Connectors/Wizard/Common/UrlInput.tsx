@@ -8,7 +8,7 @@ import { ConnectorType, getConnectorService } from './ConnectorType';
 
 export const kustoDataSourceExample = 'https://cluster-url/database-name';
 
-export const UrlInputWithValidation: React.FC = () => {
+export const UrlInput: React.FC = () => {
     const intl = useIntl();
 
     const { values } = useFormikContext<ConnectorFormProps>();
@@ -21,7 +21,7 @@ export const UrlInputWithValidation: React.FC = () => {
         }
 
         return connectorType
-            ? `${getConnectorService(connectorType, intl)} ${intl.formatMessage(ConnectorsResources.repositoryUrl)}`
+            ? intl.formatMessage(ConnectorsResources.serviceRepositoryUrl, { 0: getConnectorService(connectorType, intl) })
             : intl.formatMessage(ConnectorsResources.repositoryUrl);
     }, [connectorType, intl]);
 

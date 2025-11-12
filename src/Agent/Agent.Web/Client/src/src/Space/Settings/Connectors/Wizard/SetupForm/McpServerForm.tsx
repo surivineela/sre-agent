@@ -8,9 +8,9 @@ import EditableGridFormik from '../../../../../Common/Components/EditableGrid/Ed
 import InputFormik from '../../../../../Common/Components/Input/InputFormik';
 import { ConnectorsResources } from '../../../../../Strings/SREAgentResources';
 import { ConnectorType } from '../Common/ConnectorType';
-import { NameInputWithValidation } from '../Common/NameInputWithValidation';
+import { NameInput } from '../Common/NameInput';
 import { SetupConnectorFormWrapper } from '../Common/SetupConnectorFormWrapper';
-import { UrlInputWithValidation } from '../Common/UrlInputWithValidation';
+import { UrlInput } from '../Common/UrlInput';
 import { AuthType, ConnectorFormProps, CustomHeader } from '../ConnectorWizardFormik';
 
 interface McpServerFormProps {
@@ -78,8 +78,8 @@ export const McpServerForm: React.FC<McpServerFormProps> = props => {
 
     return (
         <SetupConnectorFormWrapper>
-            <NameInputWithValidation disabled={isEditMode} />
-            <UrlInputWithValidation />
+            <NameInput disabled={isEditMode} />
+            <UrlInput />
             <DropdownFormik
                 name="authType"
                 label={intl.formatMessage(ConnectorsResources.authenticationMethod)}

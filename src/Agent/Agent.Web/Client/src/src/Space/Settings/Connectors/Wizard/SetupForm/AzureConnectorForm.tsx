@@ -1,8 +1,8 @@
 import { MsiIdentity } from '../../../../../Common/Contracts/Azure/ArmObj';
 import { ManagedIdentityDropdownWithValidation } from '../Common/ManagedIdentityDropdownWithValidation';
-import { NameInputWithValidation } from '../Common/NameInputWithValidation';
+import { NameInput } from '../Common/NameInput';
 import { SetupConnectorFormWrapper } from '../Common/SetupConnectorFormWrapper';
-import { UrlInputWithValidation } from '../Common/UrlInputWithValidation';
+import { UrlInput } from '../Common/UrlInput';
 
 interface AzureConnectorFormProps {
     userAssignedIdentities: { id: string; name: string }[];
@@ -16,8 +16,8 @@ export const AzureConnectorForm: React.FC<AzureConnectorFormProps> = props => {
 
     return (
         <SetupConnectorFormWrapper>
-            <NameInputWithValidation disabled={isEditMode} />
-            <UrlInputWithValidation />
+            <NameInput disabled={isEditMode} />
+            <UrlInput />
             <ManagedIdentityDropdownWithValidation
                 userAssignedIdentities={userAssignedIdentities}
                 agentIdentity={agentIdentity}

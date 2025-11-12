@@ -74,7 +74,7 @@ export const ReviewAndAdd: React.FC<ReviewAndAddProps> = ({ userAssignedIdentiti
 
     return (
         <div className={styles.reviewAndAddContainer}>
-            <Label className={styles.title}>{intl.formatMessage(ConnectorsResources.reviewAndCreate)}</Label>
+            <Label className={styles.title}>{intl.formatMessage(ConnectorsResources.reviewAndAdd)}</Label>
             <VerticalLabelWithContent label={intl.formatMessage(ConnectorsResources.connectorCapital)}>
                 {selectedConnector && (
                     <Card>
