@@ -3587,6 +3587,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     parameterName: { defaultMessage: 'Parameter name', id: 'xLrAFR' },
     parameterNamePlaceholder: { defaultMessage: 'Enter the parameter name', id: '0hpRE4' },
     type: { defaultMessage: 'Type', id: '+U6ozc' },
+    value: { defaultMessage: 'Value', id: 'GufXy5' },
     runATestMessage: {
         defaultMessage: 'Run a test first to validate the query and ensure the agent can access Azure Data Explorer.',
         id: 'swe9tO',

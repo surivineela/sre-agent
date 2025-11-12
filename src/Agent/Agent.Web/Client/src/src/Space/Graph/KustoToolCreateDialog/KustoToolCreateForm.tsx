@@ -48,8 +48,9 @@ export const KustoToolCreateForm: FC<CreateFormProps> = ({ connectors }) => {
                     onOptionSelect={(_, data: OptionOnSelectData) => {
                         const connectorName = data.selectedOptions[0];
                         const connector = connectors.find(c => c.name === connectorName);
-                        // TODO: Check if dataSource parsing is correct
-                        const databaseName = connector?.dataSource.split('.kusto.windows.net/')[1] || '';
+                        // Parsing https://cluster-url/database-name
+                        const dataSourceSplit: string[] = connector?.dataSource.split('/') ?? [];
+                        const databaseName = dataSourceSplit[dataSourceSplit.length - 1] || '';
                         setFieldValue('connector', connectorName || '');
                         setFieldValue('database', databaseName || '');
                     }}

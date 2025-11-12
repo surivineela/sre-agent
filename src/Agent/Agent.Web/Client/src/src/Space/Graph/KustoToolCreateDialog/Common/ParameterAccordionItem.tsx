@@ -2,13 +2,12 @@ import {
     AccordionHeader,
     AccordionItem,
     AccordionPanel,
-    Button,
     Checkbox,
     CheckboxOnChangeData,
     OptionOnSelectData,
     Text,
 } from '@fluentui/react-components';
-import { DeleteRegular } from '@fluentui/react-icons';
+import { Delete20Regular } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
 import { FC, useCallback, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -106,19 +105,16 @@ export const ParameterAccordionItem: FC<ParameterAccordionItemProps> = ({ parame
                     <div>
                         <Text weight="semibold">{parameter?.name || parameterDefaultName}</Text>
                     </div>
-                    <div onClick={e => e.stopPropagation()}>
+                    <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center' }}>
                         <Checkbox
                             label={intl.formatMessage(ExtendedAgentsGraphResources.required)}
                             checked={parameterRequired}
                             onChange={onCheckRequired}
                         />
-                        <Button
-                            size="small"
-                            appearance="transparent"
-                            icon={<DeleteRegular />}
-                            aria-label={intl.formatMessage(SreAgentResources.delete)}
-                            onClick={onDelete}
-                        />
+                        {/* Error nesting <button> under AccordionHeader, which is also a <button>, so changing to div */}
+                        <div aria-label={intl.formatMessage(SreAgentResources.delete)} role="button" onClick={onDelete} tabIndex={0}>
+                            <Delete20Regular style={{ padding: '8px 2px 2px' }} />
+                        </div>
                     </div>
                 </div>
             </AccordionHeader>

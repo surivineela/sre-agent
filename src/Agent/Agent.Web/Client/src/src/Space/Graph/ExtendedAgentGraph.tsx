@@ -163,9 +163,10 @@ const ExtendedAgentGraphContent = memo(() => {
 
     const [isOperationInProgress, setIsOperationInProgress] = useState<boolean>(false);
     const [isScheduledTaskDialogOpen, setIsScheduledTaskDialogOpen] = useState(false);
-    const [startingAgent, setStartingAgent] = useState<string>();
+    const [scheduledTaskAgent, setScheduledTaskAgent] = useState<string>();
 
     const [isToolDialogOpen, setIsToolDialogOpen] = useState<boolean>(false);
+    const [createToolAgent, setCreateToolAgent] = useState<string>();
 
     const [currentView, setCurrentView] = useState<ExtendedAgentGraphView>(ExtendedAgentGraphView.Visual);
     const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
@@ -1201,7 +1202,7 @@ const ExtendedAgentGraphContent = memo(() => {
 
             if (action === 'addScheduledTask') {
                 setIsScheduledTaskDialogOpen(true);
-                setStartingAgent(agentName);
+                setScheduledTaskAgent(agentName);
                 return;
             }
 
@@ -1219,6 +1220,13 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
+            if (action === 'createTool') {
+                const agent = agents.find(a => a.name === agentName)!;
+                setCreateToolAgent(agent.name);
+                setIsToolDialogOpen(true);
+                return;
+            }
+
             if (action === 'createHandoffSourceAgent' || action === 'createHandoffTargetAgent' || action === 'editAgent') {
                 const agent = agents.find(a => a.name === agentName)!;
                 setAgentCreateOrEditInfo({
@@ -1230,11 +1238,6 @@ const ExtendedAgentGraphContent = memo(() => {
                               ? 'createTarget'
                               : 'edit',
                 });
-                return;
-            }
-
-            if (action === 'createTool') {
-                setIsToolDialogOpen(true);
                 return;
             }
 
@@ -1552,12 +1555,13 @@ const ExtendedAgentGraphContent = memo(() => {
 
             if (itemType === 'scheduledTask') {
                 setIsScheduledTaskDialogOpen(true);
-                setStartingAgent(undefined);
+                setScheduledTaskAgent(anchorEntity?.entityType === 'Agent' ? anchorEntity?.entityName : undefined);
                 return;
             }
 
             if (itemType === 'tool') {
                 setIsToolDialogOpen(true);
+                setCreateToolAgent(anchorEntity?.entityType === 'Agent' ? anchorEntity?.entityName : undefined);
                 return;
             }
 
@@ -1788,11 +1792,17 @@ const ExtendedAgentGraphContent = memo(() => {
                         setIsDialogOpen={setIsScheduledTaskDialogOpen}
                         mode={ScheduledTaskDialogMode.Create}
                         agents={agents}
-                        startingAgent={startingAgent}
+                        startingAgent={scheduledTaskAgent}
                     />
                 </ScheduledTasksContext.Provider>
 
-                <KustoToolCreateDialog isDialogOpen={isToolDialogOpen} setIsDialogOpen={setIsToolDialogOpen} connectors={connectors} />
+                <KustoToolCreateDialog
+                    isDialogOpen={isToolDialogOpen}
+                    setIsDialogOpen={setIsToolDialogOpen}
+                    connectors={connectors}
+                    agentName={createToolAgent}
+                    addToolsToAgent={addToolsToAgent}
+                />
 
                 <AddExistingAgentHandoffDialog
                     onDismiss={() => setAgentHandoffPickerInfo(undefined)}

@@ -14,7 +14,7 @@ import {
 } from '@fluentui/react-components';
 import { Dismiss24Regular, WarningFilled } from '@fluentui/react-icons';
 import { Formik } from 'formik';
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router-dom';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
@@ -30,18 +30,44 @@ interface KustoToolCreateDialogProps {
     isDialogOpen: boolean;
     setIsDialogOpen: (open: boolean) => void;
     connectors: ExtendedConnector[];
+    agentName?: string;
+    addToolsToAgent: (agentName: string, toolsNames: string[]) => void;
 }
 
-export const KustoToolCreateDialog: FC<KustoToolCreateDialogProps> = ({ isDialogOpen, setIsDialogOpen, connectors }) => {
+export const KustoToolCreateDialog: FC<KustoToolCreateDialogProps> = ({
+    isDialogOpen,
+    setIsDialogOpen,
+    connectors,
+    agentName,
+    addToolsToAgent,
+}) => {
     const intl = useIntl();
     const navigate = useNavigate();
     const styles = useKustoToolCreateDialogStyles();
-    const { initialValues, validationSchema, save } = useKustoToolSettings();
+    const { initialValues, validationSchema, save: saveKustoToolSettings } = useKustoToolSettings();
     const [hasSuccessRunTest, setHasSuccessRunTest] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (isDialogOpen) {
+            setHasSuccessRunTest(false);
+        }
+    }, [isDialogOpen]);
 
     return (
         <Dialog open={isDialogOpen} onOpenChange={(_, data) => setIsDialogOpen(data.open)} modalType="alert">
-            <Formik<KustoToolFormProps> initialValues={initialValues} validationSchema={validationSchema} onSubmit={save}>
+            <Formik<KustoToolFormProps>
+                initialValues={initialValues}
+                validationSchema={validationSchema}
+                onSubmit={async (values: KustoToolFormProps) => {
+                    const response = await saveKustoToolSettings(values);
+                    if (response?.isSuccessful) {
+                        setIsDialogOpen(false);
+                        if (agentName) {
+                            await addToolsToAgent(agentName, [values.name]);
+                        }
+                    }
+                }}
+            >
                 {({ submitForm, dirty, isValid }) => {
                     return (
                         <DialogSurface className={styles.dialogSurface}>

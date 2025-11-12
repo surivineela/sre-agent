@@ -316,24 +316,30 @@ export const ExtendedAgentInfoPanel = memo(
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHeaderCell className={styles.tableCellTruncate}>
-                                                <Text
-                                                    weight="semibold"
-                                                    className={styles.tableCellTextTruncate}
-                                                    title={intl.formatMessage(ExtendedAgentsGraphResources.parameter)}
-                                                >
-                                                    {intl.formatMessage(ExtendedAgentsGraphResources.parameter)}
+                                            <TableHeaderCell>
+                                                <Text weight="semibold">
+                                                    {intl.formatMessage(ExtendedAgentsGraphResources.parameterName)}
                                                 </Text>
+                                            </TableHeaderCell>
+                                            <TableHeaderCell>
+                                                <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.type)}</Text>
+                                            </TableHeaderCell>
+                                            <TableHeaderCell>
+                                                <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.value)}</Text>
                                             </TableHeaderCell>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {tool.parameters.map((param, index) => (
                                             <TableRow key={index}>
-                                                <TableCell className={styles.tableCellTruncate}>
-                                                    <div className={styles.flexRowCenter8}>
-                                                        <Text className={styles.tableCellTextTruncate}>{param}</Text>
-                                                    </div>
+                                                <TableCell>
+                                                    <Text>{param.name}</Text>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Text>{param.type}</Text>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Text>{param.value}</Text>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -348,23 +354,7 @@ export const ExtendedAgentInfoPanel = memo(
                     </>
                 );
             },
-            [
-                connectorMap,
-                intl,
-                styles.metadataRow,
-                styles.metadataKey,
-                styles.flexRowCenter,
-                styles.smallIcon,
-                styles.successIcon,
-                styles.errorIcon,
-                styles.paddingVertical10,
-                styles.subSection,
-                styles.sectionTitle,
-                styles.marginBottom8,
-                styles.subText,
-                styles.paddingBottom10,
-                styles.emptyState,
-            ]
+            [connectorMap, intl, styles]
         );
 
         const renderTriggerDetails = useCallback(

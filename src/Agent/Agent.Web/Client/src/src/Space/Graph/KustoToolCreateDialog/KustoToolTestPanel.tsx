@@ -4,7 +4,6 @@ import { useFormikContext } from 'formik';
 import { FC, useCallback, useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { ExtendedAgentClient } from '../../../Common/Clients/ExtendedAgentClient';
 import { ExtendedAgentsGraphResources } from '../../../Strings/SREAgentResources';
 import { TestValueAccordion } from './Common/TestValueAccordion';
@@ -27,20 +26,20 @@ export const KustoToolTestPanel: FC<KustoToolTestPanelProps> = ({ hasSuccessRunT
 
     const onRunTest = useCallback(async () => {
         setIsRunning(true);
-        try {
-            const response = await extendedAgentClient.testKustoTool(values);
-            if (response.isSuccessful) {
+        setHasSuccessRunTest(false);
+        setTestError(null);
+
+        const response = await extendedAgentClient.testKustoTool(values);
+        if (response.isSuccessful) {
+            if (response.content?.success) {
                 setHasSuccessRunTest(true);
             } else {
-                setTestError(response.error ?? null);
+                setTestError(response.content?.errorMessage ?? null);
             }
-        } catch (error) {
-            const errorMessage = getErrorMessage(error);
-            console.error('Test execution failed:', errorMessage);
-            setTestError(errorMessage);
-        } finally {
-            setIsRunning(false);
+        } else {
+            setTestError(response.error ?? null);
         }
+        setIsRunning(false);
     }, [extendedAgentClient, setHasSuccessRunTest, values]);
 
     return (

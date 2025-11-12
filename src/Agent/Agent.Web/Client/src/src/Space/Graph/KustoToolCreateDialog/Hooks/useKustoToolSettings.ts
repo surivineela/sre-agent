@@ -87,6 +87,7 @@ export const useKustoToolSettings = () => {
                         true,
                         intl.formatMessage(ExtendedAgentsGraphResources.toolCreatedSuccessfully)
                     );
+                    return response;
                 } else {
                     azPortalContext.stopNotification(
                         notificationId,

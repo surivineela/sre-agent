@@ -67,7 +67,13 @@ export class ExtendedAgentClient extends DataPlaneClient {
                     connector: tool.connector || '',
                     database: tool.database,
                     mode: tool.mode || 'query',
-                    parameters: tool.parameters,
+                    parameters: tool.parameters?.reduce(
+                        (acc, param) => {
+                            acc[param.name] = param.value;
+                            return acc;
+                        },
+                        {} as { [key: string]: any }
+                    ),
                 },
                 {
                     headers: getAgentHeaders(),
