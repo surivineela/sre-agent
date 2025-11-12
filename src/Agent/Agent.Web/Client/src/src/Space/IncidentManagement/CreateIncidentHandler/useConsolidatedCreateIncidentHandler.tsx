@@ -558,6 +558,8 @@ export const useConsolidatedCreateIncidentHandler = (
         values.incidentProcessingGuide,
 
         values.useCustomHandler,
+
+        values.deepInvestigationEnabled,
     ]);
 
     const exportHandler = useCallback(() => {

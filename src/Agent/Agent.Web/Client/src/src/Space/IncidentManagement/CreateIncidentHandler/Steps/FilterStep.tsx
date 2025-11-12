@@ -1,9 +1,26 @@
-import { Button, Checkbox, Dropdown, Field, Input, MessageBar, Option, Radio, RadioGroup, Text, tokens } from '@fluentui/react-components';
+import {
+    Button,
+    Checkbox,
+    Dropdown,
+    Field,
+    InfoLabel,
+    Input,
+    Link,
+    MessageBar,
+    MessageBarBody,
+    MessageBarTitle,
+    Option,
+    Radio,
+    RadioGroup,
+    Text,
+    tokens,
+} from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
+import { LearnMoreLinks } from '../../../../Common/Constants/Links';
 import { AgentMode, IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
-import { IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
+import { AgentTaskResources, IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { getPlatformSpecificStrings } from '../../Utilities';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
@@ -254,8 +271,18 @@ export const FilterStep: FC = () => {
                 </Field>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.enableDeepInvestigationTitle)}</Text>
-
+                    <InfoLabel
+                        info={
+                            <>
+                                {intl.formatMessage(AgentTaskResources.deepInvestigationDescription)}{' '}
+                                <Link href={LearnMoreLinks.deepInvestigation} target="_blank">
+                                    {intl.formatMessage(AgentTaskResources.learnMoreLinkText)}
+                                </Link>
+                            </>
+                        }
+                    >
+                        {intl.formatMessage(IncidentHandlerCreateResources.enableDeepInvestigationTitle)}
+                    </InfoLabel>
                     <Checkbox
                         name={'deepInvestigationEnabled'}
                         checked={values.deepInvestigationEnabled}
@@ -263,6 +290,19 @@ export const FilterStep: FC = () => {
                         label={intl.formatMessage(IncidentHandlerCreateResources.enableDeepInvestigationDescription)}
                         labelPosition="after"
                     />
+                    {values.deepInvestigationEnabled && (
+                        <MessageBar intent={'warning'} layout={'multiline'} style={{ maxWidth: '850px' }}>
+                            <MessageBarBody>
+                                <MessageBarTitle>{intl.formatMessage(AgentTaskResources.consumptionReminder)}</MessageBarTitle>
+                                <div>
+                                    {intl.formatMessage(AgentTaskResources.deepInvestigationWarning)}{' '}
+                                    <Link href={LearnMoreLinks.usage} target="_blank">
+                                        {intl.formatMessage(AgentTaskResources.usageLearnMoreLinkText)}
+                                    </Link>
+                                </div>
+                            </MessageBarBody>
+                        </MessageBar>
+                    )}
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

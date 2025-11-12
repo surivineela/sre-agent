@@ -190,6 +190,10 @@ export const SreAgentResources = defineMessages({
         id: '47FYwb',
         defaultMessage: 'Cancel',
     },
+    confirm: {
+        defaultMessage: 'Confirm',
+        id: 'N2IrpM',
+    },
     approved: {
         id: '6XFO/C',
         defaultMessage: 'Approved',
@@ -591,6 +595,7 @@ export const SreAgentResources = defineMessages({
     submitted: { defaultMessage: 'Submitted', id: 'raexxM' },
     rating: { defaultMessage: 'Rating', id: 'ETRyBL' },
     noAdditionalComments: { defaultMessage: 'No additional comments provided', id: 'wBh+z3' },
+    doYouWantToProceed: { defaultMessage: 'Do you want to proceed?', id: 'j0Ifob' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -721,14 +726,29 @@ export const AgentTaskResources = defineMessages({
         defaultMessage: 'Conclusion',
         id: 'ZjlBPk',
     },
-    deepInvestigationDialogContent: {
-        defaultMessage:
-            'Deep investigations require significant time to run and might result in high AAU consumption. Do you want to proceed?',
-        id: '3e2NSB',
+    deepInvestigationDescription: {
+        defaultMessage: 'The agent investigates complex issues and forms hypotheses to validate potential root causes.',
+        id: '1m4VPF',
+    },
+    deepInvestigationWarning: {
+        defaultMessage: 'Deep investigations require significant time to run and might result in high AAU consumption.',
+        id: 'vb6deF',
     },
     deepInvestigationDismissCheckboxLabel: {
         defaultMessage: "Don't show this message again",
         id: 'Vaj9nj',
+    },
+    learnMoreLinkText: {
+        defaultMessage: 'Learn more about deep investigations',
+        id: 'yRKsn1',
+    },
+    consumptionReminder: {
+        defaultMessage: 'AAU consumption reminder',
+        id: 'SeZ8eZ',
+    },
+    usageLearnMoreLinkText: {
+        defaultMessage: 'Learn more about AAU consumption and cost',
+        id: 'hGnjdE',
     },
 });
 
@@ -1417,6 +1437,16 @@ export const IncidentHandlerCreateResources = defineMessages({
     includedIncidentsLabel: { defaultMessage: 'Choose how to set up this incident response plan', id: 'gKi3tP' },
     includedIncidentsFutureOnly: { defaultMessage: 'Apply only to incidents triggered after the response plan is created', id: 'd1Cewp' },
     includedIncidentsPastAndFuture: { defaultMessage: 'Apply to all current and future active incidents', id: '0w0iFy' },
+    deepInvestigationDialogTitle: { defaultMessage: 'Turn on deep investigation?', id: '4IAjnN' },
+    deepInvestigationDialogContent: {
+        defaultMessage:
+            'A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption.',
+        id: 'J2Lcsz',
+    },
+    deepInvestigationDialogCheckboxLabel: {
+        defaultMessage: 'Yes, turn on deep investigation',
+        id: 'tFoDh3',
+    },
 });
 
 export const IncidentManagementResources = defineMessages({

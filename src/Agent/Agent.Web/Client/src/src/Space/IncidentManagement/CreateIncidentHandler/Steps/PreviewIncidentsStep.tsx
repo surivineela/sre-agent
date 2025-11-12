@@ -1,7 +1,23 @@
 import { IColumn } from '@fluentui/react';
-import { Button, Dropdown, Option, Text, tokens } from '@fluentui/react-components';
+import {
+    Button,
+    Checkbox,
+    CheckboxProps,
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
+    DialogTrigger,
+    Dropdown,
+    makeStyles,
+    Option,
+    Text,
+    tokens,
+} from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
-import { FC, useContext, useMemo } from 'react';
+import { FC, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentDocument } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
@@ -15,7 +31,8 @@ import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormVal
 
 export const PreviewIncidentsStep: FC = () => {
     const intl = useIntl();
-    const { dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
+    const { dirty, values, initialValues } = useFormikContext<IncidentHandlerCreateFormValues>();
+    const [showDeepInvestigationDialog, setShowDeepInvestigationDialog] = useState(false);
 
     const { isSubagentTrigger, incidentPlatformType, setCurrentStep, exitToHome, handlerLoaded, saveHandler, incidentsPreviewMetadata } =
         useContext(IncidentHandlerConsolidatedCreateContext);
@@ -137,6 +154,14 @@ export const PreviewIncidentsStep: FC = () => {
         ];
     }, [intl, incidentPlatformType]);
 
+    const onClickSaveButton = () => {
+        if (values.deepInvestigationEnabled && !initialValues.deepInvestigationEnabled) {
+            setShowDeepInvestigationDialog(true);
+        } else {
+            saveHandler();
+        }
+    };
+
     return (
         <>
             <div
@@ -162,7 +187,7 @@ export const PreviewIncidentsStep: FC = () => {
                     aria-label={intl.formatMessage(SreAgentResources.timeRange)}
                 >
                     {timespanDropdownOptions.map(option => (
-                        <Option value={option.key} checkIcon={null}>
+                        <Option key={option.key} value={option.key} checkIcon={null}>
                             {option.text}
                         </Option>
                     ))}
@@ -204,13 +229,79 @@ export const PreviewIncidentsStep: FC = () => {
                 >
                     {intl.formatMessage(IncidentHandlerCreateResources.back)}
                 </Button>
-                <Button appearance="primary" onClick={saveHandler} disabled={!dirty}>
+                <Button appearance="primary" onClick={onClickSaveButton} disabled={!dirty}>
                     {intl.formatMessage(isSubagentTrigger ? SreAgentResources.create : IncidentHandlerCreateResources.save)}
                 </Button>
                 <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
                     <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
                 </DirtyStateConfirmationWrapper>
             </div>
+            <DeepInvestigationDialog
+                isOpen={showDeepInvestigationDialog}
+                setIsOpen={setShowDeepInvestigationDialog}
+                saveHandler={saveHandler}
+            />
         </>
+    );
+};
+
+const useDialogStyles = makeStyles({
+    checkbox: {
+        marginTop: tokens.spacingVerticalM,
+        marginLeft: `calc(-1 * ${tokens.spacingHorizontalS})`,
+    },
+});
+
+const DeepInvestigationDialog = ({
+    isOpen,
+    setIsOpen,
+    saveHandler,
+}: {
+    isOpen: boolean;
+    setIsOpen: (isOpen: boolean) => void;
+    saveHandler: () => Promise<void>;
+}) => {
+    const intl = useIntl();
+
+    const styles = useDialogStyles();
+
+    const [isCheckboxChecked, setIsCheckboxChecked] = useState<CheckboxProps['checked']>(false);
+
+    useEffect(() => {
+        setIsCheckboxChecked(false);
+    }, [isOpen]);
+
+    return (
+        <Dialog open={isOpen} onOpenChange={(_, data) => setIsOpen(data.open)} modalType={'alert'}>
+            <DialogSurface>
+                <DialogBody>
+                    <DialogTitle>{intl.formatMessage(IncidentHandlerCreateResources.deepInvestigationDialogTitle)}</DialogTitle>
+                    <DialogContent>
+                        <div>
+                            {intl.formatMessage(IncidentHandlerCreateResources.deepInvestigationDialogContent)}{' '}
+                            {intl.formatMessage(SreAgentResources.doYouWantToProceed)}
+                        </div>
+                        <div className={styles.checkbox}>
+                            <Checkbox
+                                checked={isCheckboxChecked}
+                                onChange={(_, data) => setIsCheckboxChecked(data.checked)}
+                                label={intl.formatMessage(IncidentHandlerCreateResources.deepInvestigationDialogCheckboxLabel)}
+                            />
+                        </div>
+                    </DialogContent>
+
+                    <DialogActions fluid>
+                        <DialogTrigger>
+                            <Button appearance={'primary'} onClick={saveHandler} disabled={!isCheckboxChecked}>
+                                {intl.formatMessage(SreAgentResources.confirm)}
+                            </Button>
+                        </DialogTrigger>
+                        <DialogTrigger disableButtonEnhancement>
+                            <Button>{intl.formatMessage(SreAgentResources.cancel)}</Button>
+                        </DialogTrigger>
+                    </DialogActions>
+                </DialogBody>
+            </DialogSurface>
+        </Dialog>
     );
 };

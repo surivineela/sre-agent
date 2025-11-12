@@ -53,7 +53,10 @@ const ChatBoxDeepInvestigationDialog = (props: IChatBoxDeepInvestigationDialogPr
                 <DialogBody>
                     <DialogTitle>{intl.formatMessage(AgentTaskResources.deepInvestigation)}</DialogTitle>
                     <DialogContent>
-                        <div>{intl.formatMessage(AgentTaskResources.deepInvestigationDialogContent)}</div>
+                        <div>
+                            {intl.formatMessage(AgentTaskResources.deepInvestigationWarning)}{' '}
+                            {intl.formatMessage(SreAgentResources.doYouWantToProceed)}
+                        </div>
                         <div className={styles.checkbox}>
                             <Checkbox
                                 checked={isDialogDismissedChecked}

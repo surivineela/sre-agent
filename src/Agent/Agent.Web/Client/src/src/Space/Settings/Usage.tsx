@@ -44,6 +44,7 @@ import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalPr
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessage } from '../../Common/Clients/ArmClient';
 import SreAgentClient from '../../Common/Clients/SreAgentClient';
+import { LearnMoreLinks } from '../../Common/Constants/Links';
 import { DailyUsage } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
@@ -338,7 +339,7 @@ const Usage = () => {
                     <div>
                         <Body1>
                             <span className={styles.smallSpaceOnRight}>{intl.formatMessage(UsageResources.description)}</span>
-                            <Link href="https://go.microsoft.com/fwlink/?linkid=2339567" target="_blank">
+                            <Link href={LearnMoreLinks.usage} target="_blank">
                                 {intl.formatMessage(UsageResources.descriptionLinkText)}
                             </Link>
                         </Body1>
