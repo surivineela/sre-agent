@@ -200,6 +200,8 @@ handoff_description: |
   - Works ONLY with data explicitly provided to it (user data, pre-fetched metrics, etc.)
   - Operates in isolated sandbox with no network access
 
+  Files generated here are included in the tool output as links. Present them using Markdown link syntax
+
 tools:
   - ExecutePythonSnippet
   - GeneratePdfReport

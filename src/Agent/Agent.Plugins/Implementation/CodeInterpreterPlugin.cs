@@ -40,7 +40,11 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
     public async Task<string> ExecutePythonSnippetAsync(string pythonCode, int timeoutSeconds)
     {
         var validation = ValidatePython(pythonCode);
-        if (validation != null) return validation;
+        if (validation != null)
+        {
+            return validation;
+        }
+
         var identifier = BuildIdentifier();
         var execResp = await _sessionPoolService.ExecutePythonInlineAsync(pythonCode, identifier, timeoutSeconds);
 
@@ -70,66 +74,77 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
                     PropertyNameCaseInsensitive = true
                 });
 
-                if (filesResponse?.Files != null && filesResponse.Files.Count > 0)
+                if (filesResponse?.Value != null && filesResponse.Value.Count > 0)
                 {
                     sb.AppendLine();
                     sb.AppendLine("=== AUTO-RETRIEVED FILES ===");
 
-                    foreach (var file in filesResponse.Files)
+                    foreach (var fileWrapper in filesResponse.Value)
                     {
-                        // Skip if filename is empty or if it's a directory indicator
-                        if (string.IsNullOrWhiteSpace(file.Name) || file.Name.EndsWith('/'))
+                        if (fileWrapper.Properties == null)
+                        {
                             continue;
+                        }
+
+                        var file = fileWrapper.Properties;
+
+                        // Skip if filename is empty or if it's a directory indicator
+                        if (string.IsNullOrWhiteSpace(file.Filename) || file.Filename.EndsWith('/'))
+                        {
+                            continue;
+                        }
 
                         try
                         {
-                            var fileBytes = await _sessionPoolService.DownloadSessionFileAsync(identifier, file.Name);
+                            var fileBytes = await _sessionPoolService.DownloadSessionFileAsync(identifier, file.Filename);
 
                             var reportsDir = Path.Combine(AppContext.BaseDirectory, "reports");
                             Directory.CreateDirectory(reportsDir);
-                            var targetPath = Path.Combine(reportsDir, Path.GetFileName(file.Name));
+                            var targetPath = Path.Combine(reportsDir, Path.GetFileName(file.Filename));
                             await File.WriteAllBytesAsync(targetPath, fileBytes);
 
-                            var extension = Path.GetExtension(file.Name).ToLowerInvariant();
-                            var relativeLink = $"/api/files/{Uri.EscapeDataString(Path.GetFileName(file.Name))}";
+                            var extension = Path.GetExtension(file.Filename).ToLowerInvariant();
+                            var relativeLink = $"/api/files/{Uri.EscapeDataString(Path.GetFileName(file.Filename))}";
 
                             // Check if it's an image file (matplotlib, seaborn, PIL outputs)
                             if (extension is ".png" or ".jpg" or ".jpeg" or ".gif" or ".svg" or ".webp" or
                                 ".bmp" or ".tiff" or ".tif" or ".ico" or ".eps" or ".ps")
                             {
-                                sb.AppendLine($"📊 Image: ![{Path.GetFileName(file.Name)}]({relativeLink})");
+                                sb.AppendLine($"📊 Image: ![{Path.GetFileName(file.Filename)}]({relativeLink})");
                             }
                             // Data files and spreadsheets
                             else if (extension is ".csv" or ".tsv" or ".xlsx" or ".xls" or ".xlsm" or ".ods" or
                                      ".json" or ".xml" or ".yaml" or ".yml")
                             {
-                                sb.AppendLine($"📊 Data: [Download {Path.GetFileName(file.Name)}]({relativeLink})");
+                                sb.AppendLine($"📊 Data: [Download {Path.GetFileName(file.Filename)}]({relativeLink})");
                             }
                             // Documents and reports
                             else if (extension is ".pdf" or ".html" or ".htm" or ".md" or ".docx" or ".doc" or
                                      ".pptx" or ".ppt" or ".txt" or ".rtf")
                             {
-                                sb.AppendLine($"📄 Document: [Download {Path.GetFileName(file.Name)}]({relativeLink})");
+                                sb.AppendLine($"📄 Document: [Download {Path.GetFileName(file.Filename)}]({relativeLink})");
                             }
                             // Code and notebooks
                             else if (extension is ".py" or ".ipynb" or ".r" or ".sql" or ".sh")
                             {
-                                sb.AppendLine($"� Code: [Download {Path.GetFileName(file.Name)}]({relativeLink})");
+                                sb.AppendLine($"� Code: [Download {Path.GetFileName(file.Filename)}]({relativeLink})");
                             }
                             // Archives and scientific data
                             else if (extension is ".zip" or ".tar" or ".gz" or ".h5" or ".hdf5" or ".nc" or
                                      ".mat" or ".npz" or ".pkl" or ".pickle")
                             {
-                                sb.AppendLine($"🗜️ Archive/Data: [Download {Path.GetFileName(file.Name)}]({relativeLink})");
+                                sb.AppendLine($"🗜️ Archive/Data: [Download {Path.GetFileName(file.Filename)}]({relativeLink})");
                             }
                             else
                             {
-                                sb.AppendLine($"📁 File: [Download {Path.GetFileName(file.Name)}]({relativeLink})");
+                                sb.AppendLine($"📁 File: [Download {Path.GetFileName(file.Filename)}]({relativeLink})");
                             }
+
+                            sb.AppendLine("To make these files available to the user, they must be presented in markdown syntax. eg: [FileName.txt](/api/files/FileName.txt). Else users would not be able to download these files");
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogInternalWarning($"Failed to auto-retrieve file '{file.Name}': {ex.Message}");
+                            _logger.LogInternalWarning($"Failed to auto-retrieve file '{file.Filename}': {ex.Message}");
                             // Don't fail the whole operation if one file fails
                         }
                     }
@@ -297,13 +312,18 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
     // Internal classes for JSON deserialization
     private class FilesListResponse
     {
-        public List<FileMetadata>? Files { get; set; }
+        public List<FileItemWrapper>? Value { get; set; }
+    }
+
+    private class FileItemWrapper
+    {
+        public FileMetadata? Properties { get; set; }
     }
 
     private class FileMetadata
     {
-        public string Name { get; set; } = string.Empty;
+        public string Filename { get; set; } = string.Empty;
         public long? Size { get; set; }
-        public DateTime? Modified { get; set; }
+        public DateTime? LastModifiedTime { get; set; }
     }
 }
