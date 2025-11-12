@@ -1,8 +1,11 @@
 import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import { ThreadClient } from '../../../Common/Clients/ThreadClient';
 import { TimeRangeValue, TimespanKeys } from '../../../Common/Components/PillFilter/Contracts';
+import { IncidentFilter } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { IncidentThreadCounts, Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
 import { getTimespanInMilliseconds } from '../../../Common/Helpers/Date';
@@ -111,6 +114,7 @@ export const useIncidentThreadList = (
     refresh?: number
 ) => {
     const [hasAnyIncidents, setHasAnyIncidents] = useState<boolean>();
+    const [filtersMap, setFiltersMap] = useState<Map<string, IncidentFilter>>(new Map());
     const [threadCounts, setThreadCounts] = useState<IncidentThreadCounts>();
     const [threads, setThreads] = useState<Thread[]>(initialThreads || []);
     const [moreThreadsToLoad, setMoreThreadsToLoad] = useState<boolean>(true);
@@ -120,7 +124,12 @@ export const useIncidentThreadList = (
 
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const portalContext = useContext(AzPortalContext);
     const threadClient = useMemo(() => ThreadClient.getInstance(sreAgentEndpoint), [sreAgentEndpoint]);
+    const incidentHandlerClient = useMemo(
+        () => IncidentHandlerClient.getInstance(sreAgentEndpoint, portalContext.log.bind(portalContext)),
+        [sreAgentEndpoint, portalContext]
+    );
 
     const threadCount = useRef<number>(0);
     const loadThreadsCallTimestamp = useRef<string>(new Date().toISOString());
@@ -378,12 +387,19 @@ export const useIncidentThreadList = (
                     sortDescending
                 );
 
-                const [initialThreadsResponse, threadCountsResponse] = await Promise.all([initialThreadsPromise, threadCountsPromise]);
+                const filtersPromise = await incidentHandlerClient.listIncidentFilters();
 
-                const initialThreads = initialThreadsResponse.content ?? [];
-                const threadCounts = threadCountsResponse.content;
+                const [initialThreadsResponse, threadCountsResponse, filtersResponse] = await Promise.all([
+                    initialThreadsPromise,
+                    threadCountsPromise,
+                    filtersPromise,
+                ]);
 
                 if (isSubscribed) {
+                    const initialThreads = initialThreadsResponse.content ?? [];
+                    const threadCounts = threadCountsResponse.content;
+                    const filterList = filtersResponse.content ?? [];
+
                     // Do not set moreThreadsToLoad to false if the initial threads response is not successful.
                     if (initialThreadsResponse.isSuccessful && initialThreads.length === 0) {
                         setMoreThreadsToLoad(false);
@@ -393,6 +409,11 @@ export const useIncidentThreadList = (
                     setThreads(totalThreads);
                     setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
                     setThreadCounts(threadCounts);
+                    const filtersSet = new Map<string, IncidentFilter>();
+                    filterList.forEach(filter => {
+                        filtersSet.set(filter.id, filter);
+                    });
+                    setFiltersMap(filtersSet);
                     setIsLoadingInitialThreadsAndCounts(false);
                 }
 
@@ -416,10 +437,12 @@ export const useIncidentThreadList = (
         hasChatPermissions,
         getInitialThreads,
         getThreadCounts,
+        incidentHandlerClient,
         refresh,
     ]);
 
     return {
+        filtersMap,
         hasAnyIncidents,
         threadCounts,
 

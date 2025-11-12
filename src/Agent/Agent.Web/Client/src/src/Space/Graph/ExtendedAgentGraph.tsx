@@ -1693,10 +1693,7 @@ const ExtendedAgentGraphContent = memo(() => {
 
                             {showEmptyState ? (
                                 <ExtendedAgentEmptyState
-                                    onCreateClick={() => {
-                                        setCreationDialogContext(undefined);
-                                        setIsCreationDialogOpen(true);
-                                    }}
+                                    onCreateClick={() => setAgentCreateOrEditInfo({ agent: undefined, mode: 'create' })}
                                 />
                             ) : (
                                 <>{renderGraphContent()}</>

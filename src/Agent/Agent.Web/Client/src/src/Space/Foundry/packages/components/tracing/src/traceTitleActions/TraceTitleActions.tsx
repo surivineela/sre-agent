@@ -10,5 +10,5 @@ interface ITraceTitleActions {
 
 export function TraceTitleActions({ threadId }: ITraceTitleActions): JSX.Element | undefined {
     const styles = useTraceTitleActionsStyles();
-    return threadId ? <div className={styles.titleActions}>{threadId ? <MetricsBadge label={threadId} /> : null}</div> : undefined;
+    return threadId ? <div className={styles.titleActions}>{<MetricsBadge label={threadId} />}</div> : undefined;
 }

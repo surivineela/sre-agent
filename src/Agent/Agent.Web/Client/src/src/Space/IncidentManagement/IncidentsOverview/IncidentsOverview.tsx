@@ -202,6 +202,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     }, [selectedThreadInfo, incidentHandlerClient]);
 
     const {
+        filtersMap,
         hasAnyIncidents,
         threadCounts,
         threads: incidentThreads,
@@ -602,15 +603,25 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                     const bVal = getColumnInfo(IncidentsListColumnKey.handler).getColumnValue(b) as string;
                     return aVal.localeCompare(bVal);
                 },
-                renderHeaderCell: () => (
-                    <span style={{ fontWeight: 600 }}>{intl.formatMessage(IncidentManagementResources.responsePlanName)}</span>
-                ),
+                renderHeaderCell: () => <span style={{ fontWeight: 600 }}>{intl.formatMessage(IncidentManagementResources.handler)}</span>,
                 renderCell: item => {
-                    const handlerText = getColumnInfo(IncidentsListColumnKey.handler).getColumnValue(item) as string;
+                    const filterId = getColumnInfo(IncidentsListColumnKey.handler).getColumnValue(item) as string;
+                    const filterMatch = !filterId || filterId === '-' ? undefined : filtersMap.get(filterId);
+
+                    if (filterMatch?.handlingAgent) {
+                        return (
+                            <TableCellLayout truncate>
+                                <Tooltip content={filterMatch.handlingAgent} relationship="label">
+                                    <span>{filterMatch.handlingAgent}</span>
+                                </Tooltip>
+                            </TableCellLayout>
+                        );
+                    }
+
                     return (
                         <TableCellLayout truncate>
-                            <Tooltip content={handlerText} relationship="label">
-                                <span>{handlerText}</span>
+                            <Tooltip content={filterId} relationship="label">
+                                <span>{filterId}</span>
                             </Tooltip>
                         </TableCellLayout>
                     );
@@ -619,7 +630,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
         );
 
         return cols;
-    }, [intl, onRenderTitle, platformSpecificStrings, incidentPlatformType]);
+    }, [intl, onRenderTitle, platformSpecificStrings, incidentPlatformType, filtersMap]);
 
     const restoreFocusSourceAttributes = useRestoreFocusSource();
 

@@ -1,4 +1,4 @@
-import { Button, Checkbox, Dropdown, Field, Input, Option, Radio, RadioGroup, Text, tokens } from '@fluentui/react-components';
+import { Button, Dropdown, Field, Input, Option, Radio, RadioGroup, Text, tokens } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -303,19 +303,6 @@ export const IncidentTriggerStep: FC = () => {
                             />
                         </RadioGroup>
                     </Field>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.enableDeepInvestigationTitle)}</Text>
-
-                        <Checkbox
-                            name={'deepInvestigationEnabled'}
-                            checked={values.deepInvestigationEnabled}
-                            onChange={(_, data) => setFieldValue('deepInvestigationEnabled', data.checked)}
-                            label={intl.formatMessage(IncidentHandlerCreateResources.enableDeepInvestigationDescription)}
-                            labelPosition="after"
-                            disabled={disableAllFields}
-                        />
-                    </div>
                 </div>
             </div>
             <div
