@@ -1,20 +1,16 @@
-using System;
-using System.Collections.Generic;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Data;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Framework;
-using Agent.Graph.Interfaces;
 using Agent.Logging;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PagerDutyIncident = Agent.Graph.Interfaces.PagerDutyIncident;
@@ -96,7 +92,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
     protected override async Task<AIRootCauseResponse> GetRootCauseCategory(string filterId, PagerDutyIncident incident, CancellationToken cancellationToken = default)
     {
         var filterRootCauseDocument = await GetDocumentAsync(filterId, IncidentFilterAIRootCauseUtilities.GetDocumentType(IncidentManagementType.PagerDuty));
-        var existingRootCauses = filterRootCauseDocument?.RootCauses ?? new List<RootCauseCategory>();
+        var existingRootCauses = filterRootCauseDocument?.RootCauses ?? [];
 
         var aiRootCauseResponse = await GetAIRootCause(incident, existingRootCauses);
         var rootCauseCategory = new RootCauseCategory(aiRootCauseResponse.RootCause, aiRootCauseResponse.Description);
@@ -111,7 +107,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
                 FilterId = filterId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                RootCauses = new List<RootCauseCategory> { rootCauseCategory }
+                RootCauses = [rootCauseCategory]
             };
 
             _ = await _container.CreateItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);

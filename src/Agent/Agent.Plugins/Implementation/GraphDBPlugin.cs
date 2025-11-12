@@ -60,7 +60,7 @@ namespace Agent.Plugins
 
         private const string MermaidServiceAPI = "https://mermaid-renderer.salmonhill-ad96bd78.eastus2.azurecontainerapps.io/render";
 
-        private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new(StringComparer.OrdinalIgnoreCase)
         {
             { "microsoft.app/containerapps", "azure-container-apps-container-app-view" },
             { "microsoft.storage/storageaccounts", "azure-insights-storage-accounts" },
@@ -1761,8 +1761,8 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 var resourceGroupName = resourceIdentifier.ResourceGroupName;
 
                 var credential = await _authService.GetArmOperationCredential();
-                var defaultToken = credential.GetToken(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None).Token;
-                var defaultTokenCredentials = new Microsoft.Rest.TokenCredentials(defaultToken);
+                var defaultToken = credential.GetToken(new TokenRequestContext(["https://management.azure.com/.default"]), CancellationToken.None).Token;
+                var defaultTokenCredentials = new TokenCredentials(defaultToken);
                 var azureCredentials = new Microsoft.Azure.Management.ResourceManager.Fluent.Authentication.AzureCredentials(defaultTokenCredentials, defaultTokenCredentials, null, AzureEnvironment.AzureGlobalCloud);
 
                 var restClient = RestClient.Configure()
@@ -2034,19 +2034,19 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         {
             try
             {
-                var messages = new List<Microsoft.Extensions.AI.ChatMessage>();
+                var messages = new List<ChatMessage>();
                 var prompt = $"Please analyze the dashboard screenshot for the dashboard at {dashboardUrl}. " +
                              $"Based on the visual data, provide a concise summary of the resource's health and any notable observations.";
 
                 _logger.LogInternalInformation("Sending screenshot data to LLM for summarization for dashboard: {DashboardUrl}", dashboardUrl);
-                messages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, prompt));
+                messages.Add(new ChatMessage(ChatRole.System, prompt));
                 var screenshot = Convert.FromBase64String(base64Screenshot);
                 var content = new List<AIContent>
                     {
                         new Microsoft.Extensions.AI.TextContent($"This is a screenshot of the dashboard: {dashboardUrl}"),
                         new DataContent(screenshot, "image/png")
                     };
-                messages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, content));
+                messages.Add(new ChatMessage(ChatRole.User, content));
 
                 var options = new ChatOptions
                 {
@@ -2172,7 +2172,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
             var armCred = await _authService.GetArmOperationCredential();
             var token = armCred.GetToken(
-                new TokenRequestContext(new[] { "https://management.azure.com/.default" }), ct).Token;
+                new TokenRequestContext(["https://management.azure.com/.default"]), ct).Token;
 
             using var http = new HttpClient();
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -2307,7 +2307,7 @@ Respond in a concise, structured format with bullet points and short sentences."
                 // Build Track1 RestClient with ARM token
                 var armCred = await _authService.GetArmOperationCredential();
                 var token = armCred.GetToken(
-                    new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
+                    new TokenRequestContext(["https://management.azure.com/.default"]),
                     CancellationToken.None).Token;
 
                 var tokenCreds = new TokenCredentials(token);
@@ -2595,7 +2595,7 @@ Respond in a concise, structured format with bullet points and short sentences."
             // Get ARM token via your existing auth service
             var credential = await _authService.GetArmOperationCredential();
             var token = credential.GetToken(
-                new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
+                new TokenRequestContext(["https://management.azure.com/.default"]),
                 CancellationToken.None).Token;
 
             var tokenCreds = new TokenCredentials(token);
@@ -2643,7 +2643,7 @@ Provide a detailed analysis including:
 2. **Operation Timeline**: Chronological sequence of all related operations
 3. **Change Details**: Specific changes made including:
    - Configuration changes
-   - Resource modifications  
+   - Resource modifications
    - Parameter changes
    - Template updates
 4. **Who Made Changes**: Identity of users/services that made changes
@@ -2677,7 +2677,7 @@ Focus on extracting actionable information about what specifically changed. Look
         {
             var armCred = await _authService.GetArmOperationCredential();
             var token = armCred.GetToken(
-                new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
+                new TokenRequestContext(["https://management.azure.com/.default"]),
                 CancellationToken.None).Token;
 
             using var http = new HttpClient();
@@ -2771,7 +2771,7 @@ resourcechanges
 
                 // Build KQL query to get the specific resource
                 var query = $@"
-                    Resources 
+                    Resources
                     | where id =~ '{resourceId}'
                     | project id, name, type, kind, location, resourceGroup, subscriptionId, properties, tags
                 ";

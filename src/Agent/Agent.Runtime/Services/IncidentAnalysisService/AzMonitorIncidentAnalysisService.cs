@@ -6,19 +6,12 @@ using System.Data;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Data.DataModels.IncidentModel;
 using Agent.Framework;
 using Agent.Logging;
-using Kusto.Data;
 using Microsoft.Azure.Cosmos;
-using Microsoft.AzureAd.Icm.Types;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Models;
-using Microsoft.TeamFoundation.Build.WebApi;
-using Newtonsoft.Json;
 
 namespace Agent.Runtime.Services;
 
@@ -80,7 +73,7 @@ public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMo
     {
         string status;
         status = azMonitorIncident.Status.ToLower();
-        var isMitigatedByAgent = (status == "resolved" || status == "closed") && (azMonitorIncident.Tags.Contains("SREAgent_Resolved"));
+        var isMitigatedByAgent = (status == "resolved" || status == "closed") && azMonitorIncident.Tags.Contains("SREAgent_Resolved");
         return isMitigatedByAgent;
     }
 
@@ -103,7 +96,7 @@ public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMo
         try
         {
             var filterRootCauseDocument = await GetDocumentAsync(filterId, IncidentFilterAIRootCauseUtilities.GetDocumentType(IncidentManagementType.AzMonitor));
-            var existingRootCauses = filterRootCauseDocument?.RootCauses ?? new List<RootCauseCategory>();
+            var existingRootCauses = filterRootCauseDocument?.RootCauses ?? [];
 
             var aiRootCauseResponse = await GetAIRootCause(incident, existingRootCauses);
             var rootCauseCategory = new RootCauseCategory(aiRootCauseResponse.RootCause, aiRootCauseResponse.Description);
@@ -118,7 +111,7 @@ public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMo
                     FilterId = filterId,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    RootCauses = new List<RootCauseCategory> { rootCauseCategory }
+                    RootCauses = [rootCauseCategory]
                 };
 
                 _ = await _container.CreateItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);

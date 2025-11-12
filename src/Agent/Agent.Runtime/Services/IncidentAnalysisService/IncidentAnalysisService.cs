@@ -1,28 +1,19 @@
-using System;
-using System.Collections.Generic;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Data;
-using System.Globalization;
-using System.Net;
-using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
-using Agent.Core.Models.ServiceNow;
-using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Framework;
-using Agent.Graph.Interfaces;
-using Agent.Graph.Services;
 using Agent.Logging;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Drives.Item.Items.Item.Workbook.Functions.FindB;
-using Microsoft.Graph.Models.Security;
 using Newtonsoft.Json;
 using JsonConvert = Newtonsoft.Json.JsonConvert;
 
@@ -120,7 +111,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
 
 
         _incidentRootCausePrompt = @"Analyze the following incident and, from the provided details of the investigation and resolution steps, provide a generic root cause category that
-            the incident falls into. The root cause category should be a few words, 5 at most. 
+            the incident falls into. The root cause category should be a few words, 5 at most.
 
             IMPORTANT: Create a GENERIC description that can be reused for similar incidents. The description should:
             - Expand upon the root cause category with general circumstances and patterns
@@ -130,7 +121,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
 
             Example: Instead of 'Database timeout on UserService at 3:15 PM', use 'Database performance degradation causing timeout errors under high load conditions'
 
-            If one of the provided existing root cause categories matches this incident, choose the most suitable one. If there is no suitable category out of the provided options, create a new one. 
+            If one of the provided existing root cause categories matches this incident, choose the most suitable one. If there is no suitable category out of the provided options, create a new one.
             Return the response as a JSON object strictly in the following schema: { ""RootCause"": ""<root cause category>"", ""Description"": ""<generic description of the root cause category>"" }
             Do not include any additional text outside of the JSON response.";
         _incidentGeneralSummaryPrompt = @"From the provided details, analyze the following incident and provide a general summary in a few short sentences.
@@ -267,7 +258,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
                 customEvents
                 | where timestamp > ago(60d) and name == ""IncidentActivitySnapshot""
                 | where tostring(customDimensions.IncidentId) == ""{incidentDoc.Id}""
-                | extend IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), 
+                | extend IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId),
                     RunMode = tostring(customDimensions.AgentAutonomyLevel), IsHandlerCustom = tostring(customDimensions.ResponsePlanCustom), UpdatedAt = tostring(customDimensions.IncidentUpdatedOn),
                     HandledAt = tostring(customDimensions.IncidentHandledOn), HandlerCreatedAt = tostring(customDimensions.ResponsePlanCreatedOn), HandlerUpdatedAt = tostring(customDimensions.ResponsePlanUpdatedOn),
                     IncidentPlatform = tostring(customDimensions.IncidentPlatform)
@@ -293,7 +284,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             }
             else
             {
-                Core.Helpers.DataTableResponseObject? dt = dataSet.Tables.FirstOrDefault();
+                DataTableResponseObject? dt = dataSet.Tables.FirstOrDefault();
                 if (dt == null)
                 {
                     return new DataTable();
@@ -304,7 +295,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
                     column.Type = "dynamic";
                 }
 
-                var dataTable = Agent.Core.Helpers.DataTableExtensions.ToDataTable(dt);
+                var dataTable = Core.Helpers.DataTableExtensions.ToDataTable(dt);
                 return dataTable;
             }
         }
@@ -320,7 +311,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
         DateTime? handlerCreatedOn = filterDoc?.CreatedAt;
         DateTime? handlerUpdatedOn = filterDoc?.UpdatedAt;
         string runMode = !string.IsNullOrWhiteSpace(filterDoc?.AgentMode) ? filterDoc.AgentMode : "review";
-        bool isHandlerCustom = !string.IsNullOrWhiteSpace(handlerDoc?.CustomInstructions) ? true : false;
+        bool isHandlerCustom = !string.IsNullOrWhiteSpace(handlerDoc?.CustomInstructions);
 
         var snapshot = new IncidentAIData
         {
@@ -377,7 +368,6 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
 
             var results = dataTable.Rows[0];
 
-
             return results["HandlerId"]?.ToString() ?? string.Empty;
         }
         catch (Exception ex)
@@ -417,9 +407,9 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
 
     protected async Task<AIRootCauseResponse> GetAIRootCause(TIncident incident, List<RootCauseCategory> existingRootCauses)
     {
-        var rootCausesForPrompt = existingRootCauses.Select(rc => new { Category = rc.Category, Description = rc.Description }).ToList();
+        var rootCausesForPrompt = existingRootCauses.Select(rc => new { rc.Category, rc.Description }).ToList();
 
-        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
+        var messages = new List<ChatMessage>
         {
             new(ChatRole.System, "You are an expert in incident analysis."),
             new(ChatRole.User, @$"{_incidentRootCausePrompt}:\n\n{await IncidentOverview(incident)}"),
@@ -451,7 +441,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
 
     protected async Task<string> GetAIResponse(string prompt)
     {
-        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
+        var messages = new List<ChatMessage>
         {
             new(ChatRole.System, prompt)
         };
@@ -460,7 +450,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
         {
             ToolMode = ChatToolMode.None,
             Temperature = 0.2f,
-            ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
+            ResponseFormat = ChatResponseFormat.Text,
         };
 
         var reply = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, options);
@@ -470,7 +460,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
 
     protected async Task<string> GetIncidentAIResponse(string prompt, TIncident incident)
     {
-        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
+        var messages = new List<ChatMessage>
         {
             new(ChatRole.System, "You are an expert in incident analysis."),
             new(ChatRole.User, @$"{prompt}:\n\n{await IncidentOverview(incident)}")
@@ -480,7 +470,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
         {
             ToolMode = ChatToolMode.None,
             Temperature = 0.2f,
-            ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
+            ResponseFormat = ChatResponseFormat.Text,
         };
 
         var reply = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, options);

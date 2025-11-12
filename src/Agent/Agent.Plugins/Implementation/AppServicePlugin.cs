@@ -9,6 +9,7 @@ using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation;
+
 public class AppServicePlugin : IAppServicePlugin
 {
     private readonly IGraphDatabaseClient _databaseClient;
@@ -41,7 +42,7 @@ public class AppServicePlugin : IAppServicePlugin
 
             var result = await _databaseClient.Query(query);
 
-            if (result == null || !result.Any())
+            if (result == null || result.Count == 0)
             {
                 _logger.LogInternalWarning($"App Service with ID '{resourceId}' not found in graph database.");
                 return null;
@@ -101,7 +102,7 @@ public class AppServicePlugin : IAppServicePlugin
 
             var result = await _databaseClient.Query(query);
 
-            if (result == null || !result.Any())
+            if (result == null || result.Count == 0)
             {
                 _logger.LogInternalInformation($"No app services found for subscription {subscriptionId} in graph database.");
                 return appServices;

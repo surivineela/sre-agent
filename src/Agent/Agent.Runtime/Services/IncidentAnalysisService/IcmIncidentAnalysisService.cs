@@ -1,17 +1,16 @@
-using System;
-using System.Collections.Generic;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Data;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Framework;
-using Agent.Graph.Interfaces;
 using Agent.Logging;
 using Microsoft.Azure.Cosmos;
 using Microsoft.AzureAd.Icm.Types;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;

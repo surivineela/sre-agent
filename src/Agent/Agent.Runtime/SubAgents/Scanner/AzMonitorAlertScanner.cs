@@ -5,7 +5,6 @@
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Data.DataModels.IncidentModel;
@@ -14,7 +13,6 @@ using Agent.Runtime.Services;
 using Azure.Core;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.Scanner;
@@ -177,7 +175,7 @@ public class AzMonitorScanner(
                     string.Equals(incidentStatus, AzMonitorIncidentStatus.Resolved.ToString(), StringComparison.OrdinalIgnoreCase)) &&
                     (string.IsNullOrWhiteSpace(updatedDoc.AIRootCause) || string.IsNullOrWhiteSpace(updatedDoc.RootCauseDescription) || string.IsNullOrWhiteSpace(updatedDoc.GeneralSummary)))
                 {
-                    // if resolved by itself without agent action, set the value 
+                    // if resolved by itself without agent action, set the value
                     if (updatedDoc.ResolvedAt == null)
                     {
                         updatedDoc.ResolvedAt = DateTime.UtcNow;
