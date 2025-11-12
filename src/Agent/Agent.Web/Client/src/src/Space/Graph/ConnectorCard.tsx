@@ -1,5 +1,4 @@
 import { Card, mergeClasses, Text, tokens } from '@fluentui/react-components';
-import { MoreHorizontal16Regular } from '@fluentui/react-icons';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -117,7 +116,6 @@ export const ConnectorCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) =>
                             <Text className={nameText}>{data?.name}</Text>
                             <Text className={subtitleText}>{intl.formatMessage(ExtendedAgentsGraphResources.connector)}</Text>
                         </div>
-                        <MoreHorizontal16Regular />
                     </div>
 
                     <div className={badgeRow}>{statusBadgeElement}</div>

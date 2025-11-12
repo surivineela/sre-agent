@@ -1,5 +1,4 @@
 import { Badge, Card, mergeClasses, Text } from '@fluentui/react-components';
-import { MoreHorizontal16Regular } from '@fluentui/react-icons';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext } from 'react';
 import {
@@ -81,11 +80,10 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
             <Card onClick={() => setSelectedNode(data)} className={cardStyles}>
                 <div className={cardContent}>
                     <div className={titleRow}>
-                        <EntityIcon type="tool" iconStyle={{ height: '24px', width: '24px' }} />
+                        <EntityIcon type={isSystemTool ? 'tool' : 'toolWithGear'} iconStyle={{ height: '24px', width: '24px' }} />
                         <div className={nameBlock}>
                             <Text className={nameText}>{data?.name}</Text>
                         </div>
-                        <MoreHorizontal16Regular />
                         {!isSystemTool && tool?.connector && (
                             <Badge appearance="outline" size="tiny">
                                 {tool.connector}

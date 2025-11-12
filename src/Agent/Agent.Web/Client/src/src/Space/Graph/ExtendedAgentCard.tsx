@@ -1,5 +1,4 @@
 import { Badge, Card, mergeClasses, Text } from '@fluentui/react-components';
-import { MoreHorizontal16Regular } from '@fluentui/react-icons';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
@@ -102,7 +101,6 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
                                     )}
                                 </Text>
                             </div>
-                            <MoreHorizontal16Regular />
                         </div>
                         <div className={badgeRow}>
                             <Badge appearance="outline" size="small" className={badge}>
