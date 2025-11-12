@@ -2,25 +2,25 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Helpers;
-using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Graph.Crawler.ARM;
-using Agent.Plugins.Implementation;
-using Agent.Plugins.Models;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Moq.Protected;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
-using Xunit;
-using Gremlin.Net.Driver;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
-using Agent.Logging;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
+using Agent.Graph.Crawler.ARM;
+using Agent.Logging;
+using Agent.Plugins.Implementation;
+using Agent.Plugins.Models;
+using Gremlin.Net.Driver;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Moq.Protected;
+using Xunit;
 
 namespace Agent.Tests.Unit.Plugins.Implementation
 {

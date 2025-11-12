@@ -87,7 +87,7 @@ internal sealed class TimeSeriesRequest
         }
     }
 
-    private static DateTime NormalizeToMinute(DateTime utc) => 
+    private static DateTime NormalizeToMinute(DateTime utc) =>
         new(DateTime.SpecifyKind(utc, DateTimeKind.Utc).Ticks / TimeSpan.TicksPerMinute * TimeSpan.TicksPerMinute, DateTimeKind.Utc);
 }
 

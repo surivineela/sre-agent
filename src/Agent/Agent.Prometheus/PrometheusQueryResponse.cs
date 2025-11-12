@@ -2,9 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text.Json.Serialization;
 using System.Runtime.Serialization;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Agent.Prometheus;
 
@@ -46,13 +46,13 @@ public abstract record QueryResponseData(
 public record MatrixResultItem(
     [property: JsonPropertyName("metric"), JsonRequired] Dictionary<string, string> Metric, // Prometheus metric name and labels
     [property: JsonPropertyName("values"), JsonRequired] List<MetricItem> Values // List of values, where each value is a tuple of (timestamp, value)
-    // todo: support histograms
+                                                                                 // todo: support histograms
 );
 
 public record VectorResultItem(
     [property: JsonPropertyName("metric"), JsonRequired] Dictionary<string, string> Metric, // Prometheus metric name and labels
     [property: JsonPropertyName("value"), JsonRequired] MetricItem Value // Single value, where value is a tuple of (timestamp, value)
-    // todo : support histogram
+                                                                         // todo : support histogram
 );
 
 

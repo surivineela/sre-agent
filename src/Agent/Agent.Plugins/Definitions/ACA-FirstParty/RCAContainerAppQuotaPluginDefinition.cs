@@ -24,7 +24,7 @@ namespace Agent.Plugins.Definitions
             _env = env;
         }
 
-                [Description("""
+        [Description("""
 Purpose:
 Retrieves subscription details including billing and organization information.
 
@@ -42,12 +42,12 @@ Returns a JSON object with subscription details:
 """
 )]
         public async Task<SubscriptionDetail?> GetSubscriptionDetail(
-            [Description("Subscription ID.")] string subscriptionId)
+    [Description("Subscription ID.")] string subscriptionId)
         {
             return await _icmWorkflowClient.GetSubscriptionDetail(subscriptionId);
         }
 
-                [Description("""
+        [Description("""
 Purpose:
 Retrieves usage details for a subscription, including environment and container app counts.
 
@@ -63,12 +63,12 @@ Returns a JSON object with usage statistics:
 """
 )]
         public async Task<AcaSubscriptionUsage?> GetSubscriptionUsage(
-            [Description("Subscription ID.")] string subscriptionId)
+    [Description("Subscription ID.")] string subscriptionId)
         {
             return await _icmWorkflowClient.GetSubscriptionUsage(subscriptionId);
         }
 
-                [Description("""
+        [Description("""
 Purpose:
 Retrieves the quota limit for a subscription in a specific region and quota type.
 
@@ -81,14 +81,14 @@ Returns a string containing the quota limit value:
 """
 )]
         public async Task<string> GetSubscriptionQuota(
-            [Description("Subscription ID.")] string subscriptionId,
-            [Description("Azure region.")] AzureRegion region,
-            [Description("Quota type.")] string quotaType)
+    [Description("Subscription ID.")] string subscriptionId,
+    [Description("Azure region.")] AzureRegion region,
+    [Description("Quota type.")] string quotaType)
         {
             return await _icmWorkflowClient.GetSubscriptionQuota(subscriptionId, region, quotaType);
         }
 
-                [Description("""
+        [Description("""
 Purpose:
 Sets the quota limit for a subscription in a specific region and quota type.
 
@@ -101,10 +101,10 @@ Returns a string indicating if the operation was successful:
 """
 )]
         public async Task<string> SetSubscriptionQuota(
-            [Description("Subscription ID.")] string subscriptionId,
-            [Description("Azure region.")] AzureRegion region,
-            [Description("Quota type.")] string quotaType,
-            [Description("Target quota limit.")] string quotaLimit)
+    [Description("Subscription ID.")] string subscriptionId,
+    [Description("Azure region.")] AzureRegion region,
+    [Description("Quota type.")] string quotaType,
+    [Description("Target quota limit.")] string quotaLimit)
         {
             if (_env.IsDevelopment())
             {
@@ -113,7 +113,7 @@ Returns a string indicating if the operation was successful:
             return await _icmWorkflowClient.SetSubscriptionQuota(subscriptionId, region, quotaType, quotaLimit);
         }
 
-                [Description("""
+        [Description("""
 Purpose:
 Retrieves the quota limit for a container app environment in a specific region and quota type.
 
@@ -126,14 +126,14 @@ Returns a string containing the quota limit value:
 """
 )]
         public async Task<string> GetEnvironmentQuota(
-            [Description("Resource URL of the container app environment.")] string environmentResourceURL,
-            [Description("Azure region.")] AzureRegion region,
-            [Description("Quota type.")] string quotaType)
+    [Description("Resource URL of the container app environment.")] string environmentResourceURL,
+    [Description("Azure region.")] AzureRegion region,
+    [Description("Quota type.")] string quotaType)
         {
             return await _icmWorkflowClient.GetEnvironmentQuota(environmentResourceURL, region, quotaType);
         }
 
-                [Description("""
+        [Description("""
 Purpose:
 Sets the quota limit for a managed environment.
 
@@ -147,11 +147,11 @@ Returns a JSON object with operation details:
 """
 )]
         public async Task<string> SetEnvironmentQuota(
-            [Description("Incident ID.")] string incidentId,
-            [Description("Resource URL of the container app environment.")] string environmentResourceURL,
-            [Description("Azure region.")] AzureRegion region,
-            [Description("Quota type.")] string quotaType,
-            [Description("Target quota limit.")] string quotaLimit)
+    [Description("Incident ID.")] string incidentId,
+    [Description("Resource URL of the container app environment.")] string environmentResourceURL,
+    [Description("Azure region.")] AzureRegion region,
+    [Description("Quota type.")] string quotaType,
+    [Description("Target quota limit.")] string quotaLimit)
         {
             if (_env.IsDevelopment())
             {
@@ -178,14 +178,15 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetRegionalConsumptionGpuQuotaAndUsagePercentage()
-        { 
+        {
             return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetRegionalConsumptionGpuQuotaAndUsage",
                 "legioneus.eastus", "legion",
-                new Dictionary<string, string> {
+                new Dictionary<string, string>
+                {
                 });
         }
 
-                [Description("""
+        [Description("""
 Purpose:
 Retrieves the result of a set quota operation for a managed environment.
 
@@ -200,8 +201,8 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetEnvironmentQuotaOperationResult(
-            [Description("Operation ID (trace ID).")] string operationId,
-            [Description("Azure region.")] AzureRegion region)
+    [Description("Operation ID (trace ID).")] string operationId,
+    [Description("Azure region.")] AzureRegion region)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetEnvironmentQuotaOperationResult", region,
             new Dictionary<string, string> {
@@ -209,7 +210,7 @@ Returns tab-separated table data in CSV format. Column headers:
             });
         }
 
-                [Description("""
+        [Description("""
 Purpose:
 Validates a quota request based on quota type, region, target limit, and subscription.
 
@@ -224,11 +225,11 @@ Returns a JSON object with validation details:
 """
 )]
         public async Task<string> ValidateQuotaRequest(
-            [Description("Quota type.")] string quotaType,
-            [Description("Subscription ID.")] string subscriptionId,
-            [Description("Azure region.")] AzureRegion region,
-            [Description("Target quota limit.")] string targetQuotaLimit,
-            [Description("Managed environment resource URI (optional).")] string environmentResourceURL = "")
+    [Description("Quota type.")] string quotaType,
+    [Description("Subscription ID.")] string subscriptionId,
+    [Description("Azure region.")] AzureRegion region,
+    [Description("Target quota limit.")] string targetQuotaLimit,
+    [Description("Managed environment resource URI (optional).")] string environmentResourceURL = "")
         {
             var subscriptionDetails = await _icmWorkflowClient.GetSubscriptionDetail(subscriptionId);
 

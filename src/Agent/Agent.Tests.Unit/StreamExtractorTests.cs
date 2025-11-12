@@ -184,11 +184,11 @@ public class StreamExtractorTests
         Assert.Equal("Line 2\t", extractedChunks[1]);
 
         await extractor.AppendAsync(irregularChunks[8]); // "Tabbed\\"
-                                              // The backslash at the end is cached because it could be start of escape sequence
+                                                         // The backslash at the end is cached because it could be start of escape sequence
         Assert.Equal(2, extractedChunks.Count); // "Tabbed" not yet emitted due to trailing backslash
 
         await extractor.AppendAsync(irregularChunks[9]); // "n🚀 Rocket"
-                                              // Now "\n" is complete and can be processed along with the rest
+                                                         // Now "\n" is complete and can be processed along with the rest
         Assert.Equal(3, extractedChunks.Count);
         Assert.Equal("Tabbed\n🚀 Rocket", extractedChunks[2]);
 

@@ -630,7 +630,7 @@ Example structure:
 
         // Add a tag to indicate the agent has started processing
         await AddTagToIncident(incidentId, AgentProcessingTag);
-        await AddTagToIncident(incidentId,$"SREAgentResource: {AgentName}");
+        await AddTagToIncident(incidentId, $"SREAgentResource: {AgentName}");
 
         //ICMAlertConfig alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
 

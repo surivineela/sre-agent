@@ -2,8 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.AzureAd.Icm.Types;
 using System;
+using Microsoft.AzureAd.Icm.Types;
 using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
 
 namespace Agent.Data.DataModels;
@@ -141,7 +141,7 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
     }
 
     public List<DescriptionEntry> DiscussionEntries { get; set; } = new List<DescriptionEntry>();
-    
+
     public string ExtractedKnowledge { get; set; } = string.Empty;
 
     public DateTime? MitigatedAt => MitigateData?.MitigateTime?.UtcDateTime;

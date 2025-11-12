@@ -161,7 +161,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
             {
                 _logger.LogInternalWarning("[IcmIncidentHandlingService] GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
                 var lastestIncidentData = await _icmApiClient.GetIncidentAsync(incidentId);
-                icmIncidentData =  new IcmIncidentDocument(lastestIncidentData);
+                icmIncidentData = new IcmIncidentDocument(lastestIncidentData);
             }
             _logger.LogInternalInformation("[IcmIncidentHandlingService] GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
             return icmIncidentData;

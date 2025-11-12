@@ -2,8 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Plugins.Interface;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation;

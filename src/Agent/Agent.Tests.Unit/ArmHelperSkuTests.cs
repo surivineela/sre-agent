@@ -28,17 +28,17 @@ namespace Agent.Tests.Unit
         {
             // Use reflection to call the private static methods
             var armHelperType = typeof(ArmHelper);
-            
+
             var getFamilyMethod = armHelperType.GetMethod("GetFamilyFromSku", BindingFlags.NonPublic | BindingFlags.Static);
             var getTierMethod = armHelperType.GetMethod("GetTierFromSku", BindingFlags.NonPublic | BindingFlags.Static);
-            
+
             Assert.NotNull(getFamilyMethod);
             Assert.NotNull(getTierMethod);
-            
+
             // Test family extraction
             var actualFamily = getFamilyMethod.Invoke(null, new object[] { sku });
             Assert.Equal(expectedFamily, actualFamily);
-            
+
             // Test tier extraction
             var actualTier = getTierMethod.Invoke(null, new object[] { sku });
             Assert.Equal(expectedTier, actualTier);
@@ -49,17 +49,17 @@ namespace Agent.Tests.Unit
         {
             // Test null input separately
             var armHelperType = typeof(ArmHelper);
-            
+
             var getFamilyMethod = armHelperType.GetMethod("GetFamilyFromSku", BindingFlags.NonPublic | BindingFlags.Static);
             var getTierMethod = armHelperType.GetMethod("GetTierFromSku", BindingFlags.NonPublic | BindingFlags.Static);
-            
+
             Assert.NotNull(getFamilyMethod);
             Assert.NotNull(getTierMethod);
-            
+
             // Test family extraction with null (should handle gracefully)
             var actualFamily = getFamilyMethod.Invoke(null, new object?[] { null });
             Assert.Equal("Unknown", actualFamily);
-            
+
             // Test tier extraction with null (should handle gracefully)
             var actualTier = getTierMethod.Invoke(null, new object?[] { null });
             Assert.Equal("Unknown", actualTier);
@@ -70,19 +70,19 @@ namespace Agent.Tests.Unit
         {
             var armHelperType = typeof(ArmHelper);
             var extractFamilyMethod = armHelperType.GetMethod("ExtractFamilyFromUnknownSku", BindingFlags.NonPublic | BindingFlags.Static);
-            
+
             Assert.NotNull(extractFamilyMethod);
-            
+
             // Test valid patterns
             Assert.Equal("EP", extractFamilyMethod.Invoke(null, new object[] { "EP1" }));
             Assert.Equal("FC", extractFamilyMethod.Invoke(null, new object[] { "FC1" }));
             Assert.Equal("Y", extractFamilyMethod.Invoke(null, new object[] { "Y1" }));
             Assert.Equal("ABC", extractFamilyMethod.Invoke(null, new object[] { "ABC123" }));
-            
+
             // Test edge cases
             Assert.Equal("Unknown", extractFamilyMethod.Invoke(null, new object[] { "" }));
             Assert.Equal("NoNumberHe", extractFamilyMethod.Invoke(null, new object[] { "NoNumberHere" }));
-            
+
             // Test truncation for very long SKUs
             var longSku = "VeryLongSkuNameThatExceedsTenCharacters";
             var result = extractFamilyMethod.Invoke(null, new object[] { longSku });
@@ -94,9 +94,9 @@ namespace Agent.Tests.Unit
         {
             var armHelperType = typeof(ArmHelper);
             var extractFamilyMethod = armHelperType.GetMethod("ExtractFamilyFromUnknownSku", BindingFlags.NonPublic | BindingFlags.Static);
-            
+
             Assert.NotNull(extractFamilyMethod);
-            
+
             // Test null input separately
             Assert.Equal("Unknown", extractFamilyMethod.Invoke(null, new object?[] { null }));
         }
@@ -106,9 +106,9 @@ namespace Agent.Tests.Unit
         {
             var armHelperType = typeof(ArmHelper);
             var deriveTierMethod = armHelperType.GetMethod("DeriveeTierFromUnknownSku", BindingFlags.NonPublic | BindingFlags.Static);
-            
+
             Assert.NotNull(deriveTierMethod);
-            
+
             // Test tier derivation patterns
             Assert.Equal("ElasticPremium", deriveTierMethod.Invoke(null, new object[] { "EP1" }));
             Assert.Equal("Dynamic", deriveTierMethod.Invoke(null, new object[] { "Y1" }));
@@ -120,7 +120,7 @@ namespace Agent.Tests.Unit
             Assert.Equal("PremiumV2", deriveTierMethod.Invoke(null, new object[] { "P1v2New" }));
             Assert.Equal("Premium", deriveTierMethod.Invoke(null, new object[] { "P999" }));
             Assert.Equal("Isolated", deriveTierMethod.Invoke(null, new object[] { "I999" }));
-            
+
             // Test edge cases
             Assert.Equal("Unknown", deriveTierMethod.Invoke(null, new object[] { "" }));
             Assert.Equal("Custom", deriveTierMethod.Invoke(null, new object[] { "UnknownPattern123" }));
@@ -131,9 +131,9 @@ namespace Agent.Tests.Unit
         {
             var armHelperType = typeof(ArmHelper);
             var deriveTierMethod = armHelperType.GetMethod("DeriveeTierFromUnknownSku", BindingFlags.NonPublic | BindingFlags.Static);
-            
+
             Assert.NotNull(deriveTierMethod);
-            
+
             // Test null input separately
             Assert.Equal("Unknown", deriveTierMethod.Invoke(null, new object?[] { null }));
         }

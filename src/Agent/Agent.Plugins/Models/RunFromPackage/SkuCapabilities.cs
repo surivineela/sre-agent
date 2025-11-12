@@ -116,7 +116,7 @@ namespace Agent.Plugins.Models.RunFromPackage
                 capabilities.SupportsLocalPackage = !isLinux; // Linux FlexConsumption doesn't support local package
                 capabilities.RecommendedMode = RunFromPackageMode.None; // Flex Consumption runs from package by default
                 capabilities.RecommendedValue = ""; // Blank or not set
-                
+
                 if (isLinux)
                 {
                     capabilities.Details = "Flex Consumption plan runs from a package by default, no WEBSITE_RUN_FROM_PACKAGE setting is required. Linux only supports external URL mode.";
@@ -132,7 +132,7 @@ namespace Agent.Plugins.Models.RunFromPackage
                 capabilities.SupportsLocalPackage = !isLinux; // Linux Consumption doesn't support local package
                 capabilities.RecommendedMode = isLinux ? RunFromPackageMode.ExternalUrl : RunFromPackageMode.LocalPackage;
                 capabilities.RecommendedValue = isLinux ? "<URL>" : "1";
-                
+
                 if (isLinux)
                 {
                     capabilities.Limitations.Add("Linux Consumption requires WEBSITE_RUN_FROM_PACKAGE to be set to a URL");

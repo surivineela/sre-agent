@@ -20,21 +20,21 @@ namespace Agent.Plugins.AgentInteraction
 
         public async Task<string> ShareAgentResultAsync(string calledAgentName, string analysisSummary, string? context = null, int resultSummaryLimit = 4096)
         {
-            
+
             // If the result is too long, summarize it
-            var displayResult = analysisSummary.Length > resultSummaryLimit 
+            var displayResult = analysisSummary.Length > resultSummaryLimit
                 ? $"{analysisSummary.Substring(0, resultSummaryLimit)}... (truncated)"
                 : analysisSummary;
 
             // Create the chat message
             var messageContent = FormatAgentResultMessage(calledAgentName, displayResult, context);
-            
+
             var msg = new ChatMessage(ChatRole.Tool, messageContent);
 
             // Update the thread with the message
             await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                ToolStatic.AsyncLocalThreadId.Value, 
-                string.Empty, 
+                ToolStatic.AsyncLocalThreadId.Value,
+                string.Empty,
                 msg);
 
             return $"Agent interaction result from '{calledAgentName}' has been shared successfully.";
@@ -44,14 +44,14 @@ namespace Agent.Plugins.AgentInteraction
         {
             var message = $"## Agent Interaction Result{Environment.NewLine}{Environment.NewLine}";
             message += $"**Called Agent:** `{calledAgentName}`{Environment.NewLine}{Environment.NewLine}";
-            
+
             if (!string.IsNullOrEmpty(context))
             {
                 message += $"**Context:** {context}{Environment.NewLine}{Environment.NewLine}";
             }
-            
+
             message += $"**Result:**{Environment.NewLine}```{Environment.NewLine}{result}{Environment.NewLine}```";
-            
+
             return message;
         }
     }

@@ -423,7 +423,7 @@ namespace Agent.Plugins.Kusto
             return FormatTemplate(formatted, args);
         }
 
- 
+
 
         public async Task<KustoQueryResult> ExecuteClusterKustoQueryInternal(
             string cluster,

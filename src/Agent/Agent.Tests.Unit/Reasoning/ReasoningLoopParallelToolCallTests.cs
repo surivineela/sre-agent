@@ -3,8 +3,8 @@
 // ------------------------------------------------------------
 
 using System.Collections.Concurrent;
-using Agent.Framework;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Microsoft.Extensions.AI;
 using Xunit;
 

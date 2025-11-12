@@ -1,6 +1,6 @@
+using System.Text.Json;
 using Agent.Core.Models;
 using Agent.Plugins.Interface;
-using System.Text.Json;
 
 namespace Agent.Plugins.Mocks;
 public class MockAzureSupportCenterPlugin : IAzureSupportCenterPlugin

@@ -41,7 +41,7 @@ namespace Agent.Plugins.Mocks
         }
 
         public async Task<RemediationResult> RestartWebApplication(string resourceId)
-        {           
+        {
             bool success = await _armPlugin.RestartWebApp(resourceId);
 
             return new RemediationResult(

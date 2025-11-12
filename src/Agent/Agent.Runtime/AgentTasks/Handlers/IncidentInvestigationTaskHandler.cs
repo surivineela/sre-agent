@@ -102,8 +102,8 @@ public sealed class IncidentInvestigationTaskHandler(
                     deepInvestigationApproval = await CreateDeepInvestigationApprovalAsync(agentTask.ThreadId, agentTask.Id, context.Id);
 
                     // Set task status to PendingUserApproval while waiting for approval
-                    _currentAgentTask = _currentAgentTask with 
-                    { 
+                    _currentAgentTask = _currentAgentTask with
+                    {
                         DeepInvestigationApprovalId = deepInvestigationApproval.Id,
                         Status = AgentTaskStatus.PendingUserApproval,
                         LastModified = DateTime.UtcNow
@@ -121,8 +121,8 @@ public sealed class IncidentInvestigationTaskHandler(
                             deepInvestigationApproval.Id, agentTask.Id);
 
                         // Mark task as cancelled since approval was not granted
-                        _currentAgentTask = _currentAgentTask with 
-                        { 
+                        _currentAgentTask = _currentAgentTask with
+                        {
                             Status = AgentTaskStatus.Cancelled,
                             LastModified = DateTime.UtcNow
                         };
@@ -136,7 +136,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         var cancellationReason = updatedApproval?.Status == ApprovalDecision.Cancelled && updatedApproval?.DecisionUser?.UserId == "system"
                             ? "The approval request timed out after 10 minutes."
                             : "The approval was declined.";
-                        var cancellationMessage = new ChatMessage(ChatRole.Assistant, 
+                        var cancellationMessage = new ChatMessage(ChatRole.Assistant,
                             $"The deep investigation has been cancelled. {cancellationReason} No deep investigation will be performed. Agent will proceed to try a standard investigation.");
                         await outboundCommunicationService.UpdateThreadWithAgentMessageAsync(context, cancellationMessage);
 
@@ -147,16 +147,16 @@ public sealed class IncidentInvestigationTaskHandler(
                     {
                         logger.LogInternalInformation("Deep investigation approval {ApprovalId} granted for task {TaskId}",
                             deepInvestigationApproval.Id, agentTask.Id);
-                        
+
                         // Set task status back to InProgress now that approval is granted
-                        _currentAgentTask = _currentAgentTask with 
-                        { 
+                        _currentAgentTask = _currentAgentTask with
+                        {
                             Status = AgentTaskStatus.InProgress,
                             LastModified = DateTime.UtcNow
                         };
                         await agentTaskRepository.UpdateAgentTaskAsync(_currentAgentTask);
                         await threadRepository.UpdateTaskOnThreadAsync(_currentAgentTask.ThreadId, _currentAgentTask.ToShortForm());
-                        
+
                         await SendDeepInvestigationNotificationAsync(agentTask.ThreadId, agentTask.Id, updatedApproval);
                     }
                 }

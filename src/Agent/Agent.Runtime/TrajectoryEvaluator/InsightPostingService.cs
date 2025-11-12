@@ -175,7 +175,7 @@ public class InsightPostingService
         {
             // Enable session insights if Memory is enabled OR insight posting is explicitly enabled
             bool sessionInsightsEnabled = _agentMemorySettings.Enabled || _agentMemorySettings.EnableInsightPosting;
-            
+
             if (!sessionInsightsEnabled)
             {
                 _logger.LogInternalInformation("Insight posting is disabled (both AgentMemory.Enabled and AgentMemory.EnableInsightPosting are false)");
@@ -194,7 +194,7 @@ public class InsightPostingService
 
             var message = new ChatMessage(ChatRole.Assistant, insightMessage);
             var insightMessageId = Guid.NewGuid();
-            
+
             // Use empty orchestration ID to prevent triggering orchestration continuation
             await _outboundService.UpdateThreadWithAgentMessageAsync(
                 threadId: threadId,
@@ -286,7 +286,7 @@ public class InsightPostingService
         try
         {
             _logger.LogInternalInformation($"Saving session insight to Cosmos DB for thread {threadId}");
-            
+
             // Get thread details
             var thread = await _threadRepository.GetThreadAsync(threadId);
             if (thread == null)
@@ -326,7 +326,7 @@ public class InsightPostingService
                     AgentHandoffs: 0,
                     AgentsInvolved: null,
                     TotalDuration: null,
-                    EfficiencyRating: trajectory.InvestigationCompleteness >= 4 ? "Excellent" : 
+                    EfficiencyRating: trajectory.InvestigationCompleteness >= 4 ? "Excellent" :
                                     trajectory.InvestigationCompleteness >= 3 ? "Good" : "Fair"
                 ),
                 Pitfalls: ParsePitfallsList(trajectory.Pitfalls),
@@ -370,7 +370,7 @@ public class InsightPostingService
 
         var pitfallList = new List<string>();
         var lines = pitfalls.Split('\n');
-        
+
         foreach (var line in lines)
         {
             var trimmed = line.Trim();
@@ -406,11 +406,11 @@ public class InsightPostingService
                     var title = parts[0].Replace("**", "").Trim();
                     var statusAndDesc = parts[1].Trim();
                     var statusEndIndex = statusAndDesc.IndexOf('\n');
-                    
-                    var status = statusEndIndex > 0 
+
+                    var status = statusEndIndex > 0
                         ? statusAndDesc.Substring(0, statusEndIndex).Trim()
                         : statusAndDesc.Trim();
-                    
+
                     var description = statusEndIndex > 0
                         ? statusAndDesc.Substring(statusEndIndex + 1).Trim()
                         : string.Empty;
@@ -436,7 +436,7 @@ public class InsightPostingService
         }
 
         var types = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        
+
         // Common Azure resource patterns
         var resourceTypePatterns = new[]
         {

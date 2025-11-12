@@ -20,7 +20,7 @@ namespace Agent.Plugins.Definitions
         private readonly IICMPlugin _icmPlugin;
         private const string DefaultClusterName = "wawscus";
         private const string DefaultDatabaseName = "wawsprod";
-    private static readonly KustoDisplayOptions TableOnly = new() { ShowTable = true };
+        private static readonly KustoDisplayOptions TableOnly = new() { ShowTable = true };
 
         public ScaleControllerRCAPreflightPluginDefinition(IKustoPlugin kustoPlugin, IICMPlugin icmPlugin)
         {
@@ -382,7 +382,7 @@ Output: Returns JSON containing extracted parameters such as incidentId, title, 
             [Description("ICM Incident ID to extract parameters from.")] string incidentId,
             [Description("Specific instruction for parameter extraction. Example: 'Extract startTime, endTime, siteName, eventPrimaryStampName, and functionName.'")] string instruction)
         {
-            var a =  _icmPlugin.GetParametersFromIncident(incidentId, instruction);
+            var a = _icmPlugin.GetParametersFromIncident(incidentId, instruction);
             return a;
         }
 

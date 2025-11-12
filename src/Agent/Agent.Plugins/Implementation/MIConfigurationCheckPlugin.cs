@@ -2,15 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Interfaces;
+using Agent.Core.Models;
+using Agent.Logging;
+using Agent.Plugins.Interface;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
-using Agent.Core.Models;
-using Agent.Core.Interfaces;
-using Agent.Logging;
-using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation
 {

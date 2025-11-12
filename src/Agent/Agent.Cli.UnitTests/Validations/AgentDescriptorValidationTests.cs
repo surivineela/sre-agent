@@ -172,7 +172,7 @@ public class AgentDescriptorValidationTests
     {
         // Arrange
         var agentDescriptor = CreateValidAgentDescriptor();
-    agentDescriptor.Tools = null!;
+        agentDescriptor.Tools = null!;
 
         // Act
         AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
@@ -264,7 +264,7 @@ public class AgentDescriptorValidationTests
     {
         // Arrange
         var agentDescriptor = CreateValidAgentDescriptor();
-    agentDescriptor.Handoffs = null!;
+        agentDescriptor.Handoffs = null!;
 
         // Act
         AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
@@ -328,7 +328,7 @@ public class AgentDescriptorValidationTests
     {
         // Arrange
         var agentDescriptor = CreateValidAgentDescriptor();
-    agentDescriptor.McpTools = null!;
+        agentDescriptor.McpTools = null!;
 
         // Act
         AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);

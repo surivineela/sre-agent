@@ -23,7 +23,7 @@ namespace Agent.Tests.Common.XUnit
         {
             return builder.ConfigureLogging((context, logging) =>
             {
-                
+
                 // We use OpenTelemetry for logging with a an exporter that writes to Geneva.
                 // This gets the OpenTelemetryLoggerOptions that we register for Geneva logging and appends a processor that writes logs to the XUnit test output.
 

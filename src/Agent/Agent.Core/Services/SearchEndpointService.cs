@@ -2,13 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.Logging;
-using Agent.Core.Interfaces;
-using System.Text;
-using System.Text.Json.Serialization;
 
 namespace Agent.Core.Services;
 

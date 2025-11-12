@@ -65,7 +65,7 @@ public class DGrepPluginClient : IDGrepPluginClient, IDisposable
     {
         // DEBUG POINT 1: Entry point - check if method is called
         _logger.LogInternalInformation("DGrep query started: Namespace={Namespace}, Event={EventName}, Query={ServerQuery}", nameSpace, eventName, serverQuery);
-        
+
         var dGrepEndpoint = new Uri(_settings.DGrepEndpoint);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         cts.CancelAfter(TimeSpan.FromMinutes(_settings.QueryTimeoutMinutes));

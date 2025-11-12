@@ -92,14 +92,14 @@ public class AgentTaskToolResultHelper
                         break;
 
                     default:
-                        _logger.LogInternalWarning("Unknown step phase {StepPhase} for agent task {AgentTaskId}", 
+                        _logger.LogInternalWarning("Unknown step phase {StepPhase} for agent task {AgentTaskId}",
                             stepContext.StepPhase, agentTaskId);
                         return;
                 }
             }
-            
+
             await _agentTaskRepository.UpdateAgentTaskAsync(agentTask);
-            _logger.LogInternalInformation("Saved tool result {ToolType} to agent task {AgentTaskId}, step {StepPhase}", 
+            _logger.LogInternalInformation("Saved tool result {ToolType} to agent task {AgentTaskId}, step {StepPhase}",
                 result.Type, agentTaskId, stepContext?.StepPhase ?? "InitialInvestigation");
         }
         catch (Exception ex)
@@ -117,9 +117,9 @@ public class AgentTaskToolResultHelper
     /// <param name="stepTitle">The step title to match</param>
     /// <returns>The existing hypothesis step if found, null otherwise</returns>
     public async Task<HypothesisStep?> FindExistingHypothesisStepAsync(
-        Guid agentTaskId, 
-        Guid threadId, 
-        Guid hypothesisId, 
+        Guid agentTaskId,
+        Guid threadId,
+        Guid hypothesisId,
         string? stepTitle)
     {
         try
@@ -145,7 +145,7 @@ public class AgentTaskToolResultHelper
 
             if (existingStep != null)
             {
-                _logger.LogInternalInformation("Found existing hypothesis step '{StepName}' with {ToolCount} tool executions", 
+                _logger.LogInternalInformation("Found existing hypothesis step '{StepName}' with {ToolCount} tool executions",
                     stepTitle, existingStep.ToolExecutions.Count);
             }
             else
@@ -172,7 +172,7 @@ public class AgentTaskToolResultHelper
             // Get agent contexts for this thread
             var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(threadId);
             var agentContext = agentContexts.FirstOrDefault();
-            
+
             if (agentContext == null)
             {
                 _logger.LogInternalWarning("No agent context found for thread {ThreadId}, cannot add tool result to chat history", threadId);
@@ -189,13 +189,13 @@ public class AgentTaskToolResultHelper
 
             // Create reasoning message from tool result
             var reasoningMessage = message.GetReasoningMessage(agentContext.Id);
-            
+
             // Create and add reasoning message to storage
             await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
-            
+
             // Add to agent chat history for context
             await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, new[] { reasoningMessage });
-            
+
             _logger.LogInternalInformation("Successfully added tool result as reasoning message to agent chat history for context {AgentContextId}", agentContext.Id);
         }
         catch (Exception ex)
@@ -213,7 +213,7 @@ public class AgentTaskToolResultHelper
     /// <returns></returns>
     private InitialInvestigationStep? GetInitialInvestigationStepByStepName(IncidentInvestigationTaskProperties properties, string? stepName)
     {
-  
+
         var existingToolResultsStep = properties.InitialInvestigation.GatheringContext.Steps
             .FirstOrDefault(s => s.Title.Equals(stepName, StringComparison.OrdinalIgnoreCase));
 
@@ -245,7 +245,7 @@ public class AgentTaskToolResultHelper
         var newStep = new InitialInvestigationStep
         {
             Title = stepName ?? defaultInitialInvestigationToolResultsStepTitle,
-            Summary =  defaultInitialInvestigationToolResultsStepSummary,
+            Summary = defaultInitialInvestigationToolResultsStepSummary,
             Status = InitialInvestigationStatus.InProgress
         };
 
@@ -267,7 +267,7 @@ public class AgentTaskToolResultHelper
 
         // GetAllHypotheses() recursively finds all hypotheses including direct children and all descendants
         var allHypotheses = properties.FormingHypothesis.GetAllHypotheses();
-        
+
         var hypothesis = allHypotheses.FirstOrDefault(h => h.Id == hypothesisId.Value);
         if (hypothesis != null)
         {
@@ -276,7 +276,7 @@ public class AgentTaskToolResultHelper
         }
         else
         {
-            _logger.LogInternalWarning("No hypothesis found with GUID: {Guid} among {TotalCount} hypotheses (including {RootCount} root hypotheses)", 
+            _logger.LogInternalWarning("No hypothesis found with GUID: {Guid} among {TotalCount} hypotheses (including {RootCount} root hypotheses)",
                 hypothesisId.Value, allHypotheses.Count, properties.FormingHypothesis.Hypotheses.Count);
             return null;
         }
@@ -297,7 +297,7 @@ public class AgentTaskToolResultHelper
                 .FirstOrDefault(s => s.Summary.Equals(stepName, StringComparison.OrdinalIgnoreCase));
             if (existingStep != null)
             {
-                _logger.LogInternalInformation("Found existing hypothesis step '{StepName}' with {ToolCount} tool executions", 
+                _logger.LogInternalInformation("Found existing hypothesis step '{StepName}' with {ToolCount} tool executions",
                     stepName, existingStep.ToolExecutions.Count);
                 return existingStep;
             }
@@ -357,14 +357,14 @@ public class AgentTaskToolResultHelper
 
             // Find existing tool execution by AzCli execution ID
             ToolExecutionResult? existingToolResult = null;
-            
+
             if (stepContext == null)
             {
                 // Search in initial investigation steps
                 foreach (var step in properties.InitialInvestigation.GatheringContext.Steps)
                 {
-                    existingToolResult = step.ToolExecutions.FirstOrDefault(te => 
-                        te.Type == ToolExecutionType.AzCli && 
+                    existingToolResult = step.ToolExecutions.FirstOrDefault(te =>
+                        te.Type == ToolExecutionType.AzCli &&
                         te.AzCliExecution?.Id == execution.Id);
                     if (existingToolResult != null) break;
                 }
@@ -374,8 +374,8 @@ public class AgentTaskToolResultHelper
                 // Search in initial investigation steps
                 foreach (var step in properties.InitialInvestigation.GatheringContext.Steps)
                 {
-                    existingToolResult = step.ToolExecutions.FirstOrDefault(te => 
-                        te.Type == ToolExecutionType.AzCli && 
+                    existingToolResult = step.ToolExecutions.FirstOrDefault(te =>
+                        te.Type == ToolExecutionType.AzCli &&
                         te.AzCliExecution?.Id == execution.Id);
                     if (existingToolResult != null) break;
                 }
@@ -388,8 +388,8 @@ public class AgentTaskToolResultHelper
                 {
                     foreach (var step in hypothesis.Steps)
                     {
-                        existingToolResult = step.ToolExecutions.FirstOrDefault(te => 
-                            te.Type == ToolExecutionType.AzCli && 
+                        existingToolResult = step.ToolExecutions.FirstOrDefault(te =>
+                            te.Type == ToolExecutionType.AzCli &&
                             te.AzCliExecution?.Id == execution.Id);
                         if (existingToolResult != null) break;
                     }
@@ -401,7 +401,7 @@ public class AgentTaskToolResultHelper
                 // Update existing tool execution
                 existingToolResult.AzCliExecution = execution;
                 existingToolResult.ExecutedTimestamp = DateTime.UtcNow;
-                _logger.LogInternalInformation("Updated existing AzCli tool execution {ToolExecutionId} with status {Status}", 
+                _logger.LogInternalInformation("Updated existing AzCli tool execution {ToolExecutionId} with status {Status}",
                     existingToolResult.Id, execution.Status);
             }
             else
@@ -436,10 +436,10 @@ public class AgentTaskToolResultHelper
                     }
                 }
 
-                _logger.LogInternalInformation("Created new AzCli tool execution {ToolExecutionId} with status {Status}", 
+                _logger.LogInternalInformation("Created new AzCli tool execution {ToolExecutionId} with status {Status}",
                     newToolResult.Id, execution.Status);
             }
-            
+
             await _agentTaskRepository.UpdateAgentTaskAsync(agentTask);
         }
         catch (Exception ex)
@@ -455,7 +455,7 @@ public class AgentTaskToolResultHelper
     {
         await SaveOrUpdateAzCliToolResultAsync(agentTaskId, stepContext, execution, threadId);
         await SendAgentTaskUpdateWithAzCliStatusAsync(threadId, execution, agentTaskId);
-        
+
         _logger.LogInternalInformation("AzCli {Status} - stored in agent task and sent approval request stream", execution.Status);
     }
 
@@ -466,7 +466,7 @@ public class AgentTaskToolResultHelper
     {
         await SaveOrUpdateAzCliToolResultAsync(agentTaskId, stepContext, execution, threadId);
         await SendAgentTaskUpdateWithAzCliStatusAsync(threadId, execution, agentTaskId);
-        
+
         _logger.LogInternalInformation("AzCli Running - updated agent task and sent task update");
     }
 
@@ -476,14 +476,14 @@ public class AgentTaskToolResultHelper
     public async Task HandleCompletedAzCliAsync(Guid threadId, AzCliExecution execution, Guid agentTaskId, InvestigationStepContext? stepContext)
     {
         await SaveOrUpdateAzCliToolResultAsync(agentTaskId, stepContext, execution, threadId);
-        
+
         // Add reasoning message for agent context
         var azCliMessage = new ChatMessage(ChatRole.Tool, $"Command: {execution.Command}\nOutput: {execution.Output ?? execution.Error}");
         await AddToolResultToAgentChatHistoryAsync(threadId, azCliMessage);
-        
+
         // Send task update to agent task panel
         await SendAgentTaskUpdateWithAzCliStatusAsync(threadId, execution, agentTaskId);
-        
+
         _logger.LogInternalInformation("AzCli {Status} - stored in agent task and sent task update", execution.Status);
     }
 
@@ -513,10 +513,10 @@ public class AgentTaskToolResultHelper
                 AzCliExecutionStatus.Cancelled => originalStatus,
                 _ => originalStatus
             };
-            
-            _logger.LogInternalInformation("Agent task status mapping: AzCli {AzCliStatus} -> Agent Task {OriginalStatus} -> {NewStatus}", 
+
+            _logger.LogInternalInformation("Agent task status mapping: AzCli {AzCliStatus} -> Agent Task {OriginalStatus} -> {NewStatus}",
                 execution.Status, originalStatus, newStatus);
-            
+
             agentTask.Status = newStatus;
 
             // Save the updated agent task to the database
@@ -525,7 +525,7 @@ public class AgentTaskToolResultHelper
             // Use the standard task update mechanism (sends whole task)
             var taskJson = JsonSerializer.Serialize(agentTask, JsonSerializerOptions.Web);
             await _streamingService.StreamTaskUpdateAsync(threadId, taskJson);
-            
+
             _logger.LogInternalInformation("Sent full agent task update for AzCli {Status} on task {AgentTaskId}", execution.Status, agentTaskId);
         }
         catch (Exception ex)

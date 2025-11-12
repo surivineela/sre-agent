@@ -2,8 +2,8 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Plugins.Interface;
 using Azure.Core;
-using Azure.ResourceManager.RedisEnterprise;
 using Azure.Monitor.Query.Models;
+using Azure.ResourceManager.RedisEnterprise;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation;

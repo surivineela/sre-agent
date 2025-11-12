@@ -1,6 +1,11 @@
 # Set default behavior to automatically normalize line endings
 * text=auto
 
+# set dotnet files to CRLF to match .editorconfig
+*.cs text eol=crlf
+*.csproj text eol=crlf
+*.sln text eol=crlf
+
 # Declare files that should always have CRLF line endings
 *.bat text eol=crlf
 *.cmd text eol=crlf

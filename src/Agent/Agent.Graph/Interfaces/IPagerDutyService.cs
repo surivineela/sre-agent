@@ -86,11 +86,11 @@ public record PagerDutyIncidentApiResult(
 );
 
 public record PagerDutyIncident(
-    [property: JsonPropertyName("id") ] string IncidentId, // PagerDuty incident ID
-    // For whatever reason, the description is always the same as the title.
-    // The real title is in first_trigger_log_entry and you need to pass "include[]=first_trigger_log_entries" in the query string 
-    // to get the full log entry. If you don't pass it, the first_trigger_log_entry is NOT null but doesn't contain the real title.
-    // Good job PagerDuty for creating such a confusing API.
+    [property: JsonPropertyName("id")] string IncidentId, // PagerDuty incident ID
+                                                          // For whatever reason, the description is always the same as the title.
+                                                          // The real title is in first_trigger_log_entry and you need to pass "include[]=first_trigger_log_entries" in the query string 
+                                                          // to get the full log entry. If you don't pass it, the first_trigger_log_entry is NOT null but doesn't contain the real title.
+                                                          // Good job PagerDuty for creating such a confusing API.
     [property: JsonPropertyName("description")] string Description,
     [property: JsonPropertyName("html_url")] string HtmlUrl,
     [property: JsonPropertyName("title")] string Title,

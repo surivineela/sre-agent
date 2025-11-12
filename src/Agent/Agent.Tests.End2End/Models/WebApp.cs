@@ -2,15 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
+using Azure;
 using Azure.Core;
 using Azure.Identity;
-using Azure.ResourceManager.AppService.Models;
-using Azure.ResourceManager.AppService;
-using Azure.ResourceManager.Resources;
 using Azure.ResourceManager;
-using Azure;
+using Azure.ResourceManager.AppService;
+using Azure.ResourceManager.AppService.Models;
+using Azure.ResourceManager.Resources;
 using Xunit.Abstractions;
-using Agent.Core.Configuration;
 
 namespace E2ETests.Models
 {

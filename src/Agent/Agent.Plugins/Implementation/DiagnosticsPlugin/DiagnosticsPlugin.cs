@@ -1,20 +1,20 @@
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Logging;
-using Azure.Core;
 using Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnosticStrategies;
+using Agent.Plugins.Interface;
+using Azure.Core;
 using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.ContainerService;
 using Microsoft.Extensions.Logging;
-using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin;
 
 public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
 {
     private readonly IArmClientFactory _armClientFactory;
-    private readonly ILogger<DiagnosticsPlugin> _logger; 
+    private readonly ILogger<DiagnosticsPlugin> _logger;
     private readonly IEnumerable<IComputeResourceDiagnosticStrategy> _computeDiagnosticStrategies;
     private readonly ArmHelper _armHelper;
 
@@ -179,11 +179,11 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
                 LanguageStack languageStack = LanguageStack.Dotnet;
 
                 return new ComputeResourceInfo(
-                    ResourceType: resourceType, 
+                    ResourceType: resourceType,
                     OsType: osType,
                     Architecture: architecture,
                     LanguageStack: languageStack,
-                    Is32Bit: kuduManager.Is32Bit 
+                    Is32Bit: kuduManager.Is32Bit
                 );
             }
             catch (Exception ex)

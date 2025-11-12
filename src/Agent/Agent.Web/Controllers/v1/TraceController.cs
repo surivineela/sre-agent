@@ -2,9 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Agent.Web.Controllers.v1
 {

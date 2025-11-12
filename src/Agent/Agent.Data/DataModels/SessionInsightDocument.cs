@@ -18,32 +18,32 @@ public record SessionInsightDocument(
     string? ThreadSource,
     bool IsInvestigationThread,
     string? ClassificationReason,
-    
+
     // Investigation Context
     string? InitialSymptoms,
     string? SymptomsObserved,
     string? RootCause,
     string? SystemDesignKnowledge,
-    
+
     // Timeline and Steps
     List<TimelineItem>? Timeline,
     string? StepsFollowed,
-    
+
     // Resources and Metadata
     List<string>? ResourcesInvolved,
     List<string>? ResourceTypesInvolved,
     List<string>? SubscriptionsInvolved,
-    
+
     // Agent Performance
     AgentPerformanceMetrics? AgentPerformance,
-    
+
     // Learning and Pitfalls
     List<string>? Pitfalls,
     List<string>? KeyLearnings,
-    
+
     // Feedback
     List<InsightFeedback>? Feedback,
-    
+
     // Raw Data
     string? TrajectoryJson,
     string? InsightMarkdown
@@ -52,7 +52,7 @@ public record SessionInsightDocument(
     public string DocumentType => "SessionInsight";
     public string PartitionKey => Id; // Use unique ID as partition key
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
-    
+
     // Mutable properties for updates
     public List<InsightFeedback>? Feedback { get; set; } = Feedback;
     public DateTime GeneratedTimestamp { get; set; } = GeneratedTimestamp;

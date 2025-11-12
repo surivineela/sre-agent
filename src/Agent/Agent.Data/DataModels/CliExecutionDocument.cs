@@ -1,6 +1,6 @@
+using System.Text.Json;
 using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
-using System.Text.Json;
 
 namespace Agent.Data.DataModels
 {
@@ -83,23 +83,23 @@ namespace Agent.Data.DataModels
 
         public static CliExecutionDocument FromDomainModel(PsqlExecution execution, string threadId)
         {
-             return new CliExecutionDocument(
-                execution.Id.ToString(),
-                threadId,
-                execution.Command,
-                execution.Description,
-                execution.Status,
-                execution.OriginalFunctionCall,
-                execution.Output,
-                execution.Error,
-                execution.CreatedTimestamp,
-                execution.StartedTimestamp,
-                execution.CompletedTimestamp,
-                execution.ExecutedBy != null
-                    ? new Author(execution.ExecutedBy.Role, execution.ExecutedBy.UserId, execution.ExecutedBy.DisplayName)
-                    : null,
-                execution.AgentContextId?.ToString() ?? string.Empty
-            );
+            return new CliExecutionDocument(
+               execution.Id.ToString(),
+               threadId,
+               execution.Command,
+               execution.Description,
+               execution.Status,
+               execution.OriginalFunctionCall,
+               execution.Output,
+               execution.Error,
+               execution.CreatedTimestamp,
+               execution.StartedTimestamp,
+               execution.CompletedTimestamp,
+               execution.ExecutedBy != null
+                   ? new Author(execution.ExecutedBy.Role, execution.ExecutedBy.UserId, execution.ExecutedBy.DisplayName)
+                   : null,
+               execution.AgentContextId?.ToString() ?? string.Empty
+           );
         }
     }
 }

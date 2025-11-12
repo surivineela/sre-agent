@@ -77,14 +77,21 @@ public static class ResourceKindHelper
     public static string getResourceKind(string type, string? kind)
     {
         // Handle specific cases for web apps
-        if (String.Equals(AppServiceType, type, StringComparison.OrdinalIgnoreCase)) {
+        if (String.Equals(AppServiceType, type, StringComparison.OrdinalIgnoreCase))
+        {
             var kindLower = kind?.ToLowerInvariant();
-            if (kindLower != null) {
-                if (kindLower.Contains("functionapp") && !kindLower.Contains("workflowapp")) {
+            if (kindLower != null)
+            {
+                if (kindLower.Contains("functionapp") && !kindLower.Contains("workflowapp"))
+                {
                     return "functionapp";
-                } else if (kindLower.Contains("workflowapp")) {
+                }
+                else if (kindLower.Contains("workflowapp"))
+                {
                     return LogicAppResourceKind;
-                } else {
+                }
+                else
+                {
                     return "webApp";
                 }
             }
@@ -93,9 +100,12 @@ public static class ResourceKindHelper
         var match = ResourceFriendlyName.Where(k =>
     type.Contains(k.Key, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
-        if (match.Value != null) {
+        if (match.Value != null)
+        {
             return match.Value;
-        } else {
+        }
+        else
+        {
             // Extract the type from resourceType path as fallback
             var typeArray = type.Split('/');
             return typeArray[typeArray.Length - 1];

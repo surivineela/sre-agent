@@ -2,10 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Diagnostics;
 using Agent.Core.Extensions;
 using Agent.Tests.End2End.Fixtures;
 using Microsoft.Extensions.AI;
-using System.Diagnostics;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;

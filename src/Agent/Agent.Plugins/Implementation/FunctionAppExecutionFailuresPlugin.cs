@@ -4,11 +4,11 @@
 
 using System.ComponentModel;
 using Agent.Core.Helpers;
+using Agent.Core.Models.Charts;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json.Linq;
-using Agent.Core.Models.Charts;
 
 namespace Agent.Plugins.Implementation
 {
@@ -34,7 +34,7 @@ namespace Agent.Plugins.Implementation
         private static string GetTimeGrain(DateTime startTime, DateTime endTime)
         {
             var timeSpan = endTime - startTime;
-            
+
             // For time ranges less than or equal to 6 hours, use 5 minute grain
             if (timeSpan.TotalHours <= 6)
             {

@@ -1,14 +1,14 @@
+using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using Agent.Core.Helpers;
-using Azure.Core;
-using Microsoft.Extensions.Logging;
 using Agent.Core.Interfaces;
-using System.Net;
-using Azure.ResourceManager.AppContainers;
 using Agent.Plugins.Interface;
+using Azure.Core;
+using Azure.ResourceManager.AppContainers;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnosticStrategies;
 
@@ -109,10 +109,10 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
         {
             string scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AgentsV2", "DiagnosticsAgents", "DiagnosticBinariesAndScripts", scriptFileName);
             string scriptContent = await File.ReadAllTextAsync(scriptPath);
-            
+
             // Generate a unique temporary script name
             string tempScriptName = $"/tmp/{operationName}_{Guid.NewGuid().ToString("N")[..8]}.sh";
-            
+
             // Create the script transfer and execution command using printf to handle special characters
             string escapedContent = scriptContent.Replace("'", "'\"'\"'"); // Escape single quotes
             string transferAndExecuteCommand = $"printf '%s' '{escapedContent}' > {tempScriptName} && chmod +x {tempScriptName}";
@@ -133,26 +133,26 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
         var commands = new List<string>();
         var lines = scriptContent.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         var currentCommand = new StringBuilder();
-        
+
         foreach (var line in lines)
         {
             var trimmedLine = line.Trim();
-            
+
             // Skip comments and empty lines
             if (string.IsNullOrWhiteSpace(trimmedLine) || trimmedLine.StartsWith('#'))
                 continue;
-                
+
             // Skip shebang and set commands
             if (trimmedLine.StartsWith("#!/") || trimmedLine.StartsWith("set "))
                 continue;
-            
+
             // Handle variable assignments and exports
             if (trimmedLine.Contains("=") && !trimmedLine.Contains("$(") && !trimmedLine.Contains("`"))
             {
                 commands.Add(trimmedLine);
                 continue;
             }
-            
+
             // Handle line continuations with backslash
             if (trimmedLine.EndsWith('\\'))
             {
@@ -160,10 +160,10 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
                 currentCommand.Append(' ');
                 continue;
             }
-            
+
             // Add current line to command
             currentCommand.Append(trimmedLine);
-            
+
             // If line ends with semicolon or is a complete command, finalize it
             if (trimmedLine.EndsWith(';') || IsCompleteCommand(trimmedLine))
             {
@@ -175,7 +175,7 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
                 currentCommand.Clear();
             }
         }
-        
+
         // Add any remaining command
         if (currentCommand.Length > 0)
         {
@@ -185,10 +185,10 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
                 commands.Add(command);
             }
         }
-        
+
         return commands;
     }
-    
+
     private static bool IsCompleteCommand(string line)
     {
         // Commands that are typically complete on their own
@@ -284,7 +284,7 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
             await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
 
             string result = resultBuilder.ToString();
-            
+
             // Try to extract content between analysis markers
             string pattern = @">>STARTED ANALYSIS<<\s*(.*?)\s*>>COMPLETED ANALYSIS<<";
             Match match = Regex.Match(result, pattern, RegexOptions.Singleline | RegexOptions.IgnoreCase);
@@ -313,14 +313,14 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
     {
         if (string.IsNullOrEmpty(output))
             return string.Empty;
-            
+
         // Remove common shell prompt patterns and command echoes
         var lines = output.Split('\n')
             .Select(line => line.Trim())
             .Where(line => !string.IsNullOrEmpty(line))
             .Where(line => !line.StartsWith("$") && !line.StartsWith("#") && !line.StartsWith("root@"))
             .Where(line => !line.Contains("ERROR:") || line.Contains("INFO:"));
-            
+
         return string.Join("\n", lines);
     }
 
@@ -344,7 +344,7 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
             // File read all the commands, separated by ;
             // If any of the commands return a result, then it is .NET based.
             var result = await ExecuteLocalScript(resourceId, "dotnet-detect.sh", "IsDotnetBased");
-            return result.Trim().Any(); 
+            return result.Trim().Any();
         }
 
         catch (Exception ex)

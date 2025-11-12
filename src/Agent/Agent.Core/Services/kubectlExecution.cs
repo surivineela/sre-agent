@@ -1,7 +1,7 @@
 using System;
 using System.Text;
-using Microsoft.Extensions.Logging;
 using Agent.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Services;
 

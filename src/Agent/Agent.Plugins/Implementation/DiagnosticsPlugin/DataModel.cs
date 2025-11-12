@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Logging;
 using Agent.Plugins.Interface;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin;
 

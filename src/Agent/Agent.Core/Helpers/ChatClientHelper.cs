@@ -4,9 +4,9 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.AI;
 using Agent.Logging;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Helpers;
 

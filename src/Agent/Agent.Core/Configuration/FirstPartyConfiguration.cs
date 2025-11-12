@@ -1,4 +1,4 @@
-﻿namespace Agent.Core.Configuration
+namespace Agent.Core.Configuration
 {
     public class FirstPartyConfiguration
     {

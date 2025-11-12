@@ -251,8 +251,8 @@ public class CosmosDbThreadRepository : IThreadRepository
                 {
                     _logger.LogInternalWarning(
                         "Skipping document with null or empty ID. MessageId: {MessageId}, DocumentType: {DocumentType}. " +
-                        "This may indicate a SessionInsightDocument was deserialized as ThreadDocument.", 
-                        threadDoc.MessageId, 
+                        "This may indicate a SessionInsightDocument was deserialized as ThreadDocument.",
+                        threadDoc.MessageId,
                         threadDoc.DocumentType);
                     continue;
                 }

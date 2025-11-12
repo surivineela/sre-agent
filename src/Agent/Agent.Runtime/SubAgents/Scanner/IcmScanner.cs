@@ -114,7 +114,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 {
                     logger.LogInternalWarning("[IcmScanner] IcM scanner failed to scan incidents, last scan time will not be updated.");
                 }
-                
+
             }
             await Task.Delay(ScanInterval, cancellationToken);
         }

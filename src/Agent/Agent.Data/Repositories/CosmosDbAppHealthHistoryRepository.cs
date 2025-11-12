@@ -3,8 +3,8 @@
 // ------------------------------------------------------------
 
 using System.Net;
-using Agent.Data.DataModels;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DataModels;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;

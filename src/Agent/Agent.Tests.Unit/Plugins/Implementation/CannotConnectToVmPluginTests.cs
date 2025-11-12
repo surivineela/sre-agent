@@ -6,13 +6,13 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Agent.Plugins.Implementation;
 using Agent.Core.Interfaces;
+using Agent.Framework;
+using Agent.Logging;
+using Agent.Plugins.Implementation;
 using Azure.Core;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
-using Agent.Framework;
-using Agent.Logging;
 
 namespace Agent.Tests.Unit.Plugins.Implementation
 {
@@ -299,7 +299,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public TokenCredential GetMdmMetricsCredential() => _credential;
 
         public TokenCredential GetDiagnosticServiceCredential() => _credential;
-        
+
     }
 
     internal sealed class FakeTokenCredential : TokenCredential

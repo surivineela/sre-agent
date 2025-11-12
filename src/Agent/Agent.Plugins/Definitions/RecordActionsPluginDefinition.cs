@@ -9,7 +9,7 @@ using Agent.Plugins.Interface;
 using Action = Agent.Core.Models.Api.v1.Action;
 
 namespace Agent.Plugins.Definitions
-{    
+{
     public class RecordActionsPluginDefinition
     {
         private readonly IRecordActionsPlugin _recordActionsPlugin;

@@ -16,6 +16,7 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Graph.Services;
+using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Interface;
 using Agent.Prometheus;
 using Agent.Prometheus.Services;
@@ -26,7 +27,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
-using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using CrawlerConstants = Agent.Graph.Crawler.ARM.Constants;
 
 namespace Agent.Plugins

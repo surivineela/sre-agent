@@ -15,7 +15,7 @@ public static class CustomerTraceManager
 {
     private static readonly AsyncLocal<CustomerActivity?> _currentActivity = new AsyncLocal<CustomerActivity?>();
     private static readonly AsyncLocal<Dictionary<string, string>?> _currentMetadata = new AsyncLocal<Dictionary<string, string>?>();
-    
+
     /// <summary>
     /// Gets the current customer activity if one is active.
     /// </summary>
@@ -24,7 +24,7 @@ public static class CustomerTraceManager
     {
         return _currentActivity.Value;
     }
-    
+
     /// <summary>
     /// Gets the current trace information as a dictionary suitable for logging enrichment.
     /// </summary>
@@ -43,13 +43,13 @@ public static class CustomerTraceManager
                 ["TraceContext"] = "customer_trace",
                 ["TraceSource"] = "customer_tracer"
             };
-            
+
             return traceInfo;
         }
-        
+
         return metadata.Any() ? metadata : null;
     }
-    
+
     /// <summary>
     /// Sets metadata that will be included in trace information.
     /// </summary>
@@ -61,10 +61,10 @@ public static class CustomerTraceManager
         {
             _currentMetadata.Value = new Dictionary<string, string>();
         }
-        
+
         _currentMetadata.Value[key] = value;
     }
-    
+
     /// <summary>
     /// Starts a new customer trace scope that will be maintained across async operations.
     /// The scope should be disposed to clean up resources.
@@ -75,7 +75,7 @@ public static class CustomerTraceManager
     {
         return new CustomerTraceScope(activity);
     }
-    
+
     /// <summary>
     /// Sets the current customer activity for the scope.
     /// This is used internally by CustomerTraceScope.
@@ -85,7 +85,7 @@ public static class CustomerTraceManager
     {
         _currentActivity.Value = activity;
     }
-    
+
     /// <summary>
     /// Sets the current metadata for the scope.
     /// This is used internally by CustomerTraceScope.
@@ -95,7 +95,7 @@ public static class CustomerTraceManager
     {
         _currentMetadata.Value = metadata;
     }
-    
+
     /// <summary>
     /// Gets the current metadata.
     /// This is used internally by CustomerTraceScope.
@@ -117,24 +117,24 @@ public class CustomerTraceScope : IDisposable
     private readonly Dictionary<string, string>? _previousMetadata;
     private readonly CustomerActivity? _scopeActivity;
     private bool _disposed;
-    
+
     internal CustomerTraceScope(CustomerActivity? activity)
     {
         // Store previous context
         _previousActivity = CustomerTraceManager.GetCurrentActivity();
         _previousMetadata = CustomerTraceManager.GetCurrentMetadata();
-        
+
         // Set new context
         _scopeActivity = activity;
         CustomerTraceManager.SetCurrentActivity(activity);
-        
+
         // Initialize metadata if not provided by previous context
         if (_previousMetadata == null)
         {
             CustomerTraceManager.SetCurrentMetadata(new Dictionary<string, string>());
         }
     }
-    
+
     /// <summary>
     /// Associates a customer activity with this scope.
     /// This allows the activity's trace information to be accessible throughout the request.
@@ -144,7 +144,7 @@ public class CustomerTraceScope : IDisposable
     {
         if (_disposed)
             throw new ObjectDisposedException(nameof(CustomerTraceScope));
-            
+
         CustomerTraceManager.SetCurrentActivity(activity);
     }
 
@@ -157,10 +157,10 @@ public class CustomerTraceScope : IDisposable
     {
         if (_disposed)
             throw new ObjectDisposedException(nameof(CustomerTraceScope));
-            
+
         CustomerTraceManager.SetMetadata(key, value);
     }
-    
+
     /// <summary>
     /// Disposes the scope and restores the previous trace context.
     /// </summary>
@@ -168,11 +168,11 @@ public class CustomerTraceScope : IDisposable
     {
         if (_disposed)
             return;
-            
+
         // Restore previous context
         CustomerTraceManager.SetCurrentActivity(_previousActivity);
         CustomerTraceManager.SetCurrentMetadata(_previousMetadata);
-        
+
         _disposed = true;
     }
 }

@@ -1,5 +1,5 @@
-using Azure.Core;
 using System.Text.Json.Serialization;
+using Azure.Core;
 
 namespace Agent.Core.Models;
 
@@ -24,7 +24,8 @@ public class AzureSupportCenterApolloRequestPayloadWrapper
                         Value = sapId
                     }
                 },
-                Parameters = new ApolloRequestParameters() {
+                Parameters = new ApolloRequestParameters()
+                {
                     ResourceUri = resourceId,
                     SubscriptionId = subscriptionId,
                     ProblemClassificationId = sapId,

@@ -213,7 +213,7 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
             {
                 var normalizedPriorities = priorityFilter.SelectMany(p => NormalizePriorityForFiltering(p)).ToList();
                 docs = docs.Where(d => normalizedPriorities.Contains(d.Priority?.ToLower() ?? "")).ToList();
-                
+
                 _logger.LogInternalInformation(
                     "QueryIncidents: Filtered by priority. Count after filtering: {Count}",
                     docs.Count

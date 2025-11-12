@@ -5,12 +5,12 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.Search.Shared.WebApi.Contracts;
 using Microsoft.VisualStudio.Services.Search.WebApi;
 using Microsoft.VisualStudio.Services.Search.WebApi.Contracts.Code;
 using Microsoft.VisualStudio.Services.WebApi;
-using Microsoft.VisualStudio.Services.Search.Shared.WebApi.Contracts;
-using Microsoft.TeamFoundation.SourceControl.WebApi;
 
 namespace Agent.Core.Services;
 

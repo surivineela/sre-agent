@@ -2,8 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Data.DataModels;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DataModels;
 
 namespace Agent.Data.Repositories
 {

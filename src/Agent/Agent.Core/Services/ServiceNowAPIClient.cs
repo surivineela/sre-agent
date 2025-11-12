@@ -77,7 +77,7 @@ namespace Agent.Core.Services
                 return null;
 
             var lowerPriority = priority.ToLower();
-            
+
             // If it's already a number, validate and return it
             if (int.TryParse(lowerPriority, out int numValue) && numValue >= 1 && numValue <= 5)
                 return lowerPriority;
@@ -113,7 +113,7 @@ namespace Agent.Core.Services
                 {
                     throw new Exception($"Failed to get incident {incidentSystemId}");
                 }
-                
+
                 _logger.LogInternalInformation("GetIncidentAsync: Successfully retrieved incident {incidentSystemId}", incidentSystemId);
                 return response.Result;
             }
@@ -214,7 +214,7 @@ namespace Agent.Core.Services
                 {
                     return new List<ServiceNowDiscussionEntry>();
                 }
-                
+
                 return response.Result;
             }
             catch (Exception ex)
@@ -237,7 +237,7 @@ namespace Agent.Core.Services
 
                 var response = await _httpClient.PutAsJsonAsync($"{_apiBaseUrl}/table/incident/{incidentSystemId}", payload);
                 response.EnsureSuccessStatusCode();
-                
+
                 return await response.Content.ReadAsStringAsync();
             }
             catch (Exception ex)
@@ -260,7 +260,7 @@ namespace Agent.Core.Services
 
                 var response = await _httpClient.PutAsJsonAsync($"{_apiBaseUrl}/table/incident/{incidentSystemId}", payload);
                 response.EnsureSuccessStatusCode();
-                
+
                 return await response.Content.ReadAsStringAsync();
             }
             catch (Exception ex)
@@ -282,7 +282,7 @@ namespace Agent.Core.Services
 
                 // Always use the username from settings
                 string contactAlias = _settings.Username;
-                
+
                 var payload = new
                 {
                     state = "2", // In Progress state in ServiceNow
@@ -292,7 +292,7 @@ namespace Agent.Core.Services
 
                 var response = await _httpClient.PutAsJsonAsync($"{_apiBaseUrl}/table/incident/{incidentSystemId}", payload);
                 response.EnsureSuccessStatusCode();
-                
+
                 return await response.Content.ReadAsStringAsync();
             }
             catch (Exception ex)
@@ -317,7 +317,7 @@ namespace Agent.Core.Services
 
                 var response = await _httpClient.PutAsJsonAsync($"{_apiBaseUrl}/table/incident/{incidentSystemId}", payload);
                 response.EnsureSuccessStatusCode();
-                
+
                 _logger.LogInternalInformation("ResolveIncidentAsync: Successfully resolved incident {incidentSystemId}", incidentSystemId);
                 return await response.Content.ReadAsStringAsync();
             }
@@ -332,25 +332,25 @@ namespace Agent.Core.Services
     // Null implementation for when ServiceNow is not configured
     public class NullableServiceNowAPIClient : IServiceNowAPIClient
     {
-        public Task<ServiceNowIncident> GetIncidentAsync(string incidentId) => 
+        public Task<ServiceNowIncident> GetIncidentAsync(string incidentId) =>
             Task.FromResult(new ServiceNowIncident());
 
-        public Task<List<ServiceNowIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? serviceId, string? titleContains, string? priority = null) => 
+        public Task<List<ServiceNowIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? serviceId, string? titleContains, string? priority = null) =>
             Task.FromResult(new List<ServiceNowIncident>());
 
-        public Task<List<ServiceNowDiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId) => 
+        public Task<List<ServiceNowDiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId) =>
             Task.FromResult(new List<ServiceNowDiscussionEntry>());
 
-        public Task<string> PostDiscussionEntryAsync(string incidentId, string discussionEntry, bool htmlRendering = true) => 
+        public Task<string> PostDiscussionEntryAsync(string incidentId, string discussionEntry, bool htmlRendering = true) =>
             Task.FromResult(string.Empty);
 
-        public Task<string> ChangePriorityAsync(string incidentId, int priority, string discussionEntry) => 
+        public Task<string> ChangePriorityAsync(string incidentId, int priority, string discussionEntry) =>
             Task.FromResult(string.Empty);
 
-        public Task<string> AcknowledgeIncidentAsync(string incidentId) => 
+        public Task<string> AcknowledgeIncidentAsync(string incidentId) =>
             Task.FromResult(string.Empty);
 
-        public Task<string> ResolveIncidentAsync(string incidentId, string resolutionNotes) => 
+        public Task<string> ResolveIncidentAsync(string incidentId, string resolutionNotes) =>
             Task.FromResult(string.Empty);
     }
 }

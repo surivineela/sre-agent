@@ -2,9 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Tests.Common;
 using Microsoft.Extensions.AI;
-using System.Text.Json;
 
 namespace Agent.Evals;
 
@@ -35,7 +35,7 @@ public class CliExecutionHelperEvals
     {
         // Arrange
         var chatClient = (await GetTestHostAsync()).RunConfig.ChatClient;
-        
+
         // Act
         var result = await CliExecutionHelper.ParseCliExecutionResult(chatClient, output);
 
@@ -107,11 +107,11 @@ public class CliExecutionHelperEvals
     {
         // Arrange
         var chatClient = (await GetTestHostAsync()).RunConfig.ChatClient;
-        
+
         // Test successful command with unhealthy resource state
         var healthyResourceOutput = GetKubectlDescribePodCrashedOutput();
         var healthyResult = await CliExecutionHelper.ParseCliExecutionResult(chatClient, healthyResourceOutput);
-        
+
         // Test actual command execution error
         var commandErrorOutput = GetKubectlResourceNotFoundOutput();
         var errorResult = await CliExecutionHelper.ParseCliExecutionResult(chatClient, commandErrorOutput);
@@ -119,7 +119,7 @@ public class CliExecutionHelperEvals
         // Assert
         Assert.AreEqual(CliErrorType.None, healthyResult.ErrorType, "Command succeeded but resource is unhealthy - not a command error");
         Assert.IsFalse(healthyResult.ErrorOccurred, "Command executed successfully");
-        
+
         Assert.AreEqual(CliErrorType.NotFoundError, errorResult.ErrorType, "Command failed due to resource not found - this is a command error");
         Assert.IsTrue(errorResult.ErrorOccurred, "Command execution failed");
     }

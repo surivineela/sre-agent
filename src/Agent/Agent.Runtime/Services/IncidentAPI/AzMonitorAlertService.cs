@@ -64,7 +64,8 @@ public class AzMonitorAlertService : IAzMonitorAlertService
                     {
                         updatedDoc.Tags.Add("SREAgent_Resolved");
                     }
-                    updatedDoc = updatedDoc with {
+                    updatedDoc = updatedDoc with
+                    {
                         Status = "closed",
                         ResolvedAt = DateTime.UtcNow
                     };
@@ -76,7 +77,8 @@ public class AzMonitorAlertService : IAzMonitorAlertService
                 else
                 {
                     var incident = await GetIncidentAsync(alertId);
-                    var incidentDocument = AzMonitorAlertDocument.FromIncident(incident) with {
+                    var incidentDocument = AzMonitorAlertDocument.FromIncident(incident) with
+                    {
                         ResolvedAt = DateTime.UtcNow,
                         Tags = new List<string>() { "SREAgent_Resolved" },
                         Status = "closed"

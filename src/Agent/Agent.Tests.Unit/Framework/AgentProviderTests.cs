@@ -7,6 +7,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.AI;
@@ -15,7 +16,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Agent.Framework.Skills;
 
 namespace Agent.Tests.Unit.Framework;
 

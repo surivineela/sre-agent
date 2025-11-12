@@ -5,9 +5,9 @@
 using Agent.Data.DataModels;
 using Agent.Data.Tools;
 using Agent.Framework;
+using Agent.Plugins.Connector;
 using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
-using Agent.Plugins.Connector;
 using Agent.Plugins.Tools;
 
 namespace Agent.Plugins.Kusto.Tools
@@ -50,7 +50,7 @@ namespace Agent.Plugins.Kusto.Tools
 
             // Substitute parameters in connector name similar to FormatQuery, e.g. capps-##region## => capps-westeurope
             var parameterizedConnectorName = KustoPlugin.FormatTemplate(_definition.Connector, args);
-            
+
             var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(parameterizedConnectorName, parameterizedConnectorName, kustoCluster);
 
             var kustoChat = _kustoFactory.Create(connector);
@@ -73,7 +73,7 @@ namespace Agent.Plugins.Kusto.Tools
             }
         }
 
-        
+
 
         [ToolTypeAttribute("KustoQuery")]
         public class KustoQuery

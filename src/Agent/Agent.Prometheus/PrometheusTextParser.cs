@@ -97,8 +97,8 @@ public static partial class PrometheusTextParser
         return metricFamilies;
     }
 
-  [GeneratedRegex(@"^(\w+)(\{.*?\})?\s+([\d\.eE+-]+)$")]
-  private static partial Regex MetricLineRegex();
-  [GeneratedRegex(@"(\w+)\s*=\s*""((?:[^""\\]|\\.|,)*?)""")]
-  private static partial Regex LabelsMatcherRegex();
+    [GeneratedRegex(@"^(\w+)(\{.*?\})?\s+([\d\.eE+-]+)$")]
+    private static partial Regex MetricLineRegex();
+    [GeneratedRegex(@"(\w+)\s*=\s*""((?:[^""\\]|\\.|,)*?)""")]
+    private static partial Regex LabelsMatcherRegex();
 }

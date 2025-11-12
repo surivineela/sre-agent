@@ -1,5 +1,5 @@
-using Agent.Cli.Services;
 using System.Reflection;
+using Agent.Cli.Services;
 using Xunit;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;

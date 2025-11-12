@@ -79,7 +79,7 @@ namespace Agent.Core.Helpers
                 }
             }
             return subAgentAItools;
-            
+
         }
         private static IEnumerable<MethodInfo> GetWorkflowFunctions(Type type)
         {

@@ -15,7 +15,7 @@ public static class FirstPartyHelper
     private static readonly List<string> FirstPartyTenants = new()
     {
         "33e01921-4d64-4f8c-a055-5bdaffd5e33d",
-        "72f988bf-86f1-41af-91ab-2d7cd011db47", 
+        "72f988bf-86f1-41af-91ab-2d7cd011db47",
         "975f013f-7f24-47e8-a7d3-abc4752bf346",
         "cdc5aeea-15c5-4db6-b079-fcadd2505dc2"
     };
@@ -30,7 +30,7 @@ public static class FirstPartyHelper
         var isAcaAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
         var tenantId = Environment.GetEnvironmentVariable("AppSettings__Core__Azure__Crawler__TenantId") ?? string.Empty;
         var isTenantFirstParty = !string.IsNullOrWhiteSpace(tenantId) && FirstPartyTenants.Contains(tenantId);
-        
+
         return isAcaAgent || isTenantFirstParty;
     }
 

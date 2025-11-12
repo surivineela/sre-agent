@@ -100,7 +100,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 client.GetIncidentAsync(string.Empty));
         }
 
@@ -327,6 +327,6 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             Assert.Empty(result);
         }
 
-     
+
     }
 }

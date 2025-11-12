@@ -15,9 +15,9 @@ public record RootCauseCategory
 {
     public string Category { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
-    
+
     public RootCauseCategory() { }
-    
+
     public RootCauseCategory(string category, string description)
     {
         Category = category;
@@ -34,7 +34,7 @@ public record AIRootCauseResponse
     public string Description { get; init; } = string.Empty;
 }
 
-public interface IIncidentFilterAIRootCauseDocument: ICosmosDocument
+public interface IIncidentFilterAIRootCauseDocument : ICosmosDocument
 {
     public string FilterId { get; set; }
     public List<RootCauseCategory> RootCauses { get; set; }

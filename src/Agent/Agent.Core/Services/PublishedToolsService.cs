@@ -4,9 +4,9 @@
 
 using System.Text.Json;
 using Agent.Core.Models;
+using Agent.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
 
 namespace Agent.Core.Services
 {

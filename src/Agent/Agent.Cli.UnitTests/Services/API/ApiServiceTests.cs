@@ -1,7 +1,7 @@
+using System.Text.Json;
+using Agent.Cli.Models;
 using Agent.Cli.Services;
 using Moq;
-using Agent.Cli.Models;
-using System.Text.Json;
 using Xunit.Abstractions;
 
 namespace Agent.Cli.UnitTests.Services;

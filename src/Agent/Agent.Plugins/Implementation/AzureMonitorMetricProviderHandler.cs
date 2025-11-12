@@ -4,9 +4,9 @@
 
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
+using AzureMetricAggregationType = Azure.Monitor.Query.Models.MetricAggregationType;
 using AzureMetricDefinition = Azure.Monitor.Query.Models.MetricDefinition;
 using AzureMetricTimeSeriesElement = Azure.Monitor.Query.Models.MetricTimeSeriesElement;
-using AzureMetricAggregationType = Azure.Monitor.Query.Models.MetricAggregationType;
 using TimeSeriesDataPoint = Agent.Plugins.Models.TimeSeriesDataPoint;
 
 namespace Agent.Plugins.Implementation

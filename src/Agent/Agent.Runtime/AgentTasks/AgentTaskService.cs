@@ -2,12 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Concurrent;
+using System.Threading.Channels;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
-using System.Threading.Channels;
-using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.AgentTasks;
 

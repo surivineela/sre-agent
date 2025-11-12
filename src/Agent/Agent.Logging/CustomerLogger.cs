@@ -1,9 +1,9 @@
+using System.Diagnostics;
+using System.Text.Json;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
-using System.Diagnostics;
-using System.Text.Json;
 
 namespace Agent.Logging;
 
@@ -17,10 +17,10 @@ public class CustomerLogger : ApplicationInsightsLogger, IDisposable
     private CustomerTraceProcessor? _traceProcessor;
     private readonly object _tracingLock = new object();
     private bool _tracingInitialized = false;
-    
+
     // Customer tracer for independent customer-facing tracing
     private readonly CustomerTracer _customerTracer;
-    
+
     // Thread-local correlation for grouping related log messages
     private static readonly AsyncLocal<string> _currentCorrelationId = new AsyncLocal<string>();
     private static readonly AsyncLocal<DateTimeOffset> _correlationStartTime = new AsyncLocal<DateTimeOffset>();
@@ -95,16 +95,16 @@ public class CustomerLogger : ApplicationInsightsLogger, IDisposable
     {
         // For exceptions, we want to include trace context in the message as well
         var enrichedProperties = EnrichWithTraceContext(null);
-        
+
         // Add exception-specific trace context to the message
         var contextualMessage = message;
         if (Activity.Current != null)
         {
             contextualMessage = $"{message} [TraceId: {Activity.Current.TraceId}]";
         }
-        
+
         base.LogException(ex, contextualMessage);
-        
+
         // Also log the trace context as additional telemetry
         if (enrichedProperties?.Count > 0)
         {
@@ -204,7 +204,7 @@ public class CustomerLogger : ApplicationInsightsLogger, IDisposable
     public void LogUserInputEvents(string userInputEventName, string userInput, Dictionary<string, string> properties, bool isStartOfTrace = false)
     {
         var enrichedProperties = EnrichWithTraceContext(properties) ?? new Dictionary<string, string>();
-        var formattedInput= FormatInOutCommunications(userInput, isUserInput: true);
+        var formattedInput = FormatInOutCommunications(userInput, isUserInput: true);
         DependencyTelemetry dependency = new DependencyTelemetry
         {
             Name = userInputEventName,
@@ -227,7 +227,7 @@ public class CustomerLogger : ApplicationInsightsLogger, IDisposable
     public new async Task FlushAsync(CancellationToken cancellationToken)
     {
         await base.FlushAsync(cancellationToken);
-        
+
         // Note: Tracing flush is handled by the overall TracerProvider, not individual processors
     }
 
@@ -433,20 +433,20 @@ public class CustomerLogger : ApplicationInsightsLogger, IDisposable
     {
         var existingId = _currentCorrelationId.Value;
         var startTime = _correlationStartTime.Value;
-        
+
         // Check if we have a valid correlation context
-        if (!string.IsNullOrEmpty(existingId) && 
-            startTime != default && 
+        if (!string.IsNullOrEmpty(existingId) &&
+            startTime != default &&
             now - startTime < TimeSpan.FromMinutes(CorrelationTimeoutMinutes))
         {
             return existingId;
         }
-        
+
         // Create a new correlation context
         var newId = Guid.NewGuid().ToString("N")[..12]; // 12-character correlation ID
         _currentCorrelationId.Value = newId;
         _correlationStartTime.Value = now;
-        
+
         return newId;
     }
 
@@ -468,7 +468,7 @@ public class CustomerLogger : ApplicationInsightsLogger, IDisposable
     private Dictionary<string, string>? EnrichWithTraceContext(IDictionary<string, string>? existingProperties)
     {
         // Create enriched properties dictionary
-        var enriched = existingProperties != null 
+        var enriched = existingProperties != null
             ? new Dictionary<string, string>(existingProperties)
             : new Dictionary<string, string>();
 
@@ -480,8 +480,8 @@ public class CustomerLogger : ApplicationInsightsLogger, IDisposable
         if (!string.IsNullOrEmpty(agentName) && !string.IsNullOrEmpty(agentSubId) && !string.IsNullOrEmpty(agentResourceGroup))
         {
             // trim down the last part of the agent name divided by "--"
-            agentName = agentName.LastIndexOf("--") > 0 
-                ? agentName[..agentName.LastIndexOf("--")] 
+            agentName = agentName.LastIndexOf("--") > 0
+                ? agentName[..agentName.LastIndexOf("--")]
                 : agentName;
             var agentArmId = $"/subscriptions/{agentSubId}/resourceGroups/{agentResourceGroup}/providers/Microsoft.App/agents/{agentName}";
             enriched["gen_ai.agent.id"] = agentArmId;
@@ -497,7 +497,7 @@ public class CustomerLogger : ApplicationInsightsLogger, IDisposable
             {
                 enriched[kvp.Key] = kvp.Value;
             }
-            
+
             enriched["LogTimestamp"] = DateTimeOffset.UtcNow.ToString("O");
             return enriched;
         }
@@ -508,7 +508,7 @@ public class CustomerLogger : ApplicationInsightsLogger, IDisposable
         {
             enriched["TraceId"] = customerTraceContext.TraceId;
             enriched["SpanId"] = customerTraceContext.SpanId;
-            
+
             if (!string.IsNullOrEmpty(customerTraceContext.ParentSpanId))
             {
                 enriched["ParentSpanId"] = customerTraceContext.ParentSpanId;
@@ -527,19 +527,19 @@ public class CustomerLogger : ApplicationInsightsLogger, IDisposable
             enriched["TraceContext"] = "customer_trace";
             enriched["TraceSource"] = "customer_tracer";
             enriched["LogTimestamp"] = DateTimeOffset.UtcNow.ToString("O");
-            
+
             return enriched;
         }
 
         // No trace context available - use correlation ID for grouping related logs
         var now = DateTimeOffset.UtcNow;
         var correlationId = GetOrCreateCorrelationId(now);
-        
+
         enriched["CorrelationId"] = correlationId;
         enriched["LogSource"] = "customer_logger";
         enriched["LogTimestamp"] = now.ToString("O");
         enriched["TraceContext"] = "correlation";
-        
+
         return enriched;
     }
 

@@ -3,12 +3,12 @@
 // ------------------------------------------------------------
 
 using System.Globalization;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Charts;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using ScottPlot;
-using Agent.Core.Helpers;
 
 namespace Agent.Plugins
 {

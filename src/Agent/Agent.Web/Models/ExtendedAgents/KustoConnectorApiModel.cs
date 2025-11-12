@@ -15,6 +15,6 @@ public class KustoConnectorApiModel : ExtendedAgentConnectorApiModel
     [YamlMember(Alias = "cluster_hint")]
     public string? ClusterHint { get; set; }
     [YamlMember(Alias = "regional_cluster_groups")]
-        
+
     public List<KustoRegionalGroupSettings> RegionalClusterGroups { get; set; } = new();
 }

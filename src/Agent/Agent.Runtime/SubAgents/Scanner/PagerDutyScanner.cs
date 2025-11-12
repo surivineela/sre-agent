@@ -11,16 +11,16 @@ using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
+using Agent.Framework;
 using Agent.Graph.Interfaces;
+using Agent.Logging;
+using Agent.Runtime.Interfaces;
+using Agent.Runtime.Services;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Runtime.Interfaces;
-using Agent.Runtime.Services;
-using Agent.Logging;
 using PagerDutyIncident = Agent.Graph.Interfaces.PagerDutyIncident;
-using Agent.Framework;
 
 namespace Agent.Runtime.SubAgents.Scanner;
 

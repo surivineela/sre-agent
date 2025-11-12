@@ -18,7 +18,7 @@ public sealed record FunctionAppDescriptor(
     string? VnetId,
     string? StackVersion,
     string? PlanType,
-    string ? MinTlsVersion,
+    string? MinTlsVersion,
     bool? WebSocketEnabled,
     int? NumberOfWorkers,
     bool? AutoHealEnabled,

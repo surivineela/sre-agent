@@ -2,12 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.Logging;
-using Agent.Framework;
-using Agent.Core.Models.Api.v1;
-using Microsoft.Extensions.AI;
-using Agent.Framework.Skills;
 using System.Text;
+using Agent.Core.Models.Api.v1;
+using Agent.Framework;
+using Agent.Framework.Skills;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
 

@@ -189,7 +189,7 @@ resolved
         return await _gitHubIssuePlugin.DisconnectRepository(resourceId);
     }
 
-    [Description("Gets the type of Infrastructure as Code (IaC) - this is the most likely type of IaC used.")] 
+    [Description("Gets the type of Infrastructure as Code (IaC) - this is the most likely type of IaC used.")]
     public async Task<string> GetIaCForGitHub(
         [Description("GitHub repository URL, e.g. https://github.com/owner/repo-name.git")] string repoUrl,
         [Description("Branch - assume main unless otherwise specified.")] string branch = "main",

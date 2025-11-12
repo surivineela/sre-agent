@@ -1,12 +1,12 @@
+using Agent.Core;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
+using Agent.Logging;
+using Agent.Plugins.Interface;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager.Network;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
-using Agent.Core.Models;
-using Agent.Core;
-using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation;
 public class NSGRulePlugin : INSGRulePlugin
@@ -40,7 +40,7 @@ public class NSGRulePlugin : INSGRulePlugin
             // Get the NSG resource
             var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgResourceId));
 
-            
+
             try
             {
                 // Check if the NSG exists and get its data
@@ -68,7 +68,7 @@ public class NSGRulePlugin : INSGRulePlugin
 
     public async Task<bool> CreateOrUpdateNSGRuleAsync(string nsgResourceId, SecurityRuleData rule)
     {
-        if(string.IsNullOrWhiteSpace(nsgResourceId))
+        if (string.IsNullOrWhiteSpace(nsgResourceId))
         {
             throw new ArgumentException("NSG resource ID cannot be null or empty.", nameof(nsgResourceId));
         }
@@ -78,11 +78,11 @@ public class NSGRulePlugin : INSGRulePlugin
             throw new ArgumentNullException(nameof(rule), "Security rule cannot be null.");
         }
 
-        if(string.IsNullOrWhiteSpace(rule.Name))
+        if (string.IsNullOrWhiteSpace(rule.Name))
         {
             throw new ArgumentException("Rule name cannot be null or empty.", nameof(rule.Name));
         }
-        
+
         _logger.LogInternalInformation($"[{nameof(CreateOrUpdateNSGRuleAsync)}] Invoked for rule '{rule.Name}' on NSG: {nsgResourceId}");
 
         try
@@ -118,7 +118,7 @@ public class NSGRulePlugin : INSGRulePlugin
 
             return true;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Error in {nameof(CreateOrUpdateNSGRuleAsync)} with nsgResourceId {nsgResourceId}, rule {rule.Name}");
             return false;
@@ -159,14 +159,14 @@ public class NSGRulePlugin : INSGRulePlugin
 
                 // Delete the rule
                 _logger.LogInternalInformation($"Removing security rule '{ruleName}' from NSG {nsgResourceId}");
-                
+
                 var armOperation = await existingRule.Value.DeleteAsync(WaitUntil.Completed);
-                
+
                 _logger.LogInternalInformation(armOperation.HasCompleted
                     ? $"Successfully removed security rule '{ruleName}' from NSG {nsgResourceId}"
                     : $"Failed to remove security rule '{ruleName}' from NSG {nsgResourceId}"
                     );
-                
+
                 return armOperation.HasCompleted;
             }
             catch (RequestFailedException ex) when (ex.Status == 404)

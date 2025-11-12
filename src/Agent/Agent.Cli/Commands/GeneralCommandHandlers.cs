@@ -666,7 +666,7 @@ public static class GeneralCommandHandlers
                         ConsoleUI.WriteSection("Available agents:");
 
                         // Get list of agents
-                        var (agentListSuccess, agentListResponse,_) = await apiService.ListAgentsAsync();
+                        var (agentListSuccess, agentListResponse, _) = await apiService.ListAgentsAsync();
                         if (agentListSuccess)
                         {
                             Console.WriteLine(agentListResponse);

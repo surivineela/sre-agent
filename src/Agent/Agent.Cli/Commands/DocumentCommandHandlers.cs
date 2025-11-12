@@ -3,8 +3,8 @@
 // ------------------------------------------------------------
 
 using System.CommandLine;
-using Agent.Cli.Services;
 using Agent.Cli.Helpers;
+using Agent.Cli.Services;
 
 namespace Agent.Cli.Commands;
 

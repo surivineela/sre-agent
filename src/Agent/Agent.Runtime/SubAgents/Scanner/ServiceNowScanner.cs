@@ -233,11 +233,12 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 var latestDiscussionEntries = await serviceNowApiClient.GetIncidentDiscussionEntriesAsync(incident.IncidentId);
                 updatedDoc.DiscussionEntries = latestDiscussionEntries?.Select(entry =>
                     new ServiceNowDiscussionEntry
-                    { Id = entry.Id,
-                    IncidentId = entry.IncidentId,
-                    Date = entry.Date,
-                    ChangedBy = entry.ChangedBy,
-                    Text = entry.Text
+                    {
+                        Id = entry.Id,
+                        IncidentId = entry.IncidentId,
+                        Date = entry.Date,
+                        ChangedBy = entry.ChangedBy,
+                        Text = entry.Text
                     }).ToList() ?? new List<ServiceNowDiscussionEntry>();
                 var newNotes = latestDiscussionEntries?
                         .Where(entry => entry.Date > lastScanTime.AddMinutes(-10)) // Add 5 minutes buffer to avoid missing notes due to time skew

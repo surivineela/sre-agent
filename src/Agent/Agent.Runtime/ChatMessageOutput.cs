@@ -2,11 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Framework;
-using Agent.Runtime.Models;
-using Agent.Runtime.Communication;
-using Agent.Core.Models.Api.v1;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
+using Agent.Framework;
+using Agent.Runtime.Communication;
+using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime;

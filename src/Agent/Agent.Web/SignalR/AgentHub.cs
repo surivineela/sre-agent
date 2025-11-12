@@ -4,17 +4,17 @@
 
 using System.Collections.Concurrent;
 using System.Text.Json;
-using Microsoft.AspNetCore.SignalR;
 using Agent.Core.Interfaces;
-using Agent.Logging;
-using Agent.Web.Models.Streaming;
 using Agent.Core.Models.Api.v1;
-using Microsoft.Extensions.AI;
-using Agent.Runtime.Services;
+using Agent.Logging;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
-using Agent.Web.Services;
+using Agent.Runtime.Services;
 using Agent.Web.Authorization;
+using Agent.Web.Models.Streaming;
+using Agent.Web.Services;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.AI;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.SignalR

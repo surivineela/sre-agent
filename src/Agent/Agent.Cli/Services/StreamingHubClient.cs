@@ -2,8 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.AspNetCore.SignalR.Client;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Agent.Cli.Services;
 

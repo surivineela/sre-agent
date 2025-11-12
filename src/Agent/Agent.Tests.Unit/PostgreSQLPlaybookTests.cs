@@ -1,18 +1,18 @@
-using Agent.Plugins.Implementation;
-using Agent.Plugins.Services;
-using Agent.Core.Helpers;
-using Agent.Core.Interfaces;
-using Agent.Core.Configuration;
-using Agent.Core.Services;
-using Agent.Logging;
-using Agent.Framework;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Hosting;
-using Moq;
-using Xunit;
 using System.IO;
 using System.Threading.Tasks;
+using Agent.Core.Configuration;
+using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
+using Agent.Core.Services;
+using Agent.Framework;
+using Agent.Logging;
+using Agent.Plugins.Implementation;
+using Agent.Plugins.Services;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
 
 namespace Agent.Tests.Unit
 {

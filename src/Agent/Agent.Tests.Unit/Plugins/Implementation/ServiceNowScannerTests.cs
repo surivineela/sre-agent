@@ -7,10 +7,10 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.ServiceNow;
 using Agent.Data.DataModels;
 using Agent.Runtime.Services;
+using Agent.Runtime.SubAgents.Scanner;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Agent.Runtime.SubAgents.Scanner;
 
 namespace Agent.Tests.Unit.Plugins.Implementation
 {
@@ -38,7 +38,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>>();
             _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
             _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>>();
-            
+
 
             _cosmosDbSettings = new CosmosDBSettings
             {

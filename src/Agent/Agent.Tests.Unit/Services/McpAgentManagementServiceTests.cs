@@ -65,7 +65,7 @@ public class McpAgentManagementServiceTests
         var disabledSettings = new MCPSettings { Enabled = false, PingIntervalInSeconds = 60 };
         var mockDisabledSettings = new Mock<IOptions<MCPSettings>>();
         mockDisabledSettings.Setup(s => s.Value).Returns(disabledSettings);
-        
+
         var service = new McpAgentManagementService(
             _mockConnectionManager.Object,
             _mockToolFactory.Object,
@@ -110,7 +110,7 @@ public class McpAgentManagementServiceTests
 
         // Act
         await service.StartAsync(CancellationToken.None);
-        
+
         // Trigger the event by invoking the subscribed handler
         var connectionAddedEvent = GetConnectionAddedHandler(service);
         await connectionAddedEvent(connection);
@@ -132,7 +132,7 @@ public class McpAgentManagementServiceTests
 
         // Act
         await service.StartAsync(CancellationToken.None);
-        
+
         var connectionRemovedEvent = GetConnectionRemovedHandler(service);
         await connectionRemovedEvent(connectionId);
 
@@ -154,9 +154,9 @@ public class McpAgentManagementServiceTests
 
         // Act
         await service.StartAsync(CancellationToken.None);
-        
+
         var connectionAddedEvent = GetConnectionAddedHandler(service);
-        
+
         // Should not throw
         await connectionAddedEvent(connection);
 
@@ -178,7 +178,7 @@ public class McpAgentManagementServiceTests
 
         // Act
         await service.StartAsync(CancellationToken.None);
-        
+
         var connectionAddedEvent = GetConnectionAddedHandler(service);
         await connectionAddedEvent(connection1);
         await connectionAddedEvent(connection2);
@@ -227,7 +227,7 @@ public class McpAgentManagementServiceTests
         _mockConnectionManager
             .SetupAdd(m => m.ConnectionAdded += It.IsAny<Func<McpConnection, Task>>())
             .Callback<Func<McpConnection, Task>>(h => handler = h);
-        
+
         service.StartAsync(CancellationToken.None).Wait();
         return handler ?? throw new InvalidOperationException("Handler not set");
     }
@@ -238,7 +238,7 @@ public class McpAgentManagementServiceTests
         _mockConnectionManager
             .SetupAdd(m => m.ConnectionRemoved += It.IsAny<Func<string, Task>>())
             .Callback<Func<string, Task>>(h => handler = h);
-        
+
         service.StartAsync(CancellationToken.None).Wait();
         return handler ?? throw new InvalidOperationException("Handler not set");
     }

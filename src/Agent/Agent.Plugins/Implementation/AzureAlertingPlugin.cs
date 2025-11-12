@@ -3,12 +3,12 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Extensions;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 using Agent.Plugins.Models;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
-using Agent.Plugins.Kusto;
-using Agent.Core.Extensions;
 
 namespace Agent.Plugins.Implementation
 {

@@ -2,9 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Interfaces;
 using System;
 using System.Threading.Tasks;
+using Agent.Core.Interfaces;
 
 namespace Agent.Plugins.Interface
 {
@@ -19,7 +19,7 @@ namespace Agent.Plugins.Interface
         /// <param name="endTime">Optional end time for the analysis</param>
         /// <returns>JSON string containing detector results</returns>
         Task<string> InvokeDetector(string resourceId, string detectorId, DateTime? startTime = null, DateTime? endTime = null);
-        
+
         /// <summary>
         /// Invokes an analysis for a given resource
         /// </summary>

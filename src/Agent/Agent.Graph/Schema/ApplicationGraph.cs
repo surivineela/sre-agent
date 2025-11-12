@@ -24,7 +24,7 @@ namespace Agent.Graph.Schema
             Id = node.Id;
             Name = node.Name;
             Type = node.Type;
-            ResourceId = node.Properties.TryGetValue("resourceId", out var resourceId) 
+            ResourceId = node.Properties.TryGetValue("resourceId", out var resourceId)
                 ? ((IEnumerable<object>)resourceId).First().ToString() ?? string.Empty
                 : string.Empty;
         }

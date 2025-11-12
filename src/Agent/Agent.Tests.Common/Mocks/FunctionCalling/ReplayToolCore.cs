@@ -48,25 +48,25 @@ public class OtelAttributes
 {
     [JsonPropertyName("thread.id")]
     public string ThreadId { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("operation.name")]
     public string OperationName { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("agent.name")]
     public string AgentName { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("tool.name")]
     public string ToolName { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("tool.input")]
     public string ToolInput { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("tool.output")]
     public string ToolOutput { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("model.input")]
     public string ModelInput { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("model.output")]
     public string ModelOutput { get; set; } = string.Empty;
 }
@@ -204,7 +204,7 @@ public class ReplayToolCore
         {
             return exactMatch;
         }
-        
+
         if (FunctionNamesAllowingFuzzyMatch.Contains(functionName, StringComparer.OrdinalIgnoreCase) ||
             FunctionNamesAllowingFuzzyMatch.Contains(functionName + "Async", StringComparer.OrdinalIgnoreCase))
         {
@@ -334,8 +334,10 @@ public class ReplayToolCore
             FunctionArgumentsJson = argsJsonForEntry,
             FunctionResultJson = resultJsonForEntry
         });
-    }    private string SerializeFunctionResult(object? result)
-    {        return result switch
+    }
+    private string SerializeFunctionResult(object? result)
+    {
+        return result switch
         {
             null => "null",
             JsonElement jsonElement when jsonElement.ValueKind == JsonValueKind.String =>
@@ -345,7 +347,8 @@ public class ReplayToolCore
             string s => s,
             _ => JsonSerializer.Serialize(result, _serializerOptions)
         };
-    }    private void IdentifyIncompleteCallIds(
+    }
+    private void IdentifyIncompleteCallIds(
         Dictionary<string, (string Name, IDictionary<string, object?>? Arguments)> pendingFunctionCalls,
         List<ReplayEntry> currentLogReplayEntries,
         HashSet<string> currentLogLoggedCallIdsWithNoResult)
@@ -411,7 +414,8 @@ public class ReplayToolCore
     {
         _loggedCallIdsWithNoResult.RemoveWhere(id => currentLogEntries.Any(re => re.CallId == id));
         foreach (var callId in currentLogIncompleteCallIds)
-        {        if (!_replayEntries.Any(re => re.CallId == callId && !string.IsNullOrEmpty(re.FunctionResultJson)))
+        {
+            if (!_replayEntries.Any(re => re.CallId == callId && !string.IsNullOrEmpty(re.FunctionResultJson)))
             {
                 _loggedCallIdsWithNoResult.Add(callId);
             }

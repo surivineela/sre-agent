@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Agent.Core.Interfaces;
-using Agent.Plugins.Definitions;
 using Agent.Plugins;
+using Agent.Plugins.Definitions;
 using Agent.Tests.Common.Mocks;
 using Microsoft.Extensions.DependencyInjection;
 

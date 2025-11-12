@@ -616,7 +616,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 // Emit agent action telemetry for thread creation with incident source
                 try
                 {
-                    var param = JsonSerializer.Serialize(new { IncidentSource = GetIncidentSource(), HandlerId = incidentHandler.Id  });
+                    var param = JsonSerializer.Serialize(new { IncidentSource = GetIncidentSource(), HandlerId = incidentHandler.Id });
                     _logger.LogAgentAction(
                         action: AgentActionEvents.CreateThread,
                         parameter: param,
@@ -683,7 +683,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
 
     protected virtual IncidentAIData ToIncidentActivitySnapshot(TIncidentFilterDocument filter, TIncidentDocument incidentDetails, IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request, IncidentHandlerDocument? handler)
     {
-        IncidentAIData snapShot  = new IncidentAIData
+        IncidentAIData snapShot = new IncidentAIData
         {
             HandlerId = filter.Id ?? filter.Name ?? request.IncidentFilter?.Id ?? request.IncidentFilter?.Name ?? "no-handler",
             IncidentId = incidentDetails.Id,
@@ -706,7 +706,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             IsHandlerCustom = !string.IsNullOrWhiteSpace(handler?.CustomInstructions) ? true : false,
             IncidentPlatform = GetIncidentPlatform()
         };
-        
+
         return snapShot;
     }
 }

@@ -93,7 +93,7 @@ public class CustomerTraceProcessor : BaseProcessor<Activity>
             }
             else if (_options.LogFilteringActions && _logger != null)
             {
-                _logger.LogDebug("Activity {ActivityId} filtered out - not a CustomerActivity (ActivitySource: {ActivitySource}): {SpanName}", 
+                _logger.LogDebug("Activity {ActivityId} filtered out - not a CustomerActivity (ActivitySource: {ActivitySource}): {SpanName}",
                     activity.SpanId, activity.Source?.Name ?? "unknown", activity.DisplayName);
             }
         }
@@ -125,7 +125,7 @@ public class CustomerTraceProcessor : BaseProcessor<Activity>
         }
 
         // Apply duration filtering if configured (only for customer activities)
-        if (_options.MinimumDurationThreshold.HasValue && 
+        if (_options.MinimumDurationThreshold.HasValue &&
             activity.Duration < _options.MinimumDurationThreshold.Value)
         {
             return false;
@@ -208,7 +208,7 @@ public class CustomerTraceProcessor : BaseProcessor<Activity>
     private void ExportToCustomerSafeExporters(Activity activity)
     {
         var batch = new Batch<Activity>(new[] { activity }, 1);
-        
+
         foreach (var exporter in _customerExporters)
         {
             try
@@ -231,7 +231,7 @@ public class CustomerTraceProcessor : BaseProcessor<Activity>
     private static bool IsCustomerRelevantEvent(ActivityEvent activityEvent)
     {
         var eventName = activityEvent.Name?.ToLowerInvariant() ?? "";
-        
+
         // Include events that indicate issues or significant milestones
         var relevantEventTypes = new[]
         {
@@ -256,7 +256,7 @@ public class CustomerTraceProcessor : BaseProcessor<Activity>
         return relevantEventTypes.Any(type => eventName.Contains(type)) &&
                !internalEventTypes.Any(type => eventName.Contains(type));
     }
-        
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)

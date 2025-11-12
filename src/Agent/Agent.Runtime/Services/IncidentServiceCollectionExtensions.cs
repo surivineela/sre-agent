@@ -157,7 +157,7 @@ public static class IncidentServiceCollectionExtensions
         // else use Managed Identity
         if (IsDevelopment)
         {
-            if(string.IsNullOrWhiteSpace(icmAppsettings.UserToken))
+            if (string.IsNullOrWhiteSpace(icmAppsettings.UserToken))
             {
                 throw new InvalidOperationException("ICM API UserToken is not configured for development environment.");
             }
@@ -203,7 +203,7 @@ public static class IncidentServiceCollectionExtensions
         else
         {
             var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
-            if(string.IsNullOrWhiteSpace(scope))
+            if (string.IsNullOrWhiteSpace(scope))
             {
                 throw new InvalidOperationException("ICM API scope is not configured.");
             }

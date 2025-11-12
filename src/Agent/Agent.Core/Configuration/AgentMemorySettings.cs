@@ -18,7 +18,7 @@ public class AgentMemorySettings
     public string AzureAISearchSkillSetName { get; set; } = string.Empty;
     public string AzureAISearchDomainSuffix { get; set; } = "search.windows.net";
     public string ManagedIdentityResourceId { get; set; } = string.Empty;
-    
+
     // Threshold settings for relevance filtering
     public float TrajectoryVectorSimilarityThreshold { get; set; } = 0.7f;
     public float TrajectoryVectorSimilarityThresholdForSameResource { get; set; } = 0.6f;

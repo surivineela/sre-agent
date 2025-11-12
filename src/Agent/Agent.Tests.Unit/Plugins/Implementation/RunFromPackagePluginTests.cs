@@ -8,17 +8,17 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Agent.Core.Configuration;
 using Agent.Core.Clients.Storage;
+using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Services;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Models.RunFromPackage;
-using Agent.Core.Services;
 using Azure.Core;
 using Azure.Storage.Blobs;
-using Agent.Framework;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -222,7 +222,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         [InlineData("FlexConsumption", "Windows", true, true, RunFromPackageMode.None, "")]
         [InlineData("FlexConsumption", "Linux", false, true, RunFromPackageMode.None, "")]
         public void SkuCapabilities_GetForSku_ReturnsCorrectCapabilities(
-            string sku, string os, bool expectedLocalSupport, bool expectedUrlSupport, 
+            string sku, string os, bool expectedLocalSupport, bool expectedUrlSupport,
             RunFromPackageMode expectedMode, string expectedValue)
         {
             // Act
@@ -385,10 +385,10 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             }";
 
             SetupAppSettingsResponse(appSettingsJson);
-            
+
             // Setup Linux OS response
             SetupResourceDetailsResponse("Linux");
-            
+
             // Setup Consumption SKU response
             SetupAppServicePlanResponse("Consumption");
 
@@ -577,14 +577,14 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ""serverFarmId"": ""/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Web/serverfarms/test-plan""
                 }}
             }}";
-            
+
             // Set up mock for resource details call (for OS detection and App Service Plan ID)
             _mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req => 
-                        req.RequestUri!.ToString().Contains(TestResourceId) && 
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.RequestUri!.ToString().Contains(TestResourceId) &&
                         req.RequestUri!.ToString().Contains("?api-version=2022-03-01") &&
                         !req.RequestUri!.ToString().Contains("config") &&
                         !req.RequestUri!.ToString().Contains("serverfarms")),
@@ -607,12 +607,12 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ""name"": ""{skuName}""
                 }}
             }}";
-            
+
             _mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req => 
+                    ItExpr.Is<HttpRequestMessage>(req =>
                         req.RequestUri!.ToString().Contains("/serverfarms/test-plan") &&
                         req.RequestUri!.ToString().Contains("?api-version=2022-03-01")),
                     ItExpr.IsAny<CancellationToken>()
@@ -635,14 +635,14 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ""AzureWebJobsStorage"": ""DefaultEndpointsProtocol=https;AccountName=test;AccountKey=fake-key;EndpointSuffix=core.windows.net""
                 }
             }";
-            
+
             _mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req => 
+                    ItExpr.Is<HttpRequestMessage>(req =>
                         req.Method == HttpMethod.Post &&
-                        req.RequestUri!.ToString().Contains("/config/appSettings/list") && 
+                        req.RequestUri!.ToString().Contains("/config/appSettings/list") &&
                         req.RequestUri!.ToString().Contains("api-version=2022-03-01")),
                     ItExpr.IsAny<CancellationToken>()
                 )
@@ -658,14 +658,14 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ""AzureWebJobsStorage"": ""DefaultEndpointsProtocol=https;AccountName=test;AccountKey=fake-key;EndpointSuffix=core.windows.net""
                 }
             }";
-            
+
             _mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req => 
+                    ItExpr.Is<HttpRequestMessage>(req =>
                         req.Method == HttpMethod.Post &&
-                        req.RequestUri!.ToString().Contains("/config/appsettings/list") && 
+                        req.RequestUri!.ToString().Contains("/config/appsettings/list") &&
                         req.RequestUri!.ToString().Contains("api-version=2024-04-01")),
                     ItExpr.IsAny<CancellationToken>()
                 )
@@ -677,14 +677,14 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Mock the PUT request to update app settings (UpdateAppSettingsAsync) - api-version=2024-04-01
             var statusCode = success ? HttpStatusCode.OK : HttpStatusCode.BadRequest;
             var response = success ? @"{""properties"":{""WEBSITE_RUN_FROM_PACKAGE"":""1""}}" : @"{""error"":""Update failed""}";
-            
+
             _mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req => 
+                    ItExpr.Is<HttpRequestMessage>(req =>
                         req.Method == HttpMethod.Put &&
-                        req.RequestUri!.ToString().Contains("/config/appsettings") && 
+                        req.RequestUri!.ToString().Contains("/config/appsettings") &&
                         req.RequestUri!.ToString().Contains("api-version=2024-04-01") &&
                         !req.RequestUri!.ToString().Contains("/config/appsettings/list")),
                     ItExpr.IsAny<CancellationToken>()
@@ -701,20 +701,20 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             const string testResourceId = "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Web/sites/test-function-app";
             const string testAppServicePlanId = "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Web/serverfarms/test-plan";
-            
+
             // Setup resource details response to return the App Service Plan ID
             var resourceDetails = $@"{{
                 ""properties"": {{
                     ""serverFarmId"": ""{testAppServicePlanId}""
                 }}
             }}";
-            
+
             _mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req => 
-                        req.RequestUri!.ToString().Contains(testResourceId) && 
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.RequestUri!.ToString().Contains(testResourceId) &&
                         req.RequestUri!.ToString().Contains("?api-version=2022-03-01")),
                     ItExpr.IsAny<CancellationToken>()
                 )
@@ -733,12 +733,12 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ""capacity"": 1
                 }
             }";
-            
+
             _mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req => 
+                    ItExpr.Is<HttpRequestMessage>(req =>
                         req.RequestUri!.ToString().Contains(testAppServicePlanId) &&
                         req.RequestUri!.ToString().Contains("?api-version=2022-03-01")),
                     ItExpr.IsAny<CancellationToken>()
@@ -761,20 +761,20 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             const string testResourceId = "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Web/sites/test-function-app";
             const string testAppServicePlanId = "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Web/serverfarms/test-plan";
-            
+
             // Setup resource details response
             var resourceDetails = $@"{{
                 ""properties"": {{
                     ""serverFarmId"": ""{testAppServicePlanId}""
                 }}
             }}";
-            
+
             _mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req => 
-                        req.RequestUri!.ToString().Contains(testResourceId) && 
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.RequestUri!.ToString().Contains(testResourceId) &&
                         req.RequestUri!.ToString().Contains("?api-version=2022-03-01")),
                     ItExpr.IsAny<CancellationToken>()
                 )
@@ -792,12 +792,12 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ""capacity"": 1
                 }
             }";
-            
+
             _mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req => 
+                    ItExpr.Is<HttpRequestMessage>(req =>
                         req.RequestUri!.ToString().Contains(testAppServicePlanId) &&
                         req.RequestUri!.ToString().Contains("?api-version=2022-03-01")),
                     ItExpr.IsAny<CancellationToken>()
@@ -921,7 +921,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var functionFolders = new List<string>(); // No function folders for .NET isolated
 
             var report = new PackageStructureReport();
-            
+
             // Set the detected runtime first using the detection method
             report.DetectedRuntime = InvokePrivateMethod<string>(_plugin, "DetectFunctionAppRuntime", fileNames);
 

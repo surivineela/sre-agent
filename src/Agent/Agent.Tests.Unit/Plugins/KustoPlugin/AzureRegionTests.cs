@@ -88,7 +88,7 @@ namespace Agent.Tests.Unit.Plugins.KustoPluginTests
                 var normalized = region.ToNormalizedString();
                 Assert.NotNull(normalized);
                 Assert.NotEmpty(normalized);
-                
+
                 // Verify round trip works
                 var parsed = AzureRegionExtensions.FromNormalizedString(normalized);
                 Assert.Equal(region, parsed);

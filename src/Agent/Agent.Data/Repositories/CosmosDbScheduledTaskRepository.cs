@@ -179,7 +179,7 @@ public class CosmosDbScheduledTaskRepository : IScheduledTaskRepository
 
         // Get all active tasks and evaluate cron expressions at runtime
         var iterator = _container.GetItemLinqQueryable<ScheduledTaskDocument>()
-            .Where(doc => doc.DocumentType == "ScheduledTask" 
+            .Where(doc => doc.DocumentType == "ScheduledTask"
                 && doc.Status == ScheduledTaskStatus.Active)
             .ToFeedIterator();
 
@@ -226,7 +226,7 @@ public class CosmosDbScheduledTaskRepository : IScheduledTaskRepository
             var schedule = NCrontab.CrontabSchedule.Parse(task.CronExpression);
             var baseTime = task.LastExecutionTime ?? task.StartTime;
             var nextExecution = schedule.GetNextOccurrence(baseTime);
-            
+
             return nextExecution <= currentTime;
         }
         catch

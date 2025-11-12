@@ -39,7 +39,7 @@ public sealed class ObserverClientService
         _observerClientSettings = observerClientSettings;
         _authenticationService = authenticationService;
         _logger = logger;
-        
+
         if (_observerClientSettings.Enabled)
         {
             _httpClient = GetHttpClient();

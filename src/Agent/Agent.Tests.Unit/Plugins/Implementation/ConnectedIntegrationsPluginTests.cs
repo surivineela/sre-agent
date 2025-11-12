@@ -2,8 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Plugins.Implementation;
 using Agent.Core.Configuration;
+using Agent.Plugins.Implementation;
 
 namespace Agent.Tests.Unit.Plugins.Implementation
 {

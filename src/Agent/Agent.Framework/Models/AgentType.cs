@@ -13,12 +13,12 @@ public enum AgentType
     /// Autonomous agent that operates independently with conversation history.
     /// </summary>
     Autonomous,
-    
+
     /// <summary>
     /// Orchestrator agent that coordinates workflow execution.
     /// </summary>
     Orchestrator,
-    
+
     /// <summary>
     /// Activity agent that performs specific tasks within a workflow.
     /// </summary>

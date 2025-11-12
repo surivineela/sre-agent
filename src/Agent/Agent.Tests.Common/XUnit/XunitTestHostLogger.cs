@@ -24,7 +24,7 @@ namespace Agent.Tests.Common.XUnit
             _startTime = startTime;
             _loggingProviderName = loggingProviderName;
             _categoryName = categoryName.Split('.').Last();
-           
+
             if (!Enum.TryParse<LogLevel>(loggingConfig["Logging:LogLevel:Agent.Tests.Integration.TestApplication"], out LogLevel logLevel))
             {
                 if (!Enum.TryParse<LogLevel>(loggingConfig["Logging:LogLevel:Default"], out logLevel))

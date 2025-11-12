@@ -37,7 +37,7 @@ namespace Agent.Plugins.Definitions
             """
         )]
         [AgentTool(ToolMode.Auto)]
-        public Task<string> GetKustoClusterFromSiteNameAtIssueTime(            
+        public Task<string> GetKustoClusterFromSiteNameAtIssueTime(
             [Description("Start time yyyy-MM-ddTHH:mm:ss.fff")] string fromDate,
             [Description("End time yyyy-MM-ddTHH:mm:ss.fff")] string toDate,
             [Description("SiteName/application.")] string siteName
@@ -46,7 +46,7 @@ namespace Agent.Plugins.Definitions
             return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetKustoClusterFromSiteNameAtIssueTime", DefaultClusterName, DefaultDatabaseName,
                 new Dictionary<string, string> {
                     {"startTime", fromDate}, {"endTime", toDate}, {"siteName", siteName}
-                }, TableOnly);            
+                }, TableOnly);
         }
 
 
@@ -71,7 +71,7 @@ namespace Agent.Plugins.Definitions
                     {"startTime", fromDate}, {"endTime", toDate}, {"siteName", siteName}, {"eventPrimaryStampName", eventPrimaryStampName}
                 }, TableOnly);
         }
-                     
+
 
         [Description(@"Checks whether Service Bus listener started for a specific entity path pattern.")]
         [AgentTool(ToolMode.Auto)]
@@ -84,15 +84,15 @@ namespace Agent.Plugins.Definitions
             [Description("Function name (e.g., Namespace.FunctionName).")] string functionName,
             [Description("ServiceBus entity path pattern (e.g., entityPath='topic1/Subscriptions/sub').")] string entityPathPattern)
         {
-            return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.ServiceBusTriggerPreflight.EnsureServiceBusListenerStarted", clusterName, DefaultDatabaseName,                                                                      
+            return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.ServiceBusTriggerPreflight.EnsureServiceBusListenerStarted", clusterName, DefaultDatabaseName,
                 new Dictionary<string, string> {
                     {"startTime", fromDate}, {"endTime", toDate}, {"siteName", siteName},
                     {"eventPrimaryStampName", eventPrimaryStampName}, {"functionName", functionName}, {"entityPathPattern", entityPathPattern}
                 }, TableOnly);
         }
 
-      
-        
+
+
         [Description(@"Fetches ServiceBusMessageEnqueued events and parses Entity Path and QueueName.")]
         [AgentTool(ToolMode.Auto)]
         public Task<string> CheckServiceBusMessageEnqueuedForFunction(
@@ -109,9 +109,9 @@ namespace Agent.Plugins.Definitions
                     {"eventPrimaryStampName", eventPrimaryStampName}, {"functionName", functionName}
                 }, TableOnly);
         }
-        
-          
-        
+
+
+
         [Description(@"Checks correlation across ServiceBusMessageEnqueued, FunctionStarted, FunctionCompleted for a function.")]
         [AgentTool(ToolMode.Auto)]
         public Task<string> CheckServiceBusFunctionTriggeredCorrelation(
@@ -128,6 +128,6 @@ namespace Agent.Plugins.Definitions
                     {"eventPrimaryStampName", eventPrimaryStampName}, {"functionName", functionName}
                 }, TableOnly);
         }
-        
+
     }
 }

@@ -32,7 +32,7 @@ namespace Agent.Core.Clients.Storage
 
             TokenCredential credential = _authService.GetStorageCredential();
             var blobEndpoint = storageSettings.Value.BlobEndpoint;
-            if( string.IsNullOrEmpty(blobEndpoint))
+            if (string.IsNullOrEmpty(blobEndpoint))
             {
                 blobEndpoint = "https://dummy-sre-blob.blob.core.windows.net/";
             }
@@ -127,7 +127,7 @@ namespace Agent.Core.Clients.Storage
         {
             var blobContainerClient = await GetBlobContainerClient(containerName);
             var blobClient = blobContainerClient.GetBlobClient(blobName);
-            
+
             return await blobClient.ExistsAsync();
         }
 
@@ -136,7 +136,7 @@ namespace Agent.Core.Clients.Storage
             var blobContainerClient = await GetBlobContainerClient(containerName);
             var blobClient = blobContainerClient.GetBlobClient(blobName);
             var response = await blobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
-            
+
             return response.Value;
         }
 

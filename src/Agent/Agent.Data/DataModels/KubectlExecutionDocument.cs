@@ -1,6 +1,6 @@
+using System.Text.Json;
 using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
-using System.Text.Json;
 
 namespace Agent.Data.DataModels
 {

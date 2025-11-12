@@ -39,7 +39,7 @@ namespace Agent.Plugins.Mocks
                 new SuccessfulRequestVolumeTimeSeriesData(start.AddSeconds(-90), 847),
                 new SuccessfulRequestVolumeTimeSeriesData(start.AddSeconds(-60), 954),
                 new SuccessfulRequestVolumeTimeSeriesData(start.AddSeconds(-30), 1025),
-                
+
             };
 
             if (UnhealthyResourceIds.Contains(resourceId))

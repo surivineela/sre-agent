@@ -6,9 +6,9 @@ using System.Text.Json;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
 
 namespace Agent.Runtime.Helpers;
 

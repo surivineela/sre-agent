@@ -2,12 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models.Api.v1;
-using Microsoft.AspNetCore.Mvc;
-using Agent.Core.Interfaces;
-using Agent.Runtime.Services;
 using System.Text.Json.Serialization;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
+using Agent.Runtime.Services;
 using Agent.Web.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1

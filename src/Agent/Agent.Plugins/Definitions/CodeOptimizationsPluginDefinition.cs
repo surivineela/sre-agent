@@ -3,9 +3,9 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Framework;
-using Agent.Core.Helpers;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins

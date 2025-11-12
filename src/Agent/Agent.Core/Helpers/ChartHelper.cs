@@ -246,7 +246,7 @@ public static class ChartHelper
             }
             else
             {
-                 plt.Axes.Margins(bottom: 0);
+                plt.Axes.Margins(bottom: 0);
             }
 
             // Common finalization for this branch

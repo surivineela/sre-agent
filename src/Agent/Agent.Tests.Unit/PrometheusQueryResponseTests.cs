@@ -2,8 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Prometheus;
 using System.Text.Json;
+using Agent.Prometheus;
 
 namespace Agent.Tests.Unit;
 

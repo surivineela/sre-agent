@@ -28,7 +28,7 @@ public class ServiceNowPluginDefinition
         return await _serviceNowPlugin.GetServiceNowIncident(incidentSystemId);
     }
 
-    [WriteActionAttribute(runInReadOnlyMode: false, 
+    [WriteActionAttribute(runInReadOnlyMode: false,
         readOnlyMessage: "Would have posted discussion entry to ServiceNow incident. Operation simulated successfully.")]
     [Description("Post ServiceNow discussion entry")]
     public async Task<string> PostServiceNowDiscussionEntry(

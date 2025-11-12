@@ -3,8 +3,8 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
-using Agent.Cli.Services;
 using Agent.Cli.Commands;
+using Agent.Cli.Services;
 
 namespace Agent.Cli.Helpers;
 

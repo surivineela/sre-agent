@@ -14,7 +14,7 @@ namespace Agent.Plugins.Interface
         /// <param name="resourceId">The Azure resource ID of the Web App</param>
         /// <returns>A summary of web app restart execution data</returns>
         Task<string> GetWebAppRestartExecution(string resourceId);
-        
+
         /// <summary>
         /// Gets call stacks for a web app
         /// </summary>
@@ -38,10 +38,10 @@ namespace Agent.Plugins.Interface
         /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
         /// <returns>The top 3 exceptions</returns>
         Task<string> GetTop3Exceptions(string resourceId, DateTime? startTime = null, DateTime? endTime = null);        /// <summary>
-        /// Checks if a resource is a Web App by verifying its 'kind' property
-        /// </summary>
-        /// <param name="resourceId">The Azure resource ID to check</param>
-        /// <returns>True if the resource is a Web App, false otherwise</returns>
+                                                                                                                        /// Checks if a resource is a Web App by verifying its 'kind' property
+                                                                                                                        /// </summary>
+                                                                                                                        /// <param name="resourceId">The Azure resource ID to check</param>
+                                                                                                                        /// <returns>True if the resource is a Web App, false otherwise</returns>
         Task<bool> IsWebApp(string resourceId);
     }
 }

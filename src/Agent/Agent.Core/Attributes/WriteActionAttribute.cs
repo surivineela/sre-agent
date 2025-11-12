@@ -12,7 +12,7 @@ public class WriteActionAttribute : Attribute
 {
     public bool RunInReadOnlyMode { get; set; }
     public string? ReadOnlyMessage { get; set; }
-    
+
     public WriteActionAttribute(bool runInReadOnlyMode = false, string? readOnlyMessage = null)
     {
         RunInReadOnlyMode = runInReadOnlyMode;

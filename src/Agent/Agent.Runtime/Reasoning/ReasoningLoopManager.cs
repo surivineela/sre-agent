@@ -3,9 +3,9 @@
 // ------------------------------------------------------------
 
 using System.Collections.Concurrent;
+using Agent.Core.Configuration; // for CoreSettings / feature flag
 using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
-using Agent.Core.Configuration; // for CoreSettings / feature flag
 
 namespace Agent.Runtime.Reasoning;
 

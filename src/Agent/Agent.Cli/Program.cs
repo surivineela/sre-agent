@@ -5,8 +5,8 @@
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using Agent.Cli.Commands;
-using Agent.Cli.Services;
 using Agent.Cli.Helpers;
+using Agent.Cli.Services;
 
 public static class Program
 {

@@ -13,7 +13,7 @@ public abstract class IToolFunction
     public abstract AIFunction ToolFunction { get; }
 }
 
-public interface IToolFunction202 
+public interface IToolFunction202
 {
     AIFunction ExecuteFunction { get; }
 }

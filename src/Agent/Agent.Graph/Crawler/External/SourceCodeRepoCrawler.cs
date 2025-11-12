@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.RegularExpressions;
+using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -10,7 +11,6 @@ using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Helpers;
 using Agent.Graph.Interfaces;
 using Microsoft.Extensions.Logging;
-using Agent.Core;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 
 namespace Agent.Graph.Crawler.External;

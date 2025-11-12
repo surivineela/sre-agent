@@ -59,8 +59,8 @@ public class TableFormatterTests
             2018-02-02T05:00:00Z	255
             2018-02-01T17:00:00Z	148
             2018-02-01T18:00:00Z	453
-            
-            """,
+
+            """.Replace("\r\n", "\n"),
             tsv);
     }
 }

@@ -4,8 +4,8 @@
 
 using System.Text.Json;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
 using Agent.Core.Models; // ReasoningMessage, enums
+using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI; // ChatMessage, ChatRole
 
 namespace Agent.Runtime.Reasoning;
@@ -74,7 +74,7 @@ internal sealed class ModeSwitchHandler
         };
 
         updated = await _threadRepository.UpdateAgentContextAsync(updated);
-    await SendSystemAsync(updated, $"Mode changed to {targetModeRaw}.");
+        await SendSystemAsync(updated, $"Mode changed to {targetModeRaw}.");
 
         if (!string.IsNullOrWhiteSpace(initialUserUtterance))
         {

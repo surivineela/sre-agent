@@ -2,8 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Linq;
 using System.ComponentModel;
+using System.Linq;
 using System.Text.Json;
 using Agent.Core.Models;
 using Agent.Framework;
@@ -90,7 +90,7 @@ public class MdmMetricsPluginDefinition
         [Description("MDM query start time in ISO-8601 UTC format.")] string startTimeUtc,
         [Description("MDM query end time in ISO-8601 UTC format.")] string endTimeUtc,
         [Description("Resolution of the returned series in minutes (default 5).")] int seriesResolutionInMinutes = 5,
-        [Description("Optional JSON payload describing additional MDM query parameters (sampling types, aggregation, dimensions, etc.). Example: { 'samplingTypes': ['Average'], 'aggregationType': 'Automatic', 'dimensionFilters': [{'dimension': 'Region', 'values': ['NA']}], 'outputDimensionNames': ['Region'], 'lastValueMode': false }")] 
+        [Description("Optional JSON payload describing additional MDM query parameters (sampling types, aggregation, dimensions, etc.). Example: { 'samplingTypes': ['Average'], 'aggregationType': 'Automatic', 'dimensionFilters': [{'dimension': 'Region', 'values': ['NA']}], 'outputDimensionNames': ['Region'], 'lastValueMode': false }")]
             string requestJson = "{ \"samplingTypes\": [\"Average\"], \"aggregationType\": \"Automatic\", \"lastValueMode\": false }")
     {
         var result = await _mdmMetricsPlugin.GetTimeSeriesAsync(
@@ -113,7 +113,7 @@ public class MdmMetricsPluginDefinition
         [Description("MDM query start time in ISO-8601 UTC format.")] string startTimeUtc,
         [Description("MDM query end time in ISO-8601 UTC format.")] string endTimeUtc,
         [Description("Resolution of the returned series in minutes (default 5).")] int seriesResolutionInMinutes = 5,
-        [Description("Optional JSON payload describing additional MDM query parameters (sampling types, aggregation, dimensions, etc.). Example: { 'samplingTypes': ['Average'], 'aggregationType': 'Automatic', 'dimensionFilters': [{'dimension': 'Region', 'values': ['NA']}], 'outputDimensionNames': ['Region'], 'lastValueMode': false }")] 
+        [Description("Optional JSON payload describing additional MDM query parameters (sampling types, aggregation, dimensions, etc.). Example: { 'samplingTypes': ['Average'], 'aggregationType': 'Automatic', 'dimensionFilters': [{'dimension': 'Region', 'values': ['NA']}], 'outputDimensionNames': ['Region'], 'lastValueMode': false }")]
             string requestJson = "{ \"samplingTypes\": [\"Average\"], \"aggregationType\": \"Automatic\", \"lastValueMode\": false }",
         [Description("Optional contextual query to guide the analysis focus.")] string? contextualQuery = null)
     {

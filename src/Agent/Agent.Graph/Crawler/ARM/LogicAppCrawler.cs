@@ -989,13 +989,13 @@ public class LogicAppCrawler : AppServiceCrawler
         public IEnumerable<ArmResourceNode> GetNodesByKind(NodeType type) =>
             _nodeAccumulator.GetByKind(type);
 
-        public ArmResourceNode? GetNode(NodeType type, string referenceName) => 
+        public ArmResourceNode? GetNode(NodeType type, string referenceName) =>
             _nodeAccumulator.Get(type, referenceName);
 
         public bool AddEdge(ArmResourceEdge edge) =>
             _edgeAccumulator.Add(edge);
 
-        public ArmResourceEdge? GetEdge(string sourceNodeId, string targetNodeId) => 
+        public ArmResourceEdge? GetEdge(string sourceNodeId, string targetNodeId) =>
             _edgeAccumulator.Get(sourceNodeId, targetNodeId);
     }
 }

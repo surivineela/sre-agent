@@ -2,10 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Concurrent;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
 
 namespace Agent.Runtime.Communication;
 

@@ -1,7 +1,7 @@
-using Agent.Core.Models.ServiceNow;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Agent.Core.Models.ServiceNow;
 
 namespace Agent.Core.Interfaces
 {

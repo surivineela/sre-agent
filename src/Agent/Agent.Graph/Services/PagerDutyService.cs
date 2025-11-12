@@ -187,7 +187,7 @@ public class PagerDutyService : IPagerDutyService
         int offset = 0;
         bool more = true;
         var allServices = new List<PDServiceMetadata>();
-        while(more)
+        while (more)
         {
             var url = QueryHelpers.AddQueryString("https://api.pagerduty.com/services", new Dictionary<string, string?>
             {
@@ -282,7 +282,8 @@ public class PagerDutyService : IPagerDutyService
                     var content = await response.Content.ReadAsStringAsync();
                     _logger.LogInternalError($"Failed to deserialize PagerDuty incident response. Response: {content}");
                 }
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 var content = await response.Content.ReadAsStringAsync();
                 _logger.LogInternalError($"Failed to deserialize PagerDuty incident response. Message : {ex.Message}. Response: {content}");

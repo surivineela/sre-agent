@@ -11,7 +11,7 @@ namespace Agent.Core.Models.ServiceNow
             // Handle null
             if (reader.TokenType == JsonTokenType.Null)
                 return string.Empty;
-            
+
             // Handle string directly
             if (reader.TokenType == JsonTokenType.String)
                 return reader.GetString() ?? string.Empty;
@@ -22,12 +22,12 @@ namespace Agent.Core.Models.ServiceNow
                 using (JsonDocument doc = JsonDocument.ParseValue(ref reader))
                 {
                     // Try to extract 'value' property if present
-                    if (doc.RootElement.TryGetProperty("value", out JsonElement valueElement) && 
+                    if (doc.RootElement.TryGetProperty("value", out JsonElement valueElement) &&
                         valueElement.ValueKind == JsonValueKind.String)
                     {
                         return valueElement.GetString() ?? string.Empty;
                     }
-                    
+
                     // Try to get any string property as fallback
                     foreach (var property in doc.RootElement.EnumerateObject())
                     {
@@ -36,12 +36,12 @@ namespace Agent.Core.Models.ServiceNow
                             return property.Value.GetString() ?? string.Empty;
                         }
                     }
-                    
+
                     // Return serialized JSON as last resort
                     return doc.RootElement.ToString();
                 }
             }
-            
+
             // For any other type, convert to string using the extension method
             return reader.GetRawStringValue();
         }

@@ -29,7 +29,7 @@ internal sealed class MdmMetricsAccessTokenProvider : IAccessTokenProvider
     private DateTimeOffset _userTokenExpiration;
 
     public MdmMetricsAccessTokenProvider(
-        MdmMetricsSettings settings, 
+        MdmMetricsSettings settings,
         ILogger logger,
         IAuthenticationService authenticationService,
         IHostEnvironment hostEnvironment)
@@ -45,7 +45,7 @@ internal sealed class MdmMetricsAccessTokenProvider : IAccessTokenProvider
 
         if (_hostEnvironment.IsDevelopment())
         {
-           _logger.LogInternalInformation($"Using user token via Azure Default Credential and token endpoint: {_tokenEndpoint} with ClientId: {_settings.ClientId}");
+            _logger.LogInternalInformation($"Using user token via Azure Default Credential and token endpoint: {_tokenEndpoint} with ClientId: {_settings.ClientId}");
         }
         else
         {
@@ -117,8 +117,8 @@ internal sealed class MdmMetricsAccessTokenProvider : IAccessTokenProvider
         var commandPayload = new { command = psCommand, dir = "site\\repository" };
 
         var content = new StringContent(
-            JsonSerializer.Serialize(commandPayload), 
-            Encoding.UTF8, 
+            JsonSerializer.Serialize(commandPayload),
+            Encoding.UTF8,
             "application/json");
 
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {managementToken.Token}");
@@ -129,7 +129,7 @@ internal sealed class MdmMetricsAccessTokenProvider : IAccessTokenProvider
         var token = await ExtractTokenFromResponse(response).ConfigureAwait(false);
         _cachedUserToken = token;
         _userTokenExpiration = DateTimeOffset.UtcNow.AddMinutes(45);
-        
+
         _logger.LogInternalInformation($"Successfully acquired and cached MDM token (expires at {_userTokenExpiration}).");
         return token;
     }
@@ -154,7 +154,7 @@ internal sealed class MdmMetricsAccessTokenProvider : IAccessTokenProvider
     private async Task<string> ExtractTokenFromResponse(HttpResponseMessage response)
     {
         var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-        
+
         using var jsonDoc = JsonDocument.Parse(responseBody);
         if (!jsonDoc.RootElement.TryGetProperty("Output", out var outputElement))
         {

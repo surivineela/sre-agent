@@ -4,8 +4,8 @@
 
 using System.CommandLine;
 using System.Text.Json.Nodes;
-using Agent.Cli.Services;
 using Agent.Cli.Helpers;
+using Agent.Cli.Services;
 using Agent.Common.Core.Manifests;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;

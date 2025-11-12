@@ -20,4 +20,4 @@ public sealed record SqlConnectionDescriptor(
     string SqlServerResourceId,
     [Description("Name of the database")]
     string DatabaseName,
-    ConnectionType ConnectionType); 
+    ConnectionType ConnectionType);

@@ -8,23 +8,23 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Agent.Core.Configuration;
 using Agent.Core.Clients.Storage;
+using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Implementation;
+using Azure;
 using Azure.Core;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Agent.Framework;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
 using Xunit;
-using Azure;
 
 namespace Agent.Tests.Unit.Plugins.Implementation
 {
@@ -93,7 +93,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             const string testResourceId = "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Web/sites/test-function-app";
             const string testUrl = "https://ephttpstorageaccount.blob.core.windows.net/deploymentfile/ephttp-dotnetappv2.zip";
-            
+
             // Create a mock stream that throws NotSupportedException on Length access
             var mockStream = new Mock<Stream>();
             mockStream.Setup(s => s.Length).Throws(new NotSupportedException("Length property is not supported on RetriableStream"));
@@ -143,7 +143,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             Assert.True(result.IsSuccessful, $"Expected successful result but got error: {result.ErrorMessage}");
             Assert.True(result.PackageSize > 0, "Package size should be greater than 0");
             Assert.Equal(1024, result.PackageSize);
-            
+
             // Verify that the blob storage client was called
             _mockBlobStorageClient.Verify(x => x.DownloadBlobContentsAsStreamAsync(It.IsAny<Uri>()), Times.Once);
             _mockBlobStorageClient.Verify(x => x.GetBlobPropertiesAsync("deploymentfile", "ephttp-dotnetappv2.zip", It.IsAny<CancellationToken>()), Times.Once);
@@ -158,7 +158,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             const string testResourceId = "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Web/sites/test-function-app";
             const string testUrl = "https://ephttpstorageaccount.blob.core.windows.net/deploymentfile/ephttp-dotnetappv2.zip";
-            
+
             // Create a mock stream that throws NotSupportedException on Length access
             var mockStream = new Mock<Stream>();
             mockStream.Setup(s => s.Length).Throws(new NotSupportedException("Length property is not supported on RetriableStream"));
@@ -216,7 +216,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Assert
             Assert.True(result.IsSuccessful, $"Expected successful result but got error: {result.ErrorMessage}");
             Assert.Equal(2048, result.PackageSize);
-            
+
             // Verify fallback methods were attempted
             _mockBlobStorageClient.Verify(x => x.DownloadBlobContentsAsStreamAsync(It.IsAny<Uri>()), Times.Once);
             _mockBlobStorageClient.Verify(x => x.GetBlobPropertiesAsync("deploymentfile", "ephttp-dotnetappv2.zip", It.IsAny<CancellationToken>()), Times.Once);
@@ -231,7 +231,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             const string testResourceId = "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Web/sites/test-function-app";
             const string testUrl = "https://ephttpstorageaccount.blob.core.windows.net/deploymentfile/ephttp-dotnetappv2.zip";
-            
+
             // Create a mock stream that throws NotSupportedException on Length access
             var mockStream = new Mock<Stream>();
             mockStream.Setup(s => s.Length).Throws(new NotSupportedException("Length property is not supported on RetriableStream"));
@@ -261,7 +261,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert - expect the operation to continue even if size determination fails
             // The primary goal is to ensure NotSupportedException doesn't crash the app
-            Assert.True(result.IsSuccessful || result.ErrorMessage.Contains("Unable to determine package size") || result.ErrorMessage.Contains("An error occurred during package inspection"), 
+            Assert.True(result.IsSuccessful || result.ErrorMessage.Contains("Unable to determine package size") || result.ErrorMessage.Contains("An error occurred during package inspection"),
                 $"Expected either success or a graceful error handling, but got: {result.ErrorMessage}");
         }
 

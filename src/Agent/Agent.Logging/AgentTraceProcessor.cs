@@ -1,10 +1,10 @@
-using Microsoft.Extensions.Logging;
-using OpenTelemetry;
-using OpenTelemetry.Trace;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
 
 namespace Agent.Logging;
 
@@ -47,7 +47,8 @@ public class AgentTraceProcessor : BaseProcessor<Activity>
 
                 _batchProcessors.Add(batchProcessor);
             }
-        }        _filter = activity =>
+        }
+        _filter = activity =>
         {
             var operationName = activity?.Tags.FirstOrDefault(t => t.Key == "operation.name").Value;
             return operationName is string name && !string.IsNullOrEmpty(name);

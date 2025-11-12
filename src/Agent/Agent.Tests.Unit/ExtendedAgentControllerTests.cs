@@ -93,7 +93,7 @@
 //    [Fact]
 //    public async Task ApplyAgentConfiguration_EmptyBody_ReturnsBadRequest()
 //    {
- 
+
 
 //        // Act
 //        var result = await _controller.ApplyAgentConfiguration("");
@@ -125,7 +125,7 @@
 //              system_prompt: [invalid yaml structure
 //            """;
 
-        
+
 
 //        // Act
 //        var result = await _controller.ApplyAgentConfiguration(invalidYaml);
@@ -163,7 +163,7 @@
 //        //    .Setup(s => s.ApplyExtendedConfigurationAsync(It.IsAny<AgentConfiguration>()))
 //        //    .ThrowsAsync(new ArgumentException("Invalid configuration"));
 
-        
+
 
 //        // Act
 //        var result = await _controller.ApplyAgentConfiguration(validYaml);

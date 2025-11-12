@@ -14,7 +14,7 @@ namespace Agent.Plugins.Interface
         /// <param name="resourceId">The Azure resource ID of the Function App</param>
         /// <returns>A summary of function execution failures</returns>
         Task<string> GetFunctionAppExecutionFailures(string resourceId);
-        
+
         /// <summary>
         /// Gets call stacks for functions in the Function App
         /// </summary>

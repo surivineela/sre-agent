@@ -15,17 +15,17 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Services.Interfaces;
+using Agent.Runtime.Communication;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Runtime.TrajectoryEvaluator;
-using Agent.Runtime.Communication;
 using Agent.Web.Authorization;
 using Agent.Web.Models.WelcomeMessage;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Action = Agent.Core.Models.Api.v1.Action;
-using Thread = Agent.Core.Models.Api.v1.Thread;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Web.Controllers.v1
 {

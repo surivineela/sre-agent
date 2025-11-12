@@ -1695,4 +1695,3 @@ public class Program
         return agentName.Contains("enable-3p-skills", StringComparison.InvariantCultureIgnoreCase) || configSet;
     }
 }
-

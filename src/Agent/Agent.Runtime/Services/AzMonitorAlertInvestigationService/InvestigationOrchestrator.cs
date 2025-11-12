@@ -2,22 +2,22 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using System.Diagnostics;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
+using Agent.Data.DataModels.IncidentModel;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Trace;
 using OpenTelemetry;
+using OpenTelemetry.Trace;
 using Thread = Agent.Core.Models.Api.v1.Thread;
-using Agent.Data.DataModels.IncidentModel;
-using Agent.Framework;
 
 namespace Agent.Runtime.Services.AzMonitorAlertInvestigation;
 

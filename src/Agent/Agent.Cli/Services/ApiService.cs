@@ -451,7 +451,7 @@ public class ApiService : IDisposable
     {
         var stopwatch = Stopwatch.StartNew();
         var operation = dryRun ? "validation" : "apply";
-        
+
         try
         {
             DebugLogger.Debug($"{operation}", $"Starting agent {operation} for '{agentName}'");
@@ -532,7 +532,7 @@ public class ApiService : IDisposable
                 }
 
                 // Remove fields that belong at envelope level, not in properties
-                extendedAgentProperties.Remove("name"); 
+                extendedAgentProperties.Remove("name");
             }
             else
             {
@@ -569,7 +569,7 @@ public class ApiService : IDisposable
             {
                 requestUrl += "?dryRun=true";
             }
-            
+
             var request = new HttpRequestMessage(HttpMethod.Put, requestUrl)
             {
                 Content = new StringContent(apiRequestBody, Encoding.UTF8, "application/json")
@@ -622,7 +622,7 @@ public class ApiService : IDisposable
                 // v2 API returns: { "value": [ { "name": "...", "type": "ExtendedAgent", "properties": {...} }, ... ], "nextLink": "..." }
                 if (!jsonDoc.RootElement.TryGetProperty("value", out var valueElement) || valueElement.ValueKind != JsonValueKind.Array)
                 {
-                    return (false, $"Unexpected response format - no 'value' array found: {content}",string.Empty);
+                    return (false, $"Unexpected response format - no 'value' array found: {content}", string.Empty);
                 }
 
                 var agentList = new List<string>();
@@ -749,7 +749,7 @@ public class ApiService : IDisposable
             {
                 var names = new List<string>();
                 var jsonDoc = JsonDocument.Parse(content);
-                
+
                 // v2 API returns: { "value": [ { "name": "...", "type": "ExtendedAgent", "properties": {...} }, ... ] }
                 if (!jsonDoc.RootElement.TryGetProperty("value", out var valueElement) || valueElement.ValueKind != JsonValueKind.Array)
                 {

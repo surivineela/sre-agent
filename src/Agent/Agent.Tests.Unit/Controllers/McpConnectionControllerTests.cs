@@ -247,10 +247,10 @@ public class McpConnectionControllerTests
     {
         var mockLoggerFactory = new Mock<ILoggerFactory>();
         var mockBackend = new Mock<IMcpConnectable>();
-        
+
         IClientTransport transport;
         McpConnectionMetadata metadata;
-        
+
         if (isSse)
         {
             transport = new HttpClientTransport(new HttpClientTransportOptions
@@ -259,7 +259,7 @@ public class McpConnectionControllerTests
                 Name = name,  // Set the name to control the connection ID
                 TransportMode = HttpTransportMode.StreamableHttp
             });
-            
+
             metadata = new McpConnectionMetadata
             {
                 Type = "sse",  // Preserve "sse" type for backward compatibility
@@ -274,7 +274,7 @@ public class McpConnectionControllerTests
                 Arguments = new[] { "server.js" },
                 Name = name  // Set the name to control the connection ID
             });
-            
+
             metadata = new McpConnectionMetadata
             {
                 Type = "stdio",
@@ -290,21 +290,21 @@ public class McpConnectionControllerTests
             Authentication = authConfig,
             Metadata = metadata
         };
-        
+
         // Use reflection to set Tools if provided (for testing purposes)
         if (tools != null)
         {
             var toolsProperty = typeof(McpConnection).GetProperty("Tools");
             toolsProperty?.SetValue(connection, tools);
         }
-        
+
         // Use reflection to set Client if provided (for testing purposes)
         if (client != null)
         {
             var clientProperty = typeof(McpConnection).GetProperty("Client");
             clientProperty?.SetValue(connection, client);
         }
-        
+
         return connection;
     }
 

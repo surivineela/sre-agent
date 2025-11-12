@@ -74,8 +74,8 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     /// </summary>
     public void StartConnectionVerificationTimer(CancellationToken cancellationToken)
     {
-        _logger.LogInternalInformation("Starting connection verification timer with {Interval}s interval and {Timeout}s timeout", 
-            _mcpSettings.PingIntervalInSeconds, 
+        _logger.LogInternalInformation("Starting connection verification timer with {Interval}s interval and {Timeout}s timeout",
+            _mcpSettings.PingIntervalInSeconds,
             _mcpSettings.PingTimeoutInSeconds);
 
         _connectionVerificationTimer = new Timer(async _ =>

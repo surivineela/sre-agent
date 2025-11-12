@@ -317,3 +317,90 @@ jobs:
         path: './src/Agent/Agent.Portal/Client/junit-report.xml'
         reporter: jest-junit
         fail-on-error: false
+
+  format:
+    name: Check Format
+    runs-on: ubuntu-latest
+    steps:
+    - name: 🔐 Azure OIDC Login
+      uses: azure/login@v1
+      with:
+        client-id: ${{ vars.CFS_CLIENT_ID }}
+        tenant-id: ${{ vars.CFS_TENANT_ID }}
+        allow-no-subscriptions: true
+
+    - name: 🔐 Setup CFS
+      uses: 1es-actions/setup-cfs@v1
+      with:
+        feed-url: https://msazure.pkgs.visualstudio.com/Antares/_packaging/antares-websites/
+        nuget: true
+        nuget-config: true
+        nuget-config-path: nuget.config
+
+    - name: 🛒 Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: 🧰 Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 📦 Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.nuget/packages
+          ~/.local/share/NuGet/v3-cache
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj', '**/Directory.Packages.props') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: 🔨 Restore NuGet packages
+      run: |
+         dotnet restore ${{ env.BUILD_SOLUTION }} \
+            --verbosity quiet \
+            --locked-mode \
+            --use-current-runtime
+
+    - name: 💄 Run dotnet format
+      run: |
+        dotnet format ${{ env.BUILD_SOLUTION }}
+
+    - name: 📝 Check and prepare format changes
+      id: format_changes
+      run: |
+        git add -A
+
+        # Unstage nuget.config if it was changed
+        git reset HEAD -- nuget.config 2>/dev/null || true
+
+        if ! git diff --staged --quiet; then
+          echo "status=needs_suggestions" >> $GITHUB_OUTPUT
+          echo "✨ Formatting changes detected, will post suggestions"
+
+          # Get the list of changed files
+          git diff --staged --name-only > changed_files.txt
+          echo "Changed files:"
+          cat changed_files.txt
+          exit 1
+        else
+          echo "✅ No formatting changes to commit"
+          echo "status=clean" >> $GITHUB_OUTPUT
+        fi
+
+    - name: ✅ Clear formatting comment
+      if: success() && steps.format_changes.outputs.status == 'clean'
+      uses: ./.github/actions/formatting-comment
+      with:
+        status: clean
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 📝 Post formatting suggestions
+      if: failure() && steps.format_changes.outputs.status == 'needs_suggestions'
+      uses: ./.github/actions/formatting-comment
+      with:
+        status: needs_suggestions
+        changed_files: changed_files.txt
+        github-token: ${{ secrets.GITHUB_TOKEN }}

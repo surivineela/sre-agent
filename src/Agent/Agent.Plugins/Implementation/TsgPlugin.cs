@@ -8,10 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Agent.Core.DataConnectors;
+using Agent.Logging;
 using Agent.Plugins.DataConnectors.TSG;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
 
 namespace Agent.Plugins.Implementation
 {
@@ -24,7 +24,7 @@ namespace Agent.Plugins.Implementation
         private readonly DataConnectorIndex _dataConnectorIndex;
 
         public TsgPlugin(
-            ILogger<TsgPlugin> logger, 
+            ILogger<TsgPlugin> logger,
             DataConnectorIndex dataConnectorIndex)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -39,8 +39,8 @@ namespace Agent.Plugins.Implementation
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>List of TSG documents matching the search criteria</returns>
         public async Task<IReadOnlyList<TsgDocumentMetadata>> GetTsgContent(
-            string searchText, 
-            int maxResults = 5, 
+            string searchText,
+            int maxResults = 5,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInternalInformation($"Retrieving TSG content for search text: {searchText}, maxResults: {maxResults}");
@@ -56,7 +56,7 @@ namespace Agent.Plugins.Implementation
                 {
                     throw new ArgumentException("Max results must be greater than 0", nameof(maxResults));
                 }
-                
+
                 var results = new List<TsgDocumentMetadata>();
 
                 // Use the DataConnectorIndex.SearchAsync method directly

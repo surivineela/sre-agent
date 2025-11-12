@@ -60,23 +60,23 @@ namespace Agent.Plugins.Kusto
             return new ChatMessage(ChatRole.Tool, sb.ToString());
         }
 
-    private static (string[] headers, List<string[]> rows, int totalRows) ParseTsv(string tsv, int maxRows)
+        private static (string[] headers, List<string[]> rows, int totalRows) ParseTsv(string tsv, int maxRows)
         {
             var lines = tsv.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
             if (lines.Length == 0)
             {
-        return (Array.Empty<string>(), new List<string[]>(), 0);
+                return (Array.Empty<string>(), new List<string[]>(), 0);
             }
 
             var headers = lines[0].Split('\t');
-        var totalRows = Math.Max(0, lines.Length - 1);
-        var cap = Math.Max(0, maxRows);
-        var rows = new List<string[]>();
-        for (int i = 1; i < lines.Length && rows.Count < cap; i++)
+            var totalRows = Math.Max(0, lines.Length - 1);
+            var cap = Math.Max(0, maxRows);
+            var rows = new List<string[]>();
+            for (int i = 1; i < lines.Length && rows.Count < cap; i++)
             {
                 rows.Add(lines[i].Split('\t'));
             }
-        return (headers, rows, totalRows);
+            return (headers, rows, totalRows);
         }
 
         private static string BuildMarkdownTable(string[] headers, List<string[]> rows)

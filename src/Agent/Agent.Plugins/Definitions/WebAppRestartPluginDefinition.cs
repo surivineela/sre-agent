@@ -5,10 +5,10 @@
 using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using Agent.Core.Models.Charts;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
-using Agent.Core.Models.Charts;
 
 namespace Agent.Plugins.Definitions
 {

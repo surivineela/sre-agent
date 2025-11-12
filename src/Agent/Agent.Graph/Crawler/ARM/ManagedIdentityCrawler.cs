@@ -86,7 +86,7 @@ public class ManagedIdentityCrawler : IResourceCrawler
         {
             var roleId = item.GetProperty("roleId").GetString();
             var scope = item.GetProperty("scope").GetString();
-            if(string.IsNullOrEmpty(roleId) || string.IsNullOrEmpty(scope))
+            if (string.IsNullOrEmpty(roleId) || string.IsNullOrEmpty(scope))
             {
                 _logger.LogInternalWarning($"Role ID or scope is null or empty for principal {principalId}");
                 continue;

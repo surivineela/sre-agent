@@ -117,7 +117,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             patchDocument.Add(new JsonPatchOperation()
             {
                 Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add,
-                Path = "/fields/System.AreaPath", 
+                Path = "/fields/System.AreaPath",
                 Value = areaPath
             });
         }

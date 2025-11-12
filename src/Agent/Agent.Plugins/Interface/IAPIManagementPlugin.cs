@@ -1,6 +1,6 @@
 using Agent.Plugins.Models;
-using static Agent.Plugins.Helpers.APIManagementHelper;
 using Azure.ResourceManager.ApiManagement;
+using static Agent.Plugins.Helpers.APIManagementHelper;
 
 namespace Agent.Plugins.Interface
 {

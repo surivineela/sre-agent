@@ -2,9 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Globalization;
 using Microsoft.OperationalAgent.Core.Extensions;
 using Shouldly;
-using System.Globalization;
 
 namespace Agent.Tests.Unit;
 public class StringExtensionsTests

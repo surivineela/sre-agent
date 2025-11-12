@@ -18,4 +18,4 @@ public sealed record TaskProgressUpdate
     public ConclusionProperties? Conclusion { get; set; }
     public HypothesisTreeItem? HypothesisUpdate { get; set; }
     public string? HypothesisAction { get; set; } // "add", "update", "validate"
-} 
+}

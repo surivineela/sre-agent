@@ -127,10 +127,10 @@ public class McpAgentManagementService : IHostedService, IAsyncDisposable
         {
             // Refresh MCP tools in ToolFactory to include new connection's tools
             await _toolFactory.RefreshMcpToolsAsync();
-            
+
             // Note: Agent Builder is now responsible for explicitly adding MCP tools to agents
             // Tools are available in the MCP tools repository for agent builders to reference
-            
+
             _logger.LogInternalInformation(
                 "Refreshed MCP tools in ToolFactory for connection '{ConnectionId}'. Tools from this connection are now available in the MCP repository for agent builders to use.",
                 connection.Id);

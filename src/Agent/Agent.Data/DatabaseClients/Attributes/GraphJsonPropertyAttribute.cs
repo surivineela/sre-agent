@@ -1,4 +1,4 @@
-﻿namespace Agent.Data.DatabaseClients.Attributes
+namespace Agent.Data.DatabaseClients.Attributes
 {
     /// <summary>
     /// Attribute to mark a property as a graph property as containing a Json string.

@@ -34,7 +34,7 @@ public class McpHttpClientFactory : IHttpClientFactory
     {
         var key = GetEndpointKey(endpoint);
         _authConfigs[key] = authConfig;
-        
+
         _logger.LogInternalInformation(
             "Registered {AuthType} authentication for endpoint: {Endpoint}",
             authConfig.Type,

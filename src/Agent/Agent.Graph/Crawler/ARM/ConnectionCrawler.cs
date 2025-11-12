@@ -237,7 +237,7 @@ public class ApiConnectionPropertiesDefinition
     public ParameterValueSet? ParameterValueSet { get; set; }
 
     [JsonPropertyName("parameterValues")]
-    public  Dictionary<string, object>? ParameterValues { get; set; }
+    public Dictionary<string, object>? ParameterValues { get; set; }
 }
 
 public class ApiReference

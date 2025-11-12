@@ -374,7 +374,7 @@ public static class AgentCommandHandlers
 
         // Extract agent name from file path
         var agentName = Path.GetFileNameWithoutExtension(filePath);
-        
+
         ApiService? apiService = null;
         try
         {
@@ -397,10 +397,10 @@ public static class AgentCommandHandlers
             }
 
             apiService = new ApiService();
-            
+
             // Call server-side validation using v2 API with dryRun=true
             ConsoleUI.WriteInfo($"Validating agent '{agentName}' against server...", ConsoleColor.Yellow);
-            
+
             var (success, response) = await apiService.ApplyOrValidateAgentAsync(agentName, dryRun: true);
 
             if (success)

@@ -136,11 +136,11 @@ namespace Agent.Plugins.Implementation
                 else if (configuration.CurrentValue == "1")
                 {
                     configuration.Mode = RunFromPackageMode.LocalPackage;
-                    
+
                     // Check if LocalPackage mode is valid for this SKU/OS
                     var skuCapabilities = SkuCapabilities.GetForSku(configuration.Sku, configuration.OperatingSystem);
                     configuration.IsValid = skuCapabilities.SupportsLocalPackage;
-                    
+
                     if (configuration.IsValid)
                     {
                         configuration.Details = "WEBSITE_RUN_FROM_PACKAGE is set to '1' (local package mode). Files are stored locally in the SitePackages folder.";
@@ -154,11 +154,11 @@ namespace Agent.Plugins.Implementation
                          (uri.Scheme == "http" || uri.Scheme == "https"))
                 {
                     configuration.Mode = RunFromPackageMode.ExternalUrl;
-                    
+
                     // Check if ExternalUrl mode is valid for this SKU/OS
                     var skuCapabilities = SkuCapabilities.GetForSku(configuration.Sku, configuration.OperatingSystem);
                     configuration.IsValid = skuCapabilities.SupportsExternalUrl;
-                    
+
                     if (configuration.IsValid)
                     {
                         configuration.Details = "WEBSITE_RUN_FROM_PACKAGE is set to a URL for external package mode.";
@@ -210,7 +210,7 @@ namespace Agent.Plugins.Implementation
 
                 // Get the current configuration
                 var configuration = await GetRunFromPackageConfigurationAsync(resourceId);
-                
+
                 // Store the configuration in the result to avoid duplicate calls
                 result.Configuration = configuration;
 
@@ -222,18 +222,18 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Set basic properties from configuration (sanitize sensitive values)
-                result.CurrentValue = configuration.Mode == RunFromPackageMode.ExternalUrl 
-                    ? SanitizeUrl(configuration.CurrentValue) 
+                result.CurrentValue = configuration.Mode == RunFromPackageMode.ExternalUrl
+                    ? SanitizeUrl(configuration.CurrentValue)
                     : configuration.CurrentValue;
                 result.Sku = configuration.Sku;
                 result.OperatingSystem = configuration.OperatingSystem;
 
                 // Get the recommended value for this SKU/OS
                 var skuCapabilities = SkuCapabilities.GetForSku(configuration.Sku, configuration.OperatingSystem);
-                
+
                 // Store the SKU capabilities in the result to avoid duplicate calls
                 result.SkuCapabilities = skuCapabilities;
-                
+
                 result.RecommendedValue = skuCapabilities.RecommendedValue;
                 result.IsSupported = skuCapabilities.SupportsMode(configuration.Mode);
 
@@ -248,7 +248,7 @@ namespace Agent.Plugins.Implementation
                 else if (!configuration.IsValid)
                 {
                     result.Status = ConfigurationStatus.Invalid;
-                    var sanitizedValue = configuration.Mode == RunFromPackageMode.ExternalUrl 
+                    var sanitizedValue = configuration.Mode == RunFromPackageMode.ExternalUrl
                         ? SanitizeUrl(configuration.CurrentValue)
                         : configuration.CurrentValue;
                     result.Issues.Add($"WEBSITE_RUN_FROM_PACKAGE has an invalid value: {sanitizedValue}.");
@@ -258,7 +258,7 @@ namespace Agent.Plugins.Implementation
                 else if (!result.IsSupported)
                 {
                     result.Status = ConfigurationStatus.Unsupported;
-                    var sanitizedValue = configuration.Mode == RunFromPackageMode.ExternalUrl 
+                    var sanitizedValue = configuration.Mode == RunFromPackageMode.ExternalUrl
                         ? SanitizeUrl(configuration.CurrentValue)
                         : configuration.CurrentValue;
                     result.Issues.Add($"The current value '{sanitizedValue}' is not supported for {configuration.OperatingSystem} {configuration.Sku}.");
@@ -269,7 +269,7 @@ namespace Agent.Plugins.Implementation
                 {
                     // For external URL mode, verify the URL is accessible using secure validation
                     var accessibilityResult = await ValidateWithoutExposing(resourceId, configuration.CurrentValue);
-                    
+
                     if (!accessibilityResult.IsAccessible)
                     {
                         result.Status = ConfigurationStatus.Invalid;
@@ -299,8 +299,8 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Check if the configured value matches the recommended value for the SKU
-                if (result.Status == ConfigurationStatus.Valid && 
-                    configuration.CurrentValue != skuCapabilities.RecommendedValue && 
+                if (result.Status == ConfigurationStatus.Valid &&
+                    configuration.CurrentValue != skuCapabilities.RecommendedValue &&
                     skuCapabilities.RecommendedMode != RunFromPackageMode.None)
                 {
                     result.Status = ConfigurationStatus.Suboptimal;
@@ -347,7 +347,7 @@ namespace Agent.Plugins.Implementation
                     result.Recommendations.Add("Set WEBSITE_RUN_FROM_PACKAGE to a valid URL pointing to a zip file.");
                     return result;
                 }
-                
+
                 packageUrl = config.CurrentValue;
             }
 
@@ -406,13 +406,13 @@ namespace Agent.Plugins.Implementation
                 {
                     report.IsSuccessful = false;
                     report.ErrorMessage = "Failed to download package or package is empty. This could be due to network connectivity issues, authentication problems, or the package being unavailable.";
-                    
+
                     // Add specific troubleshooting recommendations
                     report.Recommendations.Add("Verify the package URL is accessible and the blob exists");
                     report.Recommendations.Add("Check network connectivity and firewall settings");
                     report.Recommendations.Add("Ensure proper authentication is configured for blob storage access");
                     report.Recommendations.Add("Verify SAS token is valid and not expired if using external URL");
-                    
+
                     return report;
                 }
 
@@ -430,7 +430,7 @@ namespace Agent.Plugins.Implementation
                     // try to get size from blob properties as fallback
                     packageSize = await GetPackageSizeFromPropertiesAsync(targetPackageUrl);
                 }
-                
+
                 if (packageSize > 0)
                 {
                     report.PackageSize = packageSize;
@@ -452,7 +452,7 @@ namespace Agent.Plugins.Implementation
             {
                 _logger.LogInternalError(ex, "Error inspecting package structure for {ResourceId}", resourceId);
                 report.IsSuccessful = false;
-                
+
                 // Categorize the error and provide specific guidance
                 if (ex is HttpRequestException httpEx)
                 {
@@ -541,7 +541,7 @@ namespace Agent.Plugins.Implementation
                         IsFixable = true,
                         FixAction = RunFromPackageRepairAction.SetRecommendedValue
                     });
-                    
+
                     report.OverallStatus = HealthStatus.Unhealthy;
                 }
                 else if (verificationResult.Status == ConfigurationStatus.Invalid)
@@ -555,7 +555,7 @@ namespace Agent.Plugins.Implementation
                         IsFixable = true,
                         FixAction = RunFromPackageRepairAction.SetRecommendedValue
                     });
-                    
+
                     report.OverallStatus = HealthStatus.Unhealthy;
                 }
                 else if (verificationResult.Status == ConfigurationStatus.Unsupported)
@@ -569,7 +569,7 @@ namespace Agent.Plugins.Implementation
                         IsFixable = true,
                         FixAction = RunFromPackageRepairAction.SetRecommendedValue
                     });
-                    
+
                     report.OverallStatus = HealthStatus.Unhealthy;
                 }
                 else if (verificationResult.Status == ConfigurationStatus.Suboptimal)
@@ -583,14 +583,14 @@ namespace Agent.Plugins.Implementation
                         IsFixable = true,
                         FixAction = RunFromPackageRepairAction.SetRecommendedValue
                     });
-                    
+
                     report.OverallStatus = HealthStatus.Degraded;
                 }
                 if (config.Mode == RunFromPackageMode.ExternalUrl)
                 {
                     // Check accessibility for external URL mode
                     var accessibilityResult = await ValidateWithoutExposing(resourceId, config.CurrentValue);
-                    
+
                     if (!accessibilityResult.IsAccessible)
                     {
                         report.StorageIssues.Add(new Models.RunFromPackage.DiagnosticIssue
@@ -600,11 +600,11 @@ namespace Agent.Plugins.Implementation
                             Description = $"The package URL is not accessible: {accessibilityResult.ErrorDetails}",
                             RecommendedActions = accessibilityResult.Recommendations,
                             IsFixable = true,
-                            FixAction = accessibilityResult.RequiresAuthentication ? 
-                                RunFromPackageRepairAction.GenerateSasUrl : 
+                            FixAction = accessibilityResult.RequiresAuthentication ?
+                                RunFromPackageRepairAction.GenerateSasUrl :
                                 RunFromPackageRepairAction.UpdateUrl
                         });
-                        
+
                         report.OverallStatus = HealthStatus.Critical;
                     }
                     else
@@ -612,7 +612,7 @@ namespace Agent.Plugins.Implementation
                         // Package is accessible, now check its structure
                         // Pass the package URL to avoid duplicate GetRunFromPackageConfigurationAsync call
                         var structureReport = await InspectPackageStructureAsync(resourceId, config.CurrentValue);
-                        
+
                         if (!structureReport.IsSuccessful)
                         {
                             report.ConfigurationIssues.Add(new Models.RunFromPackage.DiagnosticIssue
@@ -623,7 +623,7 @@ namespace Agent.Plugins.Implementation
                                 RecommendedActions = new List<string> { "Verify the package is a valid ZIP file", "Check package accessibility" },
                                 IsFixable = false
                             });
-                            
+
                             report.OverallStatus = HealthStatus.Degraded;
                         }
                         else if (!structureReport.HasValidStructure)
@@ -640,7 +640,7 @@ namespace Agent.Plugins.Implementation
                                     IsFixable = true
                                 });
                             }
-                            
+
                             // Add missing files issues
                             foreach (var missingFile in structureReport.MissingRequiredFiles)
                             {
@@ -653,7 +653,7 @@ namespace Agent.Plugins.Implementation
                                     IsFixable = true
                                 });
                             }
-                            
+
                             report.OverallStatus = HealthStatus.Degraded;
                         }
                         else
@@ -780,7 +780,7 @@ namespace Agent.Plugins.Implementation
                         catch (Exception ex)
                         {
                             _logger.LogInternalError(ex, "Error getting blob properties for {BlobPath}", blobPath);
-                            
+
                             // Fallback to HTTP HEAD request
                             await GetMetadataViaHttpAsync(targetPackageUrl, metadata);
                         }
@@ -815,8 +815,8 @@ namespace Agent.Plugins.Implementation
         /// <param name="newValue">Optional new value for the setting</param>
         /// <returns>Result of the repair operation</returns>
         public async Task<RunFromPackageRepairResult> RepairRunFromPackageConfigurationAsync(
-            string resourceId, 
-            RunFromPackageRepairAction repairAction, 
+            string resourceId,
+            RunFromPackageRepairAction repairAction,
             string newValue = "")
         {
             var result = new RunFromPackageRepairResult
@@ -829,7 +829,7 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                _logger.LogInternalInformation("Repairing WEBSITE_RUN_FROM_PACKAGE configuration for {ResourceId} with action {RepairAction}", 
+                _logger.LogInternalInformation("Repairing WEBSITE_RUN_FROM_PACKAGE configuration for {ResourceId} with action {RepairAction}",
                     resourceId, repairAction);
 
                 // Determine the value to set based on the repair action
@@ -887,13 +887,13 @@ namespace Agent.Plugins.Implementation
                     if (updateSuccess)
                     {
                         result.NewValue = targetValue;
-                        _logger.LogInternalInformation("Successfully updated WEBSITE_RUN_FROM_PACKAGE for {ResourceId} to {NewValue}", 
+                        _logger.LogInternalInformation("Successfully updated WEBSITE_RUN_FROM_PACKAGE for {ResourceId} to {NewValue}",
                             resourceId, targetValue);
                     }
                     else
                     {
                         result.ErrorMessage = "Failed to update WEBSITE_RUN_FROM_PACKAGE setting";
-                        _logger.LogInternalError("Failed to update WEBSITE_RUN_FROM_PACKAGE for {ResourceId} to {NewValue}", 
+                        _logger.LogInternalError("Failed to update WEBSITE_RUN_FROM_PACKAGE for {ResourceId} to {NewValue}",
                             resourceId, targetValue);
                     }
                 }
@@ -924,10 +924,10 @@ namespace Agent.Plugins.Implementation
             int expiryHours = 24)
         {
             _logger.LogInternalInformation("Generating secure SAS URL for {ResourceId}", resourceId);
-            
+
             // Use the secure implementation with limited expiry time
             var result = await GenerateSecureSasTokenAsync(resourceId, storageAccountName, containerName, blobName);
-            
+
             // Override expiry if different from default (1 hour)
             if (expiryHours != 1 && result.IsSuccessful)
             {
@@ -935,7 +935,7 @@ namespace Agent.Plugins.Implementation
                 // For custom expiry, we'd need to regenerate with different expiration
                 // For now, log the request but keep the secure 1-hour default
             }
-            
+
             return result;
         }
 
@@ -955,7 +955,7 @@ namespace Agent.Plugins.Implementation
 
             return await Task.FromResult(result);
         }
-        
+
         /// <summary>
         /// Checks if the resource has issues with WEBSITE_RUN_FROM_PACKAGE configuration
         /// </summary>
@@ -966,10 +966,10 @@ namespace Agent.Plugins.Implementation
             try
             {
                 var verificationResult = await VerifyRunFromPackageConfigurationAsync(resourceId);
-                
+
                 // Consider any status other than Valid as having issues
                 bool hasIssues = verificationResult.Status != ConfigurationStatus.Valid;
-                
+
                 // Use configuration from verification result to avoid duplicate call
                 var configuration = verificationResult.Configuration;
                 if (configuration == null)
@@ -977,7 +977,7 @@ namespace Agent.Plugins.Implementation
                     _logger.LogInternalError("Configuration is null in verification result for {ResourceId}", resourceId);
                     return true; // Return true if we can't get configuration
                 }
-                
+
                 // Use SKU capabilities from verification result to avoid duplicate call
                 var skuCapabilities = verificationResult.SkuCapabilities;
                 if (skuCapabilities == null)
@@ -985,22 +985,22 @@ namespace Agent.Plugins.Implementation
                     _logger.LogInternalError("SkuCapabilities is null in verification result for {ResourceId}", resourceId);
                     return true; // Return true if we can't get capabilities
                 }
-                
+
                 // Always check package structure if:
                 // 1. Basic configuration is valid, OR
                 // 2. Mode is ExternalUrl and recommendation is to use local package ("1")
-                bool shouldCheckPackageStructure = !hasIssues || 
+                bool shouldCheckPackageStructure = !hasIssues ||
                     (configuration.Mode == RunFromPackageMode.ExternalUrl && skuCapabilities.RecommendedValue == "1");
-                
+
                 if (shouldCheckPackageStructure)
                 {
-                    _logger.LogInternalInformation("Checking package structure for {ResourceId} (hasIssues: {HasIssues}, mode: {Mode}, recommended: {Recommended})", 
+                    _logger.LogInternalInformation("Checking package structure for {ResourceId} (hasIssues: {HasIssues}, mode: {Mode}, recommended: {Recommended})",
                         resourceId, hasIssues, configuration.Mode, skuCapabilities.RecommendedValue);
-                    
+
                     // Pass the package URL to avoid duplicate GetRunFromPackageConfigurationAsync call
                     string packageUrl = configuration.Mode == RunFromPackageMode.ExternalUrl ? configuration.CurrentValue : "";
                     var structureReport = await InspectPackageStructureAsync(resourceId, packageUrl);
-                    
+
                     // Check if package structure inspection revealed any issues
                     if (!structureReport.IsSuccessful)
                     {
@@ -1009,13 +1009,13 @@ namespace Agent.Plugins.Implementation
                     }
                     else if (!structureReport.HasValidStructure)
                     {
-                        _logger.LogInternalInformation("Package structure validation failed for {ResourceId}. Issues: {Issues}", 
+                        _logger.LogInternalInformation("Package structure validation failed for {ResourceId}. Issues: {Issues}",
                             resourceId, string.Join(", ", structureReport.StructureIssues));
                         hasIssues = true;
                     }
                     else if (structureReport.MissingRequiredFiles.Count > 0)
                     {
-                        _logger.LogInternalInformation("Package missing required files for {ResourceId}: {MissingFiles}", 
+                        _logger.LogInternalInformation("Package missing required files for {ResourceId}: {MissingFiles}",
                             resourceId, string.Join(", ", structureReport.MissingRequiredFiles));
                         hasIssues = true;
                     }
@@ -1024,7 +1024,7 @@ namespace Agent.Plugins.Implementation
                         _logger.LogInternalInformation("Package structure validation passed for {ResourceId}", resourceId);
                     }
                 }
-                
+
                 return hasIssues;
             }
             catch (Exception ex)
@@ -1047,16 +1047,16 @@ namespace Agent.Plugins.Implementation
                 // Get the SKU name and OS
                 string skuName = await GetSkuViaHttpAsync(resourceId);
                 string operatingSystem = await _armHelper.GetOperatingSystemAsync(resourceId);
-                
+
                 // Get the capabilities for this SKU
                 var capabilities = SkuCapabilities.GetForSku(skuName, operatingSystem);
-                
+
                 return capabilities;
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "Error getting SKU capabilities for {ResourceId}", resourceId);
-                
+
                 // Return default capabilities if we can't determine the SKU
                 return new SkuCapabilities
                 {
@@ -1082,35 +1082,35 @@ namespace Agent.Plugins.Implementation
             {
                 // Get the current configuration
                 var config = await GetRunFromPackageConfigurationAsync(resourceId);
-                
+
                 // Get the capabilities for this SKU
                 var capabilities = await GetSkuCapabilitiesAsync(resourceId);
-                
+
                 // Build the recommendations
                 var recommendationsBuilder = new System.Text.StringBuilder();
-                
+
                 recommendationsBuilder.AppendLine($"Recommendations for {config.ResourceType} [{config.OperatingSystem} {capabilities.SkuName}]:");
                 recommendationsBuilder.AppendLine();
-                
+
                 recommendationsBuilder.AppendLine($"Current WEBSITE_RUN_FROM_PACKAGE value: {config.CurrentValue}");
                 recommendationsBuilder.AppendLine($"Current mode: {config.Mode}");
                 recommendationsBuilder.AppendLine();
-                
+
                 recommendationsBuilder.AppendLine("Supported modes:");
                 recommendationsBuilder.AppendLine($"- Local Package Mode ('1'): {(capabilities.SupportsLocalPackage ? "Supported" : "Not Supported")}");
                 recommendationsBuilder.AppendLine($"- External URL Mode: {(capabilities.SupportsExternalUrl ? "Supported" : "Not Supported")}");
                 recommendationsBuilder.AppendLine();
-                
+
                 recommendationsBuilder.AppendLine($"Recommended value: {capabilities.RecommendedValue}");
                 recommendationsBuilder.AppendLine();
-                
+
                 if (!string.IsNullOrEmpty(capabilities.Details))
                 {
                     recommendationsBuilder.AppendLine("Details:");
                     recommendationsBuilder.AppendLine(capabilities.Details);
                     recommendationsBuilder.AppendLine();
                 }
-                
+
                 if (capabilities.Limitations.Count > 0)
                 {
                     recommendationsBuilder.AppendLine("Limitations:");
@@ -1120,7 +1120,7 @@ namespace Agent.Plugins.Implementation
                     }
                     recommendationsBuilder.AppendLine();
                 }
-                
+
                 return recommendationsBuilder.ToString();
             }
             catch (Exception ex)
@@ -1157,7 +1157,7 @@ namespace Agent.Plugins.Implementation
                 var resourceJson = await responseMessage.Content.ReadAsStringAsync();
                 var resource = JObject.Parse(resourceJson);
                 var properties = resource["properties"] as JObject;
-                
+
                 if (properties != null)
                 {
                     // Check siteConfig.linuxFxVersion for Linux apps
@@ -1200,7 +1200,7 @@ namespace Agent.Plugins.Implementation
             {
                 // First get the App Service Plan ID for this resource
                 var appServicePlanId = await GetAppServicePlanIdViaHttpAsync(resourceId);
-                
+
                 if (string.IsNullOrWhiteSpace(appServicePlanId))
                 {
                     _logger.LogInternalWarning("No App Service Plan ID found for resource {ResourceId}", resourceId);
@@ -1223,7 +1223,7 @@ namespace Agent.Plugins.Implementation
                 var planJson = await responseMessage.Content.ReadAsStringAsync();
                 var plan = JObject.Parse(planJson);
                 var sku = plan["sku"] as JObject;
-                
+
                 if (sku != null)
                 {
                     // Use tier for SKU capability matching as it contains semantic names like "ElasticPremium"
@@ -1234,7 +1234,7 @@ namespace Agent.Plugins.Implementation
                         _logger.LogInternalInformation("Retrieved SKU tier {SkuTier} for resource {ResourceId}", skuTier, resourceId);
                         return skuTier;
                     }
-                    
+
                     // Fallback to name if tier is not available
                     var skuName = sku["name"]?.ToString();
                     if (!string.IsNullOrEmpty(skuName))
@@ -1278,7 +1278,7 @@ namespace Agent.Plugins.Implementation
                 var resourceJson = await responseMessage.Content.ReadAsStringAsync();
                 var resource = JObject.Parse(resourceJson);
                 var properties = resource["properties"] as JObject;
-                
+
                 if (properties != null)
                 {
                     var serverFarmId = properties["serverFarmId"]?.ToString();
@@ -2067,7 +2067,7 @@ namespace Agent.Plugins.Implementation
                     catch (Exception ex)
                     {
                         _logger.LogInternalWarning("Failed to get blob properties for size check: {Error}", ex.Message);
-                        
+
                         // Fallback to HTTP HEAD request
                         return await GetPackageSizeViaHttpAsync(packageUrl);
                     }
@@ -2103,7 +2103,7 @@ namespace Agent.Plugins.Implementation
                     return response.Content.Headers.ContentLength.Value;
                 }
 
-                _logger.LogInternalWarning("Unable to determine package size via HTTP HEAD for {PackageUrl}: {StatusCode}", 
+                _logger.LogInternalWarning("Unable to determine package size via HTTP HEAD for {PackageUrl}: {StatusCode}",
                     packageUrl, response.StatusCode);
                 return 0;
             }
@@ -2138,7 +2138,7 @@ namespace Agent.Plugins.Implementation
                 if (TryParseBlobUri(packageUri, out string accountName, out string containerName, out string blobPath))
                 {
                     _logger.LogInternalInformation("Using Azure Blob Storage client to download package from {AccountName}/{ContainerName}", accountName, containerName);
-                    
+
                     for (int attempt = 1; attempt <= MaxRetries; attempt++)
                     {
                         try
@@ -2148,12 +2148,12 @@ namespace Agent.Plugins.Implementation
                         catch (Exception ex) when (attempt < MaxRetries && IsRetryableException(ex))
                         {
                             var delay = BaseDelayMs * (int)Math.Pow(2, attempt - 1); // Exponential backoff
-                            _logger.LogInternalWarning("Blob download attempt {Attempt} failed, retrying in {Delay}ms: {Error}", 
+                            _logger.LogInternalWarning("Blob download attempt {Attempt} failed, retrying in {Delay}ms: {Error}",
                                 attempt, delay, ex.Message);
                             await Task.Delay(delay);
                         }
                     }
-                    
+
                     // Final attempt without retry - let the exception bubble up
                     return await _blobStorageClient.DownloadBlobContentsAsStreamAsync(packageUri);
                 }
@@ -2182,7 +2182,7 @@ namespace Agent.Plugins.Implementation
                         // Download to memory stream with size monitoring
                         var memoryStream = new MemoryStream();
                         using var contentStream = await response.Content.ReadAsStreamAsync();
-                        
+
                         var buffer = new byte[8192];
                         int bytesRead;
                         long totalBytesRead = 0;
@@ -2206,12 +2206,12 @@ namespace Agent.Plugins.Implementation
                     catch (Exception ex) when (attempt < MaxRetries && IsRetryableException(ex))
                     {
                         var delay = BaseDelayMs * (int)Math.Pow(2, attempt - 1); // Exponential backoff
-                        _logger.LogInternalWarning("HTTP download attempt {Attempt} failed, retrying in {Delay}ms: {Error}", 
+                        _logger.LogInternalWarning("HTTP download attempt {Attempt} failed, retrying in {Delay}ms: {Error}",
                             attempt, delay, ex.Message);
                         await Task.Delay(delay);
                     }
                 }
-                
+
                 // Final attempt without retry - let the exception bubble up for proper logging
                 using var finalHttpClient = _httpClientFactory.CreateClient();
                 finalHttpClient.Timeout = TimeSpan.FromMinutes(TimeoutMinutes);
@@ -2241,7 +2241,7 @@ namespace Agent.Plugins.Implementation
         {
             return ex switch
             {
-                HttpRequestException httpEx => 
+                HttpRequestException httpEx =>
                     httpEx.Message.Contains("connection was aborted") ||
                     httpEx.Message.Contains("timeout") ||
                     httpEx.Message.Contains("network") ||
@@ -2249,7 +2249,7 @@ namespace Agent.Plugins.Implementation
                     httpEx.InnerException is SocketException,
                 TaskCanceledException => true, // Usually timeout
                 SocketException => true,
-                IOException ioEx => 
+                IOException ioEx =>
                     ioEx.Message.Contains("connection was aborted") ||
                     ioEx.Message.Contains("Unable to read data"),
                 _ => false
@@ -2267,11 +2267,11 @@ namespace Agent.Plugins.Implementation
             {
                 using var httpClient = _httpClientFactory.CreateClient();
                 httpClient.Timeout = TimeSpan.FromSeconds(10); // Short timeout for connectivity test
-                
+
                 // Use HEAD request to minimize data transfer
                 using var request = new HttpRequestMessage(HttpMethod.Head, uri);
                 using var response = await httpClient.SendAsync(request);
-                
+
                 // Any response (even error codes) indicates network connectivity
                 return true;
             }
@@ -2292,7 +2292,7 @@ namespace Agent.Plugins.Implementation
             try
             {
                 using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: true);
-                
+
                 var fileNames = new List<string>();
                 var rootFiles = new List<string>();
                 var functionFolders = new List<string>();
@@ -2447,7 +2447,7 @@ namespace Agent.Plugins.Implementation
         {
             var lowerRootFiles = rootFiles.Select(f => f.ToLowerInvariant()).ToList();
             var lowerFileNames = fileNames.Select(f => f.ToLowerInvariant()).ToList();
-            
+
             // Check for host.json
             report.HasHostJson = lowerRootFiles.Contains("host.json");
             if (!report.HasHostJson)
@@ -2483,10 +2483,10 @@ namespace Agent.Plugins.Implementation
             }
 
             // Check for .NET isolated Functions pattern
-            bool isDotNetIsolated = (report.DetectedRuntime == ".NET Isolated" || 
-                                   (report.DetectedRuntime.StartsWith(".NET") && 
+            bool isDotNetIsolated = (report.DetectedRuntime == ".NET Isolated" ||
+                                   (report.DetectedRuntime.StartsWith(".NET") &&
                                     lowerRootFiles.Any(f => f.EndsWith(".dll")) &&
-                                    (lowerRootFiles.Any(f => f.EndsWith(".deps.json")) || 
+                                    (lowerRootFiles.Any(f => f.EndsWith(".deps.json")) ||
                                      lowerRootFiles.Any(f => f.EndsWith(".runtimeconfig.json")))));
 
             // Check for common issues - handle .NET isolated scenario
@@ -2506,25 +2506,25 @@ namespace Agent.Plugins.Implementation
 
             // Determine overall validity - handle .NET isolated scenario
             report.HasRequiredFiles = report.MissingRequiredFiles.Count == 0;
-            
+
             if (isDotNetIsolated)
             {
                 // For .NET isolated Functions, we don't require function folders or function.json files
                 // The structure is valid if host.json is present and there are DLLs
-                report.HasValidStructure = report.HasHostJson && 
+                report.HasValidStructure = report.HasHostJson &&
                                          report.HasRequiredFiles &&
                                          lowerRootFiles.Any(f => f.EndsWith(".dll"));
-                
+
                 // Remove the "No function folders detected" issue for .NET isolated
-                report.StructureIssues.RemoveAll(issue => 
-                    issue.Contains("No function folders detected") && 
+                report.StructureIssues.RemoveAll(issue =>
+                    issue.Contains("No function folders detected") &&
                     issue.Contains("This is expected for .NET isolated Azure Functions"));
             }
             else
             {
                 // For traditional Functions, require function folders and function.json files
-                report.HasValidStructure = report.HasHostJson && 
-                                         functionFolders.Count > 0 && 
+                report.HasValidStructure = report.HasHostJson &&
+                                         functionFolders.Count > 0 &&
                                          functionsWithoutJson.Count == 0 &&
                                          report.StructureIssues.Count == 0;
             }
@@ -2562,7 +2562,7 @@ namespace Agent.Plugins.Implementation
         {
             var description = new StringBuilder();
             description.AppendLine("Root level contents:");
-            
+
             if (rootFiles.Any())
             {
                 description.AppendLine($"  Files: {string.Join(", ", rootFiles.Take(10))}");
@@ -2590,10 +2590,10 @@ namespace Agent.Plugins.Implementation
             }
 
             // Check if this is a .NET isolated Functions scenario
-            bool isDotNetIsolated = (report.DetectedRuntime == ".NET Isolated" || 
-                                   (report.DetectedRuntime.StartsWith(".NET") && 
+            bool isDotNetIsolated = (report.DetectedRuntime == ".NET Isolated" ||
+                                   (report.DetectedRuntime.StartsWith(".NET") &&
                                     report.FileTypeCounts.ContainsKey(".dll") &&
-                                    (report.FileTypeCounts.ContainsKey(".deps.json") || 
+                                    (report.FileTypeCounts.ContainsKey(".deps.json") ||
                                      report.FileTypeCounts.ContainsKey(".runtimeconfig.json"))));
 
             if (report.FunctionCount == 0)
@@ -2733,10 +2733,10 @@ namespace Agent.Plugins.Implementation
             {
                 // Pattern for Azure Storage Account Keys (base64 encoded, typically 88 characters but can vary)
                 var storageKeyPattern = @"^[A-Za-z0-9+/]{60,}={0,2}$";
-                
+
                 // Pattern for connection strings with AccountKey
                 var connectionStringPattern = @"AccountKey=[^;]+";
-                
+
                 // Pattern for SAS tokens
                 var sasTokenPattern = @"sig=[^&\s]+";
 
@@ -2745,10 +2745,10 @@ namespace Agent.Plugins.Implementation
                 {
                     return "****";
                 }
-                
+
                 // Replace connection string keys
                 value = System.Text.RegularExpressions.Regex.Replace(value, connectionStringPattern, "AccountKey=****");
-                
+
                 // Replace SAS signatures
                 value = System.Text.RegularExpressions.Regex.Replace(value, sasTokenPattern, "sig=****");
 
@@ -2839,24 +2839,24 @@ namespace Agent.Plugins.Implementation
             {
                 // Use authentication service for validation
                 var credential = await _authService.GetArmOperationCredential();
-                
+
                 try
                 {
                     var blobClient = new BlobClient(blobUri, credential);
                     var properties = await blobClient.GetPropertiesAsync();
-                    
+
                     result.IsAccessible = true;
                     result.RequiresAuthentication = true;
                     result.IsSuccessful = true;
                     result.ResponseCode = 200;
-                    
+
                     _logger.LogInternalInformation("Successfully validated blob access using managed identity");
                     return result;
                 }
                 catch (Azure.RequestFailedException azureEx)
                 {
                     _logger.LogInternalInformation("Managed identity access failed with status {StatusCode}: {Message}", azureEx.Status, azureEx.Message);
-                    
+
                     // Check for specific error codes to differentiate between file not found and permissions issues
                     if (azureEx.Status == 404)
                     {
@@ -2886,7 +2886,7 @@ namespace Agent.Plugins.Implementation
                         result.IsSuccessful = true;
                         return result;
                     }
-                    
+
                     // If managed identity fails with 401/403, try with SAS token if present
                     if (blobUri.Query.Contains("sig="))
                     {
@@ -2894,19 +2894,19 @@ namespace Agent.Plugins.Implementation
                         {
                             var blobClientWithSas = new BlobClient(blobUri);
                             var properties = await blobClientWithSas.GetPropertiesAsync();
-                            
+
                             result.IsAccessible = true;
                             result.RequiresAuthentication = false; // SAS token provides access
                             result.IsSuccessful = true;
                             result.ResponseCode = 200;
-                            
+
                             _logger.LogInternalInformation("Successfully validated blob access using SAS token");
                             return result;
                         }
                         catch (Azure.RequestFailedException sasAzureEx)
                         {
                             _logger.LogInternalWarning("SAS token access also failed with status {StatusCode}: {Message}", sasAzureEx.Status, sasAzureEx.Message);
-                            
+
                             // Check for specific error codes with SAS token
                             if (sasAzureEx.Status == 404)
                             {
@@ -2970,59 +2970,59 @@ namespace Agent.Plugins.Implementation
                 catch (Exception managedIdentityEx)
                 {
                     _logger.LogInternalInformation("Managed identity access failed with non-Azure exception: {Error}", managedIdentityEx.Message);
-                    
+
                     // If managed identity fails with non-Azure exception, try with SAS token if present
                     if (blobUri.Query.Contains("sig="))
-                    // If managed identity fails with non-Azure exception, try with SAS token if present
-                    if (blobUri.Query.Contains("sig="))
-                    {
-                        try
+                        // If managed identity fails with non-Azure exception, try with SAS token if present
+                        if (blobUri.Query.Contains("sig="))
                         {
-                            var blobClientWithSas = new BlobClient(blobUri);
-                            var properties = await blobClientWithSas.GetPropertiesAsync();
-                            
-                            result.IsAccessible = true;
-                            result.RequiresAuthentication = false; // SAS token provides access
-                            result.IsSuccessful = true;
-                            result.ResponseCode = 200;
-                            
-                            _logger.LogInternalInformation("Successfully validated blob access using SAS token");
-                            return result;
-                        }
-                        catch (Azure.RequestFailedException sasAzureEx)
-                        {
-                            _logger.LogInternalWarning("SAS token access also failed with Azure exception: {Status} - {Message}", sasAzureEx.Status, sasAzureEx.Message);
-                            
-                            if (sasAzureEx.Status == 404)
+                            try
                             {
-                                result.IsAccessible = false;
-                                result.ErrorDetails = "The specified blob does not exist";
-                                result.Recommendations.Add("Verify the blob name and container path are correct");
-                                result.Recommendations.Add("Ensure the blob has been uploaded to the storage account");
+                                var blobClientWithSas = new BlobClient(blobUri);
+                                var properties = await blobClientWithSas.GetPropertiesAsync();
+
+                                result.IsAccessible = true;
+                                result.RequiresAuthentication = false; // SAS token provides access
+                                result.IsSuccessful = true;
+                                result.ResponseCode = 200;
+
+                                _logger.LogInternalInformation("Successfully validated blob access using SAS token");
+                                return result;
                             }
-                            else
+                            catch (Azure.RequestFailedException sasAzureEx)
                             {
+                                _logger.LogInternalWarning("SAS token access also failed with Azure exception: {Status} - {Message}", sasAzureEx.Status, sasAzureEx.Message);
+
+                                if (sasAzureEx.Status == 404)
+                                {
+                                    result.IsAccessible = false;
+                                    result.ErrorDetails = "The specified blob does not exist";
+                                    result.Recommendations.Add("Verify the blob name and container path are correct");
+                                    result.Recommendations.Add("Ensure the blob has been uploaded to the storage account");
+                                }
+                                else
+                                {
+                                    result.IsAccessible = false;
+                                    result.ErrorDetails = $"Unable to access blob: {sasAzureEx.ErrorCode} - {sasAzureEx.Message}";
+                                    result.Recommendations.Add("Check SAS token validity and blob accessibility");
+                                }
+                            }
+                            catch (Exception sasEx)
+                            {
+                                _logger.LogInternalWarning("SAS token access failed: {Error}", sasEx.Message);
                                 result.IsAccessible = false;
-                                result.ErrorDetails = $"Unable to access blob: {sasAzureEx.ErrorCode} - {sasAzureEx.Message}";
-                                result.Recommendations.Add("Check SAS token validity and blob accessibility");
+                                result.ErrorDetails = "Unable to access blob with available credentials";
+                                result.Recommendations.Add("Check SAS token validity and network connectivity");
                             }
                         }
-                        catch (Exception sasEx)
+                        else
                         {
-                            _logger.LogInternalWarning("SAS token access failed: {Error}", sasEx.Message);
                             result.IsAccessible = false;
-                            result.ErrorDetails = "Unable to access blob with available credentials";
-                            result.Recommendations.Add("Check SAS token validity and network connectivity");
+                            result.RequiresAuthentication = true;
+                            result.ErrorDetails = "Blob requires authentication and no valid credentials available";
+                            result.Recommendations.Add("Ensure managed identity has Storage Blob Data Reader role");
+                            result.Recommendations.Add("Or provide a valid SAS token in the URL");
                         }
-                    }
-                    else
-                    {
-                        result.IsAccessible = false;
-                        result.RequiresAuthentication = true;
-                        result.ErrorDetails = "Blob requires authentication and no valid credentials available";
-                        result.Recommendations.Add("Ensure managed identity has Storage Blob Data Reader role");
-                        result.Recommendations.Add("Or provide a valid SAS token in the URL");
-                    }
                 }
             }
             catch (Exception ex)
@@ -3063,7 +3063,7 @@ namespace Agent.Plugins.Implementation
                 else
                 {
                     result.ErrorDetails = $"HTTP {response.StatusCode}: {response.ReasonPhrase}";
-                    
+
                     switch (response.StatusCode)
                     {
                         case System.Net.HttpStatusCode.NotFound:
@@ -3125,7 +3125,7 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                _logger.LogInternalInformation("Generating SAS token for {StorageAccount}/{Container}/{Blob}", 
+                _logger.LogInternalInformation("Generating SAS token for {StorageAccount}/{Container}/{Blob}",
                     storageAccountName, containerName, blobName);
 
                 // Use authentication service for secure access
@@ -3157,7 +3157,7 @@ namespace Agent.Plugins.Implementation
 
                 // Generate the SAS token
                 var sasToken = blobClient.GenerateSasUri(sasBuilder);
-                
+
                 result.IsSuccessful = true;
                 result.SasUrl = SanitizeUrl(sasToken.ToString()); // Sanitize for logging/output
                 result.ExpiresAt = sasBuilder.ExpiresOn.DateTime;
@@ -3167,9 +3167,9 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, "Error generating SAS token for {StorageAccount}/{Container}/{Blob}", 
+                _logger.LogInternalError(ex, "Error generating SAS token for {StorageAccount}/{Container}/{Blob}",
                     storageAccountName, containerName, blobName);
-                
+
                 result.IsSuccessful = false;
                 result.ErrorMessage = $"Failed to generate SAS token: {ex.Message}";
                 return result;
@@ -3196,7 +3196,7 @@ namespace Agent.Plugins.Implementation
                         // Use authentication service for validation
                         var credential = await _authService.GetArmOperationCredential();
                         var blobClient = new BlobClient(uri, credential);
-                        
+
                         try
                         {
                             // Just check if we can access the blob properties (no content download)

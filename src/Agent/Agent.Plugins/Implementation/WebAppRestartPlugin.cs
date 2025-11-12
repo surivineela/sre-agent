@@ -4,11 +4,11 @@
 
 using System.ComponentModel;
 using Agent.Core.Helpers;
+using Agent.Core.Models.Charts;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json.Linq;
-using Agent.Core.Models.Charts;
 
 namespace Agent.Plugins.Implementation
 {

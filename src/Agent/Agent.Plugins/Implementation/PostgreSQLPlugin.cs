@@ -11,12 +11,12 @@ using Agent.Plugins.Models;
 using Agent.Plugins.Services;
 using Azure.Core;
 using Azure.Monitor.Query;
+using Azure.Monitor.Query.Models;
 using Azure.ResourceManager;
-using Azure.ResourceManager.PostgreSql.FlexibleServers;
-using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Monitor;
 using Azure.ResourceManager.OperationalInsights;
-using Azure.Monitor.Query.Models;
+using Azure.ResourceManager.PostgreSql.FlexibleServers;
+using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation;
@@ -313,7 +313,7 @@ FROM pg_settings WHERE name = 'max_connections';";
                     "No slow queries found in Log Analytics for the last 24 hours.",
                     "Possible explanations:",
                     "- No queries exceeded the default slow threshold (1000 ms), or",
-                    "- PostgreSQL diagnostic logging is not enabled for this database, or", 
+                    "- PostgreSQL diagnostic logging is not enabled for this database, or",
                     "- Log Analytics workspace is not configured for this resource",
                     "Recommendations (pick one):",
                     "- Enable PostgreSQL diagnostic logging to Azure Monitor to capture query performance data",
@@ -1828,8 +1828,8 @@ LIMIT 5";
                                 var meanExecTime = parsedData.GetProperty("mean_exec_time").GetDouble();
                                 var calls = parsedData.GetProperty("calls").GetInt64();
                                 var totalExecTime = parsedData.GetProperty("total_exec_time").GetDouble();
-                                var queryText = parsedData.TryGetProperty("query_text", out var queryTextProp) 
-                                    ? queryTextProp.GetString() 
+                                var queryText = parsedData.TryGetProperty("query_text", out var queryTextProp)
+                                    ? queryTextProp.GetString()
                                     : $"Query ID: {queryId} (use SELECT query FROM query_store.qs_view WHERE query_id = {queryId})";
 
                                 // Calculate issues based on performance characteristics

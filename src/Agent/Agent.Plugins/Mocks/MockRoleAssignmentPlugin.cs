@@ -27,7 +27,7 @@ public class MockRoleAssignmentPlugin : IRoleAssignmentPlugin
             RoleType = "BuiltInRole",
             RoleId = "/subscriptions/subID/providers/Microsoft.Authorization/roleDefinitions/roleDefinitionId",
             Description = "Mock rule",
-            AssignableScopes = new List<string>() { resourceId},
+            AssignableScopes = new List<string>() { resourceId },
             RolePermissions = new List<string>() { "Read", "Write" }
         }, new JsonSerializerOptions { WriteIndented = true }));
     }

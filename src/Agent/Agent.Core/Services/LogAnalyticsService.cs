@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -71,7 +71,7 @@ public class LogAnalyticsService : ILogAnalyticsService
         query.AppendLine($"""
                           ContainerAppConsoleLogs_CL
                           | where ContainerAppName_s == '{containerAppName}'
-                          {( !string.IsNullOrEmpty(revisionName) ? $"| where RevisionName_s == '{revisionName}'" : string.Empty )}
+                          {(!string.IsNullOrEmpty(revisionName) ? $"| where RevisionName_s == '{revisionName}'" : string.Empty)}
                           | project TimeGenerated, Log = Log_s
                           {(!string.IsNullOrEmpty(aggregateOver) ? $"| summarize count() by bin(TimeGenerated, {aggregateOver}), Type, Log" : string.Empty)}
                           | order by TimeGenerated desc

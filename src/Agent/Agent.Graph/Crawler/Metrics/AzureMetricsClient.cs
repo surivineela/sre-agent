@@ -3,12 +3,12 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
-using Agent.Core;
 
 namespace Agent.Graph.Crawler.Metrics;
 

@@ -149,21 +149,21 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     {
         // Start customer trace scope that will span the entire request lifecycle
         using var traceScope = CustomerTraceManager.StartScope();
-        
+
         // Start customer activity for message processing
         using var customerActivity = _customerLogger.StartMessageProcessing(
-            threadMessage.Message, 
-            threadMessage.ThreadId, 
+            threadMessage.Message,
+            threadMessage.ThreadId,
             threadMessage.UserId);
 
         if (customerActivity != null)
         {
             // Associate the customer activity with the trace scope so it's available throughout the request
             traceScope.SetActivity(customerActivity);
-            
+
             customerActivity.AddAttribute("display_name", threadMessage.DisplayName);
             customerActivity.RecordEvent("message_received", "User message received for processing");
-            
+
             // Add request-level metadata to the trace scope
             //traceScope.AddMetadata("request_type", "user_message");
             traceScope.AddMetadata("thread_id", threadMessage.ThreadId.ToString());
@@ -188,11 +188,11 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             { "UserId", threadMessage.UserId ?? "" },
             { "DisplayName", threadMessage.DisplayName }
         });
-        
+
         try
         {
             var result = await ProcessMessageWithAgentFrameworkAsync(threadMessage);
-            
+
             return result;
         }
         catch (Exception ex)
@@ -206,7 +206,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     {
         // Start customer trace scope that will span the entire request lifecycle
         using var traceScope = CustomerTraceManager.StartScope();
-        
+
         // Start customer activity for incident processing
         using var customerActivity = _customerLogger.StartIncidentHandling(
             threadMessage.ThreadId.ToString(),
@@ -216,10 +216,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         {
             // Associate the customer activity with the trace scope so it's available throughout the request
             traceScope.SetActivity(customerActivity);
-            
+
             customerActivity.AddAttribute("message_length", threadMessage.Message.Length.ToString());
             customerActivity.RecordEvent("incident_received", "Incident message received for processing");
-            
+
             // Add request-level metadata to the trace scope
             traceScope.AddMetadata("request_type", "incident_message");
             traceScope.AddMetadata("thread_id", threadMessage.ThreadId.ToString());

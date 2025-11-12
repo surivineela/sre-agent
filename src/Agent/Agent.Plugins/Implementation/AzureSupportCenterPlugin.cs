@@ -1,10 +1,10 @@
-using Azure.Core;
+using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Logging;
-using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using Agent.Plugins.Interface;
+using Azure.Core;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation;
 
@@ -23,7 +23,7 @@ public class AzureSupportCenterPlugin : IAzureSupportCenterPlugin
 
     public async Task<List<SupportProductFromArmModel>> GetSupportProductsFromArm(string resourceId)
     {
-        if(string.IsNullOrEmpty(resourceId))
+        if (string.IsNullOrEmpty(resourceId))
         {
             throw new ArgumentException("Resource ID cannot be null or empty.", nameof(resourceId));
         }
@@ -89,6 +89,6 @@ public class AzureSupportCenterPlugin : IAzureSupportCenterPlugin
         {
             _logger.LogInternalError(ex, "Error occurred while getting Azure Support Center diagnostic results.");
             return $"Error occurred while getting Azure Support Center diagnostic results: {ex.Message}";
-        }        
+        }
     }
 }

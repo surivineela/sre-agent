@@ -13,7 +13,7 @@ namespace Agent.Tests.Common.XUnit
     /// Formats log messages for easy viewing in XUnit output.
     /// </summary>
     internal sealed class XunitLogFormatter
-    { 
+    {
         public string FormatMessage<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, long startTime, string traceId, string spanId, string logProviderName, string categoryName, Func<TState, Exception?, string> formatter)
         {
             var messageBuilder = new StringBuilder();

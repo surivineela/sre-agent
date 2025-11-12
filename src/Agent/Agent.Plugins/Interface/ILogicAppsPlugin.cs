@@ -4,7 +4,7 @@ using Agent.Plugins.Models;
 namespace Agent.Plugins.Interface
 {
     public interface ILogicAppsPlugin
-    { 
+    {
         public Task<UpdateAppSettingResult> UpdateAppSetting(string resourceId, string key, string value);
 
         public Task<IReadOnlyList<Workflow>> ListWorkflowsAsync(string logicAppResourceId);

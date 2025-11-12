@@ -2,17 +2,17 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Diagnostics;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using Agent.Core.Helpers;
+using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
-using Agent.Core.Helpers;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Diagnostics;
-using Agent.Core.Models;
 using CoreConstants = Agent.Core.Constants;
 
 namespace Agent.Plugins.Implementation;
@@ -263,7 +263,7 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
 
             // Get deployment slots using ArmHelper
             var slotResourceIds = await _armHelper.GetDeploymentSlotsResourceIdsAsync(resourceId);
-            
+
             _logger.LogInternalInformation($"Found {slotResourceIds.Count} deployment slots for Function App '{functionAppInfo.Name}'.");
             return slotResourceIds;
         }
@@ -293,7 +293,7 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
         // - Premium V2 (P1V2, P2V2, P3V2)
         // - Premium V3 (P1V3, P2V3, P3V3)
         // - Isolated (I1, I2, I3, I1v2, I2v2, I3v2)
-        
+
         // SKUs that do NOT support deployment slots:
         // - Free (F1)
         // - Shared (D1)
@@ -316,11 +316,11 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
     }
 
     public async Task<FunctionTriggerResponse> TriggerTimerFunctionAsync(
-        string functionAppResourceId, 
+        string functionAppResourceId,
         string functionName)
     {
         _logger.LogInternalInformation($"[trigger_timer_function] Invoked with functionAppResourceId: {functionAppResourceId}, functionName: {functionName}");
-        
+
         var stopwatch = Stopwatch.StartNew();
 
         try
@@ -344,11 +344,11 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
             }
 
             var functionAppName = functionAppInfo.Name;
-            
+
             // Get master key
             _logger.LogInternalInformation($"Retrieving master key from Azure");
             var masterKey = await RetrieveMasterKeyAsync(functionAppResourceId);
-            
+
             if (string.IsNullOrWhiteSpace(masterKey))
             {
                 return new FunctionTriggerResponse(false, null, null, "Failed to retrieve master key for function app", null);
@@ -363,16 +363,16 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
 
             // Construct the function trigger URL
             var triggerUrl = $"https://{functionAppName}.azurewebsites.net/admin/functions/{functionName}";
-            
+
             _logger.LogInternalInformation($"Triggering TimerTrigger function at URL: {triggerUrl}");
 
             // Prepare the HTTP request
             using var httpClient = _httpClientFactory.CreateClient(CoreConstants.HttpClientForArmOperation);
             httpClient.Timeout = TimeSpan.FromSeconds(FunctionTriggerTimeoutSeconds);
-            
+
             using var request = new HttpRequestMessage(HttpMethod.Post, triggerUrl);
             request.Headers.Add("x-functions-key", masterKey);
-            
+
             // TimerTrigger functions don't require payload, send empty JSON object
             var jsonContent = "{}";
             request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
@@ -387,20 +387,20 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
             {
                 _logger.LogInternalInformation($"Successfully triggered function '{functionName}' in app '{functionAppName}'");
                 return new FunctionTriggerResponse(
-                    true, 
-                    response.StatusCode.ToString(), 
-                    responseContent, 
-                    null, 
+                    true,
+                    response.StatusCode.ToString(),
+                    responseContent,
+                    null,
                     stopwatch.Elapsed);
             }
             else
             {
                 _logger.LogInternalWarning($"Failed to trigger function. Status: {response.StatusCode}, Response: {responseContent}");
                 return new FunctionTriggerResponse(
-                    false, 
-                    response.StatusCode.ToString(), 
-                    responseContent, 
-                    $"Function trigger failed with status {response.StatusCode}", 
+                    false,
+                    response.StatusCode.ToString(),
+                    responseContent,
+                    $"Function trigger failed with status {response.StatusCode}",
                     stopwatch.Elapsed);
             }
         }
@@ -437,7 +437,7 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
 
             // Prepare the batch request
             var listKeysUrl = $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Web/sites/{functionAppName}/host/default/listKeys?api-version=2022-03-01";
-            
+
             var batchRequest = new
             {
                 requests = new[]
@@ -454,20 +454,20 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
 
             // Use HttpClient to make the batch request
             using var httpClient = _httpClientFactory.CreateClient(CoreConstants.HttpClientForArmOperation);
-            
+
             using var request = new HttpRequestMessage(HttpMethod.Post, AzureManagementBatchUrl)
             {
                 Content = new StringContent(JsonSerializer.Serialize(batchRequest), Encoding.UTF8, "application/json")
             };
-            
+
             var httpResponse = await httpClient.SendAsync(request);
-            
+
             if (!httpResponse.IsSuccessStatusCode)
             {
                 _logger.LogInternalWarning($"Failed to retrieve master key. Status: {httpResponse.StatusCode}");
                 return null;
             }
-            
+
             var responseContent = await httpResponse.Content.ReadAsStringAsync();
             var response = JsonSerializer.Deserialize<FunctionKeyResponse>(responseContent);
 
@@ -493,27 +493,27 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
         {
             // Get function metadata using admin API
             var functionMetadataUrl = $"https://{functionAppName}.azurewebsites.net/admin/functions/{functionName}";
-            
+
             using var httpClient = _httpClientFactory.CreateClient(CoreConstants.HttpClientForArmOperation);
             httpClient.Timeout = TimeSpan.FromSeconds(30);
-            
+
             using var request = new HttpRequestMessage(HttpMethod.Get, functionMetadataUrl);
             request.Headers.Add("x-functions-key", masterKey);
-            
+
             var response = await httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogInternalWarning($"Failed to retrieve function metadata for '{functionName}'. Status: {response.StatusCode}");
                 return false;
             }
-            
+
             var metadataContent = await response.Content.ReadAsStringAsync();
-            
+
             // Check if the function has a TimerTrigger binding
             // The metadata should contain binding information including trigger type
             var isTimerTrigger = metadataContent.Contains("\"type\":\"timerTrigger\"", StringComparison.OrdinalIgnoreCase) ||
                                metadataContent.Contains("timerTrigger", StringComparison.OrdinalIgnoreCase);
-                               
+
             _logger.LogInternalInformation($"Function '{functionName}' TimerTrigger validation result: {isTimerTrigger}");
             return isTimerTrigger;
         }

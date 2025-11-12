@@ -2,9 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.Attributes;
 using Azure.Core;
-using Agent.Core.Helpers;
 using k8s;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient;

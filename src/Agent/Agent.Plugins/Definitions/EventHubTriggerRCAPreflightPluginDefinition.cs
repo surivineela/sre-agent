@@ -37,7 +37,7 @@ namespace Agent.Plugins.Definitions
             """
         )]
         [AgentTool(ToolMode.Auto)]
-        public Task<string> GetKustoClusterFromSiteNameAtIssueTime(            
+        public Task<string> GetKustoClusterFromSiteNameAtIssueTime(
             [Description("Start time yyyy-MM-ddTHH:mm:ss.fff")] string fromDate,
             [Description("End time yyyy-MM-ddTHH:mm:ss.fff")] string toDate,
             [Description("SiteName/application.")] string siteName
@@ -46,7 +46,7 @@ namespace Agent.Plugins.Definitions
             return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetKustoClusterFromSiteNameAtIssueTime", DefaultClusterName, DefaultDatabaseName,
                 new Dictionary<string, string> {
                     {"startTime", fromDate}, {"endTime", toDate}, {"siteName", siteName}
-                }, TableOnly);            
+                }, TableOnly);
         }
 
 
@@ -71,7 +71,7 @@ namespace Agent.Plugins.Definitions
                     {"startTime", fromDate}, {"endTime", toDate}, {"siteName", siteName}, {"eventPrimaryStampName", eventPrimaryStampName}
                 }, TableOnly);
         }
-                     
+
 
         [Description(@"Checks whether Event Hub listener started for a specific entity path pattern.")]
         [AgentTool(ToolMode.Auto)]

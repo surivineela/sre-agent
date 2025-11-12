@@ -1,4 +1,11 @@
+using Agent.Core.Configuration;
+using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
+using Agent.Core.Models;
+using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Framework;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
 using Agent.Tests.Common.Mocks;
@@ -6,15 +13,8 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Xunit.Abstractions;
 using Moq;
-using Agent.Core.Helpers;
-using Agent.Core.Interfaces;
-using Agent.Core.Models;
-using Agent.Core.Services;
-using Agent.Core.Configuration;
-using Agent.Logging;
-using Agent.Framework;
+using Xunit.Abstractions;
 
 namespace Agent.Tests.Integration;
 

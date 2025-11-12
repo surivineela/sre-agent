@@ -2,13 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Agent.Plugins.Implementation
 {

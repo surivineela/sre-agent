@@ -20,6 +20,6 @@ public interface IFunctionAppsPlugin
     /// <param name="functionName">The name of the function to trigger (must be a TimerTrigger function)</param>
     /// <returns>Result of the function trigger operation</returns>
     Task<FunctionTriggerResponse> TriggerTimerFunctionAsync(
-        string functionAppResourceId, 
+        string functionAppResourceId,
         string functionName);
 }

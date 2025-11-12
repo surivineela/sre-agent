@@ -2,13 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Agent.Core.Interfaces;
 using Azure.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Net.Http.Headers;
 
 namespace Agent.Core.Helpers
 {
@@ -42,11 +42,11 @@ namespace Agent.Core.Helpers
             {
                 var tokenCredential = _authenticationService.GetApplensCredential();
                 var scope = _authenticationService.GetApplensScope();
-                
+
                 var token = await tokenCredential.GetTokenAsync(
-                    new TokenRequestContext(new[] { scope }), 
+                    new TokenRequestContext(new[] { scope }),
                     CancellationToken.None);
-                
+
                 return token.Token;
             }
             catch (Exception ex)
@@ -94,18 +94,18 @@ namespace Agent.Core.Helpers
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
             request.Headers.Add("x-ms-internal-client", "true");
-            
-             // Set UserAgent to be SREAgent
+
+            // Set UserAgent to be SREAgent
             ProductInfoHeaderValue sreUserAgent = new ProductInfoHeaderValue("SREAgent", AgentNameHelper.GetAgentName(_hostEnvironment.IsProduction()));
             request.Headers.UserAgent.Add(sreUserAgent);
 
             // Add authorization header with bearer token
             string token = await GetAuthorizationTokenAsync();
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            
+
             // Add proper content with content type header
             request.Content = new StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
-            
+
             HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -239,7 +239,7 @@ namespace Agent.Core.Helpers
             var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/detectors/{detectorId}");
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-            
+
             // Add authorization header with bearer token
             string token = await GetAuthorizationTokenAsync();
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);

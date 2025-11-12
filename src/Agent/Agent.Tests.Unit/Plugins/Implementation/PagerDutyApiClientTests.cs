@@ -68,7 +68,7 @@ public class PagerDutyApiClientTests
     public async Task TestGetIncidentAsync_NotFound()
     {
         var stringRes = await ReadJsonFromFileAsync("GetIncident_NotFound.json");
-        MockHttpResponse(stringRes,HttpStatusCode.NotFound);
+        MockHttpResponse(stringRes, HttpStatusCode.NotFound);
         await Assert.ThrowsAnyAsync<Exception>(() => _pagerDutyService.GetPagerDutyIncidentAsync("TestId"));
     }
 

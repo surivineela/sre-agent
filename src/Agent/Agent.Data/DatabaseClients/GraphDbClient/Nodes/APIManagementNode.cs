@@ -99,7 +99,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         [GraphJsonProperty("backendResourceMap")]
         public Dictionary<string, BackendResourceInfo>? BackendResourceMap { get; set; }
 
-        
+
 
         public APIManagementNode(IDictionary<string, object> properties)
             : base(properties)

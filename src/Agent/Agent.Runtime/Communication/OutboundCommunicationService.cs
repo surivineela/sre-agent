@@ -201,7 +201,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
         Guid agentMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
-        
+
         // Stream the message
         await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, null, agentMessageId, recordedDateTime);
 
@@ -215,13 +215,13 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         {
             // Get existing message from in-memory service
             var existingMessage = await _inMemoryMessageService.GetMessageAsync(context.ThreadId, agentMessageId);
-            
+
             string finalText;
             if (existingMessage != null)
             {
                 // Append the passed content to existing message
                 finalText = existingMessage.Text + (message.Text ?? string.Empty);
-                
+
                 // Delete from in-memory storage since we're saving to DB
                 await _inMemoryMessageService.DeleteMessageAsync(context.ThreadId, agentMessageId);
             }

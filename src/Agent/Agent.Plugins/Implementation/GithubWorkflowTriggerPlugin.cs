@@ -3,10 +3,10 @@
 // ------------------------------------------------------------
 
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Logging;
-using Octokit;
 using Agent.Core.Models;
 using Agent.Plugins.Interface;
+using Microsoft.Extensions.Logging;
+using Octokit;
 
 namespace Agent.Plugins.Implementation
 {

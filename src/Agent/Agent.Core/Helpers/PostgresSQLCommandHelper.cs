@@ -140,7 +140,7 @@ public class PostgresSQLCommandHelper
             _logger.LogInternalInformation($"[ExecutePsqlCommandAsync] Host: {host}");
             _logger.LogInternalInformation($"[ExecutePsqlCommandAsync] Port: {options.Port}");
             _logger.LogInternalInformation($"[ExecutePsqlCommandAsync] User: {options.User ?? "NULL - will be extracted from token"}");
-            
+
             string? accessToken = null;
 
             // Get credential from authentication service for PostgreSQL
@@ -158,7 +158,7 @@ public class PostgresSQLCommandHelper
                 // Extract user from JWT token based on environment
                 var extractedUser = !string.IsNullOrEmpty(accessToken) ? ExtractUserFromToken(accessToken) : null;
                 _logger.LogInternalInformation($"[ExecutePsqlCommandAsync] JWT token extraction result: '{extractedUser}'");
-                
+
                 if (string.IsNullOrEmpty(extractedUser))
                 {
                     // Final fallback to client ID if JWT extraction fails
@@ -172,7 +172,7 @@ public class PostgresSQLCommandHelper
                         _logger.LogInternalError($"[ExecutePsqlCommandAsync] No managed identity information available for authentication");
                     }
                 }
-                
+
                 if (!string.IsNullOrEmpty(extractedUser))
                 {
                     options = new PostgresConnectionOptions
@@ -206,7 +206,7 @@ public class PostgresSQLCommandHelper
             _logger.LogInternalInformation($"[ExecutePsqlCommandAsync] Creating PsqlExecution object...");
             _logger.LogInternalInformation($"[ExecutePsqlCommandAsync] PsqlExecution parameters - host: '{host}', database: '{options.Database}', user: '{options.User}', port: {options.Port}");
             _logger.LogInternalInformation($"[ExecutePsqlCommandAsync] Parameter validation - host null/empty: {string.IsNullOrEmpty(host)}, database null/empty: {string.IsNullOrEmpty(options.Database)}, user null/empty: {string.IsNullOrEmpty(options.User)}");
-            
+
             var exec = new Services.PsqlExecution(
                 _logger,
                 command,
@@ -239,12 +239,12 @@ public class PostgresSQLCommandHelper
             _logger.LogInternalError($"[ExecutePsqlCommandAsync] Database: {options.Database}");
             _logger.LogInternalError($"[ExecutePsqlCommandAsync] Host: {host}");
             _logger.LogInternalError($"[ExecutePsqlCommandAsync] User: {options.User}");
-            
+
             if (ex.InnerException != null)
             {
                 _logger.LogInternalError($"[ExecutePsqlCommandAsync] Inner Exception: {ex.InnerException.GetType().FullName} - {ex.InnerException.Message}");
             }
-            
+
             return new CliExecutionResult
             {
                 ErrorType = CliErrorType.Other,
@@ -361,20 +361,20 @@ public class PostgresSQLCommandHelper
 
     private static string? GetFlexibleServerHost(string? resourceId)
     {
-        if (string.IsNullOrWhiteSpace(resourceId)) 
+        if (string.IsNullOrWhiteSpace(resourceId))
         {
             return null;
         }
-        
+
         var m = Regex.Match(resourceId,
             @"/providers/Microsoft\.DBforPostgreSQL/flexibleServers/(?<name>[^/]+)",
             RegexOptions.IgnoreCase);
-        
-        if (!m.Success) 
+
+        if (!m.Success)
         {
             return null;
         }
-        
+
         var name = m.Groups["name"].Value;
         var host = $"{name}.postgres.database.azure.com";
         return host;
@@ -386,7 +386,7 @@ public class PostgresSQLCommandHelper
         {
             _logger.LogInternalInformation($"[ExtractUserFromToken] Starting JWT token parsing...");
             _logger.LogInternalInformation($"[ExtractUserFromToken] Environment: {(_hostEnvironment.IsDevelopment() ? "Development" : "Production")}");
-            
+
             var handler = new JwtSecurityTokenHandler();
             var jsonToken = handler.ReadJwtToken(accessToken);
 
@@ -398,14 +398,14 @@ public class PostgresSQLCommandHelper
             if (_hostEnvironment.IsDevelopment())
             {
                 _logger.LogInternalInformation($"[ExtractUserFromToken] Using development strategy - looking for unique_name claim");
-                
+
                 var uniqueName = jsonToken.Claims.FirstOrDefault(c => c.Type == "unique_name")?.Value;
                 if (!string.IsNullOrEmpty(uniqueName))
                 {
                     _logger.LogInternalInformation($"[ExtractUserFromToken] Found unique_name in development: {uniqueName}");
                     return uniqueName;
                 }
-                
+
                 // Fallback to preferred_username for development
                 var preferredUsername = jsonToken.Claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value;
                 if (!string.IsNullOrEmpty(preferredUsername))
@@ -417,7 +417,7 @@ public class PostgresSQLCommandHelper
             else
             {
                 _logger.LogInternalInformation($"[ExtractUserFromToken] Using production strategy - looking for xms_mirid claim");
-                
+
                 // Production: Extract managed identity name from xms_mirid claim
                 var xmsMirid = jsonToken.Claims.FirstOrDefault(c => c.Type == "xms_mirid")?.Value;
                 if (!string.IsNullOrEmpty(xmsMirid))
@@ -434,7 +434,7 @@ public class PostgresSQLCommandHelper
 
             // Fallback strategy for both environments - try common claim types
             _logger.LogInternalInformation($"[ExtractUserFromToken] Primary strategy failed, trying fallback claims...");
-            
+
             var name = jsonToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
             if (!string.IsNullOrEmpty(name))
             {
@@ -476,21 +476,21 @@ public class PostgresSQLCommandHelper
             _logger.LogInternalError($"[ExtractManagedIdentityNameFromResourceId] ResourceId is null or empty");
             return null;
         }
-        
+
         _logger.LogInternalInformation($"[ExtractManagedIdentityNameFromResourceId] Parsing resourceId: '{resourceId}'");
-        
+
         // Extract managed identity name from resource path like:
         // /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}
         var match = Regex.Match(resourceId,
             @"/providers/Microsoft\.ManagedIdentity/userAssignedIdentities/(?<name>[^/]+)",
             RegexOptions.IgnoreCase);
-        
-        if (!match.Success) 
+
+        if (!match.Success)
         {
             _logger.LogInternalError($"[ExtractManagedIdentityNameFromResourceId] Regex match failed for resourceId: '{resourceId}'");
             return null;
         }
-        
+
         var identityName = match.Groups["name"].Value;
         _logger.LogInternalInformation($"[ExtractManagedIdentityNameFromResourceId] Extracted identity name: '{identityName}'");
         return identityName;

@@ -27,13 +27,13 @@ public static class AgentExtensions
         string? description = null,
         int maxTurns = 10
     ) where TContext : class
-        {
-            return AgentAsTool<TContext>.Create(
-                agent: agent,
-                toolNameOverride: name,
-                toolDescriptionOverride: description,
-                maxTurns: maxTurns,
-                inputDescription: inputDescription
-            );
-        }
+    {
+        return AgentAsTool<TContext>.Create(
+            agent: agent,
+            toolNameOverride: name,
+            toolDescriptionOverride: description,
+            maxTurns: maxTurns,
+            inputDescription: inputDescription
+        );
     }
+}

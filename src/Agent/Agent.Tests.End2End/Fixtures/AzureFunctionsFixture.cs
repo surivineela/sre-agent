@@ -2,13 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Tests.Common;
 using Azure.AI.OpenAI;
 using Azure.Identity;
-using Xunit.Abstractions;
-
-using OpenAI.Chat;
 using E2ETests;
-using Agent.Tests.Common;
+using OpenAI.Chat;
+using Xunit.Abstractions;
 
 namespace Agent.Tests.End2End.Fixtures
 {

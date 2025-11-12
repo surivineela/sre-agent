@@ -56,7 +56,8 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
             execution = execution with { ThreadId = thread.Id.ToString() };
 
             // Execute the agent with the scheduled prompt - React will handle formatting
-            var scheduledTaskMessage = $"[SCHEDULED_TASK_EXECUTION]{System.Text.Json.JsonSerializer.Serialize(new {
+            var scheduledTaskMessage = $"[SCHEDULED_TASK_EXECUTION]{System.Text.Json.JsonSerializer.Serialize(new
+            {
                 taskId = task.Id,
                 taskName = task.Name,
                 description = task.Description,
@@ -125,7 +126,8 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
         _logger.LogInternalInformation("Creating new thread for scheduled task: {TaskId}", task.Id);
 
         var title = $"Scheduled Task: {task.Name}";
-        var message = $"[SCHEDULED_TASK_EXECUTION]{System.Text.Json.JsonSerializer.Serialize(new {
+        var message = $"[SCHEDULED_TASK_EXECUTION]{System.Text.Json.JsonSerializer.Serialize(new
+        {
             taskId = task.Id,
             taskName = task.Name,
             description = task.Description,

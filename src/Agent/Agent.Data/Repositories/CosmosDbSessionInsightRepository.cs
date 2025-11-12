@@ -18,8 +18,8 @@ public class CosmosDbSessionInsightRepository : ISessionInsightRepository
     private readonly CosmosClient _client;
 
     public CosmosDbSessionInsightRepository(
-        CosmosClient cosmosClient, 
-        string databaseName, 
+        CosmosClient cosmosClient,
+        string databaseName,
         ILogger<CosmosDbSessionInsightRepository> logger)
     {
         _logger = logger;
@@ -46,7 +46,7 @@ public class CosmosDbSessionInsightRepository : ISessionInsightRepository
                 if (insight != null)
                     break;
             }
-                
+
             if (insight != null)
             {
                 _logger.LogInternalInformation("Found session insight for thread: {ThreadId}", threadId);
@@ -55,7 +55,7 @@ public class CosmosDbSessionInsightRepository : ISessionInsightRepository
             {
                 _logger.LogInternalWarning("Session insight not found for thread: {ThreadId}", threadId);
             }
-            
+
             return insight;
         }
         catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -70,9 +70,9 @@ public class CosmosDbSessionInsightRepository : ISessionInsightRepository
         _logger.LogInternalInformation("Fetching session insights with skip: {Skip}, take: {Take}", skip, take);
 
         var iterator = _client.GetContainer<SessionInsightDocument>(_databaseName)
-            .GetItemLinqQueryable<SessionInsightDocument>(requestOptions: new QueryRequestOptions 
-            { 
-                MaxItemCount = take 
+            .GetItemLinqQueryable<SessionInsightDocument>(requestOptions: new QueryRequestOptions
+            {
+                MaxItemCount = take
             })
             .Where(doc => doc.DocumentType == "SessionInsight")
             .OrderByDescending(doc => doc.GeneratedTimestamp)
@@ -92,22 +92,22 @@ public class CosmosDbSessionInsightRepository : ISessionInsightRepository
     }
 
     public async Task<List<SessionInsightDocument>> GetSessionInsightsByTimeRangeAsync(
-        DateTime startTime, 
-        DateTime endTime, 
-        int skip = 0, 
+        DateTime startTime,
+        DateTime endTime,
+        int skip = 0,
         int take = 50)
     {
         _logger.LogInternalInformation(
-            "Fetching session insights between {StartTime} and {EndTime}", 
-            startTime, 
+            "Fetching session insights between {StartTime} and {EndTime}",
+            startTime,
             endTime);
 
         var iterator = _client.GetContainer<SessionInsightDocument>(_databaseName)
-            .GetItemLinqQueryable<SessionInsightDocument>(requestOptions: new QueryRequestOptions 
-            { 
-                MaxItemCount = take 
+            .GetItemLinqQueryable<SessionInsightDocument>(requestOptions: new QueryRequestOptions
+            {
+                MaxItemCount = take
             })
-            .Where(doc => 
+            .Where(doc =>
                 doc.DocumentType == "SessionInsight" &&
                 doc.GeneratedTimestamp >= startTime &&
                 doc.GeneratedTimestamp <= endTime)
@@ -132,12 +132,12 @@ public class CosmosDbSessionInsightRepository : ISessionInsightRepository
         _logger.LogInternalInformation("Fetching investigation insights with skip: {Skip}, take: {Take}", skip, take);
 
         var iterator = _client.GetContainer<SessionInsightDocument>(_databaseName)
-            .GetItemLinqQueryable<SessionInsightDocument>(requestOptions: new QueryRequestOptions 
-            { 
-                MaxItemCount = take 
+            .GetItemLinqQueryable<SessionInsightDocument>(requestOptions: new QueryRequestOptions
+            {
+                MaxItemCount = take
             })
-            .Where(doc => 
-                doc.DocumentType == "SessionInsight" && 
+            .Where(doc =>
+                doc.DocumentType == "SessionInsight" &&
                 doc.IsInvestigationThread)
             .OrderByDescending(doc => doc.GeneratedTimestamp)
             .Skip(skip)
@@ -165,10 +165,10 @@ public class CosmosDbSessionInsightRepository : ISessionInsightRepository
                 new PartitionKey(insight.PartitionKey));
 
         _logger.LogInternalInformation(
-            "Upserted session insight for thread: {ThreadId}, RU consumed: {RU}", 
-            insight.ThreadId, 
+            "Upserted session insight for thread: {ThreadId}, RU consumed: {RU}",
+            insight.ThreadId,
             response.RequestCharge);
-            
+
         return response.Resource;
     }
 
@@ -187,7 +187,7 @@ public class CosmosDbSessionInsightRepository : ISessionInsightRepository
 
             // Initialize feedback list if null
             insight.Feedback ??= new List<InsightFeedback>();
-            
+
             // Add new feedback
             insight.Feedback.Add(feedback);
 
@@ -214,7 +214,7 @@ public class CosmosDbSessionInsightRepository : ISessionInsightRepository
                 .DeleteItemAsync<SessionInsightDocument>(
                     threadId,
                     new PartitionKey(threadId));
-                
+
             _logger.LogInternalInformation("Deleted session insight for thread: {ThreadId}", threadId);
             return true;
         }
@@ -232,19 +232,19 @@ public class CosmosDbSessionInsightRepository : ISessionInsightRepository
     }
 
     public async Task<List<SessionInsightDocument>> GetSessionInsightsByResourceAsync(
-        string resourceId, 
-        int skip = 0, 
+        string resourceId,
+        int skip = 0,
         int take = 50)
     {
         _logger.LogInternalInformation("Fetching session insights involving resource: {ResourceId}", resourceId);
 
         // Note: This requires that ResourcesInvolved contains the full resource ID or a searchable portion
         var iterator = _client.GetContainer<SessionInsightDocument>(_databaseName)
-            .GetItemLinqQueryable<SessionInsightDocument>(requestOptions: new QueryRequestOptions 
-            { 
-                MaxItemCount = take 
+            .GetItemLinqQueryable<SessionInsightDocument>(requestOptions: new QueryRequestOptions
+            {
+                MaxItemCount = take
             })
-            .Where(doc => 
+            .Where(doc =>
                 doc.DocumentType == "SessionInsight" &&
                 doc.ResourcesInvolved != null)
             .OrderByDescending(doc => doc.GeneratedTimestamp)
@@ -254,14 +254,14 @@ public class CosmosDbSessionInsightRepository : ISessionInsightRepository
         while (iterator.HasMoreResults)
         {
             var response = await iterator.ReadNextAsync();
-            
+
             // Filter in memory for resource involvement
-            var filtered = response.Where(insight => 
-                insight.ResourcesInvolved != null && 
+            var filtered = response.Where(insight =>
+                insight.ResourcesInvolved != null &&
                 insight.ResourcesInvolved.Any(r => r.Contains(resourceId, StringComparison.OrdinalIgnoreCase)));
-                
+
             insights.AddRange(filtered);
-            
+
             if (insights.Count >= take + skip)
                 break;
         }

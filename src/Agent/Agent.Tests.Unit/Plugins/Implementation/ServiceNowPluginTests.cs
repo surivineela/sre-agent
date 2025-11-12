@@ -56,7 +56,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public void Constructor_WithNullLogger_ThrowsArgumentNullException()
         {
             // Arrange & Act & Assert
-            Assert.Throws<ArgumentNullException>(() => 
+            Assert.Throws<ArgumentNullException>(() =>
                 new ServiceNowPlugin(_mockCosmosClient.Object, _cosmosDbSettings, _mockServiceNowApiClient.Object, null!));
         }
 

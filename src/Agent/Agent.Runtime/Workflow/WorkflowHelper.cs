@@ -20,7 +20,7 @@ public static class WorkflowHelper
         params WorkflowActivityAgentOutput[] outputs)
     {
         var merged = new Dictionary<string, string>(baseParameters);
-        
+
         foreach (var output in outputs)
         {
             foreach (var kvp in output.ParsedParameters)
@@ -28,7 +28,7 @@ public static class WorkflowHelper
                 merged[kvp.Key] = kvp.Value;
             }
         }
-        
+
         return merged;
     }
 
@@ -57,7 +57,7 @@ public static class WorkflowHelper
             if (string.IsNullOrWhiteSpace(json) || json == "{}")
                 return new Dictionary<string, string>();
 
-            return JsonSerializer.Deserialize<Dictionary<string, string>>(json) 
+            return JsonSerializer.Deserialize<Dictionary<string, string>>(json)
                    ?? new Dictionary<string, string>();
         }
         catch
@@ -81,7 +81,7 @@ public static class WorkflowHelper
     {
         if (Enum.TryParse<WorkflowActivityState>(state, ignoreCase: true, out var result))
             return result;
-        
+
         return null;
     }
 

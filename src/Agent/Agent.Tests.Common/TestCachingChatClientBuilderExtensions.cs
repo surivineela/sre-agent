@@ -37,7 +37,8 @@ public static class TestCachingChatClientBuilderExtensions
 {
     public static ChatClientBuilder UseCachingForTest(this ChatClientBuilder builder)
     {
-        return builder.Use((client, serviceProvider) => {
+        return builder.Use((client, serviceProvider) =>
+        {
             var cacheDir = serviceProvider.GetRequiredService<IConfiguration>()["E2E_TEST_CHAT_COMPLETION_CACHE_DIR"];
             if (!string.IsNullOrEmpty(cacheDir))
             {

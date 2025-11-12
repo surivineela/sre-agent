@@ -2,9 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Linq;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -14,8 +14,8 @@ using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
-using Agent.Runtime.Interfaces;
 using Agent.Runtime.Heartbeat;
+using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
@@ -218,7 +218,7 @@ public class TimerService : IHostedService, IDisposable
         _customerAuditLogger = customerAuditLogger;
         _incidentScanner = incidentScanner;
         _localAuthScanner = localAuthScanner;
-    _heartbeatReporter = heartbeatReporter;
+        _heartbeatReporter = heartbeatReporter;
         _scheduledTaskExecutionService = scheduledTaskExecutionService;
         _agentMemorySettings = agentMemorySettings;
         _inMemoryMessageStorageService = inMemoryMessageStorageService;
@@ -354,7 +354,7 @@ public class TimerService : IHostedService, IDisposable
         _trajectoryEvaluatorTimer?.Change(Timeout.Infinite, 0); // Stop the TrajectoryEvaluator timer
         _localAuthScannerTimer?.Change(Timeout.Infinite, 0); // Stop the Local Auth scanner timer
         _scheduledTaskTimer?.Change(Timeout.Infinite, 0); // Stop the Scheduled Task timer
-    _heartbeatTimer?.Change(Timeout.Infinite, 0); // Stop the Heartbeat timer
+        _heartbeatTimer?.Change(Timeout.Infinite, 0); // Stop the Heartbeat timer
         _inMemoryMessageCleanupTimer?.Change(Timeout.Infinite, 0); // Stop the In-Memory Message Cleanup timer
 
         // Stop all generic timers

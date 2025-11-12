@@ -1,10 +1,10 @@
-using Microsoft.Extensions.Logging;
-using OpenTelemetry;
-using OpenTelemetry.Trace;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
 
 namespace Agent.Logging;
 

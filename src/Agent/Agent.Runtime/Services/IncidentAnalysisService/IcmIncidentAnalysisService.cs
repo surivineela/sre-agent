@@ -32,7 +32,7 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
         CoreSettings coreSettings,
         ArmHelper armHelper,
         CustomerLogger appInsightsLogger,
-        ILogger<IcmIncidentAnalysisService> logger): base(chatClientProvider, cosmosClient, cosmosDbSettings, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
+        ILogger<IcmIncidentAnalysisService> logger) : base(chatClientProvider, cosmosClient, cosmosDbSettings, incidentManagementService, incidentFilterManagementService, incidentHandlerManagementService, repository, inboundCommunicationService, coreSettings, armHelper, appInsightsLogger, logger)
     {
     }
 

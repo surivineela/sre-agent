@@ -7,7 +7,7 @@ namespace Agent.Plugins.Definitions
     using Agent.Core.Models;
     using Agent.Plugins.Interface;
 
-    [AgentToolPlugin(IsFirstPartyOnly = true,Category = ToolCategories.Diagnostics, ResourceType = ToolResourceTypes.FunctionApp)]
+    [AgentToolPlugin(IsFirstPartyOnly = true, Category = ToolCategories.Diagnostics, ResourceType = ToolResourceTypes.FunctionApp)]
     public class FunctionsFlexConsumptionCRIPluginDefinition
     {
         private readonly IKustoPlugin _kustoPlugin;

@@ -1,11 +1,11 @@
-﻿namespace Agent.Tests.Unit;
+namespace Agent.Tests.Unit;
 
 using System;
 using System.Linq;
-using Xunit;
 using Agent.Prometheus;
 using Agent.Prometheus.Extensions;
 using Kusto.Cloud.Platform.Utils;
+using Xunit;
 
 public class PrometheusParserTests
 {
@@ -155,7 +155,7 @@ invalid_metric{label_without_value} 123
 
             // Must contain a label with the name "__name__"
             Assert.Equal(1, ts.Labels.Count(label => label.Name == "__name__"));
-            
+
             ts.Samples.ForEach(sample =>
             {
                 Assert.Equal(timestamp, sample.Timestamp);

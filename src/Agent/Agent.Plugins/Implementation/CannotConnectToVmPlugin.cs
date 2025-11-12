@@ -87,7 +87,7 @@ public class CannotConnectToVmPlugin : ICannotConnectToVmPlugin
             prompt: "Help me analyze the serial log of this Azure VM",
             cancellationToken);
     }
-        
+
 
     public async Task<string> DiagnoseVmConnectivityIssuesAsync(string resourceId, string osType, string? tsgFileName, CancellationToken cancellationToken = default)
     {
@@ -398,7 +398,7 @@ public class CannotConnectToVmPlugin : ICannotConnectToVmPlugin
                         lrMatched.ValueKind == JsonValueKind.String)
                     {
                         return "Result from Serial Log Analyzer Plugin: " + (lrMatched.GetString() ?? string.Empty);
-                    } 
+                    }
                     else if (doc.RootElement.TryGetProperty("Answer", out var ans) &&
                         ans.ValueKind == JsonValueKind.String)
                     {
@@ -458,7 +458,7 @@ public class CannotConnectToVmPlugin : ICannotConnectToVmPlugin
         foreach (var ch in docId)
         {
             if (!(char.IsLetterOrDigit(ch) || ch is '-' or '_'))
-            { 
+            {
                 _logger.LogInternalWarning("Rejected unsafe docId {DocId}", docId);
                 return null;
             }

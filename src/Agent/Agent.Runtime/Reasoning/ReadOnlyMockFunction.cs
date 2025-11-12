@@ -26,10 +26,10 @@ public class ReadOnlyMockFunction : AIFunction
         _instance = instance;
         _logger = logger;
         _customMessage = customMessage ?? $"[Read-Only Mode] Simulated execution of {functionName}. Operation would complete successfully.";
-        
+
         // Create a temporary function to get the proper metadata
         var tempFunction = AIFunctionFactory.Create(_originalMethod, _instance, name: functionName);
-        
+
         // Copy metadata from the temporary function
         Name = tempFunction.Name;
         Description = tempFunction.Description;
@@ -41,13 +41,13 @@ public class ReadOnlyMockFunction : AIFunction
     protected override ValueTask<object?> InvokeCoreAsync(AIFunctionArguments arguments, CancellationToken cancellationToken)
     {
         var argString = JsonSerializer.Serialize(arguments, new JsonSerializerOptions { WriteIndented = false });
-        
-        _logger?.LogInformation("Read-only mode: Mocking call to {MethodName} with arguments: {Arguments}", 
+
+        _logger?.LogInformation("Read-only mode: Mocking call to {MethodName} with arguments: {Arguments}",
             _originalMethod.Name, argString);
 
         // Return appropriate type based on method signature
         var returnType = _originalMethod.ReturnType;
-        
+
         if (returnType == typeof(Task<string>))
         {
             return ValueTask.FromResult<object?>(Task.FromResult(_customMessage));
@@ -68,7 +68,7 @@ public class ReadOnlyMockFunction : AIFunction
                 return ValueTask.FromResult<object?>(Task.FromResult(_customMessage));
             }
         }
-        
+
         // For other return types, return default value
         var defaultValue = returnType.IsValueType ? Activator.CreateInstance(returnType) : null;
         return ValueTask.FromResult(defaultValue);

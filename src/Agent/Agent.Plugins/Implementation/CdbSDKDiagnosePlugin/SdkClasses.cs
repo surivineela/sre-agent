@@ -1,8 +1,8 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Agent.Plugins.Implementation.CdbSDKDiagnosePlugin
 {

@@ -7,11 +7,11 @@ using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Plugins.Interface;
+using Agent.Core.Models.Session;
 using Agent.Core.Services;
+using Agent.Plugins.Interface;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Agent.Core.Models.Session;
 
 namespace Agent.Plugins;
 

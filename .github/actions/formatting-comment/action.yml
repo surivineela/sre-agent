@@ -1,0 +1,97 @@
+name: 'Formatting Comment'
+description: 'Create or update formatting suggestion comments on PRs.'
+inputs:
+  status:
+    description: 'Formatting status: needs_suggestions or clean.'
+    required: true
+  changed_files:
+    description: 'Path to file containing changed files.'
+    required: false
+  github-token:
+    description: 'GitHub token for API access'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Manage formatting comment
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8.0.0
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const fs = require('fs');
+          const status = '${{ inputs.status }}';
+          const changedFilesPath = '${{ inputs.changed_files }}';
+          const prNumber = context.payload.pull_request.number;
+
+          // Check for existing formatting comment
+          const comments = await github.rest.issues.listComments({
+            issue_number: prNumber,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+          });
+
+          const botComment = comments.data.find(comment =>
+            comment.user.type === 'Bot' &&
+            comment.body.includes('## 💄 Formatting Changes Detected')
+          );
+
+          if (status === 'needs_suggestions') {
+            let changedFiles = [];
+            if (changedFilesPath && fs.existsSync(changedFilesPath)) {
+              changedFiles = fs.readFileSync(changedFilesPath, 'utf8')
+                .split('\n')
+                .filter(f => f.trim() !== '');
+            }
+
+            const commentBody = `## 💄 Formatting Changes Detected
+
+          Automated formatting fixes are needed for ${changedFiles.length} file(s).
+
+          I've posted suggestion comments on the affected files. You can:
+
+          1. **Accept the suggestions** by clicking "Commit suggestion" on each comment
+          2. **Run \`dotnet format src/Agent/Agent.sln\` locally** and push the changes
+
+          Once formatting is applied, please retrigger this workflow to continue validation.
+
+          <details>
+          <summary>Files needing formatting</summary>
+
+          ${changedFiles.map(f => `- \`${f}\``).join('\n')}
+
+          </details>`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+              console.log('Updated existing formatting comment');
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: prNumber,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: commentBody
+              });
+              console.log('Created new formatting comment');
+            }
+          } else if (status === 'clean') {
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: `## ✅ All Formatting Issues Resolved
+
+          All formatting issues have been fixed! The code now meets the project's formatting standards.
+
+          This check has passed successfully.`
+              });
+              console.log('Updated formatting comment to show resolution');
+            } else {
+              console.log('No existing formatting comment found, nothing to update');
+            }
+          }

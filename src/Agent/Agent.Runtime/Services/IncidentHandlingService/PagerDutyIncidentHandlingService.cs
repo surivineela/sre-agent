@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
@@ -9,9 +10,8 @@ using Agent.Framework;
 using Agent.Graph.Interfaces;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
-using Agent.Core.Configuration;
-using Thread = Agent.Core.Models.Api.v1.Thread;
 using PagerDutyIncident = Agent.Graph.Interfaces.PagerDutyIncident;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.Services;
 

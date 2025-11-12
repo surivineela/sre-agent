@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Agent.Core.Configuration;
+using Agent.Core.Models;
+using Agent.Logging;
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Agent.Logging;
-using Agent.Core.Models;
-using Azure.Identity;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using Azure.Core;
-using System.Diagnostics;
 
 namespace Agent.Core.Services;
 public class OneBranchApprovalService
@@ -23,7 +23,7 @@ public class OneBranchApprovalService
     private AgentHelperService _agentHelperService;
     public bool IsEnabled = false;
 
-    private TimeSpan maxPollingTime = TimeSpan.FromDays(7); 
+    private TimeSpan maxPollingTime = TimeSpan.FromDays(7);
     private TimeSpan initialDelay = TimeSpan.FromMinutes(1);
     private TimeSpan maxDelay = TimeSpan.FromHours(2);
 
@@ -100,7 +100,7 @@ public class OneBranchApprovalService
         var response = await _agentHelperService.GetApprovalRequestAsync(id);
         if (!response.IsSuccessStatusCode)
         {
-            if(response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 _logger.LogInternalWarning("Approval request with ID {ApprovalId} not found.", id);
                 return null; // or throw a specific exception if needed

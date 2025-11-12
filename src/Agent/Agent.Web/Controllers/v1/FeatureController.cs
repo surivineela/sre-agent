@@ -30,7 +30,7 @@ namespace Agent.Web.Controllers.v1
             {
                 // Session Insights is enabled if AgentMemory is enabled OR EnableInsightPosting is enabled
                 var sessionInsightsEnabled = agentMemorySettings.Value.Enabled || agentMemorySettings.Value.EnableInsightPosting;
-                
+
                 var features = new Dictionary<string, bool>
                 {
                     ["scheduledTasks"] = scheduledTaskSettings.Value.Enabled,

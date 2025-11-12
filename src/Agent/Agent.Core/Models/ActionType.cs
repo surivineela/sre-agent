@@ -8,4 +8,4 @@ public enum ActionType1
 {
     AppStateTracking,
     Remediation
-} 
+}

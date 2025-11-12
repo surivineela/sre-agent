@@ -3,17 +3,17 @@
 // ------------------------------------------------------------
 
 using System;
-using System.Linq;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Microsoft.FeatureManagement;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
-using System.Collections.Concurrent;
+using Microsoft.FeatureManagement;
 
 namespace Agent.Web.Authorization;
 

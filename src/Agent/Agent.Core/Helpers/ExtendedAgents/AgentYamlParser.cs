@@ -1,7 +1,7 @@
 using System.Text;
+using Agent.Framework;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using Agent.Framework;
 
 namespace Agent.Core.Helpers.ExtendedAgents;
 
@@ -29,7 +29,7 @@ public static class AgentYamlParser
                 .Build();
 
             var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(yaml);
-            
+
             if (yamlDict == null)
             {
                 throw new InvalidOperationException("YAML content is empty or invalid");
@@ -42,7 +42,7 @@ public static class AgentYamlParser
                 if (yamlDict.TryGetValue("spec", out var specObj))
                 {
                     Dictionary<string, object> spec;
-                    
+
                     if (specObj is Dictionary<string, object> stringKeyDict)
                     {
                         spec = stringKeyDict;
@@ -60,14 +60,14 @@ public static class AgentYamlParser
                         var specType = specObj?.GetType()?.FullName ?? "null";
                         throw new InvalidOperationException($"AgentConfiguration spec must be an object. Got type: {specType}");
                     }
-                    
+
                     // Extract the spec directly as it contains the agent properties
                     var serializer = new SerializerBuilder()
                         .WithNamingConvention(UnderscoredNamingConvention.Instance)
                         .Build();
-                    
+
                     var agentYaml = serializer.Serialize(spec);
-                    
+
                     // Parse using AgentFactory
                     return AgentFactory<object>.LoadAgentFromYaml(agentYaml);
                 }
@@ -110,9 +110,9 @@ public static class AgentYamlParser
             if (yamlDict.TryGetValue("kind", out var kindObj) && kindObj?.ToString() == "AgentConfiguration")
             {
                 // Extract from spec.tools (tools are directly in spec)
-                if (yamlDict.TryGetValue("spec", out var specObj) && 
+                if (yamlDict.TryGetValue("spec", out var specObj) &&
                     specObj is Dictionary<string, object> spec &&
-                    spec.TryGetValue("tools", out var toolsObj) && 
+                    spec.TryGetValue("tools", out var toolsObj) &&
                     toolsObj is List<object> toolsList)
                 {
                     return toolsList.Cast<string>().ToList();
@@ -150,9 +150,9 @@ public static class AgentYamlParser
                 .Build();
 
             var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(yaml);
-            
-            return yamlDict != null && 
-                   yamlDict.TryGetValue("kind", out var kindObj) && 
+
+            return yamlDict != null &&
+                   yamlDict.TryGetValue("kind", out var kindObj) &&
                    kindObj?.ToString() == "AgentConfiguration" &&
                    yamlDict.ContainsKey("spec");
         }

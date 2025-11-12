@@ -125,7 +125,7 @@ namespace Agent.Plugins.Definitions
                     sb.AppendLine("Sample Messages:");
                     if (sample.UniqueMessages.Count > 0)
                     {
-                        foreach (string message in sample.UniqueMessages) 
+                        foreach (string message in sample.UniqueMessages)
                         {
                             sb.AppendLine($"{message}");
                         }

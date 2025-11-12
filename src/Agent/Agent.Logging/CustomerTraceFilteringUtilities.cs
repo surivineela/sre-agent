@@ -122,7 +122,7 @@ public static class CustomerTraceFilteringUtilities
         // Always include basic trace correlation information
         if (!sanitizedData.ContainsKey("TraceId"))
             sanitizedData["TraceId"] = traceData.GetValueOrDefault("TraceId", "");
-        
+
         if (!sanitizedData.ContainsKey("SpanId"))
             sanitizedData["SpanId"] = traceData.GetValueOrDefault("SpanId", "");
 
@@ -177,7 +177,7 @@ public static class CustomerTraceFilteringUtilities
                 AttributeCount = e.Tags.Count()
             })
             .ToList();
-        
+
         if (safeEvents.Any())
         {
             safeData["Events"] = safeEvents;
@@ -253,7 +253,7 @@ public static class CustomerTraceFilteringUtilities
             "system_"
         };
 
-        return internalToolPatterns.Any(pattern => 
+        return internalToolPatterns.Any(pattern =>
             toolName.StartsWith(pattern, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -272,7 +272,7 @@ public static class CustomerTraceFilteringUtilities
             "auth"
         };
 
-        return internalEventPatterns.Any(pattern => 
+        return internalEventPatterns.Any(pattern =>
             eventName.Contains(pattern, StringComparison.OrdinalIgnoreCase));
     }
 }

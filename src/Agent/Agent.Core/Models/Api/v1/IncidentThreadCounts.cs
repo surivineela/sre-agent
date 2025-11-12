@@ -6,8 +6,10 @@ using System.Text.Json.Serialization;
 
 namespace Agent.Core.Models.Api.v1
 {
-    public class StatusCount {
-        public StatusCount(string Status, int Count) {
+    public class StatusCount
+    {
+        public StatusCount(string Status, int Count)
+        {
             this.Status = Status;
             this.Count = Count;
         }

@@ -118,7 +118,7 @@ public class McpAuthenticatedHttpClientHandler : HttpClientHandler
 
         var credentials = $"{_authConfig.Username}:{_authConfig.Password}";
         var encodedCredentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
-        
+
         request.Headers.Authorization = new AuthenticationHeaderValue("Basic", encodedCredentials);
         _logger.LogInternalDebug("Added Basic authentication to Authorization header");
     }

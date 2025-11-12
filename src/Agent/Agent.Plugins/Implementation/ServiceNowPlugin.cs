@@ -37,7 +37,7 @@ public class ServiceNowPlugin : IServiceNowPlugin
     {
         var logMessage = $"[{nameof(ServiceNowPlugin)}_{nameof(GetServiceNowIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
-        
+
         return await _serviceNowApiClient.GetIncidentAsync(incidentId);
     }
 
@@ -45,7 +45,7 @@ public class ServiceNowPlugin : IServiceNowPlugin
     {
         var logMessage = $"[{nameof(ServiceNowPlugin)}_{nameof(PostServiceNowDiscussionEntry)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
-        
+
         var result = await _serviceNowApiClient.PostDiscussionEntryAsync(incidentId, discussionEntry);
         return result;
     }
@@ -54,7 +54,7 @@ public class ServiceNowPlugin : IServiceNowPlugin
     {
         var logMessage = $"[{nameof(ServiceNowPlugin)}_{nameof(AcknowledgeServiceNowIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
-        
+
         return await _serviceNowApiClient.AcknowledgeIncidentAsync(incidentId);
     }
 
@@ -62,12 +62,12 @@ public class ServiceNowPlugin : IServiceNowPlugin
     {
         var logMessage = $"[{nameof(ServiceNowPlugin)}_{nameof(ResolveServiceNowIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
-        
+
         try
         {
             // First add the resolution note
             await PostServiceNowDiscussionEntry(incidentId, $"Resolution: {discussionEntry}");
-            
+
             // Then resolve the incident
             var result = await _serviceNowApiClient.ResolveIncidentAsync(incidentId, discussionEntry);
 
@@ -103,7 +103,7 @@ public class ServiceNowPlugin : IServiceNowPlugin
                 var errorMessage = $"Error adding SREAgent_Resolved tag to ServiceNow incident document {incidentId}: {ex.Message}";
                 _logger.LogInternalError(ex, errorMessage);
             }
-            
+
             _logger.LogInternalInformation($"Successfully resolved ServiceNow incident document {incidentId}");
             return result;
         }

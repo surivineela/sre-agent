@@ -58,10 +58,10 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             var functionName = "SimpleQuery";
-            
+
             // Act
             var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.EndsWith("SimpleQuery.kql", result);
@@ -73,10 +73,10 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             var functionName = "GetAdminEventErrorMessagesByTraceId";
-            
+
             // Act
             var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.EndsWith("GetAdminEventErrorMessagesByTraceId.kql", result);
@@ -88,10 +88,10 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             var functionName = "ContainerApps.Monitoring.GetHealthStatus";
-            
+
             // Act
             var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.Contains("ContainerApps", result);
@@ -105,10 +105,10 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             var functionName = "Level1.Level2.Level3.DeepQuery";
-            
+
             // Act
             var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.Contains("Level1", result);
@@ -123,10 +123,10 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             var functionName = "NonExistentQuery";
-            
+
             // Act
             var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.EndsWith("NonExistentQuery.kql", result);
@@ -138,10 +138,10 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             var functionName = "NonExistent.Namespace.Query";
-            
+
             // Act
             var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.EndsWith("Query.kql", result);
@@ -154,10 +154,10 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             var functionName = "";
-            
+
             // Act
             var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.EndsWith(".kql", result);
@@ -168,10 +168,10 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             var functionName = "Category.Query";
-            
+
             // Act
             var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.Contains("Category", result);
@@ -183,17 +183,17 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // This test verifies that if both a direct file and a namespaced file exist,
             // the direct file takes precedence (backward compatibility)
-            
+
             // Arrange
             var functionName = "GetAdminEventErrorMessagesByTraceId";
-            
+
             // Act
             var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.True(File.Exists(result), "Direct file should exist");
-            
+
             // Should prefer the direct path (no subdirectories in the path after Queries/)
             var queriesIndex = result.IndexOf("Queries");
             var afterQueries = result.Substring(queriesIndex + "Queries".Length + 1);
@@ -205,10 +205,10 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             var functionName = "AKS.Diagnostics.GetNodeStatus";
-            
+
             // Act
             var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
-            
+
             // Assert
             Assert.NotNull(result);
             Assert.Contains("AKS", result);

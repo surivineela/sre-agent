@@ -24,7 +24,7 @@ public class FunctionsHelper
         var regex = new Regex(pattern, RegexOptions.IgnoreCase);
 
         var match = regex.Match(eventPrimaryStampName.Trim());
-        
+
         if (match.Success)
         {
             wellFormedEventPrimaryStampName = eventPrimaryStampName.Trim().ToLowerInvariant();

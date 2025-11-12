@@ -540,17 +540,17 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
     private async Task<string[]> ValidateGitHubUsersAsync(string[] usernames)
     {
         var validUsers = new List<string>();
-        
+
         foreach (var username in usernames)
         {
             if (string.IsNullOrWhiteSpace(username))
                 continue;
 
             // Transform "copilot" to "copilot-swe-agent[bot]"
-            var actualUsername = username.Trim().ToLowerInvariant() == "copilot" 
-                ? "copilot-swe-agent[bot]" 
+            var actualUsername = username.Trim().ToLowerInvariant() == "copilot"
+                ? "copilot-swe-agent[bot]"
                 : username.Trim();
-                
+
             try
             {
                 // Try to get user information to validate existence
@@ -577,13 +577,13 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                 _logger.LogInternalError(ex, $"Error validating GitHub user '{actualUsername}'. Skipping assignment.");
             }
         }
-        
+
         if (validUsers.Count != usernames.Length)
         {
             var invalidUsers = usernames.Except(validUsers).ToArray();
             _logger.LogInternalWarning($"Some assignees were invalid and skipped: {string.Join(", ", invalidUsers)}");
         }
-        
+
         return validUsers.ToArray();
     }
 

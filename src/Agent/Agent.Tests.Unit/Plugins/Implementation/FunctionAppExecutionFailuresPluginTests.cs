@@ -2,23 +2,23 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Helpers;
-using Agent.Core.Models.Charts;
-using Agent.Plugins.Implementation;
-using Agent.Plugins.Interface;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Newtonsoft.Json.Linq;
-using Agent.Core.Configuration;
-using Agent.Core.Interfaces;
-using Agent.Core.Services;
-using Agent.Logging;
-using Agent.Framework;
-using Microsoft.Extensions.Hosting;
-using Moq.Protected;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Linq;
+using Agent.Core.Configuration;
+using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Charts;
+using Agent.Core.Services;
+using Agent.Framework;
+using Agent.Logging;
+using Agent.Plugins.Implementation;
+using Agent.Plugins.Interface;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Moq.Protected;
+using Newtonsoft.Json.Linq;
 
 namespace Agent.Tests.Unit.Plugins.Implementation
 {

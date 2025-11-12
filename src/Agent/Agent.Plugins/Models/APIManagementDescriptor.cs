@@ -78,7 +78,7 @@ namespace Agent.Plugins.Models
         string? SubnetResourceId,
         Guid? VnetId
     );
-    
+
     public record APIMActivityLogEntry(
         string Timestamp,
         string Operation,

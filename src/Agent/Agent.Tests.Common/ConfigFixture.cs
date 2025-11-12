@@ -3,10 +3,10 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Agent.Runtime;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Agent.Tests.Common
 {

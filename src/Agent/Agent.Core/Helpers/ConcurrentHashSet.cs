@@ -94,8 +94,8 @@ namespace Agent.Core.Helpers
             {
                 _lock.ExitReadLock();
             }
-        }   
-        
+        }
+
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         #region Dispose

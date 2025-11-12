@@ -122,17 +122,17 @@ public record AzMonitorAlertDocument : IIncidentDocument
         {
             // Highest priority: AlertState = "closed" is the final terminal state
             ("closed", _) => "closed",
-            
+
             // Second priority: MonitorCondition = "resolved" means the condition has cleared
             (_, "resolved") => "resolved",
-            
+
             // Third priority: AlertState = "acknowledged" means operator has acknowledged
             ("acknowledged", _) => "acknowledged",
-            
+
             // Fourth priority: Either "new" AlertState or "fired" MonitorCondition means active/new
             ("new", _) => "new",
             (_, "fired") => "new",
-            
+
             // Fallback: prefer AlertState over MonitorCondition, then empty string
             _ => alertState ?? monitorCondition ?? string.Empty
         };

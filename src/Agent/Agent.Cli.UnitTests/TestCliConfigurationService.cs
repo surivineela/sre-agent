@@ -147,7 +147,7 @@ public class TestCliConfigurationService : ICliConfigurationService
     public async Task SaveProfileAsync(string profileName, CliConfiguration config)
     {
         var profilePath = Path.Combine(_profilesDir, $"{profileName}.json");
-        
+
         var json = JsonSerializer.Serialize(config, _options);
         await File.WriteAllTextAsync(profilePath, json);
     }

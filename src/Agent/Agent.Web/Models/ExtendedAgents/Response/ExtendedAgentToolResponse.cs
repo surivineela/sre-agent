@@ -16,7 +16,7 @@ public record ExtendedAgentToolsResponse(
     {
         return new ExtendedAgentToolsResponse(
             Data: ExtendedAgentToolsData.FromRuntime(runtimeModel)
-            
+
         );
     }
 }
@@ -29,7 +29,7 @@ public record ExtendedAgentToolsData(
     {
         var convertedTools = runtimeModel.Select(ApiToRuntimeMapper.ToApiTool).ToList();
         var paginatedTools = new PaginatedList<ExtendedAgentToolApiModel>(convertedTools, runtimeModel.TotalCount, runtimeModel.PageIndex, runtimeModel.PageSize);
-        
+
         return new ExtendedAgentToolsData(
             Tools: PaginatedResponse<ExtendedAgentToolApiModel>.FromPaginatedList(paginatedTools)
         );

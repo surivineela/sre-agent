@@ -1126,7 +1126,7 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "Error checking for WEBSITE_RUN_FROM_PACKAGE issues for {ResourceId}", resourceId);
-                
+
                 // In case of error, return true to trigger handoff for investigation
                 // This ensures that potential issues are not missed due to unexpected errors
                 return true;

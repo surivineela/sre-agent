@@ -3,16 +3,16 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Models.Api.v1;
+using Agent.Data.Repositories;
 using Agent.Logging;
+using Agent.Plugins.Interface;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
+using Microsoft.Bot.Connector;
 using Microsoft.Bot.Schema;
 using Microsoft.Bot.Schema.Teams;
 using Microsoft.Extensions.Logging;
-using Microsoft.Bot.Connector;
-using Agent.Data.Repositories;
-using Agent.Core.Models.Api.v1;
-using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation
 {

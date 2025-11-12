@@ -3,9 +3,9 @@
 // ------------------------------------------------------------
 
 using System.CommandLine;
+using Agent.Cli.Helpers;
 using Agent.Cli.Models;
 using Agent.Cli.Services;
-using Agent.Cli.Helpers;
 
 namespace Agent.Cli.Commands;
 

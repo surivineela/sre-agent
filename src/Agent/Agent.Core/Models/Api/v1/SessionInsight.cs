@@ -11,13 +11,13 @@ public record SessionInsight(
     string ThreadId,
     string Title,
     DateTime GeneratedTimestamp,
-    
+
     // Only the markdown insight message - no raw trajectory data
     string? InsightMarkdown,
-    
+
     // Feedback
     List<SessionInsightFeedback>? Feedback,
-    
+
     // Statistics
     int FeedbackCount,
     int PositiveFeedbackCount,

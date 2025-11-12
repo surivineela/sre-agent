@@ -153,16 +153,16 @@ namespace Agent.Plugins
             string resourceId)
         {
             Console.WriteLine($"[get_webapp_thread_metrics] Invoked with resourceId: {resourceId}");
-            
+
             var metrics = new List<Metric>
             {
                 new Metric { Name = "Threads", Unit = "count", Aggregation = "Average" }
             };
-            
+
             var metricsData = await _armHelper.FetchMetricsAsync(
                 resourceId,
                 metrics);
-            
+
             return metricsData
                 .Select(m => new ThreadTimeSeriesData(
                     TimeStamp: m.Timestamp,

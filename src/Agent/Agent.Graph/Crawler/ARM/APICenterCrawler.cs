@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -7,7 +8,6 @@ using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Helpers;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
-using System.Text.RegularExpressions;
 using static Agent.Data.DatabaseClients.GraphDbClient.APICenterNode;
 using ApimConstants = Agent.Graph.Helpers.APIManagementGraphHelper.Constants;
 
@@ -127,7 +127,7 @@ namespace Agent.Graph.Crawler.ARM
 
                                         _logger.LogInternalInformation($"Added APIC dependency for API '{apiName}': {targetLink?.Target?.Identifier}");
                                     }
-                                    
+
                                     _logger.LogInternalInformation($"Matched APIC API '{apicApiTitle}' to APIM API '{apiName}'");
                                 }
                             }
@@ -157,7 +157,7 @@ namespace Agent.Graph.Crawler.ARM
         {
             var getApicResourceLinksUrl = $"{ApimConstants.ManagementAzureBaseUrl}{apiCenterNode.ResourceId}{ApimConstants.ApicDefaultWorkspaceSegment}/links?api-version={ApimConstants.ApicApiVersion}";
             string resourceLinksJson = await GetArmResourceByUrl(getApicResourceLinksUrl);
-            
+
             if (string.IsNullOrEmpty(resourceLinksJson))
             {
                 return false;

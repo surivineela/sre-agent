@@ -20,7 +20,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         [GraphJsonProperty("resourceLinks")] public List<ApicLinkEntity>? ResourceLinks { get; set; }
 
         // The key string is an ApicResource identifier
-        [GraphJsonProperty("apiConnectionInfo")]  public Dictionary<string, ApiConnectionEntity>? ApiConnectionInfo { get; set; }
+        [GraphJsonProperty("apiConnectionInfo")] public Dictionary<string, ApiConnectionEntity>? ApiConnectionInfo { get; set; }
 
         public class ApicLinkEntity
         {
@@ -45,7 +45,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             public string? Title { get; set; }
             public string? ApiSourceId { get; set; }
             public string? ApimSourceId { get; set; }
-            public string? Workspace { get; set; } 
+            public string? Workspace { get; set; }
         }
 
         [DataContract]
@@ -190,8 +190,8 @@ namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes
     public class ApicDependencyNode : GraphNode
     {
         [GraphProperty("apiIdentifier")] public string? ApiIdentifier { get; set; } = string.Empty;
-        [GraphProperty("resourceId")]  public string? ResourceId { get; set; }
-        [GraphProperty("sourceApiTitle")]  public string? SourceApiTitle { get; set; }
+        [GraphProperty("resourceId")] public string? ResourceId { get; set; }
+        [GraphProperty("sourceApiTitle")] public string? SourceApiTitle { get; set; }
         [GraphProperty("targetResourceIdentifier")] public string? TargetResourceIdentifier { get; set; }
         [GraphProperty("targetResourceType")] public string? TargetResourceType { get; set; }
 

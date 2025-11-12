@@ -2,18 +2,18 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel;
 using System.Net.Http.Headers;
 using System.Text;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Microsoft.Extensions.AI;
-using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Plugins.Interface;
 using Agent.Framework;
+using Agent.Plugins.Interface;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Agent.Plugins.Implementation
 {

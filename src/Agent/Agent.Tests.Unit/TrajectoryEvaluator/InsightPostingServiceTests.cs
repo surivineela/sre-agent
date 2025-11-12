@@ -98,8 +98,8 @@ public class InsightPostingServiceTests
         {
             IsInvestigationThread = isInvestigation,
             ReasoningScratchPad = "Test reasoning",
-            ClassificationReason = classificationReason ?? (isInvestigation 
-                ? "User reported production issue" 
+            ClassificationReason = classificationReason ?? (isInvestigation
+                ? "User reported production issue"
                 : "Routine resource query"),
             Title = "Test Thread",
             IncidentTitle = isInvestigation ? "Test Incident" : "N/A",
@@ -109,8 +109,8 @@ public class InsightPostingServiceTests
             InitialSymptoms = isInvestigation ? "Service unavailable" : "N/A",
             StepsFollowed = isInvestigation ? "1. Check logs\n2. Analyze metrics" : "N/A",
             SymptomsObserved = isInvestigation ? "High error rate" : "N/A",
-            Pitfalls = hasPitfalls 
-                ? (pitfalls ?? "Did: Something incorrect. Should: Do it correctly.") 
+            Pitfalls = hasPitfalls
+                ? (pitfalls ?? "Did: Something incorrect. Should: Do it correctly.")
                 : "N/A",
             RootCause = isInvestigation ? "Configuration error" : "N/A",
             ResourcesInvolved = "/subscriptions/test/resourceGroups/test/providers/Microsoft.Test/test",

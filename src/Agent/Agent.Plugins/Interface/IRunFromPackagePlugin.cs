@@ -72,8 +72,8 @@ namespace Agent.Plugins.Interface
         /// <param name="newValue">Optional new value for the setting</param>
         /// <returns>Result of the repair operation</returns>
         Task<RunFromPackageRepairResult> RepairRunFromPackageConfigurationAsync(
-            string resourceId, 
-            RunFromPackageRepairAction repairAction, 
+            string resourceId,
+            RunFromPackageRepairAction repairAction,
             string newValue = "");
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Agent.Plugins.Interface
         /// <param name="resourceId">The Azure resource ID of the Function App or Web App</param>
         /// <returns>Result of the migration operation</returns>
         Task<MigrationResult> MigrateToLocalPackageAsync(string resourceId);
-        
+
         /// <summary>
         /// Checks if the resource has issues with WEBSITE_RUN_FROM_PACKAGE configuration
         /// </summary>

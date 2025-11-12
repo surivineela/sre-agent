@@ -305,7 +305,7 @@ public class PostgreSqlConnectionStringHelper
         {
             _logger.LogInternalError(sourceName, $"PostgreSqlResourceId cannot be null for resource type {resourceType}.");
             throw new ArgumentNullException(nameof(postgresResourceId), "PostgreSqlResourceId cannot be null.");
-        }            
+        }
 
         // Create PostgreSqlFlexServerNode for flexible servers, ArmResourceNode for others
         ArmResourceNode postgresNode;

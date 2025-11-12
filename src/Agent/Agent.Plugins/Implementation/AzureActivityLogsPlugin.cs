@@ -7,11 +7,12 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Framework;
 using Agent.Graph.Schema;
 using Agent.Logging;
 using Agent.Plugins.Interface;
-using Agent.Core.Models.Api.v1;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -26,7 +27,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Rest;
 using Microsoft.Rest.Azure;
 using Microsoft.Rest.Azure.OData;
-using Agent.Framework;
 
 namespace Agent.Plugins.Implementation
 {

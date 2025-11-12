@@ -20,7 +20,7 @@ namespace Agent.Plugins.Implementation
     public class TeamsPlugin : ITeamsPlugin
     {
         private readonly ILogger<TeamsPlugin> _logger;
-        private static readonly JsonSerializerOptions _jsonOptions = new (JsonSerializerOptions.Web)
+        private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerOptions.Web)
         {
             PropertyNameCaseInsensitive = true
         };

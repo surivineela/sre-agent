@@ -48,7 +48,7 @@ public class CustomerTraceExporterOptions : AzureDataExplorerExporterOptions
         PopulateColumnsDelegate? populateColumns = null,
         string? firstPartyAppCertificatePath = "",
         string? firstPartyAppClientId = "",
-        string? firstPartyAppTenantId = "") 
+        string? firstPartyAppTenantId = "")
         : base(clusterUri, databaseName, tableName, populateColumns, firstPartyAppCertificatePath, firstPartyAppClientId, firstPartyAppTenantId)
     {
     }
@@ -71,7 +71,7 @@ public class CustomerTraceExporter : BaseExporter<Activity>
     public CustomerTraceExporter(CustomerTraceExporterOptions options)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
-        
+
         // Create the underlying AzureDataExplorerExporter with a custom column populator
         // that ensures customer-safe data processing
         var baseOptions = new AzureDataExplorerExporterOptions(
@@ -84,7 +84,7 @@ public class CustomerTraceExporter : BaseExporter<Activity>
             options.FirstPartyAppTenantId);
 
         _baseExporter = new AzureDataExplorerExporter(baseOptions);
-        
+
         Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Initialized Customer Trace Exporter for table: {options.TableName}");
     }
 
@@ -113,7 +113,7 @@ public class CustomerTraceExporter : BaseExporter<Activity>
             var result = _baseExporter.Export(filteredBatch);
 
             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Exported {filteredActivities.Count}/{batch.Count} customer-safe activities");
-            
+
             return result;
         }
         catch (Exception ex)
@@ -139,7 +139,7 @@ public class CustomerTraceExporter : BaseExporter<Activity>
         {
             // Replace the default trace data with customer-safe version
             var customerSafeData = CustomerTraceFilteringUtilities.CreateCustomerSafeActivityData(activity);
-            
+
             // Clear existing trace data and populate with safe data
             trace.Clear();
             foreach (var kvp in customerSafeData)

@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
+using Kusto.Data;
 using Kusto.Data.Common;
 using Kusto.Ingest;
-using Kusto.Data;
-using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Agent.Logging;
 

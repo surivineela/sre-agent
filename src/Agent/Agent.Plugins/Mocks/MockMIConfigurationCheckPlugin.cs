@@ -22,7 +22,7 @@ namespace Agent.Plugins.Mocks
         {
             // Extract app name from resource ID
             var appName = appResourceId.Split('/').Last();
-            
+
             // Generate unique SQL server info for each app
             return appName switch
             {
@@ -47,7 +47,7 @@ namespace Agent.Plugins.Mocks
         public Task<SqlConnectionDescriptor> CheckSqlConnectionTypeAsync(string resourceId)
         {
             var (serverName, serverId, database) = GetSqlServerInfo(resourceId);
-            
+
             if (_processedApps.Contains(resourceId))
             {
                 return Task.FromResult(new SqlConnectionDescriptor(

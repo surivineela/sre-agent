@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using System.Security.Cryptography.X509Certificates;
 using Azure.Identity;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
@@ -55,7 +55,7 @@ public class EventHubLogExporter : BaseExporter<LogRecord>
     {
         if (options == null) throw new ArgumentNullException(nameof(options));
 
-    // no explicit max batch size; rely on Event Hub SDK defaults
+        // no explicit max batch size; rely on Event Hub SDK defaults
         _flushIntervalMilliseconds = options.FlushIntervalMilliseconds ?? 2000;
 
         // create producer first

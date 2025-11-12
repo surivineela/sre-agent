@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Core.Extensions;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
@@ -10,7 +11,6 @@ using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace Agent.Runtime.SubAgents
 {

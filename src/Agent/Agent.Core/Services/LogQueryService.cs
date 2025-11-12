@@ -6,11 +6,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Agent.Logging;
 using Azure.Core;
 using Azure.Monitor.Query;
-using Agent.Logging;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Core.Services;
 public class LogQueryService : ILogQueryService

@@ -125,9 +125,9 @@ namespace Agent.Runtime.Services
             }
 
             if (_coreSettings.UseAgentFramework && agentContext != null)
-                {
-                    await _reasoningLoopManager.NotifyApprovalDecisionAsync(agentContext, newApproval, CancellationToken.None);
-                }
+            {
+                await _reasoningLoopManager.NotifyApprovalDecisionAsync(agentContext, newApproval, CancellationToken.None);
+            }
         }
     }
 }

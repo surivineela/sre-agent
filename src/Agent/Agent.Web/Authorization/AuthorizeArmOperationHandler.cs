@@ -3,10 +3,10 @@
 // ------------------------------------------------------------
 
 using System.Security.Claims;
+using Agent.Logging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.FeatureManagement;
-using Agent.Logging;
 
 namespace Agent.Web.Authorization;
 

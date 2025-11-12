@@ -8,7 +8,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 {
     // TODO: Fix ArmHelper mocking issues before re-enabling these tests
     // ArmHelper requires many dependencies that are complex to mock properly.
-    
+
     public class FunctionAppDeploymentChecksPluginTests_Disabled
     {
         [Fact]

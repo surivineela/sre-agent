@@ -2,13 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel;
 using Agent.Core.Extensions;
 using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using System.ComponentModel;
 
 namespace Agent.Runtime.SubAgents
 {

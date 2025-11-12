@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Mvc;
+using Session.Cli.Attributes;
 using Session.Cli.Models;
 using Session.Cli.Services;
-using Session.Cli.Attributes;
 
 namespace Session.Cli.Controllers;
 

@@ -15,7 +15,7 @@ namespace Agent.Plugins.Definitions
     public class AzureActivityLogsPluginDefinition : ContextToolTarget<AgentContext>
     {
         public IAzureActivityLogsPlugin _plugin { get; }
-        
+
         public AzureActivityLogsPluginDefinition(IAzureActivityLogsPlugin azureActivityLogsPlugin)
         {
             _plugin = azureActivityLogsPlugin;

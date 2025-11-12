@@ -342,8 +342,8 @@ public class TrajectoryEvaluator
         // 1. User explicitly requested it, OR
         // 2. It's an incident trajectory, OR
         // 3. Thread has more than 3 messages
-        bool shouldGenerateInsights = isUserRequested 
-            || thread.Source == Core.Models.Api.v1.ThreadSource.Incident 
+        bool shouldGenerateInsights = isUserRequested
+            || thread.Source == Core.Models.Api.v1.ThreadSource.Incident
             || messageCount > 3;
 
         if (!shouldGenerateInsights)

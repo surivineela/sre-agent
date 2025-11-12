@@ -64,10 +64,10 @@ public class ReplayToolCoreTests
         // Arrange
         var chatMessageLogPath = Path.Combine("TestData", "ToolReplayLogs", "chatmessage-format-f41f64f7-d7a3-4061-b42f-33a992aa413e.json");
         var otelLogPath = Path.Combine("TestData", "ToolReplayLogs", "otel-format-f41f64f7-d7a3-4061-b42f-33a992aa413e.json");
-        
+
         var chatMessageContent = File.ReadAllText(chatMessageLogPath);
         var otelContent = File.ReadAllText(otelLogPath);
-        
+
         var chatMessageReplayCore = new ReplayToolCore(_serializerOptions);
         var otelReplayCore = new ReplayToolCore(_serializerOptions);
 
@@ -82,11 +82,11 @@ public class ReplayToolCoreTests
         // Debug output to understand what's being extracted
         var chatMessageFunctionsStr = string.Join(", ", chatMessageFunctions);
         var otelFunctionsStr = string.Join(", ", otelFunctions);
-        
+
         // Verify that both formats contain overlapping function calls
         var commonFunctions = chatMessageFunctions.Intersect(otelFunctions).ToList();
         Assert.True(commonFunctions.Count > 0, $"No common functions found. ChatMessage: [{chatMessageFunctionsStr}], OTEL: [{otelFunctionsStr}]");
-        
+
         // Verify that at least ListResourcesByType is present in both (if available in chat message format)
         if (chatMessageFunctions.Contains("ListResourcesByType"))
         {
@@ -98,22 +98,22 @@ public class ReplayToolCoreTests
         {
             var chatMessageEntries = chatMessageReplayCore.GetReplayEntriesForFunction(functionName).ToList();
             var otelEntries = otelReplayCore.GetReplayEntriesForFunction(functionName).ToList();
-            
+
             Assert.NotEmpty(chatMessageEntries);
             Assert.NotEmpty(otelEntries);
 
             // Find entries with matching arguments
             foreach (var chatEntry in chatMessageEntries)
             {
-                var matchingOtelEntry = otelEntries.FirstOrDefault(oe => 
+                var matchingOtelEntry = otelEntries.FirstOrDefault(oe =>
                     AreJsonStringsEquivalent(oe.FunctionArgumentsJson, chatEntry.FunctionArgumentsJson));
-                
+
                 if (matchingOtelEntry != null)
                 {
                     // Instead of strict equality, verify both have non-empty results for successful function calls
                     var chatHasResult = !string.IsNullOrEmpty(chatEntry.FunctionResultJson) && chatEntry.FunctionResultJson != "null";
                     var otelHasResult = !string.IsNullOrEmpty(matchingOtelEntry.FunctionResultJson) && matchingOtelEntry.FunctionResultJson != "null";
-                    
+
                     Assert.Equal(chatHasResult, otelHasResult);
                 }
             }

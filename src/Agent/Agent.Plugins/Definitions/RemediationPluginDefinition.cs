@@ -137,7 +137,7 @@ namespace Agent.Plugins.Definitions
         [KernelFunction("azure_app_service_set_scm_authentication_support")]
         [WriteAction]
         [RequiresApproval]
-[Description($"Sets the authentication on azure {ArmConstants.AppServiceType}, disabling or enabling SCM authentication support. If disabled, this forces callers to use authentication methods such as managed identities or service principals.")]
+        [Description($"Sets the authentication on azure {ArmConstants.AppServiceType}, disabling or enabling SCM authentication support. If disabled, this forces callers to use authentication methods such as managed identities or service principals.")]
         public async Task<RemediationResult> AzureAppServiceSetScmAuthenticationSupport(string resourceId, FeatureState featureState)
         {
             return await _remediationPlugin.AzureAppServiceSetScmAuthenticationSupport(resourceId, featureState);

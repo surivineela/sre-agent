@@ -19,7 +19,7 @@ namespace Agent.Plugins.Services.Interfaces
         /// <param name="endTime">Optional end time for the analysis</param>
         /// <returns>JSON string containing detector results</returns>
         Task<string> GetDetectorResponse(string resourceId, string detectorId, DateTime? startTime = null, DateTime? endTime = null);
-        
+
         /// <summary>
         /// Gets analysis for a resource
         /// </summary>

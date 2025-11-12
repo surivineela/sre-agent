@@ -81,7 +81,7 @@ public class McpConnectionHealthService : IMcpConnectionHealthService
         // MCP tool signatures follow the pattern: {connectionId}_{toolName}
         // We need to find the connection by extracting the connection ID from the tool signature
         var connections = _connectionManager.GetActiveConnections();
-        
+
         // Try to find a connection where the tool signature starts with the connection ID
         foreach (var connection in connections)
         {

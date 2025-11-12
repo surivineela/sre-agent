@@ -30,7 +30,7 @@ public class ScheduledTaskExecutionService
         try
         {
             var dueTasks = await _repository.GetTasksDueForExecutionAsync(currentTime);
-            
+
             if (dueTasks.Count == 0)
             {
                 _logger.LogInternalInformation("No tasks due for execution");

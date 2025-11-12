@@ -3,10 +3,10 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
-using Agent.Framework;
 using Agent.Core.Attributes;
-using Agent.Plugins.Interface;
 using Agent.Core.Models;
+using Agent.Framework;
+using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
 {

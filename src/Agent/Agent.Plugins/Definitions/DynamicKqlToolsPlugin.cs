@@ -1,10 +1,10 @@
-using Agent.Plugins.KustoPlugin;
-using Agent.Plugins;
-using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Models;
+using Agent.Plugins;
 using Agent.Plugins.Kusto;
+using Agent.Plugins.KustoPlugin;
+using Microsoft.Extensions.DependencyInjection;
 
 [AgentToolPlugin(Category = ToolCategories.LogQuery)]
 public class DynamicKqlToolsPlugin
@@ -82,7 +82,7 @@ public class DynamicKqlToolsPlugin
 
         // Execute using the pre-configured cluster, database, and formatted query
         var result = await _kustoPlugin.ExecuteClusterKustoQueryInternal(queryInfo.cluster, queryInfo.database, finalQuery);
-        if(result == null || string.IsNullOrEmpty( result.Result) || result.Result.Contains("Kusto query execution failed")|| result.Result.Contains("failed") || result.Result.Contains("An error occurred while executing"))
+        if (result == null || string.IsNullOrEmpty(result.Result) || result.Result.Contains("Kusto query execution failed") || result.Result.Contains("failed") || result.Result.Contains("An error occurred while executing"))
         {
             return $"Query '{queryName}' either did not execute successfully or  returned no results.";
         }

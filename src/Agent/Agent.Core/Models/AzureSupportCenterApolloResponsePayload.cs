@@ -24,7 +24,7 @@ public class ApolloProperties
     [JsonPropertyName("content")]
     public string? Content { get; set; }
 
-    [JsonPropertyName("replacementMaps" )]
+    [JsonPropertyName("replacementMaps")]
     public ReplacementMaps? ReplacementMaps { get; set; }
 
     [JsonPropertyName("sections")]

@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Framework;
@@ -225,14 +225,14 @@ Output:
     {
         string baseAgent = "MS-SRE-Agent";
         string? agentName = Environment.GetEnvironmentVariable("AGENT_NAME");
-        
+
         if (!string.IsNullOrEmpty(agentName))
         {
             // Replace spaces with hyphens for header compatibility
             agentName = agentName.Replace(" ", "-");
             return $"{baseAgent}-{agentName}";
         }
-        
+
         return baseAgent;
     }
 
@@ -252,13 +252,13 @@ Output:
 
         var request = new HttpRequestMessage(method, url);
         request.Headers.UserAgent.Add(new ProductInfoHeaderValue(clientApp, clientVersion));
-        
+
         // Only add API version header for semantic search
         if (feature == "semantic-search")
         {
             request.Headers.Add("X-GitHub-Api-Version", "2024-05-14");
         }
-        
+
         request.Headers.Add("X-Client-Application", $"{clientApp}/{clientVersion}");
         request.Headers.Add("X-Client-Source", "source-code-analysis");
         request.Headers.Add("X-Client-Feature", feature);
@@ -401,7 +401,7 @@ Output:
 
         // This method throws. 
         var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
-        
+
         using var request = await CreateGitHubRequestAsync(HttpMethod.Post, "https://api.github.com/embeddings/code/search", "semantic-search");
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -420,7 +420,7 @@ Output:
         try
         {
             _logger.LogInternalInformation("Triggering GitHub Embeddings API call for repo: {Owner}/{Repo}, query: {Query}", owner, repo, query);
-            
+
             var response = await _httpClient.SendAsync(request);
             var responseString = await response.Content.ReadAsStringAsync();
 
@@ -462,9 +462,9 @@ Output:
             {
                 var indexStatus = JsonSerializer.Deserialize<JsonElement>(responseContent);
                 bool semanticCodeSearchOk = indexStatus.TryGetProperty("semantic_code_search_ok", out var searchOkProp) && searchOkProp.GetBoolean();
-                
+
                 _logger.LogInternalInformation("IsRepositoryIndexed result for {Owner}/{Repo}: {IsIndexed}", owner, repo, semanticCodeSearchOk);
-                
+
                 return (semanticCodeSearchOk, string.Empty);
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)

@@ -71,7 +71,7 @@ namespace Agent.Plugins.Definitions
 
         [AgentTool(ToolMode.Auto)]
         [Description("Closes an Azure Monitor alert thread by marking it as closed. This can be used to close an alert thread that is no longer active.")]
-        public async Task CloseAzureMonitorAlert([Description("The GUID for the Azure alert. May contain the full resource path (/subscriptions/.../alertId) but only the last part (alertId) is needed")]string alertId)
+        public async Task CloseAzureMonitorAlert([Description("The GUID for the Azure alert. May contain the full resource path (/subscriptions/.../alertId) but only the last part (alertId) is needed")] string alertId)
         {
             await incidentPlugin.CloseAzureMonitorAlert(alertId);
         }

@@ -1,13 +1,13 @@
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Microsoft.AzureAd.Icm.IcmV3OData.Models;
+using Microsoft.AzureAd.Icm.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.AzureAd.Icm.Types;
 using Microsoft.SREAgent.Incidents.IcM.Model;
-using System.Text.Json;
+using Attachment = Microsoft.AzureAd.Icm.IcmV3OData.Models.Attachment;
 using IICMAPIClientSDKClient = Microsoft.SREAgent.Incidents.IcM.Interface.IICMAPIClient;
 using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
-using Attachment = Microsoft.AzureAd.Icm.IcmV3OData.Models.Attachment;
 using IncidentStatus = Microsoft.AzureAd.Icm.Types.IncidentStatus;
 
 

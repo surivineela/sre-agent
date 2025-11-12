@@ -410,7 +410,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             try
             {
                 if (_sqlHelper.IsSqlConnectionString(value) && !string.Equals(appServiceNode.GetResourceKind(), Constants.LogicAppKind, StringComparison.OrdinalIgnoreCase))
-                {  
+                {
                     sqlNode = await _sqlHelper.GetSqlResourceFromConnectionStringAsync(appServiceNode, value, "appService:appSetting", name);
                 }
                 // Look for PostgreSQL connection strings in app settings

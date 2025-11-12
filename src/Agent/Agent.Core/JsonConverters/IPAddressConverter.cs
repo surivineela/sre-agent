@@ -6,7 +6,7 @@ using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace   Agent.Core.JsonConverters;
+namespace Agent.Core.JsonConverters;
 
 public class IPAddressConverter : JsonConverter<IPAddress>
 {

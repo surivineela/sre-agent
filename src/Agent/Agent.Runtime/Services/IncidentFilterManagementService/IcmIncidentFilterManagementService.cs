@@ -3,12 +3,12 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
-using Microsoft.SREAgent.Incidents.IcM.Model;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
+using Microsoft.SREAgent.Incidents.IcM.Model;
 
 namespace Agent.Runtime.Services;
 

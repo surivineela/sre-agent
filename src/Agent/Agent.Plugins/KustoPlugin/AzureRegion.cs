@@ -16,127 +16,127 @@ namespace Agent.Plugins.Kusto
     {
         [Description("East US")]
         EastUS,
-        
+
         [Description("East US 2")]
         EastUS2,
-        
+
         [Description("West US")]
         WestUS,
-        
+
         [Description("West US 2")]
         WestUS2,
-        
+
         [Description("West US 3")]
         WestUS3,
-        
+
         [Description("Central US")]
         CentralUS,
-        
+
         [Description("South Central US")]
         SouthCentralUS,
-        
+
         [Description("North Central US")]
         NorthCentralUS,
-        
+
         [Description("Canada Central")]
         CanadaCentral,
-        
+
         [Description("Canada East")]
         CanadaEast,
-        
+
         [Description("Brazil South")]
         BrazilSouth,
-        
+
         [Description("North Europe")]
         NorthEurope,
-        
+
         [Description("West Europe")]
         WestEurope,
-        
+
         [Description("UK South")]
         UKSouth,
-        
+
         [Description("UK West")]
         UKWest,
-        
+
         [Description("France Central")]
         FranceCentral,
-        
+
         [Description("France South")]
         FranceSouth,
-        
+
         [Description("Germany West Central")]
         GermanyWestCentral,
-        
+
         [Description("Germany North")]
         GermanyNorth,
-        
+
         [Description("Switzerland North")]
         SwitzerlandNorth,
-        
+
         [Description("Switzerland West")]
         SwitzerlandWest,
-        
+
         [Description("Norway East")]
         NorwayEast,
-        
+
         [Description("Norway West")]
         NorwayWest,
-        
+
         [Description("Sweden Central")]
         SwedenCentral,
-        
+
         [Description("Sweden South")]
         SwedenSouth,
-        
+
         [Description("Southeast Asia")]
         SoutheastAsia,
-        
+
         [Description("East Asia")]
         EastAsia,
-        
+
         [Description("Australia East")]
         AustraliaEast,
-        
+
         [Description("Australia Southeast")]
         AustraliaSoutheast,
-        
+
         [Description("Australia Central")]
         AustraliaCentral,
-        
+
         [Description("Australia Central 2")]
         AustraliaCentral2,
-        
+
         [Description("Japan East")]
         JapanEast,
-        
+
         [Description("Japan West")]
         JapanWest,
-        
+
         [Description("Korea Central")]
         KoreaCentral,
-        
+
         [Description("Korea South")]
         KoreaSouth,
-        
+
         [Description("India Central")]
         IndiaCentral,
-        
+
         [Description("India South")]
         IndiaSouth,
-        
+
         [Description("India West")]
         IndiaWest,
-        
+
         [Description("UAE Central")]
         UAECentral,
-        
+
         [Description("UAE North")]
         UAENorth,
-        
+
         [Description("South Africa North")]
         SouthAfricaNorth,
-        
+
         [Description("South Africa West")]
         SouthAfricaWest
     }

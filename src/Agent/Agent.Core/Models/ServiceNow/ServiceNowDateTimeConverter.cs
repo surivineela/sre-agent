@@ -8,11 +8,11 @@ namespace Agent.Core.Models.ServiceNow
     public class ServiceNowDateTimeConverter : JsonConverter<DateTime>
     {
         private const string DateTimeFormat = "yyyy-MM-dd HH:mm:ss";
-        
+
         public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var dateString = reader.GetString();
-            
+
             if (string.IsNullOrEmpty(dateString))
                 return DateTime.MinValue;
 
@@ -24,13 +24,13 @@ namespace Agent.Core.Models.ServiceNow
                     return dateTime;
                 }
             }
-            
+
             // Try standard format
             if (DateTime.TryParseExact(dateString, DateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDateTime))
             {
                 return parsedDateTime;
             }
-            
+
             // Fallback to flexible parsing
             return DateTime.Parse(dateString, CultureInfo.InvariantCulture);
         }

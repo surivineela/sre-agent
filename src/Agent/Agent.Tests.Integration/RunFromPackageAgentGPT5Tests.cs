@@ -11,9 +11,9 @@ namespace Agent.Tests.Integration
     public class RunFromPackageAgentGPT5Tests
     {
         private readonly ITestOutputHelper _output;
-        
+
         private static readonly string GPT5AgentPath = GetAgentPath("AgentsGPT5", "ThirdParty", "RunFromPackageAgent.yaml");
-        
+
         private static string GetAgentPath(params string[] pathParts)
         {
             // Find the project root by looking for the Agent.sln file
@@ -22,10 +22,10 @@ namespace Agent.Tests.Integration
             {
                 currentDir = currentDir.Parent;
             }
-            
+
             if (currentDir == null)
                 throw new DirectoryNotFoundException("Could not find Agent.sln to determine project root");
-                
+
             var fullPath = new List<string> { currentDir.FullName, "Agent.Runtime" };
             fullPath.AddRange(pathParts);
             return Path.Combine(fullPath.ToArray());
@@ -43,10 +43,10 @@ namespace Agent.Tests.Integration
         {
             // Test that the GPT5 agent YAML file exists and can be parsed
             Assert.True(File.Exists(GPT5AgentPath), "GPT5 RunFromPackageAgent.yaml file should exist");
-            
+
             var yamlContent = File.ReadAllText(GPT5AgentPath);
             var deserializer = new DeserializerBuilder().Build();
-            
+
             // This should not throw an exception
             var agentData = deserializer.Deserialize<Dictionary<string, object>>(yamlContent);
             Assert.NotNull(agentData);
@@ -60,7 +60,7 @@ namespace Agent.Tests.Integration
             var yamlContent = File.ReadAllText(GPT5AgentPath);
             var deserializer = new DeserializerBuilder().Build();
             var agentData = deserializer.Deserialize<Dictionary<string, object>>(yamlContent);
-            
+
             Assert.True(agentData.ContainsKey("system_prompt"));
             var systemPrompt = agentData["system_prompt"].ToString()!;
 
@@ -70,10 +70,10 @@ namespace Agent.Tests.Integration
             Assert.Contains("# Core Responsibilities", systemPrompt);
             Assert.Contains("# Security Guidelines", systemPrompt);
             Assert.Contains("# Operational Workflow", systemPrompt);
-            
+
             // Validate planning instruction follows GPT5 pattern
             Assert.Contains("Begin with a concise checklist (3-7 bullets)", systemPrompt);
-            
+
             // Validate structured workflow sections
             Assert.Contains("## 1. Initial Assessment", systemPrompt);
             Assert.Contains("## 2. Configuration Analysis", systemPrompt);
@@ -93,7 +93,7 @@ namespace Agent.Tests.Integration
             Assert.Contains("**NEVER** display, log, or expose SAS tokens", systemPrompt);
             Assert.Contains("mask sensitive query parameters", systemPrompt);
             Assert.Contains("***MASKED***", systemPrompt);
-            
+
             // Ensure no contradictory security instructions
             Assert.DoesNotContain("expose secrets", systemPrompt);
             Assert.DoesNotContain("show sensitive", systemPrompt);
@@ -111,7 +111,7 @@ namespace Agent.Tests.Integration
             Assert.Contains("Prioritize actual issues over recommendations", systemPrompt);
             Assert.Contains("Focus on critical issues that could cause customer problems", systemPrompt);
             Assert.Contains("Distinguish between critical issues requiring fixes vs optimization recommendations", systemPrompt);
-            
+
             // Ensure no contradictory prioritization instructions (following GPT-5 best practices)
             Assert.DoesNotContain("recommendations first", systemPrompt);
             Assert.DoesNotContain("optimize before fixing", systemPrompt);
@@ -143,14 +143,14 @@ namespace Agent.Tests.Integration
             // 1. Structured workflow with clear sections
             var sectionCount = CountOccurrences(systemPrompt, "## ");
             Assert.True(sectionCount >= 8, $"Should have at least 8 workflow sections, found {sectionCount}");
-            
+
             // 2. Post-action validation requirement
             Assert.Contains("Post-action Validation", systemPrompt);
             Assert.Contains("validate the result in 1-2 lines", systemPrompt);
-            
+
             // 3. Clear tool usage guidelines
             Assert.Contains("# Tool Usage Guidelines", systemPrompt);
-            
+
             // 4. Success criteria definition
             Assert.Contains("# Success Criteria", systemPrompt);
         }
@@ -168,7 +168,7 @@ namespace Agent.Tests.Integration
             Assert.True(agentData.ContainsKey("handoff_description"));
             Assert.True(agentData.ContainsKey("tools"));
             Assert.True(agentData.ContainsKey("common_prompts"));
-            
+
             // Validate temperature setting for consistency
             if (agentData.ContainsKey("temperature"))
             {
@@ -187,22 +187,22 @@ namespace Agent.Tests.Integration
 
             // Validate that contradictory instructions have been removed (GPT-5 guideline)
             // These are examples of contradictory patterns that should be avoided
-            
+
             // Security contradictions - check for valid NEVER instructions vs contradictory permissions
             var hasSecurityNever = systemPrompt.Contains("**NEVER** display, log, or expose SAS tokens");
             var hasSensitiveNever = systemPrompt.Contains("**NEVER** show the full content of package URLs containing sensitive parameters");
-            
+
             // Look for contradictory positive instructions that would expose sensitive data
             // These should NOT exist in a well-designed prompt
             var hasShowSensitive = systemPrompt.Contains("show sensitive information") && !systemPrompt.Contains("NEVER");
             var hasDisplaySensitive = systemPrompt.Contains("display sensitive data") && !systemPrompt.Contains("NEVER");
             var hasExposeSensitive = systemPrompt.Contains("expose sensitive") && !systemPrompt.Contains("NEVER");
-            
+
             Assert.True(hasSecurityNever || hasSensitiveNever, "Should have clear NEVER security instruction");
             Assert.False(hasShowSensitive, "Should not have instructions to show sensitive information");
             Assert.False(hasDisplaySensitive, "Should not have instructions to display sensitive data");
             Assert.False(hasExposeSensitive, "Should not have instructions to expose sensitive information");
-            
+
             // Priority contradictions  
             var hasPriorityGuidance = systemPrompt.Contains("Prioritize actual issues over recommendations");
             var hasRecommendationsFirst = systemPrompt.Contains("provide recommendations first") || systemPrompt.Contains("recommendations before fixes");
@@ -216,36 +216,36 @@ namespace Agent.Tests.Integration
             // Compare GPT5 agent structure to original V2 agent to validate improvements
             var originalAgentPath = GetAgentPath("AgentsV2", "RunFromPackageAgent.yaml");
             var gpt5AgentPath = GPT5AgentPath;
-            
+
             Assert.True(File.Exists(originalAgentPath), "Original agent file should exist for comparison");
             Assert.True(File.Exists(gpt5AgentPath), "GPT5 agent file should exist");
-            
+
             var deserializer = new DeserializerBuilder().Build();
-            
+
             var originalYaml = File.ReadAllText(originalAgentPath);
             var gpt5Yaml = File.ReadAllText(gpt5AgentPath);
-            
+
             var originalData = deserializer.Deserialize<Dictionary<string, object>>(originalYaml);
             var gpt5Data = deserializer.Deserialize<Dictionary<string, object>>(gpt5Yaml);
-            
+
             var originalPrompt = originalData["system_prompt"].ToString()!;
             var gpt5Prompt = gpt5Data["system_prompt"].ToString()!;
-            
+
             // GPT5 improvements validation
             // 1. Has structured markdown headers (GPT5 has more structure)
             var originalHeaderCount = CountOccurrences(originalPrompt, "#");
             var gpt5HeaderCount = CountOccurrences(gpt5Prompt, "#");
             Assert.True(gpt5HeaderCount > originalHeaderCount, $"GPT5 should have more structured headers. Original: {originalHeaderCount}, GPT5: {gpt5HeaderCount}");
-            
+
             // 2. Includes planning section (GPT5 specific)
             Assert.DoesNotContain("Begin with a concise checklist", originalPrompt);
             Assert.Contains("Begin with a concise checklist", gpt5Prompt);
-            
+
             // 3. More structured workflow sections
             var originalWorkflowSections = CountOccurrences(originalPrompt, "## ");
             var gpt5WorkflowSections = CountOccurrences(gpt5Prompt, "## ");
             Assert.True(gpt5WorkflowSections >= originalWorkflowSections, "GPT5 should have equal or more structured workflow sections");
-            
+
             _output.WriteLine($"Original headers: {originalHeaderCount}, GPT5 headers: {gpt5HeaderCount}");
             _output.WriteLine($"Original workflow sections: {originalWorkflowSections}, GPT5 workflow sections: {gpt5WorkflowSections}");
         }

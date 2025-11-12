@@ -4,8 +4,8 @@
 
 using System.Text;
 using System.Text.Json;
-using Agent.Core.Models;
 using Agent.Core.Configuration;
+using Agent.Core.Models;
 
 namespace Agent.Core.Helpers;
 
@@ -27,7 +27,7 @@ public sealed class TeamsConnector
 
         if (string.IsNullOrEmpty(_endpoint))
             return false;
-        
+
         var debugBuilder = new StringBuilder();
 
         Console.WriteLine(teamsMessage.Content);
@@ -35,7 +35,7 @@ public sealed class TeamsConnector
         debugBuilder.AppendLine("------------------------------");
 
         // Ask Paul about this one weird trick to fix teams formatting: add two blank lines at the beginning.
-        teamsMessage.Content = $"{ Environment.NewLine}{ Environment.NewLine}{teamsMessage.Content.Replace("\"", "")}";
+        teamsMessage.Content = $"{Environment.NewLine}{Environment.NewLine}{teamsMessage.Content.Replace("\"", "")}";
         debugBuilder.AppendLine(teamsMessage.Content);
         debugBuilder.AppendLine("------------------------------");
 

@@ -52,7 +52,7 @@ public class LogAnalysisService : ILogAnalysisService
     }
     public LogAnalysisResult AnalyzeContainerAppLogs(IReadOnlyCollection<string> logs)
     {
-        var result = new LogAnalysisResult ( HasPullFailure: false );
+        var result = new LogAnalysisResult(HasPullFailure: false);
         if (logs == null || !logs.Any())
         {
             return result with { ErrorMessage = "No logs available for analysis" };
@@ -124,7 +124,7 @@ public class LogAnalysisService : ILogAnalysisService
                                 SuggestedFix: "Verify container runtime installation and configuration"
                             );
                             break;
-                        // Add more exit codes as needed
+                            // Add more exit codes as needed
                     }
 
                     if (result.HasPullFailure)
@@ -156,7 +156,7 @@ public class LogAnalysisService : ILogAnalysisService
 
         if (logs?.Any() != true)
         {
-            return result with { ErrorMessage = "No logs available for analysis"};
+            return result with { ErrorMessage = "No logs available for analysis" };
         }
 
         // Get the most recent logs first

@@ -2,8 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.Logging;
 using Agent.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Extensions;
 

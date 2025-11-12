@@ -18,14 +18,14 @@ public class AzureDevOpsSourceCodeSearch : IAzureDevOpsSourceCodeSearch
     private readonly IAuthenticationService _authenticationService;
     private static readonly HttpClient _httpClient = new HttpClient();
     private static readonly string[] MainBranches = { "main", "master", "develop", "dev" };
-    
+
     // Simple in-memory cache: max 100 files, max 50KB per file
     private static readonly ConcurrentDictionary<string, (string content, DateTime timestamp)> _fileCache = new();
     private const int MaxCacheSize = 100;
     private const int MaxFileSizeBytes = 50 * 1024; // 50KB
     private static readonly string _diskCacheDirectory = Path.Combine(Path.GetTempPath(), "AzDoFileCache");
     private static readonly ConcurrentDictionary<string, DateTime> _diskCacheIndex = new();
-    
+
     // Whitelist of cacheable text-based source code extensions (excludes binaries)
     private static readonly HashSet<string> CacheableExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -93,7 +93,7 @@ public class AzureDevOpsSourceCodeSearch : IAzureDevOpsSourceCodeSearch
         // Ensure we only search in the specified repository if not already specified
         if (opts.Repositories == null || opts.Repositories.Length == 0)
         {
-            opts.Repositories = [ repository ];
+            opts.Repositories = [repository];
         }
 
         // Set project filter if not already set
@@ -136,7 +136,7 @@ public class AzureDevOpsSourceCodeSearch : IAzureDevOpsSourceCodeSearch
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error during Azure DevOps code search for term '{SearchTerm}'", searchTerm);
-            
+
             var errorMetadata = new SearchMetadata
             {
                 InfoCode = -1,
@@ -162,7 +162,7 @@ public class AzureDevOpsSourceCodeSearch : IAzureDevOpsSourceCodeSearch
         {
             // Create cache key
             var cacheKey = $"{organization}:{project}:{repositoryId}:{filePath}";
-            
+
             // Check memory cache first
             if (_fileCache.TryGetValue(cacheKey, out var cached))
             {
@@ -190,7 +190,7 @@ public class AzureDevOpsSourceCodeSearch : IAzureDevOpsSourceCodeSearch
 
             // Cache miss - fetch from API
             var normalizedPath = filePath.StartsWith('/') ? filePath : '/' + filePath;
-            
+
             var url = $"{organization}/{project}/_apis/git/repositories/{repositoryId}/items" +
                       $"?path={Uri.EscapeDataString(normalizedPath)}&includeContent=true&api-version=7.1-preview.1";
 
@@ -200,18 +200,18 @@ public class AzureDevOpsSourceCodeSearch : IAzureDevOpsSourceCodeSearch
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             var cred = _authenticationService.GetAzureDevOpsCredential();
             var token = await cred.GetTokenAsync(new Azure.Core.TokenRequestContext(new[] { Constants.AzureDevOpsScope }), default);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token); 
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
             var response = await _httpClient.SendAsync(request);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
                 _logger.LogInternalWarning("File fetch failed with status {StatusCode}: {ErrorContent}", response.StatusCode, errorContent);
             }
-            
+
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
-            
+
             // Only cache text-based source code files (not binaries)
             var fileExtension = Path.GetExtension(filePath);
             if (!CacheableExtensions.Contains(fileExtension))
@@ -226,7 +226,7 @@ public class AzureDevOpsSourceCodeSearch : IAzureDevOpsSourceCodeSearch
                 _logger.LogInternalWarning("Skipping cache for binary content detected in: {FilePath}", filePath);
                 return content;
             }
-            
+
             // Cache the content based on size
             if (content.Length <= MaxFileSizeBytes)
             {
@@ -252,7 +252,7 @@ public class AzureDevOpsSourceCodeSearch : IAzureDevOpsSourceCodeSearch
                     _logger.LogInternalWarning(ex, "Failed to cache large file to disk");
                 }
             }
-            
+
             return content;
         }
         catch (Exception e)
@@ -284,7 +284,7 @@ public class AzureDevOpsSourceCodeSearch : IAzureDevOpsSourceCodeSearch
         for (int i = 0; i < checkLength; i++)
         {
             var c = content[i];
-            
+
             // Null byte is a strong indicator of binary content
             if (c == '\0')
                 return true;
@@ -374,7 +374,7 @@ public class AzureDevOpsSourceCodeSearch : IAzureDevOpsSourceCodeSearch
         try
         {
             _logger.LogDebug("Executing Azure DevOps code search with query: {SearchText}", request.SearchText);
-            
+
             var response = await searchClient.FetchCodeSearchResultsAsync(request);
 
             // Handle error cases with retry logic
@@ -611,8 +611,8 @@ public class AzureDevOpsSourceCodeSearch : IAzureDevOpsSourceCodeSearch
                 _logger.LogInternalInformation("📄 File types: {FileTypes}", string.Join(", ", options.FileExtensions));
             }
         }
-        
-        _logger.LogInternalInformation("Starting Azure DevOps code search for '{SearchTerm}' with {MaxResults} max results", 
+
+        _logger.LogInternalInformation("Starting Azure DevOps code search for '{SearchTerm}' with {MaxResults} max results",
             searchTerm, options.MaxResults);
     }
 
@@ -620,12 +620,12 @@ public class AzureDevOpsSourceCodeSearch : IAzureDevOpsSourceCodeSearch
     {
         if (metadata.IsSuccess)
         {
-            _logger.LogInternalInformation("Azure DevOps search completed successfully: {TotalResults} results in {Duration}ms", 
+            _logger.LogInternalInformation("Azure DevOps search completed successfully: {TotalResults} results in {Duration}ms",
                 metadata.TotalResults, metadata.SearchDuration.TotalMilliseconds);
         }
         else
         {
-            _logger.LogInternalInformation("Azure DevOps search completed with issues: InfoCode {InfoCode}, Error: {ErrorMessage}", 
+            _logger.LogInternalInformation("Azure DevOps search completed with issues: InfoCode {InfoCode}, Error: {ErrorMessage}",
                 metadata.InfoCode, metadata.ErrorMessage);
         }
 

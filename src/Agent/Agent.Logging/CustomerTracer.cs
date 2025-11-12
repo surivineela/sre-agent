@@ -83,7 +83,7 @@ public class CustomerTracer : IDisposable
         activity.SetTag("message.length", messageContent.Length.ToString());
         activity.SetTag("message.preview", TruncateForSafety(messageContent, 100));
         activity.SetTag("operation.type", "message_processing");
-        
+
         if (!string.IsNullOrEmpty(userId))
         {
             activity.SetTag("user.id", SanitizeUserId(userId));
@@ -118,7 +118,7 @@ public class CustomerTracer : IDisposable
         activity.SetTag("incident.id", incidentId);
         activity.SetTag("incident.type", incidentType);
         activity.SetTag("operation.type", "incident_handling");
-        
+
         if (!string.IsNullOrEmpty(severity))
         {
             activity.SetTag("incident.severity", severity);
@@ -164,7 +164,7 @@ public class CustomerTracer : IDisposable
     public CustomerTraceContext? GetCurrentTraceContext()
     {
         var currentActivity = Activity.Current;
-        
+
         // Only return context if it's from our customer activity source
         if (currentActivity?.Source?.Name == CustomerActivitySource.Name)
         {
@@ -204,10 +204,10 @@ public class CustomerTracer : IDisposable
 
         // Remove common sensitive patterns
         var sanitized = content;
-        
+
         // Remove potential tokens or keys (simple pattern matching)
         sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"\b[A-Za-z0-9+/=]{20,}\b", "[TOKEN]");
-        
+
         // Truncate to safe length
         if (sanitized.Length > maxLength)
         {
@@ -245,7 +245,7 @@ public class CustomerTracer : IDisposable
 
         // Remove any potential sensitive prefixes and normalize
         var sanitized = agentName.ToLowerInvariant();
-        
+
         // Remove common internal prefixes
         var prefixesToRemove = new[] { "internal.", "system.", "debug.", "test." };
         foreach (var prefix in prefixesToRemove)
@@ -258,7 +258,7 @@ public class CustomerTracer : IDisposable
 
         // Keep only alphanumeric and safe characters
         sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"[^a-z0-9_]", "_");
-        
+
         return string.IsNullOrEmpty(sanitized) ? "agent" : sanitized;
     }
 
@@ -333,7 +333,7 @@ public class CustomerActivity : IDisposable
         // Sanitize the key to ensure it's customer-safe
         var safeKey = SanitizeAttributeKey(key);
         var safeValue = SanitizeAttributeValue(value);
-        
+
         _activity.SetTag(safeKey, safeValue);
     }
 
@@ -372,7 +372,7 @@ public class CustomerActivity : IDisposable
 
         _activity.SetStatus(ActivityStatusCode.Ok);
         _activity.SetTag("result.status", "success");
-        
+
         if (!string.IsNullOrEmpty(resultSummary))
         {
             _activity.SetTag("result.summary", SanitizeAttributeValue(resultSummary));
@@ -396,7 +396,7 @@ public class CustomerActivity : IDisposable
         _activity.SetStatus(ActivityStatusCode.Error, SanitizeAttributeValue(errorMessage));
         _activity.SetTag("result.status", "error");
         _activity.SetTag("error.message", SanitizeAttributeValue(errorMessage));
-        
+
         if (!string.IsNullOrEmpty(errorType))
         {
             _activity.SetTag("error.type", errorType);
@@ -412,7 +412,7 @@ public class CustomerActivity : IDisposable
     {
         var duration = DateTimeOffset.UtcNow - _startTime;
         var operationName = _activity.GetTagItem("operation.name")?.ToString() ?? "unknown_operation";
-        
+
         _customerLogger.LogMessage($"Customer operation completed: {operationName}", new Dictionary<string, string>
         {
             ["TraceId"] = _activity.TraceId.ToString(),
@@ -431,7 +431,7 @@ public class CustomerActivity : IDisposable
     {
         // Ensure key doesn't contain sensitive prefixes
         var sensitiveKeyPrefixes = new[] { "internal.", "debug.", "system.", "secret.", "token.", "auth." };
-        
+
         foreach (var prefix in sensitiveKeyPrefixes)
         {
             if (key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
@@ -459,7 +459,7 @@ public class CustomerActivity : IDisposable
 
         // Remove potential tokens or sensitive data patterns
         sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"\b[A-Za-z0-9+/=]{20,}\b", "[REDACTED]");
-        
+
         return sanitized;
     }
 
@@ -474,7 +474,7 @@ public class CustomerActivity : IDisposable
             var duration = DateTimeOffset.UtcNow - _startTime;
             _activity.SetTag("duration.ms", duration.TotalMilliseconds.ToString("F2"));
             _activity.SetTag("completed.at", DateTimeOffset.UtcNow.ToString("O"));
-            
+
             // Complete the activity
             _activity.Dispose();
             _disposed = true;

@@ -28,7 +28,7 @@ namespace Agent.Tests.Common
         public class AgenticLoggingChatClient : IChatClient
         {
             private HashSet<string> _hashes = new HashSet<string>();
-            private ConcurrentDictionary<string,ChatMessage> _debugTracking = new ConcurrentDictionary<string, ChatMessage>();
+            private ConcurrentDictionary<string, ChatMessage> _debugTracking = new ConcurrentDictionary<string, ChatMessage>();
             private IChatClient _innerClient;
             private ILogger<AgenticLoggingChatClient> _logger;
             private JsonSerializerOptions _hashingOptions;
@@ -49,9 +49,9 @@ namespace Agent.Tests.Common
 
             public async Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
             {
-                
+
                 string hash;
-                  
+
                 foreach (var chatMessage in chatMessages)
                 {
                     hash = CachingHelpers.GetCacheKey([chatMessage], _hashingOptions);
