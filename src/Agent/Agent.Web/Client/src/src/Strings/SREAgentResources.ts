@@ -621,16 +621,25 @@ export const ResourcePickerTabResources = defineMessages({
             'Some of the selected resource groups do not have the required roleAssignments/write and Microsoft.ManagedIdentity/userAssignedIdentities/write permissions.',
         id: 'E60v6W',
     },
-    resourceGroupMaxError: { defaultMessage: 'You can choose a maximum of 20 resource groups that the agent will manage.', id: '6tlKgy' },
+    resourceGroupMaxError: {
+        defaultMessage:
+            "You can select up to {max} resource groups for this agent. Agents can manage a total of {totalMax} resource groups, and your agent currently manages {current}. You've selected {count}.",
+        id: 'HtVpjg',
+    },
     failedToLoadResourceGroups: { defaultMessage: 'Failed to load resource groups.', id: 'anSi7M' },
     showRecommended: { defaultMessage: 'Show only recommended resource groups', id: 'ATYp8z' },
+    resourceGroupMinMax: {
+        defaultMessage:
+            'You can manage up to {max} resource groups you have permissions on. Your agent currently manages {count} resource groups.',
+        id: '3rvQhx',
+    },
     resourceGroupSelected: {
-        defaultMessage: 'Choose a maximum of {max} resource groups you have permissions on. {count} resource group selected.',
-        id: 'l0TtPi',
+        defaultMessage: '{count} resource group selected.',
+        id: '13KTIN',
     },
     resourceGroupsSelected: {
-        defaultMessage: 'Choose a maximum of {max} resource groups you have permissions on. {count} resource groups selected.',
-        id: 'D473QI',
+        defaultMessage: '{count} resource groups selected.',
+        id: 'G4mray',
     },
     recommendedResourceGroupTooltip: {
         defaultMessage:

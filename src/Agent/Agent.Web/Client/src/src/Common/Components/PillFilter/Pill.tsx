@@ -120,6 +120,7 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
     onRemove,
     onRenderButtonContent,
     children,
+    maxDialogPopoverHeight,
     labelDelimiter = ':',
     valueMaxWidth = 200,
     useInDialog = false,
@@ -220,7 +221,7 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
                 <PopoverSurface
                     className={styles.surface}
                     style={{
-                        maxHeight: maxPopoverHeight,
+                        maxHeight: maxDialogPopoverHeight ? maxDialogPopoverHeight : maxPopoverHeight,
                         ...(useInDialog && { zIndex: 2000000 }),
                     }}
                 >

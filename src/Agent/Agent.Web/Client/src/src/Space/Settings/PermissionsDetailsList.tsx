@@ -37,7 +37,8 @@ const useLocalStyles = makeStyles({
     scrollContainer: {
         paddingTop: '10px',
         overflowY: 'auto',
-        maxHeight: 'calc(80vh - 200px)', // Dialog is 80vh, subtract space for tabs, header, footer, padding
+        minHeight: '0px',
+        maxHeight: '470px',
     },
     innerScrollContainer: {
         overflowY: 'auto',

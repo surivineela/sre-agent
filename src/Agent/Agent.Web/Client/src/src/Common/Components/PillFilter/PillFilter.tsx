@@ -23,6 +23,7 @@ export const PillFilter: FC<FilterProps> = props => {
             labelDelimiter={hook.labelDelimiter}
             valueMaxWidth={hook.valueMaxWidth}
             useInDialog={props.useInDialog}
+            maxDialogPopoverHeight={props.maxDialogPopoverHeight}
         >
             {hook.onRenderPopoverContent()}
         </Pill>

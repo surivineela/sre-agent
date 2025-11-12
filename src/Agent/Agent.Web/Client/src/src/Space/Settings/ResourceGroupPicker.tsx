@@ -15,9 +15,6 @@ import {
     DialogSurface,
     DialogTitle,
     makeStyles,
-    MessageBar,
-    MessageBarBody,
-    MessageBarGroup,
     SearchBox,
     SelectTabData,
     SelectTabEvent,
@@ -28,7 +25,7 @@ import {
     tokens,
     Tooltip,
 } from '@fluentui/react-components';
-import { CheckmarkStarburst16Filled } from '@fluentui/react-icons';
+import { CheckmarkStarburst16Filled, Info16Regular } from '@fluentui/react-icons';
 
 import { IColumn } from '@fluentui/react/lib/DetailsList';
 import { Link } from '@fluentui/react/lib/Link';
@@ -51,12 +48,8 @@ import ReviewTab from './ResourcePickerReviewTab';
 import { useManagedResourcesStyles } from './Styles/ManagedResources.styles';
 
 const useLocalStyles = makeStyles({
-    // Global override for popovers within dialogs
-    ':global(.fui-PopoverSurface)': {
-        zIndex: '1000001 !important',
-    },
     dialogSurface: {
-        width: '850px',
+        width: '875px',
         height: '80vh',
         maxHeight: '650px',
         maxWidth: '90vw',
@@ -113,6 +106,14 @@ const useLocalStyles = makeStyles({
     filterGap: {
         display: 'flex',
         gap: '6px',
+        alignItems: 'center',
+    },
+    infoIcon: {
+        cursor: 'pointer',
+        color: tokens.colorNeutralForeground3,
+    },
+    toggleWrapper: {
+        marginBottom: '-8px',
     },
     tableContainer: {
         flex: '1',
@@ -460,42 +461,46 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                         </TabList>
                         {tabKey === TabKeys.select && (
                             <div className={localStyles.tabContent}>
-                                <MessageBarGroup animate={'exit-only'} className={styles.messageBarGroup} style={{ marginBottom: 8 }}>
-                                    <MessageBar className={styles.messageBar}>
-                                        <MessageBarBody className={styles.messageBarBody}>
-                                            {intl.formatMessage(SreAgentResources.supportedServicesMessage)}
-                                        </MessageBarBody>
-                                    </MessageBar>
-                                </MessageBarGroup>
-
                                 <div className={localStyles.fixedSection}>
+                                    <div className={localStyles.filterRow}>
+                                        {intl.formatMessage(ResourcePickerTabResources.resourceGroupMinMax, {
+                                            max: RESOURCE_GROUP_LIMIT,
+                                            count: existingResourceGroupIds.length,
+                                        })}
+                                    </div>
                                     <div className={localStyles.filterRow}>
                                         {selectedResourceGroups.length === 1
                                             ? intl.formatMessage(ResourcePickerTabResources.resourceGroupSelected, {
-                                                  max: RESOURCE_GROUP_LIMIT - existingResourceGroupIds.length,
                                                   count: selectedResourceGroups.length,
                                               })
                                             : intl.formatMessage(ResourcePickerTabResources.resourceGroupsSelected, {
-                                                  max: RESOURCE_GROUP_LIMIT - existingResourceGroupIds.length,
                                                   count: selectedResourceGroups.length,
                                               })}
                                     </div>
                                     <div className={localStyles.filterGap}>
                                         <div>{intl.formatMessage(ResourcePickerTabResources.showRecommended)}</div>
-                                        <Toggle
-                                            checked={showRecommended}
-                                            onChange={(_e, checked) => {
-                                                setShowRecommended(!!checked);
-                                                portalContext.logAmplitudeControlEvent({
-                                                    targetType: 'toggle',
-                                                    targetAction: 'changed',
-                                                    targetName: 'showOnlyRecommendedRscGrpsToggle',
-                                                    targetFriendlyName: 'Show only recommended resource groups toggle',
-                                                    valueObjectName: checked ? 'checked' : 'unchecked',
-                                                    valueObjectFriendlyName: checked ? 'Checked' : 'Unchecked',
-                                                });
-                                            }}
-                                        />
+                                        <Tooltip
+                                            content={intl.formatMessage(SreAgentResources.supportedServicesMessage)}
+                                            relationship="description"
+                                        >
+                                            <Info16Regular className={localStyles.infoIcon} />
+                                        </Tooltip>
+                                        <div className={localStyles.toggleWrapper}>
+                                            <Toggle
+                                                checked={showRecommended}
+                                                onChange={(_e, checked) => {
+                                                    setShowRecommended(!!checked);
+                                                    portalContext.logAmplitudeControlEvent({
+                                                        targetType: 'toggle',
+                                                        targetAction: 'changed',
+                                                        targetName: 'showOnlyRecommendedRscGrpsToggle',
+                                                        targetFriendlyName: 'Show only recommended resource groups toggle',
+                                                        valueObjectName: checked ? 'checked' : 'unchecked',
+                                                        valueObjectFriendlyName: checked ? 'Checked' : 'Unchecked',
+                                                    });
+                                                }}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                                 <div className={localStyles.filtersRow}>
@@ -519,6 +524,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                                             addAllOption={true}
                                             showValueAs="count"
                                             useInDialog={true}
+                                            maxDialogPopoverHeight={374}
                                         />
                                     </div>
                                     <div className={localStyles.filterItem}>
@@ -533,6 +539,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                                             addAllOption={true}
                                             showValueAs="count"
                                             useInDialog={true}
+                                            maxDialogPopoverHeight={374}
                                         />
                                     </div>
                                 </div>
@@ -591,6 +598,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                                 resourceGroupMaxError={resourceGroupMaxError}
                                 setResourceGroupMaxError={setResourceGroupMaxError}
                                 onRenderSubscription={onRenderSubscription}
+                                existingResourceGroupIds={existingResourceGroupIds}
                             />
                         )}
                         {tabKey === TabKeys.assign && (

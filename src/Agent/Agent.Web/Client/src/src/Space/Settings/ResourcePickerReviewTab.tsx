@@ -13,6 +13,7 @@ import {
     MessageBarBody,
     TableCellLayout,
     TableColumnDefinition,
+    Text,
     tokens,
 } from '@fluentui/react-components';
 import { CheckmarkCircle16Filled, Delete16Regular, DismissCircle16Filled } from '@fluentui/react-icons';
@@ -74,7 +75,6 @@ const useLocalStyles = makeStyles({
         minHeight: '0',
     },
     descriptionText: {
-        marginBottom: '10px',
         fontSize: '14px',
         color: tokens.colorNeutralForeground2,
     },
@@ -124,6 +124,7 @@ export type ReviewTabProps = {
     setResourceGroupMaxError: Dispatch<SetStateAction<boolean>>;
     toggleItemSelection: (id: string) => void;
     onRenderSubscription: (item: ResourceGroupWithSelection) => JSX.Element;
+    existingResourceGroupIds?: string[];
 };
 
 const RESOURCE_GROUP_LIMIT = 100;
@@ -138,6 +139,7 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
         setResourceGroupMaxError,
         toggleItemSelection,
         onRenderSubscription,
+        existingResourceGroupIds = [],
     } = props;
 
     const portalContext = useContext(AzPortalContext);
@@ -204,14 +206,20 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
     ]);
 
     useEffect(() => {
-        setResourceGroupMaxError(selectedResourceGroups.length > RESOURCE_GROUP_LIMIT);
+        setResourceGroupMaxError(selectedResourceGroups.length > RESOURCE_GROUP_LIMIT - existingResourceGroupIds.length);
         if (
             (selectedResourceGroups.length > 0 && managedResourceGroups.length === 0) ||
             selectedResourceGroups.length > managedResourceGroups.length
         ) {
             runResourceGroupPermissionChecks();
         }
-    }, [selectedResourceGroups, runResourceGroupPermissionChecks, setResourceGroupMaxError, managedResourceGroups.length]);
+    }, [
+        selectedResourceGroups,
+        runResourceGroupPermissionChecks,
+        setResourceGroupMaxError,
+        managedResourceGroups.length,
+        existingResourceGroupIds.length,
+    ]);
 
     const onDeleteClick = useCallback(
         (item: ManagedResourceGroupGridItem) => {
@@ -326,12 +334,17 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
 
     const errorMessage = useMemo(() => {
         if (resourceGroupMaxError) {
-            return intl.formatMessage(ResourcePickerTabResources.resourceGroupMaxError);
+            return intl.formatMessage(ResourcePickerTabResources.resourceGroupMaxError, {
+                max: RESOURCE_GROUP_LIMIT - existingResourceGroupIds.length,
+                totalMax: RESOURCE_GROUP_LIMIT,
+                current: existingResourceGroupIds.length,
+                count: selectedResourceGroups.length,
+            });
         } else if (resourceGroupPermissionsError) {
             return intl.formatMessage(ResourcePickerTabResources.resourceGroupPermissionError);
         }
         return '';
-    }, [intl, resourceGroupMaxError, resourceGroupPermissionsError]);
+    }, [resourceGroupMaxError, resourceGroupPermissionsError, intl, existingResourceGroupIds.length, selectedResourceGroups.length]);
 
     const columnSizingOptions = useMemo(
         () => ({
@@ -365,7 +378,9 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
             {errorMessage && (
                 <div className={localStyles.errorMessageContainer}>
                     <MessageBar intent="error">
-                        <MessageBarBody>{errorMessage}</MessageBarBody>
+                        <MessageBarBody style={{ padding: '5px' }}>
+                            <Text>{errorMessage}</Text>
+                        </MessageBarBody>
                     </MessageBar>
                 </div>
             )}

@@ -15,6 +15,7 @@ export interface PillProps {
     labelDelimiter?: string;
     valueMaxWidth?: number | string;
     useInDialog?: boolean;
+    maxDialogPopoverHeight?: number | string;
     onRenderButtonContent?: (props: {
         label: string;
         value: string;
@@ -31,6 +32,7 @@ export interface CommonFilterProps {
     disabled?: boolean;
     valueMaxWidth?: number | string;
     useInDialog?: boolean;
+    maxDialogPopoverHeight?: number | string;
 }
 
 export interface TimeRangeValue {
