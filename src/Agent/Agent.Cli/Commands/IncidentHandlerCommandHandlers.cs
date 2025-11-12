@@ -153,7 +153,7 @@ public static class IncidentHandlerCommandHandlers
 
             // Step 3: Update the filter with HandlingAgent
             ConsoleUI.WriteBullet("Updating incident filter with handling agent...", ConsoleColor.Cyan);
-            filter["HandlingAgent"] = handlingAgent;
+            filter["handlingAgent"] = handlingAgent;
 
             var updateSuccess = await apiService.UpdateIncidentFilterAsync(filterId, filter);
             if (!updateSuccess)
