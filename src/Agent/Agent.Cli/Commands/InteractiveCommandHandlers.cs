@@ -966,7 +966,7 @@ public static class InteractiveCommandHandlers
         try
         {
             using var apiService = new ApiService();
-            var (success, response) = await apiService.ListAgentsAsync();
+            var (success, response, _) = await apiService.ListAgentsAsync();
 
             if (!success || string.IsNullOrEmpty(response))
             {

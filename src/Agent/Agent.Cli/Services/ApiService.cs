@@ -600,14 +600,14 @@ public class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, string Response)> ListAgentsAsync()
+    public async Task<(bool Success, string Response, string JsonResponse)> ListAgentsAsync()
     {
         try
         {
             var config = await _configService.LoadConfigurationAsync();
             if (config == null)
             {
-                return (false, "Configuration not found. Please run 'srectl init' first.");
+                return (false, "Configuration not found. Please run 'srectl init' first.", string.Empty);
             }
 
             var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v2/extendedAgent/agents";
@@ -622,7 +622,7 @@ public class ApiService : IDisposable
                 // v2 API returns: { "value": [ { "name": "...", "type": "ExtendedAgent", "properties": {...} }, ... ], "nextLink": "..." }
                 if (!jsonDoc.RootElement.TryGetProperty("value", out var valueElement) || valueElement.ValueKind != JsonValueKind.Array)
                 {
-                    return (false, $"Unexpected response format - no 'value' array found: {content}");
+                    return (false, $"Unexpected response format - no 'value' array found: {content}",string.Empty);
                 }
 
                 var agentList = new List<string>();
@@ -710,16 +710,16 @@ public class ApiService : IDisposable
                     }
                 }
 
-                return (true, string.Join("\n", agentList));
+                return (true, string.Join("\n", agentList), content);
             }
             else
             {
-                return (false, $"❌ Failed to list agents: {response.StatusCode} - {content}\n   Request URL: {url}");
+                return (false, $"❌ Failed to list agents: {response.StatusCode} - {content}\n   Request URL: {url}", string.Empty);
             }
         }
         catch (Exception ex)
         {
-            return (false, $"❌ Failed to list agents: {ex.Message}");
+            return (false, $"❌ Failed to list agents: {ex.Message}", string.Empty);
         }
     }
 

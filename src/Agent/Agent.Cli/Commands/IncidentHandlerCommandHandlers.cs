@@ -84,7 +84,7 @@ public static class IncidentHandlerCommandHandlers
 
             // Step 2: Check if agent exists
             ConsoleUI.WriteBullet("Verifying agent exists...", ConsoleColor.Cyan);
-            var (agentsSuccess, agentsResponse) = await apiService.ListAgentsAsync();
+            var (agentsSuccess, agentsResponse, responseJson) = await apiService.ListAgentsAsync();
             if (!agentsSuccess)
             {
                 ConsoleUI.WriteStatus(false, $"Failed to list agents: {agentsResponse}");
@@ -96,7 +96,7 @@ public static class IncidentHandlerCommandHandlers
             var agentExists = false;
             try
             {
-                var jsonDoc = JsonDocument.Parse(agentsResponse);
+                var jsonDoc = JsonDocument.Parse(responseJson);
                 JsonElement agents = default;
                 bool foundAgents = false;
 

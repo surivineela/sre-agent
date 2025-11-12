@@ -290,7 +290,7 @@ public static class GeneralCommandHandlers
         if (showAll)
         {
             // Show all agents with full details (existing behavior)
-            var (success, response) = await apiService.ListAgentsAsync();
+            var (success, response, _) = await apiService.ListAgentsAsync();
 
             if (success)
             {
@@ -317,7 +317,7 @@ public static class GeneralCommandHandlers
         else
         {
             // Show only remote extended agents (simplified view)
-            var (success, response) = await apiService.ListAgentsAsync();
+            var (success, response, _) = await apiService.ListAgentsAsync();
 
             if (success)
             {
@@ -666,7 +666,7 @@ public static class GeneralCommandHandlers
                         ConsoleUI.WriteSection("Available agents:");
 
                         // Get list of agents
-                        var (agentListSuccess, agentListResponse) = await apiService.ListAgentsAsync();
+                        var (agentListSuccess, agentListResponse,_) = await apiService.ListAgentsAsync();
                         if (agentListSuccess)
                         {
                             Console.WriteLine(agentListResponse);
@@ -1071,7 +1071,7 @@ public static class GeneralCommandHandlers
                     serverConnected = true;
                     ConsoleUI.WriteStatus(true, "Server Connection: Connected");
 
-                    var (agentsSuccess, agentsResponse) = await apiService.ListAgentsAsync();
+                    var (agentsSuccess, agentsResponse, _) = await apiService.ListAgentsAsync();
                     var (toolsSuccess, toolsResponse) = await apiService.ListToolsAsync();
 
                     remoteAgentsAvailable = agentsSuccess;

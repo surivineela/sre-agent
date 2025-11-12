@@ -44,7 +44,7 @@ public partial class ApiServiceTests
         var apiService = TestHelpers.CreateApiServiceWithMockedHttp(mockHandler);
 
         // Act
-        var (Success, Response) = await apiService.ListAgentsAsync();
+        var (Success, Response, JsonResponse) = await apiService.ListAgentsAsync();
 
         // Assert
         Success.ShouldBeTrue();
@@ -66,7 +66,7 @@ public partial class ApiServiceTests
         var apiService = TestHelpers.CreateApiServiceWithMockedHttp(mockHandler);
 
         // Act
-        var (Success, Response) = await apiService.ListAgentsAsync();
+        var (Success, Response, JsonResponse) = await apiService.ListAgentsAsync();
 
         // Assert
         Success.ShouldBeFalse();

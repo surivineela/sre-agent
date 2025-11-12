@@ -1077,7 +1077,7 @@ public static class CommandBuilder
                     serverConnected = true;
                     ConsoleUI.WriteStatus(true, "Server Connection: Connected");
 
-                    var (agentsSuccess, _) = await apiService.ListAgentsAsync();
+                    var (agentsSuccess, _, _) = await apiService.ListAgentsAsync();
                     var (toolsSuccess, _) = await apiService.ListToolsAsync();
 
                     remoteAgentsAvailable = agentsSuccess;
