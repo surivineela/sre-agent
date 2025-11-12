@@ -18,6 +18,7 @@ type ExtendedAgentSelectorProps = {
     triggers: ExtendedTrigger[];
     selectedEntity?: ExtendedAgentAnchorEntity;
     onEntitySelect: (anchorEntity?: ExtendedAgentAnchorEntity) => void;
+    expandInfoPanel: () => void;
     onRefresh: () => void;
     setSelectedNode: React.Dispatch<React.SetStateAction<ExtendedAgentGraphNode | undefined>>;
     isLoading: boolean;
@@ -34,6 +35,7 @@ export const ExtendedAgentSelector = memo(
         triggers,
         selectedEntity,
         onEntitySelect,
+        expandInfoPanel,
         onRefresh,
         setSelectedNode,
         isLoading,
@@ -171,6 +173,7 @@ export const ExtendedAgentSelector = memo(
                                 if (targetNode) {
                                     setSelectedNode(targetNode.data);
                                     requestAnimationFrame(() => {
+                                        expandInfoPanel();
                                         fitView({
                                             nodes: [{ id: targetNode.id }],
                                             duration: 600,

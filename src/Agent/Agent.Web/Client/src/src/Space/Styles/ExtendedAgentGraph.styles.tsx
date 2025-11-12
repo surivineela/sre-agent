@@ -583,6 +583,9 @@ export const useExtendedAgentInfoStyles = makeStyles({
         minWidth: '280px',
         boxShadow: tokens.shadow4,
     },
+    rootCollapsed: {
+        minWidth: 'unset',
+    },
     panel: {
         flex: 1,
         display: 'flex',
@@ -626,6 +629,7 @@ export const useExtendedAgentInfoStyles = makeStyles({
         gap: tokens.spacingVerticalXXS,
         cursor: 'grab',
         userSelect: 'none',
+        overflow: 'hidden',
     },
     tabList: {
         marginTop: tokens.spacingVerticalS,
@@ -739,16 +743,11 @@ export const useExtendedAgentInfoStyles = makeStyles({
         overflow: 'hidden',
         whiteSpace: 'nowrap',
         position: 'relative',
-        '&::after': {
-            content: '""',
-            position: 'absolute',
-            top: '0',
-            right: '0',
-            width: '20px',
-            height: '100%',
-            background: `linear-gradient(to right, transparent, ${tokens.colorNeutralBackground1})`,
-            pointerEvents: 'none',
-        },
+    },
+    tableCellTextTruncate: {
+        overflowX: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
     },
     metadataRow: {
         display: 'flex',
@@ -858,6 +857,7 @@ export const useExtendedAgentInfoStyles = makeStyles({
         border: `1px solid ${tokens.colorNeutralStroke2}`,
         borderRadius: tokens.borderRadiusSmall,
         color: tokens.colorNeutralForeground3,
+        backgroundColor: tokens.colorNeutralBackground1,
         fontFamily: 'inherit',
         fontSize: tokens.fontSizeBase300,
         resize: 'vertical',
@@ -871,6 +871,7 @@ export const useExtendedAgentInfoStyles = makeStyles({
         border: `1px solid ${tokens.colorNeutralStroke2}`,
         borderRadius: tokens.borderRadiusSmall,
         color: tokens.colorNeutralForeground3,
+        backgroundColor: tokens.colorNeutralBackground1,
         fontFamily: 'inherit',
         fontSize: tokens.fontSizeBase300,
         boxSizing: 'border-box',
@@ -895,16 +896,21 @@ export const useExtendedAgentInfoStyles = makeStyles({
         alignItems: 'center',
         gap: '4px',
     },
-    flexRow12: {
+    headerIconAndText: {
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
     },
-    flexColumnGap4: {
+    headerTitleAndSubtitle: {
         display: 'flex',
         flexDirection: 'column',
         gap: '4px',
         minWidth: 0,
+    },
+    headerTitleText: {
+        textOverflow: 'ellipsis',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
     },
     flexColumnGap8: {
         display: 'flex',

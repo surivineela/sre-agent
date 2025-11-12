@@ -1,4 +1,4 @@
-import { tokens } from '@fluentui/react-components';
+import { Image, tokens } from '@fluentui/react-components';
 import {
     AgentsRegular,
     PlayRegular,
@@ -11,7 +11,7 @@ import {
 import { FC, useMemo } from 'react';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 export interface EntityIconProps {
-    type: 'agent' | 'scheduledTask' | 'incidentTrigger' | 'genericTrigger' | 'tool' | 'toolWithGear' | 'connector';
+    type: 'agent' | 'metaAgent' | 'scheduledTask' | 'incidentTrigger' | 'genericTrigger' | 'tool' | 'toolWithGear' | 'connector';
     shorthandStyle?: {
         wrapperSize: number;
         iconSize: number;
@@ -30,6 +30,12 @@ export const EntityIcon: FC<EntityIconProps> = ({ type, shorthandStyle: size, wr
                     backgroundColor: tokens.colorPaletteLavenderBackground2,
                     foregroundColor: tokens.colorPaletteLavenderForeground2,
                     Icon: AgentsRegular,
+                };
+            case 'metaAgent':
+                return {
+                    backgroundColor: 'transparent',
+                    foregroundColor: 'transparent',
+                    Icon: ({ style }: { style?: React.CSSProperties }) => <Image src={'./SreAgent.svg'} style={style} aria-hidden="true" />,
                 };
             case 'scheduledTask':
                 return {

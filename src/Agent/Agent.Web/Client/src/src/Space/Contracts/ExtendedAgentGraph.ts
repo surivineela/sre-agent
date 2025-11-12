@@ -172,6 +172,7 @@ export enum ExtendedAgentGraphView {
 interface ExtendedAgentGraphContextProps {
     selectedNode?: ExtendedAgentGraphNode;
     setSelectedNode: (_?: ExtendedAgentGraphNode) => void;
+    expandInfoPanel: () => void;
     hoveredNodeId?: string;
     hoverNode: (nodeId: string) => void;
     unHoverNode: () => void;
@@ -185,6 +186,7 @@ interface ExtendedAgentGraphContextProps {
 
 export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContextProps>({
     setSelectedNode: (_?: ExtendedAgentGraphNode) => {},
+    expandInfoPanel: () => {},
     hoverNode: () => {},
     unHoverNode: () => {},
     nodesToHighlight: [],
@@ -222,3 +224,7 @@ export interface PromptImprovementResponse {
     suggestions: string[];
     handoffDescription?: string;
 }
+
+export const INFO_PANEL_MIN_WIDTH = 360;
+export const INFO_PANEL_MAX_WIDTH = 720;
+export const INFO_PANEL_DEFAULT_WIDTH = 600;

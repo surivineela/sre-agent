@@ -481,6 +481,8 @@ export const SreAgentResources = defineMessages({
     andMoreCount: { defaultMessage: 'and {count} more', id: 'oDI/Rp' },
     takeScreenshot: { defaultMessage: 'Take Screenshot', id: 'KvZ6B9' },
     closePanel: { defaultMessage: 'Close panel', id: 'RAjqKb' },
+    collapsePanel: { defaultMessage: 'Collapse panel', id: 'BuziI2' },
+    expandPanel: { defaultMessage: 'Expand panel', id: 'Abi/u/' },
     resizeDrawer: { defaultMessage: 'Resize drawer', id: 'Gl8fnJ' },
     selectTask: { defaultMessage: 'Select task', id: '0fhwgp' },
     dismissNotification: { defaultMessage: 'Dismiss notification', id: 'pe7UAe' },

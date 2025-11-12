@@ -26,6 +26,9 @@ import {
     ExtendedAgentNodeType,
     ExtendedConnector,
     ExtendedTool,
+    INFO_PANEL_DEFAULT_WIDTH,
+    INFO_PANEL_MAX_WIDTH,
+    INFO_PANEL_MIN_WIDTH,
 } from '../Contracts/ExtendedAgentGraph';
 import { useExtendedAgentGraph } from '../Hooks/useExtendedAgentGraph';
 import { useExtendedAgentGraphLayout } from '../Hooks/useExtendedAgentGraphLayout';
@@ -68,10 +71,6 @@ import { ToolCard } from './ToolCard';
 import { TriggerCard } from './TriggerCard';
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
-
-const INFO_PANEL_MIN_WIDTH = 280;
-const INFO_PANEL_MAX_WIDTH = 720;
-const INFO_PANEL_DEFAULT_WIDTH = 360;
 
 const ExtendedAgentGraph = () => {
     return (
@@ -191,6 +190,7 @@ const ExtendedAgentGraphContent = memo(() => {
     const [infoPanelWidth, setInfoPanelWidth] = useState(INFO_PANEL_DEFAULT_WIDTH);
     const [isPlaygroundOpen, setIsPlaygroundOpen] = useState(false);
     const [playgroundTarget, setPlaygroundTarget] = useState<PlaygroundTarget | undefined>(undefined);
+    const [isInfoPanelCollapsed, setIsInfoPanelCollapsed] = useState(true);
 
     const layoutGraph = useExtendedAgentGraphLayout();
 
@@ -674,9 +674,9 @@ const ExtendedAgentGraphContent = memo(() => {
                   ? `agent_${entity.entityName}`
                   : `trigger_${entity.entityName}`;
             const targetNode = !entityNodeId ? undefined : nodes.find(node => node.id === entityNodeId);
-            // console.log('handleEntitySelect: entityType=', entity?.entityType, ' entityNodeId=', entityNodeId, ' targetNodeId=', targetNode?.id);
             if (targetNode) {
                 requestAnimationFrame(() => {
+                    setIsInfoPanelCollapsed(false);
                     reactFlowInstance.fitView({
                         nodes: [{ id: targetNode.id }],
                         duration: 600,
@@ -1592,6 +1592,7 @@ const ExtendedAgentGraphContent = memo(() => {
             value={{
                 selectedNode,
                 setSelectedNode,
+                expandInfoPanel: () => setIsInfoPanelCollapsed(false),
                 hoveredNodeId,
                 hoverNode,
                 unHoverNode,
@@ -1677,6 +1678,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                         triggers={triggers}
                                         selectedEntity={anchorEntity}
                                         onEntitySelect={handleEntitySelect}
+                                        expandInfoPanel={() => setIsInfoPanelCollapsed(false)}
                                         onRefresh={handleRefresh}
                                         setSelectedNode={setSelectedNode}
                                         isLoading={loading}
@@ -1704,7 +1706,7 @@ const ExtendedAgentGraphContent = memo(() => {
                             <div
                                 ref={infoPanelRef}
                                 className={mergeClasses(infoPanelContainer, isInfoPanelFloating && infoPanelFloating)}
-                                style={infoPanelStyle}
+                                style={isInfoPanelCollapsed ? undefined : infoPanelStyle}
                             >
                                 <ExtendedAgentInfoPanel
                                     selectedAgent={infoPanelAgent}
@@ -1720,6 +1722,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                     minWidth={INFO_PANEL_MIN_WIDTH}
                                     maxWidth={INFO_PANEL_MAX_WIDTH}
                                     onOpenPlayground={handleOpenPlayground}
+                                    collapsibleProps={{ isCollapsed: isInfoPanelCollapsed, setCollapsed: setIsInfoPanelCollapsed }}
                                 />
                             </div>
                         )}

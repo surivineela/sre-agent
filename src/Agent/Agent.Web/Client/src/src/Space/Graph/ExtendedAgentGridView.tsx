@@ -75,6 +75,9 @@ import {
     ExtendedConnector,
     ExtendedTool,
     ExtendedTrigger,
+    INFO_PANEL_DEFAULT_WIDTH,
+    INFO_PANEL_MAX_WIDTH,
+    INFO_PANEL_MIN_WIDTH,
     SystemTool,
 } from '../Contracts/ExtendedAgentGraph';
 import PlaygroundModal, { PlaygroundTarget } from '../Playground/PlaygroundModal';
@@ -300,13 +303,11 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
 
     const [isInfoPanelFloating, setIsInfoPanelFloating] = useState(false);
     const [infoPanelPosition, setInfoPanelPosition] = useState({ x: 0, y: 0 });
-    const [infoPanelWidth, setInfoPanelWidth] = useState(500);
+    const [infoPanelWidth, setInfoPanelWidth] = useState(INFO_PANEL_DEFAULT_WIDTH);
     const infoPanelRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const infoPanelDragStateRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
     const infoPanelResizeStateRef = useRef<{ pointerId: number; startX: number; startWidth: number } | null>(null);
-    const INFO_PANEL_MIN_WIDTH = 280;
-    const INFO_PANEL_MAX_WIDTH = 720;
 
     const debouncedSetSearchText = useMemo(() => debounce((value: string) => setSearchText(value), 150), []);
 

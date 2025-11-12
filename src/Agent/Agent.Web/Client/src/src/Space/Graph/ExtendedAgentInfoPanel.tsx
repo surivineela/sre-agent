@@ -34,6 +34,8 @@ import {
     Edit20Regular,
     ErrorCircle20Regular,
     MoreHorizontal20Regular,
+    PanelRightContractRegular,
+    PanelRightExpandRegular,
 } from '@fluentui/react-icons';
 import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -80,6 +82,10 @@ type ExtendedAgentInfoPanelProps = {
     maxWidth?: number;
     onOpenPlayground?: (target: PlaygroundTarget) => void;
     onClose?: () => void;
+    collapsibleProps?: {
+        isCollapsed: boolean;
+        setCollapsed: (collapsed: boolean) => void;
+    };
 };
 
 type YamlEditorContext = {
@@ -138,6 +144,7 @@ export const ExtendedAgentInfoPanel = memo(
         maxWidth,
         onOpenPlayground,
         onClose,
+        collapsibleProps,
     }: ExtendedAgentInfoPanelProps) => {
         const showAgentBuilderPlayground = useConfigSetting(SettingNames.ShowAgentBuilderPlayground);
         const styles = useExtendedAgentInfoStyles();
@@ -309,16 +316,24 @@ export const ExtendedAgentInfoPanel = memo(
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHeaderCell>
-                                                <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.parameter)}</Text>
+                                            <TableHeaderCell className={styles.tableCellTruncate}>
+                                                <Text
+                                                    weight="semibold"
+                                                    className={styles.tableCellTextTruncate}
+                                                    title={intl.formatMessage(ExtendedAgentsGraphResources.parameter)}
+                                                >
+                                                    {intl.formatMessage(ExtendedAgentsGraphResources.parameter)}
+                                                </Text>
                                             </TableHeaderCell>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {tool.parameters.map((param, index) => (
                                             <TableRow key={index}>
-                                                <TableCell>
-                                                    <Text>{param}</Text>
+                                                <TableCell className={styles.tableCellTruncate}>
+                                                    <div className={styles.flexRowCenter8}>
+                                                        <Text className={styles.tableCellTextTruncate}>{param}</Text>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -644,15 +659,14 @@ export const ExtendedAgentInfoPanel = memo(
             onOpenPlayground?.(playgroundTarget);
         }, [onOpenPlayground, playgroundTarget]);
 
-        const getHeaderIconType = () => {
+        const headerIconType = useMemo(() => {
             if (selectedTool) return 'toolWithGear';
             if (selectedConnector) return 'connector';
             if (selectedTrigger) return selectedTrigger.type === 'incident' ? 'incidentTrigger' : 'scheduledTask';
             if (selectedSystemTool) return 'tool';
-            return 'agent';
-        };
-
-        const headerIcon = <EntityIcon type={getHeaderIconType()} shorthandStyle={{ wrapperSize: 40, iconSize: 28, borderRadius: 8 }} />;
+            if (selectedAgent) return selectedAgent.name === 'meta_agent' ? 'metaAgent' : 'agent';
+            return undefined;
+        }, [selectedTool, selectedConnector, selectedTrigger, selectedSystemTool, selectedAgent?.name]);
 
         const headerTitle =
             selectedTool?.name ??
@@ -661,6 +675,26 @@ export const ExtendedAgentInfoPanel = memo(
             selectedSystemTool?.name ??
             selectedAgent?.name ??
             intl.formatMessage(ExtendedAgentsGraphResources.agentSummaryTitle);
+
+        const headerSubtitle = useMemo(() => {
+            if (selectedTool) {
+                return intl.formatMessage(ExtendedAgentsGraphResources.customTool);
+            }
+            if (selectedSystemTool) {
+                return intl.formatMessage(ExtendedAgentsGraphResources.builtInTool);
+            }
+            if (selectedConnector) {
+                return intl.formatMessage(ExtendedAgentsGraphResources.connector);
+            }
+            if (selectedTrigger) {
+                return intl.formatMessage(
+                    selectedTrigger.type === 'incident'
+                        ? ExtendedAgentsGraphResources.triggerBadgeIncident
+                        : ExtendedAgentsGraphResources.triggerBadgeScheduled
+                );
+            }
+            return '';
+        }, [selectedTool, selectedSystemTool, selectedConnector, selectedTrigger, intl]);
 
         const agentDetails =
             selectedAgent && !selectedTool && !selectedConnector && !selectedTrigger && !selectedSystemTool ? (
@@ -717,14 +751,23 @@ export const ExtendedAgentInfoPanel = memo(
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHeaderCell>
-                                            <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.toolName)}</Text>
+                                        <TableHeaderCell className={styles.tableCellTruncate}>
+                                            <Text
+                                                weight="semibold"
+                                                className={styles.tableCellTextTruncate}
+                                                title={intl.formatMessage(ExtendedAgentsGraphResources.toolName)}
+                                            >
+                                                {intl.formatMessage(ExtendedAgentsGraphResources.toolName)}
+                                            </Text>
                                         </TableHeaderCell>
-                                        <TableHeaderCell>
-                                            <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.category)}</Text>
-                                        </TableHeaderCell>
-                                        <TableHeaderCell>
-                                            <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.description)}</Text>
+                                        <TableHeaderCell className={styles.tableCellTruncate}>
+                                            <Text
+                                                weight="semibold"
+                                                className={styles.tableCellTextTruncate}
+                                                title={intl.formatMessage(ExtendedAgentsGraphResources.description)}
+                                            >
+                                                {intl.formatMessage(ExtendedAgentsGraphResources.description)}
+                                            </Text>
                                         </TableHeaderCell>
                                     </TableRow>
                                 </TableHeader>
@@ -734,18 +777,15 @@ export const ExtendedAgentInfoPanel = memo(
                                         const systemTool = systemToolMap.get(name);
 
                                         let iconType: 'tool' | 'toolWithGear' = 'tool';
-                                        let category: string = '';
                                         let description = tool?.description || EMPTY_DISPLAY;
 
                                         if (systemTool) {
                                             iconType = 'tool';
-                                            category = intl.formatMessage(ExtendedAgentsGraphResources.builtInTools);
                                             description =
                                                 systemTool.description ||
                                                 intl.formatMessage(ExtendedAgentsGraphResources.listViewDescriptionFallback);
                                         } else if (tool?.type === 'KustoTool') {
                                             iconType = 'toolWithGear';
-                                            category = intl.formatMessage(ExtendedAgentsGraphResources.kustoTools);
                                         }
 
                                         return (
@@ -756,14 +796,17 @@ export const ExtendedAgentInfoPanel = memo(
                                                             type={iconType}
                                                             shorthandStyle={{ wrapperSize: 20, iconSize: 16, borderRadius: 4 }}
                                                         />
-                                                        <Text title={name}>{name}</Text>
+                                                        <Text title={name} className={styles.tableCellTextTruncate}>
+                                                            {name}
+                                                        </Text>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell>
-                                                    <Text>{category}</Text>
-                                                </TableCell>
                                                 <TableCell className={styles.tableCellTruncate}>
-                                                    <Text title={description}>{description}</Text>
+                                                    <div className={styles.flexRowCenter8}>
+                                                        <Text title={description} className={styles.tableCellTextTruncate}>
+                                                            {description}
+                                                        </Text>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         );
@@ -781,11 +824,23 @@ export const ExtendedAgentInfoPanel = memo(
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHeaderCell>
-                                            <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.agentName)}</Text>
+                                        <TableHeaderCell className={styles.tableCellTruncate}>
+                                            <Text
+                                                weight="semibold"
+                                                className={styles.tableCellTextTruncate}
+                                                title={intl.formatMessage(ExtendedAgentsGraphResources.agentName)}
+                                            >
+                                                {intl.formatMessage(ExtendedAgentsGraphResources.agentName)}
+                                            </Text>
                                         </TableHeaderCell>
-                                        <TableHeaderCell>
-                                            <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.tools)}</Text>
+                                        <TableHeaderCell className={styles.tableCellTruncate}>
+                                            <Text
+                                                weight="semibold"
+                                                className={styles.tableCellTextTruncate}
+                                                title={intl.formatMessage(ExtendedAgentsGraphResources.tools)}
+                                            >
+                                                {intl.formatMessage(ExtendedAgentsGraphResources.tools)}
+                                            </Text>
                                         </TableHeaderCell>
                                     </TableRow>
                                 </TableHeader>
@@ -809,12 +864,18 @@ export const ExtendedAgentInfoPanel = memo(
                                         return (
                                             <TableRow key={handoffAgentName}>
                                                 <TableCell className={styles.tableCellTruncate}>
-                                                    <Text title={handoffAgentName}>{handoffAgentName}</Text>
+                                                    <div className={styles.flexRowCenter8}>
+                                                        <Text title={handoffAgentName} className={styles.tableCellTextTruncate}>
+                                                            {handoffAgentName}
+                                                        </Text>
+                                                    </div>
                                                 </TableCell>
-                                                <TableCell>
+                                                <TableCell className={styles.tableCellTruncate}>
                                                     <div className={styles.flexRowCenter8}>
                                                         {systemToolCount === 0 && kustoToolCount === 0 ? (
-                                                            <Text>{EMPTY_DISPLAY}</Text>
+                                                            <Text title={EMPTY_DISPLAY} className={styles.tableCellTextTruncate}>
+                                                                {EMPTY_DISPLAY}
+                                                            </Text>
                                                         ) : (
                                                             <>
                                                                 {systemToolCount > 0 && (
@@ -827,7 +888,12 @@ export const ExtendedAgentInfoPanel = memo(
                                                                                 borderRadius: 3,
                                                                             }}
                                                                         />
-                                                                        <Text>{systemToolCount}</Text>
+                                                                        <Text
+                                                                            title={systemToolCount.toString()}
+                                                                            className={styles.tableCellTextTruncate}
+                                                                        >
+                                                                            {systemToolCount}
+                                                                        </Text>
                                                                     </div>
                                                                 )}
 
@@ -841,7 +907,12 @@ export const ExtendedAgentInfoPanel = memo(
                                                                                 borderRadius: 3,
                                                                             }}
                                                                         />
-                                                                        <Text>{kustoToolCount}</Text>
+                                                                        <Text
+                                                                            title={kustoToolCount.toString()}
+                                                                            className={styles.tableCellTextTruncate}
+                                                                        >
+                                                                            {kustoToolCount}
+                                                                        </Text>
                                                                     </div>
                                                                 )}
                                                             </>
@@ -858,7 +929,7 @@ export const ExtendedAgentInfoPanel = memo(
                         )}
                     </div>
                 </>
-            ) : !selectedAgent ? (
+            ) : !selectedAgent && !collapsibleProps?.isCollapsed ? (
                 <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.noAgentSelected)}</Text>
             ) : null;
 
@@ -908,16 +979,26 @@ export const ExtendedAgentInfoPanel = memo(
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHeaderCell>
-                                        <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.parameter)}</Text>
+                                    <TableHeaderCell className={styles.tableCellTruncate}>
+                                        <Text
+                                            weight="semibold"
+                                            className={styles.tableCellTextTruncate}
+                                            title={intl.formatMessage(ExtendedAgentsGraphResources.parameter)}
+                                        >
+                                            {intl.formatMessage(ExtendedAgentsGraphResources.parameter)}
+                                        </Text>
                                     </TableHeaderCell>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {selectedSystemTool.parameters.map((param: string, index: number) => (
                                     <TableRow key={index}>
-                                        <TableCell>
-                                            <Text>{param}</Text>
+                                        <TableCell className={styles.tableCellTruncate}>
+                                            <div className={styles.flexRowCenter8}>
+                                                <Text title={param} className={styles.tableCellTextTruncate}>
+                                                    {param}
+                                                </Text>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -936,120 +1017,150 @@ export const ExtendedAgentInfoPanel = memo(
 
         return (
             <>
-                <div className={styles.root} style={{ width: `${panelWidth}px` }}>
-                    <div
-                        className={resizeHandleClassName}
-                        role="separator"
-                        aria-orientation="vertical"
-                        aria-valuemin={panelMinWidth}
-                        aria-valuemax={panelMaxWidth}
-                        aria-valuenow={Math.round(panelWidth)}
-                        tabIndex={-1}
-                        onPointerDown={event => {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            onResizeHandlePointerDown?.(event);
-                        }}
-                        onPointerEnter={() => setIsResizeHandleHovered(true)}
-                        onPointerLeave={() => setIsResizeHandleHovered(false)}
-                    >
-                        <span className={resizeHandleGripClassName} aria-hidden />
-                    </div>
-                    <div className={styles.panel}>
-                        <div className={styles.header}>
-                            <div
-                                className={styles.headerInfo}
-                                onPointerDown={event => {
-                                    if (event.button !== 0) return;
-                                    onDragHandlePointerDown?.(event);
-                                }}
-                            >
-                                <div className={styles.flexRow12}>
-                                    <div className={styles.flexShrinkNone}>{headerIcon}</div>
-                                    <div className={styles.flexColumnGap4}>
-                                        <Text weight="semibold" size={500}>
-                                            {headerTitle}
-                                        </Text>
-                                        {(selectedTrigger || selectedTool) && (
-                                            <Caption1>{intl.formatMessage(ExtendedAgentsGraphResources.customTool)}</Caption1>
+                {!collapsibleProps?.isCollapsed ? (
+                    <div className={styles.root} style={{ width: `${panelWidth}px` }}>
+                        <div
+                            className={resizeHandleClassName}
+                            role="separator"
+                            aria-orientation="vertical"
+                            aria-valuemin={panelMinWidth}
+                            aria-valuemax={panelMaxWidth}
+                            aria-valuenow={Math.round(panelWidth)}
+                            tabIndex={-1}
+                            onPointerDown={event => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                onResizeHandlePointerDown?.(event);
+                            }}
+                            onPointerEnter={() => setIsResizeHandleHovered(true)}
+                            onPointerLeave={() => setIsResizeHandleHovered(false)}
+                        >
+                            <span className={resizeHandleGripClassName} aria-hidden />
+                        </div>
+                        <div className={styles.panel}>
+                            <div className={styles.header}>
+                                <div
+                                    className={styles.headerInfo}
+                                    onPointerDown={event => {
+                                        if (event.button !== 0) return;
+                                        onDragHandlePointerDown?.(event);
+                                    }}
+                                >
+                                    <div className={styles.headerIconAndText}>
+                                        {headerIconType && (
+                                            <div className={styles.flexShrinkNone}>
+                                                <EntityIcon
+                                                    type={headerIconType}
+                                                    shorthandStyle={{ wrapperSize: 40, iconSize: 28, borderRadius: 8 }}
+                                                />
+                                            </div>
                                         )}
-                                        {selectedSystemTool && (
-                                            <Caption1>{intl.formatMessage(ExtendedAgentsGraphResources.builtInTool)}</Caption1>
-                                        )}
-                                        {selectedConnector && (
-                                            <Caption1>{intl.formatMessage(ExtendedAgentsGraphResources.connector)}</Caption1>
-                                        )}
+                                        <div className={styles.headerTitleAndSubtitle}>
+                                            <Text weight="semibold" size={500} className={styles.headerTitleText}>
+                                                {headerTitle}
+                                            </Text>
+                                            {headerSubtitle && <Caption1>{headerSubtitle}</Caption1>}
+                                        </div>
                                     </div>
                                 </div>
+                                <div className={styles.flexRowCenter4}>
+                                    {headerEditContext &&
+                                        headerEditContext.type !== 'connector' &&
+                                        headerEditContext.type !== 'trigger' && (
+                                            <Button
+                                                appearance="subtle"
+                                                size="small"
+                                                icon={<Edit20Regular />}
+                                                onClick={() => handleOpenYamlEditor(headerEditContext.entity, headerEditContext.type)}
+                                                title={intl.formatMessage(ExtendedAgentsGraphResources.yamlOpenButton)}
+                                            />
+                                        )}
+                                    {((playgroundTarget && showAgentBuilderPlayground) ||
+                                        (headerEditContext?.type === 'agent' && isAgentContext && selectedAgent) ||
+                                        (headerEditContext?.type === 'tool' && selectedTool)) && (
+                                        <Menu>
+                                            <MenuTrigger disableButtonEnhancement>
+                                                <MenuButton appearance="subtle" size="small" icon={<MoreHorizontal20Regular />} />
+                                            </MenuTrigger>
+                                            <MenuPopover>
+                                                <MenuList>
+                                                    {showAgentBuilderPlayground && playgroundTarget && (
+                                                        <MenuItem icon={<Beaker20Regular />} onClick={handleOpenPlaygroundClick}>
+                                                            {intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
+                                                        </MenuItem>
+                                                    )}
+                                                    {headerEditContext?.type === 'agent' && isAgentContext && selectedAgent && (
+                                                        <MenuItem
+                                                            icon={<Delete20Regular />}
+                                                            onClick={() => handleDeleteClick('agent', selectedAgent)}
+                                                            disabled={isDeleting}
+                                                        >
+                                                            {intl.formatMessage(SreAgentResources.deleteSubagentTitle)}
+                                                        </MenuItem>
+                                                    )}
+                                                    {headerEditContext?.type === 'tool' && selectedTool && (
+                                                        <MenuItem
+                                                            icon={<Delete20Regular />}
+                                                            onClick={() => handleDeleteClick('tool', selectedTool)}
+                                                            disabled={isDeleting}
+                                                        >
+                                                            {intl.formatMessage(SreAgentResources.deleteToolTitle)}
+                                                        </MenuItem>
+                                                    )}
+                                                </MenuList>
+                                            </MenuPopover>
+                                        </Menu>
+                                    )}
+                                    {onClose && (
+                                        <Button
+                                            appearance="subtle"
+                                            size="small"
+                                            icon={<Dismiss20Regular />}
+                                            onClick={onClose}
+                                            title={intl.formatMessage(SreAgentResources.closePanel)}
+                                            aria-label={intl.formatMessage(SreAgentResources.closePanel)}
+                                        />
+                                    )}
+                                    {collapsibleProps && (
+                                        <Button
+                                            appearance="subtle"
+                                            size="small"
+                                            icon={<PanelRightContractRegular />}
+                                            onClick={() => collapsibleProps.setCollapsed(true)}
+                                            title={intl.formatMessage(SreAgentResources.collapsePanel)}
+                                            aria-label={intl.formatMessage(SreAgentResources.collapsePanel)}
+                                        />
+                                    )}
+                                </div>
                             </div>
-                            <div className={styles.flexRowCenter4}>
-                                {headerEditContext && headerEditContext.type !== 'connector' && headerEditContext.type !== 'trigger' && (
-                                    <Button
-                                        appearance="subtle"
-                                        size="small"
-                                        icon={<Edit20Regular />}
-                                        onClick={() => handleOpenYamlEditor(headerEditContext.entity, headerEditContext.type)}
-                                        title={intl.formatMessage(ExtendedAgentsGraphResources.yamlOpenButton)}
-                                    />
-                                )}
-                                {((playgroundTarget && showAgentBuilderPlayground) ||
-                                    (headerEditContext?.type === 'agent' && isAgentContext && selectedAgent) ||
-                                    (headerEditContext?.type === 'tool' && selectedTool)) && (
-                                    <Menu>
-                                        <MenuTrigger disableButtonEnhancement>
-                                            <MenuButton appearance="subtle" size="small" icon={<MoreHorizontal20Regular />} />
-                                        </MenuTrigger>
-                                        <MenuPopover>
-                                            <MenuList>
-                                                {showAgentBuilderPlayground && playgroundTarget && (
-                                                    <MenuItem icon={<Beaker20Regular />} onClick={handleOpenPlaygroundClick}>
-                                                        {intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
-                                                    </MenuItem>
-                                                )}
-                                                {headerEditContext?.type === 'agent' && isAgentContext && selectedAgent && (
-                                                    <MenuItem
-                                                        icon={<Delete20Regular />}
-                                                        onClick={() => handleDeleteClick('agent', selectedAgent)}
-                                                        disabled={isDeleting}
-                                                    >
-                                                        {intl.formatMessage(SreAgentResources.deleteSubagentTitle)}
-                                                    </MenuItem>
-                                                )}
-                                                {headerEditContext?.type === 'tool' && selectedTool && (
-                                                    <MenuItem
-                                                        icon={<Delete20Regular />}
-                                                        onClick={() => handleDeleteClick('tool', selectedTool)}
-                                                        disabled={isDeleting}
-                                                    >
-                                                        {intl.formatMessage(SreAgentResources.deleteToolTitle)}
-                                                    </MenuItem>
-                                                )}
-                                            </MenuList>
-                                        </MenuPopover>
-                                    </Menu>
-                                )}
-                                {onClose && (
-                                    <Button
-                                        appearance="subtle"
-                                        size="small"
-                                        icon={<Dismiss20Regular />}
-                                        onClick={onClose}
-                                        title={intl.formatMessage(SreAgentResources.closePanel)}
-                                        aria-label={intl.formatMessage(SreAgentResources.closePanel)}
-                                    />
-                                )}
-                            </div>
-                        </div>
 
-                        <div className={styles.content}>
-                            {selectedTool && <div className={styles.section}>{renderToolDetails(selectedTool)}</div>}
-                            {selectedConnector && <div className={styles.section}>{renderConnectorDetails(selectedConnector)}</div>}
-                            {selectedTrigger && <div className={styles.section}>{renderTriggerDetails(selectedTrigger)}</div>}
-                            {agentDetails}
-                            {systemToolDetails}
+                            <div className={styles.content}>
+                                {selectedTool && <div className={styles.section}>{renderToolDetails(selectedTool)}</div>}
+                                {selectedConnector && <div className={styles.section}>{renderConnectorDetails(selectedConnector)}</div>}
+                                {selectedTrigger && <div className={styles.section}>{renderTriggerDetails(selectedTrigger)}</div>}
+                                {agentDetails}
+                                {systemToolDetails}
+                            </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div className={mergeClasses(styles.root, styles.rootCollapsed)}>
+                        <div className={styles.panel}>
+                            <div className={styles.header}>
+                                <div className={styles.flexRowCenter4}>
+                                    <Button
+                                        appearance="transparent"
+                                        size="small"
+                                        icon={<PanelRightExpandRegular />}
+                                        onClick={() => collapsibleProps.setCollapsed(false)}
+                                        title={intl.formatMessage(SreAgentResources.expandPanel)}
+                                        aria-label={intl.formatMessage(SreAgentResources.expandPanel)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <ExtendedEntityYamlEditor
                     entity={yamlEditorContext?.entity}

@@ -39,7 +39,7 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
     const intl = useIntl();
     const { data, id } = props;
 
-    const { selectedNode, setSelectedNode, hoverNode, unHoverNode, hoveredNodeId, nodesToHighlight } =
+    const { selectedNode, setSelectedNode, expandInfoPanel, hoverNode, unHoverNode, hoveredNodeId, nodesToHighlight } =
         useContext(ExtendedAgentGraphContext);
 
     const {
@@ -145,7 +145,7 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
             <Handles />
-            <Card onClick={() => setSelectedNode(data)} className={cardStyles}>
+            <Card onClick={() => (setSelectedNode(data), expandInfoPanel())} className={cardStyles}>
                 <div className={cardContent}>
                     <div className={titleRow}>
                         <EntityIcon type={triggerIconType} iconStyle={{ height: '24px', width: '24px' }} />
