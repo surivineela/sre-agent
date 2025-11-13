@@ -24,12 +24,12 @@ dnf install just
 
 ## Private Environment Setup
 1. **Deploy the necessary resources**
-  
-   > [!IMPORTANT]   
+
+   > [!IMPORTANT]
    > On Windows, you **MUST** use git bash to run these commands, either via the VSCode terminal or directly.
 
    For the very first execution, run the command bellow to prepare your environment and perform an initial deployment:
-   
+
    ```bash
    just deploy3p -n <stamp_prefix>
    ```
@@ -116,11 +116,37 @@ export NUGET_PLUGIN_PATHS="$HOME/.nuget/plugins/netcore/CredentialProvider.Micro
    ```powershell
    npx vsts-npm-auth -R -E 131400 -C src\Agent\Agent.Web\Client\.npmrc
    ```
-    
+
 
 ### Linux/WSL/MacOS
 
-You can set up npm authentication using our script:
+#### Recommended: Cross-Platform Credential Provider
+
+The `vsts-npm-auth` tool only works on Windows. For Linux/WSL/MacOS, use the [cross-platform npm credential provider](https://eng.ms/docs/coreai/devdiv/one-engineering-system-1es/1es-docs/azure-artifacts/npm-credprovider) from the 1ES team.
+
+1. Install the credential provider globally:
+   ```bash
+   npm install --global @microsoft/artifacts-npm-credprovider --registry https://pkgs.dev.azure.com/artifacts-public/PublicTools/_packaging/AzureArtifacts/npm/registry/
+   ```
+
+2. Authenticate by running the provider in the same directory as `.npmrc` ([Agent.Web/Client/](../src/Agent/Agent.Web/Client/)):
+   ```bash
+   cd src/Agent/Agent.Web/Client
+   artifacts-npm-credprovider
+   ```
+
+   Alternatively, you can use the npm script (also run from the Client directory):
+   ```bash
+   cd src/Agent/Agent.Web/Client
+   npm run refresh-creds
+   ```
+
+> [!NOTE]
+> If the credential provider doesn't work for your setup, use one of the manual authentication methods below.
+
+#### Alternative: Script-Based Setup
+
+You can set up npm authentication using our setup script:
 
 1. Generate a [Personal Access Token](https://dev.azure.com/msazure/_details/security/tokens) with scopes: Packaging read, write & manage; Drop read & write. (Select Access Scope to be "All accessible organizations")
 
@@ -160,7 +186,7 @@ You can set up npm authentication using our script:
 > [Next: Running the Application](running-the-app.md) or [Continue Setup for 1p Agent](1p-agent-development.md)
 
 ### Dashboard Settings
-* Note: Configuring dashboard settings is not mandatory, and will not affect your execution of the application. This is an optional section and should be done if you require the analytics here. 
+* Note: Configuring dashboard settings is not mandatory, and will not affect your execution of the application. This is an optional section and should be done if you require the analytics here.
 
 An Azure managed grafana and azure managed prometheus(Azure Monitor Worksapce) will be deployed using the deployment scirpt,
 which are used by DailyReportAgent.

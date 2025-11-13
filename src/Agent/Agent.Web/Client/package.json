@@ -12,7 +12,8 @@
     "test": "vitest run",
     "extract:loc": "formatjs extract \"**/*.{ts,tsx}\" --ignore \"**/*.{d,test,spec}.{ts,tsx}\" --out-file src/src/Strings/extracted/strings.json --format ./src/src/Strings/format.js",
     "compile:loc": "formatjs compile-folder --ast --format ./src/src/Strings/format.js \"src/src/Strings/extracted\" \"src/src/Strings/compiled\" ",
-    "prepare": "cd ../../../../ && husky src/Agent/Agent.Web/Client/.husky || true"
+    "prepare": "cd ../../../../ && husky src/Agent/Agent.Web/Client/.husky || true",
+    "refresh-creds": "artifacts-npm-credprovider && npm install"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
