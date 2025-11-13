@@ -20,7 +20,15 @@ public class OutlookConnectorPluginDefinition
         _outlookConnectorPlugin = outlookConnectorPlugin;
     }
 
-    [Description("Sends an email through the configured Outlook connector. Use this when the user aks any action requiring the agent to send an email.")]
+    [Description(@"Sends an email through the configured Outlook connector.
+Use this whenever the user asks to send an email or perform an action that requires emailing.
+
+When body_type is HTML (default), the `body` parameter MUST be well-formed, professional HTML:
+- Do NOT use Markdown.
+- Use a clear structure: greeting, body paragraphs, and closing.
+- Use <p> for paragraphs, <ul>/<ol> and <li> for lists, and <a> for links.
+- Use simple inline formatting only (<strong>, <em>, <br/>); avoid complex CSS or external assets.
+- Keep a professional, concise tone and include a polite closing and signature when appropriate.")]
     [AgentTool(ToolMode.Auto)]
     public async Task<EmailSendResult> SendOutlookEmail(
         [Description("Comma-separated list of primary recipients (To field).")]
