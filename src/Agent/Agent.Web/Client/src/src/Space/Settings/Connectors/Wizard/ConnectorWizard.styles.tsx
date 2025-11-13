@@ -68,6 +68,7 @@ export const useConnectorWizardStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         gap: tokens.spacingVerticalXL,
+        width: '460px',
     },
     reviewAndAddSection: {
         display: 'flex',
@@ -78,9 +79,12 @@ export const useConnectorWizardStyles = makeStyles({
         fontSize: tokens.fontSizeBase300,
         fontWeight: tokens.fontWeightSemibold,
     },
-    reviewAndAddCardContent: {
-        display: 'flex',
-        flexDirection: 'column',
+    reviewAndAddDescription: {
+        color: tokens.colorNeutralForeground3,
+    },
+    reviewAndAddCard: {
+        boxShadow: 'none',
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
     },
     reviewAndAddCardImage: {
         maxWidth: '32px',
@@ -101,6 +105,8 @@ export const useConnectorWizardStyles = makeStyles({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: `${tokens.spacingVerticalM} ${tokens.spacingHorizontalM}`,
+        boxShadow: 'none',
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
     },
     accountInfo: {
         display: 'flex',

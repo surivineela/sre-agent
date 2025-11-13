@@ -77,7 +77,7 @@ export const ReviewAndAdd: React.FC<ReviewAndAddProps> = ({ userAssignedIdentiti
             <Label className={styles.title}>{intl.formatMessage(ConnectorsResources.reviewAndAdd)}</Label>
             <VerticalLabelWithContent label={intl.formatMessage(ConnectorsResources.connectorCapital)}>
                 {selectedConnector && (
-                    <Card>
+                    <Card className={styles.reviewAndAddCard}>
                         <CardHeader
                             image={
                                 <img
@@ -86,11 +86,9 @@ export const ReviewAndAdd: React.FC<ReviewAndAddProps> = ({ userAssignedIdentiti
                                     className={styles.reviewAndAddCardImage}
                                 />
                             }
-                            header={
-                                <div className={styles.reviewAndAddCardContent}>
-                                    <Text weight="semibold">{getConnectorName(selectedConnector, intl)}</Text>
-                                    <Text className={styles.reviewAndAddSectionValue}>{getConnectorService(selectedConnector, intl)}</Text>
-                                </div>
+                            header={<Text weight="semibold">{getConnectorName(selectedConnector, intl)}</Text>}
+                            description={
+                                <Text className={styles.reviewAndAddDescription}>{getConnectorService(selectedConnector, intl)}</Text>
                             }
                         />
                     </Card>
@@ -112,7 +110,7 @@ export const VerticalLabelWithContent: React.FC<{ label: string; children: React
     const styles = useConnectorWizardStyles();
 
     return (
-        <div className={styles.reviewAndAddSection}>
+        <div key={label} className={styles.reviewAndAddSection}>
             <Label className={styles.reviewAndAddSectionTitle}>{label}</Label>
             {children}
         </div>
