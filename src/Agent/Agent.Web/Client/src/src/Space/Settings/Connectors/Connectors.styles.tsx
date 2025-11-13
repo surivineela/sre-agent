@@ -93,7 +93,6 @@ export const useConnectorsStyles = makeStyles({
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
-        minWidth: '200px',
     },
     nameText: {
         overflow: 'hidden',

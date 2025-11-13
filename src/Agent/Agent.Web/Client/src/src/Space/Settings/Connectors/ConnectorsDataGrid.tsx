@@ -210,6 +210,24 @@ export const ConnectorsDataGrid = ({
         setSelectedKeys(new Set(selectedArray));
     };
 
+    const columnSizingOptions = useMemo(
+        () => ({
+            name: {
+                minWidth: 150,
+                defaultWidth: 300,
+            },
+            service: {
+                minWidth: 100,
+                defaultWidth: 150,
+            },
+            status: {
+                minWidth: 100,
+                defaultWidth: 150,
+            },
+        }),
+        []
+    );
+
     return (
         <>
             <DataGrid
@@ -221,6 +239,8 @@ export const ConnectorsDataGrid = ({
                 selectionMode="multiselect"
                 selectedItems={selectedItemsForDataGrid as Set<any>}
                 onSelectionChange={onSelectionChange}
+                columnSizingOptions={columnSizingOptions}
+                resizableColumns
                 className={styles.dataGrid}
             >
                 <DataGridHeader>
