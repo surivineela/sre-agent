@@ -11,22 +11,13 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Graph.Schema;
-using Agent.Logging;
 using Agent.Plugins.Interface;
-using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
-using Microsoft.Azure.Management.Monitor;
-using Microsoft.Azure.Management.Monitor.Fluent;
-using Microsoft.Azure.Management.Monitor.Fluent.Models;
-using Microsoft.Azure.Management.ResourceManager.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Models;
+using Azure.ResourceManager.Monitor;
+using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.Rest;
-using Microsoft.Rest.Azure;
-using Microsoft.Rest.Azure.OData;
 
 namespace Agent.Plugins.Implementation
 {
@@ -187,75 +178,48 @@ namespace Agent.Plugins.Implementation
                 var resourceGroupName = resourceIdentifier.ResourceGroupName;
 
                 var credential = await _authService.GetArmOperationCredential();
-                var defaultToken = credential.GetToken(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None).Token;
-                var defaultTokenCredentials = new TokenCredentials(defaultToken);
-                var azureCredentials = new Microsoft.Azure.Management.ResourceManager.Fluent.Authentication.AzureCredentials(defaultTokenCredentials, defaultTokenCredentials, null, AzureEnvironment.AzureGlobalCloud);
-
-                var restClient = RestClient.Configure()
-                    .WithBaseUri("https://management.azure.com")
-                    .WithCredentials(azureCredentials)
-                    .Build();
-
-                var monitorClient = new MonitorManagementClient(restClient)
-                {
-                    SubscriptionId = subscriptionId
-                };
+                var armClient = new ArmClient(credential);
+                var subscription = armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
 
                 var startTime = DateTime.UtcNow.AddHours(-hoursBack);
                 var endTime = DateTime.UtcNow;
 
                 // Focus specifically on deployment operations
-                var filterString = $"eventTimestamp ge {startTime:yyyy-MM-ddTHH:mm:ssZ} and " +
-                                   $"eventTimestamp le {endTime:yyyy-MM-ddTHH:mm:ssZ} and " +
+                var filterString = $"eventTimestamp ge '{startTime:yyyy-MM-ddTHH:mm:ssZ}' and " +
+                                   $"eventTimestamp le '{endTime:yyyy-MM-ddTHH:mm:ssZ}' and " +
                                    $"eventChannels eq 'Admin, Operation' and " +
                                    $"resourceGroupName eq '{resourceGroupName}' and " +
                                    $"operationName.value eq 'Microsoft.Resources/deployments/write'";
 
-                var odataQuery = new ODataQuery<EventData>(filterString);
-
-                IPage<EventData> eventsPage = await monitorClient.ActivityLogs.ListAsync(
-                    odataQuery: odataQuery,
-                    cancellationToken: default);
+                var activityLogs = subscription.GetActivityLogs(filterString, select: null, cancellationToken: default);
 
                 var deploymentFailures = new List<Dictionary<string, object>>();
 
-                do
+                foreach (var eventData in activityLogs)
                 {
-                    foreach (var eventData in eventsPage)
+                    // Only include failed deployments
+                    if (eventData?.Status?.Value?.Contains("Failed") == true)
                     {
-                        // Only include failed deployments
-                        if (eventData?.Status?.Value?.Contains("Failed") == true)
+                        var deployment = new Dictionary<string, object>
                         {
-                            var deployment = new Dictionary<string, object>
-                            {
-                                ["eventTimestamp"] = eventData?.EventTimestamp?.ToString("o") ?? string.Empty,
-                                ["operationName"] = eventData?.OperationName?.Value ?? string.Empty,
-                                ["caller"] = eventData?.Caller ?? string.Empty,
-                                ["status"] = eventData?.Status?.Value ?? string.Empty,
-                                ["correlationId"] = eventData?.CorrelationId ?? string.Empty,
-                                ["level"] = eventData?.Level?.ToString() ?? string.Empty,
-                                ["resourceId"] = eventData?.ResourceId ?? resourceId
-                            };
+                            ["eventTimestamp"] = eventData?.EventTimestamp?.ToString("o") ?? string.Empty,
+                            ["operationName"] = eventData?.OperationName?.Value ?? string.Empty,
+                            ["caller"] = eventData?.Caller ?? string.Empty,
+                            ["status"] = eventData?.Status?.Value ?? string.Empty,
+                            ["correlationId"] = eventData?.CorrelationId ?? string.Empty,
+                            ["level"] = eventData?.Level?.ToString() ?? string.Empty,
+                            ["resourceId"] = eventData?.ResourceId?.ToString() ?? resourceId
+                        };
 
-                            // Include all properties for failed deployments
-                            if (eventData?.Properties != null)
-                            {
-                                deployment["properties"] = JsonSerializer.Serialize(eventData.Properties);
-                            }
-
-                            deploymentFailures.Add(deployment);
+                        // Include all properties for failed deployments
+                        if (eventData?.Properties != null)
+                        {
+                            deployment["properties"] = JsonSerializer.Serialize(eventData.Properties);
                         }
-                    }
 
-                    if (!string.IsNullOrEmpty(eventsPage.NextPageLink))
-                    {
-                        eventsPage = await monitorClient.ActivityLogs.ListNextAsync(eventsPage.NextPageLink);
+                        deploymentFailures.Add(deployment);
                     }
-                    else
-                    {
-                        break;
-                    }
-                } while (true);
+                }
 
                 if (!deploymentFailures.Any())
                 {
@@ -366,95 +330,68 @@ namespace Agent.Plugins.Implementation
                 var resourceGroupName = resourceIdentifier.ResourceGroupName;
 
                 var credential = await _authService.GetArmOperationCredential();
-                var defaultToken = credential.GetToken(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None).Token;
-                var defaultTokenCredentials = new TokenCredentials(defaultToken);
-                var azureCredentials = new Microsoft.Azure.Management.ResourceManager.Fluent.Authentication.AzureCredentials(defaultTokenCredentials, defaultTokenCredentials, null, AzureEnvironment.AzureGlobalCloud);
-
-                var restClient = RestClient.Configure()
-                    .WithBaseUri("https://management.azure.com")
-                    .WithCredentials(azureCredentials)
-                    .Build();
-
-                var monitorClient = new MonitorManagementClient(restClient)
-                {
-                    SubscriptionId = subscriptionId
-                };
+                var armClient = new ArmClient(credential);
+                var subscription = armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
 
                 var startTime = DateTime.UtcNow.AddHours(-hoursBack);
                 var endTime = DateTime.UtcNow;
 
-                var filterString = $"eventTimestamp ge {startTime:yyyy-MM-ddTHH:mm:ssZ} and " +
-                                   $"eventTimestamp le {endTime:yyyy-MM-ddTHH:mm:ssZ} and " +
+                var filterString = $"eventTimestamp ge '{startTime:yyyy-MM-ddTHH:mm:ssZ}' and " +
+                                   $"eventTimestamp le '{endTime:yyyy-MM-ddTHH:mm:ssZ}' and " +
                                    $"eventChannels eq 'Admin, Operation' and " +
                                    $"resourceGroupName eq '{resourceGroupName}'";
 
-                var odataQuery = new ODataQuery<EventData>(filterString);
-
-                IPage<EventData> eventsPage = await monitorClient.ActivityLogs.ListAsync(
-                    odataQuery: odataQuery,
-                    cancellationToken: default);
+                var activityLogs = subscription.GetActivityLogs(filterString, select: null, cancellationToken: default);
 
                 var logs = new List<Dictionary<string, object>>();
 
-                do
+                foreach (var eventData in activityLogs)
                 {
-                    foreach (var eventData in eventsPage)
+                    // Filter out GET operations and routine read activities
+                    var operationName = eventData?.OperationName?.Value ?? string.Empty;
+                    if (ShouldSkipOperation(operationName))
                     {
-                        // Filter out GET operations and routine read activities
-                        var operationName = eventData?.OperationName?.Value ?? string.Empty;
-                        if (ShouldSkipOperation(operationName))
-                        {
-                            continue;
-                        }
-
-                        var log = new Dictionary<string, object>
-                        {
-                            ["eventTimestamp"] = eventData?.EventTimestamp?.ToString("o") ?? string.Empty,
-                            ["operationName"] = operationName,
-                            ["caller"] = eventData?.Caller ?? string.Empty,
-                            ["status"] = eventData?.Status?.Value ?? string.Empty,
-                            ["correlationId"] = eventData?.CorrelationId ?? string.Empty,
-                            ["level"] = eventData?.Level?.ToString() ?? string.Empty
-                        };
-
-                        // Only add caller IP for failed operations or deployments
-                        if (eventData?.HttpRequest != null &&
-                            (eventData.Status?.Value?.Contains("Failed") == true ||
-                             operationName.Contains("deployment", StringComparison.OrdinalIgnoreCase)))
-                        {
-                            log["callerIpAddress"] = eventData.HttpRequest.ClientIpAddress;
-                        }
-
-                        // Only add authorization for security-relevant operations
-                        if (eventData?.Authorization != null && IsSecurityRelevantOperation(operationName))
-                        {
-                            log["authorizationAction"] = eventData.Authorization.Action;
-                        }
-
-                        // Only include essential properties for failed operations or deployments
-                        if (eventData?.Properties != null &&
-                            (eventData.Status?.Value?.Contains("Failed") == true ||
-                             operationName.Contains("deployment", StringComparison.OrdinalIgnoreCase)))
-                        {
-                            var filteredProperties = FilterEssentialProperties(eventData.Properties);
-                            if (filteredProperties.Any())
-                            {
-                                log["properties"] = JsonSerializer.Serialize(filteredProperties);
-                            }
-                        }
-
-                        logs.Add(log);
+                        continue;
                     }
 
-                    if (!string.IsNullOrEmpty(eventsPage.NextPageLink))
+                    var log = new Dictionary<string, object>
                     {
-                        eventsPage = await monitorClient.ActivityLogs.ListNextAsync(eventsPage.NextPageLink);
-                    }
-                    else
+                        ["eventTimestamp"] = eventData?.EventTimestamp?.ToString("o") ?? string.Empty,
+                        ["operationName"] = operationName,
+                        ["caller"] = eventData?.Caller ?? string.Empty,
+                        ["status"] = eventData?.Status?.Value ?? string.Empty,
+                        ["correlationId"] = eventData?.CorrelationId ?? string.Empty,
+                        ["level"] = eventData?.Level?.ToString() ?? string.Empty
+                    };
+
+                    // Only add caller IP for failed operations or deployments
+                    if (eventData?.HttpRequest != null &&
+                        (eventData.Status?.Value?.Contains("Failed") == true ||
+                         operationName.Contains("deployment", StringComparison.OrdinalIgnoreCase)))
                     {
-                        break;
+                        log["callerIpAddress"] = eventData.HttpRequest.ClientIPAddress;
                     }
-                } while (true);
+
+                    // Only add authorization for security-relevant operations
+                    if (eventData?.Authorization != null && IsSecurityRelevantOperation(operationName))
+                    {
+                        log["authorizationAction"] = eventData.Authorization.Action;
+                    }
+
+                    // Only include essential properties for failed operations or deployments
+                    if (eventData?.Properties != null &&
+                        (eventData.Status?.Value?.Contains("Failed") == true ||
+                         operationName.Contains("deployment", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        var filteredProperties = FilterEssentialProperties(eventData.Properties);
+                        if (filteredProperties.Any())
+                        {
+                            log["properties"] = JsonSerializer.Serialize(filteredProperties);
+                        }
+                    }
+
+                    logs.Add(log);
+                }
 
                 return logs;
             }
@@ -517,7 +454,7 @@ namespace Agent.Plugins.Implementation
             return securityPatterns.Any(pattern => operationLower.Contains(pattern));
         }
 
-        private Dictionary<string, object> FilterEssentialProperties(IDictionary<string, string> properties)
+        private Dictionary<string, object> FilterEssentialProperties(IReadOnlyDictionary<string, string> properties)
         {
             var essentialProperties = new Dictionary<string, object>();
 
@@ -651,25 +588,10 @@ Focus on actionable troubleshooting steps. Extract specific error codes, resourc
         {
             try
             {
-                // Build Track1 RestClient with ARM token
+                // Build ArmClient with credential
                 var armCred = await _authService.GetArmOperationCredential();
-                var token = armCred.GetToken(
-                    new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
-                    CancellationToken.None).Token;
-
-                var tokenCreds = new TokenCredentials(token);
-                var azureCreds = new Microsoft.Azure.Management.ResourceManager.Fluent.Authentication.AzureCredentials(
-                    tokenCreds, tokenCreds, null, AzureEnvironment.AzureGlobalCloud);
-
-                var restClient = RestClient.Configure()
-                    .WithBaseUri("https://management.azure.com")
-                    .WithCredentials(azureCreds)
-                    .Build();
-
-                var monitorClient = new MonitorManagementClient(restClient)
-                {
-                    SubscriptionId = subscriptionId
-                };
+                var armClient = new ArmClient(armCred);
+                var subscription = armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
 
                 var endTime = DateTimeOffset.UtcNow;
                 var startTime = endTime.AddDays(-30);
@@ -687,58 +609,49 @@ Focus on actionable troubleshooting steps. Extract specific error codes, resourc
                     $"eventTimestamp le '{endUtc}' and " +
                     $"correlationId eq '{corr}'";
 
-                var odataQuery = new ODataQuery<EventData>(filterString);
-
                 var changeEvents = new List<Dictionary<string, object>>();
 
-                IPage<EventData> page = await monitorClient.ActivityLogs.ListAsync(
-                    odataQuery: odataQuery, cancellationToken: default);
+                var activityLogs = subscription.GetActivityLogs(filterString, select: null, cancellationToken: default);
 
-                while (true)
+                foreach (var e in activityLogs)
                 {
-                    foreach (var e in page)
+                    if (!string.Equals(e?.ResourceGroupName, resourceGroupName, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (!string.Equals(e?.ResourceGroupName, resourceGroupName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-
-                        var evt = new Dictionary<string, object>
-                        {
-                            ["eventTimestamp"] = e?.EventTimestamp?.ToString("o") ?? string.Empty,
-                            ["operationName"] = e?.OperationName?.Value ?? string.Empty,
-                            ["caller"] = e?.Caller ?? string.Empty,
-                            ["status"] = e?.Status?.Value ?? string.Empty,
-                            ["correlationId"] = e?.CorrelationId ?? string.Empty,
-                            ["level"] = e?.Level?.ToString() ?? string.Empty,
-                            ["resourceId"] = e?.ResourceId ?? string.Empty,
-                            ["resourceGroup"] = e?.ResourceGroupName ?? string.Empty,
-                            ["description"] = e?.Description ?? string.Empty,
-                            ["eventName"] = e?.EventName?.Value ?? string.Empty,
-                            ["category"] = e?.Category?.Value ?? string.Empty
-                        };
-
-                        if (e?.Properties != null && e.Properties.Count > 0)
-                            evt["properties"] = JsonSerializer.Serialize(e.Properties);
-
-                        if (e?.Authorization != null)
-                            evt["authorization"] = new Dictionary<string, object>
-                            {
-                                ["action"] = e.Authorization.Action ?? string.Empty,
-                                ["role"] = e.Authorization.Role ?? string.Empty,
-                                ["scope"] = e.Authorization.Scope ?? string.Empty
-                            };
-
-                        var isFailed = (e?.Status?.Value ?? "").IndexOf("Failed", StringComparison.OrdinalIgnoreCase) >= 0;
-                        var isDeploy = (e?.OperationName?.Value ?? "").IndexOf("deployment", StringComparison.OrdinalIgnoreCase) >= 0;
-                        if ((isFailed || isDeploy) && e?.HttpRequest?.ClientIpAddress != null)
-                            evt["callerIpAddress"] = e.HttpRequest.ClientIpAddress;
-
-                        changeEvents.Add(evt);
+                        continue;
                     }
 
-                    if (string.IsNullOrEmpty(page?.NextPageLink)) break;
-                    page = await monitorClient.ActivityLogs.ListNextAsync(page.NextPageLink);
+                    var evt = new Dictionary<string, object>
+                    {
+                        ["eventTimestamp"] = e?.EventTimestamp?.ToString("o") ?? string.Empty,
+                        ["operationName"] = e?.OperationName?.Value ?? string.Empty,
+                        ["caller"] = e?.Caller ?? string.Empty,
+                        ["status"] = e?.Status?.Value ?? string.Empty,
+                        ["correlationId"] = e?.CorrelationId ?? string.Empty,
+                        ["level"] = e?.Level?.ToString() ?? string.Empty,
+                        ["resourceId"] = e?.ResourceId?.ToString() ?? string.Empty,
+                        ["resourceGroup"] = e?.ResourceGroupName ?? string.Empty,
+                        ["description"] = e?.Description ?? string.Empty,
+                        ["eventName"] = e?.EventName?.Value ?? string.Empty,
+                        ["category"] = e?.Category?.Value ?? string.Empty
+                    };
+
+                    if (e?.Properties != null && e.Properties.Count > 0)
+                        evt["properties"] = JsonSerializer.Serialize(e.Properties);
+
+                    if (e?.Authorization != null)
+                        evt["authorization"] = new Dictionary<string, object>
+                        {
+                            ["action"] = e.Authorization.Action ?? string.Empty,
+                            ["role"] = e.Authorization.Role ?? string.Empty,
+                            ["scope"] = e.Authorization.Scope ?? string.Empty
+                        };
+
+                    var isFailed = (e?.Status?.Value ?? "").IndexOf("Failed", StringComparison.OrdinalIgnoreCase) >= 0;
+                    var isDeploy = (e?.OperationName?.Value ?? "").IndexOf("deployment", StringComparison.OrdinalIgnoreCase) >= 0;
+                    if ((isFailed || isDeploy) && e?.HttpRequest?.ClientIPAddress != null)
+                        evt["callerIpAddress"] = e.HttpRequest.ClientIPAddress;
+
+                    changeEvents.Add(evt);
                 }
 
                 return changeEvents
@@ -959,27 +872,31 @@ Respond in a concise, structured format with bullet points and short sentences."
         {
             try
             {
-                var resourceManagementClient = await CreateResourceClientAsync(subscriptionId);
-                // List recent deployments and find one matching the correlation ID
-                var deployments = await resourceManagementClient.Deployments.ListByResourceGroupAsync(resourceGroupName);
+                var credential = await _authService.GetArmOperationCredential();
+                var armClient = new ArmClient(credential);
+                var subscription = armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
+                var resourceGroup = await subscription.GetResourceGroupAsync(resourceGroupName);
 
-                foreach (var deployment in deployments)
+                // List recent deployments and find one matching the correlation ID
+                var deploymentCollection = resourceGroup.Value.GetArmDeployments();
+
+                await foreach (var deployment in deploymentCollection.GetAllAsync())
                 {
-                    if (deployment?.Properties?.CorrelationId == correlationId)
+                    if (deployment.Data?.Properties?.CorrelationId == correlationId)
                     {
                         return new Dictionary<string, object>
                         {
-                            ["deploymentName"] = deployment.Name ?? string.Empty,
-                            ["provisioningState"] = deployment.Properties?.ProvisioningState?.ToString() ?? string.Empty,
-                            ["timestamp"] = deployment.Properties?.Timestamp?.ToString("o") ?? string.Empty,
-                            ["mode"] = deployment.Properties?.Mode?.ToString() ?? string.Empty,
-                            ["templateHash"] = deployment.Properties?.TemplateHash ?? string.Empty,
-                            ["parameters"] = deployment.Properties?.Parameters != null ?
-                                JsonSerializer.Serialize(deployment.Properties.Parameters) : string.Empty,
-                            ["outputs"] = deployment.Properties?.Outputs != null ?
-                                JsonSerializer.Serialize(deployment.Properties.Outputs) : string.Empty,
-                            ["error"] = deployment.Properties?.Error != null ?
-                                JsonSerializer.Serialize(deployment.Properties.Error) : string.Empty
+                            ["deploymentName"] = deployment.Data.Name ?? string.Empty,
+                            ["provisioningState"] = deployment.Data.Properties?.ProvisioningState?.ToString() ?? string.Empty,
+                            ["timestamp"] = deployment.Data.Properties?.Timestamp?.ToString("o") ?? string.Empty,
+                            ["mode"] = deployment.Data.Properties?.Mode?.ToString() ?? string.Empty,
+                            ["templateHash"] = deployment.Data.Properties?.TemplateHash ?? string.Empty,
+                            ["parameters"] = deployment.Data.Properties?.Parameters != null ?
+                                JsonSerializer.Serialize(deployment.Data.Properties.Parameters) : string.Empty,
+                            ["outputs"] = deployment.Data.Properties?.Outputs != null ?
+                                JsonSerializer.Serialize(deployment.Data.Properties.Outputs) : string.Empty,
+                            ["error"] = deployment.Data.Properties?.Error != null ?
+                                JsonSerializer.Serialize(deployment.Data.Properties.Error) : string.Empty
                         };
                     }
                 }
@@ -1006,34 +923,32 @@ Respond in a concise, structured format with bullet points and short sentences."
                     return new List<Dictionary<string, object>>();
                 }
 
-                var resourceClient = await CreateResourceClientAsync(subscriptionId);
+                var credential = await _authService.GetArmOperationCredential();
+                var armClient = new ArmClient(credential);
+                var subscription = armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
+                var resourceGroup = await subscription.GetResourceGroupAsync(resourceGroupName);
 
                 // Get recent deployments in the RG and find a correlationId match first
-                IPage<DeploymentExtendedInner> page = await resourceClient.Deployments.ListByResourceGroupAsync(resourceGroupName);
-                DeploymentExtendedInner? targetDeployment = null;
+                var deploymentCollection = resourceGroup.Value.GetArmDeployments();
+                ArmDeploymentResource? targetDeployment = null;
 
-                while (true)
+                await foreach (var d in deploymentCollection.GetAllAsync())
                 {
-                    foreach (var d in page)
+                    if (string.Equals(d.Data?.Properties?.CorrelationId, correlationId, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (string.Equals(d?.Properties?.CorrelationId, correlationId, StringComparison.OrdinalIgnoreCase))
-                        {
-                            targetDeployment = d;
-                            break;
-                        }
+                        targetDeployment = d;
+                        break;
                     }
-                    if (targetDeployment != null || string.IsNullOrEmpty(page?.NextPageLink)) break;
-                    page = await resourceClient.Deployments.ListByResourceGroupNextAsync(page.NextPageLink);
                 }
 
-                if (targetDeployment != null && !string.IsNullOrEmpty(targetDeployment.Name))
+                if (targetDeployment != null && !string.IsNullOrEmpty(targetDeployment.Data?.Name))
                 {
                     // Collect only operations that touched the provided resourceId
-                    return await CollectChangesForDeploymentAsync(resourceClient, resourceGroupName, targetDeployment.Name, resourceId);
+                    return await CollectChangesForDeploymentAsync(targetDeployment!, resourceId);
                 }
 
                 // Fallback: scan recent deployments for changes to this resource
-                return await GetResourceChangesFromRecentDeployments(resourceClient, resourceGroupName, resourceId);
+                return await GetResourceChangesFromRecentDeployments(resourceGroup.Value, resourceId);
             }
             catch
             {
@@ -1042,33 +957,26 @@ Respond in a concise, structured format with bullet points and short sentences."
         }
 
         private async Task<List<Dictionary<string, object>>> GetResourceChangesFromRecentDeployments(
-            ResourceManagementClient resourceClient,
-            string resourceGroupName,
+            ResourceGroupResource resourceGroup,
             string resourceId)
         {
             var allChanges = new List<Dictionary<string, object>>();
             var cutoff = DateTimeOffset.UtcNow.AddHours(-24);
 
-            IPage<DeploymentExtendedInner> page = await resourceClient.Deployments.ListByResourceGroupAsync(resourceGroupName);
+            var deploymentCollection = resourceGroup.GetArmDeployments();
 
-            while (true)
+            await foreach (var d in deploymentCollection.GetAllAsync())
             {
-                foreach (var d in page)
+                // Skip older deployments
+                var ts = d.Data?.Properties?.Timestamp;
+                if (ts.HasValue && ts.Value < cutoff) continue;
+                if (string.IsNullOrEmpty(d.Data?.Name)) continue;
+
+                var perDeployment = await CollectChangesForDeploymentAsync(d, resourceId);
+                if (perDeployment.Count > 0)
                 {
-                    // Skip older deployments
-                    var ts = d?.Properties?.Timestamp;
-                    if (ts.HasValue && ts.Value < cutoff) continue;
-                    if (string.IsNullOrEmpty(d?.Name)) continue;
-
-                    var perDeployment = await CollectChangesForDeploymentAsync(resourceClient, resourceGroupName, d.Name, resourceId);
-                    if (perDeployment.Count > 0)
-                    {
-                        allChanges.AddRange(perDeployment);
-                    }
+                    allChanges.AddRange(perDeployment);
                 }
-
-                if (string.IsNullOrEmpty(page?.NextPageLink)) break;
-                page = await resourceClient.Deployments.ListByResourceGroupNextAsync(page.NextPageLink);
             }
 
             // newest first
@@ -1083,76 +991,43 @@ Respond in a concise, structured format with bullet points and short sentences."
             return allChanges;
         }
 
-        private static async Task<List<Dictionary<string, object>>> CollectChangesForDeploymentAsync(
-            ResourceManagementClient client, string resourceGroupName, string deploymentName, string resourceId)
+        private static Task<List<Dictionary<string, object>>> CollectChangesForDeploymentAsync(
+            ArmDeploymentResource deployment, string resourceId)
         {
             var changes = new List<Dictionary<string, object>>();
-            IPage<DeploymentOperationInner> ops = await client.DeploymentOperations.ListAsync(resourceGroupName, deploymentName);
 
-            while (true)
+            foreach (var op in deployment.GetDeploymentOperations())
             {
-                foreach (var op in ops)
+                var tr = op.Properties?.TargetResource;
+                var trId = tr?.Id?.ToString() ?? string.Empty;
+
+                if (!string.IsNullOrEmpty(resourceId) &&
+                    !string.Equals(trId, resourceId, StringComparison.OrdinalIgnoreCase))
                 {
-                    var tr = op?.Properties?.TargetResource;
-                    var trId = tr?.Id ?? string.Empty;
-
-                    if (!string.IsNullOrEmpty(resourceId) &&
-                        !string.Equals(trId, resourceId, StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    var change = new Dictionary<string, object>
-                    {
-                        ["deploymentName"] = deploymentName,
-                        ["operationId"] = op?.OperationId ?? string.Empty,
-                        ["timestamp"] = op?.Properties?.Timestamp?.ToString("o") ?? string.Empty,
-                        ["provisioningOperation"] = op?.Properties?.ProvisioningOperation?.ToString() ?? string.Empty,
-                        ["provisioningState"] = op?.Properties?.ProvisioningState ?? string.Empty,
-                        ["resourceId"] = trId,
-                        ["resourceType"] = tr?.ResourceType ?? string.Empty,
-                        ["resourceName"] = tr?.ResourceName ?? string.Empty
-                    };
-
-                    if (op?.Properties?.StatusMessage != null)
-                    {
-                        change["statusMessage"] = op.Properties.StatusMessage;
-                    }
-
-                    changes.Add(change);
+                    continue;
                 }
 
-                if (string.IsNullOrEmpty(ops?.NextPageLink)) break;
-                ops = await client.DeploymentOperations.ListNextAsync(ops.NextPageLink);
+                var change = new Dictionary<string, object>
+                {
+                    ["deploymentName"] = deployment.Data.Name ?? string.Empty,
+                    ["operationId"] = op.Id ?? string.Empty,
+                    ["timestamp"] = op.Properties?.Timestamp?.ToString("o") ?? string.Empty,
+                    ["provisioningOperation"] = op.Properties?.ProvisioningOperation?.ToString() ?? string.Empty,
+                    ["provisioningState"] = op.Properties?.ProvisioningState ?? string.Empty,
+                    ["resourceId"] = trId,
+                    ["resourceType"] = tr?.ResourceType?.ToString() ?? string.Empty,
+                    ["resourceName"] = (tr?.Id != null ? new ResourceIdentifier(tr.Id).Name : string.Empty)
+                };
+
+                if (op.Properties?.StatusMessage != null)
+                {
+                    change["statusMessage"] = op.Properties.StatusMessage;
+                }
+
+                changes.Add(change);
             }
 
-            return changes;
-        }
-
-        private async Task<ResourceManagementClient> CreateResourceClientAsync(string subscriptionId)
-        {
-            // Get ARM token via auth service
-            var credential = await _authService.GetArmOperationCredential();
-            var token = credential.GetToken(
-                new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
-                CancellationToken.None).Token;
-
-            var tokenCreds = new TokenCredentials(token);
-
-            var azureCreds = new Microsoft.Azure.Management.ResourceManager.Fluent.Authentication.AzureCredentials(
-                tokenCreds, tokenCreds, tenantId: null, environment: AzureEnvironment.AzureGlobalCloud);
-
-            var restClient = RestClient
-                .Configure()
-                .WithBaseUri("https://management.azure.com")
-                .WithCredentials(azureCreds)
-                .Build();
-
-            var rm = new ResourceManagementClient(restClient)
-            {
-                SubscriptionId = subscriptionId
-            };
-            return rm;
+            return Task.FromResult(changes);
         }
 
         public async Task<string> ShowChangeDiffViewer(string correlationId, string resourceId, string title, string description, Guid? threadId = null)

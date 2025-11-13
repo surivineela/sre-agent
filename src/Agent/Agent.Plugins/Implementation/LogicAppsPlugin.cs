@@ -11,7 +11,6 @@ using Agent.Plugins.Services.Interfaces;
 using Azure.Storage.Blobs;
 using IdentityModel.Client;
 using Kusto.Cloud.Platform.Utils;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Graph.Models;
 using Newtonsoft.Json.Linq;
 using static Agent.Graph.Crawler.ARM.LogicAppCrawler;
