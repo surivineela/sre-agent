@@ -188,17 +188,19 @@ public class IncidentPlaygroundController : ControllerBase
             _logger.LogInternalWarning("CreateIncidentHandler: Handler already exists for HandlerId: {HandlerId}", document.Id);
             return Conflict("Incident handler with the same ID already exists. Use POST to update.");
         }
-        var cosmosDocument = new IncidentHandlerDocument(
-            document.Id,
-            $"IncidentHandler{_incidentManagementSettings.Type.ToString()}",
-            document.Name,
-            document.Description,
-            document.IncidentFilterId,
-            document.IncidentProcessingGuide,
-            document.Tools,
-            document.Incidents,
-            document.CustomInstructions,
-            DateTime.UtcNow);
+        var cosmosDocument = new IncidentHandlerDocument()
+        {
+            Id = document.Id,
+            DocumentType = IncidentHandlerDocument.GetDocumentType(_incidentManagementSettings.Type),
+            Name = document.Name,
+            Description = document.Description,
+            IncidentFilterId = document.IncidentFilterId,
+            IncidentProcessingGuide = document.IncidentProcessingGuide,
+            Tools = document.Tools,
+            Incidents = document.Incidents,
+            CustomInstructions = document.CustomInstructions,
+            UpdatedAt = DateTime.UtcNow
+        };
 
         _logger.LogInternalInformation("CreateIncidentHandler: Saving new handler for HandlerId: {HandlerId}", document.Id);
         var saved = await _incidentHandlerManagementService.SaveIncidentHandler(cosmosDocument);

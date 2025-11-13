@@ -2,9 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Nodes;
-using Agent.Data.DataModels;
 using Agent.Runtime.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -120,50 +118,4 @@ public class IncidentWebhookController : ControllerBase
             return StatusCode(response.StatusCode, response.Response);
         }
     }
-
-    #region Request Models
-
-    public class IcMRequest : IncidentRequest<IcmIncidentFilterDocumentPayload>
-    {
-        public string? Title { get; set; } = string.Empty;
-
-        public string? Description { get; set; } = string.Empty;
-
-        public string? IncidentId { get; set; }
-
-        public string? Severity { get; set; }
-
-        public string? Source { get; set; }
-    }
-
-    public class PagerDutyRequest : IncidentRequest<PagerDutyIncidentFilterDocumentPayload>
-    {
-        [Required]
-        public required string Title { get; set; }
-
-        [Required]
-        public required string Description { get; set; }
-
-        public string? IncidentId { set; get; }
-
-        public string? Severity { get; set; }
-
-        public string? Source { get; set; }
-    }
-
-    public class ServiceNowRequest : IncidentRequest<ServiceNowIncidentFilterDocumentPayload>
-    {
-        public string? Title { get; set; }
-
-        public string? Description { get; set; }
-
-        [Required]
-        public string? IncidentId { set; get; }
-
-        public string? Severity { get; set; }
-
-        public string? Source { get; set; } = "ServiceNow";
-    }
 }
-
-#endregion

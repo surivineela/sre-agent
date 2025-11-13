@@ -8,6 +8,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Data.DataModels.IncidentModel;
+using Agent.Data.Helpers;
 using Agent.Data.Interface.IncidentAPI;
 using Agent.Runtime.Services;
 using Azure.Core;
@@ -38,23 +39,6 @@ public class AzMonitorScanner(
     private readonly IIncidentStatusMetricsService _incidentsStatusMetricsService = incidentsStatusMetricsService;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService = outboundCommunicationService;
 
-
-    private DateTimeOffset ParseDateTimeOffset(string? value)
-    {
-        DateTimeOffset createdAt;
-        if (!string.IsNullOrEmpty(value) && DateTimeOffset.TryParse(value, out var parsedDate))
-        {
-            createdAt = parsedDate;
-        }
-        else
-        {
-            createdAt = DateTimeOffset.UtcNow;
-            _logger.LogInternalWarning($"Could not parse start time {value}, using current time instead");
-        }
-
-        return createdAt;
-    }
-
     protected override string GetIncidentId(AlertItem incident)
     {
         return new ResourceIdentifier(incident.Id).Name ?? incident.Id;
@@ -74,15 +58,14 @@ public class AzMonitorScanner(
         var threadDocument = await GetIncidentThread(incidentId);
         if (threadDocument is null)
         {
-            IncidentHandlingRequestModel<AzMonitorIncidentFilterDocumentPayload> request = new()
+            var request = new IncidentHandlingRequestModelWithFilterOnly<AzMonitorIncidentFilterDocumentPayload>()
             {
                 IncidentId = incident.Id,
                 Title = incident.Name,
                 Severity = incident.Properties.Essentials?.Severity ?? string.Empty,
-                IncidentFilter = null, // GetIncidentFilterAndHandlerAsync will set this value
-                IncidentHandler = null, // GetIncidentFilterAndHandlerAsync will set this value
-                CreatedTime = ParseDateTimeOffset(incident.Properties.Essentials?.StartDateTime),
-                ImpactedService = string.Empty
+                CreatedTime = DateTimeHelper.ParseDateTimeOffset(incident.Properties.Essentials?.StartDateTime).UtcDateTime,
+                ImpactedService = string.Empty,
+                IncidentFilter = filter
             };
             await _incidentHandlingService.HandleIncidentAsync(request);
         }

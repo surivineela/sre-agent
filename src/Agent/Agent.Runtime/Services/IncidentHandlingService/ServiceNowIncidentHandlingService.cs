@@ -17,10 +17,12 @@ namespace Agent.Runtime.Services;
 /// <summary>
 /// Handles ServiceNow-specific incident processing
 /// </summary>
-public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>
+public class ServiceNowIncidentHandlingService : IncidentHandlingService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>
 {
     private readonly IServiceNowAPIClient _serviceNowAPIClient;
     private readonly IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> _serviceNowIncidentManagementService;
+
+    protected override IncidentManagementType IncidentType => IncidentManagementType.ServiceNow;
 
     public ServiceNowIncidentHandlingService(
         IServiceNowAPIClient serviceNowAPIClient,
@@ -87,9 +89,9 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
 
     protected override async Task<Thread> CreateIncidentHandlerAgentThreadAsync(
         ServiceNowIncidentDocument incidentDetails,
-        IncidentHandlerDocument incidentHandler,
-        ServiceNowIncidentFilterDocument incidentFilterDocument,
-        IncidentHandlingRequestModel<ServiceNowIncidentFilterDocumentPayload> request)
+        IncidentHandlerDocumentPayload incidentHandler,
+        ServiceNowIncidentFilterDocumentPayload incidentFilter,
+        IncidentHandlingRequestModelBase request)
     {
         _logger.LogInternalInformation("[ServiceNowIncidentHandlingService] CreateIncidentHandlerAgentThreadAsync: Delegating to base implementation for IncidentId: {IncidentId}", incidentDetails.Id);
 
@@ -107,9 +109,9 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         return await CreateIncidentHandlerAgentThreadInternalAsync(
             incidentDetails,
             incidentHandler,
-            incidentFilterDocument,
+            incidentFilter,
             request,
-            GetIncidentSource(),
+            IncidentType.ToString(),
             GetServiceNowSpecificProperties);
     }
 
@@ -129,15 +131,5 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
             CreatedAt = request?.IncidentFilter?.CreatedAt ?? DateTime.UtcNow,
             UpdatedAt = request?.IncidentFilter?.UpdatedAt ?? DateTime.UtcNow
         };
-    }
-
-    public override string GetIncidentSource()
-    {
-        return "ServiceNow";
-    }
-
-    protected override string GetIncidentPlatform()
-    {
-        return IncidentManagementType.ServiceNow.ToString();
     }
 }

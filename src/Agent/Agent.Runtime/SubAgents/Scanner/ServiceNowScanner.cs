@@ -278,7 +278,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
         }
     }
 
-    private async Task NotifyUserAsync(ServiceNowIncidentDocument incidentDocument, List<string> relatedResourceIds, ServiceNowIncidentFilterDocument? filterDocument)
+    private async Task NotifyUserAsync(ServiceNowIncidentDocument incidentDocument, List<string> relatedResourceIds, ServiceNowIncidentFilterDocument filterDocument)
     {
         try
         {
@@ -389,15 +389,16 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             var threadDocument = await GetIncidentThread(incidentDocument.Id);
             if (threadDocument is null)
             {
-                logger.LogInternalInformation("Thread doesn't exist for incident {incidentNumber} by filter {filterId}, creating new incident thread", incidentDocument.Id, filterDocument?.Id);
-                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel<ServiceNowIncidentFilterDocumentPayload>()
+                logger.LogInternalInformation("Thread doesn't exist for incident {incidentNumber} by filter {filterId}, creating new incident thread", incidentDocument.Id, filterDocument.Id);
+                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModelWithFilterOnly<ServiceNowIncidentFilterDocumentPayload>()
                 {
                     IncidentId = incidentDocument.Id,
                     Title = incidentDocument.Title,
                     Description = incidentDocument.Description,
                     Severity = incidentDocument.Priority,
-                    Source = "ServiceNow",
                     CreatedTime = incidentDocument.CreatedAt,
+                    Source = "ServiceNow",
+                    IncidentFilter = filterDocument
                 });
             }
             else

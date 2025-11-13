@@ -573,17 +573,22 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             var threadDocument = await GetIncidentThread(incidentDocument.Id.ToString());
             if (threadDocument is null)
             {
-                logger.LogInternalInformation("[IcmScanner] Thread doesn't exist for incident {incidentId} by filter {filterId}, creating new thread", incidentDocument.Id, filterDocument?.Id);
+                if (filterDocument is null)
+                {
+                    logger.LogInternalWarning("[IcmScanner] Filter document is null, cannot create thread for incident {incidentId}", incidentDocument.Id);
+                    return;
+                }
+                logger.LogInternalInformation("[IcmScanner] Thread doesn't exist for incident {incidentId} by filter {filterId}, creating new thread", incidentDocument.Id, filterDocument.Id);
 
-                // Default incident handling (manual response)
-                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload>()
+                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModelWithFilterOnly<IcmIncidentFilterDocumentPayload>()
                 {
                     IncidentId = incidentDocument.Id.ToString(),
                     Title = incidentDocument.Title,
                     Description = incidentDocument.Description,
                     Severity = incidentDocument.Priority,
-                    CreatedTime = incidentDocument.CreatedDate,
-                    ImpactedService = incidentDocument.ImpactedServiceName
+                    CreatedTime = incidentDocument.CreatedAt,
+                    ImpactedService = incidentDocument.ImpactedServiceName,
+                    IncidentFilter = filterDocument
                 });
             }
             else

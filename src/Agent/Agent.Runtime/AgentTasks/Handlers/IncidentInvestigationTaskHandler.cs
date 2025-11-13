@@ -255,41 +255,41 @@ public sealed class IncidentInvestigationTaskHandler(
                 var customerLoggerHelper = new CustomerLoggerHelper(customerLogger, context.ThreadId.ToString(), nameof(AgentTaskType.IncidentInvestigation), tracer);
                 var customerLoggerHooks = customerLoggerHelper.GetCustomerLoggerHooks();
 
-            // Subscribe customer logger event handlers to the main runHooks
-            runHooks.ToolStart += async (context, agent, functionCall, tool, input) =>
-            {
-                await customerLoggerHooks.OnToolStart(context, agent, functionCall, tool, input);
-            };
-            runHooks.ToolEnd += async (context, agent, functionCallContent, tool, output) =>
-            {
-                await customerLoggerHooks.OnToolEnd(context, agent, functionCallContent, tool, output);
-            };
-            runHooks.AgentStart += async (context, agent) =>
-            {
-                await customerLoggerHooks.OnAgentStart(context, agent);
-            };
-            runHooks.AgentEnd += async (context, agent, result) =>
-            {
-                await customerLoggerHooks.OnAgentEnd(context, agent, result);
-            };
-            runHooks.Handoff += async (context, fromAgent, toAgent, handoffReasoning) =>
-            {
-                await customerLoggerHooks.OnHandoff(context, fromAgent, toAgent, handoffReasoning);
-            };
-            runHooks.ModelGenerationStart += async (context, agent, chatMessages, chatOptions) =>
-            {
-                await customerLoggerHooks.OnModelGenerationStart(context, agent, chatMessages, chatOptions);
-            };
-            runHooks.ModelGenerationEnd += async (context, agent, response) =>
-            {
-                await customerLoggerHooks.OnModelGenerationEnd(context, agent, response);
-            };
+                // Subscribe customer logger event handlers to the main runHooks
+                runHooks.ToolStart += async (context, agent, functionCall, tool, input) =>
+                {
+                    await customerLoggerHooks.OnToolStart(context, agent, functionCall, tool, input);
+                };
+                runHooks.ToolEnd += async (context, agent, functionCallContent, tool, output) =>
+                {
+                    await customerLoggerHooks.OnToolEnd(context, agent, functionCallContent, tool, output);
+                };
+                runHooks.AgentStart += async (context, agent) =>
+                {
+                    await customerLoggerHooks.OnAgentStart(context, agent);
+                };
+                runHooks.AgentEnd += async (context, agent, result) =>
+                {
+                    await customerLoggerHooks.OnAgentEnd(context, agent, result);
+                };
+                runHooks.Handoff += async (context, fromAgent, toAgent, handoffReasoning) =>
+                {
+                    await customerLoggerHooks.OnHandoff(context, fromAgent, toAgent, handoffReasoning);
+                };
+                runHooks.ModelGenerationStart += async (context, agent, chatMessages, chatOptions) =>
+                {
+                    await customerLoggerHooks.OnModelGenerationStart(context, agent, chatMessages, chatOptions);
+                };
+                runHooks.ModelGenerationEnd += async (context, agent, response) =>
+                {
+                    await customerLoggerHooks.OnModelGenerationEnd(context, agent, response);
+                };
 
                 logger.LogInternalInformation("CustomerLogger hooks enabled for testing - first-party check commented out");
             }
             else
             {
-                 logger.LogInternalInformation("CustomerLogger hooks disabled - not a first-party agent");
+                logger.LogInternalInformation("CustomerLogger hooks disabled - not a first-party agent");
             }
 
             // Register the step completion hook once at the beginning

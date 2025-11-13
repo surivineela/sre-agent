@@ -129,18 +129,19 @@ namespace Agent.Tests.Unit.Services
 
         private IncidentHandlerDocument CreateTestHandler(string id, string filterId)
         {
-            return new IncidentHandlerDocument(
-                Id: id,
-                DocumentType: "IncidentHandlerAzMonitor",
-                Name: "Test Handler",
-                Description: "Handles AKS incidents",
-                IncidentFilterId: filterId,
-                IncidentProcessingGuide: ["Check pod health", "Review HPA settings"],
-                Tools: ["QueryKusto", "GetMetrics"],
-                Incidents: [],
-                CustomInstructions: "Focus on resource constraints",
-                CreatedAt: DateTime.UtcNow
-            );
+            return new IncidentHandlerDocument()
+            {
+                Id = id,
+                DocumentType = "IncidentHandlerAzMonitor",
+                Name = "Test Handler",
+                Description = "Handles AKS incidents",
+                IncidentFilterId = filterId,
+                IncidentProcessingGuide = ["Check pod health", "Review HPA settings"],
+                Tools = ["QueryKusto", "GetMetrics"],
+                Incidents = [],
+                CustomInstructions = "Focus on resource constraints",
+                UpdatedAt = DateTime.UtcNow
+            };
         }
 
         private IncidentHandlingRequestModel<AzMonitorIncidentFilterDocumentPayload> CreateTestRequest()

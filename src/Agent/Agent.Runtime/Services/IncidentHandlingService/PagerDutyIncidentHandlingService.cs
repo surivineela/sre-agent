@@ -15,11 +15,12 @@ using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.Services;
 
-public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident>
+public class PagerDutyIncidentHandlingService : IncidentHandlingService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident>
 {
     private readonly IPagerDutyService _pagerDutyService;
     private readonly IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> _pagerDutyincidentManagementService;
 
+    protected override IncidentManagementType IncidentType => IncidentManagementType.PagerDuty;
     public PagerDutyIncidentHandlingService(
         IPagerDutyService pagerDutyService,
         IAgentInboundCommunicationService inboundCommunicationService,
@@ -76,9 +77,9 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
 
     protected override async Task<Thread> CreateIncidentHandlerAgentThreadAsync(
         PagerDutyIncidentDocument incidentDetails,
-        IncidentHandlerDocument incidentHandler,
-        PagerDutyIncidentFilterDocument incidentFilterDocument,
-        IncidentHandlingRequestModel<PagerDutyIncidentFilterDocumentPayload> request)
+        IncidentHandlerDocumentPayload incidentHandler,
+        PagerDutyIncidentFilterDocumentPayload incidentFilter,
+        IncidentHandlingRequestModelBase request)
     {
         _logger.LogInternalInformation("[PagerDutyIncidentHandlingService] CreateIncidentHandlerAgentThreadAsync: Delegating to base implementation for IncidentId: {IncidentId}", incidentDetails.Id);
 
@@ -89,9 +90,9 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
         return await CreateIncidentHandlerAgentThreadInternalAsync(
             incidentDetails,
             incidentHandler,
-            incidentFilterDocument,
+            incidentFilter,
             request,
-            GetIncidentSource(),
+            IncidentType.ToString(),
             GetPagerDutySpecificProperties);
     }
 
@@ -111,15 +112,5 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
             CreatedAt = request?.IncidentFilter?.CreatedAt ?? DateTime.UtcNow,
             UpdatedAt = request?.IncidentFilter?.UpdatedAt ?? DateTime.UtcNow
         };
-    }
-
-    public override string GetIncidentSource()
-    {
-        return "PagerDuty";
-    }
-
-    protected override string GetIncidentPlatform()
-    {
-        return IncidentManagementType.PagerDuty.ToString();
     }
 }

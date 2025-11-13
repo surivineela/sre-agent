@@ -289,14 +289,15 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             if (threadDocument is null)
             {
                 logger.LogInternalInformation("Thread doesn't exist for incident {incidentId}, skipping notification", incidentDocument.Id);
-                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel<PagerDutyIncidentFilterDocumentPayload>()
+                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModelWithFilterOnly<PagerDutyIncidentFilterDocumentPayload>()
                 {
                     IncidentId = incidentDocument.Id,
                     Title = incidentDocument.Title,
                     Description = incidentDocument.Description,
                     Severity = incidentDocument.Priority,
                     CreatedTime = incidentDocument.CreatedAt,
-                    ImpactedService = incidentDocument.ImpactedServiceName
+                    ImpactedService = incidentDocument.ImpactedServiceName,
+                    IncidentFilter = filterDocument
                 });
             }
             else

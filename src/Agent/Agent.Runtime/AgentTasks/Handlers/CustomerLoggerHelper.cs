@@ -19,7 +19,7 @@ public sealed class CustomerLoggerHelper : IDisposable
     private readonly string _threadId;
     private readonly string _taskType;
     private readonly Tracer _tracer;
-    
+
     // Span hierarchy for telemetry correlation
     private TelemetrySpan? _currentAgentSpan;
     private TelemetrySpan? _currentToolSpan;
@@ -191,7 +191,7 @@ public sealed class CustomerLoggerHelper : IDisposable
             };
 
             _customerLogger.LogCustomEvent("AgentHandoff", properties);
-            
+
             // End handoff span immediately as it's a point-in-time event
             handoffSpan.End();
             return Task.CompletedTask;

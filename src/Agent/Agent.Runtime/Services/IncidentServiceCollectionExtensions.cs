@@ -151,33 +151,51 @@ public static class IncidentServiceCollectionExtensions
             Scope = $"{icmAppsettings.IcmMSIResource}/.default",
         };
 
-        // if UserToken is not null -> local development, use user token from appsettings
+        IHttpClientBuilder httpClientBuilder;
+
+        // if UserToken is not null -> local development, use UserToken/Cert from appsettings
         // else if Agent Space Proxy is configured, use ICMAPIAgentSpaceTokenService
         // else if cert auth is configured, use ICMAPICertAuthService
         // else use Managed Identity
         if (IsDevelopment)
         {
-            if (string.IsNullOrWhiteSpace(icmAppsettings.UserToken))
+            if (!string.IsNullOrWhiteSpace(icmAppsettings.UserToken))
             {
-                throw new InvalidOperationException("ICM API UserToken is not configured for development environment.");
-            }
-            services.AddIcmApiClient(options =>
-            {
-                options.ApiEndpoint = apiEndpoint;
-                options.TokenProvider = sp =>
+                httpClientBuilder = services.AddIcmApiClient(options =>
                 {
-                    return ValueTask.FromResult(new AccessToken(
-                        icmAppsettings.UserToken,
-                        DateTimeOffset.MaxValue
-                    ));
-                };
-            });
+                    options.ApiEndpoint = apiEndpoint;
+                    options.TokenProvider = sp =>
+                    {
+                        return ValueTask.FromResult(new AccessToken(
+                            icmAppsettings.UserToken,
+                            DateTimeOffset.MaxValue
+                        ));
+                    };
+                });
+            }
+            else if (IcmApiCertAuthService.IsCertAuthConfigured(icmAppsettings))
+            {
+                services.AddSingleton<IIcmCertAuthService, IcmApiCertAuthService>();
+                httpClientBuilder = services.AddIcmApiClient(options =>
+                {
+                    options.ApiEndpoint = apiEndpoint;
+                    options.CertificateProvider = sp =>
+                    {
+                        var certAuthService = sp.GetRequiredService<IIcmCertAuthService>();
+                        return certAuthService.GetClientCertificate();
+                    };
+                });
+            }
+            else
+            {
+                throw new InvalidOperationException("For local environment, either UserToken or Certificate must be configured.");
+            }
         }
         else if (IcmApiAgentSpaceTokenAuthService.IsAgentSpaceProxyConfigured(icmAgentSpaceAuthOptions))
         {
             services.AddSingleton(icmAgentSpaceAuthOptions);
             services.AddSingleton<IIcmTokenAuthService, IcmApiAgentSpaceTokenAuthService>();
-            services.AddIcmApiClient(options =>
+            httpClientBuilder = services.AddIcmApiClient(options =>
             {
                 options.ApiEndpoint = apiEndpoint;
                 options.TokenProvider = async sp =>
@@ -190,7 +208,7 @@ public static class IncidentServiceCollectionExtensions
         else if (IcmApiCertAuthService.IsCertAuthConfigured(icmAppsettings))
         {
             services.AddSingleton<IIcmCertAuthService, IcmApiCertAuthService>();
-            services.AddIcmApiClient(options =>
+            httpClientBuilder = services.AddIcmApiClient(options =>
             {
                 options.ApiEndpoint = apiEndpoint;
                 options.CertificateProvider = sp =>
@@ -207,7 +225,7 @@ public static class IncidentServiceCollectionExtensions
             {
                 throw new InvalidOperationException("ICM API scope is not configured.");
             }
-            services.AddIcmApiClient(options =>
+            httpClientBuilder = services.AddIcmApiClient(options =>
             {
                 options.ApiEndpoint = apiEndpoint;
                 options.TokenProvider = async sp =>
@@ -219,7 +237,9 @@ public static class IncidentServiceCollectionExtensions
                 };
             });
         }
-        //services.AddHttpHandlerForICMClient<LoggingHttpMessageHandler>();
+
+        services.AddTransient<LoggingHttpMessageHandler>();
+        httpClientBuilder.AddHttpMessageHandler<LoggingHttpMessageHandler>();
         services.AddSingleton<IICMAPIClient, ICMAPIClient>();
 
         return services;

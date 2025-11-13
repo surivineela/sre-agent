@@ -118,7 +118,6 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
         Tags = incident.Tags;
 
         //ICM Incident Document specific info
-        CreatedAt = DateTime.UtcNow;
         UpdatedAt = incident.LastModifiedDate.UtcDateTime;
     }
 
@@ -132,7 +131,7 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
 
     public string ImpactedServiceName { get; set; } = string.Empty;
 
-    public DateTime CreatedAt { get; init; }
+    public DateTime CreatedAt => CreatedDate.UtcDateTime;
 
     public DateTime UpdatedAt
     {

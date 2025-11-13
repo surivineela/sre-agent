@@ -20,8 +20,6 @@ using Agent.Runtime.Services;
 using Azure.Core;
 using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Azure.Cosmos;
-using Microsoft.AzureAd.Icm.IcmV3ODataModels;
-using Microsoft.AzureAd.Icm.IcmV3ODataModels.CorrelationGroup;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
@@ -31,10 +29,7 @@ using IncidentDetails = Agent.Core.Models.Api.v1.IncidentDetails;
 using Message = Agent.Core.Models.Api.v1.Message;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
-/// <summary>
-/// Extend IncidentHandlingServiceBase is for GetIncidentFilterAndHandlerAsync only
-/// </summary>
-public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem>
+public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>
 {
 
     private readonly IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload> _incidentManagementService;
@@ -43,6 +38,12 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
     private readonly Container _dbContainer;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly IIncidentStatusMetricsService _incidentsStatusMetricsService;
+    private readonly IThreadRepository _repository;
+    private readonly IAgentInboundCommunicationService _inboundCommunicationService;
+    private readonly ExperimentalSettings _experimentalSettings;
+    private readonly IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem> _incidentAnalysisService;
+
+    private IncidentManagementType IncidentType => IncidentManagementType.AzMonitor;
 
     public AzMonitorIncidentHandlingService(
         IIncidentFilterManagementService<AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload> incidentFilterManagementService,
@@ -63,7 +64,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings
-    ) : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings)
+    ) : base(incidentFilterManagementService, incidentHandlerManagementService, agentFactory, logger)
     {
         _incidentManagementService = incidentManagementService;
         _azMonitorAlertService = azMonitorAlertService;
@@ -71,16 +72,10 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         _dbContainer = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
         _graphDbClient = graphDbClient;
         _incidentsStatusMetricsService = incidentsStatusMetricsService;
-    }
-
-    public override string GetIncidentSource()
-    {
-        return "AzMonitor";
-    }
-
-    protected override string GetIncidentPlatform()
-    {
-        return IncidentManagementType.AzMonitor.ToString();
+        _repository = repository;
+        _inboundCommunicationService = inboundCommunicationService;
+        _experimentalSettings = experimentalSettings;
+        _incidentAnalysisService = incidentAnalysisService;
     }
 
     protected override async Task<AzMonitorAlertDocument> GetIncidentAsync(string incidentId)
@@ -106,36 +101,18 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         }
     }
 
-    public async override Task<IncidentHandlingResponseModel> HandleIncidentAsync(IncidentHandlingRequestModel<AzMonitorIncidentFilterDocumentPayload>? request)
+    protected async override Task<IncidentHandlingResponseModel> HandleIncidentInternalAsync(AzMonitorAlertDocument incidentDetails, AzMonitorIncidentFilterDocumentPayload filterPayload, IncidentHandlerDocumentPayload? handler, IncidentHandlingRequestModelBase request)
     {
-        if (request is null)
-        {
-            throw new Exception("request cannot be null for HandleIncidentAsync");
-        }
-
         var isTest = request.IsTest;
         var incidentId = request.IncidentId;
 
         try
         {
-            var incidentDoc = await GetIncidentAsync(incidentId);
-            if (incidentDoc is null)
-            {
-                _logger.LogInternalWarning("[IncidentHandlingService] HandleIncidentAsync: No incident data found for IncidentId: {IncidentId}", incidentId);
-                return new IncidentHandlingResponseModel()
-                {
-                    StatusCode = 404,
-                    Response = "Incident not found"
-                };
-            }
-
-            var (filterPayload, handler) = await GetIncidentFilterAndHandlerAsync(request, incidentDoc);
-
-            var incident = AzMonitorAlertDocument.ToIncidentItem(incidentDoc);
+            var incident = AzMonitorAlertDocument.ToIncidentItem(incidentDetails);
 
             if (isTest)
             {
-                _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Processing test incident for IncidentId: {IncidentId}", incidentId);
+                _logger.LogInternalInformation("[AzMonitorIncidentHandlingService] HandleIncidentAsync: Processing test incident for IncidentId: {IncidentId}", incidentId);
 
                 var (thread, agentContext) = await CreateHandlerAwareIncidentThread(incident, handler, filterPayload);
 
@@ -143,15 +120,15 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
 
                 try
                 {
-                    var data = ToIncidentActivitySnapshot(filterPayload, incidentDoc, request, handler);
+                    var data = ToIncidentActivitySnapshot(filterPayload, incidentDetails, request, handler);
                     _incidentAnalysisService.Ingest(data);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogInternalError($"[IncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
+                    _logger.LogInternalError($"[AzMonitorIncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
                 }
 
-                _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created test thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", thread.Id, incidentId);
+                _logger.LogInternalInformation("[AzMonitorIncidentHandlingService] HandleIncidentAsync: Created test thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", thread.Id, incidentId);
 
                 return new IncidentHandlingResponseModel()
                 {
@@ -161,25 +138,25 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             }
             else
             {
-                _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Processing production incident for IncidentId: {IncidentId}", incidentId);
+                _logger.LogInternalInformation("[AzMonitorIncidentHandlingService] HandleIncidentAsync: Processing production incident for IncidentId: {IncidentId}", incidentId);
 
-                var maxAttempts = filterPayload?.MaxAutomatedInvestigationAttempts ?? 3;
+                var maxAttempts = filterPayload.MaxAutomatedInvestigationAttempts;
 
                 var threadId = await ProcessAlertAsync(incident, maxAttempts, handler, filterPayload);
 
                 if (threadId.HasValue)
                 {
-                    _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Processed incident with ThreadId: {ThreadId} for IncidentId: {IncidentId}", threadId.Value, incidentId);
+                    _logger.LogInternalInformation("[AzMonitorIncidentHandlingService] HandleIncidentAsync: Processed incident with ThreadId: {ThreadId} for IncidentId: {IncidentId}", threadId.Value, incidentId);
 
 
                     try
                     {
-                        var data = ToIncidentActivitySnapshot(filterPayload, incidentDoc, request, handler);
+                        var data = ToIncidentActivitySnapshot(filterPayload, incidentDetails, request, handler);
                         _incidentAnalysisService.Ingest(data);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogInternalError($"[IncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
+                        _logger.LogInternalError($"[AzMonitorIncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
                     }
 
                     return new IncidentHandlingResponseModel()
@@ -190,7 +167,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                 }
                 else
                 {
-                    _logger.LogInternalWarning("[IncidentHandlingService] HandleIncidentAsync: ProcessAlertAsync returned null threadId for IncidentId: {IncidentId}", incidentId);
+                    _logger.LogInternalWarning("[AzMonitorIncidentHandlingService] HandleIncidentAsync: ProcessAlertAsync returned null threadId for IncidentId: {IncidentId}", incidentId);
 
                     return new IncidentHandlingResponseModel()
                     {
@@ -202,7 +179,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "[IncidentHandlingService] HandleIncidentAsync: Error processing IncidentId: {IncidentId}", incidentId);
+            _logger.LogInternalError(ex, "[AzMonitorIncidentHandlingService] HandleIncidentAsync: Error processing IncidentId: {IncidentId}", incidentId);
 
             return new IncidentHandlingResponseModel()
             {
@@ -213,7 +190,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
     }
 
     #region ProcessIncident
-    public async Task<Guid?> ProcessAlertAsync(AlertItem alert, int maxAutomatedInvestigationAttempts, IncidentHandlerDocument? handlerDoc, AzMonitorIncidentFilterDocumentPayload? filterPayload = null)
+    public async Task<Guid?> ProcessAlertAsync(AlertItem alert, int maxAutomatedInvestigationAttempts, IncidentHandlerDocumentPayload? handlerDoc, AzMonitorIncidentFilterDocumentPayload? filterPayload = null)
     {
         try
         {
@@ -230,7 +207,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                 }
                 else
                 {
-                    _logger.LogInternalWarning($"HandleExistingThreadAsync returned ShouldReturn=true but ExistingThread is null for alert {alert.Id}");
+                    _logger.LogInternalWarning($"[AzMonitorIncidentHandlingService] HandleExistingThreadAsync returned ShouldReturn=true but ExistingThread is null for alert {alert.Id}");
                     // Continue with normal processing to create a new thread
                 }
             }
@@ -244,7 +221,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, $"Error processing alert {alert.Id}: {ex.Message}");
+            _logger.LogInternalError(ex, $"[AzMonitorIncidentHandlingService]Error processing alert {alert.Id}: {ex.Message}");
             return null;
         }
     }
@@ -265,7 +242,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         var alertDocumentId = existingActiveThread?.Status?.IncidentStatus?.IncidentId;
         if (string.IsNullOrEmpty(alertDocumentId))
         {
-            _logger.LogInternalWarning($"No alert document ID found for existing thread {existingActiveThread?.Id}");
+            _logger.LogInternalWarning($"[AzMonitorIncidentHandlingService] No alert document ID found for existing thread {existingActiveThread?.Id}");
             return (false, null);
         }
 
@@ -307,7 +284,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         var existingAlertDocument = await GetDocumentAsync<AzMonitorAlertDocument>(alertDocumentId, alertDocumentId);
         if (existingAlertDocument == null)
         {
-            _logger.LogInternalWarning($"Could not find alert document {alertDocumentId} for existing thread {existingActiveThread?.Id}");
+            _logger.LogInternalWarning($"[AzMonitorIncidentHandlingService] Could not find alert document {alertDocumentId} for existing thread {existingActiveThread?.Id}");
             return false;
         }
 
@@ -348,7 +325,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             return true; // Skip if user input already requested
         }
 
-        _logger.LogInternalInformation($"Found existing active thread {existingActiveThread?.Id} for alert {alert.Id}. Retry limit reached. Requesting user input.");
+        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Found existing active thread {existingActiveThread?.Id} for alert {alert.Id}. Retry limit reached. Requesting user input.");
 
         await RequestUserInputForRetryLimitAsync(alert, existingActiveThread!);
         await MarkUserInputRequestedAsync(alertDocument);
@@ -391,13 +368,13 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         int currentHitCount,
         int maxRetryCount)
     {
-        _logger.LogInternalInformation($"Found existing active thread {existingActiveThread?.Id} with completed investigation for alert {alert.Id}. Appending recurring alert message. Count: {currentHitCount + 1}/{maxRetryCount}");
+        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Found existing active thread {existingActiveThread?.Id} with completed investigation for alert {alert.Id}. Appending recurring alert message. Count: {currentHitCount + 1}/{maxRetryCount}");
 
         var message = $"Another alert **{alert.Id}** is firing with the same alert rule. Merging the investigation.";
 
         if (existingActiveThread == null)
         {
-            _logger.LogInternalWarning("existingActiveThread is null when trying to get agent contexts.");
+            _logger.LogInternalWarning("[AzMonitorIncidentHandlingService] existingActiveThread is null when trying to get agent contexts.");
             return;
         }
 
@@ -416,7 +393,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             Timestamp: DateTime.UtcNow
         ));
 
-        _logger.LogInternalInformation($"Updated recurring alert count to {currentHitCount + 1} for alert document {existingActiveThread.Status?.IncidentStatus?.IncidentId}");
+        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Updated recurring alert count to {currentHitCount + 1} for alert document {existingActiveThread.Status?.IncidentStatus?.IncidentId}");
     }
 
     private async Task ProcessNewAlertAsync(AlertItem alert)
@@ -429,7 +406,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
 
     private async Task<Guid> CreateAndInitializeThreadAsync(
         AlertItem alert,
-        IncidentHandlerDocument? handlerDoc,
+        IncidentHandlerDocumentPayload? handlerDoc,
         AzMonitorIncidentFilterDocumentPayload? filterPayload)
     {
         // Create incident thread with handler awareness
@@ -450,7 +427,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         Thread thread,
         AgentContext agentContext)
     {
-        _logger.LogInternalInformation($"Alert {alert.Id} targets a {alert.Properties?.Essentials?.TargetResourceType} resource. Requesting user to specify the affected resource before investigation.");
+        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Alert {alert.Id} targets a {alert.Properties?.Essentials?.TargetResourceType} resource. Requesting user to specify the affected resource before investigation.");
 
         var targetResourceInputMessage = BuildTargetResourceInputMessage(alert);
         await PromptUserForInputAsync(thread.Id, agentContext, targetResourceInputMessage);
@@ -472,7 +449,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         {
             if (alertDocument.TargetResourceInputRequested)
             {
-                _logger.LogInternalInformation($"Target resource input has already been requested for alert {alertId}.");
+                _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Target resource input has already been requested for alert {alertId}.");
                 return;
             }
 
@@ -493,7 +470,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         AlertItem alert,
         Thread thread,
         AgentContext agentContext,
-        IncidentHandlerDocument? handlerDoc)
+        IncidentHandlerDocumentPayload? handlerDoc)
     {
         var alertInfo = GetAlertInfoAsPrompt(alert);
 
@@ -520,7 +497,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
 
         if (alertDocument is null)
         {
-            _logger.LogInternalInformation($"Creating new incident document for {alert.Id}.");
+            _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Creating new incident document for {alert.Id}.");
 
             var newAlertDocument = AzMonitorAlertDocument.FromIncident(alert);
 
@@ -532,19 +509,19 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                     new PartitionKey(newAlertDocument.PartitionKey)
                 );
 
-                _logger.LogInternalInformation($"Alert document created successfully with id: {newAlertDocument.Id}");
+                _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Alert document created successfully with id: {newAlertDocument.Id}");
 
                 return newAlertDocument.Id;
             }
             catch (CosmosException ex)
             {
-                _logger.LogInternalError(ex, $"Error creating alert document in database: {ex.Message}");
+                _logger.LogInternalError(ex, $"[AzMonitorIncidentHandlingService] Error creating alert document in database: {ex.Message}");
                 throw;
             }
         }
         else
         {
-            _logger.LogInternalInformation($"Alert document already exists with id: {alertDocument.Id}. No new incident created.");
+            _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Alert document already exists with id: {alertDocument.Id}. No new incident created.");
         }
 
         return alertDocument.Id;
@@ -560,7 +537,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         else
         {
             createdAt = DateTimeOffset.UtcNow;
-            _logger.LogInternalWarning($"Could not parse start time {value}, using current time instead");
+            _logger.LogInternalWarning($"[AzMonitorIncidentHandlingService] Could not parse start time {value}, using current time instead");
         }
 
         return createdAt;
@@ -575,7 +552,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
 
             if (string.IsNullOrEmpty(targetResourceId))
             {
-                _logger.LogInternalWarning($"Alert {alert.Id} has no target resource, skipping graph DB operations");
+                _logger.LogInternalWarning($"[AzMonitorIncidentHandlingService] Alert {alert.Id} has no target resource, skipping graph DB operations");
                 return false;
             }
 
@@ -585,12 +562,12 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                 UpdateTs = DateTime.UtcNow.Ticks
             };
 
-            _logger.LogInternalInformation($"Adding/updating alert node in graph DB for {alert.Id}");
+            _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Adding/updating alert node in graph DB for {alert.Id}");
             var nodeResult = await _graphDbClient.AddOrUpdateNodeAsync(alertNode);
 
             if (!nodeResult)
             {
-                _logger.LogInternalWarning($"Failed to add/update alert node in graph DB for {alert.Id}");
+                _logger.LogInternalWarning($"[AzMonitorIncidentHandlingService] Failed to add/update alert node in graph DB for {alert.Id}");
                 return false;
             }
 
@@ -602,19 +579,19 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                 UpdateTs = DateTime.UtcNow.Ticks
             };
 
-            _logger.LogInternalInformation($"Adding/updating edge in graph DB between resource {targetResourceId} and alert {alert.Id}");
+            _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Adding/updating edge in graph DB between resource {targetResourceId} and alert {alert.Id}");
             var edgeResult = await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
             if (!edgeResult)
             {
-                _logger.LogInternalWarning($"Failed to add/update edge in graph DB between resource {targetResourceId} and alert {alert.Id}");
+                _logger.LogInternalWarning($"[AzMonitorIncidentHandlingService] Failed to add/update edge in graph DB between resource {targetResourceId} and alert {alert.Id}");
             }
 
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, $"Error saving alert {alert.Id} to graph database: {ex.Message}");
+            _logger.LogInternalError(ex, $"[AzMonitorIncidentHandlingService] Error saving alert {alert.Id} to graph database: {ex.Message}");
             return false;
         }
     }
@@ -669,7 +646,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             agentTypeEnum: AgentTypeEnum.Meta,
             source: ThreadSource.Incident,
             incidentId: alertIdResource.Name, // Alert GUID (unique every time a new alert is fired)
-            incidentSource: new IncidentSource(IncidentType.AzMonitor, alertRule),
+            incidentSource: new IncidentSource(Agent.Core.Models.Api.v1.IncidentType.AzMonitor, alertRule),
             incidentDetails: new IncidentDetails(
                 title,
                 startDateTime,
@@ -683,7 +660,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         // Emit agent action telemetry for thread creation with incident source AzMonitor
         try
         {
-            var param = JsonSerializer.Serialize(new { IncidentSource = GetIncidentSource() });
+            var param = JsonSerializer.Serialize(new { IncidentSource = IncidentType.ToString() });
             _logger.LogAgentAction(
                 action: AgentActionEvents.CreateThread,
                 parameter: param,
@@ -695,7 +672,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         }
         catch (Exception ex)
         {
-            _logger.LogInternalWarning(ex, "[AzMonitorAlertScanner] CreateIncidentThread: Failed to emit LogAgentAction for CreateThread");
+            _logger.LogInternalWarning(ex, "[AzMonitorIncidentHandlingService] CreateIncidentThread: Failed to emit LogAgentAction for CreateThread");
         }
 
         try
@@ -713,7 +690,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError($"Creating Incident thread failed with ex: {ex.Message}");
+            _logger.LogInternalError($"[AzMonitorIncidentHandlingService] Creating Incident thread failed with ex: {ex.Message}");
         }
 
         return (thread, agentContext);
@@ -721,7 +698,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
 
     private async Task<(Thread, AgentContext)> CreateHandlerAwareIncidentThread(
         AlertItem alert,
-        IncidentHandlerDocument? handlerDoc,
+        IncidentHandlerDocumentPayload? handlerDoc,
         AzMonitorIncidentFilterDocumentPayload? filterPayload)
     {
         if (handlerDoc != null)
@@ -737,7 +714,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
 
     private async Task<(Thread, AgentContext)> CreateIncidentThreadWithHandler(
         AlertItem alert,
-        IncidentHandlerDocument handlerDoc,
+        IncidentHandlerDocumentPayload handlerDoc,
         AzMonitorIncidentFilterDocumentPayload? filterPayload)
     {
         var essentials = alert.Properties.Essentials;
@@ -817,7 +794,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             agentTypeEnum: _experimentalSettings.UseYamlForIncidentHandling ? AgentTypeEnum.Meta : AgentTypeEnum.Incident,
             source: ThreadSource.Incident,
             incidentId: alertIdResource.Name,
-            incidentSource: new IncidentSource(IncidentType.AzMonitor, alertRule),
+            incidentSource: new IncidentSource(Agent.Core.Models.Api.v1.IncidentType.AzMonitor, alertRule),
             AllowedTools: handlerDoc.Tools,
             overrideAgentMode: filterPayload?.AgentMode ?? "",
             incidentDetails: new IncidentDetails(
@@ -840,7 +817,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         // Emit agent action telemetry for thread creation
         try
         {
-            var param = JsonSerializer.Serialize(new { IncidentSource = GetIncidentSource(), HandlerId = handlerDoc.Id });
+            var param = JsonSerializer.Serialize(new { IncidentSource = IncidentType.ToString(), HandlerId = handlerDoc.Id });
             _logger.LogAgentAction(
                 action: AgentActionEvents.CreateThread,
                 parameter: param,
@@ -867,7 +844,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         return (thread, agentContext);
     }
 
-    private string BuildSystemPromptFromHandler(IncidentHandlerDocument handler, AlertItem alert)
+    private string BuildSystemPromptFromHandler(IncidentHandlerDocumentPayload handler, AlertItem alert)
     {
         var promptBuilder = new StringBuilder();
 
@@ -951,14 +928,14 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             var alertRuleResourceId = alert.Properties.Essentials.AlertRule;
             var targetResource = alert.Properties?.Essentials?.TargetResource;
 
-            _logger.LogInternalInformation($"Looking for existing active thread for alert rule resource Id: {alertRuleResourceId}, target resource: {targetResource}");
+            _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Looking for existing active thread for alert rule resource Id: {alertRuleResourceId}, target resource: {targetResource}");
 
             // Get threads from last 7 days only
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
 
             var allIncidentThreads = await _repository.GetThreadsBySourceAsync(
                 source: ThreadSource.Incident,
-                incidentType: IncidentType.AzMonitor,
+                incidentType: Agent.Core.Models.Api.v1.IncidentType.AzMonitor,
                 createdAfter: sevenDaysAgo);
 
             foreach (var thread in allIncidentThreads)
@@ -974,7 +951,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
 
                     if (string.IsNullOrEmpty(alertDocumentId))
                     {
-                        _logger.LogInternalInformation($"Skipping thread {thread.Id} - no alert document ID found in status");
+                        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Skipping thread {thread.Id} - no alert document ID found in status");
                         continue;
                     }
 
@@ -983,41 +960,41 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
 
                     if (alertDocument == null)
                     {
-                        _logger.LogInternalInformation($"No alert document found for thread {thread.Id} with alert ID {alertDocumentId}");
+                        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] No alert document found for thread {thread.Id} with alert ID {alertDocumentId}");
                         continue;
                     }
 
                     // Skip if the alert document is already closed
                     if (alertDocument.Status == ServiceAlertState.Closed.ToString())
                     {
-                        _logger.LogInternalInformation($"Alert document {alertDocumentId} is already closed, skipping thread {thread.Id}");
+                        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Alert document {alertDocumentId} is already closed, skipping thread {thread.Id}");
                         continue;
                     }
 
                     // Match based on alert rule id
                     if (!string.IsNullOrEmpty(alertDocument.AlertRuleResourceId) && alertDocument.AlertRuleResourceId == alertRuleResourceId)
                     {
-                        _logger.LogInternalInformation($"Found existing active thread {thread.Id} for alert rule {alertRuleResourceId} and target resource {targetResource}");
+                        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Found existing active thread {thread.Id} for alert rule {alertRuleResourceId} and target resource {targetResource}");
                         return thread;
                     }
                     else
                     {
-                        _logger.LogInternalInformation($"Thread {thread.Id} alert document doesn't match - Document: (Name: {alertDocument.Title}, TargetResource: {alertDocument.TargetResourceId}) vs Incoming: (Name: {alertRuleResourceId}, TargetResource: {targetResource})");
+                        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Thread {thread.Id} alert document doesn't match - Document: (Name: {alertDocument.Title}, TargetResource: {alertDocument.TargetResourceId}) vs Incoming: (Name: {alertRuleResourceId}, TargetResource: {targetResource})");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogInternalError(ex, $"Error processing thread {thread.Id} while looking for existing alert rule: {ex.Message}");
+                    _logger.LogInternalError(ex, $"[AzMonitorIncidentHandlingService] Error processing thread {thread.Id} while looking for existing alert rule: {ex.Message}");
                     continue;
                 }
             }
 
-            _logger.LogInternalInformation($"No existing active thread found for alert rule {alertRuleResourceId} and target resource {targetResource}");
+            _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] No existing active thread found for alert rule {alertRuleResourceId} and target resource {targetResource}");
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, $"Error finding existing thread for alert rule {alert.Properties.Essentials.AlertRule}: {ex.Message}");
+            _logger.LogInternalError(ex, $"[AzMonitorIncidentHandlingService] Error finding existing thread for alert rule {alert.Properties.Essentials.AlertRule}: {ex.Message}");
         }
 
         return null;
@@ -1062,20 +1039,6 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         return Math.Round(totalMinutes, 2, MidpointRounding.AwayFromZero);
     }
 
-    /// <summary>
-    /// Not using it, keep it as unimplemented
-    /// </summary>
-    /// <param name="incidentDetails"></param>
-    /// <param name="incidentHandler"></param>
-    /// <param name="incidentFilterDocument"></param>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
-    protected override Task<Thread> CreateIncidentHandlerAgentThreadAsync(AzMonitorAlertDocument incidentDetails, IncidentHandlerDocument incidentHandler, AzMonitorIncidentFilterDocument incidentFilterDocument, IncidentHandlingRequestModel<AzMonitorIncidentFilterDocumentPayload> request)
-    {
-        throw new NotImplementedException();
-    }
-
     protected override AzMonitorIncidentFilterDocument GetDefaultIncidentFilter(IncidentHandlingRequestModel<AzMonitorIncidentFilterDocumentPayload> request)
     {
         string filterId = $"IncidentFilter_AzMonitor";
@@ -1097,11 +1060,11 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         };
     }
 
-    protected override IncidentAIData ToIncidentActivitySnapshot(AzMonitorIncidentFilterDocument? filter, AzMonitorAlertDocument incidentDetails, IncidentHandlingRequestModel<AzMonitorIncidentFilterDocumentPayload> request, IncidentHandlerDocument? handler)
+    protected IncidentAIData ToIncidentActivitySnapshot(AzMonitorIncidentFilterDocumentPayload filter, AzMonitorAlertDocument incidentDetails, IncidentHandlingRequestModelBase request, IncidentHandlerDocumentPayload? handler)
     {
         IncidentAIData snapShot = new IncidentAIData
         {
-            HandlerId = filter?.Id ?? handler?.IncidentFilterId ?? request.IncidentFilter?.Id ?? request.IncidentFilter?.Name ?? "no-handler",
+            HandlerId = filter?.Id ?? filter?.Name ?? "no-handler",
             IncidentId = incidentDetails.Id,
             IncidentTitle = incidentDetails.Title,
             IncidentCreatedAt = incidentDetails.CreatedAt,
@@ -1118,9 +1081,9 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             RootCauseDescription = incidentDetails.RootCauseDescription,
             Summary = incidentDetails.GeneralSummary,
             ImpactedService = incidentDetails.ImpactedServiceName,
-            RunMode = !string.IsNullOrWhiteSpace(filter?.AgentMode) ? filter.AgentMode : !string.IsNullOrWhiteSpace(request.IncidentFilter?.AgentMode) ? request.IncidentFilter?.AgentMode! : "review",
+            RunMode = !string.IsNullOrWhiteSpace(filter?.AgentMode) ? filter.AgentMode! : "review",
             IsHandlerCustom = !string.IsNullOrWhiteSpace(handler?.CustomInstructions) ? true : false,
-            IncidentPlatform = GetIncidentPlatform(),
+            IncidentPlatform = IncidentType.ToString(),
             TimeTilMitigation = GetTimeTilMitigation(incidentDetails)
         };
 

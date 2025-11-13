@@ -8,7 +8,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.DataModels;
 using Agent.Framework;
-using Microsoft.AzureAd.Icm.IcmV3ODataModels.CorrelationGroup;
 using Microsoft.Extensions.Logging;
 using Microsoft.SREAgent.Incidents.IcM.Model;
 using OpenTelemetry.Trace;
@@ -16,11 +15,13 @@ using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.Services;
 
-public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, ICMIncident>
+public class IcmIncidentHandlingService : IncidentHandlingService<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, ICMIncident>
 {
     private readonly IICMAPIClient _icmApiClient;
 
     private readonly IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> _icmIncidentManagementService;
+
+    protected override IncidentManagementType IncidentType => IncidentManagementType.Icm;
 
     public IcmIncidentHandlingService(
         IICMAPIClient icmApiClient,
@@ -42,31 +43,16 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
         _icmIncidentManagementService = icmIncidentManagementService;
     }
 
-    public override async Task<IncidentHandlingResponseModel> HandleIncidentAsync(IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload>? request)
+    protected override async Task<IncidentHandlingResponseModel> HandleIncidentInternalAsync(IcmIncidentDocument incidentDetails, IcmIncidentFilterDocumentPayload matchingFilter, IncidentHandlerDocumentPayload? matchingHandler, IncidentHandlingRequestModelBase request)
     {
-        if (request is null)
-        {
-            return new IncidentHandlingResponseModel
-            {
-                StatusCode = 400,
-                Response = "Invalid request. IncidentHandlingRequestModel cannot be null."
-            };
-        }
-        _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Invoked for IncidentId: {IncidentId}", request.IncidentId);
-        var incidentId = request.IncidentId;
         var response = new IncidentHandlingResponseModel();
         try
         {
-            var incidentDetails = await GetIncidentAsync(incidentId);
-
-            // Check if JSON-based custom handler is mapped to the filter
-            var (matchingFilter, matchingHandler) = await GetIncidentFilterAndHandlerAsync(request, incidentDetails);
-
-            if (matchingHandler == null)
+            if (matchingHandler is null)
             {
-                _logger.LogInternalWarning("[IncidentHandlingService] HandleIncidentAsync: No matching handler found for FilterId: {FilterId}, using MetaAgent", matchingFilter.Id);
+                _logger.LogInternalWarning("[IcmIncidentHandlingService] HandleIncidentAsync: No matching handler found for FilterId: {FilterId}, using MetaAgent", matchingFilter.Id);
 
-                var incidentRequest = new IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload>
+                var incidentRequest = new IncidentHandlingRequestModelBase()
                 {
                     Title = incidentDetails.Title ?? "New Incident",
                     Description = incidentDetails.Description ?? "Alert notification.",
@@ -75,14 +61,12 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
                     Source = request.Source ?? incidentDetails.DocumentType,
                     AdditionalProperties = request.AdditionalProperties,
                     IsTest = request.IsTest,
-                    IncidentHandler = request.IncidentHandler,
-                    IncidentFilter = request.IncidentFilter,
-                    CreatedTime = request.CreatedTime
+                    CreatedTime = incidentDetails.CreatedAt
                 };
 
                 // use handler id from filter to set current agent for meta agent thread
                 var defaultThread = await CreateIncidentMetaAgentThread(incidentRequest, matchingFilter, matchingFilter.HandlingAgent ?? string.Empty);
-                _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created MetaAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", defaultThread.Id, incidentId);
+                _logger.LogInternalInformation("[IcmIncidentHandlingService] HandleIncidentAsync: Created MetaAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", defaultThread.Id, request.IncidentId);
 
                 var incidentStatusMetrics = await _incidentStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
                 await _agentOutboundCommunicationService.NotifyIncidentStatusMetrics(defaultThread.Id, incidentStatusMetrics);
@@ -94,7 +78,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogInternalError($"[IncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
+                    _logger.LogInternalError($"[IcmIncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
                 }
 
                 response.StatusCode = 200;
@@ -102,23 +86,23 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
                 return response;
             }
 
-            _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Matched Handler. Creating IncidentHandlerAgent thread for IncidentId: {IncidentId}, FilterId: {FilterId} and HandlerId: {HandlerId}", incidentId, matchingFilter.Id, matchingHandler.Id);
+            _logger.LogInternalInformation("[IcmIncidentHandlingService] HandleIncidentAsync: Matched Handler. Creating IncidentHandlerAgent thread for IncidentId: {IncidentId}, FilterId: {FilterId} and HandlerId: {HandlerId}", request.IncidentId, matchingFilter.Id, matchingHandler.Id);
 
             Thread thread;
 
             // Check if YAML-based incident handling is enabled
             if (_experimentalSettings.UseYamlForIncidentHandling)
             {
-                _logger.LogInternalInformation("[IncidentHandlingService] Using YAML-based incident handling for IncidentId: {IncidentId}", incidentId);
-                thread = await CreateIncidentHandlerAgentThreadAsync(incidentDetails, matchingHandler, matchingFilter, request);
+                _logger.LogInternalInformation("[IcmIncidentHandlingService] Using YAML-based incident handling for IncidentId: {IncidentId}", request.IncidentId);
+                thread = await CreateIncidentHandlerAgentThreadAsync(incidentDetails, matchingHandler, matchingFilter, (IncidentHandlingRequestModelBase)request);
             }
             else
             {
-                _logger.LogInternalInformation("[IncidentHandlingService] Using legacy incident handling for IncidentId: {IncidentId}", incidentId);
-                thread = await CreateIncidentHandlerAgentThreadAsync(incidentDetails, matchingHandler, matchingFilter, request);
+                _logger.LogInternalInformation("[IcmIncidentHandlingService] Using legacy incident handling for IncidentId: {IncidentId}", request.IncidentId);
+                thread = await CreateIncidentHandlerAgentThreadAsync(incidentDetails, matchingHandler, matchingFilter, (IncidentHandlingRequestModelBase)request);
             }
 
-            _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created IncidentHandlerAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} and HandlerId: {HandlerId}", thread.Id, incidentId, matchingHandler.Id);
+            _logger.LogInternalInformation("[IcmIncidentHandlingService] HandleIncidentAsync: Created IncidentHandlerAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} and HandlerId: {HandlerId}", thread.Id, request.IncidentId, matchingHandler.Id);
 
             try
             {
@@ -127,24 +111,17 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError($"[IncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
+                _logger.LogInternalError($"[IcmIncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
             }
 
             response.StatusCode = 200;
             response.Response = new { threadId = thread.Id, message = "Incident received" };
             return response;
         }
-        catch (Exception ex) when (ex is IncidentFilterNotFoundException)
-        {
-            _logger.LogInternalWarning("[IncidentHandlingService] HandleIncidentAsync: No matching incident filters found for IncidentId: {IncidentId}", incidentId);
-            response.StatusCode = 404;
-            response.Response = "No matching incident filters found for this incident.";
-            return response;
-        }
 
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "[IncidentHandlingService] HandleIncidentAsync: Error processing IncidentId: {IncidentId}", incidentId);
+            _logger.LogInternalError(ex, "[IcmIncidentHandlingService] HandleIncidentAsync: Error processing IncidentId: {IncidentId}", request.IncidentId);
             response.StatusCode = 500;
             response.Response = "Failed to process Incident";
             return response;
@@ -176,9 +153,9 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
 
     protected override async Task<Thread> CreateIncidentHandlerAgentThreadAsync(
         IcmIncidentDocument incidentDetails,
-        IncidentHandlerDocument incidentHandler,
-        IcmIncidentFilterDocument incidentFilterDocument,
-        IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload> request)
+        IncidentHandlerDocumentPayload incidentHandler,
+        IcmIncidentFilterDocumentPayload incidentFilter,
+        IncidentHandlingRequestModelBase request)
     {
         _logger.LogInternalInformation("[IcmIncidentHandlingService] CreateIncidentHandlerAgentThreadAsync: Delegating to base implementation for IncidentId: {IncidentId}", incidentDetails.Id);
 
@@ -189,9 +166,9 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
         return await CreateIncidentHandlerAgentThreadInternalAsync(
             incidentDetails,
             incidentHandler,
-            incidentFilterDocument,
+            incidentFilter,
             request,
-            GetIncidentSource(),
+            IncidentType.ToString(),
             GetIcmSpecificProperties);
     }
 
@@ -212,22 +189,11 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
             UpdatedAt = request?.IncidentFilter?.UpdatedAt ?? DateTime.UtcNow
         };
     }
-
-    public override string GetIncidentSource()
-    {
-        return "ICM";
-    }
-
-    protected override string GetIncidentPlatform()
-    {
-        return IncidentManagementType.Icm.ToString();
-    }
-
-    protected override IncidentAIData ToIncidentActivitySnapshot(IcmIncidentFilterDocument filter, IcmIncidentDocument incidentDetails, IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload> request, IncidentHandlerDocument? handler)
+    protected override IncidentAIData ToIncidentActivitySnapshot(IcmIncidentFilterDocumentPayload filter, IcmIncidentDocument incidentDetails, IncidentHandlingRequestModelBase request, IncidentHandlerDocumentPayload? handler)
     {
         IncidentAIData snapShot = new IncidentAIData
         {
-            HandlerId = filter.Id ?? handler?.IncidentFilterId ?? request.IncidentFilter?.Id ?? request.IncidentFilter?.Name ?? "no-handler",
+            HandlerId = filter.Id ?? filter.Name ?? "no-handler",
             IncidentId = incidentDetails.Id,
             IncidentTitle = incidentDetails.Title,
             IncidentCreatedAt = incidentDetails.CreatedDate.UtcDateTime,
@@ -244,12 +210,38 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
             RootCauseDescription = incidentDetails.RootCauseDescription,
             Summary = incidentDetails.GeneralSummary,
             ImpactedService = incidentDetails.ImpactedServiceName,
-            RunMode = !string.IsNullOrWhiteSpace(filter.AgentMode) ? filter.AgentMode : !string.IsNullOrWhiteSpace(request.IncidentFilter?.AgentMode) ? request.IncidentFilter?.AgentMode! : "review",
+            RunMode = !string.IsNullOrWhiteSpace(filter.AgentMode) ? filter.AgentMode : "review",
             IsHandlerCustom = !string.IsNullOrWhiteSpace(handler?.CustomInstructions) ? true : false,
-            IncidentPlatform = GetIncidentPlatform(),
+            IncidentPlatform = IncidentType.ToString(),
             TimeTilMitigation = null
         };
-
         return snapShot;
+    }
+
+    protected override IcmIncidentFilterDocumentPayload GetIncidentFilter(List<IcmIncidentFilterDocumentPayload> filterPayloads, IcmIncidentDocument incidentDetails)
+    {
+        var matchingFilters = filterPayloads
+            .Where(filter =>
+                (string.IsNullOrWhiteSpace(filter.ImpactedService) || filter.ImpactedService == incidentDetails.ImpactedServiceId || filter.ImpactedService == incidentDetails.ImpactedServiceName)
+                &&
+                (string.IsNullOrWhiteSpace(filter.Priority) || IsPriorityMatch(filter.Priority, incidentDetails.Priority))
+                &&
+                (string.IsNullOrWhiteSpace(filter.IncidentType) || (filter.IncidentType == incidentDetails.IncidentType))
+                &&
+                (string.IsNullOrWhiteSpace(filter.TitleContains) || (incidentDetails.Title?.Contains(filter.TitleContains, StringComparison.OrdinalIgnoreCase) ?? false))
+                &&
+                (string.IsNullOrWhiteSpace(filter.OwningTeamId) || filter.OwningTeamId == incidentDetails.OwningTeamId.ToString())
+            )
+            .ToList();
+
+        _logger.LogInternalInformation("[IcmIncidentHandlingService] GetIncidentFilter: Found {MatchingFilterCount} matching filters for IncidentId: {IncidentId}", matchingFilters.Count, incidentDetails.Id);
+
+        if (matchingFilters is null || matchingFilters.Count == 0)
+        {
+            throw new IncidentFilterNotFoundException();
+        }
+
+        var matchingFilter = matchingFilters.First();
+        return matchingFilter;
     }
 }
