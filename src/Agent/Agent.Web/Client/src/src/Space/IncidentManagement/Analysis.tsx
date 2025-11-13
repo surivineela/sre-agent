@@ -10,6 +10,7 @@ import { TimeRangeValue, TimespanKeys } from '../../Common/Components/PillFilter
 import { getDefaultTimeRangeOptions } from '../../Common/Components/PillFilter/Hooks/useTimeRangePillFilter';
 import { PillFilter } from '../../Common/Components/PillFilter/PillFilter';
 import { IncidentFilter } from '../../Common/Contracts/Azure/IncidentHandler';
+import { fillMissingDatesInTimeSeries } from '../../Common/Helpers/Date';
 import { getLocalizedIncidentPlatformName } from '../../Common/Helpers/IncidentManagement';
 import { getPercentChangeInArray } from '../../Common/Helpers/Math';
 import { useAuthToken } from '../../Common/Hooks/useAuthToken';
@@ -94,8 +95,28 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
         [incidentCoverageResponse]
     );
 
+    const filledIncidentCoverageData = useMemo(
+        () =>
+            fillMissingDatesInTimeSeries(incidentCoverageResponse ?? [], selectedTimeRange, {
+                distinctIncidentCount: 0,
+            }),
+        [incidentCoverageResponse, selectedTimeRange]
+    );
+
+    const filledIncidentSummaryData = useMemo(
+        () =>
+            fillMissingDatesInTimeSeries(incidentSummaryResponse ?? [], selectedTimeRange, {
+                distinctIncidentCount: 0,
+                agentAssisted: 0,
+                userMitigated: 0,
+                agentMitigated: 0,
+                pendingUserAction: 0,
+            }),
+        [incidentSummaryResponse, selectedTimeRange]
+    );
+
     const incidentsReviewedStatCardData = useMemo<StatCardData>(() => {
-        const percentChange = getPercentChangeInArray(incidentCoverageResponse ?? [], 'distinctIncidentCount');
+        const percentChange = getPercentChangeInArray(filledIncidentCoverageData, 'distinctIncidentCount');
 
         return {
             currentValue: numIncidentsReviewed,
@@ -105,15 +126,15 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                     {
                         legend: intl.formatMessage(IncidentManagementResources.incidentsReviewed),
                         color: getColorFromToken(DataVizPalette.color16),
-                        data: incidentCoverageResponse?.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
+                        data: filledIncidentCoverageData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
                     },
                 ],
             },
         };
-    }, [intl, incidentCoverageResponse, numIncidentsReviewed]);
+    }, [intl, filledIncidentCoverageData, numIncidentsReviewed]);
 
     const assistedByAgentStatCardData = useMemo<StatCardData>(() => {
-        const percentChange = getPercentChangeInArray(incidentSummaryResponse ?? [], 'agentAssisted');
+        const percentChange = getPercentChangeInArray(filledIncidentSummaryData, 'agentAssisted');
 
         return {
             currentValue: incidentSummaryResponse?.reduce((sum, item) => sum + item.agentAssisted, 0) ?? 0,
@@ -124,15 +145,15 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                     {
                         legend: intl.formatMessage(IncidentManagementResources.assistedByAgent),
                         color: getColorFromToken(DataVizPalette.color16),
-                        data: incidentSummaryResponse?.map(row => ({ x: row.handledAt, y: row.agentAssisted })) ?? [],
+                        data: filledIncidentSummaryData.map(row => ({ x: row.handledAt, y: row.agentAssisted })) ?? [],
                     },
                 ],
             },
         };
-    }, [intl, incidentSummaryResponse, numIncidentsReviewed]);
+    }, [intl, incidentSummaryResponse, numIncidentsReviewed, filledIncidentSummaryData]);
 
     const mitigatedByAgentStatCardData = useMemo<StatCardData>(() => {
-        const percentChange = getPercentChangeInArray(incidentSummaryResponse ?? [], 'agentMitigated');
+        const percentChange = getPercentChangeInArray(filledIncidentSummaryData, 'agentMitigated');
 
         return {
             currentValue: incidentSummaryResponse?.reduce((sum, item) => sum + item.agentMitigated, 0) ?? 0,
@@ -143,15 +164,15 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                     {
                         legend: intl.formatMessage(IncidentManagementResources.mitigatedByAgent),
                         color: getColorFromToken(DataVizPalette.color16),
-                        data: incidentSummaryResponse?.map(row => ({ x: row.handledAt, y: row.agentMitigated })) ?? [],
+                        data: filledIncidentSummaryData.map(row => ({ x: row.handledAt, y: row.agentMitigated })) ?? [],
                     },
                 ],
             },
         };
-    }, [intl, incidentSummaryResponse, numIncidentsReviewed]);
+    }, [intl, incidentSummaryResponse, numIncidentsReviewed, filledIncidentSummaryData]);
 
     const mitigatedByUserStatCardData = useMemo<StatCardData>(() => {
-        const percentChange = getPercentChangeInArray(incidentSummaryResponse ?? [], 'userMitigated');
+        const percentChange = getPercentChangeInArray(filledIncidentSummaryData, 'userMitigated');
 
         return {
             currentValue: incidentSummaryResponse?.reduce((sum, item) => sum + item.userMitigated, 0) ?? 0,
@@ -162,15 +183,15 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                     {
                         legend: intl.formatMessage(IncidentManagementResources.mitigatedByUser),
                         color: getColorFromToken(DataVizPalette.color16),
-                        data: incidentSummaryResponse?.map(row => ({ x: row.handledAt, y: row.userMitigated })) ?? [],
+                        data: filledIncidentSummaryData.map(row => ({ x: row.handledAt, y: row.userMitigated })) ?? [],
                     },
                 ],
             },
         };
-    }, [intl, incidentSummaryResponse, numIncidentsReviewed]);
+    }, [intl, incidentSummaryResponse, numIncidentsReviewed, filledIncidentSummaryData]);
 
     const pendingUserActionStatCardData = useMemo<StatCardData>(() => {
-        const percentChange = getPercentChangeInArray(incidentSummaryResponse ?? [], 'pendingUserAction');
+        const percentChange = getPercentChangeInArray(filledIncidentSummaryData, 'pendingUserAction');
 
         return {
             currentValue: incidentSummaryResponse?.reduce((sum, item) => sum + item.pendingUserAction, 0) ?? 0,
@@ -181,82 +202,66 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                     {
                         legend: intl.formatMessage(IncidentManagementResources.pendingUserAction),
                         color: getColorFromToken(DataVizPalette.color16),
-                        data: incidentSummaryResponse?.map(row => ({ x: row.handledAt, y: row.pendingUserAction })) ?? [],
+                        data: filledIncidentSummaryData.map(row => ({ x: row.handledAt, y: row.pendingUserAction })) ?? [],
                     },
                 ],
             },
         };
-    }, [intl, incidentSummaryResponse, numIncidentsReviewed]);
+    }, [intl, incidentSummaryResponse, numIncidentsReviewed, filledIncidentSummaryData]);
 
     const incidentCoverageChartData = useMemo<IChartProps>(() => {
-        const chartData = incidentCoverageResponse ?? [];
-
         const data: IChartProps = {
             lineChartData: [
-                /*{
-                    legend: intl.formatMessage(IncidentManagementResources.totalIncidents),
-                    color: getColorFromToken(DataVizPalette.color1),
-                    data: chartData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
-                    legendShape: 'circle',
-                },*/
                 {
                     legend: intl.formatMessage(IncidentManagementResources.incidentsReviewed),
                     color: getColorFromToken(DataVizPalette.color3),
-                    data: chartData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
+                    data: filledIncidentCoverageData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
                     legendShape: 'circle',
                 },
-                /*{
-                    legend: intl.formatMessage(IncidentManagementResources.incidentsNotHandledByResponsePlanCriteria),
-                    color: getColorFromToken(DataVizPalette.color2),
-                    data: chartData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
-                    legendShape: 'circle',
-                },*/
             ],
         };
 
         return data;
-    }, [intl, incidentCoverageResponse]);
+    }, [intl, filledIncidentCoverageData]);
 
     const incidentSummaryChartData = useMemo<IChartProps>(() => {
-        const chartData = incidentSummaryResponse ?? [];
-
         const data: IChartProps = {
             lineChartData: [
                 {
                     legend: intl.formatMessage(IncidentManagementResources.incidentsReviewed),
                     color: getColorFromToken(DataVizPalette.color1),
-                    data: chartData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
+                    data: filledIncidentSummaryData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
                     legendShape: 'circle',
                 },
                 {
                     legend: intl.formatMessage(IncidentManagementResources.assistedByAgent),
                     color: getColorFromToken(DataVizPalette.color16),
-                    data: chartData.map(row => ({ x: row.handledAt, y: row.agentAssisted })) ?? [],
+                    data: filledIncidentSummaryData.map(row => ({ x: row.handledAt, y: row.agentAssisted })) ?? [],
                     legendShape: 'circle',
                 },
                 {
                     legend: intl.formatMessage(IncidentManagementResources.mitigatedByAgent),
                     color: getColorFromToken(DataVizPalette.color8),
-                    data: chartData.map(row => ({ x: row.handledAt, y: row.agentMitigated })) ?? [],
+                    data: filledIncidentSummaryData.map(row => ({ x: row.handledAt, y: row.agentMitigated })) ?? [],
                     legendShape: 'circle',
                 },
                 {
                     legend: intl.formatMessage(IncidentManagementResources.mitigatedByUser),
                     color: getColorFromToken(DataVizPalette.color2),
-                    data: chartData.map(row => ({ x: row.handledAt, y: row.userMitigated })) ?? [],
+                    data: filledIncidentSummaryData.map(row => ({ x: row.handledAt, y: row.userMitigated })) ?? [],
                     legendShape: 'circle',
                 },
                 {
                     legend: intl.formatMessage(IncidentManagementResources.pendingUserAction),
                     color: getColorFromToken(DataVizPalette.color10),
-                    data: chartData.map(row => ({ x: row.handledAt, y: row.pendingUserAction })) ?? [],
+                    data: filledIncidentSummaryData.map(row => ({ x: row.handledAt, y: row.pendingUserAction })) ?? [],
                     legendShape: 'circle',
                 },
             ],
         };
 
         return data;
-    }, [intl, incidentSummaryResponse]);
+    }, [intl, filledIncidentSummaryData]);
 
     const fetchIncidentCoverageData = useCallback(async () => {
         if (!appInsightsToken) return;

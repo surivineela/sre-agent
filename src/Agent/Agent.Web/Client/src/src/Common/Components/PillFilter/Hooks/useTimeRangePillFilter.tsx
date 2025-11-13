@@ -7,8 +7,10 @@ import {
     changeToLocalTimezone,
     changeToUtcTimezone,
     extractDateFromDateTime,
-    formatDateToYYYYMMDD,
+    formatDateToMMDDYYYY,
+    formatShortDate,
     getCombineDateAndTime,
+    getLocaleTime24H,
 } from '../../../Helpers/Date';
 import { TimeRangeKeyLabelPair, TimeRangeValue, TimespanKeys, UseTimeRangePillFilterProps } from '../Contracts';
 
@@ -129,7 +131,23 @@ export const useTimeRangePillFilter = (props: UseTimeRangePillFilterProps | unde
     );
 
     const pillDisplayValue = useMemo((): string => {
-        return currentSelectedValue?.key ? getOptionText(currentSelectedValue.key) : '';
+        if (!currentSelectedValue?.key) {
+            return '';
+        }
+
+        if (currentSelectedValue.key === TimespanKeys.Custom && currentSelectedValue.start && currentSelectedValue.end) {
+            const startDate = formatShortDate(currentSelectedValue.start);
+            const startTime = getLocaleTime24H(currentSelectedValue.start);
+            const endDate = formatShortDate(currentSelectedValue.end);
+            const endTime = getLocaleTime24H(currentSelectedValue.end);
+
+            if (startDate === endDate) {
+                return `${startDate} ${startTime} - ${endTime}`;
+            }
+            return `${startDate} ${startTime} - ${endDate} ${endTime}`;
+        }
+
+        return getOptionText(currentSelectedValue.key);
     }, [getOptionText, currentSelectedValue]);
 
     const onApplyClick = useCallback(() => {
@@ -216,7 +234,7 @@ export const useTimeRangePillFilter = (props: UseTimeRangePillFilterProps | unde
                                             setPendingStartTime(getCombineDateAndTime(date, pendingStartTime));
                                         }
                                     }}
-                                    formatDate={date => formatDateToYYYYMMDD(date)}
+                                    formatDate={date => formatDateToMMDDYYYY(date)}
                                     showGoToToday={true}
                                     isMonthPickerVisible={true}
                                 />
@@ -249,7 +267,7 @@ export const useTimeRangePillFilter = (props: UseTimeRangePillFilterProps | unde
                                             setPendingEndTime(getCombineDateAndTime(date, pendingEndTime));
                                         }
                                     }}
-                                    formatDate={date => formatDateToYYYYMMDD(date)}
+                                    formatDate={date => formatDateToMMDDYYYY(date)}
                                     showGoToToday={true}
                                     isMonthPickerVisible={true}
                                 />

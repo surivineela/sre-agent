@@ -1,19 +1,24 @@
 import { DataVizPalette, getColorFromToken, IChartProps } from '@fluentui/react-charting';
 import { Body1, Button, Divider, MessageBar, MessageBarBody, MessageBarTitle, Subtitle1, tokens } from '@fluentui/react-components';
-import { ArrowLeft20Regular } from '@fluentui/react-icons';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { ArrowLeft20Regular, Branch16Regular } from '@fluentui/react-icons';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useAzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { AzPortalContext, useAzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AppInsightsClient } from '../../../Common/Clients/AppInsightsClient';
 import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClient';
+import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import { TimeRangeKeyLabelPair, TimeRangeValue } from '../../../Common/Components/PillFilter/Contracts';
 import { PillFilter } from '../../../Common/Components/PillFilter/PillFilter';
-import { IncidentFilter } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentDocument, IncidentFilter } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { Thread } from '../../../Common/Contracts/DataPlane/Thread';
 import { getLocalizedAgentMode } from '../../../Common/Helpers/AgentMode';
 import { getPercentChangeInArray } from '../../../Common/Helpers/Math';
 import { IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import { TracePanel } from '../../Foundry/app/components/shell/playground/tracing/TracePanel';
 import { IncidentHandlerItem, IncidentSummaryItem } from '../Analysis';
+import IncidentChatDrawer from '../Common/IncidentChatDrawer';
+import IncidentChat from '../IncidentChat';
 import { ChartCard } from './Components/ChartCard';
 import { RcaCard } from './Components/RcaCard';
 import ResponsePlanDetailsDrawer from './Components/ResponsePlanDetailsDrawer';
@@ -29,6 +34,12 @@ export interface IncidentItem {
     assistedByAgent: boolean;
     mitigatedBy: 'user' | 'agent' | 'inProgress';
     // meantTimeToMitigate: number; // No data for this yet
+}
+
+interface SelectedThreadInfo {
+    thread: Thread;
+    fullScreen: boolean;
+    showTrace: boolean;
 }
 
 interface ResponsePlanViewProps {
@@ -53,10 +64,20 @@ export const ResponsePlanView = ({
     onEditHandler,
 }: ResponsePlanViewProps) => {
     const intl = useIntl();
-    const { resourceId } = useContext(EnvironmentContext);
+    const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
     const { log } = useAzPortalContext();
+    const azPortalContext = useContext(AzPortalContext);
+
+    const incidentHandlerClient = useMemo(
+        () => IncidentHandlerClient.getInstance(sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)),
+        [azPortalContext, sreAgentEndpoint]
+    );
+
+    const traceFocusRestorationRef = useRef<HTMLButtonElement>(null);
 
     const [isViewResponsePlanPanelOpen, setIsViewResponsePlanPanelOpen] = useState(false);
+    const [selectedThreadInfo, setSelectedThreadInfo] = useState<SelectedThreadInfo | null>(null);
+    const [selectedIncidentDetails, setSelectedIncidentDetails] = useState<IncidentDocument>();
 
     const [isIncidentSummaryLoading, setIsIncidentSummaryLoading] = useState(true);
     const [isIncidentsLoading, setIsIncidentsLoading] = useState(true);
@@ -64,6 +85,49 @@ export const ResponsePlanView = ({
     const [incidentSummaryResponse, setIncidentSummaryResponse] = useState<IncidentSummaryItem[]>();
     const [incidentsResponse, setIncidentsResponse] = useState<IncidentItem[]>();
     const [queryErrorMessage, setQueryErrorMessage] = useState<string>();
+
+    const openThreadDrawer = useCallback((thread: Thread) => {
+        setSelectedThreadInfo({ thread, fullScreen: false, showTrace: false });
+    }, []);
+
+    const openThreadFullScreen = useCallback(() => {
+        if (selectedThreadInfo) {
+            setSelectedThreadInfo({ ...selectedThreadInfo, fullScreen: true });
+        }
+    }, [selectedThreadInfo]);
+
+    const openThreadTrace = useCallback(() => {
+        if (selectedThreadInfo) {
+            setSelectedThreadInfo({ ...selectedThreadInfo, showTrace: true });
+        }
+    }, [selectedThreadInfo]);
+
+    const closeThreadTrace = useCallback(() => {
+        if (selectedThreadInfo) {
+            setSelectedThreadInfo({ ...selectedThreadInfo, showTrace: false });
+        }
+    }, [selectedThreadInfo]);
+
+    const closeThread = useCallback(() => {
+        setSelectedThreadInfo(null);
+    }, []);
+
+    useEffect(() => {
+        let isSubscribed = true;
+        setSelectedIncidentDetails(undefined);
+
+        if (selectedThreadInfo && selectedThreadInfo.thread.status?.incidentStatus?.incidentId) {
+            incidentHandlerClient.getIncident(selectedThreadInfo.thread.status?.incidentStatus?.incidentId).then(response => {
+                if (isSubscribed && response.isSuccessful && response.content) {
+                    setSelectedIncidentDetails(response.content);
+                }
+            });
+        }
+
+        return () => {
+            isSubscribed = false;
+        };
+    }, [selectedThreadInfo, incidentHandlerClient]);
 
     const numIncidentsReviewed = useMemo(
         () => incidentSummaryResponse?.reduce((sum, item) => sum + item.distinctIncidentCount, 0) ?? 0,
@@ -292,111 +356,184 @@ export const ResponsePlanView = ({
     );
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Button
-                        appearance="transparent"
-                        icon={<ArrowLeft20Regular />}
-                        onClick={() => setOpenedResponsePlan(undefined)}
-                        aria-label={intl.formatMessage(SreAgentResources.back)}
-                    />
-                    <div>
-                        <Subtitle1 block>{openedResponsePlan.responsePlanName || intl.formatMessage(SreAgentResources.default)}</Subtitle1>
-                        <Body1 block style={{ color: tokens.colorNeutralForeground4 }}>
-                            {intl.formatMessage(IncidentManagementResources.autonomyLevel)}:{' '}
-                            {getLocalizedAgentMode(openedResponsePlan.autonomyLevel, intl)}
-                        </Body1>
+        <>
+            {selectedThreadInfo?.fullScreen ? (
+                <IncidentChat
+                    selectedThread={selectedThreadInfo.thread}
+                    exitToHome={closeThread}
+                    isExpandedView={true}
+                    handleThreadDelete={() => {}}
+                    titleActions={
+                        appInsightsId ? (
+                            <Button
+                                ref={traceFocusRestorationRef}
+                                icon={<Branch16Regular />}
+                                style={{
+                                    fontWeight: 'normal',
+                                    fontSize: '12px',
+                                    lineHeight: '16px',
+                                    padding: '2px 8px 2px 4px',
+                                    margin: 'auto',
+                                }}
+                                onClick={openThreadTrace}
+                            >
+                                {intl.formatMessage(IncidentManagementResources.viewTrace)}
+                            </Button>
+                        ) : undefined
+                    }
+                />
+            ) : (
+                <>
+                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Button
+                                    appearance="transparent"
+                                    icon={<ArrowLeft20Regular />}
+                                    onClick={() => setOpenedResponsePlan(undefined)}
+                                    aria-label={intl.formatMessage(SreAgentResources.back)}
+                                />
+                                <div>
+                                    <Subtitle1 block>
+                                        {openedResponsePlan.responsePlanName || intl.formatMessage(SreAgentResources.default)}
+                                    </Subtitle1>
+                                    <Body1 block style={{ color: tokens.colorNeutralForeground4 }}>
+                                        {intl.formatMessage(IncidentManagementResources.autonomyLevel)}:{' '}
+                                        {getLocalizedAgentMode(openedResponsePlan.autonomyLevel, intl)}
+                                    </Body1>
+                                </div>
+                            </div>
+
+                            <Button onClick={() => setIsViewResponsePlanPanelOpen(true)}>
+                                {intl.formatMessage(IncidentManagementResources.viewPlan)}
+                            </Button>
+                        </div>
+
+                        <Divider style={{ marginTop: -4, flexGrow: 0 }} />
+
+                        <PillFilter
+                            label={intl.formatMessage(SreAgentResources.timeRange)}
+                            labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
+                            filterType="timeRange"
+                            options={timeRangeOptions}
+                            selectedValue={selectedTimeRange}
+                            onApply={value => setSelectedTimeRange(value)}
+                            customTimeRangeProps={{
+                                addCustomOption: true,
+                            }}
+                        />
+
+                        {queryErrorMessage && (
+                            <div style={{ maxWidth: 1000 }}>
+                                <MessageBar intent="error">
+                                    <MessageBarBody>
+                                        <MessageBarTitle>{intl.formatMessage(SreAgentResources.requestError)}</MessageBarTitle>
+                                        {queryErrorMessage}
+                                    </MessageBarBody>
+                                </MessageBar>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                            <StatCard
+                                title={intl.formatMessage(IncidentManagementResources.incidentsReviewed)}
+                                subtitle={intl.formatMessage(IncidentManagementResources.usingThisResponsePlan)}
+                                data={incidentsReviewedStatCardData}
+                                isLoading={isIncidentSummaryLoading}
+                            />
+                            <StatCard
+                                title={intl.formatMessage(IncidentManagementResources.assistedByAgent)}
+                                subtitle={intl.formatMessage(IncidentManagementResources.incidentsAssistedByAgent)}
+                                data={assistedByAgentStatCardData}
+                                isLoading={isIncidentSummaryLoading}
+                            />
+                            <StatCard
+                                title={intl.formatMessage(IncidentManagementResources.mitigatedByAgent)}
+                                subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByAgent)}
+                                data={mitigatedByAgentStatCardData}
+                                isLoading={isIncidentSummaryLoading}
+                            />
+                            <StatCard
+                                title={intl.formatMessage(IncidentManagementResources.mitigatedByUser)}
+                                subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByUser)}
+                                data={mitigatedByUserStatCardData}
+                                isLoading={isIncidentSummaryLoading}
+                            />
+                            <StatCard
+                                title={intl.formatMessage(IncidentManagementResources.pendingUserAction)}
+                                subtitle={intl.formatMessage(IncidentManagementResources.incidentsThatRequireAttention)}
+                                data={pendingUserActionStatCardData}
+                                isLoading={isIncidentSummaryLoading}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                            <ChartCard
+                                title={intl.formatMessage(IncidentManagementResources.incidentSummary)}
+                                data={incidentSummaryChartData}
+                                isLoading={isIncidentSummaryLoading}
+                            />
+                            <RcaCard
+                                openedResponsePlan={openedResponsePlan}
+                                selectedTimeRange={selectedTimeRange}
+                                appInsightsId={appInsightsId}
+                                appInsightsToken={appInsightsToken}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', flex: '1 1 0', minHeight: 200 }}>
+                            <ResponsePlanIncidentsGrid
+                                incidents={incidentsResponse ?? []}
+                                isLoading={isIncidentsLoading}
+                                onOpenThread={openThreadDrawer}
+                            />
+                        </div>
+
+                        <ResponsePlanDetailsDrawer
+                            isOpen={isViewResponsePlanPanelOpen}
+                            onClose={() => setIsViewResponsePlanPanelOpen(false)}
+                            responsePlan={openedResponsePlan}
+                            onEditHandler={handleEditHandler}
+                        />
                     </div>
-                </div>
 
-                <Button onClick={() => setIsViewResponsePlanPanelOpen(true)}>
-                    {intl.formatMessage(IncidentManagementResources.viewPlan)}
-                </Button>
-            </div>
-
-            <Divider style={{ marginTop: -4, flexGrow: 0 }} />
-
-            <PillFilter
-                label={intl.formatMessage(SreAgentResources.timeRange)}
-                labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
-                filterType="timeRange"
-                options={timeRangeOptions}
-                selectedValue={selectedTimeRange}
-                onApply={value => setSelectedTimeRange(value)}
-                customTimeRangeProps={{
-                    addCustomOption: true,
-                }}
-            />
-
-            {queryErrorMessage && (
-                <div style={{ maxWidth: 1000 }}>
-                    <MessageBar intent="error">
-                        <MessageBarBody>
-                            <MessageBarTitle>{intl.formatMessage(SreAgentResources.requestError)}</MessageBarTitle>
-                            {queryErrorMessage}
-                        </MessageBarBody>
-                    </MessageBar>
-                </div>
+                    <IncidentChatDrawer
+                        isOpen={!!selectedThreadInfo && !selectedThreadInfo.fullScreen}
+                        onClose={closeThread}
+                        thread={selectedThreadInfo?.thread}
+                        size="large"
+                        onEnterFullScreen={openThreadFullScreen}
+                        titleActions={
+                            appInsightsId ? (
+                                <Button
+                                    icon={<Branch16Regular />}
+                                    style={{
+                                        fontWeight: 'normal',
+                                        fontSize: '12px',
+                                        lineHeight: '16px',
+                                        padding: '2px 8px 2px 4px',
+                                        margin: 'auto',
+                                    }}
+                                    onClick={openThreadTrace}
+                                >
+                                    {intl.formatMessage(IncidentManagementResources.viewTrace)}
+                                </Button>
+                            ) : undefined
+                        }
+                    />
+                </>
             )}
 
-            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-                <StatCard
-                    title={intl.formatMessage(IncidentManagementResources.incidentsReviewed)}
-                    subtitle={intl.formatMessage(IncidentManagementResources.usingThisResponsePlan)}
-                    data={incidentsReviewedStatCardData}
-                    isLoading={isIncidentSummaryLoading}
+            {!!selectedThreadInfo?.showTrace && appInsightsId && (
+                <TracePanel
+                    appInsightsAppId={appInsightsId}
+                    thread={selectedThreadInfo.thread}
+                    incident={selectedIncidentDetails}
+                    isOpen={!!selectedThreadInfo?.showTrace}
+                    onClose={closeThreadTrace}
+                    focusRestorationRef={traceFocusRestorationRef}
                 />
-                <StatCard
-                    title={intl.formatMessage(IncidentManagementResources.assistedByAgent)}
-                    subtitle={intl.formatMessage(IncidentManagementResources.incidentsAssistedByAgent)}
-                    data={assistedByAgentStatCardData}
-                    isLoading={isIncidentSummaryLoading}
-                />
-                <StatCard
-                    title={intl.formatMessage(IncidentManagementResources.mitigatedByAgent)}
-                    subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByAgent)}
-                    data={mitigatedByAgentStatCardData}
-                    isLoading={isIncidentSummaryLoading}
-                />
-                <StatCard
-                    title={intl.formatMessage(IncidentManagementResources.mitigatedByUser)}
-                    subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByUser)}
-                    data={mitigatedByUserStatCardData}
-                    isLoading={isIncidentSummaryLoading}
-                />
-                <StatCard
-                    title={intl.formatMessage(IncidentManagementResources.pendingUserAction)}
-                    subtitle={intl.formatMessage(IncidentManagementResources.incidentsThatRequireAttention)}
-                    data={pendingUserActionStatCardData}
-                    isLoading={isIncidentSummaryLoading}
-                />
-            </div>
-
-            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-                <ChartCard
-                    title={intl.formatMessage(IncidentManagementResources.incidentSummary)}
-                    data={incidentSummaryChartData}
-                    isLoading={isIncidentSummaryLoading}
-                />
-                <RcaCard
-                    openedResponsePlan={openedResponsePlan}
-                    selectedTimeRange={selectedTimeRange}
-                    appInsightsId={appInsightsId}
-                    appInsightsToken={appInsightsToken}
-                />
-            </div>
-
-            <div style={{ display: 'flex', flex: '1 1 0', minHeight: 200 }}>
-                <ResponsePlanIncidentsGrid incidents={incidentsResponse ?? []} isLoading={isIncidentsLoading} />
-            </div>
-
-            <ResponsePlanDetailsDrawer
-                isOpen={isViewResponsePlanPanelOpen}
-                onClose={() => setIsViewResponsePlanPanelOpen(false)}
-                responsePlan={openedResponsePlan}
-                onEditHandler={handleEditHandler}
-            />
-        </div>
+            )}
+        </>
     );
 };

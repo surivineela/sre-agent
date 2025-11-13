@@ -326,6 +326,19 @@ export const formatDateToYYYYMMDD = (date?: Date): string => {
 };
 
 /**
+ * Formats a Date object to MM/DD/YYYY string format using local time components.
+ * @param date - The date to format (optional)
+ * @returns A string in MM/DD/YYYY format based on local time, or empty string if date is undefined
+ */
+export const formatDateToMMDDYYYY = (date?: Date): string => {
+    if (!date) return '';
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+};
+
+/**
  * Extracts only the date portion (year, month, day) from a DateTime object using local time.
  * Time components are set to midnight in the local timezone.
  * @param date - The datetime to extract date from (optional)
@@ -425,6 +438,14 @@ export const getLocaleTimeHHMM = (date: Date) => {
 };
 
 /**
+ * @param date A Date object
+ * @returns A string formatted in 24-hour time format (HH:MM)
+ */
+export const getLocaleTime24H = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+};
+
+/**
  *
  * @param date A Date object
  * @param interval A positive integer to round the time to
@@ -446,4 +467,99 @@ export const roundTimeToNearestMinuteInterval = (date: Date, interval: number): 
     roundedDate.setSeconds(0);
     roundedDate.setMilliseconds(0);
     return roundedDate;
+};
+
+export const fillMissingDatesInTimeSeries = <T extends { handledAt: Date }>(
+    data: T[],
+    timeRange: TimeRangeValue,
+    defaultValues: Omit<T, 'handledAt'>
+): T[] => {
+    if (data.length === 0) {
+        return [];
+    }
+
+    const getGranularity = (): 'hour' | 'day' => {
+        const hourlyRanges = [TimespanKeys.OneHour, TimespanKeys.SixHours, TimespanKeys.TwelveHours, TimespanKeys.TwentyFourHours];
+        return hourlyRanges.includes(timeRange.key as TimespanKeys) ? 'hour' : 'day';
+    };
+
+    const getStartDate = (): Date => {
+        if (timeRange.start) {
+            return new Date(timeRange.start);
+        }
+
+        const now = new Date();
+        const hoursMap: Record<string, number> = {
+            [TimespanKeys.OneHour]: 1,
+            [TimespanKeys.SixHours]: 6,
+            [TimespanKeys.TwelveHours]: 12,
+            [TimespanKeys.TwentyFourHours]: 24,
+            [TimespanKeys.ThreeDays]: 72,
+            [TimespanKeys.SevenDays]: 168,
+        };
+
+        const hours = hoursMap[timeRange.key] || 168;
+        return new Date(now.getTime() - hours * 60 * 60 * 1000);
+    };
+
+    const getEndDate = (): Date => {
+        return timeRange.end ? new Date(timeRange.end) : new Date();
+    };
+
+    const granularity = getGranularity();
+    const startDate = getStartDate();
+    const requestedEndDate = getEndDate();
+
+    const normalizeDate = (date: Date): string => {
+        const d = new Date(date);
+        if (granularity === 'hour') {
+            d.setMinutes(0, 0, 0);
+        } else {
+            d.setHours(0, 0, 0, 0);
+        }
+        return d.toISOString();
+    };
+
+    const existingDatesMap = new Map<string, T>();
+    let latestDataDate = new Date(0);
+    data.forEach(item => {
+        const key = normalizeDate(item.handledAt);
+        existingDatesMap.set(key, item);
+        if (item.handledAt > latestDataDate) {
+            latestDataDate = item.handledAt;
+        }
+    });
+
+    const endDate = latestDataDate > startDate ? latestDataDate : requestedEndDate;
+
+    const filledData: T[] = [];
+    const currentDate = new Date(startDate);
+
+    if (granularity === 'hour') {
+        currentDate.setMinutes(0, 0, 0);
+    } else {
+        currentDate.setHours(0, 0, 0, 0);
+    }
+
+    while (currentDate <= endDate) {
+        const key = normalizeDate(currentDate);
+        const existingItem = existingDatesMap.get(key);
+
+        if (existingItem) {
+            filledData.push(existingItem);
+        } else {
+            filledData.push({
+                handledAt: new Date(currentDate),
+                ...defaultValues,
+            } as T);
+        }
+
+        if (granularity === 'hour') {
+            currentDate.setHours(currentDate.getHours() + 1);
+        } else {
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+    }
+
+    return filledData;
 };

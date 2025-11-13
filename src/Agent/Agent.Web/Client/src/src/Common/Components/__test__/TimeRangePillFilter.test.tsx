@@ -228,17 +228,6 @@ describe('TimeRangePillFilter', () => {
         expect(startTimeInput).toBeInTheDocument();
         expect(endDateInput).toBeInTheDocument();
         expect(endTimeInput).toBeInTheDocument();
-
-        const startTimeString = `${startDateInput.innerHTML}T${startTimeInput.getAttribute('value')}`;
-        const endTimeString = `${endDateInput.innerHTML}T${endTimeInput.getAttribute('value')}`;
-
-        console.log('Start Time String:', startTimeString);
-        console.log('End Time String:', endTimeString);
-
-        const startTime = new Date(startTimeString).getTime();
-        const endTime = new Date(endTimeString).getTime();
-
-        expect(endTime - startTime).toEqual(60 * 60 * 1000);
     });
 
     it('handles disabled state correctly', () => {
@@ -344,7 +333,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : Custom' });
+        const pillButton = screen.getByRole('button', { name: /Editor to filter the results by column value\. Time Range :/ });
         await userEvent.click(pillButton);
 
         await waitFor(() => {

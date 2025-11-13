@@ -25,7 +25,6 @@ import { getLocalizedMitigatedBy } from '../../../../Common/Helpers/IncidentMana
 import { useIsDarkMode } from '../../../../Common/Hooks/useIsDarkMode';
 import { IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
-import IncidentChatDrawer from '../../Common/IncidentChatDrawer';
 import { IncidentItem } from '../ResponsePlanView';
 
 // TODO: Pagination
@@ -46,9 +45,10 @@ interface ResponsePlanIncidentsGridProps {
     incidents: IncidentItem[];
     disabled?: boolean;
     isLoading?: boolean;
+    onOpenThread: (thread: Thread) => void;
 }
 
-export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: ResponsePlanIncidentsGridProps) => {
+export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading, onOpenThread }: ResponsePlanIncidentsGridProps) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
     const isDarkMode = useIsDarkMode();
@@ -60,19 +60,6 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: Re
     const [mitigatedByFilter, setMitigatedByFilter] = useState<string>(all);
     const [sortColumnKey, setSortColumnKey] = useState<keyof IncidentItem | undefined>();
     const [isSortedDescending, setIsSortedDescending] = useState<boolean>(false);
-
-    const [selectedThread, setSelectedThread] = useState<Thread | undefined>();
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-    const handleOpenDrawer = useCallback((thread: Thread) => {
-        setSelectedThread(thread);
-        setIsDrawerOpen(true);
-    }, []);
-
-    const handleCloseDrawer = useCallback(() => {
-        setIsDrawerOpen(false);
-        setSelectedThread(undefined);
-    }, []);
 
     // Filter by used values as more convenient, but also not sure if different platforms have different values
     const severityLevelFilterOptions = useMemo<{ label: string; value: string }[]>(() => {
@@ -135,7 +122,7 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: Re
             });
 
             if (response.isSuccessful && response.content && response.content.length > 0) {
-                handleOpenDrawer(response.content[0]);
+                onOpenThread(response.content[0]);
             } else {
                 log({
                     action: 'handleIncidentTitleClick',
@@ -149,7 +136,7 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: Re
                 });
             }
         },
-        [sreAgentEndpoint, handleOpenDrawer, log, resourceId]
+        [sreAgentEndpoint, onOpenThread, log, resourceId]
     );
 
     const onRenderIncidentTitle = useCallback(
@@ -390,8 +377,6 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: Re
                     )}
                 </div>
             </Card>
-
-            <IncidentChatDrawer isOpen={isDrawerOpen} onClose={handleCloseDrawer} thread={selectedThread} size="large" />
         </>
     );
 };
