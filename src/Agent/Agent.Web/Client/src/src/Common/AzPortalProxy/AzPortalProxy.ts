@@ -104,6 +104,17 @@ export default class AzPortalProxy {
         this.postMessage(AgentSiteToAzPortalVerbs.requestToken, tokenType);
     };
 
+    public reportUserActivity = (activityType: string = 'general') => {
+        if (AzPortalProxy.inStandaloneMode) {
+            return;
+        }
+
+        this.postMessage(AgentSiteToAzPortalVerbs.userActivity, {
+            type: activityType,
+            timestamp: Date.now(),
+        });
+    };
+
     public startNotification = (title: string, description: string) => {
         const notification: INotificationInfo = {
             title,
@@ -220,7 +231,7 @@ export default class AzPortalProxy {
 
         const data = event.data.data;
         const methodName = event.data.kind;
-        console.log(`Received AzPortalToAgentSite: '${methodName}`);
+        console.log(`Received AzPortalToAgentSite: '${methodName}'`);
 
         switch (methodName) {
             case AzPortalToAgentSiteVerbs.sendEnvironmentInfo: {

@@ -9,6 +9,7 @@ export class AgentSiteToAzPortalVerbs {
     public static readonly updateNotification = 'update-notification';
     public static readonly openBlade = 'open-blade';
     public static readonly requestToken = 'request-token';
+    public static readonly userActivity = 'user-activity'; // For playground session management
 }
 
 export class AzPortalToAgentSiteVerbs {

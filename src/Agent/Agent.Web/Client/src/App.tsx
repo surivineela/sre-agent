@@ -12,6 +12,7 @@ import { AgentWarningProvider } from './src/Common/Providers/AgentWarningProvide
 import { KnowledgeGraphBuildStatusProvider } from './src/Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { ReactQueryClientProvider } from './src/Common/Providers/ReactQueryClientProvider';
 import { StreamingProvider } from './src/Common/Providers/StreamingProvider';
+import { UserActivityReporter } from './src/Common/Utils/UserActivityReporter';
 import SREAgentSpace from './src/Space/SREAgentSpace';
 import { IntlProvider } from './src/Strings/Intl/IntlProvider';
 
@@ -23,6 +24,14 @@ const App: React.FC = () => {
     useEffect(() => {
         portalProxy.initialize(setEnvironmentInfo);
         initializeIcons();
+
+        // Initialize user activity reporter for playground session management
+        UserActivityReporter.initialize(portalProxy);
+
+        // Cleanup when App unmounts (page unload)
+        return () => {
+            UserActivityReporter.cleanup();
+        };
     }, [setEnvironmentInfo]);
 
     // When we're running in standalone mode, we won't be getting any environment information

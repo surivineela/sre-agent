@@ -43,6 +43,7 @@ interface ChartData {
 interface PieDataPoint {
     label: string;
     value: number;
+    [key: string]: any;
 }
 
 interface ScatterDataPoint {
