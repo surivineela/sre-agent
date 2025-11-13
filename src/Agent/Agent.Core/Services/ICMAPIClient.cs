@@ -20,7 +20,7 @@ public interface IICMAPIClient
     Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null, IEnumerable<string>? statuses = null);
     Task<List<CustomField>> GetCustomFieldsAsync(string incidentId);
     Task<List<Incident>> SearchIncidentsAsync(string searchString);
-    Task<List<DescriptionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId);
+    Task<List<DescriptionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, uint? limit = null, bool isAscending = true);
     Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantId, string teamId);
     Task<string> ChangeSeverityAsync(string incidentId, int severity, string discussionEntry, bool htmlRendering = true);
     Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "", string mitigateContactAlias = "");
@@ -99,11 +99,12 @@ public class ICMAPIClient : IICMAPIClient
         return await _icmApiClientSDKService.GetCustomFieldsAsync(incidentId);
     }
 
-    public async Task<List<DescriptionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId)
+    //Later can migrate to use ICMAPIClientSDKService.GetIncidentDiscussionEntriesAsync with limit and order support
+    public async Task<List<DescriptionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, uint? limit = null, bool isAscending = true)
     {
         try
         {
-            return await _icmApiClientSDKService.GetIncidentDiscussionEntriesAsync(incidentId);
+            return await _icmApiClientSDKService.GetIncidentDiscussionEntriesAsync(incidentId, limit, isAscending);
         }
         catch (Exception ex)
         {
@@ -476,7 +477,7 @@ public class NullableICMAPIClient : IICMAPIClient
         throw new NotImplementedException();
     }
 
-    public Task<List<DescriptionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId)
+    public Task<List<DescriptionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, uint? limit = null, bool isAscending = true)
     {
         throw new NotImplementedException();
     }

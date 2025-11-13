@@ -139,11 +139,6 @@ public static class IncidentServiceCollectionExtensions
             scope = incidentManagementSettings.ConnectionName ?? string.Empty;
         }
 
-        var icmAPISDKApiOptions = new ICMApiOptions()
-        {
-            ApiEndpoint = apiEndpoint
-        };
-
         var icmAgentSpaceAuthOptions = new ICMAgentSpaceAuthOptions()
         {
             AgentSpaceProxyEndpoint = agentSpaceEndpoint,

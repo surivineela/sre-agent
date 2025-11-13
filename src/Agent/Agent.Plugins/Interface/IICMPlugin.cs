@@ -24,6 +24,8 @@ public interface IICMPlugin
 
     Task<List<DescriptionEntry>> GetDiscussionEntries(string incidentId);
 
+    Task<List<DescriptionEntry>> GetTopDiscussionEntries(string incidentId, uint? limit, bool IsAscending = true);
+
     Task<string> TransferIncident(string incidentId, string discussionEntry, string tenantName, string owningTeam);
 
     Task<string> MitigateIncident(string incidentId, string discussionEntry);

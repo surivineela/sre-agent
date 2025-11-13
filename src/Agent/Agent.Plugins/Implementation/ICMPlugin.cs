@@ -434,6 +434,24 @@ Example structure:
         return discussionEntries ?? new List<DescriptionEntry>();
     }
 
+    public async Task<List<DescriptionEntry>> GetTopDiscussionEntries(string incidentId, uint? limit, bool isAscending = true)
+    {
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetTopDiscussionEntries)}][{DateTime.UtcNow}] Fetching ICM Discussion entries for Incident {incidentId} with limit: {limit}, isAscending: {isAscending}";
+        _logger.LogInternalInformation(logMessage);
+        var discussionEntries = await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId, limit, isAscending);
+        if (discussionEntries != null)
+        {
+            foreach (var entry in discussionEntries)
+            {
+                if (entry.RenderType == DescriptionTextRenderType.Html)
+                {
+                    entry.Text = await ProcessComplexICMContent(entry.Text, !ProcessImages);
+                }
+            }
+        }
+        return discussionEntries ?? new List<DescriptionEntry>();
+    }
+
     public async Task<string> TransferIncident(string incidentId, string discussionEntry, string tenantName, string owningTeam)
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(TransferIncident)}][{DateTime.UtcNow}] Transferring Incident {incidentId} to the team {tenantName}/{owningTeam}.\n<b>Reason</b>:\n {discussionEntry}";

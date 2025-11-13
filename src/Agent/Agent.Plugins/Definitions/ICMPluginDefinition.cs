@@ -111,6 +111,15 @@ public class ICMPluginDefinition
         return await _icmPlugin.GetDiscussionEntries(incidentId);
     }
 
+    [Description("Get top N ICM discussion entries")]
+    public async Task<List<DescriptionEntry>> GetTopDiscussionEntries(
+        [Description("Incident ID")] string incidentId,
+        [Description("Number of top discussion entries to retrieve")] uint? limit,
+        [Description("Set to true to get entries in ascending order, false for descending order")] bool IsAscending = true)
+    {
+        return await _icmPlugin.GetTopDiscussionEntries(incidentId, limit, IsAscending);
+    }
+
     [Description("Transfer ICM incident")]
     public async Task<string> TransferIncident(
            [Description("Incident ID")] string incidentId,
