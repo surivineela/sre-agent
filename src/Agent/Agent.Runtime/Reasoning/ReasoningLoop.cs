@@ -1648,7 +1648,8 @@ public class ReasoningLoop : IDisposable
             var customerLoggerHelper = new CustomerLoggerHelper(
                 _customerLogger,
                 _context.ThreadId.ToString(),
-                "ReasoningLoop"
+                "ReasoningLoop",
+                _tracer
             );
             var customerLoggerHooks = customerLoggerHelper.GetCustomerLoggerHooks();
 

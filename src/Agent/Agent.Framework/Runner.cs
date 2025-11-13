@@ -381,6 +381,7 @@ public static class Runner
                 {
                     currentAgent = turnResult.NextStep.Agent;
                     shouldRunAgentStartHooks = true;
+                    shouldRunAgentStartHooks = true;
 
                     await CompactChatHistory(
                         currentAgent,
@@ -907,6 +908,9 @@ public static class Runner
                     var (handoffReasoning, handoffResponse) = GetHandoffTransferMessage<TContext>(functionCall);
 
                     await hooks.OnHandoff(contextWrapper, agent, newAgent, handoffReasoning);
+
+                    // Call OnAgentEnd for the agent that's handing off
+                    await hooks.OnAgentEnd(contextWrapper, agent, handoffResponse);
 
                     var handoffResult = new FunctionResultContent(functionCall.CallId, handoffResponse);
 

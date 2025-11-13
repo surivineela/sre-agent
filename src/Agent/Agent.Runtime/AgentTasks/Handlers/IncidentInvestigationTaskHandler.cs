@@ -250,11 +250,10 @@ public sealed class IncidentInvestigationTaskHandler(
             var runHooks = tracingHelper.GetAgentTaskTracingHooks();
 
             // Add customer logger hooks for first-party agents (following TracingHelper convention)
-            // COMMENTED OUT FOR TESTING - Enable logging for all agents
-            // if (_is1PAgent)
-            // {
-            var customerLoggerHelper = new CustomerLoggerHelper(customerLogger, context.ThreadId.ToString(), nameof(AgentTaskType.IncidentInvestigation));
-            var customerLoggerHooks = customerLoggerHelper.GetCustomerLoggerHooks();
+            if (_is1PAgent)
+            {
+                var customerLoggerHelper = new CustomerLoggerHelper(customerLogger, context.ThreadId.ToString(), nameof(AgentTaskType.IncidentInvestigation), tracer);
+                var customerLoggerHooks = customerLoggerHelper.GetCustomerLoggerHooks();
 
             // Subscribe customer logger event handlers to the main runHooks
             runHooks.ToolStart += async (context, agent, functionCall, tool, input) =>
@@ -286,12 +285,12 @@ public sealed class IncidentInvestigationTaskHandler(
                 await customerLoggerHooks.OnModelGenerationEnd(context, agent, response);
             };
 
-            logger.LogInternalInformation("CustomerLogger hooks enabled for testing - first-party check commented out");
-            // }
-            // else
-            // {
-            //     logger.LogInternalInformation("CustomerLogger hooks disabled - not a first-party agent");
-            // }
+                logger.LogInternalInformation("CustomerLogger hooks enabled for testing - first-party check commented out");
+            }
+            else
+            {
+                 logger.LogInternalInformation("CustomerLogger hooks disabled - not a first-party agent");
+            }
 
             // Register the step completion hook once at the beginning
             runHooks.ToolStart += HandleReportStepCompletionToolCallAsync;
