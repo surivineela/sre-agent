@@ -1,5 +1,5 @@
 import { mergeClasses, Text } from '@fluentui/react-components';
-import { CheckmarkCircle20Filled } from '@fluentui/react-icons';
+import { CheckmarkCircleFilled } from '@fluentui/react-icons';
 import { FC } from 'react';
 import { useWizardStepperStyles } from './WizardStepper.styles';
 
@@ -49,7 +49,7 @@ export const WizardStepper: FC<WizardStepperProps> = ({ steps, className }) => {
 
     const renderStepIcon = (step: WizardStep, index: number) => {
         if (step.status === StepStatus.Completed) {
-            return <CheckmarkCircle20Filled />;
+            return <CheckmarkCircleFilled />;
         }
         return <span>{index + 1}</span>;
     };
