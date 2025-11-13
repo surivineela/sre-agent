@@ -13,19 +13,23 @@ export const useConnectorWizardStyles = makeStyles({
     },
     cardContainer: {
         padding: '10px 0',
-        height: '380px',
-        overflow: 'auto',
     },
     cardGrid: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
         gap: tokens.spacingHorizontalL,
         padding: '3px',
+        alignItems: 'stretch',
+        gridAutoRows: '1fr',
+    },
+    cardHeader: {
+        marginBottom: 'auto',
     },
     cardContent: {
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
+        height: '100%',
     },
     image: {
         width: '32px',
@@ -35,11 +39,13 @@ export const useConnectorWizardStyles = makeStyles({
         color: '#666',
         display: 'block',
     },
-    serviceMoreInfoText: {
-        marginTop: tokens.spacingVerticalS,
+    cardDescription: {
+        marginTop: 'auto',
     },
     wizardContentContainer: {
         padding: tokens.spacingVerticalXXL,
+        paddingBottom: '0px',
+        overflow: 'visible',
     },
     form: {
         display: 'flex',

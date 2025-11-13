@@ -100,16 +100,14 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
                             >
                                 <CardHeader
                                     image={<img src={connector.img} alt={connector.name} className={styles.image} />}
-                                    header={
-                                        <div>
-                                            <Text weight="semibold">{connector.name}</Text>
-                                            <Text size={200} className={styles.serviceDescription}>
-                                                {connector.service}
-                                            </Text>
-                                        </div>
+                                    header={<Text weight="semibold">{connector.name}</Text>}
+                                    description={
+                                        <Text size={200} className={styles.serviceDescription}>
+                                            {connector.service}
+                                        </Text>
                                     }
                                 />
-                                <Text size={200} className={styles.serviceMoreInfoText}>
+                                <Text size={200} className={styles.cardDescription}>
                                     {connector.description}
                                 </Text>
                             </Card>
