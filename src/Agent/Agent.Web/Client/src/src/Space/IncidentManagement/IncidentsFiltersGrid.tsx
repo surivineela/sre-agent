@@ -278,6 +278,28 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
 
     const onRenderIncidentHandler = useCallback(
         (item: IncidentFilter) => {
+            // If handling agent is set, show the agent name as a link to the extended agent graph
+            if (item.handlingAgent) {
+                return (
+                    <Link
+                        style={{ fontSize: '13px' }}
+                        onClick={() => {
+                            navigate('/views/extendedagentsgraph', {
+                                state: {
+                                    anchorEntity: {
+                                        entityType: 'Agent',
+                                        entityName: item.handlingAgent,
+                                    },
+                                },
+                            });
+                        }}
+                    >
+                        {item.handlingAgent}
+                    </Link>
+                );
+            }
+
+            // Otherwise show the custom handler status
             const handler = filterIdToHandlerMap[item.id ?? ''];
             if (handler) {
                 return (
@@ -315,7 +337,16 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 );
             })();
         },
-        [filterIdToHandlerMap, intl, openHandlerCreate, styles.greenCheckIcon, styles.setUp, disableEditActions, canWriteIncidentManagement]
+        [
+            filterIdToHandlerMap,
+            intl,
+            navigate,
+            openHandlerCreate,
+            styles.greenCheckIcon,
+            styles.setUp,
+            disableEditActions,
+            canWriteIncidentManagement,
+        ]
     );
 
     const incidentTypeFilterProps: FilterProps = useMemo(

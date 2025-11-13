@@ -12,7 +12,7 @@ import {
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { useFeatureFlags } from '../../Common/Hooks/useFeatureFlags';
@@ -155,6 +155,7 @@ const ExtendedAgentGraphContent = memo(() => {
     const theme = useTheme();
     const intl = useIntl();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo>();
     const [agentHandoffPickerInfo, setAgentHandoffPickerInfo] = useState<AddExistingAgentHandoffDialogProps['handoffInfo'] | undefined>();
@@ -447,6 +448,16 @@ const ExtendedAgentGraphContent = memo(() => {
             return prevAnchorEntity;
         });
     }, [loading, agents, triggers, setAnchorEntity]);
+
+    // Handle navigation state - set anchor entity from location state if provided
+    useEffect(() => {
+        if (!loading && location.state?.anchorEntity) {
+            const stateEntity = location.state.anchorEntity as ExtendedAgentAnchorEntity;
+            setAnchorEntity(stateEntity);
+            // Clear the state after using it
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [loading, location.state, location.pathname, navigate, setAnchorEntity]);
 
     useEffect(() => {
         if (loading) {

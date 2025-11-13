@@ -172,10 +172,13 @@ export const useExtendedAgentGraph = () => {
 
                 if (Array.isArray(incidentHandlers)) {
                     const incidentTriggers: ExtendedTrigger[] = [];
+                    const handlerFilterIds = new Set<string>();
+
                     incidentHandlers.forEach((handler: any) => {
                         const filter = filters.find(f => f.id === handler.incidentFilterId);
                         const agentName = filterAgentMap.get(handler.incidentFilterId) || handler.agentName;
                         if (agentName) {
+                            handlerFilterIds.add(handler.incidentFilterId);
                             incidentTriggers.push({
                                 name: handler.name || handler.id,
                                 description: handler.description || 'Incident response handler',
@@ -192,6 +195,28 @@ export const useExtendedAgentGraph = () => {
                             });
                         }
                     });
+
+                    // Add incident triggers for filters with handlingAgent but no handler
+                    // These are subagent triggers where no handler document is created
+                    filters.forEach((filter: any) => {
+                        if (filter.handlingAgent && !handlerFilterIds.has(filter.id)) {
+                            incidentTriggers.push({
+                                name: filter.id,
+                                description: `Incident trigger for ${filter.handlingAgent}`,
+                                type: 'incident' as const,
+                                agentName: filter.handlingAgent,
+                                status: filter.isEnabled ? 'Active' : 'Disabled',
+                                priority: filter.priority || '-',
+                                incidentType: filter.incidentType || 'ServiceIssue',
+                                service: filter.impactedService || '-',
+                                severity: filter.priority || '-',
+                                titleContains: filter.titleContains || '-',
+                                enabled: !!filter.isEnabled,
+                                createdAt: filter.createdAt || new Date().toISOString(),
+                            });
+                        }
+                    });
+
                     allTriggers.push(...incidentTriggers);
                 }
             }
