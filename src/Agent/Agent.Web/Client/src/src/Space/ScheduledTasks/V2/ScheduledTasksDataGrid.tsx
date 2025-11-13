@@ -1,5 +1,4 @@
 import {
-    Badge,
     createTableColumn,
     DataGrid,
     DataGridBody,
@@ -33,6 +32,7 @@ import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SRE
 import { ScheduledTask, ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
 import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from './Common/ScheduledTaskCreateOrEditDialog';
 import { ScheduledTaskDeleteDialog } from './Common/ScheduledTaskDeleteDialog';
+import ScheduledTaskStatusBadge from './Common/ScheduledTaskStatusBadge';
 import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
 import { getHumanReadableCronExpression } from './ScheduledTasksUtilities';
 
@@ -273,38 +273,10 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
         [intl, isOperationInProgress, onDeleteTask, onPauseTask, onResumeTask, onRunTask]
     );
 
-    const onRenderStatus = useCallback(
-        (item: ScheduledTask) => {
-            const status = item.status;
-            switch (status) {
-                case ScheduledTaskStatus.Active:
-                    return (
-                        <Badge appearance="tint" color="success">
-                            {intl.formatMessage(ScheduledTasksResources.on)}
-                        </Badge>
-                    );
-                case ScheduledTaskStatus.Paused:
-                    return (
-                        <Badge appearance="tint" color="severe">
-                            {intl.formatMessage(ScheduledTasksResources.off)}
-                        </Badge>
-                    );
-                case ScheduledTaskStatus.Completed:
-                    return (
-                        <Badge appearance="tint" color="informative">
-                            {intl.formatMessage(ScheduledTasksResources.ended)}
-                        </Badge>
-                    );
-                default:
-                    return (
-                        <Badge appearance="tint" color="informative">
-                            {status}
-                        </Badge>
-                    );
-            }
-        },
-        [intl]
-    );
+    const onRenderStatus = useCallback((item: ScheduledTask) => {
+        const status = item.status;
+        return <ScheduledTaskStatusBadge status={status} />;
+    }, []);
 
     const onRenderSchedule = useCallback(
         (item: ScheduledTask) => {

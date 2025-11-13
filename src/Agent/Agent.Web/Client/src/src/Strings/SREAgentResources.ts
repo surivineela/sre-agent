@@ -228,6 +228,7 @@ export const SreAgentResources = defineMessages({
     update: { defaultMessage: 'Update', id: 'BWpuKl' },
     actions: { defaultMessage: 'Actions', id: 'wL7VAE' },
     active: { defaultMessage: 'Active', id: '3a5wL8' },
+    paused: { defaultMessage: 'Paused', id: 'C2iTEH' },
     acknowledged: { defaultMessage: 'Acknowledged', id: 'FnKIAW' },
     triggered: { defaultMessage: 'Triggered', id: 'Zqa4dQ' },
     closed: { defaultMessage: 'Closed', id: 'Fv1ZSz' },
@@ -534,6 +535,7 @@ export const SreAgentResources = defineMessages({
     nextRunsLocalTime: { defaultMessage: 'Next runs (local time):', id: 'lcOT8X' },
     never: { defaultMessage: 'Never', id: 'du1laW' },
     notScheduled: { defaultMessage: 'Not scheduled', id: 'pyXjlj' },
+    scheduled: { defaultMessage: 'Scheduled', id: 'cXAlMR' },
     loadingScheduledTasks: { defaultMessage: 'Loading scheduled tasks...', id: 'iyOYgd' },
     createFirstScheduledTask: {
         defaultMessage: 'Create your first scheduled task to automatically run agent actions at regular intervals.',
@@ -597,6 +599,7 @@ export const SreAgentResources = defineMessages({
     rating: { defaultMessage: 'Rating', id: 'ETRyBL' },
     noAdditionalComments: { defaultMessage: 'No additional comments provided', id: 'wBh+z3' },
     doYouWantToProceed: { defaultMessage: 'Do you want to proceed?', id: 'j0Ifob' },
+    unknownStatus: { defaultMessage: 'Unknown status', id: 'wSLRfB' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -3172,6 +3175,26 @@ export const ScheduledTasksResources = defineMessages({
     totalRuns: { defaultMessage: 'Total runs', id: 'g4Dsk6' },
     responseSubAgent: { defaultMessage: 'Response subagent', id: 'GMhzu1' },
     responseSubAgentPlaceholder: { defaultMessage: 'Select an agent', id: 'ipsqxO' },
+    goToScheduledTasksButtonText: {
+        defaultMessage: 'Go to Scheduled Tasks',
+        id: 'zJFez9',
+    },
+    messageGroupingBadgeText: {
+        defaultMessage: 'Message grouping:',
+        id: '8MoJEj',
+    },
+    scheduleBadgeText: {
+        defaultMessage: 'Schedule:',
+        id: 'NmQwIl',
+    },
+    createdTimestampBadgeText: {
+        defaultMessage: 'Created at:',
+        id: 'i3P6ZD',
+    },
+    startTimestampBadgeText: {
+        defaultMessage: 'Start:',
+        id: 'xP3hmB',
+    },
 });
 
 export const SubAgentsResources = defineMessages({

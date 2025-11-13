@@ -9,8 +9,8 @@ import ErrorChatMessage from './ErrorMessage';
 import ExecutionMessage, { ExecutionMessageType } from './ExecutionMessage';
 import MemoryChatMessage from './MemoryChatMessage';
 import PsqlExecutionMessage from './PsqlExecutionMessage';
-import ScheduledTaskCreationCard from './ScheduledTaskCreationCard';
-import ScheduledTaskExecutionCard from './ScheduledTaskExecutionCard';
+import ScheduledTaskCreationChatMessage from './ScheduledTaskCreationChatMessage';
+import ScheduledTaskExecutionChatMessage from './ScheduledTaskExecutionChatMessage';
 import SessionInsightCard from './SessionInsightCard';
 import TextOrImageMessage from './TextOrImageMessage';
 import TodoPlanChatMessage from './TodoPlanChatMessage';
@@ -47,21 +47,9 @@ const AgentMessage = ({
             ) : isTrajectoryInsight && messageContent.text ? (
                 <SessionInsightCard insightText={messageContent.text} onRequestRefinement={sendMessage} />
             ) : scheduledTaskData.isScheduledTaskCreationMessage && scheduledTaskData.task ? (
-                <ScheduledTaskCreationCard
-                    data={{
-                        taskId: scheduledTaskData.task.id,
-                        taskName: scheduledTaskData.task.name,
-                        description: scheduledTaskData.task.description,
-                        cronExpression: scheduledTaskData.task.cronExpression,
-                        agentPrompt: scheduledTaskData.task.agentPrompt,
-                        status: scheduledTaskData.task.status,
-                        durationText: 'No limit',
-                        maxExecutionsText: 'No limit',
-                        createdAt: scheduledTaskData.task.createdAt,
-                    }}
-                />
+                <ScheduledTaskCreationChatMessage task={scheduledTaskData.task} />
             ) : scheduledTaskData.isScheduledTaskMessage && scheduledTaskData.task ? (
-                <ScheduledTaskExecutionCard task={scheduledTaskData.task} executionTime={scheduledTaskData.executionTime?.toISOString()} />
+                <ScheduledTaskExecutionChatMessage task={scheduledTaskData.task} executionTime={scheduledTaskData.executionTime} />
             ) : messageContent.azCliExecution ? (
                 <ExecutionMessage
                     type={ExecutionMessageType.AzCli}
