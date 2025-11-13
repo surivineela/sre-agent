@@ -7,7 +7,7 @@ import InputFormik from '../../../../Common/Components/Input/InputFormik';
 import InputNoFormik from '../../../../Common/Components/Input/InputNoFormik';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
 import { ToolParameter } from '../../../Contracts/ExtendedAgentGraph';
-import { useKustoToolCreateDialogStyles } from '../KustoToolCreateDialog.Styles';
+import { useKustoToolCreateDialogStyles } from '../KustoToolDialog.Styles';
 import { KustoToolFormProps } from '../KustoToolUtilities';
 
 export const TestValueAccordion: FC = () => {

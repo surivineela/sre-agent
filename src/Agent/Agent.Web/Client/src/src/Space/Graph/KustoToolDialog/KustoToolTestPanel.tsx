@@ -7,7 +7,7 @@ import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/Star
 import { ExtendedAgentClient } from '../../../Common/Clients/ExtendedAgentClient';
 import { ExtendedAgentsGraphResources } from '../../../Strings/SREAgentResources';
 import { TestValueAccordion } from './Common/TestValueAccordion';
-import { useKustoToolCreateDialogStyles } from './KustoToolCreateDialog.Styles';
+import { useKustoToolCreateDialogStyles } from './KustoToolDialog.Styles';
 import { KustoToolFormProps } from './KustoToolUtilities';
 
 interface KustoToolTestPanelProps {

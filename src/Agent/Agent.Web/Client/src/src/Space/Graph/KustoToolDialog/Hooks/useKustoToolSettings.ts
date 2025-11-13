@@ -3,14 +3,14 @@ import { useIntl } from 'react-intl';
 import { array, mixed, object, string } from 'yup';
 import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getErrorMessageOrStringify } from '../../../../Common/Clients/ArmClient';
 import { ExtendedAgentClient } from '../../../../Common/Clients/ExtendedAgentClient';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedTool } from '../../../Contracts/ExtendedAgentGraph';
 import { ENTITY_NAME_MAX_LENGTH } from '../../ExtendedAgentCreationDialog/utils/nameValidation';
+import { KustoToolDialogMode } from '../KustoToolDialog';
 import { KustoToolFormProps } from '../KustoToolUtilities';
 
-export const useKustoToolSettings = () => {
+export const useKustoToolSettings = (mode: KustoToolDialogMode, tool?: ExtendedTool) => {
     const intl = useIntl();
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const azPortalContext = useContext(AzPortalContext);
@@ -19,14 +19,14 @@ export const useKustoToolSettings = () => {
 
     const initialValues: KustoToolFormProps = useMemo(() => {
         return {
-            name: '',
-            description: '',
-            connector: '',
-            database: '',
-            query: '',
-            parameters: [],
+            name: tool?.name ?? '',
+            description: tool?.description ?? '',
+            connector: tool?.connector ?? '',
+            database: tool?.database ?? '',
+            query: tool?.query ?? '',
+            parameters: tool?.parameters ?? [],
         };
-    }, []);
+    }, [tool]);
 
     const validationSchema = useMemo(
         () =>
@@ -75,11 +75,13 @@ export const useKustoToolSettings = () => {
                 query: values.query,
                 parameters: values.parameters,
             };
-            const notificationId = azPortalContext.startNotification(
-                intl.formatMessage(ExtendedAgentsGraphResources.createToolTitle),
-                intl.formatMessage(ExtendedAgentsGraphResources.createToolInProgress)
-            );
-            try {
+
+            if (mode === KustoToolDialogMode.Create) {
+                const notificationId = azPortalContext.startNotification(
+                    intl.formatMessage(ExtendedAgentsGraphResources.createToolTitle),
+                    intl.formatMessage(ExtendedAgentsGraphResources.createToolInProgress)
+                );
+
                 const response = await extendedAgentClient.applyEntity(body, 'tool');
                 if (response.isSuccessful) {
                     azPortalContext.stopNotification(
@@ -87,7 +89,6 @@ export const useKustoToolSettings = () => {
                         true,
                         intl.formatMessage(ExtendedAgentsGraphResources.toolCreatedSuccessfully)
                     );
-                    return response;
                 } else {
                     azPortalContext.stopNotification(
                         notificationId,
@@ -95,18 +96,33 @@ export const useKustoToolSettings = () => {
                         intl.formatMessage(ExtendedAgentsGraphResources.failedToCreateTool, { errorMessage: response.error })
                     );
                 }
-                return response;
-            } catch (error) {
-                azPortalContext.stopNotification(
-                    notificationId,
-                    false,
-                    intl.formatMessage(ExtendedAgentsGraphResources.failedToCreateTool, { errorMessage: getErrorMessageOrStringify(error) })
-                );
-            } finally {
                 setIsSaving(false);
+                return response;
+            } else {
+                const notificationId = azPortalContext.startNotification(
+                    intl.formatMessage(ExtendedAgentsGraphResources.updateToolTitle),
+                    intl.formatMessage(ExtendedAgentsGraphResources.updateToolInProgress)
+                );
+
+                const response = await extendedAgentClient.applyEntity(body, 'tool');
+                if (response.isSuccessful) {
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        true,
+                        intl.formatMessage(ExtendedAgentsGraphResources.toolUpdatedSuccessfully)
+                    );
+                } else {
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        false,
+                        intl.formatMessage(ExtendedAgentsGraphResources.failedToUpdateTool, { errorMessage: response.error })
+                    );
+                }
+                setIsSaving(false);
+                return response;
             }
         },
-        [azPortalContext, extendedAgentClient, intl]
+        [azPortalContext, extendedAgentClient, intl, mode]
     );
 
     return {

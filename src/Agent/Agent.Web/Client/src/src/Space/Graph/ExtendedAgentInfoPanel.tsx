@@ -81,6 +81,7 @@ type ExtendedAgentInfoPanelProps = {
     minWidth?: number;
     maxWidth?: number;
     onOpenPlayground?: (target: PlaygroundTarget) => void;
+    onEditKustoTool?: (tool: ExtendedTool) => void;
     onClose?: () => void;
     collapsibleProps?: {
         isCollapsed: boolean;
@@ -143,6 +144,7 @@ export const ExtendedAgentInfoPanel = memo(
         minWidth,
         maxWidth,
         onOpenPlayground,
+        onEditKustoTool,
         onClose,
         collapsibleProps,
     }: ExtendedAgentInfoPanelProps) => {
@@ -212,16 +214,29 @@ export const ExtendedAgentInfoPanel = memo(
             }
         }, [memoryEnabled, sreAgentEndpoint]);
 
-        const handleOpenYamlEditor = useCallback(
-            (entity: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger | undefined, type: ExtendedEntityType) => {
+        const onEdit = useCallback(
+            (entity: ExtendedTool | ExtendedConnector | ExtendedTrigger | ExtendedAgent | undefined, type: ExtendedEntityType) => {
                 if (!entity) return;
+
                 if (type === 'agent' && triggerAgentQuickAction) {
                     triggerAgentQuickAction(entity.name, 'editAgent');
                     return;
                 }
+
+                if (type === 'tool' && onEditKustoTool) {
+                    onEditKustoTool(entity as ExtendedTool);
+                    return;
+                }
+                handleOpenYamlEditor(entity, type);
+            },
+            []
+        );
+
+        const handleOpenYamlEditor = useCallback(
+            (entity: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger, type: ExtendedEntityType) => {
                 setYamlEditorContext({ entity, type });
             },
-            [triggerAgentQuickAction]
+            []
         );
 
         const renderToolDetails = useCallback(
@@ -316,30 +331,40 @@ export const ExtendedAgentInfoPanel = memo(
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHeaderCell>
-                                                <Text weight="semibold">
+                                            <TableHeaderCell className={styles.tableCellTruncate}>
+                                                <Text weight="semibold" className={styles.tableCellTextTruncate}>
                                                     {intl.formatMessage(ExtendedAgentsGraphResources.parameterName)}
                                                 </Text>
                                             </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.type)}</Text>
+                                            <TableHeaderCell className={styles.tableCellTruncate}>
+                                                <Text weight="semibold" className={styles.tableCellTextTruncate}>
+                                                    {intl.formatMessage(ExtendedAgentsGraphResources.type)}
+                                                </Text>
                                             </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                <Text weight="semibold">{intl.formatMessage(ExtendedAgentsGraphResources.value)}</Text>
+                                            <TableHeaderCell className={styles.tableCellTruncate}>
+                                                <Text weight="semibold" className={styles.tableCellTextTruncate}>
+                                                    {intl.formatMessage(ExtendedAgentsGraphResources.value)}
+                                                </Text>
                                             </TableHeaderCell>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {tool.parameters.map((param, index) => (
                                             <TableRow key={index}>
-                                                <TableCell>
-                                                    <Text>{param.name}</Text>
+                                                <TableCell className={styles.tableCellTruncate}>
+                                                    <div className={styles.flexRowCenter8}>
+                                                        <Text className={styles.tableCellTextTruncate}>{param.name}</Text>
+                                                    </div>
                                                 </TableCell>
-                                                <TableCell>
-                                                    <Text>{param.type}</Text>
+                                                <TableCell className={styles.tableCellTruncate}>
+                                                    <div className={styles.flexRowCenter8}>
+                                                        <Text className={styles.tableCellTextTruncate}>{param.type}</Text>
+                                                    </div>
                                                 </TableCell>
-                                                <TableCell>
-                                                    <Text>{param.value}</Text>
+                                                <TableCell className={styles.tableCellTruncate}>
+                                                    <div className={styles.flexRowCenter8}>
+                                                        <Text className={styles.tableCellTextTruncate}>{param.value}</Text>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -1061,46 +1086,46 @@ export const ExtendedAgentInfoPanel = memo(
                                                 appearance="subtle"
                                                 size="small"
                                                 icon={<Edit20Regular />}
-                                                onClick={() => handleOpenYamlEditor(headerEditContext.entity, headerEditContext.type)}
+                                                onClick={() => onEdit(headerEditContext.entity, headerEditContext.type)}
                                                 title={intl.formatMessage(ExtendedAgentsGraphResources.yamlOpenButton)}
                                             />
                                         )}
                                     {((playgroundTarget && showAgentBuilderPlayground) ||
                                         (headerEditContext?.type === 'agent' && isAgentContext && selectedAgent) ||
                                         (headerEditContext?.type === 'tool' && selectedTool)) && (
-                                            <Menu>
-                                                <MenuTrigger disableButtonEnhancement>
-                                                    <MenuButton appearance="subtle" size="small" icon={<MoreHorizontal20Regular />} />
-                                                </MenuTrigger>
-                                                <MenuPopover>
-                                                    <MenuList>
-                                                        {showAgentBuilderPlayground && playgroundTarget && (
-                                                            <MenuItem icon={<Beaker20Regular />} onClick={handleOpenPlaygroundClick}>
-                                                                {intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
-                                                            </MenuItem>
-                                                        )}
-                                                        {headerEditContext?.type === 'agent' && isAgentContext && selectedAgent && (
-                                                            <MenuItem
-                                                                icon={<Delete20Regular />}
-                                                                onClick={() => handleDeleteClick('agent', selectedAgent)}
-                                                                disabled={isDeleting}
-                                                            >
-                                                                {intl.formatMessage(SreAgentResources.deleteSubagentTitle)}
-                                                            </MenuItem>
-                                                        )}
-                                                        {headerEditContext?.type === 'tool' && selectedTool && (
-                                                            <MenuItem
-                                                                icon={<Delete20Regular />}
-                                                                onClick={() => handleDeleteClick('tool', selectedTool)}
-                                                                disabled={isDeleting}
-                                                            >
-                                                                {intl.formatMessage(SreAgentResources.deleteToolTitle)}
-                                                            </MenuItem>
-                                                        )}
-                                                    </MenuList>
-                                                </MenuPopover>
-                                            </Menu>
-                                        )}
+                                        <Menu>
+                                            <MenuTrigger disableButtonEnhancement>
+                                                <MenuButton appearance="subtle" size="small" icon={<MoreHorizontal20Regular />} />
+                                            </MenuTrigger>
+                                            <MenuPopover>
+                                                <MenuList>
+                                                    {showAgentBuilderPlayground && playgroundTarget && (
+                                                        <MenuItem icon={<Beaker20Regular />} onClick={handleOpenPlaygroundClick}>
+                                                            {intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
+                                                        </MenuItem>
+                                                    )}
+                                                    {headerEditContext?.type === 'agent' && isAgentContext && selectedAgent && (
+                                                        <MenuItem
+                                                            icon={<Delete20Regular />}
+                                                            onClick={() => handleDeleteClick('agent', selectedAgent)}
+                                                            disabled={isDeleting}
+                                                        >
+                                                            {intl.formatMessage(SreAgentResources.deleteSubagentTitle)}
+                                                        </MenuItem>
+                                                    )}
+                                                    {headerEditContext?.type === 'tool' && selectedTool && (
+                                                        <MenuItem
+                                                            icon={<Delete20Regular />}
+                                                            onClick={() => handleDeleteClick('tool', selectedTool)}
+                                                            disabled={isDeleting}
+                                                        >
+                                                            {intl.formatMessage(SreAgentResources.deleteToolTitle)}
+                                                        </MenuItem>
+                                                    )}
+                                                </MenuList>
+                                            </MenuPopover>
+                                        </Menu>
+                                    )}
                                     {onClose && (
                                         <Button
                                             appearance="subtle"

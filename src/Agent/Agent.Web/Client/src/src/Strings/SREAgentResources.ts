@@ -3502,6 +3502,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
 
     // Tool Form Fields
     createKustoTool: { defaultMessage: 'Create a Kusto tool', id: 'gclDgn' },
+    editKustoTool: { defaultMessage: 'Edit Kusto tool', id: 'bDbbX7' },
     toolNoConnectorsMessage: { defaultMessage: 'To create a Kusto tool, first add an Azure Data Explorer connector.', id: 'fiLH5L' },
     goToConnectors: { defaultMessage: 'Go to Connectors', id: 'QK0vxq' },
     toolName: { defaultMessage: 'Tool Name', id: 'INiSE2' },
@@ -3583,6 +3584,10 @@ export const ExtendedAgentsGraphResources = defineMessages({
     createToolInProgress: { defaultMessage: 'Creating Kusto Tool', id: 'LaIt/v' },
     failedToCreateTool: { defaultMessage: 'Failed to create tool', id: 'Dvly6A' },
     toolCreatedSuccessfully: { defaultMessage: 'Tool created successfully', id: 'f04POI' },
+    updateToolTitle: { defaultMessage: 'Update Kusto Tool', id: 'n25S4d' },
+    updateToolInProgress: { defaultMessage: 'Updating Kusto Tool', id: 'DP0m/y' },
+    failedToUpdateTool: { defaultMessage: 'Failed to update tool', id: 'PpdTYy' },
+    toolUpdatedSuccessfully: { defaultMessage: 'Tool updated successfully', id: 'fvSiRs' },
     addParameter: { defaultMessage: 'Add parameter', id: 'qB4s5L' },
     parameterName: { defaultMessage: 'Parameter name', id: 'xLrAFR' },
     parameterNamePlaceholder: { defaultMessage: 'Enter the parameter name', id: '0hpRE4' },

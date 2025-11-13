@@ -18,33 +18,48 @@ import { FC, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router-dom';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
-import { ExtendedConnector } from '../../Contracts/ExtendedAgentGraph';
+import { ExtendedConnector, ExtendedTool } from '../../Contracts/ExtendedAgentGraph';
 import { SettingsKeys } from '../../Settings/Settings.ReactView';
 import { useKustoToolSettings } from './Hooks/useKustoToolSettings';
-import { useKustoToolCreateDialogStyles } from './KustoToolCreateDialog.Styles';
-import { KustoToolCreateForm } from './KustoToolCreateForm';
+import { useKustoToolCreateDialogStyles } from './KustoToolDialog.Styles';
+import { KustoToolCreateForm } from './KustoToolForm';
 import { KustoToolTestPanel } from './KustoToolTestPanel';
 import { KustoToolFormProps } from './KustoToolUtilities';
 
-interface KustoToolCreateDialogProps {
+interface KustoToolCreateEditDialogProps {
     isDialogOpen: boolean;
     setIsDialogOpen: (open: boolean) => void;
     connectors: ExtendedConnector[];
     agentName?: string;
     addToolsToAgent: (agentName: string, toolsNames: string[]) => void;
+    refresh?: () => void;
+    kustoTool?: ExtendedTool;
+    mode: KustoToolDialogMode;
 }
 
-export const KustoToolCreateDialog: FC<KustoToolCreateDialogProps> = ({
+export enum KustoToolDialogMode {
+    Create,
+    Edit,
+}
+
+export const KustoToolCreateEditDialog: FC<KustoToolCreateEditDialogProps> = ({
     isDialogOpen,
     setIsDialogOpen,
     connectors,
     agentName,
     addToolsToAgent,
+    refresh,
+    kustoTool,
+    mode,
 }) => {
     const intl = useIntl();
     const navigate = useNavigate();
     const styles = useKustoToolCreateDialogStyles();
-    const { initialValues, validationSchema, save: saveKustoToolSettings } = useKustoToolSettings();
+    const {
+        initialValues,
+        validationSchema,
+        save: saveKustoToolSettings,
+    } = useKustoToolSettings(mode, mode === KustoToolDialogMode.Edit ? kustoTool : undefined);
     const [hasSuccessRunTest, setHasSuccessRunTest] = useState<boolean>(false);
 
     useEffect(() => {
@@ -62,8 +77,12 @@ export const KustoToolCreateDialog: FC<KustoToolCreateDialogProps> = ({
                     const response = await saveKustoToolSettings(values);
                     if (response?.isSuccessful) {
                         setIsDialogOpen(false);
-                        if (agentName) {
-                            await addToolsToAgent(agentName, [values.name]);
+                        if (mode === KustoToolDialogMode.Create) {
+                            if (agentName) {
+                                await addToolsToAgent(agentName, [values.name]);
+                            }
+                        } else {
+                            refresh?.();
                         }
                     }
                 }}
@@ -84,7 +103,9 @@ export const KustoToolCreateDialog: FC<KustoToolCreateDialogProps> = ({
                                             />
                                         }
                                     >
-                                        {intl.formatMessage(ExtendedAgentsGraphResources.createKustoTool)}
+                                        {mode === KustoToolDialogMode.Create
+                                            ? intl.formatMessage(ExtendedAgentsGraphResources.createKustoTool)
+                                            : intl.formatMessage(ExtendedAgentsGraphResources.editKustoTool)}
                                     </DialogTitle>
                                 </div>
                                 <DialogContent>
@@ -131,7 +152,9 @@ export const KustoToolCreateDialog: FC<KustoToolCreateDialogProps> = ({
                                             onClick={submitForm}
                                             disabled={!dirty || !isValid || !hasSuccessRunTest}
                                         >
-                                            {intl.formatMessage(ExtendedAgentsGraphResources.createTool)}
+                                            {mode === KustoToolDialogMode.Create
+                                                ? intl.formatMessage(ExtendedAgentsGraphResources.createTool)
+                                                : intl.formatMessage(SreAgentResources.save)}
                                         </Button>
                                     </DialogTrigger>
                                     <DialogTrigger disableButtonEnhancement>

@@ -4,7 +4,7 @@ import { useFormikContext } from 'formik';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
-import { useKustoToolCreateDialogStyles } from '../KustoToolCreateDialog.Styles';
+import { useKustoToolCreateDialogStyles } from '../KustoToolDialog.Styles';
 import { KustoToolFormProps } from '../KustoToolUtilities';
 import { ParameterAccordionItem } from './ParameterAccordionItem';
 

@@ -66,7 +66,7 @@ import { ExtendedAgentRelationshipDialog } from './ExtendedAgentRelationshipDial
 import { ExtendedAgentSelector } from './ExtendedAgentSelector';
 import { buildMetaAgentYaml, convertExtendedEntityToYaml } from './ExtendedAgentYamlUtils';
 import { IncidentTriggerCreateDialog } from './IncidentTriggerCreateDialog/IncidentTriggerCreateDialog';
-import { KustoToolCreateDialog } from './KustoToolCreateDialog/KustoToolCreateDialog';
+import { KustoToolCreateEditDialog, KustoToolDialogMode } from './KustoToolDialog/KustoToolDialog';
 import { ToolCard } from './ToolCard';
 import { TriggerCard } from './TriggerCard';
 
@@ -167,6 +167,8 @@ const ExtendedAgentGraphContent = memo(() => {
 
     const [isToolDialogOpen, setIsToolDialogOpen] = useState<boolean>(false);
     const [createToolAgent, setCreateToolAgent] = useState<string>();
+    const [toolDialogMode, setToolDialogMode] = useState<KustoToolDialogMode>(KustoToolDialogMode.Create);
+    const [toolToEdit, setToolToEdit] = useState<ExtendedTool>();
 
     const [currentView, setCurrentView] = useState<ExtendedAgentGraphView>(ExtendedAgentGraphView.Visual);
     const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
@@ -616,6 +618,13 @@ const ExtendedAgentGraphContent = memo(() => {
     const handleDismissPlayground = useCallback(() => {
         setIsPlaygroundOpen(false);
         setPlaygroundTarget(undefined);
+    }, []);
+
+    const handleEditKustoTool = useCallback((tool: ExtendedTool) => {
+        setCreateToolAgent(undefined);
+        setToolDialogMode(KustoToolDialogMode.Edit);
+        setToolToEdit(tool);
+        setIsToolDialogOpen(true);
     }, []);
 
     const incidentHandlersCount = useMemo(
@@ -1223,6 +1232,8 @@ const ExtendedAgentGraphContent = memo(() => {
             if (action === 'createTool') {
                 const agent = agents.find(a => a.name === agentName)!;
                 setCreateToolAgent(agent.name);
+                setToolDialogMode(KustoToolDialogMode.Create);
+                setToolToEdit(undefined);
                 setIsToolDialogOpen(true);
                 return;
             }
@@ -1560,8 +1571,10 @@ const ExtendedAgentGraphContent = memo(() => {
             }
 
             if (itemType === 'tool') {
-                setIsToolDialogOpen(true);
                 setCreateToolAgent(anchorEntity?.entityType === 'Agent' ? anchorEntity?.entityName : undefined);
+                setToolDialogMode(KustoToolDialogMode.Create);
+                setToolToEdit(undefined);
+                setIsToolDialogOpen(true);
                 return;
             }
 
@@ -1742,6 +1755,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                     minWidth={INFO_PANEL_MIN_WIDTH}
                                     maxWidth={INFO_PANEL_MAX_WIDTH}
                                     onOpenPlayground={handleOpenPlayground}
+                                    onEditKustoTool={handleEditKustoTool}
                                     collapsibleProps={{ isCollapsed: isInfoPanelCollapsed, setCollapsed: setIsInfoPanelCollapsed }}
                                 />
                             </div>
@@ -1812,12 +1826,18 @@ const ExtendedAgentGraphContent = memo(() => {
                     />
                 </ScheduledTasksContext.Provider>
 
-                <KustoToolCreateDialog
+                <KustoToolCreateEditDialog
                     isDialogOpen={isToolDialogOpen}
                     setIsDialogOpen={setIsToolDialogOpen}
                     connectors={connectors}
                     agentName={createToolAgent}
                     addToolsToAgent={addToolsToAgent}
+                    refresh={() => {
+                        setIsInfoPanelCollapsed(true);
+                        handleRefresh();
+                    }}
+                    kustoTool={toolToEdit}
+                    mode={toolDialogMode}
                 />
 
                 <AddExistingAgentHandoffDialog

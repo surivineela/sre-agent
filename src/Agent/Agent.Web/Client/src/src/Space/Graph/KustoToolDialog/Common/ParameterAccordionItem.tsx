@@ -16,7 +16,7 @@ import InputFormik from '../../../../Common/Components/Input/InputFormik';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { AgentPromptTextarea } from '../../../Components/AgentPromptTextarea';
 import { ToolParameter } from '../../../Contracts/ExtendedAgentGraph';
-import { useKustoToolCreateDialogStyles } from '../KustoToolCreateDialog.Styles';
+import { useKustoToolCreateDialogStyles } from '../KustoToolDialog.Styles';
 import { KustoToolFormProps } from '../KustoToolUtilities';
 
 interface ParameterAccordionItemProps {
