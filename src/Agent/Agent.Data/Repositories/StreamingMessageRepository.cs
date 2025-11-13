@@ -9,16 +9,15 @@ using Agent.Core.Models.Api.v1;
 namespace Agent.Data.Repositories;
 
 /// <summary>
-/// In-memory implementation of message storage using thread-safe collections.
-/// Stores messages organized by thread ID for fast retrieval and updates.
+/// Streaming message repository implementation using thread-safe in-memory collections.
+/// Buffers incomplete messages during streaming responses before they are persisted.
 /// </summary>
-public class InMemoryMessageRepository : IInMemoryMessageRepository
+public class StreamingMessageRepository : IStreamingMessageRepository
 {
     // Thread-safe dictionary: ThreadId -> (MessageId -> Message)
     private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, Message>> _storage = new();
 
-    /// <inheritdoc />
-    public Task<Message> AddMessageAsync(Guid threadId, Message message)
+    private Task<Message> AddMessageAsync(Guid threadId, Message message)
     {
         var threadMessages = _storage.GetOrAdd(threadId, _ => new ConcurrentDictionary<Guid, Message>());
 
@@ -30,8 +29,7 @@ public class InMemoryMessageRepository : IInMemoryMessageRepository
         return Task.FromResult(message);
     }
 
-    /// <inheritdoc />
-    public Task<Message?> UpdateMessageAsync(Guid threadId, Message message)
+    private Task<Message?> UpdateMessageAsync(Guid threadId, Message message)
     {
         if (!_storage.TryGetValue(threadId, out var threadMessages))
         {
@@ -99,64 +97,35 @@ public class InMemoryMessageRepository : IInMemoryMessageRepository
     }
 
     /// <inheritdoc />
-    public Task ClearAllAsync()
+    public async Task UpdateMessageContentAsync(Guid threadId, Guid messageId, string content)
     {
-        _storage.Clear();
-        return Task.CompletedTask;
-    }
+        // Get existing message
+        var existingMessage = await GetMessageAsync(threadId, messageId);
 
-    /// <inheritdoc />
-    public Task<int> DeleteStaleMessagesAsync(TimeSpan timeoutDuration)
-    {
-        var cutoffTime = DateTime.UtcNow - timeoutDuration;
-        var deletedCount = 0;
-
-        // Take a snapshot of thread IDs to avoid modification during enumeration
-        var threadIds = _storage.Keys.ToList();
-
-        foreach (var threadId in threadIds)
+        if (existingMessage == null)
         {
-            // Safely get the thread messages - may not exist if removed by another thread
-            if (!_storage.TryGetValue(threadId, out var threadMessages))
-            {
-                continue;
-            }
-
-            // Take a snapshot of message IDs to check - thread-safe enumeration
-            var messageSnapshot = threadMessages.ToArray();
-
-            // Find and delete stale messages
-            foreach (var messageKvp in messageSnapshot)
-            {
-                if (messageKvp.Value.TimeStamp < cutoffTime)
-                {
-                    // TryRemove is atomic - safe even if message was already removed
-                    if (threadMessages.TryRemove(messageKvp.Key, out _))
-                    {
-                        deletedCount++;
-                    }
-                }
-            }
-
-            // Clean up empty thread storage - use safe check and remove
-            // Only remove if truly empty to avoid race condition with new messages
-            if (threadMessages.IsEmpty)
-            {
-                // Double-check inside TryRemove condition to ensure atomicity
-                // If another thread adds a message between IsEmpty check and TryRemove,
-                // we might remove a non-empty dictionary, so we verify after removal
-                if (_storage.TryRemove(threadId, out var removed))
-                {
-                    // If messages were added after our IsEmpty check but before TryRemove,
-                    // put it back to avoid losing messages
-                    if (!removed.IsEmpty)
-                    {
-                        _storage.TryAdd(threadId, removed);
-                    }
-                }
-            }
+            // Create new message if it doesn't exist
+            var newMessage = new Message(
+                Id: messageId,
+                TimeStamp: DateTime.UtcNow,
+                Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+                Text: content,
+                IsComplete: false
+            );
+            await AddMessageAsync(threadId, newMessage);
         }
-
-        return Task.FromResult(deletedCount);
+        else
+        {
+            // Append content to existing message
+            var updatedText = existingMessage.Text + content;
+            var updatedMessage = new Message(
+                Id: messageId,
+                TimeStamp: existingMessage.TimeStamp,
+                Author: existingMessage.Author,
+                Text: updatedText,
+                IsComplete: false
+            );
+            await UpdateMessageAsync(threadId, updatedMessage);
+        }
     }
 }

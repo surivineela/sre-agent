@@ -17,18 +17,18 @@ namespace Agent.Runtime;
 public class ChatMessageOutput : IDisplayModelOutput
 {
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
-    private readonly InMemoryMessageStorageService _inMemoryMessageService;
+    private readonly IStreamingMessageRepository _streamingMessageRepository;
     private readonly AgentContext _context;
     private Guid? _messageId;
 
     public ChatMessageOutput(
         IAgentOutboundCommunicationService outboundCommunicationService,
-        InMemoryMessageStorageService inMemoryMessageService,
+        IStreamingMessageRepository streamingMessageRepository,
         AgentContext context,
         Guid messageId)
     {
         _outboundCommunicationService = outboundCommunicationService ?? throw new ArgumentNullException(nameof(outboundCommunicationService));
-        _inMemoryMessageService = inMemoryMessageService ?? throw new ArgumentNullException(nameof(inMemoryMessageService));
+        _streamingMessageRepository = streamingMessageRepository ?? throw new ArgumentNullException(nameof(streamingMessageRepository));
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _messageId = messageId;
     }
@@ -74,7 +74,7 @@ public class ChatMessageOutput : IDisplayModelOutput
         }
 
         // Remove from in-memory storage without persisting to DB
-        await _inMemoryMessageService.DeleteMessageAsync(_context.ThreadId, _messageId);
+        await _streamingMessageRepository.DeleteMessageAsync(_context.ThreadId, _messageId.Value);
         _messageId = null;
     }
 }

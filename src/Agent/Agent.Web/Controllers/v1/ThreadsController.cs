@@ -56,7 +56,7 @@ namespace Agent.Web.Controllers.v1
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
         TrajectoryEvaluator trajectoryEvaluator,
         ISessionInsightRepository sessionInsightRepository,
-        InMemoryMessageStorageService inMemoryMessageStorageService) : ControllerBase
+        IStreamingMessageRepository streamingMessageRepository) : ControllerBase
     {
         // By default, returns threads ordered by timestamp in ascending order.
         // Pagination can be achieve by using `top` and `skip` query options. https://learn.microsoft.com/en-us/odata/client/pagination#client-driven-paging
@@ -138,44 +138,63 @@ namespace Agent.Web.Controllers.v1
 
             var messages = await repository.GetMessagesAsync(threadId, queryOptions);
 
-            // Filter incomplete messages:
-            // 1. Remove incomplete User messages (Role == 0) that are not the last message
-            // 2. Keep incomplete messages if they are the last message
-            // 3. If the last message is incomplete and thread hasn't been modified in the timeout period, remove it
-            var mergedMessages = await MergeAndFilterMessages(messages, thread);
+            // Merge incomplete in-memory messages with DB messages
+            var mergedMessages = await MergeIncompleteMessagesAsync(messages, thread);
 
             return Ok(new PagedResponseWithState<Message, ContextStateEnum?>(Value: mergedMessages, State: ctx?.ContextState));
         }
 
         /// <summary>
-        /// Filters and merges DB messages with incomplete in-memory messages.
+        /// Merges DB messages with incomplete in-memory messages and cleans up stale/duplicate incomplete messages.
         /// </summary>
-        private async Task<List<Message>> MergeAndFilterMessages(IEnumerable<Message> dbMessages, Thread thread)
+        private async Task<List<Message>> MergeIncompleteMessagesAsync(IEnumerable<Message> dbMessages, Thread thread)
         {
             var messageList = dbMessages.ToList();
-            var filteredMessages = new List<Message>();
-            if (messageList.Count == 0)
-                return filteredMessages;
 
-            // Filter messages: only get complete SREAgent messages, and all other role messages with existing filtering rules
-            for (int i = 0; i < messageList.Count; i++)
+            // Get incomplete in-memory messages and append the latest one if it doesn't already exist in DB
+            var inMemoryMessages = await streamingMessageRepository.GetMessagesAsync(thread.Id);
+            var incomplete = inMemoryMessages?.Where(m => !m.IsComplete).OrderByDescending(m => m.TimeStamp).ToList();
+
+            if (incomplete != null && incomplete.Count > 0)
             {
-                var message = messageList[i];
-                bool isLatestMessage = i == 0;
+                logger.LogInternalInformation("Found {Count} incomplete in-memory messages for thread {ThreadId}", incomplete.Count, thread.Id);
 
-                // If it's incomplete and it's a Agent message (Role == 0) and NOT the latest message, skip it
-                if (!message.IsComplete && message.Author.Role == Role.SREAgent && !isLatestMessage)
+                var latest = incomplete.First();
+                var oneHourAgo = DateTime.UtcNow.AddHours(-1);
+
+                // Check if latest message should be deleted (older than 1 hour or exists in DB)
+                if (latest.TimeStamp < oneHourAgo || messageList.Any(m => m.Id == latest.Id))
                 {
-                    continue;
+                    var reason = latest.TimeStamp < oneHourAgo ? "older than 1 hour" : "already exists in DB";
+                    logger.LogInternalInformation("Deleting latest incomplete message {MessageId} from thread {ThreadId} - reason: {Reason}",
+                        latest.Id, thread.Id, reason);
+
+                    // Delete the latest message
+                    await streamingMessageRepository.DeleteMessageAsync(thread.Id, latest.Id);
+                }
+                else
+                {
+                    logger.LogInternalInformation("Adding latest incomplete message {MessageId} to thread {ThreadId} messages",
+                        latest.Id, thread.Id);
+
+                    // Only prepend if this message ID doesn't already exist in the messages from DB
+                    messageList.Insert(0, latest);
                 }
 
-                filteredMessages.Add(message);
+                // Delete all other incomplete messages (not the latest)
+                if (incomplete.Count > 1)
+                {
+                    logger.LogInternalInformation("Deleting {Count} older incomplete messages from thread {ThreadId}",
+                        incomplete.Count - 1, thread.Id);
+
+                    for (int i = 1; i < incomplete.Count; i++)
+                    {
+                        await streamingMessageRepository.DeleteMessageAsync(thread.Id, incomplete[i].Id);
+                    }
+                }
             }
 
-            // Delegate merge logic to the service
-            var mergedMessages = await inMemoryMessageStorageService.MergeIncompleteMessagesAsync(thread.Id, filteredMessages);
-
-            return mergedMessages;
+            return messageList;
         }
 
         [HttpGet("{threadId}/messages/{messageId}")]
@@ -260,7 +279,7 @@ namespace Agent.Web.Controllers.v1
             reasoningLoopManager.CancelCurrentOperation(agentContext);
 
             // Clean up incomplete in-memory messages for this thread
-            await inMemoryMessageStorageService.ClearThreadMessagesAsync(threadId);
+            await streamingMessageRepository.ClearThreadMessagesAsync(threadId);
 
             return AcceptedAtAction(nameof(CancelThreadExecution), new { threadId }, "Cancellation in progress");
         }
@@ -400,7 +419,7 @@ namespace Agent.Web.Controllers.v1
                 return NotFound();
 
             // Clean up in-memory messages for this thread
-            await inMemoryMessageStorageService.ClearThreadMessagesAsync(threadId);
+            await streamingMessageRepository.ClearThreadMessagesAsync(threadId);
 
             // Delete all agent contexts and their related data
             var agentContexts = await repository.GetAgentContextsForThreadAsync(threadId);

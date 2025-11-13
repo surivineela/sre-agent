@@ -7,27 +7,11 @@ using Agent.Core.Models.Api.v1;
 namespace Agent.Core.Interfaces;
 
 /// <summary>
-/// In-memory repository for storing and managing messages within threads.
-/// Provides fast access to messages without persistence.
+/// Repository for buffering streaming messages temporarily before persistence.
+/// Provides fast access to incomplete messages during streaming responses.
 /// </summary>
-public interface IInMemoryMessageRepository
+public interface IStreamingMessageRepository
 {
-    /// <summary>
-    /// Adds a new message to the specified thread.
-    /// </summary>
-    /// <param name="threadId">The thread ID to add the message to.</param>
-    /// <param name="message">The message to add.</param>
-    /// <returns>The added message.</returns>
-    Task<Message> AddMessageAsync(Guid threadId, Message message);
-
-    /// <summary>
-    /// Updates an existing message in the specified thread.
-    /// </summary>
-    /// <param name="threadId">The thread ID containing the message.</param>
-    /// <param name="message">The updated message.</param>
-    /// <returns>The updated message, or null if not found.</returns>
-    Task<Message?> UpdateMessageAsync(Guid threadId, Message message);
-
     /// <summary>
     /// Deletes a message from the specified thread.
     /// </summary>
@@ -59,14 +43,11 @@ public interface IInMemoryMessageRepository
     Task<bool> ClearThreadMessagesAsync(Guid threadId);
 
     /// <summary>
-    /// Clears all messages from all threads.
+    /// Updates a message with new content by appending to existing content.
+    /// Creates a new message if one doesn't exist.
     /// </summary>
-    Task ClearAllAsync();
-
-    /// <summary>
-    /// Deletes messages that are older than the specified timeout duration.
-    /// </summary>
-    /// <param name="timeoutDuration">Messages older than this duration will be deleted.</param>
-    /// <returns>Number of messages deleted.</returns>
-    Task<int> DeleteStaleMessagesAsync(TimeSpan timeoutDuration);
+    /// <param name="threadId">The thread ID.</param>
+    /// <param name="messageId">The message ID.</param>
+    /// <param name="content">The content to append.</param>
+    Task UpdateMessageContentAsync(Guid threadId, Guid messageId, string content);
 }

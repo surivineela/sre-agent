@@ -32,7 +32,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     private readonly IAgentTasksRepository _agentTaskRepository;
     private readonly IThreadRepository _threadRepository;
     private readonly AgentTaskToolResultHelper _agentTaskHelper;
-    private readonly InMemoryMessageStorageService _inMemoryMessageService;
+    private readonly IStreamingMessageRepository _streamingMessageRepository;
     private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -58,7 +58,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         IAgentTasksRepository agentTaskRepository,
         IThreadRepository threadRepository,
         AgentTaskToolResultHelper agentTaskHelper,
-        InMemoryMessageStorageService inMemoryMessageService)
+        IStreamingMessageRepository streamingMessageRepository)
     {
         _mappingManager = mappingManager;
         _logger = logger;
@@ -69,7 +69,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _agentTaskRepository = agentTaskRepository;
         _threadRepository = threadRepository;
         _agentTaskHelper = agentTaskHelper;
-        _inMemoryMessageService = inMemoryMessageService;
+        _streamingMessageRepository = streamingMessageRepository;
         _azCliKubectlSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
@@ -208,13 +208,13 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         // Handle in-memory storage based on isComplete flag
         if (!isComplete)
         {
-            // Store or update content in in-memory service
-            await _inMemoryMessageService.UpdateMessageContentAsync(context.ThreadId, agentMessageId, message.Text ?? string.Empty);
+            // Store or update content in in-memory repository
+            await _streamingMessageRepository.UpdateMessageContentAsync(context.ThreadId, agentMessageId, message.Text ?? string.Empty);
         }
         else
         {
             // Get existing message from in-memory service
-            var existingMessage = await _inMemoryMessageService.GetMessageAsync(context.ThreadId, agentMessageId);
+            var existingMessage = await _streamingMessageRepository.GetMessageAsync(context.ThreadId, agentMessageId);
 
             string finalText;
             if (existingMessage != null)
@@ -223,7 +223,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 finalText = existingMessage.Text + (message.Text ?? string.Empty);
 
                 // Delete from in-memory storage since we're saving to DB
-                await _inMemoryMessageService.DeleteMessageAsync(context.ThreadId, agentMessageId);
+                await _streamingMessageRepository.DeleteMessageAsync(context.ThreadId, agentMessageId);
             }
             else
             {

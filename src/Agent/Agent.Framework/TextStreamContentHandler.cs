@@ -13,7 +13,6 @@ namespace Agent.Framework;
 public class TextStreamContentHandler : IStreamContentHandler
 {
     private readonly IDisplayModelOutput? _displayModelOutput;
-    private System.Text.StringBuilder? _contentCache;
     private bool _hasStreamedContent;
 
     /// <summary>
@@ -28,11 +27,6 @@ public class TextStreamContentHandler : IStreamContentHandler
     public TextStreamContentHandler(IDisplayModelOutput? displayModelOutput)
     {
         _displayModelOutput = displayModelOutput;
-
-        if (_displayModelOutput != null)
-        {
-            _contentCache = new System.Text.StringBuilder();
-        }
     }
 
     /// <summary>
@@ -43,22 +37,13 @@ public class TextStreamContentHandler : IStreamContentHandler
     {
         _hasStreamedContent = true;
 
-        if (_contentCache is null || _displayModelOutput is null)
+        if (_displayModelOutput is null)
         {
             return;
         }
 
-        _contentCache.Append(content);
-
-        // Check if cache has reached threshold and flush if needed
-        if (_contentCache.Length >= IStreamContentHandler.ContentCacheThreshold)
-        {
-            var contentToDisplay = _contentCache.ToString();
-            _contentCache.Clear();
-
-            // Await OnDisplay to ensure DB write completes
-            await _displayModelOutput.OnDisplay(contentToDisplay);
-        }
+        // Await OnDisplay to ensure DB write completes
+        await _displayModelOutput.OnDisplay(content);
     }
 
     /// <summary>
@@ -67,14 +52,12 @@ public class TextStreamContentHandler : IStreamContentHandler
     /// <param name="finishReason">The reason why the streaming completed</param>
     public async Task CompleteAsync(ChatFinishReason? finishReason)
     {
-        if (_displayModelOutput == null || !_hasStreamedContent || _contentCache == null)
+        if (_displayModelOutput == null || !_hasStreamedContent)
         {
             return;
         }
 
-        var contentToDisplay = _contentCache.ToString();
-        _contentCache.Clear();
-        await _displayModelOutput.OnComplete(contentToDisplay, finishReason);
+        await _displayModelOutput.OnComplete(string.Empty, finishReason);
     }
 
     /// <summary>

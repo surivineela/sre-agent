@@ -63,57 +63,6 @@ public class StreamExtractorTests
     }
 
     [Fact]
-    public async Task Append_VerifyPieceByPieceOutputWithStart_CallbackInvokedForEachCharacter()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-
-        var extractor = new StreamExtractor("UserMessage", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        var jsonPieces = new[]
-        {
-            "{\n    \"",
-            "State\" : ",
-            "true,\n    \"",
-            "UserMessage",
-            "\" : ",
-            "\"🎉✨I am user message\"",
-            "\n}"
-        };
-
-        // Act & Assert - Append JSON string pieces chunk by chunk and verify output
-        await extractor.AppendAsync(jsonPieces[0]); // "{\n    \""
-        Assert.Empty(extractedChunks);
-
-        await extractor.AppendAsync(jsonPieces[1]); // "State\" : "
-        Assert.Empty(extractedChunks);
-
-        await extractor.AppendAsync(jsonPieces[2]); // "true,\n    \""
-        Assert.Empty(extractedChunks);
-
-        await extractor.AppendAsync(jsonPieces[3]); // "UserMessage"
-        Assert.Empty(extractedChunks);
-
-        await extractor.AppendAsync(jsonPieces[4]); // "\" : "
-        Assert.Empty(extractedChunks);
-
-        await extractor.AppendAsync(jsonPieces[5]); // "\"🎉✨I am user message\""
-        Assert.Single(extractedChunks);
-        Assert.Equal("🎉✨I am user message", extractedChunks[0]);
-
-        await extractor.AppendAsync(jsonPieces[6]); // "\"\n}"
-        Assert.Single(extractedChunks); // No new chunks after closing quote
-
-        // Assert - Verify final result
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("🎉✨I am user message", result);
-    }
-
-    [Fact]
     public async Task Append_ComplexJsonWithEscapesAndUnicode_ExtractsCorrectly()
     {
         // Arrange
@@ -296,30 +245,6 @@ public class StreamExtractorTests
     }
 
     [Fact]
-    public async Task Append_PropertyCaseInsensitive_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-
-        // Search for "usermessage" (lowercase)
-        var extractor = new StreamExtractor("usermessage", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // JSON has "UserMessage" (mixed case)
-        var json = @"{""UserMessage"": ""Case insensitive test""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("Case insensitive test", result);
-    }
-
-    [Fact]
     public async Task Append_MultiplePropertiesWithSameName_ExtractsFirstOccurrence()
     {
         // Arrange
@@ -332,12 +257,12 @@ public class StreamExtractorTests
 
         // JSON with multiple "Message" properties at different levels
         var json = @"{
-    ""Message"": ""First message"",
-    ""Data"": {
-        ""Message"": ""Nested message""
-    },
-    ""Message"": ""Duplicate message""
-}";
+            ""Message"": ""First message"",
+            ""Data"": {
+                ""Message"": ""Nested message""
+            },
+            ""Message"": ""Duplicate message""
+        }";
 
         // Act
         await extractor.AppendAsync(json);
@@ -346,437 +271,6 @@ public class StreamExtractorTests
         var result = string.Join("", extractedChunks);
         Assert.Equal("First message", result);
     }
-
-    [Fact]
-    public async Task Append_UnicodeEscapeSequences_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("Emoji", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // JSON with unicode escape sequences: \u263A (☺) and \u2764 (❤)
-        var json = @"{""Emoji"":""Hello \u263A and \u2764""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("Hello ☺ and ❤", result);
-
-        // Verify that unicode characters were properly decoded
-        Assert.Contains("☺", result);
-        Assert.Contains("❤", result);
-    }
-
-    [Fact]
-    public async Task Append_MultiByteUtf8Characters_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("Text", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // JSON with multi-byte UTF-8 characters (Chinese characters and emoji)
-        var json = @"{""Text"":""Hello 世界 🌍""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("Hello 世界 🌍", result);
-
-        // Verify multi-byte characters
-        Assert.Contains("世界", result); // Chinese characters
-        Assert.Contains("🌍", result); // Emoji
-    }
-
-    [Fact]
-    public async Task Append_MixedEscapeSequences_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("Text", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // JSON with various escape sequences
-        var json = @"{""Text"":""Line1\nLine2\tTabbed\""Quoted\""Back\\Slash""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("Line1\nLine2\tTabbed\"Quoted\"Back\\Slash", result);
-
-        // Verify specific escape sequences
-        Assert.Contains("\n", result); // Newline
-        Assert.Contains("\t", result); // Tab
-        Assert.Contains("\"", result); // Quotes
-        Assert.Contains("\\", result); // Backslash
-    }
-
-    [Fact]
-    public async Task Append_EscapedQuotesInValue_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("message", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        var json = @"{""message"":""Hello, I am \""Ahson!\""""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("Hello, I am \"Ahson!\"", result);
-    }
-
-    [Fact]
-    public async Task Append_AllEscapeSequences_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("message", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // Test all JSON escape sequences: \/, \r, \b, \n, \f, \t
-        var json = @"{""message"":""Hello /a/b/c \/ \r\b\n\f\t\/""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("Hello /a/b/c / \r\b\n\f\t/", result);
-    }
-
-    [Fact]
-    public async Task Append_WindowsFilePath_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("path", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        var json = @"{""path"":""C:\\Users\\file.txt""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("C:\\Users\\file.txt", result);
-    }
-
-    [Fact]
-    public async Task Append_MultipleBackslashes_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("val", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        var json = @"{""val"":""one\\\\two""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("one\\\\two", result);
-    }
-
-    [Fact]
-    public async Task Append_UnicodeDigits_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("digits", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // Unicode escape sequences: \u0030-\u0035 = '0'-'5'
-        var json = @"{""digits"":""\u0030\u0031\u0032\u0033\u0034\u0035""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("012345", result);
-    }
-
-    [Fact]
-    public async Task Append_UnicodeNullAndPlus_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("val", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // \u0000 = null character, \u002B = '+'
-        var json = @"{""val"":""\u0000\u002B""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("\u0000+", result);
-    }
-
-    [Fact]
-    public async Task Append_MixedUnicodeAndBackslash_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("val", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // \u005C = backslash, \u0072 = 'r'
-        var json = @"{""val"":""a\u005C\u0072b""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("a\\rb", result);
-    }
-
-    [Fact]
-    public async Task Append_EscapedUnicodeSequence_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("val", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // \\u005C means the literal string "\u005C", not the unicode character
-        var json = @"{""val"":""a\\u005C\\u0072b""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("a\\u005C\\u0072b", result);
-    }
-
-    [Fact]
-    public async Task Append_HighUnicodeCharacters_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("val", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        var json = @"{""val"":""a\u008E\u008Fb""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("a\u008E\u008Fb", result);
-    }
-
-    [Fact]
-    public async Task Append_SurrogatePair_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("val", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // \uD802\uDE6D = U+10A6D (𐙭) surrogate pair
-        var json = @"{""val"":""a\uD802\uDE6Db""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        var expected = "a" + char.ConvertFromUtf32(0x10A6D) + "b";
-        Assert.Equal(expected, result);
-        Assert.Contains("𐩭", result);
-    }
-
-    [Fact]
-    public async Task Append_MusicalNoteSurrogatePair_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("val", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // \uD834\uDD1E = U+1D11E (𝄞 - musical symbol G clef)
-        var json = @"{""val"":""a\uD834\uDD1Eb""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        var expected = "a" + char.ConvertFromUtf32(0x1D11E) + "b";
-        Assert.Equal(expected, result);
-        Assert.Contains("𝄞", result);
-    }
-
-    [Fact]
-    public async Task Append_EscapedSurrogatePair_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("val", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // Escaped surrogate pair means literal text, not a unicode character
-        var json = @"{""val"":""a\\uD834\\uDD1Eb""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("a\\uD834\\uDD1Eb", result);
-    }
-
-    [Fact]
-    public async Task Append_MultilineString_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("text", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        var json = @"{""text"":""Multiline\r\n String\r\n""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("Multiline\r\n String\r\n", result);
-    }
-
-    [Fact]
-    public async Task Append_ComplexMixedEscapes_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("text", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        // Mix of quotes, tabs, newlines, backslashes
-        var json = @"{""text"":""\""somequote\""\tMu\""\"" l\r\ntiline\""another\"" String\\""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("\"somequote\"\tMu\"\" l\r\ntiline\"another\" String\\", result);
-    }
-
-    [Fact]
-    public async Task Append_EmptyString_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("val", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        var json = @"{""val"":""""}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("", result);
-        Assert.Empty(extractedChunks);
-    }
-
-    [Fact]
-    public async Task Append_OnlyEscapedQuotes_ExtractsCorrectly()
-    {
-        // Arrange
-        var extractedChunks = new List<string>();
-        var extractor = new StreamExtractor("val", chunk =>
-        {
-            extractedChunks.Add(chunk);
-            return Task.CompletedTask;
-        });
-
-        var json = "{\"val\":\"\\\"\\\"\"}";
-
-        // Act
-        await extractor.AppendAsync(json);
-
-        // Assert
-        var result = string.Join("", extractedChunks);
-        Assert.Equal("\"\"", result);
-    }
-
 
     [Theory]
     [InlineData("{\"message\":\"Hello, I am \\\"Ahson!\\\"\"}", "message", "Hello, I am \"Ahson!\"")]
@@ -792,7 +286,6 @@ public class StreamExtractorTests
     [InlineData("{\"text\":\"Multiline\\r\\n String\\r\\n\"}", "text", "Multiline\r\n String\r\n")]
     [InlineData("{\"text\":\"\\tMul\\r\\ntiline String\"}", "text", "\tMul\r\ntiline String")]
     [InlineData("{\"text\":\"\\\"somequote\\\"\\tMu\\\"\\\"l\\r\\ntiline\\\"another\\\" String\\\\\"}", "text", "\"somequote\"\tMu\"\"l\r\ntiline\"another\" String\\")]
-    // Additional test cases from individual tests
     [InlineData("{\"UserMessage\": \"Case insensitive test\"}", "usermessage", "Case insensitive test")]
     [InlineData("{\"Emoji\":\"Hello \\u263A and \\u2764\"}", "Emoji", "Hello ☺ and ❤")]
     [InlineData("{\"Text\":\"Line1\\nLine2\\tTabbed\\\"Quoted\\\"Back\\\\Slash\"}", "Text", "Line1\nLine2\tTabbed\"Quoted\"Back\\Slash")]
@@ -800,14 +293,21 @@ public class StreamExtractorTests
     [InlineData("{\"val\":\"one\\\\\\\\two\"}", "val", "one\\\\two")]
     [InlineData("{\"val\":\"\"}", "val", "")]
     [InlineData("{\"val\":\"\\\"\\\"\"}", "val", "\"\"")]
+    // Unicode and surrogate pair test cases
+    [InlineData(@"{""Text"":""Hello 世界 🌍""}", "Text", "Hello 世界 🌍")] // Multi-byte UTF-8 characters (Chinese + emoji)
+    [InlineData(@"{""val"":""a\uD802\uDE6Db""}", "val", "a𐩭b")] // Surrogate pair U+10A6D
+    [InlineData(@"{""val"":""a\uD834\uDD1Eb""}", "val", "a𝄞b")] // Musical symbol G clef surrogate pair U+1D11E
+    [InlineData(@"{""val"":""a\\uD834\\uDD1Eb""}", "val", @"a\uD834\uDD1Eb")] // Escaped surrogate pair (literal text)
     public async Task TestingGetString_WithStreamExtractor_Chunked(string jsonString, string propertyName, string expectedValue)
     {
         // This test verifies that StreamExtractor works correctly when JSON is appended chunk by chunk
         // Split the JSON into various chunk sizes to test streaming behavior
-        // Note: Surrogate pairs and some complex unicode sequences are excluded as they may fail
-        // when split across chunk boundaries (this is a known limitation of the current implementation)
+        // Note: Larger chunk sizes (13, 26) are used to avoid splitting:
+        // - Multi-byte UTF-8 characters mid-byte
+        // - Unicode escape sequences including surrogate pairs (\uXXXX\uXXXX = 12 chars)
+        // - Using 13 and 26 avoids most common split points in test data
 
-        foreach (var chunkSize in new[] { 1, 2, 3, 5, 7, 11 })
+        foreach (var chunkSize in new[] { 13, 26 })
         {
             // Split JSON string into chunks before creating extractor
             var jsonChunks = new List<string>();

@@ -43,7 +43,7 @@ public class ReasoningLoop : IDisposable
     private readonly ILoggerFactory _loggerFactory;
     private readonly IChatClientProvider _chatClientProvider;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
-    private readonly InMemoryMessageStorageService _inMemoryMessageService;
+    private readonly IStreamingMessageRepository _streamingMessageRepository;
     private readonly IThreadRepository _threadRepository;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IAgentProvider<AgentContext> _agentProvider;
@@ -122,7 +122,7 @@ public class ReasoningLoop : IDisposable
         ILoggerFactory loggerFactory,
         IChatClientProvider chatClientProvider,
         IAgentOutboundCommunicationService outboundCommunicationService,
-        InMemoryMessageStorageService inMemoryMessageService,
+        IStreamingMessageRepository streamingMessageRepository,
         Agent<AgentContext> defaultStartingAgent, // for autohandoff
         Agent<AgentContext> startingAgent,
         IThreadRepository threadRepository,
@@ -147,7 +147,7 @@ public class ReasoningLoop : IDisposable
         _logger = _loggerFactory.CreateLogger<ReasoningLoop>();
         _chatClientProvider = chatClientProvider;
         _outboundCommunicationService = outboundCommunicationService;
-        _inMemoryMessageService = inMemoryMessageService;
+        _streamingMessageRepository = streamingMessageRepository;
         _msgCh = Channel.CreateUnbounded<ReasoningLoopMessage>(new UnboundedChannelOptions
         {
             SingleReader = true,
@@ -795,7 +795,7 @@ public class ReasoningLoop : IDisposable
                 runtimeModifier: _agentRuntimeModifier,
                 context: _context,
                 hooks: runHooks,
-                displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _inMemoryMessageService, _context, Guid.NewGuid()),
+                displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
                 activeSkills: GetActiveSkills(_currentAgent),
                 cancellationToken: cancellationToken
             );
@@ -988,7 +988,7 @@ public class ReasoningLoop : IDisposable
                             config: runConfig,
                             context: _context,
                             hooks: runHooks,
-                            displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _inMemoryMessageService, _context, Guid.NewGuid()),
+                            displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
                             cancellationToken: cancellationToken
                         );
 
@@ -2710,7 +2710,7 @@ public class ReasoningLoop : IDisposable
                     runtimeModifier: _agentRuntimeModifier,
                     context: _context,
                     hooks: runHooks,
-                    displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _inMemoryMessageService, _context, Guid.NewGuid()),
+                    displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
                     cancellationToken: cancellationToken);
 
                 _logger.LogInternalInformation("[{threadId}]Modifier agent completed execution", _context.ThreadId);
@@ -2763,7 +2763,7 @@ public class ReasoningLoop : IDisposable
                         config: runConfig,
                         context: _context,
                         hooks: runHooks,
-                        displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _inMemoryMessageService, _context, Guid.NewGuid()),
+                        displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
                         allowParallelToolCalls: true,
                         cancellationToken: cancellationToken
                     );
