@@ -4,6 +4,7 @@ import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPorta
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { TextWithLink } from '../../../Common/Components/TextWithLink';
+import { SreAgentFwLinks } from '../../../Common/Constants/FwLinks';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import DeleteConfirmationDialog from '../DataKnowledgeSpaceComponents.tsx/DeleteConfirmationDialog';
@@ -273,7 +274,7 @@ export const Connectors = () => {
                 <TextWithLink
                     text={intl.formatMessage(ConnectorsResources.connectorsDescription)}
                     linkText={intl.formatMessage(ConnectorsResources.connectorsDescriptionLearnMore)}
-                    linkUrl={''}
+                    linkUrl={SreAgentFwLinks.connectors}
                 />
             </div>
             <ConnectorsToolbar
