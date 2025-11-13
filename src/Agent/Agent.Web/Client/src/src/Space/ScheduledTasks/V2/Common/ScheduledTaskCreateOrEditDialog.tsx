@@ -73,7 +73,7 @@ export const ScheduledTaskCreateOrEditDialog: FC<ScheduledTaskCreateOrEditDialog
                     });
                 }}
             >
-                {({ submitForm, dirty }) => {
+                {({ submitForm, dirty, isValid }) => {
                     return (
                         <DialogSurface
                             style={{ minWidth: 'fit-content' }}
@@ -101,7 +101,11 @@ export const ScheduledTaskCreateOrEditDialog: FC<ScheduledTaskCreateOrEditDialog
                                 </DialogContent>
                                 <DialogActions>
                                     <DialogTrigger disableButtonEnhancement>
-                                        <Button appearance="primary" onClick={submitForm} disabled={!dirty || isOperationInProgress}>
+                                        <Button
+                                            appearance="primary"
+                                            onClick={submitForm}
+                                            disabled={!dirty || !isValid || isOperationInProgress}
+                                        >
                                             {mode === ScheduledTaskDialogMode.Create
                                                 ? intl.formatMessage(ScheduledTasksResources.createTask)
                                                 : intl.formatMessage(SreAgentResources.save)}

@@ -131,8 +131,14 @@ export const useScheduledTasksStyles = makeStyles({
             width: '100%',
         },
     },
+    timePicker: {
+        minWidth: 'initial',
+        gridTemplateColumns: 'minmax(0, 1fr) auto',
+        '& input': { textAlign: 'left' },
+    },
     taskFormDateFields: {
         display: 'grid',
+        alignItems: 'start',
         gridTemplateColumns: '1fr 1fr',
         gap: '12px',
     },

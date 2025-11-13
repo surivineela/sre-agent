@@ -2873,6 +2873,7 @@ export const DailyReportsTabResources = defineMessages({
 export const ScheduledTasksResources = defineMessages({
     scheduledTasks: { defaultMessage: 'Scheduled tasks', id: 'sy7vzf' },
     scheduledTask: { defaultMessage: 'Scheduled task', id: 'dG8VrM' },
+    learnMoreAboutScheduledTasks: { defaultMessage: 'Learn more about scheduled tasks', id: 'iPhHGC' },
     createScheduledTask: { defaultMessage: 'Create scheduled task', id: 'dJqE3e' },
     editScheduledTask: { defaultMessage: 'Edit scheduled task', id: '6ZDt71' },
     deleteScheduledTask: { defaultMessage: 'Delete scheduled task', id: 'IYLPrk' },
@@ -3195,6 +3196,7 @@ export const ScheduledTasksResources = defineMessages({
         defaultMessage: 'Start:',
         id: 'xP3hmB',
     },
+    endDateValidationMessage: { defaultMessage: 'End date must be after start date.', id: 'hjtyTg' },
 });
 
 export const SubAgentsResources = defineMessages({

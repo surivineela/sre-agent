@@ -2,8 +2,9 @@ import { Dropdown, Field, InfoLabel, Input, Option, OptionOnSelectData } from '@
 import { DatePicker } from '@fluentui/react-datepicker-compat';
 import { formatDateToTimeString, TimePicker } from '@fluentui/react-timepicker-compat';
 import { useFormikContext } from 'formik';
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useRef } from 'react';
 import { useIntl } from 'react-intl';
+import { roundTimeToNearestMinuteInterval } from '../../../../Common/Helpers/Date';
 import { ScheduledTasksResources } from '../../../../Strings/SREAgentResources';
 import { AgentPromptTextarea } from '../../../Components/AgentPromptTextarea';
 import { ExtendedAgent } from '../../../Contracts/ExtendedAgentGraph';
@@ -18,6 +19,7 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
     const intl = useIntl();
     const styles = useScheduledTasksStyles();
     const { values, setFieldValue, errors, setFieldTouched, touched } = useFormikContext<ScheduledTaskFormProps>();
+    const defaultTime = useRef<Date>(roundTimeToNearestMinuteInterval(new Date(), 15));
 
     const frequencyOptions = useMemo(
         () => ({
@@ -167,10 +169,15 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
                         // https://github.com/microsoft/fluentui/issues/34325
                         <Field style={{ gridTemplateColumns: 'auto' }} label={intl.formatMessage(ScheduledTasksResources.timeOfDay)}>
                             <TimePicker
-                                style={{ minWidth: 'initial', gridTemplateColumns: 'minmax(0, 1fr) auto' }}
+                                type="button"
+                                className={styles.timePicker}
                                 increment={15}
-                                value={values.timeOfDay ? formatDateToTimeString(values.timeOfDay) : ''}
-                                selectedTime={values.timeOfDay}
+                                value={
+                                    values.timeOfDay
+                                        ? formatDateToTimeString(values.timeOfDay)
+                                        : formatDateToTimeString(defaultTime.current)
+                                }
+                                selectedTime={values.timeOfDay ?? defaultTime.current}
                                 onTimeChange={(_, data) => {
                                     setFieldValue('timeOfDay', data.selectedTime);
                                 }}
@@ -187,13 +194,18 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
                             }}
                         />
                     </Field>
-                    <Field label={intl.formatMessage(ScheduledTasksResources.repeatUntil)}>
+                    <Field
+                        label={intl.formatMessage(ScheduledTasksResources.repeatUntil)}
+                        validationState={touched.repeatUntil && errors.repeatUntil ? 'error' : undefined}
+                        validationMessage={touched.repeatUntil ? errors.repeatUntil : undefined}
+                    >
                         <DatePicker
                             placeholder={intl.formatMessage(ScheduledTasksResources.endDateOptional)}
                             value={values.repeatUntil}
                             onSelectDate={date => {
                                 setFieldValue('repeatUntil', date);
                             }}
+                            onBlur={() => setFieldTouched('repeatUntil', true)}
                         />
                     </Field>
                 </div>

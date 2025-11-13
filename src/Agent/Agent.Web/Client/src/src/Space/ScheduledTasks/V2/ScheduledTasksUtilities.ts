@@ -42,7 +42,7 @@ export interface ScheduledTaskFormProps {
     dayOfMonth: string;
     customCron?: string;
     startOn: Date;
-    repeatUntil?: Date;
+    repeatUntil?: Date | null;
     groupMessages: GroupMessageKey;
     runLimit?: string;
 }

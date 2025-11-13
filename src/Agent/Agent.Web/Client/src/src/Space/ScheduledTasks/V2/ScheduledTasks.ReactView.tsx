@@ -1,6 +1,8 @@
 import { Text } from '@fluentui/react-components';
 import { FC, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { TextWithLink } from '../../../Common/Components/TextWithLink';
+import { SreAgentFwLinks } from '../../../Common/Constants/FwLinks';
 import { ScheduledTasksResources } from '../../../Strings/SREAgentResources';
 import { ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
 import { ScheduledTaskCard } from './Common/ScheduledTaskCard';
@@ -76,7 +78,11 @@ export const ScheduledTasks: FC = () => {
                                 <Text as="h3" size={600} weight="semibold" style={{ margin: 0 }}>
                                     {intl.formatMessage(ScheduledTasksResources.tasks)}
                                 </Text>
-                                <Text size={400}>{intl.formatMessage(ScheduledTasksResources.scheduledTasksDescription)}</Text>
+                                <TextWithLink
+                                    text={intl.formatMessage(ScheduledTasksResources.scheduledTasksDescription)}
+                                    linkUrl={SreAgentFwLinks.learnMoreAboutScheduledTasks}
+                                    linkText={intl.formatMessage(ScheduledTasksResources.learnMoreAboutScheduledTasks)}
+                                />
                             </div>
                             <div className={styles.cards}>
                                 <ScheduledTaskCard
