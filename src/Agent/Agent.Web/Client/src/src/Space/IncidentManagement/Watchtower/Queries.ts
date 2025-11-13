@@ -23,22 +23,6 @@ customDimensions includes:
 
 */
 
-export const getHandlersIncidentCoverageTrendQuery = (timeRange: TimeRangeValue) => {
-    const kustoTimespan = getKustoTimespan(timeRange);
-
-    return `
-    let timeGrain = 1d;
-    customEvents
-    | where name == 'IncidentActivitySnapshot'
-    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
-    | where IncidentHandledOn ${kustoTimespan}
-    | project IncidentId, IncidentHandledOn, UpdatedOn
-    | summarize arg_max(UpdatedOn, IncidentHandledOn) by IncidentId
-    | summarize DistinctIncidentIds = dcount(IncidentId) by bin(IncidentHandledOn, timeGrain)
-    | order by IncidentHandledOn asc
-    `;
-};
-
 export const getHandlersIncidentSummaryTrendQuery = (timeRange: TimeRangeValue) => {
     const kustoTimespan = getKustoTimespan(timeRange);
 

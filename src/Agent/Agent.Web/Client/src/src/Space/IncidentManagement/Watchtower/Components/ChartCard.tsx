@@ -1,5 +1,5 @@
-import { GroupedVerticalBarChart, IChartProps, LineChart } from '@fluentui/react-charting';
-import { Button, Card, makeStyles, Skeleton, SkeletonItem, Subtitle2, tokens, Tooltip } from '@fluentui/react-components';
+import { GroupedVerticalBarChart, IChartProps, ILegendsStyles, LineChart } from '@fluentui/react-charting';
+import { Button, Card, makeStyles, Skeleton, SkeletonItem, Subtitle2, Text, tokens, Tooltip } from '@fluentui/react-components';
 import { DataArea20Regular, DataBarVerticalAscending16Regular } from '@fluentui/react-icons';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -7,6 +7,12 @@ import { getLocaleDateTimeHHMM } from '../../../../Common/Helpers/Date';
 import { convertLineChartToAdaptiveGroupedRanges } from '../../../../Common/Helpers/Graph';
 import { useIsDarkMode } from '../../../../Common/Hooks/useIsDarkMode';
 import { SreAgentResources } from '../../../../Strings/SREAgentResources';
+
+const sentenceCaseLegendStyles: Partial<ILegendsStyles> = {
+    text: {
+        textTransform: 'none',
+    },
+};
 
 const useChartCardStyles = makeStyles({
     card: {
@@ -73,6 +79,10 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
     const isDarkMode = useIsDarkMode();
     const styles = useChartCardStyles();
     const [chartType, setChartType] = useState<'line' | 'bar'>('line');
+
+    const hasData = useMemo(() => {
+        return data?.lineChartData?.some(series => series.data && series.data.length > 0);
+    }, [data]);
 
     const groupedBarData = useMemo(() => {
         const converted = convertLineChartToAdaptiveGroupedRanges(data);
@@ -156,6 +166,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
                         }}
                         className={chartType === 'line' ? styles.chartTypeButtonSelected : undefined}
                         aria-label={`${intl.formatMessage(SreAgentResources.lineChart)} - ${chartType === 'line' ? intl.formatMessage(SreAgentResources.selected) : intl.formatMessage(SreAgentResources.unselected)}`}
+                        disabled={!hasData}
                     />
                 </Tooltip>
                 <Tooltip content={intl.formatMessage(SreAgentResources.barChart)} relationship="label">
@@ -166,6 +177,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
                         }}
                         className={chartType === 'bar' ? styles.chartTypeButtonSelected : undefined}
                         aria-label={`${intl.formatMessage(SreAgentResources.barChart)} - ${chartType === 'bar' ? intl.formatMessage(SreAgentResources.selected) : intl.formatMessage(SreAgentResources.unselected)}`}
+                        disabled={!hasData}
                     />
                 </Tooltip>
             </div>
@@ -176,17 +188,36 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
                 </Skeleton>
             ) : (
                 <div className={styles.chartContainer}>
-                    {chartType === 'line' && (
+                    {!hasData && (
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: '100%',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: 8,
+                            }}
+                        >
+                            <Text size={400} weight="semibold" block>
+                                {intl.formatMessage(SreAgentResources.noIncidentMetricsToReport)}
+                            </Text>
+                            <Text block>{intl.formatMessage(SreAgentResources.trySelectingADifferentDateRange)}</Text>
+                        </div>
+                    )}
+
+                    {chartType === 'line' && hasData && (
                         <LineChart
                             data={data}
                             yAxisTickFormat={(value: number) => Math.round(value).toString()}
                             yMinValue={0}
                             yMaxValue={maxValue > 0 ? maxValue : undefined}
                             yAxisTickCount={yAxisTickCount}
+                            legendProps={{ styles: sentenceCaseLegendStyles }}
                         />
                     )}
 
-                    {chartType === 'bar' && groupedBarData && (
+                    {chartType === 'bar' && hasData && groupedBarData && (
                         <GroupedVerticalBarChart
                             data={groupedBarData}
                             xAxisOuterPadding={2 / 3}
@@ -195,6 +226,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
                             yMaxValue={maxValue > 0 ? maxValue : undefined}
                             yAxisTickCount={yAxisTickCount}
                             onRenderCalloutPerDataPoint={onRenderCalloutPerDataPoint}
+                            legendProps={{ styles: sentenceCaseLegendStyles }}
                         />
                     )}
                 </div>

@@ -9,6 +9,9 @@ import { IBladeClosed, IBladeClosedResult, IOpenBlade, IOpenBladeRequest } from 
 import { ILogBladeErrorInfo, ITelemetryInfo } from './Models/ITelemetryInfo';
 import { ITokenInfo, TokenTypes } from './Models/ITokenInfo';
 
+// TODO: Probably need to add `portalEndpoint` alongside armEndpoint, etc.
+// for deep links
+
 export const defaultSreAgentEndpoint = '..';
 
 /**

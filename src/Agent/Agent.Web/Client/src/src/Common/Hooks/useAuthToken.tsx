@@ -13,6 +13,7 @@ export const useAuthToken = (tokenType: TokenTypes) => {
     const { additionalTokens } = useContext(EnvironmentContext);
 
     const [token, setToken] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const portalProxyToken = additionalTokens?.get(tokenType);
@@ -20,8 +21,9 @@ export const useAuthToken = (tokenType: TokenTypes) => {
             requestAuthToken(tokenType);
         } else if (token !== portalProxyToken) {
             setToken(portalProxyToken);
+            setIsLoading(false);
         }
     }, [additionalTokens, token, tokenType, requestAuthToken]);
 
-    return token;
+    return { token, isLoading };
 };

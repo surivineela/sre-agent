@@ -65,7 +65,7 @@ export const getThreadTracesDataQuery = (threadId: string) => {
 };
 
 export const useTracePanel = (appInsightsAppId: string, threadId: string, isIncidentThread: boolean) => {
-    const appInsightsToken = useAuthToken('applicationinsightapi');
+    const { token: appInsightsToken } = useAuthToken('applicationinsightapi');
     const intl = useIntl();
     const { log } = useAzPortalContext();
     const { resourceId } = useContext(EnvironmentContext);

@@ -1,5 +1,6 @@
 import { DataVizPalette, getColorFromToken, IChartProps } from '@fluentui/react-charting';
 import { MessageBar, MessageBarBody, MessageBarTitle } from '@fluentui/react-components';
+import { WrenchScrewdriverColor } from '@fluentui/react-icons';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -9,6 +10,7 @@ import { getDataPlaneErrorMessage } from '../../Common/Clients/DataPlaneClient';
 import { TimeRangeValue, TimespanKeys } from '../../Common/Components/PillFilter/Contracts';
 import { getDefaultTimeRangeOptions } from '../../Common/Components/PillFilter/Hooks/useTimeRangePillFilter';
 import { PillFilter } from '../../Common/Components/PillFilter/PillFilter';
+import { TextWithLink } from '../../Common/Components/TextWithLink';
 import { IncidentFilter } from '../../Common/Contracts/Azure/IncidentHandler';
 import { fillMissingDatesInTimeSeries } from '../../Common/Helpers/Date';
 import { getLocalizedIncidentPlatformName } from '../../Common/Helpers/IncidentManagement';
@@ -22,23 +24,10 @@ import CreateIncidentHandlerConsolidated from './CreateIncidentHandler/CreateInc
 import { ChartCard } from './Watchtower/Components/ChartCard';
 import { IncidentResponsePlanGrid } from './Watchtower/Components/IncidentResponsePlanGrid';
 import { StatCard, StatCardData } from './Watchtower/Components/StatCard';
-import {
-    getHandlersIncidentCoverageTrendQuery,
-    getHandlersIncidentSummaryTrendQuery,
-    getHandlersOverviewQuery,
-} from './Watchtower/Queries';
+import { getHandlersIncidentSummaryTrendQuery, getHandlersOverviewQuery } from './Watchtower/Queries';
 import { ResponsePlanView } from './Watchtower/ResponsePlanView';
 
-// NOTE: Currently no way to calculate incidents NOT handled by a response plan
-// NOTE: Doesn't look like there's data for "Mean time to mitigate" for response plan incidents
 // NOTE: RCA impacted service(s) not hooked up
-
-// TODO: Empty data state
-
-interface IncidentCoverageItem {
-    handledAt: Date;
-    distinctIncidentCount: number;
-}
 
 export interface IncidentSummaryItem {
     handledAt: Date;
@@ -68,7 +57,7 @@ interface AnalysisProps {
 const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
-    const appInsightsToken = useAuthToken('applicationinsightapi');
+    const { token: appInsightsToken, isLoading: isAppInsightsTokenLoading } = useAuthToken('applicationinsightapi');
     const { resourceId } = useContext(EnvironmentContext);
     const { log } = useAzPortalContext();
     const {
@@ -80,10 +69,8 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
     const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo | undefined>();
     const [handlerOperationStatus, setHandlerOperationStatus] = useState<OperationStatus | undefined>(undefined);
 
-    const [isIncidentCoverageLoading, setIsIncidentCoverageLoading] = useState(true);
     const [isIncidentSummaryLoading, setIsIncidentSummaryLoading] = useState(true);
     const [isIncidentHandlersLoading, setIsIncidentHandlersLoading] = useState(true);
-    const [incidentCoverageResponse, setIncidentCoverageResponse] = useState<IncidentCoverageItem[]>();
     const [incidentSummaryResponse, setIncidentSummaryResponse] = useState<IncidentSummaryItem[]>();
     const [incidentHandlersResponse, setIncidentHandlersResponse] = useState<IncidentHandlerItem[]>();
     const [queryErrorMessage, setQueryErrorMessage] = useState<string>();
@@ -91,16 +78,8 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
     const timeRangeOptions = useMemo(() => getDefaultTimeRangeOptions(intl), [intl]);
 
     const numIncidentsReviewed = useMemo(
-        () => incidentCoverageResponse?.reduce((sum, item) => sum + item.distinctIncidentCount, 0) ?? 0,
-        [incidentCoverageResponse]
-    );
-
-    const filledIncidentCoverageData = useMemo(
-        () =>
-            fillMissingDatesInTimeSeries(incidentCoverageResponse ?? [], selectedTimeRange, {
-                distinctIncidentCount: 0,
-            }),
-        [incidentCoverageResponse, selectedTimeRange]
+        () => incidentSummaryResponse?.reduce((sum, item) => sum + item.distinctIncidentCount, 0) ?? 0,
+        [incidentSummaryResponse]
     );
 
     const filledIncidentSummaryData = useMemo(
@@ -116,7 +95,7 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
     );
 
     const incidentsReviewedStatCardData = useMemo<StatCardData>(() => {
-        const percentChange = getPercentChangeInArray(filledIncidentCoverageData, 'distinctIncidentCount');
+        const percentChange = getPercentChangeInArray(filledIncidentSummaryData, 'distinctIncidentCount');
 
         return {
             currentValue: numIncidentsReviewed,
@@ -126,12 +105,12 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                     {
                         legend: intl.formatMessage(IncidentManagementResources.incidentsReviewed),
                         color: getColorFromToken(DataVizPalette.color16),
-                        data: filledIncidentCoverageData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
+                        data: filledIncidentSummaryData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
                     },
                 ],
             },
         };
-    }, [intl, filledIncidentCoverageData, numIncidentsReviewed]);
+    }, [intl, filledIncidentSummaryData, numIncidentsReviewed]);
 
     const assistedByAgentStatCardData = useMemo<StatCardData>(() => {
         const percentChange = getPercentChangeInArray(filledIncidentSummaryData, 'agentAssisted');
@@ -209,21 +188,6 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
         };
     }, [intl, incidentSummaryResponse, numIncidentsReviewed, filledIncidentSummaryData]);
 
-    const incidentCoverageChartData = useMemo<IChartProps>(() => {
-        const data: IChartProps = {
-            lineChartData: [
-                {
-                    legend: intl.formatMessage(IncidentManagementResources.incidentsReviewed),
-                    color: getColorFromToken(DataVizPalette.color3),
-                    data: filledIncidentCoverageData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
-                    legendShape: 'circle',
-                },
-            ],
-        };
-
-        return data;
-    }, [intl, filledIncidentCoverageData]);
-
     const incidentSummaryChartData = useMemo<IChartProps>(() => {
         const data: IChartProps = {
             lineChartData: [
@@ -262,36 +226,6 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
 
         return data;
     }, [intl, filledIncidentSummaryData]);
-
-    const fetchIncidentCoverageData = useCallback(async () => {
-        if (!appInsightsToken) return;
-
-        const response = await AppInsightsClient.getLogQueryResults(agentAppInsightsAppId, appInsightsToken, {
-            query: getHandlersIncidentCoverageTrendQuery(selectedTimeRange),
-        });
-
-        if (response.isSuccessful) {
-            const queryResultRows = response.content?.tables[0]?.rows ?? [];
-            const data: IncidentCoverageItem[] = queryResultRows.map(row => ({
-                handledAt: new Date(row[0] ?? Date.now()),
-                distinctIncidentCount: row[1] as number,
-            }));
-            setIncidentCoverageResponse(data);
-            setIsIncidentCoverageLoading(false);
-        } else {
-            const errorMessage = getDataPlaneErrorMessage(response.error);
-            setQueryErrorMessage(errorMessage);
-            log({
-                action: 'fetchIncidentCoverageData',
-                actionModifier: 'failed',
-                resourceId,
-                logLevel: 'error',
-                data: {
-                    error: response.error?.response?.data?.error,
-                },
-            });
-        }
-    }, [agentAppInsightsAppId, resourceId, log, appInsightsToken, selectedTimeRange]);
 
     const fetchIncidentSummaryData = useCallback(async () => {
         if (!appInsightsToken) return;
@@ -364,10 +298,9 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
     }, [agentAppInsightsAppId, resourceId, log, appInsightsToken, selectedTimeRange]);
 
     useEffect(() => {
-        fetchIncidentCoverageData();
         fetchIncidentSummaryData();
         fetchIncidentHandlersData();
-    }, [fetchIncidentCoverageData, fetchIncidentSummaryData, fetchIncidentHandlersData]);
+    }, [fetchIncidentSummaryData, fetchIncidentHandlersData]);
 
     const handleEditHandler = useCallback((filter: IncidentFilter | undefined) => {
         setHandlerCreateOrEditInfo({ filter });
@@ -406,6 +339,7 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                             </MessageBar>
                         </div>
                     )}
+
                     {handlerOperationStatus === 'failed' && (
                         <div style={{ marginBottom: 20 }}>
                             <MessageBar intent="error">
@@ -417,8 +351,27 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                             </MessageBar>
                         </div>
                     )}
-                    {!openedResponsePlan ? (
-                        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+                    {!isAppInsightsTokenLoading && !appInsightsToken ? (
+                        <div
+                            style={{
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 20,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <WrenchScrewdriverColor fontSize={96} />
+                            <TextWithLink
+                                text={intl.formatMessage(SreAgentResources.thisFeatureIsntAvailableInThisPortalYet)}
+                                linkText={intl.formatMessage(SreAgentResources.openInAzurePortal)}
+                                linkUrl={`https://portal.azure.com#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/${encodeURIComponent(resourceId)}/sreLink/views%2Fincidentmanagement%2FMetrics`}
+                            />
+                        </div>
+                    ) : !openedResponsePlan ? (
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
                             <PillFilter
                                 label={intl.formatMessage(SreAgentResources.timeRange)}
                                 labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
@@ -449,51 +402,46 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                                         platform: getLocalizedIncidentPlatformName(incidentPlatformType ?? '', intl),
                                     })}
                                     data={incidentsReviewedStatCardData}
-                                    isLoading={isIncidentCoverageLoading || isIncidentSummaryLoading}
+                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
                                 />
                                 <StatCard
                                     title={intl.formatMessage(IncidentManagementResources.assistedByAgent)}
                                     subtitle={intl.formatMessage(IncidentManagementResources.incidentsAssistedByAgent)}
                                     data={assistedByAgentStatCardData}
-                                    isLoading={isIncidentCoverageLoading || isIncidentSummaryLoading}
+                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
                                 />
                                 <StatCard
                                     title={intl.formatMessage(IncidentManagementResources.mitigatedByAgent)}
                                     subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByAgent)}
                                     data={mitigatedByAgentStatCardData}
-                                    isLoading={isIncidentCoverageLoading || isIncidentSummaryLoading}
+                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
                                 />
                                 <StatCard
                                     title={intl.formatMessage(IncidentManagementResources.mitigatedByUser)}
                                     subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByUser)}
                                     data={mitigatedByUserStatCardData}
-                                    isLoading={isIncidentCoverageLoading || isIncidentSummaryLoading}
+                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
                                 />
                                 <StatCard
                                     title={intl.formatMessage(IncidentManagementResources.pendingUserAction)}
                                     subtitle={intl.formatMessage(IncidentManagementResources.incidentsThatRequireAttention)}
                                     data={pendingUserActionStatCardData}
-                                    isLoading={isIncidentCoverageLoading || isIncidentSummaryLoading}
+                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
                                 />
                             </div>
 
                             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                                 <ChartCard
-                                    title={intl.formatMessage(IncidentManagementResources.incidentCoverage)}
-                                    data={incidentCoverageChartData}
-                                    isLoading={isIncidentCoverageLoading}
-                                />
-                                <ChartCard
                                     title={intl.formatMessage(IncidentManagementResources.incidentSummary)}
                                     data={incidentSummaryChartData}
-                                    isLoading={isIncidentSummaryLoading}
+                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
                                 />
                             </div>
 
-                            <div style={{ display: 'flex', flex: '1 1 0', minHeight: 200 }}>
+                            <div style={{ display: 'flex', flex: '1 1 0', minHeight: 400, marginBottom: 20 }}>
                                 <IncidentResponsePlanGrid
                                     responsePlans={incidentHandlersResponse ?? []}
-                                    isLoading={isIncidentHandlersLoading}
+                                    isLoading={isAppInsightsTokenLoading || isIncidentHandlersLoading}
                                     setOpenedResponsePlan={setOpenedResponsePlan}
                                 />
                             </div>

@@ -599,6 +599,10 @@ export const SreAgentResources = defineMessages({
     rating: { defaultMessage: 'Rating', id: 'ETRyBL' },
     noAdditionalComments: { defaultMessage: 'No additional comments provided', id: 'wBh+z3' },
     doYouWantToProceed: { defaultMessage: 'Do you want to proceed?', id: 'j0Ifob' },
+    noIncidentMetricsToReport: { defaultMessage: 'No incident metrics to report', id: 'j0bMX6' },
+    trySelectingADifferentDateRange: { defaultMessage: 'Try selecting a different date range.', id: 'jJ7kNS' },
+    thisFeatureIsntAvailableInThisPortalYet: { defaultMessage: "This feature isn't available in this portal yet.", id: 'dQJz2m' },
+    openInAzurePortal: { defaultMessage: 'Open in Azure Portal', id: '5NZIbS' },
     unknownStatus: { defaultMessage: 'Unknown status', id: 'wSLRfB' },
 });
 
@@ -1624,7 +1628,6 @@ export const IncidentManagementResources = defineMessages({
     incidentsReviewed: { defaultMessage: 'Incidents reviewed', id: 'KJuQJ3' },
     incidentsNotHandledByResponsePlanCriteria: { defaultMessage: 'Incidents not handled by response plan criteria', id: 'MIxpkh' },
     pendingUserAction: { defaultMessage: 'Pending user action', id: 'rM7Pbj' },
-    incidentCoverage: { defaultMessage: 'Incident coverage', id: '53O1/Z' },
     incidentSummary: { defaultMessage: 'Incident summary', id: '2Smahe' },
     incidentsThatRequireAttention: { defaultMessage: 'Incidents that require attention', id: '5gEh2M' },
     mitigatedByUser: { defaultMessage: 'Mitigated by user', id: '5cRddy' },

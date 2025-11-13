@@ -384,7 +384,7 @@ export const ResponsePlanView = ({
                 />
             ) : (
                 <>
-                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <Button
@@ -481,7 +481,7 @@ export const ResponsePlanView = ({
                             />
                         </div>
 
-                        <div style={{ display: 'flex', flex: '1 1 0', minHeight: 200 }}>
+                        <div style={{ display: 'flex', flex: '1 1 0', minHeight: 400, marginBottom: 20 }}>
                             <ResponsePlanIncidentsGrid
                                 incidents={incidentsResponse ?? []}
                                 isLoading={isIncidentsLoading}

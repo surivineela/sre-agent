@@ -306,77 +306,75 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading, onOp
     }, [filteredGridItems, sortColumnKey, isSortedDescending]);
 
     return (
-        <>
-            <Card style={{ width: '100%', height: '100%' }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
-                <Subtitle2 as="h3" style={{ margin: 0 }}>
-                    {intl.formatMessage(IncidentManagementResources.incidents)}
-                </Subtitle2>
+        <Card style={{ width: '100%', height: '100%' }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
+            <Subtitle2 as="h3" style={{ margin: 0 }}>
+                {intl.formatMessage(IncidentManagementResources.incidents)}
+            </Subtitle2>
 
-                <div className={styles.incidentFiltersContainer} style={{ marginBottom: 0 }}>
-                    <SearchBox
-                        className={styles.searchBox}
-                        placeholder={intl.formatMessage(IncidentManagementResources.filterByIncidentIdOrTitle)}
-                        value={searchText}
-                        onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
-                        disabled={disabled}
-                    />
-                    <Dropdown
-                        onOptionSelect={(_e, data) => setSeverityLevelFilter(data.optionValue ?? all)}
-                        value={severityLevelFilter}
-                        selectedOptions={[severityLevelFilter]}
-                        button={severityLevelFilterLabel}
-                        aria-label={intl.formatMessage(IncidentManagementResources.filterBySeverityLevel)}
-                        className={styles.searchBox}
-                        disabled={disabled}
-                    >
-                        {severityLevelFilterOptions.map(option => (
-                            <Option value={option.value} text={option.label}>
-                                {option.label}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                    <Dropdown
-                        onOptionSelect={(_e, data) => setMitigatedByFilter(data.optionValue ?? all)}
-                        value={mitigatedByFilter}
-                        selectedOptions={[mitigatedByFilter]}
-                        button={mitigatedByFilterLabel}
-                        aria-label={intl.formatMessage(IncidentManagementResources.filterByMitigatedBy)}
-                        className={styles.searchBox}
-                        disabled={disabled}
-                    >
-                        {mitigatedByFilterOptions.map(option => (
-                            <Option value={option.value} text={option.label}>
-                                {option.label}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                </div>
+            <div className={styles.incidentFiltersContainer} style={{ marginBottom: 0 }}>
+                <SearchBox
+                    className={styles.searchBox}
+                    placeholder={intl.formatMessage(IncidentManagementResources.filterByIncidentIdOrTitle)}
+                    value={searchText}
+                    onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
+                    disabled={disabled}
+                />
+                <Dropdown
+                    onOptionSelect={(_e, data) => setSeverityLevelFilter(data.optionValue ?? all)}
+                    value={severityLevelFilter}
+                    selectedOptions={[severityLevelFilter]}
+                    button={severityLevelFilterLabel}
+                    aria-label={intl.formatMessage(IncidentManagementResources.filterBySeverityLevel)}
+                    className={styles.searchBox}
+                    disabled={disabled}
+                >
+                    {severityLevelFilterOptions.map(option => (
+                        <Option value={option.value} text={option.label}>
+                            {option.label}
+                        </Option>
+                    ))}
+                </Dropdown>
+                <Dropdown
+                    onOptionSelect={(_e, data) => setMitigatedByFilter(data.optionValue ?? all)}
+                    value={mitigatedByFilter}
+                    selectedOptions={[mitigatedByFilter]}
+                    button={mitigatedByFilterLabel}
+                    aria-label={intl.formatMessage(IncidentManagementResources.filterByMitigatedBy)}
+                    className={styles.searchBox}
+                    disabled={disabled}
+                >
+                    {mitigatedByFilterOptions.map(option => (
+                        <Option value={option.value} text={option.label}>
+                            {option.label}
+                        </Option>
+                    ))}
+                </Dropdown>
+            </div>
 
-                <div data-is-scrollable="true" user-select="text" style={{ overflowY: 'auto' }}>
-                    <ShimmeredDetailsList
-                        columns={columns}
-                        items={sortedItems}
-                        constrainMode={ConstrainMode.horizontalConstrained}
-                        layoutMode={DetailsListLayoutMode.justified}
-                        selectionMode={SelectionMode.none}
-                        enableShimmer={isLoading}
-                        className={mergeClasses(styles.detailsListBase, isDarkMode ? styles.detailsListDarkModeBackground : undefined)}
-                        styles={{
-                            root: {
-                                width: '100%',
-                                userSelect: 'text',
-                            },
-                        }}
-                        compact
-                    />
+            <div data-is-scrollable="true" user-select="text" style={{ overflowY: 'auto' }}>
+                <ShimmeredDetailsList
+                    columns={columns}
+                    items={sortedItems}
+                    constrainMode={ConstrainMode.horizontalConstrained}
+                    layoutMode={DetailsListLayoutMode.justified}
+                    selectionMode={SelectionMode.none}
+                    enableShimmer={isLoading}
+                    className={mergeClasses(styles.detailsListBase, isDarkMode ? styles.detailsListDarkModeBackground : undefined)}
+                    styles={{
+                        root: {
+                            width: '100%',
+                            userSelect: 'text',
+                        },
+                    }}
+                    compact
+                />
 
-                    {incidents.length === 0 && !isLoading && (
-                        <Text align="center" block>
-                            {intl.formatMessage(IncidentManagementResources.noIncidentsFound)}
-                        </Text>
-                    )}
-                </div>
-            </Card>
-        </>
+                {incidents.length === 0 && !isLoading && (
+                    <Text align="center" block>
+                        {intl.formatMessage(IncidentManagementResources.noIncidentsFound)}
+                    </Text>
+                )}
+            </div>
+        </Card>
     );
 };
