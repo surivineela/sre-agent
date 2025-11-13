@@ -1050,6 +1050,18 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                resourceType == "microsoft.insights/components";
     }
 
+    private double? GetTimeTilMitigation(AzMonitorAlertDocument incidentDoc)
+    {
+        DateTime? mitigatedAt = incidentDoc.ResolvedAt;
+        if (mitigatedAt == null)
+        {
+            return null;
+        }
+
+        double totalMinutes = ((DateTime)mitigatedAt).Subtract(incidentDoc.CreatedAt).TotalMinutes;
+        return Math.Round(totalMinutes, 2, MidpointRounding.AwayFromZero);
+    }
+
     /// <summary>
     /// Not using it, keep it as unimplemented
     /// </summary>
@@ -1089,7 +1101,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
     {
         IncidentAIData snapShot = new IncidentAIData
         {
-            HandlerId = filter?.Id ?? filter?.Name ?? request.IncidentFilter?.Id ?? request.IncidentFilter?.Name ?? "no-handler",
+            HandlerId = filter?.Id ?? handler?.IncidentFilterId ?? request.IncidentFilter?.Id ?? request.IncidentFilter?.Name ?? "no-handler",
             IncidentId = incidentDetails.Id,
             IncidentTitle = incidentDetails.Title,
             IncidentCreatedAt = incidentDetails.CreatedAt,
@@ -1097,7 +1109,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             HandlerCreatedAt = filter?.CreatedAt ?? DateTime.UtcNow,
             HandlerUpdatedAt = filter?.UpdatedAt ?? DateTime.UtcNow,
             IncidentHandledAt = DateTime.UtcNow,
-            MitigatedAt = null,
+            MitigatedAt = incidentDetails.ResolvedAt, // Az Monitor is special case due to recurring alerts, so incident can possibly already be resolved
             Status = incidentDetails.Status.ToString(),
             Priority = incidentDetails.Priority,
             IsMitigatedByAgent = false,
@@ -1108,7 +1120,8 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             ImpactedService = incidentDetails.ImpactedServiceName,
             RunMode = !string.IsNullOrWhiteSpace(filter?.AgentMode) ? filter.AgentMode : !string.IsNullOrWhiteSpace(request.IncidentFilter?.AgentMode) ? request.IncidentFilter?.AgentMode! : "review",
             IsHandlerCustom = !string.IsNullOrWhiteSpace(handler?.CustomInstructions) ? true : false,
-            IncidentPlatform = GetIncidentPlatform()
+            IncidentPlatform = GetIncidentPlatform(),
+            TimeTilMitigation = GetTimeTilMitigation(incidentDetails)
         };
 
         return snapShot;

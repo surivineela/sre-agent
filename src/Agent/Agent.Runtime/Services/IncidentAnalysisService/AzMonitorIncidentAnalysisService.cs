@@ -58,7 +58,8 @@ public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMo
             { "IncidentImpactedService", data.ImpactedService },
             { "AgentAutonomyLevel", data.RunMode },
             { "ResponsePlanCustom", data.IsHandlerCustom.ToString() },
-            { "IncidentPlatform", data.IncidentPlatform }
+            { "IncidentPlatform", data.IncidentPlatform },
+            { "MinutesUntilIncidentMitigation", data.TimeTilMitigation?.ToString() ?? string.Empty   }
         };
             _appInsightsLogger.LogCustomEvent("IncidentActivitySnapshot", payload);
         }
@@ -153,24 +154,25 @@ public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMo
     protected override IncidentAIData ToIncidentActivitySnapshot(AzMonitorIncidentFilterDocument? filterDoc, IncidentHandlerDocument? handlerDoc, AzMonitorAlertDocument incidentDoc, DataRow? results)
     {
 
-        string handlerId = filterDoc?.Id ?? handlerDoc?.Id ?? string.Empty;
+        string handlerId = filterDoc?.Id ?? handlerDoc?.IncidentFilterId ?? string.Empty;
         DateTime? handlerCreatedOn = filterDoc?.CreatedAt;
         DateTime? handlerUpdatedOn = filterDoc?.UpdatedAt;
         string runMode = !string.IsNullOrWhiteSpace(filterDoc?.AgentMode) ? filterDoc.AgentMode : "review";
         bool isHandlerCustom = !string.IsNullOrWhiteSpace(handlerDoc?.CustomInstructions) ? true : false;
+        DateTime? mitigatedAt = IncidentMitigatedAt(incidentDoc);
 
         var snapshot = new IncidentAIData
         {
             HandlerId = !string.IsNullOrWhiteSpace(handlerId) ? handlerId : results?["HandlerId"]?.ToString() ?? "no-filter-found",
             IncidentId = incidentDoc.Id,
             IncidentTitle = incidentDoc.Title,
-            HandlerCreatedAt = (DateTime)(handlerCreatedOn != null ? handlerCreatedOn : DateTime.TryParse(results?["HandlerCreatedAt"]?.ToString(), out DateTime handlerCreatedAt) ? handlerCreatedAt : DateTime.UtcNow),
+            HandlerCreatedAt = (DateTime)(!IsMinDateTime(handlerCreatedOn) ? handlerCreatedOn! : DateTime.TryParse(results?["HandlerCreatedAt"]?.ToString(), out DateTime handlerCreatedAt) && !IsMinDateTime(handlerCreatedAt) ? handlerCreatedAt : DateTime.UtcNow),
             IncidentCreatedAt = incidentDoc.CreatedAt,
-            HandlerUpdatedAt = (DateTime)(handlerUpdatedOn != null ? handlerUpdatedOn : DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) ?
-            (handlerUpdatedAt <= DateTime.MinValue.AddDays(1) ? DateTime.UtcNow : handlerUpdatedAt) : DateTime.UtcNow),
+            HandlerUpdatedAt = (DateTime)(!IsMinDateTime(handlerUpdatedOn) ? handlerUpdatedOn! : DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) && !IsMinDateTime(handlerUpdatedAt) ? handlerUpdatedAt : DateTime.UtcNow),
             IncidentUpdatedAt = incidentDoc.LastModifiedTime,
-            IncidentHandledAt = DateTime.TryParse(results?["HandledAt"]?.ToString(), out DateTime incidentHandledTime) ? incidentHandledTime : handlerCreatedOn ?? DateTime.UtcNow,
-            MitigatedAt = IncidentMitigatedAt(incidentDoc),
+            IncidentHandledAt = DateTime.TryParse(results?["HandledAt"]?.ToString(), out DateTime incidentHandledTime) ?
+                (IsMinDateTime(incidentHandledTime) ? new DateTime(Math.Max(incidentDoc.LastModifiedTime.Ticks, handlerCreatedOn?.Ticks ?? 0)) : incidentHandledTime) : DateTime.UtcNow,
+            MitigatedAt = mitigatedAt,
             Status = StatusMatching(incidentDoc.Status).ToLower(),
             Priority = incidentDoc.Priority,
             IsMitigatedByAgent = IsMitigatedByAgent(incidentDoc),
@@ -180,8 +182,9 @@ public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMo
             Summary = incidentDoc.GeneralSummary,
             ImpactedService = incidentDoc.ImpactedServiceName,
             RunMode = !string.IsNullOrWhiteSpace(results?["RunMode"]?.ToString()) ? results["RunMode"].ToString()! : runMode,
-            IsHandlerCustom = bool.TryParse(results?["IsHandlerCustom"]?.ToString(), out bool isCustom) ? isCustom : isHandlerCustom,
-            IncidentPlatform = GetIncidentPlatform()
+            IsHandlerCustom = handlerDoc != null ? isHandlerCustom : bool.TryParse(results?["IsHandlerCustom"]?.ToString(), out bool isCustom) ? isCustom : false,
+            IncidentPlatform = GetIncidentPlatform(),
+            TimeTilMitigation = GetTimeTilMitigation(incidentDoc)
         };
 
         return snapshot;

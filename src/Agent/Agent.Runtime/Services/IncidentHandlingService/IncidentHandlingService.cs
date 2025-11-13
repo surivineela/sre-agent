@@ -222,7 +222,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                     AdditionalProperties = request.AdditionalProperties,
                     IsTest = request.IsTest,
                     IncidentHandler = request.IncidentHandler,
-                    IncidentFilter = request.IncidentFilter
+                    IncidentFilter = request.IncidentFilter,
+                    CreatedTime = request.CreatedTime
                 };
 
                 // use handler id from filter to set current agent for meta agent thread
@@ -685,13 +686,13 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     {
         IncidentAIData snapShot = new IncidentAIData
         {
-            HandlerId = filter.Id ?? filter.Name ?? request.IncidentFilter?.Id ?? request.IncidentFilter?.Name ?? "no-handler",
+            HandlerId = filter.Id ?? handler?.IncidentFilterId ?? request.IncidentFilter?.Id ?? request.IncidentFilter?.Name ?? "no-handler",
             IncidentId = incidentDetails.Id,
             IncidentTitle = incidentDetails.Title,
-            IncidentCreatedAt = incidentDetails.CreatedAt,
-            IncidentUpdatedAt = incidentDetails.UpdatedAt > DateTime.MinValue.AddDays(1) ? incidentDetails.UpdatedAt : incidentDetails.CreatedAt,
-            HandlerCreatedAt = filter.CreatedAt,
-            HandlerUpdatedAt = filter.UpdatedAt,
+            IncidentCreatedAt = !IsMinDateTime(incidentDetails.CreatedAt) ? incidentDetails.CreatedAt : DateTime.UtcNow,
+            IncidentUpdatedAt = !IsMinDateTime(incidentDetails.UpdatedAt) ? incidentDetails.UpdatedAt : !IsMinDateTime(incidentDetails.CreatedAt) ? incidentDetails.CreatedAt : DateTime.UtcNow,
+            HandlerCreatedAt = !IsMinDateTime(filter.CreatedAt) ? filter.CreatedAt : DateTime.UtcNow,
+            HandlerUpdatedAt = !IsMinDateTime(filter.UpdatedAt) ? filter.UpdatedAt : DateTime.UtcNow,
             IncidentHandledAt = DateTime.UtcNow,
             MitigatedAt = null,
             Status = incidentDetails.Status.ToString(),
@@ -704,10 +705,20 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             ImpactedService = incidentDetails.ImpactedServiceName,
             RunMode = !string.IsNullOrWhiteSpace(filter.AgentMode) ? filter.AgentMode : !string.IsNullOrWhiteSpace(request.IncidentFilter?.AgentMode) ? request.IncidentFilter?.AgentMode! : "review",
             IsHandlerCustom = !string.IsNullOrWhiteSpace(handler?.CustomInstructions) ? true : false,
-            IncidentPlatform = GetIncidentPlatform()
+            IncidentPlatform = GetIncidentPlatform(),
+            TimeTilMitigation = null
         };
 
         return snapShot;
+    }
+
+    protected bool IsMinDateTime(DateTime? time)
+    {
+        if (time == null)
+        {
+            return true;
+        }
+        return time <= DateTime.MinValue.AddDays(1);
     }
 }
 

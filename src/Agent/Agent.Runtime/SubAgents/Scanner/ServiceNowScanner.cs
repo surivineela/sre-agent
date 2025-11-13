@@ -396,7 +396,8 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                     Title = incidentDocument.Title,
                     Description = incidentDocument.Description,
                     Severity = incidentDocument.Priority,
-                    Source = "ServiceNow"
+                    Source = "ServiceNow",
+                    CreatedTime = incidentDocument.CreatedAt,
                 });
             }
             else

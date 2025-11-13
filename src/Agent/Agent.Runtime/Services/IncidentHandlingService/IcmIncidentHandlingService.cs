@@ -76,7 +76,8 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
                     AdditionalProperties = request.AdditionalProperties,
                     IsTest = request.IsTest,
                     IncidentHandler = request.IncidentHandler,
-                    IncidentFilter = request.IncidentFilter
+                    IncidentFilter = request.IncidentFilter,
+                    CreatedTime = request.CreatedTime
                 };
 
                 // use handler id from filter to set current agent for meta agent thread
@@ -226,7 +227,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
     {
         IncidentAIData snapShot = new IncidentAIData
         {
-            HandlerId = filter.Id ?? filter.Name ?? request.IncidentFilter?.Id ?? request.IncidentFilter?.Name ?? "no-handler",
+            HandlerId = filter.Id ?? handler?.IncidentFilterId ?? request.IncidentFilter?.Id ?? request.IncidentFilter?.Name ?? "no-handler",
             IncidentId = incidentDetails.Id,
             IncidentTitle = incidentDetails.Title,
             IncidentCreatedAt = incidentDetails.CreatedDate.UtcDateTime,
@@ -245,7 +246,8 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
             ImpactedService = incidentDetails.ImpactedServiceName,
             RunMode = !string.IsNullOrWhiteSpace(filter.AgentMode) ? filter.AgentMode : !string.IsNullOrWhiteSpace(request.IncidentFilter?.AgentMode) ? request.IncidentFilter?.AgentMode! : "review",
             IsHandlerCustom = !string.IsNullOrWhiteSpace(handler?.CustomInstructions) ? true : false,
-            IncidentPlatform = GetIncidentPlatform()
+            IncidentPlatform = GetIncidentPlatform(),
+            TimeTilMitigation = null
         };
 
         return snapShot;

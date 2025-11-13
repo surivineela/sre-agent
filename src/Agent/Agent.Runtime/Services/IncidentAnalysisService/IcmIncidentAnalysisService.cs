@@ -129,25 +129,25 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
     protected override IncidentAIData ToIncidentActivitySnapshot(IcmIncidentFilterDocument? filterDoc, IncidentHandlerDocument? handlerDoc, IcmIncidentDocument incidentDoc, DataRow? results)
     {
 
-        string handlerId = filterDoc?.Id ?? handlerDoc?.Id ?? string.Empty;
+        string handlerId = filterDoc?.Id ?? handlerDoc?.IncidentFilterId ?? string.Empty;
         DateTime? handlerCreatedOn = filterDoc?.CreatedAt;
         DateTime? handlerUpdatedOn = filterDoc?.UpdatedAt;
         string runMode = !string.IsNullOrWhiteSpace(filterDoc?.AgentMode) ? filterDoc.AgentMode : "review";
         bool isHandlerCustom = !string.IsNullOrWhiteSpace(handlerDoc?.CustomInstructions) ? true : false;
+        DateTime? mitigatedAt = IncidentMitigatedAt(incidentDoc);
 
         var snapshot = new IncidentAIData
         {
             HandlerId = !string.IsNullOrWhiteSpace(handlerId) ? handlerId : results?["HandlerId"]?.ToString() ?? "no-filter-found",
             IncidentId = incidentDoc.Id,
             IncidentTitle = incidentDoc.Title,
-            HandlerCreatedAt = (DateTime)(handlerCreatedOn != null ? handlerCreatedOn : DateTime.TryParse(results?["HandlerCreatedAt"]?.ToString(), out DateTime handlerCreatedAt) ? handlerCreatedAt : DateTime.UtcNow),
+            HandlerCreatedAt = (DateTime)(!IsMinDateTime(handlerCreatedOn) ? handlerCreatedOn! : DateTime.TryParse(results?["HandlerCreatedAt"]?.ToString(), out DateTime handlerCreatedAt) && !IsMinDateTime(handlerCreatedAt) ? handlerCreatedAt : DateTime.UtcNow),
             IncidentCreatedAt = incidentDoc.CreatedDate.UtcDateTime,
-            HandlerUpdatedAt = (DateTime)(handlerUpdatedOn != null ? handlerUpdatedOn : DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) ?
-                (handlerUpdatedAt <= DateTime.MinValue.AddDays(1) ? DateTime.UtcNow : handlerUpdatedAt) : DateTime.UtcNow),
+            HandlerUpdatedAt = (DateTime)(!IsMinDateTime(handlerUpdatedOn) ? handlerUpdatedOn! : DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) && !IsMinDateTime(handlerUpdatedAt) ? handlerUpdatedAt : DateTime.UtcNow),
             IncidentUpdatedAt = incidentDoc.UpdatedAt,
             IncidentHandledAt = DateTime.TryParse(results?["HandledAt"]?.ToString(), out DateTime incidentHandledTime) ?
-                    (incidentHandledTime <= DateTime.MinValue.AddDays(1) ? new DateTime(Math.Max(incidentDoc.CreatedAt.Ticks, handlerCreatedOn?.Ticks ?? 0)) : incidentHandledTime) : handlerCreatedOn ?? DateTime.UtcNow,
-            MitigatedAt = IncidentMitigatedAt(incidentDoc),
+                (IsMinDateTime(incidentHandledTime) ? new DateTime(Math.Max(incidentDoc.UpdatedAt.Ticks, handlerCreatedOn?.Ticks ?? 0)) : incidentHandledTime) : DateTime.UtcNow,
+            MitigatedAt = mitigatedAt,
             Status = incidentDoc.Status.ToString().ToLower(),
             Priority = incidentDoc.Priority,
             IsMitigatedByAgent = IsMitigatedByAgent(incidentDoc),
@@ -157,11 +157,24 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
             Summary = incidentDoc.GeneralSummary,
             ImpactedService = incidentDoc.ImpactedServiceName,
             RunMode = !string.IsNullOrWhiteSpace(results?["RunMode"]?.ToString()) ? results?["RunMode"]?.ToString()! : runMode,
-            IsHandlerCustom = bool.TryParse(results?["IsHandlerCustom"]?.ToString(), out bool isCustom) ? isCustom : isHandlerCustom,
-            IncidentPlatform = GetIncidentPlatform()
+            IsHandlerCustom = handlerDoc != null ? isHandlerCustom : bool.TryParse(results?["IsHandlerCustom"]?.ToString(), out bool isCustom) ? isCustom : false,
+            IncidentPlatform = GetIncidentPlatform(),
+            TimeTilMitigation = GetTimeTilMitigation(incidentDoc)
         };
 
         return snapshot;
+    }
+
+    protected override double? GetTimeTilMitigation(IcmIncidentDocument incidentDoc)
+    {
+        DateTime? mitigatedAt = IncidentMitigatedAt(incidentDoc);
+        if (mitigatedAt == null)
+        {
+            return null;
+        }
+
+        double totalMinutes = ((DateTime)mitigatedAt).Subtract(incidentDoc.CreatedDate.UtcDateTime).TotalMinutes;
+        return Math.Round(totalMinutes, 2, MidpointRounding.AwayFromZero);
     }
 
     private async Task<IcmIncidentFilterAIRootCauseDocument?> GetDocumentAsync(string id, string partitionKey)

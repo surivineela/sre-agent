@@ -58,6 +58,7 @@ public class IncidentAIData
     public required string RunMode { get; set; }
     public required bool IsHandlerCustom { get; set; }
     public required string IncidentPlatform { get; set; }
+    public required double? TimeTilMitigation { get; set; }
 }
 
 public class AgentAssistanceResponse
@@ -156,6 +157,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             { "AgentAutonomyLevel", data.RunMode },
             { "ResponsePlanCustom", data.IsHandlerCustom.ToString() },
             { "IncidentPlatform", data.IncidentPlatform },
+            { "MinutesUntilIncidentMitigation", data.TimeTilMitigation?.ToString() ?? string.Empty }
         };
             _appInsightsLogger.LogCustomEvent("IncidentActivitySnapshot", payload);
         }
@@ -176,7 +178,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             }
 
             var handlers = await _incidentHandlerManagementService.ListIncidentHandlers();
-            var handlerDoc = handlers.Where(h => h.Id == filterDoc?.Id).FirstOrDefault();
+            var handlerDoc = handlers.Where(h => h.IncidentFilterId == filterDoc?.Id).FirstOrDefault();
 
             string query = GetPastIncidentDataQuery(incidentDoc);
             var dataTable = await Query(query);
@@ -307,24 +309,25 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
 
     protected virtual IncidentAIData ToIncidentActivitySnapshot(TIncidentFilterDocument? filterDoc, IncidentHandlerDocument? handlerDoc, TIncidentDocument incidentDoc, DataRow? results)
     {
-        string handlerId = filterDoc?.Id ?? handlerDoc?.Id ?? "No-filterid-found";
+        string handlerId = filterDoc?.Id ?? handlerDoc?.IncidentFilterId ?? "No-filterid-found";
         DateTime? handlerCreatedOn = filterDoc?.CreatedAt;
         DateTime? handlerUpdatedOn = filterDoc?.UpdatedAt;
         string runMode = !string.IsNullOrWhiteSpace(filterDoc?.AgentMode) ? filterDoc.AgentMode : "review";
-        bool isHandlerCustom = !string.IsNullOrWhiteSpace(handlerDoc?.CustomInstructions);
+        bool isHandlerCustom = !string.IsNullOrWhiteSpace(handlerDoc?.CustomInstructions) ? true : false;
+        DateTime? mitigatedAt = IncidentMitigatedAt(incidentDoc);
 
         var snapshot = new IncidentAIData
         {
             HandlerId = !string.IsNullOrWhiteSpace(results?["HandlerId"]?.ToString()) ? results?["HandlerId"]?.ToString()! : handlerId,
             IncidentId = incidentDoc.Id,
             IncidentTitle = incidentDoc.Title,
-            HandlerCreatedAt = (DateTime)(handlerCreatedOn != null ? handlerCreatedOn : DateTime.TryParse(results?["HandlerCreatedAt"]?.ToString(), out DateTime handlerCreatedAt) ? handlerCreatedAt : DateTime.UtcNow),
+            HandlerCreatedAt = (DateTime)(!IsMinDateTime(handlerCreatedOn) ? handlerCreatedOn! : DateTime.TryParse(results?["HandlerCreatedAt"]?.ToString(), out DateTime handlerCreatedAt) && !IsMinDateTime(handlerCreatedAt) ? handlerCreatedAt : DateTime.UtcNow),
             IncidentCreatedAt = incidentDoc.CreatedAt,
-            HandlerUpdatedAt = (DateTime)(handlerUpdatedOn != null ? handlerUpdatedOn : DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) ? handlerUpdatedAt : DateTime.UtcNow),
+            HandlerUpdatedAt = (DateTime)(!IsMinDateTime(handlerUpdatedOn) ? handlerUpdatedOn! : DateTime.TryParse(results?["HandlerUpdatedAt"]?.ToString(), out DateTime handlerUpdatedAt) && !IsMinDateTime(handlerUpdatedAt) ? handlerUpdatedAt : DateTime.UtcNow),
             IncidentUpdatedAt = incidentDoc.UpdatedAt,
             IncidentHandledAt = DateTime.TryParse(results?["HandledAt"]?.ToString(), out DateTime incidentHandledTime) ?
-                (incidentHandledTime <= DateTime.MinValue.AddDays(1) ? new DateTime(Math.Max(incidentDoc.CreatedAt.Ticks, handlerCreatedOn?.Ticks ?? 0)) : incidentHandledTime) : handlerCreatedOn ?? DateTime.UtcNow,
-            MitigatedAt = IncidentMitigatedAt(incidentDoc),
+                (IsMinDateTime(incidentHandledTime) ? new DateTime(Math.Max(incidentDoc.UpdatedAt.Ticks, handlerCreatedOn?.Ticks ?? 0)) : incidentHandledTime) : DateTime.UtcNow,
+            MitigatedAt = mitigatedAt,
             Status = incidentDoc.Status.ToString().ToLower(),
             Priority = incidentDoc.Priority,
             IsMitigatedByAgent = IsMitigatedByAgent(incidentDoc),
@@ -334,8 +337,9 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             Summary = incidentDoc.GeneralSummary,
             ImpactedService = incidentDoc.ImpactedServiceName,
             RunMode = !string.IsNullOrWhiteSpace(results?["RunMode"]?.ToString()) ? results?["RunMode"]?.ToString()! : runMode,
-            IsHandlerCustom = bool.TryParse(results?["IsHandlerCustom"]?.ToString(), out bool isCustom) ? isCustom : isHandlerCustom,
-            IncidentPlatform = GetIncidentPlatform()
+            IsHandlerCustom = handlerDoc != null ? isHandlerCustom : bool.TryParse(results?["IsHandlerCustom"]?.ToString(), out bool isCustom) ? isCustom : false,
+            IncidentPlatform = GetIncidentPlatform(),
+            TimeTilMitigation = GetTimeTilMitigation(incidentDoc)
         };
 
         return snapshot;
@@ -379,6 +383,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
 
     protected async Task<TIncidentFilterDocument?> QueryFilter(TIncidentDocument incidentDoc)
     {
+        _logger.LogInternalInformation("[IncidentAnalysisService] Querying filters to find matching filter for incident {incidentId}", incidentDoc.Id);
         var filters = await _incidentFilterManagementService.ListIncidentFilters();
         foreach (var filter in filters)
         {
@@ -475,6 +480,26 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
 
         var reply = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, options);
         return reply.Text;
+    }
+
+    protected bool IsMinDateTime(DateTime? time)
+    {
+        if (time == null)
+        {
+            return true;
+        }
+        return time <= DateTime.MinValue.AddDays(1);
+    }
+
+    protected virtual double? GetTimeTilMitigation(TIncidentDocument incidentDoc)
+    {
+        DateTime? mitigatedAt = IncidentMitigatedAt(incidentDoc);
+        if (mitigatedAt == null) {
+            return null;
+        }
+
+        double totalMinutes = ((DateTime)mitigatedAt).Subtract(incidentDoc.CreatedAt).TotalMinutes;
+        return Math.Round(totalMinutes, 2, MidpointRounding.AwayFromZero);
     }
 
     /// <summary>
