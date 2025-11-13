@@ -494,7 +494,8 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
     protected virtual double? GetTimeTilMitigation(TIncidentDocument incidentDoc)
     {
         DateTime? mitigatedAt = IncidentMitigatedAt(incidentDoc);
-        if (mitigatedAt == null) {
+        if (mitigatedAt == null)
+        {
             return null;
         }
 

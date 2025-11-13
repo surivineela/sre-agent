@@ -163,6 +163,7 @@ handoffs:
   - metrics_and_chart_visualization_agent
   - local_auth_agent
   - diagnostic_cpu_agent
+  - azure_activity_logs_agent
   - diagnostic_memory_agent
   - function_app_agent
   - api_management_agent

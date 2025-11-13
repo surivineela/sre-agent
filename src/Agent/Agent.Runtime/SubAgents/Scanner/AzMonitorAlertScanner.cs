@@ -65,7 +65,8 @@ public class AzMonitorScanner(
         // if incident is already resolved or closed, no need to handle it
         string incidentStatus = incidentDocument.Status.ToLower();
         if (string.Equals(incidentStatus, AzMonitorIncidentStatus.Closed.ToString(), StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(incidentStatus, AzMonitorIncidentStatus.Resolved.ToString(), StringComparison.OrdinalIgnoreCase)) {
+            string.Equals(incidentStatus, AzMonitorIncidentStatus.Resolved.ToString(), StringComparison.OrdinalIgnoreCase))
+        {
             return;
         }
 
