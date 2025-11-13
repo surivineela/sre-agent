@@ -52,6 +52,8 @@ configuration:
     role: Write    
   - team: k4appscore
     role: Read
+  - team: antsanchit
+    role: Write
   - team: srea-devs
     role: Read
   - team: srea-readers
