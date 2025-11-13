@@ -9,11 +9,11 @@ namespace Agent.Tests.Unit.Helpers;
 
 public class TableFormatterTests
 {
-    [Fact]
-    public void MapsAppInsightsQueryJsonToTsv()
-    {
-        var json =
-            """
+  [Fact]
+  public void MapsAppInsightsQueryJsonToTsv()
+  {
+    var json =
+        """
             {
               "tables": [
                 {
@@ -46,12 +46,12 @@ public class TableFormatterTests
               ]
             }
             """;
-        var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+    var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
-        var tsv = TableFormatter.DataTableResponseStreamToTsv(stream);
+    var tsv = TableFormatter.DataTableResponseStreamToTsv(stream);
 
-        Assert.Equal(
-            """
+    Assert.Equal(
+        """
             Result table name: PrimaryResult
             Column count: 2
             Row count: 3
@@ -60,7 +60,7 @@ public class TableFormatterTests
             2018-02-01T17:00:00Z	148
             2018-02-01T18:00:00Z	453
 
-            """.Replace("\r\n", "\n"),
-            tsv);
-    }
+            """.Replace("\r\n", Environment.NewLine),
+        tsv);
+  }
 }
