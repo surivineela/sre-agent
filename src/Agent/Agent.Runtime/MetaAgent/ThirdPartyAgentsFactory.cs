@@ -419,6 +419,7 @@ $@"## Facts
             AIFunctionFactory.Create(appCodeAnalysisPluginDefinition.GetAppConsoleLogs),
             AIFunctionFactory.Create(connectedIntegrationsPluginDefinition.GetAllActiveConnectedIntegrations),
             AIFunctionFactory.Create(incidentPluginDefinition.GetPagerDutyIncidentsAsync),
+            AIFunctionFactory.Create(incidentPluginDefinition.QueryPagerDutyIncidentChatAsync),
             // AIFunctionFactory.Create(incidentPluginDefinition.ResolvePagerDutyIncidentAsync),
             AIFunctionFactory.Create(functionAppPluginDefinition.ListFunctionAppsAsync),
             //AIFunctionFactory.Create(functionAppPluginDefinition.GetFunctionAppInfoAsync),

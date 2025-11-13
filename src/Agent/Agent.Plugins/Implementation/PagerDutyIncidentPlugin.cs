@@ -67,7 +67,7 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
         }
     }
 
-    public async Task<string> GetAgentResponseAsync(string userQuery, string incidentId)
+    public async Task<string> QueryPagerDutyIncidentChatAsync(string userQuery, string incidentId)
     {
         if (string.IsNullOrEmpty(incidentId))
         {

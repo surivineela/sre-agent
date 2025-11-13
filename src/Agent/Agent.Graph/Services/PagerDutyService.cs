@@ -50,8 +50,6 @@ public class PagerDutyService : IPagerDutyService
     {
         _logger.LogInternalInformation("Getting PagerDuty incidents with limit: {limit}, offset: {offset}", limit, offset);
 
-        var incidents = new List<PagerDutyIncident>();
-
         if (limit == 0 || limit > 100)
         {
             throw new ArgumentOutOfRangeException(nameof(limit), "Limit must be between 1 and 100.");
@@ -61,6 +59,8 @@ public class PagerDutyService : IPagerDutyService
         {
             throw new ArgumentOutOfRangeException(nameof(since), "Since must be within the last 180 days.");
         }
+
+        var incidents = new List<PagerDutyIncident>();
 
         // The default time range of Listing incidents is a month, per https://developer.pagerduty.com/api-reference/9d0b4b12e36f9-list-incidents
         // Note: include%5B%5D=first_trigger_log_entries is required to get the full log entry, which contains the real incident description.
@@ -125,7 +125,7 @@ public class PagerDutyService : IPagerDutyService
     {
         string apiPath = QueryHelpers.AddQueryString("https://api.pagerduty.com/incidents", queryParams);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, apiPath);
+        using var request = new HttpRequestMessage(HttpMethod.Get, apiPath);
         _logger.LogInternalInformation("PagerDuty incidents request URL: {url}", apiPath);
 
         using var client = CreateHttpClient();
@@ -165,7 +165,7 @@ public class PagerDutyService : IPagerDutyService
     public async Task<HttpResponseMessage> GetPagerDutyRequest(string requestPath)
     {
         using var client = CreateHttpClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/{requestPath}");
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/{requestPath}");
         var response = await client.SendAsync(request);
         if (response.IsSuccessStatusCode)
         {
@@ -194,7 +194,7 @@ public class PagerDutyService : IPagerDutyService
                 { "limit", limit.ToString() },
                 { "offset", offset.ToString() }
             });
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
             var response = await client.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
@@ -226,7 +226,7 @@ public class PagerDutyService : IPagerDutyService
                 { "limit", limit.ToString() },
                 { "offset", offset.ToString() }
             });
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
             var response = await client.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
@@ -247,7 +247,7 @@ public class PagerDutyService : IPagerDutyService
     public async Task<List<PDIncidentTypeMetadata>> GetPagerDutyIncidentTypes()
     {
         using var client = CreateHttpClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, "https://api.pagerduty.com/incidents/types");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.pagerduty.com/incidents/types");
         var response = await client.SendAsync(request);
         var content = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
@@ -265,7 +265,7 @@ public class PagerDutyService : IPagerDutyService
         ArgumentException.ThrowIfNullOrEmpty(incidentId, nameof(incidentId));
         _logger.LogInternalInformation("Getting PagerDuty incident with ID: {incidentId}", incidentId);
         using var client = CreateHttpClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/incidents/{incidentId}?include%5B%5D=body");
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/incidents/{incidentId}?include%5B%5D=body");
         var response = await client.SendAsync(request);
         if (response.IsSuccessStatusCode)
         {
@@ -330,7 +330,7 @@ public class PagerDutyService : IPagerDutyService
         ArgumentException.ThrowIfNullOrEmpty(incidentId, nameof(incidentId));
         _logger.LogInternalInformation("Getting latest incident description for PagerDuty incident ID: {incidentId}", incidentId);
         using var client = CreateHttpClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/incidents/{incidentId}/log_entries");
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/incidents/{incidentId}/log_entries");
 
         var response = await client.SendAsync(request);
         if (response.IsSuccessStatusCode)
@@ -389,6 +389,11 @@ public class PagerDutyService : IPagerDutyService
         client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Token", _pagerDutyApiKey);
 
+        if (!string.IsNullOrEmpty(_settings?.OboUser))
+        {
+            client.DefaultRequestHeaders.Add("From", _settings.OboUser);
+        }
+
         return client;
     }
 
@@ -407,11 +412,6 @@ public class PagerDutyService : IPagerDutyService
         if (string.IsNullOrEmpty(_pagerDutyApiKey))
         {
             throw new InvalidOperationException("PagerDuty API key is not configured.");
-        }
-
-        if (string.IsNullOrEmpty(_settings.OboUser))
-        {
-            throw new InvalidOperationException("PagerDuty OBO user is not configured.");
         }
     }
 
@@ -445,8 +445,7 @@ public class PagerDutyService : IPagerDutyService
     {
         RunBasicValidations(incidentId);
         using var client = CreateHttpClient();
-        client.DefaultRequestHeaders.Add("From", _settings?.OboUser);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.pagerduty.com/incidents/{incidentId}/notes");
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.pagerduty.com/incidents/{incidentId}/notes");
         request.Content = JsonContent.Create(new PostIncidentNoteRequest(new IncidentNote($"Comment added by SREAgent: {note}")));
 
         var response = await client.SendAsync(request);
@@ -468,8 +467,7 @@ public class PagerDutyService : IPagerDutyService
         RunBasicValidations(incidentId);
 
         using var client = CreateHttpClient();
-        client.DefaultRequestHeaders.Add("From", _settings?.OboUser);
-        var request = new HttpRequestMessage(HttpMethod.Put, $"https://api.pagerduty.com/incidents/{incidentId}");
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"https://api.pagerduty.com/incidents/{incidentId}");
         request.Content = JsonContent.Create(CreateResolveIncidentRequest());
 
         var response = await client.SendAsync(request);
@@ -521,8 +519,7 @@ public class PagerDutyService : IPagerDutyService
         RunBasicValidations(incidentId);
 
         using var client = CreateHttpClient();
-        client.DefaultRequestHeaders.Add("From", _settings?.OboUser);
-        var request = new HttpRequestMessage(HttpMethod.Put, $"https://api.pagerduty.com/incidents/{incidentId}");
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"https://api.pagerduty.com/incidents/{incidentId}");
         request.Content = JsonContent.Create(CreateAcknowledgeIncidentRequest());
         var response = await client.SendAsync(request);
         if (response.IsSuccessStatusCode)
