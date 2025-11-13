@@ -6,14 +6,12 @@ import { StepStatus } from '../../../../Common/Components/Wizard/WizardStepper';
 import { MsiIdentity } from '../../../../Common/Contracts/Azure/ArmObj';
 import { Connector } from '../../../../Common/Contracts/Azure/SreAgent';
 import { ConnectorsResources } from '../../../../Strings/SREAgentResources';
-import { ConnectorType } from './Common/ConnectorType';
+import { getUserAssignedIdentityOptions, renderConnectorForm } from './Common/DialogHelper';
+import { SetupConnectorFormWrapper } from './Common/SetupConnectorFormWrapper';
 import { ConnectorPicker } from './ConnectorPicker';
 import { useConnectorWizardStyles } from './ConnectorWizard.styles';
 import { ConnectorFormProps } from './ConnectorWizardFormik';
 import { ReviewAndAdd } from './ReviewAndAdd';
-import { AzureConnectorForm } from './SetupForm/AzureConnectorForm';
-import { McpServerForm } from './SetupForm/McpServerForm';
-import { OutlookTeamsConnectorForm } from './SetupForm/OutlookTeamsConnectorForm';
 
 interface ConnectorsWizardProps {
     isDialogOpen: boolean;
@@ -102,53 +100,18 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
         setCurrentStep(StepKey.ConnectorPicker);
     }, [resetForm, setCurrentStep]);
 
-    const userAssignedIdentityOptions = useMemo(() => {
-        const userAssignedOptions: { id: string; name: string }[] = [];
-
-        const userAssignedIdentityRscIds = agentIdentity?.userAssignedIdentities ? Object.keys(agentIdentity.userAssignedIdentities) : [];
-        if (userAssignedIdentityRscIds.length > 0) {
-            userAssignedIdentityRscIds.forEach(resourceId => {
-                const parts = resourceId.split('/');
-                const name = parts[parts.length - 1] || resourceId;
-                userAssignedOptions.push({
-                    id: resourceId,
-                    name: name,
-                });
-            });
-        }
-
-        return userAssignedOptions;
-    }, [agentIdentity]);
+    const userAssignedIdentityOptions = useMemo(() => getUserAssignedIdentityOptions(agentIdentity), [agentIdentity]);
 
     const setupForm = useMemo(() => {
-        switch (values.connectorType) {
-            case ConnectorType.AzureDataExplorerQuery:
-            case ConnectorType.AzureDataExplorerIndexing:
-            case ConnectorType.AzureDevOpsDocumentation:
-                return (
-                    <AzureConnectorForm
-                        userAssignedIdentities={userAssignedIdentityOptions}
-                        agentIdentity={agentIdentity}
-                        refreshAgent={refreshAgent}
-                    />
-                );
-            case ConnectorType.OutlookSendEmail:
-            case ConnectorType.TeamsSendNotification:
-                return (
-                    <OutlookTeamsConnectorForm
-                        userAssignedIdentities={userAssignedIdentityOptions}
-                        agentName={agentName}
-                        agentLocation={agentLocation}
-                        agentIdentity={agentIdentity}
-                        refreshAgent={refreshAgent}
-                    />
-                );
-            case ConnectorType.McpServer:
-            case ConnectorType.GitHub:
-                return <McpServerForm />;
-            default:
-                return null;
-        }
+        return renderConnectorForm({
+            connectorType: values.connectorType,
+            userAssignedIdentityOptions,
+            agentIdentity,
+            agentName,
+            agentLocation,
+            refreshAgent,
+            isEditMode: false,
+        });
     }, [values.connectorType, userAssignedIdentityOptions, agentIdentity, refreshAgent, agentName, agentLocation]);
 
     const goToNextStep = useCallback(() => {
@@ -171,7 +134,7 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
                 {currentStep === StepKey.ConnectorPicker && (
                     <ConnectorPicker existingConnectors={existingConnectors} goToNextStep={goToNextStep} />
                 )}
-                {currentStep === StepKey.Setup && setupForm}
+                {currentStep === StepKey.Setup && <SetupConnectorFormWrapper>{setupForm}</SetupConnectorFormWrapper>}
                 {currentStep === StepKey.ReviewAndAdd && <ReviewAndAdd userAssignedIdentities={userAssignedIdentityOptions} />}
             </div>
         </WizardDialog>

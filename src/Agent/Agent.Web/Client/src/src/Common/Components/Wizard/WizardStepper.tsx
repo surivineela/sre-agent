@@ -57,8 +57,8 @@ export const WizardStepper: FC<WizardStepperProps> = ({ steps, className }) => {
     return (
         <div className={mergeClasses(styles.container, className)}>
             {steps?.map((step, index) => (
-                <div className={styles.stepRow}>
-                    <div key={step.id} className={mergeClasses(styles.stepColumn, index === steps.length - 1 && styles.lastStep)}>
+                <div key={step.id} className={styles.stepRow}>
+                    <div className={mergeClasses(styles.stepColumn, index === steps.length - 1 && styles.lastStep)}>
                         <div className={mergeClasses(styles.iconContainer, getIconClass(step.status))}>{renderStepIcon(step, index)}</div>
                         {index < steps.length - 1 && <div className={styles.connector} />}
                     </div>

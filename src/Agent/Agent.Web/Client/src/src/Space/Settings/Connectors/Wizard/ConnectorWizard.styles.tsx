@@ -121,4 +121,24 @@ export const useConnectorWizardStyles = makeStyles({
     signInDifferent: {
         marginTop: tokens.spacingVerticalS,
     },
+    teamsInfoContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalM,
+        marginTop: tokens.spacingVerticalM,
+        padding: tokens.spacingVerticalM,
+        backgroundColor: tokens.colorNeutralBackground2,
+        borderRadius: tokens.borderRadiusMedium,
+    },
+    readOnlyValue: {
+        fontSize: tokens.fontSizeBase300,
+        color: tokens.colorNeutralForeground1,
+        padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`,
+        backgroundColor: tokens.colorNeutralBackground1,
+        borderRadius: tokens.borderRadiusMedium,
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        wordBreak: 'break-all',
+        overflowWrap: 'break-word',
+        height: '16px',
+    },
 });

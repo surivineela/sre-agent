@@ -13,6 +13,7 @@ import { useSreAgent } from '../Hooks/useSreAgent';
 import { useConnectorsStyles } from './Connectors.styles';
 import { ConnectorsDataGrid } from './ConnectorsDataGrid';
 import ConnectorsToolbar from './ConnectorsToolbar';
+import { ConnectorEditDialog } from './Edit/ConnectorEditDialog';
 import { ConnectorType } from './Wizard/Common/ConnectorType';
 import { ConnectorWizardFormik } from './Wizard/ConnectorWizardFormik';
 
@@ -24,6 +25,7 @@ export const Connectors = () => {
     const { log, startNotification, stopNotification } = useContext(AzPortalContext);
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isOperationInProgress, setIsOperationInProgress] = useState(false);
@@ -124,17 +126,6 @@ export const Connectors = () => {
             setIsOperationInProgress(false);
         },
         [startNotification, intl, putConnector, refresh, stopNotification, log, resourceId]
-    );
-
-    const onSubmit = useCallback(
-        (dataConnector: Connector) => {
-            if (selectedConnector) {
-                updateDataConnection(dataConnector);
-            } else {
-                createDataConnection(dataConnector);
-            }
-        },
-        [selectedConnector, updateDataConnection, createDataConnection]
     );
 
     const bulkDeleteDataConnectors = useCallback(async () => {
@@ -259,7 +250,14 @@ export const Connectors = () => {
 
     const onEditConnector = useCallback((dataConnector: Connector) => {
         setSelectedConnector(dataConnector);
-        setIsDialogOpen(true);
+        setIsEditDialogOpen(true);
+    }, []);
+
+    const onEditDialogueChange = useCallback((open: boolean) => {
+        if (!open) {
+            setSelectedConnector(undefined);
+        }
+        setIsEditDialogOpen(open);
     }, []);
 
     const onDeleteConnector = useCallback((connectorName: string) => {
@@ -317,11 +315,22 @@ export const Connectors = () => {
                 agentIdentity={agent?.identity}
                 isDialogOpen={isDialogOpen}
                 setIsDialogOpen={setIsDialogOpen}
-                onSubmit={onSubmit}
+                onSubmit={createDataConnection}
                 refreshAgent={refreshAgent}
-                selectedConnector={selectedConnector}
                 existingConnectors={connectors}
             />
+            {selectedConnector && (
+                <ConnectorEditDialog
+                    agentName={agent?.name}
+                    agentLocation={agent?.location}
+                    agentIdentity={agent?.identity}
+                    isOpen={isEditDialogOpen}
+                    onOpenChange={onEditDialogueChange}
+                    connector={selectedConnector}
+                    onSubmit={updateDataConnection}
+                    refreshAgent={refreshAgent}
+                />
+            )}
         </div>
     );
 };

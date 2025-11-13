@@ -1,7 +1,7 @@
 import { Button, Card, Link } from '@fluentui/react-components';
 import { CheckmarkCircle20Filled } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
-import { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { OAuthPopup } from '../../../../../Common/Clients/OAuthPopupClient';
@@ -17,7 +17,7 @@ import { useConsentLink } from '../../Hooks/useConsentLink';
 import { ConnectorType } from '../Common/ConnectorType';
 import { ManagedIdentityDropdownWithValidation } from '../Common/ManagedIdentityDropdownWithValidation';
 import { NameInput } from '../Common/NameInput';
-import { SetupConnectorFormWrapper } from '../Common/SetupConnectorFormWrapper';
+import { parseTeamsChannelLink } from '../Common/TeamsConnectorHelper';
 import { useConnectorWizardStyles } from '../ConnectorWizard.styles';
 import { ConnectorFormProps } from '../ConnectorWizardFormik';
 
@@ -36,7 +36,7 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
     const intl = useIntl();
     const styles = useConnectorWizardStyles();
 
-    const { values, setFieldValue } = useFormikContext<ConnectorFormProps>();
+    const { initialValues, values, setFieldValue } = useFormikContext<ConnectorFormProps>();
     const { resourceId } = useContext(EnvironmentContext);
 
     const { subscription, resourceGroup } = new ArmResourceDescriptor(resourceId);
@@ -57,8 +57,8 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
         return connectorType === ConnectorType.OutlookSendEmail ? 'office365' : 'teams';
     }, [connectorType]);
 
-    const { apiConnection, apiConnectionCreating, fetchApiConnection, createApiConnection } = useApiConnection();
-    const { consentLink, fetchConsentLink, refreshConsentLink } = useConsentLink(`${agentName}-${connectorApiName}`);
+    const { apiConnection, apiConnectionLoaded, apiConnectionCreating, fetchApiConnection, createApiConnection } = useApiConnection();
+    const { consentLink, consentLinkLoaded, fetchConsentLink, refreshConsentLink } = useConsentLink(`${agentName}-${connectorApiName}`);
 
     const onSignInClick = useCallback(async () => {
         await createApiConnection({
@@ -123,8 +123,54 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
         [apiConnection, consentLink]
     );
 
+    const loadData = useCallback(async () => {
+        const fetchedConnection = await fetchApiConnection({
+            subscriptionId: subscription,
+            resourceGroup,
+            agentName: agentName || '',
+            connectionName: connectorApiName,
+        });
+        await fetchConsentLink();
+
+        setFieldValue('email', fetchedConnection?.properties?.displayName || '');
+        setFieldValue('url', fetchedConnection?.properties?.connectionRuntimeUrl || '');
+    }, [agentName, connectorApiName, fetchApiConnection, fetchConsentLink, resourceGroup, setFieldValue, subscription]);
+
+    useEffect(() => {
+        if (isEditMode) {
+            loadData();
+        }
+    }, [isEditMode, loadData]);
+
+    const [displayChannelId, setDisplayChannelId] = useState<string>('');
+    const [displayTeamsGroupId, setDisplayTeamsGroupId] = useState<string>('');
+
+    useEffect(() => {
+        if (isEditMode && connectorType === ConnectorType.TeamsSendNotification) {
+            if (values.teamsChannelLink) {
+                const parsedInfo = parseTeamsChannelLink(values.teamsChannelLink);
+                if (parsedInfo) {
+                    setFieldValue('channelId', parsedInfo.channelId);
+                    setDisplayChannelId(parsedInfo.channelId);
+                    setFieldValue('teamsGroupId', parsedInfo.teamsGroupId);
+                    setDisplayTeamsGroupId(parsedInfo.teamsGroupId);
+                } else {
+                    setFieldValue('channelId', '');
+                    setDisplayChannelId('');
+                    setFieldValue('teamsGroupId', '');
+                    setDisplayTeamsGroupId('');
+                }
+            } else {
+                setFieldValue('channelId', initialValues.channelId);
+                setDisplayChannelId(initialValues.channelId || '');
+                setFieldValue('teamsGroupId', initialValues.teamsGroupId);
+                setDisplayTeamsGroupId(initialValues.teamsGroupId || '');
+            }
+        }
+    }, [isEditMode, values.teamsChannelLink, initialValues, setFieldValue, connectorType]);
+
     return (
-        <SetupConnectorFormWrapper>
+        <>
             <NameInput disabled={isEditMode} />
             <FieldWrapper
                 label={intl.formatMessage(ConnectorsResources.serviceAccount, { service: connectorService })}
@@ -135,7 +181,7 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
                     <Button
                         appearance="primary"
                         onClick={onSignInClick}
-                        disabled={apiConnectionCreating}
+                        disabled={apiConnectionCreating || (isEditMode && (!apiConnectionLoaded || !consentLinkLoaded))}
                         className={styles.outlookTeamsButton}
                     >
                         {intl.formatMessage(ConnectorsResources.signInToService, { service: connectorService })}
@@ -159,19 +205,31 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
                 )}
             </FieldWrapper>
             {connectorType === ConnectorType.TeamsSendNotification && (
-                <InputFormik
-                    name="teamsChannelLink"
-                    label={intl.formatMessage(ConnectorsResources.teamsChannelLink)}
-                    required
-                    orientation="vertical"
-                    placeholder={intl.formatMessage(ConnectorsResources.namePlaceholder)}
-                />
+                <>
+                    <InputFormik
+                        name="teamsChannelLink"
+                        label={intl.formatMessage(ConnectorsResources.teamsChannelLink)}
+                        required
+                        orientation="vertical"
+                        placeholder={intl.formatMessage(ConnectorsResources.teamsChannelLinkPlaceholder)}
+                    />
+                    {isEditMode && (
+                        <div className={styles.teamsInfoContainer}>
+                            <FieldWrapper label={intl.formatMessage(ConnectorsResources.channelId)} orientation="vertical">
+                                <div className={styles.readOnlyValue}>{displayChannelId}</div>
+                            </FieldWrapper>
+                            <FieldWrapper label={intl.formatMessage(ConnectorsResources.teamsGroupId)} orientation="vertical">
+                                <div className={styles.readOnlyValue}>{displayTeamsGroupId}</div>
+                            </FieldWrapper>
+                        </div>
+                    )}
+                </>
             )}
             <ManagedIdentityDropdownWithValidation
                 userAssignedIdentities={userAssignedIdentities}
                 agentIdentity={agentIdentity}
                 refreshAgent={props.refreshAgent}
             />
-        </SetupConnectorFormWrapper>
+        </>
     );
 };

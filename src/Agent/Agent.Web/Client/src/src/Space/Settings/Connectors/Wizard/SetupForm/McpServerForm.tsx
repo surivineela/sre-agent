@@ -9,12 +9,11 @@ import InputFormik from '../../../../../Common/Components/Input/InputFormik';
 import { ConnectorsResources } from '../../../../../Strings/SREAgentResources';
 import { ConnectorType } from '../Common/ConnectorType';
 import { NameInput } from '../Common/NameInput';
-import { SetupConnectorFormWrapper } from '../Common/SetupConnectorFormWrapper';
 import { UrlInput } from '../Common/UrlInput';
 import { AuthType, ConnectorFormProps, CustomHeader } from '../ConnectorWizardFormik';
 
 interface McpServerFormProps {
-    isEditMode?: false;
+    isEditMode?: boolean;
 }
 
 export const McpServerForm: React.FC<McpServerFormProps> = props => {
@@ -77,7 +76,7 @@ export const McpServerForm: React.FC<McpServerFormProps> = props => {
     }, [intl, values.customHeaders]);
 
     return (
-        <SetupConnectorFormWrapper>
+        <>
             <NameInput disabled={isEditMode} />
             <UrlInput />
             <DropdownFormik
@@ -115,6 +114,6 @@ export const McpServerForm: React.FC<McpServerFormProps> = props => {
                     emptyRow={{ key: '', value: '' }}
                 />
             )}
-        </SetupConnectorFormWrapper>
+        </>
     );
 };
