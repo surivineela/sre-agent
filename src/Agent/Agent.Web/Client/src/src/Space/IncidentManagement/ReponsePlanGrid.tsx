@@ -39,7 +39,7 @@ export type LabelValuePair = { label: string; value: string };
 
 export type IncidentFilterType = { incidentType: string; impactedService: string; priority: string };
 
-export type IncidentsFiltersGridProps = {
+export type ReponsePlanGridProps = {
     incidentFilters: IncidentFilter[];
     incidentFiltersLoading: boolean;
     filterIdToHandlerMap: Record<string, IncidentHandler>;
@@ -51,7 +51,7 @@ export type IncidentsFiltersGridProps = {
     canWriteIncidentManagement?: boolean;
 };
 
-const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFiltersGridProps) => {
+const ResponsePlanGrid: FC<ReponsePlanGridProps> = (props: ReponsePlanGridProps) => {
     const {
         incidentFilters,
         incidentFiltersLoading,
@@ -155,6 +155,27 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         return handlerOperationStatus === 'inprogress' || disabled || incidentFiltersLoading || !incidentManagementConfigured;
     }, [handlerOperationStatus, disabled, incidentFiltersLoading, incidentManagementConfigured]);
 
+    const getDisplayValueOrAll = useCallback(
+        (value: string | undefined): string => {
+            return value && value.trim() !== '' ? value : intl.formatMessage(SreAgentResources.all);
+        },
+        [intl]
+    );
+
+    const getDisplayValueOrDash = useCallback((value: string | undefined): string => {
+        return value && value.trim() !== '' ? value : '-';
+    }, []);
+
+    const isAzMonitorFilter = useCallback((filter: IncidentFilter): boolean => {
+        return filter.documentType?.toLowerCase().includes('azmonitor') ?? false;
+    }, []);
+
+    const shouldHideAzMonitorColumns = useMemo(() => {
+        const isAzureMonitor = incidentPlatformType === IncidentManagementType.AzMonitor;
+        const hasOtherPlatformFilters = incidentFilters.some(filter => !isAzMonitorFilter(filter));
+        return isAzureMonitor && !hasOtherPlatformFilters;
+    }, [incidentPlatformType, incidentFilters, isAzMonitorFilter]);
+
     useEffect(() => {
         if (!isIncidentFilterEmpty) return;
 
@@ -219,9 +240,10 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 disableEditActions && !canWriteIncidentManagement
                     ? intl.formatMessage(IncidentManagementResources.noPermissionEditIncidentHandler)
                     : null;
+            const displayValue = getDisplayValueOrAll(item.id);
             const link = (
                 <Link style={{ userSelect: 'text', fontSize: '13px' }} onClick={() => onIdClick(item)} disabled={disableEditActions}>
-                    {item.id ?? ''}
+                    {displayValue}
                 </Link>
             );
             return tooltipMsg ? (
@@ -232,7 +254,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 link
             );
         },
-        [onIdClick, disableEditActions, canWriteIncidentManagement, intl]
+        [onIdClick, disableEditActions, canWriteIncidentManagement, intl, getDisplayValueOrAll]
     );
 
     const onRenderStatus = useCallback(
@@ -248,21 +270,41 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         [intl]
     );
 
-    const onRenderType = useCallback((item: IncidentFilter) => {
-        return <div style={{ userSelect: 'text' }}>{item.incidentType ?? ''}</div>;
-    }, []);
+    const onRenderType = useCallback(
+        (item: IncidentFilter) => {
+            const displayValue = isAzMonitorFilter(item)
+                ? intl.formatMessage(SreAgentResources.NA)
+                : getDisplayValueOrAll(item.incidentType);
+            return <div style={{ userSelect: 'text' }}>{displayValue}</div>;
+        },
+        [getDisplayValueOrAll, isAzMonitorFilter, intl]
+    );
 
-    const onRenderPriority = useCallback((item: IncidentFilter) => {
-        return <div style={{ userSelect: 'text' }}>{item.priority ?? ''}</div>;
-    }, []);
+    const onRenderPriority = useCallback(
+        (item: IncidentFilter) => {
+            const displayValue = getDisplayValueOrAll(item.priority);
+            return <div style={{ userSelect: 'text' }}>{displayValue}</div>;
+        },
+        [getDisplayValueOrAll]
+    );
 
-    const onRenderImpactedService = useCallback((item: IncidentFilter) => {
-        return <div style={{ userSelect: 'text' }}>{item.impactedService ?? ''}</div>;
-    }, []);
+    const onRenderImpactedService = useCallback(
+        (item: IncidentFilter) => {
+            const displayValue = isAzMonitorFilter(item)
+                ? intl.formatMessage(SreAgentResources.NA)
+                : getDisplayValueOrAll(item.impactedService);
+            return <div style={{ userSelect: 'text' }}>{displayValue}</div>;
+        },
+        [getDisplayValueOrAll, isAzMonitorFilter, intl]
+    );
 
-    const onRenderTitleContains = useCallback((item: IncidentFilter) => {
-        return <div style={{ userSelect: 'text' }}>{item.titleContains ?? ''}</div>;
-    }, []);
+    const onRenderTitleContains = useCallback(
+        (item: IncidentFilter) => {
+            const displayValue = getDisplayValueOrDash(item.titleContains);
+            return <div style={{ userSelect: 'text' }}>{displayValue}</div>;
+        },
+        [getDisplayValueOrDash]
+    );
 
     const onRenderAgentMode = useCallback(
         (item: IncidentFilter) => {
@@ -398,8 +440,12 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
     );
 
     const staticFilters: FilterProps[] = useMemo(() => {
-        return [incidentTypeFilterProps, impactedServiceFilterProps, priorityFilterProps];
-    }, [incidentTypeFilterProps, impactedServiceFilterProps, priorityFilterProps]);
+        const filters = [incidentTypeFilterProps, impactedServiceFilterProps, priorityFilterProps];
+
+        // Filter out Incident Type and Impacted Service filters for Azure Monitor
+        // ONLY if Azure Monitor is connected AND there are no non-AzMonitor filters
+        return shouldHideAzMonitorColumns ? [priorityFilterProps] : filters;
+    }, [incidentTypeFilterProps, impactedServiceFilterProps, priorityFilterProps, shouldHideAzMonitorColumns]);
 
     const onRenderCheckbox = useCallback(
         (item: IncidentFilter) => {
@@ -549,7 +595,13 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
             },
         ];
 
-        return columns;
+        // Filter out Incident Type and Impacted Service columns for Azure Monitor
+        // ONLY if Azure Monitor is the connected platform AND there are no non-AzMonitor filters
+        const filteredColumns = shouldHideAzMonitorColumns
+            ? columns.filter(col => col.key !== IncidentsListColumnKey.type && col.key !== IncidentsListColumnKey.impactedService)
+            : columns;
+
+        return filteredColumns;
     }, [
         intl,
         incidentPlatformType,
@@ -565,6 +617,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         onRenderIncidentHandler,
         onRenderStatus,
         handleColumnClick,
+        shouldHideAzMonitorColumns,
     ]);
 
     const emptyState = useMemo(() => {
@@ -625,4 +678,4 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
     );
 };
 
-export default IncidentsFiltersGrid;
+export default ResponsePlanGrid;

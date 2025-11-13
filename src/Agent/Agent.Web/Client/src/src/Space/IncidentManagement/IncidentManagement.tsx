@@ -28,8 +28,8 @@ import IncidentManagementSettings from '../Settings/IncidentManagementSettings';
 import { useIncidentManagementStyles, useNavStyles } from '../Styles/IncidentManagement.styles';
 import Analysis from './Analysis';
 import { IncidentManagementMenuKeys } from './CreateIncidentHandler/Contracts';
-import HandlersOverview from './HandlersOverview';
 import IncidentsOverview from './IncidentsOverview/IncidentsOverview';
+import ResponsePlanOverview from './ReponsePlanOverview';
 
 // TODO: Tooltip for disabled NavItems with reason
 
@@ -92,7 +92,7 @@ const IncidentManagement: FC = () => {
         }
 
         items.push({
-            key: IncidentManagementMenuKeys.HandlerConfiguration,
+            key: IncidentManagementMenuKeys.ResponsePlans,
             label: intl.formatMessage(IncidentManagementResources.responsePlans),
             disabled: false,
         });
@@ -118,7 +118,7 @@ const IncidentManagement: FC = () => {
                     ) : (
                         <Warning24Regular className={navigationStyles.itemIcon} />
                     );
-                case IncidentManagementMenuKeys.HandlerConfiguration:
+                case IncidentManagementMenuKeys.ResponsePlans:
                     return isSelected ? (
                         <ClipboardTaskList16Filled className={navigationStyles.itemIcon} />
                     ) : (
@@ -252,8 +252,8 @@ const IncidentManagement: FC = () => {
                                 showControlPlaneDependentFeatures={showControlPlaneDependentFeatures}
                             />
                         )}
-                        {selectedKey === IncidentManagementMenuKeys.HandlerConfiguration && (
-                            <HandlersOverview setNavigationHidden={setNavigationHidden} />
+                        {selectedKey === IncidentManagementMenuKeys.ResponsePlans && (
+                            <ResponsePlanOverview setNavigationHidden={setNavigationHidden} />
                         )}
                         {agentAppInsightsAppId && selectedKey === IncidentManagementMenuKeys.Metrics && (
                             <Analysis agentAppInsightsAppId={agentAppInsightsAppId} />

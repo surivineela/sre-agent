@@ -746,7 +746,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 <IncidentManagementEmptyState
                     type="noHandlers"
                     onButtonClick={() =>
-                        navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.HandlerConfiguration}` })
+                        navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.ResponsePlans}` })
                     }
                 />
             );

@@ -15,13 +15,13 @@ import { PlatformConnectionMessageBar } from './Common/PlatformConnectionMessage
 import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
 import CreateIncidentHandlerConsolidated from './CreateIncidentHandler/CreateIncidentHandlerConsolidated';
 import IncidentFiltersToolbar from './IncidentFiltersToolbar';
-import IncidentsFiltersGrid from './IncidentsFiltersGrid';
+import ResponsePlanGrid from './ReponsePlanGrid';
 
-interface HandlersOverviewProps {
+interface ResponsePlanOverviewProps {
     setNavigationHidden: (hidden: boolean) => void;
 }
 
-const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden }) => {
+const ResponsePlanOverview: FC<ResponsePlanOverviewProps> = ({ setNavigationHidden }) => {
     const { logAmplitudeControlEvent } = useAzPortalContext();
     const {
         incidentManagement: { incidentPlatformType, isIncidentManagementConnected, checkingConnectivity, refreshConnectivity },
@@ -135,7 +135,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden }) =>
                         />
                         <PlatformConnectionIndicator style={{ marginLeft: 'auto', marginRight: '16px' }} />
                     </div>
-                    <IncidentsFiltersGrid
+                    <ResponsePlanGrid
                         handlerOperationStatus={handlerOperationStatus}
                         openHandlerCreate={setVisibleHandler}
                         incidentFilters={incidentFilters ?? []}
@@ -152,4 +152,4 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden }) =>
     );
 };
 
-export default HandlersOverview;
+export default ResponsePlanOverview;
