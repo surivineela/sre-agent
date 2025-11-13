@@ -20,4 +20,5 @@ export interface IEnvironmentInfo {
      * This means Control Plane (ARM) calls won't work
      */
     isCrossTenantPortalMode?: boolean;
+    sessionId?: string;
 }

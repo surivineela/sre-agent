@@ -233,6 +233,7 @@ export default class AzPortalProxy {
                     armEndpoint: envInfo.armEndpoint ?? '',
                     sreAgentEndpoint: envInfo.sreAgentEndpoint ?? defaultSreAgentEndpoint,
                     isCrossTenantPortalMode: !envInfo.resourceId && !envInfo.armEndpoint,
+                    sessionId: envInfo.sessionId,
                 };
                 this.setEnvironmentInfo(AzPortalProxy.envInfo);
                 break;

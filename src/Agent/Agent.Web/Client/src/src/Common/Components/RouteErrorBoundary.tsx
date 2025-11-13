@@ -51,7 +51,7 @@ export const RouteErrorBoundary = () => {
     const intl = useIntl();
     const styles = useStyles();
     const azPortalContext = useContext(AzPortalContext);
-    const { resourceId } = useContext(EnvironmentContext);
+    const { resourceId, sessionId } = useContext(EnvironmentContext);
     const {
         activities: { lastVisitedThreadId },
     } = useContext(SreAgentContext);
@@ -102,15 +102,30 @@ export const RouteErrorBoundary = () => {
             <Text size={400} style={{ color: tokens.colorNeutralForeground2, maxWidth: '600px', textAlign: 'center' }}>
                 {errorMessage}
             </Text>
-            {resourceId && (
-                <div className={styles.resourceIdContainer}>
-                    <Text size={300} style={{ color: tokens.colorNeutralForeground3 }}>
-                        {intl.formatMessage(SreAgentResources.resourceId)}:
-                    </Text>
-                    <Text size={300} className={styles.resourceIdText}>
-                        {resourceId}
-                    </Text>
-                    <CopyButton textToCopy={resourceId} buttonAppearance="transparent" />
+            {(resourceId || sessionId) && (
+                <div className={styles.resourceIdContainer} style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                    {resourceId && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalS }}>
+                            <Text size={300} style={{ color: tokens.colorNeutralForeground3 }}>
+                                {intl.formatMessage(SreAgentResources.resourceId)}:
+                            </Text>
+                            <Text size={300} className={styles.resourceIdText}>
+                                {resourceId}
+                            </Text>
+                            <CopyButton textToCopy={resourceId} buttonAppearance="transparent" />
+                        </div>
+                    )}
+                    {sessionId && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalS }}>
+                            <Text size={300} style={{ color: tokens.colorNeutralForeground3 }}>
+                                {intl.formatMessage(SreAgentResources.sessionId)}:
+                            </Text>
+                            <Text size={300} className={styles.resourceIdText}>
+                                {sessionId}
+                            </Text>
+                            <CopyButton textToCopy={sessionId} buttonAppearance="transparent" />
+                        </div>
+                    )}
                 </div>
             )}
             <div className={styles.buttonContainer}>

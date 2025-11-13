@@ -548,6 +548,7 @@ export const SreAgentResources = defineMessages({
     unexpectedErrorOccurred: { defaultMessage: 'An unexpected error occurred', id: '3IKub9' },
     getSupport: { defaultMessage: 'Get support', id: 'Km7x3v' },
     resourceId: { defaultMessage: 'Resource ID', id: 'iIoj97' },
+    sessionId: { defaultMessage: 'Session ID', id: 'b0v+Pu' },
     correlationNoteHighlightedPoints: {
         defaultMessage:
             'Note: There {count, plural, one {is # highlighted point} other {are # highlighted points}} in this chart that may require attention.',

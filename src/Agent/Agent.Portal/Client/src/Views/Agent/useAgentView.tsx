@@ -8,6 +8,7 @@ import { useUserPreferences } from '../../Common/Contexts/UserPreferencesContext
 import { ILogEvent, LogLevel } from '../../Common/Contracts/Telemetry';
 import { AuthScopeIdentifier, useAuthTokenManager } from '../../Common/Hooks/useAuthTokenManager';
 import { useTelemetry } from '../../Common/Hooks/useTelemetry';
+import { getSessionId } from '../../Common/Utilities/SessionManager';
 import { buildBladeUrl, IOpenBladeInfo } from '../../Common/Utilities/Url';
 import { PortalResources } from '../../Strings/Resources';
 import {
@@ -113,6 +114,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
             resourceId,
             armEndpoint: armUrl.origin,
             sreAgentEndpoint: agentUrl || '',
+            sessionId: getSessionId(),
         };
 
         postMessage(AzPortalToAgentSiteVerbs.sendEnvironmentInfo, environmentInfo);

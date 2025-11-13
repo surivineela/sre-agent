@@ -13,7 +13,6 @@ import Url from '../Helpers/Url';
 import { LogCategories } from '../LogCategories';
 
 const alwaysSkipBatching = !!Url.getParameterByName(null, 'appsvc.skipbatching');
-const sessionId = Url.getParameterByName(null, 'sessionId');
 
 export interface ARGOptions {
     $top?: number;
@@ -138,6 +137,7 @@ export const getTelemetryInfo = (
 const makeArmRequest = async <T>(armObj: InternalArmRequest, _retry = 0): Promise<AxiosResponse<T>> => {
     const env = AzPortalProxy.envInfo;
     const { method, resourceId, body, apiVersion, queryString, useManagementEndpoint } = armObj;
+    const sessionId = env?.sessionId;
     let url: string;
     if (useManagementEndpoint) {
         const armEndpoint = env?.armEndpoint;

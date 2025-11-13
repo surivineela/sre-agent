@@ -25,6 +25,7 @@ export interface IEnvironmentInfo {
     /** `null` for cross-tenant */
     armEndpoint: string | null;
     sreAgentEndpoint: string;
+    sessionId?: string;
 }
 
 export enum IFrameThemeMode {
