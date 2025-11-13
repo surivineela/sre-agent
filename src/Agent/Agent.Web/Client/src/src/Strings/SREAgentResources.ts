@@ -2178,7 +2178,7 @@ export const FeedbackResources = defineMessages({
 });
 
 export const GithubIssueResources = defineMessages({
-    createGithubIssueTitle: { defaultMessage: 'Create GitHub issue', id: 'mgtFKh' },
+    createGithubIssueTitle: { defaultMessage: 'Create GitHub issue with SRE agent team', id: 'A+4geD' },
     createGithubIssueLinkText: {
         defaultMessage: 'Open GitHub issue page with pre-filled information above',
         id: '3SsYXO',
