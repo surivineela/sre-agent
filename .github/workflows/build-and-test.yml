@@ -293,7 +293,7 @@ jobs:
       if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
       working-directory: ./src/Agent/Agent.Portal/Client
       run: npm install
-    
+
     - name: Lint Agent.Portal UX
       if: ${{ needs.changes.outputs.frontend_portal == 'true' }}
       working-directory: ./src/Agent/Agent.Portal/Client
@@ -321,8 +321,16 @@ jobs:
   format:
     name: Check Format
     runs-on: ubuntu-latest
+    needs: changes
     steps:
-    - name: 🔐 Azure OIDC Login
+    - name: � Skip if no backend changes
+      if: ${{ needs.changes.outputs.backend != 'true' }}
+      run: |
+        echo "⏭️ Skipping format check - no backend changes detected"
+        echo "This job completed successfully but skipped actual format steps"
+
+    - name: �🔐 Azure OIDC Login
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       uses: azure/login@v1
       with:
         client-id: ${{ vars.CFS_CLIENT_ID }}
@@ -330,6 +338,7 @@ jobs:
         allow-no-subscriptions: true
 
     - name: 🔐 Setup CFS
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       uses: 1es-actions/setup-cfs@v1
       with:
         feed-url: https://msazure.pkgs.visualstudio.com/Antares/_packaging/antares-websites/
@@ -338,16 +347,19 @@ jobs:
         nuget-config-path: nuget.config
 
     - name: 🛒 Checkout code
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       uses: actions/checkout@v4
       with:
         fetch-depth: 1
 
     - name: 🧰 Setup .NET
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: 📦 Cache NuGet packages
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       uses: actions/cache@v4
       with:
         path: |
@@ -358,6 +370,7 @@ jobs:
           ${{ runner.os }}-nuget-
 
     - name: 🔨 Restore NuGet packages
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       run: |
          dotnet restore ${{ env.BUILD_SOLUTION }} \
             --verbosity quiet \
@@ -365,10 +378,12 @@ jobs:
             --use-current-runtime
 
     - name: 💄 Run dotnet format
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       run: |
         dotnet format ${{ env.BUILD_SOLUTION }}
 
     - name: 📝 Check and prepare format changes
+      if: ${{ needs.changes.outputs.backend == 'true' }}
       id: format_changes
       run: |
         git add -A
@@ -391,14 +406,14 @@ jobs:
         fi
 
     - name: ✅ Clear formatting comment
-      if: success() && steps.format_changes.outputs.status == 'clean'
+      if: success() && needs.changes.outputs.backend == 'true' && steps.format_changes.outputs.status == 'clean'
       uses: ./.github/actions/formatting-comment
       with:
         status: clean
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 📝 Post formatting suggestions
-      if: failure() && steps.format_changes.outputs.status == 'needs_suggestions'
+      if: failure() && needs.changes.outputs.backend == 'true' && steps.format_changes.outputs.status == 'needs_suggestions'
       uses: ./.github/actions/formatting-comment
       with:
         status: needs_suggestions
