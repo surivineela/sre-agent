@@ -14,7 +14,7 @@ import {
     Text,
     Tooltip,
 } from '@fluentui/react-components';
-import { Delete16Regular, Info16Regular, Play16Regular, RecordStop16Regular } from '@fluentui/react-icons';
+import { Delete16Regular, Info16Regular } from '@fluentui/react-icons';
 import { Label } from '@fluentui/react/lib/Label';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -28,7 +28,6 @@ import { getAgentAccessLevelDisplayName } from '../../Common/Helpers/AgentMode';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
-import { useAgentPowerState } from './Hooks/useAgentPowerState';
 import { useSreAgent } from './Hooks/useSreAgent';
 import { useSubscription } from './Hooks/useSubscription';
 import { useDialogStyles, useSettingsStyles } from './Styles/Settings.styles';
@@ -41,7 +40,6 @@ const Basics: FC = () => {
     const az = useContext(AzPortalContext);
     const { agent, agentLoading, refresh } = useSreAgent(resourceId);
     const { canDeleteAgent } = useUserPermissions();
-    const { startAgent, stopAgent } = useAgentPowerState(refresh);
     const region = useMemo(() => agent?.location, [agent?.location]);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -66,8 +64,6 @@ const Basics: FC = () => {
         () => getAgentAccessLevelDisplayName(agent?.properties?.actionConfiguration?.accessLevel, intl),
         [agent?.properties?.actionConfiguration?.accessLevel, intl]
     );
-
-    const isAgentStopped = useMemo(() => agent?.properties?.powerState === 'Stopped', [agent?.properties?.powerState]);
 
     const { agentSpaceId, agentSpaceName } = useMemo(() => {
         const agentSpaceId = agent?.properties?.agentSpaceId;
@@ -319,28 +315,6 @@ const Basics: FC = () => {
                             />
                         </Shimmer>
                     </div>
-                </div>
-            </Card>
-
-            <Card style={styles.basicsCardStyle}>
-                <div style={styles.actionSectionStyle}>
-                    <div style={styles.actionTextContainerStyle}>
-                        <div style={styles.sectionTitleStyle}>
-                            {intl.formatMessage(isAgentStopped ? SreAgentResources.startAgent : SreAgentResources.stopAgent)}
-                        </div>
-                        <Text style={styles.sectionDescriptionStyle}>
-                            {intl.formatMessage(
-                                isAgentStopped ? SreAgentResources.startAgentDescription : SreAgentResources.stopAgentDescription
-                            )}
-                        </Text>
-                    </div>
-                    <Button
-                        appearance="outline"
-                        icon={isAgentStopped ? <Play16Regular /> : <RecordStop16Regular />}
-                        onClick={() => (isAgentStopped ? startAgent(resourceId) : stopAgent(resourceId))}
-                    >
-                        {intl.formatMessage(isAgentStopped ? SreAgentResources.start : SreAgentResources.stop)}
-                    </Button>
                 </div>
             </Card>
 
