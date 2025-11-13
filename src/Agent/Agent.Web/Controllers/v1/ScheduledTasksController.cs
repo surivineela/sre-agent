@@ -32,7 +32,8 @@ namespace Agent.Web.Controllers.v1
         string? ThreadId = null,
         Dictionary<string, object>? ExecutionContext = null,
         int? MaxExecutions = null,
-        string? NotificationChannel = null
+        string? NotificationChannel = null,
+        string? CreatedBy = null
     );
 
     public record UpdateScheduledTaskApiRequest(
@@ -154,7 +155,7 @@ namespace Agent.Web.Controllers.v1
                     AgentPrompt: request.AgentPrompt,
                     Agent: request.Agent,
                     ThreadId: request.ThreadId,
-                    CreatedBy: "api", // TODO: Get from authentication context
+                    CreatedBy: string.IsNullOrEmpty(request.CreatedBy) ? "api" : request.CreatedBy, // TODO: Get from authentication context
                     ExecutionContext: request.ExecutionContext,
                     MaxExecutions: request.MaxExecutions,
                     NotificationChannel: request.NotificationChannel
