@@ -17,7 +17,8 @@ public static class FirstPartyHelper
         "33e01921-4d64-4f8c-a055-5bdaffd5e33d",
         "72f988bf-86f1-41af-91ab-2d7cd011db47",
         "975f013f-7f24-47e8-a7d3-abc4752bf346",
-        "cdc5aeea-15c5-4db6-b079-fcadd2505dc2"
+        "cdc5aeea-15c5-4db6-b079-fcadd2505dc2",
+        "ed5693bc-117f-4001-a14c-5f50a530d5df"
     };
 
     /// <summary>
