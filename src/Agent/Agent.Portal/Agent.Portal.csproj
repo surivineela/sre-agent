@@ -20,7 +20,7 @@
   <ItemGroup>
     <!-- Include the Client folder in the project -->
     <Content Remove="$(ClientRoot)**" />
-    <None Remo-ve="$(ClientRoot)**" />
+    <None Remove="$(ClientRoot)**" />
     <None Include="$(ClientRoot)**" Exclude="$(ClientRoot)node_modules\**" />
 
     <!-- Exclude wwwroot from auto-inclusion during build (only include during pack) -->

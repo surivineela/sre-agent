@@ -14,13 +14,16 @@ public class ScheduledTaskManagementService : IScheduledTaskManagementService
 {
     private readonly IScheduledTaskRepository _repository;
     private readonly ILogger<ScheduledTaskManagementService> _logger;
+    private readonly ScheduledTaskExecutionService _executionService;
 
     public ScheduledTaskManagementService(
         IScheduledTaskRepository repository,
-        ILogger<ScheduledTaskManagementService> logger)
+        ILogger<ScheduledTaskManagementService> logger,
+        ScheduledTaskExecutionService executionService)
     {
         _repository = repository;
         _logger = logger;
+        _executionService = executionService;
     }
 
     public async Task<List<ScheduledTaskDocument>> ListScheduledTasks()
@@ -252,45 +255,43 @@ public class ScheduledTaskManagementService : IScheduledTaskManagementService
                 return null;
             }
 
-            // Create a manual execution record
-            var executionTime = DateTime.UtcNow;
-            var execution = new ScheduledTaskExecution(
-                ExecutionTime: executionTime,
-                ThreadId: task.ThreadId,
-                Success: true,
-                ErrorMessage: null,
-                ExecutionMetadata: new Dictionary<string, object>
+            // Get execution history count before execution to find the newly added execution
+            var executionHistoryCountBefore = task.ExecutionHistory?.Count ?? 0;
+
+            // Execute the task using the execution service (this will update the task in the repository)
+            await _executionService.ExecuteScheduledTask(task);
+
+            // Retrieve the updated task to get the execution result
+            var updatedTask = await _repository.GetScheduledTaskAsync(taskId);
+            if (updatedTask == null || updatedTask.ExecutionHistory == null || updatedTask.ExecutionHistory.Count == executionHistoryCountBefore)
+            {
+                _logger.LogInternalWarning("Task execution did not record history: {TaskId}", taskId);
+                return null;
+            }
+
+            // Get the most recent execution (the one we just added)
+            var latestExecution = updatedTask.ExecutionHistory
+                .OrderByDescending(e => e.ExecutionTime)
+                .First();
+
+            // Add manual execution flag to the metadata to distinguish from scheduled executions
+            if (latestExecution.ExecutionMetadata == null)
+            {
+                latestExecution = latestExecution with
                 {
-                    ["ManualExecution"] = true,
-                    ["TaskId"] = task.Id,
-                    ["TaskName"] = task.Name,
-                    ["ExecutionTime"] = executionTime
-                }
-            );
-
-            // Update task with execution
-            if (task.ExecutionHistory == null)
-            {
-                task.ExecutionHistory = new List<ScheduledTaskExecution>();
-            }
-            task.ExecutionHistory.Add(execution);
-
-            // Keep only last 50 executions
-            if (task.ExecutionHistory.Count > 50)
-            {
-                task.ExecutionHistory = task.ExecutionHistory
-                    .OrderByDescending(e => e.ExecutionTime)
-                    .Take(50)
-                    .ToList();
+                    ExecutionMetadata = new Dictionary<string, object>()
+                };
             }
 
-            task.ExecutionCount++;
-            task.LastExecutionTime = executionTime;
+            latestExecution.ExecutionMetadata["ManualExecution"] = true;
 
-            await _repository.UpdateScheduledTaskAsync(task);
+            // Update the execution history with the manual execution flag
+            var executionIndex = updatedTask.ExecutionHistory.Count - 1;
+            updatedTask.ExecutionHistory[executionIndex] = latestExecution;
+            await _repository.UpdateScheduledTaskAsync(updatedTask);
 
-            _logger.LogInternalInformation("Task manually executed: {TaskId}", taskId);
-            return execution;
+            _logger.LogInternalInformation("Task manually executed: {TaskId}, Success: {Success}", taskId, latestExecution.Success);
+            return latestExecution;
         }
         catch (Exception ex)
         {
