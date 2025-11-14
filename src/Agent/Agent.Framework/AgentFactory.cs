@@ -400,7 +400,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
 
 
-
         foreach (var commonPromptName in agentDescriptor.CommonPrompts)
         {
             if (!_promptDescriptors.TryGetValue(commonPromptName, out var commonPrompt))
@@ -1144,6 +1143,11 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             if (overlay.HasHandoffInstructions)
             {
                 agent.Instructions.WithHandoffInstructions();
+            }
+
+            if (overlay.EnableVanillaMode)
+            {
+                agent.EnableVanillaMode = true;
             }
 
             // re-apply standard modifiers if specified (this will override custom value for 'HasHandoffInstructions' above)

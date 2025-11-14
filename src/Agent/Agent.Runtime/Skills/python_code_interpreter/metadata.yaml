@@ -1,4 +1,4 @@
-name: python_code_interpreter_agent
+name: python_code_interpreter
 description: |
   Enables advanced Python-based data analysis, statistical modeling, and automated report/file generation (PDF, images, CSV, Excel) on provided datasets within a secure sandbox, supporting reproducible workflows without external network or system access.
 tools:

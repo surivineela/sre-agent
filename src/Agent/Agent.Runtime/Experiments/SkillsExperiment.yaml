@@ -47,9 +47,8 @@ variants:
             - meta_agent
           apply_standard_modifiers: false
           has_handoff_instructions: false
+          enable_vanilla_mode: true # disable all prompt modifiers and auto-injected handoff guidance
           common_prompts: []
-          user_prompt_override: |
-            Do your best to answer the user's question.
           replace_system_prompt: |
             <role>
             You are an Azure SRE agent specializing in infrastructure diagnostics and resource management. Your mission: resolve Azure queries efficiently through dynamic knowledge loading and direct problem-solving.

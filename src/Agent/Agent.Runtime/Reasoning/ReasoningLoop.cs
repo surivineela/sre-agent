@@ -191,7 +191,8 @@ public class ReasoningLoop : IDisposable
 
         _logger.LogInternalInformation("Experimental Flag: AgentMemoryEnabled: {agentMemoryEnabled}", _agentMemoryEnabled);
         _logger.LogInternalInformation("Experimental Flag: AutoHandOffEnabled: {autoHandOffEnabled}", _autoHandOffEnabled);
-        _logger.LogInternalInformation("Active Experiment Variants: {experimentVariants}",
+        _logger.LogInternalInformation("[{ThreadId}] Active Experiment Variants: {experimentVariants}",
+            _context.ThreadId,
             FormatExperimentVariants(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
     }
     public virtual void CancelCurrentOperation()

@@ -158,6 +158,13 @@ public sealed record PromptOverlay
     [YamlMember(Alias = "user_prompt_override")]
     public string? UserPromptOverride { get; init; }
 
+    /// <summary>
+    /// If true, enables vanilla mode for the agent, removing all prompt modifiers and using only the base system prompt.
+    /// Only applies if `replace_system_prompt` is set.
+    /// </summary>
+    [YamlMember(Alias = "enable_vanilla_mode")]
+    public bool EnableVanillaMode { get; init; } = false;
+
     // Add more prompt fields as needed
 }
 

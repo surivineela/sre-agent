@@ -15,8 +15,8 @@ description: |
     3. Metric names verified via a single ListAvailableMetrics call per resource type
 
 tools:
-  - ListAvailableMetrics
-  - GetMetricTimeSeriesElementsForAzureResource
+  - DiscoverMetrics
+  - AnalyzeMetrics
   - PlotTimeSeriesData
   - PlotPieChart
   - PlotBarChart

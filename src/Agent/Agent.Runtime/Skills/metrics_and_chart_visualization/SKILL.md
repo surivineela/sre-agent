@@ -22,7 +22,7 @@ Out of scope: configuration changes, remediation workflows, deep troubleshooting
 
 ## Key Principles
 
-• ListAvailableMetrics only once per resource type; reuse results.
+• DiscoverMetrics only once per resource type; reuse results.
 • Avoid echoing every intermediate step—follow system prompt conciseness (direct answer first).
 • Only ask user for missing essentials (time range, resource scope) after exhausting inference.
 • Don’t mention tool names in user‑visible output.

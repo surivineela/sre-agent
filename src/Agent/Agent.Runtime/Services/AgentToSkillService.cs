@@ -77,7 +77,7 @@ public class AgentToSkillService(
 
         var result = new SkillSpec
         {
-            Name = agent.Name,
+            Name = GetAgentToSkillName(agent.Name),
             Description = description,
             Tools = [.. toolSet],
             SkillMdContent = FormatFileContent(skillMdContent)
@@ -198,7 +198,7 @@ public class AgentToSkillService(
         Agent<AgentContext> agent,
         IEnumerable<string> topLevelAgentSkills)
     {
-        var chatClient = chatClientProvider.SmallFastModel;
+        var chatClient = chatClientProvider.ReasoningHeavyModel;
 
         // The agent's system prompt becomes the main content of SKILL.md.
         // We will use the LLM to help extract and organize the content, and to scrub any references to "handoffs" or "sub-agents".
@@ -277,7 +277,7 @@ public class AgentToSkillService(
         Agent<AgentContext> handoffAgent,
         IEnumerable<string> topLevelAgentSkills)
     {
-        var chatClient = chatClientProvider.SmallFastModel;
+        var chatClient = chatClientProvider.ReasoningHeavyModel;
 
         List<ChatMessage> input = [
             new ChatMessage(ChatRole.System, AgentConversionHandoffMdPrompt),
@@ -414,7 +414,7 @@ public class AgentToSkillService(
     <skill_description_instructions>
     You are an expert in AI agent frameworks and skill systems. Your task is to generate a detailed description of a skill based on the provided agent definition.
     The skill description should explain the purpose, capabilities, and usage of the skill in a way that is clear and informative.
-    The description should be brief, concise, and focused. It should be 1-2 sentences long.
+    The description should be brief, concise, and focused. It should be a maximum of 5 sentences long.
     </skill_description_instructions>
 
     <output_format>
