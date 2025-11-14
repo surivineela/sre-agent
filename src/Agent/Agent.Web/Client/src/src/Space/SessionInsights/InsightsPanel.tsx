@@ -15,6 +15,7 @@ import ReactMarkdown from 'react-markdown';
 import { useNavigate } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 
 const useStyles = makeStyles({
@@ -300,7 +301,9 @@ const InsightsPanel: FC<InsightsPanelProps> = ({ thread, onInsightsGenerated }) 
             setLoading(true);
 
             // Try to get session insight from Cosmos DB
-            const response = await fetch(`/api/v1/agents/${encodeURIComponent(resourceId)}/threads/${thread.id}/insights`);
+            const response = await fetch(`/api/v1/agents/${encodeURIComponent(resourceId)}/threads/${thread.id}/insights`, {
+                headers: getAgentHeaders(),
+            });
 
             if (response.ok) {
                 const data = await response.json();
@@ -342,9 +345,7 @@ const InsightsPanel: FC<InsightsPanelProps> = ({ thread, onInsightsGenerated }) 
             // Call the generate insights API
             const response = await fetch(`/api/v1/agents/${encodeURIComponent(resourceId)}/threads/${thread.id}/insights`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getAgentHeaders(),
             });
 
             if (response.ok) {
@@ -374,9 +375,7 @@ const InsightsPanel: FC<InsightsPanelProps> = ({ thread, onInsightsGenerated }) 
             // Send feedback to backend API
             const response = await fetch(`/api/v1/agents/${encodeURIComponent(resourceId)}/threads/${thread.id}/insights/feedback`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getAgentHeaders(),
                 body: JSON.stringify({
                     rating: feedbackRating,
                     comment: feedbackText,

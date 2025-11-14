@@ -66,6 +66,7 @@ import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { SearchBoxWithDebounce } from '../../Common/Components/SearchBox/SearchBoxWithDebounce';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { Guid } from '../../Common/Helpers/Guid';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { useFeatureFlags } from '../../Common/Hooks/useFeatureFlags';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
@@ -100,7 +101,7 @@ const GenerateInsightsButton = memo(({ threadId }: { threadId?: string | null })
         try {
             const response = await fetch(`${sreAgentEndpoint}/api/v1/threads/${threadId}/insights`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAgentHeaders(),
             });
             if (!response.ok) {
                 const errorData = await response.json();
