@@ -507,8 +507,6 @@ public partial class ThreadEvaluator
         {
             var prompt = BuildEvaluationPrompt(thread, chatHistory, reasoningHistory, toolCallMetrics);
 
-            _logger.LogInternalInformation("LLM Evaluation Prompt for thread {ThreadId}:\n{Prompt}", thread.Id, prompt);
-
             var chatMessages = new List<ChatMessage>
             {
                 new(ChatRole.System, """
@@ -1019,7 +1017,6 @@ public partial class ThreadEvaluator
             }
 
             var prompt = await BuildEvaluationPromptForCategory(thread, chatHistory);
-            _logger.LogInternalInformation("LLM Category Prompt for thread {ThreadId}:\n{Prompt}", thread.Id, prompt);
 
             var systemMsg = """
                 You are an expert evaluator of AI agent conversations. Your task is to determine which one of the known categories best describes the provided thread. Return ONLY a JSON object with a single field "Category" (for example: {"Category": "incidents"}). Do not return any additional text.
