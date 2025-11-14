@@ -54,8 +54,16 @@ public class ShellService : IShellService
 
         try
         {
-            _logger.LogInformation($"Start to run az login. MSI endpoint: {_msiEndpoint}");
-            var pCmd = new ExternalProcessCommand(_logger, "az", ["login", "-i"], timeout: TimeSpan.FromSeconds(10), envs: commonEnvs);
+            var subscriptionId = ExtractSubscriptionId(request.ShellScripts);
+            _logger.LogInformation($"Start to run az login, Subscription ID: {subscriptionId}, MSI endpoint: {_msiEndpoint}");
+
+            var command = "az login -i";
+            if (!string.IsNullOrEmpty(subscriptionId))
+            {
+                command += $" && az account set --subscription {subscriptionId}";
+            }
+
+            var pCmd = new ExternalProcessCommand(_logger, "/bin/bash", ["-c", command], timeout: TimeSpan.FromSeconds(10), envs: commonEnvs);
             var (exitCode, stdout, stderr) = await pCmd.ExecuteAsync(cancellationToken);
             if (exitCode != 0)
             {
@@ -147,5 +155,31 @@ public class ShellService : IShellService
     public Task<ShellExecuteResponse> ExecuteKubectl(KubectlExecutionRequest request, string identifier, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
+    }
+
+    private string? ExtractSubscriptionId(string scripts)
+    {
+        var lines = scripts.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines)
+        {
+            var trimmedLine = line.Trim();
+            if (trimmedLine.StartsWith("az ", StringComparison.OrdinalIgnoreCase) &&
+                trimmedLine.Contains("--subscription"))
+            {
+                var parts = trimmedLine.Split(' ');
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    if (parts[i] == "--subscription" && i + 1 < parts.Length)
+                    {
+                        return parts[i + 1];
+                    }
+                    else if (parts[i].StartsWith("--subscription="))
+                    {
+                        return parts[i].Substring("--subscription=".Length);
+                    }
+                }
+            }
+        }
+        return null;
     }
 }
