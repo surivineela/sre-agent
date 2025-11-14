@@ -102,6 +102,7 @@ export const ResourceGroupDropdown = (props: ResourceGroupDropdownProps) => {
     const styles = useStyles();
 
     const [query, setQuery] = useState('');
+    const [hasUserChanged, setHasUserChanged] = useState(false);
     const [newResourceGroup, setNewResourceGroup] = useState<NewableResourceGroup>();
 
     const {
@@ -137,7 +138,7 @@ export const ResourceGroupDropdown = (props: ResourceGroupDropdownProps) => {
         [allResourceGroups, intl]
     );
 
-    const children = useComboboxFilter(query, resourceGroupOptions, {
+    const children = useComboboxFilter(hasUserChanged ? query : '', resourceGroupOptions, {
         optionToText: option => option.children as string,
         noOptionsMessage: intl.formatMessage(PortalResources.noResultsFound),
     });
@@ -205,7 +206,10 @@ export const ResourceGroupDropdown = (props: ResourceGroupDropdownProps) => {
                         onOptionSelect={onOptionSelect}
                         placeholder={intl.formatMessage(PortalResources.selectAnExistingResourceGroup)}
                         value={query}
-                        onChange={ev => setQuery(ev.target.value)}
+                        onChange={ev => {
+                            setQuery(ev.target.value);
+                            setHasUserChanged(true);
+                        }}
                         disabled={disabled}
                     >
                         {children}

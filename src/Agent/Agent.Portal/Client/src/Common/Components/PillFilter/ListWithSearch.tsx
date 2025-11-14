@@ -132,10 +132,12 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
         if (onSearchChange) {
             return options;
         }
+
         // Otherwise, filter locally (client-side filtering)
         if (!searchText) {
             return options;
         }
+
         return options.filter(option => option.label.toLowerCase().includes(searchText.toLowerCase()));
     }, [options, searchText, onSearchChange]);
 

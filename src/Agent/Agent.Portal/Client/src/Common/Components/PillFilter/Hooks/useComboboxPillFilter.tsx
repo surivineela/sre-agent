@@ -7,14 +7,13 @@ import { ALL_OPTION, ListWithSearch } from '../ListWithSearch';
 export const useComboboxPillFilter = (props: UseComboboxPillFilterProps | undefined) => {
     const label = useMemo(() => props?.label || '', [props?.label]);
     const options = useMemo(() => props?.options || [], [props?.options]);
-    const onApply = useCallback((keys: string[]) => props?.onApply(keys), [props]);
+    const onApply = useCallback((keys: string[]) => props?.onApply(keys), [props?.onApply]);
     const selectedKeys = useMemo(() => props?.selectedKeys || [], [props?.selectedKeys]);
     const multiSelect = useMemo(() => props?.multiSelect || false, [props?.multiSelect]);
     const addAllOption = useMemo(() => props?.addAllOption || false, [props?.addAllOption]);
     const allOptionLabel = useMemo(() => props?.allOptionLabel, [props?.allOptionLabel]);
     const showValueAs = useMemo(() => props?.showValueAs || 'count', [props?.showValueAs]);
     const disabled = useMemo(() => props?.disabled || false, [props?.disabled]);
-    const onSearchChange = useCallback((searchText: string) => props?.onSearchChange?.(searchText), [props]);
 
     const intl = useIntl();
     const [currentSelectedKeys, setCurrentSelectedKeys] = useState<string[]>(selectedKeys || []);
@@ -82,10 +81,10 @@ export const useComboboxPillFilter = (props: UseComboboxPillFilterProps | undefi
                 allOptionLabel={allLabel}
                 ariaLabel={intl.formatMessage(PortalResources.optionsListAriaLabel, { fieldName: label })}
                 disabled={disabled}
-                onSearchChange={onSearchChange}
+                onSearchChange={props?.onSearchChange}
             />
         );
-    }, [options, pendingSelectedKeys, setPendingSelectedKeys, multiSelect, addAllOption, allLabel, intl, label, disabled, onSearchChange]);
+    }, [options, pendingSelectedKeys, setPendingSelectedKeys, multiSelect, addAllOption, allLabel, intl, label, disabled, props?.onSearchChange]);
 
     return {
         pillDisplayValue,

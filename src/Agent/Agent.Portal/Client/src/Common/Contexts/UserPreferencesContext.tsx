@@ -1,7 +1,7 @@
 import { ReactNode, createContext, useCallback, useContext, useMemo } from 'react';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { useLocalStorage } from '../Hooks/useLocalStorage';
-import { useSystemTheme } from '../Hooks/useSystemTheme';
+import { getSystemTheme, useSystemTheme } from '../Hooks/useSystemTheme';
 
 export interface UserPreferences {
     /** UI theme - defaults to 'system' */
@@ -153,4 +153,22 @@ export const useUserPreferences = () => {
     }
 
     return context;
+};
+
+export const getCurrentUserPreferences = () => {
+    let prefs: Partial<UserPreferences> | undefined = undefined;
+    const systemTheme = getSystemTheme();
+
+    try {
+        const stored = localStorage.getItem('sre-agent-portal-preferences');
+        prefs = stored ? JSON.parse(stored) : undefined;
+    } catch (error) {
+        console.error('Failed to getCurrentUserPreferences from localStorage:', error);
+    }
+
+    return {
+        theme: prefs?.theme || 'unknown',
+        systemTheme,
+        locale: prefs?.locale || 'unknown',
+    };
 };

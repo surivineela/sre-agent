@@ -19,8 +19,6 @@ export const useWizardStepperStyles = makeStyles({
         paddingBottom: tokens.spacingVerticalM,
     },
     iconContainer: {
-        width: '20px',
-        height: '20px',
         borderRadius: '50%',
         display: 'flex',
         alignItems: 'center',
@@ -33,15 +31,22 @@ export const useWizardStepperStyles = makeStyles({
         backgroundColor: tokens.colorNeutralForegroundDisabled,
         color: tokens.colorNeutralForegroundInverted,
         border: `2px solid ${tokens.colorNeutralForegroundDisabled}`,
+        width: '20px',
+        height: '20px',
     },
     activeIcon: {
         backgroundColor: tokens.colorBrandBackground,
         color: tokens.colorNeutralForegroundInverted,
         border: `2px solid ${tokens.colorBrandBackground}`,
+        width: '20px',
+        height: '20px',
     },
     completedIcon: {
         backgroundColor: tokens.colorNeutralForegroundInverted,
         color: tokens.colorPaletteGreenBackground3,
+        fontSize: '29px',
+        marginTop: '-3px',
+        marginLeft: '-3px',
     },
     stepTitle: {
         fontSize: tokens.fontSizeBase400,
@@ -56,6 +61,7 @@ export const useWizardStepperStyles = makeStyles({
     },
     completedTitleText: {
         color: tokens.colorNeutralForeground2,
+        alignSelf: 'start',
     },
     connector: {
         width: '1px',

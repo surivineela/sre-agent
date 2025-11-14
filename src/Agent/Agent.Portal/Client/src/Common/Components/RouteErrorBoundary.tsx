@@ -2,10 +2,11 @@ import { Button, makeStyles, Text, tokens } from '@fluentui/react-components';
 import { ChatHelpRegular, HomeRegular, WarningRegular } from '@fluentui/react-icons';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate, useRouteError } from 'react-router-dom';
+import { useRouteError } from 'react-router-dom';
 import { PortalResources } from '../../Strings/Resources';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { LogLevel } from '../Contracts/Telemetry';
+import { usePersistentNavigate } from '../Hooks/usePersistentNavigate';
 import { useTelemetry } from '../Hooks/useTelemetry';
 import { getSessionId } from '../Utilities/SessionManager';
 import { buildBladeUrl, IOpenBladeInfo } from '../Utilities/Url';
@@ -48,7 +49,7 @@ const useStyles = makeStyles({
 
 export const RouteErrorBoundary = () => {
     const error = useRouteError() as Error;
-    const navigate = useNavigate();
+    const navigate = usePersistentNavigate();
     const intl = useIntl();
     const styles = useStyles();
     const { logEvent } = useTelemetry(TelemetrySource.PortalLayout, undefined);
@@ -58,24 +59,13 @@ export const RouteErrorBoundary = () => {
     }, [error]);
 
     const handleOpenSupport = useCallback(() => {
-        const resourceId = ''; // TODO
-
         let bladeUrl = '';
-        if (resourceId) {
-            const bladeInfo: IOpenBladeInfo = {
+        const bladeInfo: IOpenBladeInfo = {
                 extension: 'Microsoft_Azure_Support',
-                detailBlade: 'Aurora.ReactView',
-                detailBladeInputs: { resourceId },
-            };
-            bladeUrl = buildBladeUrl(bladeInfo);
-        } else {
-            const bladeInfo: IOpenBladeInfo = {
-                extension: 'Microsoft_Azure_Support',
-                detailBlade: 'HelpPane.ReactView',
-                detailBladeInputs: {},
-            };
-            bladeUrl = buildBladeUrl(bladeInfo);
-        }
+            detailBlade: 'HelpPane.ReactView',
+            detailBladeInputs: {},
+        };
+        bladeUrl = buildBladeUrl(bladeInfo);
 
         window.open(bladeUrl, '_blank', 'noopener,noreferrer');
     }, []);

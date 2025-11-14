@@ -25,7 +25,7 @@ export const UserAuthContent = () => {
     const { tenants, isLoading: isLoadingTenants } = useTenants(TelemetrySource.PortalLayout);
 
     const handleSignInDifferentAccount = useCallback(() => {
-        signIn();
+        signIn({ prompt: 'select_account' });
     }, [signIn]);
 
     const handleTenantChange = useCallback(

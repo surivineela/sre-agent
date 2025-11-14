@@ -7,6 +7,7 @@ import { Agent, SreAgentArgItem } from '../Contracts/SreAgent';
 import { LogLevel } from '../Contracts/Telemetry';
 import { logTelemetryEvent } from '../Hooks/useTelemetry';
 import { acquireAccessToken } from '../Utilities/Client';
+import { getSessionId } from '../Utilities/SessionManager';
 import { ArmClient } from './ArmClient';
 import { Client } from './Client';
 
@@ -74,6 +75,7 @@ export class SreAgentClient extends Client {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
+                    'x-ms-client-session-id': getSessionId(),
                 },
                 body: JSON.stringify(query),
             });

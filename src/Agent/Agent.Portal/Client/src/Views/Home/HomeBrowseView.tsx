@@ -25,7 +25,6 @@ import {
 import { Add16Regular } from '@fluentui/react-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 import { SreAgentClient } from '../../Common/Clients/SreAgentClient';
 import { ResourceGroupPill } from '../../Common/Components/ResourceGroupPill/ResourceGroupPill';
 import { SubscriptionPill } from '../../Common/Components/SubscriptionPill/SubscriptionPill';
@@ -34,6 +33,7 @@ import { useAuth } from '../../Common/Contexts/AuthContext';
 import { useSubscriptions } from '../../Common/Contexts/SubscriptionsContext';
 import { SreAgentArgItem } from '../../Common/Contracts/SreAgent';
 import { LogLevel } from '../../Common/Contracts/Telemetry';
+import { usePersistentNavigate } from '../../Common/Hooks/usePersistentNavigate';
 import { useTelemetry } from '../../Common/Hooks/useTelemetry';
 import { openResourceGroupOverviewInNewTab, openSubscriptionOverviewInNewTab } from '../../Common/Utilities/Url';
 import { PortalResources } from '../../Strings/Resources';
@@ -63,6 +63,8 @@ const useStyles = makeStyles({
         gap: '20px',
         width: '100%',
         maxWidth: '1200px',
+        flex: '1',
+        minHeight: '0',
     },
     controlsRow: {
         display: 'flex',
@@ -79,9 +81,13 @@ const useStyles = makeStyles({
     },
     card: {
         padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        flex: '1',
+        minHeight: '0',
     },
     dataGrid: {
-        height: '585px',
+        flex: '1',
         overflowY: 'auto',
     },
 });
@@ -91,7 +97,7 @@ export const HomeBrowseView = () => {
     const styles = useStyles();
     const { isAuthenticated } = useAuth();
     const { logEvent } = useTelemetry(TelemetrySource.HomeBrowseView, undefined);
-    const navigate = useNavigate();
+    const navigate = usePersistentNavigate();
     const { selectedSubscriptions, subscriptions } = useSubscriptions();
 
     const sreAgentClient = useMemo(() => SreAgentClient.getInstance(TelemetrySource.HomeBrowseView), []);

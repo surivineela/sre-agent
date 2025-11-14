@@ -16,8 +16,9 @@ import {
 import { Response } from '../Contracts/Response';
 import { acquireAccessToken, delay, getHeader } from '../Utilities/Client';
 import { newGuid } from '../Utilities/Guid';
-import { appendQueryString, getParameterByName } from '../Utilities/Url';
+import { appendQueryString } from '../Utilities/Url';
 import { Client } from './Client';
+import { getSessionId } from '../Utilities/SessionManager';
 
 // Custom response interface to replace AxiosResponse
 interface FetchResponse<T> {
@@ -32,14 +33,12 @@ const maxBufferSize = 20;
 export class ArmClient extends Client {
     private static _instance: ArmClient | null = null;
     private armEndpoint: string;
-    private sessionId: string | null;
     private armSubject$: Subject<InternalArmRequest>;
     private armObs$!: Observable<ArmBatchObject>;
 
     private constructor(telemetrySource: TelemetrySource) {
         super(telemetrySource);
         this.armEndpoint = getCloudEndpoints().arm;
-        this.sessionId = getParameterByName(null, 'sessionId');
         this.armSubject$ = new Subject<InternalArmRequest>();
         this.initializeBatchingObservable();
     }
@@ -203,12 +202,9 @@ export class ArmClient extends Client {
         const headers: KeyValue<string> = {
             Authorization: `Bearer ${token}`,
             'x-ms-client-request-id': armObj.id,
+            'x-ms-client-session-id': getSessionId(),
             ...armObj.headers,
         };
-
-        if (this.sessionId) {
-            headers['x-ms-client-session-id'] = this.sessionId;
-        }
 
         if (body) {
             headers['Content-Type'] = 'application/json';

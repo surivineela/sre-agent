@@ -1,14 +1,16 @@
 import { Button, Image, makeStyles, Text, tokens, Tooltip } from '@fluentui/react-components';
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { LearnMoreLinks } from '../../Common/Constants/Links';
+import { usePersistentNavigate } from '../../Common/Hooks/usePersistentNavigate';
 import { parseArmId } from '../../Common/Utilities/ArmId';
 import { PortalResources } from '../../Strings/Resources';
 import { FeedbackButton } from './FeedbackButton';
 import { NotificationButton } from './NotificationButton';
 import { SettingsContent } from './SettingsContent';
 import { UserAuthContent } from './UserAuthContent';
+import { useAuth } from '../../Common/Contexts/AuthContext';
 
 const useStyles = makeStyles({
     navbar: {
@@ -61,9 +63,10 @@ const useStyles = makeStyles({
 
 export const Navbar = () => {
     const intl = useIntl();
-    const navigate = useNavigate();
+    const navigate = usePersistentNavigate();
     const styles = useStyles();
     const { agentId: encodedAgentId } = useParams<{ agentId: string }>();
+    const { isAuthenticated } = useAuth();
 
     // Parse agent name from the route if we're on an agent page
     const agentName = useMemo(() => {
@@ -100,9 +103,9 @@ export const Navbar = () => {
                     {intl.formatMessage(PortalResources.docs)}
                 </Button>
 
-                <NotificationButton />
+                {isAuthenticated && <NotificationButton />}
 
-                <FeedbackButton />
+                {isAuthenticated && <FeedbackButton />}
 
                 <SettingsContent />
 

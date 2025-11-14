@@ -49,7 +49,7 @@ export const AgentIFrameView = () => {
     const iframeId = useMemo(() => newShortGuid(), []);
 
     return (
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
             {errorBannerMessage && (
                 <MessageBar intent="error" layout="multiline">
                     <MessageBarBody>{errorBannerMessage}</MessageBarBody>
@@ -65,10 +65,7 @@ export const AgentIFrameView = () => {
                     src={agentUxUrl}
                     allow="clipboard-write"
                     style={{
-                        position: 'absolute',
-                        top: errorBannerMessage ? '105px' : '45px',
-                        left: 0,
-                        height: errorBannerMessage ? 'calc(90% - 60px)' : '90%', // TODO
+                        flex: 1,
                         width: '100%',
                         border: 'unset',
                     }}

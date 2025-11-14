@@ -1,6 +1,6 @@
 import { Button, Image, makeStyles, tokens } from '@fluentui/react-components';
 import { useIntl } from 'react-intl';
-import { LearnMoreLinks, TryAzureForFreeLink } from '../../Common/Constants/Links';
+import { useAuth } from '../../Common/Contexts/AuthContext';
 import { PortalResources } from '../../Strings/Resources';
 
 const useStyles = makeStyles({
@@ -50,6 +50,7 @@ const useStyles = makeStyles({
 
 export const LandingPage = () => {
     const intl = useIntl();
+    const { signIn } = useAuth();
     const styles = useStyles();
 
     return (
@@ -62,16 +63,9 @@ export const LandingPage = () => {
                         appearance="primary"
                         size="large"
                         className={styles.primaryButton}
-                        onClick={() => window.open(TryAzureForFreeLink, '_blank', 'noopener,noreferrer')}
+                        onClick={() => signIn()}
                     >
-                        {intl.formatMessage(PortalResources.tryAzureForFree)}
-                    </Button>
-                    <Button
-                        size="large"
-                        className={styles.secondaryButton}
-                        onClick={() => window.open(LearnMoreLinks.sreAgentOverview, '_blank', 'noopener,noreferrer')}
-                    >
-                        {intl.formatMessage(PortalResources.exploreAgentSkills)}
+                        {intl.formatMessage(PortalResources.signIn)}
                     </Button>
                 </div>
             </div>

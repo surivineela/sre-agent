@@ -65,9 +65,9 @@ const PortalLayout = () => {
 
                 <div style={{ display: 'flex', flexDirection: 'column', flex: 'auto', overflow: 'auto' }}>
                     {isLoadingAuth ? null : shouldRedirectUnauthenticated ? (
-                        <Navigate to="/welcome" replace />
+                        <Navigate to={`/welcome${location.search}`} replace />
                     ) : shouldRedirectAuthenticated ? (
-                        <Navigate to="/" replace />
+                        <Navigate to={`/${location.search}`} replace />
                     ) : (
                         <Outlet />
                     )}

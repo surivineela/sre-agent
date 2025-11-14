@@ -6,6 +6,7 @@ import { ArmObj, ResponseArray } from '../Contracts/Arm';
 import { Response } from '../Contracts/Response';
 import { parseArmId } from '../Utilities/ArmId';
 import { acquireAccessToken } from '../Utilities/Client';
+import { getSessionId } from '../Utilities/SessionManager';
 import { ArmClient } from './ArmClient';
 import { Client } from './Client';
 
@@ -69,6 +70,7 @@ export class ResourceGroupClient extends Client {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
                     'x-ms-command-name': commandName,
+                    'x-ms-client-session-id': getSessionId(),
                 },
                 body: JSON.stringify(requestContent),
             });

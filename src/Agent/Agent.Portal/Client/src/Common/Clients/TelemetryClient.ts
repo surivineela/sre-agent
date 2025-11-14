@@ -1,4 +1,5 @@
 import { msalInstance } from '../Auth/msalConfig';
+import { getCurrentUserPreferences } from '../Contexts/UserPreferencesContext';
 import { LogLevel, TelemetryEvent } from '../Contracts/Telemetry';
 import { acquireAccessToken } from '../Utilities/Client';
 import { getSessionId } from '../Utilities/SessionManager';
@@ -43,6 +44,8 @@ export class TelemetryClient {
 
         // Empty string if not signed in or error fetching token - use unauthenticated endpoint
         const { accessToken } = await acquireAccessToken('api', null);
+        const activeAccount = msalInstance.getActiveAccount();
+        const { theme, systemTheme, locale } = getCurrentUserPreferences();
 
         const eventWithBaselineData = {
             version: import.meta.env.SRE_AGENT_PORTAL_VERSION,
@@ -50,12 +53,13 @@ export class TelemetryClient {
             pathname: window.location.pathname,
             sessionId: getSessionId(),
             // Portal uses the legacy hexadecimal cross-tenant PUID, but this is a potential privacy concern due to cross-tenant user tracking
-            userId: msalInstance.getActiveAccount()?.homeAccountId || 'anonymous',
-            tenantId: msalInstance.getActiveAccount()?.tenantId || 'anonymous',
+            userId: activeAccount?.homeAccountId || 'anonymous',
+            tenantId: activeAccount?.tenantId || 'anonymous',
             userAgent: navigator.userAgent,
             screenDimensions: { width: window.screen.width, height: window.screen.height },
-            theme: document.documentElement.getAttribute('data-theme') || 'unknown', // TODO: From UserPrefs
-            locale: navigator.language, // TODO: from UserPrefs
+            theme,
+            systemTheme,
+            locale,
             clientTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             // Potential additions: ScrubbedClientIP, ServerId, JourneyId, Region/DataCenterId, BrowserId
             ...event,
@@ -63,6 +67,7 @@ export class TelemetryClient {
 
         const requestHeaders: Record<string, string> = {
             'Content-Type': 'application/json',
+            'x-ms-client-session-id': getSessionId(),
         };
 
         const requestBody: LogRequestBody = {

@@ -60,6 +60,7 @@ export const SubscriptionDropdown = (props: SubscriptionDropdownProps) => {
 
     const styles = useStyles();
     const [query, setQuery] = useState('');
+    const [hasUserChanged, setHasUserChanged] = useState(false);
 
     const errorMessage = error ? `${intl.formatMessage(PortalResources.requestError)}: ${error}` : undefined;
 
@@ -73,7 +74,7 @@ export const SubscriptionDropdown = (props: SubscriptionDropdownProps) => {
         [subscriptions]
     );
 
-    const children = useComboboxFilter(query, subscriptionOptions, {
+    const children = useComboboxFilter(hasUserChanged ? query : '', subscriptionOptions, {
         optionToText: option => option.children as string,
         noOptionsMessage: intl.formatMessage(PortalResources.noResultsFound),
     });
@@ -119,7 +120,10 @@ export const SubscriptionDropdown = (props: SubscriptionDropdownProps) => {
                     onOptionSelect={onOptionSelect}
                     placeholder={intl.formatMessage(PortalResources.selectASubscription)}
                     value={query}
-                    onChange={ev => setQuery(ev.target.value)}
+                    onChange={ev => {
+                        setQuery(ev.target.value);
+                        setHasUserChanged(true);
+                    }}
                     disabled={disabled}
                 >
                     {children}

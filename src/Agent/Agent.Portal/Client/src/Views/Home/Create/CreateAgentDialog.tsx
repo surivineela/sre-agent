@@ -1,10 +1,10 @@
 import { Formik, useFormikContext } from 'formik';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 import { WizardDialog } from '../../../Common/Components/Wizard/WizardDialog';
 import { WizardStep } from '../../../Common/Components/Wizard/WizardStepper';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
+import { usePersistentNavigate } from '../../../Common/Hooks/usePersistentNavigate';
 import { ResourceGroup } from '../../../Common/Contracts/Arm';
 import { AgentAccessLevel, AgentMode } from '../../../Common/Contracts/SreAgent';
 import { useDeployment } from '../../../Common/Hooks/useDeployment';
@@ -103,7 +103,7 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
     } = props;
 
     const intl = useIntl();
-    const navigate = useNavigate();
+    const navigate = usePersistentNavigate();
     const { values, errors, submitForm } = useFormikContext<SreAgentCreateFormProps>();
 
     const { deploymentSucceeded } = useDeployment(deploymentResourceId, currentStepIndex === 4, TelemetrySource.SreAgentCreate);
@@ -195,7 +195,7 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
 
     const handleNext = useCallback(() => {
         if (isDeployStep) {
-            navigate(`/agent/${agentResourceId}`);
+            navigate(`/agents/${agentResourceId}`);
         } else if (isReviewStep) {
             submitForm();
         } else {
