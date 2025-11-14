@@ -5280,6 +5280,7 @@ export const ConnectorsResources = defineMessages({
     serviceAccount: { defaultMessage: '{service} account', id: 'Y5IFiT' },
     connectedAs: { defaultMessage: 'Connected as', id: '0VVX+G' },
     signInWithDifferentAccount: { defaultMessage: 'Sign in with a different account', id: 'oHGFwy' },
+    establishingConnection: { defaultMessage: 'Establishing connection ...', id: 'uIXQiw' },
     sendNotificationDescription: {
         defaultMessage: 'The agent posts notifications to the activity feed linking to a chat or team.',
         id: 'rzC0Xo',

@@ -297,6 +297,18 @@ export class ConnectorService {
         });
     }
 
+    public static async deleteConnector(options: GetConnectorOptions): Promise<HttpResponseObject<Connector>> {
+        const { subscriptionId, resourceGroup, agentName, connectionName, apiVersion = '2018-07-01-preview' } = options;
+        const url = `/subscriptions/${subscriptionId}/resourceGroups/${resourceGroup}/providers/Microsoft.Web/connections/${agentName}-${connectionName}?api-version=${apiVersion}`;
+
+        return MakeArmCall({
+            commandName: 'deleteConnector',
+            method: 'DELETE',
+            url,
+            apiVersion,
+        });
+    }
+
     public static async putConnectorAccessPolicies(options: PutConnectorAccessPoliciesOptions): Promise<HttpResponseObject<Connector>> {
         const {
             subscriptionId,

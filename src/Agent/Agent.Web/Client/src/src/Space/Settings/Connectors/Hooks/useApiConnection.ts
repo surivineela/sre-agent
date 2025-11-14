@@ -131,6 +131,34 @@ export const useApiConnection = () => {
         [assignAccessPolicies, log]
     );
 
+    const deleteApiConnection = useCallback(
+        async (options: GetConnectorOptions) => {
+            log({
+                action: 'delete-api-connection',
+                actionModifier: 'start',
+                logLevel: 'info',
+            });
+
+            const response = await ConnectorService.deleteConnector(options);
+            if (response?.metadata?.success && response.data) {
+                log({
+                    action: 'delete-api-connection',
+                    actionModifier: 'success',
+                    logLevel: 'info',
+                });
+            } else {
+                const error = getErrorMessage(response?.metadata?.error);
+                log({
+                    action: 'create-api-connection',
+                    actionModifier: 'failed',
+                    logLevel: 'error',
+                    data: { error },
+                });
+            }
+        },
+        [log]
+    );
+
     return {
         apiConnection,
         apiConnectionLoading,
@@ -141,6 +169,7 @@ export const useApiConnection = () => {
         apiConnectionCreateFailure,
         fetchApiConnection,
         createApiConnection,
+        deleteApiConnection,
         refresh,
     };
 };

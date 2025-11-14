@@ -107,6 +107,7 @@ export const useConnectorWizardStyles = makeStyles({
         padding: `${tokens.spacingVerticalM} ${tokens.spacingHorizontalM}`,
         boxShadow: 'none',
         border: `1px solid ${tokens.colorNeutralStroke1}`,
+        marginBottom: '10px',
     },
     accountInfo: {
         display: 'flex',
@@ -152,5 +153,15 @@ export const useConnectorWizardStyles = makeStyles({
         wordBreak: 'break-all',
         overflowWrap: 'break-word',
         height: '16px',
+    },
+    signInLoading: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+    },
+    differentAccountSignInLoading: {
+        display: 'flex',
+        alignItems: 'flex-end',
+        gap: '12px',
     },
 });

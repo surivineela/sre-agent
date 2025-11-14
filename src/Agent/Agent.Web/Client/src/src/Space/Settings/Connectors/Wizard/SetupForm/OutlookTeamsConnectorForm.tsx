@@ -1,4 +1,4 @@
-import { Button, Card, Link } from '@fluentui/react-components';
+import { Button, Card, Link, Spinner, Text } from '@fluentui/react-components';
 import { CheckmarkCircle20Filled } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -57,10 +57,13 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
         return connectorType === ConnectorType.OutlookSendEmail ? 'office365' : 'teams';
     }, [connectorType]);
 
-    const { apiConnection, apiConnectionLoaded, apiConnectionCreating, fetchApiConnection, createApiConnection } = useApiConnection();
-    const { consentLink, consentLinkLoaded, fetchConsentLink, refreshConsentLink } = useConsentLink(`${agentName}-${connectorApiName}`);
+    const { apiConnection, fetchApiConnection, createApiConnection, deleteApiConnection } = useApiConnection();
+    const { consentLink, fetchConsentLink, refreshConsentLink } = useConsentLink(`${agentName}-${connectorApiName}`);
+    const [isAccountSignInInProgress, setIsAccountSignInInProgress] = useState(false);
+    const [isDifferentAccountSignInInProgress, setIsDifferentAccountSignInInProgress] = useState(false);
 
     const onSignInClick = useCallback(async () => {
+        setIsAccountSignInInProgress(true);
         await createApiConnection({
             subscriptionId: subscription,
             resourceGroup,
@@ -101,8 +104,9 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
                 await OAuthServiceClient.testConnection(fetchedConnection);
             }
 
-            setFieldValue('email', fetchedConnection?.properties?.displayName || '');
+            setFieldValue('email', fetchedConnection?.properties?.authenticatedUser?.name || '');
             setFieldValue('url', fetchedConnection?.properties?.connectionRuntimeUrl || '');
+            setIsAccountSignInInProgress(false);
         }
     }, [
         agentIdentity,
@@ -117,6 +121,19 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
         setFieldValue,
         subscription,
     ]);
+
+    const signInWithDifferentAccount = useCallback(async () => {
+        setIsDifferentAccountSignInInProgress(true);
+        await deleteApiConnection({
+            subscriptionId: subscription,
+            resourceGroup,
+            agentName: agentName || '',
+            connectionName: connectorApiName,
+        });
+
+        await onSignInClick();
+        setIsDifferentAccountSignInInProgress(false);
+    }, [agentName, connectorApiName, deleteApiConnection, onSignInClick, resourceGroup, subscription]);
 
     const isNotAuthenticated = useMemo(
         () => !apiConnection || !consentLink || consentLink.status === 'Unauthenticated',
@@ -177,15 +194,23 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
                 required
                 orientation="vertical"
             >
-                {isNotAuthenticated ? (
-                    <Button
-                        appearance="primary"
-                        onClick={onSignInClick}
-                        disabled={apiConnectionCreating || (isEditMode && (!apiConnectionLoaded || !consentLinkLoaded))}
-                        className={styles.outlookTeamsButton}
-                    >
-                        {intl.formatMessage(ConnectorsResources.signInToService, { service: connectorService })}
-                    </Button>
+                {!values.email && isNotAuthenticated ? (
+                    <div className={styles.signInLoading}>
+                        <Button
+                            appearance="primary"
+                            onClick={onSignInClick}
+                            disabled={isAccountSignInInProgress}
+                            className={styles.outlookTeamsButton}
+                        >
+                            {intl.formatMessage(ConnectorsResources.signInToService, { service: connectorService })}
+                        </Button>
+                        {isAccountSignInInProgress && (
+                            <>
+                                <Spinner size="tiny" />
+                                <Text>{intl.formatMessage(ConnectorsResources.establishingConnection)}</Text>
+                            </>
+                        )}
+                    </div>
                 ) : (
                     <>
                         <Card className={styles.accountCard}>
@@ -193,14 +218,21 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
                                 <img src={resolveResourceIcon(connectorIconName)} alt={connectorService} width={24} height={24} />
                                 <div className={styles.accountText}>
                                     <span className={styles.connectedLabel}>{intl.formatMessage(ConnectorsResources.connectedAs)}</span>
-                                    <span className={styles.accountEmail}>{apiConnection?.properties?.authenticatedUser?.name || ''}</span>
+                                    <span className={styles.accountEmail}>{values.email}</span>
                                 </div>
                             </div>
                             <CheckmarkCircle20Filled className={styles.checkmark} />
                         </Card>
-                        <Link onClick={onSignInClick} className={styles.signInDifferent}>
-                            {intl.formatMessage(ConnectorsResources.signInWithDifferentAccount)}
-                        </Link>
+                        <div className={styles.signInLoading}>
+                            <Link
+                                onClick={signInWithDifferentAccount}
+                                className={styles.differentAccountSignInLoading}
+                                disabled={isDifferentAccountSignInInProgress}
+                            >
+                                {intl.formatMessage(ConnectorsResources.signInWithDifferentAccount)}
+                            </Link>
+                            {isDifferentAccountSignInInProgress && <Spinner size="tiny" />}
+                        </div>
                     </>
                 )}
             </FieldWrapper>
