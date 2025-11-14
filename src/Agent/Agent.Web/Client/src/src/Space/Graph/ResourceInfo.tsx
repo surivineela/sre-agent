@@ -32,7 +32,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
-import { isPaasResourceType, resolveResourceIcon } from '../../Common/Helpers/Resources';
+import { isPaasResourceType } from '../../Common/Helpers/Resources';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
 // Tooltip import removed (now using PermissionedButton abstraction for authorization tooltip)
@@ -59,10 +59,12 @@ const useStyles = makeStyles({
         top: '0',
         height: '100vh',
         zIndex: 1000,
+        borderLeft: `1px solid ${tokens.colorNeutralStroke2}`,
     },
     mediumDrawer: {
         width: '350px',
         maxWidth: '350px',
+        borderLeft: `1px solid ${tokens.colorNeutralStroke2}`,
     },
     infoContent: {
         width: '100%',
@@ -191,13 +193,12 @@ const ResourceInfo = () => {
 const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => {
     const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = useResourceInfo(selectedNode);
     const { canWriteGraph } = useUserPermissions();
-    const { infoContent, title, spinner, content, dashboard, repoButton, titleRow, titleIcon } = useStyles();
+    const { infoContent, spinner, content, dashboard, repoButton } = useStyles();
     const intl = useIntl();
 
     const properties = resource?.properties;
 
     const isPaasResource = useMemo<boolean>(() => isPaasResourceType(resource?.type), [resource]);
-    const iconType = resource?.type || getPropertyValue(properties?.resourceKind) || getPropertyValue(properties?.resourceType);
 
     return selectedNode ? (
         <div className={infoContent}>
@@ -205,12 +206,6 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => 
                 <Spinner size="large" className={spinner} />
             ) : (
                 <>
-                    <Text as="h2" size={600} weight="semibold" className={title}>
-                        <div className={titleRow}>
-                            <img className={titleIcon} src={resolveResourceIcon(iconType)} alt={iconType || 'resource'} />
-                            <span>{selectedNode?.name ?? ''}</span>
-                        </div>
-                    </Text>
                     <div className={content}>
                         <SummaryField
                             label={intl.formatMessage(ResourceInfoResources.name)}
