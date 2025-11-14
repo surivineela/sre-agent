@@ -214,6 +214,13 @@ export const ExtendedAgentInfoPanel = memo(
             }
         }, [memoryEnabled, sreAgentEndpoint]);
 
+        const handleOpenYamlEditor = useCallback(
+            (entity: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger, type: ExtendedEntityType) => {
+                setYamlEditorContext({ entity, type });
+            },
+            []
+        );
+
         const onEdit = useCallback(
             (entity: ExtendedTool | ExtendedConnector | ExtendedTrigger | ExtendedAgent | undefined, type: ExtendedEntityType) => {
                 if (!entity) return;
@@ -229,14 +236,7 @@ export const ExtendedAgentInfoPanel = memo(
                 }
                 handleOpenYamlEditor(entity, type);
             },
-            []
-        );
-
-        const handleOpenYamlEditor = useCallback(
-            (entity: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger, type: ExtendedEntityType) => {
-                setYamlEditorContext({ entity, type });
-            },
-            []
+            [triggerAgentQuickAction, onEditKustoTool, handleOpenYamlEditor]
         );
 
         const renderToolDetails = useCallback(
