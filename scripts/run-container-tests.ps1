@@ -38,7 +38,7 @@ $EnableOidcRefresh = $false
 if ($env:OIDC_REFRESH_ENABLED) {
   if ($env:OIDC_REFRESH_ENABLED -match '^(?i:true|1|yes)$') { $EnableOidcRefresh = $true }
 }
-$RefreshIntervalSeconds = 240 # 4 minutes
+$RefreshIntervalSeconds = 60
 if ($env:OIDC_REFRESH_INTERVAL_SECONDS -as [int]) { $RefreshIntervalSeconds = [int]$env:OIDC_REFRESH_INTERVAL_SECONDS }
 
 <#
@@ -51,7 +51,7 @@ by repeatedly calling the GitHub OIDC endpoint exposed via ACTIONS_ID_TOKEN_REQU
 Design:
  1. (Opt-in) Initial fetch performed synchronously prior to container start.
  2. Background job updates the token file every $RefreshIntervalSeconds (default 240) seconds.
- 3. Token is written atomically via a temp file then Move-Item to avoid partial reads in container.
+ 3. Token content is overwritten in place so the mounted file handle remains valid inside the container.
  4. On script exit we stop the background job to avoid orphan processes.
  5. Disabled by default; enable by setting OIDC_REFRESH_ENABLED=true.
 
@@ -121,9 +121,7 @@ function Start-OidcRefreshJob {
         $url = "$($env:ACTIONS_ID_TOKEN_REQUEST_URL)&audience=$Audience"
         $resp = Invoke-RestMethod -Headers @{ Authorization = "Bearer $($env:ACTIONS_ID_TOKEN_REQUEST_TOKEN)" } -Uri $url -Method Get -TimeoutSec 30
         if ($resp.value) {
-          $tmp = "$File.tmp"
-          Set-Content -LiteralPath $tmp -Value $resp.value -NoNewline
-          Move-Item -Force -Path $tmp -Destination $File
+          Set-Content -LiteralPath $File -Value $resp.value -NoNewline
           Write-Host "[OIDC Refresh] Updated token $(Get-Date -Format o)" -ForegroundColor DarkCyan
         } else {
           Write-Warning '[OIDC Refresh] Response missing value; skipping update.'
@@ -141,6 +139,13 @@ function Stop-OidcRefreshJob {
   if ($OidcRefreshJob) {
     Write-Host 'Stopping OIDC refresh job...' -ForegroundColor Cyan
     try { Stop-Job -Job $OidcRefreshJob -Force -ErrorAction SilentlyContinue } catch { }
+    try {
+      $jobOutput = Receive-Job -Job $OidcRefreshJob -ErrorAction SilentlyContinue
+      if ($jobOutput) {
+        Write-Host 'OIDC refresh job output:' -ForegroundColor DarkCyan
+        $jobOutput | ForEach-Object { Write-Host $_ }
+      }
+    } catch { }
     try { Remove-Job -Job $OidcRefreshJob -Force -ErrorAction SilentlyContinue } catch { }
   }
 }
