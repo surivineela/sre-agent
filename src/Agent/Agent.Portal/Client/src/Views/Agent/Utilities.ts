@@ -63,7 +63,7 @@ export const buildAgentUxUrl = (uxEndpoint: string, deepLink?: string): string =
 
     const baseUxUrl = addPathToHostname(uxEndpoint, staticPath);
 
-    return `${baseUxUrl}?trustedAuthority=${window.location.origin}${queryString}${deepLinkHash}`;
+    return `${baseUxUrl}?trustedAuthority=${window.location.origin}${queryString}${deepLinkHash}&shellUrl=${encodeURIComponent(window.location.origin)}`;
 };
 
 const parseFlagValue = (value: string): { isTruthy: boolean; uxPort?: number } => {

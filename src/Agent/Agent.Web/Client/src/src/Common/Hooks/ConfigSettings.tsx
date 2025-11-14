@@ -20,13 +20,18 @@ export enum SettingNames {
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     default: {
         [SettingNames.ConsolidatedCreate]: true,
-        [SettingNames.DataConnectors]: true,
+        [SettingNames.Connectors]: true,
     },
     'portal.azure.com': {},
     'ms.portal.azure.com': {
         [SettingNames.ShowThreadTraceUI]: true,
         [SettingNames.DataConnectors]: false,
         [SettingNames.Connectors]: true,
+        [SettingNames.ShowAgentBuilderPlayground]: true,
+        [SettingNames.AllowMetaAgentOverride]: true,
+    },
+    'sre.azure.com': {
+        [SettingNames.ShowThreadTraceUI]: true,
         [SettingNames.ShowAgentBuilderPlayground]: true,
         [SettingNames.AllowMetaAgentOverride]: true,
     },
