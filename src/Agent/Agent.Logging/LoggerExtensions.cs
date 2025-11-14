@@ -252,4 +252,25 @@ public static partial class LoggerExtensions
         long cachedTokenUsed,
         long reasoningTokenUsed,
         string reasoningEffort);
+
+    /// <summary>
+    /// Logs model request details including headers, status, latency, and rate limiting information
+    /// </summary>
+    [LoggerMessage(
+        EventId = 3001,
+        Level = LogLevel.Information,
+        Message = "Model Request: path: {Path}, statusCode: {StatusCode}, modelName: {ModelName}, hostName: {HostName}, responseHeader: {ResponseHeader}, requestHeader: {RequestHeader}, latency: {Latency}, requestSize: {RequestSize}, responseSize: {ResponseSize}, remainingRequests: {RemainingRequests}, remainingTokens: {RemainingTokens}")]
+    public static partial void LogModelRequest(
+        this ILogger logger,
+        string path,
+        int statusCode,
+        string modelName,
+        string hostName,
+        string responseHeader,
+        string requestHeader,
+        long latency,
+        long requestSize,
+        long responseSize,
+        long remainingRequests,
+        long remainingTokens);
 }

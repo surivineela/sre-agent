@@ -1196,6 +1196,62 @@ public class Program
                     }
                 })
 
+                // Add a processor to capture Model Request logs (EventId = 3001)
+                .AddProcessor(sp =>
+                {
+                    try
+                    {
+                        // Prefer Event Hub exporter when configured; otherwise fall back to ADX if available
+                        // If trace Event Hub settings are present, use EventHubLogExporter for model request logs
+                        if (!string.IsNullOrEmpty(azureSettings?.AgentTraceEventHub.FullyQualifiedNamespace))
+                        {
+                            var ehOptions = new EventHubLogExporterOptions(
+                                fullyQualifiedNamespace: azureSettings.AgentTraceEventHub.FullyQualifiedNamespace,
+                                eventHubName: "modelrequestevents",
+                                populateColumns: null,
+                                firstPartyAppCertificatePath: azureSettings.AgentTraceEventHub.CertificatePath,
+                                firstPartyAppClientId: azureSettings.AgentTraceEventHub.FirstPartyAppClientId,
+                                firstPartyAppTenantId: azureSettings.AgentTraceEventHub.FirstPartyAppTenantId);
+
+                            var exporter = new EventHubLogExporter(ehOptions);
+                            Func<LogRecord, bool> predicate = record => record.EventId.Id == 3001;
+                            return new CustomizedLogProcessor(exporter, predicate, "ModelRequestProcessor");
+                        }
+
+                        var clusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
+                        var databaseName = GetInternalKustoClusterConfiguration("DatabaseName");
+                        var certificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
+                        var firstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
+                        var firstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
+
+                        // Fallback to Azure Data Explorer when ADX cluster is available
+                        if (!string.IsNullOrEmpty(clusterUri))
+                        {
+                            var options = new AzureDataExplorerLogExporterOptions(
+                                clusterUri: clusterUri,
+                                databaseName: databaseName,
+                                tableName: "ModelRequestEvents",
+                                populateColumns: null,
+                                firstPartyAppCertificatePath: certificatePath,
+                                firstPartyAppClientId: firstPartyAppClientId,
+                                firstPartyAppTenantId: firstPartyAppTenantId);
+
+                            var exporter = new AzureDataExplorerLogExporter(options);
+                            Func<LogRecord, bool> predicate = record => record.EventId.Id == 3001;
+                            return new CustomizedLogProcessor(exporter, predicate, "ModelRequestProcessor");
+                        }
+
+                        // No exporter configured -> no-op processor (predicate false)
+                        return new CustomizedLogProcessor(null, record => false, "ModelRequestProcessor");
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = sp.GetService<ILogger<Program>>();
+                        logger?.LogWarning(ex, "Failed to configure ModelRequestProcessor exporter, falling back to no-op processor");
+                        return new CustomizedLogProcessor(null, record => false, "ModelRequestProcessor");
+                    }
+                })
+
                 // Add a processor for LogInternalXX logs
                 .AddProcessor(sp =>
                 {

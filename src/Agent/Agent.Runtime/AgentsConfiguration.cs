@@ -158,6 +158,7 @@ namespace Agent.Runtime
                 var threadId = Core.ToolStatic.AsyncLocalThreadId.Value.ToString();
                 long requestContentLength = -1;
                 message.Request.Content?.TryComputeLength(out requestContentLength);
+                var startTimestamp = DateTime.UtcNow;
 
                 try
                 {
@@ -165,12 +166,14 @@ namespace Agent.Runtime
                     ProcessNext(message, pipeline, index);
 
                     var responseContentLength = -1;
+                    var endTimestamp = DateTime.UtcNow;
                     ExecuteAndSwallowException(() =>
                     {
                         responseContentLength = message.Response?.Content?.Length ?? -1;
                     }
                     );
                     ExecuteAndSwallowException(() =>
+                    {
                         _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
                             string.Empty, "Success", 0, threadId,
                             actionMetadata: WebJsonSerializer.Serialize(new
@@ -181,12 +184,16 @@ namespace Agent.Runtime
                                 RequestBodySize = requestContentLength,
                                 StatusCode = message.Response?.Status,
                                 ResponseSize = responseContentLength,
-                            }))
-                    );
+                            }));
+
+                        // Log detailed model request information
+                        LogModelRequestDetails(message, requestContentLength, responseContentLength, startTimestamp, endTimestamp);
+                    });
                 }
                 catch (TaskCanceledException) when (!message.CancellationToken.IsCancellationRequested)
                 {
                     ExecuteAndSwallowException(() =>
+                    {
                         _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
                             string.Empty, "Timeout", 0, threadId,
                             actionMetadata: WebJsonSerializer.Serialize(new
@@ -195,8 +202,9 @@ namespace Agent.Runtime
                                 Host = message.Request.Uri?.Host.ToString(),
                                 Path = message.Request.Uri?.AbsolutePath.ToString(),
                                 RequestBodySize = requestContentLength,
-                            }))
-                    );
+                            }));
+                        LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow);
+                    });
                     throw;
                 }
                 catch (TimeoutException)
@@ -246,6 +254,9 @@ namespace Agent.Runtime
                                 RequestBodySize = requestContentLength,
                             }
                         ));
+
+                        // Log detailed model request information for errors too
+                        LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow);
                     }
                 });
             }
@@ -255,19 +266,22 @@ namespace Agent.Runtime
                 var threadId = Core.ToolStatic.AsyncLocalThreadId.Value.ToString();
                 long requestContentLength = -1;
                 message.Request.Content?.TryComputeLength(out requestContentLength);
-
+                var startTimestamp = DateTime.UtcNow;
+                LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow);
                 try
                 {
                     // Invoke next policy in pipeline
                     await ProcessNextAsync(message, pipeline, index).ConfigureAwait(false);
 
                     var responseContentLength = -1;
+                    var endTimestamp = DateTime.UtcNow;
                     ExecuteAndSwallowException(() =>
                     {
                         responseContentLength = message.Response?.Content?.Length ?? -1;
                     }
                     );
                     ExecuteAndSwallowException(() =>
+                    {
                         _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
                             string.Empty, "Success", 0, threadId,
                             actionMetadata: WebJsonSerializer.Serialize(new
@@ -278,8 +292,11 @@ namespace Agent.Runtime
                                 RequestBodySize = requestContentLength,
                                 StatusCode = message.Response?.Status,
                                 ResponseSize = responseContentLength,
-                            }))
-                    );
+                            }));
+
+                        // Log detailed model request information
+                        LogModelRequestDetails(message, requestContentLength, responseContentLength, startTimestamp, endTimestamp);
+                    });
                 }
                 catch (TaskCanceledException) when (!message.CancellationToken.IsCancellationRequested)
                 {
@@ -342,6 +359,9 @@ namespace Agent.Runtime
                                     RequestBodySize = requestContentLength,
                                 }
                             ));
+
+                            // Log detailed model request information for errors too
+                            LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow);
                         }
                     }
                 );
@@ -357,6 +377,133 @@ namespace Agent.Runtime
                 {
                     // Swallow logging errors so we don't affect the caller
                 }
+            }
+
+            private void LogModelRequestDetails(PipelineMessage message, long requestContentLength, long responseContentLength, DateTime startTimestamp, DateTime endTimestamp)
+            {
+                try
+                {
+                    var path = message.Request.Uri?.AbsolutePath ?? string.Empty;
+                    var statusCode = message.Response?.Status ?? 0;
+                    var modelName = ExtractModelName(message);
+                    var responseHeader = SerializeResponseHeaders(message.Response);
+                    var requestHeader = SerializeRequestHeaders(message.Request);
+                    long latency = (long)(endTimestamp - startTimestamp).TotalMilliseconds;
+                    var requestSize = requestContentLength;
+                    var responseSize = responseContentLength;
+                    var remainingRequests = ExtractRateLimitHeader(message.Response, "x-ratelimit-remaining-requests");
+                    var remainingTokens = ExtractRateLimitHeader(message.Response, "x-ratelimit-remaining-tokens");
+
+                    _logger.LogModelRequest(
+                        path: path,
+                        statusCode: statusCode,
+                        modelName: modelName,
+                        hostName: message.Request.Uri?.Host ?? string.Empty,
+                        responseHeader: responseHeader,
+                        requestHeader: requestHeader,
+                        latency: latency,
+                        requestSize: requestSize,
+                        responseSize: responseSize,
+                        remainingRequests: remainingRequests,
+                        remainingTokens: remainingTokens);
+                }
+                catch
+                {
+                    // Swallow any errors in logging to prevent affecting the pipeline
+                }
+            }
+
+            private string ExtractModelName(PipelineMessage message)
+            {
+                try
+                {
+                    // Try to extract model name from the request path (e.g., /openai/deployments/{model}/chat/completions)
+                    var path = message.Request.Uri?.AbsolutePath ?? string.Empty;
+                    var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+                    // Look for deployment name in typical Azure OpenAI path structure
+                    for (int i = 0; i < segments.Length - 1; i++)
+                    {
+                        if (segments[i].Equals("deployments", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return segments[i + 1];
+                        }
+                    }
+                }
+                catch
+                {
+                    // Fall through to return empty string
+                }
+
+                return string.Empty;
+            }
+
+            private string SerializeResponseHeaders(PipelineResponse? response)
+            {
+                try
+                {
+                    if (response == null)
+                        return string.Empty;
+
+                    var headers = new Dictionary<string, string>();
+                    foreach (var header in response.Headers)
+                    {
+                        headers[header.Key] = header.Value;
+                    }
+
+                    return WebJsonSerializer.Serialize(headers);
+                }
+                catch
+                {
+                    return string.Empty;
+                }
+            }
+
+            private string SerializeRequestHeaders(PipelineRequest? request)
+            {
+                try
+                {
+                    if (request == null)
+                        return string.Empty;
+
+                    var headers = new Dictionary<string, string>();
+                    foreach (var header in request.Headers)
+                    {
+                        // Exclude sensitive headers
+                        if (!header.Key.Equals("api-key", StringComparison.OrdinalIgnoreCase) &&
+                            !header.Key.Equals("authorization", StringComparison.OrdinalIgnoreCase))
+                        {
+                            headers[header.Key] = header.Value;
+                        }
+                    }
+
+                    return WebJsonSerializer.Serialize(headers);
+                }
+                catch
+                {
+                    return string.Empty;
+                }
+            }
+
+            private long ExtractRateLimitHeader(PipelineResponse? response, string headerName)
+            {
+                try
+                {
+                    if (response == null)
+                        return 0;
+
+                    if (response.Headers.TryGetValue(headerName, out var value) &&
+                        long.TryParse(value, out var result))
+                    {
+                        return result;
+                    }
+                }
+                catch
+                {
+                    // Fall through to return 0
+                }
+
+                return 0;
             }
         }
 
