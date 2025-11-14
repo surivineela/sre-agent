@@ -117,7 +117,7 @@ namespace Agent.Web.Services
                 // Check for cancellation before processing
                 cancellationToken.ThrowIfCancellationRequested();
 
-                _logger.LogInternalInformation("Streaming message for thread {ThreadId} with type {Type}", threadId, type);
+                _logger.LogInternalInformation("Streaming message for thread {ThreadId} with type {Type} and messageId {MessageId}", threadId, type, messageId);
 
                 // Create a ChatResponseUpdate with the message and type metadata
                 var streamMessage = new ChatResponseUpdate
@@ -136,8 +136,7 @@ namespace Agent.Web.Services
 
                 await _hubContext.Clients.All.MessageUpdate(streamMessage);
 
-                _logger.LogInternalInformation("Successfully streamed message for thread {ThreadId} with type {Type}",
-                    threadId, type);
+                _logger.LogInternalInformation("Successfully streamed message for thread {ThreadId} with type {Type} and messageId {MessageId}", threadId, type, messageId);
             }
             catch (OperationCanceledException)
             {

@@ -189,11 +189,6 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
 
         _customerLogger.LogMessage($"[ChatThreadId {context.ThreadId}] Agent responding: {message.Text}");
-        _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
-        {
-            { "ChatThreadId", context.ThreadId.ToString() ?? string.Empty },
-            { "Message", message.Text ?? string.Empty }
-        });
         _customerLogger.LogAgentResponseEvents("AgentResponse", message.Text ?? string.Empty, properties: new Dictionary<string, string>
         {
             { "ChatThreadId", context.ThreadId.ToString() ?? string.Empty },
@@ -230,6 +225,11 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 // No existing message, use the passed content
                 finalText = message.Text ?? string.Empty;
             }
+            _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
+            {
+                { "ChatThreadId", context.ThreadId.ToString() ?? string.Empty },
+                { "Message", finalText }
+            });
 
             // Persist to DB when complete
             await _sinkService.SinkAgentMessageAsync(context.ThreadId, finalText, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime, isComplete: true);
