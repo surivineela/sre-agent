@@ -49,7 +49,13 @@ configuration:
   - member: yoonaoh
     role: Write
   - member: evtheodo
-    role: Write    
+    role: Write
+  - member: eriwan
+    role: Write
+  - member: zuh
+    role: Write
+  - member: hanren
+    role: Write
   - team: k4appscore
     role: Read
   - team: antsanchit
@@ -65,4 +71,4 @@ configuration:
   - member: csigs
     role: Write
   - member: shimedh
-    role: Write 
+    role: Write
