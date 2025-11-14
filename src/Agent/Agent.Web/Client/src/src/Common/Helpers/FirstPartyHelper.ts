@@ -6,6 +6,7 @@ enum TenantType {
     Corp,
     PME,
     TORUS,
+    MicrosoftHealthcareCloud,
     Other,
 }
 
@@ -23,6 +24,9 @@ export class FirstPartyHelper {
         if (equals(tenantId, 'cdc5aeea-15c5-4db6-b079-fcadd2505dc2', AntUxStringComparison.IgnoreCase)) {
             return TenantType.TORUS;
         }
+        if (equals(tenantId, 'ed5693bc-117f-4001-a14c-5f50a530d5df', AntUxStringComparison.IgnoreCase)) {
+            return TenantType.MicrosoftHealthcareCloud;
+        }
         return TenantType.Other;
     }
 
@@ -37,6 +41,7 @@ export class FirstPartyHelper {
             type === TenantType.AME ||
             type === TenantType.PME ||
             type === TenantType.TORUS ||
+            type === TenantType.MicrosoftHealthcareCloud ||
             (type === TenantType.Corp && Url.getFeatureValue('showIcmForMsftCorp') === 'true')
         );
     }
