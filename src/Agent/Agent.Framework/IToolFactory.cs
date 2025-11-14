@@ -89,5 +89,7 @@ public class ToolInfo
     // Add new properties for incident handler tools
     public bool IsIncidentHandlerTool { get; set; } = false;
     public string? IncidentHandlerPlatform { get; set; }
+    // Indicates whether the tool originates from an MCP server.
+    public bool IsMcp { get; set; } = false;
 }
 

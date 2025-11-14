@@ -743,9 +743,9 @@ User Prompt To Improve (between <<< and >>>):
                 extendedToolsData.Select(t => t.Name),
                 StringComparer.OrdinalIgnoreCase);
 
-            // Filter to only system tools (exclude extended tools)
+            // Filter to only system tools (exclude extended and mcp tools)
             var systemTools = allTools
-                .Where(tool => !extendedToolNames.Contains(tool.Name))
+                .Where(tool => !extendedToolNames.Contains(tool.Name) && !tool.IsMcp)
                 .ToList();
 
             // Filter to stable/published tools if stableOnly is true

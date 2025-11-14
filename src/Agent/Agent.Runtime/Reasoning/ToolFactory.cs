@@ -152,6 +152,33 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         }
     }
 
+    private ToolInfo? BuildToolInfo(string toolName, IDeferredToolFunction<TContext> deferredToolFunction)
+    {
+        try
+        {
+            var aiFunction = deferredToolFunction.GetToolFunction();
+            var classAttribute = deferredToolFunction.MethodInfo?.DeclaringType?.GetCustomAttribute<AgentToolPluginAttribute>();
+
+            return new ToolInfo
+            {
+                Name = toolName,
+                Category = aiFunction?.GetToolCategory(deferredToolFunction.GetPluginCategory()) ?? string.Empty,
+                ResourceType = aiFunction?.GetToolResourceType(deferredToolFunction.GetPluginResourceType()) ?? string.Empty,
+                Description = aiFunction?.Description,
+                PluginName = deferredToolFunction.GetPluginName(),
+                Parameters = aiFunction?.UnderlyingMethod?.GetParameters()?.Select(p => p.Name)?.Where(n => !string.IsNullOrWhiteSpace(n)).ToList() ?? new List<string?>(),
+                IsIncidentHandlerTool = classAttribute?.IsIncidentHandlerPlugin ?? false,
+                IncidentHandlerPlatform = classAttribute?.IncidentPlatform.ToString() ?? string.Empty,
+                IsMcp = aiFunction?.IsMcpTool() ?? false
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to build ToolInfo for {ToolName}", toolName);
+            return null; // do not add entry
+        }
+    }
+
     public List<ToolInfo> FetchAvailableToolInfo(Func<MethodInfo, bool>? filter = null)
     {
         var result = new List<ToolInfo>();
@@ -163,26 +190,16 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
                 {
                     continue;
                 }
-
-                // Check the class-level AgentToolPluginAttribute for incident handler info
-                var classAttribute = tool.Value.MethodInfo?.DeclaringType?.GetCustomAttribute<AgentToolPluginAttribute>();
-
-                result.Add(new ToolInfo
+                var info = BuildToolInfo(tool.Key, tool.Value);
+                if (info != null)
                 {
-                    Name = tool.Key,
-                    Category = tool.Value.GetToolFunction()?.GetToolCategory(tool.Value.GetPluginCategory()) ?? string.Empty,
-                    ResourceType = tool.Value.GetToolFunction()?.GetToolResourceType(tool.Value.GetPluginResourceType()) ?? string.Empty,
-                    Description = tool.Value.GetToolFunction()?.Description,
-                    PluginName = tool.Value.GetPluginName(),
-                    Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name ?? string.Empty)?.Where(s => !string.IsNullOrEmpty(s)).ToArray() ?? [],
-                    // Use class-level attribute for incident handler info
-                    IsIncidentHandlerTool = classAttribute?.IsIncidentHandlerPlugin ?? false,
-                    IncidentHandlerPlatform = classAttribute?.IncidentPlatform.ToString() ?? string.Empty
-                });
+                    result.Add(info);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "Failed to fetch tool info for {toolName}.", tool.Key);
+                // skip adding entry
             }
         }
         return result;
@@ -190,23 +207,11 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
 
     public List<ToolInfo> FetchToolInfoForToolNames(List<string> toolNames)
     {
-        return [.. _tools.Where(kv => toolNames.Contains(kv.Key)).Select(tool =>
-        {
-            // Check the class-level AgentToolPluginAttribute for incident handler info
-            var classAttribute = tool.Value.MethodInfo?.DeclaringType?.GetCustomAttribute<AgentToolPluginAttribute>();
-            return new ToolInfo
-            {
-                Name = tool.Key,
-                Category = tool.Value.GetToolFunction()?.GetToolCategory(tool.Value.GetPluginCategory()) ?? string.Empty,
-                ResourceType = tool.Value.GetToolFunction()?.GetToolResourceType(tool.Value.GetPluginResourceType()) ?? string.Empty,
-                Description = tool.Value.GetToolFunction()?.Description,
-                PluginName = tool.Value.GetPluginName(),
-                Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name)?.ToList() ?? [],
-                // Use class-level attribute for incident handler info
-                IsIncidentHandlerTool = classAttribute?.IsIncidentHandlerPlugin ?? false,
-                IncidentHandlerPlatform = classAttribute?.IncidentPlatform.ToString() ?? string.Empty
-            };
-        })];
+        return _tools.Where(tool => toolNames.Contains(tool.Key))
+                     .Select(tool => BuildToolInfo(tool.Key, tool.Value))
+                     .Where(info => info != null)
+                     .Select(info => info!)
+                     .ToList();
     }
 
     public async Task FindAndRegisterAllToolsAsync(BehaviorOnNameConflict onNameConflict)

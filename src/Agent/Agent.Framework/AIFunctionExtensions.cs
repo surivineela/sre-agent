@@ -39,6 +39,7 @@ public static class AIFunctionExtensions
 
     public static bool IsMcpTool(this AIFunction tool)
     {
-        return tool is McpClientTool;
+        // Native MCP client tool OR runtime wrapper named McpToolAIFunction
+        return tool is McpClientTool || tool.GetType().Name == "McpToolAIFunction";
     }
 }
