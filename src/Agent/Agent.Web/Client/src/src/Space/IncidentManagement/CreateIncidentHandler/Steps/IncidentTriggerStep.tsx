@@ -99,6 +99,7 @@ export const IncidentTriggerStep: FC = () => {
         values.impactedService,
         values.priority,
         values.incidentType,
+        values.handlingAgent,
     ]);
 
     return (
@@ -250,12 +251,7 @@ export const IncidentTriggerStep: FC = () => {
                             selectedOptions={values.handlingAgent ? [values.handlingAgent] : []}
                             value={values.handlingAgent || ''}
                             onOptionSelect={(_, data) => {
-                                const agentName = data.optionValue;
-                                const incidentProcessingGuide = agentName
-                                    ? intl.formatMessage(ExtendedAgentsGraphResources.triggerIncidentDefaultInstructions, { agentName })
-                                    : '';
                                 setFieldValue('handlingAgent', data.optionValue);
-                                setFieldValue('incidentProcessingGuide', incidentProcessingGuide, false);
                             }}
                             onBlur={() => setFieldTouched('handlingAgent', true)}
                             placeholder={intl.formatMessage(ExtendedAgentsGraphResources.responseSubagentPlaceholder)}
@@ -320,7 +316,7 @@ export const IncidentTriggerStep: FC = () => {
                 >
                     {intl.formatMessage(IncidentHandlerCreateResources.next)}
                 </Button>
-                <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
+                <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={() => exitToHome()}>
                     <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
                 </DirtyStateConfirmationWrapper>
             </div>

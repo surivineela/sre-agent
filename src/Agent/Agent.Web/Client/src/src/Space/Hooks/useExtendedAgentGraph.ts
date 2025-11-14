@@ -1,7 +1,6 @@
 import { Edge, Node } from '@xyflow/react';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { IncidentFilter, IncidentHandler } from '../../Common/Contracts/Azure/IncidentHandler';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import {
     ExtendedAgent,
@@ -15,6 +14,9 @@ import {
     SystemTool,
 } from '../Contracts/ExtendedAgentGraph';
 import { buildExtendedAgentGraph } from '../Graph/ExtendedAgentGraphUtility';
+import { useScheduledTasksV2 } from '../ScheduledTasks/V2/Hooks/useScheduledTasksV2';
+import { useIncidentFilters } from './useIncidentFilters';
+import { useIncidentHandlers } from './useIncidentHandlers';
 
 export const useExtendedAgentGraph = () => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
@@ -23,6 +25,7 @@ export const useExtendedAgentGraph = () => {
     const [tools, setTools] = useState<ExtendedTool[]>([]);
     const [connectors, setConnectors] = useState<ExtendedConnector[]>([]);
     const [triggers, setTriggers] = useState<ExtendedTrigger[]>([]);
+    const [triggersLoading, setTriggersLoading] = useState<boolean>(false);
     const [systemTools, setSystemTools] = useState<SystemTool[]>([]);
 
     const [nodes, setNodes] = useState<Node<ExtendedAgentGraphNode>[]>([]);
@@ -35,6 +38,10 @@ export const useExtendedAgentGraph = () => {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const scheduledTasksHook = useScheduledTasksV2();
+    const incidentFiltersHook = useIncidentFilters();
+    const incidentHandlersHook = useIncidentHandlers();
 
     // Fetch agents
     const fetchAgents = useCallback(async () => {
@@ -135,118 +142,109 @@ export const useExtendedAgentGraph = () => {
 
     // Fetch triggers (incident handlers and scheduled tasks)
     const fetchTriggers = useCallback(async () => {
-        try {
-            const [incidentResponse, scheduledResponse, filtersResponse] = await Promise.allSettled([
-                fetch(`${sreAgentEndpoint}/api/v1/incidentPlayground/handlers`, {
-                    headers: getAgentHeaders(),
-                }),
-                fetch(`${sreAgentEndpoint}/api/v1/scheduledTasks`, {
-                    headers: getAgentHeaders(),
-                }),
-                fetch(`${sreAgentEndpoint}/api/v1/incidentPlayground/filters`, {
-                    headers: getAgentHeaders(),
-                }),
-            ]);
+        setTriggersLoading(true);
+        await Promise.allSettled([scheduledTasksHook.refreshTasks(), incidentHandlersHook.refresh(), incidentFiltersHook.refresh()]);
+        setTriggersLoading(false);
+    }, [scheduledTasksHook.refreshTasks, incidentFiltersHook.refresh, incidentHandlersHook.refresh]);
+
+    useEffect(() => {
+        if (!triggersLoading) {
+            if (
+                scheduledTasksHook.loadingError !== null ||
+                incidentHandlersHook.incidentHandlersLoadingError !== null ||
+                incidentFiltersHook.incidentFiltersLoadingError !== null
+            ) {
+                setError('Failed to load triggers');
+                setTriggers([]);
+                return;
+            }
 
             const allTriggers: ExtendedTrigger[] = [];
+            const incidentFilters = incidentFiltersHook.incidentFilters || [];
+            const incidentHandlers = incidentHandlersHook.incidentHandlers || [];
+            const scheduledTasks = scheduledTasksHook.scheduledTasks || [];
 
             // Process incident handlers
-            if (incidentResponse.status === 'fulfilled' && incidentResponse.value.ok) {
-                const incidentHandlers: IncidentHandler[] = await incidentResponse.value.json();
-
-                // Also fetch filters to get the agent mapping
-                let filters: IncidentFilter[] = [];
-                if (filtersResponse.status === 'fulfilled' && filtersResponse.value.ok) {
-                    filters = await filtersResponse.value.json();
+            // Create a map of filter ID to handling agent
+            const filterAgentMap = new Map<string, string>();
+            incidentFilters.forEach((filter: any) => {
+                if (filter.id && filter.handlingAgent) {
+                    filterAgentMap.set(filter.id, filter.handlingAgent);
                 }
+            });
 
-                // Create a map of filter ID to handling agent
-                const filterAgentMap = new Map<string, string>();
-                if (Array.isArray(filters)) {
-                    filters.forEach((filter: any) => {
-                        if (filter.id && filter.handlingAgent) {
-                            filterAgentMap.set(filter.id, filter.handlingAgent);
-                        }
+            const incidentTriggers: ExtendedTrigger[] = [];
+            const handlerFilterIds = new Set<string>();
+            incidentHandlers.forEach((handler: any) => {
+                const filter = incidentFilters.find(f => f.id === handler.incidentFilterId);
+                const agentName = filterAgentMap.get(handler.incidentFilterId) || handler.agentName;
+                if (agentName) {
+                    handlerFilterIds.add(handler.incidentFilterId);
+                    incidentTriggers.push({
+                        name: handler.name || handler.id,
+                        description: handler.description || 'Incident response handler',
+                        type: 'incident' as const,
+                        agentName: agentName,
+                        status: filter?.isEnabled ? 'Active' : 'Disabled',
+                        priority: filter?.priority || '-',
+                        incidentType: filter?.incidentType || 'ServiceIssue',
+                        service: filter?.impactedService || '-',
+                        severity: filter?.priority || '-',
+                        enabled: !!filter?.isEnabled,
+                        createdAt: handler.createdAt || new Date().toISOString(),
                     });
                 }
+            });
 
-                if (Array.isArray(incidentHandlers)) {
-                    const incidentTriggers: ExtendedTrigger[] = [];
-                    const handlerFilterIds = new Set<string>();
-
-                    incidentHandlers.forEach((handler: any) => {
-                        const filter = filters.find(f => f.id === handler.incidentFilterId);
-                        const agentName = filterAgentMap.get(handler.incidentFilterId) || handler.agentName;
-                        if (agentName) {
-                            handlerFilterIds.add(handler.incidentFilterId);
-                            incidentTriggers.push({
-                                name: handler.name || handler.id,
-                                description: handler.description || 'Incident response handler',
-                                type: 'incident' as const,
-                                agentName: agentName,
-                                status: filter?.isEnabled ? 'Active' : 'Disabled',
-                                priority: filter?.priority || '-',
-                                incidentType: filter?.incidentType || 'ServiceIssue',
-                                service: filter?.impactedService || '-',
-                                severity: filter?.priority || '-',
-                                titleContains: filter?.titleContains || '-',
-                                enabled: !!filter?.isEnabled,
-                                createdAt: handler.createdAt || new Date().toISOString(),
-                            });
-                        }
+            // Add incident triggers for filters with handlingAgent but no handler
+            // These are subagent triggers where no handler document is created
+            incidentFilters.forEach((filter: any) => {
+                if (filter.handlingAgent && !handlerFilterIds.has(filter.id)) {
+                    incidentTriggers.push({
+                        name: filter.id,
+                        description: `Incident trigger for ${filter.handlingAgent}`,
+                        type: 'incident' as const,
+                        agentName: filter.handlingAgent,
+                        status: filter.isEnabled ? 'Active' : 'Disabled',
+                        priority: filter.priority || '-',
+                        incidentType: filter.incidentType || 'ServiceIssue',
+                        service: filter.impactedService || '-',
+                        severity: filter.priority || '-',
+                        titleContains: filter.titleContains || '-',
+                        enabled: !!filter.isEnabled,
+                        createdAt: filter.createdAt || new Date().toISOString(),
                     });
-
-                    // Add incident triggers for filters with handlingAgent but no handler
-                    // These are subagent triggers where no handler document is created
-                    filters.forEach((filter: any) => {
-                        if (filter.handlingAgent && !handlerFilterIds.has(filter.id)) {
-                            incidentTriggers.push({
-                                name: filter.id,
-                                description: `Incident trigger for ${filter.handlingAgent}`,
-                                type: 'incident' as const,
-                                agentName: filter.handlingAgent,
-                                status: filter.isEnabled ? 'Active' : 'Disabled',
-                                priority: filter.priority || '-',
-                                incidentType: filter.incidentType || 'ServiceIssue',
-                                service: filter.impactedService || '-',
-                                severity: filter.priority || '-',
-                                titleContains: filter.titleContains || '-',
-                                enabled: !!filter.isEnabled,
-                                createdAt: filter.createdAt || new Date().toISOString(),
-                            });
-                        }
-                    });
-
-                    allTriggers.push(...incidentTriggers);
                 }
-            }
+            });
+
+            allTriggers.push(...incidentTriggers);
 
             // Process scheduled tasks
-            if (scheduledResponse.status === 'fulfilled' && scheduledResponse.value.ok) {
-                const scheduledTasks = await scheduledResponse.value.json();
-                if (Array.isArray(scheduledTasks)) {
-                    const scheduledTriggers: ExtendedTrigger[] = scheduledTasks.map((task: any) => ({
-                        name: task.name || task.id,
-                        description: task.description || 'Scheduled task',
-                        type: 'scheduled' as const,
-                        agentName: task.agent, // This field should now be populated correctly
-                        status: task.status === 'Active' ? 'Active' : 'Disabled',
-                        schedule: task.cronExpression,
-                        cronExpression: task.cronExpression,
-                        timezone: 'UTC',
-                        enabled: task.status === 'Active',
-                        createdAt: task.createdAt || new Date().toISOString(),
-                    }));
-                    allTriggers.push(...scheduledTriggers);
-                }
-            }
+            const scheduledTriggers: ExtendedTrigger[] = scheduledTasks.map((task: any) => ({
+                name: task.name || task.id,
+                description: task.description || 'Scheduled task',
+                type: 'scheduled' as const,
+                agentName: task.agent, // This field should now be populated correctly
+                status: task.status === 'Active' ? 'Active' : 'Disabled',
+                schedule: task.cronExpression,
+                cronExpression: task.cronExpression,
+                timezone: 'UTC',
+                enabled: task.status === 'Active',
+                createdAt: task.createdAt || new Date().toISOString(),
+            }));
+            allTriggers.push(...scheduledTriggers);
 
             setTriggers(allTriggers);
-        } catch (err) {
-            console.error('Error fetching triggers:', err);
-            setError('Failed to load triggers');
         }
-    }, [sreAgentEndpoint]);
+    }, [
+        triggersLoading,
+        scheduledTasksHook.loadingError,
+        incidentHandlersHook.incidentHandlersLoadingError,
+        incidentFiltersHook.incidentFiltersLoadingError,
+        scheduledTasksHook.scheduledTasks,
+        incidentHandlersHook.incidentHandlers,
+        incidentFiltersHook.incidentFilters,
+    ]);
 
     // Fetch system tools
     const fetchSystemTools = useCallback(async () => {
@@ -386,6 +384,9 @@ export const useExtendedAgentGraph = () => {
         agents,
         tools,
         connectors,
+        scheduledTasksHook,
+        incidentHandlersHook,
+        incidentFiltersHook,
         triggers,
         systemTools,
         nodes: filteredGraph.nodes,

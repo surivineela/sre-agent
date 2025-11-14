@@ -25,7 +25,7 @@ import CreateIncidentHandlerConsolidated from '../../IncidentManagement/CreateIn
 import { useIncidentTriggerCreateDialogStyles } from './IncidentTriggerCreateDialog.Styles';
 
 export interface IncidentTriggerCreateDialogProps {
-    onDismiss: () => void;
+    onDismiss: (handlerName?: string, handlerId?: string, isNew?: boolean) => void;
     setHandlerOperationStatus: React.Dispatch<React.SetStateAction<OperationStatus | undefined>>;
     handlerCreateOrEditInfo?: HandlerCreateOrEditInfo;
 }
@@ -65,11 +65,15 @@ export const IncidentTriggerCreateDialog: FC<IncidentTriggerCreateDialogProps> =
                                     aria-label={intl.formatMessage(SreAgentResources.close)}
                                     appearance="transparent"
                                     icon={<Dismiss24Regular />}
-                                    onClick={onDismiss}
+                                    onClick={() => onDismiss()}
                                 />
                             }
                         >
-                            {intl.formatMessage(ExtendedAgentsGraphResources.createIncidentTrigger)}
+                            {intl.formatMessage(
+                                handlerCreateOrEditInfo?.filter
+                                    ? ExtendedAgentsGraphResources.editIncidentTrigger
+                                    : ExtendedAgentsGraphResources.createIncidentTrigger
+                            )}
                         </DialogTitle>
                     </div>
                     {noIncidentPlatformConfigured && (

@@ -108,7 +108,13 @@ export const ConnectorCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) =>
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
             <Handles />
-            <Card onClick={() => (setSelectedNode(data), expandInfoPanel())} className={cardStyles}>
+            <Card
+                onClick={() => {
+                    setSelectedNode(data);
+                    expandInfoPanel();
+                }}
+                className={cardStyles}
+            >
                 <div className={cardContent}>
                     <div className={titleRow}>
                         <EntityIcon type="connector" iconStyle={{ height: '24px', width: '24px' }} />

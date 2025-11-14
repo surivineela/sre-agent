@@ -76,7 +76,7 @@ export const DeployStep: FC = () => {
                 <Button appearance="primary" onClick={saveHandler} disabled={!dirty}>
                     {intl.formatMessage(IncidentHandlerCreateResources.save)}
                 </Button>
-                <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
+                <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={() => exitToHome()}>
                     <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
                 </DirtyStateConfirmationWrapper>
             </div>

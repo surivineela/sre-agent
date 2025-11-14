@@ -291,7 +291,7 @@ export const IncidentsAndGuidanceStep = () => {
                 >
                     {intl.formatMessage(IncidentHandlerCreateResources.skip)}
                 </Button>
-                <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
+                <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={() => exitToHome()}>
                     <Button disabled={!handlerLoaded || generatingInstructions}>
                         {intl.formatMessage(IncidentHandlerCreateResources.cancel)}
                     </Button>

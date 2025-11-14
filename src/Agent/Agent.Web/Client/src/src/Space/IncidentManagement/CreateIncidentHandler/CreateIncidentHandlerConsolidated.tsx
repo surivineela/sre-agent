@@ -2,11 +2,7 @@ import { Formik, FormikErrors, useFormikContext } from 'formik';
 import { FC, useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
-import {
-    ExtendedAgentsGraphResources,
-    IncidentHandlerCreateResources,
-    IncidentManagementResources,
-} from '../../../Strings/SREAgentResources';
+import { IncidentHandlerCreateResources, IncidentManagementResources } from '../../../Strings/SREAgentResources';
 import { useIncidentFilterFields } from '../../Hooks/useIncidentFilterFields';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import BreadcrumbNavigation from '../Common/BreadcrumbNavigation';
@@ -20,7 +16,7 @@ import { DirtyStateNavigationConfirmDialog } from './NavigationConfirmDialog';
 import { useConsolidatedCreateIncidentHandler } from './useConsolidatedCreateIncidentHandler';
 
 interface CreateIncidentHandlerProps {
-    exitToHome: () => void;
+    exitToHome: (filterName?: string, handlerId?: string, isNew?: boolean) => void;
     setHandlerOperationStatus: React.Dispatch<React.SetStateAction<OperationStatus | undefined>>;
     handlerCreateOrEditInfo: HandlerCreateOrEditInfo;
 }
@@ -43,16 +39,9 @@ const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props 
         incidentIds: undefined,
         customInstructions: undefined,
         toolNames: undefined,
-        incidentProcessingGuide:
-            (handlerCreateOrEditInfo.filter?.handlingAgent || handlerCreateOrEditInfo.subAgentTriggerInfo?.preSelectedAgent) &&
-            !handlerCreateOrEditInfo?.handlerId
-                ? intl.formatMessage(ExtendedAgentsGraphResources.triggerIncidentDefaultInstructions, {
-                      agentName:
-                          handlerCreateOrEditInfo.filter?.handlingAgent || handlerCreateOrEditInfo.subAgentTriggerInfo?.preSelectedAgent,
-                  })
-                : undefined,
+        incidentProcessingGuide: undefined,
 
-        useCustomHandler: !!handlerCreateOrEditInfo.handlerId || !!handlerCreateOrEditInfo?.subAgentTriggerInfo,
+        useCustomHandler: !!handlerCreateOrEditInfo.handlerId,
         deepInvestigationEnabled: handlerCreateOrEditInfo?.filter?.deepInvestigationEnabled || false,
         includePastIncidents: false,
     });

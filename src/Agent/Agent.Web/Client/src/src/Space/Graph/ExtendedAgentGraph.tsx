@@ -29,15 +29,15 @@ import {
     INFO_PANEL_DEFAULT_WIDTH,
     INFO_PANEL_MAX_WIDTH,
     INFO_PANEL_MIN_WIDTH,
+    TriggerQuickAction,
 } from '../Contracts/ExtendedAgentGraph';
+import { ScheduledTask } from '../Contracts/ScheduledTasks';
 import { useExtendedAgentGraph } from '../Hooks/useExtendedAgentGraph';
 import { useExtendedAgentGraphLayout } from '../Hooks/useExtendedAgentGraphLayout';
-import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
 import { HandlerCreateOrEditInfo } from '../IncidentManagement/CreateIncidentHandler/Contracts';
 import PlaygroundModal, { PlaygroundTarget } from '../Playground/PlaygroundModal';
 import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from '../ScheduledTasks/V2/Common/ScheduledTaskCreateOrEditDialog';
 import { ScheduledTasksContext } from '../ScheduledTasks/V2/Hooks/ScheduledTasksContext';
-import { useScheduledTasksV2 } from '../ScheduledTasks/V2/Hooks/useScheduledTasksV2';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import {
     AddExistingAgentHandoffDialog,
@@ -95,10 +95,10 @@ type LinkRetryContext = {
 type CreationDialogContext =
     | undefined
     | {
-          kind: 'linkFromAgent';
-          sourceAgentName: string;
-          targetType: 'agent' | 'tool';
-      };
+        kind: 'linkFromAgent';
+        sourceAgentName: string;
+        targetType: 'agent' | 'tool';
+    };
 
 const ExtendedAgentGraphContent = memo(() => {
     const {
@@ -117,6 +117,9 @@ const ExtendedAgentGraphContent = memo(() => {
         tools,
         connectors,
         triggers,
+        incidentFiltersHook,
+        incidentHandlersHook,
+        scheduledTasksHook,
         systemTools,
         anchorEntity,
         setAnchorEntity,
@@ -124,18 +127,6 @@ const ExtendedAgentGraphContent = memo(() => {
     } = useExtendedAgentGraph();
 
     const { features } = useFeatureFlags();
-    const { incidentHandlers, incidentHandlersLoading } = useIncidentHandlers();
-    const {
-        // TODO: scheduledTasks and isLoading is not being used by new create dialog, so remove old logic later
-        scheduledTasks,
-        loading: isScheduledTasksLoading,
-        createTask,
-        updateTask,
-        deleteTask,
-        pauseTask,
-        resumeTask,
-        runTask,
-    } = useScheduledTasksV2();
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
@@ -164,7 +155,9 @@ const ExtendedAgentGraphContent = memo(() => {
 
     const [isOperationInProgress, setIsOperationInProgress] = useState<boolean>(false);
     const [isScheduledTaskDialogOpen, setIsScheduledTaskDialogOpen] = useState(false);
-    const [scheduledTaskAgent, setScheduledTaskAgent] = useState<string>();
+    const [scheduledTaskDialogMode, setScheduledTaskDialogMode] = useState<ScheduledTaskDialogMode>(ScheduledTaskDialogMode.Create);
+    const [scheduledTaskStartingAgent, setScheduledTaskStartingAgent] = useState<string>();
+    const [scheduledTaskEditingTask, setScheduledTaskEditingTask] = useState<ScheduledTask>();
 
     const [isToolDialogOpen, setIsToolDialogOpen] = useState<boolean>(false);
     const [createToolAgent, setCreateToolAgent] = useState<string>();
@@ -639,23 +632,29 @@ const ExtendedAgentGraphContent = memo(() => {
     }, []);
 
     const incidentHandlersCount = useMemo(
-        () => (incidentHandlersLoading ? null : (incidentHandlers?.length ?? 0)),
-        [incidentHandlersLoading, incidentHandlers]
+        () => (incidentHandlersHook.incidentHandlersLoading ? null : (incidentHandlersHook.incidentHandlers?.length ?? 0)),
+        [incidentHandlersHook]
     );
 
     const scheduledTasksCount = useMemo(
-        () => (features.scheduledTasks ? (isScheduledTasksLoading ? null : scheduledTasks.length) : null),
-        [features.scheduledTasks, isScheduledTasksLoading, scheduledTasks]
+        () => (features.scheduledTasks ? (scheduledTasksHook.loading ? null : scheduledTasksHook.scheduledTasks?.length) : null),
+        [features.scheduledTasks, scheduledTasksHook]
     );
 
     const triggerCardConfig = useMemo(
         () => ({
-            isLoading: incidentHandlersLoading || (features.scheduledTasks && isScheduledTasksLoading),
+            isLoading: incidentHandlersHook.incidentHandlersLoading || (features.scheduledTasks && scheduledTasksHook.loading),
             incidentHandlersCount,
             scheduledTasksCount,
             hasScheduledTasksFeature: features.scheduledTasks,
         }),
-        [features.scheduledTasks, incidentHandlersCount, incidentHandlersLoading, scheduledTasksCount, isScheduledTasksLoading]
+        [
+            features.scheduledTasks,
+            incidentHandlersCount,
+            incidentHandlersHook.incidentHandlersLoading,
+            scheduledTasksCount,
+            scheduledTasksHook.loading,
+        ]
     );
 
     const creationSuccessMessage = useMemo(() => {
@@ -692,8 +691,8 @@ const ExtendedAgentGraphContent = memo(() => {
             const entityNodeId = !entity
                 ? undefined
                 : entity.entityType === 'Agent'
-                  ? `agent_${entity.entityName}`
-                  : `trigger_${entity.entityName}`;
+                    ? `agent_${entity.entityName}`
+                    : `trigger_${entity.entityName}`;
             const targetNode = !entityNodeId ? undefined : nodes.find(node => node.id === entityNodeId);
             if (targetNode) {
                 requestAnimationFrame(() => {
@@ -1222,7 +1221,9 @@ const ExtendedAgentGraphContent = memo(() => {
 
             if (action === 'addScheduledTask') {
                 setIsScheduledTaskDialogOpen(true);
-                setScheduledTaskAgent(agentName);
+                setScheduledTaskDialogMode(ScheduledTaskDialogMode.Create);
+                setScheduledTaskStartingAgent(agentName);
+                setScheduledTaskEditingTask(undefined);
                 return;
             }
 
@@ -1257,8 +1258,8 @@ const ExtendedAgentGraphContent = memo(() => {
                         action === 'createHandoffSourceAgent'
                             ? 'createSource'
                             : action === 'createHandoffTargetAgent'
-                              ? 'createTarget'
-                              : 'edit',
+                                ? 'createTarget'
+                                : 'edit',
                 });
                 return;
             }
@@ -1278,6 +1279,62 @@ const ExtendedAgentGraphContent = memo(() => {
             setIsRelationshipDialogOpen(true);
         },
         [agents]
+    );
+
+    const handleTriggerQuickAction = useCallback(
+        (triggerName: string, action: TriggerQuickAction) => {
+            if (action === 'editTrigger') {
+                const trigger = triggers.find(a => a.name === triggerName);
+                if (!trigger) {
+                    return;
+                }
+
+                if (trigger.type === 'incident') {
+                    const incidentHandler = incidentHandlersHook.incidentHandlers?.find(
+                        handler => handler.name === triggerName || handler.id === triggerName
+                    );
+                    if (incidentHandler) {
+                        const incidentFilter = incidentHandler?.incidentFilterId
+                            ? incidentFiltersHook.incidentFilters?.find(filter => filter.id === incidentHandler.incidentFilterId)
+                            : undefined;
+
+                        if (incidentFilter) {
+                            setHandlerCreateOrEditInfo({
+                                filter: incidentFilter,
+                                handlerId: incidentHandler.id,
+                                subAgentTriggerInfo: {
+                                    agents: agents.map(a => a.name),
+                                },
+                            });
+                            return;
+                        }
+                    }
+
+                    const incidentFilter = incidentFiltersHook.incidentFilters?.find(filter => filter.id === triggerName);
+                    if (incidentFilter) {
+                        setHandlerCreateOrEditInfo({
+                            filter: incidentFilter,
+                            subAgentTriggerInfo: {
+                                agents: agents.map(a => a.name),
+                            },
+                        });
+                    }
+                } else if (trigger.type === 'scheduled') {
+                    const scheduledTask = scheduledTasksHook.scheduledTasks?.find(
+                        task => task.name === triggerName || task.id === triggerName
+                    );
+                    if (scheduledTask) {
+                        setIsScheduledTaskDialogOpen(true);
+                        setScheduledTaskDialogMode(ScheduledTaskDialogMode.Edit);
+                        setScheduledTaskStartingAgent(scheduledTask?.agent);
+                        setScheduledTaskEditingTask(scheduledTask);
+                    }
+                }
+
+                return;
+            }
+        },
+        [triggers, agents, incidentHandlersHook, incidentFiltersHook, scheduledTasksHook]
     );
 
     const handleLaunchLinkedCreation = useCallback((targetType: 'agent' | 'tool', sourceAgentName: string) => {
@@ -1577,7 +1634,9 @@ const ExtendedAgentGraphContent = memo(() => {
 
             if (itemType === 'scheduledTask') {
                 setIsScheduledTaskDialogOpen(true);
-                setScheduledTaskAgent(anchorEntity?.entityType === 'Agent' ? anchorEntity?.entityName : undefined);
+                setScheduledTaskStartingAgent(anchorEntity?.entityType === 'Agent' ? anchorEntity?.entityName : undefined);
+                setScheduledTaskDialogMode(ScheduledTaskDialogMode.Create);
+                setScheduledTaskEditingTask(undefined);
                 return;
             }
 
@@ -1640,6 +1699,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 edgesToHighlight,
                 openRelationshipDialog,
                 triggerAgentQuickAction: handleAgentQuickAction,
+                triggerTriggerQuickAction: handleTriggerQuickAction,
                 onViewChange: onChangeViewType,
                 onEntitySelect: handleEntitySelect,
             }}
@@ -1805,25 +1865,45 @@ const ExtendedAgentGraphContent = memo(() => {
                 />
 
                 <IncidentTriggerCreateDialog
-                    onDismiss={() => setHandlerCreateOrEditInfo(undefined)}
-                    setHandlerOperationStatus={() => {}}
+                    onDismiss={(filterName?: string, handlerId?: string, isNew?: boolean) => {
+                        setHandlerCreateOrEditInfo(undefined);
+                        if (!!filterName || !!handlerId) {
+                            handleRefresh().then(() => {
+                                if (isNew) {
+                                    if (filterName) {
+                                        setPendingEntitySelection({ entityType: 'Trigger', entityName: filterName });
+                                    }
+                                    return;
+                                }
+
+                                const trigger = triggers.find(t => (
+                                    t.name?.toLowerCase() === filterName?.toLowerCase() ||
+                                    t.name?.toLowerCase() === handlerId?.toLowerCase()
+                                ));
+                                if (trigger) {
+                                    setPendingEntitySelection({ entityType: 'Trigger', entityName: trigger.name });
+                                }
+                            });
+                        }
+                    }}
+                    setHandlerOperationStatus={() => { }}
                     handlerCreateOrEditInfo={handlerCreateOrEditInfo}
                 />
 
                 <ScheduledTasksContext.Provider
                     value={{
-                        createTask,
-                        updateTask,
+                        createTask: scheduledTasksHook.createTask,
+                        updateTask: scheduledTasksHook.updateTask,
                         refreshTasks: (anchorEntity?: ExtendedAgentAnchorEntity) =>
                             handleRefresh().then(() => {
                                 if (anchorEntity) {
                                     setPendingEntitySelection(anchorEntity);
                                 }
                             }),
-                        pauseTask,
-                        resumeTask,
-                        deleteTask,
-                        runTask,
+                        pauseTask: scheduledTasksHook.pauseTask,
+                        resumeTask: scheduledTasksHook.resumeTask,
+                        deleteTask: scheduledTasksHook.deleteTask,
+                        runTask: scheduledTasksHook.runTask,
                         isOperationInProgress,
                         setIsOperationInProgress,
                     }}
@@ -1831,9 +1911,10 @@ const ExtendedAgentGraphContent = memo(() => {
                     <ScheduledTaskCreateOrEditDialog
                         isDialogOpen={isScheduledTaskDialogOpen}
                         setIsDialogOpen={setIsScheduledTaskDialogOpen}
-                        mode={ScheduledTaskDialogMode.Create}
+                        mode={scheduledTaskDialogMode}
                         agents={agents}
-                        startingAgent={scheduledTaskAgent}
+                        startingAgent={scheduledTaskStartingAgent}
+                        scheduledTask={scheduledTaskEditingTask}
                     />
                 </ScheduledTasksContext.Provider>
 

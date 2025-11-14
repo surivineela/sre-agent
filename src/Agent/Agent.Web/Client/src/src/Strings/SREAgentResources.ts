@@ -4149,6 +4149,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     quickCreateAddExistingSubagent: { defaultMessage: 'Add existing subagent', id: 'KJHRU/' },
     quickCreateCreateNewSubagent: { defaultMessage: 'Create new subagent', id: '+h4pn9' },
     createIncidentTrigger: { defaultMessage: 'Create incident trigger', id: 'HQc/Lf' },
+    editIncidentTrigger: { defaultMessage: 'Edit incident trigger', id: 'S6we8v' },
     incidentTriggerStep: { defaultMessage: 'Incident trigger', id: 'THFIRB' },
     incidentTriggerName: { defaultMessage: 'Trigger name', id: 'zDcGyS' },
     triggerDetails: { defaultMessage: 'Trigger details', id: '4C44ie' },

@@ -72,6 +72,7 @@ import {
     ExtendedAgent,
     ExtendedAgentGraphContext,
     ExtendedAgentGraphView,
+    ExtendedAgentNodeType,
     ExtendedConnector,
     ExtendedTool,
     ExtendedTrigger,
@@ -650,24 +651,53 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
             if (activeTab === 'agents') {
                 const fullAgent = agents.find(agent => agent.name === item.name);
                 setSelectedDrawerItem(fullAgent);
+                extendedAgentGraphContext.setSelectedNode({
+                    id: fullAgent?.name || item.name,
+                    name: fullAgent?.name || item.name,
+                    type: ExtendedAgentNodeType.Agent,
+                    data: fullAgent || item,
+                });
             } else if (activeTab === 'kustoTools') {
                 const toolData = item.data;
                 setSelectedDrawerItem(toolData);
+                extendedAgentGraphContext.setSelectedNode({
+                    id: toolData?.name || item.name,
+                    name: toolData?.name || item.name,
+                    type: ExtendedAgentNodeType.Tool,
+                    data: toolData || item,
+                });
             } else {
                 setSelectedDrawerItem(item);
+                let nodeType: ExtendedAgentNodeType;
+                switch (activeTab) {
+                    case 'incidentTriggers':
+                    case 'scheduledTasks':
+                        nodeType = ExtendedAgentNodeType.Trigger;
+                        break;
+                    default:
+                        nodeType = ExtendedAgentNodeType.Agent;
+                }
+                extendedAgentGraphContext.setSelectedNode({
+                    id: item.name,
+                    name: item.name,
+                    type: nodeType,
+                    data: item,
+                });
             }
         },
-        [activeTab, agents]
+        [activeTab, agents, extendedAgentGraphContext.setSelectedNode]
     );
 
     const handleCloseInfoPanel = useCallback(() => {
         setSelectedDrawerItem(undefined);
-    }, []);
+        extendedAgentGraphContext.setSelectedNode(undefined);
+    }, [extendedAgentGraphContext.setSelectedNode]);
 
     const handleCardClick = useCallback((cardType: TabValue) => {
         setActiveTab(cardType);
         setSelectedDrawerItem(undefined);
-    }, []);
+        extendedAgentGraphContext.setSelectedNode(undefined);
+    }, [extendedAgentGraphContext.setSelectedNode]);
 
     const handleOpenPlayground = useCallback((target: PlaygroundTarget) => {
         setPlaygroundTarget(target);
@@ -1219,6 +1249,7 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
                     onTabSelect={(_event, data) => {
                         setActiveTab(data.value as TabValue);
                         setSelectedDrawerItem(undefined);
+                        extendedAgentGraphContext.setSelectedNode(undefined);
                     }}
                 >
                     <Tab id="agents" value="agents">

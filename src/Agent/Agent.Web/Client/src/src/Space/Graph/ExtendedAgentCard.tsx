@@ -85,7 +85,13 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
             {agent?.name && <AgentLeftQuickActionButton agent={agent} />}
             <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
                 <Handles />
-                <Card onClick={() => (setSelectedNode(data), expandInfoPanel())} className={cardStyles}>
+                <Card
+                    onClick={() => {
+                        setSelectedNode(data);
+                        expandInfoPanel();
+                    }}
+                    className={cardStyles}
+                >
                     <div className={cardContent}>
                         <div className={titleRow}>
                             <EntityIcon

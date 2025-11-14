@@ -153,7 +153,7 @@ export const ExtendedAgentInfoPanel = memo(
         const intl = useIntl();
         const navigate = useNavigate();
         const location = useLocation();
-        const { selectedNode, triggerAgentQuickAction } = useContext(ExtendedAgentGraphContext);
+        const { selectedNode, triggerAgentQuickAction, triggerTriggerQuickAction } = useContext(ExtendedAgentGraphContext);
         const [yamlEditorContext, setYamlEditorContext] = useState<YamlEditorContext>();
         const [isResizeHandleHovered, setIsResizeHandleHovered] = useState(false);
         const [isDeleting, setIsDeleting] = useState(false);
@@ -229,14 +229,17 @@ export const ExtendedAgentInfoPanel = memo(
                     triggerAgentQuickAction(entity.name, 'editAgent');
                     return;
                 }
-
+                if (type === 'trigger' && triggerTriggerQuickAction) {
+                    triggerTriggerQuickAction(entity.name, 'editTrigger');
+                    return;
+                }
                 if (type === 'tool' && onEditKustoTool) {
                     onEditKustoTool(entity as ExtendedTool);
                     return;
                 }
                 handleOpenYamlEditor(entity, type);
             },
-            [triggerAgentQuickAction, onEditKustoTool, handleOpenYamlEditor]
+            [triggerAgentQuickAction, triggerTriggerQuickAction, onEditKustoTool, handleOpenYamlEditor]
         );
 
         const renderToolDetails = useCallback(
@@ -1079,17 +1082,15 @@ export const ExtendedAgentInfoPanel = memo(
                                     </div>
                                 </div>
                                 <div className={styles.flexRowCenter4}>
-                                    {headerEditContext &&
-                                        headerEditContext.type !== 'connector' &&
-                                        headerEditContext.type !== 'trigger' && (
-                                            <Button
-                                                appearance="subtle"
-                                                size="small"
-                                                icon={<Edit20Regular />}
-                                                onClick={() => onEdit(headerEditContext.entity, headerEditContext.type)}
-                                                title={intl.formatMessage(ExtendedAgentsGraphResources.yamlOpenButton)}
-                                            />
-                                        )}
+                                    {headerEditContext && headerEditContext.type !== 'connector' && (
+                                        <Button
+                                            appearance="subtle"
+                                            size="small"
+                                            icon={<Edit20Regular />}
+                                            onClick={() => onEdit(headerEditContext.entity, headerEditContext.type)}
+                                            title={intl.formatMessage(ExtendedAgentsGraphResources.yamlOpenButton)}
+                                        />
+                                    )}
                                     {((playgroundTarget && showAgentBuilderPlayground) ||
                                         (headerEditContext?.type === 'agent' && isAgentContext && selectedAgent) ||
                                         (headerEditContext?.type === 'tool' && selectedTool)) && (

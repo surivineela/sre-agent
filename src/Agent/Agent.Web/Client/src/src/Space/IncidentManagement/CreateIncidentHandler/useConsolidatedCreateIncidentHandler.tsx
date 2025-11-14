@@ -17,11 +17,7 @@ import {
 import { AgentMode, IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
-import {
-    ExtendedAgentsGraphResources,
-    IncidentHandlerCreateResources,
-    IncidentManagementNotificationResources,
-} from '../../../Strings/SREAgentResources';
+import { IncidentHandlerCreateResources, IncidentManagementNotificationResources } from '../../../Strings/SREAgentResources';
 import { SreAgentContext } from '../../Contracts/Context';
 import { getFilterValues } from '../Utilities';
 import { FilterMode, HandlerCreateOrEditInfo, HandlerMode, OperationStatus, TimeDuration } from './Contracts';
@@ -97,7 +93,7 @@ const getSaveUpdateOrDeleteActionForHandler = (
 };
 
 export const useConsolidatedCreateIncidentHandler = (
-    exitToHome: () => void,
+    exitToHome: (filterId?: string, handlerId?: string, isNew?: boolean) => void,
     setHandlerOperationStatus: React.Dispatch<React.SetStateAction<OperationStatus | undefined>>,
     handlerCreateOrEditInfo: HandlerCreateOrEditInfo,
     setInitialValues: React.Dispatch<React.SetStateAction<IncidentHandlerCreateFormValues>>
@@ -139,8 +135,8 @@ export const useConsolidatedCreateIncidentHandler = (
         incidentPlatformType === IncidentManagementType.AzMonitor
             ? TimeDuration.Last15Days
             : handlerMode === 'create'
-              ? TimeDuration.Last60Days
-              : TimeDuration.Last90Days
+                ? TimeDuration.Last60Days
+                : TimeDuration.Last90Days
     );
     const onSelectedTimespanChange = useCallback((value: TimeDuration) => {
         setSelectedTimespan(value);
@@ -385,17 +381,17 @@ export const useConsolidatedCreateIncidentHandler = (
         const [notificationTitle, notificationDescription, notificationErrorMessage, notificationSuccessMessage] =
             saveOrUpdateFilterAction === 'create-incidentFilter'
                 ? [
-                      IncidentManagementNotificationResources.createFilterTitle,
-                      IncidentManagementNotificationResources.createFilterInProgress,
-                      IncidentManagementNotificationResources.createFilterError,
-                      IncidentManagementNotificationResources.createFilterSuccess,
-                  ]
+                    IncidentManagementNotificationResources.createFilterTitle,
+                    IncidentManagementNotificationResources.createFilterInProgress,
+                    IncidentManagementNotificationResources.createFilterError,
+                    IncidentManagementNotificationResources.createFilterSuccess,
+                ]
                 : [
-                      IncidentManagementNotificationResources.updateFilterTitle,
-                      IncidentManagementNotificationResources.updateFilterInProgress,
-                      IncidentManagementNotificationResources.updateFilterError,
-                      IncidentManagementNotificationResources.updateFilterSuccess,
-                  ];
+                    IncidentManagementNotificationResources.updateFilterTitle,
+                    IncidentManagementNotificationResources.updateFilterInProgress,
+                    IncidentManagementNotificationResources.updateFilterError,
+                    IncidentManagementNotificationResources.updateFilterSuccess,
+                ];
 
         const notificationId = azPortalContext.startNotification(
             intl.formatMessage(notificationTitle),
@@ -461,7 +457,11 @@ export const useConsolidatedCreateIncidentHandler = (
 
         if (!saveUpdateOrDeleteHandlerAction || isSubagentTrigger) {
             azPortalContext.stopNotification(notificationId, true, intl.formatMessage(notificationSuccessMessage));
-            exitToHome();
+            exitToHome(
+                values.filterName,
+                handlerCreateOrEditInfo?.handlerId || values.filterName,
+                !handlerCreateOrEditInfo?.filter
+            );
             return;
         }
 
@@ -494,8 +494,8 @@ export const useConsolidatedCreateIncidentHandler = (
             saveUpdateOrDeleteHandlerAction === 'delete-incidentHandler'
                 ? async () => await incidentHandlerClient.deleteHandler(handlerCreateOrEditInfo?.handlerId || '')
                 : saveUpdateOrDeleteHandlerAction === 'create-incidentHandler'
-                  ? async () => await incidentHandlerClient.createHandler(handlerPayload)
-                  : async () => await incidentHandlerClient.updateHandler(handlerPayload);
+                    ? async () => await incidentHandlerClient.createHandler(handlerPayload)
+                    : async () => await incidentHandlerClient.updateHandler(handlerPayload);
 
         const saveUpdateOrDeleteHandlerResult = await saveUpdateOrDeleteHandlerFunction();
         if (!saveUpdateOrDeleteHandlerResult.isSuccessful) {
@@ -526,7 +526,11 @@ export const useConsolidatedCreateIncidentHandler = (
             });
             setHandlerOperationStatus('succeeded');
             azPortalContext.stopNotification(notificationId, true, intl.formatMessage(notificationSuccessMessage));
-            exitToHome();
+            exitToHome(
+                values.filterName,
+                handlerCreateOrEditInfo?.handlerId || values.filterName,
+                !handlerCreateOrEditInfo?.filter
+            );
         }
     }, [
         azPortalContext,
@@ -538,6 +542,7 @@ export const useConsolidatedCreateIncidentHandler = (
 
         handlerCreateOrEditInfo,
         handlerCreateOrEditInfo?.filter,
+        handlerCreateOrEditInfo?.handlerId,
         handler,
         incidentPlatformType,
         isSubagentTrigger,
@@ -634,20 +639,7 @@ export const useConsolidatedCreateIncidentHandler = (
                 }
             }
         },
-        [
-            isLoadingInitialIncidents,
-            incidentHandlerClient.queryIncidents,
-            selectedTimespan,
-            incidentPlatformType,
-            values.impactedService,
-            values.priority,
-            values.incidentType,
-            values.titleContains,
-            values.owningTeamId,
-            values.createdBy,
-            values.monitorId,
-            incidents?.length,
-        ]
+        [isLoadingInitialIncidents, incidentHandlerClient.queryIncidents, selectedTimespan, incidentPlatformType, values, incidents?.length]
     );
 
     const handlerTestMetadata = useTestHandler(resourceId, handlerCreateOrEditInfo, values, incidentHandlerClient);
@@ -915,12 +907,6 @@ export const useConsolidatedCreateIncidentHandler = (
                     handlerCreateOrEditInfo.filter?.handlingAgent || handlerCreateOrEditInfo.subAgentTriggerInfo?.preSelectedAgent,
                 useCustomHandler: !!handlerCreateOrEditInfo.handlerId || isSubagentTrigger,
             };
-
-            if (newValue.handlingAgent && !handlerCreateOrEditInfo.handlerId) {
-                newValue.incidentProcessingGuide = intl.formatMessage(ExtendedAgentsGraphResources.triggerIncidentDefaultInstructions, {
-                    agentName: newValue.handlingAgent,
-                });
-            }
 
             return newValue;
         });

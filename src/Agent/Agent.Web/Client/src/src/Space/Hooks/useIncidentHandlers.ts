@@ -10,13 +10,21 @@ export const useIncidentHandlers = () => {
 
     const [incidentHandlers, setIncidentHandlers] = useState<IncidentHandler[]>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [loadingError, setLoadingError] = useState<string | null>(null);
 
     const getIncidentHandlers = useCallback(async (): Promise<IncidentHandler[]> => {
+        setLoadingError(null);
         const incidentResults = await IncidentHandlerClient.getInstance(
             sreAgentEndpoint,
             azPortalContext.log.bind(azPortalContext)
         ).listHandlers();
-        return incidentResults?.content ?? [];
+
+        if (incidentResults.isSuccessful) {
+            return incidentResults.content ?? [];
+        } else {
+            setLoadingError(`Failed to load incident handlers: ${incidentResults.error}`);
+            return [];
+        }
     }, [sreAgentEndpoint, azPortalContext]);
 
     const refresh = useCallback(async () => {
@@ -38,6 +46,7 @@ export const useIncidentHandlers = () => {
         let isSubscribed = true;
 
         const fetch = async () => {
+            setIsLoading(true);
             const initialResults = await getIncidentHandlers();
             if (!isSubscribed) return;
             setIncidentHandlers(initialResults);
@@ -56,5 +65,6 @@ export const useIncidentHandlers = () => {
         refresh,
         incidentHandlers,
         incidentHandlersLoading: isLoading,
+        incidentHandlersLoadingError: loadingError,
     };
 };

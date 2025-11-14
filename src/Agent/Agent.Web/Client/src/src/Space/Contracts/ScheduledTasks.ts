@@ -17,6 +17,7 @@ export interface ScheduledTask {
     notificationChannel?: string;
     executionContext?: Record<string, any>;
     executionHistory?: ScheduledTaskExecution[];
+    agent?: string; // The agent name associated with this scheduled task
 }
 
 export interface ScheduledTaskExecution {

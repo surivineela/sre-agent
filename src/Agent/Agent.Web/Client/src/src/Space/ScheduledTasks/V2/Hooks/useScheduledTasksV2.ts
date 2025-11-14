@@ -7,6 +7,7 @@ import { CreateScheduledTaskRequest, ScheduledTask } from '../../../Contracts/Sc
 export const useScheduledTasksV2 = () => {
     const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
     const [loading, setLoading] = useState(false);
+    const [loadingError, setLoadingError] = useState<string | null>(null);
 
     const azPortalContext = useContext(AzPortalContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
@@ -27,9 +28,12 @@ export const useScheduledTasksV2 = () => {
 
     const refreshTasks = useCallback(async () => {
         setLoading(true);
+        setLoadingError(null);
         const response = await scheduledTasksClient.getScheduledTasks();
         if (response.isSuccessful) {
             setScheduledTasks(response.content ?? []);
+        } else {
+            setLoadingError(`Failed to load scheduled tasks: ${response.error}`);
         }
         setLoading(false);
     }, [scheduledTasksClient]);
@@ -50,6 +54,7 @@ export const useScheduledTasksV2 = () => {
     return {
         scheduledTasks,
         loading,
+        loadingError,
         createTask,
         updateTask,
         refreshTasks,

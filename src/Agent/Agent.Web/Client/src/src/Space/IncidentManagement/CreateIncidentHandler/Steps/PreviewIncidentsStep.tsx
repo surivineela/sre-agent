@@ -34,8 +34,16 @@ export const PreviewIncidentsStep: FC = () => {
     const { dirty, values, initialValues } = useFormikContext<IncidentHandlerCreateFormValues>();
     const [showDeepInvestigationDialog, setShowDeepInvestigationDialog] = useState(false);
 
-    const { isSubagentTrigger, incidentPlatformType, setCurrentStep, exitToHome, handlerLoaded, saveHandler, incidentsPreviewMetadata } =
-        useContext(IncidentHandlerConsolidatedCreateContext);
+    const {
+        isSubagentTrigger,
+        incidentPlatformType,
+        setCurrentStep,
+        exitToHome,
+        handlerLoaded,
+        saveHandler,
+        filterMode,
+        incidentsPreviewMetadata,
+    } = useContext(IncidentHandlerConsolidatedCreateContext);
 
     const {
         incidentsListDivRef,
@@ -230,9 +238,11 @@ export const PreviewIncidentsStep: FC = () => {
                     {intl.formatMessage(IncidentHandlerCreateResources.back)}
                 </Button>
                 <Button appearance="primary" onClick={onClickSaveButton} disabled={!dirty}>
-                    {intl.formatMessage(isSubagentTrigger ? SreAgentResources.create : IncidentHandlerCreateResources.save)}
+                    {intl.formatMessage(
+                        isSubagentTrigger && filterMode === 'create' ? SreAgentResources.create : IncidentHandlerCreateResources.save
+                    )}
                 </Button>
-                <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
+                <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={() => exitToHome()}>
                     <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
                 </DirtyStateConfirmationWrapper>
             </div>

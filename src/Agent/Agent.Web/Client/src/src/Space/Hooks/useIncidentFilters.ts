@@ -13,6 +13,7 @@ export const useIncidentFilters = () => {
 
     const [incidentFilters, setIncidentFilters] = useState<IncidentFilter[]>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [loadingError, setLoadingError] = useState<string | null>(null);
 
     const incidentHandlerClient = useMemo(
         () => IncidentHandlerClient.getInstance(sreAgentEndpoint, portalContext.log.bind(portalContext)),
@@ -20,8 +21,14 @@ export const useIncidentFilters = () => {
     );
 
     const getIncidentFilters = useCallback(async (): Promise<IncidentFilter[]> => {
+        setLoadingError(null);
         const incidentResults = await incidentHandlerClient.listIncidentFilters();
-        return incidentResults?.content ?? [];
+        if (incidentResults.isSuccessful) {
+            return incidentResults.content ?? [];
+        } else {
+            setLoadingError(`Failed to load incident filters: ${incidentResults.error}`);
+            return [];
+        }
     }, [incidentHandlerClient]);
 
     const refresh = useCallback(async () => {
@@ -284,6 +291,7 @@ export const useIncidentFilters = () => {
         let isSubscribed = true;
 
         const fetch = async () => {
+            setIsLoading(true);
             const initialResults = await getIncidentFilters();
             if (!isSubscribed) return;
             setIncidentFilters(initialResults);
@@ -300,6 +308,7 @@ export const useIncidentFilters = () => {
         refresh,
         incidentFilters,
         incidentFiltersLoading: isLoading,
+        incidentFiltersLoadingError: loadingError,
         deleteIncidentFilter,
         createIncidentFilter,
         updateIncidentFilter,

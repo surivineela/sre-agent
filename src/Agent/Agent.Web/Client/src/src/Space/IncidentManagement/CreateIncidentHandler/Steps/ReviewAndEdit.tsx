@@ -51,7 +51,7 @@ export const ReviewAndEdit: FC = () => {
                 <Button appearance="primary" onClick={saveHandler} disabled={!isEditorValueValid}>
                     {intl.formatMessage(IncidentHandlerCreateResources.save)}
                 </Button>
-                <DirtyStateConfirmationWrapper isDirty={true} onConfirm={exitToHome}>
+                <DirtyStateConfirmationWrapper isDirty={true} onConfirm={() => exitToHome()}>
                     <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
                 </DirtyStateConfirmationWrapper>
             </div>

@@ -329,7 +329,7 @@ export const GenerateHandler = () => {
                     >
                         {intl.formatMessage(IncidentHandlerCreateResources.skip)}
                     </Button>
-                    <DirtyStateConfirmationWrapper isDirty={isDirty} onConfirm={exitToHome}>
+                    <DirtyStateConfirmationWrapper isDirty={isDirty} onConfirm={() => exitToHome()}>
                         <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
                     </DirtyStateConfirmationWrapper>
                 </div>

@@ -161,6 +161,8 @@ export type ExtendedAgentGraphEdge = {
     targetType: EntityType;
 };
 
+export type TriggerQuickAction = 'editTrigger';
+
 export type AgentQuickAction =
     | 'addIncidentTrigger'
     | 'addScheduledTask'
@@ -191,6 +193,7 @@ interface ExtendedAgentGraphContextProps {
     edgesToHighlight: string[];
     openRelationshipDialog?: (agentName: string) => void;
     triggerAgentQuickAction: (agentName: string, action: AgentQuickAction) => void;
+    triggerTriggerQuickAction: (triggerName: string, action: TriggerQuickAction) => void;
     onEntitySelect: (anchorEntity?: ExtendedAgentAnchorEntity | undefined) => void;
     onViewChange: (viewType: ExtendedAgentGraphView) => void;
 }
@@ -204,6 +207,7 @@ export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContext
     edgesToHighlight: [],
     openRelationshipDialog: () => {},
     triggerAgentQuickAction: () => {},
+    triggerTriggerQuickAction: () => {},
     onEntitySelect: () => {},
     onViewChange: () => {},
 });

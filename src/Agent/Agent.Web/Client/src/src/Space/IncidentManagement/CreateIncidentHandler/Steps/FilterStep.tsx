@@ -341,7 +341,7 @@ export const FilterStep: FC = () => {
                 >
                     {intl.formatMessage(IncidentHandlerCreateResources.next)}
                 </Button>
-                <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
+                <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={() => exitToHome()}>
                     <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
                 </DirtyStateConfirmationWrapper>
             </div>
