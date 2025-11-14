@@ -115,7 +115,19 @@ public class Program
         app.UseHttpsRedirection();
         // Serve static files from wwwroot
         app.UseDefaultFiles();
-        app.UseStaticFiles();
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            OnPrepareResponse = ctx =>
+            {
+                var path = ctx.File.PhysicalPath ?? ctx.Context.Request.Path.Value ?? string.Empty;
+
+                // Prevent index.html from being cached so users always get latest version
+                if (path.EndsWith("index.html", StringComparison.OrdinalIgnoreCase))
+                {
+                    ctx.Context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+                }
+            }
+        });
         app.UseRouting();
 
         app.UseAuthentication();
