@@ -147,7 +147,7 @@ public class AgentFactoryTests
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
-            assembliesToScan: [],
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
@@ -187,12 +187,12 @@ public class AgentFactoryTests
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
-            assembliesToScan: [],
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            defaultOutputType: typeof(DefaultAgentOutput)
+            defaultOutputType: typeof(DefaultAgentOutput) // this should get shadowed in vanilla mode
         );
 
         await agentFactory.InitializeAsync();
@@ -201,8 +201,6 @@ public class AgentFactoryTests
         Assert.NotNull(agent);
         Assert.True(agent.EnableVanillaMode);
         Assert.Equal(typeof(string), agent.OutputType);
-        Assert.False(agent.CriticOnHandOff);
-        Assert.Equal(0, agent.MaxReflectionCount);
         Assert.Contains(ToDoWriteTool<AgentContext>.ToolName, agent.FactoryTools);
 
         var instructions = agent.Instructions.ToString();
@@ -211,6 +209,31 @@ public class AgentFactoryTests
         Assert.DoesNotContain(TestCommonPrompt.PromptText, instructions);
         // todo prompt automatically added
         Assert.Contains(ToDoWriteTool<AgentContext>.ToolName, instructions);
+
+        var reasoningLoop = (ReasoningLoop)RuntimeHelpers.GetUninitializedObject(typeof(ReasoningLoop));
+
+        typeof(ReasoningLoop)
+            .GetField("_logger", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.SetValue(reasoningLoop, NullLogger<ReasoningLoop>.Instance);
+
+        typeof(ReasoningLoop)
+            .GetField("_context", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.SetValue(reasoningLoop, new AgentContext(Guid.NewGuid(), Guid.NewGuid(), AgentTypeEnum.Meta, ContextStateEnum.Processing, null, null));
+
+        typeof(ReasoningLoop)
+            .GetField("_currentAgent", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.SetValue(reasoningLoop, agent);
+
+        var constructUserMessage = typeof(ReasoningLoop)
+            .GetMethod("ConstructUserMessage", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?? throw new InvalidOperationException("Could not access ConstructUserMessage");
+
+        var chatMessage = new ReasoningLoopChatMessage(new ChatMessage(ChatRole.User, "Help me debug this issue"));
+        var userMessage = (string)constructUserMessage.Invoke(reasoningLoop, [chatMessage])!;
+
+        Assert.Equal("Help me debug this issue", userMessage);
+        Assert.DoesNotContain(Markers.UserQuestionMarker, userMessage);
+        Assert.DoesNotContain("Try your best to answer the user's questions", userMessage);
     }
 
     [Fact]
@@ -232,7 +255,7 @@ public class AgentFactoryTests
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
-            assembliesToScan: [],
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
@@ -253,7 +276,7 @@ public class AgentFactoryTests
     }
 
     [Fact]
-    public async Task VanillaMode_WithUserPromptOverride_PreservesOverride()
+    public async Task VanillaMode_PreservesUserOverrides()
     {
         _mockAgentModeConfigurator.Invocations.Clear();
 
@@ -263,7 +286,7 @@ public class AgentFactoryTests
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
-            assembliesToScan: [],
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
@@ -275,9 +298,9 @@ public class AgentFactoryTests
         var agent = agentFactory.GetAgent("vanilla_with_override_agent");
         Assert.NotNull(agent);
         Assert.True(agent.EnableVanillaMode);
-        Assert.Equal(typeof(string), agent.OutputType);
-        Assert.False(agent.CriticOnHandOff);
-        Assert.Equal(0, agent.MaxReflectionCount);
+        Assert.Equal(typeof(TestOutputType), agent.OutputType);
+        Assert.True(agent.CriticOnHandOff);
+        Assert.Equal(2, agent.MaxReflectionCount);
         Assert.Equal("vanilla_with_override_agent", agent.Name);
         Assert.Equal("Custom user instructions here.\nThis should be preserved.\n", agent.UserPromptOverride);
 
@@ -303,7 +326,7 @@ public class AgentFactoryTests
             ?? throw new InvalidOperationException("Could not access ConstructUserMessage");
 
         var chatMessage = new ReasoningLoopChatMessage(new ChatMessage(ChatRole.User, "Help me debug this issue"));
-        var userMessage = (string)constructUserMessage.Invoke(reasoningLoop, new object[] { chatMessage })!;
+        var userMessage = (string)constructUserMessage.Invoke(reasoningLoop, [chatMessage])!;
 
         Assert.Contains("Custom user instructions here.", userMessage);
         Assert.Contains(Markers.UserQuestionMarker, userMessage);
@@ -324,7 +347,7 @@ public class AgentFactoryTests
                 logger: _mockLogger.Object,
                 toolFactory: toolFactory,
                 chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
-                assembliesToScan: [],
+                assembliesToScan: [Assembly.GetExecutingAssembly()],
                 modeConfigurator: _mockAgentModeConfigurator.Object,
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
@@ -640,7 +663,7 @@ public class AgentFactoryTests
             toolFactory: toolFactory,
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             modeConfigurator: _mockAgentModeConfigurator.Object,
-            assembliesToScan: [],
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
@@ -700,8 +723,7 @@ handoffs: []
             toolFactory: toolFactory,
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             modeConfigurator: _mockAgentModeConfigurator.Object,
-            assembliesToScan: [],
-
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools")
@@ -831,7 +853,7 @@ handoffs: []
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
-            assembliesToScan: [],
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
@@ -858,7 +880,7 @@ handoffs: []
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
-            assembliesToScan: [],
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
@@ -915,14 +937,73 @@ handoffs: []
 
         return toolFactory;
     }
+}
 
-    private SkillRegistry CreateSkillRegistry()
+public class TestTodoWritePrompt : IPromptDescriptor
+{
+    public const string PromptText = "# Task Management\nYou have access to the TodoWrite tool to help you manage and plan operational tasks.";
+
+    public string Name { get; set; } = "todo_write";
+    public string Prompt { get; set; } = PromptText;
+}
+
+public class TestCommonPrompt : IPromptDescriptor
+{
+    public const string PromptText = "test prompt text";
+
+    public string Name { get; set; } = "test_prompt";
+    public string Prompt { get; set; } = PromptText;
+}
+
+public class TestReadOnlyPrompt : IPromptDescriptor
+{
+    public const string PromptText = "# Read-Only Mode Instructions\n\n**IMPORTANT: You are operating in READ-ONLY MODE.**\n\n**Read-Only Restrictions:**\n- You can only perform READ operations and queries\n- You CANNOT make any changes, modifications, or write operations";
+
+    public string Name { get; set; } = "readonly";
+    public string Prompt { get; set; } = PromptText;
+}
+
+public sealed record TestOutputType(
+    string Reasoning,
+    string UserMessage);
+
+[AgentToolPlugin(EnabledIf = "TestFeature:Enabled")]
+internal class TestTools
+{
+    [AgentTool(ToolMode.Auto)]
+    [Description("Test Auto Tool")]
+    public string TestAutoTool()
     {
-        return new SkillRegistry(
-            logger: Mock.Of<ILogger<SkillRegistry>>(),
-            systemSkillsDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestSkills"),
-            extensibilityLoader: _mockExtendedAgentRepository.Object
-        );
+        return "Test auto tool";
+    }
+
+    [AgentTool(ToolMode.Manual)]
+    [Description("Test Manual Tool")]
+    public string TestManualTool()
+    {
+        return "Test manual tool";
+    }
+}
+
+[AgentToolPlugin(EnabledIf = "DataConnectorType:Teams")]
+internal class TestDataConnectorTools
+{
+    [AgentTool(ToolMode.Auto)]
+    [Description("Test Data Connector Tool for Teams")]
+    public string TestDataConnectorTool()
+    {
+        return "Test data connector tool";
+    }
+}
+
+[AgentToolPlugin(EnabledIf = "DataConnectorType:Slack")]
+internal class TestSlackTools
+{
+    [AgentTool(ToolMode.Auto)]
+    [Description("Test Slack Tool")]
+    public string TestSlackTool()
+    {
+        return "Test Slack tool";
     }
 }
 
@@ -1064,14 +1145,6 @@ public class TestAgent4WithOptionalToolsOnlyDescriptor : IAgentDescriptor
     public bool AddSystemSkills { get; set; } = false;
 }
 
-public class TestTodoWritePrompt : IPromptDescriptor
-{
-    public const string PromptText = "# Task Management\nYou have access to the TodoWrite tool to help you manage and plan operational tasks.";
-
-    public string Name { get; set; } = "todo_write";
-    public string Prompt { get; set; } = PromptText;
-}
-
 public class TestAgent5WithMultipleOptionalToolsDescriptor : IAgentDescriptor
 {
     public string Name { get; set; } = "TestAgent5WithMultipleOptionalTools";
@@ -1208,22 +1281,6 @@ public class TestAgent8WithMissingDataConnectorDescriptor : IAgentDescriptor
     public bool AddSystemSkills { get; set; } = false;
 }
 
-public class TestCommonPrompt : IPromptDescriptor
-{
-    public const string PromptText = "test prompt text";
-
-    public string Name { get; set; } = "test_prompt";
-    public string Prompt { get; set; } = PromptText;
-}
-
-public class TestReadOnlyPrompt : IPromptDescriptor
-{
-    public const string PromptText = "# Read-Only Mode Instructions\n\n**IMPORTANT: You are operating in READ-ONLY MODE.**\n\n**Read-Only Restrictions:**\n- You can only perform READ operations and queries\n- You CANNOT make any changes, modifications, or write operations";
-
-    public string Name { get; set; } = "readonly";
-    public string Prompt { get; set; } = PromptText;
-}
-
 public class TestAgentWithSkillsEnabledDescriptor : IAgentDescriptor
 {
     public string Name { get; set; } = "TestAgentWithSkillsEnabled";
@@ -1290,44 +1347,4 @@ public class TestAgentWithSkillsAndReadSkillFileToolDescriptor : IAgentDescripto
     public string? ResultSummarizationPrompt { get; set; } = string.Empty;
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
     public bool EnableVanillaMode { get; set; } = false;
-}
-
-[AgentToolPlugin(EnabledIf = "TestFeature:Enabled")]
-internal class TestTools
-{
-    [AgentTool(ToolMode.Auto)]
-    [Description("Test Auto Tool")]
-    public string TestAutoTool()
-    {
-        return "Test auto tool";
-    }
-
-    [AgentTool(ToolMode.Manual)]
-    [Description("Test Manual Tool")]
-    public string TestManualTool()
-    {
-        return "Test manual tool";
-    }
-}
-
-[AgentToolPlugin(EnabledIf = "DataConnectorType:Teams")]
-internal class TestDataConnectorTools
-{
-    [AgentTool(ToolMode.Auto)]
-    [Description("Test Data Connector Tool for Teams")]
-    public string TestDataConnectorTool()
-    {
-        return "Test data connector tool";
-    }
-}
-
-[AgentToolPlugin(EnabledIf = "DataConnectorType:Slack")]
-internal class TestSlackTools
-{
-    [AgentTool(ToolMode.Auto)]
-    [Description("Test Slack Tool")]
-    public string TestSlackTool()
-    {
-        return "Test Slack tool";
-    }
 }

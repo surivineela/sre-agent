@@ -7,3 +7,6 @@ system_prompt: |
   You are a vanilla agent with user prompt override.
 tools:
   - TestAutoTool
+output_type: TestOutputType
+max_reflection_count: 2
+critic_on_handoff: true

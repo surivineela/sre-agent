@@ -84,7 +84,7 @@ public class Agent<TContext>(string name) where TContext : class
 
     public string ReasoningEffortLevel { get; set; } = "low";
 
-    public bool EnableVanillaMode { get; private set; } = false;
+    public bool EnableVanillaMode { get; set; } = false;
 
     // === Workflow Agent Properties ===
 
@@ -122,17 +122,6 @@ public class Agent<TContext>(string name) where TContext : class
     public virtual IChatClient GetChatClient(RunConfig config)
     {
         return ChatClient ?? config.ChatClient;
-    }
-
-    public void ApplyVanillaMode(bool vanillaMode)
-    {
-        EnableVanillaMode = vanillaMode;
-        if (EnableVanillaMode)
-        {
-            OutputType = typeof(string);
-            CriticOnHandOff = false;
-            MaxReflectionCount = 0;
-        }
     }
 
     public int GetAllToolsCount()

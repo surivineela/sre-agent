@@ -239,6 +239,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             IsExtended = isCustomAgent,
             EnableSkills = agentDescriptor.EnableSkills,
             AddSystemSkills = agentDescriptor.AddSystemSkills,
+            EnableVanillaMode = agentDescriptor.EnableVanillaMode,
 
             // === Workflow Agent Properties ===
             AgentType = agentDescriptor.AgentType,
@@ -247,8 +248,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             ResultSummarizationPrompt = agentDescriptor.ResultSummarizationPrompt,
             NextAgentMappings = agentDescriptor.NextAgentMappings?.ToList() ?? []
         };
-
-        agent.ApplyVanillaMode(agentDescriptor.EnableVanillaMode);
 
         AugmentToDoWrite(agentDescriptor, agent);
 
@@ -432,7 +431,10 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         // if null use the default type provided to the factory
         if (agentDescriptor.OutputType is null)
         {
-            return _defaultOutputType;
+            // use string default type in vanilla mode
+            return agentDescriptor.EnableVanillaMode
+                ? typeof(string)
+                : _defaultOutputType;
         }
 
         // check system type 'string'

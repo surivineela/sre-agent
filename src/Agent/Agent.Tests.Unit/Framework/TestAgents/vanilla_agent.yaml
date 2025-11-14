@@ -8,5 +8,3 @@ handoffs:
 tools:
   - TestAutoTool
 common_prompts: []
-max_reflection_count: 2
-critic_on_handoff: true
