@@ -211,9 +211,6 @@ public static class TestHelpers
         builder.Services.AddSingleton<ICMWorkflowClient>();
         builder.Services.AddSingleton(Mock.Of<IICMAPIClient>());
         builder.Services
-
-            .AddTransient<RCAContainerAppQuotaPluginDefinition>()
-
             .AddSingleton(Mock.Of<IKustoDashboardPlugin>())
             .AddTransient(sp => Mock.Of<IAzureDocSearchPlugin>())
             .AddTransient(sp => Mock.Of<IAzureSearchClient>())
