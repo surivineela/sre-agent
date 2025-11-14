@@ -68,6 +68,7 @@ export const useAgentCreateDialogFormik = (
                 handoffDescription: values.handoffInstructions,
                 handoffs: values.handoffSubagents,
                 tools: values.tools,
+                enableMemory: values.enableMemory,
             };
             const agentYaml = buildAgentConfigurationYaml(agentObj, true);
             setYamlContent(agentYaml);
@@ -84,6 +85,7 @@ export const useAgentCreateDialogFormik = (
                     handoffInstructions: '',
                     handoffSubagents: [],
                     tools: [],
+                    enableMemory: false,
                 });
                 return;
             }
@@ -99,6 +101,7 @@ export const useAgentCreateDialogFormik = (
                     handoffInstructions: agent.handoffDescription || '',
                     handoffSubagents: agent.handoffs || [],
                     tools: agent.tools || [],
+                    enableMemory: agent.enableMemory,
                 });
             }
         },

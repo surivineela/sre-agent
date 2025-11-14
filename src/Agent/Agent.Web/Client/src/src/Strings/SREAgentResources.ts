@@ -4118,7 +4118,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     metaAgentOverridePlaceholderName: { defaultMessage: 'YourAgent', id: 'jEmOoh' },
 
     // Agent Memory
-    agentMemoryLabel: { defaultMessage: 'Enable Knowledge Base', id: 'GP/BbQ' },
+    agentMemoryLabel: { defaultMessage: 'Give access to knowledge base', id: '+OMfjA' },
     agentMemoryHelp: {
         defaultMessage: 'Knowledge Base Enabled',
         id: 'ketkP5',

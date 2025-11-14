@@ -175,4 +175,14 @@ export const useAgentCreateDialogStyles = makeStyles({
         justifyContent: 'center',
         zIndex: 1000,
     },
+    memoryToggleContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+    },
+    memoryInfoIcon: {
+        fontSize: '14px',
+        color: tokens.colorBrandForeground1,
+        cursor: 'help',
+    },
 });

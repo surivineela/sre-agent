@@ -59,7 +59,13 @@ export const useAgentCreateDialog = (
                 handoffDescription: values.handoffInstructions,
                 handoffs: values.handoffSubagents,
                 tools: values.tools,
+                enableMemory: values.enableMemory,
             };
+
+            // If enableMemory is true, ensure SearchMemory is in the tools list
+            if (agentCreateBody.enableMemory && !agentCreateBody.tools?.includes('SearchMemory')) {
+                agentCreateBody.tools = [...(agentCreateBody.tools || []), 'SearchMemory'];
+            }
 
             if (isOverrideScenario) {
                 agentCreateBody.metadata = { name: 'meta_agent' };
@@ -163,7 +169,14 @@ export const useAgentCreateDialog = (
                 handoffDescription: values.handoffInstructions,
                 handoffs: values.handoffSubagents,
                 tools: values.tools,
+                enableMemory: values.enableMemory,
             };
+
+            // If enableMemory is true, ensure SearchMemory is in the tools list
+            if (agentUpdateBody.enableMemory && !agentUpdateBody.tools?.includes('SearchMemory')) {
+                agentUpdateBody.tools = [...(agentUpdateBody.tools || []), 'SearchMemory'];
+            }
+
             const agentCreateNotificationId = azPortalContext.startNotification(
                 intl.formatMessage(ExtendedAgentsGraphResources.updateSubagentNotificationTitle, { agentName: values.agentName }),
                 intl.formatMessage(ExtendedAgentsGraphResources.updateSubagentNotificationInProgress, { agentName: values.agentName })
@@ -229,6 +242,7 @@ export const useAgentCreateDialog = (
                 handoffInstructions: agentToEdit.handoffDescription || '',
                 handoffSubagents: agentToEdit.handoffs || [],
                 tools: agentToEdit.tools || [],
+                enableMemory: agentToEdit.enableMemory || agentToEdit.tools?.includes('SearchMemory') || false,
             });
         } else if (agentCreateOrEditInfo.mode === 'createSource') {
             const sourceAgent = agentCreateOrEditInfo.agent;

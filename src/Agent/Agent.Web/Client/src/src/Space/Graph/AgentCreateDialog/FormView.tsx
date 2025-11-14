@@ -1,8 +1,10 @@
-import { Button, Divider, Field, Spinner, Text } from '@fluentui/react-components';
-import { LightbulbRegular, PenSparkleRegular, WrenchRegular } from '@fluentui/react-icons';
+import { Button, Divider, Field, Link, Spinner, Switch, Text, Tooltip } from '@fluentui/react-components';
+import { Info16Regular, LightbulbRegular, PenSparkleRegular, WrenchRegular } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
-import { FC } from 'react';
+import { FC, useContext, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { AgentMemoryClient } from '../../../Common/Clients/AgentMemoryClient';
 import DropdownFormik from '../../../Common/Components/Dropdown/DropdownFormik';
 import InputFormik from '../../../Common/Components/Input/InputFormik';
 import TextareaFormik from '../../../Common/Components/Textarea/TextareaFormik';
@@ -26,7 +28,24 @@ export const FormView: FC<FormViewProps> = ({
 }) => {
     const intl = useIntl();
     const styles = useAgentCreateDialogStyles();
-    const { values } = useFormikContext<AgentCreateFormValues>();
+    const { values, setFieldValue } = useFormikContext<AgentCreateFormValues>();
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const [documentCount, setDocumentCount] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (values.enableMemory) {
+            const fetchDocumentCount = async () => {
+                const agentMemoryClient = AgentMemoryClient.getInstance(sreAgentEndpoint);
+                const response = await agentMemoryClient.getDocumentCount();
+                if (response.isSuccessful && response.content) {
+                    setDocumentCount(response.content.count ?? 0);
+                }
+            };
+            fetchDocumentCount();
+        } else {
+            setDocumentCount(null);
+        }
+    }, [values.enableMemory, sreAgentEndpoint]);
 
     return (
         <div className={styles.dialogContentOuterWrapper}>
@@ -139,6 +158,32 @@ export const FormView: FC<FormViewProps> = ({
                         disabled={disableControls}
                         className={styles.formControl}
                     />
+                    <Field>
+                        <div className={styles.memoryToggleContainer}>
+                            <Switch
+                                checked={values.enableMemory === true}
+                                onChange={(_, data) => {
+                                    setFieldValue('enableMemory', data.checked);
+                                }}
+                                disabled={disableControls}
+                            />
+                            <span>
+                                {intl.formatMessage(ExtendedAgentsGraphResources.agentMemoryLabel)}
+                                {values.enableMemory && documentCount !== null && documentCount > 0 && (
+                                    <>
+                                        {' ('}
+                                        <Link href="#/views/settings/knowledgeBase">
+                                            {documentCount} {documentCount === 1 ? 'document' : 'documents'}
+                                        </Link>
+                                        {')'}
+                                    </>
+                                )}
+                            </span>
+                            <Tooltip content={intl.formatMessage(ExtendedAgentsGraphResources.agentMemoryHelp)} relationship="description">
+                                <Info16Regular className={styles.memoryInfoIcon} />
+                            </Tooltip>
+                        </div>
+                    </Field>
                 </div>
             </div>
             {openedPanel && <Divider vertical className={styles.dialogContentVerticalDivider} />}

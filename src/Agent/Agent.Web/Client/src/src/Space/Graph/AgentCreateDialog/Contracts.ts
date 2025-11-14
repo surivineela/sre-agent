@@ -10,6 +10,7 @@ export interface AgentCreateFormValues {
     handoffInstructions: string;
     handoffSubagents: string[];
     tools: string[];
+    enableMemory?: boolean;
 }
 
 export type PanelType = 'tools' | 'suggestions' | undefined;

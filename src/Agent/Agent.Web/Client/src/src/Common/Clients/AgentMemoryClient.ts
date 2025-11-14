@@ -161,4 +161,23 @@ export class AgentMemoryClient extends DataPlaneClient {
             };
         }
     };
+
+    public getDocumentCount = async (): Promise<Response<{ count: number }>> => {
+        try {
+            const { data } = await axios.get(this.getRequestUrl('/api/v1/agentmemory/files/count'), {
+                headers: getAgentHeaders(),
+            });
+
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+                content: axios.isAxiosError(e) ? e.response?.data : undefined,
+            };
+        }
+    };
 }
