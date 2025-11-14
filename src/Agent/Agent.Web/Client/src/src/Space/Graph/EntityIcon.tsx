@@ -11,7 +11,16 @@ import {
 import { FC, useMemo } from 'react';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 export interface EntityIconProps {
-    type: 'agent' | 'metaAgent' | 'scheduledTask' | 'incidentTrigger' | 'genericTrigger' | 'tool' | 'toolWithGear' | 'connector';
+    type:
+        | 'agent'
+        | 'metaAgent'
+        | 'scheduledTask'
+        | 'scheduledTaskRun'
+        | 'incidentTrigger'
+        | 'genericTrigger'
+        | 'tool'
+        | 'toolWithGear'
+        | 'connector';
     shorthandStyle?: {
         wrapperSize: number;
         iconSize: number;
@@ -41,6 +50,12 @@ export const EntityIcon: FC<EntityIconProps> = ({ type, shorthandStyle: size, wr
                 return {
                     backgroundColor: tokens.colorPaletteForestBackground2,
                     foregroundColor: tokens.colorPaletteForestForeground2,
+                    Icon: TimerRegular,
+                };
+            case 'scheduledTaskRun':
+                return {
+                    backgroundColor: tokens.colorPalettePlatinumBackground2,
+                    foregroundColor: tokens.colorPalettePlatinumForeground2,
                     Icon: TimerRegular,
                 };
             case 'incidentTrigger':

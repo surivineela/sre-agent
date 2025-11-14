@@ -13,6 +13,7 @@ import { useIntl } from 'react-intl';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
+import { EntityIcon } from '../Graph/EntityIcon';
 import ScheduledTaskChatMessage from './ScheduledTaskChatMessage';
 
 export interface ScheduledTaskExecutionChatMessageProps {
@@ -27,6 +28,7 @@ const ScheduledTaskExecutionChatMessage: React.FC<ScheduledTaskExecutionChatMess
         <div>
             <ScheduledTaskChatMessage
                 name={task.name}
+                media={<EntityIcon type={'scheduledTaskRun'} shorthandStyle={{ wrapperSize: 40, iconSize: 28, borderRadius: 8 }} />}
                 description={task.description}
                 secondaryText={intl.formatMessage(SreAgentResources.scheduledTaskExecutionTitle)}
                 footer={{

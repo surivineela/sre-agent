@@ -1,7 +1,7 @@
 import { Body1, Caption1, Caption1Stronger } from '@fluentui-copilot/react-copilot';
 import { EntityCard, EntityTitle } from '@fluentui-copilot/react-entity-cards';
 import { Badge, BadgeProps, Button, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger, tokens } from '@fluentui/react-components';
-import { ArrowRightRegular, Clock28Regular, MoreHorizontalRegular } from '@fluentui/react-icons';
+import { ArrowRightRegular, MoreHorizontalRegular } from '@fluentui/react-icons';
 import * as React from 'react';
 import { memo } from 'react';
 import { useIntl } from 'react-intl';
@@ -11,6 +11,7 @@ import { GroupMessageKey } from '../ScheduledTasks/V2/ScheduledTasksUtilities';
 
 export interface ScheduledTaskExecutionCardProps {
     name: string;
+    media: JSX.Element;
     description: string;
     secondaryText: string;
     footer: {
@@ -25,7 +26,14 @@ export interface ScheduledTaskExecutionCardProps {
     };
 }
 
-const ScheduledTaskChatMessage: React.FC<ScheduledTaskExecutionCardProps> = ({ name, description, secondaryText, footer, actions }) => {
+const ScheduledTaskChatMessage: React.FC<ScheduledTaskExecutionCardProps> = ({
+    name,
+    media,
+    description,
+    secondaryText,
+    footer,
+    actions,
+}) => {
     const intl = useIntl();
     const location = useLocation();
     const navigate = useNavigate();
@@ -45,7 +53,7 @@ const ScheduledTaskChatMessage: React.FC<ScheduledTaskExecutionCardProps> = ({ n
                 style={{ maxWidth: 'unset' }}
                 entityTitle={
                     <EntityTitle
-                        media={<Clock28Regular />}
+                        media={media}
                         primaryText={name}
                         secondaryText={secondaryText}
                         actions={

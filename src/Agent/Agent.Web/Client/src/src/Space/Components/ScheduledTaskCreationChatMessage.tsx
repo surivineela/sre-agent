@@ -10,6 +10,7 @@ import { ScheduledTasksClient } from '../../Common/Clients/ScheduledTasksClient'
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
 import { ScheduledTask } from '../Contracts/ScheduledTasks';
+import { EntityIcon } from '../Graph/EntityIcon';
 import ScheduledTaskStatusBadge from '../ScheduledTasks/V2/Common/ScheduledTaskStatusBadge';
 import { getHumanReadableCronExpression, GroupMessageKey } from '../ScheduledTasks/V2/ScheduledTasksUtilities';
 import ScheduledTaskChatMessage from './ScheduledTaskChatMessage';
@@ -56,6 +57,7 @@ const ScheduledTaskCreationChatMessage: React.FC<ScheduledTaskCreationChatMessag
     return (
         <ScheduledTaskChatMessage
             name={task.name}
+            media={<EntityIcon type={'scheduledTask'} shorthandStyle={{ wrapperSize: 40, iconSize: 28, borderRadius: 8 }} />}
             description={task.description}
             secondaryText={intl.formatMessage(ScheduledTasksResources.taskCreatedSuccessfully)}
             footer={{
