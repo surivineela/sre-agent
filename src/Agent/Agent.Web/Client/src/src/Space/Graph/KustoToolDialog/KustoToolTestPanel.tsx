@@ -8,7 +8,7 @@ import { ExtendedAgentClient } from '../../../Common/Clients/ExtendedAgentClient
 import { ExtendedAgentsGraphResources } from '../../../Strings/SREAgentResources';
 import { TestValueAccordion } from './Common/TestValueAccordion';
 import { useKustoToolCreateDialogStyles } from './KustoToolDialog.Styles';
-import { KustoToolFormProps } from './KustoToolUtilities';
+import { KustoToolFormProps, parseKustoAuthorizationError, truncateErrorMessage } from './KustoToolUtilities';
 
 interface KustoToolTestPanelProps {
     hasSuccessRunTest: boolean;
@@ -34,13 +34,21 @@ export const KustoToolTestPanel: FC<KustoToolTestPanelProps> = ({ hasSuccessRunT
             if (response.content?.success) {
                 setHasSuccessRunTest(true);
             } else {
-                setTestError(response.content?.errorMessage ?? null);
+                const errorMessage: string = response.content?.errorMessage ?? '';
+                const processedErrorMessage = errorMessage.includes('403')
+                    ? parseKustoAuthorizationError(errorMessage)
+                    : truncateErrorMessage(errorMessage);
+                setTestError(
+                    processedErrorMessage ??
+                        truncateErrorMessage(errorMessage) ??
+                        intl.formatMessage(ExtendedAgentsGraphResources.failedToRunTest)
+                );
             }
         } else {
-            setTestError(response.error ?? null);
+            setTestError(response.error ?? intl.formatMessage(ExtendedAgentsGraphResources.failedToRunTest));
         }
         setIsRunning(false);
-    }, [extendedAgentClient, setHasSuccessRunTest, values]);
+    }, [extendedAgentClient, intl, setHasSuccessRunTest, values]);
 
     return (
         <>
@@ -52,7 +60,7 @@ export const KustoToolTestPanel: FC<KustoToolTestPanelProps> = ({ hasSuccessRunT
                     {intl.formatMessage(ExtendedAgentsGraphResources.runTest)}
                 </Button>
                 {testError && (
-                    <MessageBar intent="error" icon={<WarningFilled />} style={{ width: '100%' }}>
+                    <MessageBar className={styles.testPanelMessageBar} intent="error" icon={<WarningFilled />}>
                         <MessageBarBody>{testError}</MessageBarBody>
                     </MessageBar>
                 )}

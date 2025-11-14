@@ -3628,6 +3628,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     },
     testQuery: { defaultMessage: 'Test query', id: 'CTRqZs' },
     runTest: { defaultMessage: 'Run test', id: 'mZ0R9v' },
+    failedToRunTest: { defaultMessage: 'Failed to run test', id: 'DcEKTG' },
     testValues: { defaultMessage: 'Test values', id: 'HZQtAg' },
     inputValue: { defaultMessage: 'Input value', id: 'PF15hb' },
     inputValuePlaceholder: { defaultMessage: 'Enter a value', id: 'pndXMi' },

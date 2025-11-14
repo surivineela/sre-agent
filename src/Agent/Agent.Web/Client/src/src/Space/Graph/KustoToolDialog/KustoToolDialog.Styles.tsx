@@ -90,6 +90,7 @@ export const useKustoToolCreateDialogStyles = makeStyles({
         alignItems: 'start',
     },
     testPanelHeader: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '12px', width: '100%' },
+    testPanelMessageBar: { width: '100%', maxWidth: '600px', textWrap: 'wrap' },
     emptyContent: {
         display: 'flex',
         flexDirection: 'column',
