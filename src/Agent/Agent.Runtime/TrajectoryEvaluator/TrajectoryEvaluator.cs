@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Interfaces;
@@ -341,10 +342,10 @@ public class TrajectoryEvaluator
         // Conditional logic for when to generate insights:
         // 1. User explicitly requested it, OR
         // 2. It's an incident trajectory, OR
-        // 3. Thread has more than 15 messages -- either user interacted a bunch, or the assistant did many steps
+        // 3. Thread has more than 3 messages AND conversation contains valuable infrastructure/architecture knowledge worth remembering
         bool shouldGenerateInsights = isUserRequested
             || thread.Source == ThreadSource.Incident
-            || messageCount > 15;
+            || (messageCount > 3 && await ContainsValuableInfrastructureKnowledgeAsync(chatTranscript, cancellationToken));
 
         if (!shouldGenerateInsights)
         {
@@ -401,4 +402,85 @@ public class TrajectoryEvaluator
             _logger.LogInternalWarning(ex, $"Failed to upload trajectory for {threadId}");
         }
     }
+
+    /// <summary>
+    /// Uses LLM to check if conversation contains valuable infrastructure or architecture knowledge
+    /// </summary>
+    /// <param name="chatTranscript">The full chat transcript</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if the conversation contains valuable infrastructure knowledge worth remembering</returns>
+    private async Task<bool> ContainsValuableInfrastructureKnowledgeAsync(
+        string chatTranscript,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var prompt = new List<ChatMessage>
+            {
+                new(ChatRole.System,
+                """
+                You are an SRE evaluator who decides whether this chat captures environment-specific Azure infrastructure knowledge worth archiving for future incident response.
+
+                Mark the conversation as VALUABLE when the user surfaces concrete production details, such as:
+                - Named Azure resources with regions, SKUs, or configuration (e.g., "AppService prod-site in EastUS uses PremiumV2 plan with staging slot").
+                - Architecture or dependency flows tied to an outage (e.g., "Traffic runs FrontDoor → App Gateway → AKS → Cosmos DB failover cluster").
+                - Release cadences or deployment pipelines that shape operations (blue/green vs. ring rollout, release windows, rollback playbooks).
+                - Networking, identity, or policy wiring that explains behavior (NSGs, private endpoints, managed identity role assignments, custom alerts).
+                - Incident retrospectives, mitigations, runbooks, or “how we do X” process knowledge unique to their estate (patch cadence, scaling rules, feature flags, automation scripts).
+                - Users prescribing specific operational procedures the agent should follow (e.g., "Always confirm AKS upgrade window with change board before drain").
+                - Hard-earned lessons or heuristics a senior SRE would want to remember for future investigation or qna (e.g., "Always reset the deployment ring before rotating certs").
+                - High-level application architecture or service boundaries that help future triage (tier breakdowns, microservice responsibilities, critical dependencies).
+
+                Mark it as NOT VALUABLE when the chat only:
+                - Asks generic how-to questions with no environment context.
+                - Performs routine lookups without linking results to their topology.
+                - Describes assistant/tool failures or empty explorations.
+                - Omits specific resource names, environments, or configuration details.
+
+                Respond with a boolean indicating if this conversation contains valuable infrastructure knowledge.
+                """),
+                new(ChatRole.User, $"<conversation>\n{chatTranscript}\n</conversation>")
+            };
+
+            var response = await Framework.ChatClientExtensions.GetResponseAsync(
+                client: _chatClientProvider.GeneralPurposeModel,
+                messages: prompt,
+                outputType: typeof(InfrastructureKnowledgeEvaluation),
+                options: new ChatOptions
+                {
+                    ToolMode = ChatToolMode.None,
+                    Temperature = 0.1f,
+                },
+                cancellationToken: cancellationToken);
+
+            var evaluation = JsonSerializer.Deserialize<InfrastructureKnowledgeEvaluation>(response.response.Text, _jsonSerializerOptions);
+
+            if (evaluation != null)
+            {
+                _logger.LogInternalInformation(
+                    $"Infrastructure knowledge evaluation: {evaluation.ContainsValuableKnowledge}. " +
+                    $"Reason: {evaluation.Reasoning}");
+                return evaluation.ContainsValuableKnowledge;
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to evaluate infrastructure knowledge, defaulting to false");
+            return false;
+        }
+    }
+}
+
+/// <summary>
+/// Response model for infrastructure knowledge evaluation
+/// </summary>
+internal sealed class InfrastructureKnowledgeEvaluation
+{
+    [Description("True if the conversation contains valuable infrastructure or architecture knowledge worth saving for future reference")]
+    public required bool ContainsValuableKnowledge { get; set; }
+
+    [Description("Brief explanation of why this conversation does or doesn't contain valuable infrastructure knowledge")]
+    public required string Reasoning { get; set; }
 }
