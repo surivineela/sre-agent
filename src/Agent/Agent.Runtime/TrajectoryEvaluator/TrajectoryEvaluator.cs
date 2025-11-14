@@ -341,10 +341,10 @@ public class TrajectoryEvaluator
         // Conditional logic for when to generate insights:
         // 1. User explicitly requested it, OR
         // 2. It's an incident trajectory, OR
-        // 3. Thread has more than 3 messages
+        // 3. Thread has more than 15 messages -- either user interacted a bunch, or the assistant did many steps
         bool shouldGenerateInsights = isUserRequested
-            || thread.Source == Core.Models.Api.v1.ThreadSource.Incident
-            || messageCount > 3;
+            || thread.Source == ThreadSource.Incident
+            || messageCount > 15;
 
         if (!shouldGenerateInsights)
         {
