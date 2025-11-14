@@ -25,7 +25,6 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     'portal.azure.com': {},
     'ms.portal.azure.com': {
         [SettingNames.ShowThreadTraceUI]: true,
-        [SettingNames.DataConnectors]: false,
         [SettingNames.Connectors]: true,
         [SettingNames.ShowAgentBuilderPlayground]: true,
         [SettingNames.AllowMetaAgentOverride]: true,
@@ -39,7 +38,6 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.ForUnitTests]: true,
         [SettingNames.ShowThreadTraceUI]: true,
-        [SettingNames.DataConnectors]: false,
         [SettingNames.ShowAgentBuilderPlayground]: true,
         [SettingNames.AllowMetaAgentOverride]: true,
         [SettingNames.Connectors]: true,
