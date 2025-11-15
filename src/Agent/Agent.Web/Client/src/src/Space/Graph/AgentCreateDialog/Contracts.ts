@@ -1,6 +1,7 @@
 import { ExtendedAgent, ExtendedTool, SystemTool } from '../../Contracts/ExtendedAgentGraph';
 import { ToolsPickerProps } from '../Common/ToolsPicker/ToolsPicker';
 import { UseToolsPickerReturn } from '../Common/ToolsPicker/useToolsPicker';
+import { McpConnection } from '../ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { UseHandoffAgentsReturn } from './Hooks/useHandoffAgents';
 import { UseImprovementsAndSuggestionsReturn } from './Hooks/useImprovementsAndSuggestions';
 
@@ -10,6 +11,7 @@ export interface AgentCreateFormValues {
     handoffInstructions: string;
     handoffSubagents: string[];
     tools: string[];
+    mcpTools: string[];
     enableMemory?: boolean;
 }
 
@@ -47,6 +49,7 @@ export interface AgentCreateDialogFormikProps {
     agents?: ExtendedAgent[];
     existingTools?: ExtendedTool[];
     systemTools?: SystemTool[];
+    mcpConnections?: McpConnection[];
     excludedHandoffAgent?: string;
     additionalHandoffAgents?: string[];
     isEditScenario?: boolean;

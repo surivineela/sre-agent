@@ -13,6 +13,7 @@ import {
     PaginatedResponse,
     SystemTool,
 } from '../Contracts/ExtendedAgentGraph';
+import { McpConnection } from '../Graph/ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { buildExtendedAgentGraph } from '../Graph/ExtendedAgentGraphUtility';
 import { useScheduledTasksV2 } from '../ScheduledTasks/V2/Hooks/useScheduledTasksV2';
 import { useIncidentFilters } from './useIncidentFilters';
@@ -27,6 +28,7 @@ export const useExtendedAgentGraph = () => {
     const [triggers, setTriggers] = useState<ExtendedTrigger[]>([]);
     const [triggersLoading, setTriggersLoading] = useState<boolean>(false);
     const [systemTools, setSystemTools] = useState<SystemTool[]>([]);
+    const [mcpConnections, setMcpConnections] = useState<McpConnection[]>([]);
 
     const [nodes, setNodes] = useState<Node<ExtendedAgentGraphNode>[]>([]);
     const [edges, setEdges] = useState<Edge<ExtendedAgentGraphEdge>[]>([]);
@@ -265,19 +267,38 @@ export const useExtendedAgentGraph = () => {
         }
     }, [sreAgentEndpoint]);
 
+    // Fetch system tools
+    const fetchMcpConnections = useCallback(async () => {
+        try {
+            const response = await fetch(`${sreAgentEndpoint}/api/v1/mcp/connections/list`, {
+                headers: getAgentHeaders(),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch MCP connections: ${response.status}`);
+            }
+
+            const data: McpConnection[] = await response.json();
+            setMcpConnections(data);
+        } catch (err) {
+            console.error('Error fetching MCP connections:', err);
+            setError('Failed to load MCP connections');
+        }
+    }, [sreAgentEndpoint]);
+
     // Load all data
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
             setError(null);
 
-            await Promise.all([fetchAgents(), fetchTools(), fetchConnectors(), fetchTriggers(), fetchSystemTools()]);
+            await Promise.all([fetchAgents(), fetchTools(), fetchConnectors(), fetchTriggers(), fetchSystemTools(), fetchMcpConnections()]);
 
             setLoading(false);
         };
 
         loadData();
-    }, [fetchAgents, fetchTools, fetchConnectors, fetchTriggers, fetchSystemTools]);
+    }, [fetchAgents, fetchTools, fetchConnectors, fetchTriggers, fetchSystemTools, fetchMcpConnections]);
 
     // Build graph when data changes
     useEffect(() => {
@@ -287,11 +308,18 @@ export const useExtendedAgentGraph = () => {
             return;
         }
 
-        const { nodes: graphNodes, edges: graphEdges } = buildExtendedAgentGraph(agents, tools, connectors, triggers, systemTools);
+        const { nodes: graphNodes, edges: graphEdges } = buildExtendedAgentGraph(
+            agents,
+            tools,
+            connectors,
+            triggers,
+            systemTools,
+            mcpConnections
+        );
 
         setNodes(graphNodes);
         setEdges(graphEdges);
-    }, [agents, tools, connectors, triggers, systemTools]);
+    }, [agents, tools, connectors, triggers, systemTools, mcpConnections]);
 
     // Apply filters
     const filteredGraph = useMemo(() => {
@@ -389,6 +417,7 @@ export const useExtendedAgentGraph = () => {
         incidentFiltersHook,
         triggers,
         systemTools,
+        mcpConnections,
         nodes: filteredGraph.nodes,
         edges: filteredGraph.edges,
         selectedNode,

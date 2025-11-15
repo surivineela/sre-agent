@@ -175,12 +175,8 @@ export const ExtendedAgentInfoPanel = memo(
         const toolMap = useMemo(() => new Map(tools.map(tool => [tool.name, tool])), [tools]);
 
         const agentToolNames = useMemo(() => {
-            if (!selectedAgent?.tools?.length) {
-                return [] as string[];
-            }
-
-            return selectedAgent.tools;
-        }, [selectedAgent?.tools]);
+            return [...(selectedAgent?.tools || []), ...(selectedAgent?.mcpTools || [])];
+        }, [selectedAgent?.tools, selectedAgent?.mcpTools]);
 
         useEffect(() => {
             setYamlEditorContext(undefined);
@@ -253,23 +249,27 @@ export const ExtendedAgentInfoPanel = memo(
                             <Text>{tool.connector || EMPTY_DISPLAY}</Text>
                         </div>
 
-                        <div className={styles.metadataRow}>
-                            <Text className={styles.metadataKey}>{intl.formatMessage(ExtendedAgentsGraphResources.service)}</Text>
-                            <div className={styles.flexRowCenter}>
-                                {tool.type === 'KustoTool' ? (
-                                    <img
-                                        src={resolveResourceIcon('AzureDataExplorer')}
-                                        alt={intl.formatMessage(ConnectorsResources.azureDataExplorer)}
-                                        className={styles.smallIcon}
-                                    />
-                                ) : (
-                                    <EntityIcon type="tool" shorthandStyle={{ wrapperSize: 16, iconSize: 12, borderRadius: 3 }} />
-                                )}
-                                <Text>
-                                    {tool.type === 'KustoTool' ? SERVICE_TYPE.AZURE_DATA_EXPLORER : tool.type || SERVICE_TYPE.CUSTOM_TOOL}
-                                </Text>
+                        {tool.type !== 'mcp' && (
+                            <div className={styles.metadataRow}>
+                                <Text className={styles.metadataKey}>{intl.formatMessage(ExtendedAgentsGraphResources.service)}</Text>
+                                <div className={styles.flexRowCenter}>
+                                    {tool.type === 'KustoTool' ? (
+                                        <img
+                                            src={resolveResourceIcon('AzureDataExplorer')}
+                                            alt={intl.formatMessage(ConnectorsResources.azureDataExplorer)}
+                                            className={styles.smallIcon}
+                                        />
+                                    ) : (
+                                        <EntityIcon type="tool" shorthandStyle={{ wrapperSize: 16, iconSize: 12, borderRadius: 3 }} />
+                                    )}
+                                    <Text>
+                                        {tool.type === 'KustoTool'
+                                            ? SERVICE_TYPE.AZURE_DATA_EXPLORER
+                                            : tool.type || SERVICE_TYPE.CUSTOM_TOOL}
+                                    </Text>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {tool.type === 'KustoTool' && (
                             <div className={styles.metadataRow}>
@@ -326,59 +326,61 @@ export const ExtendedAgentInfoPanel = memo(
                             </div>
                         )}
 
-                        <div className={styles.subSection}>
-                            <Text className={mergeClasses(styles.sectionTitle, styles.marginBottom8)}>
-                                {intl.formatMessage(ExtendedAgentsGraphResources.parametersSectionTitle)}
-                            </Text>
-                            {tool.parameters && tool.parameters.length > 0 ? (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHeaderCell className={styles.tableCellTruncate}>
-                                                <Text weight="semibold" className={styles.tableCellTextTruncate}>
-                                                    {intl.formatMessage(ExtendedAgentsGraphResources.parameterName)}
-                                                </Text>
-                                            </TableHeaderCell>
-                                            <TableHeaderCell className={styles.tableCellTruncate}>
-                                                <Text weight="semibold" className={styles.tableCellTextTruncate}>
-                                                    {intl.formatMessage(ExtendedAgentsGraphResources.type)}
-                                                </Text>
-                                            </TableHeaderCell>
-                                            <TableHeaderCell className={styles.tableCellTruncate}>
-                                                <Text weight="semibold" className={styles.tableCellTextTruncate}>
-                                                    {intl.formatMessage(ExtendedAgentsGraphResources.value)}
-                                                </Text>
-                                            </TableHeaderCell>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {tool.parameters.map((param, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell className={styles.tableCellTruncate}>
-                                                    <div className={styles.flexRowCenter8}>
-                                                        <Text className={styles.tableCellTextTruncate}>{param.name}</Text>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className={styles.tableCellTruncate}>
-                                                    <div className={styles.flexRowCenter8}>
-                                                        <Text className={styles.tableCellTextTruncate}>{param.type}</Text>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className={styles.tableCellTruncate}>
-                                                    <div className={styles.flexRowCenter8}>
-                                                        <Text className={styles.tableCellTextTruncate}>{param.value}</Text>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            ) : (
-                                <Text className={styles.emptyState}>
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.noParametersConfigured)}
+                        {tool.type !== 'mcp' && (
+                            <div className={styles.subSection}>
+                                <Text className={mergeClasses(styles.sectionTitle, styles.marginBottom8)}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.parametersSectionTitle)}
                                 </Text>
-                            )}
-                        </div>
+                                {tool.parameters && tool.parameters.length > 0 ? (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHeaderCell className={styles.tableCellTruncate}>
+                                                    <Text weight="semibold" className={styles.tableCellTextTruncate}>
+                                                        {intl.formatMessage(ExtendedAgentsGraphResources.parameterName)}
+                                                    </Text>
+                                                </TableHeaderCell>
+                                                <TableHeaderCell className={styles.tableCellTruncate}>
+                                                    <Text weight="semibold" className={styles.tableCellTextTruncate}>
+                                                        {intl.formatMessage(ExtendedAgentsGraphResources.type)}
+                                                    </Text>
+                                                </TableHeaderCell>
+                                                <TableHeaderCell className={styles.tableCellTruncate}>
+                                                    <Text weight="semibold" className={styles.tableCellTextTruncate}>
+                                                        {intl.formatMessage(ExtendedAgentsGraphResources.value)}
+                                                    </Text>
+                                                </TableHeaderCell>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {tool.parameters.map((param, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className={styles.tableCellTruncate}>
+                                                        <div className={styles.flexRowCenter8}>
+                                                            <Text className={styles.tableCellTextTruncate}>{param.name}</Text>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className={styles.tableCellTruncate}>
+                                                        <div className={styles.flexRowCenter8}>
+                                                            <Text className={styles.tableCellTextTruncate}>{param.type}</Text>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className={styles.tableCellTruncate}>
+                                                        <div className={styles.flexRowCenter8}>
+                                                            <Text className={styles.tableCellTextTruncate}>{param.value}</Text>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                ) : (
+                                    <Text className={styles.emptyState}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.noParametersConfigured)}
+                                    </Text>
+                                )}
+                            </div>
+                        )}
                     </>
                 );
             },
@@ -633,7 +635,7 @@ export const ExtendedAgentInfoPanel = memo(
         const isAgentContext = !selectedTool && !selectedConnector && !selectedTrigger && !selectedSystemTool;
 
         const headerEditContext = useMemo(() => {
-            if (selectedTool) return { entity: selectedTool, type: 'tool' as const };
+            if (selectedTool) return selectedTool.type === 'mcp' ? undefined : { entity: selectedTool, type: 'tool' as const };
             if (selectedConnector) return { entity: selectedConnector, type: 'connector' as const };
             if (selectedTrigger) return { entity: selectedTrigger, type: 'trigger' as const };
             if (selectedSystemTool) return undefined;
@@ -643,6 +645,9 @@ export const ExtendedAgentInfoPanel = memo(
 
         const playgroundTarget = useMemo<PlaygroundTarget | undefined>(() => {
             if (selectedTool) {
+                if (selectedTool.type === 'mcp') {
+                    return undefined;
+                }
                 const owningAgent = selectedAgent?.tools?.includes(selectedTool.name ?? '') ? selectedAgent : undefined;
                 return {
                     type: 'tool',

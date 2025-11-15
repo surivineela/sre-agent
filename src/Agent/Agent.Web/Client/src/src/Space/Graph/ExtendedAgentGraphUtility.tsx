@@ -9,6 +9,7 @@ import {
     ExtendedTrigger,
     SystemTool,
 } from '../Contracts/ExtendedAgentGraph';
+import { McpConnection } from './ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { EntityType } from './ExtendedAgentCreationDialog/types';
 
 export const EXTENDED_AGENT_CARD_TYPE = 'ExtendedAgentCard';
@@ -119,7 +120,8 @@ export const buildExtendedAgentGraph = (
     tools: ExtendedTool[],
     connectors: ExtendedConnector[],
     triggers: ExtendedTrigger[] = [],
-    systemTools: SystemTool[] = []
+    systemTools: SystemTool[] = [],
+    mcpConnections: McpConnection[] = []
 ): { nodes: Node<ExtendedAgentGraphNode>[]; edges: Edge<ExtendedAgentGraphEdge>[] } => {
     const nodes: Node<ExtendedAgentGraphNode>[] = [];
     const edges: Edge<ExtendedAgentGraphEdge>[] = [];
@@ -128,12 +130,22 @@ export const buildExtendedAgentGraph = (
     const toolMap = new Map<string, ExtendedTool>();
     const connectorMap = new Map<string, ExtendedConnector>();
     const systemToolMap = new Map<string, SystemTool>();
+    const mcpToolMap = new Map<string, ExtendedTool>();
     const agentMap = new Map<string, ExtendedAgent>();
 
     // Populate maps
     tools.forEach(tool => toolMap.set(tool.name, tool));
     connectors.forEach(connector => connectorMap.set(connector.name, connector));
     systemTools.forEach(systemTool => systemToolMap.set(systemTool.name, systemTool));
+    mcpConnections.forEach(mcpConnection => {
+        mcpConnection.tools?.forEach(tool =>
+            mcpToolMap.set(tool.name, {
+                ...tool,
+                connector: mcpConnection.name,
+                type: 'mcp',
+            })
+        );
+    });
     agents.forEach(agent => agentMap.set(agent.name, agent));
 
     // Create tool nodes, connector nodes, and trigger nodes
@@ -198,6 +210,44 @@ export const buildExtendedAgentGraph = (
             const systemTool = systemToolMap.get(toolName);
             if (systemTool) {
                 agentSystemToolNames.add(toolName);
+            }
+        });
+
+        agent.mcpTools?.forEach(mcpToolName => {
+            const mcpTool = mcpToolMap.get(mcpToolName);
+            if (mcpTool) {
+                // Create tool node if not already created
+                if (!toolNodesCreated.has(mcpToolName)) {
+                    const toolNode = createToolNode(mcpTool);
+                    nodes.push(toolNode);
+                    toolNodesCreated.add(mcpToolName);
+                }
+
+                // Create edge from agent to tool
+                const edge = createExtendedAgentEdge(`agent_${agent.name}`, `tool_${mcpToolName}`, 'agent', 'tool');
+                edges.push(edge);
+
+                // Create connector node and edge if tool has a connector
+                if (mcpTool.connector) {
+                    const connector = connectorMap.get(mcpTool.connector);
+                    if (connector && !connectorNodesCreated.has(mcpTool.connector)) {
+                        const connectorNode = createConnectorNode(connector);
+                        nodes.push(connectorNode);
+                        connectorNodesCreated.add(mcpTool.connector);
+                    }
+
+                    if (connector) {
+                        const connectorEdge = createExtendedAgentEdge(
+                            `tool_${mcpToolName}`,
+                            `connector_${mcpTool.connector}`,
+                            'tool',
+                            'connector'
+                        );
+                        edges.push(connectorEdge);
+                    }
+                }
+
+                return;
             }
         });
 

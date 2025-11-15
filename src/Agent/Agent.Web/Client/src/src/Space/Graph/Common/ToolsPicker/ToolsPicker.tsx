@@ -3,6 +3,8 @@ import {
     Checkbox,
     makeStyles,
     mergeClasses,
+    Radio,
+    RadioGroup,
     SearchBox,
     useTableCell_unstable,
     useTableCellStyles_unstable,
@@ -24,7 +26,7 @@ export interface ToolPickerOption {
     connector?: string;
     groupLabel: string;
     categoryLabel: string;
-    kind: 'tool' | 'system';
+    kind: 'tool' | 'system' | 'mcp';
     pluginName?: string;
     resourceType?: string;
     searchText: string;
@@ -36,6 +38,8 @@ export interface ToolTreeGridGroup {
 }
 
 export interface ToolsPickerProps {
+    toolType: 'mcp' | 'all';
+    onToolTypeChange: (toolType: 'mcp' | 'all') => void;
     groups: ToolTreeGridGroup[];
     expandedGroupNames: string[];
     onGroupExpandedChange: (groupName: string, expanded: boolean) => void;
@@ -47,6 +51,8 @@ export interface ToolsPickerProps {
 }
 
 export const ToolsPicker: FC<ToolsPickerProps> = ({
+    toolType,
+    onToolTypeChange,
     groups,
     expandedGroupNames,
     onGroupExpandedChange,
@@ -64,13 +70,19 @@ export const ToolsPicker: FC<ToolsPickerProps> = ({
 
     return (
         <>
-            <SearchBox
-                className={styles.searchBox}
-                placeholder={intl.formatMessage(SreAgentResources.search)}
-                value={searchQuery}
-                onChange={(_, data) => setSearchQuery(data.value)}
-                disabled={disabled}
-            />
+            <div className={styles.toolBar}>
+                <RadioGroup value={toolType} layout="horizontal" onChange={(_, data) => onToolTypeChange(data.value as 'mcp' | 'all')}>
+                    <Radio value="all" label={intl.formatMessage(ExtendedAgentsGraphResources.allTools)} />
+                    <Radio value="mcp" label={intl.formatMessage(ExtendedAgentsGraphResources.mcpTools)} />
+                </RadioGroup>
+                <SearchBox
+                    className={styles.searchBox}
+                    placeholder={intl.formatMessage(SreAgentResources.search)}
+                    value={searchQuery}
+                    onChange={(_, data) => setSearchQuery(data.value)}
+                    disabled={disabled}
+                />
+            </div>
             <TreeGrid aria-label={intl.formatMessage(ExtendedAgentsGraphResources.allTools)} className={styles.treeGrid}>
                 <div role="rowgroup" className={tableHeaderStyle}>
                     <div role="row" className={mergeClasses(tableRowStyle, styles.tableRow)}>
@@ -215,6 +227,11 @@ const useToolsTreeGridStyles = makeStyles({
         flexDirection: 'column',
         flex: '1 1 auto',
         height: '0%',
+    },
+    toolBar: {
+        display: 'flex',
+        justifyContent: 'flex-start',
+        gap: '8px',
     },
     searchBox: {
         minWidth: '75px',

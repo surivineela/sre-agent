@@ -95,10 +95,10 @@ type LinkRetryContext = {
 type CreationDialogContext =
     | undefined
     | {
-        kind: 'linkFromAgent';
-        sourceAgentName: string;
-        targetType: 'agent' | 'tool';
-    };
+          kind: 'linkFromAgent';
+          sourceAgentName: string;
+          targetType: 'agent' | 'tool';
+      };
 
 const ExtendedAgentGraphContent = memo(() => {
     const {
@@ -115,6 +115,7 @@ const ExtendedAgentGraphContent = memo(() => {
         error,
         agents,
         tools,
+        mcpConnections,
         connectors,
         triggers,
         incidentFiltersHook,
@@ -691,8 +692,8 @@ const ExtendedAgentGraphContent = memo(() => {
             const entityNodeId = !entity
                 ? undefined
                 : entity.entityType === 'Agent'
-                    ? `agent_${entity.entityName}`
-                    : `trigger_${entity.entityName}`;
+                  ? `agent_${entity.entityName}`
+                  : `trigger_${entity.entityName}`;
             const targetNode = !entityNodeId ? undefined : nodes.find(node => node.id === entityNodeId);
             if (targetNode) {
                 requestAnimationFrame(() => {
@@ -1032,6 +1033,16 @@ const ExtendedAgentGraphContent = memo(() => {
         [agents, applyEntity, intl, systemTools, tools]
     );
 
+    const allMcpToolNames = useMemo(() => {
+        const names = new Set<string>();
+        mcpConnections?.forEach(connection => {
+            connection.tools?.forEach(tool => {
+                names.add(tool.name);
+            });
+        });
+        return names;
+    }, [mcpConnections]);
+
     const addToolsToAgent = useCallback(
         async (targetAgentName: string, toolNames: string[]): Promise<OperationResult> => {
             const currentAgent = agents.find(agent => agent.name === targetAgentName);
@@ -1043,13 +1054,26 @@ const ExtendedAgentGraphContent = memo(() => {
                 };
             }
 
-            const filteredToolNames = toolNames.filter(
+            const mcpToolNames = [];
+            const nonMcpToolNames = [];
+            for (const name of toolNames) {
+                if (allMcpToolNames.has(name)) {
+                    mcpToolNames.push(name);
+                } else {
+                    nonMcpToolNames.push(name);
+                }
+            }
+
+            const filteredMcpToolNames = mcpToolNames.filter(name => !currentAgent.mcpTools?.includes(name));
+
+            const filteredNonMcpToolNames = nonMcpToolNames.filter(
                 name => !currentAgent.tools?.includes(name) && !currentAgent.systemTools?.includes(name)
             );
 
             const updatedAgent: ExtendedAgent = {
                 ...currentAgent,
-                tools: [...(currentAgent.tools ?? []), ...filteredToolNames],
+                tools: [...(currentAgent.tools ?? []), ...filteredNonMcpToolNames],
+                mcpTools: [...(currentAgent.mcpTools ?? []), ...filteredMcpToolNames],
             };
 
             try {
@@ -1070,7 +1094,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 return { success: false, message };
             }
         },
-        [agents, applyEntity, intl]
+        [agents, applyEntity, intl, mcpConnections]
     );
 
     const handleAddExistingTool = useCallback(
@@ -1258,8 +1282,8 @@ const ExtendedAgentGraphContent = memo(() => {
                         action === 'createHandoffSourceAgent'
                             ? 'createSource'
                             : action === 'createHandoffTargetAgent'
-                                ? 'createTarget'
-                                : 'edit',
+                              ? 'createTarget'
+                              : 'edit',
                 });
                 return;
             }
@@ -1876,17 +1900,18 @@ const ExtendedAgentGraphContent = memo(() => {
                                     return;
                                 }
 
-                                const trigger = triggers.find(t => (
-                                    t.name?.toLowerCase() === filterName?.toLowerCase() ||
-                                    t.name?.toLowerCase() === handlerId?.toLowerCase()
-                                ));
+                                const trigger = triggers.find(
+                                    t =>
+                                        t.name?.toLowerCase() === filterName?.toLowerCase() ||
+                                        t.name?.toLowerCase() === handlerId?.toLowerCase()
+                                );
                                 if (trigger) {
                                     setPendingEntitySelection({ entityType: 'Trigger', entityName: trigger.name });
                                 }
                             });
                         }
                     }}
-                    setHandlerOperationStatus={() => { }}
+                    setHandlerOperationStatus={() => {}}
                     handlerCreateOrEditInfo={handlerCreateOrEditInfo}
                 />
 
@@ -1944,6 +1969,7 @@ const ExtendedAgentGraphContent = memo(() => {
                     addToolsToAgent={addToolsToAgent}
                     existingTools={tools}
                     systemTools={systemTools}
+                    mcpConnections={mcpConnections}
                     toolPickerInfo={toolPickerInfo}
                 />
 
@@ -1957,6 +1983,7 @@ const ExtendedAgentGraphContent = memo(() => {
                     agents={agents}
                     existingTools={tools}
                     systemTools={systemTools}
+                    mcpConnections={mcpConnections}
                     agentCreateOrEditInfo={agentCreateOrEditInfo}
                 />
 

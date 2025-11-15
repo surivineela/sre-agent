@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ExtendedAgent, ExtendedTool, PromptImprovementResponse, SystemTool } from '../../../Contracts/ExtendedAgentGraph';
 import { tryParseAgentYaml } from '../../../Playground/PlaygroundYamlUtils';
 import { useToolsPicker } from '../../Common/ToolsPicker/useToolsPicker';
+import { McpConnection } from '../../ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { buildAgentConfigurationYaml } from '../../ExtendedAgentYamlUtils';
 import { AgentCreateFormValues, PanelType } from '../Contracts';
 import { useHandoffAgents } from '../Hooks/useHandoffAgents';
@@ -17,6 +18,7 @@ export const useAgentCreateDialogFormik = (
     agents: ExtendedAgent[] | undefined,
     existingTools: ExtendedTool[] | undefined,
     systemTools: SystemTool[] | undefined,
+    mcpConnections: McpConnection[] | undefined,
     excludedHandoffAgent: string | undefined,
     additionalHandoffAgents: string[] | undefined,
     isEditScenario: boolean = false,
@@ -38,10 +40,11 @@ export const useAgentCreateDialogFormik = (
     );
 
     const toolsPickerHook = useToolsPicker({
-        selectedToolNames: values.tools,
+        selectedToolNames: [...values.tools, ...values.mcpTools],
         setSelectedToolNames: (value: string[]) => setFieldValue('tools', value),
         existingTools,
         systemTools,
+        mcpConnections,
     });
 
     const improvementsResultHandler = useCallback(
@@ -68,6 +71,7 @@ export const useAgentCreateDialogFormik = (
                 handoffDescription: values.handoffInstructions,
                 handoffs: values.handoffSubagents,
                 tools: values.tools,
+                mcpTools: values.mcpTools,
                 enableMemory: values.enableMemory,
             };
             const agentYaml = buildAgentConfigurationYaml(agentObj, true);
@@ -85,6 +89,7 @@ export const useAgentCreateDialogFormik = (
                     handoffInstructions: '',
                     handoffSubagents: [],
                     tools: [],
+                    mcpTools: [],
                     enableMemory: false,
                 });
                 return;
@@ -101,6 +106,7 @@ export const useAgentCreateDialogFormik = (
                     handoffInstructions: agent.handoffDescription || '',
                     handoffSubagents: agent.handoffs || [],
                     tools: agent.tools || [],
+                    mcpTools: agent.mcpTools || [],
                     enableMemory: agent.enableMemory,
                 });
             }

@@ -59,6 +59,7 @@ export const useAgentCreateDialog = (
                 handoffDescription: values.handoffInstructions,
                 handoffs: values.handoffSubagents,
                 tools: values.tools,
+                mcpTools: values.mcpTools,
                 enableMemory: values.enableMemory,
             };
 
@@ -169,6 +170,7 @@ export const useAgentCreateDialog = (
                 handoffDescription: values.handoffInstructions,
                 handoffs: values.handoffSubagents,
                 tools: values.tools,
+                mcpTools: values.mcpTools,
                 enableMemory: values.enableMemory,
             };
 
@@ -242,6 +244,7 @@ export const useAgentCreateDialog = (
                 handoffInstructions: agentToEdit.handoffDescription || '',
                 handoffSubagents: agentToEdit.handoffs || [],
                 tools: agentToEdit.tools || [],
+                mcpTools: agentToEdit.mcpTools || [],
                 enableMemory: agentToEdit.enableMemory || agentToEdit.tools?.includes('SearchMemory') || false,
             });
         } else if (agentCreateOrEditInfo.mode === 'createSource') {
@@ -276,6 +279,7 @@ const defaultInitialValues: AgentCreateFormValues = {
     handoffInstructions: '',
     handoffSubagents: [],
     tools: [],
+    mcpTools: [],
 };
 
 const metaAgentDefaultInitialValues: AgentCreateFormValues = {
@@ -352,4 +356,5 @@ Begin with a concise checklist (3–7 bullets) of what you will do; keep items c
         'This is the router agent in the system—it can reach subagents. Use it when you cannot directly perform the next required step or you need to set up recurring automation or manual execution guidance.',
     handoffSubagents: ['scheduled_task_agent', 'self_manual_agent'],
     tools: [],
+    mcpTools: [],
 };

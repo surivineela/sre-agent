@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedTool, SystemTool } from '../../../Contracts/ExtendedAgentGraph';
+import { McpConnection } from '../../ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { ToolPickerOption, ToolsPickerProps } from './ToolsPicker';
 
 export interface UseToolsPickerProps {
@@ -9,6 +10,7 @@ export interface UseToolsPickerProps {
     setSelectedToolNames: (toolNames: string[]) => void;
     existingTools?: ExtendedTool[];
     systemTools?: SystemTool[];
+    mcpConnections?: McpConnection[];
     excludedToolNames?: string[];
 }
 
@@ -19,9 +21,10 @@ export interface UseToolsPickerReturn extends ToolsPickerProps {
 }
 
 export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn => {
-    const { selectedToolNames, setSelectedToolNames, existingTools, systemTools, excludedToolNames } = props;
+    const { selectedToolNames, setSelectedToolNames, existingTools, systemTools, mcpConnections, excludedToolNames } = props;
     const intl = useIntl();
 
+    const [toolType, setToolType] = useState<'mcp' | 'all'>('all');
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [expandedGroupNames, setExpandedGroupNames] = useState<string[]>([]);
     const onGroupExpandedChange = useCallback(
@@ -70,33 +73,31 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
     const availableToolOptions = useMemo(() => {
         const normalize = (value?: string | null) => (value ?? '').trim();
         const currentToolsNormalized = new Set((excludedToolNames ?? []).map(normalize).filter(Boolean));
+
+        const addedToolsNormalized = new Set<string>();
         const options: ToolPickerOption[] = [];
 
-        existingTools?.forEach(tool => {
-            const name = normalize(tool.name);
-            if (!name || currentToolsNormalized.has(name)) {
-                return;
-            }
-
-            const category = getExtendedToolCategory(tool);
-            const description = tool.description ?? '';
-            const metadataCategory = tool.metadata?.category ?? '';
-            const searchText = `${name} ${category} ${metadataCategory} ${description} ${tool.type ?? ''}`.toLowerCase();
-
-            options.push({
-                name,
-                description: tool.description,
-                connector: tool.connector,
-                groupLabel: category,
-                categoryLabel: category,
-                kind: 'tool',
-                searchText,
+        mcpConnections?.forEach(connection => {
+            connection.tools?.forEach(mcpTool => {
+                const name = normalize(mcpTool.name);
+                if (!name || currentToolsNormalized.has(name)) {
+                    return;
+                }
+                options.push({
+                    name: normalize(mcpTool.name),
+                    description: mcpTool.description,
+                    groupLabel: connection.name,
+                    categoryLabel: connection.name,
+                    kind: 'mcp',
+                    searchText: `${mcpTool.name} ${connection.name} ${mcpTool.description ?? ''}`.toLowerCase(),
+                });
+                addedToolsNormalized.add(name);
             });
         });
 
         systemTools?.forEach(systemTool => {
             const name = normalize(systemTool.name);
-            if (!name || currentToolsNormalized.has(name)) {
+            if (!name || currentToolsNormalized.has(name) || addedToolsNormalized.has(name)) {
                 return;
             }
 
@@ -118,8 +119,30 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
             });
         });
 
+        existingTools?.forEach(tool => {
+            const name = normalize(tool.name);
+            if (!name || currentToolsNormalized.has(name) || addedToolsNormalized.has(name)) {
+                return;
+            }
+
+            const category = getExtendedToolCategory(tool);
+            const description = tool.description ?? '';
+            const metadataCategory = tool.metadata?.category ?? '';
+            const searchText = `${name} ${category} ${metadataCategory} ${description} ${tool.type ?? ''}`.toLowerCase();
+
+            options.push({
+                name,
+                description: tool.description,
+                connector: tool.connector,
+                groupLabel: category,
+                categoryLabel: category,
+                kind: 'tool',
+                searchText,
+            });
+        });
+
         return options;
-    }, [excludedToolNames, existingTools, systemTools, getExtendedToolCategory, intl]);
+    }, [excludedToolNames, existingTools, systemTools, mcpConnections, getExtendedToolCategory, intl]);
 
     const filteredToolOptions = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
@@ -133,26 +156,24 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
         return matches;
     }, [availableToolOptions, searchQuery]);
 
-    const groups = useMemo(() => {
-        const groups = new Map<string, ToolPickerOption[]>();
-
-        filteredToolOptions.forEach(option => {
-            const existing = groups.get(option.groupLabel);
-            if (existing) {
-                existing.push(option);
-            } else {
-                groups.set(option.groupLabel, [option]);
-            }
-        });
-
-        return Array.from(groups.entries())
-            .map(([category, tools]) => ({
-                category,
-                tools: tools.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
-            }))
-            .filter(group => group.tools.length > 0)
-            .sort((a, b) => a.category.localeCompare(b.category, undefined, { sensitivity: 'base' }));
+    const mcpGroups = useMemo(() => {
+        const filteredMcpTools = filteredToolOptions.filter(option => option.kind === 'mcp');
+        const groups = getGroups(filteredMcpTools);
+        return [...groups];
     }, [filteredToolOptions]);
+
+    const nonMcpGroups = useMemo(() => {
+        const filteredMcpTools = filteredToolOptions.filter(option => option.kind !== 'mcp');
+        const groups = getGroups(filteredMcpTools);
+        return [...groups];
+    }, [filteredToolOptions]);
+
+    const groups = useMemo(() => {
+        if (toolType === 'mcp') {
+            return mcpGroups;
+        }
+        return [...mcpGroups, ...nonMcpGroups];
+    }, [toolType, mcpGroups, nonMcpGroups]);
 
     const pillItems = useMemo(() => {
         return selectedToolNames.map(name => ({ key: name, label: name }));
@@ -168,6 +189,8 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
     }, []);
 
     return {
+        toolType,
+        onToolTypeChange: setToolType,
         expandedGroupNames,
         onGroupExpandedChange,
         selectedToolNames,
@@ -179,4 +202,25 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
         groups,
         pillItems,
     };
+};
+
+const getGroups = (tools: ToolPickerOption[]) => {
+    const groups = new Map<string, ToolPickerOption[]>();
+
+    tools.forEach(option => {
+        const existing = groups.get(option.groupLabel);
+        if (existing) {
+            existing.push(option);
+        } else {
+            groups.set(option.groupLabel, [option]);
+        }
+    });
+
+    return Array.from(groups.entries())
+        .map(([category, tools]) => ({
+            category,
+            tools: tools.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
+        }))
+        .filter(group => group.tools.length > 0)
+        .sort((a, b) => a.category.localeCompare(b.category, undefined, { sensitivity: 'base' }));
 };

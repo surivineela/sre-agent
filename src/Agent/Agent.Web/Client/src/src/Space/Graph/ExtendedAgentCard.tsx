@@ -78,7 +78,7 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
         isSelectedNode ? cardSelected : undefined
     );
 
-    const toolCount = agent?.tools?.length || 0;
+    const toolCount = (agent?.tools?.length || 0) + (agent?.mcpTools?.length || 0);
 
     return (
         <div className={cardWrapper}>

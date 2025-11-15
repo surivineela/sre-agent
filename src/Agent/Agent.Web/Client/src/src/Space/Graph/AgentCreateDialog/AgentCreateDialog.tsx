@@ -6,7 +6,7 @@ import { AgentCreateDialogProps, AgentCreateFormValues } from './Contracts';
 import { useAgentCreateDialog } from './Hooks/useAgentCreateDialog';
 
 export const AgentCreateDialog: FC<AgentCreateDialogProps> = props => {
-    const { onDismiss, refresh, agents, existingTools, systemTools, agentCreateOrEditInfo } = props;
+    const { onDismiss, refresh, agents, existingTools, systemTools, mcpConnections, agentCreateOrEditInfo } = props;
 
     const {
         isOpen,
@@ -41,6 +41,7 @@ export const AgentCreateDialog: FC<AgentCreateDialogProps> = props => {
                     agents={agents}
                     existingTools={existingTools}
                     systemTools={systemTools}
+                    mcpConnections={mcpConnections}
                     excludedHandoffAgent={excludedHandoffAgent}
                     additionalHandoffAgents={additionalHandoffAgents}
                     isEditScenario={isEditScenario}
