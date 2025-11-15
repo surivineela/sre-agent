@@ -53,6 +53,7 @@ export type ExtendedTool = {
     parameters?: ToolParameter[];
     attributes?: string[];
     metadata?: Record<string, any>;
+    toolMode?: string;
     // Kusto tool specific
     mode?: string;
     function?: string;

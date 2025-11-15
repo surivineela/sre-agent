@@ -804,7 +804,6 @@ echo   critic_on_handoff: false >> agents\invalid_types.yaml
 echo   custom_reflection_note: '' >> agents\invalid_types.yaml
 echo   disable_document_retrieval: false >> agents\invalid_types.yaml
 echo   enable_handoff_prompt_override: false >> agents\invalid_types.yaml
-echo   disable_common_prompts: false >> agents\invalid_types.yaml
 echo   agent_type: Autonomous >> agents\invalid_types.yaml
 echo   meta_data: {} >> agents\invalid_types.yaml
 echo   handoff_description: '' >> agents\invalid_types.yaml

@@ -59,11 +59,6 @@ public class Agent<TContext>(string name) where TContext : class
     public bool EnableHandoffPromptOverride { get; set; } = false;
 
     /// <summary>
-    /// When true, disables DI-injected common prompts and uses only the original instructions.
-    /// </summary>
-    public bool DisableCommonPrompts { get; set; } = false;
-
-    /// <summary>
     /// Indicates whether this agent is an extended (custom) agent loaded from the extensibility system.
     /// </summary>
     public bool IsExtended { get; set; } = false;
@@ -147,7 +142,6 @@ public class Agent<TContext>(string name) where TContext : class
             UserPromptOverride = UserPromptOverride,
             DisableDocumentRetrieval = DisableDocumentRetrieval,
             EnableHandoffPromptOverride = EnableHandoffPromptOverride,
-            DisableCommonPrompts = DisableCommonPrompts,
             IsExtended = IsExtended,
             ChatToolMode = ChatToolMode,
             Temperature = Temperature,
@@ -173,6 +167,7 @@ public class Agent<TContext>(string name) where TContext : class
 
             EnableSkills = EnableSkills,
             AddSystemSkills = AddSystemSkills,
+            EnableVanillaMode = EnableVanillaMode
         };
     }
 }

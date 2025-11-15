@@ -31,6 +31,9 @@ public abstract class YamlToolDefinitionBase
     [YamlMember(Alias = "attributes")]
     public List<string> Attributes { get; set; } = new();
 
+    [YamlMember(Alias = "tool_mode")]
+    public ToolMode ToolMode { get; set; } = ToolMode.Auto;
+
     /// <summary>
     /// ARCHITECTURAL ISSUE: This metadata property causes duplicate metadata sections in structured YAML.
     /// The CLI post-processes YAML to remove this duplicate (see RemoveDuplicateToolMetadata).

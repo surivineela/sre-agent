@@ -602,10 +602,7 @@ public static class Runner
             await hooks.OnAgentStart(contextWrapper, agent);
         }
 
-        // Use original instructions without DI additions if DisableCommonPrompts is true
-        var systemPrompt = agent.DisableCommonPrompts
-            ? agent.Instructions.GetOriginalText()
-            : agent.Instructions.ToString();
+        var systemPrompt = agent.Instructions.ToString();
 
         List<AIFunction> tools = [];
         tools.AddRange(agent.Tools);

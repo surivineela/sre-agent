@@ -19,4 +19,5 @@ public abstract class ExtendedAgentToolApiModel
     public List<YamlParameter> Parameters { get; set; } = new();
     public List<string> Attributes { get; set; } = new();
     public YamlMetadata Metadata { get; set; } = new();
+    public ToolMode ToolMode { get; set; } = ToolMode.Auto;
 }

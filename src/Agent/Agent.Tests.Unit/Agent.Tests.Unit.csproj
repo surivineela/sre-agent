@@ -31,9 +31,16 @@
   </ItemGroup>
 
   <ItemGroup>
-   <Content Include="TestData\**\*.*">
+   <Content Include="TestData\**\*.*" Exclude="TestData\ToolsV2\**\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="TestData\ToolsV2\**\*.*">
+      <Link>ToolsV2\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

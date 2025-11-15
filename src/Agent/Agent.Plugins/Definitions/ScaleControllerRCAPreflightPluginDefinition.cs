@@ -8,6 +8,7 @@ using Agent.Framework;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
+using Microsoft.AzureAd.Icm.IcmV3OData.Models;
 using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
 
 namespace Agent.Plugins.Definitions
@@ -393,6 +394,34 @@ Output: Returns JSON containing extracted parameters such as incidentId, title, 
         {
             var a = await _icmPlugin.GetIncidentInfo(incidentId);
             return a;
+        }
+
+        // The following function is created for Durable usage.
+
+        //This function gets the instance id information from the custom fields
+        [Description(@"""
+            Retrieves instance Ids and the relevant timestamps from the IcM custom fields section.
+            Returns a CustomField object with this information.
+                """
+        )]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<string?> GetInstanceIdFromCustomFields(
+        [Description("ICM Incident ID to extract custom fields from.")] string incidentId
+        )
+        {
+            List<CustomField> customFields = await _icmPlugin.GetCustomFields(incidentId);
+            CustomField? instanceIdsField = customFields.FirstOrDefault(f => string.Equals(f.Name, "Instance Ids", StringComparison.OrdinalIgnoreCase));
+            return instanceIdsField?.StringValue;
+        }
+
+        //This function gets summary of the incident.
+        [Description(@"Gets the summary of the incident.")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<string> GetIncidentSummary(
+                [Description("ICM Incident ID for the summary.")] string incidentId)
+        {
+            Incident incidentInfo = await _icmPlugin.GetIncidentInfo(incidentId);
+            return incidentInfo.Summary;
         }
     }
 }

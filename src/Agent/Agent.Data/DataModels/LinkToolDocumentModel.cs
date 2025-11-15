@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Agent.Data.Tools;
 using Agent.Framework;
@@ -31,7 +32,8 @@ public record LinkToolDocumentModel : ToolDocumentModel
             Parameters = Spec.Parameters ?? new List<YamlParameter>(),
             Attributes = Spec.Attributes ?? new List<string>(),
             Metadata = Metadata.ToYamlMetadata(),
-            Template = Spec.Template
+            Template = Spec.Template,
+            ToolMode = Spec.ToolMode
         };
     }
 }

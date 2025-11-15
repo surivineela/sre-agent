@@ -30,7 +30,6 @@ user_prompt_override: |
   - NextSteps: [] if correlation is confirmed; otherwise ["eb_message_enqueued_agent"]
 
 disable_document_retrieval: true
-disable_common_prompts: true
-common_prompts:
-- format_guidelines
-- guard_rail
+vanilla_mode: true
+
+

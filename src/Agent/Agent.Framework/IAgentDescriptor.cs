@@ -29,7 +29,6 @@ public interface IAgentDescriptor
     public string? UserPromptOverride { get; set; }
     public bool DisableDocumentRetrieval { get; set; }
     public bool EnableHandoffPromptOverride { get; set; }
-    public bool DisableCommonPrompts { get; set; }
     public bool EnableVanillaMode { get; set; }
     public bool EnableSkills { get; set; }
 

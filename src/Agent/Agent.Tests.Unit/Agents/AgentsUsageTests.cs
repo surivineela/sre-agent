@@ -76,8 +76,11 @@ public class AgentsUsageTests
 
         foreach (var agentDescriptor in agentDescriptors)
         {
-            Assert.True(agentDescriptor.CommonPrompts.Contains("guard_rail"),
-                $"Agent Descriptor with name {agentDescriptor.Name} does not include 'guard_rail' in the 'common_prompts' list");
+            if (!agentDescriptor.EnableVanillaMode)
+            {
+                Assert.True(agentDescriptor.CommonPrompts.Contains("guard_rail"),
+                    $"Agent Descriptor with name {agentDescriptor.Name} does not include 'guard_rail' in the 'common_prompts' list");
+            }
         }
     }
 
@@ -96,8 +99,11 @@ public class AgentsUsageTests
 
         foreach (var agentDescriptor in agentDescriptors)
         {
-            Assert.True(agentDescriptor.CommonPrompts.Contains("format_guidelines"),
-                $"Agent Descriptor with name {agentDescriptor.Name} does not include 'format_guidelines' in the 'common_prompts' list");
+            if (!agentDescriptor.EnableVanillaMode)
+            {
+                Assert.True(agentDescriptor.CommonPrompts.Contains("format_guidelines"),
+                    $"Agent Descriptor with name {agentDescriptor.Name} does not include 'format_guidelines' in the 'common_prompts' list");
+            }
         }
     }
 }

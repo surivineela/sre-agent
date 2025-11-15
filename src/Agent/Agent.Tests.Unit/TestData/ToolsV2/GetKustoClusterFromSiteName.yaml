@@ -1,0 +1,35 @@
+name: GetKustoClusterFromSiteName
+type: KustoTool
+tool_mode: Auto
+connector: kusto-default-wawscus
+description: Looks up EventPrimaryStampName and Kusto cluster for a site name.
+database: wawsprod
+mode: Function
+function: GetKustoClusterFromSiteName
+query: |-
+  let _siteName = "##siteName##";
+  union
+    (All("AntaresIISLogFrontEndTable")
+      | where S_sitename == _siteName
+      | project EventPrimaryStampName),
+    (All("ScaleControllerEvents")
+      | where SiteName == _siteName
+      | project EventPrimaryStampName)
+  | take 1
+  | parse EventPrimaryStampName with "waws-prod-" abbreviation "-" *
+  | join kind=inner (
+      GetRegions()
+      | project AntaresAbbreviation, KustoCluster
+    ) on abbreviation == AntaresAbbreviation
+  | project EventPrimaryStampName, KustoCluster
+parameters:
+  - name: siteName
+    type: string
+    required: true
+    description: Function app name (SiteName).
+    map_to: args
+    target: dictionary:args:string
+display_options:
+  show_table: true
+  max_table_rows: 5
+  show_chart: false

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Agent.Data.Tools;
 using Agent.Framework;
@@ -58,4 +59,6 @@ public class ToolSpec
     public List<YamlParameter>? Parameters { get; set; }
 
     public List<string>? Attributes { get; set; }
+
+    public ToolMode ToolMode { get; set; } = ToolMode.Auto;
 }

@@ -29,7 +29,6 @@ user_prompt_override: |
   - NextSteps: ["eb_extract_gap_timestamps_agent","eb_message_peak_throughput_agent"] if a value is found; otherwise []
 
 disable_document_retrieval: true
-disable_common_prompts: true
-common_prompts:
-- format_guidelines
-- guard_rail
+vanilla_mode: true
+
+

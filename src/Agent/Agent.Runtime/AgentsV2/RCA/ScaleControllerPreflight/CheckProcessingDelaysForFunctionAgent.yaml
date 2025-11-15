@@ -86,10 +86,7 @@ user_prompt_override: |
 
 disable_document_retrieval: true
 
-disable_common_prompts: true
-
-common_prompts:
-- format_guidelines
-- guard_rail
+vanilla_mode: true
 
 max_reflection_count: 1
+

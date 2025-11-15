@@ -207,7 +207,6 @@ public class AgentFactoryTests
         Assert.Contains("You are a vanilla agent with minimal instructions.", instructions);
         Assert.DoesNotContain("# Handoff System Context", instructions);
         Assert.DoesNotContain(TestCommonPrompt.PromptText, instructions);
-        // todo prompt automatically added
         Assert.Contains(ToDoWriteTool<AgentContext>.ToolName, instructions);
 
         var reasoningLoop = (ReasoningLoop)RuntimeHelpers.GetUninitializedObject(typeof(ReasoningLoop));
@@ -1031,7 +1030,6 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
-    public bool DisableCommonPrompts { get; set; } = false;
     public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
@@ -1066,7 +1064,6 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
-    public bool DisableCommonPrompts { get; set; } = false;
     public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
@@ -1100,7 +1097,6 @@ public class TestAgent3WithOptionalToolsDescriptor : IAgentDescriptor
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
-    public bool DisableCommonPrompts { get; set; } = false;
     public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
@@ -1134,7 +1130,6 @@ public class TestAgent4WithOptionalToolsOnlyDescriptor : IAgentDescriptor
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
-    public bool DisableCommonPrompts { get; set; } = false;
     public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
@@ -1168,7 +1163,6 @@ public class TestAgent5WithMultipleOptionalToolsDescriptor : IAgentDescriptor
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
-    public bool DisableCommonPrompts { get; set; } = false;
     public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
@@ -1202,7 +1196,6 @@ public class TestAgent6WithEmptyConditionDescriptor : IAgentDescriptor
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
-    public bool DisableCommonPrompts { get; set; } = false;
     public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
@@ -1236,7 +1229,6 @@ public class TestAgent7WithDataConnectorConditionDescriptor : IAgentDescriptor
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
-    public bool DisableCommonPrompts { get; set; } = false;
     public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
@@ -1270,7 +1262,6 @@ public class TestAgent8WithMissingDataConnectorDescriptor : IAgentDescriptor
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
-    public bool DisableCommonPrompts { get; set; } = false;
     public bool EnableVanillaMode { get; set; } = false;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
@@ -1304,7 +1295,6 @@ public class TestAgentWithSkillsEnabledDescriptor : IAgentDescriptor
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
-    public bool DisableCommonPrompts { get; set; } = false;
     public bool EnableSkills { get; set; } = true; // Skills enabled
     public bool AddSystemSkills { get; set; } = true;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
@@ -1338,7 +1328,6 @@ public class TestAgentWithSkillsAndReadSkillFileToolDescriptor : IAgentDescripto
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
-    public bool DisableCommonPrompts { get; set; } = false;
     public bool EnableSkills { get; set; } = true; // Skills enabled, and tool already in list
     public bool AddSystemSkills { get; set; } = true;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;

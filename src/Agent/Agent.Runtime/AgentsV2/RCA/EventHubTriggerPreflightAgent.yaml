@@ -63,8 +63,8 @@ tools:
 
 disable_document_retrieval: true
 
-common_prompts:
-- format_guidelines
-- guard_rail
-
 max_reflection_count: 1
+
+common_prompts:
+  - format_guidelines
+  - guard_rail

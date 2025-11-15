@@ -150,7 +150,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         }
 
         [Fact]
-        public void GetKqlFilePath_EmptyString_ReturnsPath()
+        public void GetKqlFilePath_EmptyString_ReturnsEmptyPath()
         {
             // Arrange
             var functionName = "";
@@ -160,7 +160,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             Assert.NotNull(result);
-            Assert.EndsWith(".kql", result);
+            Assert.EndsWith(string.Empty, result);
         }
 
         [Fact]

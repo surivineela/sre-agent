@@ -9,11 +9,7 @@ agent_type: "Activity"
 output_type: "WorkflowActivityLLMOutput"
 
 disable_document_retrieval: true
-disable_common_prompts: true
-common_prompts:
-  - format_guidelines
-  - guard_rail
-
+vanilla_mode: true
 user_prompt_override: |
   TASK:
     Extract IncidentId by following this process:
@@ -27,3 +23,4 @@ user_prompt_override: |
   - If missing, still output empty string value.
 
 tools: []
+

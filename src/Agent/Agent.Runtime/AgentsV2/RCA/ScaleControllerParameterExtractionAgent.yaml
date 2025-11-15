@@ -77,8 +77,5 @@ agent_type: "Activity"
 
 disable_document_retrieval: true
 
-disable_common_prompts: true
+vanilla_mode: true
 
-common_prompts:
-- format_guidelines
-- guard_rail

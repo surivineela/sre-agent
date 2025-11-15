@@ -80,11 +80,15 @@ public class YamlAgentDescriptor : IAgentDescriptor
     [YamlMember(Alias = "llm_scenario_type")]
     public ModelScenarioType? LlmScenarioType { get; set; } = null;
 
-    [YamlMember(Alias = "disable_common_prompts")]
-    public bool DisableCommonPrompts { get; set; } = false;
-
     [YamlMember(Alias = "vanilla_mode")]
     public bool EnableVanillaMode { get; set; } = false;
+
+    // Back-compat: accept legacy disable_common_prompts field and map it to vanilla mode
+    [YamlMember(Alias = "disable_common_prompts")]
+    public bool LegacyDisableCommonPrompts
+    {
+        set => EnableVanillaMode = value;
+    }
 
     [YamlMember(Alias = "enable_skills")]
     public bool EnableSkills { get; set; } = false;

@@ -141,6 +141,7 @@ export const buildToolListYaml = (tool: Partial<ExtendedTool>): string => {
     };
 
     assignIfDefined(toolRecord, 'connector', tool.connector);
+    assignIfDefined(toolRecord, 'tool_mode', extendedTool['tool_mode'] ?? extendedTool['toolMode'] ?? tool.toolMode);
     assignIfDefined(toolRecord, 'mode', extendedTool['mode'] ?? tool.mode);
     assignIfDefined(toolRecord, 'description', tool.description);
     assignIfDefined(toolRecord, 'query', tool.query ?? extendedTool['query']);

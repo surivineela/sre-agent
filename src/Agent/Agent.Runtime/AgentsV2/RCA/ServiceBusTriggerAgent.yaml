@@ -56,8 +56,8 @@ agents_as_tools:
     tool_description: "Verifies listener initialization & heartbeat events."
     input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, (entityPath if known), KustoCluster."
 
+max_reflection_count: 1
+
 common_prompts:
   - format_guidelines
   - guard_rail
-
-max_reflection_count: 1

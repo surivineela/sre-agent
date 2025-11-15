@@ -235,7 +235,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             UserPromptOverride = agentDescriptor.UserPromptOverride,
             DisableDocumentRetrieval = agentDescriptor.DisableDocumentRetrieval,
             EnableHandoffPromptOverride = agentDescriptor.EnableHandoffPromptOverride,
-            DisableCommonPrompts = agentDescriptor.DisableCommonPrompts,
             IsExtended = isCustomAgent,
             EnableSkills = agentDescriptor.EnableSkills,
             AddSystemSkills = agentDescriptor.AddSystemSkills,
@@ -382,6 +381,19 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         // Update the Instructions with the resolved text
         agent.Instructions = new PromptText(resolvedInstructions);
 
+        foreach (var commonPromptName in agentDescriptor.CommonPrompts)
+        {
+            if (!_promptDescriptors.TryGetValue(commonPromptName, out var commonPrompt))
+            {
+                _logger.LogInternalWarning("Agent descriptor {descriptorName} has a common prompt {commonPromptName} that does not exist.",
+                    agentDescriptor.Name, commonPromptName);
+
+                throw new Exception($"Agent descriptor {agentDescriptor.Name} has a common prompt {commonPromptName} that does not exist.");
+            }
+
+            agent.Instructions.AddCommonPrompt(commonPrompt.Prompt);
+        }
+
         // skip the handoff instructions and preamble for vanilla agent
         if (!agent.EnableVanillaMode)
         {
@@ -397,24 +409,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
             // Automatically configure agent for different modes
             _modeConfigurator.ConfigureAgent(agent, agentDescriptor, _promptDescriptors);
-        }
 
-
-        foreach (var commonPromptName in agentDescriptor.CommonPrompts)
-        {
-            if (!_promptDescriptors.TryGetValue(commonPromptName, out var commonPrompt))
-            {
-                _logger.LogInternalWarning("Agent descriptor {descriptorName} has a common prompt {commonPromptName} that does not exist.",
-                    agentDescriptor.Name, commonPromptName);
-
-                throw new Exception($"Agent descriptor {agentDescriptor.Name} has a common prompt {commonPromptName} that does not exist.");
-            }
-
-            agent.Instructions.AddCommonPrompt(commonPrompt.Prompt);
-        }
-
-        if (!agent.EnableVanillaMode)
-        {
             if (_promptEnders is not null)
             {
                 foreach (var promptEnder in _promptEnders)

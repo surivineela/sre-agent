@@ -1,0 +1,32 @@
+name: GetKustoClusterFromEventPrimaryStampName
+type: KustoTool
+tool_mode: Auto
+connector: kusto-default-wawscus
+description: Resolves the default Kusto cluster given an EventPrimaryStampName.
+database: wawsprod
+mode: Function
+function: GetKustoClusterFromEventPrimaryStampName
+query: |-
+  let _eventPrimaryStampName = "##eventPrimaryStampName##";
+  GetRegions
+  | parse _eventPrimaryStampName with "waws-prod-" abbreviation "-" *
+  | where AntaresAbbreviation == abbreviation
+  | project KustoCluster
+  | take 1
+parameters:
+  - name: eventPrimaryStampName
+    type: string
+    required: true
+    description: EventPrimaryStampName in waws-prod-xxx-bbb format.
+    map_to: args
+    target: dictionary:args:string
+    validation:
+      regex: '^waws-prod-[a-z0-9]+-[a-z0-9]+$'
+      error_message: The eventPrimaryStampName must follow 'waws-prod-xxx-bbb'.
+      normalize:
+        - trim
+        - lowerInvariant
+display_options:
+  show_table: true
+  max_table_rows: 5
+  show_chart: false

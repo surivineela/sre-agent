@@ -49,7 +49,6 @@ user_prompt_override: |
 agent_type: "Activity"
 
 disable_document_retrieval: true
-disable_common_prompts: true
-common_prompts:
-- format_guidelines
-- guard_rail
+vanilla_mode: true
+
+

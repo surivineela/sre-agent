@@ -69,7 +69,8 @@ namespace Agent.Plugins.Kusto.Tools
                         connector.ClusterUrl,
                         _definition.Database,
                         args,
-                        displayOptions);
+                        displayOptions,
+                        toolDefinition: _definition);
 
                 case KustoExecutionMode.Query:
                     // Region parameter is not used in Query mode, as the cluster is defined in the connector
@@ -99,8 +100,6 @@ namespace Agent.Plugins.Kusto.Tools
                 SeriesFields = definition.SeriesFields
             };
         }
-
-
 
         [ToolTypeAttribute("KustoQuery")]
         public class KustoQuery

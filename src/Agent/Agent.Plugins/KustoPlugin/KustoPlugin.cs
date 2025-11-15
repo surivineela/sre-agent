@@ -12,6 +12,7 @@ using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Data.DataModels;
+using Agent.Data.Tools;
 using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
 using Microsoft.Extensions.AI;
@@ -172,6 +173,11 @@ namespace Agent.Plugins.Kusto
 
         internal static string GetKqlFilePath(string functionName, string baseDirectory)
         {
+            if (string.IsNullOrWhiteSpace(functionName))
+            {
+                return string.Empty;
+            }
+
             var baseDir = Path.Combine(baseDirectory, "Plugins", "Definitions", "Queries");
 
             // Maintain existing behavior: direct file name search (backward compatibility)
@@ -425,7 +431,7 @@ namespace Agent.Plugins.Kusto
 
 
 
-        public async Task<KustoQueryResult> ExecuteClusterKustoQueryInternal(
+        public virtual async Task<KustoQueryResult> ExecuteClusterKustoQueryInternal(
             string cluster,
             string database,
             string fullQuery)
@@ -489,9 +495,21 @@ namespace Agent.Plugins.Kusto
             return formatted;
         }
         // Single method: optional displayOptions keeps existing behavior when null
-        public async Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args, KustoDisplayOptions? displayOptions = null)
+        public async Task<string> ExecuteLocalFunctionOnClusterAsync(
+            string functionName,
+            string clusterName,
+            string databaseName,
+            Dictionary<string, string> args,
+            KustoDisplayOptions? displayOptions = null,
+            KustoToolDefinition? toolDefinition = null)
         {
             var fileName = GetKqlFilePath(functionName);
+            var displayFunctionName = !string.IsNullOrWhiteSpace(toolDefinition?.Function)
+                ? toolDefinition.Function!
+                : !string.IsNullOrWhiteSpace(toolDefinition?.Name)
+                    ? toolDefinition.Name
+                    : functionName;
+
             KustoQueryResult queryResult;
             if (File.Exists(fileName))
             {
@@ -500,7 +518,19 @@ namespace Agent.Plugins.Kusto
             }
             else
             {
-                throw new ArgumentException($"Function {functionName} not found in {fileName}");
+                var fallbackQuery = toolDefinition?.Query;
+                if (string.IsNullOrWhiteSpace(fallbackQuery))
+                {
+                    throw new ArgumentException($"Function {functionName} not found in {fileName}");
+                }
+
+                _logger.LogInternalWarning(
+                    "KQL file for function {FunctionName} not found at {FileName}. Falling back to inline query from tool definition.",
+                    functionName,
+                    fileName);
+
+                var formattedFallback = FormatTemplate(fallbackQuery!, args);
+                queryResult = await ExecuteClusterKustoQueryInternal(clusterName, databaseName, formattedFallback);
             }
 
             if (queryResult.Result.Length > TokenLimit)
@@ -511,13 +541,12 @@ namespace Agent.Plugins.Kusto
             ChatMessage msg;
             if (displayOptions is { } opts && queryResult.Message != null)
             {
-                // Build enhanced display without breaking existing tool output
                 var enhanced = KustoDisplayFormatter.BuildDisplayMessage(queryResult.Message, queryResult.Result, opts);
-                msg = new ChatMessage(ChatRole.Tool, $"`{functionName}`{Environment.NewLine + Environment.NewLine}{enhanced.Text}");
+                msg = new ChatMessage(ChatRole.Tool, $"`{displayFunctionName}`{Environment.NewLine + Environment.NewLine}{enhanced.Text}");
             }
             else
             {
-                msg = new ChatMessage(ChatRole.Tool, $"`{functionName}`{Environment.NewLine + Environment.NewLine}{queryResult.Message?.Text}");
+                msg = new ChatMessage(ChatRole.Tool, $"`{displayFunctionName}`{Environment.NewLine + Environment.NewLine}{queryResult.Message?.Text}");
             }
 
             await HandleKustoResult(msg);

@@ -129,7 +129,7 @@ spec:
     - NextSteps: []
 
   disable_document_retrieval: true
-  disable_common_prompts: true
+  vanilla_mode: true
   common_prompts:
     - format_guidelines
     - guard_rail
@@ -235,8 +235,7 @@ spec:
 | `temperature` | float | No | Sampling temperature for the LLM. | [`YamlAgentDescriptor.Temperature`](../../src/Agent/Agent.Framework/YamlAgentDescriptor.cs) |
 | `llm_model_name` | string | No | Preferred LLM model identifier. | [`YamlAgentDescriptor.LlmModelName`](../../src/Agent/Agent.Framework/YamlAgentDescriptor.cs) |
 | `llm_scenario_type` | enum | No | Scenario hint for LLM routing. | [`YamlAgentDescriptor.LlmScenarioType`](../../src/Agent/Agent.Framework/YamlAgentDescriptor.cs) |
-| `disable_common_prompts` | bool | No | Opt out of default common prompts. | [`YamlAgentDescriptor.DisableCommonPrompts`](../../src/Agent/Agent.Framework/YamlAgentDescriptor.cs) |
-| `vanilla_mode` | bool | No | Enables vanilla mode (minimal automation). | [`YamlAgentDescriptor.EnableVanillaMode`](../../src/Agent/Agent.Framework/YamlAgentDescriptor.cs) |
+| `vanilla_mode` | bool | No | Enables vanilla mode, which bypasses default prompt scaffolding and common prompts. | [`YamlAgentDescriptor.EnableVanillaMode`](../../src/Agent/Agent.Framework/YamlAgentDescriptor.cs) |
 | `enable_skills` | bool | No | Enables skill execution for the agent. | [`YamlAgentDescriptor.EnableSkills`](../../src/Agent/Agent.Framework/YamlAgentDescriptor.cs) |
 | `add_system_skills` | bool | No | Automatically include system skills. | [`YamlAgentDescriptor.AddSystemSkills`](../../src/Agent/Agent.Framework/YamlAgentDescriptor.cs) |
 | `agent_type` | enum (`Autonomous`, `Orchestrator`, `Activity`) | No (default `Autonomous`) | Execution type. | [`YamlAgentDescriptor.AgentType`](../../src/Agent/Agent.Framework/YamlAgentDescriptor.cs) |

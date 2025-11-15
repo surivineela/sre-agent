@@ -27,7 +27,6 @@ user_prompt_override: |
   - NextSteps: [ "bt_polling_check_agent", "bt_queue_dequeue_agent"]
 
 disable_document_retrieval: true
-disable_common_prompts: true
-common_prompts:
-- format_guidelines
-- guard_rail
+vanilla_mode: true
+
+

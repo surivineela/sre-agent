@@ -430,7 +430,7 @@ public class ExtendedAgentService : IExtendedAgentService
             "common_tools", "allow_parallel_tool_calls", "agents_as_tools", "custom_reflection_note",
             "critic_prompt_path", "critic_on_handoff", "disable_document_retrieval",
             "instructions_override", "enable_handoff_prompt_override", "handoff_prompt_override",
-            "user_prompt_override", "llm_model_name", "disable_common_prompts", "agent_type",
+            "user_prompt_override", "llm_model_name", "agent_type", "vanilla_mode",
             "parameter_extraction_agent", "orchestration_start_agents", "result_summarization_prompt",
             "next_agent_mappings", "output_type"
         };

@@ -52,8 +52,8 @@ agents_as_tools:
     tool_description: "Lists function names and trigger types for the app."
     input_description: "Provide SiteName, KustoCluster (and optionally EventPrimaryStampName)."
 
+max_reflection_count: 1
+
 common_prompts:
   - format_guidelines
   - guard_rail
-
-max_reflection_count: 1

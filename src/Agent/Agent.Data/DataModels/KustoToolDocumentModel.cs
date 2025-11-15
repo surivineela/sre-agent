@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text.Json.Serialization;
 using Agent.Data.Tools;
 using Agent.Framework;
@@ -46,7 +47,8 @@ public record KustoToolDocumentModel : ToolDocumentModel
             File = Spec.File,
             Database = Spec.Database,
             ClusterHint = Spec.ClusterHint,
-            DisplayOptions = Spec.DisplayOptions
+            DisplayOptions = Spec.DisplayOptions,
+            ToolMode = Spec.ToolMode
         };
     }
 }

@@ -257,18 +257,23 @@ internal class YamlAwareAIFunction<TContext> : AIFunction where TContext : class
     private readonly YamlToolFunction<TContext> _yamlFunction;
     private readonly YamlToolDefinitionBase _toolDef;
     private readonly JsonElement _customSchema;
+    private readonly IReadOnlyDictionary<string, object?> _additionalProperties;
 
     public YamlAwareAIFunction(YamlToolFunction<TContext> yamlFunction, YamlToolDefinitionBase toolDef)
     {
         _yamlFunction = yamlFunction;
         _toolDef = toolDef;
         _customSchema = CreateCustomSchema();
+        _additionalProperties = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["tool_mode"] = toolDef.ToolMode.ToString()
+        };
     }
 
     public override string Name => _toolDef.Name;
     public override string Description => _toolDef.Description;
     public override JsonElement JsonSchema => _customSchema;
-    public override IReadOnlyDictionary<string, object?> AdditionalProperties => new Dictionary<string, object?>();
+    public override IReadOnlyDictionary<string, object?> AdditionalProperties => _additionalProperties;
 
     protected override async ValueTask<object?> InvokeCoreAsync(AIFunctionArguments arguments, CancellationToken cancellationToken)
     {

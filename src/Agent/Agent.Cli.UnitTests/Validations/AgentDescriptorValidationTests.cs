@@ -543,7 +543,7 @@ public class AgentDescriptorValidationTests
             UserPromptOverride = null,
             DisableDocumentRetrieval = false,
             EnableHandoffPromptOverride = false,
-            DisableCommonPrompts = false,
+
             AgentType = AgentType.Autonomous,
             ParameterExtractionAgent = null,
             OrchestrationStartAgents = new List<string>(),

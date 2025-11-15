@@ -39,7 +39,8 @@ public static class ApiToRuntimeMapper
                 Database = k.Database,
                 ClusterHint = k.ClusterHint,
                 RegionalClusterGroups = k.RegionalClusterGroups,
-                DisplayOptions = k.DisplayOptions
+                DisplayOptions = k.DisplayOptions,
+                ToolMode = k.ToolMode
             }),
         LinkToolApiModel link => new LinkToolDocumentModel(
             new ResourceMetadata
@@ -60,7 +61,8 @@ public static class ApiToRuntimeMapper
                 Description = link.Description,
                 Parameters = link.Parameters,
                 Attributes = link.Attributes,
-                Template = link.Template
+                Template = link.Template,
+                ToolMode = link.ToolMode
             }),
         _ => throw new NotSupportedException($"Unknown tool type for document model: {tool.Type}")
     };
@@ -166,6 +168,7 @@ public static class ApiToRuntimeMapper
             Parameters = k.Parameters,
             Attributes = k.Attributes,
             Metadata = k.Metadata,
+            ToolMode = k.ToolMode,
             Mode = k.Mode,
             Function = k.Function,
             Query = k.Query,
@@ -182,6 +185,7 @@ public static class ApiToRuntimeMapper
             Parameters = linkToolDefinition.Parameters,
             Attributes = linkToolDefinition.Attributes,
             Metadata = linkToolDefinition.Metadata,
+            ToolMode = linkToolDefinition.ToolMode,
             Template = linkToolDefinition.Template,
         },
         _ => throw new NotSupportedException($"Unknown tool document type: {tool.Type}")

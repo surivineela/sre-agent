@@ -921,6 +921,10 @@ Please consolidate the findings, identify key insights, and provide actionable r
             {
                 "scale_controller_preflight_agent" => "ScaleCtrlRCAProcessed",
                 "blob_trigger_preflight_agent" => "BlobTrigRCAProcessed",
+                "durable_functions_preflight_agent" => "DurableRCAProcessed",
+                "servicebus_trigger_preflight_agent" => "SBTrigRCAProcessed",
+                "eventhub_trigger_preflight_agent" => "EHTrigRCAProcessed",
+                "python_preflight_agent" => "PythonRCAProcessed",
                 "functions_loop_unsupported_preflight_agent" => "FuncLoopUnsupportedRCAProcessed",
                 _ => "RCAPreflightProcessed"
             };
@@ -1465,6 +1469,10 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 }
 
                 _logger.LogInternalInformation("Invoking tool from model call: {ToolName} with args: {Args}", func.Name, JsonSerializer.Serialize(args));
+
+                Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+                Agent.Core.ToolStatic.AsyncLocalCancellationToken.Value = ct;
+
                 var result = await func.InvokeAsync(new AIFunctionArguments(args), ct);
 
                 // Follow-up: provide tool result back to the model with the original prompt context to finalize its reply

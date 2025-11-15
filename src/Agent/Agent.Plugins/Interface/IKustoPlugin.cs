@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Data.Tools;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 using Microsoft.Extensions.AI;
@@ -15,7 +16,13 @@ namespace Agent.Plugins.Interface
     {
         // Primary methods using AzureRegion enum for type safety
         public Task<string> ExecuteLocalFunctionAsync(string functionName, AzureRegion region, Dictionary<string, string> args, string? groupName = null, SamplingOptions? samplingOptions = null);
-        public Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args, KustoDisplayOptions? displayOptions = null);
+        public Task<string> ExecuteLocalFunctionOnClusterAsync(
+            string functionName,
+            string clusterName,
+            string databaseName,
+            Dictionary<string, string> args,
+            KustoDisplayOptions? displayOptions = null,
+            KustoToolDefinition? toolDefinition = null);
 
         public Task<string> ExecuteKustoQuery(AzureRegion region, string query, string? groupName = null);
         public Task<string> ExecuteFunctionAsync(string functionName, AzureRegion region, Dictionary<string, string>? args = null, string? groupName = null);
