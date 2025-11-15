@@ -11,8 +11,8 @@ import { getIncidentStatusColor, getIncidentStatusIntlString, mapEmptyStatus } f
 const useStyles = makeStyles({
     setUp: { display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalXS },
     greenCheckIcon: { color: tokens.colorPaletteGreenForeground1 },
-    warningIcon: { color: tokens.colorStatusWarningForeground2 },
-    spinnerIcon: { color: tokens.colorBrandForeground1 },
+    warningIcon: { color: tokens.colorStatusWarningForeground2, flex: 'none' },
+    spinnerIcon: { color: tokens.colorBrandForeground1, flex: 'none' },
     bar: { width: '4px', height: '20px', borderRadius: tokens.borderRadiusCircular },
     value: { fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
 });

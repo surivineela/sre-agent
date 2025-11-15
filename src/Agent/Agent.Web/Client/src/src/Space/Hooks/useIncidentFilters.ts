@@ -6,7 +6,7 @@ import { IncidentHandlerClient } from '../../Common/Clients/IncidentHandlerClien
 import { IncidentFilter, IncidentFilterDocumentPayload } from '../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementNotificationResources } from '../../Strings/SREAgentResources';
 
-export const useIncidentFilters = () => {
+export const useIncidentFilters = (filterType: 'subagentTrigger' | 'filter' | 'all' = 'all') => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const portalContext = useContext(AzPortalContext);
     const intl = useIntl();
@@ -24,12 +24,17 @@ export const useIncidentFilters = () => {
         setLoadingError(null);
         const incidentResults = await incidentHandlerClient.listIncidentFilters();
         if (incidentResults.isSuccessful) {
-            return incidentResults.content ?? [];
+            const allFilters = incidentResults.content ?? [];
+            if (filterType === 'all') {
+                return allFilters;
+            } else {
+                return allFilters.filter(filter => (filterType === 'subagentTrigger' ? !!filter.handlingAgent : !filter.handlingAgent));
+            }
         } else {
             setLoadingError(`Failed to load incident filters: ${incidentResults.error}`);
             return [];
         }
-    }, [incidentHandlerClient]);
+    }, [incidentHandlerClient, filterType]);
 
     const refresh = useCallback(async () => {
         setIsLoading(true);

@@ -50,7 +50,7 @@ interface ResponsePlanViewProps {
     setSelectedTimeRange: (value: TimeRangeValue) => void;
     appInsightsId: string;
     appInsightsToken: string | null;
-    onEditHandler: (filter: IncidentFilter | undefined) => void;
+    onEditHandler: (filter: IncidentFilter | undefined, handlerId: string | undefined) => void;
 }
 
 export const ResponsePlanView = ({
@@ -348,8 +348,8 @@ export const ResponsePlanView = ({
     }, [fetchResponsePlanIncidentSummaryData, fetchIncidentsData]);
 
     const handleEditHandler = useCallback(
-        (filter: IncidentFilter | undefined) => {
-            onEditHandler(filter);
+        (filter: IncidentFilter | undefined, handlerId: string | undefined) => {
+            onEditHandler(filter, handlerId);
             setIsViewResponsePlanPanelOpen(false);
         },
         [onEditHandler]

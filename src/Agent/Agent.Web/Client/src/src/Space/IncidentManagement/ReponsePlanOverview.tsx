@@ -49,7 +49,7 @@ const ResponsePlanOverview: FC<ResponsePlanOverviewProps> = ({ setNavigationHidd
         deleteIncidentFilter,
         enableIncidentFilter,
         disableIncidentFilter,
-    } = useIncidentFilters();
+    } = useIncidentFilters('filter');
     const { filterIdToHandlerMap, refresh: refreshIncidentHandlers } = useIncidentHandlers();
 
     const [isRefreshNeeded, setIsRefreshNeeded] = useState<boolean>(false);

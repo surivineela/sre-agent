@@ -146,8 +146,7 @@ export const getColumnInfo = (column: IncidentsListColumnKey | 'modifiedTimestam
             return {
                 columnType: 'string',
                 columnPath: 'IncidentDetails%2FhandlerId',
-                getColumnValue: (thread: Thread) =>
-                    thread.incidentDetails?.handlerId && thread.incidentDetails.filterId ? thread.incidentDetails.filterId : '-',
+                getColumnValue: (thread: Thread) => thread.incidentDetails?.filterId ?? '-',
             };
         case 'modifiedTimestamp':
             return {

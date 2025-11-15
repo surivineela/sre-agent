@@ -24,13 +24,12 @@ import { IncidentHandlerClient } from '../../../../Common/Clients/IncidentHandle
 import { IncidentFilter, IncidentHandler } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { getLocalizedAgentMode } from '../../../../Common/Helpers/AgentMode';
 import { IncidentHandlerCreateResources, IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
-import { IncidentHandlerItem } from '../../Analysis';
 
 export interface ResponsePlanDetailsDrawerProps {
     isOpen: boolean;
     onClose: () => void;
-    responsePlan: IncidentHandlerItem;
-    onEditHandler: (filter: IncidentFilter | undefined) => void;
+    responsePlan: { responsePlanName: string; autonomyLevel: string };
+    onEditHandler: (filter: IncidentFilter | undefined, handlerId: string | undefined) => void;
     canEdit?: boolean;
 }
 
@@ -43,13 +42,17 @@ const ResponsePlanDetailsDrawer = ({ isOpen, onClose, responsePlan, onEditHandle
     const [handlerDetails, setHandlerDetails] = useState<IncidentHandler | undefined>();
     const [filterDetails, setFilterDetails] = useState<IncidentFilter | undefined>();
     const [handlerLoading, setHandlerLoading] = useState(true);
+    const [handlerLoadFailed, setHandlerLoadFailed] = useState(false);
     const [filterLoading, setFilterLoading] = useState(true);
+    const [filterLoadFailed, setFilterLoadFailed] = useState(false);
 
     const incidentHandlerClient = useMemo(() => IncidentHandlerClient.getInstance(sreAgentEndpoint, log), [sreAgentEndpoint, log]);
 
     const fetchHandlerDetails = useCallback(async () => {
         setHandlerLoading(true);
+        setHandlerLoadFailed(false);
         setFilterLoading(true);
+        setFilterLoadFailed(false);
         setHandlerDetails(undefined);
         setFilterDetails(undefined);
 
@@ -64,6 +67,7 @@ const ResponsePlanDetailsDrawer = ({ isOpen, onClose, responsePlan, onEditHandle
                 setHandlerDetails(handler);
             }
         } else {
+            setHandlerLoadFailed(true);
             log({
                 action: 'fetchHandlerDetails',
                 actionModifier: 'listHandlersFailed',
@@ -80,6 +84,7 @@ const ResponsePlanDetailsDrawer = ({ isOpen, onClose, responsePlan, onEditHandle
         if (filterResponse.isSuccessful && filterResponse.content) {
             setFilterDetails(filterResponse.content);
         } else {
+            setFilterLoadFailed(true);
             log({
                 action: 'fetchHandlerDetails',
                 actionModifier: 'getFilterFailed',
@@ -207,8 +212,12 @@ const ResponsePlanDetailsDrawer = ({ isOpen, onClose, responsePlan, onEditHandle
                 <div className={styles.footerActions}>
                     <Button
                         appearance="secondary"
-                        disabled={(handlerLoading && filterLoading) || !canEdit}
-                        onClick={() => onEditHandler(filterDetails)}
+                        disabled={handlerLoading || filterLoading || filterLoadFailed || handlerLoadFailed || !canEdit}
+                        onClick={() => {
+                            if (!handlerLoading && !filterLoading && !filterLoadFailed && !handlerLoadFailed) {
+                                onEditHandler(filterDetails, handlerDetails?.id);
+                            }
+                        }}
                     >
                         {intl.formatMessage(IncidentManagementResources.editIncidentHandler)}
                     </Button>

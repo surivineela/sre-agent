@@ -5,7 +5,7 @@ import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/Star
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import { ThreadClient } from '../../../Common/Clients/ThreadClient';
 import { TimeRangeValue, TimespanKeys } from '../../../Common/Components/PillFilter/Contracts';
-import { IncidentFilter } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentFilter, IncidentHandler } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { IncidentThreadCounts, Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
 import { getTimespanInMilliseconds } from '../../../Common/Helpers/Date';
@@ -115,6 +115,7 @@ export const useIncidentThreadList = (
 ) => {
     const [hasAnyIncidents, setHasAnyIncidents] = useState<boolean>();
     const [filtersMap, setFiltersMap] = useState<Map<string, IncidentFilter>>(new Map());
+    const [handlersMap, setHandlersMap] = useState<Map<string, IncidentHandler>>(new Map());
     const [threadCounts, setThreadCounts] = useState<IncidentThreadCounts>();
     const [threads, setThreads] = useState<Thread[]>(initialThreads || []);
     const [moreThreadsToLoad, setMoreThreadsToLoad] = useState<boolean>(true);
@@ -388,17 +389,20 @@ export const useIncidentThreadList = (
                 );
 
                 const filtersPromise = await incidentHandlerClient.listIncidentFilters();
+                const handlersPromise = await incidentHandlerClient.listHandlers();
 
-                const [initialThreadsResponse, threadCountsResponse, filtersResponse] = await Promise.all([
+                const [initialThreadsResponse, threadCountsResponse, filtersResponse, handlersResponse] = await Promise.all([
                     initialThreadsPromise,
                     threadCountsPromise,
                     filtersPromise,
+                    handlersPromise,
                 ]);
 
                 if (isSubscribed) {
                     const initialThreads = initialThreadsResponse.content ?? [];
                     const threadCounts = threadCountsResponse.content;
                     const filterList = filtersResponse.content ?? [];
+                    const handlerList = handlersResponse.content ?? [];
 
                     // Do not set moreThreadsToLoad to false if the initial threads response is not successful.
                     if (initialThreadsResponse.isSuccessful && initialThreads.length === 0) {
@@ -414,6 +418,11 @@ export const useIncidentThreadList = (
                         filtersSet.set(filter.id, filter);
                     });
                     setFiltersMap(filtersSet);
+                    const handlersSet = new Map<string, IncidentHandler>();
+                    handlerList.forEach(handler => {
+                        handlersSet.set(handler.id, handler);
+                    });
+                    setHandlersMap(handlersSet);
                     setIsLoadingInitialThreadsAndCounts(false);
                 }
 
@@ -443,6 +452,7 @@ export const useIncidentThreadList = (
 
     return {
         filtersMap,
+        handlersMap,
         hasAnyIncidents,
         threadCounts,
 

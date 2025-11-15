@@ -41,7 +41,7 @@ import {
 import { LabelKeyPair } from '../../../Common/Components/PillFilter/ListWithSearch';
 import { PillFilterSet } from '../../../Common/Components/PillFilter/PillFilterSet';
 import { icmIncidentUrlTemplate } from '../../../Common/Constants/Links';
-import { IncidentDocument } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentDocument, IncidentFilter } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { InvestigationStatus, Thread } from '../../../Common/Contracts/DataPlane/Thread';
 import { SettingNames, useConfigSetting } from '../../../Common/Hooks/ConfigSettings';
@@ -49,12 +49,14 @@ import { ActivitiesThreadHeaderResources, IncidentManagementResources, SreAgentR
 import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
 import { ChatBoxSidePanelData } from '../../Contracts/Activities';
 import { IncidentsOverviewContext, SreAgentContext } from '../../Contracts/Context';
+import { ExtendedAgentAnchorEntity } from '../../Contracts/ExtendedAgentGraph';
 import { TracePanel } from '../../Foundry/app/components/shell/playground/tracing/TracePanel';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import IncidentChatDrawer from '../Common/IncidentChatDrawer';
 import { IncidentManagementEmptyState } from '../Common/IncidentManagementEmptyState';
 import { PlatformConnectionMessageBar } from '../Common/PlatformConnectionMessageBar';
-import { IncidentManagementMenuKeys, IncidentsListColumnKey } from '../CreateIncidentHandler/Contracts';
+import { HandlerCreateOrEditInfo, IncidentManagementMenuKeys, IncidentsListColumnKey } from '../CreateIncidentHandler/Contracts';
+import CreateIncidentHandlerConsolidated from '../CreateIncidentHandler/CreateIncidentHandlerConsolidated';
 import IncidentChat from '../IncidentChat';
 import {
     getColumnInfo,
@@ -63,8 +65,10 @@ import {
     getPlatformSpecificStrings,
     getPriorities,
 } from '../Utilities';
+import ResponsePlanDetailsDrawer, { ResponsePlanDetailsDrawerProps } from '../Watchtower/Components/ResponsePlanDetailsDrawer';
 import { BulkDeleteDialog } from './BulkDeleteDialog';
 import { IncidentsSummary } from './IncidentsSummary';
+import { ResponsePlanLinkWithIcon } from './ResponsePlanLinkWithIcon';
 import { StatusLabel } from './StatusLabel';
 import { useIncidentThreadList } from './useIncidentThreadList';
 
@@ -143,6 +147,9 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     const [selectedThreadInfo, setSelectedThreadInfo] = useState<SelectedThreadInfo | null>(null);
     const [selectedThreads, setSelectedThreads] = useState<Set<string>>(new Set());
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isViewResponsePlanPanelOpen, setIsViewResponsePlanPanelOpen] = useState(false);
+    const [openedResponsePlan, setOpenedResponsePlan] = useState<ResponsePlanDetailsDrawerProps['responsePlan'] | null>(null);
+    const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo>();
 
     const traceFocusRestorationRef = useRef<HTMLButtonElement>(null);
 
@@ -159,6 +166,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     }, []);
 
     const openThreadDrawer = useCallback((thread: Thread) => {
+        setIsViewResponsePlanPanelOpen(false);
         setSelectedThreadInfo({ thread, fullScreen: false, showTrace: false });
     }, []);
 
@@ -184,6 +192,17 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
         setSelectedThreadInfo(null);
     }, []);
 
+    const openResponsePlanDrawer = useCallback((responsePlanName: string, autonomyLevel: string) => {
+        setSelectedThreadInfo(null);
+        setOpenedResponsePlan({ responsePlanName, autonomyLevel });
+        setIsViewResponsePlanPanelOpen(true);
+    }, []);
+
+    const handleEditHandler = useCallback((filter: IncidentFilter | undefined, handlerId: string | undefined) => {
+        setHandlerCreateOrEditInfo({ filter, handlerId });
+        setIsViewResponsePlanPanelOpen(false);
+    }, []);
+
     useEffect(() => {
         let isSubscribed = true;
         setSelectedIncidentDetails(undefined);
@@ -202,6 +221,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     }, [selectedThreadInfo, incidentHandlerClient]);
 
     const {
+        handlersMap,
         filtersMap,
         hasAnyIncidents,
         threadCounts,
@@ -609,20 +629,43 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                     const filterMatch = !filterId || filterId === '-' ? undefined : filtersMap.get(filterId);
 
                     if (filterMatch?.handlingAgent) {
+                        const anchorEntity: ExtendedAgentAnchorEntity = {
+                            entityType: 'Trigger',
+                            entityName: filterMatch.id,
+                        };
                         return (
-                            <TableCellLayout truncate>
-                                <Tooltip content={filterMatch.handlingAgent} relationship="label">
-                                    <span>{filterMatch.handlingAgent}</span>
-                                </Tooltip>
-                            </TableCellLayout>
+                            <ResponsePlanLinkWithIcon
+                                type="agentTrigger"
+                                value={filterMatch.id}
+                                onClick={e => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    navigate('/views/extendedagentsgraph', {
+                                        state: { anchorEntity },
+                                    });
+                                }}
+                            />
+                        );
+                    }
+
+                    if (filterMatch) {
+                        return (
+                            <ResponsePlanLinkWithIcon
+                                type="responsePlan"
+                                value={filterMatch.id}
+                                onClick={e => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    openResponsePlanDrawer(filterMatch.id, filterMatch.agentMode || '');
+                                    setIsViewResponsePlanPanelOpen(true);
+                                }}
+                            />
                         );
                     }
 
                     return (
                         <TableCellLayout truncate>
-                            <Tooltip content={filterId} relationship="label">
-                                <span>{filterId}</span>
-                            </Tooltip>
+                            <span>-</span>
                         </TableCellLayout>
                     );
                 },
@@ -630,7 +673,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
         );
 
         return cols;
-    }, [intl, onRenderTitle, platformSpecificStrings, incidentPlatformType, filtersMap]);
+    }, [intl, onRenderTitle, platformSpecificStrings, incidentPlatformType, filtersMap, handlersMap]);
 
     const restoreFocusSourceAttributes = useRestoreFocusSource();
 
@@ -795,7 +838,13 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
 
     return (
         <IncidentsOverviewContext.Provider value={{ initialSidePanelDataMap, onInitialSidePanelDataChanged }}>
-            {selectedThreadInfo?.fullScreen ? (
+            {handlerCreateOrEditInfo ? (
+                <CreateIncidentHandlerConsolidated
+                    exitToHome={() => setHandlerCreateOrEditInfo(undefined)}
+                    setHandlerOperationStatus={() => {}}
+                    handlerCreateOrEditInfo={handlerCreateOrEditInfo}
+                />
+            ) : selectedThreadInfo?.fullScreen ? (
                 <IncidentChat
                     selectedThread={selectedThreadInfo.thread}
                     exitToHome={closeThread}
@@ -981,6 +1030,14 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                     focusRestorationRef={traceFocusRestorationRef}
                 />
             )}
+            {openedResponsePlan && (
+                <ResponsePlanDetailsDrawer
+                    isOpen={isViewResponsePlanPanelOpen}
+                    onClose={() => setIsViewResponsePlanPanelOpen(false)}
+                    responsePlan={openedResponsePlan}
+                    onEditHandler={handleEditHandler}
+                />
+            )}
         </IncidentsOverviewContext.Provider>
     );
 };
@@ -998,6 +1055,7 @@ const useIncidentsOverviewStyles = makeStyles({
     },
     titleLink: {
         fontSize: '13px',
+        lineHeight: '20px',
         overflow: 'hidden',
         width: '100%',
         '> a': {

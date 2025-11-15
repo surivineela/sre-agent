@@ -302,8 +302,8 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
         fetchIncidentHandlersData();
     }, [fetchIncidentSummaryData, fetchIncidentHandlersData]);
 
-    const handleEditHandler = useCallback((filter: IncidentFilter | undefined) => {
-        setHandlerCreateOrEditInfo({ filter });
+    const handleEditHandler = useCallback((filter: IncidentFilter | undefined, handlerId: string | undefined) => {
+        setHandlerCreateOrEditInfo({ filter, handlerId });
         setOpenedResponsePlan(undefined);
     }, []);
 
