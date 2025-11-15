@@ -22,6 +22,8 @@ configuration:
     role: Maintain
   - member: ebcarek
     role: Write
+  - member: travisharris
+    role: Write
   - member: visagarwal
     role: Write
   - member: yashnisar
