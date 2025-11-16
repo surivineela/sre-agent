@@ -1340,6 +1340,14 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
     const [viewMode, setViewMode] = useState<ViewMode>('author-test'); // Always start with middle button (author-test)
     const [configTab, setConfigTab] = useState<ConfigTabValue>(loadPreference('configTab', 'form'));
     const [yamlContent, setYamlContent] = useState('');
+    const yamlContentSourceRef = useRef<'user' | 'sync'>('sync');
+    const syncYamlContent = useCallback(
+        (value: string) => {
+            yamlContentSourceRef.current = 'sync';
+            setYamlContent(value);
+        },
+        [setYamlContent]
+    );
     const [yamlError, setYamlError] = useState<string | undefined>(undefined);
     const [draftAgent, setDraftAgent] = useState<Partial<ExtendedAgent> | undefined>(undefined);
     const [draftTool, setDraftTool] = useState<Partial<ExtendedTool> | undefined>(undefined);
@@ -1561,7 +1569,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             setDraftAgent(undefined);
             setDraftTool(undefined);
             setDraftSystemTool(undefined);
-            setYamlContent('');
+            syncYamlContent('');
             setYamlError(undefined);
             setConfigTab('form');
             setSelectedToolName(undefined);
@@ -1606,7 +1614,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             setDraftAgent(copy);
             setDraftTool(undefined);
             setDraftSystemTool(undefined);
-            setYamlContent(buildAgentYaml(copy));
+            syncYamlContent(buildAgentYaml(copy));
             setSelectedToolName(copy.tools?.[0] ?? target.agent.tools?.[0]);
             setConfigTab('form');
             setAcknowledgedMode(shouldSkipSetup);
@@ -1649,7 +1657,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             setDraftAgent(draftAgentCopy);
             setDraftTool(copy);
             setDraftSystemTool(undefined);
-            setYamlContent(buildToolYaml(copy));
+            syncYamlContent(buildToolYaml(copy));
             setSelectedToolName(copy.name);
             setConfigTab('form');
             setAcknowledgedMode(shouldSkipSetup);
@@ -1692,7 +1700,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             setDraftAgent(draftAgentCopy);
             setDraftTool(undefined);
             setDraftSystemTool(copy);
-            setYamlContent('# System tools are read-only and do not have YAML configuration');
+            syncYamlContent('# System tools are read-only and do not have YAML configuration');
             setSelectedToolName(copy.name);
             setConfigTab('form');
             setAcknowledgedMode(true);
@@ -1701,7 +1709,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
         }
 
         setYamlError(undefined);
-    }, [open, target]);
+    }, [open, target, syncYamlContent]);
 
     // Handle viewMode changes - when switching TO tester mode, always skip setup
     useEffect(() => {
@@ -2024,9 +2032,13 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             return;
         }
 
+        if (configTab === 'yaml' && yamlContentSourceRef.current === 'user') {
+            return;
+        }
+
         if (configEntity === 'agent') {
             if (draftAgent) {
-                setYamlContent(buildAgentYaml(draftAgent));
+                syncYamlContent(buildAgentYaml(draftAgent));
             }
             setYamlError(undefined);
             return;
@@ -2036,16 +2048,16 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             if (selectedTool) {
                 // System tools don't have YAML representation
                 if (selectedToolIsSystemTool) {
-                    setYamlContent('# System tools are read-only and do not have YAML configuration');
+                    syncYamlContent('# System tools are read-only and do not have YAML configuration');
                 } else {
-                    setYamlContent(buildToolYaml(selectedTool));
+                    syncYamlContent(buildToolYaml(selectedTool));
                 }
             } else {
-                setYamlContent('');
+                syncYamlContent('');
             }
             setYamlError(undefined);
         }
-    }, [acknowledgedMode, configEntity, draftAgent, selectedTool, selectedToolIsSystemTool]);
+    }, [acknowledgedMode, configEntity, configTab, draftAgent, selectedTool, selectedToolIsSystemTool, syncYamlContent]);
 
     // Cleanup debounce timeout on unmount
     useEffect(() => {
@@ -2114,12 +2126,14 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                 return;
             }
 
+            yamlContentSourceRef.current = 'sync';
             setConfigEntity(data.value as 'agent' | 'tool');
         },
         [acknowledgedMode]
     );
 
     const handleConfigTabChange = useCallback((_: unknown, data: { value: TabValue }) => {
+        yamlContentSourceRef.current = 'sync';
         setConfigTab(data.value as ConfigTabValue);
     }, []);
 
@@ -2392,7 +2406,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
 
             setDraftAgent(updatedAgent);
             if (configEntity === 'agent') {
-                setYamlContent(buildAgentYaml(updatedAgent));
+                syncYamlContent(buildAgentYaml(updatedAgent));
                 setYamlError(undefined);
             }
             markPreviewUpdated();
@@ -2451,7 +2465,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                 }, 1000);
             }
         },
-        [configEntity, markPreviewUpdated, autoApplyEnabled, sreAgentEndpoint, dispatchToast]
+        [configEntity, markPreviewUpdated, autoApplyEnabled, sreAgentEndpoint, dispatchToast, syncYamlContent]
     );
 
     const handleToolFormChange = useCallback(
@@ -2460,7 +2474,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             if (isExtendedToolTarget || configEntity === 'tool') {
                 // Only generate YAML for extended tools, not system tools
                 if ('type' in updatedTool && updatedTool.type) {
-                    setYamlContent(buildToolYaml(updatedTool));
+                    syncYamlContent(buildToolYaml(updatedTool));
                 }
                 setYamlError(undefined);
             }
@@ -2554,6 +2568,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             autoApplyEnabled,
             sreAgentEndpoint,
             dispatchToast,
+            syncYamlContent,
         ]
     );
 
@@ -2778,6 +2793,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
             }
 
             const content = value ?? '';
+            yamlContentSourceRef.current = 'user';
             setYamlContent(content);
 
             // Mark changes as pending
