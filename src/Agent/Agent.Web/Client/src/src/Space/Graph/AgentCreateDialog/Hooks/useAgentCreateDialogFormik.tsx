@@ -96,7 +96,19 @@ export const useAgentCreateDialogFormik = (
             }
 
             setYamlContent(newYaml);
-            const parsedYaml = tryParseAgentYaml(newYaml);
+
+            // Pass current form values as previous to preserve fields not in YAML
+            const currentAgent: Partial<ExtendedAgent> = {
+                name: values.agentName,
+                instructions: values.instructions,
+                handoffDescription: values.handoffInstructions,
+                handoffs: values.handoffSubagents,
+                tools: values.tools,
+                mcpTools: values.mcpTools,
+                enableMemory: values.enableMemory,
+            };
+
+            const parsedYaml = tryParseAgentYaml(newYaml, currentAgent);
 
             if (!parsedYaml.error && parsedYaml.agent) {
                 const agent = parsedYaml.agent;
@@ -107,7 +119,7 @@ export const useAgentCreateDialogFormik = (
                     handoffSubagents: agent.handoffs || [],
                     tools: agent.tools || [],
                     mcpTools: agent.mcpTools || [],
-                    enableMemory: agent.enableMemory,
+                    enableMemory: agent.enableMemory ?? false,
                 });
             }
         },

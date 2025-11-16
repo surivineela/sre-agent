@@ -570,6 +570,37 @@ const ExtendedAgentGraphContent = memo(() => {
         [agents, anchorEntity]
     );
 
+    useEffect(() => {
+        if (!selectedNode || selectedNode.type !== ExtendedAgentNodeType.Agent) {
+            return;
+        }
+
+        const selectedAgentName = (selectedNode.data as ExtendedAgent | undefined)?.name;
+        if (!selectedAgentName) {
+            return;
+        }
+
+        const updatedAgent = agents.find(agent => agent.name === selectedAgentName);
+
+        if (!updatedAgent) {
+            setSelectedNode(undefined);
+            return;
+        }
+
+        if (updatedAgent !== selectedNode.data) {
+            setSelectedNode(prevNode => {
+                if (!prevNode || prevNode.type !== ExtendedAgentNodeType.Agent) {
+                    return prevNode;
+                }
+
+                return {
+                    ...prevNode,
+                    data: updatedAgent,
+                };
+            });
+        }
+    }, [agents, selectedNode, setSelectedNode]);
+
     const infoPanelAgent = useMemo(() => {
         if (selectedNode?.type === ExtendedAgentNodeType.Agent) {
             return selectedNode.data as ExtendedAgent;

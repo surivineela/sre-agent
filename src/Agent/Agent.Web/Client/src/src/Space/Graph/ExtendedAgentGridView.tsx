@@ -54,7 +54,7 @@ import {
     Whiteboard16Regular,
 } from '@fluentui/react-icons';
 import debounce from 'lodash/debounce';
-import { FC, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
@@ -693,11 +693,38 @@ export const ExtendedAgentListView: FC<ExtendedAgentListViewProps> = ({
         extendedAgentGraphContext.setSelectedNode(undefined);
     }, [extendedAgentGraphContext.setSelectedNode]);
 
-    const handleCardClick = useCallback((cardType: TabValue) => {
-        setActiveTab(cardType);
-        setSelectedDrawerItem(undefined);
-        extendedAgentGraphContext.setSelectedNode(undefined);
-    }, [extendedAgentGraphContext.setSelectedNode]);
+    useEffect(() => {
+        if (!selectedDrawerItem || activeTab !== 'agents') {
+            return;
+        }
+
+        const updatedAgent = agents.find(agent => agent.name === selectedDrawerItem?.name);
+
+        if (!updatedAgent) {
+            handleCloseInfoPanel();
+            return;
+        }
+
+        if (updatedAgent !== selectedDrawerItem) {
+            // Keep the info panel in sync with the latest agent payload after edits.
+            setSelectedDrawerItem(updatedAgent);
+            extendedAgentGraphContext.setSelectedNode({
+                id: updatedAgent.name,
+                name: updatedAgent.name,
+                type: ExtendedAgentNodeType.Agent,
+                data: updatedAgent,
+            });
+        }
+    }, [activeTab, agents, extendedAgentGraphContext, handleCloseInfoPanel, selectedDrawerItem]);
+
+    const handleCardClick = useCallback(
+        (cardType: TabValue) => {
+            setActiveTab(cardType);
+            setSelectedDrawerItem(undefined);
+            extendedAgentGraphContext.setSelectedNode(undefined);
+        },
+        [extendedAgentGraphContext.setSelectedNode]
+    );
 
     const handleOpenPlayground = useCallback((target: PlaygroundTarget) => {
         setPlaygroundTarget(target);
