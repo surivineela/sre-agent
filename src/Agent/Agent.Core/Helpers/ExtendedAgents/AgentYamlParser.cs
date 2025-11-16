@@ -1,99 +1,51 @@
-using System.Text;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Framework;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace Agent.Core.Helpers.ExtendedAgents;
 
-/// <summary>
-/// Shared helper class for parsing agent YAML files in both Kubernetes-style and flat formats.
-/// This class provides unified logic that can be used by both client-side and server-side code.
-/// </summary>
 public static class AgentYamlParser
 {
-    /// <summary>
-    /// Parses agent YAML content and returns the agent descriptor.
-    /// Handles both Kubernetes-style format (with kind and spec) and flat format.
-    /// </summary>
-    /// <param name="yaml">The YAML content to parse</param>
-    /// <returns>The parsed agent descriptor</returns>
-    /// <exception cref="InvalidOperationException">Thrown when YAML cannot be parsed</exception>
     public static IAgentDescriptor? ParseAgentYaml(string yaml)
     {
         try
         {
-            // Parse YAML using the same approach as the server
             var deserializer = new DeserializerBuilder()
                 .WithNamingConvention(UnderscoredNamingConvention.Instance)
                 .IgnoreUnmatchedProperties()
                 .Build();
 
-            var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(yaml);
+            var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(yaml) ?? throw new InvalidOperationException("YAML content is empty or invalid");
 
-            if (yamlDict == null)
-            {
-                throw new InvalidOperationException("YAML content is empty or invalid");
-            }
-
-            // Check for kind field to determine format
             if (yamlDict.TryGetValue("kind", out var kindObj) && kindObj?.ToString() == "AgentConfiguration")
             {
-                // Handle Kubernetes-style format (matches server logic)
-                if (yamlDict.TryGetValue("spec", out var specObj))
-                {
-                    Dictionary<string, object> spec;
-
-                    if (specObj is Dictionary<string, object> stringKeyDict)
-                    {
-                        spec = stringKeyDict;
-                    }
-                    else if (specObj is Dictionary<object, object> objectKeyDict)
-                    {
-                        // Convert Dictionary<object, object> to Dictionary<string, object>
-                        spec = objectKeyDict.ToDictionary(
-                            kvp => kvp.Key?.ToString() ?? string.Empty,
-                            kvp => kvp.Value
-                        );
-                    }
-                    else
-                    {
-                        var specType = specObj?.GetType()?.FullName ?? "null";
-                        throw new InvalidOperationException($"AgentConfiguration spec must be an object. Got type: {specType}");
-                    }
-
-                    // Extract the spec directly as it contains the agent properties
-                    var serializer = new SerializerBuilder()
-                        .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                        .Build();
-
-                    var agentYaml = serializer.Serialize(spec);
-
-                    // Parse using AgentFactory
-                    return AgentFactory<object>.LoadAgentFromYaml(agentYaml);
-                }
-                else
+                if (!yamlDict.TryGetValue("spec", out var specObj))
                 {
                     throw new InvalidOperationException("AgentConfiguration must have spec structure");
                 }
+
+                Dictionary<string, object> spec = specObj switch
+                {
+                    Dictionary<string, object> d => d,
+                    Dictionary<object, object> o => o.ToDictionary(k => k.Key?.ToString() ?? string.Empty, v => v.Value),
+                    _ => throw new InvalidOperationException($"AgentConfiguration spec must be an object. Got type: {specObj?.GetType().FullName ?? "null"}")
+                };
+                var serializer = new SerializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build();
+                var agentYaml = serializer.Serialize(spec);
+                return YamlAgentDescriptor.FromYaml(agentYaml);
             }
-            else
-            {
-                // Fallback: try parsing as flat format (direct agent descriptor)
-                return AgentFactory<object>.LoadAgentFromYaml(yaml);
-            }
+            return YamlAgentDescriptor.FromYaml(yaml);
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Failed to parse YAML: '{yaml}' into AgentDescriptor: {ex.Message} ", ex);
+            throw new InvalidOperationException($"Failed to parse YAML into AgentDescriptor: {ex.Message}", ex);
         }
     }
 
-    /// <summary>
-    /// Extracts tool names from agent YAML content.
-    /// Handles both Kubernetes-style format (spec.agent.tools) and flat format (tools).
-    /// </summary>
-    /// <param name="yaml">The YAML content</param>
-    /// <returns>List of tool names referenced by the agent</returns>
     public static List<string> ExtractToolNames(string yaml)
     {
         try
@@ -102,14 +54,10 @@ public static class AgentYamlParser
                 .WithNamingConvention(UnderscoredNamingConvention.Instance)
                 .IgnoreUnmatchedProperties()
                 .Build();
-
             var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(yaml);
             if (yamlDict == null) return new List<string>();
-
-            // Check for Kubernetes-style format
             if (yamlDict.TryGetValue("kind", out var kindObj) && kindObj?.ToString() == "AgentConfiguration")
             {
-                // Extract from spec.tools (tools are directly in spec)
                 if (yamlDict.TryGetValue("spec", out var specObj) &&
                     specObj is Dictionary<string, object> spec &&
                     spec.TryGetValue("tools", out var toolsObj) &&
@@ -118,15 +66,10 @@ public static class AgentYamlParser
                     return toolsList.Cast<string>().ToList();
                 }
             }
-            else
+            else if (yamlDict.TryGetValue("tools", out var flatToolsObj) && flatToolsObj is List<object> flatToolsList)
             {
-                // Extract from flat format (root level tools)
-                if (yamlDict.TryGetValue("tools", out var toolsObj) && toolsObj is List<object> toolsList)
-                {
-                    return toolsList.Cast<string>().ToList();
-                }
+                return flatToolsList.Cast<string>().ToList();
             }
-
             return new List<string>();
         }
         catch
@@ -135,11 +78,6 @@ public static class AgentYamlParser
         }
     }
 
-    /// <summary>
-    /// Determines if the YAML content is in Kubernetes-style format.
-    /// </summary>
-    /// <param name="yaml">The YAML content to check</param>
-    /// <returns>True if the YAML has Kubernetes-style structure with kind and spec</returns>
     public static bool IsKubernetesFormat(string yaml)
     {
         try

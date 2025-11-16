@@ -65,6 +65,9 @@ public interface IAgentFactory<TContext> : IAsyncInitializer
     List<IAgentDescriptor> GetAllAgentDescriptors();
 
     IReadOnlyList<Experiment> Experiments { get; }
+
+    // Attempt loading deferred MCP agent descriptors after MCP tools become available
+    void AttemptLoadDeferredMcpAgents();
 }
 
 public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory<TContext>
@@ -102,6 +105,9 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly bool _agentMemoryRetrievalEnabled;
     private readonly bool _scheduledTasksEnabled;
     private readonly List<Experiment> _experiments = [];
+
+    // NEW: store deferred MCP agent descriptors (descriptor, isCustom, overwrite)
+    private readonly List<(IAgentDescriptor Descriptor, bool IsCustom, bool Overwrite)> _deferredMcpAgentDescriptors = [];
 
     /// <summary>
     /// Event raised when an agent is added, updated, or removed from the factory
@@ -631,6 +637,54 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
     }
 
+    private bool ShouldDeferMcpAgent(IAgentDescriptor descriptor)
+        => descriptor.McpTools != null && descriptor.McpTools.Any(t => !_toolFactory.HasTool(t));
+
+    public void AttemptLoadDeferredMcpAgents()
+    {
+        if (_deferredMcpAgentDescriptors.Count == 0)
+        {
+            return;
+        }
+
+        _logger.LogInternalInformation("Attempting to load {count} deferred MCP agent descriptors.", _deferredMcpAgentDescriptors.Count);
+
+        var loadedMcpAgentDescriptors = new List<(IAgentDescriptor Descriptor, bool IsCustom, bool Overwrite)>();
+
+        foreach (var (descriptor, isCustom, overwrite) in _deferredMcpAgentDescriptors)
+        {
+            var allMcpToolsReady = descriptor.McpTools != null && descriptor.McpTools.All(t => _toolFactory.HasTool(t));
+            if (allMcpToolsReady)
+            {
+                try
+                {
+                    AddAgentDescriptor(descriptor, isCustom, overwrite);
+                    loadedMcpAgentDescriptors.Add((descriptor, isCustom, overwrite));
+                    _logger.LogInternalInformation("Loaded deferred MCP agent '{name}'.", descriptor.Name);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to load deferred MCP agent '{name}'.", descriptor.Name);
+                }
+            }
+            else
+            {
+                var missingTools = descriptor.McpTools?.Where(t => !_toolFactory.HasTool(t)).ToArray() ?? Array.Empty<string>();
+                _logger.LogInternalDebug("Deferred MCP agent '{name}' still missing tools: {missingTools}", descriptor.Name, string.Join(", ", missingTools));
+            }
+        }
+
+        _deferredMcpAgentDescriptors.RemoveAll(d => loadedMcpAgentDescriptors.Any(l => l.Descriptor == d.Descriptor));
+
+        if (loadedMcpAgentDescriptors.Count > 0)
+        {
+            UpdateHandoffs();
+            UpdateAgentTools();
+        }
+
+        _logger.LogInternalInformation("Deferred MCP agent loading complete. Loaded {loaded}. Remaining {remaining}.", loadedMcpAgentDescriptors.Count, _deferredMcpAgentDescriptors.Count);
+    }
+
     private void LoadDynamicAgentDescriptors()
     {
         foreach (var getAgentDescriptor in _dynamicAgentDescriptors)
@@ -644,10 +698,15 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                     continue;
                 }
 
+                if (ShouldDeferMcpAgent(agentDescriptor))
+                {
+                    _deferredMcpAgentDescriptors.Add((agentDescriptor, false, false));
+                    _logger.LogInternalInformation("Deferring dynamic MCP agent descriptor '{name}'.", agentDescriptor.Name);
+                    continue;
+                }
+
                 AddAgentDescriptor(agentDescriptor, false);
-                _logger.LogInternalInformation(
-                    "Successfully loaded dynamic agent descriptor '{agentName}'.",
-                    agentDescriptor.Name);
+                _logger.LogInternalInformation("Successfully loaded dynamic agent descriptor '{name}'.", agentDescriptor.Name);
             }
             catch (Exception ex)
             {
@@ -660,15 +719,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     {
         var agentDescriptorType = typeof(IAgentDescriptor);
         var aiExcludeType = typeof(AiExcludeAttribute);
-
         var agentDescriptorTypes = _assembliesToScan
             .SelectMany(a => a.GetTypes())
-            .Where(t =>
-                agentDescriptorType.IsAssignableFrom(t)
-                && !t.IsInterface
-                && !t.IsAbstract
-                && t.GetCustomAttribute(aiExcludeType, inherit: false) == null
-            )
+            .Where(t => agentDescriptorType.IsAssignableFrom(t)
+                        && !t.IsInterface
+                        && !t.IsAbstract
+                        && t.GetCustomAttribute(aiExcludeType, inherit: false) == null)
             .ToList();
 
         if (!agentDescriptorTypes.Any())
@@ -681,12 +737,20 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         {
             if (Activator.CreateInstance(agentType) is not IAgentDescriptor agentDescriptor)
             {
+                _logger.LogInternalError("Failed to create instance of {agentType}.", agentType.FullName);
+                continue;
+            }
+
+            if (agentDescriptor.GetType().Name == nameof(YamlAgentDescriptor))
+            {
                 _logger.LogInternalError("Failed to create an instance of {agentType}.", agentType.FullName);
                 continue;
             }
-            if (agentDescriptor.GetType()?.Name == nameof(YamlAgentDescriptor))
+
+            if (ShouldDeferMcpAgent(agentDescriptor))
             {
-                _logger.LogInternalDebug("Skipping YamlAgentDescriptor type as it's just for parser.");
+                _deferredMcpAgentDescriptors.Add((agentDescriptor, false, false));
+                _logger.LogInternalInformation("Deferring MCP agent descriptor '{name}'.", agentDescriptor.Name);
                 continue;
             }
 
@@ -709,37 +773,28 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
 
         var yamlFiles = Directory.GetFiles(_agentsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
-                       .Concat(Directory.GetFiles(_agentsYamlDirectory, "*.yml", SearchOption.AllDirectories));
+            .Concat(Directory.GetFiles(_agentsYamlDirectory, "*.yml", SearchOption.AllDirectories));
 
         foreach (var yamlFile in yamlFiles)
         {
             try
             {
-                var agent = LoadAgentFromYamlContent(File.ReadAllText(yamlFile), false);
-                _logger.LogInternalInformation(
-                    "Successfully loaded agent descriptor '{agentName}' from YAML file '{yamlFile}'.",
-                    agent.Name,
-                    yamlFile);
+                var descriptor = LoadAgentDescriptorFromFile(yamlFile);
+                if (ShouldDeferMcpAgent(descriptor))
+                {
+                    _deferredMcpAgentDescriptors.Add((descriptor, false, false));
+                    _logger.LogInternalInformation("Deferring MCP agent descriptor '{name}' from file '{file}'.", descriptor.Name, yamlFile);
+                    continue;
+                }
+
+                var agent = AddAgentDescriptor(descriptor, false);
+                _logger.LogInternalInformation("Loaded agent descriptor '{name}' from YAML '{file}'.", agent.Name, yamlFile);
             }
             catch (Exception ex)
             {
-                _logger.LogInternalWarning(ex, "Failed to load agent from YAML file '{yamlFile}'.", yamlFile);
+                _logger.LogInternalWarning(ex, "Failed to load agent from YAML '{file}'.", yamlFile);
                 throw;
             }
-        }
-    }
-
-    public Agent<TContext> LoadAgentFromYamlContent(string yamlContent, bool isCustomAgent)
-    {
-        try
-        {
-            var agentDescriptor = YamlAgentDescriptor.FromYaml(yamlContent);
-            var agent = AddAgentDescriptor(agentDescriptor, isCustomAgent);
-            return agent;
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Failed to parse YAML into AgentDescriptor", ex);
         }
     }
 
@@ -751,36 +806,65 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             throw new DirectoryNotFoundException($"Folder path {folderPath} does not exist.");
         }
 
-        var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-        var yamlFiles = Directory.GetFiles(folderPath, "*.yaml", searchOption)
-            .Concat(Directory.GetFiles(folderPath, "*.yml", searchOption));
+        var option = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+        var yamlFiles = Directory.GetFiles(folderPath, "*.yaml", option)
+            .Concat(Directory.GetFiles(folderPath, "*.yml", option));
 
         foreach (var yamlFile in yamlFiles)
         {
-            var agentDescriptor = LoadAgentFromYaml(File.ReadAllText(yamlFile));
-            if (agentDescriptor != null)
+            var descriptor = LoadAgentDescriptorFromFile(yamlFile);
+
+            if (ShouldDeferMcpAgent(descriptor))
             {
-                AddAgentDescriptor(agentDescriptor, isCustomAgent: false, overwrite: overwriteExistingAgents);
-                _logger.LogInternalInformation(
-                    "Successfully loaded agent descriptor '{agentName}' from YAML file '{yamlFile}'.",
-                    agentDescriptor.Name,
-                    yamlFile);
+                _deferredMcpAgentDescriptors.Add((descriptor, false, overwriteExistingAgents));
+                _logger.LogInternalInformation("Deferring MCP agent descriptor '{name}' from folder file '{file}'.", descriptor.Name, yamlFile);
+                continue;
             }
+
+            AddAgentDescriptor(descriptor, false, overwriteExistingAgents);
+            _logger.LogInternalInformation("Loaded agent descriptor '{name}' from folder YAML '{file}'.", descriptor.Name, yamlFile);
         }
+
         _logger.LogInternalInformation("Loaded {count} agents from folder {folderPath}.", _agents.Count, folderPath);
     }
 
-    public static YamlAgentDescriptor LoadAgentFromYaml(string yamlContent)
+    private static YamlAgentDescriptor LoadAgentDescriptorFromFile(string filePath)
     {
         try
         {
-            // Use the updated FromYaml method that handles both structured and flat formats
+            var yamlContent = File.ReadAllText(filePath);
             return YamlAgentDescriptor.FromYaml(yamlContent);
         }
         catch (Exception ex)
         {
             throw new InvalidOperationException("Failed to parse YAML into AgentDescriptor", ex);
         }
+    }
+
+    public Agent<TContext> LoadAgentFromYamlContent(string yamlContent, bool isCustomAgent)
+    {
+        var descriptor = YamlAgentDescriptor.FromYaml(yamlContent);
+
+        if (ShouldDeferMcpAgent(descriptor))
+        {
+            _deferredMcpAgentDescriptors.Add((descriptor, isCustomAgent, false));
+            _logger.LogInternalInformation("Deferring MCP agent descriptor '{name}' loaded from content.", descriptor.Name);
+            throw new InvalidOperationException($"Agent '{descriptor.Name}' deferred until MCP tools load.");
+        }
+
+        return AddAgentDescriptor(descriptor, isCustomAgent);
+    }
+
+    public Agent<TContext> LoadAgentFromDescriptor(YamlAgentDescriptor descriptor, bool isCustomAgent)
+    {
+        if (ShouldDeferMcpAgent(descriptor))
+        {
+            _deferredMcpAgentDescriptors.Add((descriptor, isCustomAgent, false));
+            _logger.LogInternalInformation("Deferring MCP agent descriptor '{name}'.", descriptor.Name);
+            throw new InvalidOperationException($"Agent '{descriptor.Name}' deferred until MCP tools load.");
+        }
+
+        return AddAgentDescriptor(descriptor, isCustomAgent);
     }
 
     private void LoadCommonPromptsFromAssembly()
@@ -832,49 +916,19 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
     private void LoadCommonPromptFromFile(string filePath)
     {
-        try
-        {
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException("YAML file not found", filePath);
-            }
-
-            string yamlContent = File.ReadAllText(filePath);
-            var promptDescriptor = LoadCommonPromptFromYaml(yamlContent);
-            _promptDescriptors[promptDescriptor.Name] = promptDescriptor;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Failed to load common prompt from file {filePath}.", filePath);
-            throw;
-        }
+        var yamlContent = File.ReadAllText(filePath);
+        var promptDescriptor = LoadCommonPromptFromYaml(yamlContent);
+        _promptDescriptors[promptDescriptor.Name] = promptDescriptor;
     }
 
-    public void LoadCommonPromptFromDescriptor(YamlPromptDescriptor prompt)
-    {
-        _promptDescriptors[prompt.Name] = prompt;
-    }
+    public void LoadCommonPromptFromDescriptor(YamlPromptDescriptor prompt) => _promptDescriptors[prompt.Name] = prompt;
 
-    public void LoadCommonToolsListFromDescriptor(YamlCommonToolsDescriptor toolsList)
-    {
-        _commonToolsDescriptors[toolsList.Name] = toolsList.Tools;
-    }
+    public void LoadCommonToolsListFromDescriptor(YamlCommonToolsDescriptor toolsList) => _commonToolsDescriptors[toolsList.Name] = toolsList.Tools;
 
-    private static YamlPromptDescriptor LoadCommonPromptFromYaml(string yamlContent)
+    private static YamlPromptDescriptor LoadCommonPromptFromYaml(string yaml)
     {
-        try
-        {
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                .Build();
-
-            var promptDescriptor = deserializer.Deserialize<YamlPromptDescriptor>(yamlContent);
-            return promptDescriptor;
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Failed to parse YAML into PromptDescriptor", ex);
-        }
+        var deserializer = new DeserializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build();
+        return deserializer.Deserialize<YamlPromptDescriptor>(yaml);
     }
 
     private void LoadCommonToolsFromYaml()
@@ -891,7 +945,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
 
         var yamlFiles = Directory.GetFiles(_commonToolsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
-            .Concat(Directory.GetFiles(_commonToolsYamlDirectory, "*.yml", SearchOption.AllDirectories));
+                                 .Concat(Directory.GetFiles(_commonToolsYamlDirectory, "*.yml", SearchOption.AllDirectories));
 
         foreach (var yamlFile in yamlFiles)
         {
@@ -901,94 +955,30 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
     private void LoadCommonToolsFromFile(string filePath)
     {
-        try
-        {
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException("YAML file not found", filePath);
-            }
-
-            string yamlContent = File.ReadAllText(filePath);
-            var toolsDescriptor = LoadCommonToolsFromYaml(yamlContent);
-            _commonToolsDescriptors[toolsDescriptor.Name] = toolsDescriptor.Tools;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Failed to load common tools from file {filePath}.", filePath);
-            throw;
-        }
+        var yamlContent = File.ReadAllText(filePath);
+        var toolsDescriptor = LoadCommonToolsFromYaml(yamlContent);
+        _commonToolsDescriptors[toolsDescriptor.Name] = toolsDescriptor.Tools;
     }
 
-    private static YamlCommonToolsDescriptor LoadCommonToolsFromYaml(string yamlContent)
+    private static YamlCommonToolsDescriptor LoadCommonToolsFromYaml(string yaml)
     {
-        try
-        {
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                .Build();
-
-            var toolsDescriptor = deserializer.Deserialize<YamlCommonToolsDescriptor>(yamlContent);
-            return toolsDescriptor;
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Failed to parse YAML into CommonToolsDescriptor", ex);
-        }
+        var deserializer = new DeserializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build();
+        return deserializer.Deserialize<YamlCommonToolsDescriptor>(yaml);
     }
 
-    public bool AgentExists(string agentName)
-    {
-        return _agents.ContainsKey(agentName);
-    }
+    public bool AgentExists(string agentName) => _agents.ContainsKey(agentName);
 
-    public Agent<TContext> GetAgent(string name)
-    {
-        var agentFound = _agents.TryGetValue(name, out var agent);
-        if (!agentFound || agent is null)
-        {
-            _logger.LogInternalError("Agent {agentName} not found.", name);
-            throw new KeyNotFoundException($"Agent {name} not found.");
-        }
+    public Agent<TContext> GetAgent(string name) => _agents.TryGetValue(name, out var a) ? a : throw new KeyNotFoundException($"Agent {name} not found.");
 
-        return agent;
-    }
+    public List<Agent<TContext>> GetAllAgents() => [.. _agents.Values];
 
-    public List<Agent<TContext>> GetAllAgents()
-    {
-        return [.. _agents.Values];
-    }
+    public List<IPromptDescriptor> GetAllCommonPrompts() => [.. _promptDescriptors.Values];
 
-    public List<IPromptDescriptor> GetAllCommonPrompts()
-    {
-        return [.. _promptDescriptors.Values];
-    }
+    public Dictionary<string, List<string>> GetAllCommonTools() => _commonToolsDescriptors.ToDictionary(kv => kv.Key, kv => kv.Value.ToList());
 
-    public Dictionary<string, List<string>> GetAllCommonTools()
-    {
-        return _commonToolsDescriptors.ToDictionary(kv => kv.Key, kv => kv.Value.ToList());
-    }
+    public List<IAgentDescriptor> GetAllAgentDescriptors() => [.. _agentDescriptors.Values];
 
-    public List<IAgentDescriptor> GetAllAgentDescriptors()
-    {
-        return [.. _agentDescriptors.Values];
-    }
-
-    public Agent<TContext> LoadAgentFromDescriptor(YamlAgentDescriptor agentDescriptor, bool isCustomAgent)
-    {
-        try
-        {
-            var agent = AddAgentDescriptor(agentDescriptor, isCustomAgent);
-            return agent;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Failed to load agent from descriptor {descriptorName}.", agentDescriptor.Name);
-            throw;
-        }
-    }
-
-    public IReadOnlyDictionary<string, IPromptDescriptor> PromptDescriptors =>
-       _promptDescriptors.AsReadOnly();
+    public IReadOnlyDictionary<string, IPromptDescriptor> PromptDescriptors => _promptDescriptors.AsReadOnly();
 
     private void LoadExperimentsFromYaml()
     {
@@ -1061,10 +1051,10 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     }
 
     private void ApplyExperimentAspect<T>(
-        Dictionary<string, Agent<TContext>> agentGraph,
-        T aspect,
-        IEnumerable<string> applicableAgents,
-        Action<Agent<TContext>, T> applicator)
+       Dictionary<string, Agent<TContext>> agentGraph,
+       T aspect,
+       IEnumerable<string> applicableAgents,
+       Action<Agent<TContext>, T> applicator)
     {
         if (OverlayAppliesToAllAgents(applicableAgents))
         {

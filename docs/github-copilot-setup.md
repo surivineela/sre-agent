@@ -33,7 +33,7 @@ The GitHub Copilot API provides access to the same language models used by GitHu
    "Core": {
     "Azure": {
      "OpenAI": {
-       "GhcpEndpoint": "http://localhost:8000", // NEW CONFIG!!
+       "GhcpEndpoint": "http://localhost:8080", // NEW CONFIG!!
        "LLMDeploymentName": "gpt-5",
        "Endpoint": "https://visheshopenai-resource.openai.azure.com/",
        "ApiKey": "<YourCognitiveServicesApiKey>",

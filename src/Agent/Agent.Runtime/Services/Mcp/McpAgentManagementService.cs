@@ -128,11 +128,11 @@ public class McpAgentManagementService : IHostedService, IAsyncDisposable
             // Refresh MCP tools in ToolFactory to include new connection's tools
             await _toolFactory.RefreshMcpToolsAsync();
 
-            // Note: Agent Builder is now responsible for explicitly adding MCP tools to agents
-            // Tools are available in the MCP tools repository for agent builders to reference
+            // Attempt to load any deferred MCP agents now that tools may be present
+            _agentFactory.AttemptLoadDeferredMcpAgents();
 
             _logger.LogInternalInformation(
-                "Refreshed MCP tools in ToolFactory for connection '{ConnectionId}'. Tools from this connection are now available in the MCP repository for agent builders to use.",
+                "Refreshed MCP tools in ToolFactory for connection '{ConnectionId}'. Deferred MCP agents (if any) processed.",
                 connection.Id);
         }
         catch (Exception ex)
@@ -153,11 +153,11 @@ public class McpAgentManagementService : IHostedService, IAsyncDisposable
             // Refresh MCP tools in ToolFactory to remove disconnected connection's tools
             await _toolFactory.RefreshMcpToolsAsync();
 
-            // Note: Agent Builder is now responsible for managing tools in agents
-            // Tools are removed from the MCP tools repository automatically
+            // Attempt to load deferred MCP agents again in case some descriptors referenced tools from multiple connections
+            _agentFactory.AttemptLoadDeferredMcpAgents();
 
             _logger.LogInternalInformation(
-                "Refreshed MCP tools in ToolFactory after removing connection '{ConnectionId}'",
+                "Refreshed MCP tools in ToolFactory after removing connection '{ConnectionId}'. Deferred MCP agents re-evaluated.",
                 connectionId);
         }
         catch (Exception ex)
