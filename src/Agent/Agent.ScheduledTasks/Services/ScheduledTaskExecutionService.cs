@@ -107,6 +107,14 @@ public class ScheduledTaskExecutionService
             task.ExecutionCount++;
             task.LastExecutionTime = execution.ExecutionTime;
 
+            // If task was configured to use same thread (has a placeholder threadId)
+            // but thread wasn't created yet, capture the actual thread ID from first execution
+            if (task.ThreadId != null && execution.ThreadId != null && task.ExecutionCount == 1)
+            {
+                task.ThreadId = execution.ThreadId;
+                _logger.LogInternalInformation("Captured thread ID for scheduled task {TaskId}: {ThreadId}", task.Id, execution.ThreadId);
+            }
+
             // Check if task should be completed
             if (task.MaxExecutions.HasValue && task.ExecutionCount >= task.MaxExecutions.Value)
             {

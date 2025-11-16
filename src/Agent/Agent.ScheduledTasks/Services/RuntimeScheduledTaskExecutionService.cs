@@ -50,7 +50,7 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
         {
             // Create or reuse thread based on task.ThreadId
             var (thread, agentContext) = task.ThreadId != null
-                ? await ReuseExistingThread(task.ThreadId)
+                ? await GetOrCreateThread(task.ThreadId, task)
                 : await CreateNewThread(task);
 
             execution = execution with { ThreadId = thread.Id.ToString() };
@@ -100,25 +100,30 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
         await UpdateTaskAfterExecution(task, execution);
     }
 
-    private async Task<(Thread thread, AgentContext agentContext)> ReuseExistingThread(string threadId)
+    private async Task<(Thread thread, AgentContext agentContext)> GetOrCreateThread(string threadId, ScheduledTaskDocument task)
     {
-        _logger.LogInternalInformation("Reusing existing thread: {ThreadId}", threadId);
+        _logger.LogInternalInformation("Getting or creating thread for scheduled task: {ThreadId}", threadId);
 
         var threadGuid = Guid.Parse(threadId);
         var thread = await _threadRepository.GetThreadAsync(threadGuid);
-        if (thread == null)
+
+        if (thread != null)
         {
-            throw new InvalidOperationException($"Thread not found: {threadId}");
+            // Thread exists, reuse it
+            _logger.LogInternalInformation("Reusing existing thread: {ThreadId}", threadId);
+            var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(threadGuid);
+            var agentContext = agentContexts.FirstOrDefault();
+            if (agentContext == null)
+            {
+                throw new InvalidOperationException($"No agent context found for thread: {threadId}");
+            }
+            return (thread, agentContext);
         }
 
-        var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(threadGuid);
-        var agentContext = agentContexts.FirstOrDefault();
-        if (agentContext == null)
-        {
-            throw new InvalidOperationException($"No agent context found for thread: {threadId}");
-        }
+        // Thread doesn't exist yet, create it (first execution of this task)
+        _logger.LogInternalInformation("Creating dedicated thread for scheduled task: {TaskId}", task.Id);
 
-        return (thread, agentContext);
+        return await CreateNewThread(task);
     }
 
     private async Task<(Thread thread, AgentContext agentContext)> CreateNewThread(ScheduledTaskDocument task)

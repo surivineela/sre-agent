@@ -98,7 +98,16 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                           }),
                 startTime: values.startOn?.toISOString(),
                 endTime: values.repeatUntil?.toISOString(),
-                threadId: values.groupMessages === GroupMessageKey.SameThread ? Guid.newGuid() : undefined,
+                // For SameThread mode: Generate or keep a dedicated thread ID
+                //   - When creating: Generate new GUID for dedicated thread
+                //   - When editing: Keep existing threadId
+                // For NewThread mode: undefined so a new thread is created each execution
+                threadId:
+                    values.groupMessages === GroupMessageKey.SameThread
+                        ? mode === ScheduledTaskDialogMode.Edit && scheduledTask?.threadId
+                            ? scheduledTask.threadId // Keep existing threadId when editing
+                            : Guid.newGuid() // Generate dedicated thread ID when creating
+                        : undefined, // undefined for NewThread = create new thread each time
                 maxExecutions: Number(values.runLimit),
             };
 
