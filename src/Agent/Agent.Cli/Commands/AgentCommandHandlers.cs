@@ -3,10 +3,8 @@
 // ------------------------------------------------------------
 
 using System.CommandLine;
-using System.Text;
 using Agent.Cli.Helpers;
 using Agent.Cli.Services;
-using Agent.Core.Helpers.ExtendedAgents;
 using Agent.Core.Validation;
 using Agent.Framework;
 

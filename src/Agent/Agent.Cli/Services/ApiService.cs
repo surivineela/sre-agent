@@ -10,9 +10,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Agent.Cli.Helpers;
 using Agent.Cli.Models;
-using Agent.Core.Validation;
 using Agent.Framework;
-using Agent.Framework.Skills;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -501,7 +499,7 @@ public class ApiService : IDisposable
             string? owner = null;
             List<string>? tags = null;
 
-            // get metadata info and set in the envelope 
+            // get metadata info and set in the envelope
             if (extendedAgentJsonObj.TryGetPropertyValue("metadata", out var metadataNode) && metadataNode is JsonObject metadataObj)
             {
                 if (metadataObj.TryGetPropertyValue("owner", out var ownerNode))

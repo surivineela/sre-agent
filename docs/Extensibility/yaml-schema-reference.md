@@ -87,7 +87,7 @@ spec:
 ### 2.2 Agent definition (AgentConfiguration)
 
 ```yaml
-api_version: agent.platform.ai/v1
+api_version: azuresre.ai/v1
 kind: AgentConfiguration
 metadata:
   owner: sre-agent-team@example.com
@@ -141,7 +141,7 @@ spec:
 
 | Key | Type | Required | Description | Implementation |
 | --- | --- | --- | --- | --- |
-| `api_version` | string | Yes | Schema version; defaults to `agent.platform.ai/v1`. | [`ToolsDeploymentModel.ApiVersion`](../../src/Agent/Agent.Web/Models/ExtendedAgents/ToolsDeploymentModel.cs) |
+| `api_version` | string | Yes | Schema version; defaults to `azuresre.ai/v1`. | [`ToolsDeploymentModel.ApiVersion`](../../src/Agent/Agent.Web/Models/ExtendedAgents/ToolsDeploymentModel.cs) |
 | `kind` | string | Yes | Must be `ToolList`. | [`ToolsDeploymentModel.Kind`](../../src/Agent/Agent.Web/Models/ExtendedAgents/ToolsDeploymentModel.cs) |
 | `metadata` | object | No | Ownership metadata such as owner, version, tags. | [`YamlMetadata`](../../src/Agent/Agent.Framework/YamlMetadata.cs) |
 | `spec` | object | Yes | Body containing the tool array. | [`ToolsDeploymentModel.ToolSpec`](../../src/Agent/Agent.Web/Models/ExtendedAgents/ToolsDeploymentModel.cs) |
