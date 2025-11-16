@@ -351,6 +351,18 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                             }
 
                             existingThreadDocument.IncidentStatus = "resolved";
+                            if (existingThreadDocument.IncidentDetails != null)
+                            {
+                                var updatedIncidentDetails = new IncidentDetails(
+                                existingThreadDocument.IncidentDetails.IncidentTitle,
+                                existingThreadDocument.IncidentDetails.IncidentCreatedTime,
+                                existingThreadDocument.IncidentDetails.IncidentPriority,
+                                existingThreadDocument.IncidentDetails.ImpactedService,
+                                existingThreadDocument.IncidentDetails.FilterId,
+                                existingThreadDocument.IncidentDetails.HandlerId,
+                                InvestigationStatus.Complete);
+                                existingThreadDocument.IncidentDetails = updatedIncidentDetails;
+                            }
                             needsUpsertForResolvedStatus = true;
                         }
 

@@ -535,6 +535,18 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                             }
 
                             existingThreadDocument.IncidentStatus = newStatus;
+                            if (existingThreadDocument.IncidentDetails != null)
+                            {
+                                var updatedIncidentDetails = new IncidentDetails(
+                                existingThreadDocument.IncidentDetails.IncidentTitle,
+                                existingThreadDocument.IncidentDetails.IncidentCreatedTime,
+                                existingThreadDocument.IncidentDetails.IncidentPriority,
+                                existingThreadDocument.IncidentDetails.ImpactedService,
+                                existingThreadDocument.IncidentDetails.FilterId,
+                                existingThreadDocument.IncidentDetails.HandlerId,
+                                InvestigationStatus.Complete);
+                                existingThreadDocument.IncidentDetails = updatedIncidentDetails;
+                            }
                             needsUpsertForResolvedStatus = true;
                         }
 
