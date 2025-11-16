@@ -716,8 +716,11 @@ export const ExtendedAgentInfoPanel = memo(
                         : ExtendedAgentsGraphResources.triggerBadgeScheduled
                 );
             }
+            if (selectedAgent && isAgentContext) {
+                return intl.formatMessage(ExtendedAgentsGraphResources.agent);
+            }
             return '';
-        }, [selectedTool, selectedSystemTool, selectedConnector, selectedTrigger, intl]);
+        }, [selectedTool, selectedSystemTool, selectedConnector, selectedTrigger, selectedAgent, isAgentContext, intl]);
 
         const agentDetails =
             selectedAgent && !selectedTool && !selectedConnector && !selectedTrigger && !selectedSystemTool ? (
