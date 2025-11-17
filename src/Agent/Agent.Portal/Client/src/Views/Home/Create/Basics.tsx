@@ -3,18 +3,21 @@ import { useFormikContext } from 'formik';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { PermissionsClient } from '../../../Common/Clients/PermissionsClient';
+import { ComboboxWithFilterFormik } from '../../../Common/Components/Formik/ComboboxWithFilterFormik';
 import { DropdownFormik } from '../../../Common/Components/Formik/DropdownFormik';
 import { InputFormik } from '../../../Common/Components/Formik/InputFormik';
+import { RadioGroupFormik } from '../../../Common/Components/Formik/RadioGroupFormik';
 import { ResourceGroupDropdown } from '../../../Common/Components/ResourceGroupDropdown';
 import { SubscriptionDropdown } from '../../../Common/Components/SubscriptionDropdown';
 import { ApiVersions } from '../../../Common/Constants/ApiVersions';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
 import { Subscription } from '../../../Common/Contracts/Arm';
 import { FieldRestrictionResult } from '../../../Common/Contracts/Permissions';
+import { useSubscriptionAppInsights } from '../../../Common/Hooks/useSubscriptionAppInsights';
 import { ArmServiceType } from '../../../Common/Utilities/ArmTemplateBuilder/ArmTemplateTypes';
 import { getCanonicalLocation } from '../../../Common/Utilities/Location';
 import { PortalResources } from '../../../Strings/Resources';
-import { SreAgentCreateFormProps } from './CreateAgentDialog';
+import { ApplicationInsightsSetup, SreAgentCreateFormProps } from './CreateAgentDialog';
 import { useSreAgentLocations } from './useSreAgentLocations';
 
 const getContentDetailsForPolicyCheck = (scope: string, type: string, name: string, location: string, apiVersion: string) => {
@@ -56,6 +59,10 @@ export const Basics = (props: BasicsProps) => {
         values.subscriptionId,
         TelemetrySource.SreAgentCreate
     );
+    const { appInsights, isLoading: appInsightsLoading } = useSubscriptionAppInsights(
+        values.appInsightsSubscriptionId,
+        TelemetrySource.SreAgentCreate
+    );
 
     const [policyErrorMessage, setPolicyErrorMessage] = useState<string>('');
 
@@ -72,6 +79,14 @@ export const Basics = (props: BasicsProps) => {
 
         return locationOptionsList;
     }, [locationsList]);
+
+    const appInsightsDropdownOptions = useMemo(() => {
+        return appInsights.map(ai => ({
+            key: ai.id,
+            text: ai.name,
+            data: ai.id,
+        }));
+    }, [appInsights]);
 
     const onSubscriptionChange = useCallback(
         (subscription?: Subscription) => {
@@ -211,7 +226,46 @@ export const Basics = (props: BasicsProps) => {
                 ))}
             </DropdownFormik>
 
-            {/* TODO: Create new / use existing App Insights */}
+            <RadioGroupFormik
+                name="createNewAppInsights"
+                label={intl.formatMessage(PortalResources.applicationInsights)}
+                options={[
+                    { key: ApplicationInsightsSetup.New, text: intl.formatMessage(PortalResources.createNew) },
+                    { key: ApplicationInsightsSetup.Existing, text: intl.formatMessage(PortalResources.useExisting) },
+                ]}
+                onChange={() => {
+                    setFieldValue('existingAppInsightsId', '');
+                    setFieldValue('appInsightsSubscriptionId', '');
+                }}
+                disabled={isDeploying}
+                stackVertical={false}
+            />
+            {values.createNewAppInsights === ApplicationInsightsSetup.Existing && (
+                <>
+                    <SubscriptionDropdown
+                        label={intl.formatMessage(PortalResources.appInsightsSubscription)}
+                        onSubscriptionChange={subscription => {
+                            setFieldValue('appInsightsSubscriptionId', subscription?.subscriptionId ?? '');
+                            setFieldValue('existingAppInsightsId', '');
+                        }}
+                        selectedSubscriptionId={values.appInsightsSubscriptionId}
+                        disabled={isDeploying}
+                    />
+                    <ComboboxWithFilterFormik
+                        label={intl.formatMessage(PortalResources.existingAppInsightsName)}
+                        name="existingAppInsightsId"
+                        options={appInsightsDropdownOptions.map(opt => ({
+                            value: opt.data,
+                            text: opt.text,
+                        }))}
+                        placeholder={intl.formatMessage(PortalResources.existingAppInsightsNamePlaceholder)}
+                        disabled={appInsightsLoading || isDeploying || !values.appInsightsSubscriptionId}
+                        isLoading={appInsightsLoading}
+                        orientation="vertical"
+                        noOptionsMessage={intl.formatMessage(PortalResources.noResultsFound)}
+                    />
+                </>
+            )}
         </div>
     );
 };

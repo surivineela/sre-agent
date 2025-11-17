@@ -20,6 +20,7 @@ import { parseArmId } from '../../../Common/Utilities/ArmId';
 import { ArmTemplateBuilder } from '../../../Common/Utilities/ArmTemplateBuilder/ArmTemplateBuilder';
 import {
     AppInsightsParameterName,
+    ArmServiceType,
     ArmTemplate,
     ArmTemplateParameterName,
     SreAgentParameterName,
@@ -32,9 +33,10 @@ import { UserIdentityTemplateResource } from '../../../Common/Utilities/ArmTempl
 import { UserRoleAssignmentTemplateResource } from '../../../Common/Utilities/ArmTemplateBuilder/SreAgent/UserRoleAssignmentTemplateResource';
 import { WorkspaceTemplateResource } from '../../../Common/Utilities/ArmTemplateBuilder/SreAgent/WorkspaceTemplateResource';
 import { getArmErrorMessage } from '../../../Common/Utilities/Client';
+import { newShortGuid } from '../../../Common/Utilities/Guid';
 import { getCanonicalLocation, getResourceLocation } from '../../../Common/Utilities/Location';
 import { AgentCreateDeploymentNotificationResources, PortalResources } from '../../../Strings/Resources';
-import { SreAgentCreateFormProps } from './CreateAgentDialog';
+import { ApplicationInsightsSetup, SreAgentCreateFormProps } from './CreateAgentDialog';
 
 const ARM_DEPLOYMENT_NAME_LIMIT = 64;
 
@@ -371,7 +373,6 @@ export const useSreAgentCreate = ({
             const userIdentityTemplate = new UserIdentityTemplateResource(builder, {
                 location: getCanonicalLocation(values.location),
             });
-            const workspaceTemplateResource = new WorkspaceTemplateResource(builder, getCanonicalLocation(values.location));
             const sreAgentTemplateResource = new SreAgentTemplateResource(builder, {
                 mode: values.mode,
                 managedResourceIds: values.managedResourceGroups.map(resourceGroup => {
@@ -382,6 +383,7 @@ export const useSreAgentCreate = ({
                 }),
                 deploymentGuid: dateTime,
                 agentSpaceId: agentSpaceId || undefined,
+                createNewAppInsights: values.createNewAppInsights === ApplicationInsightsSetup.New,
             });
 
             const resourceGroupIdToRoleIds = await getRoleIdsForManagedResourceGroups(
@@ -413,17 +415,23 @@ export const useSreAgentCreate = ({
             });
 
             const resourceGroupName = parseArmId(values.resourceGroupId)?.resourceGroup;
-            const applicationInsightsTemplateResource = new AppInsightsTemplateResource(builder, {
-                subscription: values.subscriptionId,
-                resourceGroup: resourceGroupName ?? '',
-                dependencyResolvers: [new AppInsightsDependencyResolver(builder, true)],
-            });
 
-            builder.addResource(applicationInsightsTemplateResource);
+            if (values.createNewAppInsights === ApplicationInsightsSetup.New) {
+                const workspaceTemplateResource = new WorkspaceTemplateResource(builder, getCanonicalLocation(values.location));
+                const applicationInsightsTemplateResource = new AppInsightsTemplateResource(builder, {
+                    subscription: values.subscriptionId,
+                    resourceGroup: resourceGroupName ?? '',
+                    dependencyResolvers: [new AppInsightsDependencyResolver(builder, true)],
+                });
+
+                builder.addResource(applicationInsightsTemplateResource);
+                builder.addResource(workspaceTemplateResource);
+            }
+
             builder.addResource(userIdentityTemplate);
-            builder.addResource(workspaceTemplateResource);
             builder.addResource(sreAgentTemplateResource);
             builder.addResource(userRoleAssignmentTemplate);
+
             return builder.getTemplate();
         },
         [getRoleIdsForManagedResourceGroups, agentSpaceId]
@@ -449,9 +457,29 @@ export const useSreAgentCreate = ({
             parameters[SreAgentParameterName.AccessLevel] = {
                 value: values.permissionsLevel,
             };
-            parameters[AppInsightsParameterName.AppInsightsRequestSource] = {
-                value: 'SreAgent',
-            };
+
+            if (values.createNewAppInsights === ApplicationInsightsSetup.New) {
+                const maxAgentNameLength = 230;
+                const truncatedName = values.name.length > maxAgentNameLength ? values.name.substring(0, maxAgentNameLength) : values.name;
+                const shortGuid = newShortGuid();
+                const appInsightsName = `${truncatedName}-${shortGuid}-app-insights`;
+
+                parameters[AppInsightsParameterName.AppInsightsName] = {
+                    value: appInsightsName,
+                };
+                parameters[AppInsightsParameterName.AppInsightsRequestSource] = {
+                    value: 'SreAgent',
+                };
+                const appInsightsResourceId = `/subscriptions/${values.subscriptionId}/resourceGroups/${resourceGroupName}/providers/${ArmServiceType.AppInsights}/${appInsightsName}`;
+                parameters[AppInsightsParameterName.AppInsightsResourceId] = {
+                    value: appInsightsResourceId,
+                };
+            } else {
+                parameters[AppInsightsParameterName.AppInsightsResourceId] = {
+                    value: values.existingAppInsightsId,
+                };
+            }
+
             parameters[SreAgentParameterName.UserObjectId] = {
                 value: user?.objectId ?? '',
             };
@@ -674,6 +702,9 @@ export const useSreAgentCreate = ({
             mode: AgentMode.Review,
             permissionsLevel: AgentAccessLevel.low,
             agentSpaceId: agentSpaceId || '',
+            createNewAppInsights: ApplicationInsightsSetup.New,
+            existingAppInsightsId: '',
+            appInsightsSubscriptionId: '',
         };
     }, [agentSpaceId, agentSpaceLocation]);
 

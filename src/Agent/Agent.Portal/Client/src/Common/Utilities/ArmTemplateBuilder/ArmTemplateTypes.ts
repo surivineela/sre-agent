@@ -96,6 +96,7 @@ export enum SreAgentParameterName {
  */
 export enum AppInsightsParameterName {
     AppInsightsName = 'appInsightsName',
+    AppInsightsResourceId = 'appInsightsResourceId',
     AppInsightsApplicationType = 'appInsightsApplicationType',
     AppInsightsRequestSource = 'appInsightsRequestSource',
     WorkspaceName = 'workspaceName',

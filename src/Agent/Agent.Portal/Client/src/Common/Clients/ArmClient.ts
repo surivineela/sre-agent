@@ -2,6 +2,7 @@ import { asyncScheduler, bufferTime, catchError, concatMap, filter, from, Observ
 import { getCloudEndpoints } from '../Auth/cloudConfig';
 import { ApiVersions } from '../Constants/ApiVersions';
 import { TelemetrySource } from '../Constants/Telemetry';
+import { ARGRequestContent, ARGResponseObjectArray } from '../Contracts/Arg';
 import {
     ArmBatchObject,
     ArmBatchResponse,
@@ -16,9 +17,9 @@ import {
 import { Response } from '../Contracts/Response';
 import { acquireAccessToken, delay, getHeader } from '../Utilities/Client';
 import { newGuid } from '../Utilities/Guid';
+import { getSessionId } from '../Utilities/SessionManager';
 import { appendQueryString } from '../Utilities/Url';
 import { Client } from './Client';
-import { getSessionId } from '../Utilities/SessionManager';
 
 // Custom response interface to replace AxiosResponse
 interface FetchResponse<T> {
@@ -385,6 +386,64 @@ export class ArmClient extends Client {
                 };
             }
         });
+    }
+
+    /**
+     * Execute an Azure Resource Graph (ARG) query
+     * Note: Uses default 'objectArray' format for simpler, more readable code
+     * Returns Response<T[]> format consistent with ARM calls
+     */
+    public async executeArg<T = any>(
+        content: ARGRequestContent,
+        commandName: string,
+        apiVersion = ApiVersions.argQueryApiVersion20240401
+    ): Promise<Response<T[]>> {
+        try {
+            const { accessToken: token } = await acquireAccessToken('arm', this.telemetrySource);
+
+            const argUrl = `${this.armEndpoint}/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`;
+
+            // Use default objectArray format (simpler to work with than table format)
+            // Can be overridden via content.options.resultFormat if needed
+            const requestContent: ARGRequestContent = {
+                ...content,
+                options: {
+                    ...content.options,
+                    resultFormat: content.options?.resultFormat ?? 'objectArray',
+                },
+            };
+
+            const response = await fetch(argUrl, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'x-ms-command-name': commandName,
+                    'x-ms-client-session-id': getSessionId(),
+                },
+                body: JSON.stringify(requestContent),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                return {
+                    isSuccessful: false,
+                    error: new Error(`ARG query failed: ${response.status} ${response.statusText}. ${errorText}`),
+                };
+            }
+
+            const data = (await response.json()) as ARGResponseObjectArray<T>;
+
+            return {
+                isSuccessful: true,
+                content: data.data,
+            };
+        } catch (error) {
+            return {
+                isSuccessful: false,
+                error: error instanceof Error ? error : new Error(String(error)),
+            };
+        }
     }
 
     public async getTenants(apiVersion = ApiVersions.armApiVersion20250301): Promise<Response<Tenant[]>> {

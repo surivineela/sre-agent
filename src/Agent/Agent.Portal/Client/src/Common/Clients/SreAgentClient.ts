@@ -1,4 +1,3 @@
-import { getCloudEndpoints } from '../Auth/cloudConfig';
 import { ApiVersions } from '../Constants/ApiVersions';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { ArmObj } from '../Contracts/Arm';
@@ -6,8 +5,6 @@ import { Response } from '../Contracts/Response';
 import { Agent, SreAgentArgItem } from '../Contracts/SreAgent';
 import { LogLevel } from '../Contracts/Telemetry';
 import { logTelemetryEvent } from '../Hooks/useTelemetry';
-import { acquireAccessToken } from '../Utilities/Client';
-import { getSessionId } from '../Utilities/SessionManager';
 import { ArmClient } from './ArmClient';
 import { Client } from './Client';
 
@@ -41,12 +38,7 @@ export class SreAgentClient extends Client {
      * @param resourceGroupNames - Optional array of resource group names to filter by. Empty or undefined means all resource groups.
      */
     public async getAgentsFromArg(subscriptionIds?: string[], resourceGroupNames?: string[]): Promise<Response<SreAgentArgItem[]>> {
-        const { accessToken: token } = await acquireAccessToken('arm', this.telemetrySource);
-
         try {
-            const endpoints = getCloudEndpoints();
-            const argUrl = `${endpoints.arm}/providers/Microsoft.ResourceGraph/resources?api-version=2021-03-01`;
-
             // Build WHERE clause with filters
             const whereConditions: string[] = ["type =~ 'microsoft.app/agents'"];
 
@@ -62,56 +54,33 @@ export class SreAgentClient extends Client {
 
             const whereClause = whereConditions.join(' and ');
 
-            const query = {
+            const content = {
                 query: `
                     Resources
                     | where ${whereClause}
                     | project id, name, location, type, subscriptionId, resourceGroup
                 `,
+                subscriptions: subscriptionIds,
             };
 
-            const response = await fetch(argUrl, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    'x-ms-client-session-id': getSessionId(),
-                },
-                body: JSON.stringify(query),
-            });
+            const response = await this.armClient.executeArg<SreAgentArgItem>(content, 'getAgentsFromArg');
 
-            if (!response.ok) {
-                const error = new Error(`Failed to fetch agents: ${response.status} ${response.statusText}`);
+            if (!response.isSuccessful) {
                 logTelemetryEvent({
                     action: 'fetch-agents-from-arg',
                     actionModifier: 'failed',
                     logLevel: LogLevel.Error,
                     telemetrySource: this.telemetrySource,
                     additionalData: {
-                        status: response.status,
-                        statusText: response.statusText,
+                        error: response.error instanceof Error ? response.error.message : String(response.error),
                     },
                 });
-                return {
-                    isSuccessful: false,
-                    error,
-                };
+                return response;
             }
-
-            const data = await response.json();
-            const agentResources: SreAgentArgItem[] =
-                data.data?.map((row: SreAgentArgItem) => ({
-                    id: row.id,
-                    name: row.name,
-                    location: row.location,
-                    type: row.type,
-                    subscriptionId: row.subscriptionId,
-                    resourceGroup: row.resourceGroup,
-                })) || [];
 
             return {
                 isSuccessful: true,
-                content: agentResources,
+                content: response.content,
             };
         } catch (error) {
             logTelemetryEvent({

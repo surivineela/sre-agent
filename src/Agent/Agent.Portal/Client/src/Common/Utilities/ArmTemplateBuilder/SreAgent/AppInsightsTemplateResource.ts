@@ -72,9 +72,7 @@ export class AppInsightsTemplateResource extends ArmTemplateResource<AppInsights
                 Application_Type: `[parameters('${AppInsightsParameterName.AppInsightsApplicationType}')]`,
                 Flow_Type: 'Redfield',
                 Request_Source: `[parameters('${AppInsightsParameterName.AppInsightsRequestSource}')]`,
-                WorkspaceResourceId:
-                    this._options.workspaceId ||
-                    `[concat('/subscriptions/${this._options.subscription}/resourceGroups/${this._options.resourceGroup}/providers/${ArmServiceType.Workspace}/', parameters('${AppInsightsParameterName.WorkspaceName}'))]`,
+                WorkspaceResourceId: `[resourceId('${ArmServiceType.Workspace}', parameters('${AppInsightsParameterName.WorkspaceName}'))]`,
             },
         };
     }

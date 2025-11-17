@@ -30,6 +30,8 @@ type SubscriptionDropdownProps = {
      * The subscription id to be set as a value for the dropdown if it's a member of the values fetched from ARM.
      */
     readonly selectedSubscriptionId: string | undefined;
+    /** Optional override to the default 'Subscription' label */
+    label?: string;
     readonly 'aria-label'?: string;
     readonly 'aria-labelledby'?: string;
     readonly 'aria-required'?: boolean;
@@ -45,6 +47,7 @@ const useStyles = makeStyles({
 
 export const SubscriptionDropdown = (props: SubscriptionDropdownProps) => {
     const {
+        label,
         'aria-label': ariaLabel,
         'aria-labelledby': ariaLabelledBy,
         'aria-required': ariaRequired,
@@ -103,7 +106,7 @@ export const SubscriptionDropdown = (props: SubscriptionDropdownProps) => {
 
     return (
         <Field
-            label={intl.formatMessage(PortalResources.subscription)}
+            label={label || intl.formatMessage(PortalResources.subscription)}
             validationMessage={errorMessage}
             validationState={errorMessage ? 'error' : undefined}
         >

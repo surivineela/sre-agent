@@ -1,5 +1,4 @@
 import { ApiVersions } from '../../../Constants/ApiVersions';
-import { ResourceTypes } from '../../../Constants/Arm';
 import { AgentAccessLevel, AgentMode } from '../../../Contracts/SreAgent';
 import { ArmTemplateBuilder } from '../ArmTemplateBuilder';
 import { ArmTemplateResource } from '../ArmTemplateResource';
@@ -19,6 +18,7 @@ interface SreAgentResourceOptions {
     mode: AgentMode;
     deploymentGuid: string;
     agentSpaceId?: string;
+    createNewAppInsights: boolean;
 }
 
 /**
@@ -38,6 +38,9 @@ export class SreAgentTemplateResource extends ArmTemplateResource<object> {
             type: 'string',
             defaultValue: AgentAccessLevel.low,
         },
+        [AppInsightsParameterName.AppInsightsResourceId]: {
+            type: 'string',
+        },
     };
 
     constructor(
@@ -54,6 +57,7 @@ export class SreAgentTemplateResource extends ArmTemplateResource<object> {
         this.dependencyResolvers = [
             new SreAgentDependencyResolver(this, {
                 dependencyArray,
+                createNewAppInsights: this._options.createNewAppInsights,
             }),
         ];
     }
@@ -72,7 +76,7 @@ export class SreAgentTemplateResource extends ArmTemplateResource<object> {
             location: `[parameters('${location}')]`,
             dependsOn: this.dependsOn,
             tags: {
-                'hidden-link: /app-insights-resource-id': `[resourceId(parameters('${ArmTemplateParameterName.SubscriptionId}'), parameters('${ArmTemplateParameterName.ResourceGroupName}'), '${ResourceTypes.AppInsightsResourceType}', parameters('${AppInsightsParameterName.AppInsightsName}'))]`,
+                'hidden-link: /app-insights-resource-id': `[parameters('${AppInsightsParameterName.AppInsightsResourceId}')]`,
             },
             properties: {
                 ...(this._options.agentSpaceId ? { agentSpaceId: this._options.agentSpaceId } : {}),
@@ -88,8 +92,8 @@ export class SreAgentTemplateResource extends ArmTemplateResource<object> {
                 mcpServers: [],
                 logConfiguration: {
                     applicationInsightsConfiguration: {
-                        appId: `[reference(resourceId('${ResourceTypes.AppInsightsResourceType}', parameters('${AppInsightsParameterName.AppInsightsName}')), '${ApiVersions.appInsightsApiVersion20200202}').AppId]`,
-                        connectionString: `[reference(resourceId('${ResourceTypes.AppInsightsResourceType}', parameters('${AppInsightsParameterName.AppInsightsName}')), '${ApiVersions.appInsightsApiVersion20200202}').ConnectionString]`,
+                        appId: `[reference(parameters('${AppInsightsParameterName.AppInsightsResourceId}'), '${ApiVersions.appInsightsApiVersion20200202}').AppId]`,
+                        connectionString: `[reference(parameters('${AppInsightsParameterName.AppInsightsResourceId}'), '${ApiVersions.appInsightsApiVersion20200202}').ConnectionString]`,
                     },
                 },
             },

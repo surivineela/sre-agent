@@ -4,10 +4,10 @@ import { useIntl } from 'react-intl';
 import { WizardDialog } from '../../../Common/Components/Wizard/WizardDialog';
 import { WizardStep } from '../../../Common/Components/Wizard/WizardStepper';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
-import { usePersistentNavigate } from '../../../Common/Hooks/usePersistentNavigate';
 import { ResourceGroup } from '../../../Common/Contracts/Arm';
 import { AgentAccessLevel, AgentMode } from '../../../Common/Contracts/SreAgent';
 import { useDeployment } from '../../../Common/Hooks/useDeployment';
+import { usePersistentNavigate } from '../../../Common/Hooks/usePersistentNavigate';
 import { DeployResources, PortalResources } from '../../../Strings/Resources';
 import { AgentPermissions } from './AgentPermissions';
 import { Basics } from './Basics';
@@ -15,6 +15,11 @@ import { Deploy } from './Deploy';
 import { ManagedResourceGroups } from './ManagedResourceGroups';
 import { Review } from './Review';
 import { useSreAgentCreate } from './useSreAgentCreate';
+
+export enum ApplicationInsightsSetup {
+    New = 'new',
+    Existing = 'existing',
+}
 
 export interface SreAgentCreateFormProps {
     subscriptionId: string;
@@ -31,6 +36,9 @@ export interface SreAgentCreateFormProps {
     mode: AgentMode;
     permissionsLevel: AgentAccessLevel;
     agentSpaceId: string;
+    createNewAppInsights: ApplicationInsightsSetup;
+    existingAppInsightsId: string;
+    appInsightsSubscriptionId: string;
 }
 
 interface CreateAgentDialogProps {
@@ -195,7 +203,7 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
 
     const handleNext = useCallback(() => {
         if (isDeployStep) {
-            navigate(`/agents/${agentResourceId}`);
+            navigate(`/agents/${encodeURIComponent(agentResourceId)}`);
         } else if (isReviewStep) {
             submitForm();
         } else {

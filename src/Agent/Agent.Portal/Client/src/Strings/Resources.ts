@@ -214,7 +214,6 @@ export const PortalResources = defineMessages({
     userPermissions: { defaultMessage: 'User permissions', id: '5M+hLZ' },
     managedResourceGroupsTableAriaLabel: { defaultMessage: 'Managed resource groups table', id: 'V/rQci' },
     agentDetails: { defaultMessage: 'Agent details', id: 'Wf6bDe' },
-    // PillFilter strings
     all: { defaultMessage: 'All', id: 'zQvVDJ' },
     noResults: { defaultMessage: 'No results', id: 'jHJmjf' },
     apply: { defaultMessage: 'Apply', id: 'EWw/tK' },
@@ -226,7 +225,6 @@ export const PortalResources = defineMessages({
         id: '5j5HnL',
     },
     pillFilterRemoveAriaLabel: { defaultMessage: 'Remove {columnName} filter', id: '/ytgXm' },
-    // Resource Group Picker strings
     selectResourceGroupsToMonitor: { defaultMessage: 'Select resource groups to monitor', id: 'CfGC/2' },
     resourceGroupName: { defaultMessage: 'Resource group name', id: 'xVPoso' },
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
@@ -244,6 +242,11 @@ export const PortalResources = defineMessages({
         defaultMessage: 'This resource group contains resources supported by SRE Agent',
         id: 'CrmeG3',
     },
+    appInsightsSubscription: { defaultMessage: 'Application Insights subscription', id: 'fLcQXf' },
+    existingAppInsightsName: { defaultMessage: 'Application Insights name', id: 'I5NZ9z' },
+    existingAppInsightsNamePlaceholder: { defaultMessage: 'Select an Application Insights resource', id: 'cqGvFd' },
+    applicationInsights: { defaultMessage: 'Application Insights', id: 'WFo96A' },
+    useExisting: { defaultMessage: 'Use existing', id: 'I5k4g/' },
 });
 
 export const ResourceTypeNameResources = defineMessages({

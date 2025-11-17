@@ -4,6 +4,7 @@ import { SreAgentTemplateResource } from '../SreAgentTemplateResource';
 
 interface SREAgentDependencyOptions {
     dependencyArray: string[];
+    createNewAppInsights: boolean;
 }
 
 /**
@@ -21,10 +22,15 @@ export class SreAgentDependencyResolver implements ArmResourceDependencyResolver
     ) {}
 
     resolveDependencies(): void {
-        this._sreAgentTemplateResource.dependsOn.push(
+        const dependencies = [
             `[concat('${ArmServiceType.UserIdentity}/', parameters('${SreAgentParameterName.OidcUserIdentityName}'))]`,
-            `[resourceId('${ArmServiceType.AppInsights}', parameters('${AppInsightsParameterName.AppInsightsName}'))]`,
-            ...this._options.dependencyArray
-        );
+            ...this._options.dependencyArray,
+        ];
+
+        if (this._options.createNewAppInsights) {
+            dependencies.push(`[resourceId('${ArmServiceType.AppInsights}', parameters('${AppInsightsParameterName.AppInsightsName}'))]`);
+        }
+
+        this._sreAgentTemplateResource.dependsOn.push(...dependencies);
     }
 }

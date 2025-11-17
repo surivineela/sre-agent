@@ -1,12 +1,9 @@
-import { getCloudEndpoints } from '../Auth/cloudConfig';
 import { ApiVersions } from '../Constants/ApiVersions';
 import { TelemetrySource } from '../Constants/Telemetry';
-import { ARGRequestContent, ARGResponseObjectArray } from '../Contracts/Arg';
+import { ARGRequestContent } from '../Contracts/Arg';
 import { ArmObj, ResponseArray } from '../Contracts/Arm';
 import { Response } from '../Contracts/Response';
 import { parseArmId } from '../Utilities/ArmId';
-import { acquireAccessToken } from '../Utilities/Client';
-import { getSessionId } from '../Utilities/SessionManager';
 import { ArmClient } from './ArmClient';
 import { Client } from './Client';
 
@@ -36,65 +33,6 @@ export class ResourceGroupClient extends Client {
             ResourceGroupClient._instance = new ResourceGroupClient(telemetrySource);
         }
         return ResourceGroupClient._instance;
-    }
-
-    /**
-     * Execute an Azure Resource Graph (ARG) query
-     * Note: Uses default 'objectArray' format for simpler, more readable code
-     * Returns Response<T[]> format consistent with ARM calls
-     */
-    private async executeArg<T = any>(
-        content: ARGRequestContent,
-        commandName: string,
-        apiVersion = ApiVersions.argQueryApiVersion20240401
-    ): Promise<Response<T[]>> {
-        try {
-            const { accessToken: token } = await acquireAccessToken('arm', this.telemetrySource);
-
-            const endpoints = getCloudEndpoints();
-            const argUrl = `${endpoints.arm}/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`;
-
-            // Use default objectArray format (simpler to work with than table format)
-            // Can be overridden via content.options.resultFormat if needed
-            const requestContent: ARGRequestContent = {
-                ...content,
-                options: {
-                    ...content.options,
-                    resultFormat: content.options?.resultFormat ?? 'objectArray',
-                },
-            };
-
-            const response = await fetch(argUrl, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    'x-ms-command-name': commandName,
-                    'x-ms-client-session-id': getSessionId(),
-                },
-                body: JSON.stringify(requestContent),
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                return {
-                    isSuccessful: false,
-                    error: new Error(`ARG query failed: ${response.status} ${response.statusText}. ${errorText}`),
-                };
-            }
-
-            const data = (await response.json()) as ARGResponseObjectArray<T>;
-
-            return {
-                isSuccessful: true,
-                content: data.data,
-            };
-        } catch (error) {
-            return {
-                isSuccessful: false,
-                error: error instanceof Error ? error : new Error(String(error)),
-            };
-        }
     }
 
     private extractResourceGroupNamesAndSubscriptionIds(resourceGroupIds: string[]): {
@@ -215,7 +153,7 @@ export class ResourceGroupClient extends Client {
             subscriptions,
         };
 
-        return this.executeArg(content, 'getResourcesUsingTypeAndKind');
+        return this.armClient.executeArg(content, 'getResourcesUsingTypeAndKind');
     }
 
     public async getResourcesInSubscriptionsByTypeAndKind(subscriptions: string[], type: string, kind?: string): Promise<Response<any[]>> {
@@ -224,7 +162,7 @@ export class ResourceGroupClient extends Client {
             subscriptions,
         };
 
-        return this.executeArg(content, 'getResourcesUsingTypeAndKind');
+        return this.armClient.executeArg(content, 'getResourcesUsingTypeAndKind');
     }
 
     public async getResourcesInResourceGroup(resourceGroupId: string, apiVersion: string): Promise<Response<ResponseArray<any>>> {
@@ -265,7 +203,7 @@ export class ResourceGroupClient extends Client {
             subscriptions: cleanedSubscriptionIds,
         };
 
-        const response = await this.executeArg<ResourceGroup>(content, 'getAllResourceGroupsFromSubscriptions');
+        const response = await this.armClient.executeArg<ResourceGroup>(content, 'getAllResourceGroupsFromSubscriptions');
 
         if (!response.isSuccessful) {
             return response;
@@ -299,7 +237,7 @@ export class ResourceGroupClient extends Client {
             subscriptions: cleanedSubscriptionIds,
         };
 
-        const response = await this.executeArg<{ resourceGroup: string }>(content, 'getSreAgentFilteredResourceGroups');
+        const response = await this.armClient.executeArg<{ resourceGroup: string }>(content, 'getSreAgentFilteredResourceGroups');
 
         if (!response.isSuccessful) {
             return {
@@ -335,7 +273,10 @@ export class ResourceGroupClient extends Client {
             subscriptions: subscriptionIds,
         };
 
-        const response = await this.executeArg<{ resourceGroupId: string; type: string }>(content, 'listResourceKindsInResourceGroups');
+        const response = await this.armClient.executeArg<{ resourceGroupId: string; type: string }>(
+            content,
+            'listResourceKindsInResourceGroups'
+        );
 
         if (!response.isSuccessful) {
             return {
@@ -373,7 +314,7 @@ export class ResourceGroupClient extends Client {
             subscriptions: subscriptionIds,
         };
 
-        const response = await this.executeArg<{ type: string; kind: string }>(content, 'listResourceKindsInResourceGroups');
+        const response = await this.armClient.executeArg<{ type: string; kind: string }>(content, 'listResourceKindsInResourceGroups');
 
         if (!response.isSuccessful) {
             return {
@@ -416,7 +357,7 @@ export class ResourceGroupClient extends Client {
             subscriptions: subscriptionIds,
         };
 
-        const response = await this.executeArg<{ type: string }>(content, 'listResourceKindsInResourceGroups');
+        const response = await this.armClient.executeArg<{ type: string }>(content, 'listResourceKindsInResourceGroups');
 
         if (!response.isSuccessful) {
             return {
