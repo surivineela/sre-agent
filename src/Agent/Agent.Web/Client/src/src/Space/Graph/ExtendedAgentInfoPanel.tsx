@@ -53,6 +53,7 @@ import {
 import {
     ExtendedAgent,
     ExtendedAgentGraphContext,
+    ExtendedAgentGraphNode,
     ExtendedAgentNodeType,
     ExtendedConnector,
     ExtendedTool,
@@ -67,8 +68,8 @@ import { ExtendedEntityType } from './ExtendedAgentYamlUtils';
 import { parseCronExpression } from './Utility';
 
 type ExtendedAgentInfoPanelProps = {
+    selectedNode?: ExtendedAgentGraphNode;
     agents?: ExtendedAgent[];
-    selectedAgent?: ExtendedAgent;
     tools: ExtendedTool[];
     connectors: ExtendedConnector[];
     triggers?: ExtendedTrigger[];
@@ -130,8 +131,8 @@ const SERVICE_TYPE = {
 
 export const ExtendedAgentInfoPanel = memo(
     ({
+        selectedNode,
         agents = [],
-        selectedAgent,
         tools,
         connectors,
         triggers = [],
@@ -153,7 +154,7 @@ export const ExtendedAgentInfoPanel = memo(
         const intl = useIntl();
         const navigate = useNavigate();
         const location = useLocation();
-        const { selectedNode, triggerAgentQuickAction, triggerTriggerQuickAction } = useContext(ExtendedAgentGraphContext);
+        const { triggerAgentQuickAction, triggerTriggerQuickAction } = useContext(ExtendedAgentGraphContext);
         const [yamlEditorContext, setYamlEditorContext] = useState<YamlEditorContext>();
         const [isResizeHandleHovered, setIsResizeHandleHovered] = useState(false);
         const [isDeleting, setIsDeleting] = useState(false);
@@ -163,6 +164,46 @@ export const ExtendedAgentInfoPanel = memo(
         const panelWidth = width ?? 350;
         const panelMinWidth = minWidth ?? 280;
         const panelMaxWidth = maxWidth ?? 720;
+
+        const selectedAgent = useMemo(() => {
+            if (selectedNode?.type === ExtendedAgentNodeType.Agent) {
+                return selectedNode.data as ExtendedAgent;
+            }
+
+            return undefined;
+        }, [selectedNode]);
+
+        const selectedTool = useMemo(() => {
+            if (selectedNode?.type === ExtendedAgentNodeType.Tool) {
+                return selectedNode.data as ExtendedTool;
+            }
+
+            return undefined;
+        }, [selectedNode]);
+
+        const selectedConnector = useMemo(() => {
+            if (selectedNode?.type === ExtendedAgentNodeType.Connector) {
+                return selectedNode.data as ExtendedConnector;
+            }
+
+            return undefined;
+        }, [selectedNode]);
+
+        const selectedTrigger = useMemo(() => {
+            if (selectedNode?.type === ExtendedAgentNodeType.Trigger) {
+                return selectedNode.data as ExtendedTrigger;
+            }
+
+            return undefined;
+        }, [selectedNode]);
+
+        const selectedSystemTool = useMemo(() => {
+            if (selectedNode?.type === ExtendedAgentNodeType.SystemTool) {
+                return selectedNode.data as SystemTool;
+            }
+
+            return undefined;
+        }, [selectedNode]);
 
         const memoryEnabled =
             selectedAgent?.tools?.some(t => t.toLowerCase() === 'searchmemory') ||
@@ -568,12 +609,6 @@ export const ExtendedAgentInfoPanel = memo(
         const handleCancelDelete = useCallback(() => {
             setDeleteContext(undefined);
         }, []);
-
-        const selectedTool = selectedNode?.type === ExtendedAgentNodeType.Tool ? (selectedNode.data as ExtendedTool) : undefined;
-        const selectedConnector =
-            selectedNode?.type === ExtendedAgentNodeType.Connector ? (selectedNode.data as ExtendedConnector) : undefined;
-        const selectedTrigger = selectedNode?.type === ExtendedAgentNodeType.Trigger ? (selectedNode.data as ExtendedTrigger) : undefined;
-        const selectedSystemTool = selectedNode?.type === ExtendedAgentNodeType.SystemTool ? (selectedNode.data as SystemTool) : undefined;
 
         const connectorTypeInfo = useMemo(() => {
             if (!selectedConnector?.connectorType) return null;

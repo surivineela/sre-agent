@@ -186,8 +186,8 @@ export enum ExtendedAgentGraphView {
 
 // Graph Context
 interface ExtendedAgentGraphContextProps {
-    selectedNode?: ExtendedAgentGraphNode;
-    setSelectedNode: (_?: ExtendedAgentGraphNode) => void;
+    selectedNodeId?: string;
+    setSelectedNodeId: (_?: string) => void;
     expandInfoPanel: () => void;
     hoveredNodeId?: string;
     hoverNode: (nodeId: string) => void;
@@ -202,7 +202,7 @@ interface ExtendedAgentGraphContextProps {
 }
 
 export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContextProps>({
-    setSelectedNode: (_?: ExtendedAgentGraphNode) => {},
+    setSelectedNodeId: (_?: string) => {},
     expandInfoPanel: () => {},
     hoverNode: () => {},
     unHoverNode: () => {},

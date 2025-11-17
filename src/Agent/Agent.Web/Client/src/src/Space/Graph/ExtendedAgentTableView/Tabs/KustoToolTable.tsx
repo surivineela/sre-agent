@@ -25,7 +25,7 @@ import {
     ScheduledTasksResources,
     SreAgentResources,
 } from '../../../../Strings/SREAgentResources';
-import { ExtendedConnector, ExtendedTool, ExtendedTrigger } from '../../../Contracts/ExtendedAgentGraph';
+import { ExtendedAgentNodeType, ExtendedConnector, ExtendedTool, ExtendedTrigger } from '../../../Contracts/ExtendedAgentGraph';
 import { EntityDeleteConfirmDialog } from '../Common/EntityDeleteConfirmDialog';
 import { EntityTable } from '../Common/EntityTable';
 import {
@@ -121,9 +121,7 @@ export const KustoToolTable: FC<KustoToolTableProps> = ({ kustoTools, connectors
                     <TableCell tabIndex={0} role="gridcell">
                         <Button
                             appearance="transparent"
-                            onClick={() => {
-                                openInfoPanel?.(toolItem);
-                            }}
+                            onClick={() => openInfoPanel?.(toolItem.name, ExtendedAgentNodeType.Tool)}
                             className={styles.transparentButton}
                         >
                             <Text className={styles.clickableText}>{toolItem.name}</Text>

@@ -40,7 +40,7 @@ Handles.displayName = 'ToolHandles';
 
 export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
     const { id, data } = props;
-    const { hoverNode, unHoverNode, nodesToHighlight, selectedNode, setSelectedNode, expandInfoPanel, hoveredNodeId } =
+    const { hoverNode, unHoverNode, nodesToHighlight, selectedNodeId, setSelectedNodeId, expandInfoPanel, hoveredNodeId } =
         useContext(ExtendedAgentGraphContext);
 
     const {
@@ -56,7 +56,7 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
         nameText,
     } = useToolNodeStyles();
     const isHovered = hoveredNodeId === id;
-    const isSelectedNode = selectedNode?.id === id;
+    const isSelectedNode = selectedNodeId === id;
 
     const isSystemTool = data?.type === ExtendedAgentNodeType.SystemTool;
     const tool = isSystemTool ? undefined : ((data?.data as ExtendedTool | undefined) ?? undefined);
@@ -79,7 +79,7 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
             <Handles />
             <Card
                 onClick={() => {
-                    setSelectedNode(data);
+                    setSelectedNodeId(data?.id);
                     expandInfoPanel();
                 }}
                 className={cardStyles}

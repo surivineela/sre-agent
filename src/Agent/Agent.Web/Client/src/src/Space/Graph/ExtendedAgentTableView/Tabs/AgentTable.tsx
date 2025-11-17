@@ -40,6 +40,7 @@ import {
     ExtendedAgent,
     ExtendedAgentGraphContext,
     ExtendedAgentGraphView,
+    ExtendedAgentNodeType,
     ExtendedTool,
     ExtendedTrigger,
     SystemTool,
@@ -167,7 +168,7 @@ export const AgentTable: FC<AgentTableProps> = ({
                         <div className={styles.tableCellContent}>
                             <Button
                                 appearance="transparent"
-                                onClick={() => openInfoPanel?.(agentItem)}
+                                onClick={() => openInfoPanel?.(agentItem.name, ExtendedAgentNodeType.Agent)}
                                 className={styles.transparentButton}
                             >
                                 <Text className={styles.clickableText}>{agentItem.name}</Text>

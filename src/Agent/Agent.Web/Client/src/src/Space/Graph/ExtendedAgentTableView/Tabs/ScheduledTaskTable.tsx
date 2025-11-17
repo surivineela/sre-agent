@@ -4,7 +4,7 @@ import { FC, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { ExtendedAgentsGraphResources, ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
-import { ExtendedTrigger } from '../../../Contracts/ExtendedAgentGraph';
+import { ExtendedAgentNodeType, ExtendedTrigger } from '../../../Contracts/ExtendedAgentGraph';
 import { ScheduledTasksContext } from '../../../ScheduledTasks/V2/Hooks/ScheduledTasksContext';
 import { ScheduledTasksFilters } from '../../../ScheduledTasks/V2/ScheduledTasksToolbar';
 import { getHumanReadableCronExpression, TaskStatusFilterKey } from '../../../ScheduledTasks/V2/ScheduledTasksUtilities';
@@ -93,7 +93,7 @@ export const ScheduledTaskTable: FC<ScheduledTaskTableProps> = ({
                     <TableCell tabIndex={0} role="gridcell">
                         <Button
                             appearance="transparent"
-                            onClick={() => openInfoPanel?.(scheduledItem)}
+                            onClick={() => openInfoPanel?.(scheduledItem.name, ExtendedAgentNodeType.Trigger)}
                             className={styles.transparentButton}
                         >
                             <Text className={styles.clickableText}>{scheduledItem.name}</Text>

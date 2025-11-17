@@ -1,4 +1,4 @@
-import { ExtendedAgent, ExtendedTool, ExtendedTrigger } from '../../Contracts/ExtendedAgentGraph';
+import { ExtendedAgent, ExtendedAgentNodeType, ExtendedTool, ExtendedTrigger } from '../../Contracts/ExtendedAgentGraph';
 
 export type AgentItem = {
     name: string;
@@ -48,7 +48,7 @@ export type BaseTableItem = {
 };
 
 export interface EntityTableProps {
-    openInfoPanel?: (item: any) => void;
+    openInfoPanel?: (itemName: string, itemType: ExtendedAgentNodeType) => void;
     refresh: () => void;
     lastUpdated?: string;
     isLoading?: boolean;

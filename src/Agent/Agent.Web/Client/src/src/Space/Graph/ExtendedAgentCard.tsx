@@ -39,7 +39,7 @@ Handles.displayName = 'ExtendedAgentHandles';
 export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
     const { id, data } = props;
 
-    const { hoverNode, unHoverNode, nodesToHighlight, selectedNode, setSelectedNode, expandInfoPanel, hoveredNodeId } =
+    const { hoverNode, unHoverNode, nodesToHighlight, selectedNodeId, setSelectedNodeId, expandInfoPanel, hoveredNodeId } =
         useContext(ExtendedAgentGraphContext);
 
     const {
@@ -60,7 +60,7 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
     const intl = useIntl();
 
     const isHovered = hoveredNodeId === id;
-    const isSelectedNode = selectedNode?.id === id;
+    const isSelectedNode = selectedNodeId === id;
 
     const agent = data?.data as ExtendedAgent | undefined;
     const agentType = agent?.agentType || 'Autonomous';
@@ -87,7 +87,7 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
                 <Handles />
                 <Card
                     onClick={() => {
-                        setSelectedNode(data);
+                        setSelectedNodeId(data?.id);
                         expandInfoPanel();
                     }}
                     className={cardStyles}

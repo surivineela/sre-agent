@@ -18,7 +18,7 @@ type ExtendedAgentSelectorProps = {
     selectedEntity?: ExtendedAgentAnchorEntity;
     onEntitySelect: (anchorEntity?: ExtendedAgentAnchorEntity) => void;
     expandInfoPanel: () => void;
-    setSelectedNode: React.Dispatch<React.SetStateAction<ExtendedAgentGraphNode | undefined>>;
+    setSelectedNodeId: React.Dispatch<React.SetStateAction<string | undefined>>;
     isLoading: boolean;
     nodes: Node<ExtendedAgentGraphNode>[];
     nodeCount: number;
@@ -34,7 +34,7 @@ export const ExtendedAgentSelector = memo(
         selectedEntity,
         onEntitySelect,
         expandInfoPanel,
-        setSelectedNode,
+        setSelectedNodeId,
         isLoading,
         nodes,
         showAgentPicker = true,
@@ -170,7 +170,7 @@ export const ExtendedAgentSelector = memo(
                                 setSearchQuery('');
                                 const targetNode = nodes.find(node => node.id === data.optionValue);
                                 if (targetNode) {
-                                    setSelectedNode(targetNode.data);
+                                    setSelectedNodeId(targetNode.id);
                                     requestAnimationFrame(() => {
                                         expandInfoPanel();
                                         fitView({

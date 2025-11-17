@@ -39,7 +39,7 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
     const intl = useIntl();
     const { data, id } = props;
 
-    const { selectedNode, setSelectedNode, expandInfoPanel, hoverNode, unHoverNode, hoveredNodeId, nodesToHighlight } =
+    const { selectedNodeId, setSelectedNodeId, expandInfoPanel, hoverNode, unHoverNode, hoveredNodeId, nodesToHighlight } =
         useContext(ExtendedAgentGraphContext);
 
     const {
@@ -59,7 +59,7 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
     const trigger = data?.data as ExtendedTrigger;
     const triggerType = trigger?.type;
     const isHovered = hoveredNodeId === id;
-    const isSelectedNode = selectedNode?.id === id;
+    const isSelectedNode = selectedNodeId === id;
 
     const cardStyles = mergeClasses(
         triggerCard,
@@ -147,7 +147,7 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
             <Handles />
             <Card
                 onClick={() => {
-                    setSelectedNode(data);
+                    setSelectedNodeId(data?.id);
                     expandInfoPanel();
                 }}
                 className={cardStyles}

@@ -26,7 +26,7 @@ import {
     ScheduledTasksResources,
     SreAgentResources,
 } from '../../../../Strings/SREAgentResources';
-import { ExtendedTrigger } from '../../../Contracts/ExtendedAgentGraph';
+import { ExtendedAgentNodeType, ExtendedTrigger } from '../../../Contracts/ExtendedAgentGraph';
 import { EntityDeleteConfirmDialog } from '../Common/EntityDeleteConfirmDialog';
 import { EntityTable } from '../Common/EntityTable';
 import {
@@ -117,7 +117,11 @@ export const IncidentTriggerTable: FC<IncidentTriggerTableProps> = ({
             return (
                 <>
                     <TableCell tabIndex={0} role="gridcell">
-                        <Button appearance="transparent" onClick={() => openInfoPanel?.(incidentItem)} className={styles.transparentButton}>
+                        <Button
+                            appearance="transparent"
+                            onClick={() => openInfoPanel?.(incidentItem.name, ExtendedAgentNodeType.Trigger)}
+                            className={styles.transparentButton}
+                        >
                             <Text className={styles.clickableText}>{incidentItem.name}</Text>
                         </Button>
                     </TableCell>

@@ -1,5 +1,5 @@
 import { Edge, Node } from '@xyflow/react';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import {
@@ -33,7 +33,9 @@ export const useExtendedAgentGraph = () => {
     const [nodes, setNodes] = useState<Node<ExtendedAgentGraphNode>[]>([]);
     const [edges, setEdges] = useState<Edge<ExtendedAgentGraphEdge>[]>([]);
 
-    const [selectedNode, setSelectedNode] = useState<ExtendedAgentGraphNode | undefined>();
+    const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
+    const selectedNodeIdRef = useRef<string | undefined>(selectedNodeId);
+
     const [hoveredNodeId, setHoveredNodeId] = useState<string | undefined>();
 
     const [anchorEntity, setAnchorEntity] = useState<ExtendedAgentAnchorEntity>();
@@ -44,6 +46,26 @@ export const useExtendedAgentGraph = () => {
     const scheduledTasksHook = useScheduledTasksV2();
     const incidentFiltersHook = useIncidentFilters();
     const incidentHandlersHook = useIncidentHandlers();
+
+    const selectedNode = useMemo(() => {
+        return nodes.find(node => node.id === selectedNodeId);
+    }, [nodes, selectedNodeId]);
+
+    const updateSelectedNodeId: React.Dispatch<React.SetStateAction<string | undefined>> = useCallback(
+        (input: SetStateAction<string | undefined>) => {
+            if (typeof input === 'function') {
+                setSelectedNodeId(prevSelectedNodeId => {
+                    const newSelectedNodeId = input(prevSelectedNodeId);
+                    selectedNodeIdRef.current = newSelectedNodeId;
+                    return newSelectedNodeId;
+                });
+            } else {
+                setSelectedNodeId(input);
+                selectedNodeIdRef.current = input;
+            }
+        },
+        []
+    );
 
     // Fetch agents
     const fetchAgents = useCallback(async () => {
@@ -422,8 +444,10 @@ export const useExtendedAgentGraph = () => {
         mcpConnections,
         nodes: filteredGraph.nodes,
         edges: filteredGraph.edges,
+        selectedNodeIdRef,
+        selectedNodeId,
+        setSelectedNodeId: updateSelectedNodeId,
         selectedNode,
-        setSelectedNode,
         hoveredNodeId,
         hoverNode,
         unHoverNode,

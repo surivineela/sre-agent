@@ -25,7 +25,6 @@ import {
     ExtendedAgentAnchorEntity,
     ExtendedAgentGraphContext,
     ExtendedAgentGraphView,
-    ExtendedAgentNodeType,
     ExtendedConnector,
     ExtendedTool,
     INFO_PANEL_DEFAULT_WIDTH,
@@ -107,8 +106,10 @@ const ExtendedAgentGraphContent = memo(() => {
     const {
         nodes: graphNodes,
         edges: graphEdges,
+        selectedNodeIdRef,
+        selectedNodeId,
+        setSelectedNodeId,
         selectedNode,
-        setSelectedNode,
         hoveredNodeId,
         hoverNode,
         unHoverNode,
@@ -525,94 +526,47 @@ const ExtendedAgentGraphContent = memo(() => {
     }, [agents, pendingEntitySelection, setPendingEntitySelection, setAnchorEntity]);
 
     useEffect(() => {
-        setSelectedNode(prevSelectedNode => {
-            const activeEntity = anchorEntity;
+        const prevSelectedNodeId = selectedNodeIdRef.current;
+        const activeEntity = anchorEntity;
 
-            if (!activeEntity) {
-                previousEntityRef.current = undefined;
-                return prevSelectedNode ? undefined : prevSelectedNode;
-            }
+        if (!activeEntity) {
+            previousEntityRef.current = undefined;
+            setSelectedNodeId(prevSelectedNodeId ? undefined : prevSelectedNodeId);
+            return;
+        }
 
-            const primaryNode = graphNodes.find(node => {
-                const searchIdPrefix = activeEntity.entityType === 'Agent' ? 'agent_' : 'trigger_';
-                return node.id === `${searchIdPrefix}${activeEntity.entityName}`;
-            });
-
-            if (!primaryNode) {
-                if (graphNodes.length === 0) {
-                    // Wait for layout to supply nodes before updating selection
-                    return;
-                }
-
-                previousEntityRef.current = activeEntity;
-                return prevSelectedNode ? undefined : prevSelectedNode;
-            }
-
-            const entityChanged = previousEntityRef.current !== activeEntity;
-            if (
-                prevSelectedNode &&
-                prevSelectedNode.type !== ExtendedAgentNodeType.Agent &&
-                prevSelectedNode.type !== ExtendedAgentNodeType.Trigger
-            ) {
-                previousEntityRef.current = activeEntity;
-                return entityChanged ? primaryNode.data : prevSelectedNode;
-            }
-
-            const alreadySelectedSameNode = prevSelectedNode?.id === primaryNode.data.id;
-            if (entityChanged || !alreadySelectedSameNode) {
-                previousEntityRef.current = activeEntity;
-                return primaryNode.data;
-            }
-            return prevSelectedNode;
+        const primaryNode = graphNodes.find(node => {
+            const searchIdPrefix = activeEntity.entityType === 'Agent' ? 'agent_' : 'trigger_';
+            return node.id === `${searchIdPrefix}${activeEntity.entityName}`;
         });
-    }, [anchorEntity, graphNodes, setSelectedNode]);
 
-    const selectedAgent = useMemo(
-        () =>
-            anchorEntity?.entityType === 'Agent' && anchorEntity?.entityName
-                ? agents.find(agent => agent.name === anchorEntity.entityName)
-                : undefined,
-        [agents, anchorEntity]
-    );
+        if (!primaryNode) {
+            if (graphNodes.length === 0) {
+                // Wait for layout to supply nodes before updating selection
+                return;
+            }
 
-    useEffect(() => {
-        if (!selectedNode || selectedNode.type !== ExtendedAgentNodeType.Agent) {
+            previousEntityRef.current = activeEntity;
+            setSelectedNodeId(prevSelectedNodeId ? undefined : prevSelectedNodeId);
             return;
         }
 
-        const selectedAgentName = (selectedNode.data as ExtendedAgent | undefined)?.name;
-        if (!selectedAgentName) {
+        const entityChanged = previousEntityRef.current !== activeEntity;
+        const prevSelectedNode = graphNodes.find(node => node.id === prevSelectedNodeId)?.data;
+        if (prevSelectedNode) {
+            previousEntityRef.current = activeEntity;
+            setSelectedNodeId(entityChanged ? primaryNode.data.id : prevSelectedNodeId);
             return;
         }
 
-        const updatedAgent = agents.find(agent => agent.name === selectedAgentName);
-
-        if (!updatedAgent) {
-            setSelectedNode(undefined);
+        const alreadySelectedSameNode = prevSelectedNodeId === primaryNode.data.id;
+        if (entityChanged || !alreadySelectedSameNode) {
+            previousEntityRef.current = activeEntity;
+            setSelectedNodeId(primaryNode.data.id);
             return;
         }
-
-        if (updatedAgent !== selectedNode.data) {
-            setSelectedNode(prevNode => {
-                if (!prevNode || prevNode.type !== ExtendedAgentNodeType.Agent) {
-                    return prevNode;
-                }
-
-                return {
-                    ...prevNode,
-                    data: updatedAgent,
-                };
-            });
-        }
-    }, [agents, selectedNode, setSelectedNode]);
-
-    const infoPanelAgent = useMemo(() => {
-        if (selectedNode?.type === ExtendedAgentNodeType.Agent) {
-            return selectedNode.data as ExtendedAgent;
-        }
-
-        return selectedAgent;
-    }, [selectedNode, selectedAgent]);
+        setSelectedNodeId(prevSelectedNodeId);
+    }, [anchorEntity, graphNodes, setSelectedNodeId]);
 
     const relationshipAgent = useMemo(
         () => (relationshipAgentName ? agents.find(agent => agent.name === relationshipAgentName) : undefined),
@@ -1756,8 +1710,8 @@ const ExtendedAgentGraphContent = memo(() => {
     return (
         <ExtendedAgentGraphContext.Provider
             value={{
-                selectedNode,
-                setSelectedNode,
+                selectedNodeId,
+                setSelectedNodeId,
                 expandInfoPanel: () => setIsInfoPanelCollapsed(false),
                 hoveredNodeId,
                 hoverNode,
@@ -1882,7 +1836,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                             selectedEntity={anchorEntity}
                                             onEntitySelect={handleEntitySelect}
                                             expandInfoPanel={() => setIsInfoPanelCollapsed(false)}
-                                            setSelectedNode={setSelectedNode}
+                                            setSelectedNodeId={setSelectedNodeId}
                                             isLoading={loading}
                                             nodes={nodes}
                                             nodeCount={nodes.length}
@@ -1904,14 +1858,14 @@ const ExtendedAgentGraphContent = memo(() => {
                                 )}
                             </div>
 
-                            {currentView === ExtendedAgentGraphView.Visual && !showEmptyState && (
+                            {currentView === ExtendedAgentGraphView.Visual && !showEmptyState && !!selectedNode?.data?.data && (
                                 <div
                                     ref={infoPanelRef}
                                     className={mergeClasses(infoPanelContainer, isInfoPanelFloating && infoPanelFloating)}
                                     style={isInfoPanelCollapsed ? undefined : infoPanelStyle}
                                 >
                                     <ExtendedAgentInfoPanel
-                                        selectedAgent={infoPanelAgent}
+                                        selectedNode={selectedNode.data}
                                         tools={tools}
                                         connectors={connectors}
                                         triggers={triggers}

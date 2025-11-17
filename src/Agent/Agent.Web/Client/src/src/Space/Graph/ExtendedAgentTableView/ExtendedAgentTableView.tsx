@@ -8,7 +8,7 @@ import { getLocaleTimeHHMM } from '../../../Common/Helpers/Date';
 import { ExtendedAgentsGraphResources, ScheduledTasksResources, SettingsTabResources } from '../../../Strings/SREAgentResources';
 import {
     ExtendedAgent,
-    ExtendedAgentGraphContext,
+    ExtendedAgentGraphNode,
     ExtendedAgentNodeType,
     ExtendedConnector,
     ExtendedTool,
@@ -58,9 +58,9 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
     const intl = useIntl();
     const styles = useListViewStyles();
     const { infoPanelContainer, infoPanelFloating } = useExtendedAgentGraphStyles();
-    const extendedAgentGraphContext = useContext(ExtendedAgentGraphContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const [selectedDrawerItem, setSelectedDrawerItem] = useState<any>(undefined);
+    const [selectedDrawerItem, setSelectedDrawerItem] = useState<ExtendedAgentGraphNode>();
+    const [selectedDrawerItemId, setSelectedDrawerItemId] = useState<{ id: string; type: ExtendedAgentNodeType }>();
     const [lastUpdated, setLastUpdated] = useState<string>('');
     const [isPlaygroundOpen, setIsPlaygroundOpen] = useState(false);
     const [playgroundTarget, setPlaygroundTarget] = useState<PlaygroundTarget | undefined>(undefined);
@@ -94,76 +94,56 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
         setPlaygroundTarget(undefined);
     }, []);
 
-    const handleOpenInfoPanel = useCallback(
-        (item: any) => {
-            if (activeTab === 'agents') {
-                const fullAgent = agents.find(agent => agent.name === item.name);
-                setSelectedDrawerItem(fullAgent);
-                extendedAgentGraphContext.setSelectedNode({
-                    id: fullAgent?.name || item.name,
-                    name: fullAgent?.name || item.name,
-                    type: ExtendedAgentNodeType.Agent,
-                    data: fullAgent || item,
-                });
-            } else if (activeTab === 'kustoTools') {
-                const toolData = item.data;
-                setSelectedDrawerItem(toolData);
-                extendedAgentGraphContext.setSelectedNode({
-                    id: toolData?.name || item.name,
-                    name: toolData?.name || item.name,
-                    type: ExtendedAgentNodeType.Tool,
-                    data: toolData || item,
-                });
-            } else {
-                setSelectedDrawerItem(item);
-                let nodeType: ExtendedAgentNodeType;
-                switch (activeTab) {
-                    case 'incidentTriggers':
-                    case 'scheduledTasks':
-                        nodeType = ExtendedAgentNodeType.Trigger;
-                        break;
-                    default:
-                        nodeType = ExtendedAgentNodeType.Agent;
-                }
-                extendedAgentGraphContext.setSelectedNode({
-                    id: item.name,
-                    name: item.name,
-                    type: nodeType,
-                    data: item,
-                });
-            }
-        },
-        [activeTab, agents, extendedAgentGraphContext]
-    );
+    const handleOpenInfoPanel = useCallback((itemName: string, itemType: ExtendedAgentNodeType) => {
+        setSelectedDrawerItemId({ id: itemName, type: itemType });
+    }, []);
 
     const handleCloseInfoPanel = useCallback(() => {
-        setSelectedDrawerItem(undefined);
-        extendedAgentGraphContext.setSelectedNode(undefined);
-    }, [extendedAgentGraphContext]);
+        setSelectedDrawerItemId(undefined);
+    }, []);
 
     useEffect(() => {
-        if (!selectedDrawerItem || activeTab !== 'agents') {
-            return;
-        }
+        if (!selectedDrawerItemId) {
+            setSelectedDrawerItem(undefined);
+        } else {
+            const { id, type } = selectedDrawerItemId;
 
-        const updatedAgent = agents.find(agent => agent.name === selectedDrawerItem?.name);
-
-        if (!updatedAgent) {
-            handleCloseInfoPanel();
-            return;
+            if (type === ExtendedAgentNodeType.Agent) {
+                const fullAgent = agents.find(agent => agent.name === id);
+                if (fullAgent) {
+                    setSelectedDrawerItem({
+                        id: `agent_${fullAgent.name}`,
+                        name: fullAgent.name,
+                        type: ExtendedAgentNodeType.Agent,
+                        data: fullAgent,
+                    });
+                }
+            } else if (type === ExtendedAgentNodeType.Tool) {
+                const toolData = tools.find(tool => tool.name === id);
+                if (toolData) {
+                    setSelectedDrawerItem({
+                        id: `tool_${toolData.name}`,
+                        name: toolData.name,
+                        type: ExtendedAgentNodeType.Tool,
+                        data: toolData,
+                    });
+                }
+            } else if (type === ExtendedAgentNodeType.Trigger) {
+                const triggerData = triggers.find(trigger => trigger.name === id);
+                if (triggerData) {
+                    setSelectedDrawerItem({
+                        id: `trigger_${triggerData.name}`,
+                        name: triggerData.name || '',
+                        type: ExtendedAgentNodeType.Trigger,
+                        data: triggerData,
+                    });
+                }
+            } else {
+                setSelectedDrawerItem(undefined);
+                setSelectedDrawerItemId(undefined);
+            }
         }
-
-        if (updatedAgent !== selectedDrawerItem) {
-            // Keep the info panel in sync with the latest agent payload after edits.
-            setSelectedDrawerItem(updatedAgent);
-            extendedAgentGraphContext.setSelectedNode({
-                id: updatedAgent.name,
-                name: updatedAgent.name,
-                type: ExtendedAgentNodeType.Agent,
-                data: updatedAgent,
-            });
-        }
-    }, [activeTab, agents, extendedAgentGraphContext, handleCloseInfoPanel, selectedDrawerItem]);
+    }, [selectedDrawerItemId, agents, tools, triggers]);
 
     const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -292,10 +272,9 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
     const handleTabSelect = useCallback(
         (cardType: TableViewTabValue) => {
             setActiveTab(cardType);
-            setSelectedDrawerItem(undefined);
-            extendedAgentGraphContext.setSelectedNode(undefined);
+            setSelectedDrawerItemId(undefined);
         },
-        [extendedAgentGraphContext, setActiveTab]
+        [setActiveTab]
     );
 
     const renderTable = useCallback(() => {
@@ -428,7 +407,7 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                 >
                     <ExtendedAgentInfoPanel
                         agents={agents}
-                        selectedAgent={selectedDrawerItem}
+                        selectedNode={selectedDrawerItem}
                         tools={tools}
                         connectors={connectors}
                         triggers={triggers}
