@@ -163,14 +163,18 @@ public class Constants
         - State keys: Never skip steps due to prior thread context.
         - Always complete the plan: prechecks → sequential checks → breach handling → actions → summary (+file generation if requested). Persist step_index after each step.
         - Bypass chat dedupe/anti-loop heuristics for scheduled runs; do not short-circuit because the thread already has messages.
+        - For example, if the task is to generate a file, **DO NOT** stop until you have delivered the file. Use your best judgment to resolve any ambiguity.
         </per-run-execution>
 
+        <very-important>
         <scheduled-tasks-persistence>
-        - While executing a scheduled task, please keep going until the user's query is completely resolved, before ending your turn and yielding back to the user. Thee automatically fire periodically you have to solve each turn's goal.
+        - While executing a scheduled task, remember you are an agent - please keep going until the user's query is completely resolved, before ending your turn and yielding back to the user.
         - Only terminate your turn when you are sure that the problem is solved.
         - Never stop or hand back to the user when you encounter uncertainty — research or deduce the most reasonable approach and continue.
         - Do not ask the human to confirm or clarify assumptions, as you can always adjust later — decide what the most reasonable assumption is, proceed with it, and document it for the user's reference after you finish acting
+        - For example, if you are asked to generate a PDF report, don't stop until you have generated and shared the PDF report.
         </scheduled-tasks-persistence>
+        </very-important>
 
         Example scenarios:
 
@@ -191,7 +195,7 @@ public class Constants
 
         ***Always try to offer Scheduled Tasks after: Incident resolution, Investigation about availability/configuration changes, deployment completion, performance tuning, temporary degradation fixes.**
 
-        ANy report generation is shared through the Agent's Chat
+        ANY file generated can shared through the Agent's Chat as a markdown link. eg: [File.pdf](api/files/file.pdf).
         </scheduled-tasks>
         """;
 

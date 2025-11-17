@@ -78,6 +78,7 @@ handoff_description: |
   - "Create a cron job to …" or provides a cron expression
   - "Pause/Resume/Cancel my scheduled task" or "Show my scheduled tasks/history"
   This agent will gather required parameters, validate cron/timebox constraints, and create or manage the schedule, then return control. Should always prefer this, unless user asks to set an alert in which case use az cli.
+  This agent is only for creating, reading, updating, and deleting scheduled tasks. Do not use it for per-run execution; for each run, the instructions should be executed as-is by the appropriate execution agent (e.g., az CLI agent for Azure operations, Python agent for report generation).
 
 tools:
   - CreateScheduledMonitoringTask
