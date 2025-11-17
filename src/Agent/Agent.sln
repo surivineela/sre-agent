@@ -50,7 +50,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Framework.Examples", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Cli", "Agent.Cli\Agent.Cli.csproj", "{0E8EE7D5-C783-D56F-C614-9DD35497FC76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Session.Cli", "Session.Cli\Session.Cli.csproj", "{4D6B5A20-C6DD-4813-A6FC-D5A3162001BA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Session.Proxy", "Session.Proxy\Session.Proxy.csproj", "{4D6B5A20-C6DD-4813-A6FC-D5A3162001BA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.ScheduledTasks", "Agent.ScheduledTasks\Agent.ScheduledTasks.csproj", "{D1937675-3883-687A-180B-09697FC9C88C}"
 EndProject

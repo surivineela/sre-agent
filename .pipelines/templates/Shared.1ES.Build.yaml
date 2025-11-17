@@ -236,11 +236,11 @@ extends:
             zipAfterPublish: false
 
         - task: DotNetCoreCLI@2
-          displayName: '🔨 Publish Session.Cli'
+          displayName: '🔨 Publish Session.Proxy'
           inputs:
             command: 'publish'
             publishWebProjects: false
-            projects: '.\src\Agent\Session.Cli\Session.Cli.csproj'
+            projects: '.\src\Agent\Session.Proxy\Session.Proxy.csproj'
             arguments: '--no-restore --output $(ArtifactDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
             includeNuGetOrg: false
             zipAfterPublish: false
@@ -545,12 +545,12 @@ extends:
               - sreagentdev.azurecr.io/sre-agent-web:$(Build.BuildNumber)
               - sreagentprod.azurecr.io/sre-agent-web:$(Build.BuildNumber)
 
-      - stage: docker_session_cli
+      - stage: docker_session_proxy
         dependsOn:
         - build_and_test
         jobs:
         - job: image_build
-          displayName: "🔨 Build Docker Image for Session.Cli"
+          displayName: "🔨 Build Docker Image for Session.Proxy"
           pool:
             name: Azure-Pipelines-1ESPT-ExDShared
             image: ubuntu-latest
@@ -561,22 +561,22 @@ extends:
             inputs:
               targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
               artifact: drop_build_main
-              patterns: 'Session.Cli/**'
+              patterns: 'Session.Proxy/**'
 
           - task: 1ES.BuildContainerImage@1
-            displayName: 'Build Docker image for Session.Cli'
+            displayName: 'Build Docker image for Session.Proxy'
             inputs:
-              context: $(Build.SourcesDirectory)/dst/drop_build_main/Session.Cli
-              dockerFile: $(Build.SourcesDirectory)/src/Deployment/Session.Cli/Dockerfile
-              image: session-cli:$(Build.BuildNumber)
+              context: $(Build.SourcesDirectory)/dst/drop_build_main/Session.Proxy
+              dockerFile: $(Build.SourcesDirectory)/src/Deployment/Session.Proxy/Dockerfile
+              image: session-proxy:$(Build.BuildNumber)
               enableNetwork: true
-          
+
           templateContext:
             outputs:
             - output: containerImage
-              image: session-cli:$(Build.BuildNumber)
+              image: session-proxy:$(Build.BuildNumber)
               # Commented out remote image push
               remoteImage:
-              - sreagentdev.azurecr.io/session-cli:$(Build.BuildNumber)
-              - sreagentprod.azurecr.io/session-cli:$(Build.BuildNumber)
-              - k8seprod.azurecr.io/public/k8se/sreagent/session-cli:$(Build.BuildNumber)
+              - sreagentdev.azurecr.io/session-proxy:$(Build.BuildNumber)
+              - sreagentprod.azurecr.io/session-proxy:$(Build.BuildNumber)
+              - k8seprod.azurecr.io/public/k8se/sreagent/session-proxy:$(Build.BuildNumber)

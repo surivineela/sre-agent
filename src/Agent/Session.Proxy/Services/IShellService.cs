@@ -1,6 +1,6 @@
 using Agent.Core.Models.Session;
 
-namespace Session.Cli.Services;
+namespace Session.Proxy.Services;
 
 public interface IShellService
 {

@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json.Serialization;
 
-namespace Session.Cli.Models;
+namespace Session.Proxy.Models;
 
 public class MsiResponse
 {

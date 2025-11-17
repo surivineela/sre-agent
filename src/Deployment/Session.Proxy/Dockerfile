@@ -18,6 +18,14 @@ RUN apt-get update && \
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
     rm kubectl
 
+# Install Node.js, npm, Python, and uvx (required for running MCP servers)
+RUN apt-get install -y curl python3 python3-pip python3-venv && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    pip3 install --break-system-packages uv && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN az extension add --allow-preview -y --system --name containerapp && \
     az extension add --allow-preview -y --system --name log-analytics && \
     az extension add --allow-preview -y --system --name kusto && \
@@ -27,4 +35,4 @@ WORKDIR /app
 COPY . .
 
 # Run the application
-ENTRYPOINT ["dotnet", "Session.Cli.dll"]
+ENTRYPOINT ["dotnet", "Session.Proxy.dll"]

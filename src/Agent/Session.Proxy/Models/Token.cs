@@ -1,7 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace Session.Cli.Models;
+namespace Session.Proxy.Models;
 
 public class Token
 {

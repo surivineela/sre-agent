@@ -1,11 +1,9 @@
-using System.Diagnostics;
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Mvc;
-using Session.Cli.Attributes;
-using Session.Cli.Models;
-using Session.Cli.Services;
+using Session.Proxy.Attributes;
+using Session.Proxy.Models;
+using Session.Proxy.Services;
 
-namespace Session.Cli.Controllers;
+namespace Session.Proxy.Controllers;
 
 [Produces("application/json")]
 [ApiController]

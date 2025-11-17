@@ -1,7 +1,7 @@
 using System;
-using Session.Cli.Models;
+using Session.Proxy.Models;
 
-namespace Session.Cli.Services;
+namespace Session.Proxy.Services;
 
 public interface ITokenService
 {

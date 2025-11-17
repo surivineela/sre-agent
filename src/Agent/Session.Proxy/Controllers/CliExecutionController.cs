@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Agent.Core.Models.Session;
 using Microsoft.AspNetCore.Mvc;
-using Session.Cli.Services;
+using Session.Proxy.Services;
 
 [Produces("application/json")]
 [ApiController]

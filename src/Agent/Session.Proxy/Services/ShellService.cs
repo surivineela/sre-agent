@@ -4,7 +4,7 @@ using Agent.Core.Services;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 
-namespace Session.Cli.Services;
+namespace Session.Proxy.Services;
 
 public class ShellService : IShellService
 {
