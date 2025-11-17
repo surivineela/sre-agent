@@ -26,7 +26,7 @@ import { KustoToolCreateForm } from './KustoToolForm';
 import { KustoToolTestPanel } from './KustoToolTestPanel';
 import { KustoToolFormProps } from './KustoToolUtilities';
 
-interface KustoToolCreateEditDialogProps {
+interface KustoToolDialogProps {
     isDialogOpen: boolean;
     setIsDialogOpen: (open: boolean) => void;
     connectors: ExtendedConnector[];
@@ -42,7 +42,7 @@ export enum KustoToolDialogMode {
     Edit,
 }
 
-export const KustoToolCreateEditDialog: FC<KustoToolCreateEditDialogProps> = ({
+export const KustoToolDialog: FC<KustoToolDialogProps> = ({
     isDialogOpen,
     setIsDialogOpen,
     connectors,

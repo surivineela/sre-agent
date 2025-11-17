@@ -92,6 +92,25 @@ export class ExtendedAgentClient extends DataPlaneClient {
         }
     };
 
+    public deleteKustoTool = async (toolName: string) => {
+        const encodedToolName = encodeURIComponent(toolName);
+        try {
+            const { data } = await axios.delete(this.getRequestUrl(`/api/v1/extendedAgent/tools/${encodedToolName}`), {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            return {
+                isSuccessful: false,
+                error: errorMessage,
+            };
+        }
+    };
+
     public applyEntity = async (
         data: Partial<ExtendedAgent> | Partial<ExtendedTool> | Partial<ExtendedConnector>,
         type: 'agent' | 'tool' | 'connector'

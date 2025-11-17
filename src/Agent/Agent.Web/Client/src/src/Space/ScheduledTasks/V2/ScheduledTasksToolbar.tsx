@@ -14,7 +14,7 @@ import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPorta
 import { getErrorMessageOrStringify } from '../../../Common/Clients/ArmClient';
 import { PillFilter } from '../../../Common/Components/PillFilter/PillFilter';
 import { getLocaleTimeHHMM } from '../../../Common/Helpers/Date';
-import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
 import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from './Common/ScheduledTaskCreateOrEditDialog';
 import { ScheduledTaskDeleteDialog } from './Common/ScheduledTaskDeleteDialog';
@@ -294,7 +294,7 @@ interface ScheduledTasksFiltersProps {
     setStatusFilter: (status: TaskStatusFilterKey) => void;
 }
 
-const ScheduledTasksFilters: FC<ScheduledTasksFiltersProps> = ({ searchQuery, setSearchQuery, statusFilter, setStatusFilter }) => {
+export const ScheduledTasksFilters: FC<ScheduledTasksFiltersProps> = ({ searchQuery, setSearchQuery, statusFilter, setStatusFilter }) => {
     const intl = useIntl();
     const styles = useScheduledTasksStyles();
 
@@ -323,9 +323,10 @@ const ScheduledTasksFilters: FC<ScheduledTasksFiltersProps> = ({ searchQuery, se
     return (
         <div className={styles.filters}>
             <SearchBox
+                className={styles.searchBox}
                 value={searchQuery}
                 onChange={(_, data) => setSearchQuery(data.value)}
-                placeholder={intl.formatMessage(ScheduledTasksResources.filterTasks)}
+                placeholder={intl.formatMessage(ExtendedAgentsGraphResources.searchByScheduledTask)}
             />
             <PillFilter
                 label={`${intl.formatMessage(SreAgentResources.status)}`}

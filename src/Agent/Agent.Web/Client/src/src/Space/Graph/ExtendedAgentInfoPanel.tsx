@@ -387,6 +387,14 @@ export const ExtendedAgentInfoPanel = memo(
             [connectorMap, intl, styles]
         );
 
+        const handleGoToIncidents = useCallback(() => {
+            navigate({ ...location, pathname: '/views/incidentmanagement' });
+        }, [navigate, location]);
+
+        const handleGoToScheduled = useCallback(() => {
+            navigate({ ...location, pathname: '/views/scheduledtasks' });
+        }, [navigate, location]);
+
         const renderTriggerDetails = useCallback(
             (trigger: ExtendedTrigger) => {
                 return (
@@ -511,18 +519,7 @@ export const ExtendedAgentInfoPanel = memo(
                     </>
                 );
             },
-            [
-                intl,
-                styles.metadataRow,
-                styles.metadataKey,
-                styles.badgeRow,
-                styles.instructionsSection,
-                styles.sectionTitle,
-                styles.instructions,
-                styles.subSection,
-                styles.marginBottom8,
-                styles.actionButton,
-            ]
+            [handleGoToIncidents, handleGoToScheduled, intl, styles]
         );
 
         const handleDeleteClick = useCallback(
@@ -571,14 +568,6 @@ export const ExtendedAgentInfoPanel = memo(
         const handleCancelDelete = useCallback(() => {
             setDeleteContext(undefined);
         }, []);
-
-        const handleGoToIncidents = useCallback(() => {
-            navigate({ ...location, pathname: '/views/incidentmanagement' });
-        }, [navigate, location]);
-
-        const handleGoToScheduled = useCallback(() => {
-            navigate({ ...location, pathname: '/views/scheduledtasks' });
-        }, [navigate, location]);
 
         const selectedTool = selectedNode?.type === ExtendedAgentNodeType.Tool ? (selectedNode.data as ExtendedTool) : undefined;
         const selectedConnector =
@@ -689,7 +678,7 @@ export const ExtendedAgentInfoPanel = memo(
             if (selectedSystemTool) return 'tool';
             if (selectedAgent) return selectedAgent.name === 'meta_agent' ? 'metaAgent' : 'agent';
             return undefined;
-        }, [selectedTool, selectedConnector, selectedTrigger, selectedSystemTool, selectedAgent?.name]);
+        }, [selectedTool, selectedConnector, selectedTrigger, selectedSystemTool, selectedAgent]);
 
         const headerTitle =
             selectedTool?.name ??

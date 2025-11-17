@@ -10,17 +10,20 @@ import {
 } from '@fluentui/react-icons';
 import { FC, useMemo } from 'react';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
+
+export type EntityIconType =
+    | 'agent'
+    | 'metaAgent'
+    | 'scheduledTask'
+    | 'scheduledTaskRun'
+    | 'incidentTrigger'
+    | 'genericTrigger'
+    | 'tool'
+    | 'toolWithGear'
+    | 'connector';
+
 export interface EntityIconProps {
-    type:
-        | 'agent'
-        | 'metaAgent'
-        | 'scheduledTask'
-        | 'scheduledTaskRun'
-        | 'incidentTrigger'
-        | 'genericTrigger'
-        | 'tool'
-        | 'toolWithGear'
-        | 'connector';
+    type: EntityIconType;
     shorthandStyle?: {
         wrapperSize: number;
         iconSize: number;

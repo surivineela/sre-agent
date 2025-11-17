@@ -103,6 +103,8 @@ export type ExtendedTrigger = {
     timezone?: string;
     createdAt?: string;
     enabled?: boolean;
+    executionCount?: number;
+    id?: string;
     data?: any;
     [key: string]: any;
 };

@@ -233,6 +233,8 @@ export const useExtendedAgentGraph = () => {
                 timezone: 'UTC',
                 enabled: task.status === 'Active',
                 createdAt: task.createdAt || new Date().toISOString(),
+                executionCount: task.executionCount,
+                id: task.id,
             }));
             allTriggers.push(...scheduledTriggers);
 

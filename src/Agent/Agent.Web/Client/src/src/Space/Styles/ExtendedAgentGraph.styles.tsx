@@ -68,6 +68,7 @@ export const useExtendedAgentGraphStyles = makeStyles({
         alignItems: 'center',
         gap: '16px',
     },
+    toolbarRefreshButton: { display: 'flex', alignItems: 'center', fontWeight: 'normal' },
     statusMessageContainer: {
         paddingRight: '16px',
         marginBottom: tokens.spacingVerticalS,

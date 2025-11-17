@@ -16,10 +16,76 @@ export const SreAgentResources = defineMessages({
         defaultMessage: 'Are you sure you want to delete this SRE Agent? This action cannot be undone.',
         id: 'O8zbbB',
     },
-    deleteAgentNotificationTitle: { defaultMessage: 'Deleting SRE Agent', id: '6OBtew' },
-    deleteAgentNotificationDescription: { defaultMessage: 'Deleting SRE Agent {name} in progress', id: 'L0KVkI' },
-    deleteAgentNotificationSuccess: { defaultMessage: 'SRE Agent {name} deleted successfully', id: '1O47t6' },
-    deleteAgentNotificationError: { defaultMessage: 'Failed to delete SRE Agent {name}', id: 'JCjxSH' },
+    deleteAgentNotificationTitle: { defaultMessage: '{count, plural, one {Delete SRE Agent} other {Delete SRE Agents}}', id: 'Kfr1WB' },
+    deleteAgentNotificationDescription: {
+        defaultMessage: '{count, plural, one {Deleting SRE Agent {name}} other {Deleting SRE Agents}}',
+        id: 'jIcHPc',
+    },
+    deleteAgentNotificationSuccess: {
+        defaultMessage: '{count, plural, one {SRE Agent {name} deleted successfully} other {SRE Agents deleted successfully}}',
+        id: '8yfUKp',
+    },
+    deleteAgentNotificationError: {
+        defaultMessage:
+            '{count, plural, one {Failed to delete SRE Agent {name}} other {Failed to delete SRE Agents}}{errorMessage, select, undefined {} other {: {errorMessage}}}',
+        id: 'MGZggN',
+    },
+
+    deleteKustoToolNotificationTitle: {
+        defaultMessage: '{count, plural, one {Delete Kusto tool} other {Delete Kusto tools}}',
+        id: 'zpENeF',
+    },
+    deleteKustoToolNotificationDescription: {
+        defaultMessage: '{count, plural, one {Deleting Kusto tool {name}} other {Deleting Kusto tools}}',
+        id: '/8swfk',
+    },
+    deleteKustoToolNotificationSuccess: {
+        defaultMessage: '{count, plural, one {Kusto tool {name} deleted successfully} other {Kusto tools deleted successfully}}',
+        id: '7K6W8s',
+    },
+    deleteKustoToolNotificationError: {
+        defaultMessage:
+            '{count, plural, one {Failed to delete Kusto tool {name}} other {Failed to delete Kusto tools}}{errorMessage, select, undefined {} other {: {errorMessage}}}',
+        id: 'yrDI3f',
+    },
+
+    deleteIncidentTriggerNotificationTitle: {
+        defaultMessage: '{count, plural, one {Delete incident trigger} other {Delete incident triggers}}',
+        id: 'TGc4Lh',
+    },
+    deleteIncidentTriggerNotificationDescription: {
+        defaultMessage: '{count, plural, one {Deleting incident trigger {name}} other {Deleting incident triggers}}',
+        id: '3hmrCJ',
+    },
+    deleteIncidentTriggerNotificationSuccess: {
+        defaultMessage:
+            '{count, plural, one {Incident trigger {name} deleted successfully} other {Incident triggers deleted successfully}}',
+        id: 'AEgxqN',
+    },
+    deleteIncidentTriggerNotificationError: {
+        defaultMessage:
+            '{count, plural, one {Failed to delete incident trigger {name}} other {Failed to delete incident triggers}}{errorMessage, select, undefined {} other {: {errorMessage}}}',
+        id: '5iE4cZ',
+    },
+
+    deleteScheduledTaskNotificationTitle: {
+        defaultMessage: '{count, plural, one {Delete scheduled task} other {Delete scheduled tasks}}',
+        id: 'WuyjCf',
+    },
+    deleteScheduledTaskNotificationDescription: {
+        defaultMessage: '{count, plural, one {Deleting scheduled task {name}} other {Deleting scheduled tasks}}',
+        id: 'bjDKAe',
+    },
+    deleteScheduledTaskNotificationSuccess: {
+        defaultMessage: '{count, plural, one {Scheduled task {name} deleted successfully} other {Scheduled tasks deleted successfully}}',
+        id: 'rIbCjV',
+    },
+    deleteScheduledTaskNotificationError: {
+        defaultMessage:
+            '{count, plural, one {Failed to delete scheduled task {name}} other {Failed to delete scheduled tasks}}{errorMessage, select, undefined {} other {: {errorMessage}}}',
+        id: 'G4gaOn',
+    },
+
     edit: { defaultMessage: 'Edit', id: 'wEQDC6' },
     stopAgent: { defaultMessage: 'Stop agent', id: 'JKFypr' },
     stopAgentDescription: { defaultMessage: 'Temporarily stop the agent from all activities.', id: 'DFfvL6' },
@@ -50,6 +116,7 @@ export const SreAgentResources = defineMessages({
     backToCommands: { defaultMessage: 'Back to commands', id: 'GCmxza' },
     loadingAgents: { defaultMessage: 'Loading agents…', id: 'b8PngH' },
     noAgentsFound: { defaultMessage: 'No agents found', id: '451B6Z' },
+    none: { defaultMessage: 'None', id: '450Fty' },
     feedbackDialogTitle: {
         id: 'Nrc9ba',
         defaultMessage: 'Thank you for your feedback!',
@@ -1982,7 +2049,7 @@ export const SettingsTabResources = defineMessages({
     support: { defaultMessage: 'Support + troubleshooting', id: 'NN4zut' },
     fileSource: { defaultMessage: 'File Source', id: 'CJ6tzL' },
     dataSource: { defaultMessage: 'Data Source', id: 'uudb6D' },
-    subAgents: { defaultMessage: 'Sub-agents', id: 'VIn2J0' },
+    subAgents: { defaultMessage: 'Subagents', id: 'lQmkhq' },
     mcpServers: { defaultMessage: 'MCP servers', id: 'K9q4Xw' },
     upgradeChannel: { defaultMessage: 'Preview Upgrade Channel', id: 'W6NO8g' },
     upgradeChannelDescription: { defaultMessage: 'Choose the channel for receiving agent updates', id: 'hfqoIO' },
@@ -3256,14 +3323,19 @@ export const MemorySearchCardResources = defineMessages({
 export const ExtendedAgentsGraphResources = defineMessages({
     // Tab and Navigation
     extendedAgentsTab: { defaultMessage: 'Sub-Agent Builder', id: 'x4OHX9' },
-    visualView: { defaultMessage: 'Visual View', id: 'ZOdb7N' },
-    gridView: { defaultMessage: 'List View', id: 'VIcJZp' },
+    canvasView: { defaultMessage: 'Canvas view', id: 'uKwm6S' },
+    tableView: { defaultMessage: 'Table view', id: 'ufzv1A' },
     listViewSelectAll: { defaultMessage: 'Select all', id: '94Fg25' },
     listViewNameColumn: { defaultMessage: 'Name', id: 'HAlOn1' },
     listViewTypeColumn: { defaultMessage: 'Type', id: '+U6ozc' },
     listViewDescriptionColumn: { defaultMessage: 'Description', id: 'Q8Qw5B' },
     listViewActionsColumn: { defaultMessage: 'Actions', id: 'wL7VAE' },
     listViewDescriptionFallback: { defaultMessage: 'No description available', id: 'rAbWbb' },
+    listViewDescription: {
+        defaultMessage: 'Use subagents to automatically run tasks, query data, and respond to incidents.',
+        id: 'wPF0jY',
+    },
+    learnMoreAboutSubagent: { defaultMessage: 'Learn more about subagents', id: '96TDsd' },
 
     // Creation Dialog
     createNewEntity: { defaultMessage: 'Create New Entity', id: '5POweM' },
@@ -3730,8 +3802,13 @@ export const ExtendedAgentsGraphResources = defineMessages({
     typeColumn: { defaultMessage: 'Type', id: '+U6ozc' },
     descriptionColumn: { defaultMessage: 'Description', id: 'Q8Qw5B' },
     searchPlaceholder: { defaultMessage: 'Search...', id: '0BUTMv' },
+    searchBySubagent: { defaultMessage: 'Search by subagent', id: 'sCRBH3' },
+    searchByIncidentTrigger: { defaultMessage: 'Search by incident trigger', id: 'Icfr5t' },
+    searchByScheduledTask: { defaultMessage: 'Search by scheduled task', id: 'J8uEym' },
+    searchByTool: { defaultMessage: 'Search by tool', id: 'Ij0ity' },
+    subagentNameColumn: { defaultMessage: 'Subagent name', id: '2reUcp' },
     triggersColumn: { defaultMessage: 'Triggers', id: 'GnWmca' },
-    handoffColumn: { defaultMessage: 'Hand-off', id: 'plun1b' },
+    handoffColumn: { defaultMessage: 'Handoff subagents', id: 'oTxjU2' },
     editYaml: { defaultMessage: 'Edit YAML', id: '0w+w97' },
     deleteConfirmTitle: { defaultMessage: 'Delete Items', id: 'sqGM6w' },
     deleteConfirmMessage: {
@@ -3879,7 +3956,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     incidentTriggers: { id: 'vS6Lmt', defaultMessage: 'Incident triggers' },
     kustoTools: { id: 'Y47Dwm', defaultMessage: 'Kusto tools' },
     agentDatagrid: { id: 'kxokJj', defaultMessage: 'Agent datagrid' },
-    noActiveTab: { defaultMessage: 'No {activeTab} found', id: 'S2jxf1' },
+    noEntityFound: { defaultMessage: 'No {entity} found', id: 'EVA81S' },
     service: { defaultMessage: 'Service', id: 'n7yYXG' },
     parameter: { defaultMessage: 'Parameter', id: 'VU4BBu' },
     noParametersConfigured: { defaultMessage: 'No parameters configured', id: 'Vipo+I' },

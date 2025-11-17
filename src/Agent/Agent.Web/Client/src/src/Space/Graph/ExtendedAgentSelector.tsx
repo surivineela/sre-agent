@@ -1,5 +1,4 @@
-import { Button, Combobox, Option, Spinner, Text } from '@fluentui/react-components';
-import { ArrowClockwise20Regular } from '@fluentui/react-icons';
+import { Combobox, Option, Spinner, Text } from '@fluentui/react-components';
 import { Node, useReactFlow } from '@xyflow/react';
 import { memo, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -19,7 +18,6 @@ type ExtendedAgentSelectorProps = {
     selectedEntity?: ExtendedAgentAnchorEntity;
     onEntitySelect: (anchorEntity?: ExtendedAgentAnchorEntity) => void;
     expandInfoPanel: () => void;
-    onRefresh: () => void;
     setSelectedNode: React.Dispatch<React.SetStateAction<ExtendedAgentGraphNode | undefined>>;
     isLoading: boolean;
     nodes: Node<ExtendedAgentGraphNode>[];
@@ -36,7 +34,6 @@ export const ExtendedAgentSelector = memo(
         selectedEntity,
         onEntitySelect,
         expandInfoPanel,
-        onRefresh,
         setSelectedNode,
         isLoading,
         nodes,
@@ -225,11 +222,6 @@ export const ExtendedAgentSelector = memo(
                                 {noAgentsMessage}
                             </Text>
                         )}
-                    </div>
-                    <div className={styles.actionColumn}>
-                        <Button appearance="secondary" icon={<ArrowClockwise20Regular />} onClick={onRefresh} disabled={isLoading}>
-                            {intl.formatMessage(ExtendedAgentsGraphResources.refreshGraphButton)}
-                        </Button>
                     </div>
                 </div>
             </div>

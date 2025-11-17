@@ -8,7 +8,9 @@ import {
     RadioGroup,
     Spinner,
     mergeClasses,
+    tokens,
 } from '@fluentui/react-components';
+import { ArrowClockwise20Regular, DividerTall20Regular } from '@fluentui/react-icons';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -60,13 +62,14 @@ import {
     TOOL_CARD_TYPE,
     TRIGGER_CARD_TYPE,
 } from './ExtendedAgentGraphUtility';
-import { ExtendedAgentListView } from './ExtendedAgentGridView';
 import { ExtendedAgentInfoPanel } from './ExtendedAgentInfoPanel';
 import { ExtendedAgentRelationshipDialog } from './ExtendedAgentRelationshipDialog';
 import { ExtendedAgentSelector } from './ExtendedAgentSelector';
+import ExtendedAgentTableView from './ExtendedAgentTableView/ExtendedAgentTableView';
+import { TableViewTabValue } from './ExtendedAgentTableView/ExtendedAgentTableView.Contracts';
 import { buildMetaAgentYaml, convertExtendedEntityToYaml } from './ExtendedAgentYamlUtils';
 import { IncidentTriggerCreateDialog } from './IncidentTriggerCreateDialog/IncidentTriggerCreateDialog';
-import { KustoToolCreateEditDialog, KustoToolDialogMode } from './KustoToolDialog/KustoToolDialog';
+import { KustoToolDialog, KustoToolDialogMode } from './KustoToolDialog/KustoToolDialog';
 import { ToolCard } from './ToolCard';
 import { TriggerCard } from './TriggerCard';
 
@@ -137,6 +140,7 @@ const ExtendedAgentGraphContent = memo(() => {
         spinner,
         rootContainer,
         toolbarWrapper,
+        toolbarRefreshButton,
         container,
         selectorOverlay,
         infoPanelContainer,
@@ -166,6 +170,7 @@ const ExtendedAgentGraphContent = memo(() => {
     const [toolToEdit, setToolToEdit] = useState<ExtendedTool>();
 
     const [currentView, setCurrentView] = useState<ExtendedAgentGraphView>(ExtendedAgentGraphView.Visual);
+    const [currentTableViewTab, setCurrentTableViewTab] = useState<TableViewTabValue>('agents');
     const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<any>([]);
     const [isLayouting, setIsLayouting] = useState(false);
@@ -1565,6 +1570,21 @@ const ExtendedAgentGraphContent = memo(() => {
     );
     const hasData = useMemo(() => graphNodes.length > 0, [graphNodes.length]);
 
+    const infoPanelStyle: React.CSSProperties = useMemo(() => {
+        const style = {
+            width: `${infoPanelWidth}px`,
+        } as React.CSSProperties;
+
+        if (isInfoPanelFloating) {
+            style.transform = `translate(${infoPanelPosition.x}px, ${infoPanelPosition.y}px)`;
+            if (isInfoPanelDragging) {
+                style.cursor = 'grabbing';
+            }
+        }
+
+        return style;
+    }, [infoPanelWidth, isInfoPanelFloating, infoPanelPosition.x, infoPanelPosition.y, isInfoPanelDragging]);
+
     const renderGraphContent = useCallback(() => {
         if (isLoading) {
             return <Spinner size={'large'} className={spinner} />;
@@ -1628,7 +1648,9 @@ const ExtendedAgentGraphContent = memo(() => {
         }
 
         return (
-            <ExtendedAgentListView
+            <ExtendedAgentTableView
+                activeTab={currentTableViewTab}
+                setActiveTab={setCurrentTableViewTab}
                 agents={agents}
                 tools={tools}
                 systemTools={systemTools}
@@ -1636,44 +1658,34 @@ const ExtendedAgentGraphContent = memo(() => {
                 triggers={triggers}
                 isLoading={loading}
                 onRefresh={handleRefresh}
+                onEditKustoTool={handleEditKustoTool}
             />
         );
     }, [
-        intl,
         isLoading,
         error,
-        anchorEntity,
+        anchorEntity?.entityName,
         hasData,
         currentView,
+        currentTableViewTab,
+        agents,
+        tools,
+        systemTools,
+        connectors,
+        triggers,
+        loading,
+        handleRefresh,
+        handleEditKustoTool,
+        spinner,
+        intl,
         nodes,
         edges,
         onNodesChange,
         onEdgesChange,
-        theme,
-        agents,
-        tools,
-        connectors,
-        loading,
-        handleRefresh,
-        spinner,
+        theme.isInverted,
     ]);
 
     const showEmptyState = useMemo(() => !isLoading && !hasAgents, [isLoading, hasAgents]);
-
-    const infoPanelStyle: React.CSSProperties = useMemo(() => {
-        const style = {
-            width: `${infoPanelWidth}px`,
-        } as React.CSSProperties;
-
-        if (isInfoPanelFloating) {
-            style.transform = `translate(${infoPanelPosition.x}px, ${infoPanelPosition.y}px)`;
-            if (isInfoPanelDragging) {
-                style.cursor = 'grabbing';
-            }
-        }
-
-        return style;
-    }, [infoPanelWidth, isInfoPanelFloating, infoPanelPosition.x, infoPanelPosition.y, isInfoPanelDragging]);
 
     const handleCreateItemStandalone = useCallback(
         (itemType: EntityTypeExt) => {
@@ -1759,211 +1771,223 @@ const ExtendedAgentGraphContent = memo(() => {
                 onEntitySelect: handleEntitySelect,
             }}
         >
-            <div className={rootContainer}>
-                <div className={toolbarWrapper}>
-                    <CreateButton
-                        handleCreateItemStandalone={handleCreateItemStandalone}
-                        disableCreateMetaAgent={hasMetaAgentOverride}
-                        disabled={isLoading || !hasData}
-                    />
-                    <RadioGroup
-                        value={currentView}
-                        layout="horizontal"
-                        onChange={(_, data) => onChangeViewType(data.value as ExtendedAgentGraphView)}
-                    >
-                        <Radio value={ExtendedAgentGraphView.Visual} label={intl.formatMessage(ExtendedAgentsGraphResources.visualView)} />
-                        <Radio value={ExtendedAgentGraphView.Grid} label={intl.formatMessage(ExtendedAgentsGraphResources.gridView)} />
-                    </RadioGroup>
-                </div>
-                {creationSuccessMessage && (
-                    <div className={statusMessageContainer}>
-                        <MessageBar intent="success" layout="multiline">
-                            <MessageBarBody>{creationSuccessMessage}</MessageBarBody>
-                            <MessageBarActions>
-                                {creationSuccess?.entityType === 'agent' && (
-                                    <>
-                                        <Button appearance="primary" onClick={handleTestAgentClick}>
-                                            {intl.formatMessage(ExtendedAgentsGraphResources.testAgentButton)}
-                                        </Button>
-                                        <Button appearance="secondary" onClick={handleAddTriggerForAgent}>
-                                            {intl.formatMessage(ExtendedAgentsGraphResources.creationSuccessAddTrigger)}
-                                        </Button>
-                                        <Button appearance="secondary" onClick={handleAddToolForAgent}>
-                                            {intl.formatMessage(ExtendedAgentsGraphResources.creationSuccessAddTool)}
-                                        </Button>
-                                    </>
-                                )}
-                                <Button appearance="transparent" onClick={handleDismissCreationSuccess}>
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.relationshipDismiss)}
-                                </Button>
-                            </MessageBarActions>
-                        </MessageBar>
+            <ScheduledTasksContext.Provider
+                value={{
+                    createTask: scheduledTasksHook.createTask,
+                    updateTask: scheduledTasksHook.updateTask,
+                    refreshTasks: (anchorEntity?: ExtendedAgentAnchorEntity) =>
+                        handleRefresh().then(() => {
+                            if (anchorEntity) {
+                                setPendingEntitySelection(anchorEntity);
+                            }
+                        }),
+                    pauseTask: scheduledTasksHook.pauseTask,
+                    resumeTask: scheduledTasksHook.resumeTask,
+                    deleteTask: scheduledTasksHook.deleteTask,
+                    runTask: scheduledTasksHook.runTask,
+                    isOperationInProgress,
+                    setIsOperationInProgress,
+                }}
+            >
+                <div className={rootContainer}>
+                    <div className={toolbarWrapper}>
+                        <CreateButton
+                            handleCreateItemStandalone={handleCreateItemStandalone}
+                            disableCreateMetaAgent={hasMetaAgentOverride}
+                            disabled={isLoading || !hasData}
+                        />
+                        <RadioGroup
+                            value={currentView}
+                            layout="horizontal"
+                            onChange={(_, data) => onChangeViewType(data.value as ExtendedAgentGraphView)}
+                        >
+                            <Radio
+                                value={ExtendedAgentGraphView.Visual}
+                                label={intl.formatMessage(ExtendedAgentsGraphResources.canvasView)}
+                            />
+                            <Radio value={ExtendedAgentGraphView.Grid} label={intl.formatMessage(ExtendedAgentsGraphResources.tableView)} />
+                        </RadioGroup>
+                        <div className={toolbarRefreshButton}>
+                            <DividerTall20Regular color={tokens.colorNeutralStroke2} />
+                            <Button
+                                appearance="transparent"
+                                icon={<ArrowClockwise20Regular />}
+                                onClick={handleRefresh}
+                                disabled={isLoading}
+                            >
+                                {intl.formatMessage(ExtendedAgentsGraphResources.refreshGraphButton)}
+                            </Button>
+                        </div>
                     </div>
-                )}
+                    {creationSuccessMessage && (
+                        <div className={statusMessageContainer}>
+                            <MessageBar intent="success" layout="multiline">
+                                <MessageBarBody>{creationSuccessMessage}</MessageBarBody>
+                                <MessageBarActions>
+                                    {creationSuccess?.entityType === 'agent' && (
+                                        <>
+                                            <Button appearance="primary" onClick={handleTestAgentClick}>
+                                                {intl.formatMessage(ExtendedAgentsGraphResources.testAgentButton)}
+                                            </Button>
+                                            <Button appearance="secondary" onClick={handleAddTriggerForAgent}>
+                                                {intl.formatMessage(ExtendedAgentsGraphResources.creationSuccessAddTrigger)}
+                                            </Button>
+                                            <Button appearance="secondary" onClick={handleAddToolForAgent}>
+                                                {intl.formatMessage(ExtendedAgentsGraphResources.creationSuccessAddTool)}
+                                            </Button>
+                                        </>
+                                    )}
+                                    <Button appearance="transparent" onClick={handleDismissCreationSuccess}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.relationshipDismiss)}
+                                    </Button>
+                                </MessageBarActions>
+                            </MessageBar>
+                        </div>
+                    )}
 
-                {linkRetryContext && (
-                    <div className={statusMessageContainer}>
-                        <MessageBar intent="warning" layout="multiline">
-                            <MessageBarBody>
-                                {intl.formatMessage(
-                                    linkRetryContext.entityType === 'agent'
-                                        ? ExtendedAgentsGraphResources.relationshipLinkFailedAgent
-                                        : ExtendedAgentsGraphResources.relationshipLinkFailedTool,
-                                    {
-                                        agentName: linkRetryContext.sourceAgentName,
-                                    }
-                                )}
-                                {linkRetryContext.lastError && <div style={{ marginTop: 4 }}>{linkRetryContext.lastError}</div>}
-                            </MessageBarBody>
-                            <MessageBarActions>
-                                <Button appearance="primary" onClick={handleRetryLink} disabled={isRetryingLink}>
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.retryLink)}
-                                </Button>
-                                <Button appearance="transparent" onClick={handleDismissLinkError} disabled={isRetryingLink}>
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.relationshipDismiss)}
-                                </Button>
-                            </MessageBarActions>
-                        </MessageBar>
-                    </div>
-                )}
-
-                <div className={container}>
-                    <div className={visualRoot} ref={visualRootRef}>
-                        <div className={reactFlow}>
-                            {currentView === ExtendedAgentGraphView.Visual && hasAnyResources && !showEmptyState && (
-                                <div className={selectorOverlay}>
-                                    <ExtendedAgentSelector
-                                        agents={agents}
-                                        triggers={triggers}
-                                        selectedEntity={anchorEntity}
-                                        onEntitySelect={handleEntitySelect}
-                                        expandInfoPanel={() => setIsInfoPanelCollapsed(false)}
-                                        onRefresh={handleRefresh}
-                                        setSelectedNode={setSelectedNode}
-                                        isLoading={loading}
-                                        nodes={nodes}
-                                        nodeCount={nodes.length}
-                                        edgeCount={edges.length}
-                                        showAgentPicker={hasAgents}
-                                        noAgentsMessage={
-                                            hasAgents ? undefined : intl.formatMessage(ExtendedAgentsGraphResources.noAgentsFound)
+                    {linkRetryContext && (
+                        <div className={statusMessageContainer}>
+                            <MessageBar intent="warning" layout="multiline">
+                                <MessageBarBody>
+                                    {intl.formatMessage(
+                                        linkRetryContext.entityType === 'agent'
+                                            ? ExtendedAgentsGraphResources.relationshipLinkFailedAgent
+                                            : ExtendedAgentsGraphResources.relationshipLinkFailedTool,
+                                        {
+                                            agentName: linkRetryContext.sourceAgentName,
                                         }
+                                    )}
+                                    {linkRetryContext.lastError && <div style={{ marginTop: 4 }}>{linkRetryContext.lastError}</div>}
+                                </MessageBarBody>
+                                <MessageBarActions>
+                                    <Button appearance="primary" onClick={handleRetryLink} disabled={isRetryingLink}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.retryLink)}
+                                    </Button>
+                                    <Button appearance="transparent" onClick={handleDismissLinkError} disabled={isRetryingLink}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.relationshipDismiss)}
+                                    </Button>
+                                </MessageBarActions>
+                            </MessageBar>
+                        </div>
+                    )}
+
+                    <div className={container}>
+                        <div className={visualRoot} ref={visualRootRef}>
+                            <div className={reactFlow}>
+                                {currentView === ExtendedAgentGraphView.Visual && hasAnyResources && !showEmptyState && (
+                                    <div className={selectorOverlay}>
+                                        <ExtendedAgentSelector
+                                            agents={agents}
+                                            triggers={triggers}
+                                            selectedEntity={anchorEntity}
+                                            onEntitySelect={handleEntitySelect}
+                                            expandInfoPanel={() => setIsInfoPanelCollapsed(false)}
+                                            setSelectedNode={setSelectedNode}
+                                            isLoading={loading}
+                                            nodes={nodes}
+                                            nodeCount={nodes.length}
+                                            edgeCount={edges.length}
+                                            showAgentPicker={hasAgents}
+                                            noAgentsMessage={
+                                                hasAgents ? undefined : intl.formatMessage(ExtendedAgentsGraphResources.noAgentsFound)
+                                            }
+                                        />
+                                    </div>
+                                )}
+
+                                {showEmptyState ? (
+                                    <ExtendedAgentEmptyState
+                                        onCreateClick={() => setAgentCreateOrEditInfo({ agent: undefined, mode: 'create' })}
+                                    />
+                                ) : (
+                                    <>{renderGraphContent()}</>
+                                )}
+                            </div>
+
+                            {currentView === ExtendedAgentGraphView.Visual && !showEmptyState && (
+                                <div
+                                    ref={infoPanelRef}
+                                    className={mergeClasses(infoPanelContainer, isInfoPanelFloating && infoPanelFloating)}
+                                    style={isInfoPanelCollapsed ? undefined : infoPanelStyle}
+                                >
+                                    <ExtendedAgentInfoPanel
+                                        selectedAgent={infoPanelAgent}
+                                        tools={tools}
+                                        connectors={connectors}
+                                        triggers={triggers}
+                                        systemTools={systemTools}
+                                        sreAgentEndpoint={sreAgentEndpoint}
+                                        onRefresh={refetch}
+                                        onDragHandlePointerDown={handleInfoPanelPointerDown}
+                                        onResizeHandlePointerDown={handleInfoPanelResizePointerDown}
+                                        width={infoPanelWidth}
+                                        minWidth={INFO_PANEL_MIN_WIDTH}
+                                        maxWidth={INFO_PANEL_MAX_WIDTH}
+                                        onOpenPlayground={handleOpenPlayground}
+                                        onEditKustoTool={handleEditKustoTool}
+                                        collapsibleProps={{ isCollapsed: isInfoPanelCollapsed, setCollapsed: setIsInfoPanelCollapsed }}
                                     />
                                 </div>
                             )}
-
-                            {showEmptyState ? (
-                                <ExtendedAgentEmptyState
-                                    onCreateClick={() => setAgentCreateOrEditInfo({ agent: undefined, mode: 'create' })}
-                                />
-                            ) : (
-                                <>{renderGraphContent()}</>
-                            )}
                         </div>
-
-                        {currentView === ExtendedAgentGraphView.Visual && !showEmptyState && (
-                            <div
-                                ref={infoPanelRef}
-                                className={mergeClasses(infoPanelContainer, isInfoPanelFloating && infoPanelFloating)}
-                                style={isInfoPanelCollapsed ? undefined : infoPanelStyle}
-                            >
-                                <ExtendedAgentInfoPanel
-                                    selectedAgent={infoPanelAgent}
-                                    tools={tools}
-                                    connectors={connectors}
-                                    triggers={triggers}
-                                    systemTools={systemTools}
-                                    sreAgentEndpoint={sreAgentEndpoint}
-                                    onRefresh={refetch}
-                                    onDragHandlePointerDown={handleInfoPanelPointerDown}
-                                    onResizeHandlePointerDown={handleInfoPanelResizePointerDown}
-                                    width={infoPanelWidth}
-                                    minWidth={INFO_PANEL_MIN_WIDTH}
-                                    maxWidth={INFO_PANEL_MAX_WIDTH}
-                                    onOpenPlayground={handleOpenPlayground}
-                                    onEditKustoTool={handleEditKustoTool}
-                                    collapsibleProps={{ isCollapsed: isInfoPanelCollapsed, setCollapsed: setIsInfoPanelCollapsed }}
-                                />
-                            </div>
-                        )}
                     </div>
-                </div>
 
-                <ExtendedAgentRelationshipDialog
-                    open={isRelationshipDialogOpen}
-                    onOpenChange={handleRelationshipDialogOpenChange}
-                    agent={relationshipAgent}
-                    existingAgents={agents}
-                    existingTools={tools}
-                    systemTools={systemTools}
-                    onAddHandoff={handleAddExistingHandoff}
-                    onAddTool={handleAddExistingTool}
-                    onLaunchCreateEntity={handleLaunchLinkedCreation}
-                    initialAction={relationshipInitialAction}
-                />
+                    <ExtendedAgentRelationshipDialog
+                        open={isRelationshipDialogOpen}
+                        onOpenChange={handleRelationshipDialogOpenChange}
+                        agent={relationshipAgent}
+                        existingAgents={agents}
+                        existingTools={tools}
+                        systemTools={systemTools}
+                        onAddHandoff={handleAddExistingHandoff}
+                        onAddTool={handleAddExistingTool}
+                        onLaunchCreateEntity={handleLaunchLinkedCreation}
+                        initialAction={relationshipInitialAction}
+                    />
 
-                <ExtendedAgentCreationDialog
-                    open={isCreationDialogOpen}
-                    onOpenChange={handleCreationDialogOpenChange}
-                    onSubmit={creationDialogContext?.kind === 'linkFromAgent' ? handleCreateAndLinkEntity : handleCreateEntity}
-                    initialEntityType={creationDialogInitialType}
-                    initialTriggerAgentName={creationDialogTriggerAgentName}
-                    contextNotice={creationDialogNotice ? { intent: 'info', message: creationDialogNotice } : undefined}
-                    linkContext={creationDialogLinkContext}
-                    existingAgents={agents}
-                    existingTools={tools}
-                    existingConnectors={connectors}
-                    systemTools={systemTools}
-                    triggerConfig={triggerCardConfig}
-                    onTriggerNavigate={handleTriggerNavigate}
-                    onConnectorNavigate={handleConnectorNavigate}
-                />
+                    <ExtendedAgentCreationDialog
+                        open={isCreationDialogOpen}
+                        onOpenChange={handleCreationDialogOpenChange}
+                        onSubmit={creationDialogContext?.kind === 'linkFromAgent' ? handleCreateAndLinkEntity : handleCreateEntity}
+                        initialEntityType={creationDialogInitialType}
+                        initialTriggerAgentName={creationDialogTriggerAgentName}
+                        contextNotice={creationDialogNotice ? { intent: 'info', message: creationDialogNotice } : undefined}
+                        linkContext={creationDialogLinkContext}
+                        existingAgents={agents}
+                        existingTools={tools}
+                        existingConnectors={connectors}
+                        systemTools={systemTools}
+                        triggerConfig={triggerCardConfig}
+                        onTriggerNavigate={handleTriggerNavigate}
+                        onConnectorNavigate={handleConnectorNavigate}
+                    />
 
-                <IncidentTriggerCreateDialog
-                    onDismiss={(filterName?: string, handlerId?: string, isNew?: boolean) => {
-                        setHandlerCreateOrEditInfo(undefined);
-                        if (!!filterName || !!handlerId) {
-                            handleRefresh().then(() => {
-                                if (isNew) {
-                                    if (filterName) {
-                                        setPendingEntitySelection({ entityType: 'Trigger', entityName: filterName });
+                    <IncidentTriggerCreateDialog
+                        onDismiss={(filterName?: string, handlerId?: string, isNew?: boolean) => {
+                            setHandlerCreateOrEditInfo(undefined);
+                            if (!!filterName || !!handlerId) {
+                                handleRefresh().then(() => {
+                                    if (isNew) {
+                                        if (filterName) {
+                                            setPendingEntitySelection({ entityType: 'Trigger', entityName: filterName });
+                                        }
+                                        return;
                                     }
-                                    return;
-                                }
 
-                                const trigger = triggers.find(
-                                    t =>
-                                        t.name?.toLowerCase() === filterName?.toLowerCase() ||
-                                        t.name?.toLowerCase() === handlerId?.toLowerCase()
-                                );
-                                if (trigger) {
-                                    setPendingEntitySelection({ entityType: 'Trigger', entityName: trigger.name });
-                                }
-                            });
-                        }
-                    }}
-                    setHandlerOperationStatus={() => {}}
-                    handlerCreateOrEditInfo={handlerCreateOrEditInfo}
-                />
-
-                <ScheduledTasksContext.Provider
-                    value={{
-                        createTask: scheduledTasksHook.createTask,
-                        updateTask: scheduledTasksHook.updateTask,
-                        refreshTasks: (anchorEntity?: ExtendedAgentAnchorEntity) =>
-                            handleRefresh().then(() => {
-                                if (anchorEntity) {
-                                    setPendingEntitySelection(anchorEntity);
-                                }
-                            }),
-                        pauseTask: scheduledTasksHook.pauseTask,
-                        resumeTask: scheduledTasksHook.resumeTask,
-                        deleteTask: scheduledTasksHook.deleteTask,
-                        runTask: scheduledTasksHook.runTask,
-                        isOperationInProgress,
-                        setIsOperationInProgress,
-                    }}
-                >
+                                    const trigger = triggers.find(
+                                        t =>
+                                            t.name?.toLowerCase() === filterName?.toLowerCase() ||
+                                            t.name?.toLowerCase() === handlerId?.toLowerCase()
+                                    );
+                                    if (trigger) {
+                                        setPendingEntitySelection({ entityType: 'Trigger', entityName: trigger.name });
+                                    }
+                                });
+                            }
+                        }}
+                        setHandlerOperationStatus={() => {}}
+                        handlerCreateOrEditInfo={handlerCreateOrEditInfo}
+                    />
                     <ScheduledTaskCreateOrEditDialog
                         isDialogOpen={isScheduledTaskDialogOpen}
                         setIsDialogOpen={setIsScheduledTaskDialogOpen}
@@ -1972,62 +1996,62 @@ const ExtendedAgentGraphContent = memo(() => {
                         startingAgent={scheduledTaskStartingAgent}
                         scheduledTask={scheduledTaskEditingTask}
                     />
-                </ScheduledTasksContext.Provider>
 
-                <KustoToolCreateEditDialog
-                    isDialogOpen={isToolDialogOpen}
-                    setIsDialogOpen={setIsToolDialogOpen}
-                    connectors={connectors}
-                    agentName={createToolAgent}
-                    addToolsToAgent={addToolsToAgent}
-                    refresh={() => {
-                        setIsInfoPanelCollapsed(true);
-                        handleRefresh();
-                    }}
-                    kustoTool={toolToEdit}
-                    mode={toolDialogMode}
-                />
+                    <KustoToolDialog
+                        isDialogOpen={isToolDialogOpen}
+                        setIsDialogOpen={setIsToolDialogOpen}
+                        connectors={connectors}
+                        agentName={createToolAgent}
+                        addToolsToAgent={addToolsToAgent}
+                        refresh={() => {
+                            setIsInfoPanelCollapsed(true);
+                            handleRefresh();
+                        }}
+                        kustoTool={toolToEdit}
+                        mode={toolDialogMode}
+                    />
 
-                <AddExistingAgentHandoffDialog
-                    onDismiss={() => setAgentHandoffPickerInfo(undefined)}
-                    agents={agents}
-                    addHandoffToAgent={addHandoffToAgent}
-                    handoffInfo={agentHandoffPickerInfo}
-                />
+                    <AddExistingAgentHandoffDialog
+                        onDismiss={() => setAgentHandoffPickerInfo(undefined)}
+                        agents={agents}
+                        addHandoffToAgent={addHandoffToAgent}
+                        handoffInfo={agentHandoffPickerInfo}
+                    />
 
-                <AddExistingToolDialog
-                    onDismiss={() => setToolPickerInfo(undefined)}
-                    addToolsToAgent={addToolsToAgent}
-                    existingTools={tools}
-                    systemTools={systemTools}
-                    mcpConnections={mcpConnections}
-                    toolPickerInfo={toolPickerInfo}
-                />
+                    <AddExistingToolDialog
+                        onDismiss={() => setToolPickerInfo(undefined)}
+                        addToolsToAgent={addToolsToAgent}
+                        existingTools={tools}
+                        systemTools={systemTools}
+                        mcpConnections={mcpConnections}
+                        toolPickerInfo={toolPickerInfo}
+                    />
 
-                <AgentCreateDialog
-                    onDismiss={() => setAgentCreateOrEditInfo(undefined)}
-                    refresh={(selectedAgent?: string) => {
-                        handleRefresh().then(() => {
-                            setPendingEntitySelection(selectedAgent ? { entityType: 'Agent', entityName: selectedAgent } : undefined);
-                        });
-                    }}
-                    agents={agents}
-                    existingTools={tools}
-                    systemTools={systemTools}
-                    mcpConnections={mcpConnections}
-                    agentCreateOrEditInfo={agentCreateOrEditInfo}
-                />
+                    <AgentCreateDialog
+                        onDismiss={() => setAgentCreateOrEditInfo(undefined)}
+                        refresh={(selectedAgent?: string) => {
+                            handleRefresh().then(() => {
+                                setPendingEntitySelection(selectedAgent ? { entityType: 'Agent', entityName: selectedAgent } : undefined);
+                            });
+                        }}
+                        agents={agents}
+                        existingTools={tools}
+                        systemTools={systemTools}
+                        mcpConnections={mcpConnections}
+                        agentCreateOrEditInfo={agentCreateOrEditInfo}
+                    />
 
-                <PlaygroundModal
-                    open={isPlaygroundOpen}
-                    target={playgroundTarget}
-                    agents={agents}
-                    tools={tools}
-                    connectors={connectors}
-                    systemTools={systemTools}
-                    onDismiss={handleDismissPlayground}
-                />
-            </div>
+                    <PlaygroundModal
+                        open={isPlaygroundOpen}
+                        target={playgroundTarget}
+                        agents={agents}
+                        tools={tools}
+                        connectors={connectors}
+                        systemTools={systemTools}
+                        onDismiss={handleDismissPlayground}
+                    />
+                </div>
+            </ScheduledTasksContext.Provider>
         </ExtendedAgentGraphContext.Provider>
     );
 });

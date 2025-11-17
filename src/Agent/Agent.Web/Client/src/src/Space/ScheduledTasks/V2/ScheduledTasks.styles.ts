@@ -92,6 +92,10 @@ export const useScheduledTasksStyles = makeStyles({
         gap: '10px',
         alignItems: 'center',
     },
+    searchBox: {
+        minWidth: '230px',
+        width: 'max-content',
+    },
     menuItems: {
         display: 'flex',
         gap: '6px',
