@@ -3,6 +3,8 @@ import { Add20Regular, Agents20Regular, Warning20Regular, Wrench20Regular, Wrenc
 import { FC } from 'react';
 import { useIntl } from 'react-intl';
 import ArrowsSvg from '../../../assets/Arrows.svg';
+import { TextWithLink } from '../../Common/Components/TextWithLink';
+import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 
 const useEmptyStateStyles = makeStyles({
@@ -183,9 +185,15 @@ export const ExtendedAgentEmptyState: FC<ExtendedAgentEmptyStateProps> = ({ onCr
                 </div>
             </div>
 
-            <h2 className={styles.title}>{intl.formatMessage(ExtendedAgentsGraphResources.buildSubagentWorkflows)}</h2>
+            <h2 className={styles.title}>{intl.formatMessage(ExtendedAgentsGraphResources.scaleYourAgentsCapabilitiesWithSubagents)}</h2>
 
-            <p className={styles.description}>{intl.formatMessage(ExtendedAgentsGraphResources.emptyStateDescription)}</p>
+            <p className={styles.description}>
+                <TextWithLink
+                    text={intl.formatMessage(ExtendedAgentsGraphResources.emptyStateDescription)}
+                    linkText={intl.formatMessage(ExtendedAgentsGraphResources.emptyStateDescriptionLearnMore)}
+                    linkUrl={SreAgentFwLinks.learnMoreAboutSubagents}
+                />
+            </p>
 
             <Button appearance="primary" size="large" icon={<Add20Regular />} onClick={onCreateClick} className={styles.createButton}>
                 {intl.formatMessage(ExtendedAgentsGraphResources.createSubagent)}

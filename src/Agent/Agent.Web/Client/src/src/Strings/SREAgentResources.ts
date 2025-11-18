@@ -3743,12 +3743,12 @@ export const ExtendedAgentsGraphResources = defineMessages({
 
     // Empty State
     buildYourAgentEcosystem: { defaultMessage: 'Build Your Agent Ecosystem', id: 'HNECLT' },
-    buildSubagentWorkflows: { defaultMessage: 'Build subagent workflows', id: 'aH3ak4' },
+    scaleYourAgentsCapabilitiesWithSubagents: { defaultMessage: 'Scale your agent’s capabilities with subagents', id: 'MCLPMF' },
     emptyStateDescription: {
-        defaultMessage:
-            'Create AI agents with custom tools and connectors. Visualize how they work together in an interactive graph. Get started by creating your first agent, tool, or connector.',
-        id: 'rd+inb',
+        defaultMessage: 'Create subagents to automatically run tasks, query data, and respond to incidents.',
+        id: 'm/B8a5',
     },
+    emptyStateDescriptionLearnMore: { defaultMessage: 'Learn more about creating subagents.', id: 'EVXYDU' },
     createSubagent: { defaultMessage: 'Create subagent', id: 'O9C6j/' },
     subagent: { defaultMessage: 'Subagent', id: 'Q++yMM' },
     aiAgents: { defaultMessage: 'AI Agents', id: '4XOvey' },
