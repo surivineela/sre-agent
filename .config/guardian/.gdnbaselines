@@ -7,8 +7,8 @@
   "baselines": {
     "default": {
       "name": "default",
-      "createdDate": "2025-09-23 05:53:47Z",
-      "lastUpdatedDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z",
+      "lastUpdatedDate": "2025-11-18 06:58:33Z"
     }
   },
   "results": {
@@ -23,7 +23,7 @@
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z"
     },
     "b07b573597da62c43e50ea51e2fdd84de90cc7461bbc3993b4089b0660792aab": {
       "signature": "b07b573597da62c43e50ea51e2fdd84de90cc7461bbc3993b4089b0660792aab",
@@ -36,7 +36,7 @@
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z"
     },
     "1d4819d68883235a7eb5fecfa8ef6d202a0f251603c0be8752ba69a4f6f01b43": {
       "signature": "1d4819d68883235a7eb5fecfa8ef6d202a0f251603c0be8752ba69a4f6f01b43",
@@ -49,7 +49,7 @@
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z"
     },
     "a09380a4b544aa573e6ae31be407a599d195c431dad6493eef8e976a815d68ac": {
       "signature": "a09380a4b544aa573e6ae31be407a599d195c431dad6493eef8e976a815d68ac",
@@ -62,7 +62,7 @@
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z"
     },
     "6f217607a018962a91a1ec81a8bfde4ac1cf2fb30b9a49b1aca26230ce282944": {
       "signature": "6f217607a018962a91a1ec81a8bfde4ac1cf2fb30b9a49b1aca26230ce282944",
@@ -75,7 +75,7 @@
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z"
     },
     "6d63d242716602a644ef5a297e0cbe69fa498a760f2811b1477fa182f538ef41": {
       "signature": "6d63d242716602a644ef5a297e0cbe69fa498a760f2811b1477fa182f538ef41",
@@ -88,85 +88,85 @@
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z"
     },
-    "3154e15b8312f44fe1af12190ba3ff20c056901f8fd3f67b7ec617bf30c6f889": {
-      "signature": "3154e15b8312f44fe1af12190ba3ff20c056901f8fd3f67b7ec617bf30c6f889",
+    "5bfbff0da57457b53ea762b5e157b9fc0b083215198586bb2cf8dfb66e90fe0e": {
+      "signature": "5bfbff0da57457b53ea762b5e157b9fc0b083215198586bb2cf8dfb66e90fe0e",
       "alternativeSignatures": [
-        "4fc9efda3e1153427cc39e42e6a132ce1be10b11fddb3f916f1b3113f06de726"
+        "d7c84f67d42e2b014201ddc4b3b9f1590b90acbad84768ba8176973ec5a1175c"
       ],
-      "target": "out/Session.Cli/runtimes/win-arm64/native/libHarfBuzzSharp.dll",
+      "target": "out/Session.Proxy/runtimes/win-arm64/native/libHarfBuzzSharp.dll",
       "memberOf": [
         "default"
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z"
     },
-    "74594c8ce01891c2362c1c4844d59bbadaab460d464ed9091b519188e17a7274": {
-      "signature": "74594c8ce01891c2362c1c4844d59bbadaab460d464ed9091b519188e17a7274",
+    "62569b9b3fe247135656b866a3b8be9cabf792bf9f99c0de79176f58616ac798": {
+      "signature": "62569b9b3fe247135656b866a3b8be9cabf792bf9f99c0de79176f58616ac798",
       "alternativeSignatures": [
-        "ea895f8041596abf2974fb4261eb5dda2ba4a38daafffef609656031a1cf42a9"
+        "a3febfe2d6dab88dec305031f081aec17326861e4385220d76dbc01fdb750ec9"
       ],
-      "target": "out/Session.Cli/runtimes/win-arm64/native/libSkiaSharp.dll",
+      "target": "out/Session.Proxy/runtimes/win-arm64/native/libSkiaSharp.dll",
       "memberOf": [
         "default"
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z"
     },
-    "278292c26a67c5ea2570f46cfa4deeca8d67107ca6295b69dc45978782aacd8e": {
-      "signature": "278292c26a67c5ea2570f46cfa4deeca8d67107ca6295b69dc45978782aacd8e",
+    "dc8592f31444ed8ada35417220c59e9b19d0cde78647c41ad5f08265d1406a26": {
+      "signature": "dc8592f31444ed8ada35417220c59e9b19d0cde78647c41ad5f08265d1406a26",
       "alternativeSignatures": [
-        "a30ae6439ace8cc44e59096adeee3cad0d9c5f027ddaa4eac758de91eef8073c"
+        "da87e0dc55898ad2ab3d479923b8d41a70356e57d4e80e45b246619f75208fb8"
       ],
-      "target": "out/Session.Cli/runtimes/win-x64/native/libHarfBuzzSharp.dll",
+      "target": "out/Session.Proxy/runtimes/win-x64/native/libHarfBuzzSharp.dll",
       "memberOf": [
         "default"
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z"
     },
-    "1eaf355095d6a92e11bbb191322c8806b16cf3e2c033d33903e4fd167e84a8aa": {
-      "signature": "1eaf355095d6a92e11bbb191322c8806b16cf3e2c033d33903e4fd167e84a8aa",
+    "0ada2ee53561fe5ec9f63e7e3b54f57a31659bdd6abd4b45dce2011fb2792d6b": {
+      "signature": "0ada2ee53561fe5ec9f63e7e3b54f57a31659bdd6abd4b45dce2011fb2792d6b",
       "alternativeSignatures": [
-        "2c80c546db744239fd8d9399923f69663af1a56d80470605ded74627c473490e"
+        "613a78044ee3d4dc00314d53e3ff4ecbe5916a4dbaf4fff492ac4562995e2ce9"
       ],
-      "target": "out/Session.Cli/runtimes/win-x64/native/libSkiaSharp.dll",
+      "target": "out/Session.Proxy/runtimes/win-x64/native/libSkiaSharp.dll",
       "memberOf": [
         "default"
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z"
     },
-    "91d64f27bf56ffe29bf46e2cada28e669db6e8b4d0472dc6c4602079534f38e1": {
-      "signature": "91d64f27bf56ffe29bf46e2cada28e669db6e8b4d0472dc6c4602079534f38e1",
+    "a44d243029933813bb5f531e47d2877f8f2fb352da7f647f38622dee14d4c5ba": {
+      "signature": "a44d243029933813bb5f531e47d2877f8f2fb352da7f647f38622dee14d4c5ba",
       "alternativeSignatures": [
-        "876ddd1961cc7b2aa03d9900466bdd783ff86729334719cbcb8223e03f935ff3"
+        "19d50b342a42c12648b05cff669fb90504645af54f032850d3e5dbf07c3c1b5f"
       ],
-      "target": "out/Session.Cli/runtimes/win-x86/native/libHarfBuzzSharp.dll",
+      "target": "out/Session.Proxy/runtimes/win-x86/native/libHarfBuzzSharp.dll",
       "memberOf": [
         "default"
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z"
     },
-    "ef5f55dfbbfa5c88336d7d2dbe3b3d07fca52aaa563d68f305d35e8ec1a7df5e": {
-      "signature": "ef5f55dfbbfa5c88336d7d2dbe3b3d07fca52aaa563d68f305d35e8ec1a7df5e",
+    "a7d97df010109791d47a03210838e30084f5f24f5dc3e3f064a86463b6528d77": {
+      "signature": "a7d97df010109791d47a03210838e30084f5f24f5dc3e3f064a86463b6528d77",
       "alternativeSignatures": [
-        "a5a50389279e4eaa53b4148476090d38b3757defed78369a08c710ea4b0bceea"
+        "e8b5b30a53bbce345830b4e3737b4ccb079068f60512803932c1615dca84ed29"
       ],
-      "target": "out/Session.Cli/runtimes/win-x86/native/libSkiaSharp.dll",
+      "target": "out/Session.Proxy/runtimes/win-x86/native/libSkiaSharp.dll",
       "memberOf": [
         "default"
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-09-23 05:53:47Z"
+      "createdDate": "2025-11-18 06:58:33Z"
     },
     "df3c13dcbd96f0646ccfec3eb416ddbb61eb5d31da173ccabe5d8662c5639b61": {
       "signature": "df3c13dcbd96f0646ccfec3eb416ddbb61eb5d31da173ccabe5d8662c5639b61",
