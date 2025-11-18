@@ -15,7 +15,6 @@ using Agent.Logging;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 
@@ -100,7 +99,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         var lastMessageAppended = chatHistory.LastOrDefault()?.Text.Equals(lastUserMessage, StringComparison.Ordinal) ?? false;
         if (!lastMessageAppended && !string.IsNullOrEmpty(lastUserMessage))
         {
-            chatHistory.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, lastUserMessage));
+            chatHistory.Add(new ChatMessage(ChatRole.User, lastUserMessage));
             _logger.LogInternalInformation(
                 "[IncidentHandlerAgent] ProcessIncidentStream: Appended last user message to chat history for ThreadId: {ThreadId}",
                 threadGuid);
@@ -108,8 +107,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         // Always use the latest System Prompt in case we have some urgent fix to patch for the old chat history.
         if (chatHistory[0].Role == ChatRole.System)
         {
-            //chatHistory[0] = new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt);
-            chatHistory.Insert(1, new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt));
+            chatHistory.Insert(1, new ChatMessage(ChatRole.System, systemPrompt));
             _logger.LogInternalInformation(
                 "[IncidentHandlerAgent] ProcessIncidentStream: Updated system prompt in chat history for ThreadId: {ThreadId}",
                 threadGuid);
@@ -117,12 +115,15 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
         List<ChatResponseUpdate> bufferedResponses = new();
 
-        var options = new ChatOptions { Temperature = 0.7f };
+        var options = new ChatOptions
+        {
+            Temperature = 0.7f,
+            Tools = _aiTools,
+            ToolMode = ChatToolMode.Auto,
+        };
 
         // exceptions should be handled by caller due to yield return
-        var streamResponses = _chatClient.GetStreamingResponseAsync(
-            chatHistory,
-            options.WithTools(_chatClient, _aiTools));
+        var streamResponses = _chatClient.GetStreamingResponseAsync(chatHistory, options);
 
         StringBuilder agentResponse = new StringBuilder();
         bool hasRecordedResposne = false;
@@ -358,10 +359,14 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         AgentContext agentContext,
         TelemetrySpan? parentSpan = null)
     {
-        var options = new ChatOptions { Temperature = 0.7f };
-        var streamingResponse = _chatClient.GetStreamingResponseAsync(
-            chatHistory,
-            options.WithTools(_chatClient, selectedTools));
+        var options = new ChatOptions
+        {
+            Temperature = 0.7f,
+            Tools = selectedTools,
+            ToolMode = ChatToolMode.Auto,
+        };
+
+        var streamingResponse = _chatClient.GetStreamingResponseAsync(chatHistory, options);
 
         var orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId);
         var responseMessages = new List<ChatMessage>();

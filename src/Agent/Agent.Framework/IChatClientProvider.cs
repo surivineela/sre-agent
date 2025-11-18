@@ -22,7 +22,7 @@ public interface IChatClientProvider
     /// Gets the list of supported models
     /// </summary>
     /// <returns>List of supported model names</returns>
-    IList<string> GetAvailableModels();
+    IReadOnlyList<string> GetAvailableModels();
 
     /// <summary>
     /// Gets a model by its deployment name

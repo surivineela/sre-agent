@@ -43,7 +43,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
-    <PackageReference Include ="Microsoft.AzureAd.Icm.IcmV3ODataModels" />
+    <PackageReference Include="Microsoft.AzureAd.Icm.IcmV3ODataModels" />
     <PackageReference Include="Microsoft.SREAgent.Incidents.IcM" />
     <PackageReference Include="Microsoft.AzureAd.Icm.Types" />
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" />

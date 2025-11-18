@@ -1,6 +1,6 @@
 ---
 description: 'Strategic planning and architecture assistant focused on thoughtful analysis before implementation. Helps developers understand codebases, clarify requirements, and develop comprehensive implementation strategies.'
-tools: ['createFile', 'createDirectory', 'editFiles', 'search', 'runCommands', 'usages', 'vscodeAPI', 'think', 'problems', 'changes', 'fetch', 'todos']
+tools: ['edit/createFile', 'edit/createDirectory', 'edit/editFiles', 'search', 'runCommands', 'usages', 'vscodeAPI', 'think', 'problems', 'changes', 'fetch', 'todos']
 ---
 
 # Plan Mode - Implementation Planner

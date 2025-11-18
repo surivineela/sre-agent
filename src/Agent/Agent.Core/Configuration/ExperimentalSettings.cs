@@ -13,6 +13,7 @@ namespace Agent.Core.Configuration
         /// Enables /mode conversation|workflow switching for RCARouterAgent.
         /// </summary>
         public bool EnableModeSwitch { get; set; } = false;
+        public bool UseResponsesApi { get; set; } = false;
     }
 }
 

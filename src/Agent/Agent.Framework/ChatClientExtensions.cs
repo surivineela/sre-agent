@@ -3,7 +3,9 @@
 // ------------------------------------------------------------
 
 using System.Buffers;
+using System.ClientModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -11,8 +13,11 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.AI;
+using OpenAI.Responses;
 
 namespace Agent.Framework;
+
+#pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 // based on https://github.com/dotnet/extensions/blob/34cdd3a2ddeea9e329356448719ea0d9b896c19c/src/Libraries/Microsoft.Extensions.AI/ChatCompletion/ChatClientStructuredOutputExtensions.cs#L150
 // adapted to take a Type parameter instead of using generics because our output types are not known at compile time
@@ -39,60 +44,21 @@ public static partial class ChatClientExtensions
     /// <summary>
     /// Gets a chat response without structured output using streaming
     /// </summary>
-    public static async Task<ChatResponse> GetResponseAsync(
+    public static Task<ChatResponse> GetResponseAsync(
         this IChatClient client,
         IEnumerable<ChatMessage> messages,
-        ChatOptions? options = null,
-        IStreamContentHandler? streamHandler = null,
+        ChatOptions options,
+        TextStreamContentHandler? textStreamHandler = null,
         CancellationToken cancellationToken = default
     )
     {
-        List<ChatResponseUpdate> chatResponseUpdates = [];
-        string modelId = string.Empty;
-
-        try
-        {
-            // Check for cancellation
-            cancellationToken.ThrowIfCancellationRequested();
-
-            await foreach (var update in client.GetStreamingResponseAsync(messages, options, cancellationToken))
-            {
-                // Capture model ID from updates
-                var tempModelId = (update.RawRepresentation as OpenAI.Chat.StreamingChatCompletionUpdate)?.Model;
-                if (!string.IsNullOrEmpty(tempModelId))
-                {
-                    modelId = tempModelId;
-                }
-
-                chatResponseUpdates.Add(update);
-                if (!string.IsNullOrEmpty(update.Text))
-                {
-                    // Await IStreamContentHandler to ensure DB writes complete before next update
-                    if (streamHandler != null)
-                    {
-                        await streamHandler.AppendAsync(update.Text);
-                    }
-                }
-            }
-
-            var response = chatResponseUpdates.ToChatResponse();
-            response.ModelId = modelId;
-
-            if (streamHandler != null)
-            {
-                await streamHandler.CompleteAsync(response.FinishReason);
-            }
-
-            return response;
-        }
-        catch (OperationCanceledException)
-        {
-            if (streamHandler != null)
-            {
-                await streamHandler.IncompleteAsync();
-            }
-            throw;
-        }
+        return GetResponseWithRateLimitRetriesAsync(
+            client: client,
+            messages: messages,
+            options: options,
+            outputTextStreamHandler: textStreamHandler, // output text is a string directly, so we don't need to use jsonhandler
+            reasoningSummaryStreamHandler: textStreamHandler,
+            cancellationToken: cancellationToken);
     }
 
     /// <summary>
@@ -103,7 +69,8 @@ public static partial class ChatClientExtensions
         IEnumerable<ChatMessage> messages,
         Type outputType,
         ChatOptions? options = null,
-        IStreamContentHandler? streamHandler = null,
+        JsonStreamContentHandler? jsonStreamHandler = null,
+        TextStreamContentHandler? textStreamHandler = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -152,7 +119,7 @@ public static partial class ChatClientExtensions
 
         for (var i = 0; i <= retryCount; i++)
         {
-            var chatResponse = await GetResponseWithRateLimitRetriesAsync(client, messages, options, streamHandler, cancellationToken);
+            var chatResponse = await GetResponseWithRateLimitRetriesAsync(client, messages, options, jsonStreamHandler, textStreamHandler, cancellationToken);
 
             var firstTextContent = chatResponse.Messages.FirstOrDefault()?.Contents.OfType<TextContent>().FirstOrDefault();
 
@@ -209,13 +176,21 @@ public static partial class ChatClientExtensions
         IChatClient client,
         IEnumerable<ChatMessage> messages,
         ChatOptions? options,
-        IStreamContentHandler? streamHandler,
+        IStreamContentHandler? outputTextStreamHandler,
+        TextStreamContentHandler? reasoningSummaryStreamHandler,
         CancellationToken cancellationToken)
     {
         var start = DateTime.UtcNow;
         var deadline = start.AddSeconds(60);
         var attempt = 0;
-        bool nonRateLimitRetried = false;
+        var nonRateLimitRetried = false;
+
+        Debug.Assert(client is ReasoningChatClient);
+
+        // try finding using chatclient. if set to null, we will fallback to decipher using the response
+        var isResponsesApi = (client as ReasoningChatClient)?.UseResponsesApi;
+
+        Debug.Assert(isResponsesApi is not null);
 
         while (true)
         {
@@ -225,42 +200,132 @@ public static partial class ChatClientExtensions
                 // Check for cancellation
                 cancellationToken.ThrowIfCancellationRequested();
 
-                List<ChatResponseUpdate> chatResponseUpdates = [];
-                string modelId = string.Empty;
+                // common state properties
+                var response = default(ChatResponse);
 
+                // chat completions state properties
+                List<ChatResponseUpdate> chatResponseUpdates = [];
+                var modelId = string.Empty;
+
+                // responses api state properties
+                var lastResponse = default(OpenAI.Responses.OpenAIResponse);
+
+                // handle streaming updates
                 await foreach (var update in client.GetStreamingResponseAsync(messages, options, cancellationToken))
                 {
+                    // distinguish responses api based on first update if not known yet
+                    isResponsesApi ??= update.RawRepresentation is OpenAI.Responses.StreamingResponseCreatedUpdate;
 
-                    // Capture model ID from updates
-                    var tempModelId = (update.RawRepresentation as OpenAI.Chat.StreamingChatCompletionUpdate)?.Model;
-                    if (!string.IsNullOrEmpty(tempModelId))
+                    // keeps getting text delta in case of chat completions API
+                    // simple implementation
+                    if (!isResponsesApi.Value)
                     {
-                        modelId = tempModelId;
-                    }
+                        var completionUpdate = update.RawRepresentation as OpenAI.Chat.StreamingChatCompletionUpdate;
 
-                    chatResponseUpdates.Add(update);
-
-                    if (!string.IsNullOrEmpty(update.Text))
-                    {
-                        // Await IStreamContentHandler to ensure DB writes complete before next update
-                        if (streamHandler != null)
+                        // Capture model ID from updates
+                        var tempModelId = completionUpdate?.Model;
+                        if (!string.IsNullOrEmpty(tempModelId))
                         {
-                            await streamHandler.AppendAsync(update.Text);
+                            modelId = tempModelId;
+                        }
+
+                        chatResponseUpdates.Add(update);
+
+                        // output text begin
+                        if (outputTextStreamHandler is not null
+                            && !string.IsNullOrEmpty(update.Text))
+                        {
+                            await outputTextStreamHandler.AppendAsync(update.Text);
+                        }
+
+                        // output text end
+                        if (outputTextStreamHandler is not null
+                            && completionUpdate?.ContentUpdate.Count == 0)
+                        {
+                            await outputTextStreamHandler.CompleteAsync();
+                        }
+                    }
+                    else
+                    {
+                        // reasoning summary delta begin
+                        foreach (var content in update.Contents)
+                        {
+                            if (reasoningSummaryStreamHandler is not null
+                                && content is Microsoft.Extensions.AI.TextReasoningContent reasoningContent
+                                && !string.IsNullOrEmpty(reasoningContent.Text))
+                            {
+                                await reasoningSummaryStreamHandler.AppendAsync(reasoningContent.Text);
+                            }
+                        }
+
+                        // reasoning summary part end
+                        if (reasoningSummaryStreamHandler is not null
+                            && update.Contents.Count == 0)
+                        {
+                            await reasoningSummaryStreamHandler.CompleteAsync();
+                        }
+
+                        // output text begin
+                        if (outputTextStreamHandler is not null
+                            && !string.IsNullOrEmpty(update.Text))
+                        {
+                            await outputTextStreamHandler.AppendAsync(update.Text);
+                        }
+
+                        // output text end
+                        if (outputTextStreamHandler is not null
+                            && update.RawRepresentation is OpenAI.Responses.StreamingResponseOutputTextDoneUpdate)
+                        {
+                            await outputTextStreamHandler.CompleteAsync();
+                        }
+
+                        // chat updates don't preserve encrypted tokens..
+                        // we will capture the final oai response event
+                        if (update.RawRepresentation is OpenAI.Responses.StreamingResponseCompletedUpdate responseCompletedUpdate)
+                        {
+                            lastResponse = responseCompletedUpdate.Response;
+                        }
+
+                        // handle errors mid-stream
+                        // convert to client result exceptions to retry the loop with delay
+                        if (update.RawRepresentation is OpenAI.Responses.StreamingResponseErrorUpdate responseErrorUpdate)
+                        {
+                            throw new ClientResultException(responseErrorUpdate.Message);
+                        }
+                        else if (update.RawRepresentation is OpenAI.Responses.StreamingResponseFailedUpdate responseFailedUpdate)
+                        {
+                            throw new ClientResultException(responseFailedUpdate.Response.Error.Message);
                         }
                     }
                 }
 
-                var response = chatResponseUpdates.ToChatResponse();
-                response.ModelId = modelId;
-
-                if (streamHandler != null)
+                // construct final chatresponse
+                if (!isResponsesApi.Value)
                 {
-                    await streamHandler.CompleteAsync(response.FinishReason);
+                    // for chat completions we need to accumulate all updates
+                    response = chatResponseUpdates.ToChatResponse();
+                    response.ModelId = modelId;
+                }
+                else
+                {
+                    // for responses API the last update contains the whole response
+                    Debug.Assert(lastResponse is not null);
+                    response = lastResponse.AsChatResponse();
+                }
+
+                // close both streams at the end no matter what
+                if (reasoningSummaryStreamHandler is not null)
+                {
+                    await reasoningSummaryStreamHandler.CompleteAsync();
+                }
+                if (outputTextStreamHandler is not null)
+                {
+                    await outputTextStreamHandler.CompleteAsync();
                 }
 
                 return response;
             }
-            catch (System.ClientModel.ClientResultException ex) when (IsRateLimit(ex))
+            catch (ClientResultException ex) when (IsRateLimit(ex))
             {
                 var remaining = deadline - DateTime.UtcNow;
                 if (remaining <= TimeSpan.Zero)
@@ -280,7 +345,7 @@ public static partial class ChatClientExtensions
                 await Task.Delay(delay, cancellationToken);
                 continue;
             }
-            catch (System.ClientModel.ClientResultException)
+            catch (ClientResultException)
             {
                 if (!nonRateLimitRetried)
                 {
@@ -303,9 +368,9 @@ public static partial class ChatClientExtensions
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // User explicitly requested cancellation
-                if (streamHandler != null)
+                if (outputTextStreamHandler != null)
                 {
-                    await streamHandler.IncompleteAsync();
+                    await outputTextStreamHandler.IncompleteAsync();
                 }
                 throw;
             }
@@ -429,3 +494,4 @@ public static partial class ChatClientExtensions
         return TimeSpan.FromMilliseconds(baseMs + jitter);
     }
 }
+#pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.

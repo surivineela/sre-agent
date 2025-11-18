@@ -289,7 +289,6 @@ public class DataConnectorIndex
             blobStorageResourceId: new ResourceIdentifier(blobStorageResourceId),
             managedIdentityResourceId: new ResourceIdentifier(managedIdentityResourceId)
         );
-
         await _searchIndexingClient.CreateOrUpdateIndexerAsync(indexer);
     }
 

@@ -3,14 +3,18 @@
 // ------------------------------------------------------------
 
 using System.Runtime.CompilerServices;
-using Agent.Core.Extensions;
 using Microsoft.Extensions.AI;
 
-namespace Agent.Core.Clients.Chat;
+namespace Agent.Framework;
 
 public sealed class ReasoningChatClient : DelegatingChatClient
 {
-    public ReasoningChatClient(IChatClient inner) : base(inner) { }
+    public bool UseResponsesApi { get; }
+
+    public ReasoningChatClient(IChatClient inner, bool useResponsesApi) : base(inner)
+    {
+        UseResponsesApi = useResponsesApi;
+    }
 
     public override Task<ChatResponse> GetResponseAsync(
         IEnumerable<ChatMessage> messages,
@@ -34,6 +38,8 @@ public sealed class ReasoningChatClient : DelegatingChatClient
     private ChatOptions Prepare(ChatOptions? options)
     {
         options ??= new ChatOptions();
-        return options.WithRawRepresentationFactory(chatClient: this);
+        return options.WithRawRepresentationFactory(
+            chatClient: this,
+            configureForResponsesApi: UseResponsesApi);
     }
 }

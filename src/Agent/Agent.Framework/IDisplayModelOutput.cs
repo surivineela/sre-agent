@@ -2,8 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.AI;
-
 namespace Agent.Framework;
 
 /// <summary>
@@ -22,9 +20,8 @@ public interface IDisplayModelOutput
     /// Called when streaming content ended
     /// </summary>
     /// <param name="content"></param>
-    /// <param name="chatFinishReason">The reason why streaming finished</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    Task OnComplete(string content, ChatFinishReason? chatFinishReason);
+    Task OnComplete(string content = "");
 
     /// <summary>
     /// Called when streaming content is incomplete (partial response)

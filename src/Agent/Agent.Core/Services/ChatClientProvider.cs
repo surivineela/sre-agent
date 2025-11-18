@@ -19,7 +19,7 @@ namespace Agent.Core.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly ChatClientProviderSettings _chatClientProviderSettings;
         private readonly ILogger<ChatClientProvider> _logger;
-        private readonly IList<string> _availableModels;
+        private readonly IReadOnlyList<string> _availableModels;
 
         private readonly string _generalPurposeModelName;
         private readonly string _reasoningHeavyModelName;
@@ -183,7 +183,7 @@ namespace Agent.Core.Services
             return _availableModels.Contains(modelName);
         }
 
-        public IList<string> GetAvailableModels()
+        public IReadOnlyList<string> GetAvailableModels()
         {
             return _availableModels;
         }

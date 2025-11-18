@@ -1,4 +1,8 @@
-using Agent.Core;
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Framework;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -37,8 +41,8 @@ public static class AgentMemoryEmbeddingGeneratorExtensions
                 {
                     var modelId = embedding?.ModelId?.ToString() ?? string.Empty;
 
-                    string model = modelId;
-                    string modelVersion = string.Empty;
+                    var model = modelId;
+                    var modelVersion = string.Empty;
 
                     if (!string.IsNullOrEmpty(modelId))
                     {
@@ -70,12 +74,9 @@ public static class AgentMemoryEmbeddingGeneratorExtensions
                 }
             }
 
-            if (embedding == null)
-            {
-                return ReadOnlyMemory<float>.Empty;
-            }
-
-            return embedding.Vector;
+            return embedding == null
+                ? ReadOnlyMemory<float>.Empty
+                : embedding.Vector;
         }
         catch (Exception ex)
         {

@@ -13,7 +13,6 @@ using Agent.Logging;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 
@@ -73,23 +72,26 @@ public sealed class MetaAgent : IAgent
         var lastMessageAppended = chatHistory.LastOrDefault()?.Text.Equals(lastUserMessage, StringComparison.Ordinal) ?? false;
         if (!lastMessageAppended && !string.IsNullOrEmpty(lastUserMessage))
         {
-            chatHistory.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, lastUserMessage));
+            chatHistory.Add(new ChatMessage(ChatRole.User, lastUserMessage));
         }
 
         // Always use the latest System Prompt in case we have some urgent fix to patch for the old chat history.
         if (chatHistory[0].Role == ChatRole.System)
         {
-            chatHistory[0] = new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt);
+            chatHistory[0] = new ChatMessage(ChatRole.System, systemPrompt);
         }
 
         List<ChatResponseUpdate> bufferedResponses = new();
 
+        var options = new ChatOptions
+        {
+            Temperature = 0.7f,
+            Tools = _aiTools,
+            ToolMode = ChatToolMode.Auto,
+        };
 
-        var options = new ChatOptions { Temperature = 0.7f };
         // exceptions should be handled by caller due to yield return
-        var streamResponses = _chatClient.GetStreamingResponseAsync(
-            chatHistory,
-            options.WithTools(_chatClient, _aiTools));
+        var streamResponses = _chatClient.GetStreamingResponseAsync(chatHistory, options);
 
         StringBuilder agentResponse = new StringBuilder();
 
@@ -124,7 +126,7 @@ public sealed class MetaAgent : IAgent
         var lastMessageAppended = chatHistory.LastOrDefault()?.Text.Equals(lastUserMessage, StringComparison.Ordinal) ?? false;
         if (!lastMessageAppended && !string.IsNullOrEmpty(lastUserMessage))
         {
-            chatHistory.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, lastUserMessage));
+            chatHistory.Add(new ChatMessage(ChatRole.User, lastUserMessage));
         }
 
         try
@@ -150,15 +152,18 @@ public sealed class MetaAgent : IAgent
         // Always use the latest System Prompt in case we have some urgent fix to patch for the old chat history.
         if (chatHistory[0].Role == ChatRole.System)
         {
-            chatHistory[0] = new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt);
+            chatHistory[0] = new ChatMessage(ChatRole.System, systemPrompt);
         }
 
-        var options = new ChatOptions { Temperature = 0.7f };
+        var options = new ChatOptions
+        {
+            Temperature = 0.7f,
+            Tools = _aiTools,
+            ToolMode = ChatToolMode.Auto,
+        };
+
         var response = await ChatClientHelper.ExecuteWithRetryAsync(
-            async () => await _chatClient.GetResponseAsync(
-                chatHistory,
-                options.WithTools(_chatClient, _aiTools)
-            ),
+            () => _chatClient.GetResponseAsync(chatHistory, options),
             _log, 10);
         return response;
     }

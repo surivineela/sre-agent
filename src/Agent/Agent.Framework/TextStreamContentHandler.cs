@@ -2,8 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.AI;
-
 namespace Agent.Framework;
 
 /// <summary>
@@ -50,14 +48,14 @@ public class TextStreamContentHandler : IStreamContentHandler
     /// Called when streaming is complete. Implements IStreamContentHandler.CompleteAsync.
     /// </summary>
     /// <param name="finishReason">The reason why the streaming completed</param>
-    public async Task CompleteAsync(ChatFinishReason? finishReason)
+    public async Task CompleteAsync()
     {
         if (_displayModelOutput == null || !_hasStreamedContent)
         {
             return;
         }
 
-        await _displayModelOutput.OnComplete(string.Empty, finishReason);
+        await _displayModelOutput.OnComplete();
     }
 
     /// <summary>

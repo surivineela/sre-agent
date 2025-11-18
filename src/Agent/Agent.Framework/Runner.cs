@@ -68,12 +68,10 @@ public static class Runner
             var matchingResult = manualToolResults.FirstOrDefault(o => o.FunctionCall.CallId == manualToolCall.FunctionCall.CallId)
                 ?? throw new Exception("No matching result found for manual tool call");
 
-            if (config.EnableDebugOutput)
+            if (config.EnableDebugOutput
+                && displayModelOutput is not null)
             {
-                if (displayModelOutput is not null)
-                {
-                    await displayModelOutput.OnDisplay($"[DEBUG]\n\nCompleted Manually Invoked Tool: {manualToolCall.FunctionCall.Name}");
-                }
+                await displayModelOutput.OnComplete($"[DEBUG]\n\nCompleted Manually Invoked Tool: {manualToolCall.FunctionCall.Name}");
             }
 
             var resultContent = new FunctionResultContent(manualToolCall.FunctionCall.CallId, matchingResult.Output);
@@ -299,24 +297,22 @@ public static class Runner
 
                 ProcessActiveSkills(activeSkills, turnResult.NewActivatedSkills, activeAgent, config);
 
-                if (config.EnableDebugOutput)
+                if (config.EnableDebugOutput
+                    && displayModelOutput is not null)
                 {
-                    if (displayModelOutput is not null)
+                    foreach (var message in turnResult.ModelResponse.Messages)
                     {
-                        foreach (var message in turnResult.ModelResponse.Messages)
+                        foreach (var content in message.Contents)
                         {
-                            foreach (var content in message.Contents)
+                            if (content is TextContent t)
                             {
-                                if (content is TextContent t)
-                                {
-                                    await displayModelOutput.OnDisplay($"[DEBUG]\n\nAgent: {currentAgent.Name}\n\nResponse:{t.Text}");
-                                }
-                                else if (content is FunctionCallContent f)
-                                {
-                                    await displayModelOutput.OnDisplay($"[DEBUG]\n\nAgent: {currentAgent.Name}"
-                                        + $"\n\nFunction Call: {f.Name}"
-                                        + $"\n\nParameters: {f.GetSerializedArguments()}");
-                                }
+                                await displayModelOutput.OnComplete($"[DEBUG]\n\nAgent: {currentAgent.Name}\n\nResponse: {t.Text}");
+                            }
+                            else if (content is FunctionCallContent f)
+                            {
+                                await displayModelOutput.OnComplete($"[DEBUG]\n\nAgent: {currentAgent.Name}"
+                                    + $"\n\nFunction Call: {f.Name}"
+                                    + $"\n\nParameters: {f.GetSerializedArguments()}");
                             }
                         }
                     }
@@ -465,7 +461,7 @@ public static class Runner
             {
                 if (displayModelOutput is not null)
                 {
-                    await displayModelOutput.OnDisplay($"[DEBUG]\n\nGathering critique: Agent: {currentAgent.Name}. Turn #{criticCount}/{currentAgent.MaxReflectionCount}");
+                    await displayModelOutput.OnComplete($"[DEBUG]\n\nGathering critique: Agent: {currentAgent.Name}. Turn #{criticCount}/{currentAgent.MaxReflectionCount}");
                 }
             }
 
@@ -477,12 +473,10 @@ public static class Runner
 
             await hooks.OnSummarizerEnd(contextWrapper, currentAgent, userQuery);
 
-            if (config.EnableDebugOutput)
+            if (config.EnableDebugOutput
+                && displayModelOutput is not null)
             {
-                if (displayModelOutput is not null)
-                {
-                    await displayModelOutput.OnDisplay($"[DEBUG]\n\nSummarized User Query: {userQuery}");
-                }
+                await displayModelOutput.OnComplete($"[DEBUG]\n\nSummarized User Query: {userQuery}");
             }
 
             await hooks.OnCriticStart(contextWrapper, currentAgent, criticCount);
@@ -508,12 +502,10 @@ public static class Runner
             {
                 logger.LogWarning("Critic result indicates failure: {CriticResult}", criticResult);
 
-                if (config.EnableDebugOutput)
+                if (config.EnableDebugOutput
+                    && displayModelOutput is not null)
                 {
-                    if (displayModelOutput is not null)
-                    {
-                        await displayModelOutput.OnDisplay($"[DEBUG]\n\nCritic failed the turn:\n\n{criticResult}");
-                    }
+                    await displayModelOutput.OnComplete($"[DEBUG]\n\nCritic failed the turn:\n\n{criticResult}");
                 }
 
                 if (failureHook is not null)
@@ -538,12 +530,10 @@ public static class Runner
             else
             {
                 logger.LogInformation("Critic approved response: {CriticResult}", criticResult);
-                if (config.EnableDebugOutput)
+                if (config.EnableDebugOutput
+                    && displayModelOutput is not null)
                 {
-                    if (displayModelOutput is not null)
-                    {
-                        await displayModelOutput.OnDisplay($"[DEBUG]\n\nCritic approved the turn.");
-                    }
+                    await displayModelOutput.OnComplete($"[DEBUG]\n\nCritic approved the turn.");
                 }
             }
         }
@@ -658,6 +648,9 @@ public static class Runner
 
         ChatResponse? response = null;
         object? structuredOutput = null;
+        var textStreamHandler = displayModelOutput is not null
+            ? new TextStreamContentHandler(displayModelOutput)
+            : default;
 
         try
         {
@@ -667,15 +660,16 @@ public static class Runner
                 // deserialize sometimes fail with missing field, falls back to non-structured response path
                 try
                 {
-                    var streamHandler = displayModelOutput is not null
+                    var jsonStreamHandler = displayModelOutput is not null
                         ? new JsonStreamContentHandler(agent.OutputType, displayModelOutput)
-                        : null;
+                        : default;
 
                     (response, structuredOutput) = await chatClient.GetResponseAsync(
                         modelInput,
                         agent.OutputType,
                         chatOptions,
-                        streamHandler,
+                        jsonStreamHandler,
+                        textStreamHandler,
                         cancellationToken);
                 }
                 catch (InvalidOperationException ex) when (ex.Message.Contains("Failed to deserialize the response"))
@@ -686,8 +680,7 @@ public static class Runner
             }
             else
             {
-                var streamHandler = new TextStreamContentHandler(displayModelOutput);
-                response = await chatClient.GetResponseAsync(modelInput, chatOptions, streamHandler, cancellationToken);
+                response = await chatClient.GetResponseAsync(modelInput, chatOptions, textStreamHandler, cancellationToken);
             }
         }
         finally
@@ -802,12 +795,10 @@ public static class Runner
                     functionResults.Add(cachedFunctionResult);
                     trajectory.Append(cachedFunctionResult);
 
-                    if (config.EnableDebugOutput)
+                    if (config.EnableDebugOutput
+                        && displayModelOutput is not null)
                     {
-                        if (displayModelOutput is not null)
-                        {
-                            await displayModelOutput.OnDisplay($"[DEBUG]\n\nUsing cached result for tool: {functionCall.Name}");
-                        }
+                        await displayModelOutput.OnComplete($"[DEBUG]\n\nUsing cached result for tool: {functionCall.Name}");
                     }
 
                     await hooks.OnToolEnd(contextWrapper, agent, functionCall, tool, cachedFunctionResult);
@@ -913,12 +904,10 @@ public static class Runner
 
                     functionResults.Add(handoffResult);
 
-                    if (config.EnableDebugOutput)
+                    if (config.EnableDebugOutput
+                        && displayModelOutput is not null)
                     {
-                        if (displayModelOutput is not null)
-                        {
-                            await displayModelOutput.OnDisplay($"[DEBUG]\n\nHandoff Completed. Previous Agent: {agent.Name} -> New Agent: {newAgent.Name}.");
-                        }
+                        await displayModelOutput.OnComplete($"[DEBUG]\n\nHandoff Completed. Previous Agent: {agent.Name} -> New Agent: {newAgent.Name}.");
                     }
 
                     handoffOccurred = true;
@@ -984,12 +973,10 @@ public static class Runner
 
                         trajectory.Append(result);
 
-                        if (config.EnableDebugOutput)
+                        if (config.EnableDebugOutput
+                            && displayModelOutput is not null)
                         {
-                            if (displayModelOutput is not null)
-                            {
-                                await displayModelOutput.OnDisplay($"[DEBUG]\n\nCompleted Agent Invocation as Tool: {tool.Name}");
-                            }
+                            await displayModelOutput.OnComplete($"[DEBUG]\n\nCompleted Agent Invocation as Tool: {tool.Name}");
                         }
 
                         continue;
@@ -1020,12 +1007,10 @@ public static class Runner
                         functionResults.Add(result);
                         trajectory.Append(result);
 
-                        if (config.EnableDebugOutput)
+                        if (config.EnableDebugOutput
+                            && displayModelOutput is not null)
                         {
-                            if (displayModelOutput is not null)
-                            {
-                                await displayModelOutput.OnDisplay($"[DEBUG]\n\nCompleted Auto Invoked Tool: {tool.Name}");
-                            }
+                            await displayModelOutput.OnComplete($"[DEBUG]\n\nCompleted Auto Invoked Tool: {tool.Name}");
                         }
 
                         continue;

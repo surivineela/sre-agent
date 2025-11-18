@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Cmd.Commands;
-using Agent.Core.Clients.Chat;
+using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Framework;
 using Agent.Runtime;
@@ -15,90 +15,89 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenAI;
 
-namespace Agent.Cmd
+namespace Agent.Cmd;
+
+internal class Program
 {
-    internal class Program
+    static async Task Main(string[] args)
     {
-        static async Task Main(string[] args)
+        var builder = Web.Program.CreateWebApplicationBuilder(new WebApplicationOptions { EnvironmentName = Environments.Development });
+        builder.LoadAppSettings(isDevelopment: true);
+        builder.ValidateAndRegisterAppSettings<AppSettings>();
+
+        // Register DI dependencies using builder.Services
+        builder.Services.AddLogging(loggingBuilder =>
         {
-            var builder = Web.Program.CreateWebApplicationBuilder(new WebApplicationOptions { EnvironmentName = Environments.Development });
-            builder.LoadAppSettings(isDevelopment: true);
-            builder.ValidateAndRegisterAppSettings<AppSettings>();
+            loggingBuilder.AddConsole();
+        });
 
-            // Register DI dependencies using builder.Services
-            builder.Services.AddLogging(loggingBuilder =>
-            {
-                loggingBuilder.AddConsole();
-            });
+        builder.Services.AddSingleton<GenerateEvalCommand>();
+        builder.Services.AddSingleton<ConvertToSkillCommand>();
 
-            builder.Services.AddSingleton<GenerateEvalCommand>();
-            builder.Services.AddSingleton<ConvertToSkillCommand>();
-
-            string? llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
-            if (string.IsNullOrEmpty(llmDeploymentName))
-            {
-                throw new InvalidOperationException("LLM Deployment Name is not configured. Please set 'AppSettings:Core:Azure:OpenAI:LLMDeploymentName' in your configuration.");
-            }
-
-            builder.Services.ConfigureAzureOpenAIClient();
-
-            builder.Services.AddKeyedChatClient("function-invocation-enabled",
-                serviceProvider => serviceProvider.GetRequiredService<OpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient(),
-                ServiceLifetime.Singleton)
-                .Use(next => new ReasoningChatClient(next))
-                .UseFunctionInvocation();
-
-            var webapp = builder.Build();
-
-            var asyncInitializerService = webapp.Services.GetRequiredService<AsyncInitializerService>() as IHostedService;
-            await asyncInitializerService.StartAsync(CancellationToken.None);
-
-            CommandLineApplication commandLineApplication = new(throwOnUnexpectedArg: true);
-            commandLineApplication.HelpOption("-?|-h|--help");
-
-            commandLineApplication.Command("GenerateEval",
-                (command) =>
-                {
-                    var cmd = webapp.Services.GetRequiredService<GenerateEvalCommand>();
-                    cmd.GenerateEval(command);
-                });
-
-            commandLineApplication.Command("convert-to-skill",
-                (command) =>
-                {
-                    var cmd = webapp.Services.GetRequiredService<ConvertToSkillCommand>();
-
-                    command.HelpOption("-?|-h|--help");
-
-                    var agentName = command.Option(
-                        "--agent-name",
-                        "The name of the agent to convert to a skill.",
-                        CommandOptionType.SingleValue);
-
-                    var outputDirectory = command.Option(
-                        "--output-directory",
-                        "The directory to output the converted skill files.",
-                        CommandOptionType.SingleValue);
-
-                    command.OnExecute(async () =>
-                    {
-                        await cmd.ExecuteAsync(
-                            command,
-                            agentName: agentName.Value(),
-                            outputDirectory: outputDirectory.Value());
-
-                        return 0;
-                    });
-                });
-
-            commandLineApplication.OnExecute(() =>
-            {
-                commandLineApplication.ShowHelp();
-                return 0;
-            });
-
-            commandLineApplication.Execute(args);
+        var llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
+        if (string.IsNullOrEmpty(llmDeploymentName))
+        {
+            throw new InvalidOperationException("LLM Deployment Name is not configured. Please set 'AppSettings:Core:Azure:OpenAI:LLMDeploymentName' in your configuration.");
         }
+
+        builder.Services.ConfigureAzureOpenAIClient();
+
+        builder.Services.AddKeyedChatClient(Constants.FunctionInvocationChatClient,
+            serviceProvider => serviceProvider.GetRequiredService<OpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient(),
+            ServiceLifetime.Singleton)
+            .Use(next => new ReasoningChatClient(next, useResponsesApi: false)) // we're working on the ChatClient here
+            .UseFunctionInvocation();
+
+        var webapp = builder.Build();
+
+        var asyncInitializerService = webapp.Services.GetRequiredService<AsyncInitializerService>() as IHostedService;
+        await asyncInitializerService.StartAsync(CancellationToken.None);
+
+        CommandLineApplication commandLineApplication = new(throwOnUnexpectedArg: true);
+        commandLineApplication.HelpOption("-?|-h|--help");
+
+        commandLineApplication.Command("GenerateEval",
+            (command) =>
+            {
+                var cmd = webapp.Services.GetRequiredService<GenerateEvalCommand>();
+                cmd.GenerateEval(command);
+            });
+
+        commandLineApplication.Command("convert-to-skill",
+            (command) =>
+            {
+                var cmd = webapp.Services.GetRequiredService<ConvertToSkillCommand>();
+
+                command.HelpOption("-?|-h|--help");
+
+                var agentName = command.Option(
+                    "--agent-name",
+                    "The name of the agent to convert to a skill.",
+                    CommandOptionType.SingleValue);
+
+                var outputDirectory = command.Option(
+                    "--output-directory",
+                    "The directory to output the converted skill files.",
+                    CommandOptionType.SingleValue);
+
+                command.OnExecute(async () =>
+                {
+                    await cmd.ExecuteAsync(
+                        command,
+                        agentName: agentName.Value(),
+                        outputDirectory: outputDirectory.Value());
+
+                    return 0;
+                });
+            });
+
+        commandLineApplication.OnExecute(() =>
+        {
+            commandLineApplication.ShowHelp();
+            return 0;
+        });
+
+        commandLineApplication.Execute(args);
     }
 }
 

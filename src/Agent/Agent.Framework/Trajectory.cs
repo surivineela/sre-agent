@@ -198,6 +198,12 @@ public sealed class Trajectory
             {
                 Append(functionResultContent);
             }
+            // Reasoning models (GPT-5/o1) include TextReasoningContent with internal reasoning
+            // We skip this content type as it's internal model reasoning, not user-facing output
+            else if (content.GetType().Name == "TextReasoningContent")
+            {
+                // Skip reasoning content - it's already counted in tokens and not needed in trajectory
+            }
             else
             {
                 throw new Exception($"Unknown content type: {content.GetType()}");

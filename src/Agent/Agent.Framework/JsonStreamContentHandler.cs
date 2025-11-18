@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
 
@@ -14,9 +13,9 @@ namespace Agent.Framework;
 public class JsonStreamContentHandler : IStreamContentHandler
 {
     private readonly Type _outputType;
-    private readonly IDisplayModelOutput _displayModelOutput;
+    private readonly IDisplayModelOutput? _displayModelOutput;
     private readonly string? _streamableContentPropertyName;
-    private StreamExtractor? _streamExtractor;
+    private readonly StreamExtractor? _streamExtractor;
     private bool _hasStreamedContent;
 
     /// <summary>
@@ -34,7 +33,7 @@ public class JsonStreamContentHandler : IStreamContentHandler
     /// </summary>
     /// <param name="outputType">The output type containing property definitions.</param>
     /// <param name="displayModelOutput">Optional display model output handler invoked for each chunk of the property value.</param>
-    public JsonStreamContentHandler(Type outputType, IDisplayModelOutput displayModelOutput)
+    public JsonStreamContentHandler(Type outputType, IDisplayModelOutput? displayModelOutput)
     {
         _outputType = outputType;
         _displayModelOutput = displayModelOutput;
@@ -71,6 +70,11 @@ public class JsonStreamContentHandler : IStreamContentHandler
     /// <param name="content">The extracted content from the streamable property.</param>
     private async Task OnStreamContentAsync(string content)
     {
+        if (_displayModelOutput is null)
+        {
+            return;
+        }
+
         // Output directly without buffering
         await _displayModelOutput.OnDisplay(content);
     }
@@ -94,15 +98,15 @@ public class JsonStreamContentHandler : IStreamContentHandler
     /// Called when streaming is complete. Implements IStreamContentHandler.CompleteAsync.
     /// </summary>
     /// <param name="finishReason">The reason why the streaming completed</param>
-    public async Task CompleteAsync(ChatFinishReason? finishReason)
+    public async Task CompleteAsync()
     {
-        if (!_hasStreamedContent)
+        if (_displayModelOutput == null || !_hasStreamedContent)
         {
             return;
         }
 
         // Await OnComplete to ensure DB write completes
-        await _displayModelOutput.OnComplete(string.Empty, finishReason);
+        await _displayModelOutput.OnComplete();
     }
 
     /// <summary>
@@ -111,6 +115,9 @@ public class JsonStreamContentHandler : IStreamContentHandler
     public async Task IncompleteAsync()
     {
         // Await OnIncomplete to ensure DB write completes
-        await _displayModelOutput.OnIncomplete();
+        if (_displayModelOutput != null)
+        {
+            await _displayModelOutput.OnIncomplete();
+        }
     }
 }

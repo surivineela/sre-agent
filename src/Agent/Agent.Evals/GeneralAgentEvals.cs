@@ -1,7 +1,13 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Agent.Evals;
 
@@ -140,7 +146,10 @@ public class GeneralAgentEvals
     [DynamicData(nameof(GeneralTestCases))]
     public async Task GeneralAgentTests(GeneralTestCase testCase)
     {
-        var agent = (await GetTestHostAsync()).AgentFactory.GetAgent(testCase.AgentName);
+        // initialize test host
+        var testHost = await GetTestHostAsync();
+
+        var agent = testHost.AgentFactory.GetAgent(testCase.AgentName);
         Assert.IsNotNull(agent, $"Agent '{testCase.AgentName}' not found");
 
         List<ChatMessage> modelInput = [
@@ -148,8 +157,8 @@ public class GeneralAgentEvals
             .. testCase.ModelInput,
         ];
 
-        var chatClient = agent.GetChatClient((await GetTestHostAsync()).RunConfig);
-        var chatOptions = agent.GetChatOptions(await GetTestHostAsync());
+        var chatClient = agent.GetChatClient(testHost.RunConfig);
+        var chatOptions = agent.GetChatOptions(testHost);
         // Enforce temperature override for GPT-5 family models
         var clientMetadata = chatClient.GetService<ChatClientMetadata>();
         if (clientMetadata?.DefaultModelId?.StartsWith("gpt-5", StringComparison.OrdinalIgnoreCase) == true)
@@ -200,16 +209,21 @@ public class GeneralAgentEvals
         TestContext.WriteLine($"Test Case: {testCase.TestCaseName}");
         TestContext.WriteLine($"============================");
 
-        var agent = (await GetTestHostAsync()).AgentFactory.GetAgent(testCase.AgentName);
+        var testHost = await GetTestHostAsync();
+
+        var agent = testHost.AgentFactory.GetAgent(testCase.AgentName);
         Assert.IsNotNull(agent, $"Agent '{testCase.AgentName}' not found");
 
         TestContext.WriteLine($"Testing agent: {agent.Name}");
         var instructionsText = agent.Instructions?.ToString();
-        TestContext.WriteLine($"Agent instructions: {(instructionsText != null ? instructionsText.Substring(0, Math.Min(200, instructionsText.Length)) + "..." : "null")}");
+        var agentInstructions = instructionsText is not null
+            ? string.Concat(instructionsText.AsSpan(0, Math.Min(200, instructionsText.Length)), "...")
+            : "null";
+        TestContext.WriteLine($"Agent instructions: {agentInstructions}");
 
         // Get chat client and options similar to RunSingleTurnAsync
-        var chatClient = agent.GetChatClient((await GetTestHostAsync()).RunConfig);
-        var chatOptions = agent.GetChatOptions(await GetTestHostAsync());
+        var chatClient = agent.GetChatClient(testHost.RunConfig);
+        var chatOptions = agent.GetChatOptions(testHost);
         var clientMetadata = chatClient.GetService<ChatClientMetadata>();
 
         // Enforce temperature override for GPT-5 family models
@@ -253,7 +267,7 @@ public class GeneralAgentEvals
         }
 
         // Prepend the agent's actual system instructions
-        modelInput.Insert(0, new ChatMessage(ChatRole.System, agent.Instructions?.ToString()));
+        modelInput.Insert(0, new ChatMessage(ChatRole.System, instructionsText));
         TestContext.WriteLine("Using agent's actual system instructions for evaluation");
 
         TestContext.WriteLine($"\n=== EXPECTED MODEL OUTPUT ===");
@@ -272,7 +286,7 @@ public class GeneralAgentEvals
                     if (content is FunctionCallContent funcCall)
                     {
                         TestContext.WriteLine($"  Expected function call: {funcCall.Name}");
-                        TestContext.WriteLine($"  Arguments: {JsonSerializer.Serialize(funcCall.Arguments, new JsonSerializerOptions { WriteIndented = true })}");
+                        TestContext.WriteLine($"  Arguments: {funcCall.GetSerializedArguments()}");
                     }
                 }
             }
@@ -281,17 +295,20 @@ public class GeneralAgentEvals
         // Call the LLM with the same setup as RunSingleTurnAsync
         ChatResponse response;
 
+        var textStreamer = new TextStreamContentHandler(displayModelOutput: default);
+
         try
         {
             if (agent.HasStructuredOutput)
             {
+                var jsonStreamer = new JsonStreamContentHandler(agent.OutputType, displayModelOutput: default);
                 TestContext.WriteLine("Agent has structured output - calling with structured output support");
-                (response, _) = await chatClient.GetResponseAsync(modelInput, agent.OutputType, chatOptions);
+                (response, _) = await chatClient.GetResponseAsync(modelInput, agent.OutputType, chatOptions, jsonStreamer, textStreamer);
             }
             else
             {
                 TestContext.WriteLine("Agent using regular chat completion");
-                response = await chatClient.GetResponseAsync(modelInput, chatOptions);
+                response = await chatClient.GetResponseAsync(modelInput, chatOptions, textStreamer);
             }
 
             // Check and handle handoff state without tool call - similar to ReasoningLoop
@@ -310,7 +327,7 @@ public class GeneralAgentEvals
 
         // Log actual output
         TestContext.WriteLine($"\n=== ACTUAL MODEL OUTPUT ===");
-        for (int i = 0; i < response.Messages.Count; i++)
+        for (var i = 0; i < response.Messages.Count; i++)
         {
             var msg = response.Messages[i];
             TestContext.WriteLine($"Response message {i + 1} [{msg.Role}]:");
@@ -330,7 +347,7 @@ public class GeneralAgentEvals
                     {
                         TestContext.WriteLine($"      Function: {funcCall.Name}");
                         TestContext.WriteLine($"      Call ID: {funcCall.CallId}");
-                        TestContext.WriteLine($"      Arguments: {JsonSerializer.Serialize(funcCall.Arguments, new JsonSerializerOptions { WriteIndented = true })}");
+                        TestContext.WriteLine($"      Arguments: {funcCall.GetSerializedArguments()}");
                     }
                     else if (content is FunctionResultContent funcResult)
                     {
@@ -362,18 +379,18 @@ public class GeneralAgentEvals
 
         // Compare function calls
         var expectedFunctionCalls = testCase.ExpectedOutput
-            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
+            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? [])
             .ToList();
 
         var actualFunctionCalls = response.Messages
-            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
+            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? [])
             .ToList();
 
         TestContext.WriteLine($"Expected function calls: {expectedFunctionCalls.Count}");
         TestContext.WriteLine($"Actual function calls: {actualFunctionCalls.Count}");
 
         // Check if any expected function calls have "-" option (meaning no function call is acceptable)
-        var hasNoCallOption = expectedFunctionCalls.Any(fc => fc.Name.Contains("-"));
+        var hasNoCallOption = expectedFunctionCalls.Any(fc => fc.Name.Contains('-'));
 
         if (hasNoCallOption && actualFunctionCalls.Count == 0)
         {
@@ -382,7 +399,7 @@ public class GeneralAgentEvals
         }
         else
         {
-            for (int i = 0; i < Math.Max(expectedFunctionCalls.Count, actualFunctionCalls.Count); i++)
+            for (var i = 0; i < Math.Max(expectedFunctionCalls.Count, actualFunctionCalls.Count); i++)
             {
                 if (i < expectedFunctionCalls.Count && i < actualFunctionCalls.Count)
                 {
@@ -426,15 +443,13 @@ public class GeneralAgentEvals
                         // If smart comparison fails, show detailed comparison for debugging
                         if (!argsMatch)
                         {
-                            var expectedArgs = JsonSerializer.Serialize(expected.Arguments, new JsonSerializerOptions { WriteIndented = false });
-                            var actualArgs = JsonSerializer.Serialize(actual.Arguments, new JsonSerializerOptions { WriteIndented = false });
-                            TestContext.WriteLine($"  Expected args: {expectedArgs}");
-                            TestContext.WriteLine($"  Actual args: {actualArgs}");
+                            TestContext.WriteLine($"  Expected args: {expected.GetSerializedArguments()}");
+                            TestContext.WriteLine($"  Actual args: {actual.GetSerializedArguments()}");
                         }
 
                         // Assert that arguments match
                         Assert.IsTrue(argsMatch,
-                            $"Function call {i + 1} arguments mismatch. Expected: {JsonSerializer.Serialize(expected.Arguments, new JsonSerializerOptions { WriteIndented = false })}, Actual: {JsonSerializer.Serialize(actual.Arguments, new JsonSerializerOptions { WriteIndented = false })}");
+                            $"Function call {i + 1} arguments mismatch. Expected: {expected.GetSerializedArguments()}, Actual: {actual.GetSerializedArguments()}");
                     }
                     else if (expected.Name.Contains('|'))
                     {
@@ -447,7 +462,7 @@ public class GeneralAgentEvals
                     var expectedDisplayName = GetExpectedFunctionDisplayName(expected.Name);
 
                     // Check if "-" is acceptable for this expected function call
-                    if (expected.Name.Contains("-"))
+                    if (expected.Name.Contains('-'))
                     {
                         TestContext.WriteLine($"Function call {i + 1}: ✅ Expected: {expectedDisplayName}, Actual: (none) - no call is acceptable");
                     }
@@ -510,15 +525,15 @@ public class GeneralAgentEvals
         testContext.WriteLine("Validating tool call output with assertions...");
 
         var actualFunctionCalls = response.Messages
-            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
+            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? [])
             .ToList();
 
         var expectedFunctionCalls = testCase.ExpectedOutput
-            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
+            .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? [])
             .ToList();
 
         // Check if any expected function calls have "-" option (meaning no function call is acceptable)
-        var hasNoCallOption = expectedFunctionCalls.Any(fc => fc.Name.Contains("-"));
+        var hasNoCallOption = expectedFunctionCalls.Any(fc => fc.Name.Contains('-'));
 
         if (hasNoCallOption && actualFunctionCalls.Count == 0)
         {
@@ -534,7 +549,7 @@ public class GeneralAgentEvals
         Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
             $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
 
-        for (int i = 0; i < expectedFunctionCalls.Count; i++)
+        for (var i = 0; i < expectedFunctionCalls.Count; i++)
         {
             var expectedCall = expectedFunctionCalls[i];
             var actualCall = actualFunctionCalls[i];
@@ -589,7 +604,7 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
             {
                 var evaluationMessages = new List<ChatMessage>
                 {
-                    new ChatMessage(ChatRole.User, evaluationPrompt)
+                    new(ChatRole.User, evaluationPrompt)
                 };
                 var evaluationResponse = await chatClient.GetResponseAsync(evaluationMessages);
                 var evaluation = evaluationResponse.Messages.LastOrDefault()?.Text ?? "";
@@ -660,7 +675,7 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
         Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
             $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
 
-        for (int i = 0; i < expectedFunctionCalls.Count; i++)
+        for (var i = 0; i < expectedFunctionCalls.Count; i++)
         {
             var expectedCall = expectedFunctionCalls[i];
             var actualCall = actualFunctionCalls[i];
@@ -697,7 +712,7 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
         Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
             $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
 
-        for (int i = 0; i < expectedFunctionCalls.Count; i++)
+        for (var i = 0; i < expectedFunctionCalls.Count; i++)
         {
             var expectedCall = expectedFunctionCalls[i];
             var actualCall = actualFunctionCalls[i];
@@ -762,7 +777,7 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
         Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
             $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
 
-        for (int i = 0; i < expectedFunctionCalls.Count; i++)
+        for (var i = 0; i < expectedFunctionCalls.Count; i++)
         {
             var expectedCall = expectedFunctionCalls[i];
             var actualCall = actualFunctionCalls[i];
@@ -981,12 +996,18 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
             }
 
             // Check other cases
-            if (functionCalls.Any() && hasTextContent)
+            if (functionCalls.Count != 0 && hasTextContent)
+            {
                 return ExpectedOutputType.Mixed;
-            else if (functionCalls.Any())
+            }
+            else if (functionCalls.Count != 0)
+            {
                 return ExpectedOutputType.ToolCall;
+            }
             else
+            {
                 return ExpectedOutputType.FinalResponse;
+            }
         }
     }
 

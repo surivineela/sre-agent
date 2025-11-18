@@ -2,8 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.AI;
-
 namespace Agent.Framework;
 
 /// <summary>
@@ -26,9 +24,8 @@ public interface IStreamContentHandler
     /// <summary>
     /// Called when streaming is complete
     /// </summary>
-    /// <param name="finishReason">The reason why the streaming completed</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    Task CompleteAsync(ChatFinishReason? finishReason);
+    Task CompleteAsync();
 
     /// <summary>
     /// Called when streaming is incomplete (partial response)

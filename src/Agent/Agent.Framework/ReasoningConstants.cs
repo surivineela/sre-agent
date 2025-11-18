@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-namespace Agent.Core;
+namespace Agent.Framework;
 
 public static class ReasoningConstants
 {

@@ -5,8 +5,6 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
-using Agent.Runtime.Communication;
-using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime;
@@ -47,7 +45,7 @@ public class ChatMessageOutput : IDisplayModelOutput
             isComplete: false);
     }
 
-    public async Task OnComplete(string? content, ChatFinishReason? chatFinishReason)
+    public async Task OnComplete(string content = "")
     {
         // Mark as complete and save to DB through outbound service
         await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
@@ -56,14 +54,8 @@ public class ChatMessageOutput : IDisplayModelOutput
             _messageId,
             isComplete: true);
 
-        if (chatFinishReason == ChatFinishReason.ToolCalls)
-        {
-            _messageId = Guid.NewGuid();
-        }
-        else if (chatFinishReason == ChatFinishReason.Stop)
-        {
-            _messageId = null;
-        }
+        // when message completes, reset messageGuid for next messages
+        _messageId = Guid.NewGuid();
     }
 
     public async Task OnIncomplete()

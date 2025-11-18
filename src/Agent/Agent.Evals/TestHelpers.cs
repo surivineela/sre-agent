@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
@@ -528,14 +532,13 @@ public static class TestHelpers
             {
                 testContext.WriteLine($"[{message.Role}] {message.Text}");
             }
-
         }
     }
 
     public static int GetIterationCount(int defaultValue)
     {
-        string? iterationCountEnv = Environment.GetEnvironmentVariable("IterationCount");
-        if (int.TryParse(iterationCountEnv, out int parsedIterations))
+        var iterationCountEnv = Environment.GetEnvironmentVariable("IterationCount");
+        if (int.TryParse(iterationCountEnv, out var parsedIterations))
         {
             return parsedIterations;
         }
@@ -588,7 +591,10 @@ public static class TestHelpers
             var actualJson = JsonSerializer.Serialize(actual, new JsonSerializerOptions { WriteIndented = false });
 
             // First try exact match
-            if (expectedJson == actualJson) return true;
+            if (expectedJson == actualJson)
+            {
+                return true;
+            }
 
             // Parse as JSON objects for smart comparison
             using var expectedDoc = JsonDocument.Parse(expectedJson);
@@ -610,7 +616,9 @@ public static class TestHelpers
                         {
                             var expectedStr = expectedProp.Value.GetString() ?? "";
                             if (string.IsNullOrEmpty(expectedStr))
+                            {
                                 continue; // Missing property with empty expected value is OK
+                            }
                         }
                         else if (expectedProp.Value.ValueKind == JsonValueKind.Null)
                         {
@@ -627,7 +635,9 @@ public static class TestHelpers
                         var actualCommand = actualProp.GetString() ?? "";
 
                         if (!AreCommandsEquivalent(expectedCommand, actualCommand))
+                        {
                             return false;
+                        }
                     }
                     // Skip comparison for "columnsCsv" field
                     else if (expectedProp.Name.Equals("columnsCsv", StringComparison.OrdinalIgnoreCase))
@@ -639,7 +649,9 @@ public static class TestHelpers
                     {
                         // For other properties, do smart comparison (treating null and empty strings as equal)
                         if (!AreJsonElementsEquivalent(expectedProp.Value, actualProp))
+                        {
                             return false;
+                        }
                     }
                 }
 
@@ -648,10 +660,14 @@ public static class TestHelpers
                 {
                     // Skip columnsCsv field in this check too
                     if (actualProp.Name.Equals("columnsCsv", StringComparison.OrdinalIgnoreCase))
+                    {
                         continue;
+                    }
 
                     if (!expectedRoot.TryGetProperty(actualProp.Name, out _))
+                    {
                         return false;
+                    }
                 }
 
                 return true;
@@ -679,7 +695,9 @@ public static class TestHelpers
 
             // Treat null and empty string as equivalent
             if (string.IsNullOrEmpty(expectedStr) && string.IsNullOrEmpty(actualStr))
+            {
                 return true;
+            }
 
             return expectedStr == actualStr;
         }
@@ -707,10 +725,14 @@ public static class TestHelpers
     public static bool AreCommandsEquivalent(string expectedCommand, string actualCommand)
     {
         if (string.IsNullOrWhiteSpace(expectedCommand) && string.IsNullOrWhiteSpace(actualCommand))
+        {
             return true;
+        }
 
         if (string.IsNullOrWhiteSpace(expectedCommand) || string.IsNullOrWhiteSpace(actualCommand))
+        {
             return false;
+        }
 
         var expectedBase = ExtractBaseCommand(expectedCommand.Trim());
         var actualBase = ExtractBaseCommand(actualCommand.Trim());
@@ -724,7 +746,9 @@ public static class TestHelpers
     public static string ExtractBaseCommand(string command)
     {
         if (string.IsNullOrWhiteSpace(command))
+        {
             return "";
+        }
 
         var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var baseCommandParts = new List<string>();
@@ -733,7 +757,9 @@ public static class TestHelpers
         {
             // Stop when we encounter a flag (starts with -)
             if (part.StartsWith('-'))
+            {
                 break;
+            }
 
             baseCommandParts.Add(part);
         }
