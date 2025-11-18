@@ -405,15 +405,15 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                                     isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
                                 />
                                 <StatCard
-                                    title={intl.formatMessage(IncidentManagementResources.assistedByAgent)}
-                                    subtitle={intl.formatMessage(IncidentManagementResources.incidentsAssistedByAgent)}
-                                    data={assistedByAgentStatCardData}
-                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
-                                />
-                                <StatCard
                                     title={intl.formatMessage(IncidentManagementResources.mitigatedByAgent)}
                                     subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByAgent)}
                                     data={mitigatedByAgentStatCardData}
+                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
+                                />
+                                <StatCard
+                                    title={intl.formatMessage(IncidentManagementResources.assistedByAgent)}
+                                    subtitle={intl.formatMessage(IncidentManagementResources.incidentsAssistedByAgent)}
+                                    data={assistedByAgentStatCardData}
                                     isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
                                 />
                                 <StatCard

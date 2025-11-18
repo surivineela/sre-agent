@@ -218,20 +218,6 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
                 onColumnClick: (_, col) => handleColumnClick(col),
             },
             {
-                key: IncidentResponsePlanGridColumnKey.assistedByAgent,
-                name: intl.formatMessage(IncidentManagementResources.assistedByAgent),
-                isResizable: true,
-                minWidth: 125,
-                maxWidth: 250,
-                onRender: onRenderAssistedByAgent,
-                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.assistedByAgent as keyof IncidentHandlerItem),
-                onColumnClick: (_, col) => handleColumnClick(col),
-                isSortedDescending:
-                    sortColumnKey === (IncidentResponsePlanGridColumnKey.assistedByAgent as keyof IncidentHandlerItem)
-                        ? isSortedDescending
-                        : undefined,
-            },
-            {
                 key: IncidentResponsePlanGridColumnKey.mitigatedByAgent,
                 name: intl.formatMessage(IncidentManagementResources.mitigatedByAgent),
                 isResizable: true,
@@ -242,6 +228,20 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
                 onColumnClick: (_, col) => handleColumnClick(col),
                 isSortedDescending:
                     sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByAgent as keyof IncidentHandlerItem)
+                        ? isSortedDescending
+                        : undefined,
+            },
+            {
+                key: IncidentResponsePlanGridColumnKey.assistedByAgent,
+                name: intl.formatMessage(IncidentManagementResources.assistedByAgent),
+                isResizable: true,
+                minWidth: 125,
+                maxWidth: 250,
+                onRender: onRenderAssistedByAgent,
+                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.assistedByAgent as keyof IncidentHandlerItem),
+                onColumnClick: (_, col) => handleColumnClick(col),
+                isSortedDescending:
+                    sortColumnKey === (IncidentResponsePlanGridColumnKey.assistedByAgent as keyof IncidentHandlerItem)
                         ? isSortedDescending
                         : undefined,
             },
