@@ -150,10 +150,16 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
             result.AddError("Max reflection count cannot be negative.");
         }
 
+        // Validate handoff description is not null
+        if (spec.HandoffDescription == null)
+        {
+            result.AddError("Handoff description cannot be null. Please provide a description to enable agent routing from meta agent, or use an empty string to disable handoff.");
+        }
+
         // Validate handoff description length
         if (!string.IsNullOrWhiteSpace(spec.HandoffDescription) && spec.HandoffDescription.Length > 500)
         {
-            result.AddError("Handoff description must be under 500 characters.");
+            result.AddError("Handoff description exceeds maximum length of 500 characters.");
         }
 
         // Validate tool names
@@ -186,6 +192,12 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
                     result.AddError($"MCP tool name '{tool}' must not contain whitespace.");
                 }
             }
+        }
+
+        // Validate handoffs is not null
+        if (spec.Handoffs == null)
+        {
+            result.AddError("Handoffs cannot be null. Please provide an array of agent names to enable handoff between agents, or use an empty array [].");
         }
 
         // Validate handoff names

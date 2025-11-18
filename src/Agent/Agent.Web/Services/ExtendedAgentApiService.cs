@@ -1,8 +1,9 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Interfaces;
-using Agent.Core.Validation;
 using Agent.Data.DataModels;
-using Agent.Framework;
-using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Web.ApiResources;
