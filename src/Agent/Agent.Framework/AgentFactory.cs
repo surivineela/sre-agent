@@ -1110,8 +1110,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         if (agent.IsExtended)
         {
             // do not apply prompt overlays to extended agents
+            _logger.LogInternalInformation("Skipping prompt overlay for extended agent {agentName}.", agent.Name);
+
             return;
         }
+
+        _logger.LogInternalInformation("Applying prompt overlay to agent {agentName}.", agent.Name);
 
         if (overlay.ReplaceSystemPrompt != null)
         {
@@ -1196,13 +1200,17 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
     }
 
-    private static void ApplyToolOverlay(Agent<TContext> agent, ToolOverlay overlay)
+    private void ApplyToolOverlay(Agent<TContext> agent, ToolOverlay overlay)
     {
         if (agent.IsExtended)
         {
-            // do not apply prompt overlays to extended agents
+            // do not apply tool overlays to extended agents
+            _logger.LogInternalInformation("Skipping tool overlay for extended agent {agentName}.", agent.Name);
+
             return;
         }
+
+        _logger.LogInternalInformation("Applying tool overlay to agent {agentName}.", agent.Name);
 
         if (overlay.ReplaceTools != null)
         {
@@ -1232,9 +1240,13 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     {
         if (agent.IsExtended)
         {
-            // do not apply prompt overlays to extended agents
+            // do not apply handoff overlays to extended agents
+            _logger.LogInternalInformation("Skipping handoff overlay for extended agent {agentName}.", agent.Name);
+
             return;
         }
+
+        _logger.LogInternalInformation("Applying handoff overlay to agent {agentName}.", agent.Name);
 
         var agents = agentGraph ?? _agents;
 
@@ -1275,9 +1287,13 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     {
         if (agent.IsExtended)
         {
-            // do not apply prompt overlays to extended agents
+            // do not apply param overlays to extended agents
+            _logger.LogInternalInformation("Skipping param overlay for extended agent {agentName}.", agent.Name);
+
             return;
         }
+
+        _logger.LogInternalInformation("Applying param overlay to agent {agentName}.", agent.Name);
 
         if (overlay.ModelName != null && _chatClientProvider.IsModelSupported(overlay.ModelName))
         {

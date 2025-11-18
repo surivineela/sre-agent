@@ -789,6 +789,13 @@ public class ReasoningLoop : IDisposable
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            _logger.LogInternalInformation(
+                "[{threadId}] Starting agent runner for agent {agentName}, isExtended: {isExtended}, skillsEnabled: {skillsEnabled}",
+                _context.ThreadId,
+                _currentAgent.Name,
+                _currentAgent.IsExtended,
+                _currentAgent.EnableSkills);
+
             var runResult = await Runner.RunAsync(
                 startingAgent: _currentAgent,
                 input: _chatHistory!,
@@ -982,6 +989,13 @@ public class ReasoningLoop : IDisposable
                 {
                     if (toolResults.Count == runResult.ManualToolCalls?.Count)
                     {
+                        _logger.LogInternalInformation(
+                            "[{threadId}] Resuming agent runner with agent {agentName}, isExtended: {isExtended}, skillsEnabled: {skillsEnabled}",
+                            _context.ThreadId,
+                            runResult.LastAgent.Name,
+                            runResult.LastAgent.IsExtended,
+                            runResult.LastAgent.EnableSkills);
+
                         // all tools executed, clear manual tool calls
                         runResult = await Runner.ResumeFromManualToolsAsync(
                             previousResult: runResult,
