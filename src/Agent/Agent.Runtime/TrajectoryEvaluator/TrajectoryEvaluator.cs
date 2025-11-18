@@ -343,9 +343,11 @@ public class TrajectoryEvaluator
         // 1. User explicitly requested it, OR
         // 2. It's an incident trajectory, OR
         // 3. Thread has more than 3 messages AND conversation contains valuable infrastructure/architecture knowledge worth remembering
-        bool shouldGenerateInsights = isUserRequested
-            || thread.Source == ThreadSource.Incident
-            || (messageCount > 3 && await ContainsValuableInfrastructureKnowledgeAsync(chatTranscript, cancellationToken));
+        // Note: We filter out ScheduledTask threads as they generate insights on every run
+        bool shouldGenerateInsights = thread.Source != ThreadSource.ScheduledTask
+            && (isUserRequested
+                || thread.Source == ThreadSource.Incident
+                || (messageCount > 3 && await ContainsValuableInfrastructureKnowledgeAsync(chatTranscript, cancellationToken)));
 
         if (!shouldGenerateInsights)
         {
