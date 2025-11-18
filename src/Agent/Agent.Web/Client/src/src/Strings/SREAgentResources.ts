@@ -3272,16 +3272,16 @@ export const ScheduledTasksResources = defineMessages({
 });
 
 export const SubAgentsResources = defineMessages({
-    noSubAgents: { defaultMessage: 'No sub-agents configured', id: 'VIgoaE' },
+    noSubAgents: { defaultMessage: 'No subagents configured', id: 'vCyJXp' },
     runHistory: { defaultMessage: 'Run History', id: 'LnglaU' },
-    duplicateNameError: { defaultMessage: 'A sub-agent with this name already exists', id: 'ffkuNo' },
-    createSubAgent: { defaultMessage: 'Create Sub-Agent', id: 'yJSwfQ' },
-    namePlaceholder: { defaultMessage: 'Enter sub-agent name', id: 'jVHoU8' },
-    creatingSubAgent: { defaultMessage: 'Creating Sub-Agent', id: 'IYK6q+' },
-    creatingSubAgentDescription: { defaultMessage: 'Creating sub-agent "{name}"', id: 'PiNeyx' },
-    subAgentCreated: { defaultMessage: 'Sub-Agent "{name}" has been created successfully', id: 'tfuXMw' },
-    createSubAgentFailed: { defaultMessage: 'Failed to create sub-agent', id: 'YP06jq' },
-    createSubAgentWithMessageFailed: { defaultMessage: 'Failed to create sub-agent with error: {error}', id: '6v8Uj+' },
+    duplicateNameError: { defaultMessage: 'A subagent with this name already exists', id: 'NZ4EtH' },
+    createSubAgent: { defaultMessage: 'Create Subagent', id: 'wRi+GV' },
+    namePlaceholder: { defaultMessage: 'Enter subagent name', id: 'lpYK4u' },
+    creatingSubAgent: { defaultMessage: 'Creating Subagent', id: 'wFcmSl' },
+    creatingSubAgentDescription: { defaultMessage: 'Creating subagent "{name}"', id: '5AvgDc' },
+    subAgentCreated: { defaultMessage: 'Subagent "{name}" has been created successfully', id: 'Hh4t4o' },
+    createSubAgentFailed: { defaultMessage: 'Failed to create subagent', id: 'OQMatj' },
+    createSubAgentWithMessageFailed: { defaultMessage: 'Failed to create subagent with error: {error}', id: '/HeRX5' },
 });
 
 export const McpServerResources = defineMessages({
@@ -3324,7 +3324,7 @@ export const MemorySearchCardResources = defineMessages({
 
 export const ExtendedAgentsGraphResources = defineMessages({
     // Tab and Navigation
-    extendedAgentsTab: { defaultMessage: 'Sub-Agent Builder', id: 'x4OHX9' },
+    extendedAgentsTab: { defaultMessage: 'Subagent builder', id: 'EN0CPQ' },
     canvasView: { defaultMessage: 'Canvas view', id: 'uKwm6S' },
     tableView: { defaultMessage: 'Table view', id: 'ufzv1A' },
     listViewSelectAll: { defaultMessage: 'Select all', id: '94Fg25' },
@@ -3343,10 +3343,10 @@ export const ExtendedAgentsGraphResources = defineMessages({
     createNewEntity: { defaultMessage: 'Create New Entity', id: '5POweM' },
     createYourFirstEntity: { defaultMessage: 'Create Your First Entity', id: 'N+XwM+' },
     whatToCreate: { defaultMessage: 'What would you like to create?', id: '5q8BxP' },
-    quickCreateAgentTitle: { defaultMessage: 'Create a handoff sub-agent', id: '8dASTJ' },
+    quickCreateAgentTitle: { defaultMessage: 'Create a handoff subagent', id: 'ZAkVKt' },
     quickCreateAgentDescription: {
-        defaultMessage: 'New handoff sub-agents start as Autonomous. You can connect tools and other details later.',
-        id: 'et3seW',
+        defaultMessage: 'New handoff subagents start as Autonomous. You can connect tools and other details later.',
+        id: 'fBeNkx',
     },
     quickCreateAgentAutonomousHint: {
         defaultMessage: 'We’ll mark this agent as Autonomous automatically so it can run on its own.',
@@ -3360,12 +3360,12 @@ export const ExtendedAgentsGraphResources = defineMessages({
     },
 
     // Entity Types
-    agent: { defaultMessage: 'Sub-Agent', id: 'hNKm4/' },
+    agent: { defaultMessage: 'Subagent', id: 'Q++yMM' },
     tool: { defaultMessage: 'Tool', id: 'h6183G' },
     connector: { defaultMessage: 'Connector', id: 'r8XsCU' },
 
     // Type Descriptions
-    agentDescription: { defaultMessage: 'An AI sub-agent with instructions and tools', id: 'dLWTUk' },
+    agentDescription: { defaultMessage: 'An AI subagent with instructions and tools', id: 'LxHm7z' },
     toolDescription: { defaultMessage: 'A function or capability for agents to use', id: 'Ai/0lk' },
     connectorDescription: { defaultMessage: 'A data source connection for tools (e.g., Kusto cluster for running queries)', id: 'Dhy8jb' },
     trigger: { defaultMessage: 'Trigger', id: 'B3Q5mz' },
@@ -3794,11 +3794,11 @@ export const ExtendedAgentsGraphResources = defineMessages({
     },
 
     // Grid View
-    subAgentBuilderTitle: { defaultMessage: 'Sub-Agent Builder', id: 'x4OHX9' },
+    subAgentBuilderTitle: { defaultMessage: 'Subagent Builder', id: 'ymiZvr' },
     subAgentBuilderDescription: {
         defaultMessage:
-            'This list shows your extended agents, tools, and connectors organized by category. Create and manage sub-agents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources.',
-        id: 'sQZhm1',
+            'This list shows your extended agents, tools, and connectors organized by category. Create and manage subagents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources.',
+        id: 'Qcakd7',
     },
     nameColumn: { defaultMessage: 'Name', id: 'HAlOn1' },
     typeColumn: { defaultMessage: 'Type', id: '+U6ozc' },
