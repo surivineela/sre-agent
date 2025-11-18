@@ -674,8 +674,8 @@ export const SreAgentResources = defineMessages({
     unknownStatus: { defaultMessage: 'Unknown status', id: 'wSLRfB' },
     sreAgentStoppedTitle: { defaultMessage: 'The agent is stopped', id: 'i6x7bU' },
     sreAgentStoppedDescription: {
-        defaultMessage: 'When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost.',
-        id: 'WK8csJ',
+        defaultMessage: 'When an agent is stopped, it cannot monitor or interact, but it still incurs a fixed cost.',
+        id: '9jqvi3',
     },
 });
 
