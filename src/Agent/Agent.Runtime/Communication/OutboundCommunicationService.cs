@@ -189,10 +189,6 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
 
         _customerLogger.LogMessage($"[ChatThreadId {context.ThreadId}] Agent responding: {message.Text}");
-        _customerLogger.LogAgentResponseEvents("AgentResponse", message.Text ?? string.Empty, properties: new Dictionary<string, string>
-        {
-            { "ChatThreadId", context.ThreadId.ToString() ?? string.Empty },
-        });
 
         Guid agentMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
@@ -229,6 +225,10 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             {
                 { "ChatThreadId", context.ThreadId.ToString() ?? string.Empty },
                 { "Message", finalText }
+            });
+            _customerLogger.LogAgentResponseEvents("AgentResponse", finalText, properties: new Dictionary<string, string>
+            {
+                { "ChatThreadId", context.ThreadId.ToString() ?? string.Empty },
             });
 
             // Persist to DB when complete
