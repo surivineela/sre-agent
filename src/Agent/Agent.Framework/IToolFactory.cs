@@ -30,6 +30,10 @@ public interface IToolFactory<TContext> : IAsyncInitializer
 {
     int RegisteredToolCount { get; }
 
+    int RegisteredBuiltInToolCount { get; }
+
+    int RegisteredExtendedToolCount { get; }
+
     /// <summary>
     /// Find an AI function by its name.
     /// </summary>

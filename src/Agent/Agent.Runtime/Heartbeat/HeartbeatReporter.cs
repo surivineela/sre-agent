@@ -9,6 +9,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Logging;
+using Agent.Runtime.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Heartbeat;
@@ -22,6 +23,7 @@ public class HeartbeatReporter
     private readonly IAgentFactory<AgentContext> _agentFactory;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IExtendedAgentRepository _extendedAgentRepository;
+    private readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
 
     private static readonly JsonSerializerOptions PayloadSerializerOptions = new()
     {
@@ -32,12 +34,14 @@ public class HeartbeatReporter
         ILogger<HeartbeatReporter> logger,
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory<AgentContext> toolFactory,
-        IExtendedAgentRepository extendedAgentRepository)
+        IExtendedAgentRepository extendedAgentRepository,
+        IIncidentHandlerManagementService incidentHandlerManagementService)
     {
         _logger = logger;
         _agentFactory = agentFactory;
         _toolFactory = toolFactory;
         _extendedAgentRepository = extendedAgentRepository;
+        _incidentHandlerManagementService = incidentHandlerManagementService;
     }
 
     /// <summary>
@@ -55,11 +59,17 @@ public class HeartbeatReporter
 
         try
         {
+            var incidentHandlers = await _incidentHandlerManagementService.ListIncidentHandlers();
+            var incidentHandlerCount = incidentHandlers?.Count ?? 0;
+
             var payload = BuildStatusPayload(
                 _agentFactory.RegisteredAgentCount,
                 _agentFactory.RegisteredBuiltInAgentCount,
                 _agentFactory.RegisteredExtendedAgentCount,
-                _toolFactory.RegisteredToolCount);
+                _toolFactory.RegisteredToolCount,
+                _toolFactory.RegisteredBuiltInToolCount,
+                _toolFactory.RegisteredExtendedToolCount,
+                incidentHandlerCount);
 
             stopwatch.Stop();
             _logger.LogAgentAction(
@@ -173,7 +183,7 @@ public class HeartbeatReporter
         return null;
     }
 
-    private static string BuildStatusPayload(int agentCount, int builtInAgentCount, int extendedAgentCount, int toolCount)
+    private static string BuildStatusPayload(int agentCount, int builtInAgentCount, int extendedAgentCount, int toolCount, int builtInToolCount, int extendedToolCount, int incidentHandlerCount)
     {
         using var process = Process.GetCurrentProcess();
         var uptime = DateTimeOffset.UtcNow - process.StartTime.ToUniversalTime();
@@ -186,7 +196,10 @@ public class HeartbeatReporter
             totalAgentCount = agentCount,
             builtInAgentCount = builtInAgentCount,
             extendedAgentCount = extendedAgentCount,
-            totalToolCount = toolCount
+            totalToolCount = toolCount,
+            builtInToolCount = builtInToolCount,
+            extendedToolCount = extendedToolCount,
+            incidentHandlerCount = incidentHandlerCount
         };
 
         return JsonSerializer.Serialize(payload, PayloadSerializerOptions);

@@ -35,12 +35,17 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     private readonly IEnumerable<Assembly> _assemblies;
     private readonly Dictionary<string, IDeferredToolFunction<TContext>> _tools = new();
     private readonly HashSet<string> _disabledTools = new();
+    private readonly HashSet<string> _extendedTools = new();
     private readonly IExtensibilityLoader? _extensibilityLoader;
     private readonly IMcpConnectable _mcpToolsRepository;
     private readonly ISkillRegistry _skillRegistry;
     private readonly bool _handoffReasoningEnabled;
 
     public int RegisteredToolCount => _tools.Count;
+
+    public int RegisteredBuiltInToolCount => _tools.Count - _extendedTools.Count;
+
+    public int RegisteredExtendedToolCount => _extendedTools.Count;
 
     public ToolFactory(
         ILogger<ToolFactory<TContext>> logger,
@@ -310,7 +315,10 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
             var extendedTools = await _extensibilityLoader.LoadExtendedToolsAsync();
             foreach (var tool in extendedTools)
             {
-                RegisterTool(tool, onNameConflict);
+                if (RegisterTool(tool, onNameConflict))
+                {
+                    _extendedTools.Add(tool.Name);
+                }
             }
         }
 
@@ -446,6 +454,9 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         {
             // Register using existing YAML registration logic
             RegisterFromYaml(extendedToolYaml, BehaviorOnNameConflict.Overwrite);
+
+            // Mark as extended tool
+            _extendedTools.Add(extendedToolName);
 
             _logger.LogInternalDebug("Successfully registered extended tool {ToolName} from Cosmos DB", extendedToolName);
         }
