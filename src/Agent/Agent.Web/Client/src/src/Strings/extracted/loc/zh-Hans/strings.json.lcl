@@ -207,6 +207,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";+WRusC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SRE Agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SRE 代理]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";+XtuWl" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This insight needs improvement]]></Val>
@@ -455,15 +464,6 @@
           <Val><![CDATA[Clear]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[清除]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";/ImSqA" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Review and create]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[查看并创建]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1098,6 +1098,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";13KTIN" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} resource group selected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已选择 {count} 个资源组。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";15GWkT" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This will permanently delete the incident response plan, which might affect how incidents are processed and also any custom response plans. Are you sure you want to delete?]]></Val>
@@ -1337,6 +1346,15 @@
           <Val><![CDATA[Last confidence: {score}%]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[低置信度: {score}%]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";1m4VPF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The agent investigates complex issues and forms hypotheses to validate potential root causes.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[智能体调查复杂问题并提出假设，以验证潜在根本原因。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1809,6 +1827,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";3IKub9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[An unexpected error occurred]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[出现了意外错误]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";3JVa6k" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[End]]></Val>
@@ -1881,6 +1908,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";3SsYXO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open GitHub issue page with pre-filled information above]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[打开预填充上述信息的 GitHub 问题页面]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";3VI9mt" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save Changes]]></Val>
@@ -1908,11 +1944,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";3dsWh5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add MCP server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[添加 MCP 服务器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3h7ZKg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Review + add]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[查看 + 添加]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";3jPMQI" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add More]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[添加更多]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3k7JQw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Issue description is required.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[需要提供问题说明。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1931,6 +1994,15 @@
           <Val><![CDATA[Reader]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[读取者]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3rvQhx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You can manage up to {max} resource groups you have permissions on. Your agent currently manages {count} resource groups.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[最多可以管理 {max} 个你有权限的资源组。智能体当前管理 {count} 个资源组。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2187,6 +2259,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";4IAjnN" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turn on deep investigation?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[是否启用深度调查?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";4MeTpL" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Workbook Contributor]]></Val>
@@ -2237,6 +2318,15 @@
           <Val><![CDATA[Keep the description brief and explain the task’s actions. Include necessary resource identifiers, specify time-sensitive information, and define success/failure signals or required output formats.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[保持描述简洁，说明任务的操作。包含必要的资源标识符，指定时间敏感信息，并定义成功/失败信号或所需的输出格式。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";4Rhz/i" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[User provided connector]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[用户提供的连接器]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2835,6 +2925,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";6+mbvY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{seconds} sec]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{seconds} 秒]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";61e5yQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[What didn't you like about the agent's response? Your feedback helps us make the agent even better.]]></Val>
@@ -2903,6 +3002,15 @@
           <Val><![CDATA[Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == "##SubscriptionId##" These will be replaced with actual values at runtime.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[在查询中使用 ##ParamName## 定义参数占位符。示例: where SubscriptionId == "##SubscriptionId##" 这些将在运行时替换为实际值。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";6CrAJC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter custom header key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[输入自定义标头键]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3141,15 +3249,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6tlKgy" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[You can choose a maximum of 20 resource groups that the agent will manage.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[最多可以选择 20 个资源组供代理管理。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6tzuXg" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to start SRE Agent {name}: {error}]]></Val>
@@ -3357,6 +3456,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";7Rnjmx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expected Behavior]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[预期行为]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";7TVRcx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Retry link]]></Val>
@@ -3425,6 +3533,15 @@
           <Val><![CDATA[Project details]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[项目详细信息]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";7kPmO3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit connector]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[编辑连接器]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3884,6 +4001,15 @@
           <Val><![CDATA[Handoff instructions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[转接说明]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";8urALB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete connector]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[删除连接器]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4374,6 +4500,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Abi/u/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expand panel]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[展开面板]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";AbleKr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[data connector]]></Val>
@@ -4482,6 +4617,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";AvHD3R" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Teams channel link]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Teams 频道链接]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";AxMhQr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[High]]></Val>
@@ -4523,6 +4667,15 @@
           <Val><![CDATA[Agent Quality]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[智能体质量]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";BBT3jd" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[智能体访问 GitHub 存储库、功能和操作，包括问题跟踪和拉取请求。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4658,15 +4811,6 @@
           <Val><![CDATA[Using latest YAML changes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在使用最新的 YAML 更改]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";BcEbxp" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[{seconds}s]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{seconds} 秒]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4905,6 +5049,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";CQisjK" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[What actually happened?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[实际发生了什么?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";CTRqZs" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Test query]]></Val>
@@ -5085,15 +5238,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";D473QI" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Choose a maximum of {max} resource groups you have permissions on. {count} resource groups selected.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[最多选择你对其具有权限的 {max} 个资源组。已选择 {count} 个资源组。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";D4T2Px" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Mitigated by agent]]></Val>
@@ -5184,6 +5328,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";DK708b" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than {maxLength} characters.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[名称必须以字母开头，且只能包含字母、数字和连字符。名称不得为空，且长度必须少于 {maxLength} 个字符。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";DMEE1o" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a tool to connect]]></Val>
@@ -5198,6 +5351,15 @@
           <Val><![CDATA[Is part of]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[属于]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DP0m/y" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Updating Kusto Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在更新 Kusto 工具]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5243,6 +5405,15 @@
           <Val><![CDATA[Selected incidents]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[所选事件]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DXm10s" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} repository URL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 存储库 URL]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5297,6 +5468,15 @@
           <Val><![CDATA[Cognitive Services Contributor]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[认知服务参与者]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DgsR1U" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Channel ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[频道 ID]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5634,6 +5814,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";EcglP9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[键]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";EdEthU" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[API Management Workspace Contributor]]></Val>
@@ -5702,6 +5891,15 @@
           <Val><![CDATA[https://github.com/owner/repo-name or https://dev.azure.com/organization/project/_git/repo or https://organization.visualstudio.com/project/_git/repository-name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[https://github.com/owner/repo-name or https://dev.azure.com/organization/project/_git/repo 或 https://organization.visualstudio.com/project/_git/repository-name]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ErUgLz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Teams group ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Teams 群组 ID]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5864,6 +6062,15 @@
           <Val><![CDATA[Repository connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[存储库连接]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";FMDuHb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter your PAT or API key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[输入 PAT 或 API 密钥]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6111,11 +6318,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";G4mray" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} resource groups selected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已选择 {count} 个资源组。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";G5JMSn" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} subscriptions selected]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[已选择 {0} 个订阅]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";G6XRkU" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Steps to Reproduce]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[重现步骤]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6141,6 +6366,9 @@
       <Item ItemId=";GBLVEV" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{count} {count, plural, one {document} other {documents}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} {count, plural, one {文档} other {文档}}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6351,6 +6579,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";GufXy5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Value]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[值]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Gvxoji" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Name is required]]></Val>
@@ -6428,6 +6665,15 @@
           <Val><![CDATA[No code optimization recommendations detected.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[未检测到代码优化建议。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";HJ7ZeR" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Issue Description]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[问题说明]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6608,6 +6854,15 @@
           <Val><![CDATA[Loading daily reports]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在加载每日报告]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";HtVpjg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You can select up to {max} resource groups for this agent. Agents can manage a total of {totalMax} resource groups, and your agent currently manages {current}. You've selected {count}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[最多可以为此智能体选择 {max} 个资源组。智能体可管理总共 {totalMax} 个资源组，你的智能体当前管理 {current} 个。你已选择 {count} 个。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7008,6 +7263,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";J0rs+f" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[从 SRE 智能体门户粘贴线程 ID。(例如 50f7521d-dfee-487e-9188-5abdc8adde91)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";J2Lcsz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[此响应计划中处理的每个事件都会进行深度调查。每次深度调查都需要较长运行时间，可能导致高 AAU 消耗。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";J3Y8Sm" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to validate ServiceNow settings. Please try again.]]></Val>
@@ -7040,6 +7313,15 @@
           <Val><![CDATA[Last Modified]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[上次修改时间]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";JA/VO+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Starts a task at a defined time or interval.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[按指定时间或间隔启动任务。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7368,6 +7650,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";JvYXxh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MCP server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MCP 服务器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";JwHSD6" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose filter parameters]]></Val>
@@ -7427,6 +7718,15 @@
           <Val><![CDATA[Show]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[显示]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";K7tsik" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task ran successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[计划任务已成功运行]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7620,6 +7920,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Km7x3v" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Get support]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[获取支持]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";KoJ1C+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete Selected ({count})]]></Val>
@@ -7706,6 +8015,15 @@
           <Val><![CDATA[AI suggestions discarded]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[已放弃 AI 建议]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";L/ct40" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open in visual view]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在视觉视图中打开]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7845,6 +8163,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";LSqcaU" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum 200,000 AAUs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[最多 200,000 个 AAU]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";LTDPn/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You have unsaved changes.]]></Val>
@@ -7899,6 +8226,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Li/Qrf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Custom headers]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[自定义标头]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";LkUvu/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Describe the schedule]]></Val>
@@ -7940,6 +8276,15 @@
           <Val><![CDATA[Direct argument]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[直接参数]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";LuHM0/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Actual Behavior]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[实际行为]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8048,6 +8393,15 @@
           <Val><![CDATA[Add filter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[添加筛选器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";M0ay1D" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Running scheduled task(s)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在运行计划任务]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8372,6 +8726,15 @@
           <Val><![CDATA[Created {toolName} and connected it to {agentName}.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[已创建 {toolName} 并已将其连接到 {agentName}。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";N2IrpM" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Confirm]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[确认]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8777,6 +9140,15 @@
           <Val><![CDATA[We couldn't find tool {toolName}. Refresh and try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[找不到工具 {toolName}。刷新并重试。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";OP7f9a" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Compiled connection string]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已编译的连接字符串]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9249,6 +9621,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";PZvrnY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Title is required.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[需要提供标题。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Pa1S0J" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Total active flow consumption]]></Val>
@@ -9317,6 +9698,15 @@
           <Val><![CDATA[Azure Monitor is connected]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Azure Monitor 已连接]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";PpdTYy" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to update tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未能更新工具]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9474,6 +9864,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Q9IHxV" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Running scheduled task {name}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[正在运行计划任务 {name}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Q9Zp/n" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Correlation:]]></Val>
@@ -9618,6 +10017,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";QYiU4f" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[1. Describe the action you took 2. Mention the resource or service involved]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[1. 描述你采取的操作 2. 提及所涉及的资源或服务]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";QdDYGR" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Response plan configuration]]></Val>
@@ -9708,15 +10116,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Qn8Bok" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Handback]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[返还]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";QomX1y" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[e.g., 0 9 * * 1-5]]></Val>
@@ -9803,15 +10202,6 @@
           <Val><![CDATA[Outlook account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Outlook 帐户]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";R3mMmc" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Monthly AAU limit slider]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[每月 AAU 限制滑块]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10320,6 +10710,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SeZ8eZ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[AAU consumption reminder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[AAU 消耗提醒]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Seanpx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Required]]></Val>
@@ -10361,6 +10760,15 @@
           <Val><![CDATA[Draft not yet synced]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[草稿尚未同步]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SoBWeV" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Monthly active flow AAUs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[每月活跃流 AAU]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10617,6 +11025,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";TP/cMX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Ended]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已结束]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";TQ0n+a" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{metric} lands at {score}%. Sharpen instructions and tools to climb faster.]]></Val>
@@ -10793,6 +11210,15 @@
           <Val><![CDATA[Configuration Changes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[配置更改]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";UImEMW" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Briefly describe the problem or request.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[简要描述问题或请求。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11175,6 +11601,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Vaj9nj" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Don't show this message again]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[不再显示此消息]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Vb+qQ4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Uses]]></Val>
@@ -11243,6 +11678,15 @@
           <Val><![CDATA[Adding handoff from {sourceAgent} to subagent {targetAgent}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在添加从 {sourceAgent} 到子智能体 {targetAgent} 的转接]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Vs3jMi" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Authentication method]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[身份验证方法]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13020,15 +13464,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";aTyEZH" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Search response plans]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[搜索响应计划]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";aWpBzj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show more]]></Val>
@@ -13254,6 +13689,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bDbbX7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit Kusto tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[编辑 Kusto 工具]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bICPAQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Thread Feedback]]></Val>
@@ -13295,6 +13739,15 @@
           <Val><![CDATA[New]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[新]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bWjdfa" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[URL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[URL]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13929,6 +14382,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";dF2h2y" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter by incident id or title]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[按事件 ID 或标题筛选]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";dG8VrM" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scheduled task]]></Val>
@@ -14136,6 +14598,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";dqkJF6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete subagent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[删除子智能体]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";dtQgfG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Query Tester]]></Val>
@@ -14168,6 +14639,15 @@
           <Val><![CDATA[Score agent quality]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[进行智能体质量评分]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dzy0ND" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run scheduled task]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[运行计划任务]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14811,6 +15291,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";fvSiRs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tool updated successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已成功更新工具]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";fyaE5g" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Please provide a channel link]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[请提供频道链接]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";g+9csc" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have permission to add or delete managed resources]]></Val>
@@ -15207,6 +15705,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";hGnjdE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Learn more about AAU consumption and cost]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[详细了解 AAU 消耗和成本]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";hHz/bk" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[PagerDuty is not connected.]]></Val>
@@ -15311,6 +15818,15 @@
           <Val><![CDATA[System tools are read-only. View the YAML for reference.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[系统工具是只读的。查看 YAML 以供参考。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";hdfKe+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Automatically starts a subagent in response to an incident or alert.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[自动启动子智能体以响应事件或警报。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15567,6 +16083,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";iYJ/Ha" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query tool the subagent uses to collect data from Azure Data Explorer.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[子智能体用于从 Azure 数据资源管理器收集数据的查询工具。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";iZDRGO" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Assigned]]></Val>
@@ -15644,6 +16169,15 @@
           <Val><![CDATA[Agent created, but linking to {agentName} failed. Retry link.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[已创建智能体，但链接到 {agentName} 失败。重试链接。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ioRcwS" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task trigger]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[计划任务触发器]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15770,6 +16304,15 @@
           <Val><![CDATA[Creates a handoff for {agentName}.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[为 {agentName} 创建转接。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";j0Ifob" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Do you want to proceed?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[是否继续?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15903,6 +16446,9 @@
       <Item ItemId=";jSgRib" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your knowledge base has {count} {count, plural, one {document} other {documents}}. Add more?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[你的知识库有 {count} 篇 {count, plural, one {文档} other {文档}}。添加更多?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15920,6 +16466,15 @@
           <Val><![CDATA[Enter sub-agent name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[输入子智能体名称]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";jX6uvW" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to run task: {errorMessage}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未能运行任务: {errorMessage}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16302,15 +16857,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";l0TtPi" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Choose a maximum of {max} resource groups you have permissions on. {count} resource group selected.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[最多选择你对其具有权限的 {max} 个资源组。已选择 {count} 个资源组。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";l0UKyP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Data Explorer]]></Val>
@@ -16352,6 +16898,15 @@
           <Val><![CDATA[AzureML Data Scientist]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[AzureML 数据科学家]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";l8IRTD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task(s) ran successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[计划任务已成功运行]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16761,6 +17316,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mg8UeB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter by response plan name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[按响应计划名称筛选]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mgYBYo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Last 90 days]]></Val>
@@ -16775,6 +17339,15 @@
           <Val><![CDATA[No tools configured.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[未配置任何工具。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mgtFKh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create GitHub issue]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[创建 GitHub 问题]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16883,6 +17456,15 @@
           <Val><![CDATA[This will permanently delete the connection to ServiceNow. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[此操作将永久删除与 ServiceNow 的连接。该智能体将无法再管理票证。是否确实要断开连接?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";n25S4d" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Update Kusto Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[更新 Kusto 工具]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17256,6 +17838,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";oIm1Fb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[GitHub logo]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[GitHub 徽标]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";oKJ0fm" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Nothing to preview yet.]]></Val>
@@ -17382,6 +17973,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ocQGCd" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Allow subagent capabilities to override the SRE Agent.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[允许子智能体功能替代 SRE 智能体。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ocQXDt" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to delete thread with error: {errorMessage}]]></Val>
@@ -17409,11 +18009,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ongAz6" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";ooDMAp" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Search incidents]]></Val>
+          <Val><![CDATA[Personal access token (PAT) or API key]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[搜索事件]]></Val>
+            <Val><![CDATA[个人访问令牌(PAT)或 API 密钥]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17859,6 +18459,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";q3e4cf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Bearer token]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[持有者令牌]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";q4EmsW" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Total:]]></Val>
@@ -18143,6 +18752,15 @@
           <Val><![CDATA[This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[此操作将永久删除与 PagerDuty 的连接。该智能体将无法再管理票证。是否确实要断开连接?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";r5UlDs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter custom header value]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[输入自定义标头值]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18521,6 +19139,15 @@
           <Val><![CDATA[Creating connector "{name}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在创建连接器 "{name}"]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ryAzxy" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Issue]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[问题]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18948,6 +19575,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";stbbGt" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Performs specialized tasks on behalf of the SRE Agent.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[代表 SRE 智能体执行专门任务。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";strvmG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Every hour]]></Val>
@@ -19101,6 +19737,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";tFoDh3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Yes, turn on deep investigation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[是，启用深度调查]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";tGHG7q" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Back to Edit]]></Val>
@@ -19133,15 +19778,6 @@
           <Val><![CDATA[Knowledge base]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[知识库]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";tLaLqo" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Here is your deep investigation:]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[以下是你的深入调查:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19785,6 +20421,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";v1LtqB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select authentication method]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择身份验证方法]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";v3xWf6" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expand configuration panel]]></Val>
@@ -19983,6 +20628,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";vb6deF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deep investigations require significant time to run and might result in high AAU consumption.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[深度调查需要较长运行时间，可能导致高 AAU 消耗。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";vbdOl/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Has access to Read and Test functions under Language portal.]]></Val>
@@ -20087,6 +20741,15 @@
           <Val><![CDATA[Clear description]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[清除说明]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";w4Nqlr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run scheduled task(s)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[运行计划任务]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20213,6 +20876,15 @@
           <Val><![CDATA[The data source must be in the format: {format}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[数据源格式必须为: {format}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wO9wb5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[GitHub]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[GitHub]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20739,6 +21411,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";y/m6Ep" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[GitHub MCP server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[GitHub MCP 服务器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";y0KXuM" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[+{delta} since last run]]></Val>
@@ -20843,6 +21524,15 @@
           <Val><![CDATA[Incident was deleted successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[事件已成功删除]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";yRKsn1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Learn more about deep investigations]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[详细了解深度调查]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21185,6 +21875,15 @@
           <Val><![CDATA[All]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[全部]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";zRv1ks" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[What should happen?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[应该发生什么?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

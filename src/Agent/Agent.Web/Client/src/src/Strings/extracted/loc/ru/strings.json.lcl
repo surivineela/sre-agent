@@ -207,6 +207,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";+WRusC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SRE Agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Агент SRE]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";+XtuWl" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This insight needs improvement]]></Val>
@@ -455,15 +464,6 @@
           <Val><![CDATA[Clear]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Очистить]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";/ImSqA" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Review and create]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Проверка и создание]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1107,6 +1107,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";13KTIN" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} resource group selected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Выбрана {count} группа ресурсов.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";15GWkT" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This will permanently delete the incident response plan, which might affect how incidents are processed and also any custom response plans. Are you sure you want to delete?]]></Val>
@@ -1346,6 +1355,15 @@
           <Val><![CDATA[Last confidence: {score}%]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Последний показатель доверительного уровня: {score}%]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";1m4VPF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The agent investigates complex issues and forms hypotheses to validate potential root causes.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Агент исследует сложные проблемы и формирует гипотезы для проверки возможных первопричин.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1827,6 +1845,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";3IKub9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[An unexpected error occurred]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Произошла неожиданная ошибка]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";3JVa6k" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[End]]></Val>
@@ -1899,6 +1926,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";3SsYXO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open GitHub issue page with pre-filled information above]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Откройте страницу проблемы GitHub с предварительно заполненной информацией, приведенной выше]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";3VI9mt" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save Changes]]></Val>
@@ -1926,11 +1962,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";3dsWh5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add MCP server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Добавить сервер MCP]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3h7ZKg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Review + add]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Проверить и добавить]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";3jPMQI" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add More]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Добавить еще]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3k7JQw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Issue description is required.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Требуется ввести описание проблемы.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1949,6 +2012,15 @@
           <Val><![CDATA[Reader]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Читатель]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3rvQhx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You can manage up to {max} resource groups you have permissions on. Your agent currently manages {count} resource groups.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Вы можете управлять группами ресурсов (до {max}), на которые у вас есть разрешения. В настоящее время агент управляет несколькими ({count}) группами ресурсов.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2205,6 +2277,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";4IAjnN" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turn on deep investigation?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Включить глубокое исследование?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";4MeTpL" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Workbook Contributor]]></Val>
@@ -2255,6 +2336,15 @@
           <Val><![CDATA[Keep the description brief and explain the task’s actions. Include necessary resource identifiers, specify time-sensitive information, and define success/failure signals or required output formats.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Дайте краткое описание и объясните действия задачи. Включите необходимые идентификаторы ресурсов, укажите информацию, зависящую от времени, и определите сигналы успешного или неудачного выполнения, или требуемые форматы вывода.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";4Rhz/i" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[User provided connector]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Соединитель, указанный пользователем]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2853,6 +2943,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";6+mbvY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{seconds} sec]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{seconds} с]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";61e5yQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[What didn't you like about the agent's response? Your feedback helps us make the agent even better.]]></Val>
@@ -2921,6 +3020,15 @@
           <Val><![CDATA[Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == "##SubscriptionId##" These will be replaced with actual values at runtime.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Используйте ##ParamName## в запросе для определения заполнителей параметров. Пример: где SubscriptionId == "##SubscriptionId##". Эти значения будут заменены на реальные во время выполнения.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";6CrAJC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter custom header key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Введите значение настраиваемого ключа]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3159,15 +3267,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6tlKgy" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[You can choose a maximum of 20 resource groups that the agent will manage.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Можно выбрать не более 20 групп ресурсов, которыми будет управлять агент.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6tzuXg" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to start SRE Agent {name}: {error}]]></Val>
@@ -3375,6 +3474,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";7Rnjmx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expected Behavior]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ожидаемое поведение]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";7TVRcx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Retry link]]></Val>
@@ -3443,6 +3551,15 @@
           <Val><![CDATA[Project details]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Детали проекта]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";7kPmO3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit connector]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Изменить соединитель]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3920,6 +4037,15 @@
           <Val><![CDATA[Handoff instructions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Инструкции по передаче]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";8urALB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete connector]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Удалить соединитель]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4410,6 +4536,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Abi/u/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expand panel]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Развернуть панель]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";AbleKr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[data connector]]></Val>
@@ -4518,6 +4653,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";AvHD3R" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Teams channel link]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ссылка на канал Teams]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";AxMhQr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[High]]></Val>
@@ -4559,6 +4703,15 @@
           <Val><![CDATA[Agent Quality]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Качество агента]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";BBT3jd" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Агент получает доступ к репозиториям, функциям и действиям GitHub, включая отслеживание вопросов и запросы на вытягивание.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4694,15 +4847,6 @@
           <Val><![CDATA[Using latest YAML changes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Использование последних изменений YAML]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";BcEbxp" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[{seconds}s]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{seconds} с]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4941,6 +5085,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";CQisjK" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[What actually happened?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Что произошло?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";CTRqZs" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Test query]]></Val>
@@ -5121,15 +5274,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";D473QI" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Choose a maximum of {max} resource groups you have permissions on. {count} resource groups selected.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Выберите не более {max} групп ресурсов, на которые у вас есть разрешения. Выбраны группы ресурсов: {count}.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";D4T2Px" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Mitigated by agent]]></Val>
@@ -5220,6 +5364,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";DK708b" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than {maxLength} characters.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Имя должно начинаться с буквы и может содержать только буквы, цифры и дефисы. Имя не должно быть пустым и должно содержать менее {maxLength} симв.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";DMEE1o" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a tool to connect]]></Val>
@@ -5234,6 +5387,15 @@
           <Val><![CDATA[Is part of]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Входит в состав]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DP0m/y" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Updating Kusto Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Обновление инструмента Kusto]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5279,6 +5441,15 @@
           <Val><![CDATA[Selected incidents]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Выбранные инциденты]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DXm10s" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} repository URL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[URL-адрес репозитория {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5333,6 +5504,15 @@
           <Val><![CDATA[Cognitive Services Contributor]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Участник Cognitive Services]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DgsR1U" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Channel ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Идентификатор канала]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5670,6 +5850,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";EcglP9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ключ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";EdEthU" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[API Management Workspace Contributor]]></Val>
@@ -5738,6 +5927,15 @@
           <Val><![CDATA[https://github.com/owner/repo-name or https://dev.azure.com/organization/project/_git/repo or https://organization.visualstudio.com/project/_git/repository-name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[https://github.com/owner/repo-name or https://dev.azure.com/organization/project/_git/repo or https://organization.visualstudio.com/project/_git/repository-name]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ErUgLz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Teams group ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ИД группы Teams]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5900,6 +6098,15 @@
           <Val><![CDATA[Repository connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Подключение репозитория]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";FMDuHb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter your PAT or API key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Введите PAT или ключ API]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6147,11 +6354,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";G4mray" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} resource groups selected.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Выбраны группы ресурсов: {count}.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";G5JMSn" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} subscriptions selected]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Выбрано подписок: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";G6XRkU" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Steps to Reproduce]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Шаги для воспроизведения]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6177,6 +6402,9 @@
       <Item ItemId=";GBLVEV" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{count} {count, plural, one {document} other {documents}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} {count, plural, one {документ} few {документа} many {документов} other {документа}}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6387,6 +6615,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";GufXy5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Value]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Значение]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Gvxoji" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Name is required]]></Val>
@@ -6464,6 +6701,15 @@
           <Val><![CDATA[No code optimization recommendations detected.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Рекомендации по оптимизации кода не обнаружены.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";HJ7ZeR" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Issue Description]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Описание проблемы]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6644,6 +6890,15 @@
           <Val><![CDATA[Loading daily reports]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Загрузка ежедневных отчетов]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";HtVpjg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You can select up to {max} resource groups for this agent. Agents can manage a total of {totalMax} resource groups, and your agent currently manages {current}. You've selected {count}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Вы можете выбрать до {max} групп ресурсов для этого агента. Агенты могут управлять в общей сложности {totalMax} группами ресурсов, а ваш агент в настоящее время управляет {current}. Вы выбрали {count}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7044,6 +7299,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";J0rs+f" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Вставьте идентификатор потока с портала Агента SRE. (например, 50f7521d-dfee-487e-9188-5abdc8adde91)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";J2Lcsz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Для каждого инцидента, обработанного в этом плане реагирования, будет выполнено глубокое исследование. Каждое глубокое исследование требует значительного времени на выполнение и может привести к высокому потреблению AAU.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";J3Y8Sm" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to validate ServiceNow settings. Please try again.]]></Val>
@@ -7076,6 +7349,15 @@
           <Val><![CDATA[Last Modified]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Последнее изменение]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";JA/VO+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Starts a task at a defined time or interval.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Запускает задачу в определенное время или с заданным интервалом.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7413,6 +7695,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";JvYXxh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MCP server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Сервер MCP]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";JwHSD6" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose filter parameters]]></Val>
@@ -7472,6 +7763,15 @@
           <Val><![CDATA[Show]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Показать]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";K7tsik" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task ran successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Запланированная задача выполнена]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7665,6 +7965,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Km7x3v" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Get support]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Получить поддержку]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";KoJ1C+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete Selected ({count})]]></Val>
@@ -7751,6 +8060,15 @@
           <Val><![CDATA[AI suggestions discarded]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Предложения ИИ отклонены]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";L/ct40" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open in visual view]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Открыть в визуальном представлении]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7890,6 +8208,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";LSqcaU" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum 200,000 AAUs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Максимум 200 000 AAU]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";LTDPn/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You have unsaved changes.]]></Val>
@@ -7944,6 +8271,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Li/Qrf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Custom headers]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Настраиваемые заголовки]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";LkUvu/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Describe the schedule]]></Val>
@@ -7985,6 +8321,15 @@
           <Val><![CDATA[Direct argument]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Прямой аргумент]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";LuHM0/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Actual Behavior]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Фактическое поведение]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8102,6 +8447,15 @@
           <Val><![CDATA[Add filter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Добавить фильтр]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";M0ay1D" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Running scheduled task(s)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Выполнение запланированных задач]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8426,6 +8780,15 @@
           <Val><![CDATA[Created {toolName} and connected it to {agentName}.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Создан {toolName} и подключен к {agentName}.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";N2IrpM" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Confirm]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Подтвердить]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8840,6 +9203,15 @@
           <Val><![CDATA[We couldn't find tool {toolName}. Refresh and try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Не удалось найти инструмент {toolName}. Обновите страницу и повторите попытку.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";OP7f9a" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Compiled connection string]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Скомпилированная строка подключения]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9312,6 +9684,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";PZvrnY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Title is required.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Требуется указать заголовок.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Pa1S0J" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Total active flow consumption]]></Val>
@@ -9380,6 +9761,15 @@
           <Val><![CDATA[Azure Monitor is connected]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Azure Monitor подключен]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";PpdTYy" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to update tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Не удалось обновить инструмент]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9537,6 +9927,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Q9IHxV" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Running scheduled task {name}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Выполнение запланированной задачи {name}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Q9Zp/n" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Correlation:]]></Val>
@@ -9681,6 +10080,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";QYiU4f" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[1. Describe the action you took 2. Mention the resource or service involved]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[1. Опишите выполненное действие 2. Укажите затронутый ресурс или службу]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";QdDYGR" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Response plan configuration]]></Val>
@@ -9771,15 +10179,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Qn8Bok" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Handback]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Возврат]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";QomX1y" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[e.g., 0 9 * * 1-5]]></Val>
@@ -9866,15 +10265,6 @@
           <Val><![CDATA[Outlook account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Учетная запись Outlook]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";R3mMmc" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Monthly AAU limit slider]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ползунок ежемесячного лимита AAU]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10392,6 +10782,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SeZ8eZ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[AAU consumption reminder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Напоминание о потреблении AAU]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Seanpx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Required]]></Val>
@@ -10433,6 +10832,15 @@
           <Val><![CDATA[Draft not yet synced]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Черновик еще не синхронизирован]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SoBWeV" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Monthly active flow AAUs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ежемесячные активные AAU потока]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10689,6 +11097,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";TP/cMX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Ended]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Завершено]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";TQ0n+a" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{metric} lands at {score}%. Sharpen instructions and tools to climb faster.]]></Val>
@@ -10865,6 +11282,15 @@
           <Val><![CDATA[Configuration Changes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Изменения конфигурации]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";UImEMW" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Briefly describe the problem or request.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Кратко опишите проблему или запрос.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11247,6 +11673,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Vaj9nj" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Don't show this message again]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Больше не показывать это сообщение]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Vb+qQ4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Uses]]></Val>
@@ -11315,6 +11750,15 @@
           <Val><![CDATA[Adding handoff from {sourceAgent} to subagent {targetAgent}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Добавление передачи от {sourceAgent} к субагенту {targetAgent}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Vs3jMi" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Authentication method]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Метод проверки подлинности]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13101,15 +13545,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";aTyEZH" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Search response plans]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Поиск планов реагирования]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";aWpBzj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show more]]></Val>
@@ -13335,6 +13770,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bDbbX7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit Kusto tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Изменить инструмент Kusto]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bICPAQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Thread Feedback]]></Val>
@@ -13376,6 +13820,15 @@
           <Val><![CDATA[New]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Новое]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bWjdfa" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[URL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[URL-адрес]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14010,6 +14463,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";dF2h2y" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter by incident id or title]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Фильтровать по идентификатору или названию инцидента]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";dG8VrM" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scheduled task]]></Val>
@@ -14217,6 +14679,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";dqkJF6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete subagent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Удалить субагент]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";dtQgfG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Query Tester]]></Val>
@@ -14249,6 +14720,15 @@
           <Val><![CDATA[Score agent quality]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Оценка качества агента]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dzy0ND" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run scheduled task]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Выполнить запланированную задачу]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14892,6 +15372,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";fvSiRs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tool updated successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Инструмент обновлен]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";fyaE5g" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Please provide a channel link]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Укажите ссылку на канал]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";g+9csc" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have permission to add or delete managed resources]]></Val>
@@ -15288,6 +15786,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";hGnjdE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Learn more about AAU consumption and cost]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Подробнее о потреблении и стоимости AAU]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";hHz/bk" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[PagerDuty is not connected.]]></Val>
@@ -15392,6 +15899,15 @@
           <Val><![CDATA[System tools are read-only. View the YAML for reference.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Системные инструменты доступны только для чтения. Просмотрите YAML для справки.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";hdfKe+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Automatically starts a subagent in response to an incident or alert.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Автоматически запускает субагент в ответ на инцидент или оповещение.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15648,6 +16164,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";iYJ/Ha" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query tool the subagent uses to collect data from Azure Data Explorer.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Инструмент запросов, который субагент использует для сбора данных из Azure Data Explorer.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";iZDRGO" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Assigned]]></Val>
@@ -15725,6 +16250,15 @@
           <Val><![CDATA[Agent created, but linking to {agentName} failed. Retry link.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Агент создан, но не удалось связать с {agentName}. Ссылка "Повторить попытку".]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ioRcwS" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task trigger]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Триггер запланированной задачи]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15851,6 +16385,15 @@
           <Val><![CDATA[Creates a handoff for {agentName}.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Создаёт передачу для {agentName}.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";j0Ifob" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Do you want to proceed?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Вы хотите продолжить?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15984,6 +16527,9 @@
       <Item ItemId=";jSgRib" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your knowledge base has {count} {count, plural, one {document} other {documents}}. Add more?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[В вашей базе знаний {count} {count, plural, one {документ} few {документа} many {документов} other {документа}}. Добавить еще?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16001,6 +16547,15 @@
           <Val><![CDATA[Enter sub-agent name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Введите имя вложенного агента]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";jX6uvW" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to run task: {errorMessage}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Не удалось выполнить задачу: {errorMessage}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16383,15 +16938,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";l0TtPi" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Choose a maximum of {max} resource groups you have permissions on. {count} resource group selected.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Выберите не более {max} групп ресурсов, на которые у вас есть разрешения. Выбрана {count} группа ресурсов.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";l0UKyP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Data Explorer]]></Val>
@@ -16433,6 +16979,15 @@
           <Val><![CDATA[AzureML Data Scientist]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Специалист по обработке и анализу данных AzureML]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";l8IRTD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task(s) ran successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Запланированные задачи выполнены]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16842,6 +17397,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mg8UeB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter by response plan name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Фильтровать по имени плана реагирования]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mgYBYo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Last 90 days]]></Val>
@@ -16856,6 +17420,15 @@
           <Val><![CDATA[No tools configured.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Инструменты не настроены.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mgtFKh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create GitHub issue]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Создать проблему GitHub]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16964,6 +17537,15 @@
           <Val><![CDATA[This will permanently delete the connection to ServiceNow. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Подключение к ServiceNow будет безвозвратно удалено. Агент больше не сможет управлять запросами. Вы действительно хотите разорвать подключение?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";n25S4d" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Update Kusto Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Обновить инструмент Kusto]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17337,6 +17919,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";oIm1Fb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[GitHub logo]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Логотип GitHub]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";oKJ0fm" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Nothing to preview yet.]]></Val>
@@ -17463,6 +18054,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ocQGCd" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Allow subagent capabilities to override the SRE Agent.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Разрешить возможности субагентов по переопределению Агента SRE.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ocQXDt" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to delete thread with error: {errorMessage}]]></Val>
@@ -17490,11 +18090,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ongAz6" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";ooDMAp" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Search incidents]]></Val>
+          <Val><![CDATA[Personal access token (PAT) or API key]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Поиск инцидентов]]></Val>
+            <Val><![CDATA[Личный маркер доступа (PAT) или ключ API]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17940,6 +18540,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";q3e4cf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Bearer token]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Токен носителя]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";q4EmsW" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Total:]]></Val>
@@ -18233,6 +18842,15 @@
           <Val><![CDATA[This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Подключение к PagerDuty будет безвозвратно удалено. Агент больше не сможет управлять запросами. Вы действительно хотите разорвать подключение?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";r5UlDs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter custom header value]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Введите значение настраиваемого заголовка]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18611,6 +19229,15 @@
           <Val><![CDATA[Creating connector "{name}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Создание соединителя "{name}"]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ryAzxy" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Issue]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Проблема]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19038,6 +19665,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";stbbGt" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Performs specialized tasks on behalf of the SRE Agent.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Выполняет специализированные задачи от имени Агента SRE.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";strvmG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Every hour]]></Val>
@@ -19191,6 +19827,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";tFoDh3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Yes, turn on deep investigation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Да, включить глубокое исследование]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";tGHG7q" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Back to Edit]]></Val>
@@ -19223,15 +19868,6 @@
           <Val><![CDATA[Knowledge base]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[База знаний]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";tLaLqo" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Here is your deep investigation:]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Вот результаты вашего глубокого исследования:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19884,6 +20520,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";v1LtqB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select authentication method]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Выберите метод проверки подлинности]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";v3xWf6" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expand configuration panel]]></Val>
@@ -20082,6 +20727,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";vb6deF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deep investigations require significant time to run and might result in high AAU consumption.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Глубокие исследования требуют значительного времени на выполнение и могут привести к высокому потреблению AAU.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";vbdOl/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Has access to Read and Test functions under Language portal.]]></Val>
@@ -20186,6 +20840,15 @@
           <Val><![CDATA[Clear description]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Очистить описание]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";w4Nqlr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run scheduled task(s)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Выполнить запланированные задачи]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20312,6 +20975,15 @@
           <Val><![CDATA[The data source must be in the format: {format}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Источник данных должен использовать следующий формат: {format}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wO9wb5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[GitHub]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[GitHub]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20838,6 +21510,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";y/m6Ep" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[GitHub MCP server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Сервер MCP GitHub]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";y0KXuM" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[+{delta} since last run]]></Val>
@@ -20942,6 +21623,15 @@
           <Val><![CDATA[Incident was deleted successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Инцидент удален]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";yRKsn1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Learn more about deep investigations]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Подробнее о глубоких исследованиях]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21284,6 +21974,15 @@
           <Val><![CDATA[All]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Все]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";zRv1ks" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[What should happen?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Что должно произойти?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
