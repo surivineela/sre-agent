@@ -36,6 +36,14 @@ export const useAgentCreateDialogStyles = makeStyles({
         marginLeft: 'auto',
     },
     dialogContentOuterWrapper: {
+        position: 'relative',
+        display: 'flex',
+        flex: '1 1 auto',
+        height: '0%',
+        flexDirection: 'column',
+        overflowY: 'hidden',
+    },
+    dialogContentInnerWrapper: {
         display: 'flex',
         flex: '1 1 auto',
         height: '0%',
@@ -47,7 +55,6 @@ export const useAgentCreateDialogStyles = makeStyles({
         },
     },
     dialogContentWrapper: {
-        position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
@@ -169,7 +176,7 @@ export const useAgentCreateDialogStyles = makeStyles({
     loadingOverlay: {
         position: 'absolute',
         inset: 0,
-        background: 'rgba(255, 255, 255, 0.6)',
+        background: tokens.colorNeutralBackgroundAlpha,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
