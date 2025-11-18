@@ -3343,6 +3343,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                     lockAgentSelection={!!forcedAgentName}
                     onTelemetryUpdate={setChatTelemetry}
                     renderEmptyState={renderPlaygroundEmptyState}
+                    canOpenSidePanel={true}
                 />
             </div>
         );

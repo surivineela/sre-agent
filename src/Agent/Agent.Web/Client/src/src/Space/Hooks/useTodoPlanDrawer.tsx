@@ -1,22 +1,21 @@
-import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
-import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
+import { useCallback, useEffect, useState } from 'react';
+import { TodoInfo, TodoPlan } from '../../Common/Contracts/DataPlane/TodoPlan';
 import { ChatBoxSidePanelData, ChatBoxSidePanelType } from '../Contracts/Activities';
 import { useTodoPlans } from './useTodoPlans';
 
 export const useTodoPlanDrawer = (
     currentThreadId: string | undefined,
     userDefinedThreadId: string | undefined,
-    initialSidePanelData: ChatBoxSidePanelData | undefined | null,
-    setHasToDoPlan: Dispatch<SetStateAction<boolean>> | undefined,
+    setHasToDoPlans: ((val: boolean) => void) | undefined,
     openSidePanel: (panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => void,
     closeSidePanel: (panelType: ChatBoxSidePanelType) => void,
-    initSidePanel: (initialSidePanelData: ChatBoxSidePanelData | undefined | null) => void
+    setExistingLatestToDoPlan: (plan: TodoPlan | null) => void
 ) => {
     const threadId = currentThreadId || userDefinedThreadId || null;
 
     const [todoInfo, setToDoInfo] = useState<TodoInfo | null>(null);
 
-    const { todoPlans, isLoading, error } = useTodoPlans(threadId);
+    const { todoPlans, isLoading, error } = useTodoPlans(threadId, setExistingLatestToDoPlan);
 
     const openTodoPlan = useCallback(
         (todoInfo: TodoInfo) => {
@@ -31,18 +30,10 @@ export const useTodoPlanDrawer = (
     }, [closeSidePanel]);
 
     useEffect(() => {
-        if (setHasToDoPlan) {
-            setHasToDoPlan(todoPlans.length > 0);
+        if (setHasToDoPlans) {
+            setHasToDoPlans(todoPlans.length > 0);
         }
-    }, [setHasToDoPlan, todoPlans.length]);
-
-    useEffect(() => {
-        initSidePanel(initialSidePanelData);
-
-        if (initialSidePanelData?.todoInfo) {
-            setToDoInfo(initialSidePanelData.todoInfo);
-        }
-    }, [initSidePanel, initialSidePanelData]);
+    }, [setHasToDoPlans, todoPlans.length]);
 
     return {
         // Data
@@ -56,5 +47,7 @@ export const useTodoPlanDrawer = (
         // Open/close drawer logic
         openTodoPlan,
         closeTodoPlan,
+
+        setToDoInfo,
     };
 };

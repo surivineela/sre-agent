@@ -273,6 +273,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                             threadSource={ThreadSource.incident}
                             onOpenSidePanel={onOpenSidePanel}
                             onCloseSidePanel={onCloseSidePanel}
+                            canOpenSidePanel={!!view}
                             initialSidePanelData={view ? initialSidePanelData : undefined}
                             stylesProps={{
                                 rootStyle: {

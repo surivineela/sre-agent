@@ -53,6 +53,7 @@ export const ThreadContent = memo(({ thread, addThread, deleteThread, updateThre
                 setHasToDoPlans={setHasToDoPlans}
                 onOpenSidePanel={onOpenSidePanel}
                 onCloseSidePanel={onCloseSidePanel}
+                canOpenSidePanel={true}
                 ref={chatboxHandleRef}
             />
             {!!thread && showTrace && agentAppInsightsAppId && (

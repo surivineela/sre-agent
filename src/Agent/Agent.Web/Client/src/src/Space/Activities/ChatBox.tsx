@@ -1,7 +1,7 @@
 import { CopilotChat, CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { mergeClasses, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { useTheme } from '@fluentui/react/lib/Theme';
-import { forwardRef, memo, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import ChatBoxDeepInvestigationDialog from '../Components/Chat/ChatBoxDeepInvestigationDialog';
@@ -14,12 +14,9 @@ import MemorySidePanel from '../Components/MemorySidePanel';
 import PermissionErrorChatMessage from '../Components/PermissionErrorChatMessage';
 import { AgentTaskGraphHandle, ChatBoxHandleRef, ChatBoxSidePanelType, IChatBoxProps } from '../Contracts/Activities';
 import { ChatBoxContext, ChatBoxSidePanelContext, ThreadAgentModeContext } from '../Contracts/Context';
-import { useAgentTask } from '../Hooks/useAgentTask';
 import { useChatBox } from '../Hooks/useChatBox';
 import { useChatBoxSidePanel } from '../Hooks/useChatBoxSidePanel';
-import { useMemorySearchResultDrawer } from '../Hooks/useMemorySearchResultDrawer';
 import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
-import { useTodoPlanDrawer } from '../Hooks/useTodoPlanDrawer';
 import { getChatBoxStyles, ThreadTitleHeight } from '../Styles/Activities.styles';
 import AgentTask from './AgentTask/AgentTask';
 import AzureSREWelcome from './AzureSREWelcome';
@@ -35,6 +32,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         stylesProps,
         sidePanelStylesProps,
         initialSidePanelData,
+        canOpenSidePanel,
         onOpenSidePanel,
         onCloseSidePanel,
         setMenuCollapsed,
@@ -79,48 +77,23 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         onClickDeepInvestigationButton,
     } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource);
 
-    const { selectedSidePanelType, isSidePanelOpen, openSidePanel, closeSidePanel, initSidePanel, sidePanelWidth, setSidePanelWidth } =
-        useChatBoxSidePanel(isLoading, setMenuCollapsed, onOpenSidePanel, onCloseSidePanel);
-
-    const { openAgentTask, closeAgentTask, ...agentTaskProps } = useAgentTask(
+    const {
+        sidePanelProps: { isSidePanelOpen, selectedSidePanelType, sidePanelWidth, setSidePanelWidth },
+        agentTaskProps: { openAgentTask, closeAgentTask, ...restAgentTaskProps },
+        todoPlanProps: { openTodoPlan, closeTodoPlan, ...restTodoPlanProps },
+        memorySearchResultProps: { openMemorySearchResult, closeMemorySearchResult, memorySearchResult },
+    } = useChatBoxSidePanel(
         threadId,
         userDefinedThreadIdRef.current,
         initialSidePanelData,
-        openSidePanel,
-        closeSidePanel,
-        initSidePanel
-    );
-
-    const { openTodoPlan, closeTodoPlan, ...todoPlanProps } = useTodoPlanDrawer(
-        threadId,
-        userDefinedThreadIdRef.current,
-        initialSidePanelData,
+        isLoading,
+        canOpenSidePanel,
+        setMenuCollapsed,
+        onOpenSidePanel,
+        onCloseSidePanel,
         setHasToDoPlans,
-        openSidePanel,
-        closeSidePanel,
-        initSidePanel
+        ref
     );
-
-    const { openMemorySearchResult, closeMemorySearchResult, memorySearchResult } = useMemorySearchResultDrawer(
-        initialSidePanelData,
-        openSidePanel,
-        closeSidePanel,
-        initSidePanel
-    );
-
-    useImperativeHandle(ref, () => ({
-        openTodoPlanFromOutside: () => {
-            if (todoPlanProps.todoInfo) {
-                openTodoPlan(todoPlanProps.todoInfo);
-            } else {
-                const todoPlans = todoPlanProps.todoPlans;
-                if (todoPlans.length > 0) {
-                    openTodoPlan(todoPlans[todoPlans.length - 1]);
-                }
-            }
-        },
-        closeTodoPlanFromOutside: () => closeTodoPlan(),
-    }));
 
     const threadAgentModeData = useThreadAgentMode(threadId, threadSource);
 
@@ -302,10 +275,10 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
 
                             <ChatBoxSidePanel {...chatBoxSidePanelProps}>
                                 {selectedSidePanelType === ChatBoxSidePanelType.AgentTask && (
-                                    <AgentTask {...agentTaskProps} closeAgentTask={closeAgentTask} ref={agentTaskGraphRef} />
+                                    <AgentTask {...restAgentTaskProps} closeAgentTask={closeAgentTask} ref={agentTaskGraphRef} />
                                 )}
                                 {selectedSidePanelType === ChatBoxSidePanelType.ToDoPlan && (
-                                    <TodoPlan {...todoPlanProps} closeTodoPlan={closeTodoPlan} />
+                                    <TodoPlan {...restTodoPlanProps} closeTodoPlan={closeTodoPlan} />
                                 )}
                                 {selectedSidePanelType === ChatBoxSidePanelType.MemorySearchResult && (
                                     <MemorySidePanel memoryResult={memorySearchResult} onClose={closeMemorySearchResult} />

@@ -51,6 +51,7 @@ const DailyReports: FC = () => {
                                 height: 'calc(100vh - 130px)',
                             },
                         }}
+                        canOpenSidePanel={true}
                     />
                 </div>
             ) : (

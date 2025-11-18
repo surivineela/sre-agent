@@ -81,6 +81,7 @@ const IncidentChatInner: FC<IncidentChatInnerProps> = ({ selectedThread, onEnter
             threadSource={selectedThread.source}
             onOpenSidePanel={onOpenSidePanel}
             onCloseSidePanel={onCloseSidePanel}
+            canOpenSidePanel={isExpandedView}
             initialSidePanelData={isExpandedView ? initialSidePanelDataMap.get(selectedThread.id) : undefined}
             stylesProps={{
                 rootStyle: {

@@ -87,51 +87,62 @@ import { chatInputTextStyles, useChatInputStyles, useDialogStyles } from '../Sty
 import AgentModeSelector from './AgentModeSelector';
 import { $createShortcutNode, $getShortcutValuefromShortcutNode, $isShortcutNode, ShortcutNode } from './Chat/ShortcutNode';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
-const GenerateInsightsButton = memo(({ threadId }: { threadId?: string | null }) => {
-    const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { canWriteThreads } = usePermissionContext();
-    const intl = useIntl();
-    const [isGenerating, setIsGenerating] = useState(false);
-    const { iconWrapper } = useFooterButtonIconStyles();
-    const { features } = useFeatureFlags();
 
-    const handleGenerateInsights = useCallback(async () => {
-        if (!threadId) return;
-        setIsGenerating(true);
-        try {
-            const response = await fetch(`${sreAgentEndpoint}/api/v1/threads/${threadId}/insights`, {
-                method: 'POST',
-                headers: getAgentHeaders(),
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Failed to generate insights:', errorData.errorMessage);
+const GenerateInsightsButton = memo(
+    ({
+        threadId,
+        isTyping,
+        disableInputInteraction,
+    }: {
+        threadId?: string | null;
+        isTyping: boolean;
+        disableInputInteraction: boolean;
+    }) => {
+        const { sreAgentEndpoint } = useContext(EnvironmentContext);
+        const { canWriteThreads } = usePermissionContext();
+        const intl = useIntl();
+        const [isGenerating, setIsGenerating] = useState(false);
+        const { iconWrapper } = useFooterButtonIconStyles();
+        const { features } = useFeatureFlags();
+
+        const handleGenerateInsights = useCallback(async () => {
+            if (!threadId) return;
+            setIsGenerating(true);
+            try {
+                const response = await fetch(`${sreAgentEndpoint}/api/v1/threads/${threadId}/insights`, {
+                    method: 'POST',
+                    headers: getAgentHeaders(),
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Failed to generate insights:', errorData.errorMessage);
+                }
+            } catch (error) {
+                console.error('Error generating insights:', error);
+            } finally {
+                setIsGenerating(false);
             }
-        } catch (error) {
-            console.error('Error generating insights:', error);
-        } finally {
-            setIsGenerating(false);
+        }, [threadId, sreAgentEndpoint]);
+
+        // Don't render if session insights is disabled (after all hooks)
+        if (!features.sessionInsights) {
+            return null;
         }
-    }, [threadId, sreAgentEndpoint]);
 
-    // Don't render if session insights is disabled (after all hooks)
-    if (!features.sessionInsights) {
-        return null;
+        return (
+            <Tooltip content={intl.formatMessage(SreAgentResources.generateInsights)} relationship="label">
+                <Button
+                    icon={<span className={iconWrapper}>{isGenerating ? <Spinner size="tiny" /> : <ChartMultiple24Regular />}</span>}
+                    appearance="subtle"
+                    shape="rounded"
+                    disabled={!canWriteThreads || isGenerating || !threadId || isTyping || disableInputInteraction}
+                    onClick={handleGenerateInsights}
+                    style={{ height: '100%' }}
+                />
+            </Tooltip>
+        );
     }
-
-    return (
-        <Tooltip content={intl.formatMessage(SreAgentResources.generateInsights)} relationship="label">
-            <Button
-                icon={<span className={iconWrapper}>{isGenerating ? <Spinner size="tiny" /> : <ChartMultiple24Regular />}</span>}
-                appearance="subtle"
-                shape="rounded"
-                disabled={!canWriteThreads || isGenerating || !threadId}
-                onClick={handleGenerateInsights}
-                style={{ height: '100%' }}
-            />
-        </Tooltip>
-    );
-});
+);
 
 enum ChatBoxButtonIds {
     DeepInvestigation = 'deep-investigation',
@@ -1173,7 +1184,11 @@ const ContentBefore = (props: {
                     threadId={props.threadId}
                     threadSource={props.threadSource}
                 />
-                <GenerateInsightsButton threadId={props.threadId} />
+                <GenerateInsightsButton
+                    threadId={props.threadId}
+                    isTyping={props.isTyping}
+                    disableInputInteraction={props.disableInputInteraction}
+                />
             </div>
         </div>
     );

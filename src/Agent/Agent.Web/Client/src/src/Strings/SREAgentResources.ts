@@ -842,10 +842,6 @@ export const ToDoPlanResources = defineMessages({
         defaultMessage: '{completed} of {total} completed',
         id: '9sDoY5',
     },
-    cardTitle: {
-        defaultMessage: 'Here is the To-Do plan:',
-        id: 'c/8Uhj',
-    },
     todoPlanText: {
         defaultMessage: 'To-Do Plan',
         id: 'icyjmd',

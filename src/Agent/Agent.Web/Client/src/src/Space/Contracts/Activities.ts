@@ -88,10 +88,11 @@ export interface IChatBoxProps {
     stylesProps?: ChatBoxStyleProps;
     sidePanelStylesProps?: ChatBoxSidePanelStyleProps;
     initialSidePanelData?: ChatBoxSidePanelData | null;
+    canOpenSidePanel: boolean;
     onOpenSidePanel?: (panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => void; // Pass this callback to trigger the side effects when any side panel is opened
     onCloseSidePanel?: (panelType: ChatBoxSidePanelType) => void; // Pass this callback to trigger the side effects when any side panel is closed
     setMenuCollapsed?: Dispatch<SetStateAction<boolean>>;
-    setHasToDoPlans?: Dispatch<SetStateAction<boolean>>;
+    setHasToDoPlans?: (val: boolean) => void;
     forcedAgentName?: string;
     lockAgentSelection?: boolean;
     onTelemetryUpdate?: (snapshot: ChatTelemetrySnapshot) => void;

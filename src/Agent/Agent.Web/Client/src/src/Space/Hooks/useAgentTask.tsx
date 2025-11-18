@@ -15,10 +15,9 @@ import { useAgentTaskStreamHandler } from './useAgentTaskStreamHandler';
 export const useAgentTask = (
     threadId: string | undefined,
     userDefinedThreadId: string,
-    initialSidePanelData: ChatBoxSidePanelData | undefined | null,
     openSidePanel: (panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => void,
     closeSidePanel: (panelType: ChatBoxSidePanelType) => void,
-    initSidePanel: (initialSidePanelData: ChatBoxSidePanelData | undefined | null) => void
+    setExistingLatestAgentTask: (task: AgentTaskMetaData | null) => void
 ) => {
     const { updateTreeState } = useAgentTaskStreamHandler();
 
@@ -189,13 +188,14 @@ export const useAgentTask = (
 
                         return tasks.length > 0 ? tasks[tasks.length - 1].id : prev;
                     });
+                    setExistingLatestAgentTask(tasks[tasks.length - 1]);
                 }
                 setIsLoadingTaskDropdown(false);
             };
 
             setAgentTasks();
         }
-    }, [threadId]);
+    }, [threadId, setExistingLatestAgentTask]);
 
     useEffect(() => {
         if (task) {
@@ -311,14 +311,6 @@ export const useAgentTask = (
         };
     }, [subscribeMessageUpdateEvent]);
 
-    useEffect(() => {
-        initSidePanel(initialSidePanelData);
-
-        if (initialSidePanelData?.agentTask) {
-            setTask(initialSidePanelData.agentTask);
-        }
-    }, [initSidePanel, initialSidePanelData]);
-
     return {
         taskDropdownOptions,
         isLoadingTaskDropdown,
@@ -332,5 +324,7 @@ export const useAgentTask = (
         isLoadingTreeState,
         toggleNode,
         getNodeStatus,
+
+        setTask,
     };
 };

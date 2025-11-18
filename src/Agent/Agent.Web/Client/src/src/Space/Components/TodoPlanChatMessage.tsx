@@ -1,5 +1,5 @@
 import { EntityCard, EntityTitle } from '@fluentui-copilot/react-copilot';
-import { Link, makeStyles, Subtitle2, Text } from '@fluentui/react-components';
+import { Link, makeStyles, Subtitle2 } from '@fluentui/react-components';
 import { TaskListAdd24Regular } from '@fluentui/react-icons';
 import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
@@ -9,9 +9,6 @@ import { ChatBoxSidePanelContext } from '../Contracts/Context';
 
 const useStyles = makeStyles({
     root: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
         padding: '5px 0px',
     },
     text: {
@@ -28,7 +25,6 @@ const TodoPlanChatMessage = ({ todoPlan }: { todoPlan: TodoInfo }) => {
 
     return (
         <div className={styles.root}>
-            <Text className={styles.text}>{intl.formatMessage(ToDoPlanResources.cardTitle)}</Text>
             <EntityCard
                 orientation="horizontal"
                 role="group"
