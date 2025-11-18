@@ -6,6 +6,7 @@ using System.Collections;
 using System.Text;
 using Agent.Cli.Models;
 using Agent.Cli.Services;
+using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Framework.Skills;
 using YamlDotNet.Core;
@@ -27,19 +28,29 @@ public static class YamlHelper
         File.WriteAllText(Path.Combine(folder, $"{name}.yaml"), yaml, new UTF8Encoding(false));
     }
 
-    public static void WriteAgentYamlFile(string folder, string name, YamlAgentDescriptor agent)
+    /// <summary>
+    /// Writes an agent configuration to a YAML file using the v2 API structure.
+    /// </summary>
+    /// <param name="folder">Folder to write the YAML file to</param>
+    /// <param name="name">Name of the agent (used for filename)</param>
+    /// <param name="agentSpec">Agent specification containing all configuration</param>
+    /// <param name="metadata">Optional resource metadata (owner, tags, version, timestamps)</param>
+    public static void WriteAgentYamlFile(string folder, string name, AgentSpec agentSpec, ResourceMetadata? metadata = null)
     {
         Directory.CreateDirectory(folder);
 
-        var deploymentModel = new AgentDeploymentModel { Spec = agent };
+        var yamlModel = new AgentYamlModel
+        {
+            Spec = agentSpec,
+            Metadata = metadata ?? new ResourceMetadata()
+        };
 
         var serializer = new SerializerBuilder()
             .WithNamingConvention(UnderscoredNamingConvention.Instance)
             .ConfigureDefaultValuesHandling(DefaultValuesHandling.Preserve)
-            .WithEmissionPhaseObjectGraphVisitor(args => new KeepImportantPropertiesVisitor(args.InnerVisitor))
             .Build();
 
-        var yaml = serializer.Serialize(deploymentModel);
+        var yaml = serializer.Serialize(yamlModel);
         File.WriteAllText(Path.Combine(folder, $"{name}.yaml"), yaml, new UTF8Encoding(false));
     }
 

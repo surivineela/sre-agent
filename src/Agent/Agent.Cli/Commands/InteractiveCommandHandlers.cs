@@ -6,7 +6,7 @@ using System.CommandLine;
 using System.Text;
 using Agent.Cli.Helpers;
 using Agent.Cli.Services;
-using Agent.Framework;
+using Agent.Data.DataModels;
 
 namespace Agent.Cli.Commands;
 
@@ -1469,7 +1469,7 @@ public static class InteractiveCommandHandlers
                 }
             }
 
-            var agent = new YamlAgentDescriptor
+            var agent = new AgentSpec
             {
                 Name = name,
                 Instructions = finalInstructions,
@@ -1527,7 +1527,7 @@ public static class InteractiveCommandHandlers
   <important>Prefer specialized agents first; if not covered, fall back to this agent. Always have the subscription GUID handy before handoff.</important>
   The sub-agent securely runs the command and returns raw CLI outp";
 
-            var agent = new YamlAgentDescriptor
+            var agent = new AgentSpec
             {
                 Name = name,
                 Instructions = instructions,
@@ -1604,7 +1604,7 @@ public static class InteractiveCommandHandlers
   - **Forbidden/insufficient RBAC** or requests to run `az aks command invoke`.
   When handing off, include a one-line reason and the workload/cluster context gathered so far.";
 
-            var agent = new YamlAgentDescriptor
+            var agent = new AgentSpec
             {
                 Name = name,
                 Instructions = instructions,
@@ -1636,8 +1636,7 @@ public static class InteractiveCommandHandlers
                 CustomReflectionNote = string.Empty,
                 Temperature = null,
                 AllowParallelToolCalls = false,
-                CriticOnHandOff = false,
-                OutputType = null
+                CriticOnHandOff = false
             };
 
             var folder = Path.Combine("agents", name);
@@ -1655,7 +1654,7 @@ public static class InteractiveCommandHandlers
     {
         try
         {
-            var agent = new YamlAgentDescriptor
+            var agent = new AgentSpec
             {
                 Name = name,
                 Instructions = instructions,
@@ -1697,7 +1696,7 @@ public static class InteractiveCommandHandlers
     {
         try
         {
-            var agent = new YamlAgentDescriptor
+            var agent = new AgentSpec
             {
                 Name = name,
                 Instructions = instructions,
@@ -1809,7 +1808,7 @@ public static class InteractiveCommandHandlers
             await ApplyToolDirectly("CheckAllScenarioImpact");
 
             // 3) Create agent referencing the tools
-            var agent = new YamlAgentDescriptor
+            var agent = new AgentSpec
             {
                 Name = name,
                 Instructions = "You triage ICM incidents and run Kusto to investigate a web app frontend. Be concise and use the provided tools.",

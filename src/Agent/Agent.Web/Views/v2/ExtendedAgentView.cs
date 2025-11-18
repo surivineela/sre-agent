@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Data.DataModels;
 using Agent.Framework.Models;
 using Agent.Web.ApiResources;
@@ -53,6 +57,8 @@ public class ExtendedAgentView
 
     public Settable<bool?> AddSystemSkills { get; set; }
 
+    public Settable<string> OutputType { get; set; }
+
 
     public static ApiResponseEnvelope<ExtendedAgentView> CreateApiResponseEnvelope(AgentDocumentModel agentDoc)
     {
@@ -90,6 +96,7 @@ public class ExtendedAgentView
         agentView.EnableVanillaMode = agent.EnableVanillaMode;
         agentView.EnableSkills = agent.EnableSkills;
         agentView.AddSystemSkills = agent.AddSystemSkills;
+        agentView.OutputType = agent.OutputType;
 
         ApiResponseEnvelope<ExtendedAgentView> apiResponse = new()
         {
@@ -174,6 +181,7 @@ public class ExtendedAgentView
             properties.EnableVanillaMode.ApplyTo(value => result.Spec.EnableVanillaMode = value ?? false);
             properties.EnableSkills.ApplyTo(value => result.Spec.EnableSkills = value);
             properties.AddSystemSkills.ApplyTo(value => result.Spec.AddSystemSkills = value);
+            properties.OutputType.ApplyTo(value => result.Spec.OutputType = value);
         });
 
         return result;

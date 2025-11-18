@@ -1,6 +1,11 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json.Serialization;
 using Agent.Framework;
 using Agent.Framework.Models;
+using YamlDotNet.Serialization;
 
 namespace Agent.Data.DataModels;
 
@@ -26,26 +31,26 @@ public record AgentDocumentModel(
     public string HandoffDescription => Spec.HandoffDescription ?? string.Empty;
 
     [JsonIgnore]
-    public List<string> Tools => Spec.Tools ?? new List<string>();
+    public List<string> Tools => Spec.Tools ?? [];
 
     # region Conversion between runtime and data model
     public YamlAgentDescriptor ToYamlAgentDescriptor() => new YamlAgentDescriptor
     {
-        AgentsAsTools = Spec.AgentsAsTools ?? new List<AgentsAsTools>(),
+        AgentsAsTools = Spec.AgentsAsTools ?? [],
         Name = Spec.Name,
         Instructions = Spec.Instructions ?? string.Empty,
         HandoffDescription = Spec.HandoffDescription,
-        Handoffs = Spec.Handoffs ?? new List<string>(),
-        Tools = Spec.Tools ?? new List<string>(),
-        McpTools = Spec.McpTools ?? new List<string>(),
-        Connectors = Spec.Connectors ?? new List<string>(),
+        Handoffs = Spec.Handoffs ?? [],
+        Tools = Spec.Tools ?? [],
+        McpTools = Spec.McpTools ?? [],
+        Connectors = Spec.Connectors ?? [],
         AllowParallelToolCalls = Spec.AllowParallelToolCalls ?? false,
         MaxReflectionCount = Spec.MaxReflectionCount ?? 0,
         CriticPromptPath = Spec.CriticPromptPath ?? string.Empty,
         CriticOnHandOff = Spec.CriticOnHandOff ?? false,
         CustomReflectionNote = Spec.CustomReflectionNote ?? string.Empty,
-        CommonPrompts = Spec.CommonPrompts ?? new List<string>(),
-        CommonTools = Spec.CommonTools ?? new List<string>(),
+        CommonPrompts = Spec.CommonPrompts ?? [],
+        CommonTools = Spec.CommonTools ?? [],
         Temperature = Spec.Temperature,
         OutputType = Spec.OutputType,
         DisableDocumentRetrieval = Spec.DisableDocumentRetrieval ?? false,
@@ -58,9 +63,9 @@ public record AgentDocumentModel(
         // Workflow agent properties
         AgentType = Spec.AgentType,
         ParameterExtractionAgent = Spec.ParameterExtractionAgent,
-        OrchestrationStartAgents = Spec.OrchestrationStartAgents ?? new List<string>(),
+        OrchestrationStartAgents = Spec.OrchestrationStartAgents ?? [],
         ResultSummarizationPrompt = Spec.ResultSummarizationPrompt,
-        NextAgentMappings = Spec.NextAgentMappings ?? new List<NextAgentMapping>(),
+        NextAgentMappings = Spec.NextAgentMappings ?? [],
         EnableSkills = Spec.EnableSkills ?? false,
         AddSystemSkills = Spec.AddSystemSkills ?? false
     };
@@ -73,17 +78,25 @@ public record AgentDocumentModel(
 /// </summary>
 public class ResourceMetadata
 {
+    [YamlIgnore]
     public string? Id { get; set; }
 
+    [YamlIgnore]
     public string? OperationId { get; set; }
+
+    [YamlMember(Alias = "owner")]
     public string? Owner { get; set; }
 
+    [YamlMember(Alias = "version")]
     public string? Version { get; set; }
 
+    [YamlMember(Alias = "tags")]
     public List<string>? Tags { get; set; }
 
+    [YamlMember(Alias = "updated_at")]
     public DateTime? UpdatedAt { get; set; }
 
+    [YamlMember(Alias = "created_at")]
     public DateTime? CreatedAt { get; set; }
 
     #region Conversion between runtime and data model
@@ -117,28 +130,73 @@ public class ResourceMetadata
 
 public class AgentSpec
 {
+    [YamlMember(Alias = "name")]
     public string Name { get; set; } = string.Empty;
+
+    [YamlMember(Alias = "instructions")]
     public string? Instructions { get; set; }
+
+    [YamlMember(Alias = "handoff_description")]
     public string? HandoffDescription { get; set; }
+
+    [YamlMember(Alias = "handoffs")]
     public List<string>? Handoffs { get; set; }
+
+    [YamlMember(Alias = "mcp_tools")]
     public List<string>? McpTools { get; set; }
+
+    [YamlMember(Alias = "tools")]
     public List<string>? Tools { get; set; }
+
+    [YamlMember(Alias = "connectors")]
     public List<string>? Connectors { get; set; }
+
+    [YamlMember(Alias = "allow_parallel_tool_calls")]
     public bool? AllowParallelToolCalls { get; set; }
+
+    [YamlMember(Alias = "agents_as_tools")]
     public List<AgentsAsTools>? AgentsAsTools { get; set; }
+
+    [YamlMember(Alias = "max_reflection_count")]
     public int? MaxReflectionCount { get; set; }
+
+    [YamlMember(Alias = "critic_prompt_path")]
     public string? CriticPromptPath { get; set; }
+
+    [YamlMember(Alias = "critic_on_handoff")]
     public bool? CriticOnHandOff { get; set; }
+
+    [YamlMember(Alias = "custom_reflection_note")]
     public string? CustomReflectionNote { get; set; }
+
+    [YamlMember(Alias = "common_prompts")]
     public List<string>? CommonPrompts { get; set; }
+
+    [YamlMember(Alias = "common_tools")]
     public List<string>? CommonTools { get; set; }
+
+    [YamlMember(Alias = "disable_document_retrieval")]
     public bool? DisableDocumentRetrieval { get; set; }
+
+    [YamlMember(Alias = "instructions_override")]
     public string? InstructionsOverride { get; set; }
+
+    [YamlMember(Alias = "enable_handoff_prompt_override")]
     public bool? EnableHandoffPromptOverride { get; set; }
+
+    [YamlMember(Alias = "handoff_prompt_override")]
     public string? HandoffPromptOverride { get; set; }
+
+    [YamlMember(Alias = "user_prompt_override")]
     public string? UserPromptOverride { get; set; }
+
+    [YamlMember(Alias = "temperature")]
     public float? Temperature { get; set; }
+
+    [YamlMember(Alias = "llm_model_name")]
     public string? LlmModelName { get; set; }
+
+    [YamlMember(Alias = "vanilla_mode")]
     public bool EnableVanillaMode { get; set; }
 
     // === Workflow Agent Support ===
@@ -146,6 +204,7 @@ public class AgentSpec
     /// <summary>
     /// Specifies the execution type of this agent.
     /// </summary>
+    [YamlMember(Alias = "agent_type")]
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
 
     // === Orchestrator Agent Properties ===
@@ -154,18 +213,21 @@ public class AgentSpec
     /// Name of the agent responsible for extracting parameters from conversation history,
     /// incident data, and function metadata for RCA execution.
     /// </summary>
+    [YamlMember(Alias = "parameter_extraction_agent")]
     public string? ParameterExtractionAgent { get; set; }
 
     /// <summary>
     /// List of agent names to start orchestration with using extracted parameters.
     /// These agents execute without conversation history.
     /// </summary>
+    [YamlMember(Alias = "orchestration_start_agents")]
     public List<string> OrchestrationStartAgents { get; set; } = [];
 
     /// <summary>
     /// Prompt template used for summarizing results from orchestrated agents.
     /// The results are stored in-memory and summarized using LLM with this prompt.
     /// </summary>
+    [YamlMember(Alias = "result_summarization_prompt")]
     public string? ResultSummarizationPrompt { get; set; }
 
     // === Activity Agent Properties ===
@@ -174,10 +236,15 @@ public class AgentSpec
     /// Mappings that define which agents to execute next based on execution results.
     /// Used by Activity agents to dynamically select subsequent agents in the workflow.
     /// </summary>
+    [YamlMember(Alias = "next_agent_mappings")]
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
 
+    [YamlMember(Alias = "output_type")]
     public string? OutputType { get; set; } = null;
 
+    [YamlMember(Alias = "enable_skills")]
     public bool? EnableSkills { get; set; } = null;
+
+    [YamlMember(Alias = "add_system_skills")]
     public bool? AddSystemSkills { get; set; } = null;
 }

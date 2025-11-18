@@ -6,7 +6,7 @@ using System.CommandLine;
 using Agent.Cli.Helpers;
 using Agent.Cli.Services;
 using Agent.Core.Validation;
-using Agent.Framework;
+using Agent.Data.DataModels;
 
 namespace Agent.Cli.Commands;
 
@@ -52,12 +52,13 @@ public static class AgentCommandHandlers
                 "Analyzing requirements and generating instructions",
                 "Recommending appropriate tools",
                 "Creating agent configuration",
-                "Validating configuration"
+                "Writing agent files",
+                "Validating with server"
               }
             : [
                 "Creating agent configuration",
-                "Validating configuration",
-                "Writing agent files"
+                "Writing agent files",
+                "Validating with server"
               ];
 
         ProgressService.MultiStepProgress.Initialize(steps);
@@ -105,15 +106,14 @@ public static class AgentCommandHandlers
             finalMcpTools = [];
         }
 
-        // Create YamlAgentDescriptor instance with final values
-        var agent = new YamlAgentDescriptor
+        // Create AgentSpec instance with final values
+        var agent = new AgentSpec
         {
             Name = name!,
             Instructions = finalInstructions,
             Tools = finalTools,
-            McpTools = finalMcpTools,
-            HandoffDescription = handoffDescription,
             Handoffs = handoffs?.ToList() ?? [],
+            HandoffDescription = handoffDescription,
             AllowParallelToolCalls = allowParallelToolCalls,
             MaxReflectionCount = maxReflectionCount,
             CriticPromptPath = criticPromptPath ?? string.Empty,
@@ -128,7 +128,7 @@ public static class AgentCommandHandlers
         };
 
         // Validate tool existence before creating the agent
-        if (finalTools.Count != 0)
+        if (finalTools?.Count > 0)
         {
             ProgressService.MultiStepProgress.NextStep("Validating tool availability");
 
@@ -196,49 +196,47 @@ public static class AgentCommandHandlers
             }
         }
 
-        // Validate the agent using basic validation
-        ProgressService.MultiStepProgress.NextStep("Validating agent configuration");
-
-        var validationService = new AgentValidationService();
-        var validationResult = await validationService.ValidateAgentAsync(agent, false);
-        if (!validationResult.IsValid)
-        {
-            ProgressService.MultiStepProgress.Fail("Agent validation failed");
-
-            // Show each validation error with red bullet points
-            foreach (var error in validationResult.Errors)
-            {
-                ConsoleUI.WriteBullet(error, ConsoleColor.Red);
-            }
-
-            // Show warnings if any
-            foreach (var warning in validationResult.Warnings)
-            {
-                ConsoleUI.WriteBullet($"Warning: {warning}", ConsoleColor.Yellow);
-            }
-            Console.WriteLine();
-
-            Environment.Exit(1);
-        }
-
-        ProgressService.MultiStepProgress.NextStep();
-
-        // Write the agent YAML file
+        // Write the agent YAML file first
+        ProgressService.MultiStepProgress.NextStep("Writing agent configuration");
         YamlHelper.WriteAgentYamlFile(Path.Combine("agents", name!), name!, agent);
 
-        // Complete the final step
-        ProgressService.MultiStepProgress.NextStep();
+        // Validate using server-side validation (dryRun=true)
+        ProgressService.MultiStepProgress.NextStep("Validating agent configuration with server");
+
+        try
+        {
+            using var apiService = new ApiService();
+            var (success, response) = await apiService.ApplyOrValidateAgentAsync(name!, dryRun: true);
+
+            if (!success)
+            {
+                ProgressService.MultiStepProgress.Fail("Server validation failed");
+                ConsoleUI.WriteBullet(response, ConsoleColor.Red);
+                ConsoleUI.Write(string.Empty);
+                ConsoleUI.WriteSection("Troubleshooting");
+                ConsoleUI.WriteBullet("Check the agent configuration in the YAML file", ConsoleColor.Yellow);
+                ConsoleUI.WriteBullet($"Location: agents/{name}/{name}.yaml", ConsoleColor.Gray);
+                Environment.Exit(1);
+            }
+
+            ProgressService.MultiStepProgress.NextStep("Validation successful");
+        }
+        catch (Exception ex)
+        {
+            ConsoleUI.WriteBullet($"Warning: Unable to validate with server: {ex.Message}", ConsoleColor.Yellow);
+            ConsoleUI.WriteBullet("Agent created locally but not validated", ConsoleColor.Yellow);
+        }
 
         ConsoleUI.WriteStatus(true, $"Agent '{name}' created successfully!");
         ConsoleUI.WriteKeyValue("Location", $"agents/{name}/{name}.yaml");
 
         // Show next steps
-        Console.WriteLine();
+        ConsoleUI.Write(string.Empty);
         ConsoleUI.WriteSection("Next Steps");
         ConsoleUI.WriteCommand("Validate the agent", $"srectl agent validate --name {name}");
         ConsoleUI.WriteCommand("Apply to server", $"srectl agent apply --name {name}");
         ConsoleUI.WriteCommand("Test the agent", $"srectl agent test --name {name} --message \"Hello\"");
-        Console.WriteLine();
+        ConsoleUI.Write(string.Empty);
     }
 
     /// <summary>

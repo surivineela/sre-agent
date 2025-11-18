@@ -1,8 +1,9 @@
-using System;
-using System.Collections.Generic;
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Data.Tools;
 using Agent.Plugins.Connector;
-using Agent.Plugins.Tools;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
