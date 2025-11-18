@@ -54,6 +54,8 @@ type SreAgentContextProps = {
     agentLastUpdatedTime: number | undefined;
     patchAgent: (agentPayload: Partial<ArmObj<Partial<Agent>>>) => Promise<HttpResponseObject<ArmObj<Agent>>>;
     refresh: () => void;
+    startAgent: () => Promise<HttpResponseObject<ArmObj<Agent>>>;
+    stopAgent: () => Promise<HttpResponseObject<ArmObj<Agent>>>;
 };
 
 type AgentContextProps = {
@@ -177,6 +179,8 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
     agentLastUpdatedTime: undefined,
     patchAgent: () => Promise.resolve({} as HttpResponseObject<ArmObj<Agent>>),
     refresh: () => {},
+    startAgent: () => Promise.resolve({} as HttpResponseObject<ArmObj<Agent>>),
+    stopAgent: () => Promise.resolve({} as HttpResponseObject<ArmObj<Agent>>),
 });
 
 export const AgentContext = createContext<AgentContextProps>({

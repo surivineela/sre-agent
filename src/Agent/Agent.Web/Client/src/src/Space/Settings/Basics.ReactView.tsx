@@ -14,7 +14,7 @@ import {
     Text,
     Tooltip,
 } from '@fluentui/react-components';
-import { Delete16Regular, Info16Regular } from '@fluentui/react-icons';
+import { Delete16Regular, Info16Regular, Play16Regular, RecordStop16Regular } from '@fluentui/react-icons';
 import { Label } from '@fluentui/react/lib/Label';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -26,9 +26,10 @@ import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { UpgradeChannel } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentAccessLevelDisplayName } from '../../Common/Helpers/AgentMode';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
+import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
-import { useSreAgent } from './Hooks/useSreAgent';
+import { SreAgentContext } from '../Contracts/Context';
 import { useSubscription } from './Hooks/useSubscription';
 import { useDialogStyles, useSettingsStyles } from './Styles/Settings.styles';
 
@@ -37,8 +38,8 @@ const Basics: FC = () => {
     const styles = useSettingsStyles();
     const dialogStyles = useDialogStyles();
     const { resourceId } = useContext(EnvironmentContext);
+    const { stopAgent, startAgent, agentObj: agent, agentLoading, refresh } = useContext(SreAgentContext);
     const az = useContext(AzPortalContext);
-    const { agent, agentLoading, refresh } = useSreAgent(resourceId);
     const { canDeleteAgent } = useUserPermissions();
     const region = useMemo(() => agent?.location, [agent?.location]);
 
@@ -63,6 +64,11 @@ const Basics: FC = () => {
     const agentAccessLevelValue = useMemo(
         () => getAgentAccessLevelDisplayName(agent?.properties?.actionConfiguration?.accessLevel, intl),
         [agent?.properties?.actionConfiguration?.accessLevel, intl]
+    );
+
+    const isAgentStopped = useMemo(
+        () => equals(agent?.properties?.powerState || '', 'Stopped', AntUxStringComparison.IgnoreCase),
+        [agent?.properties?.powerState]
     );
 
     const { agentSpaceId, agentSpaceName } = useMemo(() => {
@@ -315,6 +321,28 @@ const Basics: FC = () => {
                             />
                         </Shimmer>
                     </div>
+                </div>
+            </Card>
+
+            <Card style={styles.basicsCardStyle}>
+                <div style={styles.actionSectionStyle}>
+                    <div style={styles.actionTextContainerStyle}>
+                        <div style={styles.sectionTitleStyle}>
+                            {intl.formatMessage(isAgentStopped ? SreAgentResources.startAgent : SreAgentResources.stopAgent)}
+                        </div>
+                        <Text style={styles.sectionDescriptionStyle}>
+                            {intl.formatMessage(
+                                isAgentStopped ? SreAgentResources.startAgentDescription : SreAgentResources.stopAgentDescription
+                            )}
+                        </Text>
+                    </div>
+                    <Button
+                        appearance="outline"
+                        icon={isAgentStopped ? <Play16Regular /> : <RecordStop16Regular />}
+                        onClick={() => (isAgentStopped ? startAgent() : stopAgent())}
+                    >
+                        {intl.formatMessage(isAgentStopped ? SreAgentResources.start : SreAgentResources.stop)}
+                    </Button>
                 </div>
             </Card>
 

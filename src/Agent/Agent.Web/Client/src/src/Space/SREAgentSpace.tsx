@@ -1,5 +1,6 @@
 import { ThemeContext } from '@fluentui/react';
 import {
+    Body1,
     Button,
     Menu,
     MenuItem,
@@ -8,6 +9,7 @@ import {
     MenuTrigger,
     SelectTabData,
     SelectTabEvent,
+    Subtitle1,
     Tab,
     TabList,
     TeachingPopover,
@@ -27,17 +29,20 @@ import {
     PersonFeedbackRegular,
 } from '@fluentui/react-icons';
 import type { Theme } from '@fluentui/theme';
-import { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { createHashRouter, Outlet, RouterProvider, useLocation, useNavigate } from 'react-router-dom';
+import { HttpResponseObject } from '../Common/ArmHelper.types';
 import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext, useAzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import { RouteErrorBoundary } from '../Common/Components/RouteErrorBoundary';
 import WarningBanner from '../Common/Components/WarningBanner';
-import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
+import { ArmObj } from '../Common/Contracts/Azure/ArmObj';
+import { Agent, AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
+import { AntUxStringComparison, equals } from '../Common/Helpers/Strings';
 import { useFeatureFlags } from '../Common/Hooks/useFeatureFlags';
 import { LocalStorageFlags, useLocalStorage } from '../Common/Hooks/useLocalStorage';
 import {
@@ -183,6 +188,9 @@ const TabsListWrapper: FC = () => {
     const {
         activities: { lastVisitedThreadId },
         agent: { setMode },
+        agentLoading,
+        agentObj,
+        startAgent,
     } = sreAgentContext;
     const intl = useIntl();
     const location = useLocation();
@@ -406,10 +414,44 @@ const TabsListWrapper: FC = () => {
             </div>
             <FeedbackDialog isOpen={isFeedbackDialogOpen} setIsOpen={setIsFeedbackDialogOpen} />
             <GithubIssueDialog isOpen={isGithubIssueDialogOpen} setIsOpen={setIsGithubIssueDialogOpen} threadId={lastVisitedThreadId} />
-            <Outlet />
+            <OutletComponent agentLoading={agentLoading} agentObj={agentObj} startAgent={startAgent} />
         </div>
     );
 };
+
+const OutletComponent = memo(
+    ({
+        agentLoading,
+        agentObj,
+        startAgent,
+    }: {
+        agentLoading: boolean;
+        agentObj?: ArmObj<Agent>;
+        startAgent: () => Promise<HttpResponseObject<ArmObj<Agent>>>;
+    }) => {
+        const intl = useIntl();
+        const { stoppedAgentComponentContainer, stoppedAgentComponentFlexBox } = useSreAgentSpaceStyles();
+
+        return agentLoading ? null : equals(agentObj?.properties?.powerState || '', 'Stopped', AntUxStringComparison.IgnoreCase) ? (
+            <div className={stoppedAgentComponentContainer}>
+                <div className={stoppedAgentComponentFlexBox}>
+                    <img
+                        src={'ChatDismissSpotIllustration.svg'}
+                        style={{ width: '120px', height: '120px' }}
+                        alt={intl.formatMessage(SreAgentResources.stopped)}
+                    />
+                    <Subtitle1>{intl.formatMessage(SreAgentResources.sreAgentStoppedTitle)}</Subtitle1>
+                    <Body1>{intl.formatMessage(SreAgentResources.sreAgentStoppedDescription)}</Body1>
+                    <Button appearance="primary" onClick={() => startAgent()}>
+                        {intl.formatMessage(SreAgentResources.startAgent)}
+                    </Button>
+                </div>
+            </div>
+        ) : (
+            <Outlet />
+        );
+    }
+);
 
 const router = createHashRouter([
     {
@@ -449,6 +491,8 @@ const SREAgentSpace: FC = () => {
         agentLastUpdatedTime,
         patchAgent,
         refresh,
+        startAgent,
+        stopAgent,
     } = useSreAgent(resourceId);
 
     const incidentPlatformTypeHook = useIncidentPlatformType();
@@ -584,6 +628,8 @@ const SREAgentSpace: FC = () => {
                 agentLastUpdatedTime,
                 patchAgent,
                 refresh,
+                startAgent,
+                stopAgent,
             }}
         >
             <PermissionProvider>

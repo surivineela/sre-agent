@@ -1,10 +1,13 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { HttpResponseObject } from '../../../Common/ArmHelper.types';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import SreAgentClient from '../../../Common/Clients/SreAgentClient';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
 import { Agent } from '../../../Common/Contracts/Azure/SreAgent';
+import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
+import { SreAgentResources } from '../../../Strings/SREAgentResources';
 
 export interface SreAgentHook {
     agent: ArmObj<Agent> | undefined;
@@ -17,6 +20,8 @@ export interface SreAgentHook {
     agentLastUpdatedTime: number | undefined;
     patchAgent: (agentPayload: Partial<ArmObj<Partial<Agent>>>) => Promise<HttpResponseObject<ArmObj<Agent>>>;
     refresh: () => void;
+    startAgent: () => Promise<HttpResponseObject<ArmObj<Agent>>>;
+    stopAgent: () => Promise<HttpResponseObject<ArmObj<Agent>>>;
 }
 
 export function useSreAgent(resourceId: string): SreAgentHook {
@@ -30,6 +35,8 @@ export function useSreAgent(resourceId: string): SreAgentHook {
     const [agentPatchFailure, setAgentPatchFailure] = useState('');
     const [agentLastUpdatedTime, setAgentLastUpdatedTime] = useState<number>();
     const azPortalContext = useContext(AzPortalContext);
+
+    const intl = useIntl();
 
     const getAgent = useCallback(() => {
         azPortalContext.log({
@@ -109,6 +116,110 @@ export function useSreAgent(resourceId: string): SreAgentHook {
         [resourceId, azPortalContext]
     );
 
+    const startAgent = useCallback(async () => {
+        azPortalContext.log({
+            action: 'start-agent',
+            actionModifier: 'start',
+            logLevel: 'info',
+            resourceId,
+        });
+
+        const agentName = new ArmResourceDescriptor(resourceId)?.resourceName || '';
+        const notificationId = azPortalContext.startNotification(
+            intl.formatMessage(SreAgentResources.startingSreAgentTitle),
+            intl.formatMessage(SreAgentResources.startingSreAgentInProgress, { name: agentName })
+        );
+
+        const response = await SreAgentClient.startAgent(resourceId);
+        if (response.metadata.success) {
+            azPortalContext.log({
+                action: 'startAgent',
+                actionModifier: 'succeeded',
+                resourceId: resourceId,
+                logLevel: 'info',
+            });
+            azPortalContext.stopNotification(
+                notificationId,
+                true,
+                intl.formatMessage(SreAgentResources.startingSreAgentSuccess, { name: agentName })
+            );
+            setAgent(response.data);
+        } else {
+            const errorMessage = getErrorMessage(response.metadata.error) || '';
+            azPortalContext.log({
+                action: 'startAgent',
+                actionModifier: 'failed',
+                resourceId: resourceId,
+                logLevel: 'error',
+                data: {
+                    error: errorMessage,
+                },
+            });
+            azPortalContext.stopNotification(
+                notificationId,
+                false,
+                errorMessage
+                    ? intl.formatMessage(SreAgentResources.startingSreAgentFailedWithError, { name: agentName, error: errorMessage })
+                    : intl.formatMessage(SreAgentResources.startingSreAgentFailed, { name: agentName })
+            );
+        }
+
+        return response;
+    }, [azPortalContext, resourceId, intl]);
+
+    const stopAgent = useCallback(async () => {
+        azPortalContext.log({
+            action: 'stop-agent',
+            actionModifier: 'start',
+            logLevel: 'info',
+            resourceId,
+        });
+
+        const agentName = new ArmResourceDescriptor(resourceId)?.resourceName || '';
+        const notificationId = azPortalContext.startNotification(
+            intl.formatMessage(SreAgentResources.stoppingSreAgentTitle),
+            intl.formatMessage(SreAgentResources.stoppingSreAgentInProgress, { name: agentName })
+        );
+
+        const response = await SreAgentClient.stopAgent(resourceId);
+        if (response.metadata.success) {
+            azPortalContext.log({
+                action: 'stopAgent',
+                actionModifier: 'succeeded',
+                resourceId: resourceId,
+                logLevel: 'info',
+            });
+
+            azPortalContext.stopNotification(
+                notificationId,
+                true,
+                intl.formatMessage(SreAgentResources.stoppingSreAgentSuccess, { name: agentName })
+            );
+
+            setAgent(response.data);
+        } else {
+            const errorMessage = getErrorMessage(response.metadata.error) || '';
+            azPortalContext.log({
+                action: 'stopAgent',
+                actionModifier: 'failed',
+                resourceId: resourceId,
+                logLevel: 'error',
+                data: {
+                    error: errorMessage,
+                },
+            });
+            azPortalContext.stopNotification(
+                notificationId,
+                false,
+                errorMessage
+                    ? intl.formatMessage(SreAgentResources.stoppingSreAgentFailedWithError, { name: agentName, error: errorMessage })
+                    : intl.formatMessage(SreAgentResources.stoppingSreAgentFailed, { name: agentName })
+            );
+        }
+
+        return response;
+    }, [azPortalContext, resourceId, intl]);
+
     useEffect(() => {
         if (resourceId) {
             getAgent();
@@ -126,5 +237,7 @@ export function useSreAgent(resourceId: string): SreAgentHook {
         agentLastUpdatedTime,
         patchAgent,
         refresh: getAgent,
+        startAgent,
+        stopAgent,
     };
 }

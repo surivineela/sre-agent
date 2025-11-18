@@ -376,6 +376,7 @@ export const SreAgentResources = defineMessages({
     success: { defaultMessage: 'Success', id: 'xrKHS6' },
     startTime: { defaultMessage: 'Start Time', id: '5QYdPU' },
     stop: { defaultMessage: 'Stop', id: 'q/uwLT' },
+    stopped: { defaultMessage: 'Stopped', id: '1LBny5' },
     sreAgentSpace: { defaultMessage: 'SRE Agent Space', id: 'iv1ryQ' },
     subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
     systemAssigned: { defaultMessage: 'System assigned', id: 'yh4G7g' },
@@ -671,6 +672,11 @@ export const SreAgentResources = defineMessages({
     thisFeatureIsntAvailableInThisPortalYet: { defaultMessage: "This feature isn't available in this portal yet.", id: 'dQJz2m' },
     openInAzurePortal: { defaultMessage: 'Open in Azure Portal', id: '5NZIbS' },
     unknownStatus: { defaultMessage: 'Unknown status', id: 'wSLRfB' },
+    sreAgentStoppedTitle: { defaultMessage: 'The agent is stopped', id: 'i6x7bU' },
+    sreAgentStoppedDescription: {
+        defaultMessage: 'When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost.',
+        id: 'WK8csJ',
+    },
 });
 
 export const SreAgentTabResources = defineMessages({
