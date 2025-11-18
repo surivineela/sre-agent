@@ -19,9 +19,10 @@ public class AzureDevOpsWorkItemPluginDefinition
                                                         [Description("Title of the WorkItem")] string title,
                                                         [Description("Type of Work Item: Task, Bugs, Epic, Feature - default to Task if an invalid type is given.")] string workItemType,
                                                         [Description("Description to be filled in the body of the work item as well formatted markdown.")] string description,
-                                                        [Description("An array of tags to be used in the work item based on the description.")] string[] tags)
+                                                        [Description("An array of tags to be used in the work item based on the description.")] string[] tags,
+                                                        [Description("User to assign the work item to (optional, e.g., 'GitHub Copilot' or email address)")] string assignedTo = "")
     {
-        return await _azureDevOpsWorkItemPlugin.CreateWorkItem(resourceId, title, description, tags: tags, workItemType: workItemType);
+        return await _azureDevOpsWorkItemPlugin.CreateWorkItem(resourceId, title, description, tags: tags, assignedTo: assignedTo, workItemType: workItemType);
     }
 
     [Description("Create a work item directly in an Azure DevOps (AzDo/TFS) repository without needing a linked Azure resource. Creates any work item type: tasks, user stories, bugs, features, epics, test cases, issues, tickets, cards. Works directly with repository URLs. Use when you have a specific Azure DevOps repository URL and want to create work items without resource linkage. Handles requests like 'create a task in this specific Azure DevOps repo', 'add a bug to this AzDo repository', 'file an issue in this project', etc.")]

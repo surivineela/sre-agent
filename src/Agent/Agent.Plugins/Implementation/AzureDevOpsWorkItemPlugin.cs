@@ -67,6 +67,19 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
 
     private async Task<string> CreateWorkItemInternal(string repositoryUrl, string accessToken, string title, string description, string[]? tags, string assignedTo = "", string areaPath = "", string iterationPath = "", string workItemType = "Task", string priority = "Medium", string severity = "None", string state = "New")
     {
+        // Normalize assignee value for Copilot variations
+        if (!string.IsNullOrEmpty(assignedTo))
+        {
+            var normalizedAssignee = assignedTo.Trim();
+            if (normalizedAssignee.Equals("Copilot", StringComparison.OrdinalIgnoreCase) ||
+                normalizedAssignee.Equals("GH Copilot", StringComparison.OrdinalIgnoreCase) ||
+                normalizedAssignee.Equals("Github Copilot", StringComparison.OrdinalIgnoreCase) ||
+                normalizedAssignee.Equals("Copilot Chat", StringComparison.OrdinalIgnoreCase))
+            {
+                assignedTo = "GitHub Copilot";
+            }
+        }
+
         // Parse the repository URL
         var (orgUrl, project, _) = ParseRepositoryUrl(repositoryUrl);
 
