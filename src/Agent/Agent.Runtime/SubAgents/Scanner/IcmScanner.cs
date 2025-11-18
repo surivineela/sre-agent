@@ -94,7 +94,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             else
             {
                 logger.LogInternalInformation("[IcmScanner] Found {filterCount} incident filters, starting IcM scanner.", filters.Count);
-                latestModifiedDateInScan = null; // Reset for each scan cycle
+                latestModifiedDateInScan = lastScanTime; // Reset for each scan cycle
                 await ScanAllIncidentsAsync(filters, cancellationToken);
                 if (isScanSucceeded)
                 {
