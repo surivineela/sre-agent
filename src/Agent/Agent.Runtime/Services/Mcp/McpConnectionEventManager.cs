@@ -5,9 +5,11 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ModelContextProtocol.Client;
@@ -24,8 +26,11 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
     private readonly ILogger<McpConnectionEventManager> _logger;
     private readonly IMcpAuthenticationService _authService;
     private readonly IAuthenticationService _coreAuthService;
+    private readonly ISessionPoolService _sessionPoolService;
     private readonly MCPSettings _mcpSettings;
+    private readonly SessionPoolSettings _sessionPoolSettings;
     private readonly ConcurrentDictionary<string, McpConnection> _connections = new();
+    private readonly IHostEnvironment _hostEnvironment;
     private static readonly Regex _unsafeToolNameChars = new("[^a-zA-Z0-9_\\.\\-]", RegexOptions.Compiled);
 
     public event Func<McpConnection, Task>? ConnectionAdded;
@@ -35,14 +40,20 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
         IMcpConnectable backend,
         IMcpAuthenticationService authService,
         IAuthenticationService coreAuthService,
+        ISessionPoolService sessionPoolService,
         IOptions<MCPSettings> mcpSettings,
-        ILogger<McpConnectionEventManager> logger)
+        SessionPoolSettings sessionPoolSettings,
+        ILogger<McpConnectionEventManager> logger,
+        IHostEnvironment hostEnvironment)
     {
         _backend = backend;
         _authService = authService;
         _coreAuthService = coreAuthService;
+        _sessionPoolService = sessionPoolService;
         _mcpSettings = mcpSettings.Value;
+        _sessionPoolSettings = sessionPoolSettings;
         _logger = logger;
+        _hostEnvironment = hostEnvironment;
     }
 
     public async Task<McpConnection> CreateAndAddConnectionAsync(
@@ -72,19 +83,31 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                 CustomHeaders = headers
             };
         }
+        var agentName = AgentNameHelper.GetAgentName(!_hostEnvironment.IsDevelopment());
+        var threadId = Core.ToolStatic.AsyncLocalThreadId.Value.ToString();
 
         // Create transport based on type
         var transport = type.ToLowerInvariant() switch
         {
             "http" when !string.IsNullOrEmpty(endpoint) => await CreateHttpTransportAsync(name, endpoint, authConfig),
             //"sse" when !string.IsNullOrEmpty(endpoint) => await CreateHttpTransportAsync(name, endpoint, authConfig), // Legacy SSE now uses HTTP
-            "stdio" when !string.IsNullOrEmpty(command) => new StdioClientTransport(new StdioClientTransportOptions
+            //"stdio" when !string.IsNullOrEmpty(command) => new StdioClientTransport(new StdioClientTransportOptions
+            //{
+            //    Name = _unsafeToolNameChars.Replace(name, string.Empty),
+            //    Command = command,
+            //    Arguments = arguments ?? Array.Empty<string>(),
+            //    WorkingDirectory = workingDirectory
+            //}),
+            // run local MCP servers via session pool proxy
+            "stdio" when !string.IsNullOrEmpty(command) => new SessionWebsocketClientTransport(new()
             {
+                ServerUrl = _sessionPoolSettings.PoolManagementEndpoint.Replace("https://", "wss://") + "/mcp/run",
+                SessionId = _sessionPoolService.BuildSessionIdentifier(agentName, threadId, true),
+                Credential = _coreAuthService.GetSessionPoolCredential(),
                 Name = _unsafeToolNameChars.Replace(name, string.Empty),
                 Command = command,
                 Arguments = arguments ?? Array.Empty<string>(),
-                WorkingDirectory = workingDirectory
-            }),
+            }, _logger),
             _ => throw new ArgumentException($"Invalid connection type '{type}' or missing required parameters")
         };
 

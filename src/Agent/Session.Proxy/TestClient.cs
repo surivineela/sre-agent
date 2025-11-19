@@ -96,6 +96,8 @@ public static class TestClient
         var fullUrl = $"{serverUrl}?cmd={encodedCmd}&args={encodedArgs}";
 
         using var ws = new ClientWebSocket();
+        ws.Options.CollectHttpResponseDetails = true;
+
         using var cts = new CancellationTokenSource();
 
         // Add authorization header if session mode is enabled
@@ -120,15 +122,32 @@ public static class TestClient
         try
         {
             await ws.ConnectAsync(new Uri(fullUrl), cts.Token);
+
+            // Check HTTP status code from the WebSocket handshake
+            var statusCode = ws.HttpStatusCode;
+            Console.WriteLine($"HTTP Status: {(int)statusCode} ({statusCode})");
+
+            if (statusCode != System.Net.HttpStatusCode.SwitchingProtocols)
+            {
+                Console.Error.WriteLine("WebSocket handshake failed.");
+                return;
+            }
+
             Console.WriteLine("Connected!");
 
             // Read the first message (should be "ok" or error)
             var firstMessage = await ReceiveMessage(ws, cts.Token);
+
+            if (firstMessage == null)
+            {
+                Console.Error.WriteLine("Connection closed by server immediately after connecting.");
+                return;
+            }
+
             Console.WriteLine($"Server response: {firstMessage}");
 
-            if (firstMessage != "ok")
+            if (!firstMessage.Equals("ok", StringComparison.OrdinalIgnoreCase))
             {
-                Console.Error.WriteLine("Server returned error. Closing connection.");
                 return;
             }
 

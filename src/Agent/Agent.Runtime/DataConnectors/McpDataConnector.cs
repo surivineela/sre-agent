@@ -18,13 +18,13 @@ public class McpDataConnector : IDataConnector
 {
     private sealed record McpConnectionSettings(
         string TransportType,
+        string? Command,
+        string[]? Arguments,
         string? Endpoint,
         McpAuthenticationConfig? Authentication,
         Dictionary<string, string>? Headers,
         string? Description,
         string? ServiceType);
-
-    private const string DefaultTransportType = "http";
 
     public string Endpoint { get; private set; } = string.Empty;
     public McpAuthenticationConfig? AuthenticationConfig { get; private set; }
@@ -65,6 +65,8 @@ public class McpDataConnector : IDataConnector
             var connection = await _mcpConnectionManager.CreateAndAddConnectionAsync(
                 name: instanceSettings.Name,
                 type: parsedSettings.TransportType,
+                command: parsedSettings.Command,
+                arguments: parsedSettings.Arguments,
                 endpoint: parsedSettings.Endpoint,
                 authConfig: parsedSettings.Authentication,
                 headers: parsedSettings.Headers,
@@ -159,19 +161,51 @@ public class McpDataConnector : IDataConnector
             }
         }
 
-        if (!values.TryGetValue("Endpoint", out string? endpoint) || string.IsNullOrWhiteSpace(endpoint))
+        if (!values.TryGetValue("Type", out string? type) || string.IsNullOrWhiteSpace(type))
         {
-            throw new ArgumentException("DataSource must include an Endpoint value for MCP connector.", nameof(dataSource));
+            type = "http";  // backward compatibility default to HTTP
         }
 
-        McpAuthenticationConfig? authentication = null;
-
-        if (values.TryGetValue("AuthType", out string? authTypeValue) && !string.IsNullOrWhiteSpace(authTypeValue))
+        if (type == "http")
         {
-            authentication = BuildAuthenticationConfig(authTypeValue, values);
-        }
+            if (!values.TryGetValue("Endpoint", out string? endpoint) || string.IsNullOrWhiteSpace(endpoint))
+            {
+                throw new ArgumentException("DataSource must include an Endpoint value for MCP connector.", nameof(dataSource));
+            }
 
-        return new McpConnectionSettings(DefaultTransportType, endpoint, authentication, Headers: null, "Mcp Tool", connectionName);
+            McpAuthenticationConfig? authentication = null;
+
+            if (values.TryGetValue("AuthType", out string? authTypeValue) && !string.IsNullOrWhiteSpace(authTypeValue))
+            {
+                authentication = BuildAuthenticationConfig(authTypeValue, values);
+            }
+
+            return new McpConnectionSettings(type, null, null, endpoint, authentication, null, "Mcp Tool", connectionName);
+        }
+        else if (type == "stdio")
+        {
+            if (!values.TryGetValue("Command", out string? command) || string.IsNullOrWhiteSpace(command))
+            {
+                throw new ArgumentException("DataSource must include a Command value for MCP stdio transport.", nameof(dataSource));
+            }
+            string[]? arguments = null;
+            if (values.TryGetValue("ArgsJson", out string? argsJson) && !string.IsNullOrWhiteSpace(argsJson))
+            {
+                try
+                {
+                    arguments = System.Text.Json.JsonSerializer.Deserialize<string[]>(argsJson);
+                }
+                catch (System.Text.Json.JsonException ex)
+                {
+                    throw new ArgumentException("ArgumentsJson value is not a valid JSON array of strings.", nameof(dataSource), ex);
+                }
+            }
+            return new McpConnectionSettings(type, command, arguments, null, null, Headers: null, "Mcp Tool", connectionName);
+        }
+        else
+        {
+            throw new NotSupportedException($"Transport Type '{type}' is not supported by the MCP data connector.");
+        }
     }
 
     // TODO: Extend to support other authentication types as needed.

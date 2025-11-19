@@ -36,7 +36,12 @@ public class SessionPoolService : ISessionPoolService
     // Client Id must be the first part of the identifer as this is a contract between YARP for authorization
     public string BuildSessionIdentifier(string? agentName = null, string? threadId = null, bool randomSuffix = true)
     {
-        List<string> parts = [_federationSettings.ClientId];
+        var clientId = _federationSettings.ClientId;
+        if (string.IsNullOrEmpty(clientId))
+        {
+            clientId = "local";
+        }
+        List<string> parts = [clientId];
         if (!string.IsNullOrEmpty(agentName))
         {
             parts.Add(agentName);

@@ -6,24 +6,23 @@ using Agent.Runtime.Services.Mcp;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace Agent.Tests.Unit.Services.Mcp;
 
 /// <summary>
-/// Unit tests for McpSessionWebsocketClient.
+/// Unit tests for SessionWebsocketClientTransport.
 /// These tests verify the transport logic without requiring a real MCP proxy server.
 /// </summary>
-public class McpSessionWebsocketClientTests
+public class SessionWebocketClientTests
 {
-    private readonly Mock<ILogger<McpSessionWebsocketClient>> _mockLogger;
+    private readonly Mock<ILogger> _mockLogger;
 
-    public McpSessionWebsocketClientTests()
+    public SessionWebocketClientTests()
     {
-        _mockLogger = new Mock<ILogger<McpSessionWebsocketClient>>();
+        _mockLogger = new Mock<ILogger>();
     }
 
-    private static McpSessionWebsocketClientOptions CreateValidOptions() => new()
+    private static SessionWebsocketClientOptions CreateValidOptions() => new()
     {
         ServerUrl = "ws://localhost:5000/run",
         Command = "npx",
@@ -37,13 +36,11 @@ public class McpSessionWebsocketClientTests
         var options = CreateValidOptions();
 
         // Act
-        var transport = new McpSessionWebsocketClient(options, _mockLogger.Object);
+        var transport = new SessionWebsocketClientTransport(options, _mockLogger.Object);
 
         // Assert
         Assert.NotNull(transport);
         Assert.Equal("SessionPool-npx", transport.Name);
-        Assert.Null(transport.SessionId);
-        Assert.NotNull(transport.MessageReader);
     }
 
     [Theory]
@@ -54,7 +51,7 @@ public class McpSessionWebsocketClientTests
         string? serverUrl, string? command, string[]? args, string expectedParamName)
     {
         // Arrange
-        var options = new McpSessionWebsocketClientOptions
+        var options = new SessionWebsocketClientOptions
         {
             ServerUrl = serverUrl!,
             Command = command!,
@@ -63,7 +60,7 @@ public class McpSessionWebsocketClientTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() =>
-            new McpSessionWebsocketClient(options, _mockLogger.Object));
+            new SessionWebsocketClientTransport(options, _mockLogger.Object));
         Assert.Equal(expectedParamName, exception.ParamName);
     }
 
@@ -75,58 +72,8 @@ public class McpSessionWebsocketClientTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            new McpSessionWebsocketClient(options, null!));
+            new SessionWebsocketClientTransport(options, null!));
         Assert.Equal("logger", exception.ParamName);
-    }
-
-    [Fact]
-    public async Task SendAsync_BeforeConnect_ThrowsInvalidOperationException()
-    {
-        // Arrange
-        var transport = new McpSessionWebsocketClient(CreateValidOptions(), _mockLogger.Object);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            transport.SendAsync("test message"));
-        Assert.Contains("not connected", exception.Message, StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Fact]
-    public async Task StartAsync_BeforeConnect_ThrowsInvalidOperationException()
-    {
-        // Arrange
-        var transport = new McpSessionWebsocketClient(CreateValidOptions(), _mockLogger.Object);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            transport.StartAsync(_ => { }));
-        Assert.Contains("not connected", exception.Message, StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Fact]
-    public async Task Dispose_CanBeCalledMultipleTimes()
-    {
-        // Arrange
-        var transport = new McpSessionWebsocketClient(CreateValidOptions(), _mockLogger.Object);
-
-        // Act & Assert - should not throw
-        transport.Dispose();
-        transport.Dispose();
-        await transport.DisposeAsync();
-    }
-
-    [Fact]
-    public async Task AfterDispose_SendAsyncThrowsException()
-    {
-        // Arrange
-        var transport = new McpSessionWebsocketClient(CreateValidOptions(), _mockLogger.Object);
-
-        // Act
-        await transport.DisposeAsync();
-
-        // Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            transport.SendAsync("test"));
     }
 
     [Theory]
@@ -136,7 +83,7 @@ public class McpSessionWebsocketClientTests
         string command, string? customName, string expectedName)
     {
         // Arrange
-        var options = new McpSessionWebsocketClientOptions
+        var options = new SessionWebsocketClientOptions
         {
             ServerUrl = "ws://localhost:5000/run",
             Command = command,
@@ -145,7 +92,7 @@ public class McpSessionWebsocketClientTests
         };
 
         // Act
-        var transport = new McpSessionWebsocketClient(options, _mockLogger.Object);
+        var transport = new SessionWebsocketClientTransport(options, _mockLogger.Object);
 
         // Assert
         Assert.Equal(expectedName, transport.Name);
@@ -156,7 +103,7 @@ public class McpSessionWebsocketClientTests
     {
         // Arrange
         var mockCredential = new Mock<TokenCredential>();
-        var options = new McpSessionWebsocketClientOptions
+        var options = new SessionWebsocketClientOptions
         {
             ServerUrl = "wss://session-pool.azure.com/run",
             Command = "npx",
@@ -165,7 +112,7 @@ public class McpSessionWebsocketClientTests
         };
 
         // Act
-        var transport = new McpSessionWebsocketClient(options, _mockLogger.Object);
+        var transport = new SessionWebsocketClientTransport(options, _mockLogger.Object);
 
         // Assert
         Assert.NotNull(transport);

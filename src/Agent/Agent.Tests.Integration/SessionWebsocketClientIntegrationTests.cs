@@ -6,11 +6,11 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Agent.Runtime.Services.Mcp;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Agent.Tests.Integration.Services.Mcp;
@@ -19,7 +19,7 @@ namespace Agent.Tests.Integration.Services.Mcp;
 /// Integration tests for McpSessionWebsocketClient that actually start the MCP Proxy Server
 /// and test end-to-end functionality.
 /// </summary>
-public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
+public class SessionWebsocketClientIntegrationTests : IAsyncLifetime
 {
     private readonly ITestOutputHelper _output;
     private readonly ILoggerFactory _loggerFactory;
@@ -27,7 +27,7 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
     private int _proxyServerPort;
     private string _proxyServerUrl = string.Empty;
 
-    public McpSessionWebsocketClientIntegrationTests(ITestOutputHelper output)
+    public SessionWebsocketClientIntegrationTests(ITestOutputHelper output)
     {
         _output = output;
         _loggerFactory = LoggerFactory.Create(builder =>
@@ -48,7 +48,7 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
         _output.WriteLine($"Starting Session Proxy Server on port {_proxyServerPort}...");
 
         // Get the path to the Session.Proxy project (going up from bin/Debug/net9.0)
-        var testAssemblyPath = typeof(McpSessionWebsocketClientIntegrationTests).Assembly.Location;
+        var testAssemblyPath = typeof(SessionWebsocketClientIntegrationTests).Assembly.Location;
         var testProjectDir = Path.GetDirectoryName(testAssemblyPath)!;
         var agentDir = Path.GetFullPath(Path.Combine(testProjectDir, "..", "..", "..", ".."));
         var proxyServerProject = Path.Combine(agentDir, "Session.Proxy", "Session.Proxy.csproj");
@@ -118,29 +118,31 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
     public async Task ConnectAsync_WithValidMcpServer_Succeeds()
     {
         // Arrange
-        var logger = _loggerFactory.CreateLogger<McpSessionWebsocketClient>();
-        var options = new McpSessionWebsocketClientOptions
+        var logger = _loggerFactory.CreateLogger<SessionWebsocketClientTransport>();
+        var options = new SessionWebsocketClientOptions
         {
             ServerUrl = _proxyServerUrl,
             Command = "npx",
             Arguments = new[] { "-y", "@modelcontextprotocol/server-everything" }
         };
 
-        var transport = new McpSessionWebsocketClient(options, logger);
+        var clientTransport = new SessionWebsocketClientTransport(options, logger);
 
         try
         {
             // Act
-            var result = await transport.ConnectAsync();
+            var transport = await clientTransport.ConnectAsync();
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Same(transport, result); // Should return itself
+            Assert.NotNull(transport);
             _output.WriteLine("✓ Connection successful");
-        }
-        finally
-        {
+
             await transport.DisposeAsync();
+        }
+        catch (Exception ex)
+        {
+            _output.WriteLine($"Connection failed: {ex.Message}");
+            throw;
         }
     }
 
@@ -148,8 +150,8 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
     public async Task FullMcpProtocol_InitializeAndListTools_WorksEndToEnd()
     {
         // Arrange
-        var logger = _loggerFactory.CreateLogger<McpSessionWebsocketClient>();
-        var options = new McpSessionWebsocketClientOptions
+        var logger = _loggerFactory.CreateLogger<SessionWebsocketClientTransport>();
+        var options = new SessionWebsocketClientOptions
         {
             ServerUrl = _proxyServerUrl,
             Command = "npx",
@@ -157,7 +159,7 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
             Name = "E2ETest"
         };
 
-        var transport = new McpSessionWebsocketClient(options, logger);
+        var clientTransport = new SessionWebsocketClientTransport(options, logger);
 
         try
         {
@@ -172,7 +174,7 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
                 }
             };
 
-            var client = await McpClient.CreateAsync(transport, mcpOptions, _loggerFactory);
+            var client = await McpClient.CreateAsync(clientTransport, mcpOptions, _loggerFactory);
 
             // Assert - Verify connection and server info
             Assert.NotNull(client.ServerInfo);
@@ -197,9 +199,10 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
                 await asyncDisposable.DisposeAsync();
             }
         }
-        finally
+        catch (Exception ex)
         {
-            await transport.DisposeAsync();
+            _output.WriteLine($"Test failed: {ex.Message}");
+            throw;
         }
     }
 
@@ -207,21 +210,21 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
     public async Task SendAndReceive_Messages_WorkCorrectly()
     {
         // Arrange
-        var logger = _loggerFactory.CreateLogger<McpSessionWebsocketClient>();
-        var options = new McpSessionWebsocketClientOptions
+        var logger = _loggerFactory.CreateLogger<SessionWebsocketClientTransport>();
+        var options = new SessionWebsocketClientOptions
         {
             ServerUrl = _proxyServerUrl,
             Command = "npx",
             Arguments = new[] { "-y", "@modelcontextprotocol/server-everything" }
         };
 
-        var transport = new McpSessionWebsocketClient(options, logger);
+        var clientTransport = new SessionWebsocketClientTransport(options, logger);
         using var cts = new CancellationTokenSource();
 
         try
         {
             // Act - Connect
-            await transport.ConnectAsync();
+            var transport = (SessionWebsocketTransport)await clientTransport.ConnectAsync();
 
             // Start reading messages
             var receivedMessages = new List<JsonRpcMessage>();
@@ -247,15 +250,12 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
                 }
             }, cts.Token);
 
-            await transport.StartAsync(_ => { });
-
             // Act - Send initialize message
-            var initJson = JsonSerializer.Serialize(new
+            var initRequest = new JsonRpcRequest
             {
-                jsonrpc = "2.0",
-                id = 1,
-                method = "initialize",
-                @params = new
+                Id = new RequestId(1),
+                Method = "initialize",
+                Params = JsonNode.Parse(JsonSerializer.Serialize(new
                 {
                     protocolVersion = "2024-11-05",
                     capabilities = new { },
@@ -264,11 +264,11 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
                         name = "TestClient",
                         version = "1.0.0"
                     }
-                }
-            });
+                }))
+            };
 
             _output.WriteLine("Sending initialize message...");
-            await transport.SendAsync(initJson);
+            await transport.SendMessageAsync(initRequest);
 
             // Wait for response
             var completedTask = await Task.WhenAny(readTask, Task.Delay(10000));
@@ -294,11 +294,12 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
             var response = receivedMessages.OfType<JsonRpcResponse>().FirstOrDefault();
             Assert.NotNull(response);
             _output.WriteLine("✓ Received initialize response");
+
+            await transport.DisposeAsync();
         }
         finally
         {
             cts.Cancel();
-            await transport.DisposeAsync();
         }
     }
 
@@ -306,7 +307,7 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
     public async Task MultipleConnections_CanRunConcurrently()
     {
         // Arrange
-        var logger = _loggerFactory.CreateLogger<McpSessionWebsocketClient>();
+        var logger = _loggerFactory.CreateLogger<SessionWebsocketClientTransport>();
 
         var tasks = new List<Task>();
         for (int i = 0; i < 3; i++)
@@ -314,7 +315,7 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
             var index = i;
             tasks.Add(Task.Run(async () =>
             {
-                var options = new McpSessionWebsocketClientOptions
+                var options = new SessionWebsocketClientOptions
                 {
                     ServerUrl = _proxyServerUrl,
                     Command = "npx",
@@ -322,18 +323,24 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
                     Name = $"Concurrent-{index}"
                 };
 
-                var transport = new McpSessionWebsocketClient(options, logger);
+                var clientTransport = new SessionWebsocketClientTransport(options, logger);
                 try
                 {
                     _output.WriteLine($"[{index}] Connecting...");
-                    await transport.ConnectAsync();
+                    var transport = await clientTransport.ConnectAsync();
                     _output.WriteLine($"[{index}] ✓ Connected");
 
                     await Task.Delay(1000); // Hold connection briefly
+
+                    await transport.DisposeAsync();
+                }
+                catch (Exception ex)
+                {
+                    _output.WriteLine($"[{index}] Failed: {ex.Message}");
+                    throw;
                 }
                 finally
                 {
-                    await transport.DisposeAsync();
                     _output.WriteLine($"[{index}] Disconnected");
                 }
             }));
@@ -348,18 +355,18 @@ public class McpSessionWebsocketClientIntegrationTests : IAsyncLifetime
     public async Task Dispose_WhileConnected_CleansUpProperly()
     {
         // Arrange
-        var logger = _loggerFactory.CreateLogger<McpSessionWebsocketClient>();
-        var options = new McpSessionWebsocketClientOptions
+        var logger = _loggerFactory.CreateLogger<SessionWebsocketClientTransport>();
+        var options = new SessionWebsocketClientOptions
         {
             ServerUrl = _proxyServerUrl,
             Command = "npx",
             Arguments = new[] { "-y", "@modelcontextprotocol/server-everything" }
         };
 
-        var transport = new McpSessionWebsocketClient(options, logger);
+        var clientTransport = new SessionWebsocketClientTransport(options, logger);
 
         // Act - Connect and immediately dispose
-        await transport.ConnectAsync();
+        var transport = await clientTransport.ConnectAsync();
         await transport.DisposeAsync();
 
         // Assert - Should not throw

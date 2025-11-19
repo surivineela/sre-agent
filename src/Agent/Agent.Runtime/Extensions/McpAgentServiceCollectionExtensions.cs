@@ -7,6 +7,7 @@ using Agent.Core.Interfaces;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services.Mcp;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -38,10 +39,13 @@ public static class McpAgentServiceCollectionExtensions
             var backend = sp.GetRequiredService<IMcpConnectable>();
             var authService = sp.GetRequiredService<IMcpAuthenticationService>();
             var coreAuthService = sp.GetRequiredService<IAuthenticationService>();
-            var options = sp.GetRequiredService<IOptions<MCPSettings>>();
+            var sessionPoolService = sp.GetRequiredService<ISessionPoolService>();
+            var mcpSettings = sp.GetRequiredService<IOptions<MCPSettings>>();
+            var azureSettings = sp.GetRequiredService<AzureSettings>();
             var logger = loggerFactory.CreateLogger<McpConnectionEventManager>();
+            var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
 
-            return new McpConnectionEventManager(backend, authService, coreAuthService, options, logger);
+            return new McpConnectionEventManager(backend, authService, coreAuthService, sessionPoolService, mcpSettings, azureSettings.SessionPool, logger, hostEnvironment);
         });
 
         // Register IMcpConnectionHealthService
