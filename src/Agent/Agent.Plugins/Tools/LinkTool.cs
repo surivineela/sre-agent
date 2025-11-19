@@ -13,9 +13,7 @@ namespace Agent.Plugins.Link.Tools
     {
         private LinkToolDefinition? _definition;
 
-        public LinkToolType(
-
-            )
+        public LinkToolType()
         {
         }
 
@@ -39,14 +37,24 @@ namespace Agent.Plugins.Link.Tools
 
             foreach (System.Text.RegularExpressions.Match match in matches)
             {
-                string placeholder = match.Groups[0].Value;   // e.g. {{fromDate}} or {{threadId}}
-                string key = match.Groups[1].Value;           // e.g. fromDate or threadId
+                string placeholder = match.Groups[0].Value;   // e.g. {{fromDate}} or {{threadId}} or {{agent_endpoint}} or {{agent_name}}
+                string key = match.Groups[1].Value;           // e.g. fromDate or threadId or agent_endpoint or agent_name
                 string? valueToReplace = null;
 
                 // Special handling for threadId placeholder
                 if (key.Equals("threadId", StringComparison.OrdinalIgnoreCase))
                 {
                     valueToReplace = threadId?.ToString();
+                }
+                // Special handling for agent_endpoint placeholder
+                else if (key.Equals("agent_endpoint", StringComparison.OrdinalIgnoreCase))
+                {
+                    valueToReplace = Environment.GetEnvironmentVariable("AGENT_ENDPOINT");
+                }
+                // Special handling for agent_name placeholder
+                else if (key.Equals("agent_name", StringComparison.OrdinalIgnoreCase))
+                {
+                    valueToReplace = Environment.GetEnvironmentVariable("AGENT_NAME");
                 }
                 // Regular argument handling
                 else if (args.TryGetValue(key, out var rawValue))
