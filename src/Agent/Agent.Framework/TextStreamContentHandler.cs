@@ -56,6 +56,8 @@ public class TextStreamContentHandler : IStreamContentHandler
         }
 
         await _displayModelOutput.OnComplete();
+
+        _hasStreamedContent = false; // reset
     }
 
     /// <summary>

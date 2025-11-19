@@ -105,8 +105,9 @@ public class JsonStreamContentHandler : IStreamContentHandler
             return;
         }
 
-        // Await OnComplete to ensure DB write completes
         await _displayModelOutput.OnComplete();
+
+        _hasStreamedContent = false; // reset
     }
 
     /// <summary>

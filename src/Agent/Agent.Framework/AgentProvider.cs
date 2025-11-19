@@ -59,8 +59,11 @@ public sealed class AgentProvider<TContext> : IAgentProvider<TContext>
         var forceDisabledExperiments = Environment.GetEnvironmentVariable(FrameworkConstants.ForceDisableExperimentsEnvVar);
         if (!string.IsNullOrEmpty(forceDisabledExperiments))
         {
-            var experiments = forceDisabledExperiments.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var exp in experiments)
+            var disabledExperiments = forceDisabledExperiments.Contains('*')
+                ? _factory.Experiments.Select(e => e.ExperimentId)
+                : forceDisabledExperiments.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var exp in disabledExperiments)
             {
                 var experimentId = exp.Trim();
                 if (!string.IsNullOrEmpty(experimentId))

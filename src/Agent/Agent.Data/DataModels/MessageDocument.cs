@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json.Serialization;
 using Agent.Core.Models.Api.v1;
 
 namespace Agent.Data.DataModels;
@@ -40,7 +41,7 @@ public record MessageDocument(
 
     // Conversion to/from domain model
     public static MessageDocument FromDomainModel(Message message, string threadId) =>
-        new MessageDocument(
+        new(
             message.Id.ToString(),
             threadId,
             message.TimeStamp,
@@ -62,7 +63,7 @@ public record MessageDocument(
         );
 
     public Message ToDomainModel(Approval? approval = null, bool isDailyReport = false) =>
-        new Message(
+        new(
             Guid.Parse(Id),
             TimeStamp,
             Author,
@@ -81,4 +82,15 @@ public record MessageDocument(
             IsComplete: IsComplete,
             MessageType: MessageType
         );
+
+    [JsonIgnore]
+    public bool IsEmpty =>
+        string.IsNullOrWhiteSpace(Text)
+        && Approval is null
+        && AzCliExecution is null
+        && KubectlExecution is null
+        && PsqlExecution is null
+        && AgentTaskInfo is null
+        && MemorySearchResult is null
+        && TodoInfo is null;
 }
