@@ -34,7 +34,10 @@ public record ThreadEvaluateResultDocument(
     string Priority,
     string PriorityReason,
     DateTime EvaluatedTimestamp,
-    AgentTypeEnum AgentType
+    AgentTypeEnum AgentType,
+    string? StartingAgentName = null,
+    bool? SkillsEnabled = false,
+    bool? IsExtendedAgent = false
 ) : ICosmosDocument
 {
     public string DocumentType => "ThreadEvaluationResult";
@@ -67,7 +70,10 @@ public record ThreadEvaluateResultDocument(
             evaluateResult.Priority,
             evaluateResult.PriorityReason,
             evaluateResult.EvaluatedTimestamp,
-            evaluateResult.AgentType
+            evaluateResult.AgentType,
+            evaluateResult.StartingAgentName,
+            evaluateResult.SkillsEnabled,
+            evaluateResult.IsExtendedAgent
         );
 
     // Conversion to domain model
@@ -96,7 +102,10 @@ public record ThreadEvaluateResultDocument(
             Priority,
             PriorityReason,
             EvaluatedTimestamp,
-            AgentType
+            AgentType,
+            StartingAgentName ?? string.Empty,
+            SkillsEnabled ?? false,
+            IsExtendedAgent ?? false
         );
 }
 

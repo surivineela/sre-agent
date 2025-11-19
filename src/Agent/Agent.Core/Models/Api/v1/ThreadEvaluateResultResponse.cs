@@ -28,7 +28,10 @@ public record ThreadEvaluateResultResponse(
     int Adherence,
     string Priority,
     DateTime EvaluatedTimestamp,
-    AgentTypeEnum AgentType
+    AgentTypeEnum AgentType,
+    string StartingAgentName,
+    bool SkillsEnabled,
+    bool IsExtendedAgent
 );
 
 /// <summary>
@@ -62,7 +65,10 @@ public static class ThreadEvaluateResultExtensions
             Adherence: result.Adherence,
             Priority: result.Priority,
             EvaluatedTimestamp: result.EvaluatedTimestamp,
-            AgentType: result.AgentType
+            AgentType: result.AgentType,
+            StartingAgentName: result.StartingAgentName,
+            SkillsEnabled: result.SkillsEnabled,
+            IsExtendedAgent: result.IsExtendedAgent
         );
     }
 

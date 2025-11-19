@@ -33,6 +33,8 @@ public partial class ThreadEvaluator
     private readonly IChatClientProvider _chatClientProvider;
     private readonly Tracer _tracer;
     private readonly IRagEvaluator _ragEvaluator;
+    private readonly IAgentProvider<AgentContext> _agentProvider;
+
     // Configurable time windows for thread filtering
     private readonly TimeSpan _evaluationHistoryRange; // How far back to search for threads
     private readonly TimeSpan _coolDownPeriod;         // Minimum time since last modification before evaluation
@@ -43,6 +45,7 @@ public partial class ThreadEvaluator
       IChatClientProvider chatClientProvider,
       Tracer tracer,
       IRagEvaluator ragEvaluator,
+      IAgentProvider<AgentContext> agentProvider,
       TimeSpan? evaluationHistoryRange = null,
       TimeSpan? coolDownPeriod = null)
     {
@@ -51,6 +54,7 @@ public partial class ThreadEvaluator
         _chatClientProvider = chatClientProvider;
         _tracer = tracer;
         _ragEvaluator = ragEvaluator;
+        _agentProvider = agentProvider;
 
         // Allow overriding default time windows
         _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
@@ -237,6 +241,9 @@ public partial class ThreadEvaluator
             await EvaluateHandoffsWithLLM(thread, cancellationToken); // Calculate handoff score
             await EvaluateTasksWithLLM(thread, cancellationToken);
 
+            var startingAgentName = GetStartingAgentName(agentContextsList);
+            var startingAgent = _agentProvider.GetAgent(startingAgentName, thread.Id.ToString());
+
             var evaluationResult = new ThreadEvaluateResult(
                 Id: Guid.NewGuid(),
                 ThreadId: thread.Id,
@@ -261,7 +268,10 @@ public partial class ThreadEvaluator
                 Priority: llmEvaluation.Priority,
                 PriorityReason: llmEvaluation.PriorityReason,
                 EvaluatedTimestamp: thread.ModifiedTimestamp,
-                AgentType: agentType
+                AgentType: agentType,
+                StartingAgentName: startingAgentName,
+                SkillsEnabled: startingAgent.EnableSkills,
+                IsExtendedAgent: startingAgent.IsExtended
             );
 
             // Store the evaluation result in the repository
@@ -284,7 +294,8 @@ public partial class ThreadEvaluator
                 duration: 0,
                 threadId: thread.Id.ToString(),
                 threadSource: thread.Source.ToString(),
-                featureConfig: WebJsonSerializer.Serialize(thread.FeatureConfig));
+                featureConfig: WebJsonSerializer.Serialize(thread.FeatureConfig),
+                activeExperiments: WebJsonSerializer.Serialize(_agentProvider.GetActiveVariants(thread.Id.ToString())));
 
             // Update thread with evaluation timestamp
             await _threadRepository.UpdateThreadEvaluatedTimestampAsync(thread.Id, DateTime.UtcNow);
@@ -1224,5 +1235,36 @@ public partial class ThreadEvaluator
 
         // If no incident context, return the type of the first context
         return agentContexts.First().AgentType;
+    }
+
+    private string GetStartingAgentName(IList<AgentContext> agentContexts)
+    {
+        if (agentContexts == null || agentContexts.Count == 0)
+        {
+            _logger.LogInternalWarning("No agent contexts found for thread, defaulting to 'meta_agent' as starting agent");
+            return "meta_agent";
+        }
+
+        AgentContext primaryContext;
+
+        // If there's only one agent context, use its name
+        if (agentContexts.Count == 1)
+        {
+            primaryContext = agentContexts[0];
+        }
+
+        // If there are multiple agent contexts, prioritize Incident type
+        var incidentContext = agentContexts.FirstOrDefault(ac => ac.AgentType == AgentTypeEnum.Incident);
+        if (incidentContext != null)
+        {
+            primaryContext = incidentContext;
+        }
+        else
+        {
+            primaryContext = agentContexts[0];
+        }
+
+        // If no incident context, return the name of the first context
+        return primaryContext.AgentHandoffChain.FirstOrDefault(defaultValue: "meta_agent");
     }
 }

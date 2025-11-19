@@ -31,5 +31,8 @@ public record ThreadEvaluateResult(
     string Priority,
     string PriorityReason,
     DateTime EvaluatedTimestamp,
-    AgentTypeEnum AgentType
+    AgentTypeEnum AgentType,
+    string StartingAgentName,
+    bool SkillsEnabled,
+    bool IsExtendedAgent
 );

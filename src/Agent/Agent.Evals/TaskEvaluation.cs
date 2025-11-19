@@ -74,6 +74,7 @@ public class TaskEvaluation
         var mockLogger = (await GetTestHostAsync()).Host.Services.GetRequiredService<ILogger<ThreadEvaluator>>();
         var mockChatClientProvider = (await GetTestHostAsync()).Host.Services.GetRequiredService<IChatClientProvider>();
         var mockTracer = (await GetTestHostAsync()).Host.Services.GetRequiredService<Tracer>();
+        var agentProvider = (await GetTestHostAsync()).Host.Services.GetRequiredService<IAgentProvider<AgentContext>>();
 
         // Create a mock IThreadRepository
         var mockThreadRepository = new Mock<IThreadRepository>();
@@ -85,7 +86,8 @@ public class TaskEvaluation
             threadRepository: mockThreadRepository.Object,
             chatClientProvider: mockChatClientProvider,
             tracer: mockTracer,
-            ragEvaluator: mockRagEvaluator.Object
+            ragEvaluator: mockRagEvaluator.Object,
+            agentProvider: agentProvider
         );
 
         // Create a test thread model

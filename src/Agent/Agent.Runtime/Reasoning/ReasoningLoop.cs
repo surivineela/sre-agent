@@ -1379,7 +1379,8 @@ public class ReasoningLoop : IDisposable
                 duration: 0,
                 threadId: _context.ThreadId.ToString(),
                 subAgentName: agent.Name,
-                featureConfig: WebJsonSerializer.Serialize(_featureConfig));
+                featureConfig: WebJsonSerializer.Serialize(_featureConfig),
+                activeExperiments: WebJsonSerializer.Serialize(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
             return Task.CompletedTask;
         };
 
@@ -1428,7 +1429,8 @@ public class ReasoningLoop : IDisposable
                 duration: 0,
                 threadId: _context.ThreadId.ToString(),
                 subAgentName: agent.Name,
-                featureConfig: WebJsonSerializer.Serialize(_featureConfig));
+                featureConfig: WebJsonSerializer.Serialize(_featureConfig),
+                activeExperiments: WebJsonSerializer.Serialize(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
 
             // Store todo arguments if this is a ToDoWrite tool
             if (tool.Name == ToDoWriteTool<AgentContext>.ToolName)
@@ -1599,7 +1601,8 @@ public class ReasoningLoop : IDisposable
                 cachedToken: cachedTokenCount,
                 reasoningToken: reasoningTokenCount,
                 featureConfig: WebJsonSerializer.Serialize(_featureConfig),
-                actionMetadata: WebJsonSerializer.Serialize(tokenUsageObj));
+                actionMetadata: WebJsonSerializer.Serialize(tokenUsageObj),
+                activeExperiments: WebJsonSerializer.Serialize(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
 
             return Task.CompletedTask;
         };
@@ -1653,7 +1656,8 @@ public class ReasoningLoop : IDisposable
                 duration: 0,
                 threadId: _context.ThreadId.ToString(),
                 subAgentName: agent.Name,
-                featureConfig: WebJsonSerializer.Serialize(_featureConfig));
+                featureConfig: WebJsonSerializer.Serialize(_featureConfig),
+                activeExperiments: WebJsonSerializer.Serialize(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
             return Task.CompletedTask;
         };
 
@@ -1768,7 +1772,8 @@ public class ReasoningLoop : IDisposable
                 outputToken: 0,
                 threadSource: string.Empty,
                 featureConfig: WebJsonSerializer.Serialize(_featureConfig),
-                actionMetadata: WebJsonSerializer.Serialize(executionObj));
+                actionMetadata: WebJsonSerializer.Serialize(executionObj),
+                activeExperiments: WebJsonSerializer.Serialize(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
         }
         catch (Exception ex)
         {
