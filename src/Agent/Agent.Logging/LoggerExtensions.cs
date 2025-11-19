@@ -274,4 +274,21 @@ public static partial class LoggerExtensions
         long responseSize,
         long remainingRequests,
         long remainingTokens);
+
+    /// <summary>
+    /// Logs ICM request details including path, status code, latency, and request/response sizes
+    /// </summary>
+    [LoggerMessage(
+        EventId = 4001,
+        Level = LogLevel.Information,
+        Message = "ICM Request: threadId: {ThreadId}, hostName: {HostName}, path: {Path}, statusCode: {StatusCode}, latency: {Latency}, requestSize: {RequestSize}, responseSize: {ResponseSize}")]
+    public static partial void LogIcmRequest(
+        this ILogger logger,
+        string threadId,
+        string hostName,
+        string path,
+        int statusCode,
+        long latency,
+        long requestSize,
+        long responseSize);
 }

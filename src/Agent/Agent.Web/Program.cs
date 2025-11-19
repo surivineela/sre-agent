@@ -84,6 +84,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Agent.Web;
 
@@ -1072,202 +1073,73 @@ public class Program
                 .SetResourceBuilder(ResourceBuilder.CreateDefault()
                     .AddService(serviceName: "SREAgent", serviceVersion: "1.1.0"))
                 // Add a processor for Agent Action Events
-                .AddProcessor(sp =>
-                {
-                    // Prefer Event Hub exporter when configured; otherwise fall back to ADX if available
-                    if (!string.IsNullOrEmpty(azureSettings?.AgentTraceEventHub.FullyQualifiedNamespace))
-                    {
-                        var ehOptions = new EventHubLogExporterOptions(
-                            fullyQualifiedNamespace: azureSettings.AgentTraceEventHub.FullyQualifiedNamespace,
-                            eventHubName: "agentactionevents",
-                            populateColumns: null,
-                            firstPartyAppCertificatePath: azureSettings.AgentTraceEventHub.CertificatePath,
-                            firstPartyAppClientId: azureSettings.AgentTraceEventHub.FirstPartyAppClientId,
-                            firstPartyAppTenantId: azureSettings.AgentTraceEventHub.FirstPartyAppTenantId);
-
-                        var exporter = new EventHubLogExporter(ehOptions);
-
-                        // Create the processor with the exporter (use CustomizedLogProcessor)
-                        Func<LogRecord, bool> agentActionPredicate = record =>
-                            (record.EventId.Id == 1001 || record.EventId.Id == 1002)
-                            && (record.CategoryName?.StartsWith("Agent.", StringComparison.OrdinalIgnoreCase) == true);
-
-                        return new CustomizedLogProcessor(exporter, agentActionPredicate, "AgentActionProcessor");
-                    }
-
-                    // Create Azure Data Explorer Log Exporter only if configuration is available
-                    // Get Azure Data Explorer configuration
-                    var ClusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
-                    var DatabaseName = GetInternalKustoClusterConfiguration("DatabaseName");
-                    var CertificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
-                    var FirstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
-                    var FirstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
-
-                    // Fallback to Azure Data Explorer exporter when ADX cluster is available
-                    if (!string.IsNullOrEmpty(ClusterUri))
-                    {
-                        var exporter = new AzureDataExplorerLogExporter(
-                            new AzureDataExplorerLogExporterOptions(
-                                clusterUri: ClusterUri,
-                                databaseName: DatabaseName,
-                                tableName: "AgentActionEvents",
-                                populateColumns: null,
-                                firstPartyAppCertificatePath: CertificatePath,
-                                firstPartyAppClientId: FirstPartyAppClientId,
-                                firstPartyAppTenantId: FirstPartyAppTenantId));
-
-                        Func<LogRecord, bool> agentActionPredicate = record =>
-                            (record.EventId.Id == 1001 || record.EventId.Id == 1002)
-                            && (record.CategoryName?.StartsWith("Agent.", StringComparison.OrdinalIgnoreCase) == true);
-
-                        return new CustomizedLogProcessor(exporter, agentActionPredicate, "AgentActionProcessor");
-                    }
-
-                    // No exporter configured -> no-op processor (predicate false)
-                    return new CustomizedLogProcessor(null, record => false, "AgentActionProcessor");
-                })
+                .AddProcessor(sp => CreateEventBasedLogProcessor(
+                    sp.GetRequiredService<ILogger<Program>>(),
+                    azureSettings,
+                    adxTableName: "AgentActionEvents",
+                    eventId: 1001, // EventId not used due to customPredicate
+                    processorName: "AgentActionProcessor",
+                    populateColumns: null,
+                    customPredicate: record =>
+                        (record.EventId.Id == 1001 || record.EventId.Id == 1002)
+                        && (record.CategoryName?.StartsWith("Agent.", StringComparison.OrdinalIgnoreCase) == true)))
 
                 // Add a processor to capture LLM Token Consumption logs (EventId = 2001)
                 .AddProcessor(sp =>
                 {
-                    try
+                    PopulateLogColumnsDelegate populate = (logRecord, logData) =>
                     {
-                        PopulateLogColumnsDelegate populate = (logRecord, logData) =>
+                        logData["ActivityId"] = Guid.NewGuid().ToString("D");
+                        try
                         {
-                            logData["ActivityId"] = Guid.NewGuid().ToString("D");
-                            try
-                            {
-                                var isProd = builder.Environment.IsProduction();
-                                var subscriptionId = AgentNameHelper.GetSubscriptionId(isProd);
-                                var resourceGroup = AgentNameHelper.GetResourceGroupName(isProd);
-                                var agentName = AgentNameHelper.GetAgentName(isProd);
+                            var isProd = builder.Environment.IsProduction();
+                            var subscriptionId = AgentNameHelper.GetSubscriptionId(isProd);
+                            var resourceGroup = AgentNameHelper.GetResourceGroupName(isProd);
+                            var agentName = AgentNameHelper.GetAgentName(isProd);
 
-                                // Remove the prefix unique ID part (everything after the last double dashes)
-                                var agentNameWithoutPrefix = agentName.Contains("--")
-                                    ? agentName.Substring(0, agentName.LastIndexOf("--"))
-                                    : agentName;
+                            // Remove the prefix unique ID part (everything after the last double dashes)
+                            var agentNameWithoutPrefix = agentName.Contains("--")
+                                ? agentName.Substring(0, agentName.LastIndexOf("--"))
+                                : agentName;
 
-                                var agentResourceId = $"/subscriptions/{subscriptionId}/resourcegroups/{resourceGroup}/providers/microsoft.app/agents/{agentNameWithoutPrefix}";
-                                logData["AgentResourceId"] = agentResourceId;
-                            }
-                            catch (Exception)
-                            {
-                                // best-effort: do not fail ingestion if helper throws
-                                logData["AgentResourceId"] = string.Empty;
-                            }
-                        };
-
-                        // Prefer Event Hub exporter when configured; otherwise fall back to ADX if available
-                        // If trace Event Hub settings are present, use EventHubLogExporter for token consumption logs
-                        if (!string.IsNullOrEmpty(azureSettings?.AgentTraceEventHub.FullyQualifiedNamespace))
-                        {
-                            var ehOptions = new EventHubLogExporterOptions(
-                                fullyQualifiedNamespace: azureSettings.AgentTraceEventHub.FullyQualifiedNamespace,
-                                eventHubName: "tokenconsumptionevents",
-                                populateColumns: populate,
-                                firstPartyAppCertificatePath: azureSettings.AgentTraceEventHub.CertificatePath,
-                                firstPartyAppClientId: azureSettings.AgentTraceEventHub.FirstPartyAppClientId,
-                                firstPartyAppTenantId: azureSettings.AgentTraceEventHub.FirstPartyAppTenantId);
-
-                            var exporter = new EventHubLogExporter(ehOptions);
-                            Func<LogRecord, bool> predicate = record => record.EventId.Id == 2001;
-                            return new CustomizedLogProcessor(exporter, predicate, "TokenConsumptionProcessor");
+                            var agentResourceId = $"/subscriptions/{subscriptionId}/resourcegroups/{resourceGroup}/providers/microsoft.app/agents/{agentNameWithoutPrefix}";
+                            logData["AgentResourceId"] = agentResourceId;
                         }
-
-                        var clusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
-                        var databaseName = GetInternalKustoClusterConfiguration("DatabaseName");
-                        var certificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
-                        var firstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
-                        var firstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
-
-                        // Fallback to Azure Data Explorer when ADX cluster is available
-                        if (!string.IsNullOrEmpty(clusterUri))
+                        catch (Exception)
                         {
-                            var options = new AzureDataExplorerLogExporterOptions(
-                                clusterUri: clusterUri,
-                                databaseName: databaseName,
-                                tableName: "TokenConsumptionEvents",
-                                populateColumns: populate,
-                                firstPartyAppCertificatePath: certificatePath,
-                                firstPartyAppClientId: firstPartyAppClientId,
-                                firstPartyAppTenantId: firstPartyAppTenantId);
-
-                            var exporter = new AzureDataExplorerLogExporter(options);
-                            Func<LogRecord, bool> predicate = record => record.EventId.Id == 2001;
-                            return new CustomizedLogProcessor(exporter, predicate, "TokenConsumptionProcessor");
+                            // best-effort: do not fail ingestion if helper throws
+                            logData["AgentResourceId"] = string.Empty;
                         }
+                    };
 
-                        // No exporter configured -> no-op processor (predicate false)
-                        return new CustomizedLogProcessor(null, record => false, "TokenConsumptionProcessor");
-                    }
-                    catch (Exception ex)
-                    {
-                        var logger = sp.GetService<ILogger<Program>>();
-                        logger?.LogWarning(ex, "Failed to configure TokenConsumptionProcessor exporter, falling back to no-op processor");
-                        return new CustomizedLogProcessor(null, record => false, "TokenConsumptionProcessor");
-                    }
+                    return CreateEventBasedLogProcessor(
+                        sp.GetRequiredService<ILogger<Program>>(),
+                        azureSettings,
+                        adxTableName: "TokenConsumptionEvents",
+                        eventId: 2001,
+                        processorName: "TokenConsumptionProcessor",
+                        populateColumns: populate);
                 })
 
                 // Add a processor to capture Model Request logs (EventId = 3001)
-                .AddProcessor(sp =>
-                {
-                    try
-                    {
-                        // Prefer Event Hub exporter when configured; otherwise fall back to ADX if available
-                        // If trace Event Hub settings are present, use EventHubLogExporter for model request logs
-                        if (!string.IsNullOrEmpty(azureSettings?.AgentTraceEventHub.FullyQualifiedNamespace))
-                        {
-                            var ehOptions = new EventHubLogExporterOptions(
-                                fullyQualifiedNamespace: azureSettings.AgentTraceEventHub.FullyQualifiedNamespace,
-                                eventHubName: "modelrequestevents",
-                                populateColumns: null,
-                                firstPartyAppCertificatePath: azureSettings.AgentTraceEventHub.CertificatePath,
-                                firstPartyAppClientId: azureSettings.AgentTraceEventHub.FirstPartyAppClientId,
-                                firstPartyAppTenantId: azureSettings.AgentTraceEventHub.FirstPartyAppTenantId);
+                .AddProcessor(sp => CreateEventBasedLogProcessor(
+                    sp.GetRequiredService<ILogger<Program>>(),
+                    azureSettings,
+                    adxTableName: "ModelRequestEvents",
+                    eventId: 3001,
+                    processorName: "ModelRequestProcessor"))
 
-                            var exporter = new EventHubLogExporter(ehOptions);
-                            Func<LogRecord, bool> predicate = record => record.EventId.Id == 3001;
-                            return new CustomizedLogProcessor(exporter, predicate, "ModelRequestProcessor");
-                        }
-
-                        var clusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
-                        var databaseName = GetInternalKustoClusterConfiguration("DatabaseName");
-                        var certificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
-                        var firstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
-                        var firstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
-
-                        // Fallback to Azure Data Explorer when ADX cluster is available
-                        if (!string.IsNullOrEmpty(clusterUri))
-                        {
-                            var options = new AzureDataExplorerLogExporterOptions(
-                                clusterUri: clusterUri,
-                                databaseName: databaseName,
-                                tableName: "ModelRequestEvents",
-                                populateColumns: null,
-                                firstPartyAppCertificatePath: certificatePath,
-                                firstPartyAppClientId: firstPartyAppClientId,
-                                firstPartyAppTenantId: firstPartyAppTenantId);
-
-                            var exporter = new AzureDataExplorerLogExporter(options);
-                            Func<LogRecord, bool> predicate = record => record.EventId.Id == 3001;
-                            return new CustomizedLogProcessor(exporter, predicate, "ModelRequestProcessor");
-                        }
-
-                        // No exporter configured -> no-op processor (predicate false)
-                        return new CustomizedLogProcessor(null, record => false, "ModelRequestProcessor");
-                    }
-                    catch (Exception ex)
-                    {
-                        var logger = sp.GetService<ILogger<Program>>();
-                        logger?.LogWarning(ex, "Failed to configure ModelRequestProcessor exporter, falling back to no-op processor");
-                        return new CustomizedLogProcessor(null, record => false, "ModelRequestProcessor");
-                    }
-                })
+                // Add a processor to capture ICM Request logs (EventId = 4001)
+                .AddProcessor(sp => CreateEventBasedLogProcessor(
+                    sp.GetRequiredService<ILogger<Program>>(),
+                    azureSettings,
+                    adxTableName: "IcmRequestEvents",
+                    eventId: 4001,
+                    processorName: "IcmRequestProcessor"))
 
                 // Add a processor for LogInternalXX logs
                 .AddProcessor(sp =>
                 {
-                    // Get Azure Data Explorer configuration for internal logs
                     var ClusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
                     var DatabaseName = GetInternalKustoClusterConfiguration("DatabaseName");
                     var CertificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
@@ -1359,23 +1231,21 @@ public class Program
                     }
 
                     return new CustomizedLogProcessor(
-                        internalLogExporter, // Export internal logs to separate table
+                        internalLogExporter,
                         record =>
                         {
                             // Process only logs from LogInternalXX methods
-                            // Check LogType attribute (from structured logging parameters)
                             if (record.Attributes != null)
                             {
                                 foreach (var kvp in record.Attributes)
                                 {
                                     if (kvp.Key == "LogType" && kvp.Value?.ToString() == "Internal")
                                     {
-                                        return true; // Process internal logs
+                                        return true;
                                     }
                                 }
                             }
-
-                            return false; // Filter out all other logs
+                            return false;
                         },
                         "InternalLogProcessor");
                 })
@@ -1384,8 +1254,6 @@ public class Program
                 .AddProcessor(sp =>
                 {
                     // This processor exports external logs to customer's Kusto cluster
-
-                    // Get external Kusto cluster configuration
                     var externalClusterUri = GetKustoClusterConfiguration("ClusterUri");
                     var externalDatabaseName = GetKustoClusterConfiguration("DatabaseName");
                     var externalIdentity = GetKustoClusterConfiguration("Identity");
@@ -1450,29 +1318,27 @@ public class Program
                                 tableName: "SREAgentDataPlaneEvents",
                                 populateColumns: populateExternalLogColumns,
                                 firstPartyAppCertificatePath: null,
-                                firstPartyAppClientId: null, // Use managed identity client ID
+                                firstPartyAppClientId: null,
                                 firstPartyAppTenantId: null,
                                 identity: externalIdentity));
                     }
 
                     return new CustomizedLogProcessor(
-                        externalLogExporter, // Export external logs to customer's Kusto cluster
+                        externalLogExporter,
                         record =>
                         {
                             // Process only logs from LogExternalXX methods
-                            // Check LogType attribute (from structured logging parameters)
                             if (record.Attributes != null)
                             {
                                 foreach (var kvp in record.Attributes)
                                 {
                                     if (kvp.Key == "LogType" && kvp.Value?.ToString() == "External")
                                     {
-                                        return true; // Process external logs
+                                        return true;
                                     }
                                 }
                             }
-
-                            return false; // Filter out all other logs
+                            return false;
                         },
                         "ExternalLogProcessor");
                 });
@@ -1701,6 +1567,74 @@ public class Program
     {
         const string prefix = "AppSettings__Core__Azure__AgentLogKusto__";
         return Environment.GetEnvironmentVariable($"{prefix}{key}") ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Creates a CustomizedLogProcessor with EventHub and ADX fallback for event-based log filtering.
+    /// EventHub name is automatically derived from the ADX table name by converting to lowercase.
+    /// </summary>
+    private static CustomizedLogProcessor CreateEventBasedLogProcessor(
+        ILogger logger,
+        AzureSettings? azureSettings,
+        string adxTableName,
+        int eventId,
+        string processorName,
+        PopulateLogColumnsDelegate? populateColumns = null,
+        Func<LogRecord, bool>? customPredicate = null)
+    {
+        try
+        {
+            // Default predicate: filter by EventId
+            Func<LogRecord, bool> predicate = customPredicate ?? (record => record.EventId.Id == eventId);
+
+            // Derive EventHub name from ADX table name (lowercase)
+            string eventHubName = adxTableName.ToLowerInvariant();
+
+            // Prefer Event Hub exporter when configured
+            if (!string.IsNullOrEmpty(azureSettings?.AgentTraceEventHub.FullyQualifiedNamespace))
+            {
+                var ehOptions = new EventHubLogExporterOptions(
+                    fullyQualifiedNamespace: azureSettings.AgentTraceEventHub.FullyQualifiedNamespace,
+                    eventHubName: eventHubName,
+                    populateColumns: populateColumns,
+                    firstPartyAppCertificatePath: azureSettings.AgentTraceEventHub.CertificatePath,
+                    firstPartyAppClientId: azureSettings.AgentTraceEventHub.FirstPartyAppClientId,
+                    firstPartyAppTenantId: azureSettings.AgentTraceEventHub.FirstPartyAppTenantId);
+
+                var exporter = new EventHubLogExporter(ehOptions);
+                return new CustomizedLogProcessor(exporter, predicate, processorName);
+            }
+
+            // Fallback to Azure Data Explorer when ADX cluster is available
+            var clusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
+            var databaseName = GetInternalKustoClusterConfiguration("DatabaseName");
+            var certificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
+            var firstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
+            var firstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
+
+            if (!string.IsNullOrEmpty(clusterUri))
+            {
+                var options = new AzureDataExplorerLogExporterOptions(
+                    clusterUri: clusterUri,
+                    databaseName: databaseName,
+                    tableName: adxTableName,
+                    populateColumns: populateColumns,
+                    firstPartyAppCertificatePath: certificatePath,
+                    firstPartyAppClientId: firstPartyAppClientId,
+                    firstPartyAppTenantId: firstPartyAppTenantId);
+
+                var exporter = new AzureDataExplorerLogExporter(options);
+                return new CustomizedLogProcessor(exporter, predicate, processorName);
+            }
+
+            // No exporter configured -> no-op processor
+            return new CustomizedLogProcessor(null, record => false, processorName);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogWarning(ex, "Failed to configure {ProcessorName} exporter, falling back to no-op processor", processorName);
+            return new CustomizedLogProcessor(null, record => false, processorName);
+        }
     }
 
     private static string GetApplicationInsightsConnectionString(WebApplicationBuilder builder)
