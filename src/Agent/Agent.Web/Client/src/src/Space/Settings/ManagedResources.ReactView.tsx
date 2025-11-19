@@ -30,7 +30,7 @@ import {
 } from '@fluentui/react-components';
 import { Add16Regular, ArrowClockwise16Regular, Delete16Regular } from '@fluentui/react-icons';
 import debounce from 'lodash/debounce';
-import { FC, useCallback, useContext, useMemo } from 'react';
+import { FC, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
@@ -98,6 +98,9 @@ const ManagedResources: FC = () => {
         refresh,
         isUpdating,
     } = useManagedResources(resourceId, az);
+
+    const addButtonRef = useRef<HTMLButtonElement | null>(null);
+    const previousHideResourceGroupPicker = useRef(hideResourceGroupPicker);
 
     const openResourceOverviewBlade = useCallback(
         (id: string) => {
@@ -182,6 +185,14 @@ const ManagedResources: FC = () => {
         []
     );
 
+    useEffect(() => {
+        if (!previousHideResourceGroupPicker.current && hideResourceGroupPicker) {
+            addButtonRef.current?.focus();
+        }
+
+        previousHideResourceGroupPicker.current = hideResourceGroupPicker;
+    }, [hideResourceGroupPicker]);
+
     return (
         <div className={styles.container}>
             <div className={styles.header}>{intl.formatMessage(SettingsTabResources.managedResources)}</div>
@@ -198,6 +209,7 @@ const ManagedResources: FC = () => {
             <div className={styles.buttonsContainer}>
                 <Toolbar>
                     <PermissionedToolbarButton
+                        ref={addButtonRef}
                         icon={<Add16Regular />}
                         style={{ paddingLeft: '0px', minWidth: '20px' }}
                         appearance="subtle"

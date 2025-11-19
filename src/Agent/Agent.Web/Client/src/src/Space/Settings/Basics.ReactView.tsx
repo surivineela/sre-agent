@@ -314,7 +314,7 @@ const Basics: FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-5px' }}>
                         <Shimmer isDataLoaded={!agentLoading}>
                             <Switch
-                                aria-labelledby="upgrade-channel-switch-label"
+                                aria-label={intl.formatMessage(SettingsTabResources.upgradeChannel)}
                                 checked={isPreviewChannel}
                                 onChange={onUpgradeChannelToggle}
                                 disabled={agentLoading || isUpdatingUpgradeChannel}

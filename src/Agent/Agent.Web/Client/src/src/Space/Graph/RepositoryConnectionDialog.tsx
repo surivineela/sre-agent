@@ -10,7 +10,7 @@ import {
     Link,
     Textarea,
 } from '@fluentui/react-components';
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { FaGithub } from 'react-icons/fa';
 import { VscAzureDevops } from 'react-icons/vsc';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -206,6 +206,8 @@ interface ConnectRepositoryLinkProps {
 export const ConnectRepositoryLink = ({ resourceId, onSuccess, className }: ConnectRepositoryLinkProps) => {
     const { logAmplitudeControlEvent } = useAzPortalContext();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const triggerLinkRef = useRef<HTMLAnchorElement | null>(null);
+    const previousDialogState = useRef(false);
 
     const onClickConnectRepository = useCallback(() => {
         setIsDialogOpen(true);
@@ -220,9 +222,17 @@ export const ConnectRepositoryLink = ({ resourceId, onSuccess, className }: Conn
         });
     }, [logAmplitudeControlEvent, resourceId]);
 
+    useEffect(() => {
+        if (previousDialogState.current && !isDialogOpen) {
+            triggerLinkRef.current?.focus();
+        }
+
+        previousDialogState.current = isDialogOpen;
+    }, [isDialogOpen]);
+
     return (
         <>
-            <Link className={className} onClick={onClickConnectRepository}>
+            <Link className={className} onClick={onClickConnectRepository} ref={triggerLinkRef}>
                 <FormattedMessage {...ResourceInfoResources.connectRepository} />
             </Link>
             <RepositoryConnectionDialog

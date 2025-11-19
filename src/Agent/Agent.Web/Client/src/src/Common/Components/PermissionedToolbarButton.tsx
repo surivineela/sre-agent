@@ -1,5 +1,5 @@
 import { ToolbarButton, ToolbarButtonProps, Tooltip } from '@fluentui/react-components';
-import { FC, ReactNode } from 'react';
+import { forwardRef, ReactNode } from 'react';
 
 export interface PermissionedToolbarButtonProps extends Omit<ToolbarButtonProps, 'disabled'> {
     /** Whether the user has permission to perform the action */
@@ -16,30 +16,27 @@ export interface PermissionedToolbarButtonProps extends Omit<ToolbarButtonProps,
 /**
  * Permission wrapper specialized for ToolbarButton to avoid typing issues with polymorphic 'as' prop on PermissionedButton.
  */
-export const PermissionedToolbarButton: FC<PermissionedToolbarButtonProps> = ({
-    canPerform,
-    noPermissionTooltip,
-    disabledReason = false,
-    hideIfNoPermission = false,
-    children,
-    ...buttonProps
-}) => {
-    if (!canPerform) {
-        if (hideIfNoPermission) return null;
+export const PermissionedToolbarButton = forwardRef<HTMLButtonElement, PermissionedToolbarButtonProps>(
+    ({ canPerform, noPermissionTooltip, disabledReason = false, hideIfNoPermission = false, children, ...buttonProps }, ref) => {
+        if (!canPerform) {
+            if (hideIfNoPermission) return null;
+            return (
+                <Tooltip content={noPermissionTooltip} relationship="label">
+                    <ToolbarButton {...(buttonProps as ToolbarButtonProps)} disabled ref={ref}>
+                        {children}
+                    </ToolbarButton>
+                </Tooltip>
+            );
+        }
+
         return (
-            <Tooltip content={noPermissionTooltip} relationship="label">
-                <ToolbarButton {...(buttonProps as ToolbarButtonProps)} disabled>
-                    {children}
-                </ToolbarButton>
-            </Tooltip>
+            <ToolbarButton {...(buttonProps as ToolbarButtonProps)} disabled={disabledReason} ref={ref}>
+                {children}
+            </ToolbarButton>
         );
     }
+);
 
-    return (
-        <ToolbarButton {...(buttonProps as ToolbarButtonProps)} disabled={disabledReason}>
-            {children}
-        </ToolbarButton>
-    );
-};
+PermissionedToolbarButton.displayName = 'PermissionedToolbarButton';
 
 export default PermissionedToolbarButton;
