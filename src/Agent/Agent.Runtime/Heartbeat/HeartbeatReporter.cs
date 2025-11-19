@@ -124,6 +124,15 @@ public class HeartbeatReporter
 
                     var agentPayload = JsonSerializer.Serialize(agentInfo, PayloadSerializerOptions);
                     _logger.LogInternalInformation("[ExtendedAgent] {Payload}", agentPayload);
+
+                    // Log with LogAgentAction for aggregation
+                    _logger.LogAgentAction(
+                        action: AgentActionEvents.ExtendedAgent, // Or a more specific action if desired
+                        parameter: agentPayload,
+                        status: "Success",
+                        duration: 0,
+                        threadId: string.Empty,
+                        subAgentName: agent.Name);
                 }
                 catch (Exception ex)
                 {
@@ -151,6 +160,15 @@ public class HeartbeatReporter
 
                     var toolPayload = JsonSerializer.Serialize(toolInfo, PayloadSerializerOptions);
                     _logger.LogInternalInformation("[ExtendedTool] {Payload}", toolPayload);
+
+                    // Log with LogAgentAction for aggregation
+                    _logger.LogAgentAction(
+                        action: AgentActionEvents.ExtendedTool, // Or a more specific action if desired
+                        parameter: toolPayload,
+                        status: "Success",
+                        duration: 0,
+                        threadId: string.Empty,
+                        subAgentName: "ExtendedTool");
                 }
                 catch (Exception ex)
                 {
