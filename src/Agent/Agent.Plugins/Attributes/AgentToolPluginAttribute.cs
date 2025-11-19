@@ -16,7 +16,6 @@ public class AgentToolPluginAttribute : Attribute
     public bool IsIncidentHandlerPlugin { get; set; } = false;
     public IncidentManagementType IncidentPlatform { get; set; } = IncidentManagementType.Icm;
 
-
     /// <summary>
     /// Condition to control enabling/disabling the plugin.
     /// Supports two formats:

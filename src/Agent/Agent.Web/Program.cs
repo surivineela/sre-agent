@@ -513,6 +513,7 @@ public class Program
             .AddTransient<RCAPreflightICMPluginDefinition>()
             .AddTransient<ColdStartPluginDefinition>()
             .AddTransient<LogsPluginDefinition>()
+            .AddSingleton<AggregatedKustoToolsPluginDefinition>()
             .AddTransient<IKubeJavaPlugin, KubePluginJava>()
             .AddTransient<IKubePlugin, KubePlugin>()
             .AddTransient<IChartPlugin, ChartPluginV2>()

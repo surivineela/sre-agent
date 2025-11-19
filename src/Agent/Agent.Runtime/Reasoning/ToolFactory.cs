@@ -34,12 +34,14 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     private readonly IServiceProvider _serviceProvider;
     private readonly IEnumerable<Assembly> _assemblies;
     private readonly Dictionary<string, IDeferredToolFunction<TContext>> _tools = new();
+    private readonly Dictionary<string, AggregateToolCallPluginDefinitionBase> _aggregatePluginDefinitionsByType = new();
     private readonly HashSet<string> _disabledTools = new();
     private readonly HashSet<string> _extendedTools = new();
     private readonly IExtensibilityLoader? _extensibilityLoader;
     private readonly IMcpConnectable _mcpToolsRepository;
     private readonly ISkillRegistry _skillRegistry;
     private readonly bool _handoffReasoningEnabled;
+    private readonly bool _enableAggregateToolFunction;
 
     public int RegisteredToolCount => _tools.Count;
 
@@ -67,6 +69,12 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         var hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
         var experimentalSettings = _serviceProvider.GetRequiredService<ExperimentalSettings>();
         _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? hostEnvironment.IsDevelopment();
+
+        // Get aggregate tool function setting from environment variable
+        var enableAggregateToolEnv = Environment.GetEnvironmentVariable("ENABLE_AGGREGATE_TOOL_FUNCTION");
+        _enableAggregateToolFunction = !string.IsNullOrEmpty(enableAggregateToolEnv) &&
+            (enableAggregateToolEnv.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+             enableAggregateToolEnv.Equals("1", StringComparison.OrdinalIgnoreCase));
     }
 
     protected override Task InitializeAsyncCore()
@@ -265,6 +273,26 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
                     continue;
                 }
 
+                // Cache aggregate plugin definitions (only if aggregate function is enabled)
+                // This needs to happen before we register the methods so they can be wrapped in AggregateDeferredToolFunction
+                var isAggregatePlugin = _enableAggregateToolFunction &&
+                                          typeof(AggregateToolCallPluginDefinitionBase).IsAssignableFrom(pluginType);
+                if (isAggregatePlugin)
+                {
+                    // Get or create the instance and cache it by aggregate type
+                    var aggregateInstance = (AggregateToolCallPluginDefinitionBase)_serviceProvider.GetRequiredService(pluginType);
+                    // Get the aggregate type from the instance property
+                    var aggregateTypeProperty = pluginType.GetProperty("AggregateType", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+                    var aggregateType = aggregateTypeProperty?.GetValue(aggregateInstance) as string;
+
+                    if (!string.IsNullOrEmpty(aggregateType))
+                    {
+                        _aggregatePluginDefinitionsByType[aggregateType] = aggregateInstance;
+                        _logger.LogInternalInformation("Cached aggregate plugin definition for type: {aggregateType}", aggregateType);
+                    }
+                    // Continue to register the methods below (the aggregate function itself)
+                }
+
                 var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
                 // Get all public methods with Description attribute
@@ -277,7 +305,24 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
                     var functionName = method.Name.EndsWith("Async")
                         ? method.Name[..^5]
                         : method.Name;
-                    var tool = new DeferredToolFunction<TContext>(_serviceProvider, pluginType, method, functionName);
+
+                    // Create AggregateDeferredToolFunction if this plugin is an aggregate plugin definition
+                    IDeferredToolFunction<TContext> tool;
+
+
+                    if (isAggregatePlugin)
+                    {
+                        tool = new AggregateDeferredToolFunction<TContext>(
+                            _serviceProvider,
+                            pluginType,
+                            method,
+                            functionName);
+                    }
+                    else
+                    {
+                        tool = new DeferredToolFunction<TContext>(_serviceProvider, pluginType, method, functionName);
+                    }
+
                     if (!RegisterTool(functionName, tool, onNameConflict))
                     {
                         _logger.LogInternalWarning("Failed to register tool {functionName} from type {pluginType} due to name conflict.", functionName, pluginType.FullName);
@@ -359,34 +404,14 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
 
     public bool RegisterTool(YamlToolDefinitionBase tool, BehaviorOnNameConflict onNameConflict)
     {
-
         if (string.IsNullOrWhiteSpace(tool.Name))
         {
             _logger.LogInternalError("Function name cannot be null or whitespace.");
             return false;
         }
 
-        if (_tools.ContainsKey(tool.Name))
-        {
-            switch (onNameConflict)
-            {
-                case BehaviorOnNameConflict.ThrowException:
-                    throw new InvalidOperationException($"Function '{tool.Name}' already exists.");
-                case BehaviorOnNameConflict.Ignore:
-                    _logger.LogInternalWarning("Function '{functionName}' already exists. Ignoring the new function.", tool.Name);
-                    return false;
-
-                case BehaviorOnNameConflict.Overwrite:
-                    _logger.LogInternalWarning("Function '{functionName}' already exists. Overwriting the existing function.", tool.Name);
-                    break;
-            }
-        }
-
         var toolFunction = new YamlToolFunction<TContext>(_serviceProvider, _assemblies, tool);
-        _tools[tool.Name] = toolFunction;
-
-        _logger.LogInternalInformation("Function '{functionName}' registered successfully.", tool.Name);
-        return true;
+        return RegisterTool(tool.Name, toolFunction, onNameConflict);
     }
 
     public bool RegisterTool(AIFunction function, BehaviorOnNameConflict onNameConflict)
@@ -403,6 +428,26 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
             return false;
         }
 
+        // Check if this is a YamlToolFunction with an aggregate type and if aggregate function is enabled
+        if (_enableAggregateToolFunction && function is YamlToolFunction<TContext> yamlFunction)
+        {
+            var aggregateType = yamlFunction.GetAggregateToolType(); // Tool type for YAML tools
+
+            if (!string.IsNullOrEmpty(aggregateType) &&
+                _aggregatePluginDefinitionsByType.TryGetValue(aggregateType, out var aggregateDefinition))
+            {
+                // Register with the aggregate plugin definition instead of _tools
+                aggregateDefinition.RegisterTool(aggregateType, name, function);
+                _logger.LogInternalInformation("Function '{functionName}' registered with aggregate plugin for type '{aggregateType}'.", name, aggregateType);
+
+                // Update the aggregate tool's description with the new aggregated description
+                UpdateAggregateToolDescription(aggregateType, aggregateDefinition);
+
+                return true;
+            }
+        }
+
+        // Normal registration for non-aggregate tools
         if (_tools.ContainsKey(name))
         {
             switch (onNameConflict)
@@ -422,6 +467,40 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         _tools[name] = function;
         _logger.LogInternalInformation("Function '{functionName}' registered successfully.", name);
         return true;
+    }
+
+    /// <summary>
+    /// Updates the description of the aggregate tool function with the aggregated descriptions of all registered tools.
+    /// </summary>
+    private void UpdateAggregateToolDescription(string aggregateType, AggregateToolCallPluginDefinitionBase aggregateDefinition)
+    {
+        try
+        {
+            // Get the aggregated description from the plugin
+            var aggregatedDescription = aggregateDefinition.GetAggregatedDescription();
+
+            if (string.IsNullOrEmpty(aggregatedDescription))
+            {
+                return;
+            }
+
+            // Find the AggregateDeferredToolFunction for this aggregate type in _tools
+            var aggregateDefinitionType = aggregateDefinition.GetType();
+            var aggregateToolEntry = _tools.FirstOrDefault(t =>
+                t.Value is AggregateDeferredToolFunction<TContext> aggregateTool &&
+                aggregateTool.MethodInfo?.DeclaringType == aggregateDefinitionType);
+
+            if (aggregateToolEntry.Value is AggregateDeferredToolFunction<TContext> aggregateFunction)
+            {
+                // Update the aggregate function's description with the aggregated description
+                aggregateFunction.UpdateDescription(aggregatedDescription);
+                _logger.LogInternalInformation("Updated description for aggregate tool '{toolName}' with {aggregateType} tools.", aggregateToolEntry.Key, aggregateType);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to update aggregate tool description for type '{aggregateType}'.", aggregateType);
+        }
     }
 
     public bool TryFindTool(string name, out AIFunction? function)

@@ -243,6 +243,11 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction<TContext> where 
         return _toolDef.Type;
     }
 
+    public string GetAggregateToolType()
+    {
+        return _toolDef.Type;
+    }
+
     public string GetPluginName()
     {
         return _toolDef.Name;
