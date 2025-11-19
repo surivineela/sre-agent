@@ -155,12 +155,20 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
                         </Field>
                     )}
                     {values.frequency === TaskFrequencyKey.Custom ? (
-                        <Field label={intl.formatMessage(ScheduledTasksResources.cronExpression)}>
+                        <Field
+                            label={intl.formatMessage(ScheduledTasksResources.cronExpression)}
+                            validationState={touched.customCron && errors.customCron ? 'error' : undefined}
+                            validationMessage={touched.customCron ? errors.customCron : undefined}
+                            required
+                        >
                             <Input
                                 placeholder={intl.formatMessage(ScheduledTasksResources.cronExpressionPlaceholder)}
                                 value={values.customCron}
                                 onChange={(_, data) => {
                                     setFieldValue('customCron', data.value);
+                                }}
+                                onBlur={() => {
+                                    setFieldTouched('customCron', true);
                                 }}
                             />
                         </Field>

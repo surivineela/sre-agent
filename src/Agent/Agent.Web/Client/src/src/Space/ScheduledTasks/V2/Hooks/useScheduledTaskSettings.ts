@@ -17,6 +17,7 @@ import {
     GroupMessageKey,
     ScheduledTaskFormProps,
     TaskFrequencyKey,
+    validateCronExpression,
 } from '../ScheduledTasksUtilities';
 import { ScheduledTasksContext } from './ScheduledTasksContext';
 
@@ -59,6 +60,24 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
             object({
                 name: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
                 details: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
+                customCron: string().test(
+                    'validateCustomCron',
+                    intl.formatMessage(ScheduledTasksResources.invalidCronExpression),
+                    function (value: string | undefined) {
+                        // Only validate if we're in custom frequency mode and value is not empty
+                        const { frequency } = this.parent;
+                        if (frequency !== TaskFrequencyKey.Custom) {
+                            return true; // Skip validation if not in custom mode
+                        }
+
+                        if (!value || value.trim() === '') {
+                            return false; // Required when in custom mode
+                        }
+
+                        const validation = validateCronExpression(value, intl);
+                        return validation.isValid;
+                    }
+                ),
                 repeatUntil: mixed()
                     .nullable()
                     .test(

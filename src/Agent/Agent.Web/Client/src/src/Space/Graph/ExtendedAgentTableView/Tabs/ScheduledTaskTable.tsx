@@ -3,11 +3,12 @@ import { ArrowClockwise20Regular, Delete16Regular } from '@fluentui/react-icons'
 import { FC, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { getHumanReadableCronExpression } from '../../../../Common/Helpers/CronExpression';
 import { ExtendedAgentsGraphResources, ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgentNodeType, ExtendedTrigger } from '../../../Contracts/ExtendedAgentGraph';
 import { ScheduledTasksContext } from '../../../ScheduledTasks/V2/Hooks/ScheduledTasksContext';
 import { ScheduledTasksFilters } from '../../../ScheduledTasks/V2/ScheduledTasksToolbar';
-import { getHumanReadableCronExpression, TaskStatusFilterKey } from '../../../ScheduledTasks/V2/ScheduledTasksUtilities';
+import { TaskStatusFilterKey } from '../../../ScheduledTasks/V2/ScheduledTasksUtilities';
 import { EntityDeleteConfirmDialog } from '../Common/EntityDeleteConfirmDialog';
 import { EntityTable } from '../Common/EntityTable';
 import { BaseTableItem, EntityTableProps, EntityToolbarProps, ScheduledTaskItem, STATUS } from '../ExtendedAgentTableView.Contracts';

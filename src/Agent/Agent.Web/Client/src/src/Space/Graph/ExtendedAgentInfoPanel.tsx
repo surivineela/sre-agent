@@ -40,6 +40,7 @@ import {
 import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { getHumanReadableCronExpression } from '../../Common/Helpers/CronExpression';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
@@ -65,7 +66,6 @@ import { useExtendedAgentInfoStyles } from '../Styles/ExtendedAgentGraph.styles'
 import { EntityIcon } from './EntityIcon';
 import { ExtendedEntityYamlEditor } from './ExtendedAgentYamlEditor';
 import { ExtendedEntityType } from './ExtendedAgentYamlUtils';
-import { parseCronExpression } from './Utility';
 
 type ExtendedAgentInfoPanelProps = {
     selectedNode?: ExtendedAgentGraphNode;
@@ -497,8 +497,9 @@ export const ExtendedAgentInfoPanel = memo(
                                         {intl.formatMessage(ExtendedAgentsGraphResources.scheduleTitle)}
                                     </Text>
                                     <Text>
-                                        {parseCronExpression(
-                                            trigger.schedule || trigger.cronExpression || intl.formatMessage(SreAgentResources.NA)
+                                        {getHumanReadableCronExpression(
+                                            trigger.schedule || trigger.cronExpression || intl.formatMessage(SreAgentResources.NA),
+                                            intl
                                         )}
                                     </Text>
                                 </div>

@@ -7,12 +7,13 @@ import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalPr
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessageOrStringify } from '../../Common/Clients/ArmClient';
 import { ScheduledTasksClient } from '../../Common/Clients/ScheduledTasksClient';
+import { getHumanReadableCronExpression } from '../../Common/Helpers/CronExpression';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
 import { ScheduledTask } from '../Contracts/ScheduledTasks';
 import { EntityIcon } from '../Graph/EntityIcon';
 import ScheduledTaskStatusBadge from '../ScheduledTasks/V2/Common/ScheduledTaskStatusBadge';
-import { getHumanReadableCronExpression, GroupMessageKey } from '../ScheduledTasks/V2/ScheduledTasksUtilities';
+import { GroupMessageKey } from '../ScheduledTasks/V2/ScheduledTasksUtilities';
 import ScheduledTaskChatMessage from './ScheduledTaskChatMessage';
 
 interface ScheduledTaskCreationChatMessageProps {

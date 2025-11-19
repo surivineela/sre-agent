@@ -135,8 +135,8 @@ export const useConsolidatedCreateIncidentHandler = (
         incidentPlatformType === IncidentManagementType.AzMonitor
             ? TimeDuration.Last15Days
             : handlerMode === 'create'
-                ? TimeDuration.Last60Days
-                : TimeDuration.Last90Days
+              ? TimeDuration.Last60Days
+              : TimeDuration.Last90Days
     );
     const onSelectedTimespanChange = useCallback((value: TimeDuration) => {
         setSelectedTimespan(value);
@@ -381,17 +381,17 @@ export const useConsolidatedCreateIncidentHandler = (
         const [notificationTitle, notificationDescription, notificationErrorMessage, notificationSuccessMessage] =
             saveOrUpdateFilterAction === 'create-incidentFilter'
                 ? [
-                    IncidentManagementNotificationResources.createFilterTitle,
-                    IncidentManagementNotificationResources.createFilterInProgress,
-                    IncidentManagementNotificationResources.createFilterError,
-                    IncidentManagementNotificationResources.createFilterSuccess,
-                ]
+                      IncidentManagementNotificationResources.createFilterTitle,
+                      IncidentManagementNotificationResources.createFilterInProgress,
+                      IncidentManagementNotificationResources.createFilterError,
+                      IncidentManagementNotificationResources.createFilterSuccess,
+                  ]
                 : [
-                    IncidentManagementNotificationResources.updateFilterTitle,
-                    IncidentManagementNotificationResources.updateFilterInProgress,
-                    IncidentManagementNotificationResources.updateFilterError,
-                    IncidentManagementNotificationResources.updateFilterSuccess,
-                ];
+                      IncidentManagementNotificationResources.updateFilterTitle,
+                      IncidentManagementNotificationResources.updateFilterInProgress,
+                      IncidentManagementNotificationResources.updateFilterError,
+                      IncidentManagementNotificationResources.updateFilterSuccess,
+                  ];
 
         const notificationId = azPortalContext.startNotification(
             intl.formatMessage(notificationTitle),
@@ -457,11 +457,7 @@ export const useConsolidatedCreateIncidentHandler = (
 
         if (!saveUpdateOrDeleteHandlerAction || isSubagentTrigger) {
             azPortalContext.stopNotification(notificationId, true, intl.formatMessage(notificationSuccessMessage));
-            exitToHome(
-                values.filterName,
-                handlerCreateOrEditInfo?.handlerId || values.filterName,
-                !handlerCreateOrEditInfo?.filter
-            );
+            exitToHome(values.filterName, handlerCreateOrEditInfo?.handlerId || values.filterName, !handlerCreateOrEditInfo?.filter);
             return;
         }
 
@@ -494,8 +490,8 @@ export const useConsolidatedCreateIncidentHandler = (
             saveUpdateOrDeleteHandlerAction === 'delete-incidentHandler'
                 ? async () => await incidentHandlerClient.deleteHandler(handlerCreateOrEditInfo?.handlerId || '')
                 : saveUpdateOrDeleteHandlerAction === 'create-incidentHandler'
-                    ? async () => await incidentHandlerClient.createHandler(handlerPayload)
-                    : async () => await incidentHandlerClient.updateHandler(handlerPayload);
+                  ? async () => await incidentHandlerClient.createHandler(handlerPayload)
+                  : async () => await incidentHandlerClient.updateHandler(handlerPayload);
 
         const saveUpdateOrDeleteHandlerResult = await saveUpdateOrDeleteHandlerFunction();
         if (!saveUpdateOrDeleteHandlerResult.isSuccessful) {
@@ -526,11 +522,7 @@ export const useConsolidatedCreateIncidentHandler = (
             });
             setHandlerOperationStatus('succeeded');
             azPortalContext.stopNotification(notificationId, true, intl.formatMessage(notificationSuccessMessage));
-            exitToHome(
-                values.filterName,
-                handlerCreateOrEditInfo?.handlerId || values.filterName,
-                !handlerCreateOrEditInfo?.filter
-            );
+            exitToHome(values.filterName, handlerCreateOrEditInfo?.handlerId || values.filterName, !handlerCreateOrEditInfo?.filter);
         }
     }, [
         azPortalContext,

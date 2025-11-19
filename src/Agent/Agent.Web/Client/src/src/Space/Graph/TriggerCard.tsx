@@ -2,9 +2,9 @@ import { Badge, Card, mergeClasses, Text, tokens } from '@fluentui/react-compone
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
+import { getHumanReadableCronExpression } from '../../Common/Helpers/CronExpression';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgentGraphContext, ExtendedAgentGraphNode, ExtendedTrigger } from '../Contracts/ExtendedAgentGraph';
-import { getHumanReadableCronExpression } from '../ScheduledTasks/V2/ScheduledTasksUtilities';
 import { useTriggerNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { EntityIcon, EntityIconProps } from './EntityIcon';
 import { getHandleId } from './Utility';
