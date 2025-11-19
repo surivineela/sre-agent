@@ -1,15 +1,15 @@
 import {
     Card,
-    Dropdown,
     InputOnChangeData,
     Link,
     mergeClasses,
-    Option,
     SearchBox,
     SearchBoxChangeEvent,
     Subtitle2,
     Text,
 } from '@fluentui/react-components';
+import { PillFilter } from '../../../../Common/Components/PillFilter/PillFilter';
+import { LabelKeyPair } from '../../../../Common/Components/PillFilter/ListWithSearch';
 import { ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import debounce from 'lodash/debounce';
@@ -28,8 +28,6 @@ import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.
 import { IncidentItem } from '../ResponsePlanView';
 
 // TODO: Pagination
-
-const all = 'all';
 
 enum ResponsePlanIncidentsGridColumnKey {
     id = 'id',
@@ -56,48 +54,28 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading, onOp
     const { log } = useAzPortalContext();
 
     const [searchText, setSearchText] = useState<string>('');
-    const [severityLevelFilter, setSeverityLevelFilter] = useState<string>(all);
-    const [mitigatedByFilter, setMitigatedByFilter] = useState<string>(all);
+    const [severityLevelFilters, setSeverityLevelFilters] = useState<string[]>([]);
+    const [mitigatedByFilters, setMitigatedByFilters] = useState<string[]>([]);
     const [sortColumnKey, setSortColumnKey] = useState<keyof IncidentItem | undefined>();
     const [isSortedDescending, setIsSortedDescending] = useState<boolean>(false);
 
     // Filter by used values as more convenient, but also not sure if different platforms have different values
-    const severityLevelFilterOptions = useMemo<{ label: string; value: string }[]>(() => {
-        return [
-            { label: intl.formatMessage(SreAgentResources.all), value: all },
-            ...Array.from(new Set(incidents.map(incident => incident.severity))).map(severity => ({
-                label: severity,
-                value: severity,
-            })),
-        ];
-    }, [intl, incidents]);
+    const severityLevelFilterOptions = useMemo<LabelKeyPair[]>(() => {
+        return Array.from(new Set(incidents.map(incident => incident.severity))).map(severity => ({
+            label: severity,
+            key: severity,
+        }));
+    }, [incidents]);
 
-    const mitigatedByFilterOptions = useMemo<{ label: string; value: string }[]>(() => {
+    const mitigatedByFilterOptions = useMemo<LabelKeyPair[]>(() => {
         return [
-            { label: intl.formatMessage(SreAgentResources.all), value: all },
-            { label: intl.formatMessage(SreAgentResources.agent), value: 'agent' },
-            { label: intl.formatMessage(SreAgentResources.user), value: 'user' },
-            { label: intl.formatMessage(SreAgentResources.inProgress), value: 'inProgress' },
+            { label: intl.formatMessage(SreAgentResources.agent), key: 'agent' },
+            { label: intl.formatMessage(SreAgentResources.user), key: 'user' },
+            { label: intl.formatMessage(SreAgentResources.inProgress), key: 'inProgress' },
         ];
     }, [intl]);
 
-    const severityLevelFilterLabel = useMemo<string>(() => {
-        switch (severityLevelFilter) {
-            case all:
-                return intl.formatMessage(IncidentManagementResources.allSeverityLevels);
-            default:
-                return severityLevelFilterOptions.find(option => option.value === severityLevelFilter)?.label || severityLevelFilter;
-        }
-    }, [intl, severityLevelFilter, severityLevelFilterOptions]);
 
-    const mitigatedByFilterLabel = useMemo<string>(() => {
-        switch (mitigatedByFilter) {
-            case all:
-                return intl.formatMessage(IncidentManagementResources.allMitigatedBy);
-            default:
-                return mitigatedByFilterOptions.find(option => option.value === mitigatedByFilter)?.label || mitigatedByFilter;
-        }
-    }, [intl, mitigatedByFilter, mitigatedByFilterOptions]);
 
     const handleColumnClick = useCallback(
         (column: IColumn) => {
@@ -280,18 +258,16 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading, onOp
             );
         }
 
-        if (severityLevelFilter !== all) {
-            filteredGridItems = filteredGridItems.filter(item => item.severity === severityLevelFilter);
+        if (severityLevelFilters.length > 0) {
+            filteredGridItems = filteredGridItems.filter(item => severityLevelFilters.includes(item.severity));
         }
 
-        if (mitigatedByFilter !== all) {
-            filteredGridItems = filteredGridItems.filter(item =>
-                mitigatedByFilter === 'yes' ? item.mitigatedBy === 'agent' : item.mitigatedBy === 'user'
-            );
+        if (mitigatedByFilters.length > 0) {
+            filteredGridItems = filteredGridItems.filter(item => mitigatedByFilters.includes(item.mitigatedBy));
         }
 
         return filteredGridItems;
-    }, [incidents, severityLevelFilter, mitigatedByFilter, searchText]);
+    }, [incidents, severityLevelFilters, mitigatedByFilters, searchText]);
 
     const sortedItems = useMemo(() => {
         if (!sortColumnKey) return filteredGridItems;
@@ -319,36 +295,26 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading, onOp
                     onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
                     disabled={disabled}
                 />
-                <Dropdown
-                    onOptionSelect={(_e, data) => setSeverityLevelFilter(data.optionValue ?? all)}
-                    value={severityLevelFilter}
-                    selectedOptions={[severityLevelFilter]}
-                    button={severityLevelFilterLabel}
-                    aria-label={intl.formatMessage(IncidentManagementResources.filterBySeverityLevel)}
-                    className={styles.searchBox}
+                <PillFilter
+                    filterType="combobox"
+                    label={intl.formatMessage(IncidentManagementResources.severityLevel)}
+                    options={severityLevelFilterOptions}
+                    selectedKeys={severityLevelFilters}
+                    onApply={(keys) => setSeverityLevelFilters(keys)}
                     disabled={disabled}
-                >
-                    {severityLevelFilterOptions.map(option => (
-                        <Option value={option.value} text={option.label}>
-                            {option.label}
-                        </Option>
-                    ))}
-                </Dropdown>
-                <Dropdown
-                    onOptionSelect={(_e, data) => setMitigatedByFilter(data.optionValue ?? all)}
-                    value={mitigatedByFilter}
-                    selectedOptions={[mitigatedByFilter]}
-                    button={mitigatedByFilterLabel}
-                    aria-label={intl.formatMessage(IncidentManagementResources.filterByMitigatedBy)}
-                    className={styles.searchBox}
+                    multiSelect
+                    addAllOption
+                />
+                <PillFilter
+                    filterType="combobox"
+                    label={intl.formatMessage(IncidentManagementResources.mitigatedBy)}
+                    options={mitigatedByFilterOptions}
+                    selectedKeys={mitigatedByFilters}
+                    onApply={(keys) => setMitigatedByFilters(keys)}
                     disabled={disabled}
-                >
-                    {mitigatedByFilterOptions.map(option => (
-                        <Option value={option.value} text={option.label}>
-                            {option.label}
-                        </Option>
-                    ))}
-                </Dropdown>
+                    multiSelect
+                    addAllOption
+                />
             </div>
 
             <div data-is-scrollable="true" user-select="text" style={{ overflowY: 'auto' }}>

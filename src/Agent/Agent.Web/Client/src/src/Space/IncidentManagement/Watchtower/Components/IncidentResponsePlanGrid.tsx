@@ -1,16 +1,16 @@
 import {
     Badge,
     Card,
-    Dropdown,
     InputOnChangeData,
     Link,
     mergeClasses,
-    Option,
     SearchBox,
     SearchBoxChangeEvent,
     Subtitle2,
     Text,
 } from '@fluentui/react-components';
+import { PillFilter } from '../../../../Common/Components/PillFilter/PillFilter';
+import { LabelKeyPair } from '../../../../Common/Components/PillFilter/ListWithSearch';
 import { ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import debounce from 'lodash/debounce';
@@ -23,8 +23,6 @@ import { useIsDarkMode } from '../../../../Common/Hooks/useIsDarkMode';
 import { IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { IncidentHandlerItem } from '../../Analysis';
-
-const all = 'all';
 
 enum IncidentResponsePlanGridColumnKey {
     name = 'name',
@@ -50,45 +48,27 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
     const isDarkMode = useIsDarkMode();
 
     const [searchText, setSearchText] = useState<string>('');
-    const [autonomyLevelFilter, setAutonomyLevelFilter] = useState<string>(all);
-    const [customPlanFilter, setCustomPlanFilter] = useState<string>(all);
+    const [autonomyLevelFilters, setAutonomyLevelFilters] = useState<string[]>([]);
+    const [customPlanFilters, setCustomPlanFilters] = useState<string[]>([]);
     const [sortColumnKey, setSortColumnKey] = useState<keyof IncidentHandlerItem | undefined>();
     const [isSortedDescending, setIsSortedDescending] = useState<boolean>(false);
 
-    const autonomyLevelFilterOptions = useMemo<{ label: string; value: string }[]>(() => {
+    const autonomyLevelFilterOptions = useMemo<LabelKeyPair[]>(() => {
         return [
-            { label: intl.formatMessage(SreAgentResources.all), value: all },
-            { label: getLocalizedAgentMode(AgentMode.readonly, intl), value: AgentMode.readonly },
-            { label: getLocalizedAgentMode(AgentMode.review, intl), value: AgentMode.review },
-            { label: getLocalizedAgentMode(AgentMode.autonomous, intl), value: AgentMode.autonomous },
+            { label: getLocalizedAgentMode(AgentMode.readonly, intl), key: AgentMode.readonly },
+            { label: getLocalizedAgentMode(AgentMode.review, intl), key: AgentMode.review },
+            { label: getLocalizedAgentMode(AgentMode.autonomous, intl), key: AgentMode.autonomous },
         ];
     }, [intl]);
 
-    const customPlanFilterOptions = useMemo<{ label: string; value: string }[]>(() => {
+    const customPlanFilterOptions = useMemo<LabelKeyPair[]>(() => {
         return [
-            { label: intl.formatMessage(SreAgentResources.all), value: all },
-            { label: intl.formatMessage(SreAgentResources.yes), value: 'yes' },
-            { label: intl.formatMessage(SreAgentResources.no), value: 'no' },
+            { label: intl.formatMessage(SreAgentResources.yes), key: 'yes' },
+            { label: intl.formatMessage(SreAgentResources.no), key: 'no' },
         ];
     }, [intl]);
 
-    const autonomyLevelFilterLabel = useMemo<string>(() => {
-        switch (autonomyLevelFilter) {
-            case all:
-                return intl.formatMessage(SreAgentResources.allAutonomyLevels);
-            default:
-                return autonomyLevelFilterOptions.find(option => option.value === autonomyLevelFilter)?.label || autonomyLevelFilter;
-        }
-    }, [intl, autonomyLevelFilter, autonomyLevelFilterOptions]);
 
-    const customPlanFilterLabel = useMemo<string>(() => {
-        switch (customPlanFilter) {
-            case all:
-                return intl.formatMessage(IncidentManagementResources.allCustomPlans);
-            default:
-                return customPlanFilterOptions.find(option => option.value === customPlanFilter)?.label || customPlanFilter;
-        }
-    }, [intl, customPlanFilter, customPlanFilterOptions]);
 
     const handleColumnClick = useCallback(
         (column: IColumn) => {
@@ -302,18 +282,20 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
             );
         }
 
-        if (autonomyLevelFilter !== all) {
-            filteredGridItems = filteredGridItems.filter(item => item.autonomyLevel === autonomyLevelFilter);
+        if (autonomyLevelFilters.length > 0) {
+            filteredGridItems = filteredGridItems.filter(item => autonomyLevelFilters.includes(item.autonomyLevel));
         }
 
-        if (customPlanFilter !== all) {
+        if (customPlanFilters.length > 0 && customPlanFilters.length < 2) {
+            // Only filter if not both selected (which equals "all")
+            const showYes = customPlanFilters.includes('yes');
             filteredGridItems = filteredGridItems.filter(item =>
-                customPlanFilter === 'yes' ? item.planType === 'True' : item.planType === 'False'
+                showYes ? item.planType === 'True' : item.planType === 'False'
             );
         }
 
         return filteredGridItems;
-    }, [intl, responsePlans, autonomyLevelFilter, customPlanFilter, searchText]);
+    }, [intl, responsePlans, autonomyLevelFilters, customPlanFilters, searchText]);
 
     const sortedItems = useMemo(() => {
         if (!sortColumnKey) return filteredGridItems;
@@ -341,36 +323,26 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
                     onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
                     disabled={disabled}
                 />
-                <Dropdown
-                    onOptionSelect={(_e, data) => setAutonomyLevelFilter(data.optionValue ?? all)}
-                    value={autonomyLevelFilter}
-                    selectedOptions={[autonomyLevelFilter]}
-                    button={autonomyLevelFilterLabel}
-                    aria-label={intl.formatMessage(IncidentManagementResources.filterByAutonomyLevel)}
-                    className={styles.searchBox}
+                <PillFilter
+                    filterType="combobox"
+                    label={intl.formatMessage(IncidentManagementResources.autonomyLevel)}
+                    options={autonomyLevelFilterOptions}
+                    selectedKeys={autonomyLevelFilters}
+                    onApply={(keys) => setAutonomyLevelFilters(keys)}
                     disabled={disabled}
-                >
-                    {autonomyLevelFilterOptions.map(option => (
-                        <Option value={option.value} text={option.label}>
-                            {option.label}
-                        </Option>
-                    ))}
-                </Dropdown>
-                <Dropdown
-                    onOptionSelect={(_e, data) => setCustomPlanFilter(data.optionValue ?? all)}
-                    value={customPlanFilter}
-                    selectedOptions={[customPlanFilter]}
-                    button={customPlanFilterLabel}
-                    aria-label={intl.formatMessage(IncidentManagementResources.filterByCustomPlan)}
-                    className={styles.searchBox}
+                    multiSelect
+                    addAllOption
+                />
+                <PillFilter
+                    filterType="combobox"
+                    label={intl.formatMessage(IncidentManagementResources.customPlan)}
+                    options={customPlanFilterOptions}
+                    selectedKeys={customPlanFilters}
+                    onApply={(keys) => setCustomPlanFilters(keys)}
                     disabled={disabled}
-                >
-                    {customPlanFilterOptions.map(option => (
-                        <Option value={option.value} text={option.label}>
-                            {option.label}
-                        </Option>
-                    ))}
-                </Dropdown>
+                    multiSelect
+                    addAllOption
+                />
             </div>
 
             <div data-is-scrollable="true" user-select="text" style={{ overflowY: 'auto' }}>
